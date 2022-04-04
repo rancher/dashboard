@@ -33,8 +33,8 @@ export default class EpinioNamespace extends EpinioResource {
     return this.apps?.length || 0;
   }
 
-  get serviceCount() {
-    return this.services?.length || 0;
+  get configCount() {
+    return this.configurations?.length || 0;
   }
 
   // ------------------------------------------------------------------

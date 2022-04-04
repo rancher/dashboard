@@ -6,6 +6,7 @@ import Checkbox from '@/components/form/Checkbox';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import UnitInput from '@/components/form/UnitInput';
 
 import Volume from '@/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
@@ -20,6 +21,7 @@ import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 
 import VM_MIXIN from '@/mixins/harvester-vm';
 import CreateEditView from '@/mixins/create-edit-view';
+import { AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export default {
   name: 'HarvesterEditVMTemplate',
@@ -35,6 +37,7 @@ export default {
     CruResource,
     CloudConfig,
     LabeledSelect,
+    UnitInput,
     NameNsDescription
   },
 
@@ -177,6 +180,7 @@ export default {
         const res = await this.value.save();
 
         await this.saveSecret(res);
+        await this.applyHooks(AFTER_SAVE_HOOKS);
         this.done();
       } catch (e) {
         this.errors = [e];
@@ -211,11 +215,18 @@ export default {
       :namespaced="true"
     />
 
-    <Checkbox v-if="templateId" v-model="isDefaultVersion" class="mb-20" :label="t('tableHeaders.defaultVersion')" type="checkbox" />
+    <Checkbox
+      v-if="templateId"
+      v-model="isDefaultVersion"
+      class="mb-20"
+      :label="t('tableHeaders.defaultVersion')"
+      type="checkbox"
+      :mode="mode"
+    />
 
     <Tabbed :side-tabs="true" @changed="onTabChanged">
       <Tab name="Basics" :label="t('harvester.vmTemplate.tabs.basics')">
-        <CpuMemory :cpu="spec.template.spec.domain.cpu.cores" :memory="memory" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
+        <CpuMemory :cpu="cpu" :memory="memory" :disabled="isConfig" @updateCpuMemory="updateCpuMemory" />
 
         <div class="mb-20">
           <SSHKey v-model="sshKey" :namespace="templateValue.metadata.namespace" :disable-create="isView" :mode="mode" @update:sshKey="updateSSHKey" />
@@ -239,6 +250,25 @@ export default {
           class="mb-20"
         />
 
+        <div class="row mb-20">
+          <a v-if="showAdvanced" v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
+          <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
+        </div>
+
+        <div v-if="showAdvanced" class="row mb-20">
+          <div class="col span-6">
+            <UnitInput
+              v-model="reservedMemory"
+              v-int-number
+              :label="t('harvester.virtualMachine.input.reservedMemory')"
+              :mode="mode"
+              :input-exponent="2"
+              :increment="1024"
+              :output-modifier="true"
+            />
+          </div>
+        </div>
+
         <CloudConfig
           ref="yamlEditor"
           :mode="mode"
@@ -250,13 +280,27 @@ export default {
         />
 
         <div class="spacer"></div>
-        <Checkbox v-model="installUSBTablet" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
+        <Checkbox
+          v-model="installUSBTablet"
+          class="check"
+          type="checkbox"
+          :label="t('harvester.virtualMachine.enableUsb')"
+          :mode="mode"
+        />
 
         <Checkbox
           v-model="installAgent"
           class="check"
           type="checkbox"
           label-key="harvester.virtualMachine.installAgent"
+          :mode="mode"
+        />
+
+        <Checkbox
+          v-model="efiEnabled"
+          class="check"
+          type="checkbox"
+          :label="t('harvester.virtualMachine.efiEnabled')"
           :mode="mode"
         />
       </Tab>

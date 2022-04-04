@@ -1,7 +1,9 @@
 <script>
+import { mapGetters } from 'vuex';
 import ResourceTable from '@/components/ResourceTable';
 import Link from '@/components/formatter/Link';
 import Shortened from '@/components/formatter/Shortened';
+import FleetIntro from '@/components/fleet/FleetIntro';
 
 import {
   AGE,
@@ -12,8 +14,10 @@ import {
 
 export default {
 
+  name: 'FleetRepos',
+
   components: {
-    ResourceTable, Link, Shortened
+    ResourceTable, Link, Shortened, FleetIntro
   },
   props: {
     rows: {
@@ -28,6 +32,24 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['isVirtualCluster']),
+    filteredRows() {
+      if (!this.rows) {
+        return [];
+      }
+
+      // Returns boolean { [namespace]: true }
+      const selectedWorkspace = this.$store.getters['namespaces']();
+
+      return this.rows.filter((row) => {
+        return !!selectedWorkspace[row.metadata.namespace];
+      });
+    },
+
+    noRows() {
+      return !this.filteredRows.length;
+    },
+
     headers() {
       const out = [
         STATE,
@@ -68,49 +90,53 @@ export default {
 </script>
 
 <template>
-  <ResourceTable
-    v-bind="$attrs"
-    :schema="schema"
-    :headers="headers"
-    :rows="rows"
-    key-field="_key"
-    v-on="$listeners"
-  >
-    <template #cell:repo="{row}">
-      <Link
-        :row="row"
-        :value="row.spec.repo"
-        label-key="repoDisplay"
-        before-icon-key="repoIcon"
-        url-key="spec.repo"
-      />
-      <template v-if="row.commitDisplay">
-        <div class="text-muted">
-          <Shortened long-value-key="status.commit" :row="row" :value="row.commitDisplay" />
-        </div>
-      </template>
-    </template>
-
-    <template #cell:clustersReady="{row}">
-      <span v-if="!row.clusterInfo" class="text-muted">&mdash;</span>
-      <span v-else-if="row.clusterInfo.unready" class="text-warning">{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
-      <span v-else class="cluster-count-info">
-        {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
-        <i
-          v-if="!row.clusterInfo.total"
-          v-tooltip.bottom="parseTargetMode(row)"
-          class="icon icon-warning"
+  <div>
+    <FleetIntro v-if="noRows" />
+    <ResourceTable
+      v-if="!noRows"
+      v-bind="$attrs"
+      :schema="schema"
+      :headers="headers"
+      :rows="rows"
+      key-field="_key"
+      v-on="$listeners"
+    >
+      <template #cell:repo="{row}">
+        <Link
+          :row="row"
+          :value="row.spec.repo"
+          label-key="repoDisplay"
+          before-icon-key="repoIcon"
+          url-key="spec.repo"
         />
-      </span>
-    </template>
+        <template v-if="row.commitDisplay">
+          <div class="text-muted">
+            <Shortened long-value-key="status.commit" :row="row" :value="row.commitDisplay" />
+          </div>
+        </template>
+      </template>
 
-    <template #cell:target="{row}">
-      {{ row.targetInfo.modeDisplay }}
-    </template>
-  </ResourceTable>
+      <template #cell:clustersReady="{row}">
+        <span v-if="!row.clusterInfo" class="text-muted">&mdash;</span>
+        <span v-else-if="row.clusterInfo.unready" class="text-warning">{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
+        <span v-else class="cluster-count-info">
+          {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
+          <i
+            v-if="!row.clusterInfo.total"
+            v-tooltip.bottom="parseTargetMode(row)"
+            class="icon icon-warning"
+          />
+        </span>
+      </template>
+
+      <template #cell:target="{row}">
+        {{ row.targetInfo.modeDisplay }}
+      </template>
+    </ResourceTable>
+  </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .cluster-count-info {
   display: flex;
   align-items: center;

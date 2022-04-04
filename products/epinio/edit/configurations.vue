@@ -5,7 +5,7 @@ import Loading from '@/components/Loading.vue';
 import CruResource from '@/components/CruResource.vue';
 import NameNsDescription from '@/components/form/NameNsDescription.vue';
 import { mapGetters } from 'vuex';
-import ServiceModel from '@/products/epinio/models/services';
+import EpinioConfiguration from '@/products/epinio/models/configurations';
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import KeyValue from '@/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
@@ -37,11 +37,11 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
     value: {
-      type:     Object as PropType<ServiceModel>,
+      type:     Object as PropType<EpinioConfiguration>,
       required: true
     },
     initialValue: {
-      type:     Object as PropType<ServiceModel>,
+      type:     Object as PropType<EpinioConfiguration>,
       required: true
     }
   },
@@ -135,8 +135,8 @@ export default Vue.extend<Data, any, any, any>({
             :value="value.data"
             :initial-empty-row="true"
             :mode="mode"
-            :title="t('epinio.services.pairs.label')"
-            :title-protip="t('epinio.services.pairs.tooltip')"
+            :title="t('epinio.configurations.pairs.label')"
+            :title-protip="t('epinio.configurations.pairs.tooltip')"
             :key-label="t('epinio.applications.create.envvar.keyLabel')"
             :value-label="t('epinio.applications.create.envvar.valueLabel')"
             :parse-lines-from-file="true"

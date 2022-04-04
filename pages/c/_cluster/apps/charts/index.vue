@@ -3,6 +3,7 @@ import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import SelectIconGrid from '@/components/SelectIconGrid';
+import TypeDescription from '@/components/TypeDescription';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, OPERATING_SYSTEM
 } from '@/config/query-params';
@@ -24,6 +25,7 @@ export default {
     Checkbox,
     Select,
     SelectIconGrid,
+    TypeDescription
   },
 
   async fetch() {
@@ -35,7 +37,6 @@ export default {
     this.showDeprecated = query[DEPRECATED] === _FLAGGED;
     this.showHidden = query[HIDDEN] === _FLAGGED;
     this.category = query[CATEGORY] || '';
-    this.operatingSystem = query[OPERATING_SYSTEM] || this.defaultOperatingSystem;
     this.allRepos = this.areAllEnabled();
   },
 
@@ -55,18 +56,6 @@ export default {
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
     hideRepos: mapPref(HIDE_REPOS),
-
-    showWindowsClusterNoAppsSplash() {
-      const isWindows = this.currentCluster.providerOs === 'windows';
-      const { filteredCharts } = this;
-      let showSplash = false;
-
-      if ( isWindows && filteredCharts.length === 0 ) {
-        showSplash = true;
-      }
-
-      return showSplash;
-    },
 
     repoOptions() {
       let nextColor = 0;
@@ -153,14 +142,13 @@ export default {
       const enabledCharts = (this.enabledCharts || []);
 
       return filterAndArrangeCharts(enabledCharts, {
-        os:             this.operatingSystem,
-        category:       this.category,
-        searchQuery:    this.searchQuery,
-        showDeprecated: this.showDeprecated,
-        showHidden:     this.showHidden,
-        hideRepos:      this.hideRepos,
-        hideTypes:      [CATALOG._CLUSTER_TPL],
-        showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+        category:         this.category,
+        searchQuery:      this.searchQuery,
+        showDeprecated:   this.showDeprecated,
+        showHidden:       this.showHidden,
+        hideRepos:        this.hideRepos,
+        hideTypes:        [CATALOG._CLUSTER_TPL],
+        showPrerelease:   this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     },
 
@@ -194,67 +182,6 @@ export default {
       return out;
     },
 
-    operatingSystemChartCounts() {
-      const counts = { linux: 0, windows: 0 };
-      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
-
-      this.enabledCharts.forEach((chart) => {
-        const windowsVersions = compatibleVersionsFor(chart.versions, 'windows', showPrerelease);
-        const linuxVersions = compatibleVersionsFor(chart.versions, 'linux', showPrerelease);
-
-        if (windowsVersions.length > 0) {
-          counts['windows'] += 1;
-        }
-
-        if (linuxVersions.length > 0) {
-          counts['linux'] += 1;
-        }
-      });
-
-      return counts;
-    },
-
-    operatingSystemOptions() {
-      return [
-        {
-          label: this.t('catalog.charts.operatingSystems.all'),
-          value: '',
-          count: this.enabledCharts.length
-        },
-        {
-          label: this.t('catalog.charts.operatingSystems.linux'),
-          value: 'linux',
-          count: this.operatingSystemChartCounts.linux
-        },
-        {
-          label: this.t('catalog.charts.operatingSystems.windows'),
-          value: 'windows',
-          count: this.operatingSystemChartCounts.windows
-        }
-      ];
-    },
-
-    defaultOperatingSystem() {
-      const linuxCount = this.currentCluster.status.linuxWorkerCount;
-      const windowsCount = this.currentCluster.status.windowsWorkerCount;
-
-      if (linuxCount > windowsCount) {
-        return 'linux';
-      }
-
-      if (windowsCount > linuxCount) {
-        return 'windows';
-      }
-
-      return '';
-    },
-
-    showOperatingSystemOptions() {
-      const linuxCount = this.currentCluster.status.linuxWorkerCount;
-      const windowsCount = this.currentCluster.status.windowsWorkerCount;
-
-      return linuxCount > 0 && windowsCount > 0;
-    }
   },
 
   watch: {
@@ -329,24 +256,15 @@ export default {
 
     selectChart(chart) {
       let version;
-      const isWindows = this.currentCluster.providerOs === 'windows';
+      const OSs = this.currentCluster.workerOSs;
       const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
-      const windowsVersions = compatibleVersionsFor(chart.versions, 'windows', showPrerelease);
-      const linuxVersions = compatibleVersionsFor(chart.versions, 'linux', showPrerelease);
-      const allVersions = compatibleVersionsFor(chart.versions, null, showPrerelease);
+      const compatibleVersions = compatibleVersionsFor(chart, OSs, showPrerelease);
+      const versions = chart.versions;
 
-      if ( isWindows && windowsVersions.length ) {
-        version = windowsVersions[0].version;
-      } else if ( !isWindows && linuxVersions.length ) {
-        version = linuxVersions[0].version;
-      } else if ( allVersions.length ) {
-        version = allVersions[0].version;
-      }
-
-      if ( !version ) {
-        console.warn(`Cannot select chart '${ chart.chartName }' (no compatible version available for '${ this.currentCluster.providerOs }')`); // eslint-disable-line no-console
-
-        return;
+      if (compatibleVersions.length > 0) {
+        version = compatibleVersions[0].version;
+      } else {
+        version = versions[0].version;
       }
 
       this.$router.push({
@@ -394,8 +312,8 @@ export default {
         </h1>
       </div>
     </header>
-
-    <div class="left-right-split" :class="{'with-os-options': showOperatingSystemOptions}">
+    <TypeDescription resource="chart" />
+    <div class="left-right-split">
       <Select
         :searchable="false"
         :options="repoOptionsForDropdown"
@@ -437,22 +355,6 @@ export default {
         </template>
       </Select>
 
-      <Select
-        v-if="showOperatingSystemOptions"
-        v-model="operatingSystem"
-        :clearable="false"
-        :searchable="false"
-        :options="operatingSystemOptions"
-        placement="bottom"
-        label="label"
-        style="min-width: 200px;"
-        :reduce="opt => opt.value"
-      >
-        <template #option="opt">
-          {{ opt.label }} ({{ opt.count }})
-        </template>
-      </Select>
-
       <div class="filter-block">
         <input
           ref="searchQuery"
@@ -470,9 +372,9 @@ export default {
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
 
     <div v-if="allCharts.length">
-      <div v-if="filteredCharts.length === 0 && showWindowsClusterNoAppsSplash" style="width: 100%;">
+      <div v-if="filteredCharts.length === 0" style="width: 100%;">
         <div class="m-50 text-center">
-          <h1>{{ t('catalog.charts.noWindows') }}</h1>
+          <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
       </div>
       <SelectIconGrid

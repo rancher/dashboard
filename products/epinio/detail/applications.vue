@@ -3,13 +3,21 @@ import Vue, { PropType } from 'vue';
 import Application from '@/products/epinio/models/applications';
 import SimpleBox from '@/components/SimpleBox.vue';
 import ConsumptionGauge from '@/components/ConsumptionGauge.vue';
+import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import ResourceTable from '@/components/ResourceTable.vue';
+import Tabbed from '@/components/Tabbed/index.vue';
+import Tab from '@/components/Tabbed/Tab.vue';
+import PlusMinus from '@/components/form/PlusMinus.vue';
+import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
 interface Data {
 }
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
-  components: { SimpleBox, ConsumptionGauge },
+  components: {
+    SimpleBox, ConsumptionGauge, ResourceTable, Tabbed, Tab, PlusMinus
+  },
 
   props: {
     value: {
@@ -25,32 +33,60 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
   },
+
+  data() {
+    return {
+      appInstanceSchema: this.$store.getters[`${ EPINIO_PRODUCT_NAME }/schemaFor`](EPINIO_TYPES.APP_INSTANCE),
+      saving:            false,
+    };
+  },
+
+  methods: {
+    async updateInstances(newInstances: number) {
+      this.$set(this, 'saving', true);
+      try {
+        this.value.configuration.instances = newInstances;
+        await this.value.update();
+        await this.value.forceFetch();
+      } catch (err) {
+        console.error(`Failed to scale Application: `, epinioExceptionToErrorsArray(err)); // eslint-disable-line no-console
+      }
+
+      this.$set(this, 'saving', false);
+    }
+  },
+
+  computed: {}
+
 });
 </script>
 
 <template>
   <div>
-    <h3 class="mt-20">
-      {{ t('epinio.applications.detail.counts.label') }}
-    </h3>
-    <div class="simple-box-row">
-      <SimpleBox>
-        <div class="box">
-          <h1>{{ value.serviceCount }}</h1>
-          <h3>
-            {{ t('epinio.applications.detail.counts.service') }}
-          </h3>
-        </div>
-      </SimpleBox>
-      <SimpleBox>
+    <div class="simple-box-row mt-40">
+      <SimpleBox class="routes">
         <div class="box">
           <h1>{{ value.routeCount }}</h1>
           <h3>
             {{ t('epinio.applications.detail.counts.routes') }}
           </h3>
         </div>
+        <ul>
+          <li v-for="(route) in value.configuration.routes" :key="route.id">
+            <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
+            <span v-else :key="route.id + 'a'">{{ `https://${route}` }}</span>
+          </li>
+        </ul>
       </SimpleBox>
-      <SimpleBox>
+      <SimpleBox class="services">
+        <div class="box">
+          <h1>{{ value.configCount }}</h1>
+          <h3>
+            {{ t('epinio.applications.detail.counts.config') }}
+          </h3>
+        </div>
+      </SimpleBox>
+      <SimpleBox class="envs">
         <div class="box">
           <h1>{{ value.envCount }}</h1>
           <h3>
@@ -59,69 +95,71 @@ export default Vue.extend<Data, any, any, any>({
         </div>
       </SimpleBox>
     </div>
-    <h3 v-if="value.configuration.routes.length" class="mt-40">
-      {{ t('epinio.applications.detail.routes.label') }}
-    </h3>
-    <div>
-      <ul>
-        <li v-for="(route) in value.configuration.routes" :key="route.id">
-          <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
-          <span v-else :key="route.id + 'a'">{{ `https://${route}` }}</span>
-        </li>
-      </ul>
-    </div>
-    <h3 v-if="value.deployment" class="mt-40">
+    <h3 v-if="value.deployment" class="mt-20">
       {{ t('epinio.applications.detail.deployment.label') }}
     </h3>
-    <div v-if="value.deployment" class="simple-box-row">
-      <SimpleBox>
-        <ConsumptionGauge
-          :resource-name="t('epinio.applications.detail.deployment.instances')"
-          :capacity="value.desiredInstances"
-          :used="value.readyInstances"
-          :used-as-resource-name="true"
-          :color-stops="{ 70: '--success', 30: '--warning', 0: '--error' }"
-        >
-        </ConsumptionGauge>
-      </SimpleBox>
-      <!--
-          This information will be moved following https://github.com/epinio/ui/issues/62
-          Like Stratos we could show a summary of low/high/average
-      -->
-      <!-- <SimpleBox>
-        <div class="box">
-          <h1>{{ value.memory }}</h1>
-          <h3>
-            {{ t('epinio.applications.detail.deployment.memory') }}
-          </h3>
+
+    <Tabbed v-if="value.deployment" class="deployment" default-tab="summary">
+      <Tab label-key="epinio.applications.detail.deployment.summary" name="summary" :weight="1">
+        <div class="simple-box-row app-instances">
+          <SimpleBox>
+            <ConsumptionGauge
+              :resource-name="t('epinio.applications.detail.deployment.instances')"
+              :capacity="value.desiredInstances"
+              :used="value.readyInstances"
+              :used-as-resource-name="true"
+              :color-stops="{ 70: '--success', 30: '--warning', 0: '--error' }"
+            >
+            </ConsumptionGauge>
+            <div class="scale-instances">
+              <PlusMinus class="mt-15 mb-10" :value="value.desiredInstances" :disabled="saving" @minus="updateInstances(value.desiredInstances-1)" @plus="updateInstances(value.desiredInstances+1)" />
+            </div>
+            <table class="stats">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Min</th>
+                  <th>Max</th>
+                  <th>Avg</th>
+                </tr>
+              </thead>
+              <tr>
+                <td>{{ t('tableHeaders.memory') }}</td>
+                <td>{{ value.instanceMemory.min }}</td>
+                <td>{{ value.instanceMemory.max }}</td>
+                <td>{{ value.instanceMemory.avg }}</td>
+              </tr>
+              <tr>
+                <td>{{ t('tableHeaders.cpu') }}</td>
+                <td>{{ value.instanceCpu.min }}</td>
+                <td>{{ value.instanceCpu.max }}</td>
+                <td>{{ value.instanceCpu.avg }}</td>
+              </tr>
+            </table>
+          </SimpleBox>
+          <SimpleBox v-if="value.sourceInfo">
+            <div class="deployment__origin__row">
+              <h4>Origin</h4><h4>
+                {{ value.sourceInfo.label }}
+              </h4>
+            </div>
+            <div v-for="d of value.sourceInfo.details" :key="d.label" class="deployment__origin__row">
+              <h4>{{ d.label }}</h4><h4>{{ d.value }}</h4>
+            </div>
+          </SimpleBox>
+          <SimpleBox v-if="value.deployment.username">
+            <div class="deployment__origin__row">
+              <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}</h4><h4>
+                {{ value.deployment.username }}
+              </h4>
+            </div>
+          </SimpleBox>
         </div>
-      </SimpleBox>
-      <SimpleBox>
-        <div class="box">
-          <h1>{{ value.cpu }}</h1>
-          <h3>
-            {{ t('epinio.applications.detail.deployment.cpu') }}
-          </h3>
-        </div>
-      </SimpleBox> -->
-      <SimpleBox v-if="value.sourceInfo">
-        <div class="deployment__origin__row">
-          <h4>Origin</h4><h4>
-            {{ value.sourceInfo.label }}
-          </h4>
-        </div>
-        <div v-for="d of value.sourceInfo.details" :key="d.label" class="deployment__origin__row">
-          <h4>{{ d.label }}</h4><h4>{{ d.value }}</h4>
-        </div>
-      </SimpleBox>
-      <SimpleBox v-if="value.deployment.username">
-        <div class="deployment__origin__row">
-          <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}</h4><h4>
-            {{ value.deployment.username }}
-          </h4>
-        </div>
-      </SimpleBox>
-    </div>
+      </Tab>
+      <Tab label-key="epinio.applications.detail.deployment.instances" name="instances">
+        <ResourceTable :schema="appInstanceSchema" :rows="value.instances" :table-actions="false" />
+      </Tab>
+    </Tabbed>
   </div>
 </template>
 
@@ -134,6 +172,22 @@ export default Vue.extend<Data, any, any, any>({
     width: 300px;
     max-width: 350px;
     margin-bottom: 20px;
+
+    &.routes {
+      width: 310px;
+      max-width: 360px;
+    }
+
+    &.services,&.envs {
+      width: 290px;
+      max-width: 340px;
+    }
+
+    ul {
+      word-break: break-all;
+      padding-left: 20px;
+    }
+
     &:not(:last-of-type) {
       margin-right: 20px;
     }
@@ -170,6 +224,27 @@ export default Vue.extend<Data, any, any, any>({
       justify-content: center;
     }
   }
+}
+
+.deployment {
+  max-width: 955px;
+  .simple-box {
+    margin-bottom: 0;
+    width: 290px;
+    max-width: 340px;
+  }
+
+  .app-instances {
+    tr td {
+      min-width:58px;
+    }
+
+    .scale-instances {
+      display: flex;
+      justify-content: center;
+    }
+  }
+
 }
 
 </style>

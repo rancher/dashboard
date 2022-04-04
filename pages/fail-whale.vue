@@ -11,7 +11,6 @@ export default {
   components: { BrandImage },
 
   data() {
-    const home = this.$router.resolve({ name: 'home' }).href;
     const store = this.$store;
 
     if ( process.client && !store.state.error && !store.state.cameFromError) {
@@ -19,10 +18,17 @@ export default {
       this.$router.replace('/');
     }
 
-    const isOnlyHarvester = getVendor() === HARVESTER;
+    let home = this.$router.resolve({ name: 'home' }).href;
+
+    // TODO: RC Tech Debt - both of these should use isSingleProduct.logoRoute but isSingleProduct may not have loaded yet....
+    if (getVendor() === HARVESTER) {
+      home = 'c/local/harvester/harvesterhci.io.dashboard';
+    } else if (this.$config.rancherEnv === 'epinio') {
+      home = 'ext/epinio/c/default/applications';
+    }
 
     return {
-      home:          isOnlyHarvester ? 'c/local/harvester/harvesterhci.io.dashboard' : home,
+      home,
       previousRoute: '',
       styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
     };

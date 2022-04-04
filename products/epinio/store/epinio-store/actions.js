@@ -1,5 +1,5 @@
 import { SCHEMA } from '@/config/types';
-import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_STANDALONE_CLUSTER_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { normalizeType } from '@/plugins/core-store/normalize';
 import { handleSpoofedRequest } from '@/plugins/core-store/actions';
 import { base64Encode } from '@/utils/crypto';
@@ -44,10 +44,21 @@ export default {
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
 
-    return await dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true })
-      .then(() => {
-        if (rootGetters['isSingleProduct']) {
-          const prependPath = `/pp/v1/proxy`;
+    const isSingleProduct = rootGetters['isSingleProduct'];
+
+    let ps = Promise.resolve(opt?.prependPath);
+
+    if (isSingleProduct) {
+      if (opt?.prependPath === undefined) {
+        ps = dispatch('findSingleProductCNSI').then(cnsi => `/pp/v1/direct/r/${ cnsi?.guid }`);
+      }
+    } else {
+      ps = dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true }).then(() => '');
+    }
+
+    return await ps
+      .then((prependPath = opt?.prependPath) => {
+        if (isSingleProduct) {
           const url = parseUrl(opt.url);
 
           if (!url.path.startsWith(prependPath)) {
@@ -99,10 +110,6 @@ export default {
           return responseObject(res);
         }
       }).catch((err) => {
-        if (growlOnError) {
-          dispatch('growl/fromError', { title: `Epinio Request to ${ opt.url }`, err }, { root: true });
-        }
-
         if ( !err || !err.response ) {
           return Promise.reject(err);
         }
@@ -111,7 +118,10 @@ export default {
 
         // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
         if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
-          return Promise.reject(err);
+          // return Promise.reject(err);
+          dispatch('auth/logout', opt.logoutOnError, { root: true });
+        } else if (growlOnError) {
+          dispatch('growl/fromError', { title: `Epinio Request to ${ opt.url }`, err }, { root: true });
         }
 
         if ( typeof res.data !== 'undefined' ) {
@@ -177,9 +187,15 @@ export default {
         collectionMethods: ['get', 'post'],
       }, {
         product:           EPINIO_PRODUCT_NAME,
-        id:                EPINIO_TYPES.SERVICE,
+        id:                EPINIO_TYPES.APP_INSTANCE,
         type:              'schema',
-        links:             { collection: '/api/v1/services' },
+        links:             { collection: '/api/v1/na' },
+        collectionMethods: ['get'],
+      }, {
+        product:           EPINIO_PRODUCT_NAME,
+        id:                EPINIO_TYPES.CONFIGURATION,
+        type:              'schema',
+        links:             { collection: '/api/v1/configurations' },
         collectionMethods: ['get', 'post'],
         resourceFields:    { },
         attributes:        { namespaced: true }
@@ -213,4 +229,27 @@ export default {
     commit('updateNamespaces', { filters }, { root: true });
   },
 
+  findSingleProductCNSI: async( { dispatch, commit, getters } ) => {
+    const singleProductCNSI = getters['singleProductCNSI']();
+
+    if (singleProductCNSI) {
+      return singleProductCNSI;
+    }
+
+    const { data: endpoints } = await dispatch('request', {
+      opt: {
+        url:         '/endpoints',
+        prependPath: '/pp/v1'
+      }
+    });
+    const cnsi = endpoints?.find(e => e.name === EPINIO_STANDALONE_CLUSTER_NAME);
+
+    if (!cnsi) {
+      console.warn('Unable to find the CNSI guid of the Epinio Endpoint');// eslint-disable-line no-console
+    }
+
+    commit('singleProductCNSI', cnsi);
+
+    return cnsi;
+  }
 };

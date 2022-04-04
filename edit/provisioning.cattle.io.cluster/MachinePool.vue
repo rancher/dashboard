@@ -13,6 +13,8 @@ import { randomStr } from '@/utils/string';
 
 export default {
 
+  name: 'MachinePool',
+
   components: {
     LabeledInput,
     Checkbox,
@@ -70,6 +72,23 @@ export default {
       }
 
       return importMachineConfig('generic');
+    },
+
+    isWindows() {
+      return this.value?.config?.os === 'windows';
+    }
+
+  },
+
+  watch: {
+    isWindows(neu) {
+      if (neu) {
+        this.value.pool.etcdRole = false;
+        this.value.pool.controlPlaneRole = false;
+        this.value.pool.machineOS = 'windows';
+      } else {
+        this.value.pool.machineOS = 'linux';
+      }
     }
   },
 
@@ -127,11 +146,13 @@ export default {
           v-model="value.pool.etcdRole"
           :mode="mode"
           label="etcd"
+          :disabled="isWindows"
         />
         <Checkbox
           v-model="value.pool.controlPlaneRole"
           :mode="mode"
           label="Control Plane"
+          :disabled="isWindows"
         />
         <Checkbox
           v-model="value.pool.workerRole"

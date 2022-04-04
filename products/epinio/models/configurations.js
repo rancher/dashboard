@@ -5,7 +5,7 @@ import EpinioResource from './epinio-resource';
 // POST - {"name":"my-service","data":{"foo":"bar"}}
 // GET - { "boundapps": null, "name": "my-service" }
 
-export default class EpinioService extends EpinioResource {
+export default class EpinioConfiguration extends EpinioResource {
   get links() {
     return {
       update: this.getUrl(),
@@ -16,7 +16,7 @@ export default class EpinioService extends EpinioResource {
   }
 
   getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
-    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/services/${ name || '' }` });
+    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/configurations/${ name || '' }` });
   }
 
   get applications() {
@@ -62,11 +62,11 @@ export default class EpinioService extends EpinioResource {
   // ------------------------------------------------------------------
 
   trace(text, ...args) {
-    console.log(`### Service: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
+    console.log(`### Config: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
   }
 
   async create() {
-    this.trace('Create the service resource');
+    this.trace('Create the config resource');
 
     await this.followLink('create', {
       method:  'post',
@@ -82,7 +82,7 @@ export default class EpinioService extends EpinioResource {
   }
 
   async update() {
-    this.trace('Update the service resource');
+    this.trace('Update the config resource');
     await this.followLink('update', {
       method:  'put',
       headers: {
@@ -91,6 +91,10 @@ export default class EpinioService extends EpinioResource {
       },
       data: { ...this.data }
     });
+  }
+
+  async remove() {
+    return await super.remove({ data: { unbind: true } });
   }
 
   // ------------------------------------------------------------------

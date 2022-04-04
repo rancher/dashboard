@@ -1,7 +1,7 @@
 <script>
 import ConsumptionGauge from '@/components/ConsumptionGauge';
 import { METRIC, NODE } from '@/config/types';
-import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
+import { formatSi, exponentNeeded, UNITS, parseSi } from '@/utils/units';
 
 export default {
   name:       'HarvesterMemoryUsed',
@@ -21,6 +21,11 @@ export default {
     resourceName: {
       type:     String,
       default: ''
+    },
+
+    showUsed: {
+      type:    Boolean,
+      default: false,
     },
   },
 
@@ -56,9 +61,17 @@ export default {
       return node;
     },
 
-    used() {
+    reserved() {
       if (this.metrics) {
         return this.node.memoryReserved;
+      } else {
+        return 0;
+      }
+    },
+
+    used() {
+      if (this.metrics) {
+        return parseSi(this.metrics?.usage?.memory || '0m', { increment: 1024 });
       } else {
         return 0;
       }
@@ -82,22 +95,46 @@ export default {
 </script>
 
 <template>
-  <ConsumptionGauge
-    :capacity="memoryTotal"
-    :used="used"
-    :units="memoryUnits"
-    :number-formatter="memoryFormatter"
-    :resource-name="resourceName"
-  >
-    <template #title="{amountTemplateValues, formattedPercentage}">
-      <span>
-        {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
-      </span>
-      <span>
-        {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
-        <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}
+  <div>
+    <ConsumptionGauge
+      :capacity="memoryTotal"
+      :used="reserved"
+      :units="memoryUnits"
+      :number-formatter="memoryFormatter"
+      :resource-name="resourceName"
+    >
+      <template #title="{amountTemplateValues, formattedPercentage}">
+        <span>
+          {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
         </span>
-      </span>
-    </template>
-  </ConsumptionGauge>
+        <span>
+          {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
+          <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}
+          </span>
+        </span>
+      </template>
+    </ConsumptionGauge>
+    <div
+      v-if="showUsed"
+      class="mt-10"
+    >
+      <ConsumptionGauge
+        :capacity="memoryTotal"
+        :used="used"
+        :units="memoryUnits"
+        :number-formatter="memoryFormatter"
+      >
+        <template #title="{amountTemplateValues, formattedPercentage}">
+          <span>
+            {{ t('clusterIndexPage.hardwareResourceGauge.used') }}
+          </span>
+          <span>
+            {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
+            <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}
+            </span>
+          </span>
+        </template>
+      </ConsumptionGauge>
+    </div>
+  </div>
 </template>

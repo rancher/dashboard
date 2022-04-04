@@ -5,7 +5,7 @@ import Application from '@/products/epinio/models/applications';
 import { EPINIO_TYPES } from '@/products/epinio/types';
 import { sortBy } from '@/utils/sort';
 import LabeledSelect from '@/components/form/LabeledSelect.vue';
-import EpinioService from '@/products/epinio/models/services';
+import EpinioConfiguration from '@/products/epinio/models/configurations';
 
 interface Data {
   values: string[]
@@ -25,18 +25,18 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   async fetch() {
-    await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.SERVICE });
+    await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.CONFIGURATION });
   },
 
   data() {
-    return { values: this.application.configuration.services };
+    return { values: this.application.configuration.configurations };
   },
 
   computed: {
-    services() {
-      const list = this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE)
-        .filter((s: EpinioService) => s.metadata.namespace === this.application.metadata.namespace)
-        .map((s: EpinioService) => ({
+    configurations() {
+      const list = this.$store.getters['epinio/all'](EPINIO_TYPES.CONFIGURATION)
+        .filter((s: EpinioConfiguration) => s.metadata.namespace === this.application.metadata.namespace)
+        .map((s: EpinioConfiguration) => ({
           label: s.metadata.name,
           value: s.metadata.name,
         }));
@@ -44,8 +44,8 @@ export default Vue.extend<Data, any, any, any>({
       return sortBy(list, 'label');
     },
 
-    noServices() {
-      return !this.$fetchState.pending && !this.services.length;
+    noConfigs() {
+      return !this.$fetchState.pending && !this.configurations.length;
     }
   },
 
@@ -54,9 +54,9 @@ export default Vue.extend<Data, any, any, any>({
       this.$emit('change', this.values);
     },
 
-    noServices(neu) {
+    noConfigs(neu) {
       if (neu && this.values?.length) {
-        // Selected services are no longer valid
+        // Selected configurations are no longer valid
         this.values = [];
       }
     }
@@ -70,13 +70,13 @@ export default Vue.extend<Data, any, any, any>({
     <LabeledSelect
       v-model="values"
       :loading="$fetchState.pending"
-      :disabled="noServices"
-      :options="services"
+      :disabled="noConfigs"
+      :options="configurations"
       :searchable="true"
       :mode="mode"
       :multiple="true"
-      :label="t('typeLabel.services', { count: 2})"
-      :placeholder="noServices ? t('epinio.applications.steps.services.select.placeholderNoOptions') : t('epinio.applications.steps.services.select.placeholderWithOptions')"
+      :label="t('typeLabel.configurations', { count: 2})"
+      :placeholder="noConfigs ? t('epinio.applications.steps.configurations.select.placeholderNoOptions') : t('epinio.applications.steps.configurations.select.placeholderWithOptions')"
     />
   </div>
 </template>

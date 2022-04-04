@@ -55,10 +55,6 @@ export default {
     }
 
     try {
-      if ( !this.instanceInfo ) {
-        this.instanceInfo = await this.$store.dispatch('aws/instanceInfo');
-      }
-
       const region = this.value.region || this.credential?.decodedData.defaultRegion || this.$store.getters['aws/defaultRegion'];
 
       if ( !this.value.region ) {
@@ -67,6 +63,10 @@ export default {
 
       this.ec2Client = await this.$store.dispatch('aws/ec2', { region, cloudCredentialId: this.credentialId });
       this.kmsClient = await this.$store.dispatch('aws/kms', { region, cloudCredentialId: this.credentialId });
+
+      if ( !this.instanceInfo ) {
+        this.instanceInfo = await this.$store.dispatch('aws/instanceInfo', { client: this.ec2Client } );
+      }
 
       const hash = {};
 

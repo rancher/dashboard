@@ -1,7 +1,9 @@
-import { NAME, SIMPLE_NAME, STATE } from '@/config/table-headers';
+import {
+  AGE, NAME, RAM, SIMPLE_NAME, STATE
+} from '@/config/table-headers';
 import { DSL } from '@/store/type-map';
 import { createEpinioRoute, rootEpinioRoute } from '@/products/epinio/utils/custom-routing';
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
+import { EPINIO_PRODUCT_NAME, EPINIO_STANDALONE_CLUSTER_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import EpinioDiscovery from '@/products/epinio/utils/epinio-discovery';
 import { MULTI_CLUSTER } from '@/store/features';
 
@@ -22,8 +24,8 @@ export function init(store) {
     store.dispatch('setIsSingleProduct', {
       logo:                require(`@/products/epinio/assets/logo-epinio.svg`),
       productNameKey:      'epinio.label',
-      afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
-      logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: 'default' }),
+      afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
+      logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       disableSteveSockets: true,
     });
   }
@@ -83,17 +85,17 @@ export function init(store) {
     customRoute:          createEpinioRoute('c-cluster-applications', { }),
   });
 
-  // Service resource
-  weightType(EPINIO_TYPES.SERVICE, 200, true);
-  componentForType(EPINIO_TYPES.SERVICE, undefined, EPINIO_PRODUCT_NAME);
-  configureType(EPINIO_TYPES.SERVICE, {
+  // Configuration resource
+  weightType(EPINIO_TYPES.CONFIGURATION, 200, true);
+  componentForType(EPINIO_TYPES.CONFIGURATION, undefined, EPINIO_PRODUCT_NAME);
+  configureType(EPINIO_TYPES.CONFIGURATION, {
     isCreatable: true,
     isEditable:  true,
     isRemovable: true,
     showState:   false,
     showAge:     false,
     canYaml:     false,
-    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.SERVICE }),
+    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.CONFIGURATION }),
   });
 
   // Namespace resource
@@ -113,7 +115,7 @@ export function init(store) {
   basicType([
     EPINIO_TYPES.APP,
     EPINIO_TYPES.NAMESPACE,
-    EPINIO_TYPES.SERVICE
+    EPINIO_TYPES.CONFIGURATION
   ]);
 
   headers(EPINIO_TYPES.APP, [
@@ -139,15 +141,47 @@ export function init(store) {
       search:      ['configuration.route'],
     },
     {
-      name:      'services',
-      labelKey:  'epinio.applications.tableHeaders.boundServices',
-      search:    ['configuration.services'],
+      name:      'configurations',
+      labelKey:  'epinio.applications.tableHeaders.boundConfigs',
+      search:    ['configuration.configurations'],
     },
     {
       name:     'deployedBy',
       labelKey: 'epinio.applications.tableHeaders.deployedBy',
       value:    'deployment.username',
       sort:     ['deployment.username'],
+    }
+  ]);
+
+  const { width, canBeVariable, ...instanceName } = SIMPLE_NAME;
+
+  headers(EPINIO_TYPES.APP_INSTANCE, [
+    STATE,
+    instanceName,
+    {
+      name:          'millicpus',
+      label:         'Milli CPUs',
+      value:         'millicpus',
+      sort:          ['millicpus'],
+      search:        false,
+    },
+    {
+      ...RAM,
+      sort:          ['memoryBytes'],
+      search:        false,
+      value:         'memoryBytes',
+      formatter:     'Si',
+    },
+    {
+      name:      'restarts',
+      label:     'Restarts',
+      value:     'restarts',
+      sort:      ['restarts'],
+    },
+    {
+      ...AGE,
+      value:     'createdAt',
+      sort:      'createdAt:desc',
     }
   ]);
 
@@ -160,10 +194,10 @@ export function init(store) {
       sort:      ['appCount'],
     },
     {
-      name:      'services',
-      labelKey:  'epinio.namespace.tableHeaders.serviceCount',
-      value:     'serviceCount',
-      sort:      ['serviceCount'],
+      name:      'configurations',
+      labelKey:  'epinio.namespace.tableHeaders.configCount',
+      value:     'configCount',
+      sort:      ['configCount'],
     },
   ]);
 
@@ -175,13 +209,25 @@ export function init(store) {
       sort:     ['name'],
     },
     {
+      name:      'version',
+      labelKey:  'epinio.instances.tableHeaders.version',
+      sort:      ['version'],
+      value:    'version'
+    },
+    {
       name:      'api',
       labelKey:  'epinio.instances.tableHeaders.api',
       sort:      ['api'],
     },
+    {
+      name:      'rancherCluster',
+      labelKey:  'epinio.instances.tableHeaders.cluster',
+      sort:      ['mgmtCluster.nameDisplay'],
+      value:    'mgmtCluster.nameDisplay'
+    },
   ]);
 
-  headers(EPINIO_TYPES.SERVICE, [
+  headers(EPINIO_TYPES.CONFIGURATION, [
     NAME,
     {
       name:          'namespace',
@@ -193,18 +239,18 @@ export function init(store) {
     },
     {
       name:      'boundApps',
-      labelKey:  'epinio.services.tableHeaders.boundApps',
+      labelKey:  'epinio.configurations.tableHeaders.boundApps',
       search:    ['configuration.boundapps'],
     },
     {
       name:      'count',
-      labelKey:  'epinio.services.tableHeaders.variableCount',
+      labelKey:  'epinio.configurations.tableHeaders.variableCount',
       value:     'variableCount',
       sort:      ['variableCount'],
     },
     {
       name:      'createdBy',
-      labelKey:  'epinio.services.tableHeaders.createBy',
+      labelKey:  'epinio.configurations.tableHeaders.createBy',
       value:     'configuration.user',
       sort:      ['configuration.user'],
     },

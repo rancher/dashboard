@@ -16,7 +16,7 @@ export default {
 
   async fetch() {
     await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
-    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE });
+    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
   },
 
   data() {
@@ -64,11 +64,11 @@ export default {
       :headers="headers"
       :group-by="groupBy"
     >
-      <template #cell:services="{ row }">
-        <span v-if="row.services.length">
-          <template v-for="(service, index) in row.services">
-            <LinkDetail :key="service.id" :row="service" :value="service.meta.name" />
-            <span v-if="index < row.services.length - 1" :key="service.id + 'i'">, </span>
+      <template #cell:configurations="{ row }">
+        <span v-if="row.configurations.length">
+          <template v-for="(configuration, index) in row.configurations">
+            <LinkDetail :key="configuration.id" :row="configuration" :value="configuration.meta.name" />
+            <span v-if="index < row.configurations.length - 1" :key="configuration.id + 'i'">, </span>
           </template>
         </span>
         <span v-else class="text-muted">&nbsp;</span>

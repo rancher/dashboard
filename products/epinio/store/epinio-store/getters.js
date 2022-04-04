@@ -59,6 +59,8 @@ export default {
     addNamespace(out, getters.all(EPINIO_TYPES.NAMESPACE));
 
     return out;
-  }
+  },
+
+  singleProductCNSI: state => () => state.singleProductCNSI
 
 };

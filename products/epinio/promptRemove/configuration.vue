@@ -3,7 +3,7 @@ import { mapState } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 
 export default {
-  name: 'EpinioServicePromptRemove',
+  name: 'EpinioConfigurationPromptRemove',
 
   components: { Checkbox },
 
@@ -75,7 +75,7 @@ export default {
 <template>
   <div class="mt-10 service">
     {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
-    <Checkbox v-model="unbind" class="mt-10" :label="t('epinio.services.promptRemove.unbind')" />
+    <Checkbox v-model="unbind" class="mt-10" :label="t('epinio.configurations.promptRemove.unbind')" />
   </div>
 </template>
 

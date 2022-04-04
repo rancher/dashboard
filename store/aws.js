@@ -1,7 +1,7 @@
 import { sortBy } from '@/utils/sort';
 import { randomStr } from '@/utils/string';
-import { parseSi } from '@/utils/units';
 import { FetchHttpHandler } from '@aws-sdk/fetch-http-handler';
+import { isArray, addObjects } from '@/utils/array';
 
 export const state = () => {
   return {};
@@ -118,45 +118,87 @@ export const actions = {
     return client;
   },
 
-  async instanceInfo({ rootGetters }) {
-    const data = (await import(/* webpackChunkName: "aws-data" */'@/assets/data/ec2instances.csv')).default;
+  async instanceInfo({ dispatch, rootGetters, state }, { client }) {
+    const data = await dispatch('depaginateList', { client, cmd: 'describeInstanceTypes' });
+
     const groups = (await import(/* webpackChunkName: "aws-data" */'@/assets/data/ec2-instance-groups.json')).default;
-    const out = [];
+    const list = [];
 
     for ( const row of data ) {
-      const apiName = row['API Name'];
+      const apiName = row.InstanceType;
       const instanceClass = apiName.split('.')[0].toLowerCase();
       const groupLabel = groups[instanceClass] || 'Unknown';
-      const instanceStorage = row['Instance Storage'];
 
       let storageSize = 0;
+      let storageUnit = 'GB';
       let storageType = null;
+      const storageInfo = row.InstanceStorageInfo;
 
-      if ( instanceStorage !== 'EBS Only' ) {
-        const match = instanceStorage.match(/^(\d+)\s*GiB.*(NVMe|SSD|HDD).*/);
+      if ( storageInfo) {
+        storageSize = storageInfo.TotalSizeInGB;
+        const disk = storageInfo.Disks?.[0];
 
-        if ( match ) {
-          storageSize = parseInt(match[1], 10);
-          storageType = match[2] || '';
+        if ( storageInfo.NvmeSupport === 'supported' ) {
+          storageType = 'NVMe';
+        } else if ( disk?.Type === 'ssd' ) {
+          storageType = 'SSD';
+        } else if ( disk?.Type === 'hdd' ) {
+          storageType = 'HDD';
+        } else {
+          storageType = 'Unknown';
         }
+
+        if ( storageSize > 1000 ) {
+          storageSize /= 1000;
+          storageUnit = 'TB';
+        }
+      } else {
+        // storageSize == 0 shows EBS-Only
       }
 
-      out.push({
+      list.push({
         apiName,
+        currentGeneration: row.CurrentGeneration || false,
         groupLabel,
         instanceClass,
-        memoryBytes:   parseSi(row['Memory']),
-        label:         rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
+        memoryBytes:       row.MemoryInfo.SizeInMiB * 1024 * 1024,
+        label:             rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
           apiName,
-          cpu:          row['vCPUs'],
-          memory:       parseInt(row['Memory'], 10),
+          cpu:          row.VCpuInfo.DefaultVCpus,
+          memory:       row.MemoryInfo.SizeInMiB / 1024,
           storageSize,
+          storageUnit,
           storageType,
         }),
       });
     }
 
-    return sortBy(out, ['groupLabel', 'instanceClass', 'memoryBytes', 'apiName']);
+    const out = sortBy(list, ['currentGeneration:desc', 'groupLabel', 'instanceClass', 'memoryBytes', 'apiName']);
+
+    return out;
+  },
+
+  async depaginateList(ctx, {
+    client, cmd, key, opt
+  }) {
+    let hasNext = true;
+    const out = [];
+
+    opt = opt || {};
+
+    while ( hasNext ) {
+      const res = await client[cmd](opt);
+
+      if ( !key ) {
+        key = Object.keys(res).find(x => isArray(res[x]));
+      }
+
+      addObjects(out, res[key]);
+      opt.NextToken = res.NextToken;
+      hasNext = !!res.NextToken;
+    }
+
+    return out;
   },
 
   async defaultRegions() {

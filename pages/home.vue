@@ -23,8 +23,7 @@ import { SETTING } from '@/config/settings';
 import { BLANK_CLUSTER } from '@/store';
 import { filterOnlyKubernetesClusters } from '@/utils/cluster';
 
-const SET_LOGIN_ACTION = 'set-as-login';
-const RESET_CARDS_ACTION = 'reset-homepage-cards';
+import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@/config/page-actions';
 
 export default {
   name:       'Home',
@@ -39,6 +38,15 @@ export default {
     SimpleBox,
     LandingPagePreference,
     SingleClusterInfo
+  },
+
+  middleware({ redirect, store } ) {
+    const isSingleProduct = store.getters['isSingleProduct'];
+
+    if (isSingleProduct?.afterLoginRoute) {
+      // Catch cases where the dashboard redirects to home
+      return redirect(isSingleProduct.afterLoginRoute);
+    }
   },
 
   mixins: [PageHeaderActions],
@@ -74,6 +82,12 @@ export default {
     ...mapState(['managementReady']),
     ...mapGetters(['currentCluster']),
     mcm: mapFeature(MULTI_CLUSTER),
+
+    canCreateCluster() {
+      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
 
     createLocation() {
       return {
@@ -189,11 +203,21 @@ export default {
   },
 
   methods: {
+    /**
+     * Define actions for each navigation link
+     * @param {*} action
+     */
     handlePageAction(action) {
-      if (action.action === RESET_CARDS_ACTION) {
+      switch (action.action) {
+      case RESET_CARDS_ACTION:
         this.resetCards();
-      } else if (action.action === SET_LOGIN_ACTION) {
+        break;
+
+      case SET_LOGIN_ACTION:
         this.afterLoginRoute = 'home';
+        break;
+
+      // no default
       }
     },
 
@@ -278,7 +302,7 @@ export default {
                     <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
                   </div>
                 </template>
-                <template #header-middle>
+                <template v-if="canCreateCluster" #header-middle>
                   <n-link
                     :to="importLocation"
                     class="btn btn-sm role-primary"

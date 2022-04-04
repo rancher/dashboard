@@ -1,6 +1,8 @@
 <script>
 
 export default {
+  name: 'CountBox',
+
   props:      {
     name: {
       type:     String,

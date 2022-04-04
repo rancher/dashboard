@@ -29,13 +29,13 @@ export default class HciVmBackup extends SteveModel {
       {
         action:     'restoreExistingVM',
         enabled:    canCreateVM && this.attachVmExisting && this?.status?.readyToUse,
-        icon:       'icons icon-h-restore-existing',
+        icon:       'icons icon-refresh',
         label:      this.t('harvester.action.restoreExistingVM'),
       },
       {
         action:     'restoreNewVM',
         enabled:    canCreateVM && this?.status?.readyToUse,
-        icon:       'icons icon-h-restore-new',
+        icon:       'icons icon-backup',
         label:      this.t('harvester.action.restoreNewVM'),
       },
       ...out

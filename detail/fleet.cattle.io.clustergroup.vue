@@ -1,6 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
-import FleetSummary from '@/components/fleet/FleetSummary';
+import ResourcesSummary from '@/components/fleet/ResourcesSummary';
 import FleetClusters from '@/components/fleet/FleetClusters';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import Tab from '@/components/Tabbed/Tab';
@@ -12,7 +12,7 @@ export default {
   components: {
     Loading,
     ResourceTabs,
-    FleetSummary,
+    ResourcesSummary,
     FleetClusters,
     Tab,
   },
@@ -42,7 +42,7 @@ export default {
     <h2 class="mt-20">
       Resource Summary
     </h2>
-    <FleetSummary :value="value.status.resourceCounts" />
+    <ResourcesSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Clusters" name="clusters">

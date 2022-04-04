@@ -1,6 +1,7 @@
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_TYPES } from '@/products/epinio/types';
+import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 import { formatSi } from '@/utils/units';
+import { classify } from '@/plugins/core-store/classify';
 import EpinioResource from './epinio-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
@@ -92,37 +93,57 @@ export default class EpinioApplication extends EpinioResource {
   }
 
   get _availableActions() {
-    return [
-      // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
-      // https://github.com/epinio/ui/issues/3
-      // {
-      //   action:     'showAppLog',
-      //   label:      this.t('epinio.applications.actions.viewAppLogs.label'),
-      //   icon:       'icon icon-fw icon-chevron-right',
-      //   enabled:    this.active,
-      // },
-      // {
-      //   action:     'openSsh',
-      //   enabled:    this.active,
-      //   icon:       'icon icon-fw icon-chevron-right',
-      //   label:      'SSH Shell',
-      // },
-      // { divider: true },
+    const res = [];
+
+    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
+    const isRunning = [STATES.RUNNING].includes(this.status);
+    const showAppLog = isRunning;
+    const showStagingLog = !!this.stage_id;
+    const showAppShell = isRunning && !isSingleProduct;
+
+    if (showAppShell) {
+      res.push({
+        action:     'showAppShell',
+        label:      this.t('epinio.applications.actions.shell.label'),
+        icon:       'icon icon-fw icon-chevron-right',
+        enabled:    showAppShell,
+      });
+    }
+    res.push(
       {
-        action:     'restage',
-        label:      this.t('epinio.applications.actions.restage.label'),
-        icon:       'icon icon-fw icon-backup',
-        enabled:    !!this.deployment?.stage_id
+        action:     'showAppLog',
+        label:      this.t('epinio.applications.actions.viewAppLogs.label'),
+        icon:       'icon icon-fw icon-file',
+        enabled:    showAppLog,
       },
       {
-        action:     'restart',
-        label:      this.t('epinio.applications.actions.restart.label'),
-        icon:       'icon icon-fw icon-refresh',
-        enabled:    [STATES.RUNNING].includes(this.status)
+        action:     'showStagingLog',
+        label:      this.t('epinio.applications.actions.viewStagingLogs.label'),
+        icon:       'icon icon-fw icon-file',
+        enabled:    showStagingLog,
       },
-      { divider: true },
-      ...super._availableActions
-    ];
+    );
+
+    if (showAppShell || showAppLog || showStagingLog) {
+      res.push({ divider: true });
+    }
+
+    res.push( {
+      action:     'restage',
+      label:      this.t('epinio.applications.actions.restage.label'),
+      icon:       'icon icon-fw icon-backup',
+      enabled:    !!this.deployment?.stage_id
+    },
+    {
+      action:     'restart',
+      label:      this.t('epinio.applications.actions.restart.label'),
+      icon:       'icon icon-fw icon-refresh',
+      enabled:    isRunning
+    },
+    { divider: true },
+    ...super._availableActions);
+
+    return res;
   }
 
   get nsLocation() {
@@ -135,16 +156,17 @@ export default class EpinioApplication extends EpinioResource {
 
   get links() {
     return {
-      update:    this.getUrl(),
-      self:      this.getUrl(),
-      remove:    this.getUrl(),
-      create:    this.getUrl(this.meta?.namespace, null), // ensure name is null
-      store:     `${ this.getUrl() }/store`,
-      stage:     `${ this.getUrl() }/stage`,
-      deploy:    `${ this.getUrl() }/deploy`,
-      logs:      `${ this.getUrl() }/logs`,
+      update:      this.getUrl(),
+      self:        this.getUrl(),
+      remove:      this.getUrl(),
+      create:      this.getUrl(this.meta?.namespace, null), // ensure name is null
+      store:       `${ this.getUrl() }/store`,
+      stage:       `${ this.getUrl() }/stage`,
+      deploy:      `${ this.getUrl() }/deploy`,
+      logs:        `${ this.getUrl() }/logs`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/logs
       importGit:   `${ this.getUrl() }/import-git`,
-      restart:    `${ this.getUrl() }/restart`,
+      restart:     `${ this.getUrl() }/restart`,
+      shell:       `${ this.getUrl() }/exec`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/exec
     };
   }
 
@@ -153,11 +175,11 @@ export default class EpinioApplication extends EpinioResource {
     return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
   }
 
-  get services() {
-    const all = this.$getters['all'](EPINIO_TYPES.SERVICE);
+  get configurations() {
+    const all = this.$getters['all'](EPINIO_TYPES.CONFIGURATION);
 
-    return (this.configuration.services || []).reduce((res, serviceName) => {
-      const s = all.find(allS => allS.meta.name === serviceName);
+    return (this.configuration.configurations || []).reduce((res, configName) => {
+      const s = all.find(allS => allS.meta.name === configName);
 
       if (s) {
         res.push(s);
@@ -171,8 +193,8 @@ export default class EpinioApplication extends EpinioResource {
     return Object.keys(this.configuration?.environment || []).length;
   }
 
-  get serviceCount() {
-    return this.configuration?.services.length;
+  get configCount() {
+    return this.configuration?.configurations.length;
   }
 
   get routeCount() {
@@ -185,6 +207,10 @@ export default class EpinioApplication extends EpinioResource {
 
   get desiredInstances() {
     return this.deployment?.desiredreplicas;
+  }
+
+  set desiredInstances(neu) {
+    this.deployment.desiredreplicas = neu;
   }
 
   get readyInstances() {
@@ -224,6 +250,63 @@ export default class EpinioApplication extends EpinioResource {
     default:
       return undefined;
     }
+  }
+
+  get instances() {
+    const instances = this.deployment?.replicas;
+
+    if (!instances) {
+      return [];
+    }
+
+    return Object.values(instances).map(i => classify(this.$ctx, {
+      ...i,
+      id:          i.name,
+      type:        EPINIO_TYPES.APP_INSTANCE,
+      application: this
+    }));
+  }
+
+  get instanceMemory() {
+    const stats = this._instanceStats('memoryBytes');
+    const opts = {
+      suffix:      'iB',
+      firstSuffix: 'B',
+      increment:   1024,
+    };
+
+    stats.min = formatSi(stats.min, opts);
+    stats.max = formatSi(stats.max, opts);
+    stats.avg = formatSi(stats.avg, opts);
+
+    return stats;
+  }
+
+  get instanceCpu() {
+    return this._instanceStats('millicpus');
+  }
+
+  _instanceStats(prop) {
+    const stats = this.instances.reduce((res, r) => {
+      if (r[prop] >= res.max) {
+        res.max = r[prop];
+      }
+      if (r[prop] <= res.min) {
+        res.min = r[prop];
+      }
+      res.total += r[prop];
+
+      return res;
+    }, {
+      min: 0, max: 0, total: 0
+    });
+
+    const avg = this.instances.length ? (stats.total / this.instances.length).toFixed(2) : 0;
+
+    return {
+      ...stats,
+      avg: avg === '0.00' ? 0 : avg,
+    };
   }
 
   // ------------------------------------------------------------------
@@ -266,10 +349,10 @@ export default class EpinioApplication extends EpinioResource {
       data: {
         name:          this.meta.name,
         configuration: {
-          instances:   this.configuration.instances,
-          services:    this.configuration.services,
-          environment: this.configuration.environment,
-          routes:      this.configuration.routes,
+          instances:      this.configuration.instances,
+          configurations: this.configuration.configurations,
+          environment:    this.configuration.environment,
+          routes:         this.configuration.routes,
         }
       }
     });
@@ -305,10 +388,10 @@ export default class EpinioApplication extends EpinioResource {
         accept:         'application/json'
       },
       data: {
-        instances:   this.configuration.instances,
-        services:    this.configuration.services,
-        environment: this.configuration.environment,
-        routes:      this.configuration.routes,
+        instances:      this.configuration.instances,
+        configurations: this.configuration.configurations,
+        environment:    this.configuration.environment,
+        routes:         this.configuration.routes,
       }
     });
   }
@@ -367,30 +450,63 @@ export default class EpinioApplication extends EpinioResource {
     this.showStagingLog(stage.id);
   }
 
-  showAppLog() {
-    // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
-    // https://github.com/epinio/ui/issues/3
-    // this.$dispatch('wm/open', {
-    //   id:        `epinio-${ this.id }-logs`,
-    //   label:     `${ this.meta.name }`,
-    //   product:   EPINIO_PRODUCT_NAME,
-    //   icon:      'file',
-    //   component: 'ApplicationLogs',
-    //   attrs:     { application: this }
-    // }, { root: true });
+  showAppShell() {
+    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
+
+    if (isSingleProduct) {
+      return;
+    }
+    this.$dispatch('wm/open', {
+      id:        `epinio-${ this.id }-app-shell`,
+      label:     `${ this.meta.name } - App Shell`,
+      product:   EPINIO_PRODUCT_NAME,
+      icon:      'chevron-right',
+      component: 'ApplicationShell',
+      attrs:     {
+        application:     this,
+        endpoint:        this.linkFor('shell'),
+        initialInstance: this.instances[0].id
+      }
+    }, { root: true });
   }
 
-  showStagingLog(stageId) {
-    // Streaming logs over socket isn't supported at the moment (requires auth changes to backend or un-CORS-ing)
-    // https://github.com/epinio/ui/issues/3
-    // this.$dispatch('wm/open', {
-    //   id:        `epinio-${ this.id }-logs-${ stageId }`,
-    //   label:     `${ this.meta.name } - Staging - ${ stageId }`,
-    //   product:   EPINIO_PRODUCT_NAME,
-    //   icon:      'file',
-    //   component: 'StagingLogs',
-    //   attrs:     { application: this }
-    // }, { root: true });
+  showAppLog() {
+    this.$dispatch('wm/open', {
+      id:        `epinio-${ this.id }-app-logs`,
+      label:     `${ this.meta.name } - App Logs`,
+      product:   EPINIO_PRODUCT_NAME,
+      icon:      'file',
+      component: 'ApplicationLogs',
+      attrs:     {
+        application: this,
+        endpoint:    this.linkFor('logs')
+      }
+    }, { root: true });
+  }
+
+  showStagingLog(stageId = this.stage_id) {
+    if (!stageId) {
+      console.warn('Unable to show staging logs, no stage id');// eslint-disable-line no-console
+    }
+
+    // /namespaces/:namespace/staging/:stage_id/logs
+    let endpoint = `${ this.getUrl(this.meta?.namespace, stageId) }/logs`;
+
+    endpoint = endpoint.replace('/api/v1', '/wapi/v1');
+    endpoint = endpoint.replace('/applications', '/staging');
+
+    this.$dispatch('wm/open', {
+      id:        `epinio-${ this.id }-logs-${ stageId }`,
+      label:     `${ this.meta.name } - Build - ${ stageId }`,
+      product:   EPINIO_PRODUCT_NAME,
+      icon:      'file',
+      component: 'ApplicationLogs',
+      attrs:     {
+        application: this,
+        endpoint,
+        ansiToHtml:  true
+      }
+    }, { root: true });
   }
 
   async waitForStaging(stageId) {

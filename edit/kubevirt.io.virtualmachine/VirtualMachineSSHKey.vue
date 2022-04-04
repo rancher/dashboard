@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import { randomStr } from '@/utils/string';
 
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -41,6 +42,11 @@ export default {
       default: ''
     },
 
+    searchable: {
+      type:    Boolean,
+      default: true,
+    },
+
     disabled: {
       type:    Boolean,
       default: false
@@ -52,6 +58,7 @@ export default {
       checkedSsh:       this.value,
       publicKey:        '',
       sshName:          '',
+      randomStr:        randomStr(5).toLowerCase(),
       errors:           [],
       isAll:            false,
       checkAll:         false
@@ -122,11 +129,11 @@ export default {
 
   methods: {
     show() {
-      this.$modal.show('newSSH');
+      this.$modal.show(this.randomStr);
     },
 
     hide() {
-      this.$modal.hide('newSSH');
+      this.$modal.hide(this.randomStr);
     },
 
     async save(buttonCb) {
@@ -208,15 +215,15 @@ export default {
       :taggable="true"
       :mode="mode"
       :multiple="true"
-      :searchable="true"
+      :searchable="searchable"
       :disabled="disabled"
       :options="sshOption"
       @input="update"
     />
 
     <ModalWithCard
-      ref="newSSH"
-      name="newSSH"
+      :ref="randomStr"
+      :name="randomStr"
       width="40%"
       :errors="errors"
       @finish="save"

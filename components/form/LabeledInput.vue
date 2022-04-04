@@ -198,19 +198,9 @@ export default {
 </script>
 
 <template>
-  <div
-    :style="{'min-height': minHeight}"
-    :class="{
-      'labeled-input': true,
-      focused,
-      [mode]: true,
-      disabled: isDisabled,
-      [status]: status,
-      suffix: hasSuffix,
-      hideArrows
-    }"
-  >
+  <div>
     <div
+      :style="{'min-height': minHeight}"
       :class="{
         'labeled-input': true,
         focused,
@@ -218,6 +208,7 @@ export default {
         disabled: isDisabled,
         [status]: status,
         suffix: hasSuffix,
+        hideArrows
       }"
     >
       <slot name="label">

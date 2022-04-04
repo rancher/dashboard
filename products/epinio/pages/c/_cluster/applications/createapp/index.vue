@@ -8,7 +8,7 @@ import { EPINIO_TYPES } from '@/products/epinio/types';
 import { _CREATE } from '@/config/query-params';
 import AppInfo from '@/products/epinio/components/application/AppInfo.vue';
 import AppSource, { EpinioAppSource } from '@/products/epinio/components/application/AppSource.vue';
-import AppService from '@/products/epinio/components/application/AppService.vue';
+import AppConfiguration from '@/products/epinio/components/application/AppConfiguration.vue';
 import AppProgress from '@/products/epinio/components/application/AppProgress.vue';
 import { createEpinioRoute } from '@/products/epinio/utils/custom-routing';
 
@@ -29,7 +29,7 @@ export default Vue.extend<Data, any, any, any>({
     Wizard,
     AppInfo,
     AppSource,
-    AppService,
+    AppConfiguration,
     AppProgress,
   },
 
@@ -63,12 +63,12 @@ export default Vue.extend<Data, any, any, any>({
         subtext:        this.t('epinio.applications.steps.source.subtext'),
         ready:          false,
       }, {
-        name:           'services',
-        label:          this.t('epinio.applications.steps.services.label'),
-        subtext:        this.t('epinio.applications.steps.services.subtext'),
+        name:           'configurations',
+        label:          this.t('epinio.applications.steps.configurations.label'),
+        subtext:        this.t('epinio.applications.steps.configurations.subtext'),
         ready:          true,
         nextButton: {
-          labelKey: 'epinio.applications.steps.services.next',
+          labelKey: 'epinio.applications.steps.configurations.next',
           style:    'btn role-primary bg-warning'
         }
       }, {
@@ -100,8 +100,8 @@ export default Vue.extend<Data, any, any, any>({
       this.set(this.source, changes);
     },
 
-    updateServices(changes: string[]) {
-      this.set(this.value.configuration, { services: changes });
+    updateConfigurations(changes: string[]) {
+      this.set(this.value.configuration, { configurations: changes });
     },
 
     cancel() {
@@ -153,12 +153,12 @@ export default Vue.extend<Data, any, any, any>({
           @valid="steps[1].ready = $event"
         ></AppSource>
       </template>
-      <template #services>
-        <AppService
+      <template #configurations>
+        <AppConfiguration
           :application="value"
           :mode="mode"
-          @change="updateServices"
-        ></AppService>
+          @change="updateConfigurations"
+        ></AppConfiguration>
       </template>
       <template #progress="{step}">
         <AppProgress

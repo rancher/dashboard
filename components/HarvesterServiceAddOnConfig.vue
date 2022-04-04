@@ -158,7 +158,6 @@ export default {
             :options="portOptions"
             required
             :label="t('harvester.service.healthCheckPort.label')"
-            :tooltip="t('harvester.service.healthCheckPort.description')"
           />
         </div>
         <div class="col span-6">

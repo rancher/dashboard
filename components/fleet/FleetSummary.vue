@@ -1,13 +1,68 @@
 <script>
 import capitalize from 'lodash/capitalize';
-import CountBox from '@/components/CountBox';
-import { STATES } from '@/plugins/core-store/resource-class';
+import { STATES, STATES_ENUM } from '@/plugins/core-store/resource-class';
+import FleetStatus from '@/components/fleet/FleetStatus';
+
+const getResourceDefaultState = (labelGetter, stateKey) => {
+  return {
+    ready: {
+      count: 0,
+      color: STATES[STATES_ENUM.READY].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.READY }`, null, STATES[STATES_ENUM.READY].label )
+    },
+    info:    {
+      count: 0,
+      color: STATES[STATES_ENUM.INFO].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label )
+    },
+    warning: {
+      count: 0,
+      color: STATES[STATES_ENUM.WARNING].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.WARNING }`, null, STATES[STATES_ENUM.WARNING].label )
+    },
+    notready: {
+      count: 0,
+      color: STATES[STATES_ENUM.NOT_READY].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
+    },
+    error:   {
+      count: 0,
+      color: STATES[STATES_ENUM.ERROR].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
+
+    },
+    errapplied:   {
+      count: 0,
+      color: STATES[STATES_ENUM.ERR_APPLIED].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.ERR_APPLIED }`, null, STATES[STATES_ENUM.ERR_APPLIED].label )
+
+    },
+    waitapplied:   {
+      count: 0,
+      color: STATES[STATES_ENUM.WAIT_APPLIED].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.WAIT_APPLIED }`, null, STATES[STATES_ENUM.WAIT_APPLIED].label )
+
+    },
+    unknown: {
+      count: 0,
+      color: STATES[STATES_ENUM.UNKNOWN].color,
+      label: labelGetter(`${ stateKey }.${ STATES_ENUM.UNKNOWN }`, null, STATES[STATES_ENUM.UNKNOWN].label )
+    }
+  };
+};
 
 export default {
-  components: { CountBox },
+
+  name: 'FleetSummary',
+
+  components: { FleetStatus },
 
   props: {
-    value: {
+    bundles: {
+      type:    Array,
+      default: () => [],
+    },
+    value:   {
       type:     Object,
       required: true,
     },
@@ -15,64 +70,97 @@ export default {
     stateKey: {
       type:    String,
       default: 'fleet.fleetSummary.state'
-    }
+    },
   },
 
   computed: {
-    counts() {
-      const out = {
-        ready: {
-          count: 0,
-          color: 'success',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.success`, null, 'Success')
-        },
-        info:    {
-          count: 0,
-          color: 'info',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.info`, null, 'Info')
 
-        },
-        warning: {
-          count: 0,
-          color: 'warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.warning`, null, 'Warning')
+    repoName() {
+      return this.value.metadata.name;
+    },
 
-        },
-        error:   {
-          count: 0,
-          color: 'error',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.error`, null, 'Error')
+    bundleCounts() {
+      const resources = this.bundles.filter(item => item.metadata.name.startsWith(`${ this.repoName }-`)) || [];
+      const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
 
-        },
-        unknown: {
-          count: 0,
-          color: 'warning',
-          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.unknown`, null, 'Unknown')
+      resources.forEach(({ status, metadata }) => {
+        const k = status?.summary.ready > 0 && status?.summary.desiredReady === status.summary.ready;
 
-        },
-      };
+        if (k) {
+          out.ready.count += 1;
 
-      for (const k in this.value) {
-        if (k.startsWith('desired')) {
-          continue;
+          return;
         }
 
-        const mapped = STATES[k] || STATES['other'];
+        const state = metadata.state?.name?.toLowerCase();
+
+        if (state && out[state]) {
+          out[state].count += 1;
+
+          return;
+        }
+
+        const { conditions } = status;
+
+        const notReady = conditions.find(({ transitioning, message }) => {
+          return transitioning && !message.includes(STATES_ENUM.ERROR) && !message.toLowerCase().includes(STATES_ENUM.ERR_APPLIED);
+        });
+
+        if (!!notReady) {
+          out.notready.count += 1;
+
+          return;
+        }
+
+        // check conditions
+        const errApplied = conditions.find(({ error, message }) => !!error && message.toLowerCase().includes(STATES_ENUM.ERR_APPLIED));
+
+        if (errApplied) {
+          out[STATES_ENUM.ERR_APPLIED].count += 1;
+
+          return;
+        }
+
+        const errorState = conditions.find(({ error, message }) => !!error && message.toLowerCase().includes(STATES_ENUM.ERROR));
+
+        if (out[errorState]) {
+          out[errorState].count += 1;
+
+          return;
+        }
+
+        out.unknown.count += 1;
+      });
+
+      return Object.values(out).map((item) => {
+        item.value = item.count;
+
+        return item;
+      });
+    },
+
+    resourceCounts() {
+      const resources = this.value.status.resources || [];
+      const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
+
+      resources.forEach(({ state }) => {
+        const k = state?.toLowerCase();
 
         if (out[k]) {
-          out[k].count += this.value[k] || 0;
-          out[k].color = mapped.color;
-        } else {
-          out[k] = {
-            count: this.value[k] || 0,
-            color: mapped.color,
-            label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ k }`, null, capitalize(k))
-          };
-        }
-      }
+          out[k].count += 1;
 
-      return out;
+          return;
+        }
+        out.unknown.count += 1;
+      });
+
+      return Object.values(out).map((item) => {
+        item.value = item.count;
+
+        return item;
+      });
     },
+
   },
 
   methods: { capitalize },
@@ -81,19 +169,18 @@ export default {
 
 <template>
   <div class="row flexwrap">
-    <div v-for="(v, k) in counts" :key="k" class="col countbox">
-      <CountBox
-        :compact="true"
-        :count="v['count']"
-        :name="v.label"
-        :primary-color-var="'--sizzle-' + v.color"
-      />
-    </div>
+    <FleetStatus title="Bundles" :values="bundleCounts" value-key="count" />
+    <FleetStatus title="Resources" :values="resourceCounts" value-key="count" />
   </div>
 </template>
 <style lang="scss" scoped>
-  .flexwrap {
-    flex-wrap: wrap;
+   .flexwrap .fleet-status {
+    max-width: 50%;
+    margin-right: 15px;
+
+    &:last-child {
+      margin: 0
+    }
   }
   .countbox {
     min-width: 150px;

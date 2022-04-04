@@ -78,7 +78,11 @@ export default Vue.extend<Data, any, any, any>({
       this.$store.dispatch('epinio/request', {
         opt: { url: `/ready` }, clusterId: c.id, growlOnError: false
       })
-        .then(() => {
+        .then(() => this.$store.dispatch(`epinio/request`, {
+          opt: { url: `/api/v1/info` }, clusterId: c.id, growlOnError: false
+        }))
+        .then((res: any) => {
+          Vue.set(c, 'version', res?.version);
           this.setClusterState(c, 'available', { state: { transitioning: false } });
         })
         .catch((e: Error) => {
@@ -124,24 +128,28 @@ export default Vue.extend<Data, any, any, any>({
             mode="refresh"
             size="sm"
             :disabled="!canRediscover"
-            style="display:inline-block"
+            style="display:inline-flex"
             @click="rediscover"
           />
         </template>
 
         <template #cell:name="{row}">
-          <n-link v-if="row.state === 'available'" :to="{name: 'ext-epinio-c-cluster-applications', params: {cluster: row.id}}">
-            {{ row.name }}
-          </n-link>
-          <template v-else>
-            {{ row.name }}
-          </template>
+          <div class="epinio-row">
+            <n-link v-if="row.state === 'available'" :to="{name: 'ext-epinio-c-cluster-applications', params: {cluster: row.id}}">
+              {{ row.name }}
+            </n-link>
+            <template v-else>
+              {{ row.name }}
+            </template>
+          </div>
         </template>
         <template #cell:api="{row}">
-          <Link v-if="row.state !== 'available'" :row="row" :value="{ text: row.api, url: row.readyApi }" />
-          <template v-else>
-            {{ row.api }}
-          </template>
+          <div class="epinio-row">
+            <Link v-if="row.state !== 'available'" :row="row" :value="{ text: row.api, url: row.readyApi }" />
+            <template v-else>
+              {{ row.api }}
+            </template>
+          </div>
         </template>
       </ResourceTable>
     </div>
@@ -161,6 +169,12 @@ div.root {
       padding-bottom : 20px;
     }
     min-width: 60%;
+
+    .epinio-row {
+      height: 40px;
+      display: flex;
+      align-items: center;
+    }
   }
 }
 

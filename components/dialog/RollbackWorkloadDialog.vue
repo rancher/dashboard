@@ -52,6 +52,7 @@ export default {
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+    ...mapGetters(['currentCluster']),
     workload() {
       return this.resources[0];
     },
@@ -146,7 +147,7 @@ export default {
     },
     async save() {
       try {
-        await this.workload.rollBackWorkload(this.workload, this.rollbackRequestBody);
+        await this.workload.rollBackWorkload(this.currentCluster, this.workload, this.rollbackRequestBody);
         this.close();
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
