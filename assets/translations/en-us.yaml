@@ -1428,7 +1428,7 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke2-clusters/" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
 
   machinePool:
     name:
@@ -2324,7 +2324,7 @@ landing:
   learnMore: Learn More
   gettingStarted:
     title: Getting Started
-    body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find you favorite features in the Dashboard UI.
+    body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find your favorite features in the Dashboard UI.
   community:
     title: Community Support
     docs: Docs
@@ -3019,7 +3019,8 @@ networkpolicy:
         label: CIDR
         placeholder: e.g. 1.1.1.0/24
       addExcept: Add exception
-      invalidCidrs: "Invalid CIDRs: {invalidCidrs}"
+      invalidCidr: "Invalid CIDR"
+      invalidExceptionCidrs: "Invalid Exceptions: "
     podSelector:
       label: Pod Selector
     namespaceSelector:

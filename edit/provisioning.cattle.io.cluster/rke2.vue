@@ -923,8 +923,7 @@ export default {
       config.applyDefaults(idx, this.machinePools);
 
       const name = `pool${ ++this.lastIdx }`;
-
-      this.machinePools.push({
+      const pool = {
         id:      name,
         config,
         remove: false,
@@ -944,7 +943,12 @@ export default {
             name:       null,
           },
         },
-      });
+      };
+
+      if (this.provider === 'vmwarevsphere') {
+        pool.pool.machineOS = 'linux';
+      }
+      this.machinePools.push(pool);
 
       this.$nextTick(() => {
         if ( this.$refs.pools?.select ) {
@@ -1681,7 +1685,7 @@ export default {
             </div>
           </div>
 
-          <template v-if="rkeConfig.etcd.disableSnapshots !== true">
+          <template v-if="false && rkeConfig.etcd.disableSnapshots !== true">
             <div class="spacer" />
 
             <RadioGroup

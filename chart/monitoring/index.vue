@@ -152,14 +152,16 @@ export default {
       };
 
       merge(this.value, extendedDefaults);
-      if (this.provider.startsWith('rke')) {
+
+      if (this.provider.startsWith('rke2')) {
+        this.$set(this.value.rke2IngressNginx, 'enabled', true);
+        this.$set(this.value.rke2Etcd, 'enabled', true);
+        this.$set(this.value.rkeEtcd, 'enabled', false);
+      } else if (this.provider.startsWith('rke')) {
         this.$set(this.value, 'ingressNginx', this.value.ingressNginx || {});
         this.$set(this.value.ingressNginx, 'enabled', true);
-
-        // For RKE2 ingress-nginx is installed in the kube-system namespace so we have to modify this configuration to support that.
-        if (this.provider.startsWith('rke2')) {
-          this.$set(this.value.ingressNginx, 'namespace', 'kube-system');
-        }
+      } else {
+        this.$set(this.value.rkeEtcd, 'enabled', false);
       }
     }
 

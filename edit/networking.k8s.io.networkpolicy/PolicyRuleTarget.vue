@@ -65,6 +65,7 @@ export default {
       portOptions:   ['TCP', 'UDP'],
       matchingPods,
       matchingNamespaces,
+      invalidCidr:    null,
       invalidCidrs:    [],
       TARGET_OPTION_IP_BLOCK,
       TARGET_OPTION_NAMESPACE_SELECTOR,
@@ -143,12 +144,16 @@ export default {
   },
   methods: {
     validateCIDR() {
-      const exceptCidrs = this.value[TARGET_OPTION_IP_BLOCK].except || [];
+      const exceptCidrs = this.value[TARGET_OPTION_IP_BLOCK]?.except || [];
 
-      this.invalidCidrs = exceptCidrs.filter(cidr => !isValidCIDR(cidr));
+      this.invalidCidrs = exceptCidrs
+        .filter(cidr => !isValidCIDR(cidr))
+        .map(invalidCidr => invalidCidr || '<blank>');
 
-      if (this.value[TARGET_OPTION_IP_BLOCK].cidr && !isValidCIDR(this.value[TARGET_OPTION_IP_BLOCK].cidr)) {
-        this.invalidCidrs.push(this.value[TARGET_OPTION_IP_BLOCK].cidr);
+      if (this.value[TARGET_OPTION_IP_BLOCK]?.cidr && !isValidCIDR(this.value[TARGET_OPTION_IP_BLOCK].cidr)) {
+        this.invalidCidr = this.value[TARGET_OPTION_IP_BLOCK].cidr;
+      } else {
+        this.invalidCidr = null;
       }
     },
     updateMatches: throttle(function() {
@@ -201,14 +206,7 @@ export default {
       </div>
     </div>
     <div v-if="targetType === TARGET_OPTION_IP_BLOCK">
-      <div v-if="invalidCidrs.length > 0" class="row mb-10">
-        <div class="col span-12">
-          <Banner color="error">
-            <span v-html="t('networkpolicy.rules.ipBlock.invalidCidrs', { invalidCidrs })" />
-          </Banner>
-        </div>
-      </div>
-      <div class="row mb-20">
+      <div class="row">
         <div class="col span-6">
           <LabeledInput
             v-model="value[TARGET_OPTION_IP_BLOCK].cidr"
@@ -218,7 +216,14 @@ export default {
           />
         </div>
       </div>
-      <div class="row mb-0">
+      <div v-if="invalidCidr" class="row">
+        <div class="col span-12">
+          <Banner color="error">
+            <t k="networkpolicy.rules.ipBlock.invalidCidr" />
+          </Banner>
+        </div>
+      </div>
+      <div class="row mt-20">
         <div class="col span-12">
           <ArrayList
             v-model="value[TARGET_OPTION_IP_BLOCK].except"
@@ -228,6 +233,13 @@ export default {
             :value-label="t('networkpolicy.rules.ipBlock.exceptions')"
             :value-placeholder="t('networkpolicy.rules.ipBlock.cidr.placeholder')"
           />
+        </div>
+      </div>
+      <div v-if="invalidCidrs.length" class="row mb-10">
+        <div class="col span-12">
+          <Banner color="error">
+            <t k="networkpolicy.rules.ipBlock.invalidExceptionCidrs" />{{ invalidCidrs.join(', ') }}
+          </Banner>
         </div>
       </div>
     </div>

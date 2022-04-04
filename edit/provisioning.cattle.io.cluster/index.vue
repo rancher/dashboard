@@ -5,7 +5,9 @@ import CruResource from '@/components/CruResource';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import EmberPage from '@/components/EmberPage';
 import ToggleSwitch from '@/components/form/ToggleSwitch';
-import { CHART, FROM_CLUSTER, SUB_TYPE, _IMPORT } from '@/config/query-params';
+import {
+  CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT
+} from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
@@ -104,30 +106,6 @@ export default {
       set(this.value, 'spec', {});
     }
 
-    // Explicitly asked from query string?
-    if ( this.subType ) {
-      // For RKE1 Cluster, set the ember link so that we load the page rather than using RKE2 create
-      if (this.isRke1) {
-        const selected = this.subTypes.find(s => s.id === this.subType);
-
-        this.emberLink = selected?.link;
-      }
-      await this.selectType(this.subType, false);
-    // } else if ( this.value.isImported ) {
-    //   // Edit exiting import
-    //   this.isImport = true;
-    //   this.selectType('import', false);
-    } else if ( this.value.isRke2 && this.value.isCustom ) {
-      // Edit exiting custom
-      this.selectType('custom', false);
-    } else if ( this.value.isRke2 && this.value.machineProvider ) {
-      // Edit exiting RKE2
-      this.selectType(this.value.machineProvider, false);
-    } else if ( this.value.mgmt?.emberEditPath ) {
-      // Iframe an old page
-      this.emberLink = this.value.mgmt.emberEditPath;
-    }
-
     if ( !this.value.id ) {
       if ( !this.value.metadata ) {
         set(this.value, 'metadata', {});
@@ -165,7 +143,6 @@ export default {
       chart,
       isImport,
       providerCluster:  null,
-      emberLink:        null,
       iconClasses:      {},
     };
   },
@@ -176,6 +153,48 @@ export default {
     _RKE1:                () => _RKE1,
     _RKE2:                () => _RKE2,
 
+    emberLink() {
+      if (this.value) {
+        // For custom RKE2 clusters, don't load an Ember page.
+        // It should be the dashboard.
+        if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.subType || '').toLowerCase() === 'custom')) {
+          // For admins, this.value.isCustom is used to check if it is a custom cluster.
+          // For cluster owners, this.subtype is used.
+          this.selectType('custom', false);
+
+          return '';
+        }
+        // For RKE2/K3s clusters provisioned in Rancher with node pools,
+        // do not use an iFramed Ember page.
+        if ( this.value.isRke2 && this.value.machineProvider ) {
+          // Edit existing RKE2
+          this.selectType(this.value.machineProvider, false);
+
+          return '';
+        }
+        if ( this.subType ) {
+          // For RKE1 and hosted Kubernetes Clusters, set the ember link
+          // so that we load the page rather than using RKE2 create
+          const selected = this.subTypes.find(s => s.id === this.subType);
+
+          if (selected?.link) {
+            return selected.link;
+          }
+
+          this.selectType(this.subType, false);
+
+          return '';
+        }
+
+        if ( this.value.mgmt?.emberEditPath ) {
+          // Iframe an old page
+          return this.value.mgmt.emberEditPath;
+        }
+      }
+
+      return '';
+    },
+
     rke2Enabled: mapFeature(RKE2_FEATURE),
 
     showRkeToggle() {
@@ -184,6 +203,8 @@ export default {
 
     provisioner: {
       get() {
+        // This can incorrectly return rke1 instead
+        // of rke2 for cluster owners.
         if ( !this.rke2Enabled ) {
           return _RKE1;
         }
@@ -201,7 +222,7 @@ export default {
     },
 
     isRke2() {
-      return this.provisioner === _RKE2;
+      return this.value.isRke2;
     },
 
     templateOptions() {
@@ -389,7 +410,6 @@ export default {
         return;
       }
 
-      this.emberLink = obj.link;
       this.$router.applyQuery({ [SUB_TYPE]: id });
       this.selectType(id);
     },

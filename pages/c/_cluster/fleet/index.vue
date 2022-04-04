@@ -86,17 +86,7 @@ export default {
   computed: {
     ...mapState(['workspace']),
     workspacesData() {
-      const workspaces = this.fleetWorkspaces.filter(ws => ws.repos.length);
-      const filterItem = workspaces.find(ws => ws.id === this.workspace);
-
-      if (filterItem) {
-        const filterIndex = workspaces.findIndex(ws => ws.id === this.workspace);
-
-        workspaces.splice(filterIndex, 1);
-        workspaces.unshift(filterItem);
-      }
-
-      return workspaces;
+      return this.fleetWorkspaces.filter(ws => ws.repos.length);
     },
     emptyWorkspaces() {
       return this.fleetWorkspaces.filter(ws => !ws.repos || !ws.repos.length);
