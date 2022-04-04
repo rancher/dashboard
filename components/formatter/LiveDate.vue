@@ -61,6 +61,11 @@ export default {
     },
 
     suffixedLabel() {
+      if (!this.value) {
+        // If there is no value, then do not show the suffix
+        return this.label;
+      }
+
       let out = this.label || '';
 
       if (out && this.addSuffix) {
@@ -75,6 +80,10 @@ export default {
     },
 
     dayValue() {
+      if (!this.value) {
+        return null;
+      }
+
       return day(this.value);
     }
   },
@@ -87,6 +96,14 @@ export default {
 
   methods: {
     liveUpdate(now) {
+      if (!this.dayValue) {
+        if (this.label !== '-') {
+          this.label = '-';
+        }
+
+        return 300;
+      }
+
       const diff = diffFrom(this.dayValue, now);
       const prefix = (diff.diff < 0 || !this.addPrefix ? '' : '-');
 
