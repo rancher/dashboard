@@ -28,7 +28,7 @@ export default {
         iconSrc:     this.neuvectorImgSrc,
         label:       'neuvector.overview.linkedList.neuvector.label',
         description:   'neuvector.overview.linkedList.neuvector.description',
-        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/neuvector-system/services/https:neuvector-service-webui:8443/proxy`
+        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-neuvector-system/services/https:neuvector-service-webui:8443/proxy`
       },
     ];
   }
