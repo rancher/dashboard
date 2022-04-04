@@ -209,7 +209,7 @@ export default {
       ref="tablist"
       role="tablist"
       class="tabs"
-      :class="{'clearfix':!sideTabs}"
+      :class="{'clearfix':!sideTabs, 'vertical': sideTabs, 'horizontal': !sideTabs}"
       tabindex="0"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
@@ -258,8 +258,19 @@ export default {
     list-style-type: none;
     margin: 0;
     padding: 0;
-    border: solid thin var(--border);
-    border-bottom: 0;
+
+    &.horizontal {
+      border: solid thin var(--border);
+      border-bottom: 0;
+
+      + .tab-container {
+        border: solid thin var(--border);
+      }
+
+      .tab.active {
+        border-bottom: solid 2px var(--primary);
+      }
+    }
 
     &:focus {
      outline:none;
@@ -298,8 +309,6 @@ export default {
       }
 
       &.active {
-        border-bottom: solid 2px var(--primary);
-
         > A {
           color: var(--primary);
           text-decoration: none;
@@ -310,14 +319,13 @@ export default {
 
   .tab-container {
     padding: 20px;
-    border: solid thin var(--border);
 
     &.no-content {
       padding: 0 0 3px 0;
     }
   }
 
-  .side-tabs{
+  .side-tabs {
     display: flex;
     box-shadow: 0 0 20px var(--shadow);
     border-radius: calc(var(--border-radius) * 2);
@@ -333,6 +341,12 @@ export default {
       display: flex;
       flex: 1 0;
       flex-direction: column;
+
+      // &.vertical {
+      //   .tab.active {
+      //     background-color: var(--tabbed-container-bg);
+      //   }
+      // }
 
       & .tab {
         width: 100%;

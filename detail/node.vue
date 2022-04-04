@@ -150,7 +150,7 @@ export default {
 
       return images.map(image => ({
         // image.names[1] typically has the user friendly name but on occasion there's only one name and we should use that
-        name:      image.names[1] || image.names[0],
+        name:      image.names ? (image.names[1] || image.names[0]) : '---',
         sizeBytes: image.sizeBytes
       }));
     },

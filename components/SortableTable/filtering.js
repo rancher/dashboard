@@ -204,7 +204,7 @@ function matches(fields, token, item) {
       const tokenMayBeIp = ipLike.test(token);
 
       if ( tokenMayBeIp ) {
-        const re = new RegExp(`(?:^|\.)${ token }(?:\.|$)`);
+        const re = new RegExp(`(?:^|\\.)${ token }(?:\\.|$)`);
 
         if ( re.test(val) ) {
           return true;

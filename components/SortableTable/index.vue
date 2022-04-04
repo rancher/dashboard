@@ -851,7 +851,15 @@ export default {
                   {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="row.key" :value="selectedRows.includes(row.row)" />
                 </td>
                 <td v-if="subExpandColumn" class="row-expand" align="middle">
-                  <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[row.key]}" @click.stop="toggleExpand(row.row)" />
+                  <i
+                    data-title="Toggle Expand"
+                    :class="{
+                      icon: true,
+                      'icon-chevron-right': !expanded[row.key],
+                      'icon-chevron-down': !!expanded[row.key]
+                    }"
+                    @click.stop="toggleExpand(row.row)"
+                  />
                 </td>
                 <template v-for="col in row.columns">
                   <slot

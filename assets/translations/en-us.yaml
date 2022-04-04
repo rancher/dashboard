@@ -6492,6 +6492,7 @@ banner:
   bannerFontSize:
     label: 'Font Size'
   consent: Consent Banner
+  consentFootnote: "Tip: Use \\n character for line break"
 
 branding:
   label: Branding

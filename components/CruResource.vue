@@ -184,6 +184,15 @@ export default {
       }
     },
 
+    /**
+     * Dismiss given error
+     */
+    closeError(index) {
+      const errors = this.errors.filter((_, i) => i !== index);
+
+      this.$emit('error', errors);
+    },
+
     emitOrRoute() {
       if ( this.cancelEvent ) {
         this.$emit('cancel');
@@ -249,6 +258,20 @@ export default {
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
     >
+      <div
+        class="cru__errors"
+        :v-if="errors.length"
+      >
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
+          color="error"
+          :label="stringify(err)"
+          :stacked="true"
+          :closable="true"
+          @close="closeError(i)"
+        />
+      </div>
       <div
         v-if="showSubtypeSelection"
         class="subtypes-container"
@@ -414,16 +437,6 @@ export default {
           </template>
         </ResourceYaml>
       </section>
-
-      <div
-        v-for="(err, idx) in errors"
-        :key="idx"
-      >
-        <Banner
-          color="error"
-          :label="stringify(err)"
-        />
-      </div>
     </form>
   </section>
 </template>
@@ -445,6 +458,7 @@ export default {
 }
 
 $logo: 60px;
+$logo-space: 100px;
 
 .title {
   margin-top: 20px;
@@ -456,27 +470,23 @@ $logo: 60px;
 
 .subtype-container {
   position: relative;
+  display: flex;
+  height: 100%;
 };
 
 .subtype-body {
-  margin-left: $logo + 10px;
+  flex: 1;
+  padding: 10px;
 }
 
 .subtype-logo {
   align-items: center;
   display: flex;
   justify-content: center;
-  position: absolute;
-  left: 0;
-  width: $logo;
-  height: $logo;
-  border-radius: calc(2 * var(--border-radius));
+  min-width: $logo-space;
+  min-height: $logo-space;
   overflow: hidden;
-  background-color: white;
-
-  > .round-image {
-    margin-right: 0;
-  };
+  background-color: var(--box-bg);
 
   img {
     width: $logo - 4px;
@@ -514,6 +524,14 @@ $logo: 60px;
     margin-right: -$space-m;
     margin-bottom: -$space-m;
     padding: $space-s $space-m;
+  }
+
+  &__errors {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: var(--header-bg);
+    margin: 10px 0;
   }
 }
 
