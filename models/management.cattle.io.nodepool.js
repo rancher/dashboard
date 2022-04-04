@@ -79,11 +79,11 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get pending() {
-    return Math.max(0, this.desired - (this.nodes?.length || 0));
+    return this.nodes?.length ? this.nodes.filter(node => node.state !== 'active').length : 0;
   }
 
   get ready() {
-    return Math.max(0, (this.nodes?.length || 0) - (this.pending || 0));
+    return this.desired - this.pending;
   }
 
   get stateParts() {
