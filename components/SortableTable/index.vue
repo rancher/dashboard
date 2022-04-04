@@ -855,8 +855,8 @@ export default {
                     data-title="Toggle Expand"
                     :class="{
                       icon: true,
-                      'icon-chevron-right': !expanded[row.key],
-                      'icon-chevron-down': !!expanded[row.key]
+                      'icon-chevron-right': !expanded[row[keyField]],
+                      'icon-chevron-down': !!expanded[row[keyField]]
                     }"
                     @click.stop="toggleExpand(row.row)"
                   />
