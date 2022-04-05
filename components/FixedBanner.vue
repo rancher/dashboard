@@ -170,7 +170,6 @@ export default {
   .banner {
     text-align: center;
     line-height: 2em;
-    height: 2em;
     width: 100%;
     padding: 0 20px;
 
