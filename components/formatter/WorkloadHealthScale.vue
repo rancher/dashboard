@@ -25,16 +25,16 @@ export default {
     },
   },
 
-  mounted() {
-    document.addEventListener('click', this.onClickOutside);
-  },
-
   beforeDestroy() {
     document.removeEventListener('click', this.onClickOutside);
   },
 
   data() {
-    return { disabled: false, expanded: false };
+    return {
+      disabled: false,
+      expanded: false,
+      loading:  true
+    };
   },
 
   computed: {
@@ -57,6 +57,10 @@ export default {
   },
 
   methods:  {
+    startDelayedLoading() {
+      this.loading = false;
+    },
+
     onClickOutside(event) {
       const { [`root-${ this.id }`]: component } = this.$refs;
 
@@ -64,6 +68,8 @@ export default {
         return;
       }
       this.expanded = false;
+      event.preventDefault();
+      event.stopPropagation();
     },
 
     async scaleDown() {
@@ -101,6 +107,12 @@ export default {
 
   watch: {
     expanded(neu) {
+      if (neu) {
+        document.addEventListener('click', this.onClickOutside);
+      } else {
+        document.removeEventListener('click', this.onClickOutside);
+      }
+
       // If the drop down content appears outside of the window then move it to be above the trigger
       // Do this is three steps
       // expanded: false & expanded-checked = false - Content does not appear in DOM
@@ -139,7 +151,10 @@ export default {
 </script>
 
 <template>
-  <div :id="`root-${id}`" :ref="`root-${id}`" class="hs-popover">
+  <div v-if="loading" class="hs-popover__loader">
+    <i class="icon icon-spinner" />
+  </div>
+  <div v-else :id="`root-${id}`" :ref="`root-${id}`" class="hs-popover">
     <div id="trigger" class="hs-popover__trigger" :class="{expanded}" @click="expanded = !expanded">
       <ProgressBarMulti v-if="parts" class="health" :values="parts" :show-zeros="true" />
       <i :class="{icon: true, 'icon-chevron-up': expanded, 'icon-chevron-down': !expanded}" />
@@ -166,6 +181,21 @@ $width: 150px;
 
 .hs-popover {
   position: relative;
+
+  &__loader {
+    align-items: center;
+    border: solid thin var(--sortable-table-top-divider);
+    display: flex;
+    height: $height;
+    width: $width;
+
+    > i {
+      font-size: 16px;
+      height: 16px;
+      margin-left: 5px;
+      width: 16px;
+    }
+  }
 
   &__trigger {
     display: flex;

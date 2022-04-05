@@ -1,27 +1,7 @@
 import { ROWS_PER_PAGE } from '@/store/prefs';
-import { PAGE } from '@/config/query-params';
 
 export default {
   computed: {
-    perPage() {
-      let out = this.rowsPerPage || 0;
-
-      if ( out <= 0 ) {
-        out = parseInt(this.$route.query.limit, 10) || 0;
-      }
-
-      if ( out <= 0 ) {
-        out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
-      }
-
-      // This should ideally never happen, but the preference value could be invalid, so return something...
-      if ( out <= 0 ) {
-        out = 10;
-      }
-
-      return out;
-    },
-
     indexFrom() {
       return Math.max(0, 1 + this.perPage * (this.page - 1));
     },
@@ -35,7 +15,7 @@ export default {
     },
 
     showPaging() {
-      return this.paging && this.totalPages > 1;
+      return !this.loading && this.paging && this.totalPages > 1;
     },
 
     pagingDisplay() {
@@ -61,7 +41,9 @@ export default {
   },
 
   data() {
-    return { page: this.$route.query[PAGE] || 1 };
+    const perPage = this.getPerPage();
+
+    return { page: 1, perPage };
   },
 
   watch: {
@@ -84,21 +66,32 @@ export default {
 
       // Go back to the first page when sort changes
       this.setPage(1);
-    }
+    },
   },
 
   methods: {
+    getPerPage() {
+      // perPage can not change while the list is displayed
+      let out = this.rowsPerPage || 0;
+
+      if ( out <= 0 ) {
+        out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
+      }
+
+      // This should ideally never happen, but the preference value could be invalid, so return something...
+      if ( out <= 0 ) {
+        out = 10;
+      }
+
+      return out;
+    },
+
     setPage(num) {
       if (this.page === num) {
         return;
       }
-      this.page = num;
 
-      if ( num === 1 ) {
-        this.$router.applyQuery({ [PAGE]: undefined });
-      } else {
-        this.$router.applyQuery({ [PAGE]: num });
-      }
+      this.page = num;
     },
 
     goToPage(which) {

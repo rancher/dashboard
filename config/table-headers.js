@@ -8,7 +8,7 @@ export const STATE = {
   name:      'state',
   labelKey:  'tableHeaders.state',
   sort:      ['stateSort', 'nameSort'],
-  value:     'stateDisplay',
+  value:     row => row.stateDisplay,
   width:     100,
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
@@ -34,7 +34,7 @@ export const INTERNAL_EXTERNAL_IP = {
 export const NAME = {
   name:          'name',
   labelKey:      'tableHeaders.name',
-  value:         'nameDisplay',
+  value:         row => row.nameDisplay,
   sort:          ['nameSort'],
   formatter:     'LinkDetail',
   canBeVariable: true,
@@ -139,7 +139,7 @@ export const NAME_UNLINKED = {
 export const NAMESPACE = {
   name:        'namespace',
   labelKey:    'tableHeaders.namespace',
-  value:       'namespace',
+  value:       row => row.namespace,
   sort:        'namespace',
   dashIfEmpty: true,
 };
@@ -172,7 +172,7 @@ export const VERSION = {
   name:     'version',
   labelKey: 'tableHeaders.version',
   sort:     'version',
-  value:    'version'
+  value:    row => row.version
 };
 
 export const CPU = {
@@ -216,7 +216,7 @@ export const PODS = {
 export const AGE = {
   name:      'age',
   labelKey:  'tableHeaders.age',
-  value:     'metadata.creationTimestamp',
+  value:     row => row.metadata?.creationTimestamp,
   sort:      'metadata.creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
@@ -256,7 +256,7 @@ export const IMAGE = {
 export const POD_IMAGES = {
   name:      'pod_images',
   labelKey:  'tableHeaders.podImages',
-  value:     'imageNames',
+  value:     row => row.imageNames,
   sort:      'imageNames',
   search:    'imageNames',
   formatter: 'PodImages'
@@ -612,18 +612,20 @@ export const WORKLOAD_IMAGES = {
 export const WORKLOAD_ENDPOINTS = {
   name:        'workloadEndpoints',
   labelKey:    'tableHeaders.endpoints',
-  value:       `$['metadata']['annotations']['${ CATTLE_PUBLIC_ENDPOINTS }']`,
+  value:       row => row.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS],
   formatter:   'Endpoints',
   dashIfEmpty: true,
-  breakpoint:  COLUMN_BREAKPOINTS.DESKTOP
+  breakpoint:  COLUMN_BREAKPOINTS.DESKTOP,
+  maxPageSize: 25, // Hide this column when the page size is bigger than 25
 };
 
 export const WORKLOAD_HEALTH_SCALE = {
-  name:        'workloadHealthScale',
-  labelKey:    'tableHeaders.health',
-  formatter:   'WorkloadHealthScale',
-  width:       150,
-  skipSelect:  true
+  name:         'workloadHealthScale',
+  labelKey:     'tableHeaders.health',
+  formatter:    'WorkloadHealthScale',
+  width:        150,
+  skipSelect:   true,
+  delayLoading: true,
 };
 
 export const FLEET_SUMMARY = {

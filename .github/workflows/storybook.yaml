@@ -6,7 +6,7 @@ on:
     branches:
       - master
 jobs:
-  publsh:
+  publish:
     if: github.repository_owner == 'rancher'
     runs-on: ubuntu-latest
     steps:
