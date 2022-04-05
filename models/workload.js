@@ -1,5 +1,7 @@
 import { findBy, insertAt } from '@/utils/array';
-import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS } from '@/config/labels-annotations';
+import {
+  TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS, CATTLE_PUBLIC_ENDPOINTS
+} from '@/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE, POD } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
@@ -281,9 +283,59 @@ export default class Workload extends SteveModel {
     return initContainers;
   }
 
+  get endpoint() {
+    return this?.metadata?.annotations[CATTLE_PUBLIC_ENDPOINTS];
+  }
+
+  get desired() {
+    return this.spec?.replicas || 0;
+  }
+
+  get available() {
+    return this.status?.readyReplicas || 0;
+  }
+
+  get ready() {
+    const readyReplicas = Math.max(0, (this.status?.replicas || 0) - (this.status?.unavailableReplicas || 0));
+
+    if (this.type === WORKLOAD_TYPES.DAEMON_SET) {
+      return readyReplicas;
+    }
+
+    return `${ readyReplicas }/${ this.desired }`;
+  }
+
+  get unavailable() {
+    return this.status?.unavailableReplicas || 0;
+  }
+
+  get upToDate() {
+    return this.status?.updatedReplicas;
+  }
+
   get details() {
     const out = [];
     const type = this._type ? this._type : this.type;
+
+    const detailItem = {
+      endpoint:  {
+        label:     'Endpoints',
+        content:   this.endpoint,
+        formatter: 'WorkloadDetailEndpoints'
+      },
+      ready:     {
+        label:     'Ready',
+        content:   this.ready
+      },
+      upToDate:  {
+        label:     'Up-to-date',
+        content:   this.upToDate
+      },
+      available: {
+        label:     'Available',
+        content:   this.available
+      }
+    };
 
     if (type === WORKLOAD_TYPES.JOB) {
       const { completionTime, startTime } = this.status;
@@ -337,6 +389,34 @@ export default class Workload extends SteveModel {
       content:   this.imageNames,
       formatter: 'PodImages'
     });
+
+    switch (type) {
+    case WORKLOAD_TYPES.DEPLOYMENT:
+      out.push(detailItem.ready, detailItem.upToDate, detailItem.available, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.DAEMON_SET:
+      out.push(detailItem.ready, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.REPLICA_SET:
+      out.push(detailItem.ready, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.STATEFUL_SET:
+      out.push(detailItem.ready, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.REPLICATION_CONTROLLER:
+      out.push(detailItem.ready, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.JOB:
+      out.push(detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.CRON_JOB:
+      out.push(detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.POD:
+      out.push(detailItem.ready);
+      break;
+    default: break;
+    }
 
     return out;
   }
