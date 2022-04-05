@@ -6246,8 +6246,8 @@ typeLabel:
     }
   k8s.cni.cncf.io.networkattachmentdefinition: |-
     {count, plural,
-      one { Network }
-      other { Networks }
+      one { Network Attachment Definition }
+      other { Network Attachment Definitions }
     }
   harvesterhci.io.volume: |-
     {count, plural,
