@@ -1,3 +1,4 @@
+import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
 import { IPlugin } from './types';
 
@@ -5,11 +6,11 @@ export class Plugin implements IPlugin {
   public id: string;
   public name: string;
   public types: any = {};
-  public i18n: any = {};
-  public locales: any = [];
-  public products: any = [];
+  public i18n: { [key: string]: Function[] } = {};
+  public locales: { locale: string, label: string}[] = [];
+  public products: Function[] = [];
   public productNames: string[] = [];
-  public routes: any = [];
+  public routes: { parent?: string, route: RouteConfig }[] = [];
 
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
@@ -52,7 +53,11 @@ export class Plugin implements IPlugin {
   }
 
   addRoute(parentOrRoute: any, route?: any): void {
-    this.routes.push({ parentOrRoute, route });
+    if (typeof (parentOrRoute) === 'string') {
+      this.routes.push({ parent: parentOrRoute as string, route });
+    } else {
+      this.routes.push({ route: parentOrRoute as RouteConfig });
+    }
   }
 
   addUninstallHook(hook: Function) {

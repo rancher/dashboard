@@ -1,8 +1,8 @@
 import Router, { RouteConfig } from 'vue-router';
 
 interface RouteInfo {
-  parentOrRoute: string | RouteConfig;
-  route?: RouteConfig;
+  parent?: string;
+  route: RouteConfig;
 }
 
 interface RouteInstallInfo {
@@ -49,7 +49,7 @@ export class PluginRoutes {
             // Need to restore the previous route, since the plugin owned the active route
             info.shift();
 
-            restore.push({ parentOrRoute: savedRoute.route });
+            restore.push({ route: savedRoute.route });
 
             break;
           } else {
@@ -81,21 +81,18 @@ export class PluginRoutes {
       // See if the route exists
       let existing: any;
 
-      if (r.route) {
-        // parentOrRoute is the name of the parent route
-        const pExisting = appRoutes.findIndex((route: any) => route.name === r.parentOrRoute) as any;
+      if (r.parent) {
+        const pExisting = appRoutes.findIndex((route: any) => route.name === r.parent) as any;
         const path = `${ pExisting.path }${ r.route.path }`;
 
         // TODO: Validate
         existing = appRoutes.findIndex((route: any) => route.path === path);
       } else {
         // no parent route
-        const theRoute = r.parentOrRoute as RouteConfig;
-
-        existing = appRoutes.findIndex((route: any) => route.name === theRoute.name);
+        existing = appRoutes.findIndex((route: any) => route.name === r.route.name);
       }
 
-      if (existing) {
+      if (existing >= 0) {
         const existingRoute = appRoutes[existing];
 
         // Store the route so we can restore it on uninstall
@@ -115,20 +112,21 @@ export class PluginRoutes {
       }
     });
 
-    let newRouter = this.router;
-
-    if (replaced > 0) {
-      newRouter = new Router({
-        mode:   'history',
-        routes: appRoutes
-      }) as any;
-    }
+    const newRouter: Router = replaced > 0 ? new Router({
+      mode:   'history',
+      routes: appRoutes
+    }) : this.router;
 
     routes.forEach((r: any) => {
-      newRouter.addRoute(r.parentOrRoute, r.route);
+      if (r.parent) {
+        newRouter.addRoute(r.parent, r.route);
+      } else {
+        newRouter.addRoute(r.route);
+      }
     });
 
     if (replaced > 0) {
+      // Typing is incorrect
       (this.router as any).matcher = (newRouter as any).matcher;
     }
 

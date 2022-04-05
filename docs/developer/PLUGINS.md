@@ -13,7 +13,7 @@ to extend a base version now located within the `shell` folder. This includes up
 moved folders.
 
 Note that this represents the minimum to get things working - the next step would be to move the Rancher and Harvester code out from the `shell` folder into a number
-of UI Package folders under the top-level `pkg` folder. This would then reduce the scrope of what's in the `shell` folder to be the core commion UI that we would
+of UI Package folders under the top-level `pkg` folder. This would then reduce the scope of what's in the `shell` folder to be the core common UI that we would
 want to share across our UIs. So, bear in mind, that ultimately, we wouldn't just be moving all of the code under `shell`.
 
 The rework supports a number of use cases, which we will talk through below.
@@ -196,7 +196,7 @@ Open a web browser to `https://127.0.0.1:8005` and you'll see that the Example n
 
 Bring in the slide-in menu (click on the hamburger menu in the top-left) and click on 'Plugins'.
 
-In the top input box, enter `testplugin` as the Plugin name and click 'Load Plugin' - you should see a notificaton telling you the plugin was loaded and if you bring in the side menu again, you should see the Example nav item there now.
+In the top input box, enter `testplugin` as the Plugin name and click 'Load Plugin' - you should see a notification telling you the plugin was loaded and if you bring in the side menu again, you should see the Example nav item there now.
 
 This illustrates dynamically loading a Plugin. Note that when we started the UI, it serves up any plugins in the `dist-pkg` folder under the `/pkg` route of the app - so when we entered the name `testplugin` as the plugin, the UI loaded the plugin from:
 
@@ -206,7 +206,7 @@ https://127.0.0.1:8005/pkg/testplugin/testplugin.umd.min.js
 
 If you copy and paste this URL into a browser, you'll see the Javascript for the plugin.
 
-To really convince yourself that the plugin is being dyanmically loaded, reload the app in the browser window (the `testplugin` plugin will no longer be loaded). Go to Plugins and in the `Plugin URL` enter the URL above and click `Load Plugin` - the plugin will load again - if you look in the browser developer tools under the network tab, you'll see the plugin being dynamically loaded.
+To really convince yourself that the plugin is being dynamically loaded, reload the app in the browser window (the `testplugin` plugin will no longer be loaded). Go to Plugins and in the `Plugin URL` enter the URL above and click `Load Plugin` - the plugin will load again - if you look in the browser developer tools under the network tab, you'll see the plugin being dynamically loaded.
 
 If you want to, you can run:
 

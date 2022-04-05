@@ -4,8 +4,8 @@ const fs = require('fs-extra');
 const path = require('path');
 
 const targets = {
-  'dev': './node_modules/.bin/nuxt dev',
-  'nuxt': './node_modules/.bin/nuxt',
+  dev:  './node_modules/.bin/nuxt dev',
+  nuxt: './node_modules/.bin/nuxt',
 };
 
 const files = [
@@ -16,16 +16,16 @@ const files = [
 ];
 
 const topLevelScripts = {
-  'build-pkg': './node_modules/@rancher/shell/scripts/build-pkg.sh',
+  'build-pkg':  './node_modules/@rancher/shell/scripts/build-pkg.sh',
   'serve-pkgs': './node_modules/@rancher/shell/scripts/serve-pkgs',
 };
 
 const typeFolders = [
-  "i18n",
-  "models",
-  "edit",
-  "list",
-  "detail"
+  'i18n',
+  'models',
+  'edit',
+  'list',
+  'detail'
 ];
 
 console.log('');
@@ -55,7 +55,7 @@ if (!isNodeModulesShell) {
   });
 }
 
-console.log(`  Creating package folder: ${ pkgFolder}`);
+console.log(`  Creating package folder: ${ pkgFolder }`);
 
 fs.ensureDirSync(pkgFolder);
 
@@ -87,7 +87,7 @@ if (addTypeFolders) {
     const dest = path.join(path.join(pkgFolder, dir));
 
     if (!fs.existsSync(dest)) {
-      console.log('  Creating folder: ' + dir);
+      console.log(`  Creating folder: ${ dir }`);
       fs.mkdirSync(dest);
     }
   });
@@ -99,7 +99,7 @@ files.forEach((file) => {
   const dest = path.join(path.join(pkgFolder, file));
 
   if (!fs.existsSync(dest)) {
-    console.log('  Adding file: ' + file);
+    console.log(`  Adding file: ${ file }`);
     fs.copySync(src, dest);
   }
 });
@@ -129,7 +129,7 @@ if (updated) {
 
 // Update tsconfig if needed
 if (!isNodeModulesShell) {
-  const tsconfig = require(path.join(pkgFolder, 'tsconfig.json'))
+  const tsconfig = require(path.join(pkgFolder, 'tsconfig.json'));
 
   tsconfig.include = updateArray(tsconfig.include);
 

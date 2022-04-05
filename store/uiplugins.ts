@@ -12,12 +12,12 @@ interface UIPluginState {
   catalogs: string[],
 }
 
-export const state = function() {
+export const state = function(): UIPluginState {
   return {
     plugins:    [],
     catalog:    [],
     catalogs:   [''],
-  } as UIPluginState;
+  };
 };
 
 export const getters = {
@@ -62,7 +62,7 @@ export const actions = {
     commit('addCatalog', url);
   },
 
-  // This is just for PoC - we woudln't get the catalog from Verdaccio
+  // This is just for PoC - we wouldn't get the catalog from Verdaccio
   // This fetches the catalog each time
   async loadCatalogs( { getters, commit, dispatch }: any) {
     const packages: any[] = [];
@@ -78,7 +78,12 @@ export const actions = {
         url = `/uiplugins-catalog/?${ url }`;
       }
 
-      catalogHash[base] = dispatch('rancher/request', { url }, { root: true });
+      try {
+        catalogHash[base] = dispatch('rancher/request', { url }, { root: true });
+      } catch (err) {
+        // Ignore errors... or all plugins fail
+        console.warn('Unable to fetch catalog: ', url, err); // eslint-disable-line no-console
+      }
     });
 
     const res = await allHash(catalogHash);
