@@ -56,6 +56,10 @@ export default {
   },
 
   methods: {
+    add() {
+      this.volumeMounts.push({ name: this.name });
+    },
+
     remove(volumeMount) {
       removeObject(this.volumeMounts, volumeMount);
     },
@@ -94,6 +98,7 @@ export default {
     >
       <div>
         <LabeledInput
+          :id="`mount-path-${i}`"
           v-model="volumeMount.mountPath"
           :mode="mode"
         />
@@ -113,6 +118,7 @@ export default {
       <div class="remove">
         <button
           v-if="mode!=='view'"
+          id="remove-mount"
           type="button"
           class="btn btn-sm role-link"
           @click="remove(volumeMount)"
@@ -124,9 +130,10 @@ export default {
     <div class="row">
       <button
         v-if="mode!=='view'"
+        id="add-mount"
         type="button"
         class="btn role-tertiary"
-        @click="volumeMounts.push({name})"
+        @click="add()"
       >
         {{ t('workload.storage.addMount') }}
       </button>
