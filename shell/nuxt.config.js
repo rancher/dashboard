@@ -442,6 +442,17 @@ export default function(dir, _appConfig) {
             skipEmptyLines: true
           },
         });
+
+        // Prevent warning in log with the md files in the content folder
+        config.module.rules.push({
+          test:    /\.md$/,
+          use:  [
+            {
+              loader:  'frontmatter-markdown-loader',
+              options: { mode: ['body'] }
+            }
+          ]
+        });
       },
 
       // extractCSS:   true,
