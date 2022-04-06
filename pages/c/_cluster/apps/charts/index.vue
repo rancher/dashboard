@@ -17,6 +17,43 @@ import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
+const sliderData = [
+  {
+    id:      '1',
+    img:     '~assets/images/featured/img1.jpg',
+    partner: 'Partner',
+    title:   '1 Upbound Universal Crossplan 1',
+    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
+  },
+  {
+    id:      '2',
+    img:     '~assets/images/featured/img1.jpg',
+    partner: 'Partner',
+    title:   '2 Upbound Universal Crossplan 2',
+    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
+  },
+  {
+    id:      '3',
+    img:     '~assets/images/featured/img1.jpg',
+    partner: 'Partner',
+    title:   '3 Upbound Universal Crossplan 3',
+    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
+  },
+  {
+    id:      '4',
+    img:     '~assets/images/featured/img1.jpg',
+    partner: 'Partner',
+    title:   '4 Upbound Universal Crossplan 4',
+    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
+  },
+  {
+    id:      '5',
+    img:     '~assets/images/featured/img1.jpg',
+    partner: 'Partner',
+    title:   '5 Upbound Universal Crossplan 5',
+    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
+  }
+];
 
 export default {
   components: {
@@ -50,6 +87,9 @@ export default {
       searchQuery:         null,
       showDeprecated:      null,
       showHidden:          null,
+      slider:          sliderData,
+      activeItemId:    '',
+      xValue:          '20%',
     };
   },
 
@@ -184,6 +224,12 @@ export default {
       return out;
     },
 
+    slidesStyle() {
+      const position = (100 / this.slides.length) * (this.current - 1);
+
+      return { transform: `translateX(-${ position }%)` };
+    }
+
   },
 
   watch: {
@@ -204,55 +250,45 @@ export default {
     if ( typeof window !== 'undefined' ) {
       window.c = this;
     }
+
+    this.activeItemId = 0;
   },
 
   methods: {
 
-    matchHeight() {
-      const slider = document.getElementById('slide-track');
-
-      alert(slider);
+    slideStyle(i) {
+      return `transform: translateX(${ this.xValue }px)`;
     },
 
-    goto(event) {
-      const elems = document.getElementsByClassName('dot');
+    goto(i) {
+      this.activeItemId = i;
+      // const slider = this.$refs.slider;
 
-      // elems[0].style.background = 'red';
-      const size = elems.length;
-      const targetId = event.currentTarget.id;
-      const slider = document.getElementById('slide-track');
+      // const slide = this.$refs.slide0;
 
-      for (let i = 0; i < size; i++) {
-        const box = elems[i];
+      // slide[1].style.background = 'yellow';
 
-        box.style.background = '';
-      }
-      event.currentTarget.style.background = 'red';
-
-      if (targetId === '1') {
-        slider.style.transform = 'translateX(0%)';
-        slider.style.transition = '1s ease-in-out';
-        this.$refs.slide5.style.left = '-93%';
-        this.$refs.slide1.style.left = '7%';
-      } else if (targetId === '2') {
-        slider.style.transform = 'translateX(-20%)';
-        slider.style.transition = '1s ease-in-out';
-        this.$refs.slide5.style.left = '-93%';
-        this.$refs.slide1.style.left = '7%';
-      } else if (targetId === '3') {
-        slider.style.transform = 'translateX(-40%)';
-        slider.style.transition = '1s ease-in-out';
-      } else if (targetId === '4') {
-        slider.style.transform = 'translateX(-60%)';
-        slider.style.transition = '1s ease-in-out';
-        this.$refs.slide1.style.left = '107%';
-        this.$refs.slide5.style.left = '7%';
-      } else if (targetId === '5') {
-        slider.style.transform = 'translateX(-80%)';
-        slider.style.transition = '1s ease-in-out';
-        this.$refs.slide1.style.left = '107%';
-        this.$refs.slide5.style.left = '7%';
-      }
+      // if (i === 0) {
+      //   alert(size);
+      //   slider.style.transform = 'translateX(size%)';
+      //   slider.style.transition = '1s ease-in-out';
+      // } else if (i === 1) {
+      //   alert(size);
+      //   slider.style.transform = 'translateX(-20%)';
+      //   slider.style.transition = '1s ease-in-out';
+      // } else if (i === 2) {
+      //   alert(size);
+      //   slider.style.transform = 'translateX(-40%)';
+      //   slider.style.transition = '1s ease-in-out';
+      // } else if (i === 3) {
+      //   alert(size);
+      //   slider.style.transform = 'translateX(-60%)';
+      //   slider.style.transition = '1s ease-in-out';
+      // } else if (i === 4) {
+      //   alert(size);
+      //   slider.style.transform = 'translateX(-80%)';
+      //   slider.style.transition = '1s ease-in-out';
+      // }
     },
 
     colorForChart(chart) {
@@ -374,8 +410,14 @@ export default {
       </div>
     </header>
     <div class="slider">
-      <div id="slide-track" ref="slider" class="slide-track">
-        <div ref="slide1" class="slide">
+      <div id="slide-track" ref="slider" :style="slideStyle()" class="slide-track">
+        <div
+          v-for="(slide, i) in slider"
+          :id="`slide` + i"
+          ref="slide0"
+          :key="i"
+          class="slide"
+        >
           <div class="slide-header">
             Featured chart
           </div>
@@ -385,161 +427,100 @@ export default {
             </div>
             <div class="slide-content-right">
               <BadgeState label="Partner" color="slider-badge  mb-20" />
-              <h1>1 Upbound Universal Crossplan 1</h1>
-              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
-            </div>
-          </div>
-        </div>
-        <div ref="slide2" class="slide">
-          <div class="slide-header">
-            Featured chart
-          </div>
-          <div class="slide-content">
-            <div class="slide-img">
-              <img src="~assets/images/featured/img1.jpg" />
-            </div>
-            <div class="slide-content-right">
-              <BadgeState label="Partner" color="slider-badge  mb-20" />
-              <h1>2 Upbound Universal Crossplan 2</h1>
-              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
-            </div>
-          </div>
-        </div>
-        <div ref="slide3" class="slide">
-          <div class="slide-header">
-            Featured chart
-          </div>
-          <div class="slide-content">
-            <div class="slide-img">
-              <img src="~assets/images/featured/img1.jpg" />
-            </div>
-            <div class="slide-content-right">
-              <BadgeState label="Partner" color="slider-badge  mb-20" />
-              <h1>3 Upbound Universal Crossplan 3</h1>
-              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
-            </div>
-          </div>
-        </div>
-        <div ref="slide4" class="slide">
-          <div class="slide-header">
-            Featured chart
-          </div>
-          <div class="slide-content">
-            <div class="slide-img">
-              <img src="~assets/images/featured/img1.jpg" />
-            </div>
-            <div class="slide-content-right">
-              <BadgeState label="Partner" color="slider-badge  mb-20" />
-              <h1>4 Upbound Universal Crossplan 4</h1>
-              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
-            </div>
-          </div>
-        </div>
-        <div ref="slide5" class="slide">
-          <div class="slide-header">
-            Featured chart
-          </div>
-          <div class="slide-content">
-            <div class="slide-img">
-              <img src="~assets/images/featured/img1.jpg" />
-            </div>
-            <div class="slide-content-right">
-              <BadgeState label="Partner" color="slider-badge  mb-20" />
-              <h1>5 Upbound Universal Crossplan 5</h1>
-              <p>Upbound Universal Crossplan (Uxp) is Upbound's official enterprise-Grade Distribution of Crossplan</p>
+              <h1>{{ slide.title }}</h1>
+              <p>{{ slide.content }}</p>
             </div>
           </div>
         </div>
       </div>
       <div class="dots">
-        <div id="1" class="dot" @click="goto($event)"></div>
-        <div id="2" class="dot" @click="goto($event)"></div>
-        <div id="3" class="dot" @click="goto($event)"></div>
-        <div id="4" class="dot" @click="goto($event)"></div>
-        <div id="5" class="dot" @click="goto($event)"></div>
+        <div
+          v-for="(slide, i) in slider"
+          :key="i"
+          class="dot"
+          :class="{'active': activeItemId === i}"
+          @click="goto(i)"
+        ></div>
       </div>
     </div>
 
-    <div>
-      <TypeDescription resource="chart" />
-      <div class="left-right-split">
-        <Select
-          :searchable="false"
-          :options="repoOptionsForDropdown"
-          :value="flattenedRepoNames"
-          class="checkbox-select"
-          :close-on-select="false"
-          @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
-        >
-          <template #selected-option="selected">
-            {{ selected.label }}
-          </template>
-          <template #option="repo">
-            <Checkbox
-              :value="repo.enabled"
-              :label="repo.label"
-              class="pull-left repo in-select"
-              :class="{ [repo.color]: true}"
-              :color="repo.color"
-            >
-              <template #label>
-                <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
-              </template>
-            </Checkbox>
-          </template>
-        </Select>
-
-        <Select
-          v-model="category"
-          :clearable="false"
-          :searchable="false"
-          :options="categories"
-          placement="bottom"
-          label="label"
-          style="min-width: 200px;"
-          :reduce="opt => opt.value"
-        >
-          <template #option="opt">
-            {{ opt.label }} ({{ opt.count }})
-          </template>
-        </Select>
-
-        <div class="filter-block">
-          <input
-            ref="searchQuery"
-            v-model="searchQuery"
-            type="search"
-            class="input-sm"
-            :placeholder="t('catalog.charts.search')"
+    <TypeDescription resource="chart" />
+    <div class="left-right-split">
+      <Select
+        :searchable="false"
+        :options="repoOptionsForDropdown"
+        :value="flattenedRepoNames"
+        class="checkbox-select"
+        :close-on-select="false"
+        @option:selecting="$event.all ? toggleAll(!$event.enabled) : toggleRepo($event, !$event.enabled) "
+      >
+        <template #selected-option="selected">
+          {{ selected.label }}
+        </template>
+        <template #option="repo">
+          <Checkbox
+            :value="repo.enabled"
+            :label="repo.label"
+            class="pull-left repo in-select"
+            :class="{ [repo.color]: true}"
+            :color="repo.color"
           >
+            <template #label>
+              <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
+            </template>
+          </Checkbox>
+        </template>
+      </Select>
 
-          <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-          <AsyncButton class="refresh-btn" mode="refresh" size="sm" @click="refresh" />
-        </div>
-      </div>
+      <Select
+        v-model="category"
+        :clearable="false"
+        :searchable="false"
+        :options="categories"
+        placement="bottom"
+        label="label"
+        style="min-width: 200px;"
+        :reduce="opt => opt.value"
+      >
+        <template #option="opt">
+          {{ opt.label }} ({{ opt.count }})
+        </template>
+      </Select>
 
-      <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
+      <div class="filter-block">
+        <input
+          ref="searchQuery"
+          v-model="searchQuery"
+          type="search"
+          class="input-sm"
+          :placeholder="t('catalog.charts.search')"
+        >
 
-      <div v-if="allCharts.length">
-        <div v-if="filteredCharts.length === 0" style="width: 100%;">
-          <div class="m-50 text-center">
-            <h1>{{ t('catalog.charts.noCharts') }}</h1>
-          </div>
-        </div>
-        <SelectIconGrid
-          v-else
-          :rows="filteredCharts"
-          name-field="chartNameDisplay"
-          description-field="chartDescription"
-          :color-for="colorForChart"
-          @clicked="(row) => selectChart(row)"
-        />
-      </div>
-      <div v-else class="m-50 text-center">
-        <h1>{{ t('catalog.charts.noCharts') }}</h1>
+        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+        <AsyncButton class="refresh-btn" mode="refresh" size="sm" @click="refresh" />
       </div>
     </div>
-  </div>
+
+    <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
+
+    <div v-if="allCharts.length">
+      <div v-if="filteredCharts.length === 0" style="width: 100%;">
+        <div class="m-50 text-center">
+          <h1>{{ t('catalog.charts.noCharts') }}</h1>
+        </div>
+      </div>
+      <SelectIconGrid
+        v-else
+        :rows="filteredCharts"
+        name-field="chartNameDisplay"
+        description-field="chartDescription"
+        :color-for="colorForChart"
+        @clicked="(row) => selectChart(row)"
+      />
+    </div>
+    <div v-else class="m-50 text-center">
+      <h1>{{ t('catalog.charts.noCharts') }}</h1>
+    </div>
   </div>
 </template>
 
@@ -786,7 +767,7 @@ export default {
   left: 7%;
 
   &:last-child {
-  left: -93%;
+    left: -93%;
   }
 
   .slide-header {
@@ -852,10 +833,11 @@ export default {
     border-radius: 50%;
     background: gray;
     margin: 5px;
+
+    &.active {
+      background: red;
+    }
   }
 }
 
-  .active {
-      background: red;
-    }
 </style>
