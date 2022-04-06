@@ -89,11 +89,16 @@ export default {
       showHidden:          null,
       slider:          sliderData,
       activeItemId:    '',
-      xValue:          '20%',
+      xValue:          0,
     };
   },
 
   computed: {
+
+    trackStyle() {
+      return `transform: translateX(-${ this.xValue }%)`;
+    },
+
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
@@ -223,13 +228,6 @@ export default {
 
       return out;
     },
-
-    slidesStyle() {
-      const position = (100 / this.slides.length) * (this.current - 1);
-
-      return { transform: `translateX(-${ position }%)` };
-    }
-
   },
 
   watch: {
@@ -256,39 +254,40 @@ export default {
 
   methods: {
 
-    slideStyle(i) {
-      return `transform: translateX(${ this.xValue }px)`;
-    },
-
-    goto(i) {
+    goto(i, sliderLength) {
       this.activeItemId = i;
-      // const slider = this.$refs.slider;
+      const slide = this.$refs.slide0;
 
-      // const slide = this.$refs.slide0;
+      setTimeout(() => {
+        if (i <= 1) {
+          slide[sliderLength - 1].style.left = '-93%';
+          slide[0].style.left = '7%';
+        } else {
+          slide[sliderLength - 1].style.left = '7%';
+          slide[0].style.left = '107%';
+        }
+      }, 220);
 
-      // slide[1].style.background = 'yellow';
+      const slider = this.$refs.slider;
 
-      // if (i === 0) {
-      //   alert(size);
-      //   slider.style.transform = 'translateX(size%)';
-      //   slider.style.transition = '1s ease-in-out';
-      // } else if (i === 1) {
-      //   alert(size);
-      //   slider.style.transform = 'translateX(-20%)';
-      //   slider.style.transition = '1s ease-in-out';
-      // } else if (i === 2) {
-      //   alert(size);
-      //   slider.style.transform = 'translateX(-40%)';
-      //   slider.style.transition = '1s ease-in-out';
-      // } else if (i === 3) {
-      //   alert(size);
-      //   slider.style.transform = 'translateX(-60%)';
-      //   slider.style.transition = '1s ease-in-out';
-      // } else if (i === 4) {
-      //   alert(size);
-      //   slider.style.transform = 'translateX(-80%)';
-      //   slider.style.transition = '1s ease-in-out';
-      // }
+      setTimeout(() => {
+        if (i === 0) {
+          slider.style.transform = 'translateX(0)';
+          slider.style.transition = '1s ease-in-out';
+        } else if (i === 1) {
+          slider.style.transform = 'translateX(-20%)';
+          slider.style.transition = '1s ease-in-out';
+        } else if (i === 2) {
+          slider.style.transform = 'translateX(-40%)';
+          slider.style.transition = '1s ease-in-out';
+        } else if (i === 3) {
+          slider.style.transform = 'translateX(-60%)';
+          slider.style.transition = '1s ease-in-out';
+        } else if (i === 4) {
+          slider.style.transform = 'translateX(-80%)';
+          slider.style.transition = '1s ease-in-out';
+        }
+      } );
     },
 
     colorForChart(chart) {
@@ -410,7 +409,7 @@ export default {
       </div>
     </header>
     <div class="slider">
-      <div id="slide-track" ref="slider" :style="slideStyle()" class="slide-track">
+      <div id="slide-track" ref="slider" :style="trackStyle" class="slide-track">
         <div
           v-for="(slide, i) in slider"
           :id="`slide` + i"
@@ -439,7 +438,7 @@ export default {
           :key="i"
           class="dot"
           :class="{'active': activeItemId === i}"
-          @click="goto(i)"
+          @click="goto(i, slider.length)"
         ></div>
       </div>
     </div>
