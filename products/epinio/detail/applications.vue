@@ -78,7 +78,7 @@ export default Vue.extend<Data, any, any, any>({
             </h3>
 
             <ul>
-              <li v-for="(route) in value.configuration.routes" :key="route.id">
+              <li v-for="route in value.configuration.routes" :key="route.id">
                 <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
                 <span v-else :key="route.id + 'a'">{{ `https://${route}` }}</span>
               </li>
@@ -132,7 +132,7 @@ export default Vue.extend<Data, any, any, any>({
             >
             </ConsumptionGauge>
             <div class="scale-instances">
-              <PlusMinus class="mt-15 mb-10" :value="value.desiredInstances" :disabled="saving" @minus="updateInstances(value.desiredInstances-1)" @plus="updateInstances(value.desiredInstances+1)" />
+              <PlusMinus class="mt-15 mb-10" :value="value.desiredInstances" :disabled="saving" @minus="updateInstances(value.desiredInstances - 1)" @plus="updateInstances(value.desiredInstances + 1)" />
             </div>
           </SimpleBox>
           <!-- Source information -->
@@ -199,25 +199,17 @@ export default Vue.extend<Data, any, any, any>({
   </div>
 </template>
 
-<style lang='scss' scoped>
+<style lang="scss" scoped>
 .simple-box-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-flow: column;
+  grid-gap: 20px;
 
   .simple-box {
-    width: 450px;
+    // width: 450px;
     max-width: 450px;
     margin-bottom: 20px;
-
-    &.routes {
-      width: 310px;
-      max-width: 360px;
-    }
-
-    &.services,&.envs {
-      width: 290px;
-      max-width: 340px;
-    }
 
     ul {
       word-break: break-all;
@@ -279,11 +271,12 @@ export default Vue.extend<Data, any, any, any>({
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
-    & H1, H3 {
+    & h1,
+    h3 {
       margin-left: 5;
     }
 
-    H3 {
+    h3 {
       flex: 1;
       display: flex;
     }
@@ -304,7 +297,7 @@ export default Vue.extend<Data, any, any, any>({
       flex-direction: column;
 
       h4 {
-        font-size: 1.6rem
+        font-size: 1.6rem;
       }
 
       div {
@@ -319,22 +312,27 @@ export default Vue.extend<Data, any, any, any>({
 .deployment {
   max-width: 1336px;
   .simple-box {
+    width: 330px;
     margin-bottom: 0;
-    width: 400px;
     max-width: 400px;
   }
 
   .app-instances {
     tr td {
-      min-width:58px;
+      min-width: 58px;
     }
 
     .scale-instances {
+      margin-top: 20px;
       display: flex;
       justify-content: center;
     }
   }
 
+  .app-instances {
+    display: flex;
+    flex-wrap: wrap;
+    // justify-content: space-between;
+  }
 }
-
 </style>
