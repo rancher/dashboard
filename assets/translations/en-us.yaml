@@ -6400,6 +6400,7 @@ advancedSettings:
     'kubeconfig-token-ttl-minutes': 'Custom max TTL (in minutes) on a kubeconfig token.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
+    'custom-notifications': Edit custom notifications
     'ui-consent-banner': 'Banner is used to display a custom consent banner presented to users during login.'
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
@@ -6522,7 +6523,13 @@ branding:
     tip: You can override the link color used throughout the UI with a custom color of your choice.
     useCustom: Use a Custom Link Color
     example: Link Example
-
+notifications:
+  header: Custom notifications
+  menuLabel: 'Custom Notifications'
+  loginError:
+    header: Custom Error Messages
+    showCheckboxLabel: Show custom login error 
+    messageLabel: Text to display
 resourceQuota:
   label: Resource Quotas
   headers:
