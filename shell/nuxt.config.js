@@ -453,12 +453,6 @@ export default function(dir, _appConfig) {
             }
           ]
         });
-
-        config.module.rules.push({
-          exclude(modulePath) {
-            return modulePath.startsWith(path.resolve(SHELL_ABS, 'creators'));
-          }
-        });
       },
 
       // extractCSS:   true,
