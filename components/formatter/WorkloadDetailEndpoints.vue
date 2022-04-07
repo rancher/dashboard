@@ -8,14 +8,6 @@ export default {
       type:     [Array, String],
       default: null,
     },
-    row: {
-      type:     Object,
-      required: true
-    },
-    col: {
-      type:     Object,
-      required: true
-    },
   },
 
   components: { Tag },
@@ -90,13 +82,11 @@ export default {
       <a
         v-else
         :key="endpoint.link"
-        class="endpoint-tag"
+        class="endpoint-link"
         :href="endpoint.link"
         target="_blank"
         rel="nofollow noopener noreferrer"
-      >
-        <Tag v-if="endpoint.port">{{ endpoint.port }}/</Tag>{{ endpoint.protocol }}
-      </a>
+      ><span v-if="endpoint.port">{{ endpoint.port }}/</span>{{ endpoint.protocol }}</a>
     </template>
   </span>
 </template>
@@ -105,4 +95,12 @@ export default {
 .endpoint-tag {
   margin: 2px 4px 2px 0;
 }
+.endpoint-link:after {
+  content: ",\a0";
+  display: inline-block;
+  color: var(--default-text)
+  }
+.endpoint-link:last-of-type:after {
+  content: ''
+  }
 </style>

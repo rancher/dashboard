@@ -3,9 +3,12 @@ import Tag from '@/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@/components/DetailText';
 import { _VIEW } from '@/config/query-params';
+import WorkloadDetailEndpoints from '@/components/formatter/WorkloadDetailEndpoints';
 
 export default {
-  components: { DetailText, Tag },
+  components: {
+    DetailText, Tag, WorkloadDetailEndpoints
+  },
 
   props: {
     value: {
@@ -57,6 +60,14 @@ export default {
 
     hasDetails() {
       return !isEmpty(this.details);
+    },
+
+    hasEndpoints() {
+      return !isEmpty(this.value.endpoints);
+    },
+
+    endpoints() {
+      return this.value.endpoints;
     },
 
     hasLabels() {
@@ -121,6 +132,13 @@ export default {
       </div>
     </div>
 
+    <div v-if="hasEndpoints" class="endpoints">
+      <span class="label">
+        {{ t('resourceDetail.detailTop.endpoints') }}:
+      </span>
+      <WorkloadDetailEndpoints v-model="endpoints" />
+    </div>
+
     <div v-if="hasLabels" class="labels">
       <div class="tags">
         <span class="label">
@@ -176,6 +194,10 @@ export default {
         margin: math.div($spacing, 2) $spacing 0 math.div($spacing, 2);
         font-size: 12px;
       }
+    }
+
+    .endpoints {
+      padding-bottom: 1px;
     }
 
     .annotation {

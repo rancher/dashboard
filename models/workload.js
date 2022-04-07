@@ -301,7 +301,7 @@ export default class Workload extends SteveModel {
     return initContainers;
   }
 
-  get endpoint() {
+  get endpoints() {
     return this?.metadata?.annotations[CATTLE_PUBLIC_ENDPOINTS];
   }
 
@@ -317,7 +317,7 @@ export default class Workload extends SteveModel {
     const readyReplicas = Math.max(0, (this.status?.replicas || 0) - (this.status?.unavailableReplicas || 0));
 
     if (this.type === WORKLOAD_TYPES.DAEMON_SET) {
-      return readyReplicas;
+      return this.status?.numberReady;
     }
 
     return `${ readyReplicas }/${ this.desired }`;
@@ -336,11 +336,6 @@ export default class Workload extends SteveModel {
     const type = this._type ? this._type : this.type;
 
     const detailItem = {
-      endpoint:  {
-        label:     'Endpoints',
-        content:   this.endpoint,
-        formatter: 'WorkloadDetailEndpoints'
-      },
       ready:     {
         label:     'Ready',
         content:   this.ready
@@ -408,32 +403,16 @@ export default class Workload extends SteveModel {
       formatter: 'PodImages'
     });
 
-    switch (type) {
-    case WORKLOAD_TYPES.DEPLOYMENT:
-      out.push(detailItem.ready, detailItem.upToDate, detailItem.available, detailItem.endpoint);
-      break;
-    case WORKLOAD_TYPES.DAEMON_SET:
-      out.push(detailItem.ready, detailItem.endpoint);
-      break;
-    case WORKLOAD_TYPES.REPLICA_SET:
-      out.push(detailItem.ready, detailItem.endpoint);
-      break;
-    case WORKLOAD_TYPES.STATEFUL_SET:
-      out.push(detailItem.ready, detailItem.endpoint);
-      break;
-    case WORKLOAD_TYPES.REPLICATION_CONTROLLER:
-      out.push(detailItem.ready, detailItem.endpoint);
-      break;
-    case WORKLOAD_TYPES.JOB:
-      out.push(detailItem.endpoint);
-      break;
-    case WORKLOAD_TYPES.CRON_JOB:
-      out.push(detailItem.endpoint);
-      break;
-    case WORKLOAD_TYPES.POD:
+    function readyTypes(type) {
+      const types = [WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER];
+
+      return types.filter(x => x === type);
+    }
+
+    if (type === WORKLOAD_TYPES.DEPLOYMENT) {
+      out.push(detailItem.ready, detailItem.upToDate, detailItem.available);
+    } else if (readyTypes(type)) {
       out.push(detailItem.ready);
-      break;
-    default: break;
     }
 
     return out;
