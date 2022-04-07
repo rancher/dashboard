@@ -22,7 +22,12 @@ export default {
   computed:   {
     parsedRows() {
       const rows = [];
+
+      console.log('VALUE CONFIGMAP DETAIL', this.value);
       const { data = {}, binaryData = {} } = this.value;
+
+      console.log('VALUE CONFIGMAP DETAIL data', data);
+      console.log('VALUE CONFIGMAP DETAIL binaryData', binaryData);
 
       Object.keys(data).forEach((key) => {
         rows.push({

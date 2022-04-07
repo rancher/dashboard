@@ -260,6 +260,13 @@ export default {
         if ( this.valueBase64 ) {
           value = base64Decode(value);
         }
+
+        console.log('ROW', {
+          key,
+          value,
+          binary,
+          supported: true,
+        });
         rows.push({
           key,
           value,
@@ -462,6 +469,8 @@ export default {
           return entry;
         });
       }
+
+      console.log('KEY VALUE update', out);
 
       this.$emit('input', out);
     },
