@@ -3830,6 +3830,7 @@ resourceDetail:
     created: Created
     deleted: Deleted
     description: Description
+    endpoints: Endpoints
     labels: Labels
     ownerReferences: |-
       {count, plural,
