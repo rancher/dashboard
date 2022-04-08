@@ -234,7 +234,7 @@ export default Vue.extend({
     <i
       v-if="displayIcon"
       v-tooltip="tooltip"
-      :class="{icon: true, 'icon-lg': true, [displayIcon]: true, 'pr-5': true}"
+      :class="{icon: true, 'icon-lg': true, [displayIcon]: true}"
     />
     <span
       v-if="labelAs === 'text' && displayLabel"
