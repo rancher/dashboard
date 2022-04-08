@@ -203,7 +203,7 @@ export const actions = {
 
     type = getters.normalizeType(type);
 
-    if ( !stop && !force && !getters.canWatch(params) ) {
+    if ( !stop && !force && !getters.canWatch(params) && !getters.canWatch(type)) {
       console.error(`Cannot Watch [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
 
       return;
