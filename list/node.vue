@@ -86,23 +86,23 @@ export default {
         {
           ...KUBE_NODE_OS,
           breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
-          value:      row => row.status?.nodeInfo?.operatingSystem
+          getValue:   row => row.status?.nodeInfo?.operatingSystem
         },
         {
           ...CPU,
           breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
-          value:      row => row.cpuUsagePercentage
+          getValue:   row => row.cpuUsagePercentage
         }, {
           ...RAM,
           breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
-          value:      row => row.ramUsagePercentage
+          getValue:   row => row.ramUsagePercentage
         }];
 
       if (this.canViewPods) {
         headers.push({
           ...PODS,
           breakpoint: COLUMN_BREAKPOINTS.DESKTOP,
-          value:      row => row.podConsumedUsage
+          getValue:   row => row.podConsumedUsage
         });
       }
       headers.push(AGE);
