@@ -202,6 +202,15 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     headers(type, headers) {
+      headers.forEach((header) => {
+        // If on the client, then use the value getter if there is one
+        if (process.client && header.getValue) {
+          header.value = header.getValue;
+        }
+
+        delete header.getValue;
+      });
+
       store.commit(`${ module }/headers`, { type, headers });
     },
 
@@ -951,16 +960,16 @@ export const getters = {
         // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
         // We will use JsonPath to look up this value, which is costly - so if we can detect this format
         // Use a more efficient function to get the value
-        const field = col.field.startsWith('.') ? `$${ col.field }` : col.field;
-        const found = field.match(FIELD_REGEX);
-        let value;
+        let value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
 
-        if (found && found.length === 2) {
-          const fieldIndex = parseInt(found[1], 10);
+        if (process.client) {
+          const found = value.match(FIELD_REGEX);
 
-          value = rowValueGetter(fieldIndex);
-        } else {
-          value = field;
+          if (found && found.length === 2) {
+            const fieldIndex = parseInt(found[1], 10);
+
+            value = rowValueGetter(fieldIndex);
+          }
         }
 
         return {
