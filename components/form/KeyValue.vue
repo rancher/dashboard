@@ -464,8 +464,6 @@ export default {
         });
       }
 
-      console.log('KEY VALUE update', out);
-
       this.$emit('input', out);
     },
 
