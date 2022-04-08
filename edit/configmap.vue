@@ -2,7 +2,7 @@
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import KeyValueNoBinaryEdit from '@/components/form/KeyValueNoBinaryEdit';
+import KeyValue from '@/components/form/KeyValue';
 import Labels from '@/components/form/Labels';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
@@ -13,7 +13,7 @@ export default {
   components: {
     CruResource,
     NameNsDescription,
-    KeyValueNoBinaryEdit,
+    KeyValue,
     Labels,
     Tab,
     Tabbed,
@@ -70,7 +70,7 @@ export default {
 
     <Tabbed :side-tabs="true">
       <Tab name="data" :label="t('configmap.tabs.data.label')" :weight="2">
-        <KeyValueNoBinaryEdit
+        <KeyValue
           key="data"
           v-model="data"
           :mode="mode"
@@ -86,10 +86,10 @@ export default {
         :label="t('configmap.tabs.binaryData.label')"
         :weight="1"
       >
-        <KeyValueNoBinaryEdit
+        <KeyValue
           key="binaryData"
           v-model="binaryData"
-          :values-binary="true"
+          :values-as-binary="true"
           :add-allowed="false"
           :read-allowed="false"
           :mode="mode"

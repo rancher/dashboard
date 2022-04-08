@@ -2,7 +2,6 @@
 import debounce from 'lodash/debounce';
 import { typeOf } from '@/utils/sort';
 import { removeAt, removeObject } from '@/utils/array';
-import { asciiLike } from '@/utils/string';
 import { base64Encode, base64Decode, binarySize } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
@@ -128,7 +127,7 @@ export default {
       default: false,
     },
 
-    valuesBinary: {
+    valuesAsBinary: {
       type:    Boolean,
       default: false,
     },
@@ -250,12 +249,6 @@ export default {
 
       Object.keys(input).forEach((key) => {
         let value = input[key];
-        let binary = !asciiLike(value);
-
-        // If we think it is binary, just check if we were given the list of binary keys that we should not be treating it as ascii
-        if (this.binaryValueKeys) {
-          binary = this.binaryValueKeys.findIndex(k => k === key) !== -1;
-        }
 
         if ( this.valueBase64 ) {
           value = base64Decode(value);
@@ -264,7 +257,7 @@ export default {
         rows.push({
           key,
           value,
-          binary,
+          binary:    this.valuesAsBinary || this.valueBase64,
           supported: true,
         });
       });
@@ -281,7 +274,7 @@ export default {
         const entry = {
           [this.keyName]:   row[this.keyName] || '',
           [this.valueName]: value,
-          binary:           !asciiLike(value),
+          binary:           this.valuesAsBinary || this.valueBase64,
           supported:        this.supported(row),
         };
 
@@ -344,7 +337,6 @@ export default {
   },
 
   methods: {
-    asciiLike,
     add(key = '', value = '') {
       const obj = {
         ...this.defaultAddData,
@@ -352,7 +344,7 @@ export default {
         [this.valueName]: value,
       };
 
-      obj.binary = !asciiLike(value);
+      obj.binary = this.valuesAsBinary || this.valueBase64;
       obj.supported = true;
 
       this.rows.push(obj);
@@ -384,7 +376,7 @@ export default {
       const { name, value } = this.fileModifier(file.name, file.value);
 
       if (!this.parseLinesFromFile) {
-        this.add(name, value, !asciiLike(value));
+        this.add(name, value, this.valuesAsBinary || this.valueBase64);
       } else {
         const lines = value.split('\n');
 
@@ -445,7 +437,7 @@ export default {
         out = this.rows.map((row) => {
           let value = row[this.valueName];
 
-          if ( this.base64Encode ) {
+          if ( value && this.valueBase64 ) {
             value = base64Encode(value);
           }
 
@@ -485,7 +477,7 @@ export default {
         [this.keyName]:   (split[0] || '').trim(),
         [this.valueName]: (split[1] || '').trim(),
         supported:        true,
-        binary:           !asciiLike(split[1])
+        binary:           this.valuesAsBinary || this.valueBase64
       }));
 
       this.rows.splice(index, 1, ...keyValues);

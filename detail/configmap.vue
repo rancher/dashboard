@@ -22,7 +22,6 @@ export default {
   computed:   {
     parsedRows() {
       const rows = [];
-
       const { data = {}, binaryData = {} } = this.value;
 
       Object.keys(data).forEach((key) => {
