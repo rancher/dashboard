@@ -164,6 +164,8 @@ export const HCI = {
   DYNAMIC_SSHKEYS_NAMES:        'harvesterhci.io/dynamic-ssh-key-names',
   DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
   VM_VOLUME_STATUS:             'harvesterhci.io/volume-status',
+  IMAGE_SUFFIX:                 'harvesterhci.io/image-type',
+  OS_TYPE:                      'harvesterhci.io/os-type'
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge

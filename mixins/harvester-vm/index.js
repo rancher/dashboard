@@ -58,6 +58,7 @@ export const OS = [{
   value: 'xandros'
 }, {
   label: 'Other Linux',
+  match: ['centos'],
   value: 'otherLinux'
 }];
 
@@ -1197,30 +1198,12 @@ export default {
         if (Array.isArray(neu)) {
           const imageId = neu[0]?.image;
           const image = this.images.find( I => imageId === I.id);
-          const imageName = image?.displayName;
+          const osType = image?.imageOSType;
 
           const oldImageId = old[0]?.image;
 
-          if (imageName && this.isCreate && oldImageId === imageId) {
-            OS.find( (os) => {
-              if (os.match) {
-                const hasMatch = os.match.find(matchValue => imageName.toLowerCase().includes(matchValue));
-
-                if (hasMatch) {
-                  this.osType = os.value;
-
-                  return true;
-                }
-              } else {
-                const hasMatch = imageName.toLowerCase().includes(os.value);
-
-                if (hasMatch) {
-                  this.osType = os.value;
-
-                  return true;
-                }
-              }
-            });
+          if (this.isCreate && oldImageId === imageId) {
+            this.osType = osType;
           }
         }
       }

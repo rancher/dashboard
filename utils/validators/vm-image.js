@@ -30,3 +30,17 @@ export function fileRequired(annotations = {}, getters, errors, validatorArgs, t
 
   return errors;
 }
+
+export function labelsRequired(labels = {}, getters, errors, validatorArgs, type) {
+  const t = getters['i18n/t'];
+
+  if (!labels[HCI.OS_TYPE]) {
+    errors.push(t('validation.required', { key: HCI.OS }));
+  }
+
+  if (!labels[HCI.IMAGE_SUFFIX]) {
+    errors.push(t('validation.required', { key: HCI.IMAGE_SUFFIX }));
+  }
+
+  return errors;
+}
