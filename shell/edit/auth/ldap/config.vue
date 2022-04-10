@@ -44,14 +44,14 @@ export default {
 
     return {
       model:         this.value,
-      hostname:      this.value.servers[0],
+      hostname:      this.value.servers.join(','),
       serverSetting: null,
     };
   },
 
   watch: {
     hostname(neu, old) {
-      this.value.servers[0] = neu;
+      this.value.servers = neu.split(',');
     },
     'model.starttls'(neu) {
       if (neu) {
