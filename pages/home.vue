@@ -20,7 +20,7 @@ import { getVendor } from '@/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@/store/features';
 import { SETTING } from '@/config/settings';
 import { BLANK_CLUSTER } from '@/store';
-import { filterOnlyKubernetesClusters } from '@/utils/cluster';
+import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@/utils/cluster';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@/config/page-actions';
 
@@ -185,7 +185,7 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId']),
 
     kubeClusters() {
-      return filterOnlyKubernetesClusters(this.clusters);
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.clusters), this.$store);
     }
   },
 
