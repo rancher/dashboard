@@ -1640,6 +1640,7 @@ cluster:
         =1 { A snapshot has been requested for 1 cluster }
         other {A snapshot has been requested for {count} clusters}
       }
+    groupLabel: Location
   tabs:
     ace: Authorized Endpoint
     addons: Add-On Config
