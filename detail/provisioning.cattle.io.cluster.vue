@@ -624,6 +624,8 @@ export default {
           :table-actions="value.isRke1"
           :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
           :search="false"
+          :groupable="true"
+          :group-by="`$['metadata']['annotations']['etcdsnapshot.rke.io/storage']`"
         >
           <template #header-right>
             <AsyncButton
@@ -632,6 +634,13 @@ export default {
               :disabled="!isClusterReady"
               @click="takeSnapshot"
             />
+          </template>
+          <template #group-by="{group}">
+            <div class="group-bar">
+              <div class="group-tab">
+                {{ t('cluster.snapshot.groupLabel') }}: {{ group.key }}
+              </div>
+            </div>
           </template>
         </SortableTable>
       </Tab>
