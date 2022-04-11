@@ -26,7 +26,7 @@ export default {
       editConfig:     false,
       model:          null,
       serverSetting:  null,
-      errors:         null,
+      errors:         [],
       originalModel:  null,
       principals:     [],
       authConfigName: this.$route.params.id,
