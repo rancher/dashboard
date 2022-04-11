@@ -5,8 +5,6 @@ import SimpleBox from '@/components/SimpleBox.vue';
 import ConsumptionGauge from '@/components/ConsumptionGauge.vue';
 import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '@/products/epinio/types';
 import ResourceTable from '@/components/ResourceTable.vue';
-import Tabbed from '@/components/Tabbed/index.vue';
-import Tab from '@/components/Tabbed/Tab.vue';
 import PlusMinus from '@/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '@/products/epinio/utils/errors';
 
@@ -16,7 +14,7 @@ interface Data {
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
   components: {
-    SimpleBox, ConsumptionGauge, ResourceTable, Tabbed, Tab, PlusMinus
+    SimpleBox, ConsumptionGauge, ResourceTable, PlusMinus
   },
 
   props: {
@@ -67,7 +65,7 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <div>
+  <div class="application-details">
     <div class="simple-box-row mt-40">
       <SimpleBox class="routes">
         <div class="box box-two-cols">
@@ -115,100 +113,101 @@ export default Vue.extend<Data, any, any, any>({
         </div>
       </SimpleBox>
     </div>
-    <h3 v-if="value.deployment" class="mt-20">
+    <h3 v-if="value.deployment" class="mt-20 mb-20">
       {{ t('epinio.applications.detail.deployment.label') }}
     </h3>
 
-    <Tabbed v-if="value.deployment" class="deployment" default-tab="summary">
-      <Tab label-key="epinio.applications.detail.deployment.summary" name="summary" :weight="1">
-        <div class="simple-box-row app-instances">
-          <SimpleBox>
-            <ConsumptionGauge
-              :resource-name="t('epinio.applications.detail.deployment.instances')"
-              :capacity="value.desiredInstances"
-              :used="value.readyInstances"
-              :used-as-resource-name="true"
-              :color-stops="{ 70: '--success', 30: '--warning', 0: '--error' }"
-            >
-            </ConsumptionGauge>
-            <div class="scale-instances">
-              <PlusMinus class="mt-15 mb-10" :value="value.desiredInstances" :disabled="saving" @minus="updateInstances(value.desiredInstances - 1)" @plus="updateInstances(value.desiredInstances + 1)" />
-            </div>
-          </SimpleBox>
-          <!-- Source information -->
-          <SimpleBox v-if="value.sourceInfo">
-            <div class="deployment__origin__row">
-              <h4>Deployment details</h4>
-            </div>
-            <div class="deployment__origin__list">
-              <ul>
-                <li>
-                  <h4>Origin</h4>
-                  <span>{{ value.sourceInfo.label }}</span>
-                </li>
+    <div class="deployment">
+      <div class="simple-box-row app-instances">
+        <SimpleBox>
+          <ConsumptionGauge
+            :resource-name="t('epinio.applications.detail.deployment.instances')"
+            :capacity="value.desiredInstances"
+            :used="value.readyInstances"
+            :used-as-resource-name="true"
+            :color-stops="{ 70: '--success', 30: '--warning', 0: '--error' }"
+          >
+          </ConsumptionGauge>
+          <div class="scale-instances">
+            <PlusMinus class="mt-15 mb-10" :value="value.desiredInstances" :disabled="saving" @minus="updateInstances(value.desiredInstances - 1)" @plus="updateInstances(value.desiredInstances + 1)" />
+          </div>
+        </SimpleBox>
+        <!-- Source information -->
+        <SimpleBox v-if="value.sourceInfo">
+          <div class="deployment__origin__row">
+            <h4>Deployment details</h4>
+          </div>
+          <div class="deployment__origin__list">
+            <ul>
+              <li>
+                <h4>Origin</h4>
+                <span>{{ value.sourceInfo.label }}</span>
+              </li>
 
-                <li v-for="d of value.sourceInfo.details" :key="d.label">
-                  <h4>{{ d.label }}</h4>
-                  <span v-if="d.value.startsWith('http')">
-                    <a :href="d.value" target="_blank">{{ formatURL(d.value) }}</a>
-                  </span>
-                  <span v-else>{{ d.value }}</span>
-                </li>
+              <li v-for="d of value.sourceInfo.details" :key="d.label">
+                <h4>{{ d.label }}</h4>
+                <span v-if="d.value.startsWith('http')">
+                  <a :href="d.value" target="_blank">{{ formatURL(d.value) }}</a>
+                </span>
+                <span v-else>{{ d.value }}</span>
+              </li>
 
-                <li>
-                  <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}</h4>
-                  <span> {{ value.deployment.username }}</span>
-                </li>
-              </ul>
-            </div>
-          </SimpleBox>
-
-          <SimpleBox>
-            <div class="deployment__origin__row">
-              <h4>Metrics</h4>
-              <table class="stats">
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th>Min</th>
-                    <th>Max</th>
-                    <th>Avg</th>
-                  </tr>
-                </thead>
+              <li>
+                <h4>{{ t('epinio.applications.tableHeaders.deployedBy') }}</h4>
+                <span> {{ value.deployment.username }}</span>
+              </li>
+            </ul>
+          </div>
+        </SimpleBox>
+        <SimpleBox>
+          <div class="deployment__origin__row">
+            <h4>Metrics</h4>
+            <table class="stats">
+              <thead>
                 <tr>
-                  <td>{{ t('tableHeaders.memory') }}</td>
-                  <td>{{ value.instanceMemory.min }}</td>
-                  <td>{{ value.instanceMemory.max }}</td>
-                  <td>{{ value.instanceMemory.avg }}</td>
+                  <th></th>
+                  <th>Min</th>
+                  <th>Max</th>
+                  <th>Avg</th>
                 </tr>
-                <tr>
-                  <td>{{ t('tableHeaders.cpu') }}</td>
-                  <td>{{ value.instanceCpu.min }}</td>
-                  <td>{{ value.instanceCpu.max }}</td>
-                  <td>{{ value.instanceCpu.avg }}</td>
-                </tr>
-              </table>
-            </div>
-          </SimpleBox>
-        </div>
-      </Tab>
-      <Tab label-key="epinio.applications.detail.deployment.instances" name="instances">
-        <ResourceTable :schema="appInstanceSchema" :rows="value.instances" :table-actions="false" />
-      </Tab>
-    </Tabbed>
+              </thead>
+              <tr>
+                <td>{{ t('tableHeaders.memory') }}</td>
+                <td>{{ value.instanceMemory.min }}</td>
+                <td>{{ value.instanceMemory.max }}</td>
+                <td>{{ value.instanceMemory.avg }}</td>
+              </tr>
+              <tr>
+                <td>{{ t('tableHeaders.cpu') }}</td>
+                <td>{{ value.instanceCpu.min }}</td>
+                <td>{{ value.instanceCpu.max }}</td>
+                <td>{{ value.instanceCpu.avg }}</td>
+              </tr>
+            </table>
+          </div>
+        </SimpleBox>
+      </div>
+    </div>
+    <div>
+      <!-- <h3 v-if="value.instances" class="mt-20">
+        {{ t('epinio.applications.create.instances') }}
+      </h3> -->
+      <ResourceTable :schema="appInstanceSchema" :rows="value.instances" :table-actions="false" />
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.application-details {
+  max-width: 1280px;
+}
 .simple-box-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-flow: column;
-  grid-gap: 20px;
-
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   .simple-box {
-    // width: 450px;
-    max-width: 450px;
+    width: 100%;
+    max-width: 400px;
     margin-bottom: 20px;
 
     ul {
@@ -310,9 +309,9 @@ export default Vue.extend<Data, any, any, any>({
 }
 
 .deployment {
-  max-width: 1336px;
+  margin-bottom: 60px;
   .simple-box {
-    width: 330px;
+    width: 100%;
     margin-bottom: 0;
     max-width: 400px;
   }
@@ -320,6 +319,8 @@ export default Vue.extend<Data, any, any, any>({
   .app-instances {
     tr td {
       min-width: 58px;
+      padding: 5px 0;
+      font-size: 1.1rem;
     }
 
     .scale-instances {
@@ -327,12 +328,6 @@ export default Vue.extend<Data, any, any, any>({
       display: flex;
       justify-content: center;
     }
-  }
-
-  .app-instances {
-    display: flex;
-    flex-wrap: wrap;
-    // justify-content: space-between;
   }
 }
 </style>
