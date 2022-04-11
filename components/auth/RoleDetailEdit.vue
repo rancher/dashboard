@@ -89,6 +89,23 @@ export default {
   },
 
   data() {
+    return {
+      defaultRule: {
+        apiGroups:       [''],
+        nonResourceURLs: [],
+        resourceNames:   [],
+        resources:       [],
+        verbs:           []
+      },
+      verbOptions:       VERBS,
+      templateOptions:   [],
+      resources:         this.value.resources,
+      scopedResources:   SCOPED_RESOURCES,
+      defaultValue:      false,
+    };
+  },
+
+  created() {
     this.$set(this.value, 'rules', this.value.rules || []);
 
     this.value.rules.forEach((rule) => {
@@ -104,10 +121,10 @@ export default {
       this.value.updateSubtype(roleContext);
     }
 
+    // Set the default value for the mapped subtype
+    this.defaultValue = !!this.value[SUBTYPE_MAPPING[this.value.subtype].defaultKey];
+
     switch (this.value.subtype) {
-    case GLOBAL:
-      this.$set(this.value, 'newUserDefault', !!this.value.newUserDefault);
-      break;
     case CLUSTER:
     case NAMESPACE:
       this.$set(this.value, 'roleTemplateNames', this.value.roleTemplateNames || []);
@@ -115,23 +132,17 @@ export default {
       break;
     }
 
+    // On save hook request
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(() => {
+        // Map default value back to its own key for given subtype
+        this.value[SUBTYPE_MAPPING[this.value.subtype].defaultKey] = !!this.defaultValue;
+      });
+    }
+
     this.$nextTick(() => {
       this.$emit('set-subtype', this.label);
     });
-
-    return {
-      defaultRule: {
-        apiGroups:       [''],
-        nonResourceURLs: [],
-        resourceNames:   [],
-        resources:       [],
-        verbs:           []
-      },
-      verbOptions:                    VERBS,
-      templateOptions:                [],
-      resources:                      this.value.resources,
-      scopedResources:                SCOPED_RESOURCES
-    };
   },
 
   computed: {
@@ -536,7 +547,7 @@ export default {
       <div v-if="isRancherType" class="row">
         <div class="col span-6">
           <RadioGroup
-            v-model="value.newUserDefault"
+            v-model="defaultValue"
             name="storageSource"
             :label="defaultLabel"
             class="mb-10"
