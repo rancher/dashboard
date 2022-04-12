@@ -1908,6 +1908,7 @@ fleet:
     name: Name
     type: Type
     state: State
+    cluster: Cluster
     error: Error
     ready: Ready
     errors: Errors

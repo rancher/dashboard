@@ -485,7 +485,7 @@ export default {
         transform: scale(1.35);
       }
 
-      &.resource.active circle {
+      &.bundle-deployment.active circle {
         transform: scale(1.6);
       }
 

@@ -140,7 +140,9 @@ export default {
       }
     } else {
       if ( as === _GRAPH ) {
+        await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
         await store.dispatch('management/findAll', { type: FLEET.BUNDLE });
+        await store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT });
       }
 
       let fqid = id;

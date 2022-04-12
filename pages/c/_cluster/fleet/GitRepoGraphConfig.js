@@ -1,14 +1,4 @@
-import { STATES, STATES_ENUM } from '@/plugins/steve/resource-class';
-import {
-  CONFIG_MAP,
-  SECRET,
-  WORKLOAD_TYPES,
-  STORAGE_CLASS,
-  SERVICE,
-  PV,
-  PVC,
-  POD
-} from '@/config/types';
+import { STATES } from '@/plugins/steve/resource-class';
 
 // some default values
 const defaultNodeRadius = 20;
@@ -50,8 +40,7 @@ export const gitRepoGraphConfig = {
      * @param {String} matchingId
      */
   parseData:   (data) => {
-    const totalClusterCount = data.status?.desiredReadyClusters;
-    const repoChildren = data.bundles.map((bundle, i) => {
+    const bundles = data.bundles.map((bundle, i) => {
       const bundleLowercaseState = bundle.state ? bundle.state.toLowerCase() : 'unknown';
       const bundleStateColor = STATES[bundleLowercaseState].color;
 
@@ -68,47 +57,32 @@ export const gitRepoGraphConfig = {
         children:       []
       };
 
-      if (bundle.status?.resourceKey?.length) {
-        bundle.status.resourceKey.forEach((res, index) => {
-          const id = res.namespace ? `${ res.namespace }/${ res.name }` : res.name;
-          const matchingId = `${ res.kind }-${ id }`;
+      const bds = data.bundleDeployments.filter(bd => bundle.id === `${ bd.metadata?.labels?.['fleet.cattle.io/bundle-namespace'] }/${ bd.metadata?.labels?.['fleet.cattle.io/bundle-name'] }`);
 
-          let type;
-          let state;
-          let stateLabel;
-          let stateColor;
-          let perClusterState;
-          let detailLocation;
+      console.log('bds', bds);
+      bds.forEach((bd) => {
+        const bdLowercaseState = bd.state ? bd.state.toLowerCase() : 'unknown';
+        const bdStateColor = STATES[bdLowercaseState].color;
 
-          if (data.status?.resources?.length) {
-            const item = data.status?.resources?.find(resource => `${ resource.kind }-${ resource.id }` === matchingId);
+        const cluster = data.clustersList.find((cluster) => {
+          const clusterString = `${ cluster.namespace }-${ cluster.name }`;
 
-            if (item) {
-              type = item.type;
-              state = item.state;
-              perClusterState = item.perClusterState || [];
-              detailLocation = item.detailLocation;
-              const resourceLowerCaseState = item.state ? item.state.toLowerCase() : 'unknown';
-
-              stateLabel = STATES[resourceLowerCaseState].label;
-              stateColor = STATES[resourceLowerCaseState].color;
-            }
-          }
-
-          repoChild.children.push({
-            id,
-            matchingId,
-            type,
-            state,
-            stateLabel,
-            stateColor,
-            isResource: true,
-            perClusterState,
-            detailLocation,
-            totalClusterCount
-          });
+          return bd.id.includes(clusterString);
         });
-      }
+
+        repoChild.children.push({
+          id:                 bd.id,
+          matchingId:         bd.id,
+          type:               bd.type,
+          clusterId:          cluster ? cluster.id : undefined,
+          state:              bd.state,
+          stateLabel:         bd.stateDisplay,
+          stateColor:         bdStateColor,
+          isBundleDeployment: true,
+          errorMsg:           bd.stateDescription,
+          detailLocation:     bd.detailLocation,
+        });
+      });
 
       return repoChild;
     });
@@ -126,7 +100,7 @@ export const gitRepoGraphConfig = {
       isRepo:         true,
       errorMsg:       data.stateDescription,
       detailLocation: data.detailLocation,
-      children:       repoChildren
+      children:       bundles
     };
 
     return finalData;
@@ -138,7 +112,7 @@ export const gitRepoGraphConfig = {
     const classArray = [];
 
     // node type
-    d.data?.isRepo ? classArray.push('repo') : d.data?.isBundle ? classArray.push('bundle') : classArray.push('resource');
+    d.data?.isRepo ? classArray.push('repo') : d.data?.isBundle ? classArray.push('bundle') : classArray.push('bundle-deployment');
 
     return classArray;
   },
@@ -159,38 +133,8 @@ export const gitRepoGraphConfig = {
       return 'bundle';
     }
 
-    // special resource type
-    if (d.data?.isResource && d.data?.type) {
-      switch (d.data.type) {
-      case WORKLOAD_TYPES.DEPLOYMENT:
-        return 'deployment';
-      case SERVICE:
-        return 'service';
-      case CONFIG_MAP:
-        return 'configmap';
-      case WORKLOAD_TYPES.CRON_JOB:
-        return 'cronjob';
-      case WORKLOAD_TYPES.DAEMON_SET:
-        return 'daemonset';
-      case WORKLOAD_TYPES.JOB:
-        return 'job';
-      case PV:
-        return 'persistentvolume';
-      case PVC:
-        return 'persistentvolumeclaim';
-      case POD:
-        return 'pod';
-      case WORKLOAD_TYPES.REPLICA_SET:
-        return 'replicaset';
-      case SECRET:
-        return 'secret';
-      case WORKLOAD_TYPES.STATEFUL_SET:
-        return 'statefulset';
-      case STORAGE_CLASS:
-        return 'storageclass';
-      default:
-        return 'other';
-      }
+    if (d.data?.isBundleDeployment) {
+      return 'deployment';
     }
   },
   /**
@@ -234,18 +178,23 @@ export const gitRepoGraphConfig = {
       }
     ];
 
-    if (!data.isResource) {
+    if (data.isBundleDeployment) {
       moreInfo.push({
-        type:     'state-badge',
-        labelKey: 'fleet.fdc.state',
-        valueObj: {
-          stateColor: data.stateColor,
-          stateLabel: data.stateLabel
-        }
+        labelKey: 'fleet.fdc.cluster',
+        value:    data.clusterId
       });
     }
 
-    if (data.errorMsg && !data.isResource) {
+    moreInfo.push({
+      type:     'state-badge',
+      labelKey: 'fleet.fdc.state',
+      valueObj:    {
+        stateColor: data.stateColor,
+        stateLabel: data.stateLabel
+      }
+    });
+
+    if (data.errorMsg) {
       moreInfo.push({
         type:     'single-error',
         labelKey: 'fleet.fdc.error',
@@ -253,34 +202,19 @@ export const gitRepoGraphConfig = {
       });
     }
 
-    if (data.isResource) {
-      const state = data.state?.toLowerCase();
+    // if (data.perClusterState.find(item => item.error)) {
+    //   const err = [];
 
-      moreInfo.push({
-        type:     'compound-status',
-        labelKey: 'fleet.fdc.ready',
-        valueObj: {
-          badgeClass: STATES[state] ? STATES[state].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
-          icon:       STATES[state] ? STATES[state].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } bg-unmapped-state`,
-          value:      `${ data.totalClusterCount - data.perClusterState.length } / ${ data.totalClusterCount }`
-        }
-      });
+    //   data.perClusterState.forEach((item) => {
+    //     err.push(`<p class="error">${ item.message } :::::: Cluster ID: ${ item.clusterId }</p>`);
+    //   });
 
-      if (data.perClusterState.find(item => item.error)) {
-        const err = [];
-
-        data.perClusterState.forEach((item) => {
-          err.push(`<p class="error">${ item.message } :::::: Cluster ID: ${ item.clusterId }</p>`);
-        });
-
-        moreInfo.push({
-          type:     'multiple-error',
-          labelKey: 'fleet.fdc.errors',
-          value:    err
-        });
-      }
-    }
-
+    //   moreInfo.push({
+    //     type:     'multiple-error',
+    //     labelKey: 'fleet.fdc.errors',
+    //     value:    err
+    //   });
+    // }
     return moreInfo;
   }
 };
