@@ -15,7 +15,7 @@ import {
   _EDIT,
 } from '@/config/query-params';
 import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
-import { exceptionToErrorsArray } from '../utils/error';
+import { exceptionToErrorsArray } from '@/utils/error';
 
 export default {
   components: {

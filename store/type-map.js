@@ -122,7 +122,8 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@/utils/string';
 import {
-  importList, importDetail, importEdit, loadProduct, importCustomPromptRemove
+  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveDetail
+
 } from '@/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
@@ -287,23 +288,25 @@ export function DSL(store, product, module = 'type-map') {
 
 let called = false;
 
-export async function applyProducts(store) {
+export async function applyProducts(store, $plugin) {
   if (called) {
     return;
   }
 
   called = true;
-  const ctx = require.context('@/config/product', true, /.*/);
-
-  const products = ctx.keys().filter(path => !path.endsWith('.js')).map(path => path.substr(2));
-
-  for ( const product of products ) {
+  for ( const product of listProducts() ) {
     const impl = await loadProduct(product);
 
     if ( impl?.init ) {
       impl.init(store);
     }
   }
+  // Load the products from all plugins
+  $plugin.loadProducts();
+}
+
+export function productsLoaded() {
+  return called;
 }
 
 export const state = function() {
@@ -985,76 +988,33 @@ export const getters = {
   //
   // Note 2: Yes these are editing state in a getter for caching... it's ok, probably.
   // ------------------------------------
-  hasCustomList(state, getters) {
+  hasCustomList(state, getters, rootState) {
     return (rawType) => {
-      const type = getters.componentFor(rawType);
-      const cache = state.cache.list;
+      const key = getters.componentFor(rawType);
 
-      if ( cache[type] !== undefined ) {
-        return cache[type];
-      }
-
-      try {
-        require.resolve(`@/list/${ type }`);
-        cache[type] = true;
-      } catch (e) {
-        cache[type] = false;
-      }
-
-      return cache[type];
+      return hasCustom(state, rootState, 'list', key, key => resolveList(key));
     };
   },
 
-  hasCustomDetail(state, getters) {
-    return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
-      const cache = state.cache.detail;
-
-      if ( cache[key] !== undefined ) {
-        return cache[key];
-      }
-
-      try {
-        require.resolve(`@/detail/${ key }`);
-        cache[key] = true;
-      } catch (e) {
-        cache[key] = false;
-      }
-
-      return cache[key];
-    };
-  },
-
-  hasCustomEdit(state, getters) {
+  hasCustomDetail(state, getters, rootState) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      const cache = state.cache.edit;
-
-      if ( cache[key] !== undefined ) {
-        return cache[key];
-      }
-
-      try {
-        require.resolve(`@/edit/${ key }`);
-        cache[key] = true;
-      } catch (e) {
-        cache[key] = false;
-      }
-
-      return cache[key];
+      return hasCustom(state, rootState, 'detail', key, key => resolveDetail(key));
     };
   },
 
-  hasComponent(state, getters) {
+  hasCustomEdit(state, getters, rootState) {
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
+
+      return hasCustom(state, rootState, 'edit', key, key => resolveEdit(key));
+    };
+  },
+
+  hasComponent(state, getters, rootState) {
     return (path) => {
-      try {
-        require.resolve(`@/edit/${ path }`);
-
-        return true;
-      } catch (e) {
-        return false;
-      }
+      return hasCustom(state, rootState, 'edit', path, path => resolveEdit(path));
     };
   },
 
@@ -1085,27 +1045,21 @@ export const getters = {
     };
   },
 
-  importList(state, getters) {
+  importList(state, getters, rootState) {
     return (rawType) => {
-      const type = getters.componentFor(rawType);
-
-      return importList(type);
+      return loadExtension(rootState, 'list', getters.componentFor(rawType), importList);
     };
   },
 
-  importDetail(state, getters) {
+  importDetail(state, getters, rootState) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
-
-      return importDetail(key);
+      return loadExtension(rootState, 'detail', getters.componentFor(rawType, subType), importDetail);
     };
   },
 
-  importEdit(state, getters) {
+  importEdit(state, getters, rootState) {
     return (rawType, subType) => {
-      const key = getters.componentFor(rawType, subType);
-
-      return importEdit(key);
+      return loadExtension(rootState, 'edit', getters.componentFor(rawType, subType), importEdit);
     };
   },
 
@@ -1267,6 +1221,57 @@ export const getters = {
 export const mutations = {
   schemaChanged(state) {
     state.schemaGeneration = state.schemaGeneration + 1;
+  },
+
+  // Remove the specified product
+  remove(state, { product, plugin }) {
+    const existing = state.products.findIndex(p => p.name === product);
+
+    // Remove the product
+    if (existing !== -1) {
+      state.products.splice(existing, 1);
+    }
+
+    // Go through the basic types and remove the headers
+    if (state.virtualTypes[product]) {
+      delete state.virtualTypes[product];
+    }
+
+    if (state.basicTypes[product]) {
+      // Remove table header configuration
+      Object.keys(state.basicTypes[product]).forEach((type) => {
+        delete state.headers[type];
+        delete state.basicTypeWeights[type];
+        delete state.cache.ignore[type];
+        // These track whether the type has a custom component
+        delete state.cache.detail[type];
+        delete state.cache.edit[type];
+        delete state.cache.list[type];
+
+        // Delete all of the entries from the componentFor cache where the valye is the type
+        // Can do this more efficiently
+        Object.keys(state.cache.componentFor).forEach((k) => {
+          const v = state.cache.componentFor[k];
+
+          if (v === type) {
+            delete state.cache.componentFor[k];
+          }
+        });
+      });
+
+      delete state.basicTypes[product];
+    }
+
+    if (plugin) {
+      // kind is list, edit, detail etc
+      Object.keys(plugin.types).forEach((kind) => {
+        if (state.cache[kind]) {
+          Object.keys(plugin.types[kind]).forEach((type) => {
+            delete state.cache[kind][type];
+          });
+        }
+      });
+    }
   },
 
   product(state, obj) {
@@ -1475,6 +1480,10 @@ export const mutations = {
 };
 
 export const actions = {
+  removeProduct({ commit }, metadata) {
+    commit('remove', metadata);
+  },
+
   addFavorite({ dispatch, rootGetters }, type) {
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
@@ -1735,4 +1744,43 @@ export function project(getters) {
   }
 
   return project;
+}
+
+function hasCustom(state, rootState, kind, key, fallback) {
+  const cache = state.cache[kind];
+
+  if ( cache[key] !== undefined ) {
+    return cache[key];
+  }
+
+  // Check to see if the custom kind is provided by a plugin
+  if (!!rootState.$plugin.getDynamic(kind, key)) {
+    cache[key] = true;
+
+    return cache[key];
+  }
+
+  // Fallback
+  try {
+    fallback(key);
+    cache[key] = true;
+  } catch (e) {
+    cache[key] = false;
+  }
+
+  return cache[key];
+}
+
+function loadExtension(rootState, kind, key, fallback) {
+  const ext = rootState.$plugin.getDynamic(kind, key);
+
+  if (ext) {
+    if (typeof ext === 'function') {
+      return ext;
+    }
+
+    return () => ext;
+  }
+
+  return fallback(key);
 }

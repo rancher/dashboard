@@ -1,0 +1,12 @@
+{
+  "name": "NAME",
+  "version": "0.1.0",
+  "private": false,
+  "publishConfig": {
+    "registry": "http://localhost:4873"
+  },
+  "engines": {
+    "node": ">=12"
+  },
+  "dependencies": {}
+}

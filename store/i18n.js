@@ -1,3 +1,4 @@
+import merge from 'lodash/merge';
 import IntlMessageFormat from 'intl-messageformat';
 import { LOCALE } from '@/config/cookies';
 import { get } from '@/utils/object';
@@ -6,23 +7,26 @@ import { getProduct, getVendor, DOCS_BASE } from '@/config/private-label';
 import { loadTranslation } from '@/utils/dynamic-importer';
 
 const NONE = 'none';
+const DEFAULT_LOCALE = 'en-us';
 
 // Formatters can't be serialized into state
 const intlCache = {};
+
+let lastLoaded = 0;
 
 export const state = function() {
   // const translationContext = require.context('@/assets/translations', true, /.*/);
   // const available = translationContext.keys().map(path => path.replace(/^.*\/([^\/]+)\.[^.]+$/, '$1'));
   // Using require.context() forces them to all be in the same webpack chunk name... just hardcode the list for now so zh-hans
   // gets generated as it's own chunk instead of being loaded all the time.
-  const available = ['en-us', 'zh-hans'];
+  const available = [DEFAULT_LOCALE, 'zh-hans'];
 
   const out = {
-    default:      'en-us',
+    default:      DEFAULT_LOCALE,
     selected:     null,
     previous:     null,
     available,
-    translations: { 'en-us': en },
+    translations: { [DEFAULT_LOCALE]: en },
   };
 
   return out;
@@ -156,16 +160,52 @@ export const mutations = {
     state.translations[locale] = translations;
   },
 
+  mergeLoadTranslations(state, { locale, translations }) {
+    if (!state.translations[locale]) {
+      state.translations[locale] = translations;
+    } else {
+      merge(state.translations[locale], translations);
+    }
+  },
+
   setSelected(state, locale) {
     state.selected = locale;
   },
+
+  // Add a locale to the list of available locales
+  addLocale(state, { locale, label }) {
+    const hasLocale = state.available.find(l => l === locale);
+
+    if (!hasLocale) {
+      state.available.push(locale);
+      if (!state.translations[state.default]?.locale?.[locale]) {
+        state.translations[state.default].locale[locale] = label;
+      }
+    }
+  },
+
+  // Remove locale
+  removeLocale(state, locale) {
+    const index = state.available.findIndex(l => l === locale);
+
+    if (index !== -1) {
+      state.available.splice(index, 1);
+
+      if (state.translations[locale]) {
+        delete state.translations[locale];
+      }
+    }
+  }
 };
 
 export const actions = {
   init({ state, commit, dispatch }) {
     let selected = this.$cookies.get(LOCALE, { parseJSON: false });
 
-    if ( !selected ) {
+    // We might be using a locale that is loaded by a plugin that is no longer loaded
+    const exists = !!state.available.find(loc => loc === selected);
+
+    if ( !selected || !exists) {
       selected = state.default;
     }
 
@@ -173,14 +213,44 @@ export const actions = {
   },
 
   async load({ commit }, locale) {
-    const translations = await loadTranslation(locale);
+    const translationsModule = await loadTranslation(locale);
+    const translations = translationsModule.default || translationsModule;
 
     commit('loadTranslations', { locale, translations });
 
     return true;
   },
 
-  async switchTo({ state, commit, dispatch }, locale) {
+  async mergeLoad({ commit }, { locale, module }) {
+    const translationsModule = await module();
+    const translations = translationsModule.default || translationsModule;
+
+    return commit('mergeLoadTranslations', { locale, translations });
+  },
+
+  // Add a locale to the list of available locales
+  addLocale({ commit }, { locale, label }) {
+    commit('addLocale', { locale, label });
+  },
+
+  // Remove a locale from the list of available locales
+  removeLocale({ commit, getters, dispatch }, { locale }) {
+    const current = getters['current']();
+
+    // If we are removing the current locale, switch back to the default locale
+    if (current === locale) {
+      dispatch('switchTo', DEFAULT_LOCALE);
+    }
+
+    commit('removeLocale', locale );
+  },
+
+  async switchTo({
+    state,
+    rootState,
+    commit,
+    dispatch
+  }, locale) {
     if ( locale === NONE ) {
       commit('setSelected', locale);
 
@@ -188,16 +258,41 @@ export const actions = {
       return;
     }
 
-    if ( !state.translations[locale] ) {
+    const lastLoad = rootState.$plugin?.lastLoad;
+    const i18nExt = rootState.$plugin?.getDynamic('i18n', locale);
+    const reload = lastLoaded < lastLoad;
+
+    lastLoaded = lastLoad;
+
+    if ( !state.translations[locale] || reload) {
       try {
         await dispatch('load', locale);
       } catch (e) {
-        if ( locale !== 'en-us' ) {
-          // Try to show something...
-
-          commit('setSelected', 'en-us');
+        if (!i18nExt && locale !== DEFAULT_LOCALE) {
+          // Try to show something... we could not load the locale from the built-in translations
+          // and there are no plugins providing translations
+          commit('setSelected', DEFAULT_LOCALE);
 
           return;
+        }
+      }
+
+      // Load all of the locales from the plugins
+      if (i18nExt && i18nExt.length) {
+        const p = [];
+
+        i18nExt.forEach((fn) => {
+          p.push(dispatch('mergeLoad', { locale, module: fn }));
+        });
+
+        try {
+          await Promise.all(p);
+        } catch (e) {
+          if (locale !== DEFAULT_LOCALE) {
+            commit('setSelected', DEFAULT_LOCALE);
+
+            return;
+          }
         }
       }
     }

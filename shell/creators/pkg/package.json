@@ -1,0 +1,22 @@
+{
+  "name": "@rancher/create-pkg",
+  "description": "UI Package generator",
+  "version": "0.1.37",
+  "license": "Apache-2.0",
+  "author": "Rancher Labs, Inc.",
+  "private": false,
+  "bin": "./init",
+  "files": [
+    "*.*",
+    "init"
+  ],
+  "publishConfig": {
+    "registry": "http://localhost:4873"
+  },
+  "engines": {
+    "node": ">=12"
+  },
+  "dependencies": {
+    "fs-extra": "^10.0.0"
+  }
+}
