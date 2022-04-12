@@ -30,7 +30,7 @@ export default {
 
     const upgrade = {
       action:     'goToUpgrade',
-      enabled:    !!this.deployedAsLegacy && !!this.deployedAsMultiCluster,
+      enabled:    !this.deployedAsLegacy,
       icon:       'icon icon-fw icon-edit',
       label:      this.t('catalog.install.action.goToUpgrade'),
     };
@@ -210,32 +210,20 @@ export default {
     return filterBy(this.metadata?.relationships || [], 'rel', 'helmresource');
   },
 
-  async deployedAsMultiCluster() {
-    try {
-      const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true });
-
-      if ( mcapps ) {
-        return mcapps.find(mcapp => mcapp.spec?.targets?.find(target => target.appName === this.metadata?.name));
-      }
-    } catch (e) {}
-
-    return false;
-  },
-
-  async deployedAsLegacy() {
+  deployedAsLegacy() {
     if ( this.spec.values ) {
       const { clusterName, projectName } = this.spec?.values?.global;
 
       if ( clusterName && projectName ) {
         try {
-          const legacyApp = await this.$dispatch('rancher/find', {
+          const legacyApp = this.$dispatch('rancher/find', {
             type: NORMAN.APP,
-            id:   `${ projectName }:${ this.metadata?.name }`,
-            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
+            id:   `${ projectName }:${ this.metadata.name }`,
+            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata.name }` }
           }, { root: true });
 
           if ( legacyApp ) {
-            return legacyApp;
+            return true;
           }
         } catch (e) {}
       }
