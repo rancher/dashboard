@@ -877,7 +877,7 @@ export default {
                       :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
                       :width="col.col.width"
                     >
-                      <slot :name="'cell:' + col.name" :row="row" :col="col" :value="col.value">
+                      <slot :name="'cell:' + col.col.name" :row="row.row" :col="col.col" :value="col.value">
                         <component
                           :is="col.component"
                           v-if="col.component && col.needRef"

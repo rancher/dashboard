@@ -42,6 +42,27 @@ export default {
       type:    Boolean,
     },
 
+    minHeight: {
+      // Prevent buttons from shifting when error
+      // messages appear
+      type:    Number,
+      default: 0
+    },
+
+    validators: {
+      // validators is expected to be an array of functions
+      // where each function takes the input value as an
+      // argument. If the validation passes, the function
+      // returns { isValid: true }. If the validation fails,
+      // the function returns:
+      //
+      // { isValid: false, errorMessage: "Error goes here." }
+      type:    Array,
+      default: () => {
+        return [];
+      },
+    },
+
     maxlength: {
       type:    Number,
       default: null,
@@ -51,6 +72,13 @@ export default {
       type:    Boolean,
       default: false
     }
+  },
+
+  data() {
+    return {
+      updated:          false,
+      validationErrors: '',
+    };
   },
 
   computed: {
@@ -119,6 +147,20 @@ export default {
       }
     },
 
+    onUpdate(value) {
+      const haveValidators = this.validators.length > 0;
+
+      if (!haveValidators && !this.updated) {
+        // When no validators are here emit a valid state of true. If the gate to only run once causes issues it can be removed
+        this.$emit('setValid', true);
+      }
+      if (haveValidators) {
+        this.updateValidationErrors(value);
+      }
+      this.updated = true;
+      this.$emit('input', value);
+    },
+
     onFocus() {
       this.onFocusLabeled();
     },
@@ -128,6 +170,29 @@ export default {
       this.onBlurLabeled();
     },
 
+    updateValidationErrors(value) {
+      // Combine all active validation errors for this field
+      // into a string to be displayed beneath the input.
+      const errorMessageReducer = ( previousValue, currentValidator ) => {
+        try {
+          const validationResult = currentValidator(value);
+
+          if (!validationResult.isValid) {
+            previousValue.push(validationResult.errorMessage);
+          }
+
+          return previousValue;
+        } catch (error) {
+          alert(`Could not validate the field using the validator ${ currentValidator.name }. ${ error }`);
+        }
+      };
+      const errorString = this.validators.reduce(errorMessageReducer, []);
+
+      this.validationErrors = errorString.join(', ');
+      // Can be used to update the validity of a form as a whole.
+      this.$emit('setValid', !this.validationErrors.length);
+    },
+
     escapeHtml,
   },
 };
@@ -135,99 +200,90 @@ export default {
 
 <template>
   <div
-    :class="{
-      'labeled-input': true,
-      focused,
-      [mode]: true,
-      disabled: isDisabled,
-      [status]: status,
-      suffix: hasSuffix,
-      'has-tooltip': hasTooltip,
-      'compact-input': isCompact,
-      hideArrows
-    }"
+    :style="{'min-height': minHeight}"
   >
-    <slot name="label">
-      <label v-if="hasLabel">
-        <t v-if="labelKey" :k="labelKey" />
-        <template v-else-if="label">{{ label }}</template>
+    <div
+      :class="{
+        'labeled-input': true,
+        focused,
+        [mode]: true,
+        disabled: isDisabled,
+        [status]: status,
+        suffix: hasSuffix,
+      }"
+    >
+      <slot name="label">
+        <label>
+          <t v-if="labelKey" :k="labelKey" />
+          <template v-else-if="label">{{ label }}</template>
 
-        <span v-if="required" class="required">*</span>
-      </label>
-    </slot>
+          <span v-if="required" class="required">*</span>
+        </label>
+      </slot>
 
-    <slot name="prefix" />
+      <slot name="prefix" />
 
-    <slot name="field">
-      <TextAreaAutoGrow
-        v-if="type === 'multiline' || type === 'multiline-password'"
-        ref="value"
-        v-bind="$attrs"
-        :maxlength="_maxlength"
-        :disabled="isDisabled"
-        :value="value"
-        :placeholder="_placeholder"
-        autocapitalize="off"
-        :class="{ conceal: type === 'multiline-password' }"
-        @input="$emit('input', $event)"
-        @focus="onFocus"
-        @blur="onBlur"
+      <slot name="field">
+        <TextAreaAutoGrow
+          v-if="type === 'multiline' || type === 'multiline-password'"
+          ref="value"
+          v-bind="$attrs"
+          :maxlength="_maxlength"
+          :disabled="isDisabled"
+          :value="value"
+          :placeholder="_placeholder"
+          autocapitalize="off"
+          :class="{ conceal: type === 'multiline-password' }"
+          @input="onUpdate($event)"
+          @focus="onFocus"
+          @blur="onBlur"
+        />
+        <input
+          v-else
+          ref="value"
+          :class="{ 'no-label': !hasLabel }"
+          v-bind="$attrs"
+          :maxlength="_maxlength"
+          :disabled="isDisabled"
+          :type="type === 'cron' ? 'text' : type"
+          :value="value"
+          :placeholder="_placeholder"
+          autocomplete="off"
+          autocapitalize="off"
+          :data-lpignore="ignorePasswordManagers"
+          @input="onUpdate($event.target.value)"
+          @focus="onFocus"
+          @blur="onBlur"
+        />
+      </slot>
+
+      <slot name="suffix" />
+      <LabeledTooltip
+        v-if="tooltipKey && !focused"
+        :hover="hoverTooltip"
+        :value="t(tooltipKey)"
+        :status="status"
       />
-      <input
-        v-else
-        ref="value"
-        :class="{ 'no-label': !hasLabel }"
-        v-bind="$attrs"
-        :maxlength="_maxlength"
-        :disabled="isDisabled"
-        :type="type === 'cron' ? 'text' : type"
-        :value="value"
-        :placeholder="_placeholder"
-        autocomplete="off"
-        autocapitalize="off"
-        :data-lpignore="ignorePasswordManagers"
-        @input="$emit('input', $event.target.value)"
-        @focus="onFocus"
-        @blur="onBlur"
+      <LabeledTooltip
+        v-else-if="tooltip && !focused"
+        :hover="hoverTooltip"
+        :value="tooltip"
+        :status="status"
       />
-    </slot>
-    <slot name="suffix" />
-    <LabeledTooltip
-      v-if="tooltipKey && !focused"
-      :hover="hoverTooltip"
-      :value="t(tooltipKey)"
-      :status="status"
-    />
-    <LabeledTooltip
-      v-else-if="tooltip && !focused"
-      :hover="hoverTooltip"
-      :value="tooltip"
-      :status="status"
-    />
-    <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
-    <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
+      <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
+      <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
+    </div>
+    <div
+      v-if="validationErrors.length > 0"
+      class="validation-message"
+    >
+      {{ validationErrors }}
+    </div>
   </div>
 </template>
-<style scoped lang="scss">
-  .labeled-input.view {
-    input {
-      text-overflow: ellipsis;
-    }
-  }
 
-.hideArrows {
-  /* Hide arrows on number input when it overlaps with the unit */
-  /* Chrome, Safari, Edge, Opera */
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  /* Firefox */
-  input[type=number] {
-    -moz-appearance: textfield;
-  }
+<style>
+.validation-message {
+  padding: 5px;
 }
-
 </style>

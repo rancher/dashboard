@@ -1,7 +1,7 @@
 import jsyaml from 'js-yaml';
 import { NODE } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { colorForState } from '@shell/plugins/steve/resource-class';
+import { colorForState } from '@shell//plugins/core-store/resource-class';
 import { HCI } from '@shell/config/labels-annotations';
 
 export default class HciUpgrade extends SteveModel {

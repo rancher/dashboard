@@ -2,7 +2,7 @@ import includes from 'lodash/includes';
 import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { NODE } from '@shell/config/types';
-import Resource from '@shell/plugins/steve/resource-class';
+import Resource from '@shell//plugins/core-store/resource-class';
 
 const POD_STATUS_NOT_SCHEDULABLE = 'POD_NOT_SCHEDULABLE';
 

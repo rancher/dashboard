@@ -10,7 +10,7 @@ import { SCHEMA } from '@shell/config/types';
 import { createYaml } from '@shell/utils/create-yaml';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import DetailTop from '@shell/components/DetailTop';
-import { clone, set, diff } from '@shell/utils/object';
+import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 
 function modeFor(route) {
@@ -100,6 +100,9 @@ export default {
 
     const options = store.getters[`type-map/optionsFor`](resource);
 
+    this.showMasthead = [_CREATE, _EDIT].includes(mode) ? options.resourceEditMasthead : true;
+    const canViewYaml = options.canYaml;
+
     if ( options.resource ) {
       resource = options.resource;
     }
@@ -161,22 +164,13 @@ export default {
       }
     }
 
-    // Ensure labels & annotations exists, since lots of things need them
-    if ( !model.metadata ) {
-      set(model, 'metadata', {});
-    }
-
-    if ( !model.metadata.annotations ) {
-      set(model, 'metadata.annotations', {});
-    }
-
-    if ( !model.metadata.labels ) {
-      set(model, 'metadata.labels', {});
-    }
+    // Ensure common properties exists
+    model = await store.dispatch(`${ inStore }/cleanForDetail`, model);
 
     const out = {
       hasCustomDetail,
       hasCustomEdit,
+      canViewYaml,
       resource,
       as,
       yaml,
@@ -287,6 +281,8 @@ export default {
     const detailResource = options.resourceDetail || options.resource || resource;
     const editResource = options.resourceEdit || options.resource || resource;
 
+    // TODO: RC These aren't right... signature is (rawType, subType).. not (rawType, resourceId)
+    // Remove id? How does subtype get in (cluster/node)
     this.detailComponent = this.$store.getters['type-map/importDetail'](detailResource, id);
     this.editComponent = this.$store.getters['type-map/importEdit'](editResource, id);
   },
@@ -322,6 +318,7 @@ export default {
   </div>
   <div v-else>
     <Masthead
+      v-if="showMasthead"
       :resource="resource"
       :value="liveModel"
       :mode="mode"
@@ -329,6 +326,7 @@ export default {
       :as="as"
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
+      :can-view-yaml="canViewYaml"
       :resource-subtype="resourceSubtype"
       :parent-route-override="parentRouteOverride"
       :store-override="storeOverride"

@@ -1,10 +1,9 @@
 import Vue from 'vue';
 import { load } from 'js-yaml';
-import { colorForState } from '@shell/plugins/steve/resource-class';
+import { colorForState } from '@shell//plugins/core-store/resource-class';
 import { POD, NODE, HCI, PVC } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { cleanForNew } from '@shell/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { _CLONE } from '@shell/config/query-params';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -224,7 +223,7 @@ export default class VirtVm extends SteveModel {
   }
 
   cleanForNew() {
-    cleanForNew(this);
+    this.cleanForNew();
 
     this.spec.template.spec.hostname = '';
     const interfaces = this.spec.template.spec.domain.devices?.interfaces || [];

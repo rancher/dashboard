@@ -4,7 +4,7 @@ import ResourcesSummary from '@shell/components/fleet/ResourcesSummary';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { COUNT, WORKLOAD_TYPES } from '@shell/config/types';
 import { WORKLOAD_SCHEMA } from '@shell/config/schema';
-import { getStatesByType } from '@shell/plugins/steve/resource-class';
+import { getStatesByType } from '@shell//plugins/core-store/resource-class';
 import MoveModal from '@shell/components/MoveModal';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTable from '@shell/components/ResourceTable';

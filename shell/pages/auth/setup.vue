@@ -10,7 +10,7 @@ import Checkbox from '@shell/components/form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import RadioGroup from '@shell/components/form/RadioGroup';
 import { setSetting, SETTING } from '@shell/config/settings';
-import { _ALL_IF_AUTHED } from '@shell/plugins/steve/actions';
+import { _ALL_IF_AUTHED } from '@shell/plugins/core-store/actions';
 import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Password from '@shell/components/form/Password';

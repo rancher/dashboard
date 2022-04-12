@@ -1,6 +1,6 @@
 import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
-import { _MULTI } from '@shell/plugins/steve/actions';
+import { _MULTI } from '@shell/plugins/core-store/actions';
 import { addObjects, findBy } from '@shell/utils/array';
 import { openAuthPopup, returnTo } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';

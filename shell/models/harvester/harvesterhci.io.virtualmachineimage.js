@@ -7,7 +7,7 @@ import {
 import { get, clone } from '@shell/utils/object';
 import { formatSi } from '@shell/utils/units';
 import { ucFirst } from '@shell/utils/string';
-import { stateDisplay, colorForState } from '@shell/plugins/steve/resource-class';
+import { stateDisplay, colorForState } from '@shell//plugins/core-store/resource-class';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 export function isReady() {

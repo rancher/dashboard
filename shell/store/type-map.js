@@ -94,6 +94,8 @@
 //                               resource: undefined       -- Use this resource in ResourceDetails instead
 //                               resourceDetail: undefined -- Use this resource specifically for ResourceDetail's detail component
 //                               resourceEdit: undefined   -- Use this resource specifically for ResourceDetail's edit component
+//                               resourceEditMasthead: true   -- Show the Masthead in the edit resource component
+//                               customRoute: undefined,
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -122,13 +124,13 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveDetail
+  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveDetail, resolveWindowComponent, importWindowComponent
 
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import isObject from 'lodash/isObject';
-import { normalizeType } from '@shell/plugins/steve/normalize';
+import { normalizeType } from '@shell/plugins/core-store/normalize';
 import { sortBy } from '@shell/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 
@@ -332,14 +334,15 @@ export const state = function() {
     hideBulkActions:         {},
     schemaGeneration:        1,
     cache:                   {
-      typeMove:     {},
-      groupLabel:   {},
-      ignore:       {},
-      list:         {},
-      detail:       {},
-      edit:         {},
-      componentFor: {},
-      promptRemove: {},
+      typeMove:        {},
+      groupLabel:      {},
+      ignore:          {},
+      list:            {},
+      detail:          {},
+      edit:            {},
+      componentFor:    {},
+      promptRemove:    {},
+      windowComponent: {},
     },
   };
 };
@@ -421,14 +424,16 @@ export const getters = {
 
   optionsFor(state) {
     const def = {
-      isCreatable: true,
-      isEditable:  true,
-      isRemovable: true,
-      showState:   true,
-      showAge:     true,
-      canYaml:     true,
-      namespaced:  null,
-      listGroups:  [],
+      isCreatable:          true,
+      isEditable:           true,
+      isRemovable:          true,
+      showState:            true,
+      showAge:              true,
+      canYaml:              true,
+      namespaced:           null,
+      listGroups:           [],
+      customRoute:          undefined,
+      resourceEditMasthead: true,
     };
 
     return (schemaOrType) => {
@@ -717,7 +722,7 @@ export const getters = {
   },
 
   getSpoofedInstance(state, getters, rootState, rootGetters) {
-    return async(type, id, product) => {
+    return async(type, product, id) => {
       const productInstances = await getters.getSpoofedInstances(type, product);
 
       return productInstances.find( instance => instance.id === id);
@@ -726,6 +731,21 @@ export const getters = {
 
   allSpoofedTypes(state, getters, rootState, rootGetters) {
     return Object.values(state.spoofedTypes).flat();
+  },
+
+  spoofedSchemas(state, getters, rootState, rootGetters) {
+    return (product) => {
+      const types = state.spoofedTypes[product] || [];
+
+      return types.flatMap((type) => {
+        const schemas = type.schemas || [];
+
+        return schemas.map(schema => ({
+          ...schema,
+          isSpoofed: true
+        }));
+      });
+    };
   },
 
   allSpoofedSchemas(state, getters, rootState, rootGetters) {
@@ -780,6 +800,7 @@ export const getters = {
           count:       count ? count.summary.count || 0 : null,
           byNamespace: count ? count.namespaces : {},
           revision:    count ? count.revision : null,
+          route:       typeOptions.customRoute
         };
       }
 
@@ -1039,6 +1060,14 @@ export const getters = {
     };
   },
 
+  hasCustomWindowComponent(state, getters, rootState) {
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
+
+      return hasCustom(state, rootState, 'windowComponent', key, key => resolveWindowComponent(key));
+    };
+  },
+
   importComponent(state, getters) {
     return (path) => {
       return importEdit(path);
@@ -1068,6 +1097,12 @@ export const getters = {
       const type = getters.componentFor(rawType);
 
       return importCustomPromptRemove(type);
+    };
+  },
+
+  importWindowComponent(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'windowComponent', getters.componentFor(rawType, subType), importWindowComponent);
     };
   },
 
@@ -1456,6 +1491,8 @@ export const mutations = {
   },
 
   componentForType(state, { match, replace }) {
+    // TODO: RC Q Neil - I'd had products manually specifcy the pkg... so we would look in <pkg>/x/<type>
+    // In new way, how do we handle collisions (epinio namespaces and cluster(kube) namespaces)
     match = ensureRegex(match);
     match = regexToString(match);
     state.typeToComponentMappings.push({ match, replace });

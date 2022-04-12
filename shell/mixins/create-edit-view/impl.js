@@ -4,7 +4,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { clear } from '@shell/utils/array';
 import { DEFAULT_WORKSPACE } from '@shell/config/types';
-import { handleConflict } from '@shell/plugins/steve/normalize';
+import { handleConflict } from '@shell/plugins/core-store/normalize';
 
 export default {
 

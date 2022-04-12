@@ -1,4 +1,4 @@
-import { colorForState } from '@shell/plugins/steve/resource-class';
+import { colorForState } from '@shell//plugins/core-store/resource-class';
 import { HCI } from '@shell/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import SteveModel from '@shell/plugins/steve/steve-class';

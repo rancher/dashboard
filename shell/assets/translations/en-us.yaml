@@ -588,6 +588,10 @@ asyncButton:
     action: Rotate
     waiting: Rotating&hellip;
     success: Rotated
+  run:
+    action: Run
+    waiting: Running&hellip;
+    success: Completed
   snapshot:
     action: Snapshot Now
     waiting: Snapshot Initiated&hellip;
@@ -4698,6 +4702,7 @@ validation:
       apiKey: Required an "Api Key" to be set.
   invalidCron: Invalid cron schedule
   k8s:
+    name: Must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc').
     identifier:
       emptyLabel: '"{key}" cannot have an empty key'
       emptyPrefix: '"{key}" cannot have an empty prefix'

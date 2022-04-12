@@ -2,7 +2,7 @@
 import { mapState } from 'vuex';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
-import { STATES_ENUM, STATES, getStateLabel } from '@shell/plugins/steve/resource-class';
+import { STATES_ENUM, STATES, getStateLabel } from '@shell//plugins/core-store/resource-class';
 import { allHash } from '@shell/utils/promise';
 import Loading from '@shell/components/Loading';
 import CollapsibleCard from '@shell/components/CollapsibleCard.vue';

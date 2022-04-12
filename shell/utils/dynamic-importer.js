@@ -58,6 +58,14 @@ export function importEdit(name) {
   return () => import(/* webpackChunkName: "edit" */ `@shell/edit/${name}`);
 }
 
+export function importWindowComponent(name) {
+  if (!name) {
+    throw new Error('Name required');
+  }
+
+  return () => import(/* webpackChunkName: "components/nav/WindowManager" */ `@shell/components/nav/WindowManager/${name}`);
+}
+
 export function importDialog(name) {
   if ( !name ) {
     throw new Error('Name required');
@@ -105,4 +113,8 @@ export function resolveEdit(key) {
 
 export function resolveDetail(key) {
   return require.resolve(`@shell/detail/${ key }`);
+}
+
+export function resolveWindowComponent(key) {
+  return require.resolve(`@shell/components/nav/WindowManager/${ key }`);
 }

@@ -356,8 +356,6 @@ export default {
     </button>
   </div>
 </template>
-  </div>
-</template>
 
 <style lang='scss' scoped>
 .var-row{

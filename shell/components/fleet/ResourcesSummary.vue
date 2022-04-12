@@ -1,7 +1,7 @@
 <script>
 import capitalize from 'lodash/capitalize';
 import CountBox from '@shell/components/CountBox';
-import { STATES } from '@shell/plugins/steve/resource-class';
+import { STATES } from '@shell//plugins/core-store/resource-class';
 
 export default {
 

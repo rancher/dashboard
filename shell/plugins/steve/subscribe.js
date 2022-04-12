@@ -1,4 +1,4 @@
-import { addObject, removeObject } from '@shell/utils/array';
+import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import Socket, {
   EVENT_CONNECTED,
@@ -7,7 +7,8 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
-import { normalizeType } from '@shell/plugins/steve/normalize';
+// import { remapSpecialKeys } from '@shell/plugins/core-store/resource-proxy';
+import { normalizeType } from '@shell/plugins/core-store/normalize';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -82,8 +83,13 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
 export const actions = {
   subscribe(ctx, opt) {
     const {
-      state, commit, dispatch, getters
+      state, commit, dispatch, getters, rootGetters
     } = ctx;
+
+    if (rootGetters['isSingleProduct']?.disableSteveSockets) {
+      return;
+    }
+
     let socket = state.socket;
 
     commit('setWantSocket', true);
@@ -550,6 +556,15 @@ export const mutations = {
 
   debug(state, on) {
     state.debugSocket = on !== false;
+  },
+
+  resetSubscriptions(state) {
+    clear(state.started);
+    clear(state.pendingFrames);
+    clear(state.queue);
+    clearInterval(state.queueTimer);
+    state.deferredRequests = {};
+    state.queueTimer = null;
   }
 };
 

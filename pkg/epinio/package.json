@@ -1,0 +1,31 @@
+{
+  "name": "epinio",
+  "description": "epinio plugin",
+  "version": "0.1.0",
+  "private": false,
+  "rancher": true,
+  "publishConfig": {
+    "registry": "http://localhost:4873"
+  },
+  "scripts": {
+    "dev": "./node_modules/.bin/nuxt dev",
+    "nuxt": "./node_modules/.bin/nuxt"
+  },
+  "engines": {
+    "node": ">=12"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.5",
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-typescript": "^4.5.15",
+    "@vue/cli-service": "~4.5.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

@@ -14,7 +14,7 @@ import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { importLogin } from '@shell/utils/dynamic-importer';
-import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/steve/actions';
+import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/core-store/actions';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { LOGIN_ERRORS } from '@shell/store/auth';

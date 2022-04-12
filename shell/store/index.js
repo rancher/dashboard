@@ -14,22 +14,25 @@ import { setBrand, setVendor } from '@shell/config/private-label';
 import { addParam } from '@shell/utils/url';
 import { SETTING } from '@shell/config/settings';
 import semver from 'semver';
-import { BY_TYPE, NORMAN as NORMAN_CLASS } from '@shell/plugins/steve/classify';
 import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
+import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
+import { BY_TYPE } from '@shell/plugins/core-store/classify';
+import {
+  NAMESPACE_FILTER_ALL_USER as ALL_USER,
+  NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
+  NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
+  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
+  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
+  NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
+  splitNamespaceFilterKey,
+} from '@shell/utils/namespace-filter';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
 export const strict = false;
 
 export const BLANK_CLUSTER = '_';
-export const ALL = 'all';
-export const ALL_SYSTEM = 'all://system';
-export const ALL_USER = 'all://user';
-export const ALL_ORPHANS = 'all://orphans';
-export const NAMESPACED_PREFIX = 'namespaced://';
-export const NAMESPACED_YES = 'namespaced://true';
-export const NAMESPACED_NO = 'namespaced://false';
 
 export const plugins = [
   Steve({
@@ -47,13 +50,14 @@ export const plugins = [
     namespace:      'rancher',
     baseUrl:        '/v3',
     supportsStream: false, // The norman API doesn't support streaming
-    modelBaseClass: NORMAN_CLASS,
+    modelBaseClass: STEVE_MODEL_TYPES.NORMAN,
   }),
   Steve({
     namespace:      'harvester',
     baseUrl:        '', // URL is dynamically set for the selected cluster
     supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
+
 ];
 
 export const state = () => {
@@ -466,6 +470,7 @@ export const mutations = {
     const err = new ApiError(obj);
 
     console.log('Loading error', err); // eslint-disable-line no-console
+    console.log('(actual error)', obj); // eslint-disable-line no-console
     // Location of error, with description and stack trace
     console.log('Loading error location', locationError); // eslint-disable-line no-console
     console.log('Loading original error', obj); // eslint-disable-line no-console
@@ -489,7 +494,7 @@ export const mutations = {
 
 export const actions = {
   async loadManagement({
-    getters, state, commit, dispatch
+    getters, state, commit, dispatch, rootGetters
   }) {
     if ( state.managementReady) {
       // Do nothing, it's already loaded
@@ -590,7 +595,9 @@ export const actions = {
 
   async loadCluster({
     state, commit, dispatch, getters
-  }, { id, oldProduct }) {
+  }, {
+    id, oldProduct, oldPkg, newPkg
+  }) {
     const isMultiCluster = getters['isMultiCluster'];
 
     if ( state.clusterId && state.clusterId === id) {
@@ -602,6 +609,14 @@ export const actions = {
       await dispatch('harvester/unsubscribe');
       commit('harvester/reset');
     }
+
+    const oldPkgClusterStore = oldPkg?.stores.find(
+      s => getters[`${ s.storeName }/isClusterStore`]
+    )?.storeName;
+
+    const newPkgClusterStore = newPkg?.stores.find(
+      s => getters[`${ s.storeName }/isClusterStore`]
+    )?.storeName;
 
     if ( state.clusterId && id ) {
       // Clear the old cluster state out if switching to a new one.
@@ -620,6 +635,12 @@ export const actions = {
 
       commit('management/forgetType', MANAGEMENT.PROJECT);
       commit('catalog/reset');
+
+      if (oldPkg) {
+        // Mirror actions on the 'cluster' store for our specific pkg `cluster` store
+        await dispatch(`${ oldPkgClusterStore }/unsubscribe`);
+        await commit(`${ oldPkgClusterStore }/reset`);
+      }
     }
 
     if ( id ) {
@@ -636,6 +657,18 @@ export const actions = {
     if (id === BLANK_CLUSTER) {
       commit('clusterChanged', true);
 
+      return;
+    }
+
+    if (newPkg) {
+      // Mirror actions on the 'cluster' store for our specific pkg `cluster` store
+      dispatch(`${ newPkgClusterStore }/loadSchemas`, true);
+      await dispatch(`${ newPkgClusterStore }/loadCluster`, { id });
+
+      commit('clusterChanged', true);
+      console.log('Done loading pkg cluster.'); // eslint-disable-line no-console
+
+      // Everything below here is rancher/kube cluster specific
       return;
     }
 
@@ -849,7 +882,9 @@ export const actions = {
     const cleanFilters = {};
 
     for ( const id in filters ) {
-      if ( getters['management/byId'](MANAGEMENT.CLUSTER, id) ) {
+      const { clusterId } = splitNamespaceFilterKey(id);
+
+      if ( getters['management/byId'](MANAGEMENT.CLUSTER, clusterId) ) {
         cleanFilters[id] = filters[id];
       }
     }
@@ -863,7 +898,15 @@ export const actions = {
     }
   },
 
-  async onLogout({ dispatch, commit, state }) {
+  async onLogout(store) {
+    const { dispatch, commit, state } = store;
+
+    Object.values(this.$plugin.getPlugins()).forEach((p) => {
+      if (p.onLogOut) {
+        p.onLogOut(store);
+      }
+    });
+
     await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });
     commit('management/reset');

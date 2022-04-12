@@ -70,11 +70,18 @@ export default {
       type:    String,
       default: '',
     },
+
+    validators: {
+      type:    Array,
+      default: () => {
+        return [];
+      }
+    }
   },
 
   data() {
     return {
-      selected: this.selectValue || this.options[0],
+      selected: this.selectValue || this.options[0].value,
       string:   this.textValue,
     };
   },
@@ -111,7 +118,7 @@ export default {
       v-if="selectLabel"
       v-model="selected"
       :label="selectLabel"
-      :class="{ 'in-input': !isView }"
+      :class="{ 'in-input': !isView, 'validation-space': true}"
       :options="options"
       :searchable="false"
       :clearable="false"
@@ -120,9 +127,11 @@ export default {
       :create-option="(name) => ({ label: name, value: name })"
       :multiple="false"
       :mode="mode"
+      :validators="validators"
       :option-label="optionLabel"
       :placement="$attrs.placement ? $attrs.placement : null"
       :v-bind="$attrs"
+      @setValid="(isValid) => { $emit('setValid', isValid) }"
       @input="change"
     />
     <Select
@@ -299,5 +308,11 @@ export default {
       }
     }
   }
+}
+
+.validation-space {
+  // Prevent an input from growing if the input next to
+  // it has validation errors
+  height: 61px;
 }
 </style>

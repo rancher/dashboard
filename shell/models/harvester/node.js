@@ -3,7 +3,7 @@ import { HCI, LONGHORN, POD } from '@shell/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { clone } from '@shell/utils/object';
 import findLast from 'lodash/findLast';
-import { colorForState, stateDisplay } from '@shell/plugins/steve/resource-class';
+import { colorForState, stateDisplay } from '@shell//plugins/core-store/resource-class';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parseSi } from '@shell/utils/units';
 

@@ -13,7 +13,7 @@ import ChildHook, { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import day from 'dayjs';
-import { sortBy } from '~shell/utils/sort';
+import { sortBy } from '@shell/utils/sort';
 
 export default {
   components: {

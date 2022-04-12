@@ -33,9 +33,9 @@
       "@shell/store/*": [
         "../../node_modules/@rancher/shell/store/*"
       ],
-      "@pkg/*": [
-        "../../pkg/*"
-      ]
+      // "@pkg/*": [
+      //   "../../pkg/*"
+      // ]
     }
   },
   "include": [

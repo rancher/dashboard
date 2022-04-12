@@ -1,5 +1,5 @@
 import { productsLoaded } from '@shell/store/type-map';
-import { clearModelCache } from '@shell/plugins/steve/model-loader';
+import { clearModelCache } from '@shell/plugins/core-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 
@@ -156,6 +156,9 @@ export default function({
       // Remove the plugin itself
       store.dispatch('uiplugins/removePlugin', name);
 
+      // Unregister vuex stores
+      plugin.stores.forEach(pStore => pStore.unregister(store));
+
       // Update last load since we removed a plugin
       _lastLoaded = new Date().getTime();
     },
@@ -187,6 +190,10 @@ export default function({
         this.loadProducts([plugin]);
       }
 
+      plugin.stores.forEach((pStore) => {
+        pStore.register()(store);
+      });
+
       // Locales
       plugin.locales.forEach((localeObj) => {
         store.dispatch('i18n/addLocale', localeObj);
@@ -199,7 +206,7 @@ export default function({
     /**
      * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n
      * @param {String} type type of thing to register, e.g. 'edit'
-     * @param {String} name type of thing to register, e.g. 'edit'
+     * @param {String} name unique name of 'something'
      * @param {Function} fn function that dynamically loads the module for the thing being registered
      */
     register(type, name, fn) {

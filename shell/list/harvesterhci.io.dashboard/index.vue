@@ -14,7 +14,7 @@ import {
   EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD, COUNT
 } from '@shell/config/types';
 import ResourceSummary, { resourceCounts, colorToCountName } from '@shell/components/ResourceSummary';
-import { colorForState } from '@shell/plugins/steve/resource-class';
+import { colorForState } from '@shell//plugins/core-store/resource-class';
 import HardwareResourceGauge from '@shell/components/HardwareResourceGauge';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';

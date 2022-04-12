@@ -1,7 +1,7 @@
 <script>
 import { sortBy } from '@shell/utils/sort';
 import { get } from '@shell/utils/object';
-import { stateSort } from '~shell/plugins/steve/resource-class';
+import { stateSort } from '@shell/plugins/core-store/resource-class';
 
 export default {
 

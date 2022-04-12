@@ -49,6 +49,12 @@ export default {
       type:    String,
       default: ''
     },
+
+    titleProtip: {
+      type:    String,
+      default: ''
+    },
+
     protip: {
       type: [String, Boolean],
       default() {
@@ -513,6 +519,7 @@ export default {
       <slot name="title">
         <h3>
           {{ title }}
+          <i v-if="titleProtip" v-tooltip="titleProtip" class="icon icon-info" />
         </h3>
       </slot>
     </div>

@@ -77,7 +77,7 @@ export default {
   watch: {
     async clusters(neu) {
       this.clusterDetail = neu[0];
-      await this.$store.dispatch('loadCluster', this.clusterDetail.id);
+      await this.$store.dispatch('loadCluster', { id: this.clusterDetail.id });
       this.clusterCounts = this.$store.getters[`cluster/all`](COUNT);
     }
   }
