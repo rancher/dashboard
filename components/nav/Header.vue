@@ -241,8 +241,12 @@ export default {
       });
     },
 
-    async copyKubeConfig(event) {
+    copyKubeConfig(event) {
       const button = event.target?.parentElement;
+
+      if (this.kubeConfigCopying) {
+        return;
+      }
 
       this.kubeConfigCopying = true;
 
@@ -251,16 +255,16 @@ export default {
       }
 
       // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
-      await allHash({
+      allHash({
         copy:     this.currentCluster.copyKubeConfig(),
         minDelay: new Promise(resolve => setTimeout(resolve, 1000))
+      }).finally(() => {
+        this.kubeConfigCopying = false;
+
+        if (button) {
+          button.classList.remove('header-btn-active');
+        }
       });
-
-      this.kubeConfigCopying = false;
-
-      if (button) {
-        button.classList.remove('header-btn-active');
-      }
     }
   }
 };
