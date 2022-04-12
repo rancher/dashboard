@@ -88,6 +88,7 @@ export const ALLOWED_SETTINGS = {
     kind:    'enum',
     options: ['prompt', 'in', 'out']
   },
+  [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
 };
 
 // harvester Settings ID
