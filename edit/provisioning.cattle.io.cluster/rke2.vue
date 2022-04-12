@@ -1844,6 +1844,7 @@ export default {
             v-model="registrySecret"
             :register-before-hook="registerBeforeHook"
             :hook-priority="1"
+            :mode="mode"
             in-store="management"
             :allow-ssh="false"
             :allow-rke="true"
