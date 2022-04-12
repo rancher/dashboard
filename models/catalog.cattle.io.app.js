@@ -30,7 +30,7 @@ export default {
 
     const upgrade = {
       action:     'goToUpgrade',
-      enabled:    true,
+      enabled:    !!this.deployedAsLegacy && !!this.deployedAsMultiCluster,
       icon:       'icon icon-fw icon-edit',
       label:      this.t('catalog.install.action.goToUpgrade'),
     };
@@ -208,44 +208,42 @@ export default {
 
   deployedResources() {
     return filterBy(this.metadata?.relationships || [], 'rel', 'helmresource');
-  }
+  },
 
-  get deployedAsMultiCluster() {
-    return async() => {
+  async deployedAsMultiCluster() {
+    try {
       const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true });
 
-      if (mcapps) {
+      if ( mcapps ) {
         return mcapps.find(mcapp => mcapp.spec?.targets?.find(target => target.appName === this.metadata?.name));
       }
+    } catch (e) {}
 
-      return null;
-    };
-  }
+    return false;
+  },
 
-  get deployedAsLegacy() {
-    return async() => {
-      if (this.spec.values) {
-        const { clusterName, projectName } = this.spec?.values?.global;
+  async deployedAsLegacy() {
+    if ( this.spec.values ) {
+      const { clusterName, projectName } = this.spec?.values?.global;
 
-        if (clusterName && projectName) {
-          try {
-            const legacyApp = await this.$dispatch('rancher/find', {
-              type: NORMAN.APP,
-              id:   `${ projectName }:${ this.metadata?.name }`,
-              opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
-            }, { root: true });
+      if ( clusterName && projectName ) {
+        try {
+          const legacyApp = await this.$dispatch('rancher/find', {
+            type: NORMAN.APP,
+            id:   `${ projectName }:${ this.metadata?.name }`,
+            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata?.name }` }
+          }, { root: true });
 
-            if (legacyApp) {
-              return legacyApp;
-            }
-          } catch (e) {}
-        }
+          if ( legacyApp ) {
+            return legacyApp;
+          }
+        } catch (e) {}
       }
 
       return false;
-    };
+    }
   }
-}
+};
 
 function cleanupVersion(version) {
   if ( !version ) {
