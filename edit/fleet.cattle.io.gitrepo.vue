@@ -6,7 +6,7 @@ import { set } from '@/utils/object';
 import ArrayList from '@/components/form/ArrayList';
 import Banner from '@/components/Banner';
 import CreateEditView from '@/mixins/create-edit-view';
-import CruResource from '@/components/CruResource';
+import CruResourceWizzard from '@/components/CruResourceWizzard';
 import InputWithSelect from '@/components/form/InputWithSelect';
 import jsyaml from 'js-yaml';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -31,7 +31,7 @@ export default {
   components: {
     ArrayList,
     Banner,
-    CruResource,
+    CruResourceWizzard,
     InputWithSelect,
     Labels,
     LabeledInput,
@@ -39,7 +39,7 @@ export default {
     Loading,
     NameNsDescription,
     YamlEditor,
-    SelectOrCreateAuthSecret
+    SelectOrCreateAuthSecret,
   },
 
   mixins: [CreateEditView],
@@ -90,6 +90,24 @@ export default {
       allClusterGroups: [],
       allWorkspaces:    [],
 
+      stepRepoInfo: {
+        name:           'stepRepoInfo',
+        title:          this.t('fleet.gitRepo.add.steps.repoInfo.title'),
+        label:          this.t('fleet.gitRepo.add.steps.repoInfo.label'),
+        subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
+        descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
+        ready:          true,
+        weight:         30
+      },
+      stepTargetInfo: {
+        name:           'stepTargetInfo',
+        title:          this.t('fleet.gitRepo.add.steps.targetInfo.title'),
+        label:          this.t('fleet.gitRepo.add.steps.targetInfo.label'),
+        subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
+        descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
+        ready:          true,
+        weight:         30
+      },
       username:   null,
       password:   null,
       publicKey:  null,
@@ -115,6 +133,16 @@ export default {
 
     _SPECIFY() {
       return _SPECIFY;
+    },
+
+    addRepositorySteps() {
+      const steps =
+      [
+        this.stepRepoInfo,
+        this.stepTargetInfo
+      ];
+
+      return steps.sort((a, b) => (b.weight || 0) - (a.weight || 0));
     },
 
     isLocal() {
@@ -345,7 +373,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <CruResource
+  <CruResourceWizzard
     v-else
     :done-route="doneRoute"
     :mode="mode"
@@ -353,9 +381,13 @@ export default {
     :subtypes="[]"
     :validation-passed="true"
     :errors="errors"
+    :steps="addRepositorySteps"
+    :edit-first-step="true"
+    :finish-mode="'finish'"
+    class="wizard"
+    @cancel="done"
     @error="e=>errors = e"
     @finish="save"
-    @cancel="done"
   >
     <Banner
       v-if="isLocal && mode === 'create'"
@@ -364,152 +396,157 @@ export default {
     >
       {{ t('fleet.gitRepo.createLocalBanner') }}
     </Banner>
-    <NameNsDescription v-if="!isView" v-model="value" :namespaced="false" :mode="mode" />
 
-    <div class="row" :class="{'mt-20': isView}">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.spec.repo"
-          :mode="mode"
-          label-key="fleet.gitRepo.repo.label"
-          :placeholder="t('fleet.gitRepo.repo.placeholder', null, true)"
-        />
-      </div>
-      <div class="col span-6">
-        <InputWithSelect
-          :mode="mode"
-          :select-label="t('fleet.gitRepo.ref.label')"
-          :select-value="ref"
-          :text-label="t(`fleet.gitRepo.ref.${ref}Label`)"
-          :text-placeholder="t(`fleet.gitRepo.ref.${ref}Placeholder`)"
-          :text-value="refValue"
-          :text-required="true"
-          :options="[{label: t('fleet.gitRepo.ref.branch'), value: 'branch'}, {label: t('fleet.gitRepo.ref.revision'), value: 'revision'}]"
-          @input="changeRef($event)"
-        />
-      </div>
-    </div>
+    <template #stepRepoInfo>
+      <NameNsDescription v-if="!isView" v-model="value" :namespaced="false" :mode="mode" />
 
-    <SelectOrCreateAuthSecret
-      :value="value.spec.clientSecretName"
-      :register-before-hook="registerBeforeHook"
-      :namespace="value.metadata.namespace"
-      in-store="management"
-      generate-name="gitrepo-auth-"
-      label-key="fleet.gitRepo.auth.git"
-      @input="updateAuth($event, 'clientSecretName')"
-    />
-
-    <SelectOrCreateAuthSecret
-      :value="value.spec.helmSecretName"
-      :register-before-hook="registerBeforeHook"
-      :namespace="value.metadata.namespace"
-      in-store="management"
-      generate-name="helmrepo-auth-"
-      label-key="fleet.gitRepo.auth.helm"
-      hook-name="registerHelmAuthSecret"
-      @input="updateAuth($event, 'helmSecretName')"
-    />
-
-    <template v-if="isTls">
-      <div class="spacer" />
-      <div class="row">
+      <div class="row" :class="{'mt-20': isView}">
         <div class="col span-6">
-          <LabeledSelect
-            :label="t('fleet.gitRepo.tls.label')"
-            :mode="mode"
-            :value="tlsMode"
-            :options="tlsOptions"
-            @input="updateTlsMode($event)"
-          />
-        </div>
-        <div v-if="tlsMode === _SPECIFY" class="col span-6">
           <LabeledInput
-            v-model="caBundle"
-            type="multiline"
-            label-key="fleet.gitRepo.caBundle.label"
-            placeholder-key="fleet.gitRepo.caBundle.placeholder"
+            v-model="value.spec.repo"
+            :mode="mode"
+            label-key="fleet.gitRepo.repo.label"
+            :placeholder="t('fleet.gitRepo.repo.placeholder', null, true)"
+          />
+        </div>
+        <div class="col span-6">
+          <InputWithSelect
+            :mode="mode"
+            :select-label="t('fleet.gitRepo.ref.label')"
+            :select-value="ref"
+            :text-label="t(`fleet.gitRepo.ref.${ref}Label`)"
+            :text-placeholder="t(`fleet.gitRepo.ref.${ref}Placeholder`)"
+            :text-value="refValue"
+            :text-required="true"
+            :options="[{label: t('fleet.gitRepo.ref.branch'), value: 'branch'}, {label: t('fleet.gitRepo.ref.revision'), value: 'revision'}]"
+            @input="changeRef($event)"
           />
         </div>
       </div>
-    </template>
-    <div class="spacer" />
 
-    <h2 v-t="'fleet.gitRepo.paths.label'" />
-    <ArrayList
-      v-model="value.spec.paths"
-      :mode="mode"
-      :initial-empty-row="false"
-      :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
-      :add-label="t('fleet.gitRepo.paths.addLabel')"
-    >
-      <template #empty>
-        <Banner label-key="fleet.gitRepo.paths.empty" />
+      <SelectOrCreateAuthSecret
+        :value="value.spec.clientSecretName"
+        :register-before-hook="registerBeforeHook"
+        :namespace="value.metadata.namespace"
+        in-store="management"
+        generate-name="gitrepo-auth-"
+        label-key="fleet.gitRepo.auth.git"
+        @input="updateAuth($event, 'clientSecretName')"
+      />
+
+      <SelectOrCreateAuthSecret
+        :value="value.spec.helmSecretName"
+        :register-before-hook="registerBeforeHook"
+        :namespace="value.metadata.namespace"
+        in-store="management"
+        generate-name="helmrepo-auth-"
+        label-key="fleet.gitRepo.auth.helm"
+        hook-name="registerHelmAuthSecret"
+        @input="updateAuth($event, 'helmSecretName')"
+      />
+
+      <template v-if="isTls">
+        <div class="spacer" />
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect
+              :label="t('fleet.gitRepo.tls.label')"
+              :mode="mode"
+              :value="tlsMode"
+              :options="tlsOptions"
+              @input="updateTlsMode($event)"
+            />
+          </div>
+          <div v-if="tlsMode === _SPECIFY" class="col span-6">
+            <LabeledInput
+              v-model="caBundle"
+              type="multiline"
+              label-key="fleet.gitRepo.caBundle.label"
+              placeholder-key="fleet.gitRepo.caBundle.placeholder"
+            />
+          </div>
+        </div>
       </template>
-    </ArrayList>
+      <div class="spacer" />
 
-    <div class="spacer" />
-
-    <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
-
-    <template v-if="!isLocal">
-      <div class="row">
-        <div class="col span-6">
-          <LabeledSelect
-            v-model="targetMode"
-            :options="targetOptions"
-            option-key="value"
-            :mode="mode"
-            :selectable="option => !option.disabled"
-            :label="t('fleet.gitRepo.target.selectLabel')"
-          >
-            <template v-slot:option="opt">
-              <hr v-if="opt.kind === 'divider'">
-              <div v-else-if="opt.kind === 'title'">
-                {{ opt.label }}
-              </div>
-              <div v-else>
-                {{ opt.label }}
-              </div>
-            </template>
-          </LabeledSelect>
-        </div>
-      </div>
-
-      <div v-if="targetMode === 'advanced'" class="row mt-10">
-        <div class="col span-12">
-          <YamlEditor v-model="targetAdvanced" />
-        </div>
-      </div>
-
-      <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
+      <h2 v-t="'fleet.gitRepo.paths.label'" />
+      <ArrayList
+        v-model="value.spec.paths"
+        :mode="mode"
+        :initial-empty-row="false"
+        :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
+        :add-label="t('fleet.gitRepo.paths.addLabel')"
+      >
+        <template #empty>
+          <Banner label-key="fleet.gitRepo.paths.empty" />
+        </template>
+      </ArrayList>
     </template>
+    <template #stepTargetInfo>
+      <div class="spacer" />
 
-    <div class="row mt-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.spec.serviceAccount"
-          label-key="fleet.gitRepo.serviceAccount.label"
-          placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
-        />
+      <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
+
+      <template v-if="!isLocal">
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="targetMode"
+              :options="targetOptions"
+              option-key="value"
+              :mode="mode"
+              :selectable="option => !option.disabled"
+              :label="t('fleet.gitRepo.target.selectLabel')"
+            >
+              <template v-slot:option="opt">
+                <hr v-if="opt.kind === 'divider'">
+                <div v-else-if="opt.kind === 'title'">
+                  {{ opt.label }}
+                </div>
+                <div v-else>
+                  {{ opt.label }}
+                </div>
+              </template>
+            </LabeledSelect>
+          </div>
+        </div>
+
+        <div v-if="targetMode === 'advanced'" class="row mt-10">
+          <div class="col span-12">
+            <YamlEditor v-model="targetAdvanced" />
+          </div>
+        </div>
+
+        <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
+      </template>
+
+      <div class="row mt-20">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.spec.serviceAccount"
+            label-key="fleet.gitRepo.serviceAccount.label"
+            placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
+          />
+        </div>
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.spec.targetNamespace"
+            label-key="fleet.gitRepo.targetNamespace.label"
+            placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
+            label="Target Namespace"
+            placeholder="Optional: Require all resources to be in this namespace"
+          />
+        </div>
       </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.spec.targetNamespace"
-          label-key="fleet.gitRepo.targetNamespace.label"
-          placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
-          label="Target Namespace"
-          placeholder="Optional: Require all resources to be in this namespace"
-        />
-      </div>
-    </div>
 
-    <div class="spacer" />
+      <div class="spacer" />
 
-    <Labels
-      :value="value"
-      :mode="mode"
-      :display-side-by-side="false"
-    />
-  </CruResource>
+      <Labels
+        :value="value"
+        :mode="mode"
+        :display-side-by-side="false"
+      />
+    </template>
+  </CruResourceWizzard>
+  </cruresourcewizzard>
 </template>

@@ -19,6 +19,8 @@ Wizard will emit these events:
 */
 
 export default {
+  name: 'Wizzard',
+
   components: {
     AsyncButton,
     Banner,
@@ -268,7 +270,6 @@ export default {
           >
             <template v-for="(step, idx ) in visibleSteps">
               <li
-
                 :id="step.name"
                 :key="step.name+'li'"
                 :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"

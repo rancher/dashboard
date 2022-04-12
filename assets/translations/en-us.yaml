@@ -1846,6 +1846,18 @@ fleet:
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
       addRepo: Add Repository
       noRepos: No repositories have been added
+    add: 
+      steps: 
+        repoInfo: 
+          label: Repo Info
+          title: Specify the Git Repository to add to fleet
+          subtext: ''
+          description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
+        targetInfo: 
+          label: Target Info
+          title: Specify which target to synchronise this repository to
+          subtext: ''
+          description: You can configure which clusters ill be used as the target of synchronisation with the resources in the repository.
     ref:
       label: Watch
       branch: A Branch
