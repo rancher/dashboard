@@ -6,6 +6,7 @@ import KeyValue from '@/components/form/KeyValue';
 import Labels from '@/components/form/Labels';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
+import Banner from '@/components/Banner';
 
 export default {
   name: 'CruConfigMap',
@@ -17,6 +18,7 @@ export default {
     Labels,
     Tab,
     Tabbed,
+    Banner
   },
 
   mixins: [CreateEditView],
@@ -27,6 +29,11 @@ export default {
       data,
       binaryData
     };
+  },
+  computed: {
+    hasBinaryData() {
+      return Object.keys(this.binaryData).length > 0;
+    }
   },
 
   watch: {
@@ -86,15 +93,24 @@ export default {
         :label="t('configmap.tabs.binaryData.label')"
         :weight="1"
       >
-        <KeyValue
-          key="binaryData"
-          v-model="binaryData"
-          :values-as-binary="true"
-          :add-allowed="false"
-          :read-allowed="false"
-          :mode="mode"
-          :protip="t('configmap.tabs.data.protip')"
-        />
+        <div v-if="hasBinaryData">
+          <Banner
+            color="info"
+            label-key="configmap.tabs.binaryData.banner"
+          />
+          <KeyValue
+            key="binaryData"
+            v-model="binaryData"
+            :values-as-binary="true"
+            :add-allowed="false"
+            :read-allowed="false"
+            :mode="mode"
+            :protip="t('configmap.tabs.data.protip')"
+          />
+        </div>
+        <p v-else class="no-binary-data mt-20">
+          {{ t('configmap.tabs.binaryData.noData') }}
+        </p>
       </Tab>
       <Tab
         name="labels-and-annotations"
@@ -111,3 +127,9 @@ export default {
     </Tabbed>
   </CruResource>
 </template>
+
+<style lang="scss" scoped>
+.no-binary-data {
+  opacity: 0.8;
+}
+</style>
