@@ -405,11 +405,10 @@ export const getters = {
     }
 
     if (state.isSingleVirtualCluster) {
-      // TODO: RC move out like epinio & test
       return {
         logo:            '~/assets/images/providers/harvester.svg',
         productNameKey:  'product.harvester',
-        version:         rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value, // TODO: RC TEST
+        version:         rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
         afterLoginRoute: {
           name:   'c-cluster-product',
           params: { product: VIRTUAL },

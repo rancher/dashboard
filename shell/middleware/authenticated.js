@@ -60,8 +60,6 @@ function setProduct(store, to) {
 export default async function({
   route, app, store, redirect, $cookies, req, isDev, from, $plugin
 }) {
-  console.warn('from: ', from);
-  console.warn('to: ', route);
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
     if ( route.path.startsWith('/__webpack_hmr/') ) {

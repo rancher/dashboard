@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-// TODO: RC Q Neil/Investigate
+// TODO: RC Q Neil custom components #1 error
 // path.join('components', 'windowComponent') --> const _components/windowComponent = require.context('@pkg/epinio/components/windowComponent', true, /\.(vue|js|yaml)$/).keys();. shell/pkg/import.js
 const contextFolders = ['chart', 'cloud-credential', 'content', 'detail', 'edit', 'list', 'machine-config', 'models', 'promptRemove', 'i18n'];
 const contextMap = contextFolders.reduce((map, obj) => {

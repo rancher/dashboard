@@ -14,10 +14,6 @@ export default function(plugin: IPlugin) {
   // Provide plugin metadata from package.json
   plugin.metadata = require('./package.json');
 
-  plugin.metadata.description = 'Application Development Engine for Kubernetes';
-  plugin.metadata.name = 'Epinio';
-  plugin.metadata.version = '0.6.2'; // TODO: RC Q take from package.json?
-
   plugin.addI18n('en-us', enUS);
 
   // Load a product
@@ -43,7 +39,7 @@ export default function(plugin: IPlugin) {
 
   plugin.addNavHooks(onEnter, onLeave, onLogOut);
 
-  // TODO: RC Q Neil couldn't get these to work, had to match dynamic-importer
+  // TODO: RC Q Neil custom components #2 couldn't get these to work, had to match dynamic-importer
   // import appLogs from './components/windowComponent/ApplicationLogs.vue';
   // import appShell from './components/windowComponent/ApplicationShell.vue';
 
