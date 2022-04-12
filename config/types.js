@@ -129,7 +129,6 @@ export const MANAGEMENT = {
   CLUSTER:                       'management.cattle.io.cluster',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'management.cattle.io.clusterroletemplatebinding',
   FEATURE:                       'management.cattle.io.feature',
-  MULTI_CLUSTER_APP:             'management.cattle.io.multiclusterapp',
   GROUP:                         'management.cattle.io.group',
   NODE_POOL:                     'management.cattle.io.nodepool',
   NODE_TEMPLATE:                 'management.cattle.io.nodetemplate',

@@ -5,7 +5,7 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@/config/labels-annotations';
 import { compare, isPrerelease, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
-import { CATALOG, MANAGEMENT, NORMAN } from '@/config/types';
+import { CATALOG, NORMAN } from '@/config/types';
 import { SHOW_PRE_RELEASE } from '@/store/prefs';
 
 export default {
