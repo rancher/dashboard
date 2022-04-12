@@ -71,6 +71,6 @@ export default {
       </div>
     </div>
     <div class="spacer"></div>
-    <Mount :pod-spec="podSpec" :name="value.name" :mode="mode" />
+    <Mount :name="value.name" :mode="mode" />
   </div>
 </template>

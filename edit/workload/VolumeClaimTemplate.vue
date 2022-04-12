@@ -107,7 +107,6 @@ export default {
             />
           </div>
           <Mount
-            :pod-spec="value.template.spec"
             :name="props.row.value.metadata.name"
             :mode="mode"
             :container="value.template.spec.containers[0]"

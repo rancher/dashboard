@@ -17,13 +17,6 @@ export default {
       default: ''
     },
 
-    podSpec: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
-    },
-
     container: {
       type:     Object,
       required: true

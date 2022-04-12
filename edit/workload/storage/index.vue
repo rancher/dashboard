@@ -304,7 +304,6 @@ export default {
         <Mount
           :key="props.row.value.name"
           :container="container"
-          :pod-spec="value"
           :name="props.row.value.name"
           :mode="mode"
         />
