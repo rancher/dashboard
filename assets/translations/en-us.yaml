@@ -3924,6 +3924,8 @@ resourceYaml:
     split: Split
 
 secret:
+  noData: No Data available for this Secret...
+  banner: Secret values (binary data) can not be edited in the UI
   authentication: Authentication
   certificate:
     certificate: Certificate

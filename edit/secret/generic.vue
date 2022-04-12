@@ -53,7 +53,7 @@ export default {
   <div v-if="hasData">
     <Banner
       color="info"
-      label-key="configmap.tabs.binaryData.banner"
+      label-key="secret.banner"
     />
     <KeyValue
       key="data"
@@ -72,7 +72,7 @@ export default {
   </div>
   <div v-else>
     <p class="no-data mt-20">
-      {{ t('configmap.tabs.binaryData.noData') }}
+      {{ t('secret.noData') }}
     </p>
   </div>
 </template>
