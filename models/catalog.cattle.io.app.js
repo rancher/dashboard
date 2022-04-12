@@ -5,7 +5,7 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@/config/labels-annotations';
 import { compare, isPrerelease, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
-import { CATALOG } from '@/config/types';
+import { CATALOG, MANAGEMENT } from '@/config/types';
 import { SHOW_PRE_RELEASE } from '@/store/prefs';
 
 export default {
@@ -30,7 +30,7 @@ export default {
 
     const upgrade = {
       action:     'goToUpgrade',
-      enabled:    !this.currentVersionHasNoChart,
+      enabled:    true,
       icon:       'icon icon-fw icon-edit',
       label:      this.t('catalog.install.action.goToUpgrade'),
     };
@@ -208,8 +208,26 @@ export default {
 
   deployedResources() {
     return filterBy(this.metadata?.relationships || [], 'rel', 'helmresource');
-  },
-};
+  }
+
+  get deployedAsMultiCluster() {
+    return async() => {
+      const mcapps = await this.$dispatch('management/findAll', { type: MANAGEMENT.MULTI_CLUSTER_APP }, { root: true });
+
+      if (mcapps) {
+        for (let i = 0 ; i < mcapps.length ; i++) {
+          const res = mcapps[i].spec?.targets?.find(target => target.appName === this.metadata?.name);
+
+          if (res) {
+            return res;
+          }
+        }
+      }
+
+      return null;
+    };
+  }
+}
 
 function cleanupVersion(version) {
   if ( !version ) {
