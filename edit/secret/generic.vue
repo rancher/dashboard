@@ -1,11 +1,12 @@
 <script>
 import KeyValue from '@/components/form/KeyValue';
+import Banner from '@/components/Banner';
 import { _VIEW } from '@/config/query-params';
 
 const VALID_DATA_KEY = /^[-._a-zA-Z0-9]*$/;
 
 export default {
-  components: { KeyValue },
+  components: { KeyValue, Banner },
 
   props: {
     value: {
@@ -28,6 +29,9 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+    hasData() {
+      return this.value?.data ? Object.keys(this.value?.data).length > 0 : false;
+    }
   },
 
   methods: {
@@ -46,7 +50,11 @@ export default {
 </script>
 
 <template>
-  <div class="row">
+  <div v-if="hasData">
+    <Banner
+      color="info"
+      label-key="configmap.tabs.binaryData.banner"
+    />
     <KeyValue
       key="data"
       v-model="value.data"
@@ -62,4 +70,15 @@ export default {
       add-icon=""
     />
   </div>
+  <div v-else>
+    <p class="no-data mt-20">
+      {{ t('configmap.tabs.binaryData.noData') }}
+    </p>
+  </div>
 </template>
+
+<style lang="scss" scoped>
+.no-data {
+  opacity: 0.8;
+}
+</style>
