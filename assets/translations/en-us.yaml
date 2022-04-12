@@ -1714,6 +1714,8 @@ configmap:
       protip: Use this area for anything that's UTF-8 text data
     binaryData:
       label: Binary Data
+      noData: No Binary Data available for this ConfigMap...
+      banner: Binary Data can not be edited in the UI
 
 containerResourceLimit:
   cpuPlaceholder: e.g. 1000
