@@ -98,14 +98,17 @@ export const CATALOG = {
   REPO:           'catalog.cattle.io.repo',
 };
 
+export const HELM = { PROJECTHELMCHART: 'helm.cattle.io.projecthelmchart' };
+
 export const MONITORING = {
-  ALERTMANAGER:   'monitoring.coreos.com.alertmanager',
-  PODMONITOR:     'monitoring.coreos.com.podmonitor',
-  PROMETHEUS:     'monitoring.coreos.com.prometheus',
-  PROMETHEUSRULE: 'monitoring.coreos.com.prometheusrule',
-  SERVICEMONITOR: 'monitoring.coreos.com.servicemonitor',
-  THANOSRULER:    'monitoring.coreos.com.thanosruler',
-  SPOOFED:        {
+  ALERTMANAGER:       'monitoring.coreos.com.alertmanager',
+  ALERTMANAGERCONFIG: 'monitoring.coreos.com.alertmanagerconfig',
+  PODMONITOR:         'monitoring.coreos.com.podmonitor',
+  PROMETHEUS:         'monitoring.coreos.com.prometheus',
+  PROMETHEUSRULE:     'monitoring.coreos.com.prometheusrule',
+  SERVICEMONITOR:     'monitoring.coreos.com.servicemonitor',
+  THANOSRULER:        'monitoring.coreos.com.thanosruler',
+  SPOOFED:            {
     RECEIVER:             'monitoring.coreos.com.receiver',
     RECEIVER_SPEC:        'monitoring.coreos.com.receiver.spec',
     RECEIVER_EMAIL:       'monitoring.coreos.com.receiver.email',

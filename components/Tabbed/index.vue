@@ -246,6 +246,7 @@ export default {
           </button>
         </li>
       </ul>
+      <slot name="tab-row-extras" />
     </ul>
     <div :class="{ 'tab-container': !!tabs.length || !!sideTabs, 'no-content': noContent }">
       <slot />
@@ -262,6 +263,8 @@ export default {
     &.horizontal {
       border: solid thin var(--border);
       border-bottom: 0;
+      display: flex;
+      flex-direction: row;
 
       + .tab-container {
         border: solid thin var(--border);

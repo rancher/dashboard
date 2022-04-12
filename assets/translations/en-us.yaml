@@ -2774,7 +2774,13 @@ monitoring:
         label: Key File Path
         placeholder: e.g. ./key-file.pfx
       secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart. For more information see our <a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
-
+  projectMonitoring:
+    list:
+      banner: Project Monitoring Configuration is stored in ProjectHelmChart resources
+      empty:
+        message: Project Monitoring has not been configured for any projects
+        canCreate: Get started by clicking Create to add monitoring to a project
+        cannotCreate: Contact the admin to add project monitoring
   route:
     fields:
       groupBy: Group By
@@ -2784,6 +2790,7 @@ monitoring:
       repeatInterval: Repeat Interval
   routesAndReceivers: Routes and Receivers
   monitors: Monitors
+  projectMonitors: Project Monitoring
   installSteps:
     uninstallV1:
       stepTitle: Uninstall V1
@@ -2798,6 +2805,7 @@ monitoring:
     general: General
     grafana: Grafana
     prometheus: Prometheus
+    projectMetrics: Project Metrics
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of {vendor} with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new {vendor} Monitoring chart in Cluster Explorer.'
   volume:
     modes:
@@ -3831,6 +3839,7 @@ resourceDetail:
     deleted: Deleted
     description: Description
     labels: Labels
+    namespaces: Namespaces
     ownerReferences: |-
       {count, plural,
       =1 {Owner}
@@ -6144,6 +6153,11 @@ typeLabel:
       one { Prometheus }
       other { Prometheis }
     }
+  helm.cattle.io.projecthelmchart: |-
+    {count, plural,
+      one { Project Monitor }
+      other { Project Monitors }
+    }
   monitoring.coreos.com.servicemonitor: |-
     {count, plural,
       one { Service Monitor }
@@ -6153,6 +6167,11 @@ typeLabel:
     {count, plural,
       one { Alert Manager }
       other { Alert Managers }
+    }
+  monitoring.coreos.com.alertmanagerconfig: |-
+    {count, plural,
+      one { Alert Manager Configuration }
+      other { Alert Manager Configurations }
     }
   monitoring.coreos.com.podmonitor: |-
     {count, plural,

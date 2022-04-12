@@ -1,5 +1,5 @@
 import { DSL } from '@/store/type-map';
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, HELM } from '@/config/types';
 import {
   STATE,
   FEATURE_DESCRIPTION,
@@ -102,6 +102,22 @@ export function init(store) {
     showAge:     false,
     showState:   true,
     canYaml:     false,
+  });
+
+  configureType(MANAGEMENT.PROJECT, {
+    isCreatable: true,
+    isRemovable: true,
+    showAge:     false,
+    showState:   false,
+    canYaml:     true,
+  });
+
+  configureType(HELM.PROJECTHELMCHART, {
+    isCreatable: true,
+    isRemovable: true,
+    showAge:     true,
+    showState:   true,
+    canYaml:     true,
   });
 
   headers(MANAGEMENT.FEATURE, [

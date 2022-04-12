@@ -32,6 +32,14 @@ export default {
   },
 
   computed: {
+    namespaces() {
+      return (this.value?.namespaces || []).map((namespace) => {
+        return {
+          name:           namespace?.metadata?.name,
+          detailLocation: namespace.detailLocation
+        };
+      });
+    },
     details() {
       return [
         ...(this.moreDetails || []),
@@ -71,12 +79,16 @@ export default {
       return !isEmpty(this.description);
     },
 
+    hasNamespaces() {
+      return !isEmpty(this.namespaces);
+    },
+
     annotationCount() {
       return Object.keys(this.annotations || {}).length;
     },
 
     isEmpty() {
-      const hasAnything = this.hasDetails || this.hasLabels || this.hasAnnotations || this.hasDescription;
+      const hasAnything = this.hasDetails || this.hasLabels || this.hasAnnotations || this.hasDescription || this.hasNamespaces;
 
       return !hasAnything;
     },
@@ -99,6 +111,17 @@ export default {
 
 <template>
   <div class="detail-top" :class="{empty: isEmpty}">
+    <div v-if="hasNamespaces" class="labels">
+      <span class="label">
+        {{ t('resourceDetail.detailTop.namespaces') }}:
+      </span>
+      <span>
+        <nuxt-link v-for="namespace in namespaces" :key="namespace.name" :to="namespace.detailLocation" class="namespaceLinkList">
+          {{ namespace.name }}
+        </nuxt-link>
+      </span>
+    </div>
+
     <div v-if="description" class="description">
       <span class="label">
         {{ t('resourceDetail.detailTop.description') }}:
@@ -158,6 +181,10 @@ export default {
       padding-top: 10px;
       border-top: 1px solid var(--border);
       margin-top: 10px;
+    }
+
+    .namespaceLinkList:not(:first-child):before {
+      content: ", ";
     }
 
     .tags {

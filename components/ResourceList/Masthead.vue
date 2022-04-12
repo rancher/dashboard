@@ -146,7 +146,6 @@ export default {
         <div class="actions">
           <slot name="extraActions">
           </slot>
-
           <n-link
             v-if="hasEditComponent && _isCreatable"
             :to="_createLocation"
