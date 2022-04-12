@@ -2,7 +2,8 @@
 import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
-import BadgeState from '@/components/BadgeState';
+import Carousel from '@/components/Carousel';
+import ButtonGroup from '@/components/ButtonGroup';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import TypeDescription from '@/components/TypeDescription';
 import {
@@ -17,38 +18,39 @@ import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
+
 const sliderData = [
   {
     id:      '1',
-    img:     '~assets/images/featured/img1.jpg',
+    img:     'img1.jpg',
     partner: 'Partner',
-    title:   '1 Upbound Universal Crossplan 1',
+    title:   '1 Universal Crossplan 1',
     content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
   },
   {
     id:      '2',
-    img:     '~assets/images/featured/img1.jpg',
+    img:     'img1.jpg',
     partner: 'Partner',
     title:   '2 Upbound Universal Crossplan 2',
     content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
   },
   {
     id:      '3',
-    img:     '~assets/images/featured/img1.jpg',
+    img:     'img1.jpg',
     partner: 'Partner',
     title:   '3 Upbound Universal Crossplan 3',
     content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
   },
   {
     id:      '4',
-    img:     '~assets/images/featured/img1.jpg',
+    img:     'img1.jpg',
     partner: 'Partner',
     title:   '4 Upbound Universal Crossplan 4',
     content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
   },
   {
     id:      '5',
-    img:     '~assets/images/featured/img1.jpg',
+    img:     'img1.jpg',
     partner: 'Partner',
     title:   '5 Upbound Universal Crossplan 5',
     content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
@@ -59,7 +61,8 @@ export default {
   components: {
     AsyncButton,
     Banner,
-    BadgeState,
+    Carousel,
+    ButtonGroup,
     Loading,
     Checkbox,
     Select,
@@ -81,28 +84,64 @@ export default {
 
   data() {
     return {
-      allRepos:            null,
-      category:            null,
-      operatingSystem:     null,
-      searchQuery:         null,
-      showDeprecated:      null,
-      showHidden:          null,
-      slider:          sliderData,
-      activeItemId:    '',
-      xValue:          0,
+      allRepos:             null,
+      category:             null,
+      operatingSystem:      null,
+      searchQuery:          null,
+      showDeprecated:       null,
+      showHidden:           null,
+      sliders:         sliderData,
+      chartMode:            'featured',
+      chartOptions:    [
+        {
+          label:       'Browse',
+          value:       'browse',
+        },
+        {
+          label: 'Featured',
+          value: 'featured'
+        }
+      ]
+
     };
   },
 
   computed: {
 
-    trackStyle() {
-      return `transform: translateX(-${ this.xValue }%)`;
-    },
-
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
     hideRepos: mapPref(HIDE_REPOS),
+
+    viewOptions() {
+      const out = [];
+
+      if ( this.hasDetail ) {
+        out.push({
+          labelKey: 'resourceDetail.masthead.detail',
+          value:    'detail',
+        });
+      }
+
+      if ( this.hasEdit ) {
+        out.push({
+          labelKey: 'resourceDetail.masthead.config',
+          value:    'config',
+        });
+      }
+
+      if ( !out.length ) {
+        // If there's only YAML, return nothing and the button group will be hidden entirely
+        return null;
+      }
+
+      out.push({
+        labelKey: 'resourceDetail.masthead.yaml',
+        value:    'yaml',
+      });
+
+      return out;
+    },
 
     repoOptions() {
       let nextColor = 0;
@@ -254,42 +293,6 @@ export default {
 
   methods: {
 
-    goto(i, sliderLength) {
-      this.activeItemId = i;
-      const slide = this.$refs.slide0;
-
-      setTimeout(() => {
-        if (i <= 1) {
-          slide[sliderLength - 1].style.left = '-93%';
-          slide[0].style.left = '7%';
-        } else {
-          slide[sliderLength - 1].style.left = '7%';
-          slide[0].style.left = '107%';
-        }
-      }, 220);
-
-      const slider = this.$refs.slider;
-
-      setTimeout(() => {
-        if (i === 0) {
-          slider.style.transform = 'translateX(0)';
-          slider.style.transition = '1s ease-in-out';
-        } else if (i === 1) {
-          slider.style.transform = 'translateX(-20%)';
-          slider.style.transition = '1s ease-in-out';
-        } else if (i === 2) {
-          slider.style.transform = 'translateX(-40%)';
-          slider.style.transition = '1s ease-in-out';
-        } else if (i === 3) {
-          slider.style.transform = 'translateX(-60%)';
-          slider.style.transition = '1s ease-in-out';
-        } else if (i === 4) {
-          slider.style.transform = 'translateX(-80%)';
-          slider.style.transition = '1s ease-in-out';
-        }
-      } );
-    },
-
     colorForChart(chart) {
       const repos = this.repoOptions;
       const repo = findBy(repos, '_key', chart.repoKey);
@@ -398,50 +401,16 @@ export default {
         </h1>
       </div>
       <div class="actions-container">
-        <div class="btn-group">
-          <button type="button" class="btn bg-disabled" data-original-title="null" @click="value1 = !value1">
-            Browse
-          </button>
-          <button type="button" class="btn role-primary" data-original-title="null">
-            Featured
-          </button>
-        </div>
+        <ButtonGroup
+          v-model="chartMode"
+          :options="chartOptions"
+        />
       </div>
     </header>
-    <div class="slider">
-      <div id="slide-track" ref="slider" :style="trackStyle" class="slide-track">
-        <div
-          v-for="(slide, i) in slider"
-          :id="`slide` + i"
-          ref="slide0"
-          :key="i"
-          class="slide"
-        >
-          <div class="slide-header">
-            Featured chart
-          </div>
-          <div class="slide-content">
-            <div class="slide-img">
-              <img src="~assets/images/featured/img1.jpg" />
-            </div>
-            <div class="slide-content-right">
-              <BadgeState label="Partner" color="slider-badge  mb-20" />
-              <h1>{{ slide.title }}</h1>
-              <p>{{ slide.content }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="dots">
-        <div
-          v-for="(slide, i) in slider"
-          :key="i"
-          class="dot"
-          :class="{'active': activeItemId === i}"
-          @click="goto(i, slider.length)"
-        ></div>
-      </div>
-    </div>
+    <Carousel
+      v-if="chartMode === 'featured'"
+      :sliders="sliders"
+    />
 
     <TypeDescription resource="chart" />
     <div class="left-right-split">
@@ -738,20 +707,6 @@ export default {
   position: relative;
 }
 
-  // @keyframes scroll {
-  // from {left: 0px;}
-  //   to {left  : 200px;}
-  // }
-
-  // @keyframes scrolls {
-  //   0% {
-  //     transform: translateX(0px);
-  //   }
-  //   100% {
-  //     transform: translateX(calc(-830px * 4));
-  //   }
-  // }
-
 .slider-badge {
   background: var(--app-partner-accent);
   color: var(--body-bg);
@@ -820,21 +775,21 @@ export default {
   transform: rotate(180deg);
 }
 
-.dots {
+.controls {
   width: 100%;
   display: flex;
   justify-content: center;
   margin-top: 10px;
 
-  .dot {
+  .control-item {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: gray;
+    background: var(--muted);
     margin: 5px;
 
     &.active {
-      background: red;
+      background:var(--darker);
     }
   }
 }
