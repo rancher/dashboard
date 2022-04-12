@@ -90,7 +90,9 @@ describe('component: Mount', () => {
 
     await wrapper.setProps({ name: newName });
     const result = wrapper.props('container');
+    const inputElement = wrapper.find('input').element as HTMLInputElement;
 
     expect(result).toStrictEqual({ volumeMounts: [{ name: newName, mountPath }] });
+    expect(inputElement.value).toBe(mountPath);
   });
 });

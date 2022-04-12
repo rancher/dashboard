@@ -302,7 +302,6 @@ export default {
 
         <!-- Mount point list to be mapped to volume -->
         <Mount
-          :key="props.row.value.name"
           :container="container"
           :name="props.row.value.name"
           :mode="mode"
