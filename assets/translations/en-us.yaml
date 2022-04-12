@@ -570,11 +570,9 @@ catalog:
     multiCluster:
       label: This is a Multi-cluster App and it cannot be modified here.
       legacy:
-        label: You will need to turn on
-        target: Legacy Features
+        description: 'You will need to enable <a href="{target}">Legacy Features</a>'
       mcm:
-        label: Navigate to
-        target: Multi-cluster Apps
+        description: Navigate to <a href="{target}">Multi-cluster Apps</a>
     namespaceIsInProject: "This chart's target namespace, <code>{namespace}</code>, already exists and cannot be added to a different project."
     project: Install into Project
     section:
