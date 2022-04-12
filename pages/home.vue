@@ -152,11 +152,12 @@ export default {
 
         },
         {
-          label:     this.t('tableHeaders.pods'),
-          name:      'pods',
-          value:     '',
-          sort:      ['status.allocatable.pods', 'status.available.pods'],
-          formatter: 'PodsUsage'
+          label:        this.t('tableHeaders.pods'),
+          name:         'pods',
+          value:        '',
+          sort:         ['status.allocatable.pods', 'status.available.pods'],
+          formatter:    'PodsUsage',
+          delayLoading: true
         },
         // {
         //   name:  'explorer',
