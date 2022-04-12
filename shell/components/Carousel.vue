@@ -1,44 +1,9 @@
 <script>
-const sliderData = [
-  {
-    id:      '1',
-    img:     '~assets/images/featured/img1.jpg',
-    partner: 'Partner',
-    title:   '1 Upbound Universal Crossplan 1',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  },
-  {
-    id:      '2',
-    img:     '~assets/images/featured/img1.jpg',
-    partner: 'Partner',
-    title:   '2 Upbound Universal Crossplan 2',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  },
-  {
-    id:      '3',
-    img:     '~assets/images/featured/img1.jpg',
-    partner: 'Partner',
-    title:   '3 Upbound Universal Crossplan 3',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  },
-  {
-    id:      '4',
-    img:     '~assets/images/featured/img1.jpg',
-    partner: 'Partner',
-    title:   '4 Upbound Universal Crossplan 4',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  },
-  {
-    id:      '5',
-    img:     '~assets/images/featured/img1.jpg',
-    partner: 'Partner',
-    title:   '5 Upbound Universal Crossplan 5',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  }
-];
+import BadgeState from '@/components/BadgeState';
 
 export default {
-  name:  'Carousel',
+  components: { BadgeState },
+  name:       'Carousel',
   props:      {
     sliders: {
       type:    Array,
@@ -46,40 +11,32 @@ export default {
     }
   },
   data() {
-    return { slider: sliderData };
+    return {
+      slider:          this.sliders,
+      activeItemId:    0
+    };
   },
+
+  computed: {
+
+    trackStyle() {
+      return `transform: translateX(-${ this.activeItemId * 100 / this.slider.length }%)`;
+    },
+
+  },
+
   methods: {
-    goto(event) {
-      const elems = document.getElementsByClassName('dot');
-
-      const size = elems.length;
-      const targetId = event.currentTarget.id;
-      const slider = document.getElementById('slide-track');
-
-      for (let i = 0; i < size; i++) {
-        const box = elems[i];
-
-        box.classList.remove('active');
-      }
-
-      event.currentTarget.classList.add('active');
-
-      if (targetId === '1') {
-        slider.style.transform = 'translateX(0%)';
-        slider.style.transition = '1s ease-in-out';
-      } else if (targetId === '2') {
-        slider.style.transform = 'translateX(-20%)';
-        slider.style.transition = '1s ease-in-out';
-      } else if (targetId === '3') {
-        slider.style.transform = 'translateX(-40%)';
-        slider.style.transition = '1s ease-in-out';
-      } else if (targetId === '4') {
-        slider.style.transform = 'translateX(-60%)';
-        slider.style.transition = '1s ease-in-out';
-      } else if (targetId === '5') {
-        slider.style.transform = 'translateX(-80%)';
-        slider.style.transition = '1s ease-in-out';
-      }
+    scrollSlide(i) {
+      this.activeItemId = i;
+      setTimeout(() => {
+        if (i <= 1) {
+          this.$refs.slide[this.slider.length - 1].style.left = '-93%';
+          this.$refs.slide[0].style.left = '7%';
+        } else {
+          this.$refs.slide[this.slider.length - 1].style.left = '7%';
+          this.$refs.slide[0].style.left = '107%';
+        }
+      }, 400);
     },
   }
 };
@@ -88,14 +45,20 @@ export default {
 
 <template>
   <div class="slider">
-    <div id="slide-track" ref="slider" class="slide-track">
-      <div v-for="(slide, i) in slider" id="'slide' + slide.id" :key="i" class="slide">
+    <div id="slide-track" ref="slider" style="transition: 1s ease-in-out" :style="trackStyle" class="slide-track">
+      <div
+        v-for="(slide, i) in slider"
+        :id="`slide` + i"
+        ref="slide"
+        :key="i"
+        class="slide"
+      >
         <div class="slide-header">
           Featured chart
         </div>
         <div class="slide-content">
           <div class="slide-img">
-            <img src="~assets/images/featured/img1.jpg" />
+            <img :src="require(`~/assets/images/featured/${slide.img}`)" />
           </div>
           <div class="slide-content-right">
             <BadgeState label="Partner" color="slider-badge  mb-20" />
@@ -105,8 +68,14 @@ export default {
         </div>
       </div>
     </div>
-    <div class="dots">
-      <div v-for="(slide, i) in slider" :key="i" class="dot active" @click="goto($event)"></div>
+    <div class="controls">
+      <div
+        v-for="(slide, i) in slider"
+        :key="i"
+        class="control-item"
+        :class="{'active': activeItemId === i}"
+        @click="scrollSlide(i, slider.length)"
+      ></div>
     </div>
   </div>
 </template>
@@ -129,20 +98,6 @@ export default {
   position: relative;
 }
 
-  // @keyframes scroll {
-  // from {left: 0px;}
-  //   to {left  : 200px;}
-  // }
-
-  // @keyframes scrolls {
-  //   0% {
-  //     transform: translateX(0px);
-  //   }
-  //   100% {
-  //     transform: translateX(calc(-830px * 4));
-  //   }
-  // }
-
 .slider-badge {
   background: var(--app-partner-accent);
   color: var(--body-bg);
@@ -155,6 +110,10 @@ export default {
   border: 1px solid var(--tabbed-border);
   border-radius: var(--border-radius);
   left: 7%;
+
+  &:last-child {
+    left: -93%;
+  }
 
   .slide-header {
     background: var(--default);
@@ -207,21 +166,21 @@ export default {
   transform: rotate(180deg);
 }
 
-.dots {
+.controls {
   width: 100%;
   display: flex;
   justify-content: center;
   margin-top: 10px;
 
-  .dot {
+  .control-item {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: gray;
+    background: var(--muted);
     margin: 5px;
 
     &.active {
-      background: red;
+      background:var(--darker);
     }
   }
 }
