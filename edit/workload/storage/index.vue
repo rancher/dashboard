@@ -312,6 +312,7 @@ export default {
       <template #add>
         <ButtonDropdown
           v-if="!isView"
+          id="add-volume"
           :button-label="t('workload.storage.addVolume')"
           :dropdown-options="volumeTypeOptions"
           size="sm"
