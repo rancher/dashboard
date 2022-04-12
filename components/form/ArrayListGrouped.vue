@@ -75,7 +75,7 @@ export default {
         v-if="canRemoveRow(scope.row, scope.i)"
         type="button"
         class="btn role-link close btn-sm"
-        :data-testid="`remove-row-${scope.i}`"
+        :data-testid="`remove-item-${scope.i}`"
         @click="scope.remove"
       >
         <i class="icon icon-2x icon-x" />
