@@ -373,6 +373,10 @@ export default {
 
     hasWindowsMachine() {
       return this.machines.some(machine => get(machine, 'status.nodeInfo.operatingSystem') === 'windows');
+    },
+
+    snapshotsGroupBy() {
+      return `$['metadata']['annotations']['etcdsnapshot.rke.io/storage']`;
     }
   },
 
@@ -625,7 +629,7 @@ export default {
           :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
           :search="false"
           :groupable="true"
-          :group-by="`$['metadata']['annotations']['etcdsnapshot.rke.io/storage']`"
+          :group-by="snapshotsGroupBy"
         >
           <template #header-right>
             <AsyncButton
