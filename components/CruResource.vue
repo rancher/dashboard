@@ -1,5 +1,5 @@
 <script>
-import { isEmpty, isArray } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import { createYaml } from '@/utils/create-yaml';
 import { clone } from '@/utils/object';
 import { SCHEMA } from '@/config/types';
@@ -162,7 +162,15 @@ export default {
 
       return false;
     },
-    ...mapGetters({ t: 'i18n/t' })
+
+    ...mapGetters({ t: 'i18n/t' }),
+
+    /**
+     * Prevent issues for malformed types injection
+     */
+    hasErrors() {
+      return this.errors?.length && Array.isArray(this.errors);
+    }
   },
 
   created() {
@@ -249,12 +257,6 @@ export default {
       this.$refs.save.clicked();
     },
 
-    /**
-     * Prevent issues for malformed types injection
-     */
-    hasErrors() {
-      return this.errors?.length && isArray(this.errors);
-    }
   }
 };
 </script>
@@ -267,7 +269,7 @@ export default {
     >
       <div
         class="cru__errors"
-        :v-if="hasErrors()"
+        :v-if="hasErrors"
       >
         <Banner
           v-for="(err, i) in errors"
