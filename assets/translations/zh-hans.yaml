@@ -5619,6 +5619,7 @@ harvester:
     sshTitle: 添加 SSH 公钥
     imageTip: 创建虚拟机所需的.iso，.img，.qcow2或.raw外部镜像地址
     efiEnabled: EFI 模式下启动
+    secureBoot: 安全启动
     volume:
       dragTip: 拖放卷或使用卷的箭头来更改引导顺序。
       volumeTip: 虚拟机仅包含一个 cd-rom 卷。你可能想要添加额外的磁盘卷。

@@ -584,6 +584,15 @@ export default {
             :label="t('harvester.virtualMachine.efiEnabled')"
             :mode="mode"
           />
+
+          <Checkbox
+            v-if="efiEnabled"
+            v-model="secureBoot"
+            class="check"
+            type="checkbox"
+            :label="t('harvester.virtualMachine.secureBoot')"
+            :mode="mode"
+          />
         </Tab>
       </Tabbed>
 

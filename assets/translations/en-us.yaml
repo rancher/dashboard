@@ -5574,6 +5574,7 @@ harvester:
     sshTitle: Add Public SSH Key
     imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
     efiEnabled: Booting in EFI mode
+    secureBoot: Secure Boot
     volume:
       dragTip: Drag and drop volumes, or use the volume's arrows, to change the boot order.
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.

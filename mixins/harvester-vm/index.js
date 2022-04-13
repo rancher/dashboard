@@ -128,7 +128,8 @@ export default {
       cpu:                '',
       reservedMemory:     null,
       accessCredentials:  [],
-      efiEnabled:          false,
+      efiEnabled:         false,
+      secureBoot:         false
     };
   },
 
@@ -268,6 +269,7 @@ export default {
       const installUSBTablet = this.isInstallUSBTablet(spec);
       const installAgent = this.isCreate ? true : this.hasInstallAgent(userData, osType, true);
       const efiEnabled = this.isEfiEnabled(spec);
+      const secureBoot = this.isSecureBoot(spec);
 
       const secretRef = this.getSecret(spec);
       const accessCredentials = this.getAccessCredentials(spec);
@@ -295,6 +297,7 @@ export default {
 
       this.$set(this, 'installUSBTablet', installUSBTablet);
       this.$set(this, 'efiEnabled', efiEnabled);
+      this.$set(this, 'secureBoot', secureBoot);
 
       this.$set(this, 'hasCreateVolumes', hasCreateVolumes);
       this.$set(this, 'networkRows', networkRows);
@@ -1136,21 +1139,16 @@ export default {
       }
     },
 
-    setEfiEnabled(value) {
-      const smmEnabled = this.spec?.template?.spec?.domain?.features?.smm?.enabled;
-      const efiEnabled = this.spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
-
-      if (value) {
-        if (!smmEnabled) {
-          set(this.spec.template.spec.domain, 'features.smm.enabled', true);
-        }
-
-        if (!efiEnabled) {
-          set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', true);
-        }
-      } else {
+    setBootMethod(boot = { efi: false, secureBoot: false }) {
+      if (boot.efi && boot.secureBoot) {
+        set(this.spec.template.spec.domain, 'features.smm.enabled', true);
+        set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', true);
+      } else if (boot.efi && !boot.secureBoot) {
         set(this.spec.template.spec.domain, 'features.smm.enabled', false);
         set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', false);
+      } else {
+        this.$delete(this.spec.template.spec.domain, 'firmware');
+        this.$delete(this.spec.template.spec.domain.features, 'smm');
       }
     },
 
@@ -1254,7 +1252,11 @@ export default {
     },
 
     efiEnabled(val) {
-      this.setEfiEnabled(val);
+      this.setBootMethod({ efi: val, secureBoot: this.secureBoot });
+    },
+
+    secureBoot(val) {
+      this.setBootMethod({ efi: this.efiEnabled, secureBoot: val });
     },
 
     installAgent: {

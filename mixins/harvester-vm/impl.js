@@ -3,7 +3,7 @@ import isEqual from 'lodash/isEqual';
 import { clone } from '@/utils/object';
 import { HCI, SECRET } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
-import { OS } from './index';
+import { OS } from '@/mixins/harvester-vm/index';
 
 export const QGA_JSON = {
   package_update: true,
@@ -103,10 +103,11 @@ export default {
     },
 
     isEfiEnabled(spec) {
-      const smmEnabled = spec?.template?.spec?.domain?.features?.smm?.enabled;
-      const efiEnabled = spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
+      return !!(spec?.template?.spec?.domain?.features?.smm && spec?.template?.spec?.domain?.firmware?.bootloader?.efi);
+    },
 
-      return !!(smmEnabled && efiEnabled);
+    isSecureBoot(spec) {
+      return !!spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
     },
 
     getSecretCloudData(spec, type) {
