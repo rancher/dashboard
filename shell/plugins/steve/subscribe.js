@@ -7,7 +7,6 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
-// import { remapSpecialKeys } from '@shell/plugins/core-store/resource-proxy';
 import { normalizeType } from '@shell/plugins/core-store/normalize';
 
 export const NO_WATCH = 'NO_WATCH';
