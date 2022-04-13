@@ -6,7 +6,6 @@ import KeyValue from '@/components/form/KeyValue';
 import Labels from '@/components/form/Labels';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
-import Banner from '@/components/Banner';
 import { _EDIT } from '@/config/query-params';
 
 export default {
@@ -18,8 +17,7 @@ export default {
     KeyValue,
     Labels,
     Tab,
-    Tabbed,
-    Banner
+    Tabbed
   },
 
   mixins: [CreateEditView],
@@ -98,16 +96,11 @@ export default {
         :weight="1"
       >
         <div v-if="hasBinaryData">
-          <Banner
-            v-if="isEditMode"
-            color="info"
-            label-key="configmap.tabs.binaryData.banner"
-          />
           <KeyValue
             key="binaryData"
             v-model="binaryData"
-            :values-as-binary="true"
-            :add-allowed="false"
+            :handle-base64="true"
+            :add-allowed="true"
             :read-allowed="true"
             :mode="mode"
             :protip="t('configmap.tabs.data.protip')"
