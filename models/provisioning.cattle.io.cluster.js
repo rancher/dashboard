@@ -7,8 +7,6 @@ import { ucFirst } from '@/utils/string';
 import { compare } from '@/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@/config/query-params';
 
-export const DEFAULT_WORKSPACE = 'fleet-default';
-
 export default class ProvCluster extends SteveModel {
   get details() {
     const out = [

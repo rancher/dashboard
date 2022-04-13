@@ -15,7 +15,7 @@ export function classify(ctx, obj, isClone = false) {
     return obj;
   }
 
-  let customModel = lookup(ctx.state.config.namespace, obj?.type, obj?.metadata?.name);
+  let customModel = lookup(ctx.state.config.namespace, obj?.type, obj?.metadata?.name, ctx);
 
   if ( !customModel ) {
     const which = ctx.state.config.modelBaseClass || BY_TYPE;

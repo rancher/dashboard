@@ -4,7 +4,7 @@ import Loading from '@/components/Loading';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { NORMAN, SECRET } from '@/config/types';
-import { TYPES as SECRET_TYPES } from '@/models/secret';
+import { SECRET_TYPES } from '@/config/secret';
 import { base64Encode } from '@/utils/crypto';
 import { addObjects, insertAt } from '@/utils/array';
 import { sortBy } from '@/utils/sort';

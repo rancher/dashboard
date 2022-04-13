@@ -6,6 +6,7 @@ import AssignTo from '@/components/AssignTo';
 import IndentedPanel from '@/components/IndentedPanel';
 import Brand from '@/mixins/brand';
 import FixedBanner from '@/components/FixedBanner';
+import GrowlManager from '@/components/GrowlManager';
 
 export default {
 
@@ -15,7 +16,8 @@ export default {
     Header,
     IndentedPanel,
     PromptRemove,
-    FixedBanner
+    FixedBanner,
+    GrowlManager
   },
 
   middleware: ['authenticated'],
@@ -49,6 +51,7 @@ export default {
     </div>
 
     <FixedBanner :footer="true" />
+    <GrowlManager />
   </div>
 </template>
 

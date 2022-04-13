@@ -1,5 +1,5 @@
 <script>
-import { SERVICE_ACCOUNT } from '../../config/types';
+import { SERVICE_ACCOUNT } from '@/config/types';
 export default {
   props: {
     value: {

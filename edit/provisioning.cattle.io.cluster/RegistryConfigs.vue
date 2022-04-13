@@ -6,7 +6,7 @@ import Checkbox from '@/components/form/Checkbox';
 import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
 import CreateEditView from '@/mixins/create-edit-view';
 import SecretSelector from '@/components/form/SecretSelector';
-import { TYPES } from '@/models/secret';
+import { SECRET_TYPES as TYPES } from '@/config/secret';
 
 export default {
   components: {
