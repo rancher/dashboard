@@ -77,12 +77,15 @@ export interface IPlugin {
    */
   addStore(storeName: string, register: RegisterStore, unregister: UnregisterStore): void;
   /**
-   * Add a Vuex `Core`. This will be automatically populated with required getters/mutations/actions to support Dashboard components
+   * Add a dashboard Vuex store.
    *
-   * The core store should container override getters/mutations/actions (in storeSpecifics) that executes plugin specific code, for instead
-   * to exercise the `requests` action to make plugin specific https requests
+   * This will contain the toolset (getters/mutations/actions/etc) required by the dashboard to support Dashboard components. Most of these
+   * will be automatically supplemented when the store is registered, others though will need to be provided to supply package specific
+   * functionality (see storeSpecifics). For instance a component may request to fetch all of a resource type which, via a number of generic
+   * actions, will eventually call a `request` action which will make the raw http request. This is a pkg specific feature so needs the
+   * `request` action needs to be supplied in the `storeSpecifics`
    */
-  addCoreStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig): void;
+  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig): void;
 
   /**
    * Add hooks that will execute when a user navigates

@@ -1,8 +1,8 @@
 import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA } from '@shell/config/types';
-import { normalizeType } from '@shell/plugins/core-store/normalize';
-import { classify } from '@shell/plugins/core-store/classify';
+import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 
 function registerType(state, type) {
   let cache = state.types[type];

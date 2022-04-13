@@ -3,7 +3,7 @@ import { escapeHtml } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { handleConflict } from '@shell/plugins/core-store/normalize';
+import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {

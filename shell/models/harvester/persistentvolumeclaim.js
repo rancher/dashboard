@@ -6,7 +6,7 @@ import { HCI as HCI_ANNOTATIONS, DESCRIPTION } from '@shell/config/labels-annota
 import { findBy } from '@shell/utils/array';
 import { get, clone } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { colorForState } from '@shell/plugins/core-store/resource-class';
+import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 
 export default class HciPv extends SteveModel {
   applyDefaults(_, realMode) {

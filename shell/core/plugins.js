@@ -1,5 +1,5 @@
 import { productsLoaded } from '@shell/store/type-map';
-import { clearModelCache } from '@shell/plugins/core-store/model-loader';
+import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 
@@ -190,9 +190,8 @@ export default function({
         this.loadProducts([plugin]);
       }
 
-      plugin.stores.forEach((pStore) => {
-        pStore.register()(store);
-      });
+      // Register vuex stores
+      plugin.stores.forEach(pStore => pStore.register()(store));
 
       // Locales
       plugin.locales.forEach((localeObj) => {

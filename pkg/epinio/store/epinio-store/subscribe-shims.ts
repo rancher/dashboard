@@ -1,4 +1,4 @@
-import { _MERGE } from '@shell/plugins/core-store/actions';
+import { _MERGE } from '@shell/plugins/dashboard-store/actions';
 import PollerSequential from '@shell/utils/poller-sequential';
 
 const polling: any = {};

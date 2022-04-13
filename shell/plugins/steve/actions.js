@@ -1,6 +1,6 @@
 import https from 'https';
 import { addParam, parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
-import { handleSpoofedRequest } from '@shell/plugins/core-store/actions';
+import { handleSpoofedRequest } from '@shell/plugins/dashboard-store/actions';
 import { set } from '@shell/utils/object';
 import { deferred } from '@shell/utils/promise';
 import { streamJson, streamingSupported } from '@shell/utils/stream';

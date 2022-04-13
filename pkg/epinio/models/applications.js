@@ -1,7 +1,7 @@
 import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
 import { formatSi } from '@shell/utils/units';
-import { classify } from '@shell/plugins/core-store/classify';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 import EpinioResource from './epinio-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
@@ -12,7 +12,7 @@ const STATES = {
   ERROR:    'error',
 };
 
-// These map to @shell/plugins/core-store/resource-class STATES
+// These map to @shell/plugins/dashboard-store/resource-class STATES
 const STATES_MAPPED = {
   [STATES.CREATING]: 'created',
   [STATES.STAGING]:  'building',

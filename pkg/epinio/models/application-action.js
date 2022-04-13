@@ -1,4 +1,4 @@
-import Resource from '@shell/plugins/core-store/resource-class';
+import Resource from '@shell/plugins/dashboard-store/resource-class';
 import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE } from '../types';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import Vue from 'vue';

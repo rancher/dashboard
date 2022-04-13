@@ -6,6 +6,10 @@ import epinioRoutes from './routing/epinio-routing';
 
 import enUS from './translations/en-us.yaml';
 
+// TODO: RC rename plugin-dev to `dev-2.6.6`
+// TODO: RC merge latest master
+// TODO: RC review old epinio PRs comments
+
 // Init the package
 export default function(plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders
@@ -19,8 +23,8 @@ export default function(plugin: IPlugin) {
   // Load a product
   plugin.addProduct(require('./config/epinio'));
 
-  plugin.addCoreStore(epinioMgmtStore.config.namespace, epinioMgmtStore.specifics, epinioMgmtStore.config);
-  plugin.addCoreStore(epinioStore.config.namespace, epinioStore.specifics, epinioStore.config);
+  plugin.addDashboardStore(epinioMgmtStore.config.namespace, epinioMgmtStore.specifics, epinioMgmtStore.config);
+  plugin.addDashboardStore(epinioStore.config.namespace, epinioStore.specifics, epinioStore.config);
 
   epinioRoutes.forEach(route => plugin.addRoute(route));
 
@@ -28,11 +32,13 @@ export default function(plugin: IPlugin) {
     await store.dispatch(`${ epinioStore.config.namespace }/loadManagement`);
   };
   const onLeave: OnNavAwayFromPackage = async(store, config) => {
+    // TODO: RC Is this needed?
     await store.dispatch(`${ epinioStore.config.namespace }/unsubscribe`);
     await store.commit(`${ epinioStore.config.namespace }/reset`);
   };
 
   const onLogOut: OnLogOut = async(store) => {
+    // TODO: RC iterate over all stores call on log out. check if exists in onLogoutPkg action
     await store.dispatch(`${ epinioMgmtStore.config.namespace }/onLogout`);
     await store.dispatch(`${ epinioStore.config.namespace }/onLogout`);
   };

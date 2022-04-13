@@ -1,6 +1,6 @@
 import { SCHEMA } from '@shell/config/types';
-import { handleSpoofedRequest } from '@shell/plugins/core-store/actions';
-import { normalizeType } from '@shell/plugins/core-store/normalize';
+import { handleSpoofedRequest } from '@shell/plugins/dashboard-store/actions';
+import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../../types';
 
 export default {
@@ -16,7 +16,7 @@ export default {
   },
 
   onLogout({ commit }: any) {
-    commit('managementChanged', { ready: false });
+    commit('managementChanged', { ready: false }); // TODO: RC remove??
     commit('reset');
   },
 

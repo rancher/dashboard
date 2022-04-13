@@ -526,7 +526,7 @@ export default function(dir, _appConfig) {
       '@nuxtjs/webpack-profile',
       'cookie-universal-nuxt',
       'portal-vue/nuxt',
-      path.join(NUXT_SHELL, 'plugins/core-store/rehydrate-all'),
+      path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
     ],
 
     // Vue plugins

@@ -1,4 +1,4 @@
-import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/core-store/index';
+import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store/index';
 
 import {
   mutations as subscribeMutations,

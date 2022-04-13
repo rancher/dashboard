@@ -1,7 +1,7 @@
 import Vue from 'vue';
 
 import { isArray } from '@shell/utils/array';
-import { classify } from '@shell/plugins/core-store/classify';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 import actions from './actions';
 import getters from './getters';
 import mutations from './mutations';

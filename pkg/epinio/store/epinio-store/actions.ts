@@ -1,7 +1,7 @@
 import { SCHEMA } from '@shell/config/types';
 import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_STANDALONE_CLUSTER_NAME, EPINIO_TYPES } from '../../types';
-import { normalizeType } from '@shell/plugins/core-store/normalize';
-import { handleSpoofedRequest } from '@shell/plugins/core-store/actions';
+import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import { handleSpoofedRequest } from '@shell/plugins/dashboard-store/actions';
 import { base64Encode } from '@shell/utils/crypto';
 import { NAMESPACE_FILTERS } from '@shell/store/prefs';
 import { createNamespaceFilterKeyWithId } from '@shell/utils/namespace-filter';
@@ -164,7 +164,7 @@ export default {
     dispatch(`unsubscribe`);
     commit('reset');
 
-    dispatch(`${ EPINIO_MGMT_STORE }/onLogout`, null, { root: true });
+    // dispatch(`${ EPINIO_MGMT_STORE }/onLogout`, null, { root: true }); // TODO: RC remove
   },
 
   loadSchemas: ( ctx: any ) => {

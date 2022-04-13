@@ -1,7 +1,7 @@
 import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
 import { IPlugin } from './types';
-import coreStore, { coreStoreModule, coreStoreState } from '@/shell/plugins/core-store';
+import coreStore, { coreStoreModule, coreStoreState } from '@/shell/plugins/dashboard-store';
 import {
   RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from '@/shell/core/types';
@@ -64,6 +64,7 @@ export class Plugin implements IPlugin {
     this.register('i18n', locale, fn);
   }
 
+  // TODO: RC Compare with change... just use original??
   addRoute(parentOrRoute: RouteConfig | string, optionalRoute?: RouteConfig): void {
     // Always add the pkg name to the route metadata
     const parent: string | undefined = typeof (parentOrRoute) === 'string' ? parentOrRoute as string : undefined;
@@ -87,7 +88,7 @@ export class Plugin implements IPlugin {
     });
   }
 
-  addCoreStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig) {
+  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig) {
     this.stores.push({
       storeName,
       register: () => {

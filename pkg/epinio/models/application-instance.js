@@ -1,4 +1,4 @@
-import Resource from '@shell/plugins/core-store/resource-class';
+import Resource from '@shell/plugins/dashboard-store/resource-class';
 import { EPINIO_PRODUCT_NAME } from '../types';
 
 export default class ApplicationInstanceResource extends Resource {

@@ -17,7 +17,7 @@ import semver from 'semver';
 import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
 import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
-import { BY_TYPE } from '@shell/plugins/core-store/classify';
+import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
 import {
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
@@ -637,6 +637,7 @@ export const actions = {
       return;
     }
 
+    // TODO: RC comment in issue
     if (oldProduct === VIRTUAL) {
       await dispatch('harvester/unsubscribe');
       commit('harvester/reset');
@@ -668,7 +669,7 @@ export const actions = {
       commit('management/forgetType', MANAGEMENT.PROJECT);
       commit('catalog/reset');
 
-      if (oldPkg) {
+      if (oldPkgClusterStore) {
         // Mirror actions on the 'cluster' store for our specific pkg `cluster` store
         await dispatch(`${ oldPkgClusterStore }/unsubscribe`);
         await commit(`${ oldPkgClusterStore }/reset`);
@@ -692,7 +693,7 @@ export const actions = {
       return;
     }
 
-    if (newPkg) {
+    if (newPkgClusterStore) {
       // Mirror actions on the 'cluster' store for our specific pkg `cluster` store
       dispatch(`${ newPkgClusterStore }/loadSchemas`, true);
       await dispatch(`${ newPkgClusterStore }/loadCluster`, { id });

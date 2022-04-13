@@ -5,7 +5,7 @@ import {
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import { _ALL_IF_AUTHED } from '@shell/plugins/core-store/actions';
+import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError } from '@shell/utils/error';
@@ -14,7 +14,7 @@ import { AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
 import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
 
-const getProductFromRoute = (route) => {
+const getPackageFromRoute = (route) => {
   if (!route?.meta) {
     return;
   }
@@ -27,7 +27,7 @@ const getProductFromRoute = (route) => {
 let beforeEachSetup = false;
 
 function setProduct(store, to) {
-  let product = getProductFromRoute(to) || to.params?.product;
+  let product = getPackageFromRoute(to) || to.params?.product; // TODO: RC should always come from param.product?
 
   if ( !product ) {
     const match = to.name?.match(/^c-cluster-([^-]+)/);
@@ -259,19 +259,19 @@ export default async function({
   try {
     let clusterId = get(route, 'params.cluster');
 
-    const pkg = getProductFromRoute(route);
-    const product = get(route, 'params.product');
+    const pkg = getPackageFromRoute(route);
+    const product = route?.params?.product;
 
-    const oldPkg = getProductFromRoute(from);
+    const oldPkg = getPackageFromRoute(from);
     const oldProduct = from?.params?.product;
 
     // -------------------------------------------------------------------
     // Leave an old pkg where we weren't before?
-    const oldPlugin = oldPkg ? Object.values($plugin.getPlugins()).find(p => p.name === oldPkg) : null;
+    const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find(p => p.name === oldPkg) : null;
 
     if (oldPkg && oldPkg !== pkg ) {
       // Execute anything optional the plugin wants to. For example resetting it's store to remove data
-      await oldPlugin.onLeave(store, {
+      await oldPkgPlugin.onLeave(store, {
         clusterId,
         product,
         oldProduct,
@@ -285,15 +285,15 @@ export default async function({
     ];
 
     // Entering a new package where we weren't before?
-    const newPlugin = pkg ? Object.values($plugin.getPlugins()).find(p => p.name === pkg) : null;
+    const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find(p => p.name === pkg) : null;
 
     // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the to `route`
-    if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) { // fails on
+    if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) {
       // Execute mandatory store actions
       await Promise.all(always);
 
       // Execute anything optional the plugin wants to
-      await newPlugin.onEnter(store, {
+      await newPkgPlugin.onEnter(store, {
         clusterId,
         product,
         oldProduct,
@@ -317,8 +317,8 @@ export default async function({
         ...always,
         store.dispatch('loadCluster', {
           id:     clusterId,
-          oldPkg: oldPlugin,
-          newPkg: newPlugin,
+          oldPkg: oldPkgPlugin,
+          newPkg: newPkgPlugin,
           oldProduct,
         })]);
     } else {

@@ -3,7 +3,7 @@ import merge from 'lodash/merge';
 import { SCHEMA } from '@shell/config/types';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
 import { createYaml } from '@shell/utils/create-yaml';
-import { classify } from '@shell/plugins/core-store/classify';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 
 export const _ALL = 'all';

@@ -5,9 +5,9 @@ import Loading from '@shell/components/Loading.vue';
 import Link from '@shell/components/formatter/Link.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import { EPINIO_MGMT_STORE, EPINIO_TYPES } from '../../../types';
-import Resource from '@shell/plugins/core-store/resource-class';
+import Resource from '@shell/plugins/dashboard-store/resource-class';
 import AsyncButton from '@shell/components/AsyncButton.vue';
-import { _MERGE } from '@shell/plugins/core-store/actions';
+import { _MERGE } from '@shell/plugins/dashboard-store/actions';
 
 interface Cluster extends Resource{
   id: string,

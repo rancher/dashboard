@@ -5,7 +5,7 @@ import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
 import { splitObjectPath } from '@shell/utils/string';
 import { parseType } from '@shell/models/schema';
-import Resource from '@shell/plugins/core-store/resource-class';
+import Resource from '@shell/plugins/dashboard-store/resource-class';
 import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';

@@ -130,7 +130,7 @@ import {
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import isObject from 'lodash/isObject';
-import { normalizeType } from '@shell/plugins/core-store/normalize';
+import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 
@@ -1491,8 +1491,6 @@ export const mutations = {
   },
 
   componentForType(state, { match, replace }) {
-    // TODO: RC Q Neil - I'd had products manually specify the pkg... so we would look in <pkg>/<edit|model|etc>/<type>
-    // In this new way, how do we handle collisions (epinio namespaces and cluster(kube) namespaces)
     match = ensureRegex(match);
     match = regexToString(match);
     state.typeToComponentMappings.push({ match, replace });

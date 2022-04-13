@@ -1,6 +1,6 @@
 import { isArray } from '@shell/utils/array';
-import { BY_TYPE } from '@shell/plugins/core-store/classify';
-import { lookup } from '@shell/plugins/core-store/model-loader';
+import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
+import { lookup } from '@shell/plugins/dashboard-store/model-loader';
 
 import SteveModel from './steve-class';
 import HybridModel, { cleanHybridResources } from './hybrid-class';
