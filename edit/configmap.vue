@@ -7,6 +7,7 @@ import Labels from '@/components/form/Labels';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import Banner from '@/components/Banner';
+import { _EDIT } from '@/config/query-params';
 
 export default {
   name: 'CruConfigMap',
@@ -33,6 +34,9 @@ export default {
   computed: {
     hasBinaryData() {
       return Object.keys(this.binaryData).length > 0;
+    },
+    isEditMode() {
+      return this.mode === _EDIT;
     }
   },
 
@@ -95,6 +99,7 @@ export default {
       >
         <div v-if="hasBinaryData">
           <Banner
+            v-if="isEditMode"
             color="info"
             label-key="configmap.tabs.binaryData.banner"
           />
