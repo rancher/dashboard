@@ -10,13 +10,25 @@ export const STEVE = { PREFERENCE: 'userpreference' };
 // Base: /v3
 export const NORMAN = {
   APP:         'app',
-  AUTH_CONFIG: 'authconfig',
-  CLUSTER:                       'cluster',
-  PRINCIPAL:   'principal',
-  USER:        'user',
-  TOKEN:       'token',
-  GROUP:       'group',
-  SPOOFED:     { GROUP_PRINCIPAL: 'group.principal' }
+  AUTH_CONFIG:                   'authconfig',
+  ETCD_BACKUP:                   'etcdbackup',
+  CLUSTER_TOKEN:                 'clusterregistrationtoken',
+  CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
+  CLOUD_CREDENTIAL:              'cloudcredential',
+  FLEET_WORKSPACES:              'fleetworkspace',
+  GLOBAL_ROLE:                   'globalRole',
+  GLOBAL_ROLE_BINDING:           'globalRoleBinding',
+
+  GROUP:                         'group',
+  // Note - This allows access to node resources, not schema's or custom components (both are accessed via 'type' which clashes with kube node)
+  NODE:                          'node',
+  PRINCIPAL:                     'principal',
+  PROJECT:                       'project',
+  PROJECT_ROLE_TEMPLATE_BINDING: 'projectRoleTemplateBinding',
+  SPOOFED:                       { GROUP_PRINCIPAL: 'group.principal' },
+  ROLE_TEMPLATE:                 'roleTemplate',
+  TOKEN:                         'token',
+  USER:                          'user',
 };
 
 // Public (via Norman)
