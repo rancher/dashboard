@@ -492,7 +492,7 @@ export default {
     dasherize,
 
     onScroll() {
-      if (this.hasLiveColumns) {
+      if (this.hasLiveColumns || this.hasDelayedColumns) {
         clearTimeout(this._liveColumnsTimer);
         clearTimeout(this._scrollTimer);
         clearTimeout(this._delayedColumnsTimer);
