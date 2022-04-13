@@ -162,7 +162,15 @@ export default {
 
       return false;
     },
-    ...mapGetters({ t: 'i18n/t' })
+
+    ...mapGetters({ t: 'i18n/t' }),
+
+    /**
+     * Prevent issues for malformed types injection
+     */
+    hasErrors() {
+      return this.errors?.length && Array.isArray(this.errors);
+    }
   },
 
   created() {
@@ -247,7 +255,8 @@ export default {
 
     save() {
       this.$refs.save.clicked();
-    }
+    },
+
   }
 };
 </script>
@@ -260,7 +269,7 @@ export default {
     >
       <div
         class="cru__errors"
-        :v-if="errors.length"
+        :v-if="hasErrors"
       >
         <Banner
           v-for="(err, i) in errors"
