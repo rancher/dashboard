@@ -7,6 +7,7 @@ import { compare, isPrerelease, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
 import { CATALOG, NORMAN } from '@/config/types';
 import { SHOW_PRE_RELEASE } from '@/store/prefs';
+import { get } from '@/utils/object';
 
 export default {
   showMasthead() {
@@ -215,7 +216,7 @@ export default {
   },
 
   deployedAsLegacy() {
-    if ( this.spec.values ) {
+    if ( get(this, 'spec.values.global')) {
       const { clusterName, projectName } = this.spec?.values?.global;
 
       if ( clusterName && projectName ) {
