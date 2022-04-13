@@ -18,7 +18,7 @@ export default function(plugin: IPlugin) {
   // Provide plugin metadata from package.json
   plugin.metadata = require('./package.json');
 
-  plugin.addI18n('en-us', enUS);
+  plugin.addL10n('en-us', enUS);
 
   // Load a product
   plugin.addProduct(require('./config/epinio'));

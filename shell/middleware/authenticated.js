@@ -27,7 +27,7 @@ const getPackageFromRoute = (route) => {
 let beforeEachSetup = false;
 
 function setProduct(store, to) {
-  let product = getPackageFromRoute(to) || to.params?.product; // TODO: RC should always come from param.product?
+  let product = to.params?.product;
 
   if ( !product ) {
     const match = to.name?.match(/^c-cluster-([^-]+)/);

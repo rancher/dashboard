@@ -56,9 +56,8 @@ export interface IPlugin {
 
   /**
    * Add a module contains localisations for a specific locale
-   * TODO: RC Q Neil - this should eb I10n (adding a specific set of translations)
    */
-  addI18n(locale: string, fn: Function): void;
+  addL10n(locale: string, fn: Function): void;
 
   /**
    * Add a route to the Vue Router

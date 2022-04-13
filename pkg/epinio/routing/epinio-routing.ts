@@ -14,39 +14,39 @@ import ViewEpinioNsResource from '../pages/c/_cluster/_resource/_namespace/_id.v
 
 const routes: RouteConfig[] = [{
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-applications-createapp`,
-  path:      `/epinio/c/:cluster/applications/createapp`,
+  path:      `/:product/c/:cluster/applications/createapp`,
   component: CreateApp,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-applications`,
-  path:      `/epinio/c/:cluster/applications`,
+  path:      `/:product/c/:cluster/applications`,
   component: ListApp,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }`,
-  path:      `/epinio`,
+  path:      `/:product`,
   component: ListEpinio,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c`,
-  path:      `/epinio/c`,
+  path:      `/:product/c`,
   component: ViewEpinioBase,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster`,
-  path:      `/epinio/c/:cluster`,
+  path:      `/:product/c/:cluster`,
   component: ViewEpinio,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-resource`,
-  path:      `/epinio/c/:cluster/:resource`,
+  path:      `/:product/c/:cluster/:resource`,
   component: ListEpinioResource,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-resource-create`,
-  path:      `/epinio/c/:cluster/:resource/create`,
+  path:      `/:product/c/:cluster/:resource/create`,
   component: CreateEpinioResource,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-resource-id`,
-  path:      `/epinio/c/:cluster/:resource/:id`,
+  path:      `/:product/c/:cluster/:resource/:id`,
   component: ViewEpinioResource,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-resource-namespace-id`,
-  path:      `/epinio/c/:cluster/:resource/:namespace/:id`,
+  path:      `/:product/c/:cluster/:resource/:namespace/:id`,
   component: ViewEpinioNsResource,
 }];
 

@@ -60,15 +60,15 @@ export class Plugin implements IPlugin {
     this.locales.push({ locale, label });
   }
 
-  addI18n(locale: string, fn: Function) {
+  addL10n(locale: string, fn: Function) {
     this.register('i18n', locale, fn);
   }
 
-  // TODO: RC Compare with change... just use original??
   addRoute(parentOrRoute: RouteConfig | string, optionalRoute?: RouteConfig): void {
     // Always add the pkg name to the route metadata
-    const parent: string | undefined = typeof (parentOrRoute) === 'string' ? parentOrRoute as string : undefined;
-    const route: RouteConfig = typeof (parentOrRoute) === 'string' ? optionalRoute as RouteConfig : parentOrRoute as RouteConfig;
+    const hasParent = typeof (parentOrRoute) === 'string';
+    const parent: string | undefined = hasParent ? parentOrRoute as string : undefined;
+    const route: RouteConfig = hasParent ? optionalRoute as RouteConfig : parentOrRoute as RouteConfig;
 
     route.meta = {
       ...route?.meta,
