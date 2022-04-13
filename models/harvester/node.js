@@ -1,5 +1,5 @@
 import pickBy from 'lodash/pickBy';
-import { HCI, LONGHORN, POD } from '@/config/types';
+import { HCI, LONGHORN, POD, NODE } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
@@ -239,5 +239,11 @@ export default class HciNode extends SteveModel {
     }, 0);
 
     return out;
+  }
+
+  get canDelete() {
+    const nodes = this.$rootGetters['harvester/all'](NODE) || [];
+
+    return nodes.length > 1;
   }
 }
