@@ -68,7 +68,7 @@ export default {
     // object = version available to upgrade to
 
     if ( this.deployedAsLegacy ) {
-      return false;
+      return null;
     }
 
     if ( this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID] ) {
