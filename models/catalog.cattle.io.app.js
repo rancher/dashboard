@@ -67,6 +67,10 @@ export default {
     // null = no upgrade found
     // object = version available to upgrade to
 
+    if ( this.deployedAsLegacy ) {
+      return false;
+    }
+
     if ( this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID] ) {
       // Things managed by fleet shouldn't show ugrade available even if there might be.
       return false;
