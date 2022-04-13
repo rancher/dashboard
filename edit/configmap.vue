@@ -108,7 +108,7 @@ export default {
             v-model="binaryData"
             :values-as-binary="true"
             :add-allowed="false"
-            :read-allowed="false"
+            :read-allowed="true"
             :mode="mode"
             :protip="t('configmap.tabs.data.protip')"
           />
