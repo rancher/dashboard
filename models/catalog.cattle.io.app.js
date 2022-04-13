@@ -5,7 +5,7 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@/config/labels-annotations';
 import { compare, isPrerelease, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
-import { CATALOG } from '@/config/types';
+import { CATALOG, NORMAN } from '@/config/types';
 import { SHOW_PRE_RELEASE } from '@/store/prefs';
 
 export default {
@@ -30,7 +30,7 @@ export default {
 
     const upgrade = {
       action:     'goToUpgrade',
-      enabled:    true,
+      enabled:    !this.deployedAsLegacy,
       icon:       'icon icon-fw icon-edit',
       label:      this.t('catalog.install.action.goToUpgrade'),
     };
@@ -66,6 +66,10 @@ export default {
     // false = does not apply (managed by fleet)
     // null = no upgrade found
     // object = version available to upgrade to
+
+    if ( this.deployedAsLegacy ) {
+      return null;
+    }
 
     if ( this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID] ) {
       // Things managed by fleet shouldn't show ugrade available even if there might be.
@@ -209,6 +213,28 @@ export default {
   deployedResources() {
     return filterBy(this.metadata?.relationships || [], 'rel', 'helmresource');
   },
+
+  deployedAsLegacy() {
+    if ( this.spec.values ) {
+      const { clusterName, projectName } = this.spec?.values?.global;
+
+      if ( clusterName && projectName ) {
+        try {
+          const legacyApp = this.$dispatch('rancher/find', {
+            type: NORMAN.APP,
+            id:   `${ projectName }:${ this.metadata.name }`,
+            opt:  { url: `/v3/project/${ clusterName }:${ projectName }/apps/${ projectName }:${ this.metadata.name }` }
+          }, { root: true });
+
+          if ( legacyApp ) {
+            return true;
+          }
+        } catch (e) {}
+      }
+
+      return false;
+    }
+  }
 };
 
 function cleanupVersion(version) {
