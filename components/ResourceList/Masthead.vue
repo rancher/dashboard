@@ -100,7 +100,8 @@ export default {
         return this.isCreatable;
       }
 
-      if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+      // blocked-post means you can post through norman, but not through steve.
+      if ( this.schema && !this.schema?.collectionMethods.find(x => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
         return false;
       }
 
