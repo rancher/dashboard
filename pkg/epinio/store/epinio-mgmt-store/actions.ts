@@ -15,9 +15,8 @@ export default {
     throw new Error('Not Implemented');
   },
 
-  onLogout({ commit }: any) {
-    commit('managementChanged', { ready: false }); // TODO: RC remove??
-    commit('reset');
+  async onLogout({ commit }: any) {
+    await commit('reset');
   },
 
   loadManagement(ctx: any) {

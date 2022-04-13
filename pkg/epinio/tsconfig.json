@@ -49,7 +49,7 @@
   },
   "include": [
     "**/*.ts",
-    "**/*.d.ts", // TODO: RC Neil Q This stil fails to load (/types --> fails for types.d.ts but works for types.ts)
+    "**/*.d.ts",
     "**/*.tsx",
     "**/*.vue",
     "../../shell/types/*.d.ts",

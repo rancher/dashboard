@@ -123,7 +123,7 @@ export function forgetType(state, type) {
 
 export function resetStore(state, commit) {
   // eslint-disable-next-line no-console
-  console.log('Reset', state.config.namespace);
+  console.log('Reset store: ', state.config.namespace);
 
   for ( const type of Object.keys(state.types) ) {
     commit(`${ state.config.namespace }/forgetType`, type);

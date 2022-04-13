@@ -1,5 +1,5 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin, OnNavToPackage, OnNavAwayFromPackage, OnLogOut } from '@shell/core/types';
+import { IPlugin, OnNavToPackage, OnNavAwayFromPackage } from '@shell/core/types';
 import epinioStore from './store/epinio-store';
 import epinioMgmtStore from './store/epinio-mgmt-store';
 import epinioRoutes from './routing/epinio-routing';
@@ -32,24 +32,15 @@ export default function(plugin: IPlugin) {
     await store.dispatch(`${ epinioStore.config.namespace }/loadManagement`);
   };
   const onLeave: OnNavAwayFromPackage = async(store, config) => {
-    // TODO: RC Is this needed?
+    // The dashboard retains the previous cluster info until another cluster is loaded, this helps when returning to the same cluster.
+    // We need to forget epinio cluster info
+    // - The polling is pretty brutal
+    // - The nav path through to the same epinio cluster is fraught with danger (nav from previous cluster id to blank cluster, required to switch epinio clusters)
     await store.dispatch(`${ epinioStore.config.namespace }/unsubscribe`);
     await store.commit(`${ epinioStore.config.namespace }/reset`);
   };
 
-  const onLogOut: OnLogOut = async(store) => {
-    // TODO: RC iterate over all stores call on log out. check if exists in onLogoutPkg action
-    await store.dispatch(`${ epinioMgmtStore.config.namespace }/onLogout`);
-    await store.dispatch(`${ epinioStore.config.namespace }/onLogout`);
-  };
-
-  plugin.addNavHooks(onEnter, onLeave, onLogOut);
-
-  // TODO: RC Q Neil custom components #2 couldn't get these to work, had to match dynamic-importer
-  // import appLogs from './components/windowComponent/ApplicationLogs.vue';
-  // import appShell from './components/windowComponent/ApplicationShell.vue';
-
-  /* ?? webpackChunkName: "components/nav/WindowManager" */
+  plugin.addNavHooks(onEnter, onLeave);
 
   plugin.register('windowComponent', 'ApplicationLogs', () => import(`./components/windowComponent/ApplicationLogs.vue`));
   plugin.register('windowComponent', 'ApplicationShell', () => import(`./components/windowComponent/ApplicationShell.vue`));

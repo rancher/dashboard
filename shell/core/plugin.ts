@@ -18,7 +18,7 @@ export class Plugin implements IPlugin {
   public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
-  public onLogOut: OnLogOut = () => Promise.resolve();
+  public _onLogOut: OnLogOut = () => Promise.resolve();
 
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
@@ -138,7 +138,13 @@ export class Plugin implements IPlugin {
   ): void {
     this.onEnter = onEnter;
     this.onLeave = onLeave;
-    this.onLogOut = onLogOut;
+    this._onLogOut = onLogOut;
+  }
+
+  public async onLogOut(store: any) {
+    await Promise.all(this.stores.map((s: any) => store.dispatch(`${ s.storeName }/onLogout`)));
+
+    await this._onLogOut(store);
   }
 
   public register(type: string, name: string, fn: Function) {

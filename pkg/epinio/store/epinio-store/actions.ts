@@ -160,11 +160,9 @@ export default {
     dispatch(`${ EPINIO_MGMT_STORE }/loadManagement`, null, { root: true });
   },
 
-  onLogout({ dispatch, commit }: any) {
-    dispatch(`unsubscribe`);
-    commit('reset');
-
-    // dispatch(`${ EPINIO_MGMT_STORE }/onLogout`, null, { root: true }); // TODO: RC remove
+  async onLogout({ dispatch, commit }: any) {
+    await dispatch(`unsubscribe`);
+    await commit('reset');
   },
 
   loadSchemas: ( ctx: any ) => {
