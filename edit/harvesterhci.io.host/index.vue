@@ -83,7 +83,7 @@ export default {
           originPath:     d?.spec?.fileSystem?.mountPoint,
           path:           d?.spec?.fileSystem?.mountPoint,
           blockDevice:    d,
-          displayName:    d?.spec?.devPath,
+          displayName:    d?.displayName,
           forceFormatted: d?.spec?.fileSystem?.forceFormatted || false,
         };
       });
@@ -166,7 +166,7 @@ export default {
           storageMaximum:   formatSi(diskStatus[key]?.storageMaximum, formatOptions),
           storageScheduled: formatSi(diskStatus[key]?.storageScheduled, formatOptions),
           blockDevice,
-          displayName:      blockDevice?.spec?.devPath || key,
+          displayName:      key,
           forceFormatted:   blockDevice?.spec?.fileSystem?.forceFormatted || false,
         };
       });
@@ -255,7 +255,7 @@ export default {
         isNew:             true,
         originPath:        disk?.spec?.fileSystem?.mountPoint,
         blockDevice:       disk,
-        displayName:       disk?.spec?.devPath,
+        displayName:       disk?.displayName,
         forceFormatted,
       });
     },
@@ -381,8 +381,9 @@ export default {
           const size = formatSi(sizeBytes, { increment: 1024 });
           const parentDevice = d.status?.deviceStatus?.parentDevice;
           const isChildAdded = this.newDisks.find(newDisk => newDisk.blockDevice?.status?.deviceStatus?.parentDevice === devPath);
+          const name = d.metadata?.name;
 
-          let label = `${ devPath } (Type: ${ deviceType }, Size: ${ size })`;
+          let label = `${ name } (Type: ${ deviceType }, Size: ${ size })`;
 
           if (parentDevice) {
             label = `- ${ label }`;
