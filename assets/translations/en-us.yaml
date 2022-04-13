@@ -2569,6 +2569,8 @@ longhorn:
         na: Resource Unavailable
 
 neuvector:
+  errors:
+    namespaceError: Could not detect official NeuVector chart
   overview:
     title: Overview
     subtitle: "Powered by: <a href='https://github.com/neuvector' target='_blank' rel='noopener nofollow noreferrer'>NeuVector</a>"

@@ -6,16 +6,29 @@ import InstallRedirect from '@/utils/install-redirect';
 import { NAME, CHART_NAME } from '@/config/product/neuvector';
 
 import LazyImage from '@/components/LazyImage';
+import Banner from '@/components/Banner';
+import { NAMESPACE } from '@/config/types';
+
+const NEUVECTOR_NAMESPACE = 'cattle-neuvector-system';
 
 export default {
-  components: { LazyImage },
+  components: { LazyImage, Banner },
 
   middleware: InstallRedirect(NAME, CHART_NAME),
 
   data() {
+    let hasNeuVectorNamespace = false;
+
+    const allNamespaces = this.$store.getters[`cluster/all`](NAMESPACE);
+
+    hasNeuVectorNamespace = allNamespaces.filter((namespace) => {
+      return namespace.metadata.name === NEUVECTOR_NAMESPACE;
+    }).length === 1;
+
     return {
-      externalLinks:   [],
-      neuvectorImgSrc: require('~/assets/images/vendor/neuvector.svg'),
+      externalLinks:         [],
+      neuvectorImgSrc:       require('~/assets/images/vendor/neuvector.svg'),
+      hasNeuVectorNamespace,
     };
   },
 
@@ -28,7 +41,7 @@ export default {
         iconSrc:     this.neuvectorImgSrc,
         label:       'neuvector.overview.linkedList.neuvector.label',
         description:   'neuvector.overview.linkedList.neuvector.description',
-        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-neuvector-system/services/https:neuvector-service-webui:8443/proxy`
+        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/${ NEUVECTOR_NAMESPACE }/services/https:neuvector-service-webui:8443/proxy`
       },
     ];
   }
@@ -47,7 +60,9 @@ export default {
         </div>
       </div>
     </header>
-    <div class="links">
+    <Banner v-if="!hasNeuVectorNamespace" color="error" :label="t('neuvector.errors.namespaceError')">
+    </Banner>
+    <div v-if="hasNeuVectorNamespace" class="links">
       <div v-for="fel in externalLinks" :key="fel.label" class="link-container">
         <a :href="fel.link" target="_blank" rel="noopener noreferrer">
           <div class="link-logo">
