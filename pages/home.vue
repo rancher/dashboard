@@ -13,7 +13,7 @@ import { MANAGEMENT, CAPI } from '@/config/types';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { STATE } from '@/config/table-headers';
 import { MODE, _IMPORT } from '@/config/query-params';
-import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
+import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@/utils/units';
 import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@/utils/version';
 import PageHeaderActions from '@/mixins/page-actions';
 import { getVendor } from '@/config/private-label';
@@ -35,7 +35,7 @@ export default {
     BadgeState,
     CommunityLinks,
     SimpleBox,
-    SingleClusterInfo
+    SingleClusterInfo,
   },
 
   mixins: [PageHeaderActions],
@@ -152,10 +152,12 @@ export default {
 
         },
         {
-          label: this.t('tableHeaders.pods'),
-          name:  'pods',
-          value: '',
-          sort:  ['status.allocatable.pods', 'status.available.pods']
+          label:        this.t('tableHeaders.pods'),
+          name:         'pods',
+          value:        '',
+          sort:         ['status.allocatable.pods', 'status.available.pods'],
+          formatter:    'PodsUsage',
+          delayLoading: true
         },
         // {
         //   name:  'explorer',
@@ -221,19 +223,17 @@ export default {
     cpuAllocatable(cluster) {
       return parseSi(cluster.status.allocatable?.cpu);
     },
-
-    memoryUsed(cluster) {
-      const parsedUsed = (parseSi(cluster.status.requested?.memory) || 0).toString();
-      const format = createMemoryFormat(parsedUsed);
-
-      return formatSi(parsedUsed, format);
-    },
-
     memoryAllocatable(cluster) {
       const parsedAllocatable = (parseSi(cluster.status.allocatable?.memory) || 0).toString();
       const format = createMemoryFormat(parsedAllocatable);
 
       return formatSi(parsedAllocatable, format);
+    },
+
+    memoryReserved(cluster) {
+      const memValues = createMemoryValues(cluster?.status?.allocatable?.memory, cluster?.status?.requested?.memory);
+
+      return `${ memValues.useful }/${ memValues.total } ${ memValues.units }`;
     },
 
     showWhatsNew() {
@@ -347,7 +347,7 @@ export default {
                 </template>
                 <template #col:cpu="{row}">
                   <td v-if="cpuAllocatable(row)">
-                    {{ `${cpuUsed(row)}/${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
+                    {{ `${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
                   </td>
                   <td v-else>
                     &mdash;
@@ -355,15 +355,7 @@ export default {
                 </template>
                 <template #col:memory="{row}">
                   <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
-                    {{ `${memoryUsed(row)}/${memoryAllocatable(row)}` }}
-                  </td>
-                  <td v-else>
-                    &mdash;
-                  </td>
-                </template>
-                <template #col:pods="{row}">
-                  <td v-if="row.status.allocatable && row.status.allocatable.pods!== '0'">
-                    {{ `${row.status.requested.pods}/${row.status.allocatable.pods}` }}
+                    {{ memoryAllocatable(row) }}
                   </td>
                   <td v-else>
                     &mdash;
