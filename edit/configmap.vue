@@ -6,7 +6,6 @@ import KeyValue from '@/components/form/KeyValue';
 import Labels from '@/components/form/Labels';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
-import { _EDIT } from '@/config/query-params';
 
 export default {
   name: 'CruConfigMap',
@@ -32,9 +31,6 @@ export default {
   computed: {
     hasBinaryData() {
       return Object.keys(this.binaryData).length > 0;
-    },
-    isEditMode() {
-      return this.mode === _EDIT;
     }
   },
 
