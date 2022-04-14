@@ -12,6 +12,7 @@ export const NORMAN = {
   APP:                           'app',
   AUTH_CONFIG:                   'authconfig',
   ETCD_BACKUP:                   'etcdbackup',
+  CLUSTER:                       'cluster',
   CLUSTER_TOKEN:                 'clusterregistrationtoken',
   CLUSTER_ROLE_TEMPLATE_BINDING: 'clusterRoleTemplateBinding',
   CLOUD_CREDENTIAL:              'cloudcredential',
