@@ -394,7 +394,7 @@ export default {
             value:    d.id,
             action:   this.addDisk,
             kind:     !parentDevice ? 'group' : '',
-            disabled: !!((d.childParts.length > 0 && d.isChildPartProvisioned) || isChildAdded),
+            disabled: !!(d.childParts.length > 0 || isChildAdded),
             group:    parentDevice || devPath,
             isParent: !!parentDevice,
           };
