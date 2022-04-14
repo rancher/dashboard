@@ -12,7 +12,7 @@ import Tabbed from '@/components/Tabbed';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import { MANAGEMENT } from '@/config/types';
 import { NAME } from '@/config/product/explorer';
-import { PROJECT_ID } from '@/config/query-params';
+import { PROJECT_ID, _VIEW } from '@/config/query-params';
 import ProjectMembershipEditor from '@/components/form/Members/ProjectMembershipEditor';
 import { canViewProjectMembershipEditor } from '@/components/form/Members/ProjectMembershipEditor.vue';
 import { NAME as HARVESTER } from '@/config/product/harvester';
@@ -61,9 +61,15 @@ export default {
     canManageProject() {
       const projectOptions = this.$store.getters['type-map/optionsFor'](MANAGEMENT.PROJECT);
 
-      console.log('canManageProject', !!(this.value?.links?.update && projectOptions && projectOptions.isEditable));
-
       return !!(this.value?.links?.update && projectOptions && projectOptions.isEditable);
+    },
+
+    canEditTabElements() {
+      if (!this.canManageProject) {
+        return _VIEW;
+      }
+
+      return this.mode;
     },
 
     isK3s() {
@@ -116,7 +122,6 @@ export default {
     this.$set(this.value.metadata, 'namespace', this.$store.getters['currentCluster'].id);
     this.$set(this.value, 'spec', this.value.spec || {});
     this.$set(this.value.spec, 'containerDefaultResourceLimit', this.value.spec.containerDefaultResourceLimit || {});
-    console.log('VALUE', this.value);
   },
   methods: {
     async save(saveCb) {
@@ -204,23 +209,20 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="canManageProject"
         name="resource-quotas"
         :label="t('project.resourceQuotas')"
         :weight="9"
       >
-        <ResourceQuota v-model="value" :mode="mode" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
+        <ResourceQuota v-model="value" :mode="canEditTabElements" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
       <Tab
-        v-if="canManageProject"
         name="container-default-resource-limit"
         :label="resourceQuotaLabel"
         :weight="8"
       >
-        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="mode" :show-tip="false" :register-before-hook="registerBeforeHook" />
+        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="canEditTabElements" :show-tip="false" :register-before-hook="registerBeforeHook" />
       </Tab>
       <Tab
-        v-if="canManageProject"
         name="labels-and-annotations"
         label-key="generic.labelsAndAnnotations"
         :weight="7"
@@ -228,7 +230,7 @@ export default {
         <Labels
           default-container-class="labels-and-annotations-container"
           :value="value"
-          :mode="mode"
+          :mode="canEditTabElements"
           :display-side-by-side="false"
         />
       </Tab>
