@@ -1,6 +1,7 @@
 import semver from 'semver';
 import { CAPI } from '@/config/labels-annotations';
-import { VIRTUAL_HARVESTER_PROVIDER } from '@/config/types';
+import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@/config/types';
+import { SETTING } from '@/config/settings';
 
 // Filter out any clusters that are not Kubernetes Clusters
 // Currently this removes Harvester clusters
@@ -25,4 +26,20 @@ export function isHarvesterSatisfiesVersion(version = '') {
   } else {
     return semver.satisfies(semver.coerce(version), '>=v1.21.4+rke2r4');
   }
+}
+
+export function filterHiddenLocalCluster(mgmtClusters, store) {
+  const hideLocalSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.HIDE_LOCAL_CLUSTER) || {};
+  const value = hideLocalSetting.value || hideLocalSetting.default || 'false';
+  const hideLocal = value === 'true';
+
+  if (!hideLocal) {
+    return mgmtClusters;
+  }
+
+  return mgmtClusters.filter((c) => {
+    const target = c.mgmt || c;
+
+    return !target.isLocal;
+  });
 }

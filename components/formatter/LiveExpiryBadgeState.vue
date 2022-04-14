@@ -8,7 +8,7 @@ export default {
   components: { BadgeState },
 
   props: {
-    value: {
+    row: {
       type:    Object,
       default: null,
     },
@@ -25,7 +25,7 @@ export default {
   },
 
   watch: {
-    value() {
+    row() {
       this.update();
     }
   },
@@ -36,12 +36,12 @@ export default {
 
   methods: {
     update() {
-      const state = this.value.state;
+      const state = this.row.state;
 
       clearTimeout(this.timer);
-      if (state !== 'expired' && this.value.expiresAt) {
+      if (state !== 'expired' && this.row.expiresAt) {
         // Not expired and has an expiry date, so set a timer to update the state once its expired
-        const expiry = day(this.value.expiresAt);
+        const expiry = day(this.row.expiresAt);
         const now = day();
         const timeToExpire = expiry.diff(now);
 
