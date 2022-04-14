@@ -9,6 +9,7 @@ import { get } from '@/utils/object';
 import Select from '@/components/form/Select';
 import FileSelector from '@/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@/config/query-params';
+
 export default {
   components: {
     Select,
@@ -224,11 +225,8 @@ export default {
         let value = input[key];
 
         if ( this.handleBase64 ) {
-          value = base64Decode(value) || (this.enableBase64EditSimpleString && asciiLike(base64Decode(value)));
+          value = base64Decode(value);
         }
-
-        console.log('******************* VALUE! *******************', value);
-        console.log('******************* HERE! *******************', asciiLike(base64Decode(value)), asciiLike(value), base64Decode(value));
 
         rows.push({
           key,
@@ -304,10 +302,6 @@ export default {
     this.queueUpdate = debounce(this.update, 500);
   },
   methods: {
-    isBinary(val) {
-      return typeof val === 'string' && !asciiLike(val);
-    },
-
     add(key = '', value = '') {
       const obj = {
         ...this.defaultAddData,
