@@ -3,12 +3,11 @@ import Tag from '@/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@/components/DetailText';
 import { _VIEW } from '@/config/query-params';
-import WorkloadDetailEndpoints from '@/components/formatter/WorkloadDetailEndpoints';
+
+export const SEPARATOR = { separator: true };
 
 export default {
-  components: {
-    DetailText, Tag, WorkloadDetailEndpoints
-  },
+  components: { DetailText, Tag },
 
   props: {
     value: {
@@ -36,10 +35,28 @@ export default {
 
   computed: {
     details() {
-      return [
+      const items = [
         ...(this.moreDetails || []),
         ...(this.value?.details || []),
-      ].filter(x => !!`${ x.content }` && x.content !== undefined && x.content !== null);
+      ].filter(x => x.separator || (!!`${ x.content }` && x.content !== undefined && x.content !== null));
+
+      const groups = [];
+      let currentGroup = [];
+
+      items.forEach((i) => {
+        if (i.separator) {
+          groups.push(currentGroup);
+          currentGroup = [];
+        } else {
+          currentGroup.push(i);
+        }
+      });
+
+      if (currentGroup.length) {
+        groups.push(currentGroup);
+      }
+
+      return groups;
     },
 
     labels() {
@@ -60,14 +77,6 @@ export default {
 
     hasDetails() {
       return !isEmpty(this.details);
-    },
-
-    hasEndpoints() {
-      return !isEmpty(this.value.endpoints);
-    },
-
-    endpoints() {
-      return this.value.endpoints;
     },
 
     hasLabels() {
@@ -117,26 +126,21 @@ export default {
       <span class="content">{{ description }}</span>
     </div>
 
-    <div v-if="hasDetails" class="details">
-      <div v-for="detail in details" :key="detail.label || detail.slotName" class="detail">
-        <span class="label">
-          {{ detail.label }}:
-        </span>
-        <component
-          :is="detail.formatter"
-          v-if="detail.formatter"
-          :value="detail.content"
-          v-bind="detail.formatterOpts"
-        />
-        <span v-else>{{ detail.content }}</span>
+    <div v-if="hasDetails">
+      <div v-for="group, index in details" :key="index" class="details">
+        <div v-for="detail in group" :key="detail.label || detail.slotName" class="detail">
+          <span class="label">
+            {{ detail.label }}:
+          </span>
+          <component
+            :is="detail.formatter"
+            v-if="detail.formatter"
+            :value="detail.content"
+            v-bind="detail.formatterOpts"
+          />
+          <span v-else>{{ detail.content }}</span>
+        </div>
       </div>
-    </div>
-
-    <div v-if="hasEndpoints" class="endpoints">
-      <span class="label">
-        {{ t('resourceDetail.detailTop.endpoints') }}:
-      </span>
-      <WorkloadDetailEndpoints v-model="endpoints" />
     </div>
 
     <div v-if="hasLabels" class="labels">
@@ -196,10 +200,6 @@ export default {
       }
     }
 
-    .endpoints {
-      padding-bottom: 1px;
-    }
-
     .annotation {
       margin-top: 10px;
     }
@@ -221,6 +221,9 @@ export default {
       .detail {
         margin-right: 20px;
         margin-bottom: 3px;
+      }
+      &:not(:first-of-type) {
+        margin-top: 3px;
       }
     }
 
