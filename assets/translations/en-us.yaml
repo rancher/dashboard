@@ -1716,7 +1716,6 @@ configmap:
     binaryData:
       label: Binary Data
       noData: No Binary Data available for this ConfigMap...
-      banner: Binary Data values can not be edited in the UI
 
 containerResourceLimit:
   cpuPlaceholder: e.g. 1000
