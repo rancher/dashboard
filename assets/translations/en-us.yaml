@@ -2785,6 +2785,7 @@ monitoring:
         canCreate: Get started by clicking Create to add monitoring to a project
         cannotCreate: Contact the admin to add project monitoring
   route:
+    label: Route
     fields:
       groupBy: Group By
       groupInterval: Group Interval
@@ -2794,6 +2795,11 @@ monitoring:
   routesAndReceivers: Routes and Receivers
   monitors: Monitors
   projectMonitors: Project Monitoring
+  alertmanagerConfig:
+    description: Routes and receivers for project alerting are configured within AlertmanagerConfig resources.
+    empty: Alerts have not been configured for any accessible namespaces.
+    getStarted: Get started by clicking Create to configure an alert.
+    receiverTooltip: Must match the name of a receiver defined in the same AlertmanagerConfig.
   installSteps:
     uninstallV1:
       stepTitle: Uninstall V1
@@ -2877,7 +2883,11 @@ monitoringRoute:
     info: The root route has to match everything so matching cannot be configured.
     label: Match
   receiver:
+    type: Receiver Type
+    add: Add Receiver
     label: Receiver
+    oneOrMoreLabel: One or More Receivers
+    addMatch: Add match
   regex:
     label: Match Regex
   repeatInterval:
@@ -4553,6 +4563,7 @@ tableHeaders:
     watch: Watch
   ready: Ready
   reason: Reason
+  receivers: Receivers
   reclaimPolicy: Reclaim Policy
   repo: Repo
   repositories: Repositories
@@ -4566,6 +4577,7 @@ tableHeaders:
   restarts: Restarts
   role: Role
   roles: Roles
+  routes: Routes
   scale: Scale
   scope: Scope
   selector: Selector
@@ -6182,8 +6194,8 @@ typeLabel:
     }
   monitoring.coreos.com.alertmanagerconfig: |-
     {count, plural,
-      one { Alert Manager Configuration }
-      other { Alert Manager Configurations }
+      one { Project Routes and Receivers }
+      other { Project Routes and Receivers }
     }
   monitoring.coreos.com.podmonitor: |-
     {count, plural,

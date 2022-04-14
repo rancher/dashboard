@@ -1,29 +1,23 @@
 <script>
 import { MONITORING } from '@/config/types';
-import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import Loading from '@/components/Loading';
-import Banner from '@/components/Banner';
 import CruResource from '@/components/CruResource';
 import LabeledInput from '@/components/form/LabeledInput';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
+import { EDITOR_MODES } from '@/components/YamlEditor';
 import CreateEditView from '@/mixins/create-edit-view';
-import jsyaml from 'js-yaml';
 import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
-import ButtonDropdown from '@/components/ButtonDropdown';
+import ReceiverConfig from '@/edit/monitoring.coreos.com.receiver/receiverConfig.vue';
 
 export default {
   components: {
-    ArrayListGrouped,
-    Banner,
-    ButtonDropdown,
     CruResource,
     LabeledInput,
     Loading,
     Tabbed,
     Tab,
-    YamlEditor
+    ReceiverConfig,
   },
 
   mixins: [CreateEditView],
@@ -39,28 +33,10 @@ export default {
       this.$set(this.value.spec, receiverType.key, this.value.spec[receiverType.key] || []);
     });
 
-    const specSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.RECEIVER_SPEC);
-    const expectedFields = Object.keys(specSchema.resourceFields);
-    const suffix = {};
-
-    Object.keys(this.value.spec).forEach((key) => {
-      if (!expectedFields.includes(key)) {
-        suffix[key] = this.value.spec[key];
-      }
-    });
-
-    let suffixYaml = jsyaml.dump(suffix);
-
-    if (suffixYaml.trim() === '{}') {
-      suffixYaml = '';
-    }
-
     return {
-      expectedFields,
       receiverTypes:        RECEIVERS_TYPES,
       fileFound:            false,
       receiver:             {},
-      suffixYaml,
       EDITOR_MODES,
       yamlError:            '',
       doneLocationOverride:      {
@@ -81,30 +57,7 @@ export default {
     },
   },
 
-  watch: {
-    suffixYaml(value) {
-      try {
-        // We need this step so we don't just keep adding new keys when modifying the custom field
-        Object.keys(this.value.spec).forEach((key) => {
-          if (!this.expectedFields.includes(key)) {
-            this.$delete(this.value.spec, key);
-          }
-        });
-
-        const suffix = jsyaml.load(value);
-
-        Object.assign(this.value.spec, suffix);
-        this.yamlError = '';
-      } catch (ex) {
-        this.yamlError = `There was a problem parsing the Custom Config: ${ ex }`;
-      }
-    }
-  },
-
   methods: {
-    getComponent(name) {
-      return require(`./types/${ name }`).default;
-    },
 
     navigateTo(receiverType) {
       this.$refs.tabbed.select(receiverType.name);
@@ -169,7 +122,13 @@ export default {
     <Tabbed ref="tabbed" :side-tabs="true" default-tab="overview" @changed="tabChanged">
       <Tab :label="t('generic.overview')" :weight="receiverTypes.length" name="overview">
         <div class="box-container create-resource-container ">
-          <div v-for="(receiverType, i) in receiverTypes" :key="i" class="mb-10 subtype-banner" primary-color-var="--primary-color" @click="navigateTo(receiverType)">
+          <div
+            v-for="(receiverType, i) in receiverTypes"
+            :key="i"
+            class="mb-10 subtype-banner"
+            primary-color-var="--primary-color"
+            @click="navigateTo(receiverType)"
+          >
             <div class="left">
               <div class="logo">
                 <img :src="receiverType.logo" />
@@ -191,30 +150,12 @@ export default {
         :name="receiverType.name"
         :weight="receiverTypes.length - i"
       >
-        <YamlEditor
-          v-if="receiverType.name === 'custom'"
-          ref="customEditor"
-          v-model="suffixYaml"
-          :scrolling="false"
+        <ReceiverConfig
+          :mode="mode"
           :editor-mode="editorMode"
+          :receiver-type="receiverType"
+          :value="value"
         />
-        <div v-else>
-          <component :is="getComponent(receiverType.banner)" v-if="receiverType.banner" :model="value.spec[receiverType.key]" :mode="mode" />
-          <ArrayListGrouped
-            v-model="value.spec[receiverType.key]"
-            class="namespace-list"
-            :mode="mode"
-            :default-add-value="{}"
-            :add-label="t('monitoringReceiver.addButton', { type: t(receiverType.label) })"
-          >
-            <template #default="props">
-              <component :is="getComponent(receiverType.name)" :value="props.row.value" :mode="mode" />
-            </template>
-            <template v-if="receiverType.addButton" #add>
-              <component :is="getComponent(receiverType.addButton)" :model="value.spec[receiverType.key]" :mode="mode" />
-            </template>
-          </ArrayListGrouped>
-        </div>
       </Tab>
     </Tabbed>
   </CruResource>

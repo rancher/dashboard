@@ -23,6 +23,7 @@ export function init(store) {
   const {
     ALERTMANAGER,
     ALERTMANAGERCONFIG,
+    NAMESPACE,
     SERVICEMONITOR,
     PODMONITOR,
     PROMETHEUSRULE,
@@ -268,6 +269,21 @@ export function init(store) {
       value:    'description',
     },
     AGE
+  ]);
+
+  headers(ALERTMANAGERCONFIG, [
+    STATE,
+    NAME_COL,
+    NAMESPACE,
+    {
+      name:     'receivers',
+      labelKey: 'tableHeaders.receivers'
+    },
+    {
+      name:     'routes',
+      labelKey: 'tableHeaders.routes'
+    }
+
   ]);
 
   headers(PROMETHEUS, [
