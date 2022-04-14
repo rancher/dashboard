@@ -1,6 +1,6 @@
 <script>
 import KeyValue from '@/components/form/KeyValue';
-import { _VIEW, _EDIT } from '@/config/query-params';
+import { _VIEW } from '@/config/query-params';
 
 const VALID_DATA_KEY = /^[-._a-zA-Z0-9]*$/;
 
@@ -27,9 +27,6 @@ export default {
   computed: {
     isView() {
       return this.mode === _VIEW;
-    },
-    isEdit() {
-      return this.mode === _EDIT;
     },
     hasData() {
       return this.value?.data ? Object.keys(this.value?.data).length > 0 : false;
