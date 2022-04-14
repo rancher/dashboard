@@ -8,6 +8,7 @@ import day from 'dayjs';
 import SteveModel from '@/plugins/steve/steve-class';
 import { shortenedImage } from '@/utils/string';
 import { convertSelectorObj, matching } from '@/utils/selector';
+import { SEPARATOR } from '@/components/DetailTop';
 
 export default class Workload extends SteveModel {
   // remove clone as yaml/edit as yaml until API supported
@@ -301,7 +302,7 @@ export default class Workload extends SteveModel {
     return initContainers;
   }
 
-  get endpoints() {
+  get endpoint() {
     return this?.metadata?.annotations[CATTLE_PUBLIC_ENDPOINTS];
   }
 
@@ -317,7 +318,7 @@ export default class Workload extends SteveModel {
     const readyReplicas = Math.max(0, (this.status?.replicas || 0) - (this.status?.unavailableReplicas || 0));
 
     if (this.type === WORKLOAD_TYPES.DAEMON_SET) {
-      return this.status?.numberReady;
+      return readyReplicas;
     }
 
     return `${ readyReplicas }/${ this.desired }`;
@@ -336,6 +337,11 @@ export default class Workload extends SteveModel {
     const type = this._type ? this._type : this.type;
 
     const detailItem = {
+      endpoint:  {
+        label:     'Endpoints',
+        content:   this.endpoint,
+        formatter: 'WorkloadDetailEndpoints'
+      },
       ready:     {
         label:     'Ready',
         content:   this.ready
@@ -403,16 +409,32 @@ export default class Workload extends SteveModel {
       formatter: 'PodImages'
     });
 
-    function readyTypes(type) {
-      const types = [WORKLOAD_TYPES.DAEMON_SET, WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER];
-
-      return types.filter(x => x === type);
-    }
-
-    if (type === WORKLOAD_TYPES.DEPLOYMENT) {
-      out.push(detailItem.ready, detailItem.upToDate, detailItem.available);
-    } else if (readyTypes(type)) {
+    switch (type) {
+    case WORKLOAD_TYPES.DEPLOYMENT:
+      out.push(detailItem.ready, detailItem.upToDate, detailItem.available, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.DAEMON_SET:
+      out.push(detailItem.ready, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.REPLICA_SET:
+      out.push(detailItem.ready, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.STATEFUL_SET:
+      out.push(detailItem.ready, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.REPLICATION_CONTROLLER:
+      out.push(detailItem.ready, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.JOB:
+      out.push(detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.CRON_JOB:
+      out.push(detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.POD:
       out.push(detailItem.ready);
+      break;
+    default: break;
     }
 
     return out;

@@ -93,14 +93,18 @@ export default {
 
 <style lang="scss" scoped>
 .endpoint-tag {
-  margin: 2px 4px 2px 0;
+  display: inline-block;
+}
+.endpoint-tag:not(:first-of-type) {
+  margin: 2px 4px 0 2px;
 }
 .endpoint-link:after {
-  content: ",\a0";
+  content: ',\a0';
   display: inline-block;
-  color: var(--default-text)
-  }
+  color: var(--default-text);
+}
 .endpoint-link:last-of-type:after {
-  content: ''
-  }
+  content: '';
+}
+
 </style>
