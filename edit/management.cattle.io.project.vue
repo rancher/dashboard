@@ -58,6 +58,14 @@ export default {
       return canViewProjectMembershipEditor(this.$store);
     },
 
+    canManageProject() {
+      const projectOptions = this.$store.getters['type-map/optionsFor'](MANAGEMENT.PROJECT);
+
+      console.log('canManageProject', !!(this.value?.links?.update && projectOptions && projectOptions.isEditable));
+
+      return !!(this.value?.links?.update && projectOptions && projectOptions.isEditable);
+    },
+
     isK3s() {
       return (this.currentCluster?.spec?.kubernetesVersion || '').includes('k3s');
     },
@@ -108,15 +116,25 @@ export default {
     this.$set(this.value.metadata, 'namespace', this.$store.getters['currentCluster'].id);
     this.$set(this.value, 'spec', this.value.spec || {});
     this.$set(this.value.spec, 'containerDefaultResourceLimit', this.value.spec.containerDefaultResourceLimit || {});
+    console.log('VALUE', this.value);
   },
   methods: {
     async save(saveCb) {
       try {
-        // clear up of the unused resourceQuotas will now be done on the model side
-        const savedProject = await this.value.save();
+        // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects
+        if (this.canManageProject) {
+          // clear up of the unused resourceQuotas will now be done on the model side
+          await this.value.save();
+        }
 
         if (this.membershipUpdate.save) {
-          this.membershipUpdate.save(savedProject.id);
+          let projId = this.value.id;
+
+          if (projId.includes('local/')) {
+            projId = projId.replace('local/', 'local:');
+          }
+
+          this.membershipUpdate.save(projId);
         }
 
         saveCb(true);
@@ -155,6 +173,7 @@ export default {
       :mode="mode"
       :namespaced="false"
       description-key="spec.description"
+      :description-disabled="!canManageProject"
       name-key="spec.displayName"
       :normalize-name="false"
     />
@@ -171,16 +190,37 @@ export default {
       </div>
     </div>
     <Tabbed :side-tabs="true">
-      <Tab v-if="canManageMembers" name="members" :label="t('project.members.label')" :weight="10">
-        <ProjectMembershipEditor :mode="mode" :parent-id="value.id" @has-owner-changed="onHasOwnerChanged" @membership-update="onMembershipUpdate" />
+      <Tab
+        v-if="canManageMembers"
+        name="members"
+        :label="t('project.members.label')"
+        :weight="10"
+      >
+        <ProjectMembershipEditor
+          :mode="mode"
+          :parent-id="value.id"
+          @has-owner-changed="onHasOwnerChanged"
+          @membership-update="onMembershipUpdate"
+        />
       </Tab>
-      <Tab name="resource-quotas" :label="t('project.resourceQuotas')" :weight="9">
+      <Tab
+        v-if="canManageProject"
+        name="resource-quotas"
+        :label="t('project.resourceQuotas')"
+        :weight="9"
+      >
         <ResourceQuota v-model="value" :mode="mode" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
-      <Tab name="container-default-resource-limit" :label="resourceQuotaLabel" :weight="8">
+      <Tab
+        v-if="canManageProject"
+        name="container-default-resource-limit"
+        :label="resourceQuotaLabel"
+        :weight="8"
+      >
         <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="mode" :show-tip="false" :register-before-hook="registerBeforeHook" />
       </Tab>
       <Tab
+        v-if="canManageProject"
         name="labels-and-annotations"
         label-key="generic.labelsAndAnnotations"
         :weight="7"

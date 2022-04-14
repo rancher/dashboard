@@ -100,6 +100,10 @@ export default {
       type:    String,
       default: 'nameNsDescription.description.placeholder',
     },
+    descriptionDisabled: {
+      type:    Boolean,
+      default: false,
+    },
 
     // Use specific fields on the value instead of the normal metadata locations
     nameKey: {
@@ -336,6 +340,7 @@ export default {
           :label="t(descriptionLabel)"
           :placeholder="t(descriptionPlaceholder)"
           :min-height="30"
+          :disabled="descriptionDisabled"
         />
       </div>
       <div
