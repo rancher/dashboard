@@ -35,6 +35,10 @@ export default {
     cancel: {
       type:     Function,
       required: true,
+    },
+    showingForm: {
+      type:     Boolean,
+      required: true,
     }
   },
 
@@ -222,6 +226,8 @@ export default {
     :cancel-event="true"
     :errors="errors"
     finish-button-mode="continue"
+    class="select-credentials"
+    :class="{'select-credentials__showingForm': showingForm}"
     @finish="save"
     @cancel="cancel"
     @error="e=>errors = e"
@@ -272,3 +278,12 @@ export default {
     </template>
   </CruResource>
 </template>
+
+<style lang='scss' scoped>
+  .select-credentials {
+    flex-grow: 1; // Do grow when on own
+    &__showingForm {
+      flex-grow: 0; // Don't grow when in rke2 form
+    }
+  }
+</style>

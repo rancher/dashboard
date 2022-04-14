@@ -447,6 +447,7 @@ export default {
     :errors="errors"
     :subtypes="subTypes"
     :cancel-event="true"
+    class="create-cluster"
     @finish="save"
     @cancel="cancel"
     @select-type="selectType"
@@ -499,6 +500,11 @@ export default {
   </CruResource>
 </template>
 
+<style lang='scss'>
+  .create-cluster > .create-resource-container > .subtypes-container {
+    flex-direction:column;
+  }
+</style>
 <style lang='scss'>
   .grouped-type {
     position: relative;

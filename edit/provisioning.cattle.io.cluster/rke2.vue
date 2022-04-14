@@ -819,6 +819,10 @@ export default {
       }
 
       return null;
+    },
+
+    showForm() {
+      return this.credentialId || !this.needCredential;
     }
   },
 
@@ -1464,6 +1468,7 @@ export default {
     :done-route="doneRoute"
     :apply-hooks="applyHooks"
     :generate-yaml="generateYaml"
+    class="rke2"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
@@ -1481,9 +1486,10 @@ export default {
       :mode="mode"
       :provider="provider"
       :cancel="cancelCredential"
+      :showing-form="showForm"
     />
 
-    <div v-if="credentialId || !needCredential" class="mt-20">
+    <div v-if="showForm" class="mt-20">
       <NameNsDescription
         v-if="!isView"
         v-model="value"
@@ -2040,6 +2046,7 @@ export default {
     </template>
   </CruResource>
 </template>
+
 <style lang="scss" scoped>
   .k3s-tech-preview-info {
     color: var(--error);
