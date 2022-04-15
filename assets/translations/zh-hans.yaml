@@ -5502,6 +5502,7 @@ harvester:
     version: 版本
   host:
     label: 主机
+    inconsistentIP: "主机IP不一致, 当前IP: { currentIP }, 初始化IP: { initIP }"
     promote:
       none: ' '
       running: 角色升级中

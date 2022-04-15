@@ -5457,6 +5457,7 @@ harvester:
     version: Version
   host:
     label: Hosts
+    inconsistentIP: "Host IP is inconsistent, current IP: { currentIP }, initial IP: { initIP }"
     promote:
       none: ' '
       running: promoting

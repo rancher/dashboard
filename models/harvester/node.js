@@ -86,6 +86,17 @@ export default class HciNode extends SteveModel {
     return colorForState(this.stateDisplay, this.stateObj?.error, this.stateObj?.transitioning).replace('text-', 'bg-');
   }
 
+  get stateDescription() {
+    const currentIP = this.metadata?.annotations?.[HCI_ANNOTATIONS.CURRENT_IP];
+    const initIP = this.metadata?.annotations?.[HCI_ANNOTATIONS.INIT_IP];
+
+    if (initIP && currentIP && currentIP !== initIP) {
+      return this.t('harvester.host.inconsistentIP', { currentIP, initIP });
+    }
+
+    return super.stateDescription;
+  }
+
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 

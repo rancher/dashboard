@@ -127,6 +127,7 @@ export const ANNOTATIONS_TO_FOLD = [
 export const HCI = {
   CLUSTER_ID:                   'harvesterhci.io/clusterId',
   CLOUD_INIT:                   'harvesterhci.io/cloud-init-template',
+  CURRENT_IP:                   'rke2.io/internal-ip',
   OWNED_BY:                     'harvesterhci.io/owned-by',
   CREATED_BY:                   'kubevirt.io/created-by',
   IMAGE_ID:                     'harvesterhci.io/imageId',
@@ -151,6 +152,7 @@ export const HCI = {
   MIGRATION_STATE:              'harvesterhci.io/migrationState',
   VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates',
   IMAGE_NAME:                   'harvesterhci.io/image-name',
+  INIT_IP:                      'etcd.rke2.cattle.io/node-address',
   NODE_SCHEDULABLE:             'kubevirt.io/schedulable',
   NETWORK_ROUTE:                'network.harvesterhci.io/route',
   CLOUD_PROVIDER_IPAM:          'cloudprovider.harvesterhci.io/ipam',
