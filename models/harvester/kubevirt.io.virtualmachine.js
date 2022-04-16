@@ -3,6 +3,7 @@ import { load } from 'js-yaml';
 import { colorForState } from '@/plugins/steve/resource-class';
 import { POD, NODE, HCI, PVC } from '@/config/types';
 import { findBy } from '@/utils/array';
+import { parseSi } from '@/utils/units';
 import { get } from '@/utils/object';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
@@ -802,7 +803,9 @@ export default class VirtVm extends SteveModel {
   get memorySort() {
     const memory = this?.spec?.template?.spec?.domain?.resources?.requests?.memory || 0;
 
-    return parseInt(memory);
+    const formatSize = parseSi(memory);
+
+    return parseInt(formatSize);
   }
 
   get ingoreVMMessage() {

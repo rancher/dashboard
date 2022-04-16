@@ -1,5 +1,5 @@
 import { colorForState } from '@/plugins/steve/resource-class';
-import { HCI } from '@/config/types';
+import { HCI, NODE } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import SteveModel from '@/plugins/steve/steve-class';
 
@@ -119,6 +119,13 @@ export default class VirtVmInstance extends SteveModel {
     } else {
       return `/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/vnc`;
     }
+  }
+
+  get realAttachNodeName() {
+    const nodeName = this?.status?.nodeName;
+    const node = this.$getters['byId'](NODE, nodeName);
+
+    return node?.nameDisplay || '';
   }
 
   get getSerialConsolePath() {
