@@ -3924,7 +3924,6 @@ resourceYaml:
     split: Split
 
 secret:
-  noData: No Data available for this Secret...
   authentication: Authentication
   certificate:
     certificate: Certificate

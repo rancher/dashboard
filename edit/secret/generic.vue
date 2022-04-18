@@ -27,9 +27,6 @@ export default {
   computed: {
     isView() {
       return this.mode === _VIEW;
-    },
-    hasData() {
-      return this.value?.data ? Object.keys(this.value?.data).length > 0 : false;
     }
   },
 
@@ -49,26 +46,20 @@ export default {
 </script>
 
 <template>
-  <div v-if="hasData">
-    <KeyValue
-      key="data"
-      v-model="value.data"
-      :mode="mode"
-      :handle-base64="true"
-      :value-trim="false"
-      :add-allowed="true"
-      :read-allowed="true"
-      :value-concealed="isView && hideSensitiveData"
-      :file-modifier="fileModifier"
-      read-icon=""
-      add-icon=""
-    />
-  </div>
-  <div v-else>
-    <p class="no-data mt-20">
-      {{ t('secret.noData') }}
-    </p>
-  </div>
+  <KeyValue
+    key="data"
+    v-model="value.data"
+    :mode="mode"
+    :initial-empty-row="true"
+    :handle-base64="true"
+    :value-trim="false"
+    :add-allowed="true"
+    :read-allowed="true"
+    :value-concealed="isView && hideSensitiveData"
+    :file-modifier="fileModifier"
+    read-icon=""
+    add-icon=""
+  />
 </template>
 
 <style lang="scss" scoped>
