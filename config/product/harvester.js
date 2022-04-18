@@ -215,7 +215,7 @@ export function init(store) {
     exact: false,
   });
 
-  configureType(HCI.BACKUP, { showListMasthead: false });
+  configureType(HCI.BACKUP, { showListMasthead: false, showConfigView: false });
   virtualType({
     labelKey:   'harvester.backup.label',
     name:       HCI.BACKUP,
