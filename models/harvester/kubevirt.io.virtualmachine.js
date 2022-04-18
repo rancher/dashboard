@@ -10,10 +10,11 @@ import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { _CLONE } from '@/config/query-params';
 import SteveModel from '@/plugins/steve/steve-class';
 
+export const OFF = 'Off';
+
 const VMI_WAITING_MESSAGE = 'The virtual machine is waiting for resources to become available.';
 const VM_ERROR = 'VM error';
 const STOPPING = 'Stopping';
-const OFF = 'Off';
 const WAITING = 'Waiting';
 const NOT_READY = 'Not Ready';
 const AGENT_CONNECTED = 'AgentConnected';
