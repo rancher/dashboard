@@ -97,6 +97,20 @@ export default class HciNode extends SteveModel {
     return super.stateDescription;
   }
 
+  get stateObj() {
+    const currentIP = this.metadata?.annotations?.[HCI_ANNOTATIONS.CURRENT_IP];
+    const initIP = this.metadata?.annotations?.[HCI_ANNOTATIONS.INIT_IP];
+
+    if (initIP && currentIP && currentIP !== initIP) {
+      this.metadata.state = {
+        ...this.metadata.state,
+        error: true
+      };
+    }
+
+    return this.metadata?.state;
+  }
+
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
