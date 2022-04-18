@@ -231,14 +231,6 @@ export default class HciVmImage extends SteveModel {
       out.push(fileRequired);
     }
 
-    if (!this.links) {
-      out.push({
-        nullable:       false,
-        path:           'metadata.labels',
-        validators:     ['labelsRequired'],
-      });
-    }
-
     return [
       {
         nullable:       false,

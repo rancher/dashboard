@@ -174,7 +174,7 @@ export default {
       this.$refs.file.click();
     },
 
-    disableRemove(option) {
+    internalAnnotations(option) {
       const optionKeys = [HCI_ANNOTATIONS.OS_TYPE, HCI_ANNOTATIONS.IMAGE_SUFFIX];
 
       return optionKeys.find(O => O === option.key);
@@ -331,7 +331,6 @@ export default {
             <input
               ref="key"
               v-model="row[keyName]"
-              :disabled="disableRemove(row)"
               :placeholder="t('keyValue.keyPlaceholder')"
               @input="queueUpdate"
             />
@@ -339,7 +338,7 @@ export default {
 
           <template #value="{row, keyName, valueName, queueUpdate}">
             <Select
-              v-if="disableRemove(row)"
+              v-if="internalAnnotations(row)"
               v-model="row[valueName]"
               :searchable="true"
               :clearable="false"
@@ -357,12 +356,6 @@ export default {
               spellcheck="false"
               @input="queueUpdate"
             />
-          </template>
-
-          <template #removeButton="{ row, remove, i}">
-            <button type="button" :disabled="disableRemove(row) || isView" class="btn role-link" @click="remove(i)">
-              {{ t('generic.remove') }}
-            </button>
           </template>
         </KeyValue>
       </Tab>
