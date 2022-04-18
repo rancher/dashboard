@@ -91,20 +91,16 @@ export default {
         :label="t('configmap.tabs.binaryData.label')"
         :weight="1"
       >
-        <div v-if="hasBinaryData">
-          <KeyValue
-            key="binaryData"
-            v-model="binaryData"
-            :handle-base64="true"
-            :add-allowed="true"
-            :read-allowed="true"
-            :mode="mode"
-            :protip="t('configmap.tabs.data.protip')"
-          />
-        </div>
-        <p v-else class="no-binary-data mt-20">
-          {{ t('configmap.tabs.binaryData.noData') }}
-        </p>
+        <KeyValue
+          key="binaryData"
+          v-model="binaryData"
+          :initial-empty-row="true"
+          :handle-base64="true"
+          :add-allowed="true"
+          :read-allowed="true"
+          :mode="mode"
+          :protip="t('configmap.tabs.data.protip')"
+        />
       </Tab>
       <Tab
         name="labels-and-annotations"
