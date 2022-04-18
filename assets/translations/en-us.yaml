@@ -2873,6 +2873,16 @@ monitoringReceiver:
     sendResolved:
       label: Enable send resolved alerts
 
+alertmanagerConfigReceiver:
+  name: Receiver Name
+  addButton: Add Receiver
+  receivers: Receivers
+  namespaceWarning: Could not render the secret selector because no namespace was found.
+  receiverTypes: "The following receiver types can be edited in forms: Email, Slack, PagerDuty, Opsgenie and Webhook. For other receiver types, edit the AlertmanagerConfig YAML."
+  slack:
+    keyId: Key Id from Secret
+    webhookUrl: Webhook URL
+    apiUrlTooltip: The secret's key that contains the Slack webhook URL. The secret needs to be in the same namespace as the AlertmanagerConfig object and accessible by the Prometheus Operator.
 monitoringRoute:
   groups:
     label: Group By

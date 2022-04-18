@@ -19,11 +19,15 @@ export default {
     value: {
       type:     Object,
       required: true
+    },
+    namespace: {
+      type:     String,
+      default:  ''
     }
   },
-  data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+  data(props) {
+    this.$set(this.value, 'httpConfig', this.value.httpConfig || {});
+    this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
 
     const isDriverUrl = this.value.url === MS_TEAMS_URL || this.value.url === ALIBABA_CLOUD_SMS_URL;
 
@@ -42,20 +46,23 @@ export default {
       </div>
     </div>
     <Banner v-if="showNamespaceBanner" color="info" v-html="t('monitoringReceiver.webhook.modifyNamespace', {}, raw=true)" />
+    <div v-if="namespace" class="row mb-20">
+      <div class="col span-12">
+        <LabeledInput v-model="value.urlSecret" :mode="mode" label="URL" :tooltip="t('monitoringReceiver.webhook.urlTooltip')" />
+      </div>
+    </div>
+    <Banner v-else color="error">
+      {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
+    </Banner>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.url" :mode="mode" label="URL" :tooltip="t('monitoringReceiver.webhook.urlTooltip')" />
+        <LabeledInput v-model="value.httpConfig.proxyUrl" :mode="mode" :label="t('monitoringReceiver.shared.proxyUrl.label')" :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')" />
       </div>
     </div>
     <div class="row mb-20">
-      <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" :label="t('monitoringReceiver.shared.proxyUrl.label')" :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')" />
-      </div>
+      <Checkbox v-model="value.sendResolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
     </div>
-    <div class="row mb-20">
-      <Checkbox v-model="value.send_resolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
-    </div>
-    <TLS v-model="value.http_config" class="mb-20" :mode="mode" />
-    <Auth v-model="value.http_config" :mode="mode" />
+    <TLS v-model="value.httpConfig" class="mb-20" :mode="mode" />
+    <Auth v-model="value.httpConfig" :mode="mode" />
   </div>
 </template>

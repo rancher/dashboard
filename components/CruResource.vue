@@ -92,8 +92,10 @@ export default {
     }
   },
 
-  data() {
+  data(props) {
     const yaml = this.createResourceYaml();
+
+    console.log('done route in alertmanagerConfig ', props.doneRoute);
 
     return {
       isCancelModal: false,

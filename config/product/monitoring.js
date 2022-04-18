@@ -279,11 +279,6 @@ export function init(store) {
       name:     'receivers',
       labelKey: 'tableHeaders.receivers'
     },
-    {
-      name:     'routes',
-      labelKey: 'tableHeaders.routes'
-    }
-
   ]);
 
   headers(PROMETHEUS, [

@@ -101,6 +101,10 @@ export default {
       type:    Function,
       default: null,
     },
+    getCustomDetailLink: {
+      type:    Function,
+      default: null
+    }
   },
 
   data() {
@@ -352,6 +356,7 @@ export default {
     :table-actions="_showBulkActions"
     :overflow-x="overflowX"
     :overflow-y="overflowY"
+    :get-custom-detail-link="getCustomDetailLink"
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
     v-on="$listeners"
@@ -359,6 +364,10 @@ export default {
     <template v-if="showGrouping" #header-middle>
       <slot name="more-header-middle" />
       <ButtonGroup v-model="group" :options="groupOptions" />
+    </template>
+
+    <template v-if="showGrouping" #header-right>
+      <slot name="header-right" />
     </template>
 
     <template #group-by="{group: thisGroup}">

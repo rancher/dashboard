@@ -15,15 +15,19 @@ export default {
     value: {
       type:     Object,
       required: true
+    },
+    namespace: {
+      type:     String,
+      default:  ''
     }
   },
   data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
+    this.$set(this.value, 'httpConfig', this.value.httpConfig || {});
+    this.$set(this.value, 'sendResolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
 
     const integrationMapping = {
-      'Events API v2': 'routing_key',
-      Prometheus:      'service_key'
+      'Events API v2': 'routingKey',
+      Prometheus:      'serviceKey'
     };
 
     const integrationTypeOptions = Object.keys(integrationMapping);
@@ -31,7 +35,7 @@ export default {
     return {
       integrationMapping,
       integrationTypeOptions,
-      integrationType: this.value.service_key ? integrationTypeOptions[1] : integrationTypeOptions[0]
+      integrationType: this.value.serviceKey ? integrationTypeOptions[1] : integrationTypeOptions[0]
     };
   },
   watch: {
@@ -51,7 +55,7 @@ export default {
         <h3>Target</h3>
       </div>
     </div>
-    <div class="row mb-20">
+    <div v-if="namespace" class="row mb-20">
       <div class="col span-6">
         <LabeledSelect v-model="integrationType" :options="integrationTypeOptions" :mode="mode" label="Integration Type" />
       </div>
@@ -59,13 +63,16 @@ export default {
         <LabeledInput v-model="value[integrationMapping[integrationType]]" :mode="mode" label="Default Integration Key" />
       </div>
     </div>
+    <Banner v-else color="error">
+      {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
+    </Banner>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput v-model="value.httpConfig.proxyUrl" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
       </div>
     </div>
     <div class="row">
-      <Checkbox v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox v-model="value.sendResolved" :mode="mode" label="Enable send resolved alerts" />
     </div>
   </div>
 </template>

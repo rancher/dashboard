@@ -52,11 +52,15 @@ export default {
     value: {
       type:     Object,
       required: true
+    },
+    namespace: {
+      type:     String,
+      default:  ''
     }
   },
   data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
+    this.$set(this.value, 'httpConfig', this.value.httpConfig || {});
+    this.$set(this.value, 'sendResolved', typeof this.value.sendResolved === 'boolean' ? this.value.send_resolved : true);
     this.$set(this.value, 'responders', this.value.responders || []);
 
     const responders = this.value.responders.map((responder) => {
@@ -125,18 +129,21 @@ export default {
         <h3>Target</h3>
       </div>
     </div>
+    <div v-if="namespace" class="row mb-20">
+      <div class="col span-12">
+        <LabeledInput v-model="value.apiKey" :mode="mode" label="API Key" />
+      </div>
+    </div>
+    <Banner v-else color="error">
+      {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
+    </Banner>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.api_key" :mode="mode" label="API Key" />
+        <LabeledInput v-model="value.http_config.proxyUrl" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
       </div>
     </div>
     <div class="row mb-20">
-      <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
-      </div>
-    </div>
-    <div class="row mb-20">
-      <Checkbox v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox v-model="value.sendResolved" :mode="mode" label="Enable send resolved alerts" />
     </div>
     <div class="row">
       <div class="col span-12">

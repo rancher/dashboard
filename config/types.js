@@ -103,6 +103,7 @@ export const HELM = { PROJECTHELMCHART: 'helm.cattle.io.projecthelmchart' };
 export const MONITORING = {
   ALERTMANAGER:       'monitoring.coreos.com.alertmanager',
   ALERTMANAGERCONFIG: 'monitoring.coreos.com.alertmanagerconfig',
+  // check for required values
   PODMONITOR:         'monitoring.coreos.com.podmonitor',
   PROMETHEUS:         'monitoring.coreos.com.prometheus',
   PROMETHEUSRULE:     'monitoring.coreos.com.prometheusrule',
@@ -120,7 +121,8 @@ export const MONITORING = {
     RESPONDER:                        'monitoring.coreos.com.receiver.responder',
     ROUTE:                            'monitoring.coreos.com.route',
     ROUTE_SPEC:                       'monitoring.coreos.com.route.spec',
-    ALERTMANAGERCONFIG_RECEIVER_SPEC: 'monitoring.coreos.com.alertmanagerconfig.spec.receivers'
+    ALERTMANAGERCONFIG_RECEIVER_SPEC:       'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers',
+    ALERTMANAGERCONFIG_ROUTE_SPEC:          'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route'
   }
 };
 

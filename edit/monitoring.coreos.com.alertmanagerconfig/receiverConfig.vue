@@ -10,8 +10,58 @@ import Tab from '@/components/Tabbed/Tab';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CreateEditView from '@/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
-import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
 import ButtonDropdown from '@/components/ButtonDropdown';
+import { _CREATE, _VIEW } from '@/config/query-params';
+
+export const RECEIVERS_TYPES = [
+  {
+    name:  'slack',
+    label: 'monitoringReceiver.slack.label',
+    title: 'monitoringReceiver.slack.title',
+    info:  'monitoringReceiver.slack.info',
+    key:   'slackConfigs',
+    logo:  require(`~/assets/images/vendor/slack.svg`)
+  },
+  {
+    name:  'email',
+    label: 'monitoringReceiver.email.label',
+    title: 'monitoringReceiver.email.title',
+    key:   'emailConfigs',
+    logo:  require(`~/assets/images/vendor/email.svg`)
+  },
+  {
+    name:  'pagerduty',
+    label: 'monitoringReceiver.pagerduty.label',
+    title: 'monitoringReceiver.pagerduty.title',
+    info:  'monitoringReceiver.pagerduty.info',
+    key:   'pagerdutyConfigs',
+    logo:  require(`~/assets/images/vendor/pagerduty.svg`)
+  },
+  {
+    name:  'opsgenie',
+    label: 'monitoringReceiver.opsgenie.label',
+    title: 'monitoringReceiver.opsgenie.title',
+    key:   'opsgenieConfigs',
+    logo:  require(`~/assets/images/vendor/email.svg`)
+  },
+  {
+    name:         'webhook',
+    label:        'monitoringReceiver.webhook.label',
+    title:        'monitoringReceiver.webhook.title',
+    key:          'webhookConfigs',
+    logo:         require(`~/assets/images/vendor/webhook.svg`),
+    banner:       'webhook.banner',
+    addButton:    'webhook.add'
+  },
+  {
+    name:  'custom',
+    label: 'monitoringReceiver.custom.label',
+    title: 'monitoringReceiver.custom.title',
+    info:  'monitoringReceiver.custom.info',
+    key:   'webhook_configs',
+    logo:  require(`~/assets/images/vendor/custom.svg`)
+  },
+];
 
 export default {
   components: {
@@ -26,26 +76,63 @@ export default {
     YamlEditor
   },
 
-  mixins: [CreateEditView],
+  props: {
 
-  async fetch() {
-    await this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
+    value: {
+      type:     Object,
+      default:  () => {
+        return {};
+      }
+    },
+    mode: {
+      type:     String,
+      default:  ''
+    },
+    alertmanagerConfigResource: {
+      type:     Object,
+      required: true
+    },
+    alertmanagerConfigId: {
+      type:     String,
+      required: true
+    },
+    saveOverride: {
+      type:     Function,
+      required:  true
+    },
+    doneLocationOverride: {
+      type:     Object,
+      required:  true
+    }
   },
 
-  data() {
-    this.$set(this.value, 'spec', this.value.spec || {});
+  mixins: [CreateEditView],
 
-    RECEIVERS_TYPES.forEach((receiverType) => {
-      this.$set(this.value.spec, receiverType.key, this.value.spec[receiverType.key] || []);
-    });
+  data(props) {
+    const currentReceiver = {};
+    const mode = this.$route.query.mode;
 
-    const specSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.RECEIVER_SPEC);
-    const expectedFields = Object.keys(specSchema.resourceFields);
+    if (mode === _CREATE) {
+      RECEIVERS_TYPES.forEach((receiverType) => {
+        this.$set(currentReceiver, receiverType.key, currentReceiver[receiverType.key] || []);
+      });
+    }
+
+    /**
+     * example receiver value:
+     * {
+     *   name: 'name',
+     *   slackConfigs: [...]
+     * }
+     */
+    const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
+
+    const expectedFields = Object.keys(receiverSchema.resourceFields);
     const suffix = {};
 
-    Object.keys(this.value.spec).forEach((key) => {
+    Object.keys(this.value).forEach((key) => {
       if (!expectedFields.includes(key)) {
-        suffix[key] = this.value.spec[key];
+        suffix[key] = this.value[key];
       }
     });
 
@@ -56,49 +143,53 @@ export default {
     }
 
     return {
+      create:               _CREATE,
+      EDITOR_MODES,
       expectedFields,
-      receiverTypes:        RECEIVERS_TYPES,
       fileFound:            false,
       receiver:             {},
+      receiverTypes:        RECEIVERS_TYPES,
       suffixYaml,
-      EDITOR_MODES,
+      view:                 _VIEW,
       yamlError:            '',
-      doneLocationOverride:      {
-        name:   'c-cluster-monitoring-route-receiver',
-        params: { cluster: this.$store.getters['clusterId'] },
-        query:  { resource: MONITORING.SPOOFED.RECEIVER }
-      }
     };
   },
 
   computed: {
     editorMode() {
-      if ( this.isView ) {
+      if ( this.$route.query.mode === _VIEW ) {
         return EDITOR_MODES.VIEW_CODE;
       }
 
       return EDITOR_MODES.EDIT_CODE;
     },
+    alertmanagerConfigNamespace() {
+      return this.alertmanagerConfigResource?.metadata?.namespace || '';
+    },
+    receiverNameDisabled() {
+      return this.$route.query.mode === _VIEW;
+    },
+
   },
 
   watch: {
     suffixYaml(value) {
       try {
         // We need this step so we don't just keep adding new keys when modifying the custom field
-        Object.keys(this.value.spec).forEach((key) => {
+        Object.keys(this.value).forEach((key) => {
           if (!this.expectedFields.includes(key)) {
-            this.$delete(this.value.spec, key);
+            this.$delete(this.value, key);
           }
         });
 
         const suffix = jsyaml.load(value);
 
-        Object.assign(this.value.spec, suffix);
+        Object.assign(this.value, suffix);
         this.yamlError = '';
       } catch (ex) {
         this.yamlError = `There was a problem parsing the Custom Config: ${ ex }`;
       }
-    }
+    },
   },
 
   methods: {
@@ -111,7 +202,7 @@ export default {
     },
 
     getCount(receiverType) {
-      const found = this.value?.spec?.[receiverType.key] || [];
+      const found = this.value?.[receiverType.key] || [];
 
       return found.length;
     },
@@ -128,14 +219,12 @@ export default {
       }
     },
 
-    saveOverride(buttonDone) {
-      if (this.yamlError) {
-        this.errors = this.errors || [];
-        this.errors.push(this.yamlError);
-        buttonDone(false);
-      } else {
-        this.save(...arguments);
-      }
+    redirectAfterCancel() {
+      this.$router.push(this.doneLocationOverride);
+    },
+
+    redirectToAlertmanagerConfig() {
+      this.$router.push(this.doneLocationOverride);
     },
 
     createAddOptions(receiverType) {
@@ -146,24 +235,25 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
   <CruResource
-    v-else
     class="receiver"
     :done-route="doneRoute"
     :mode="mode"
-    :resource="value"
+    :resource="alertmanagerConfigResource"
     :subtypes="[]"
-    :can-yaml="false"
+    :can-yaml="true"
     :errors="errors"
     :cancel-event="true"
     @error="e=>errors = e"
-    @finish="saveOverride"
-    @cancel="done"
+    @finish="() => {
+      saveOverride()
+      redirectToAlertmanagerConfig()
+    }"
+    @cancel="redirectAfterCancel"
   >
-    <div v-if="!isView" class="row mb-10">
+    <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.name" :disabled="!isCreate" :label="t('generic.name')" :mode="mode" />
+        <LabeledInput v-model="value.name" :is-disabled="receiverNameDisabled" :label="t('generic.name')" :mode="mode" />
       </div>
     </div>
     <Tabbed ref="tabbed" :side-tabs="true" default-tab="overview" @changed="tabChanged">
@@ -199,19 +289,29 @@ export default {
           :editor-mode="editorMode"
         />
         <div v-else>
-          <component :is="getComponent(receiverType.banner)" v-if="receiverType.banner" :model="value.spec[receiverType.key]" :mode="mode" />
+          <component
+            :is="getComponent(receiverType.banner)"
+            v-if="receiverType.banner"
+            :model="value[receiverType.key]"
+            :mode="mode"
+          />
           <ArrayListGrouped
-            v-model="value.spec[receiverType.key]"
+            v-model="value[receiverType.key]"
             class="namespace-list"
             :mode="mode"
             :default-add-value="{}"
             :add-label="t('monitoringReceiver.addButton', { type: t(receiverType.label) })"
           >
             <template #default="props">
-              <component :is="getComponent(receiverType.name)" :value="props.row.value" :mode="mode" />
+              <component
+                :is="getComponent(receiverType.name)"
+                :value="props.row.value"
+                :mode="mode"
+                :namespace="alertmanagerConfigNamespace"
+              />
             </template>
             <template v-if="receiverType.addButton" #add>
-              <component :is="getComponent(receiverType.addButton)" :model="value.spec[receiverType.key]" :mode="mode" />
+              <component :is="getComponent(receiverType.addButton)" :model="value[receiverType.key]" :mode="mode" />
             </template>
           </ArrayListGrouped>
         </div>

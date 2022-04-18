@@ -1,10 +1,14 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
-import { _CREATE } from '@/config/query-params';
+import Banner from '@/components/Banner';
+import SecretSelector from '@/components/form/SecretSelector';
+import { _CREATE, _VIEW } from '@/config/query-params';
 
 export default {
-  components: { Checkbox, LabeledInput },
+  components: {
+    Banner, Checkbox, LabeledInput, SecretSelector
+  },
   props:      {
     mode: {
       type:     String,
@@ -14,10 +18,14 @@ export default {
       type:     Object,
       required: true,
     },
+    namespace: {
+      type:     String,
+      default:  ''
+    }
   },
   data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+    this.$set(this.value, 'httpConfig', this.value.httpConfig || {});
+    this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
 
     if (this.mode === _CREATE) {
       this.$set(
@@ -27,7 +35,7 @@ export default {
       );
     }
 
-    return {};
+    return { view: _VIEW };
   },
 };
 </script>
@@ -40,17 +48,22 @@ export default {
       </div>
     </div>
     <div class="row mb-20">
-      <div class="col span-12">
-        <LabeledInput
-          v-model="value.api_url"
-          :mode="mode"
-          label="Webhook URL"
-          placeholder="e.g. https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
-        />
-        <p class="helper-text text-right mt-10">
-          <t k="monitoringReceiver.slack.info" :raw="true" />
-        </p>
-      </div>
+      <SecretSelector
+        v-if="namespace"
+        v-model="value.apiURL"
+        :mode="mode"
+        :tooltip="t('alertmanagerConfigReceiver.slack.apiUrlTooltip')"
+        :namespace="namespace"
+        :disabled="mode === view"
+        :secret-name-label="t('alertmanagerConfigReceiver.slack.keyId')"
+        :show-key-selector="true"
+      />
+      <Banner v-else color="error">
+        {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
+      </Banner>
+      <p class="helper-text text-right mt-10">
+        <t k="monitoringReceiver.slack.info" :raw="true" />
+      </p>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
@@ -63,7 +76,7 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
-          v-model="value.http_config.proxy_url"
+          v-model="value.httpConfig.proxyUrl"
           :mode="mode"
           label="Proxy URL"
           placeholder="e.g. http://my-proxy/"
@@ -72,7 +85,7 @@ export default {
     </div>
     <div class="row">
       <Checkbox
-        v-model="value.send_resolved"
+        v-model="value.sendResolved"
         :mode="mode"
         label="Enable send resolved alerts"
       />

@@ -43,7 +43,10 @@ export default {
     <Banner color="info">
       {{ t('monitoring.alertmanagerConfig.description') }}
     </Banner>
-    <ResourceTable :schema="schema" :rows="rows" />
+    <ResourceTable
+      :schema="schema"
+      :rows="rows"
+    />
   </div>
 
   <div
