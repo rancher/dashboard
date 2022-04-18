@@ -14,10 +14,19 @@ export default {
       type:     Object,
       required: true,
     },
+    deprecatedReceiver: {
+      type:     Boolean,
+      default:  false
+    }
   },
-  data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+  data(props) {
+    if (props.deprecatedReceiver) {
+      this.$set(this.value, 'http_config', this.value.http_config || {});
+      this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+    } else {
+      this.$set(this.value, 'httpConfig', this.value.httpConfig || {});
+      this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
+    }
 
     if (this.mode === _CREATE) {
       this.$set(
@@ -42,7 +51,15 @@ export default {
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
+          v-if="deprecatedReceiver"
           v-model="value.api_url"
+          :mode="mode"
+          label="Webhook URL"
+          placeholder="e.g. https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+        />
+        <LabeledInput
+          v-else
+          v-model="value.apiUrl"
           :mode="mode"
           label="Webhook URL"
           placeholder="e.g. https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
@@ -63,7 +80,15 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledInput
+          v-if="deprecatedReceiver"
           v-model="value.http_config.proxy_url"
+          :mode="mode"
+          label="Proxy URL"
+          placeholder="e.g. http://my-proxy/"
+        />
+        <LabeledInput
+          v-else
+          v-model="value.httpConfig.proxyUrl"
           :mode="mode"
           label="Proxy URL"
           placeholder="e.g. http://my-proxy/"
@@ -72,6 +97,13 @@ export default {
     </div>
     <div class="row">
       <Checkbox
+        v-if="deprecatedReceiver"
+        v-model="value.send_resolved"
+        :mode="mode"
+        label="Enable send resolved alerts"
+      />
+      <Checkbox
+        v-else
         v-model="value.send_resolved"
         :mode="mode"
         label="Enable send resolved alerts"

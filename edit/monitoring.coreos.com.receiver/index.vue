@@ -151,6 +151,7 @@ export default {
         :weight="receiverTypes.length - i"
       >
         <ReceiverConfig
+          :deprecated-receiver="true"
           :mode="mode"
           :editor-mode="editorMode"
           :receiver-type="receiverType"

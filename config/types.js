@@ -109,17 +109,18 @@ export const MONITORING = {
   SERVICEMONITOR:     'monitoring.coreos.com.servicemonitor',
   THANOSRULER:        'monitoring.coreos.com.thanosruler',
   SPOOFED:            {
-    RECEIVER:             'monitoring.coreos.com.receiver',
-    RECEIVER_SPEC:        'monitoring.coreos.com.receiver.spec',
-    RECEIVER_EMAIL:       'monitoring.coreos.com.receiver.email',
-    RECEIVER_SLACK:       'monitoring.coreos.com.receiver.slack',
-    RECEIVER_WEBHOOK:     'monitoring.coreos.com.receiver.webhook',
-    RECEIVER_PAGERDUTY:   'monitoring.coreos.com.receiver.pagerduty',
-    RECEIVER_OPSGENIE:    'monitoring.coreos.com.receiver.opsgenie',
-    RECEIVER_HTTP_CONFIG: 'monitoring.coreos.com.receiver.httpconfig',
-    RESPONDER:            'monitoring.coreos.com.receiver.responder',
-    ROUTE:                'monitoring.coreos.com.route',
-    ROUTE_SPEC:           'monitoring.coreos.com.route.spec',
+    RECEIVER:                         'monitoring.coreos.com.receiver',
+    RECEIVER_SPEC:                    'monitoring.coreos.com.receiver.spec',
+    RECEIVER_EMAIL:                   'monitoring.coreos.com.receiver.email',
+    RECEIVER_SLACK:                   'monitoring.coreos.com.receiver.slack',
+    RECEIVER_WEBHOOK:                 'monitoring.coreos.com.receiver.webhook',
+    RECEIVER_PAGERDUTY:               'monitoring.coreos.com.receiver.pagerduty',
+    RECEIVER_OPSGENIE:                'monitoring.coreos.com.receiver.opsgenie',
+    RECEIVER_HTTP_CONFIG:             'monitoring.coreos.com.receiver.httpconfig',
+    RESPONDER:                        'monitoring.coreos.com.receiver.responder',
+    ROUTE:                            'monitoring.coreos.com.route',
+    ROUTE_SPEC:                       'monitoring.coreos.com.route.spec',
+    ALERTMANAGERCONFIG_RECEIVER_SPEC: 'monitoring.coreos.com.alertmanagerconfig.spec.receivers'
   }
 };
 

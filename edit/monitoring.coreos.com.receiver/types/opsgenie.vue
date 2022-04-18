@@ -52,11 +52,21 @@ export default {
     value: {
       type:     Object,
       required: true
+    },
+    deprecatedReceiver: {
+      type:    Boolean,
+      default: false
     }
   },
-  data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
+  data(props) {
+    if (props.deprecatedReceiver) {
+      this.$set(this.value, 'http_config', this.value.http_config || {});
+      this.$set(this.value, 'send_resolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
+    } else {
+      this.$set(this.value, 'httpConfig', this.value.http_config || {});
+      this.$set(this.value, 'sendResolved', typeof this.value.sendResolved === 'boolean' ? this.value.sendResolved : true);
+    }
+
     this.$set(this.value, 'responders', this.value.responders || []);
 
     const responders = this.value.responders.map((responder) => {
@@ -127,16 +137,19 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.api_key" :mode="mode" label="API Key" />
+        <LabeledInput v-if="depecatedReceiver" v-model="value.api_key" :mode="mode" label="API Key" />
+        <LabeledInput v-else v-model="value.apiKey" :mode="mode" label="API Key" />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput v-if="depecatedReceiver" v-model="value.http_config.proxy_url" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput v-else v-model="value.httpConfig.proxyUrl" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
       </div>
     </div>
     <div class="row mb-20">
-      <Checkbox v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox v-if="depecatedReceiver" v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox v-else v-model="value.sendResolved" :mode="mode" label="Enable send resolved alerts" />
     </div>
     <div class="row">
       <div class="col span-12">

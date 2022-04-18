@@ -2723,7 +2723,7 @@ monitoring:
         label: Prometheus Graph
       prometheusRules:
         description: Configured Rules
-        label: Prometheus Rules
+        label: PrometheusRules
       prometheusTargets:
         description: Configured Targets
         label: Prometheus Targets
@@ -2792,11 +2792,11 @@ monitoring:
       groupWait: Group Wait
       receiver: Receiver
       repeatInterval: Repeat Interval
-  routesAndReceivers: Routes and Receivers
+  routesAndReceivers: Routes and Receivers (Deprecated)
   monitors: Monitors
   projectMonitors: Project Monitoring
   alertmanagerConfig:
-    description: Routes and receivers for project alerting are configured within AlertmanagerConfig resources.
+    description: Routes and receivers for project alerting and cluster alerting are configured within AlertmanagerConfig resources.
     empty: Alerts have not been configured for any accessible namespaces.
     getStarted: Get started by clicking Create to configure an alert.
     receiverTooltip: Must match the name of a receiver defined in the same AlertmanagerConfig.
@@ -6189,13 +6189,13 @@ typeLabel:
     }
   monitoring.coreos.com.alertmanager: |-
     {count, plural,
-      one { Alert Manager }
-      other { Alert Managers }
+      one { Alertmanager }
+      other { Alertmanagers }
     }
   monitoring.coreos.com.alertmanagerconfig: |-
     {count, plural,
-      one { Project Routes and Receivers }
-      other { Project Routes and Receivers }
+      one { AlertmanagerConfigs }
+      other { AlertmanagerConfigs }
     }
   monitoring.coreos.com.podmonitor: |-
     {count, plural,
@@ -6204,8 +6204,8 @@ typeLabel:
     }
   monitoring.coreos.com.prometheusrule: |-
     {count, plural,
-      one { Prometheus Rule }
-      other { Prometheus Rules }
+      one { PrometheusRule }
+      other { PrometheusRules }
     }
   monitoring.coreos.com.thanosruler: |-
     {count, plural,

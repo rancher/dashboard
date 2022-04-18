@@ -15,23 +15,46 @@ export default {
     value: {
       type:     Object,
       required: true
+    },
+    deprecatedReceiver: {
+      type:    Boolean,
+      default: false
     }
   },
-  data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
+  data(props) {
+    let integrationMapping;
+    let integrationTypeOptions;
+    let integrationType;
 
-    const integrationMapping = {
-      'Events API v2': 'routing_key',
-      Prometheus:      'service_key'
-    };
+    if (props.deprecatedReceiver) {
+      this.$set(this.value, 'http_config', this.value.http_config || {});
+      this.$set(this.value, 'send_resolved', typeof this.value.send_resolved === 'boolean' ? this.value.send_resolved : true);
 
-    const integrationTypeOptions = Object.keys(integrationMapping);
+      integrationMapping = {
+        'Events API v2': 'routing_key',
+        Prometheus:      'service_key'
+      };
+
+      integrationTypeOptions = Object.keys(integrationMapping);
+
+      integrationType = this.value.service_key ? integrationTypeOptions[1] : integrationTypeOptions[0];
+    } else {
+      this.$set(this.value, 'httpConfig', this.value.httpConfig || {});
+      this.$set(this.value, 'sendResolved', typeof this.value.sendResolved === 'boolean' ? this.value.sendResolved : true);
+
+      integrationMapping = {
+        'Events API v2': 'routingKey',
+        Prometheus:      'serviceKey'
+      };
+      integrationTypeOptions = Object.keys(integrationMapping);
+
+      integrationType = this.value.serviceKey ? integrationTypeOptions[1] : integrationTypeOptions[0];
+    }
 
     return {
       integrationMapping,
       integrationTypeOptions,
-      integrationType: this.value.service_key ? integrationTypeOptions[1] : integrationTypeOptions[0]
+      integrationType
     };
   },
   watch: {
@@ -61,11 +84,13 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput v-if="deprecatedReceiver" v-model="value.http_config.proxy_url" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput v-else v-model="value.httpConfig.proxyUrl" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
       </div>
     </div>
     <div class="row">
-      <Checkbox v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox v-if="deprecatedReceiver" v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox v-else v-model="value.sendResolved" :mode="mode" label="Enable send resolved alerts" />
     </div>
   </div>
 </template>

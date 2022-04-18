@@ -174,7 +174,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:         'Cluster Routes and Receivers',
+    label:         'Routes and Receivers',
     group:         'monitoring',
     name:     'route-receiver',
     icon:     'globe',
@@ -202,7 +202,7 @@ export function init(store) {
 
   basicType([
     ALERTMANAGERCONFIG,
-    'route-receiver'
+    'route-receiver',
   ], 'Alerting');
 
   basicType([

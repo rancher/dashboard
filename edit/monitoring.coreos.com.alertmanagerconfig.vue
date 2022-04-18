@@ -40,15 +40,14 @@ export default {
   },
 
   data() {
-    this.value.spec = {
-      route:     {},
-      receivers: [],
-    };
+    this.value.applyDefaults();
     const defaultReceiverValues = {};
 
     RECEIVERS_TYPES.forEach((receiverType) => {
       defaultReceiverValues[receiverType.key] = receiverType;
     });
+    console.log('route value ', this.value.spec.route);
+    console.log(JSON.stringify(this.value.spec.route));
 
     return {
       defaultReceiverValues,
@@ -56,9 +55,9 @@ export default {
       receiverTypes:        RECEIVERS_TYPES,
       newReceiverType:      null,
       doneLocationOverride:      {
-        name:   'c-cluster-monitoring-route-receiver',
+        name:   'c-cluster-monitoring',
         params: { cluster: this.$store.getters['clusterId'] },
-        query:  { resource: MONITORING.SPOOFED.ROUTE }
+        query:  { resource: MONITORING.ALERTMANAGERCONFIG }
       }
     };
   },
@@ -73,14 +72,29 @@ export default {
     },
   },
   methods: {
-    getReceiverType(name) {
-      // try {
-      const type = this.defaultReceiverValues[`${ name }_configs`];
+    getReceiverType(receiverData) {
+      if (receiverData.emailConfig) {
+        return this.defaultReceiverValues.email_configs;
+      }
 
-      return type;
-      // } catch {
-      //   throw new Error('Could not find receiver type: ', name);
-      // }
+      if (receiverData.slackConfig) {
+        return this.defaultReceiverValues.slack_configs;
+      }
+
+      if (receiverData.opsgenieConfig) {
+        return this.defaultReceiverValues.opsgenie_configs;
+      }
+
+      if (receiverData.pagerdutyConfig) {
+        return this.defaultReceiverValues.pagerduty_configs;
+      }
+
+      if (receiverData.webhookConfig) {
+        return this.defaultReceiverValues.webhook_configs;
+      }
+      console.log('defaults ', this.defaultReceiverValues);
+
+      return { name: 'custom' };
     },
     translateReceiverTypes() {
       return this.receiverTypes.map((receiverType) => {
@@ -150,8 +164,9 @@ export default {
               <div class="row">
                 <ReceiverConfig
                   :mode="mode"
+                  :deprecated-receiver="false"
                   :editor-mode="editorMode"
-                  :receiver-type="getReceiverType(props.row.value.name)"
+                  :receiver-type="getReceiverType(props.row.value)"
                   :value="props.row.value"
                 />
               </div>
@@ -177,15 +192,14 @@ export default {
           </div>
         </div>
         <h3>Grouping</h3>
-        <hr class="divider" />
         <div class="row mb-20">
           <div class="col span-6">
             <span class="label">
               {{ t("monitoringRoute.groups.label") }}:
             </span>
             <ArrayList
-              v-if="!isView || (value.spec.route.group_by && value.spec.route.group_by.length > 0)"
-              v-model="value.spec.route.group_by"
+              v-if="!isView || (value.spec.route.groupBy && value.spec.route.groupBy.length > 0)"
+              v-model="value.spec.route.groupBy"
               :label="t('monitoringRoute.groups.label')"
               :mode="mode"
               :initial-empty-row="true"
@@ -195,18 +209,18 @@ export default {
             </div>
           </div>
         </div>
-
+        <h3>Waiting and Intervals</h3>
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.route.group_wait"
+              v-model="value.spec.route.groupWait"
               :label="t('monitoringRoute.wait.label')"
               :mode="mode"
             />
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.route.group_interval"
+              v-model="value.spec.route.groupInterval"
               :label="t('monitoringRoute.interval.label')"
               :mode="mode"
             />
@@ -215,7 +229,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.route.repeat_interval"
+              v-model="value.spec.route.repeatInterval"
               :label="t('monitoringRoute.repeatInterval.label')"
               :mode="mode"
             />
@@ -223,7 +237,6 @@ export default {
         </div>
 
         <h3>Matching</h3>
-        <hr class="divider" />
         <div class="row mb-20">
           <div class="col span-12">
             <span class="label">

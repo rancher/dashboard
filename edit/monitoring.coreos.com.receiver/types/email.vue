@@ -15,11 +15,20 @@ export default {
     value: {
       type:     Object,
       required: true
+    },
+    deprecatedReceiver: {
+      type:    Boolean,
+      default: false
     }
   },
-  data() {
-    this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
-    this.$set(this.value, 'require_tls', this.value.require_tls || false);
+  data(props) {
+    if (props.depecatedReceiver) {
+      this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+      this.$set(this.value, 'require_tls', this.value.require_tls || false);
+    } else {
+      this.$set(this.value, 'sendResolved', this.value.send_resolved || false);
+      this.$set(this.value, 'requireTls', this.value.require_tls || false);
+    }
 
     return {};
   },
@@ -38,7 +47,8 @@ export default {
         <LabeledInput v-model="value.to" :mode="mode" label="Default Recipient Address" placeholder="e.g. admin@example.com" />
       </div>
       <div class="col span-6">
-        <Checkbox v-model="value.send_resolved" :mode="mode" class="mt-20" label="Enable send resolved alerts" />
+        <Checkbox v-if="deprecatedReceiver" v-model="value.send_resolved" :mode="mode" class="mt-20" label="Enable send resolved alerts" />
+        <Checkbox v-else v-model="value.sendResolved" :mode="mode" class="mt-20" label="Enable send resolved alerts" />
       </div>
     </div>
     <h2 class="mb-10">
@@ -54,15 +64,32 @@ export default {
         <LabeledInput v-model="value.smarthost" :mode="mode" label="Host" placeholder="e.g. 192.168.1.121:587" />
       </div>
       <div class="col span-6">
-        <Checkbox v-model="value.require_tls" :mode="mode" class="mt-20" label="Use TLS" />
+        <Checkbox v-if="deprecatedReceiver" v-model="value.require_tls" :mode="mode" class="mt-20" label="Use TLS" />
+        <Checkbox v-else v-model="value.requireTls" :mode="mode" class="mt-20" label="Use TLS" />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.auth_username" :mode="mode" label="Username" placeholder="e.g. John" />
+        <LabeledInput v-if="deprecatedReceiver" v-model="value.auth_username" :mode="mode" label="Username" placeholder="e.g. John" />
+        <LabeledInput v-else v-model="value.authUsername" :mode="mode" label="Username" placeholder="e.g. John" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.auth_password" :mode="mode" label="Password" type="password" autocomplete="password" />
+        <LabeledInput
+          v-if="deprecatedReceiver"
+          v-model="value.auth_password"
+          :mode="mode"
+          label="Password"
+          type="password"
+          autocomplete="password"
+        />
+        <LabeledInput
+          v-else
+          v-model="value.authPassword"
+          :mode="mode"
+          label="Password"
+          type="password"
+          autocomplete="password"
+        />
       </div>
     </div>
     <TLS v-model="value" class="mb-20" :mode="mode" />

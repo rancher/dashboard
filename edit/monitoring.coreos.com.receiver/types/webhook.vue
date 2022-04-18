@@ -19,11 +19,20 @@ export default {
     value: {
       type:     Object,
       required: true
+    },
+    deprecatedReceiver: {
+      type:     Boolean,
+      default:  false
     }
   },
-  data() {
-    this.$set(this.value, 'http_config', this.value.http_config || {});
-    this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+  data(props) {
+    if (props.deprecatedReceiver) {
+      this.$set(this.value, 'http_config', this.value.http_config || {});
+      this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+    } else {
+      this.$set(this.value, 'httpConfig', this.value.httpConfig || {});
+      this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
+    }
 
     const isDriverUrl = this.value.url === MS_TEAMS_URL || this.value.url === ALIBABA_CLOUD_SMS_URL;
 
@@ -49,13 +58,17 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" :label="t('monitoringReceiver.shared.proxyUrl.label')" :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')" />
+        <LabeledInput v-if="deprecatedReceiver" v-model="value.http_config.proxy_url" :mode="mode" :label="t('monitoringReceiver.shared.proxyUrl.label')" :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')" />
+        <LabeledInput v-else v-model="value.httpConfig.proxyUrl" :mode="mode" :label="t('monitoringReceiver.shared.proxyUrl.label')" :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')" />
       </div>
     </div>
     <div class="row mb-20">
-      <Checkbox v-model="value.send_resolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
+      <Checkbox v-if="deprecatedReceiver" v-model="value.send_resolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
+      <Checkbox v-else v-model="value.sendResolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
     </div>
-    <TLS v-model="value.http_config" class="mb-20" :mode="mode" />
-    <Auth v-model="value.http_config" :mode="mode" />
+    <TLS v-if="deprecatedReceiver" v-model="value.http_config" class="mb-20" :mode="mode" />
+    <TLS v-else v-model="value.httpConfig" class="mb-20" :mode="mode" />
+    <Auth v-if="deprecatedReceiver" v-model="value.http_config" :mode="mode" />
+    <Auth v-else v-model="value.httpConfig" :mode="mode" />
   </div>
 </template>
