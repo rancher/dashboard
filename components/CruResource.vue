@@ -268,8 +268,8 @@ export default {
       class="create-resource-container cru__form"
     >
       <div
+        v-if="hasErrors"
         class="cru__errors"
-        :v-if="hasErrors"
       >
         <Banner
           v-for="(err, i) in errors"
@@ -283,7 +283,7 @@ export default {
       </div>
       <div
         v-if="showSubtypeSelection"
-        class="subtypes-container"
+        class="subtypes-container cru__content"
       >
         <slot name="subtypes" :subtypes="subtypes">
           <div
@@ -385,7 +385,7 @@ export default {
 
       <section
         v-else
-        class="cru-resource-yaml-container cru__content"
+        class="cru-resource-yaml-container resource-container cru__content"
       >
         <ResourceYaml
           ref="resourceyaml"
@@ -398,6 +398,7 @@ export default {
           :done-override="resource.doneOverride"
           :errors="errors"
           :apply-hooks="applyHooks"
+          class="resource-container cru__content"
           @error="e=>$emit('error', e)"
         >
           <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">
@@ -459,6 +460,12 @@ export default {
   }
 }
 .create-resource-container {
+
+  .resource-container {
+    display: flex; // Ensures content grows in child CruResources
+    flex-direction: column;
+  }
+
   .subtype-banner {
     .round-image {
       background-color: var(--primary);
@@ -506,6 +513,12 @@ $logo-space: 100px;
   }
 }
 
+form.create-resource-container .cru {
+  &__footer {
+    // Only show border when the mode is not view
+    border-top: var(--header-border-size) solid var(--header-border);
+  }
+}
 .cru {
   display: flex;
   flex-direction: column;
@@ -526,7 +539,6 @@ $logo-space: 100px;
     position: sticky;
     bottom: 0;
     background-color: var(--header-bg);
-    border-top: var(--header-border-size) solid var(--header-border);
 
     // Overrides outlet padding
     margin-left: -$space-m;
