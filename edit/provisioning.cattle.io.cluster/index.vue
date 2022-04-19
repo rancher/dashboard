@@ -501,11 +501,6 @@ export default {
 </template>
 
 <style lang='scss'>
-  .create-cluster > .create-resource-container > .subtypes-container {
-    flex-direction:column;
-  }
-</style>
-<style lang='scss'>
   .grouped-type {
     position: relative;
   }

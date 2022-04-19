@@ -822,7 +822,7 @@ export default {
     },
 
     showForm() {
-      return this.credentialId || !this.needCredential;
+      return !!this.credentialId || !this.needCredential;
     }
   },
 
