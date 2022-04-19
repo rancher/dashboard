@@ -11,6 +11,13 @@ import enUS from './translations/en-us.yaml';
 // TODO: RC review old epinio PRs comments
 // TODO: RC review new epinio PRs comments
 // TODO: RC Test standalone
+// TODO: RC Nav Bugs
+// - Explorer --> Burger Menu Epinio link
+// TODO: RC Create config
+// TODO: RC Create app
+// -- file selector
+// TODO: RC prompt remove (explorer, epinio)
+// TODO: RC BUG - Switch NS
 
 // Init the package
 export default function(plugin: IPlugin) {

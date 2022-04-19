@@ -260,7 +260,7 @@ export default {
   <section class="cru">
     <form
       :is="(isView? 'div' : 'form')"
-      class="create-resource-container"
+      class="create-resource-container cru__form"
     >
       <div
         class="cru__errors"

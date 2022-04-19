@@ -69,11 +69,5 @@ export default class EpinioResource extends Resource {
     } catch (e) {
       throw epinioExceptionToErrorsArray(e);
     }
-
-    // if ( res?._status === 204 ) {
-    //   // If there's no body, assume the resource was immediately deleted
-    //   // and drop it from the store as if a remove event happened.
-    //   await this.$dispatch('ws.resource.remove', { data: this });
-    // }
   }
 }
