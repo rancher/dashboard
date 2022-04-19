@@ -2,49 +2,41 @@
 import debounce from 'lodash/debounce';
 import { typeOf } from '@/utils/sort';
 import { removeAt, removeObject } from '@/utils/array';
-import { asciiLike } from '@/utils/string';
-import { base64Encode, base64Decode } from '@/utils/crypto';
+import { base64Encode, base64Decode, binarySize } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import { get } from '@/utils/object';
 import Select from '@/components/form/Select';
 import FileSelector from '@/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@/config/query-params';
-
 export default {
   components: {
     Select,
     TextAreaAutoGrow,
     FileSelector
   },
-
   props: {
     value: {
       type:     [Array, Object],
       default: null,
     },
-
     // If the user supplies this array, then it indicates which keys should be shown as binary
     binaryValueKeys: {
       type:    [Array, Object],
       default: null
     },
-
     mode: {
       type:    String,
       default: _EDIT,
     },
-
     asMap: {
       type:    Boolean,
       default: true,
     },
-
     initialEmptyRow: {
       type:    Boolean,
       default: false,
     },
-
     title: {
       type:    String,
       default: ''
@@ -55,80 +47,67 @@ export default {
         return this.$store.getters['i18n/t']('keyValue.protip', null, true);
       },
     },
-
     // For asMap=false, the name of the field that goes into the row objects
     keyName: {
       type:    String,
       default: 'key',
     },
-
     keyLabel: {
       type: String,
       default() {
         return this.$store.getters['i18n/t']('generic.key');
       },
     },
-
     keyEditable: {
       type:    Boolean,
       default: true,
     },
-
     // Offer a set of suggestions for the keys as a Select instead of Input
     keyOptions: {
       type:    Array,
       default: null,
     },
-
     // If false and keyOptions are provided, the key MUST be one of the keyOptions.
     keyTaggable: {
       type:    Boolean,
       default: true,
     },
-
     keyOptionUnique: {
       type:    Boolean,
       default: false,
     },
-
     keyPlaceholder: {
       type: String,
       default() {
         return this.$store.getters['i18n/t']('keyValue.keyPlaceholder');
       },
     },
-
     separatorLabel: {
       type:    String,
       default: '',
     },
-
     // For asMap=false, the name of the field that goes into the row objects
     valueName: {
       type:    String,
       default: 'value',
     },
-
     valueLabel: {
       type: String,
       default() {
         return this.$store.getters['i18n/t']('generic.value');
       },
     },
-
     valuePlaceholder: {
       type: String,
       default() {
         return this.$store.getters['i18n/t']('keyValue.valuePlaceholder');
       },
     },
-
     valueCanBeEmpty: {
       type:    Boolean,
       default: false,
     },
-
-    valueBinary: {
+    displayValuesAsBinary: {
       type:    Boolean,
       default: false,
     },
@@ -140,7 +119,7 @@ export default {
       type:    Boolean,
       default: true,
     },
-    valueBase64: {
+    handleBase64: {
       type:    Boolean,
       default: false,
     },
@@ -148,7 +127,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-
     // On initial reading of the existing value, this function is called
     // and can return false to say that a value is not supported for editing.
     // This is mainly useful for resources like envVars that have a valueFrom
@@ -157,14 +135,12 @@ export default {
       type:    Function,
       default: v => true,
     },
-
     // For asMap=false, preserve (copy) these keys from the original value into the emitted value.
     // Also useful for valueFrom as above.
     preserveKeys: {
       type:    Array,
       default: null,
     },
-
     extraColumns: {
       type:    Array,
       default: () => [],
@@ -173,7 +149,6 @@ export default {
       type:    Object,
       default: () => {},
     },
-
     addLabel: {
       type: String,
       default() {
@@ -188,7 +163,6 @@ export default {
       type:    Boolean,
       default: true,
     },
-
     readLabel: {
       type: String,
       default() {
@@ -211,7 +185,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-
     removeLabel: {
       type:    String,
       default: '',
@@ -241,7 +214,6 @@ export default {
       type:    Boolean
     }
   },
-
   data() {
     const rows = [];
 
@@ -250,20 +222,15 @@ export default {
 
       Object.keys(input).forEach((key) => {
         let value = input[key];
-        let binary = !asciiLike(value);
 
-        // If we think it is binary, just check if we were given the list of binary keys that we should not be treating it as ascii
-        if (this.binaryValueKeys) {
-          binary = this.binaryValueKeys.findIndex(k => k === key) !== -1;
-        }
-
-        if ( this.valueBase64 ) {
+        if ( this.handleBase64 ) {
           value = base64Decode(value);
         }
+
         rows.push({
           key,
           value,
-          binary,
+          binary:    this.displayValuesAsBinary,
           supported: true,
         });
       });
@@ -273,14 +240,13 @@ export default {
       for ( const row of input ) {
         let value = row[this.valueName] || '';
 
-        if ( this.valueBase64 ) {
+        if ( this.handleBase64 ) {
           value = base64Decode(value);
         }
-
         const entry = {
           [this.keyName]:   row[this.keyName] || '',
           [this.valueName]: value,
-          binary:           !asciiLike(value),
+          binary:           this.displayValuesAsBinary,
           supported:        this.supported(row),
         };
 
@@ -289,7 +255,6 @@ export default {
             entry[k] = row[k];
           }
         });
-
         rows.push(entry);
       }
     }
@@ -304,23 +269,19 @@ export default {
 
     return { rows };
   },
-
   computed: {
     isView() {
       return this.mode === _VIEW;
     },
-
     containerStyle() {
       const gap = this.canRemove ? ' 50px' : '';
       const size = 2 + this.extraColumns.length;
 
       return `grid-template-columns: repeat(${ size }, 1fr)${ gap };`;
     },
-
     usedKeyOptions() {
       return this.rows.map(row => row[this.keyName]);
     },
-
     filteredKeyOptions() {
       if (this.keyOptionUnique) {
         return this.keyOptions
@@ -329,7 +290,6 @@ export default {
 
       return this.keyOptions;
     },
-
     /**
      * Prevent removal if expressly not allowed and not in view mode
      */
@@ -337,13 +297,10 @@ export default {
       return !this.isView && this.removeAllowed;
     }
   },
-
   created() {
     this.queueUpdate = debounce(this.update, 500);
   },
-
   methods: {
-    asciiLike,
     add(key = '', value = '') {
       const obj = {
         ...this.defaultAddData,
@@ -351,13 +308,10 @@ export default {
         [this.valueName]: value,
       };
 
-      obj.binary = !asciiLike(value);
+      obj.binary = this.displayValuesAsBinary;
       obj.supported = true;
-
       this.rows.push(obj);
-
       this.queueUpdate();
-
       this.$nextTick(() => {
         const keys = this.$refs.key;
         const lastKey = keys[keys.length - 1];
@@ -365,12 +319,10 @@ export default {
         lastKey.focus();
       });
     },
-
     remove(idx) {
       removeAt(this.rows, idx);
       this.queueUpdate();
     },
-
     removeEmptyRows() {
       const cleaned = this.rows.filter((row) => {
         return (row.value.length || row.key.length);
@@ -378,12 +330,11 @@ export default {
 
       this.$set(this, 'rows', cleaned);
     },
-
     onFileSelected(file) {
       const { name, value } = this.fileModifier(file.name, file.value);
 
       if (!this.parseLinesFromFile) {
-        this.add(name, value, !asciiLike(value));
+        this.add(name, value, this.displayValuesAsBinary);
       } else {
         const lines = value.split('\n');
 
@@ -397,7 +348,6 @@ export default {
         });
       }
     },
-
     download(idx, ev) {
       const row = this.rows[idx];
       const name = row[this.keyName];
@@ -405,7 +355,6 @@ export default {
 
       downloadFile(name, value, 'application/octet-stream');
     },
-
     update() {
       let out;
 
@@ -422,12 +371,10 @@ export default {
             out[key] = JSON.parse(JSON.stringify(value));
           } else {
             value = value || '';
-
             if ( this.valueTrim ) {
               value = value.trim();
             }
-
-            if ( value && this.valueBase64 ) {
+            if ( value && this.handleBase64 ) {
               value = base64Encode(value);
             }
             if ( key && (value || this.valueCanBeEmpty) ) {
@@ -440,14 +387,12 @@ export default {
 
         removeObject(preserveKeys, this.keyName);
         removeObject(preserveKeys, this.valueName);
-
         out = this.rows.map((row) => {
           let value = row[this.valueName];
 
-          if ( this.base64Encode ) {
+          if ( value && this.handleBase64 ) {
             value = base64Encode(value);
           }
-
           const entry = {
             [this.keyName]:   row[this.keyName],
             [this.valueName]: value,
@@ -462,10 +407,8 @@ export default {
           return entry;
         });
       }
-
       this.$emit('input', out);
     },
-
     onPaste(index, event, pastedValue) {
       const text = event.clipboardData.getData('text/plain');
       const lines = text.split('\n');
@@ -479,18 +422,16 @@ export default {
         return;
       }
       event.preventDefault();
-
       const keyValues = splits.map(split => ({
         [this.keyName]:   (split[0] || '').trim(),
         [this.valueName]: (split[1] || '').trim(),
         supported:        true,
-        binary:           !asciiLike(split[1])
+        binary:           this.displayValuesAsBinary
       }));
 
       this.rows.splice(index, 1, ...keyValues);
       this.queueUpdate();
     },
-
     calculateOptions(value) {
       const valueOption = this.keyOptions.find(o => o.value === value);
 
@@ -500,13 +441,13 @@ export default {
 
       return this.filteredKeyOptions;
     },
-
+    binaryTextSize(val) {
+      return this.t('detailText.binary', { n: val.length ? binarySize(val) : 0 }, true);
+    },
     get,
-
   }
 };
 </script>
-
 <template>
   <div class="key-value">
     <div v-if="title || $slots.title" class="clearfix">
@@ -516,7 +457,6 @@ export default {
         </h3>
       </slot>
     </div>
-
     <div class="kv-container" :style="containerStyle">
       <template v-if="rows.length || isView">
         <label class="text-label">
@@ -541,7 +481,6 @@ export default {
           &mdash;
         </div>
       </template>
-
       <template v-for="(row,i) in rows" v-else>
         <div :key="i+'key'" class="kv-item key">
           <slot
@@ -572,7 +511,6 @@ export default {
             />
           </slot>
         </div>
-
         <div :key="i+'value'" class="kv-item value">
           <slot
             name="value"
@@ -586,7 +524,7 @@ export default {
               {{ t('detailText.unsupported', null, true) }}
             </div>
             <div v-else-if="row.binary">
-              {{ t('detailText.binary', {n: row.value.length || 0}, true) }}
+              {{ binaryTextSize(row.value) }}
             </div>
             <TextAreaAutoGrow
               v-else-if="valueMultiline"
@@ -611,11 +549,9 @@ export default {
             />
           </slot>
         </div>
-
         <div v-for="c in extraColumns" :key="i + c" class="kv-item extra">
           <slot :name="'col:' + c" :row="row" :queue-update="queueUpdate" />
         </div>
-
         <div
           v-if="canRemove"
           :key="i"
@@ -630,7 +566,6 @@ export default {
         </div>
       </template>
     </div>
-
     <div v-if="(addAllowed || readAllowed) && !isView" class="footer">
       <slot name="add" :add="add">
         <button v-if="addAllowed" type="button" class="btn role-tertiary add" :disabled="loading || (keyOptions && filteredKeyOptions.length === 0)" @click="add()">
@@ -652,75 +587,58 @@ export default {
 <style lang="scss">
 .key-value {
   width: 100%;
-
   .file-selector.role-link {
     text-transform: initial;
     padding: 0;
   }
-
   .kv-container{
     display: grid;
     align-items: center;
     column-gap: 20px;
-
     label {
       margin-bottom: 0;
     }
-
     & .kv-item {
       width: 100%;
       margin: 10px 0px 10px 0px;
       &.key, &.extra {
         align-self: flex-start;
       }
-
       &.value textarea{
         padding: 10px 10px 10px 10px;
       }
-
       .text-monospace:not(.conceal) {
         font-family: monospace, monospace;
       }
     }
-
   }
-
   .remove {
     text-align: center;
-
     BUTTON{
       padding: 0px;
     }
   }
-
   .title {
     margin-bottom: 10px;
-
     .read-from-file {
       float: right;
     }
   }
-
   input {
     height: 40px;
     line-height: 1;
   }
-
   .footer {
-
     .protip {
       float: right;
       padding: 5px 0;
     }
   }
-
   .download {
     text-align: right;
   }
-
   .copy-value{
     padding: 0px 0px 0px 10px;
   }
-
 }
 </style>
