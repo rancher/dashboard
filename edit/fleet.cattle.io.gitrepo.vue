@@ -6,7 +6,7 @@ import { set } from '@/utils/object';
 import ArrayList from '@/components/form/ArrayList';
 import Banner from '@/components/Banner';
 import CreateEditView from '@/mixins/create-edit-view';
-import CruResourceWizzard from '@/components/CruResourceWizzard';
+import CruResource from '@/components/CruResource';
 import InputWithSelect from '@/components/form/InputWithSelect';
 import jsyaml from 'js-yaml';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -31,7 +31,7 @@ export default {
   components: {
     ArrayList,
     Banner,
-    CruResourceWizzard,
+    CruResource,
     InputWithSelect,
     Labels,
     LabeledInput,
@@ -373,7 +373,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <CruResourceWizzard
+  <CruResource
     v-else
     :done-route="doneRoute"
     :mode="mode"
@@ -547,6 +547,6 @@ export default {
         :display-side-by-side="false"
       />
     </template>
-  </CruResourceWizzard>
-  </cruresourcewizzard>
+  </CruResource>
+  </CruResource>
 </template>

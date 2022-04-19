@@ -17,7 +17,7 @@ import Loading from '@/components/Loading';
 
 export default {
 
-  name: 'CruResourceWizzard',
+  name: 'CruResource',
 
   components: {
     AsyncButton,
