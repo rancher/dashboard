@@ -64,6 +64,7 @@ export default {
     :mode="mode"
     @input="$emit('input', $event)"
     @add="$emit('add')"
+    @remove="$emit('remove', $event)"
   >
     <template v-slot:columns="scope">
       <InfoBox>
