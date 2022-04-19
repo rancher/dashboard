@@ -111,8 +111,8 @@
 //   mapWeight,
 //   continueOnMatch
 // )
-import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
-import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
+import { AGE, NAME, NAMESPACE as NAMESPACE_COL, STATE } from '@/config/table-headers';
+import { COUNT, SCHEMA, MANAGEMENT, NAMESPACE } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
@@ -130,6 +130,7 @@ import isObject from 'lodash/isObject';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { sortBy } from '@/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@/utils/monitoring';
+import { NEU_VECTOR_NAMESPACE } from '@/config/product/neuvector';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -157,6 +158,7 @@ export const IF_HAVE = {
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
   HARVESTER_SINGLE_CLUSTER: 'harv-multi-cluster',
+  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -906,7 +908,7 @@ export const getters = {
           hasName = true;
           out.push(NAME);
           if ( namespaced ) {
-            out.push(NAMESPACE);
+            out.push(NAMESPACE_COL);
           }
         } else {
           out.push(fromSchema(col, rootGetters));
@@ -916,7 +918,7 @@ export const getters = {
       if ( !hasName ) {
         insertAt(out, 1, NAME);
         if ( namespaced ) {
-          insertAt(out, 2, NAMESPACE);
+          insertAt(out, 2, NAMESPACE_COL);
         }
       }
 
@@ -1655,6 +1657,9 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
     return getters.isSingleVirtualCluster;
+  }
+  case IF_HAVE.NEUVECTOR_NAMESPACE: {
+    return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);
   }
   default:
     return false;
