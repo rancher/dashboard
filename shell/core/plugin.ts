@@ -3,7 +3,7 @@ import { DSL as STORE_DSL } from '@shell/store/type-map';
 import { IPlugin } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@/shell/plugins/dashboard-store';
 import {
-  RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
+  PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from '@/shell/core/types';
 
 export class Plugin implements IPlugin {
@@ -62,6 +62,22 @@ export class Plugin implements IPlugin {
 
   addL10n(locale: string, fn: Function) {
     this.register('l10n', locale, fn);
+  }
+
+  addRoutes(routes: PluginRouteConfig[] | RouteConfig[]) {
+    routes.forEach((r: PluginRouteConfig | RouteConfig) => {
+      if (Object.keys(r).includes('parent')) {
+        const pConfig = r as PluginRouteConfig;
+
+        if (pConfig.parent) {
+          this.addRoute(pConfig.parent, pConfig.route);
+        } else {
+          this.addRoute(pConfig.route);
+        }
+      } else {
+        this.addRoute(r as RouteConfig);
+      }
+    });
   }
 
   addRoute(parentOrRoute: RouteConfig | string, optionalRoute?: RouteConfig): void {

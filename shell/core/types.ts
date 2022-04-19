@@ -21,6 +21,8 @@ export type CoreStoreConfig = { namespace: string, baseUrl?: string, modelBaseCl
 export type RegisterStore = () => (store: any) => void
 export type UnregisterStore = (store: any) => void
 
+export type PluginRouteConfig = {parent?: string, route: RouteConfig}
+
 export type OnEnterLeavePackageConfig = {
   clusterId: string,
   product: string,
@@ -64,6 +66,11 @@ export interface IPlugin {
    */
   addRoute(route: RouteConfig): void;
   addRoute(parent: string, route: RouteConfig): void;
+
+  /**
+   * Add routes to the Vue Router
+   */
+  addRoutes(routes: PluginRouteConfig[] | RouteConfig[]): void;
 
    /**
     * Add a hook to be called when the plugin is uninstalled
