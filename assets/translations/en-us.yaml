@@ -1641,6 +1641,7 @@ cluster:
         other {A snapshot has been requested for {count} clusters}
       }
     groupLabel: Location
+    failed: "Snapshot from {time} failed"
   tabs:
     ace: Authorized Endpoint
     addons: Add-On Config
