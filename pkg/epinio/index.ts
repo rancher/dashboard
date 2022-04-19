@@ -9,6 +9,8 @@ import enUS from './translations/en-us.yaml';
 // TODO: RC rename plugin-dev to `dev-2.6.6`
 // TODO: RC merge latest master
 // TODO: RC review old epinio PRs comments
+// TODO: RC review new epinio PRs comments
+// TODO: RC Test standalone
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -41,7 +43,4 @@ export default function(plugin: IPlugin) {
   };
 
   plugin.addNavHooks(onEnter, onLeave);
-
-  plugin.register('windowComponent', 'ApplicationLogs', () => import(`./components/windowComponent/ApplicationLogs.vue`));
-  plugin.register('windowComponent', 'ApplicationShell', () => import(`./components/windowComponent/ApplicationShell.vue`));
 }

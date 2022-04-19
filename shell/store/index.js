@@ -637,7 +637,6 @@ export const actions = {
       return;
     }
 
-    // TODO: RC comment in issue
     if (oldProduct === VIRTUAL) {
       await dispatch('harvester/unsubscribe');
       commit('harvester/reset');

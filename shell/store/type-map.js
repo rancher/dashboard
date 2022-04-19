@@ -334,15 +334,15 @@ export const state = function() {
     hideBulkActions:         {},
     schemaGeneration:        1,
     cache:                   {
-      typeMove:        {},
-      groupLabel:      {},
-      ignore:          {},
-      list:            {},
-      detail:          {},
-      edit:            {},
-      componentFor:    {},
-      promptRemove:    {},
-      windowComponent: {},
+      typeMove:         {},
+      groupLabel:       {},
+      ignore:           {},
+      list:             {},
+      detail:           {},
+      edit:             {},
+      componentFor:     {},
+      promptRemove:     {},
+      windowComponents: {},
     },
   };
 };
@@ -1064,7 +1064,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'windowComponent', key, key => resolveWindowComponent(key));
+      return hasCustom(state, rootState, 'windowComponents', key, key => resolveWindowComponent(key));
     };
   },
 
@@ -1102,7 +1102,7 @@ export const getters = {
 
   importWindowComponent(state, getters, rootState) {
     return (rawType, subType) => {
-      return loadExtension(rootState, 'windowComponent', getters.componentFor(rawType, subType), importWindowComponent);
+      return loadExtension(rootState, 'windowComponents', getters.componentFor(rawType, subType), importWindowComponent);
     };
   },
 
