@@ -12,7 +12,7 @@ import { formatSi, parseSi } from '@/utils/units';
 import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '@/config/harvester-map';
 import { _CLONE } from '@/config/query-params';
 import {
-  PVC, HCI, STORAGE_CLASS, NODE, SECRET
+  PVC, HCI, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP
 } from '@/config/types';
 import { HCI_SETTING } from '@/config/settings';
 import { HCI as HCI_ANNOTATIONS, HOSTNAME } from '@/config/labels-annotations';
@@ -130,7 +130,8 @@ export default {
       reservedMemory:     null,
       accessCredentials:  [],
       efiEnabled:         false,
-      secureBoot:         false
+      secureBoot:         false,
+      userDataTemplateId: ''
     };
   },
 
@@ -906,12 +907,18 @@ export default {
     },
 
     deleteQGA(config) {
-      const { userDataJson, osType } = config;
+      const { userDataJson, osType, deletePackage = false } = config;
 
-      if (Array.isArray(userDataJson.packages)) {
+      const userDataTemplateValue = this.$store.getters['harvester/byId'](CONFIG_MAP, this.userDataTemplateId)?.data?.cloudInit || '';
+
+      if (Array.isArray(userDataJson.packages) && deletePackage) {
+        const templateHasQGAPackage = this.convertToJson(userDataTemplateValue);
+
         for (let i = 0; i < userDataJson.packages.length; i++) {
           if (userDataJson.packages[i] === 'qemu-guest-agent') {
-            userDataJson.packages.splice(i, 1);
+            if (!(Array.isArray(templateHasQGAPackage?.packages) && templateHasQGAPackage.packages.includes('qemu-guest-agent'))) {
+              userDataJson.packages.splice(i, 1);
+            }
           }
         }
 
@@ -1190,6 +1197,25 @@ export default {
     toggleAdvanced() {
       this.showAdvanced = !this.showAdvanced;
     },
+
+    updateAgent(value) {
+      if (!value) {
+        this.deletePackage = true;
+      }
+    },
+
+    updateDataTemplateId(type, id) {
+      if (type === 'user') {
+        const oldInstallAgent = this.installAgent;
+
+        this.userDataTemplateId = id;
+        this.$nextTick(() => {
+          if (oldInstallAgent) {
+            this.installAgent = oldInstallAgent;
+          }
+        });
+      }
+    }
   },
 
   watch: {
@@ -1243,14 +1269,23 @@ export default {
     },
 
     installAgent: {
+      /**
+       * rules
+       * 1. The value in user Data is the first priority
+       * 2. After selecting the template, if checkbox is checked, only merge operation will be performed on user data,
+       *    if checkbox is unchecked, no value will be deleted in user data
+       */
       handler(neu) {
         if (this.deleteAgent) {
-          const out = this.getUserData({ installAgent: neu, osType: this.osType });
+          const out = this.getUserData({
+            installAgent: neu, osType: this.osType, deletePackage: this.deletePackage
+          });
 
           this.$set(this, 'userScript', out);
           this.refreshYamlEditor();
         }
         this.deleteAgent = true;
+        this.deletePackage = false;
       },
       immediate: true
     },
@@ -1262,7 +1297,7 @@ export default {
       this.refreshYamlEditor();
     },
 
-    userScript(neu) {
+    userScript(neu, old) {
       const hasInstallAgent = this.hasInstallAgent(neu, this.osType, this.installAgent);
 
       if (hasInstallAgent !== this.installAgent) {

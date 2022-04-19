@@ -557,6 +557,7 @@ export default {
             :network-script="networkScript"
             @updateUserData="updateUserData"
             @updateNetworkData="updateNetworkData"
+            @updateDataTemplateId="updateDataTemplateId"
           />
 
           <Checkbox
@@ -575,6 +576,7 @@ export default {
             :disabled="isWindows"
             label-key="harvester.virtualMachine.installAgent"
             :mode="mode"
+            @input="updateAgent"
           />
 
           <Checkbox
