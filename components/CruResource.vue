@@ -220,7 +220,6 @@ export default {
 
       return false;
     },
-    ...mapGetters({ t: 'i18n/t' }),
 
     //
     errorStrings() {
@@ -269,7 +268,16 @@ export default {
 
     visibleSteps() {
       return this.steps?.filter(step => !step.hidden);
-    }
+    },
+
+    /**
+     * Prevent issues for malformed types injection
+     */
+    hasErrors() {
+      return this.errors?.length && Array.isArray(this.errors);
+    },
+
+    ...mapGetters({ t: 'i18n/t' }),
   },
 
   watch: {
@@ -439,7 +447,7 @@ export default {
     >
       <div
         class="cru__errors"
-        :v-if="errors.length"
+        :v-if="hasErrors"
       >
         <Banner
           v-for="(err, i) in errors"

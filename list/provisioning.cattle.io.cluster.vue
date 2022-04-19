@@ -5,7 +5,7 @@ import Masthead from '@/components/ResourceList/Masthead';
 import { allHash } from '@/utils/promise';
 import { CAPI, MANAGEMENT } from '@/config/types';
 import { MODE, _IMPORT } from '@/config/query-params';
-import { filterOnlyKubernetesClusters } from '@/utils/cluster';
+import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@/store/features';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 
@@ -55,11 +55,11 @@ export default {
     rows() {
       // If Harvester feature is enabled, hide Harvester Clusters
       if (this.harvesterEnabled) {
-        return filterOnlyKubernetesClusters(this.rancherClusters);
+        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rancherClusters), this.$store);
       }
 
       // Otherwise, show Harvester clusters - these will be shown with a warning
-      return this.rancherClusters;
+      return filterHiddenLocalCluster(this.rancherClusters, this.$store);
     },
 
     hiddenHarvesterCount() {

@@ -19,6 +19,8 @@ export const SETTING = {
   API_HOST:                         'api-host',
   CA_CERTS:                         'cacerts',
 
+  // Allow the local cluste to be hidden
+  HIDE_LOCAL_CLUSTER:               'hide-local-cluster',
   AUTH_TOKEN_MAX_TTL_MINUTES:       'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:        'kubeconfig-generate-token',
   KUBECONFIG_TOKEN_TTL_MINUTES:     'kubeconfig-token-ttl-minutes',
@@ -86,6 +88,7 @@ export const ALLOWED_SETTINGS = {
     kind:    'enum',
     options: ['prompt', 'in', 'out']
   },
+  [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
 };
 
 // harvester Settings ID

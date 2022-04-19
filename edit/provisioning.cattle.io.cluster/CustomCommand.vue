@@ -139,6 +139,10 @@ export default {
     toggleAdvanced() {
       this.showAdvanced = !this.showAdvanced;
     },
+
+    copiedWindows() {
+      this.$emit('copied-windows');
+    }
   },
 };
 
@@ -207,7 +211,7 @@ function sanitizeValue(v) {
         <hr class="mt-20 mb-20" />
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
         <template v-if="readyForWindows">
-          <CopyCode class="m-10 p-10">
+          <CopyCode class="m-10 p-10" @copied="copiedWindows">
             {{ windowsCommand }}
           </CopyCode>
           <Checkbox

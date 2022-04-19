@@ -193,7 +193,9 @@ export const actions = {
     }
   },
 
-  watch({ state, dispatch, getters }, params) {
+  watch({
+    state, dispatch, getters, rootGetters
+  }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
 
     let {
@@ -202,6 +204,12 @@ export const actions = {
     } = params;
 
     type = getters.normalizeType(type);
+
+    if (rootGetters['type-map/isSpoofed'](type)) {
+      state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
+
+      return;
+    }
 
     if ( !stop && !force && !getters.canWatch(params) ) {
       console.error(`Cannot Watch [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console

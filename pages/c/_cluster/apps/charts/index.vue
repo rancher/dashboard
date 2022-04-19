@@ -140,8 +140,10 @@ export default {
 
     filteredCharts() {
       const enabledCharts = (this.enabledCharts || []);
+      const clusterProvider = this.currentCluster.status.provider || 'other';
 
       return filterAndArrangeCharts(enabledCharts, {
+        clusterProvider,
         category:         this.category,
         searchQuery:      this.searchQuery,
         showDeprecated:   this.showDeprecated,
