@@ -161,11 +161,16 @@ export default {
       const names = volumeMounts.map(({ name }) => name);
 
       // Extract storage volumes to allow mutation, if matches mount map
-      const storageVolumes = this.value.volumes.filter((volume) => {
-        return names.includes(volume.name);
-      });
+      return this.value.volumes.filter(volume => names.includes(volume.name));
+    },
 
-      return storageVolumes;
+    /**
+     * Remove all mounts for given storage volume
+     */
+    removeVolume(volume) {
+      const removeName = volume.row.value.name;
+
+      this.storageVolumes = this.storageVolumes.filter(({ name }) => name !== removeName);
     },
 
     addVolume(type) {
@@ -272,6 +277,7 @@ export default {
       :key="storageVolumes.length"
       v-model="storageVolumes"
       :mode="mode"
+      @remove="removeVolume"
     >
       <!-- Custom/default storage volume form -->
       <template #default="props">
