@@ -178,10 +178,10 @@ export default function({
         });
       });
 
-      // i18n
-      Object.keys(plugin.i18n).forEach((name) => {
-        plugin.i18n[name].forEach((fn) => {
-          this.register('i18n', name, fn);
+      // l10n
+      Object.keys(plugin.l10n).forEach((name) => {
+        plugin.l10n[name].forEach((fn) => {
+          this.register('l10n', name, fn);
         });
       });
 
@@ -213,8 +213,8 @@ export default function({
         dynamic[type] = {};
       }
 
-      // Accumulate i18n resources rather than replace
-      if (type === 'i18n') {
+      // Accumulate l10n resources rather than replace
+      if (type === 'l10n') {
         if (!dynamic[type][name]) {
           dynamic[type][name] = [];
         }
@@ -226,7 +226,7 @@ export default function({
     },
 
     unregister(type, name, fn) {
-      if (type === 'i18n') {
+      if (type === 'l10n') {
         if (dynamic[type]?.[name]) {
           const index = dynamic[type][name].find(func => func === fn);
 

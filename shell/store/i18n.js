@@ -260,7 +260,7 @@ export const actions = {
     }
 
     const lastLoad = rootState.$plugin?.lastLoad;
-    const i18nExt = rootState.$plugin?.getDynamic('i18n', locale);
+    const i18nExt = rootState.$plugin?.getDynamic('l10n', locale);
     const reload = lastLoaded < lastLoad;
 
     lastLoaded = lastLoad;

@@ -10,7 +10,7 @@ export class Plugin implements IPlugin {
   public id: string;
   public name: string;
   public types: any = {};
-  public i18n: { [key: string]: Function[] } = {};
+  public l10n: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
   public products: Function[] = [];
   public productNames: string[] = [];
@@ -61,7 +61,7 @@ export class Plugin implements IPlugin {
   }
 
   addL10n(locale: string, fn: Function) {
-    this.register('i18n', locale, fn);
+    this.register('l10n', locale, fn);
   }
 
   addRoute(parentOrRoute: RouteConfig | string, optionalRoute?: RouteConfig): void {
@@ -148,13 +148,13 @@ export class Plugin implements IPlugin {
   }
 
   public register(type: string, name: string, fn: Function) {
-    // Accumulate i18n resources rather than replace
-    if (type === 'i18n') {
-      if (!this.i18n[name]) {
-        this.i18n[name] = [];
+    // Accumulate l10n resources rather than replace
+    if (type === 'l10n') {
+      if (!this.l10n[name]) {
+        this.l10n[name] = [];
       }
 
-      this.i18n[name].push(fn);
+      this.l10n[name].push(fn);
     } else {
       if (!this.types[type]) {
         this.types[type] = {};

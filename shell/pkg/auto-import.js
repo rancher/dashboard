@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const contextFolders = ['chart', 'cloud-credential', 'content', 'detail', 'edit', 'list', 'machine-config', 'models', 'promptRemove', 'i18n', 'windowComponents'];
+const contextFolders = ['chart', 'cloud-credential', 'content', 'detail', 'edit', 'list', 'machine-config', 'models', 'promptRemove', 'l10n', 'windowComponents'];
 const contextMap = contextFolders.reduce((map, obj) => {
   map[obj] = true;
 
@@ -24,7 +24,7 @@ function generateTypeImport(pkg, dir) {
       fs.readdirSync(path.join(dir, f)).forEach((file) => {
         const name = file.replace(/\.[^/.]+$/, '');
         const importType = (f === 'models') ? 'require' : 'import';
-        const chunkName = (f === 'i18n') ? '' : `/* webpackChunkName: "${ f }" */`;
+        const chunkName = (f === 'l10n') ? '' : `/* webpackChunkName: "${ f }" */`;
 
         content += `  $plugin.register('${ f }', '${ name }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
       });
@@ -51,7 +51,7 @@ function generateDynamicTypeImport(pkg, dir) {
       let genImport = replaceAll(template, 'NAME', f);
       const importType = (f === 'models') ? 'require' : 'import';
       // Ensure i18n chunks are named with the request name (which will be the locale)
-      const chunk = (f === 'i18n') ? '[request]' : f;
+      const chunk = (f === 'l10n') ? '[request]' : f;
       let chunkName = `/* webpackChunkName: "${ chunk }" */ `;
 
       // Don't use chunk names with require
@@ -59,7 +59,7 @@ function generateDynamicTypeImport(pkg, dir) {
         chunkName = '';
       }
 
-      const ext = (f === 'i18n') ? '.yaml' : '';
+      const ext = (f === 'l10n') ? '.yaml' : '';
 
       genImport = replaceAll(genImport, 'BASE', pkg);
       genImport = replaceAll(genImport, 'CHUNK', chunkName);

@@ -4,8 +4,6 @@ import epinioStore from './store/epinio-store';
 import epinioMgmtStore from './store/epinio-mgmt-store';
 import epinioRoutes from './routing/epinio-routing';
 
-import enUS from './translations/en-us.yaml';
-
 // TODO: RC rename plugin-dev to `dev-2.6.6`
 // TODO: RC merge latest master
 // TODO: RC review old epinio PRs comments
@@ -26,8 +24,6 @@ export default function(plugin: IPlugin) {
 
   // Provide plugin metadata from package.json
   plugin.metadata = require('./package.json');
-
-  plugin.addL10n('en-us', enUS);
 
   // Load a product
   plugin.addProduct(require('./config/epinio'));
