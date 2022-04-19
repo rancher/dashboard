@@ -3,7 +3,7 @@ import { MANAGEMENT, NAMESPACE, NORMAN } from '@/config/types';
 import HybridModel from '@/plugins/steve/hybrid-class';
 
 function clearResourceQuotas(val, type) {
-  if (Object.keys(val[type].limit).length) {
+  if (val[type]?.limit && Object.keys(val[type].limit).length) {
     Object.keys(val[type].limit).forEach((key) => {
       if (!val[type].limit[key]) {
         delete val[type].limit[key];
