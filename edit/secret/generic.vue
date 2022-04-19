@@ -61,9 +61,3 @@ export default {
     add-icon=""
   />
 </template>
-
-<style lang="scss" scoped>
-.no-data {
-  opacity: 0.8;
-}
-</style>
