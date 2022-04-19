@@ -385,7 +385,7 @@ export default {
 
       <section
         v-else
-        class="cru-resource-yaml-container cru__content"
+        class="cru-resource-yaml-container resource-container cru__content"
       >
         <ResourceYaml
           ref="resourceyaml"
@@ -398,6 +398,7 @@ export default {
           :done-override="resource.doneOverride"
           :errors="errors"
           :apply-hooks="applyHooks"
+          class="resource-container cru__content"
           @error="e=>$emit('error', e)"
         >
           <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">
