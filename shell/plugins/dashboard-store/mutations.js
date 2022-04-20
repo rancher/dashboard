@@ -130,6 +130,38 @@ export function resetStore(state, commit) {
   }
 }
 
+export function loadAll(state, { type, data, ctx }) {
+  const { getters } = ctx;
+
+  if (!data) {
+    return;
+  }
+
+  const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+  const limit = opts?.limit;
+
+  // If there is a limit, only store the last elements from the list to keep to that limit
+  if (limit) {
+    data = data.slice(-limit);
+  }
+
+  const keyField = getters.keyFieldForType(type);
+  const proxies = data.map(x => classify(ctx, x));
+  const cache = registerType(state, type);
+
+  clear(cache.list);
+  cache.map.clear();
+  cache.generation++;
+
+  addObjects(cache.list, proxies);
+
+  for ( let i = 0 ; i < proxies.length ; i++ ) {
+    cache.map.set(proxies[i][keyField], proxies[i]);
+  }
+
+  cache.haveAll = true;
+}
+
 export default {
   registerType,
   load,
@@ -161,37 +193,7 @@ export default {
     cache.haveSelector[selector] = true;
   },
 
-  loadAll(state, { type, data, ctx }) {
-    const { getters } = ctx;
-
-    if (!data) {
-      return;
-    }
-
-    const opts = ctx.rootGetters[`type-map/optionsFor`](type);
-    const limit = opts?.limit;
-
-    // If there is a limit, only store the last elements from the list to keep to that limit
-    if (limit) {
-      data = data.slice(-limit);
-    }
-
-    const keyField = getters.keyFieldForType(type);
-    const proxies = data.map(x => classify(ctx, x));
-    const cache = registerType(state, type);
-
-    clear(cache.list);
-    cache.map.clear();
-    cache.generation++;
-
-    addObjects(cache.list, proxies);
-
-    for ( let i = 0 ; i < proxies.length ; i++ ) {
-      cache.map.set(proxies[i][keyField], proxies[i]);
-    }
-
-    cache.haveAll = true;
-  },
+  loadAll,
 
   loadMerge(state, { type, data: allLatest, ctx }) {
     const { commit, getters } = ctx;

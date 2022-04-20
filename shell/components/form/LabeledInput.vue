@@ -201,10 +201,10 @@ export default {
 <template>
   <div
     :style="{'min-height': minHeight}"
+    class="labeled-input"
   >
     <div
       :class="{
-        'labeled-input': true,
         focused,
         [mode]: true,
         disabled: isDisabled,
@@ -285,5 +285,7 @@ export default {
 <style>
 .validation-message {
   padding: 5px;
+  position: absolute;
+  bottom: -35px;
 }
 </style>

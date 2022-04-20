@@ -492,7 +492,7 @@ export default {
     dasherize,
 
     onScroll() {
-      if (this.hasLiveColumns) {
+      if (this.hasLiveColumns || this.hasDelayedColumns) {
         clearTimeout(this._liveColumnsTimer);
         clearTimeout(this._scrollTimer);
         clearTimeout(this._delayedColumnsTimer);
@@ -933,7 +933,13 @@ export default {
             :row="row.row"
             :sub-matches="subMatches"
           >
-            <tr v-if="row.row.stateDescription" :key="row.key + '-description'" class="state-description sub-row">
+            <tr
+              v-if="row.row.stateDescription"
+              :key="row[keyField] + '-description'"
+              class="state-description sub-row"
+              @mouseenter="onRowMouseEnter"
+              @mouseleave="onRowMouseLeave"
+            >
               <td v-if="tableActions" class="row-check" align="middle">
               </td>
               <td :colspan="fullColspan - (tableActions ? 1: 0)" :class="{ 'text-error' : row.row.stateObj.error }">

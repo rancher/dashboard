@@ -97,9 +97,9 @@ export default Vue.extend<Data, any, any, any>({
         label: this.t('epinio.applications.steps.source.folder.label'),
         value: APPLICATION_SOURCE_TYPE.FOLDER
       }, {
-      //   label: this.t('epinio.applications.steps.source.archive.label'),
-      //   value: APPLICATION_SOURCE_TYPE.ARCHIVE
-      // }, {
+        label: this.t('epinio.applications.steps.source.archive.label'),
+        value: APPLICATION_SOURCE_TYPE.ARCHIVE
+      }, {
         label: this.t('epinio.applications.steps.source.containerUrl.label'),
         value: APPLICATION_SOURCE_TYPE.CONTAINER_URL
       }, {

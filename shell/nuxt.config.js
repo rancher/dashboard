@@ -375,7 +375,7 @@ export default function(dir, _appConfig) {
 
       extend(config, { isClient, isDev }) {
         if ( isDev ) {
-          config.devtool = 'eval-source-map';
+          config.devtool = 'cheap-module-source-map';
         } else {
           config.devtool = 'source-map';
         }

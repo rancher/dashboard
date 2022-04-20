@@ -3,6 +3,8 @@
     display: flex;
     flex-wrap: wrap;
     width: 100%;
+    flex-direction:row;
+    align-content: baseline;
   }
   .subtype-content {
     width: 100%;
@@ -58,7 +60,6 @@
     }
 
     &:not(.top) {
-      align-items: top;
       flex-direction: column;
       justify-content: start;
       &:hover {

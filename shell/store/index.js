@@ -693,10 +693,8 @@ export const actions = {
     } else {
       // Forget the current cluster
       commit('setCluster', undefined);
-      // Switching to a global page with no cluster id, keep it the same.
-      if ( isMultiCluster ) {
-        return;
-      }
+
+      return;
     }
 
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console

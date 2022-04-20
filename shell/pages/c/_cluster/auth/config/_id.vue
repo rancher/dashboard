@@ -28,5 +28,5 @@ export default {
 </script>
 
 <template>
-  <ResourceDetail :resource-override="AUTH_CONFIG" />
+  <ResourceDetail :resource-override="AUTH_CONFIG" :flex-content="true" />
 </template>

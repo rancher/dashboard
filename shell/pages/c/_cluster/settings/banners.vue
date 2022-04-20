@@ -12,9 +12,11 @@ import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { clone } from '@shell/utils/object';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import NotificationSettings from '@shell/components/form/NotificationSettings.vue';
 
 const DEFAULT_BANNER_SETTING = {
-  bannerHeader: {
+  loginError:   { message: '', showMessage: 'false' },
+  bannerHeader:    {
     background:      null,
     color:           null,
     textAlignment:   'center',
@@ -54,7 +56,12 @@ export default {
   layout: 'authenticated',
 
   components: {
-    Checkbox, Loading, AsyncButton, Banner, BannerSettings
+    Checkbox,
+    Loading,
+    AsyncButton,
+    Banner,
+    BannerSettings,
+    NotificationSettings
   },
 
   async fetch() {
@@ -107,7 +114,7 @@ export default {
   methods: {
     checkOrUpdateLegacyUIBannerSetting(parsedBanner) {
       const {
-        bannerHeader, bannerFooter, bannerConsent, banner
+        bannerHeader, bannerFooter, bannerConsent, banner, loginError
       } = parsedBanner;
 
       if (isEmpty(bannerHeader) && isEmpty(bannerFooter) && isEmpty(bannerConsent)) {
@@ -124,6 +131,7 @@ export default {
           neu = {
             bannerHeader:  { ...cloned },
             bannerFooter:  { ...cloned },
+            loginError:    { ...DEFAULT_BANNER_SETTING.loginError, loginError: loginError?.showMessage === 'false' ? 'false' : 'true' },
             bannerConsent: { ...DEFAULT_BANNER_SETTING.bannerConsent },
             showHeader:    parsedBanner?.showHeader === 'true' ? 'true' : 'false',
             showFooter:    parsedBanner?.showFooter === 'true' ? 'true' : 'false',
@@ -137,6 +145,10 @@ export default {
       // If user has existing banners, they may not have consent banner - use default value
       if (isEmpty(bannerConsent)) {
         parsedBanner.bannerConsent = { ...DEFAULT_BANNER_SETTING.bannerConsent };
+      }
+
+      if (isEmpty(loginError)) {
+        parsedBanner.loginError = { ...DEFAULT_BANNER_SETTING.loginError };
       }
 
       return parsedBanner;
@@ -235,6 +247,13 @@ export default {
           :mode="consentMode"
         />
       </template>
+      <h2 class="mt-40 mb-40">
+        {{ t('notifications.loginError.header') }}
+      </h2>
+      <NotificationSettings
+        v-model="bannerVal.loginError"
+        :label="t('notifications.loginError.messageLabel')"
+      />
     </div>
     <template v-for="err in errors">
       <Banner :key="err" color="error" :label="err" />

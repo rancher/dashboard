@@ -4,6 +4,7 @@ import { asciiLike, nlToBr } from '@shell/utils/string';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import CodeMirror from '@shell/components/CodeMirror';
+import { binarySize } from '@shell/utils/crypto';
 
 export default {
   components: { CopyToClipboard, CodeMirror },
@@ -79,18 +80,7 @@ export default {
 
     body() {
       if (this.isBinary) {
-        // It is base64 encoded, so adjust size
-        let realSize = (3 * this.size / 4) ;
-
-        // Might be one or two padding characters
-        if (this.value.length > 0 && this.value[this.value.length - 1] === '=') {
-          realSize--;
-          if (this.value.length > 1 && this.value[this.value.length - 2] === '=') {
-            realSize--;
-          }
-        }
-
-        return this.t('detailText.binary', { n: realSize });
+        return this.t('detailText.binary', { n: this.value.length ? binarySize(this.value) : 0 }, true);
       }
 
       if (this.expanded) {

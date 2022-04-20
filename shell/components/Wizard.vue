@@ -318,45 +318,44 @@ export default {
             </ul>
           </div>
         </div>
-
-        <div class="step-container">
-          <template v-for="step in steps">
-            <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
-              <slot :step="step" :name="step.name" />
-            </div>
-          </template>
-        </div>
-
-        <div class="controls-container">
-          <div v-for="(err,idx) in errorStrings" :key="idx">
-            <Banner color="error" :label="err" :closable="true" @close="errors.splice(idx, 1)" />
+      </div>
+      <div class="step-container">
+        <template v-for="step in steps">
+          <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
+            <slot :step="step" :name="step.name" />
           </div>
-          <div class="controls-row pt-20">
-            <slot name="cancel" :cancel="cancel">
-              <button type="button" class="btn role-secondary" @click="cancel">
-                <t k="generic.cancel" />
+        </template>
+      </div>
+
+      <div class="controls-container">
+        <div v-for="(err,idx) in errorStrings" :key="idx">
+          <Banner color="error" :label="err" :closable="true" @close="errors.splice(idx, 1)" />
+        </div>
+        <div class="controls-row pt-20">
+          <slot name="cancel" :cancel="cancel">
+            <button type="button" class="btn role-secondary" @click="cancel">
+              <t k="generic.cancel" />
+            </button>
+          </slot>
+
+          <div class="controls-steps">
+            <slot v-if="showPrevious" name="back" :back="back">
+              <button :disabled="!canPrevious" type="button" class="btn role-secondary" @click="back()">
+                <t k="wizard.previous" />
               </button>
             </slot>
-
-            <div class="controls-steps">
-              <slot v-if="showPrevious" name="back" :back="back">
-                <button :disabled="!canPrevious" type="button" class="btn role-secondary" @click="back()">
-                  <t k="wizard.previous" />
-                </button>
-              </slot>
-              <slot v-if="activeStepIndex === visibleSteps.length-1" name="finish" :finish="finish">
-                <AsyncButton
-                  :disabled="!activeStep.ready"
-                  :mode="finishMode"
-                  @click="finish"
-                />
-              </slot>
-              <slot v-else name="next" :next="next">
-                <button :disabled="!canNext" type="button" :class="nextButtonStyle" @click="next()">
-                  <t :k="nextButtonLabel" />
-                </button>
-              </slot>
-            </div>
+            <slot v-if="activeStepIndex === visibleSteps.length-1" name="finish" :finish="finish">
+              <AsyncButton
+                :disabled="!activeStep.ready"
+                :mode="finishMode"
+                @click="finish"
+              />
+            </slot>
+            <slot v-else name="next" :next="next">
+              <button :disabled="!canNext" type="button" :class="nextButtonStyle" @click="next()">
+                <t :k="nextButtonLabel" />
+              </button>
+            </slot>
           </div>
         </div>
       </div>
@@ -428,8 +427,8 @@ $spacer: 10px;
           overflow: visible;
           padding-top: 15px;
           & > span {
-            padding-bottom: 10px;
-            margin-bottom: 10px;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
             white-space: nowrap;
           }
         }
@@ -457,7 +456,7 @@ $spacer: 10px;
         flex-basis: 100%;
         border-top: 1px solid var(--border);
         position: relative;
-        top: 26px;
+        top: 28px;
       }
     }
   }

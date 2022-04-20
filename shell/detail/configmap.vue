@@ -2,6 +2,7 @@
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import DetailText from '@shell/components/DetailText';
 import Tab from '@shell/components/Tabbed/Tab';
+import { base64Decode } from '@shell/utils/crypto';
 
 export default {
   components: {
@@ -28,15 +29,16 @@ export default {
         rows.push({
           key,
           value:  data[key],
-          binary: false,
+          binary: false
         });
       });
 
+      // we define the binary as false so that the ui doesn't display the size of the binary instead of the actual data...
       Object.keys(binaryData).forEach((key) => {
         rows.push({
           key,
-          value:  binaryData[key],
-          binary: true,
+          value:  base64Decode(binaryData[key]),
+          binary: false
         });
       });
 

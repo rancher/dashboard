@@ -49,7 +49,8 @@ export default Vue.extend<Data, any, any, any>({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
-      return !Object.values(this.validFields).includes(false);
+      // return !Object.values(this.validFields).includes(false); // Validation does not work, and will be replaced with generic process
+      return !!this.value?.metadata.name;
     },
   },
 
@@ -102,48 +103,46 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <div>
-    <Loading v-if="!value || namespaces.length === 0" />
-    <CruResource
-      v-if="value && namespaces.length > 0"
-      :min-height="'7em'"
+  <Loading v-if="!value || namespaces.length === 0" />
+  <CruResource
+    v-else-if="value && namespaces.length > 0"
+    :min-height="'7em'"
+    :mode="mode"
+    :done-route="doneRoute"
+    :resource="value"
+    :can-yaml="false"
+    :errors="errors"
+    :validation-passed="validationPassed"
+    @error="(e) => (errors = e)"
+    @finish="save"
+    @cancel="done"
+  >
+    <NameNsDescription
+      name-key="name"
+      namespace-key="namespace"
+      :namespaces-override="namespaces"
+      :description-hidden="true"
+      :value="value.metadata"
       :mode="mode"
-      :done-route="doneRoute"
-      :resource="value"
-      :can-yaml="false"
-      :errors="errors"
-      :validation-passed="validationPassed"
-      @error="(e) => (errors = e)"
-      @finish="save"
-      @cancel="done"
-    >
-      <NameNsDescription
-        name-key="name"
-        namespace-key="namespace"
-        :namespaces-override="namespaces"
-        :description-hidden="true"
-        :value="value.metadata"
-        :mode="mode"
-        :min-height="90"
-        :validators="[ meetsNameRequirements ]"
-        @setValid="setValid('name', $event)"
-      />
+      :min-height="90"
+      :validators="[ meetsNameRequirements ]"
+      @setValid="setValid('name', $event)"
+    />
 
-      <div class="row">
-        <div class="col span-11">
-          <KeyValue
-            :value="value.data"
-            :initial-empty-row="true"
-            :mode="mode"
-            :title="t('epinio.configurations.pairs.label')"
-            :title-protip="t('epinio.configurations.pairs.tooltip')"
-            :key-label="t('epinio.applications.create.envvar.keyLabel')"
-            :value-label="t('epinio.applications.create.envvar.valueLabel')"
-            :parse-lines-from-file="true"
-            @input="setData($event)"
-          />
-        </div>
+    <div class="row">
+      <div class="col span-11">
+        <KeyValue
+          :value="value.data"
+          :initial-empty-row="true"
+          :mode="mode"
+          :title="t('epinio.configurations.pairs.label')"
+          :title-protip="t('epinio.configurations.pairs.tooltip')"
+          :key-label="t('epinio.applications.create.envvar.keyLabel')"
+          :value-label="t('epinio.applications.create.envvar.valueLabel')"
+          :parse-lines-from-file="true"
+          @input="setData($event)"
+        />
       </div>
-    </CruResource>
-  </div>
+    </div>
+  </CruResource>
 </template>

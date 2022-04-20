@@ -62,6 +62,11 @@ export default {
       type:    String,
       default: null,
     },
+
+    flexContent: {
+      type:    Boolean,
+      default: false,
+    }
   },
   async fetch() {
     const store = this.$store;
@@ -346,6 +351,7 @@ export default {
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value.doneOverride"
+      :class="{'flex-content': flexContent}"
     />
 
     <component
@@ -360,6 +366,7 @@ export default {
       :initial-value="initialModel"
       :live-value="liveModel"
       :real-mode="realMode"
+      :class="{'flex-content': flexContent}"
       @set-subtype="setSubtype"
     />
 
@@ -369,3 +376,11 @@ export default {
     <button v-if="isView" v-shortkey.once="['e']" class="hide" @shortkey="keyAction('goToEdit')" />
   </div>
 </template>
+
+<style lang='scss' scoped>
+.flex-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+</style>

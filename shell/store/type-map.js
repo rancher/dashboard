@@ -113,8 +113,8 @@
 //   mapWeight,
 //   continueOnMatch
 // )
-import { AGE, NAME, NAMESPACE, STATE } from '@shell/config/table-headers';
-import { COUNT, SCHEMA, MANAGEMENT } from '@shell/config/types';
+import { AGE, NAME, NAMESPACE as NAMESPACE_COL, STATE } from '@shell/config/table-headers';
+import { COUNT, SCHEMA, MANAGEMENT, NAMESPACE } from '@shell/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
@@ -133,6 +133,7 @@ import isObject from 'lodash/isObject';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
+import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -160,6 +161,7 @@ export const IF_HAVE = {
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
   HARVESTER_SINGLE_CLUSTER: 'harv-multi-cluster',
+  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -205,6 +207,15 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     headers(type, headers) {
+      headers.forEach((header) => {
+        // If on the client, then use the value getter if there is one
+        if (process.client && header.getValue) {
+          header.value = header.getValue;
+        }
+
+        delete header.getValue;
+      });
+
       store.commit(`${ module }/headers`, { type, headers });
     },
 
@@ -921,7 +932,7 @@ export const getters = {
           hasName = true;
           out.push(NAME);
           if ( namespaced ) {
-            out.push(NAMESPACE);
+            out.push(NAMESPACE_COL);
           }
         } else {
           out.push(fromSchema(col, rootGetters));
@@ -931,7 +942,7 @@ export const getters = {
       if ( !hasName ) {
         insertAt(out, 1, NAME);
         if ( namespaced ) {
-          insertAt(out, 2, NAMESPACE);
+          insertAt(out, 2, NAMESPACE_COL);
         }
       }
 
@@ -975,16 +986,16 @@ export const getters = {
         // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
         // We will use JsonPath to look up this value, which is costly - so if we can detect this format
         // Use a more efficient function to get the value
-        const field = col.field.startsWith('.') ? `$${ col.field }` : col.field;
-        const found = field.match(FIELD_REGEX);
-        let value;
+        let value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
 
-        if (found && found.length === 2) {
-          const fieldIndex = parseInt(found[1], 10);
+        if (process.client) {
+          const found = value.match(FIELD_REGEX);
 
-          value = rowValueGetter(fieldIndex);
-        } else {
-          value = field;
+          if (found && found.length === 2) {
+            const fieldIndex = parseInt(found[1], 10);
+
+            value = rowValueGetter(fieldIndex);
+          }
         }
 
         return {
@@ -1690,6 +1701,9 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
     return getters.isSingleVirtualCluster;
+  }
+  case IF_HAVE.NEUVECTOR_NAMESPACE: {
+    return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);
   }
   default:
     return false;

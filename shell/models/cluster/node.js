@@ -188,7 +188,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podConsumed() {
-    return this.runningPods.length;
+    return this.pods.length;
   }
 
   get isPidPressureOk() {
@@ -346,10 +346,6 @@ export default class ClusterNode extends SteveModel {
     const allPods = this.$rootGetters['cluster/all'](POD);
 
     return allPods.filter(pod => pod.spec.nodeName === this.name);
-  }
-
-  get runningPods() {
-    return this.pods.filter(pod => pod.isRunning);
   }
 
   get confirmRemove() {
