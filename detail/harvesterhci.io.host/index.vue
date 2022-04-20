@@ -80,7 +80,7 @@ export default {
           originPath:     d?.spec?.fileSystem?.mountPoint,
           path:           d?.spec?.fileSystem?.mountPoint,
           blockDevice:    d,
-          displayName:    d?.spec?.devPath,
+          displayName:    d?.displayName,
           forceFormatted: d?.spec?.fileSystem?.forceFormatted || false,
         };
       });
@@ -129,7 +129,7 @@ export default {
           storageMaximum:   formatSi(diskStatus[key]?.storageMaximum, formatOptions),
           storageScheduled: formatSi(diskStatus[key]?.storageScheduled, formatOptions),
           blockDevice,
-          displayName:      blockDevice?.spec?.devPath || key,
+          displayName:      key,
           forceFormatted:   blockDevice?.spec?.fileSystem?.forceFormatted || false,
         };
       });
