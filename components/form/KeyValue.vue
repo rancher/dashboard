@@ -313,10 +313,15 @@ export default {
       this.rows.push(obj);
       this.queueUpdate();
       this.$nextTick(() => {
-        const keys = this.$refs.key;
-        const lastKey = keys[keys.length - 1];
+        if (this.$refs.key) {
+          const keys = this.$refs.key;
 
-        lastKey.focus();
+          const lastKey = keys[keys.length - 1];
+
+          lastKey.focus();
+        } else {
+          this.$emit('focusKey');
+        }
       });
     },
     remove(idx) {
@@ -489,6 +494,7 @@ export default {
             :mode="mode"
             :keyName="keyName"
             :valueName="valueName"
+            :queueUpdate="queueUpdate"
           >
             <Select
               v-if="keyOptions"
@@ -558,7 +564,7 @@ export default {
           class="kv-item remove"
           :data-testid="`remove-column-${i}`"
         >
-          <slot name="removeButton" :remove="remove" :row="row">
+          <slot name="removeButton" :remove="remove" :row="row" :i="i">
             <button type="button" :disabled="isView" class="btn role-link" @click="remove(i)">
               {{ removeLabel || t('generic.remove') }}
             </button>

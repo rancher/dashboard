@@ -231,7 +231,7 @@ export default {
         });
       }
 
-      if ( this.hasEdit ) {
+      if ( this.hasEdit && this.parent?.showConfigView !== false) {
         out.push({
           labelKey: 'resourceDetail.masthead.config',
           value:    'config',

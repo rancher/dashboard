@@ -1,6 +1,7 @@
 <script>
 import ButtonDropdown from '@/components/ButtonDropdown';
 import { mapGetters } from 'vuex';
+import { OFF } from '@/models/harvester/kubevirt.io.virtualmachine';
 
 export default {
   name: 'VMConsoleBar',
@@ -20,8 +21,8 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    isRunning() {
-      return !!this.resource.isRunning;
+    isOff() {
+      return this.resource.stateDisplay === OFF;
     },
 
     options() {
@@ -66,8 +67,8 @@ export default {
 <template>
   <div class="overview-web-console">
     <ButtonDropdown
-      :disabled="!isRunning"
-      :no-drop="!isRunning"
+      :disabled="isOff"
+      :no-drop="isOff"
       button-label="Console"
       :dropdown-options="options"
       size="sm"

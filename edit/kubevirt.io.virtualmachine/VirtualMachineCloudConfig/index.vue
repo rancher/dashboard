@@ -133,6 +133,10 @@ export default {
       }
     },
 
+    updateTemplateId(type, id) {
+      this.$emit('updateDataTemplateId', type, id);
+    },
+
     show(templateType) {
       this.templateType = templateType;
       this.$modal.show('createCloudTemplate');
@@ -196,6 +200,7 @@ export default {
         :options="optionUser"
         @show="show"
         @update="update"
+        @updateTemplateId="updateTemplateId"
       />
     </div>
 

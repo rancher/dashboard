@@ -5457,6 +5457,7 @@ harvester:
     version: Version
   host:
     label: Hosts
+    inconsistentIP: "Host IP is inconsistent, current IP: { currentIP }, initial IP: { initIP }"
     promote:
       none: ' '
       running: promoting
@@ -5565,6 +5566,7 @@ harvester:
         Detach Volume
     restartTip: Restart the virtual machine now to take effect of the configuration changes.
     createRunning: Start virtual machine on creation
+    runStrategy: Run Strategy
     restartNow: Restart Now
     createSSHKey: Create a New...
     installAgent: Install guest agent
@@ -5573,6 +5575,7 @@ harvester:
     sshTitle: Add Public SSH Key
     imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
     efiEnabled: Booting in EFI mode
+    secureBoot: Secure Boot
     volume:
       dragTip: Drag and drop volumes, or use the volume's arrows, to change the boot order.
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
@@ -6430,6 +6433,7 @@ advancedSettings:
     'harv-support-bundle-namespaces': Specify resources in other namespaces to be collected by the support package.
     'harv-auto-disk-provision-paths': Specify the disks(using glob pattern) that Harvester will automatically add as VM storage.
     'harv-support-bundle-image': Support bundle image configuration. Find different versions in <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a>.
+    'harv-release-download-url': This setting allows you to configure the <code>upgrade release download</code> URL address. Harvester will get the ISO URL and checksum value from the (<code>$URL</code>/<code>$VERSION</code>/version.yaml) file hosted by the configured URL.
     'harvester-monitoring': Specifies the monitoring configuration that the Harvester's built-in Prometheus will use.
     'hide-local-cluster': Hide the local cluster
   editHelp:

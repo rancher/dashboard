@@ -1,5 +1,6 @@
 <script>
 import compact from 'lodash/compact';
+import { OFF } from '@/models/harvester/kubevirt.io.virtualmachine';
 import { get } from '@/utils/object';
 import { isIpv4 } from '@/utils/string';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
@@ -51,13 +52,17 @@ export default {
       return (resource?.status?.interfaces || []).filter((O) => {
         return isIpv4(O.ipAddress);
       }).map(O => O.ipAddress);
+    },
+
+    showIP() {
+      return this.row.stateDisplay !== OFF;
     }
   },
 };
 </script>
 
 <template>
-  <div>
+  <div v-if="showIP">
     <span v-for="(ipValue) in ip" :key="ipValue">
       {{ ipValue }}<CopyToClipboard :text="ipValue" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
     </span>
