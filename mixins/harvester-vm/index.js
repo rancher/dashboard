@@ -858,8 +858,10 @@ export default {
       const _QGA_JSON = this.getMatchQGA(osType);
 
       userDataJson.package_update = true;
-      if (Array.isArray(userDataJson.packages) && !userDataJson.packages.includes('qemu-guest-agent')) {
-        userDataJson.packages.push('qemu-guest-agent');
+      if (Array.isArray(userDataJson.packages)) {
+        if (!userDataJson.packages.includes('qemu-guest-agent')) {
+          userDataJson.packages.push('qemu-guest-agent');
+        }
       } else {
         userDataJson.packages = QGA_JSON.packages;
       }
@@ -1195,7 +1197,7 @@ export default {
           if (imageName && this.isCreate && oldImageId === imageId) {
             OS.find( (os) => {
               if (os.match) {
-                const hasMatch = os.match.find(mactchValue => imageName.toLowerCase().includes(mactchValue));
+                const hasMatch = os.match.find(matchValue => imageName.toLowerCase().includes(matchValue));
 
                 if (hasMatch) {
                   this.osType = os.value;

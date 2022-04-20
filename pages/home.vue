@@ -7,21 +7,20 @@ import SortableTable from '@/components/SortableTable';
 import BadgeState from '@/components/BadgeState';
 import CommunityLinks from '@/components/CommunityLinks';
 import SimpleBox from '@/components/SimpleBox';
-import LandingPagePreference from '@/components/LandingPagePreference';
 import SingleClusterInfo from '@/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI } from '@/config/types';
 import { NAME as MANAGER } from '@/config/product/manager';
 import { STATE } from '@/config/table-headers';
 import { MODE, _IMPORT } from '@/config/query-params';
-import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
+import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@/utils/units';
 import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@/utils/version';
 import PageHeaderActions from '@/mixins/page-actions';
 import { getVendor } from '@/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@/store/features';
 import { SETTING } from '@/config/settings';
 import { BLANK_CLUSTER } from '@/store';
-import { filterOnlyKubernetesClusters } from '@/utils/cluster';
+import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@/utils/cluster';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@/config/page-actions';
 
@@ -36,8 +35,7 @@ export default {
     BadgeState,
     CommunityLinks,
     SimpleBox,
-    LandingPagePreference,
-    SingleClusterInfo
+    SingleClusterInfo,
   },
 
   mixins: [PageHeaderActions],
@@ -57,7 +55,7 @@ export default {
         labelKey: 'nav.header.setLoginPage',
         action:   SET_LOGIN_ACTION
       },
-      { seperator: true },
+      { separator: true },
       {
         labelKey: 'nav.header.restoreCards',
         action:   RESET_CARDS_ACTION
@@ -110,6 +108,10 @@ export default {
       return readReleaseNotes(this.$store);
     },
 
+    showSetLoginBanner() {
+      return this.homePageCards?.setLoginPage;
+    },
+
     showSidePanel() {
       return this.showCommercialSupport || this.showCommunityLinks;
     },
@@ -150,10 +152,12 @@ export default {
 
         },
         {
-          label: this.t('tableHeaders.pods'),
-          name:  'pods',
-          value: '',
-          sort:  ['status.allocatable.pods', 'status.available.pods']
+          label:        this.t('tableHeaders.pods'),
+          name:         'pods',
+          value:        '',
+          sort:         ['status.allocatable.pods', 'status.available.pods'],
+          formatter:    'PodsUsage',
+          delayLoading: true
         },
         // {
         //   name:  'explorer',
@@ -183,7 +187,7 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId']),
 
     kubeClusters() {
-      return filterOnlyKubernetesClusters(this.clusters);
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.clusters), this.$store);
     }
   },
 
@@ -219,19 +223,17 @@ export default {
     cpuAllocatable(cluster) {
       return parseSi(cluster.status.allocatable?.cpu);
     },
-
-    memoryUsed(cluster) {
-      const parsedUsed = (parseSi(cluster.status.requested?.memory) || 0).toString();
-      const format = createMemoryFormat(parsedUsed);
-
-      return formatSi(parsedUsed, format);
-    },
-
     memoryAllocatable(cluster) {
       const parsedAllocatable = (parseSi(cluster.status.allocatable?.memory) || 0).toString();
       const format = createMemoryFormat(parsedAllocatable);
 
       return formatSi(parsedAllocatable, format);
+    },
+
+    memoryReserved(cluster) {
+      const memValues = createMemoryValues(cluster?.status?.allocatable?.memory, cluster?.status?.requested?.memory);
+
+      return `${ memValues.useful }/${ memValues.total } ${ memValues.units }`;
     },
 
     showWhatsNew() {
@@ -240,9 +242,28 @@ export default {
       this.$router.push({ name: 'docs-doc', params: { doc: 'whats-new' } });
     },
 
+    showUserPrefs() {
+      this.$router.push({ name: 'prefs' });
+    },
+
     async resetCards() {
       await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value: {} });
       await this.$store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: '' });
+    },
+
+    async closeSetLoginBanner(retry = 0) {
+      let value = this.$store.getters['prefs/get'](HIDE_HOME_PAGE_CARDS);
+
+      if (value === true || value === false || value.length > 0) {
+        value = {};
+      }
+      value.setLoginPage = true;
+
+      const res = await this.$store.dispatch('prefs/set', { key: HIDE_HOME_PAGE_CARDS, value });
+
+      if (retry === 0 && res?.type === 'error' && res?.status === 500) {
+        await this.closeSetLoginBanner(retry + 1);
+      }
     }
   }
 };
@@ -279,9 +300,16 @@ export default {
               </nuxt-link>
             </div>
           </SimpleBox>
-          <SimpleBox :title="t('landing.landingPrefs.title')" :pref="HIDE_HOME_PAGE_CARDS" pref-key="setLoginPage" class="panel">
-            <LandingPagePreference />
-          </SimpleBox>
+
+          <div v-if="!showSetLoginBanner" class="mt-5 mb-10 row">
+            <div class="col span-12">
+              <Banner color="set-login-page" :closable="true" @close="closeSetLoginBanner()">
+                <div>{{ t('landing.landingPrefs.title') }}</div>
+                <a class="hand mr-20" @click.prevent.stop="showUserPrefs"><span v-html="t('landing.landingPrefs.userPrefs')" /></a>
+              </Banner>
+            </div>
+          </div>
+
           <div class="row panel">
             <div v-if="mcm" class="col span-12">
               <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="kubeClusters" :headers="clusterHeaders">
@@ -319,7 +347,7 @@ export default {
                 </template>
                 <template #col:cpu="{row}">
                   <td v-if="cpuAllocatable(row)">
-                    {{ `${cpuUsed(row)}/${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
+                    {{ `${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
                   </td>
                   <td v-else>
                     &mdash;
@@ -327,15 +355,7 @@ export default {
                 </template>
                 <template #col:memory="{row}">
                   <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
-                    {{ `${memoryUsed(row)}/${memoryAllocatable(row)}` }}
-                  </td>
-                  <td v-else>
-                    &mdash;
-                  </td>
-                </template>
-                <template #col:pods="{row}">
-                  <td v-if="row.status.allocatable && row.status.allocatable.pods!== '0'">
-                    {{ `${row.status.requested.pods}/${row.status.allocatable.pods}` }}
+                    {{ memoryAllocatable(row) }}
                   </td>
                   <td v-else>
                     &mdash;
@@ -369,7 +389,7 @@ export default {
   </div>
 </template>
 <style lang='scss' scoped>
-  .banner.info.whats-new {
+  .banner.info.whats-new, .banner.set-login-page {
     border: 0;
     margin-top: 10px;
     display: flex;
@@ -381,6 +401,9 @@ export default {
     > a {
       align-self: flex-end;
     }
+  }
+  .banner.set-login-page {
+    border: 1px solid var(--border);
   }
   .table-heading {
     align-items: center;

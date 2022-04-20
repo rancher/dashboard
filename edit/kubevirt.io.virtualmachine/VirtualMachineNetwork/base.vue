@@ -104,7 +104,7 @@ export default {
       return out;
     },
 
-    typeOpton() {
+    typeOption() {
       const masquerade = [{
         label: 'masquerade',
         value: 'masquerade'
@@ -116,10 +116,13 @@ export default {
       const other = [{
         label: 'bridge',
         value: 'bridge'
-      }, {
-        label: 'sriov',
-        value: 'sriov'
-      }];
+      }
+      // Temporarily Remove
+      // , {
+      //   label: 'sriov',
+      //   value: 'sriov'
+      // }
+      ];
 
       return this.isMasquerade ? masquerade : other;
     }
@@ -210,7 +213,7 @@ export default {
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
-            :options="typeOpton"
+            :options="typeOption"
             :mode="mode"
             required
             @input="update"

@@ -368,6 +368,7 @@ export default {
             :options="ipamOptions"
             :label="t('harvester.service.ipam.label')"
             :disabled="mode === 'edit'"
+            @input="queueUpdate"
           />
         </div>
         <div v-else>
@@ -377,6 +378,7 @@ export default {
             :options="ipamOptions"
             :label="t('harvester.service.ipam.label')"
             :disabled="true"
+            @input="queueUpdate"
           />
         </div>
       </div>

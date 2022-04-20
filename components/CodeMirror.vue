@@ -111,8 +111,12 @@ export default {
 </template>
 
 <style lang="scss">
-  .code-mirror .vue-codemirror .CodeMirror {
-    height: initial;
-    background: none
+  .code-mirror {
+    z-index: 0;
+
+    .vue-codemirror .CodeMirror {
+      height: initial;
+      background: none
+    }
   }
 </style>

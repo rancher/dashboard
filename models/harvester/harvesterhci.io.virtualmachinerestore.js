@@ -21,7 +21,7 @@ export default class HciVmRestore extends SteveModel {
       required:       true,
       minLength:      1,
       maxLength:      63,
-      translationKey: 'harvester.fields.virtaulName',
+      translationKey: 'harvester.fields.virtualName',
     }, {
       nullable:       false,
       path:           'spec.virtualMachineBackupName',

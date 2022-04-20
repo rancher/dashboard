@@ -5,11 +5,12 @@ module.exports = {
     node:    true
   },
   globals: { NodeJS: true, Timer: true },
+  plugins: ['jest'],
   extends: [
     'standard',
     'eslint:recommended',
     '@nuxtjs/eslint-config-typescript',
-    'plugin:cypress/recommended'
+    'plugin:cypress/recommended',
   ],
   // add your custom rules here
   rules: {
@@ -58,6 +59,9 @@ module.exports = {
     'no-trailing-spaces':                'warn',
     'no-undef':                          'warn',
     'no-unused-vars':                    'warn',
+    // Allow overload type definitions
+    'no-redeclare':                      'off',
+    '@typescript-eslint/no-redeclare':   ['error'],
     'no-whitespace-before-property':     'warn',
     'object-curly-spacing':              ['warn', 'always'],
     'object-property-newline':           'warn',
@@ -157,6 +161,8 @@ module.exports = {
     'vue/no-mutating-props':                'off',
     '@typescript-eslint/no-unused-vars':    'off',
     'array-callback-return':                'off',
+    'import/order':                         'off',
+    'import/no-named-as-default':           'off',
   },
   overrides: [
     {
@@ -168,6 +174,12 @@ module.exports = {
         'no-unreachable-loop':                  'off',
         'computed-property-spacing':            'off',
       }
-    }
+    },
+    {
+      files:   ['**/__tests__/*.{js,ts}'],
+      // Unnecessary Jest lint rules from full recommendation
+      rules:   { 'jest/prefer-expect-assertions': 'off' },
+      extends: ['plugin:jest/all']
+    },
   ]
 };

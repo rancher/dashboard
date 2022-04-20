@@ -92,16 +92,22 @@ export default class Pod extends SteveModel {
     }, { root: true });
   }
 
-  containerStateDisplay(container) {
-    const state = Object.keys(container.state || {})[0];
+  containerStateDisplay(status) {
+    const state = Object.keys(status.state || {})[0];
 
     return stateDisplay(state);
   }
 
-  containerStateColor(container) {
-    const state = Object.keys(container.state || {})[0];
+  containerStateColor(status) {
+    const state = Object.keys(status.state || {})[0];
 
     return colorForState(state);
+  }
+
+  containerIsInit(container) {
+    const { initContainers = [] } = this.spec;
+
+    return initContainers.includes(container);
   }
 
   get imageNames() {
@@ -165,5 +171,13 @@ export default class Pod extends SteveModel {
     const name = this.spec?.nodeName || this.$rootGetters['i18n/t']('generic.none');
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
+  }
+
+  get restartCount() {
+    if (this.status.containerStatuses) {
+      return this.status?.containerStatuses[0].restartCount || 0;
+    }
+
+    return 0;
   }
 }

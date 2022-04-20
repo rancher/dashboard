@@ -37,8 +37,13 @@ export default {
     }
   },
 
+  mounted() {
+    // Set initial value;
+    this.liveUpdate(day());
+  },
+
   data() {
-    return { label: this.update() };
+    return { label: '-' };
   },
 
   computed: {
@@ -56,6 +61,11 @@ export default {
     },
 
     suffixedLabel() {
+      if (!this.value) {
+        // If there is no value, then do not show the suffix
+        return this.label;
+      }
+
       let out = this.label || '';
 
       if (out && this.addSuffix) {
@@ -67,40 +77,42 @@ export default {
       }
 
       return out;
+    },
+
+    dayValue() {
+      if (!this.value) {
+        return null;
+      }
+
+      return day(this.value);
     }
   },
 
   watch: {
     value() {
-      this.update();
+      this.liveUpdate(day());
     }
   },
 
-  beforeDestroy() {
-    clearTimeout(this.timer);
-  },
-
   methods: {
-    update() {
-      if ( !this.value || this.value === 'null' ) {
-        this.label = null;
+    liveUpdate(now) {
+      if (!this.dayValue) {
+        if (this.label !== '-') {
+          this.label = '-';
+        }
 
-        return this.label;
+        return 300;
       }
 
-      clearTimeout(this.timer);
-
-      const value = day(this.value);
-      const now = day();
-      const diff = diffFrom(value, now);
+      const diff = diffFrom(this.dayValue, now);
       const prefix = (diff.diff < 0 || !this.addPrefix ? '' : '-');
-      const suffix = '';
+
       let label = diff.label;
 
       if ( diff === 0 ) {
         label = 'Just now';
       } else {
-        label += ` ${ prefix } ${ this.t(diff.unitsKey, { count: diff.label }) } ${ suffix }`;
+        label += ` ${ prefix } ${ this.t(diff.unitsKey, { count: diff.label }) }`;
         label = label.trim();
       }
 
@@ -108,12 +120,8 @@ export default {
         this.label = label;
       }
 
-      this.timer = setTimeout(() => {
-        this.update();
-      }, 1000 * diff.next);
-
-      return this.label;
-    }
+      return diff.next || 1;
+    },
   }
 };
 </script>

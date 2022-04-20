@@ -165,7 +165,7 @@ nav:
     separator: or
 
 product:
-  apps: Apps & Marketplace
+  apps: Apps
   auth: Users & Authentication
   backup: Rancher Backups
   cis: CIS Benchmark
@@ -1423,7 +1423,7 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke2-clusters/" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
 
   machinePool:
     name:
@@ -1587,6 +1587,7 @@ cluster:
       label: Drain Nodes
       toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
     address:
+      tooltip: Cluster networking values cannot be changed after the cluster is created.
       header: Addressing
       clusterCidr:
         label: Cluster CIDR
@@ -1639,6 +1640,7 @@ cluster:
         =1 { A snapshot has been requested for 1 cluster }
         other {A snapshot has been requested for {count} clusters}
       }
+    groupLabel: Location
   tabs:
     ace: Authorized Endpoint
     addons: Add-On Config
@@ -2014,7 +2016,7 @@ hpa:
       targetName: Target Name
       value: Value
     source: Source
-  objectReferance:
+  objectReference:
     api:
       label: Referent API Version
       placeholder: e.g. apps/v1beta1
@@ -2318,7 +2320,8 @@ landing:
   learnMore: Learn More
   gettingStarted:
     title: Getting Started
-    body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find you favorite features in the Dashboard UI.
+    body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find your favorite features in the Dashboard UI.
+  support: Support
   community:
     title: Community Support
     docs: Docs
@@ -2327,8 +2330,9 @@ landing:
     title: Commercial Support
     body: Learn about commercial support
   landingPrefs:
-    title: What do you want to see when you log in?
-    body: "You can change where you land when you login:"
+    title: You can change what you see when you login via preferences
+    userPrefs: Preferences
+    body: "You can change where you land when you login"
     options:
       homePage: Take me to the home page
       lastVisited: Take me to the area I last visited
@@ -3013,7 +3017,8 @@ networkpolicy:
         label: CIDR
         placeholder: e.g. 1.1.1.0/24
       addExcept: Add exception
-      invalidCidrs: "Invalid CIDRs: {invalidCidrs}"
+      invalidCidr: "Invalid CIDR"
+      invalidExceptionCidrs: "Invalid Exceptions: "
     podSelector:
       label: Pod Selector
     namespaceSelector:
@@ -3557,6 +3562,7 @@ projectNamespaces:
   createProject: Create Project
   label: Projects/Namespaces
   noNamespaces: There are no namespaces defined.
+  noProjectNoNamespaces: All namespaces are in a project
 
 prometheusRule:
   alertingRules:
@@ -3826,6 +3832,7 @@ resourceDetail:
     created: Created
     deleted: Deleted
     description: Description
+    endpoints: Endpoints
     labels: Labels
     ownerReferences: |-
       {count, plural,
@@ -3851,6 +3858,7 @@ resourceDetail:
     view: "{subtype} {name}"
   masthead:
     age: Age
+    restartCount: Pod Restarts
     defaultBannerMessage:
       error: This resource is currently in an error state, but there isn't a detailed message available.
       transitioning: This resource is currently in a transitioning state, but there isn't a detailed message available.
@@ -4525,6 +4533,7 @@ tableHeaders:
   persistentVolumeClaim: Persistent Volume Claim
   persistentVolumeSource: Source
   podImages: Image
+  podRestarts: Restarts
   pods: Pods
   port: Port
   protocol: Protocol
@@ -4973,7 +4982,7 @@ workload:
       supplementalGroups: Additional Group IDs
       sysctls: Sysctls
       sysctlsKey: Name
-    standard: Standard Containter
+    standard: Standard Container
     titles:
       container: Container
       command: Command
@@ -5400,7 +5409,7 @@ harvester:
     PhysicalNic: Physical NIC
     cpu: Cpu
     memory: Memory
-    virtaulName: Virtual machine name
+    virtualName: Virtual machine name
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
   generic:
@@ -5760,10 +5769,14 @@ harvester:
     succeeded: Succeeded
     pending: Pending
     repoInfo:
+      upgradeStatus: Upgrade Status
       os: OS
       kubernetes: Kubernetes
       monitoringChart: Monitoring Chart
       harvesterChart: Harvester Chart
+      success: Success
+      fail:  Fail
+      ongoing: on-going
     dismissMessage: Dismiss it
 
   backup:
@@ -5775,15 +5788,15 @@ harvester:
       noSetting:
         prefix: You must configure the backup target in
         middle: 'setting'
-        suffic: before creating a new backup.
+        suffix: before creating a new backup.
       errorTip:
         prefix: Backup Target value in
         middle: Setting
-        suffic: "is invalid, error: "
+        suffix: "is invalid, error: "
       viewSetting:
         prefix: Click
         middle: here
-        suffic: to view the backup config.
+        suffix: to view the backup config.
     restore:
       backup: Backup
       deletePreviousVolumes: Delete Previous Volumes
@@ -5802,15 +5815,15 @@ harvester:
       premise:
         prefix: 'You must configure a network in'
         middle: 'Settings'
-        suffic: 'before creating a new network.'
+        suffix: 'before creating a new network.'
       viewSetting:
         prefix: Click
         middle: here
-        suffic: to view default cluster network config.
+        suffix: to view default cluster network config.
       errorTip:
         prefix: Physical NIC value in
         middle: Setting
-        suffic: "is invalid, error: "
+        suffix: "is invalid, error: "
     layer3Network:
       mode:
         label: Mode
@@ -5845,7 +5858,7 @@ harvester:
       ca:
         prefix: 'Click'
         middle: 'here'
-        suffic: 'to add a custom certificate.'
+        suffix: 'to add a custom certificate.'
     sslCertificates:
       publicCertificate: Public Certificate
       privateKey: Private Key
@@ -6025,7 +6038,7 @@ typeDescription:
   monitoring.coreos.com.prometheusrule: A Prometheus Rule resource defines both recording and/or alert rules. A recording rule can pre-compute values and save the results. Alerting rules allow you to define conditions on when to send notifications to AlertManager.
   monitoring.coreos.com.prometheus: A Prometheus server is a Prometheus deployment whose scrape configuration and rules are determined by selected ServiceMonitors, PodMonitors, and PrometheusRules and whose alerts will be sent to all selected Alertmanagers with the custom resource's configuration.
   monitoring.coreos.com.alertmanager: An alert manager is deployment whose configuration will be specified by a secret in the same namespace, which determines which alerts should go to which receiver.
-  node: The base Kubernetes Node resource represents a virtual or physical machine which hosts deployments. To manage the machine lifecyle, if available, go to Cluster Management.
+  node: The base Kubernetes Node resource represents a virtual or physical machine which hosts deployments. To manage the machine lifecycle, if available, go to Cluster Management.
   catalog.cattle.io.clusterrepo: 'A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster.'
   catalog.cattle.io.clusterrepo.local: ' A chart repository is a Helm repository or {vendor} git based application catalog. It provides the list of available charts in the cluster. Cluster Templates are deployed via Helm charts.'
   catalog.cattle.io.operation: An operation is the list of recent Helm operations that have been applied to the cluster.
@@ -6129,8 +6142,8 @@ typeLabel:
     }
   management.cattle.io.setting: |-
     {count, plural,
-      one { Advanced Setting }
-      other { Advanced Settings }
+      one { Setting }
+      other { Settings }
     }
   management.cattle.io.fleetworkspace: |-
     {count, plural,
@@ -6245,8 +6258,8 @@ typeLabel:
     }
   k8s.cni.cncf.io.networkattachmentdefinition: |-
     {count, plural,
-      one { Network }
-      other { Networks }
+      one { Network Attachment Definition }
+      other { Network Attachment Definitions }
     }
   harvesterhci.io.volume: |-
     {count, plural,
@@ -6363,7 +6376,7 @@ registryConfig:
 ##############################
 
 advancedSettings:
-  label: Advanced Settings
+  label: Settings
   subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'.
   show: Show
   hide: Hide
@@ -6401,6 +6414,7 @@ advancedSettings:
     'kubeconfig-token-ttl-minutes': 'Custom max TTL (in minutes) on a kubeconfig token.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
+    'custom-notifications': Edit custom notifications
     'ui-consent-banner': 'Banner is used to display a custom consent banner presented to users during login.'
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
@@ -6424,6 +6438,7 @@ advancedSettings:
     'harv-auto-disk-provision-paths': Specify the disks(using glob pattern) that Harvester will automatically add as VM storage.
     'harv-support-bundle-image': Support bundle image configuration. Find different versions in <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a>.
     'harvester-monitoring': Specifies the monitoring configuration that the Harvester's built-in Prometheus will use.
+    'hide-local-cluster': Hide the local cluster
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -6491,6 +6506,7 @@ banner:
   bannerFontSize:
     label: 'Font Size'
   consent: Consent Banner
+  consentFootnote: "Tip: Use \\n character for line break"
 
 branding:
   label: Branding
@@ -6508,7 +6524,7 @@ branding:
     suse: SUSE Theme
     custom: Define a Custom Theme
   uiPL:
-    label: Private Label Company Name
+    label: Private Label
   uiIssues:
     label: Support Links
     issuesUrl: Issue Reporting URL
@@ -6523,7 +6539,13 @@ branding:
     tip: You can override the link color used throughout the UI with a custom color of your choice.
     useCustom: Use a Custom Link Color
     example: Link Example
-
+notifications:
+  header: Custom notifications
+  menuLabel: 'Custom Notifications'
+  loginError:
+    header: Custom Error Messages
+    showCheckboxLabel: Show custom login error 
+    messageLabel: Text to display
 resourceQuota:
   label: Resource Quotas
   headers:

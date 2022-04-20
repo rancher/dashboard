@@ -1,4 +1,5 @@
 <script>
+import CompactInput from '@/mixins/compact-input';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
@@ -8,7 +9,7 @@ import { isValidCron } from 'cron-validator';
 
 export default {
   components: { LabeledTooltip, TextAreaAutoGrow },
-  mixins:     [LabeledFormElement],
+  mixins:     [LabeledFormElement, CompactInput],
 
   props: {
     type: {
@@ -54,7 +55,11 @@ export default {
 
   computed: {
     hasLabel() {
-      return !!this.label || !!this.labelKey || !!this.$slots.label;
+      return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
+    },
+
+    hasTooltip() {
+      return !!this.tooltip || !!this.tooltipKey;
     },
 
     hasSuffix() {
@@ -137,11 +142,13 @@ export default {
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
+      'has-tooltip': hasTooltip,
+      'compact-input': isCompact,
       hideArrows
     }"
   >
     <slot name="label">
-      <label>
+      <label v-if="hasLabel">
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
 
@@ -201,13 +208,15 @@ export default {
     <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
   </div>
 </template>
-
-<style lang="scss" scoped>
+<style scoped lang="scss">
+  .labeled-input.view {
+    input {
+      text-overflow: ellipsis;
+    }
+  }
 
 .hideArrows {
-  /* Hide arrows on number input
-when it overlaps with the unit */
-
+  /* Hide arrows on number input when it overlaps with the unit */
   /* Chrome, Safari, Edge, Opera */
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {

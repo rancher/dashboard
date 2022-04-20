@@ -259,7 +259,7 @@ export default {
       return out;
     },
 
-    memorysTotal() {
+    memoryTotal() {
       let out = 0;
 
       this.metricNodes.forEach((node) => {
@@ -269,7 +269,7 @@ export default {
       return out;
     },
 
-    memorysUsageTotal() {
+    memoryUsageTotal() {
       let out = 0;
 
       this.metricNodes.forEach((node) => {
@@ -406,7 +406,7 @@ export default {
         return sum;
       }, 0);
 
-      return this.createMemoryValues(this.memorysTotal, useful);
+      return this.createMemoryValues(this.memoryTotal, useful);
     },
 
     availableNodes() {

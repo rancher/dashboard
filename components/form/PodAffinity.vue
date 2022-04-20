@@ -10,6 +10,7 @@ import { randomStr } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import debounce from 'lodash/debounce';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
+import { getUniqueLabelKeys } from '@/utils/array';
 
 export default {
   components: {
@@ -28,7 +29,12 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    }
+    },
+
+    nodes: {
+      type:    Array,
+      default: () => []
+    },
   },
 
   data() {
@@ -93,6 +99,10 @@ export default {
 
       return out;
     },
+
+    existingNodeLabels() {
+      return getUniqueLabelKeys(this.nodes);
+    }
   },
   created() {
     this.queueUpdate = debounce(this.update, 500);
@@ -235,12 +245,18 @@ export default {
           <div class="spacer"></div>
           <div class="row">
             <div class="col span-12">
-              <LabeledInput
+              <LabeledSelect
                 v-model="props.row.value.topologyKey"
+                :taggable="true"
+                :searchable="true"
+                :close-on-select="false"
                 :mode="mode"
                 required
                 :label="t('workload.scheduling.affinity.topologyKey.label')"
                 :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+                :options="existingNodeLabels"
+                :disabled="mode==='view'"
+                @input="update"
               />
             </div>
           </div>

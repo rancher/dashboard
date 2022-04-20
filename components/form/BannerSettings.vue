@@ -7,6 +7,8 @@ import RadioGroup from '@/components/form/RadioGroup';
 import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default ({
+  name: 'BannerSettings',
+
   props: {
     value: {
       type:    Object,
@@ -93,6 +95,9 @@ export default ({
       ];
 
       return options;
+    },
+    isConsentBanner() {
+      return this.bannerType === 'bannerConsent';
     }
   }
 });
@@ -107,8 +112,15 @@ export default ({
             v-model="value[bannerType].text"
             :disabled="isUiDisabled"
             :label="t('banner.text')"
+            type="multiline"
           />
-          <div v-if="bannerType === 'bannerConsent'" class="mt-10">
+          <p
+            v-if="isConsentBanner"
+            class="banner-input-footnote mt-5 mb-20"
+          >
+            {{ t('banner.consentFootnote') }}
+          </p>
+          <div v-if="isConsentBanner" class="mt-10">
             <Checkbox
               v-model="showAsDialog"
               name="bannerDecoration"
@@ -180,6 +192,11 @@ export default ({
 </template>
 
 <style scoped lang='scss'>
+.banner-input-footnote {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
 .banner-decoration-checkbox {
   position: relative;
   display: inline-flex;

@@ -1,6 +1,4 @@
 <script>
-import { queryParamsFor } from '@/plugins/extend-router';
-import { SORT_BY, DESCENDING } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
 import { SOME, NONE } from './selection';
 
@@ -62,7 +60,11 @@ export default {
     noResults: {
       type:    Boolean,
       default: true,
-    }
+    },
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
   computed: {
@@ -99,25 +101,13 @@ export default {
     isCurrent(col) {
       return col.name === this.sortBy;
     },
-
-    queryFor(col) {
-      const query = queryParamsFor(this.$route.query, {
-        [SORT_BY]:    col.name,
-        [DESCENDING]: this.isCurrent(col) && !this.descending,
-      }, {
-        [SORT_BY]:    this.defaultSortBy,
-        [DESCENDING]: false,
-      });
-
-      return query;
-    },
   }
 };
 </script>
 
 <template>
   <thead>
-    <tr>
+    <tr :class="{'loading': loading}">
       <th v-if="tableActions" :width="checkWidth" align="middle">
         <Checkbox
           v-model="isAll"
@@ -135,7 +125,7 @@ export default {
         :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
         @click.prevent="changeSort($event, col)"
       >
-        <span v-if="col.sort" v-tooltip="col.tooltip" @click="$router.applyQuery(queryFor(col))">
+        <span v-if="col.sort" v-tooltip="col.tooltip">
           <span v-html="labelFor(col)" />
           <span class="icon-stack">
             <i class="icon icon-sort icon-stack-1x faded" />
@@ -166,9 +156,12 @@ export default {
   thead {
     tr {
       background-color: var(--sortable-table-header-bg);
-      border-bottom: 1px solid var(--sortable-table-top-divider);
       color: var(--body-text);
       text-align: left;
+
+      &:not(.loading) {
+        border-bottom: 1px solid var(--sortable-table-top-divider);
+      }
     }
   }
 

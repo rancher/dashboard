@@ -17,6 +17,7 @@ const dev = (process.env.NODE_ENV !== 'production');
 const devPorts = dev || process.env.DEV_PORTS === 'true';
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
+const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
 let api = process.env.API || 'http://localhost:8989';
 
@@ -73,6 +74,7 @@ module.exports = {
     version,
     dev,
     pl,
+    perfTest,
   },
 
   publicRuntimeConfig: { rancherEnv: process.env.RANCHER_ENV || 'web' },
@@ -154,7 +156,7 @@ module.exports = {
 
     extend(config, { isClient, isDev }) {
       if ( isDev ) {
-        config.devtool = 'eval-source-map';
+        config.devtool = 'cheap-module-source-map';
       } else {
         config.devtool = 'source-map';
       }
@@ -206,12 +208,8 @@ module.exports = {
         test:    /\.md$/,
         use:  [
           {
-            loader:  'url-loader',
-            options: {
-              name:     '[path][name].[ext]',
-              limit:    1,
-              esModule: false
-            },
+            loader:  'frontmatter-markdown-loader',
+            options: { mode: ['body'] }
           }
         ]
       });
@@ -237,7 +235,7 @@ module.exports = {
       plugins: [
         ['@babel/plugin-transform-modules-commonjs'],
         // Should be resolved in nuxt  v.2.15.5, see https://github.com/nuxt/nuxt.js/issues/9224#issuecomment-835742221
-        ['@babel/plugin-proposal-private-methods', { loose: true }]
+        ['@babel/plugin-proposal-private-methods', { loose: true }],
       ],
     }
   },
@@ -288,7 +286,6 @@ module.exports = {
     'cookie-universal-nuxt',
     'portal-vue/nuxt',
     '~/plugins/steve/rehydrate-all',
-    '@nuxt/content',
   ],
 
   // Vue plugins
@@ -375,7 +372,7 @@ function proxyMetaOpts(target) {
 function proxyOpts(target) {
   return {
     target,
-    secure: !dev,
+    secure: !devPorts,
     onProxyReq,
     onProxyReqWs,
     onError,
@@ -384,7 +381,7 @@ function proxyOpts(target) {
 }
 
 function onProxyRes(proxyRes, req, res) {
-  if (dev) {
+  if (devPorts) {
     proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
   }
 }

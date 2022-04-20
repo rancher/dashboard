@@ -28,7 +28,7 @@ export default {
   },
   methods: {
     async saveOverride(btnCb) {
-      this.errorrs = [];
+      this.errors = [];
       try {
         await Promise.all(this.bindings.map(binding => binding.save()));
 

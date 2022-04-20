@@ -146,7 +146,7 @@ export default class HciNode extends SteveModel {
     return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_SCHEDULABLE] === 'false' || this.spec.unschedulable;
   }
 
-  get isMigrateable() {
+  get isMigratable() {
     const states = ['in-progress', 'unavailable'];
 
     return !this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] && !this.isUnSchedulable && !states.includes(this.state);

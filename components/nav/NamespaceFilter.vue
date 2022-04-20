@@ -393,7 +393,7 @@ export default {
       }
     },
     mouseOver(event) {
-      const el = event.path.find(e => e.classList.contains('ns-option'));
+      const el = event?.path?.find(e => e.classList.contains('ns-option'));
 
       this.activeElement = el;
     },
@@ -582,6 +582,9 @@ export default {
     width: 280px;
     display: inline-block;
 
+    $glass-z-index: 2;
+    $dropdown-z-index: 1000;
+
     .ns-glass {
       height: 100vh;
       left: 0;
@@ -589,7 +592,7 @@ export default {
       position: absolute;
       top: 0;
       width: 100vw;
-      z-index: 2;
+      z-index: $glass-z-index;
     }
 
     .ns-controls {
@@ -641,7 +644,7 @@ export default {
       margin-top: -1px;
       padding-bottom: 10px;
       position: relative;
-      z-index: 1000;
+      z-index: $dropdown-z-index;
 
       .ns-options {
         max-height: 50vh;
@@ -726,7 +729,7 @@ export default {
       height: 40px;
       padding: 0 10px;
       position: relative;
-      z-index: 1000;
+      z-index: $dropdown-z-index;
 
       &.ns-open {
         border-bottom-left-radius: 0;

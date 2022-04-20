@@ -16,6 +16,7 @@ import WorkspaceSwitcher from './WorkspaceSwitcher';
 import HarvesterUpgrade from './HarvesterUpgrade.vue';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
+import { allHash } from '@/utils/promise';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -45,8 +46,9 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      show:        false,
-      showTooltip: false,
+      show:              false,
+      showTooltip:       false,
+      kubeConfigCopying: false,
       searchShortcut,
       shellShortcut,
       VIRTUAL,
@@ -237,6 +239,32 @@ export default {
 
         this.showTooltip = el && (el.clientWidth < el.scrollWidth);
       });
+    },
+
+    copyKubeConfig(event) {
+      const button = event.target?.parentElement;
+
+      if (this.kubeConfigCopying) {
+        return;
+      }
+
+      this.kubeConfigCopying = true;
+
+      if (button) {
+        button.classList.add('header-btn-active');
+      }
+
+      // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
+      allHash({
+        copy:     this.currentCluster.copyKubeConfig(),
+        minDelay: new Promise(resolve => setTimeout(resolve, 1000))
+      }).finally(() => {
+        this.kubeConfigCopying = false;
+
+        if (button) {
+          button.classList.remove('header-btn-active');
+        }
+      });
     }
   }
 };
@@ -350,9 +378,10 @@ export default {
             :disabled="!kubeConfigEnabled"
             type="button"
             class="btn header-btn role-tertiary"
-            @click="currentCluster.copyKubeConfig()"
+            @click="copyKubeConfig($event)"
           >
-            <i class="icon icon-copy icon-lg" />
+            <i v-if="kubeConfigCopying" class="icon icon-checkmark icon-lg" />
+            <i v-else class="icon icon-copy icon-lg" />
           </button>
         </template>
 
@@ -400,9 +429,9 @@ export default {
           <template slot="popover" class="user-menu">
             <ul class="list-unstyled dropdown" @click.stop="showPageActionsMenu(false)">
               <li v-for="a in pageActions" :key="a.label" class="user-menu-item">
-                <a v-if="!a.seperator" @click="pageAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
-                <div v-else class="menu-seperator">
-                  <div class="menu-seperator-line" />
+                <a v-if="!a.separator" @click="pageAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
+                <div v-else class="menu-separator">
+                  <div class="menu-separator-line" />
                 </div>
               </li>
             </ul>
@@ -626,6 +655,13 @@ export default {
         .btn:focus {
           box-shadow: none;
         }
+
+        > .header-btn {
+          &.header-btn-active, &.header-btn-active:hover {
+            background-color: var(--success);
+            color: var(--success-text);
+          }
+        }
       }
 
       .header-btn {
@@ -807,11 +843,11 @@ export default {
       }
     }
 
-    div.menu-seperator {
+    div.menu-separator {
       cursor: default;
       padding: 4px 0;
 
-      .menu-seperator-line {
+      .menu-separator-line {
         background-color: var(--border);
         height: 1px;
       }

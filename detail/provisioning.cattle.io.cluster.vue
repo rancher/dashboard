@@ -27,6 +27,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
+import { get } from '@/utils/object';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -156,6 +157,8 @@ export default {
       logOpen:   false,
       logSocket: null,
       logs:      [],
+
+      showWindowsWarning: false
     };
   },
 
@@ -164,7 +167,7 @@ export default {
       if (neu) {
         this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE });
       }
-    }
+    },
   },
 
   computed: {
@@ -314,7 +317,7 @@ export default {
         {
           name:          'name',
           labelKey:      'tableHeaders.name',
-          value:         'snapshotFile.name',
+          value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
         },
@@ -366,6 +369,14 @@ export default {
 
     timeFormatStr() {
       return escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+    },
+
+    hasWindowsMachine() {
+      return this.machines.some(machine => get(machine, 'status.nodeInfo.operatingSystem') === 'windows');
+    },
+
+    snapshotsGroupBy() {
+      return `$['metadata']['annotations']['etcdsnapshot.rke.io/storage']`;
     }
   },
 
@@ -480,6 +491,8 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
+    <Banner v-if="showWindowsWarning" color="error" :label="t('cluster.banner.os', { newOS: 'Windows', existingOS: 'Linux' })" />
+
     <Banner v-if="$fetchState.error" color="error" :label="$fetchState.error" />
     <ResourceTabs v-model="value" :default-tab="defaultTab">
       <Tab v-if="showMachines" name="machine-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="4">
@@ -589,7 +602,7 @@ export default {
       </Tab>
 
       <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
-        <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" />
+        <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
           <CopyCode class="m-10 p-10">
@@ -615,6 +628,8 @@ export default {
           :table-actions="value.isRke1"
           :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
           :search="false"
+          :groupable="true"
+          :group-by="snapshotsGroupBy"
         >
           <template #header-right>
             <AsyncButton
@@ -623,6 +638,13 @@ export default {
               :disabled="!isClusterReady"
               @click="takeSnapshot"
             />
+          </template>
+          <template #group-by="{group}">
+            <div class="group-bar">
+              <div class="group-tab">
+                {{ t('cluster.snapshot.groupLabel') }}: {{ group.key }}
+              </div>
+            </div>
           </template>
         </SortableTable>
       </Tab>

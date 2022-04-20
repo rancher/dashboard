@@ -76,10 +76,10 @@ export default {
     'value.spec.url'(neu) {
       const url = neu.trim();
       const suffixName = url.split('/').pop();
-      const fileSuffiic = suffixName.split('.').pop().toLowerCase();
+      const fileSuffix = suffixName.split('.').pop().toLowerCase();
 
       this.value.spec.url = url;
-      if (VM_IMAGE_FILE_FORMAT.includes(fileSuffiic)) {
+      if (VM_IMAGE_FILE_FORMAT.includes(fileSuffix)) {
         if (!this.value.spec.displayName) {
           this.$refs.nd.changeNameAndNamespace({
             text:     suffixName,

@@ -124,19 +124,19 @@ export default {
               <div v-if="metric.metricSource === 'Object'">
                 <div class="mb-5">
                   <label class="text-label">
-                    <t k="hpa.objectReferance.api.label" />:
+                    <t k="hpa.objectReference.api.label" />:
                   </label>
                   <span>{{ metric.subRowContent.objectApiVersion }}</span>
                 </div>
                 <div class="mb-5">
                   <label class="text-label">
-                    <t k="hpa.objectReferance.kind.label" />:
+                    <t k="hpa.objectReference.kind.label" />:
                   </label>
                   <span>{{ metric.subRowContent.objectKind }}</span>
                 </div>
                 <div class="mb-5">
                   <label class="text-label">
-                    <t k="hpa.objectReferance.name.label" />:
+                    <t k="hpa.objectReference.name.label" />:
                   </label>
                   <span>{{ metric.subRowContent.objectName }}</span>
                 </div>
