@@ -6,6 +6,7 @@ import LabeledTooltip from '@/components/form/LabeledTooltip';
 import { escapeHtml } from '@/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
+import { debounce } from 'lodash';
 
 export default {
   components: { LabeledTooltip, TextAreaAutoGrow },
@@ -50,6 +51,14 @@ export default {
     hideArrows: {
       type:    Boolean,
       default: false
+    },
+
+    /**
+     * Optionally delay on input while typing
+     */
+    delay: {
+      type:    Number,
+      default: 0
     }
   },
 
@@ -119,6 +128,14 @@ export default {
       }
     },
 
+    /**
+     * Emit on input with delay
+     * Note: Arrow function is avoided due context binding
+     */
+    onInput: debounce(function(value) {
+      this.$emit('input', value);
+    }, 500),
+
     onFocus() {
       this.onFocusLabeled();
     },
@@ -169,7 +186,7 @@ export default {
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        @input="$emit('input', $event)"
+        @input="onInput($event)"
         @focus="onFocus"
         @blur="onBlur"
       />
@@ -186,7 +203,7 @@ export default {
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        @input="$emit('input', $event.target.value)"
+        @input="onInput($event.target.value)"
         @focus="onFocus"
         @blur="onBlur"
       />
