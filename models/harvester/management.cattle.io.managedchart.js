@@ -1,3 +1,4 @@
+import isEqual from 'lodash/isEqual';
 import { HCI } from '@/config/types';
 import { clone } from '@/utils/object';
 import SteveModel from '@/plugins/steve/steve-class';
@@ -27,12 +28,14 @@ export default class HciManagedChart extends SteveModel {
   }
 
   get hasCustomized() {
-    const clonedValue = clone(this.spec.values.prometheus.prometheusSpec);
+    const clonedValue = clone({
+      prometheus:                 this.spec.values.prometheus.prometheusSpec,
+      'prometheus-node-exporter': this.spec.values['prometheus-node-exporter']
+    });
 
-    delete clonedValue.storageSpec;
-    const sort = Object.keys(clonedValue).sort();
+    delete clonedValue.prometheus.storageSpec;
 
-    return JSON.stringify(clonedValue, sort) !== JSON.stringify(this.defaultValue, sort);
+    return !isEqual(clonedValue.prometheus, this.defaultValue.prometheus) || !isEqual(clonedValue['prometheus-node-exporter'], this.defaultValue['prometheus-node-exporter']);
   }
 
   get displayName() {
@@ -66,25 +69,42 @@ export default class HciManagedChart extends SteveModel {
   }
 
   get customValue() {
-    const spec = this.spec.values.prometheus.prometheusSpec;
+    const out = {
+      prometheus:                 this.spec.values.prometheus.prometheusSpec,
+      'prometheus-node-exporter': this.spec.values['prometheus-node-exporter']
+    };
 
-    return spec ? JSON.stringify(spec, null, 2) : '';
+    return out ? JSON.stringify(out, null, 2) : '';
   }
 
   get defaultValue() {
     return {
-      evaluationInterval: '1m',
-      scrapeInterval:     '1m',
-      retention:          '5d',
-      retentionSize:      '50GiB',
-      resources:          {
-        limits: {
-          cpu:    '1000m',
-          memory: '3000Mi'
-        },
-        requests: {
-          cpu:    '750m',
-          memory: '750Mi'
+      prometheus: {
+        evaluationInterval: '1m',
+        scrapeInterval:     '1m',
+        retention:          '5d',
+        retentionSize:      '50GiB',
+        resources:          {
+          limits: {
+            cpu:    '1000m',
+            memory: '3000Mi'
+          },
+          requests: {
+            cpu:    '750m',
+            memory: '750Mi'
+          }
+        }
+      },
+      'prometheus-node-exporter': {
+        resources: {
+          limits: {
+            cpu:    '200m',
+            memory: '180Mi'
+          },
+          requests: {
+            cpu:    '100m',
+            memory: '30Mi'
+          }
         }
       }
     };
@@ -137,6 +157,30 @@ export default class HciManagedChart extends SteveModel {
       {
         nullable:       false,
         path:           'spec.values.prometheus.prometheusSpec.resources.limits.memory',
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.limits.memory'
+      },
+      {
+        nullable:       false,
+        path:           `spec.values.prometheus-node-exporter.resources.requests.cpu`,
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.requests.cpu'
+      },
+      {
+        nullable:       false,
+        path:           `spec.values.prometheus-node-exporter.resources.requests.memory`,
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.requests.memory'
+      },
+      {
+        nullable:       false,
+        path:           `spec.values.prometheus-node-exporter.resources.limits.cpu`,
+        required:       true,
+        translationKey: 'monitoring.prometheus.config.limits.cpu'
+      },
+      {
+        nullable:       false,
+        path:           `spec.values.prometheus-node-exporter.resources.limits.memory`,
         required:       true,
         translationKey: 'monitoring.prometheus.config.limits.memory'
       },

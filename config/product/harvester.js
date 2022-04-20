@@ -198,9 +198,10 @@ export function init(store) {
     },
     resource:       MANAGEMENT.MANAGED_CHART,
     resourceDetail: HCI.MANAGED_CHART,
-    resourceEdit:   HCI.MANAGED_CHART,
-    showState:      false
+    resourceEdit:   HCI.MANAGED_CHART
   });
+
+  configureType(MANAGEMENT.MANAGED_CHART, { showState: false });
 
   virtualType({
     labelKey:   'harvester.vmTemplate.label',
