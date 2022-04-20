@@ -2,12 +2,11 @@
 import * as d3 from 'd3';
 import { STATES } from '@/plugins/steve/resource-class';
 import BadgeState from '@/components/BadgeState';
-import CompoundStatusBadge from '@/components/fleet/CompoundStatusBadge';
 import { getChartIcon } from './chartIcons.js';
 
 export default {
   name:       'ForceDirectedTreeChart',
-  components: { BadgeState, CompoundStatusBadge },
+  components: { BadgeState },
   props:      {
     data: {
       type:     [Array, Object],
@@ -372,11 +371,12 @@ export default {
           <table>
             <tr v-for="(item, i) in moreInfo" :key="i">
               <td
-                v-if="item.type !== 'multiple-error'"
-                :class="{'align-middle': item.type === 'state-badge' || item.type === 'compound-status'}"
+                v-if="item.type !== 'single-error'"
+                :class="{'align-middle': item.type === 'state-badge'}"
               >
                 <span class="more-info-item-label">{{ t(item.labelKey) }}:</span>
               </td>
+              <!-- title template -->
               <td v-if="item.type === 'title-link'">
                 <span v-if="item.valueObj.detailLocation">
                   <n-link
@@ -388,7 +388,10 @@ export default {
                 <span v-else>{{ item.valueObj.id }}</span>
               </td>
               <!-- state-badge template -->
-              <td v-else-if="item.type === 'state-badge'" class="align-middle">
+              <td
+                v-else-if="item.type === 'state-badge'"
+                class="align-middle"
+              >
                 <span>
                   <BadgeState
                     :color="`bg-${item.valueObj.stateColor}`"
@@ -397,26 +400,16 @@ export default {
                   />
                 </span>
               </td>
-              <!-- compound-status template -->
-              <td v-else-if="item.type === 'compound-status'" class="align-middle">
-                <CompoundStatusBadge
-                  :badge-class="item.valueObj.badgeClass"
-                  :icon="item.valueObj.icon"
-                  :value="item.valueObj.value"
-                />
-              </td>
-              <!-- multiple-error template -->
+              <!-- single-error template -->
               <td
-                v-else-if="item.type === 'multiple-error'"
+                v-if="item.type === 'single-error'"
+                class="single-error"
                 colspan="2"
               >
-                <div v-for="(val, index) in item.value" :key="index" class="mb-10" v-html="val"></div>
+                <p>{{ item.value }}</p>
               </td>
               <!-- default template -->
-              <td
-                v-else
-                :class="{error: item.type === 'single-error'}"
-              >
+              <td v-else>
                 {{ item.value }}
               </td>
             </tr>
@@ -477,31 +470,32 @@ export default {
         }
       }
 
-      &.repo.active circle {
+      &.repo.active > circle {
         transform: scale(1.2);
       }
 
-      &.bundle.active circle {
+      &.bundle.active > circle {
         transform: scale(1.35);
       }
 
-      &.bundle-deployment.active circle {
+      &.bundle-deployment.active > circle {
         transform: scale(1.6);
       }
 
-      &.node-default-fill circle {
-        fill: #CCC;
+      &.node-default-fill > circle,
+      &.repo > circle {
+        fill: var(--muted);
       }
-      &.node-success circle {
+      &:not(.repo).node-success > circle {
         fill: var(--success);
       }
-      &.node-info circle {
+      &:not(.repo).node-info > circle {
         fill: var(--info);
       }
-      &.node-warning circle {
+      &:not(.repo).node-warning > circle {
         fill: var(--warning);
       }
-      &.node-error circle {
+      &:not(.repo).node-error > circle {
         fill: var(--error);
       }
 
@@ -537,7 +531,7 @@ export default {
       table {
         td {
           vertical-align: top;
-          padding-bottom: 5px;
+          padding-bottom: 10px;
 
           &.align-middle {
             vertical-align: middle;
@@ -549,12 +543,12 @@ export default {
           margin-right: 8px;
         }
 
-        .error {
+        .single-error {
           color: var(--error);
         }
 
         p {
-          margin-bottom: 5px;
+          line-height: 1.5em;
         }
       }
     }

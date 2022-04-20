@@ -1905,7 +1905,7 @@ fleet:
   fdc:
     loadingChart: Loading chart data...
     renderingChart: Rendering chart...
-    name: Name
+    id: ID
     type: Type
     state: State
     cluster: Cluster

@@ -1,4 +1,5 @@
 import { STATES } from '@/plugins/steve/resource-class';
+import { FLEET } from '@/config/types';
 
 // some default values
 const defaultNodeRadius = 20;
@@ -38,6 +39,7 @@ export const gitRepoGraphConfig = {
      * @param {String} stateDisplay
      * @param {String} stateColor
      * @param {String} matchingId
+     * @param {String} matchingId
      */
   parseData:   (data) => {
     const bundles = data.bundles.map((bundle, i) => {
@@ -59,7 +61,6 @@ export const gitRepoGraphConfig = {
 
       const bds = data.bundleDeployments.filter(bd => bundle.id === `${ bd.metadata?.labels?.['fleet.cattle.io/bundle-namespace'] }/${ bd.metadata?.labels?.['fleet.cattle.io/bundle-name'] }`);
 
-      console.log('bds', bds);
       bds.forEach((bd) => {
         const bdLowercaseState = bd.state ? bd.state.toLowerCase() : 'unknown';
         const bdStateColor = STATES[bdLowercaseState].color;
@@ -71,16 +72,17 @@ export const gitRepoGraphConfig = {
         });
 
         repoChild.children.push({
-          id:                 bd.id,
-          matchingId:         bd.id,
-          type:               bd.type,
-          clusterId:          cluster ? cluster.id : undefined,
-          state:              bd.state,
-          stateLabel:         bd.stateDisplay,
-          stateColor:         bdStateColor,
-          isBundleDeployment: true,
-          errorMsg:           bd.stateDescription,
-          detailLocation:     bd.detailLocation,
+          id:                    bd.id,
+          matchingId:            bd.id,
+          type:                  bd.type,
+          clusterId:             cluster ? cluster.id : undefined,
+          clusterDetailLocation: cluster ? cluster.detailLocation : undefined,
+          state:                 bd.state,
+          stateLabel:            bd.stateDisplay,
+          stateColor:            bdStateColor,
+          isBundleDeployment:    true,
+          errorMsg:              bd.stateDescription,
+          detailLocation:        bd.detailLocation,
         });
       });
 
@@ -134,7 +136,7 @@ export const gitRepoGraphConfig = {
     }
 
     if (d.data?.isBundleDeployment) {
-      return 'deployment';
+      return 'node';
     }
   },
   /**
@@ -163,10 +165,27 @@ export const gitRepoGraphConfig = {
      * Use @param {Obj} valueObj for compound values (usually associated with a template of some sort) or @param value for a simple straightforward value
      */
   infoDetails: (data) => {
+    let dataType;
+
+    switch (data.type) {
+    case FLEET.GIT_REPO:
+      dataType = 'GitRepo';
+      break;
+    case FLEET.BUNDLE:
+      dataType = 'Bundle';
+      break;
+    case FLEET.BUNDLE_DEPLOYMENT:
+      dataType = 'BundleDeployment';
+      break;
+    default:
+      dataType = data.type;
+      break;
+    }
+
     const moreInfo = [
       {
         type:     'title-link',
-        labelKey: 'fleet.fdc.name',
+        labelKey: 'fleet.fdc.id',
         valueObj: {
           id:             data.id,
           detailLocation: data.detailLocation
@@ -174,14 +193,18 @@ export const gitRepoGraphConfig = {
       },
       {
         labelKey:  'fleet.fdc.type',
-        value:    data.type
+        value:    dataType
       }
     ];
 
     if (data.isBundleDeployment) {
       moreInfo.push({
+        type:     'title-link',
         labelKey: 'fleet.fdc.cluster',
-        value:    data.clusterId
+        valueObj: {
+          id:             data.clusterId,
+          detailLocation: data.clusterDetailLocation
+        }
       });
     }
 
@@ -202,19 +225,6 @@ export const gitRepoGraphConfig = {
       });
     }
 
-    // if (data.perClusterState.find(item => item.error)) {
-    //   const err = [];
-
-    //   data.perClusterState.forEach((item) => {
-    //     err.push(`<p class="error">${ item.message } :::::: Cluster ID: ${ item.clusterId }</p>`);
-    //   });
-
-    //   moreInfo.push({
-    //     type:     'multiple-error',
-    //     labelKey: 'fleet.fdc.errors',
-    //     value:    err
-    //   });
-    // }
     return moreInfo;
   }
 };
