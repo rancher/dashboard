@@ -117,4 +117,15 @@ export default class Project extends HybridModel {
       return normanProject;
     })();
   }
+
+  // users with permissions for projectroletemplatebindings should be able to manage members on projects
+  get canUpdate() {
+    const canUpdateRoleBindings = this.$rootGetters['type-map/optionsFor']('management.cattle.io.projectroletemplatebindings');
+
+    return super.canUpdate || canUpdateRoleBindings.isEditable;
+  }
+
+  get canEditYaml() {
+    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : super.canUpdate;
+  }
 }

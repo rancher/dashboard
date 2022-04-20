@@ -101,6 +101,10 @@ export default {
       type:    String,
       default: 'nameNsDescription.description.placeholder',
     },
+    descriptionDisabled: {
+      type:    Boolean,
+      default: false,
+    },
     // Use specific fields on the value instead of the normal metadata locations
     nameKey: {
       type:    String,
@@ -334,6 +338,7 @@ export default {
           key="description"
           v-model="description"
           :mode="mode"
+          :disabled="descriptionDisabled"
           :label="t(descriptionLabel)"
           :placeholder="t(descriptionPlaceholder)"
           :min-height="30"
