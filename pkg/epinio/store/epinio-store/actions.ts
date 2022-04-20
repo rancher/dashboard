@@ -154,12 +154,6 @@ export default {
     }
   },
 
-  loadManagement(ctx: any) {
-    const { dispatch } = ctx;
-
-    dispatch(`${ EPINIO_MGMT_STORE }/loadManagement`, null, { root: true });
-  },
-
   async onLogout({ dispatch, commit }: any) {
     await dispatch(`unsubscribe`);
     await commit('reset');

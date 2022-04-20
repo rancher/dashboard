@@ -19,21 +19,17 @@ import { KEY } from '@shell/utils/platform';
 
 export default {
   data() {
-    const product = this.$store.getters['currentProduct'];
-
     return {
       isOpen:        false,
       filter:        '',
       hidden:        0,
       total:         0,
       activeElement: null,
-      product,
-      inStore:        product.inStore
     };
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster']),
+    ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster', 'currentProduct']),
 
     hasFilter() {
       return this.filter.length > 0;
@@ -85,15 +81,17 @@ export default {
     },
 
     key() {
-      return createNamespaceFilterKey(this.$store.getters['clusterId'], this.product);
+      return createNamespaceFilterKey(this.$store.getters['clusterId'], this.currentProduct);
     },
 
     options() {
       const t = this.$store.getters['i18n/t'];
       let out = [];
 
-      if (this.product.customNamespaceFilter) {
-        return this.$store.getters[`${ this.inStore }/namespaceFilterOptions`]({
+      if (this.currentProduct.customNamespaceFilter) {
+        // Sometimes the component can show before the 'currentProduct' has caught up, so access the product via the getter rather
+        // than caching it in the `fetch`
+        return this.$store.getters[`${ this.currentProduct.inStore }/namespaceFilterOptions`]({
           addNamespace,
           divider
         });
@@ -254,7 +252,7 @@ export default {
     value: {
       get() {
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
-        const prefDefault = this.product.customNamespaceFilter ? [] : [ALL_USER];
+        const prefDefault = this.currentProduct.customNamespaceFilter ? [] : [ALL_USER];
         const values = prefs[this.key] || prefDefault;
         const options = this.options;
 
@@ -295,7 +293,7 @@ export default {
         // If there was something selected and you remove it, go back to user by default
         // Unless it was user or all
         if (neu.length === 0 && !hadUser && !hadAll) {
-          ids = this.product.customNamespaceFilter ? [] : [ALL_USER];
+          ids = this.currentProduct.customNamespaceFilter ? [] : [ALL_USER];
         } else {
           ids = neu.map(x => x.id);
         }

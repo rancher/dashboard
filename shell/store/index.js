@@ -630,9 +630,12 @@ export const actions = {
   }, {
     id, oldProduct, oldPkg, newPkg
   }) {
+    const sameCluster = state.clusterId && state.clusterId === id;
+    const samePackage = oldPkg?.name === newPkg?.name;
     const isMultiCluster = getters['isMultiCluster'];
 
-    if ( state.clusterId && state.clusterId === id) {
+    // Are we in the same package and cluster?
+    if ( sameCluster && samePackage) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
@@ -650,7 +653,8 @@ export const actions = {
       s => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
 
-    if ( state.clusterId && id ) {
+    // Should we leave/forget the current cluster?
+    if ( (state.clusterId && id) || !samePackage) {
       // Clear the old cluster state out if switching to a new one.
       // If there is not an id then stay connected to the old one behind the scenes,
       // so that the nav and header stay the same when going to things like prefs
@@ -676,33 +680,41 @@ export const actions = {
     }
 
     if ( id ) {
-      // Remember the new one
+      // Remember the current cluster
       dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
       commit('setCluster', id);
-    } else if ( isMultiCluster ) {
+
+      // Use a pseudo cluster ID to pretend we have a cluster... to ensure some screens that don't care about a cluster but 'require' one to show
+      if (id === BLANK_CLUSTER) {
+        commit('clusterChanged', true);
+
+        return;
+      }
+    } else {
+      // Forget the current cluster
+      commit('setCluster', undefined);
       // Switching to a global page with no cluster id, keep it the same.
-      return;
+      if ( isMultiCluster ) {
+        return;
+      }
     }
 
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
-    if (id === BLANK_CLUSTER) {
-      commit('clusterChanged', true);
-
-      return;
-    }
-
+    // If we've entered a new store ensure everything has loaded correctly
     if (newPkgClusterStore) {
       // Mirror actions on the 'cluster' store for our specific pkg `cluster` store
       dispatch(`${ newPkgClusterStore }/loadSchemas`, true);
       await dispatch(`${ newPkgClusterStore }/loadCluster`, { id });
 
       commit('clusterChanged', true);
-      console.log('Done loading pkg cluster.'); // eslint-disable-line no-console
+      console.log('Done loading pkg cluster:', newPkgClusterStore); // eslint-disable-line no-console
 
       // Everything below here is rancher/kube cluster specific
       return;
     }
+
+    // Execute Rancher cluster specific code
 
     // This is a workaround for a timing issue where the mgmt cluster schema may not be available
     // Try and wait until the schema exists before proceeding

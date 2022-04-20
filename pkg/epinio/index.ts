@@ -6,19 +6,19 @@ import epinioRoutes from './routing/epinio-routing';
 
 // TODO: RC rename plugin-dev to `dev-2.6.6`
 // TODO: RC merge latest master
-// TODO: RC review old epinio PRs comments
-// TODO: RC review new epinio PRs comments
 // TODO: RC Test standalone
-// TODO: RC Nav Bugs
-// - Explorer --> Burger Menu Epinio link
+// TODO: RC prompt remove (explorer, epinio)
 // TODO: RC Create config
 // TODO: RC Create app
 // -- file selector
-// TODO: RC prompt remove (explorer, epinio)
-// TODO: RC BUG - Switch NS
+// TODO: RC X Nav Bugs
+// - X Explorer --> Burger Menu Epinio link
+// TODO: RC x BUG - Switch NS
+// TODO: RC X review old epinio PRs comments
+// TODO: RC X review new epinio PRs comments
 
 const onEnter: OnNavToPackage = async(store, config) => {
-  await store.dispatch(`${ epinioStore.config.namespace }/loadManagement`);
+  await store.dispatch(`${ epinioMgmtStore.config.namespace }/loadManagement`);
 };
 const onLeave: OnNavAwayFromPackage = async(store, config) => {
   // The dashboard retains the previous cluster info until another cluster is loaded, this helps when returning to the same cluster.

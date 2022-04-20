@@ -265,7 +265,6 @@ export default async function({
     const oldPkg = getPackageFromRoute(from);
     const oldProduct = from?.params?.product;
 
-    // -------------------------------------------------------------------
     // Leave an old pkg where we weren't before?
     const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find(p => p.name === oldPkg) : null;
 
@@ -311,7 +310,8 @@ export default async function({
       ];
 
       await Promise.all(res);
-    } else if ( clusterId ) {
+    } else {
+      // Always run loadCluster, it handles 'unload' as well
       // Run them in parallel
       await Promise.all([
         ...always,
@@ -321,25 +321,25 @@ export default async function({
           newPkg: newPkgPlugin,
           oldProduct,
         })]);
-    } else {
-      await Promise.all(always);
 
-      clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
-      const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
+      if (!clusterId) {
+        clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
+        const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
 
-      if (isSingleVirtualCluster) {
-        const value = {
-          name:   'c-cluster-product',
-          params: {
-            cluster: clusterId,
-            product: VIRTUAL,
-          },
-        };
+        if (isSingleVirtualCluster) {
+          const value = {
+            name:   'c-cluster-product',
+            params: {
+              cluster: clusterId,
+              product: VIRTUAL,
+            },
+          };
 
-        await store.dispatch('prefs/set', {
-          key: AFTER_LOGIN_ROUTE,
-          value,
-        });
+          await store.dispatch('prefs/set', {
+            key: AFTER_LOGIN_ROUTE,
+            value,
+          });
+        }
       }
     }
   } catch (e) {

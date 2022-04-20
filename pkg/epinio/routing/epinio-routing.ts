@@ -5,8 +5,6 @@ import { EPINIO_PRODUCT_NAME } from '../types';
 import CreateApp from '../pages/c/_cluster/applications/createapp/index.vue';
 import ListApp from '../pages/c/_cluster/applications/index.vue';
 import ListEpinio from '../pages/index.vue';
-import ViewEpinioBase from '../pages/c/index.vue';
-import ViewEpinio from '../pages/c/_cluster/index.vue';
 import ListEpinioResource from '../pages/c/_cluster/_resource/index.vue';
 import CreateEpinioResource from '../pages/c/_cluster/_resource/create.vue';
 import ViewEpinioResource from '../pages/c/_cluster/_resource/_id.vue';
@@ -24,14 +22,6 @@ const routes: RouteConfig[] = [{
   name:      `${ EPINIO_PRODUCT_NAME }`,
   path:      `/:product`,
   component: ListEpinio,
-}, {
-  name:      `${ EPINIO_PRODUCT_NAME }-c`,
-  path:      `/:product/c`,
-  component: ViewEpinioBase,
-}, {
-  name:      `${ EPINIO_PRODUCT_NAME }-c-cluster`,
-  path:      `/:product/c/:cluster`,
-  component: ViewEpinio,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-resource`,
   path:      `/:product/c/:cluster/:resource`,
