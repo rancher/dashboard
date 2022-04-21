@@ -102,7 +102,6 @@ export default {
           value: 'featured'
         }
       ]
-
     };
   },
 
