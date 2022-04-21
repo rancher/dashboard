@@ -60,9 +60,7 @@ export default {
     },
 
     canEditProject() {
-      const projectOptions = this.$store.getters['type-map/optionsFor'](MANAGEMENT.PROJECT);
-
-      return !!(this.value?.links?.update && projectOptions && projectOptions.isEditable);
+      return this.value?.links?.update;
     },
 
     isDescriptionDisabled() {
