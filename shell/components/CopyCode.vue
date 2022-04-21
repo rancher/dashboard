@@ -34,6 +34,7 @@ export default {
           this.copied = false;
         }, 2000);
       });
+      this.$emit('copied');
     },
   }
 };

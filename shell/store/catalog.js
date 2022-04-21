@@ -5,12 +5,13 @@ import { allHash, allHashSettled } from '@shell/utils/promise';
 import { clone } from '@shell/utils/object';
 import { findBy, addObject, filterBy, isArray } from '@shell/utils/array';
 import { stringify } from '@shell/utils/error';
-import { classify } from '@shell/plugins/steve/classify';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 import { sortBy } from '@shell/utils/sort';
 import { importChart } from '@shell/utils/dynamic-importer';
 import { ensureRegex } from '@shell/utils/string';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
+import { lookup } from '@shell/plugins/dashboard-store/model-loader';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -292,7 +293,11 @@ export const getters = {
 
   inStore(state) {
     return state.inStore;
-  }
+  },
+
+  classify: (state, getters, rootState) => (obj) => {
+    return lookup(state.config.namespace, obj?.type, obj?.metadata?.name, rootState);
+  },
 };
 
 export const mutations = {
@@ -603,6 +608,7 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
 }
 
 export function filterAndArrangeCharts(charts, {
+  clusterProvider = '',
   operatingSystems,
   category,
   searchQuery,
@@ -621,7 +627,9 @@ export function filterAndArrangeCharts(charts, {
       ( hideRepos?.length && hideRepos.includes(c.repoKey) ) ||
       ( showRepos?.length && !showRepos.includes(c.repoKey) ) ||
       ( hideTypes?.length && hideTypes.includes(c.chartType) ) ||
-      ( showTypes?.length && !showTypes.includes(c.chartType) ) ) {
+      ( showTypes?.length && !showTypes.includes(c.chartType) ) ||
+      (c.chartName === 'rancher-wins-upgrader' && clusterProvider === 'rke2')
+    ) {
       return false;
     }
 

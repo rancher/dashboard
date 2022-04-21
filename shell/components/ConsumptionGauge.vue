@@ -52,6 +52,14 @@ export default {
       type:    Object,
       default: null
     },
+
+    /**
+     * Reduce the vertial height by changed 'Used' for the resource name
+     */
+    usedAsResourceName: {
+      type:   Boolean,
+      defaut: false
+    }
   },
   computed: {
     displayUnits() {
@@ -84,16 +92,21 @@ export default {
 
 <template>
   <div class="consumption-gauge">
-    <h3 v-if="resourceName">
+    <h3 v-if="resourceName && !usedAsResourceName">
       {{ resourceName }}
     </h3>
     <div class="numbers">
+      <!-- @slot Optional slot to use as the title rather than showing the resource name -->
       <slot
         name="title"
         :amountTemplateValues="amountTemplateValues"
         :formattedPercentage="formattedPercentage"
       >
-        <span>{{ t('node.detail.glance.consumptionGauge.used') }}</span> <span>{{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }} <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}</span></span>
+        <h4 v-if="usedAsResourceName">
+          {{ resourceName }}
+        </h4>
+        <span v-else>{{ t('node.detail.glance.consumptionGauge.used') }}</span>
+        <span>{{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }} <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}</span></span>
       </slot>
     </div>
     <div class="mt-10">

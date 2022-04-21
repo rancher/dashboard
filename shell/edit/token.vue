@@ -12,7 +12,7 @@ import RadioGroup from '@shell/components/form/RadioGroup';
 import Select from '@shell/components/form/Select';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { diffFrom } from '@shell/utils/time';
-import { filterOnlyKubernetesClusters } from '@shell/utils/cluster';
+import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';
 
 export default {
   components: {
@@ -57,7 +57,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
     scopes() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const kubeClusters = filterOnlyKubernetesClusters(all);
+      const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
       let out = kubeClusters.map(opt => ({ value: opt.id, label: opt.nameDisplay }));
 
       out = sortBy(out, ['label']);

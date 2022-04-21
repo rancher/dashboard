@@ -9,7 +9,7 @@ export default {
 
   computed: {
     string() {
-      return this.value.join(', ');
+      return this.value ? this.value.join(', ') : '';
     }
   },
 };

@@ -38,7 +38,7 @@ module.exports = function(dir) {
       config.resolve.alias['~pkg'] = dir;
       delete config.resolve.alias['@'];
 
-      // Prevent the dynamic imoporter and the model-loader from importing anything dynamically - we don't want all of the
+      // Prevent the dynamic importer and the model-loader from importing anything dynamically - we don't want all of the
       // models etc when we build as a library
       const dynamicImporterOveride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
         resource.request = path.join(__dirname, 'dynamic-importer.lib.js');

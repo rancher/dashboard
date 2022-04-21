@@ -53,6 +53,13 @@ export default {
     }
   },
 
+  data() {
+    return {
+      updated:          false,
+      validationErrors: '',
+    };
+  },
+
   computed: {
     hasLabel() {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
@@ -119,6 +126,10 @@ export default {
       }
     },
 
+    onUpdate(value) {
+      this.$emit('input', value);
+    },
+
     onFocus() {
       this.onFocusLabeled();
     },
@@ -135,20 +146,17 @@ export default {
 
 <template>
   <div
+    class="labeled-input"
     :class="{
-      'labeled-input': true,
       focused,
       [mode]: true,
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
-      'has-tooltip': hasTooltip,
-      'compact-input': isCompact,
-      hideArrows
     }"
   >
     <slot name="label">
-      <label v-if="hasLabel">
+      <label>
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
 
@@ -169,7 +177,7 @@ export default {
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        @input="$emit('input', $event)"
+        @input="onUpdate($event)"
         @focus="onFocus"
         @blur="onBlur"
       />
@@ -186,11 +194,12 @@ export default {
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        @input="$emit('input', $event.target.value)"
+        @input="onUpdate($event.target.value)"
         @focus="onFocus"
         @blur="onBlur"
       />
     </slot>
+
     <slot name="suffix" />
     <LabeledTooltip
       v-if="tooltipKey && !focused"
@@ -207,27 +216,13 @@ export default {
     <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
     <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
   </div>
+  </div>
 </template>
-<style scoped lang="scss">
-  .labeled-input.view {
-    input {
-      text-overflow: ellipsis;
-    }
-  }
 
-.hideArrows {
-  /* Hide arrows on number input when it overlaps with the unit */
-  /* Chrome, Safari, Edge, Opera */
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  /* Firefox */
-  input[type=number] {
-    -moz-appearance: textfield;
-  }
+<style>
+.validation-message {
+  padding: 5px;
+  position: absolute;
+  bottom: -35px;
 }
-
 </style>

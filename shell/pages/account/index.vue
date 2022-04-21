@@ -146,7 +146,7 @@ export default {
     <BackLink :link="backLink" />
     <h1 v-t="'accountAndKeys.title'" />
 
-    <h4 v-t="'accountAndKeys.account.title'" />
+    <h2 v-t="'accountAndKeys.account.title'" />
     <div class="account">
       <Principal :key="principal.id" :value="principal.id" :use-muted="false" :show-labels="true" />
       <div>
@@ -165,7 +165,7 @@ export default {
     <hr />
     <div class="keys-header">
       <div>
-        <h4 v-t="'accountAndKeys.apiKeys.title'" />
+        <h2 v-t="'accountAndKeys.apiKeys.title'" />
         <div class="api-url">
           <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
           <CopyToClipboardText :text="apiUrl" />

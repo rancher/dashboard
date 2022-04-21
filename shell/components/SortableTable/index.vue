@@ -492,7 +492,7 @@ export default {
     dasherize,
 
     onScroll() {
-      if (this.hasLiveColumns) {
+      if (this.hasLiveColumns || this.hasDelayedColumns) {
         clearTimeout(this._liveColumnsTimer);
         clearTimeout(this._scrollTimer);
         clearTimeout(this._delayedColumnsTimer);
@@ -877,7 +877,7 @@ export default {
                       :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
                       :width="col.col.width"
                     >
-                      <slot :name="'cell:' + col.name" :row="row" :col="col" :value="col.value">
+                      <slot :name="'cell:' + col.col.name" :row="row.row" :col="col.col" :value="col.value">
                         <component
                           :is="col.component"
                           v-if="col.component && col.needRef"
@@ -933,7 +933,13 @@ export default {
             :row="row.row"
             :sub-matches="subMatches"
           >
-            <tr v-if="row.row.stateDescription" :key="row.key + '-description'" class="state-description sub-row">
+            <tr
+              v-if="row.row.stateDescription"
+              :key="row[keyField] + '-description'"
+              class="state-description sub-row"
+              @mouseenter="onRowMouseEnter"
+              @mouseleave="onRowMouseLeave"
+            >
               <td v-if="tableActions" class="row-check" align="middle">
               </td>
               <td :colspan="fullColspan - (tableActions ? 1: 0)" :class="{ 'text-error' : row.row.stateObj.error }">

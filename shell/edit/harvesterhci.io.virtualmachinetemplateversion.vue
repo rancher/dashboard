@@ -18,7 +18,6 @@ import { HCI } from '@shell/config/types';
 import { randomStr } from '@shell/utils/string';
 import { _CONFIG, _EDIT, _VIEW } from '@shell/config/query-params';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { cleanForNew } from '@shell/plugins/steve/normalize';
 
 import VM_MIXIN from '@shell/mixins/harvester-vm';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -53,7 +52,7 @@ export default {
 
   data() {
     if (this.mode === _EDIT) {
-      this.value = cleanForNew(this.value);
+      this.value = this.value.cleanForNew();
     }
 
     const templateId = this.value.templateId || this.$route.query.templateId;
@@ -163,7 +162,7 @@ export default {
           template.save();
         }
 
-        cleanForNew(this.value);
+        this.value.cleanForNew();
         this.customName = randomStr(10);
         this.$set(this.value.metadata, 'annotations', {
           ...this.value.metadata.annotations,

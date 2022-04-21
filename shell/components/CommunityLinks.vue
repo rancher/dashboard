@@ -44,8 +44,14 @@ export default {
         return options(this.uiIssuesSetting?.value, true);
       }
 
-      return options( this.uiIssuesSetting?.value);
+      return options(this.uiIssuesSetting?.value);
     },
+
+    title() {
+      const hasCustomizedFileIssueLink = this.uiIssuesSetting?.value;
+
+      return hasCustomizedFileIssueLink ? 'landing.support' : 'landing.community.title';
+    }
   },
   methods: {
     show() {
@@ -60,7 +66,7 @@ export default {
 
 <template>
   <div>
-    <SimpleBox :title="t('landing.community.title')" :pref="pref" :pref-key="prefKey">
+    <SimpleBox :title="t(title)" :pref="pref" :pref-key="prefKey">
       <div v-for="(value, name) in options" :key="name" class="support-link">
         <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
       </div>

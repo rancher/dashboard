@@ -8,7 +8,8 @@ export const STATE = {
   name:      'state',
   labelKey:  'tableHeaders.state',
   sort:      ['stateSort', 'nameSort'],
-  value:     row => row.stateDisplay,
+  value:     'stateDisplay',
+  getValue:  row => row.stateDisplay,
   width:     100,
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
@@ -34,7 +35,8 @@ export const INTERNAL_EXTERNAL_IP = {
 export const NAME = {
   name:          'name',
   labelKey:      'tableHeaders.name',
-  value:         row => row.nameDisplay,
+  value:         'nameDisplay',
+  getValue:      row => row.nameDisplay,
   sort:          ['nameSort'],
   formatter:     'LinkDetail',
   canBeVariable: true,
@@ -139,7 +141,8 @@ export const NAME_UNLINKED = {
 export const NAMESPACE = {
   name:        'namespace',
   labelKey:    'tableHeaders.namespace',
-  value:       row => row.namespace,
+  value:       'namespace',
+  getValue:    row => row.namespace,
   sort:        'namespace',
   dashIfEmpty: true,
 };
@@ -172,13 +175,14 @@ export const VERSION = {
   name:     'version',
   labelKey: 'tableHeaders.version',
   sort:     'version',
-  value:    row => row.version
+  value:    'version',
+  getValue: row => row.version
 };
 
 export const CPU = {
   name:      'cpu',
   labelKey:  'tableHeaders.cpu',
-  sort:      'cpu',
+  sort:      'cpuUsage',
   search:    false,
   value:     'cpuUsagePercentage',
   formatter: 'PercentageBar',
@@ -188,7 +192,7 @@ export const CPU = {
 export const RAM = {
   name:      'ram',
   labelKey:  'tableHeaders.ram',
-  sort:      'ram',
+  sort:      'ramUsage',
   search:    false,
   value:     'ramUsagePercentage',
   formatter: 'PercentageBar',
@@ -206,7 +210,7 @@ export const PRINCIPAL = {
 export const PODS = {
   name:      'pods',
   labelKey:  'tableHeaders.pods',
-  sort:      'pods',
+  sort:      'podConsumed',
   search:    false,
   value:     'podConsumedUsage',
   formatter: 'PercentageBar',
@@ -216,7 +220,8 @@ export const PODS = {
 export const AGE = {
   name:      'age',
   labelKey:  'tableHeaders.age',
-  value:     row => row.metadata?.creationTimestamp,
+  value:     'metadata.creationTimestamp',
+  getValue:  row => row.metadata?.creationTimestamp,
   sort:      'metadata.creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
@@ -256,10 +261,17 @@ export const IMAGE = {
 export const POD_IMAGES = {
   name:      'pod_images',
   labelKey:  'tableHeaders.podImages',
-  value:     row => row.imageNames,
+  value:     'imageNames',
+  getValue:  row => row.imageNames,
   sort:      'imageNames',
   search:    'imageNames',
   formatter: 'PodImages'
+};
+
+export const POD_RESTARTS = {
+  name:      'pod_restarts',
+  labelKey:  'tableHeaders.podRestarts',
+  value:     'restartCount'
 };
 
 export const ENDPOINTS = {
@@ -612,7 +624,8 @@ export const WORKLOAD_IMAGES = {
 export const WORKLOAD_ENDPOINTS = {
   name:        'workloadEndpoints',
   labelKey:    'tableHeaders.endpoints',
-  value:       row => row.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS],
+  value:       `$['metadata']['annotations']['${ CATTLE_PUBLIC_ENDPOINTS }']`,
+  getValue:    row => row.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS],
   formatter:   'Endpoints',
   dashIfEmpty: true,
   breakpoint:  COLUMN_BREAKPOINTS.DESKTOP,

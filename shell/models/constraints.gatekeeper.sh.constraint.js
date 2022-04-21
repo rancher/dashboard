@@ -1,5 +1,4 @@
 import jsyaml from 'js-yaml';
-import { cleanForNew } from '@shell/plugins/steve/normalize';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 export const ENFORCEMENT_ACTION_VALUES = {
@@ -24,7 +23,7 @@ export default class GateKeeperConstraint extends SteveModel {
   }
 
   cleanForNew() {
-    cleanForNew(this);
+    this.$dispatch(`cleanForNew`, this);
 
     if (this.constraint) {
       delete this.constraint;

@@ -14,7 +14,7 @@ import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { importLogin } from '@shell/utils/dynamic-importer';
-import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/steve/actions';
+import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { LOGIN_ERRORS } from '@shell/store/auth';
@@ -123,6 +123,7 @@ export default {
 
       providers:          [],
       providerComponents: [],
+      customLoginError:    {}
     };
   },
 
@@ -149,15 +150,34 @@ export default {
       return this.err;
     },
 
+    errorToDisplay() {
+      if (this.customLoginError?.showMessage === 'true' && this.customLoginError?.message && this.errorMessage) {
+        return `${ this.customLoginError.message } \n ${ this.errorMessage }`;
+      }
+
+      if (this.errorMessage) {
+        return this.errorMessage;
+      }
+
+      return '';
+    },
+
     kubectlCmd() {
       return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
     }
+
   },
 
   created() {
     this.providerComponents = this.providers.map((name) => {
       return importLogin(configType[name]);
     });
+  },
+
+  async fetch() {
+    const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
+
+    this.customLoginError = JSON.parse(value).loginError;
   },
 
   mounted() {
@@ -263,7 +283,7 @@ export default {
           {{ t('login.welcome', {vendor}) }}
         </h1>
         <div class="login-messages">
-          <Banner v-if="errorMessage" :label="errorMessage" color="error" />
+          <Banner v-if="errorToDisplay" :label="errorToDisplay" color="error" />
           <h4 v-else-if="loggedOut" class="text-success text-center">
             {{ t('login.loggedOut') }}
           </h4>

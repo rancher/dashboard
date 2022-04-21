@@ -1,5 +1,5 @@
 import { insertAt } from '@shell/utils/array';
-import { colorForState, stateDisplay } from '@shell/plugins/steve/resource-class';
+import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
@@ -171,5 +171,13 @@ export default class Pod extends SteveModel {
     const name = this.spec?.nodeName || this.$rootGetters['i18n/t']('generic.none');
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
+  }
+
+  get restartCount() {
+    if (this.status.containerStatuses) {
+      return this.status?.containerStatuses[0].restartCount || 0;
+    }
+
+    return 0;
   }
 }

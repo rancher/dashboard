@@ -11,7 +11,7 @@ import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
 import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
-import { filterOnlyKubernetesClusters } from '@shell/utils/cluster';
+import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -57,7 +57,7 @@ export default {
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const kubeClusters = filterOnlyKubernetesClusters(all);
+      const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
 
       return kubeClusters.map((x) => {
         return {
@@ -97,7 +97,7 @@ export default {
     multiClusterApps() {
       const options = this.options;
 
-      return options.filter(opt => opt.inStore === 'management' && opt.category !== 'configuration' && opt.category !== 'legacy');
+      return options.filter(opt => (opt.inStore === 'management' || opt.isMultiClusterApp) && opt.category !== 'configuration' && opt.category !== 'legacy');
     },
 
     legacyApps() {
@@ -129,7 +129,7 @@ export default {
 
       const entries = this.activeProducts.map((p) => {
         // Try product-specific index first
-        const to = {
+        const to = p.to || {
           name:   `c-cluster-${ p.name }`,
           params: { cluster }
         };
@@ -140,14 +140,15 @@ export default {
         }
 
         return {
-          label:     this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
-          icon:      `icon-${ p.icon || 'copy' }`,
-          value:     p.name,
-          removable: p.removable !== false,
-          inStore:   p.inStore || 'cluster',
-          weight:    p.weight || 1,
-          category:  p.category || 'none',
+          label:             this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
+          icon:              `icon-${ p.icon || 'copy' }`,
+          value:             p.name,
+          removable:         p.removable !== false,
+          inStore:           p.inStore || 'cluster',
+          weight:            p.weight || 1,
+          category:          p.category || 'none',
           to,
+          isMultiClusterApp: p.isMultiClusterApp,
         };
       });
 

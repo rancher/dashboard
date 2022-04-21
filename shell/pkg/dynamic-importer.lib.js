@@ -1,5 +1,5 @@
-// We use this file when building libraries - we don't want the dyanmic code form the shell
-// to be importd again, so we substitute this file which does not have any requires
+// We use this file when building libraries - we don't want the dynamic code from the shell
+// to be imported again, so we substitute this file which does not have any requires
 
 export function importCloudCredential(name) {
   return () => undefined;

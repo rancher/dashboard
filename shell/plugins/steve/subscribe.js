@@ -1,4 +1,4 @@
-import { addObject, removeObject } from '@shell/utils/array';
+import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import Socket, {
   EVENT_CONNECTED,
@@ -7,7 +7,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
-import { normalizeType } from '@shell/plugins/steve/normalize';
+import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -82,8 +82,13 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
 export const actions = {
   subscribe(ctx, opt) {
     const {
-      state, commit, dispatch, getters
+      state, commit, dispatch, getters, rootGetters
     } = ctx;
+
+    if (rootGetters['isSingleProduct']?.disableSteveSockets) {
+      return;
+    }
+
     let socket = state.socket;
 
     commit('setWantSocket', true);
@@ -193,7 +198,9 @@ export const actions = {
     }
   },
 
-  watch({ state, dispatch, getters }, params) {
+  watch({
+    state, dispatch, getters, rootGetters
+  }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
 
     let {
@@ -202,6 +209,12 @@ export const actions = {
     } = params;
 
     type = getters.normalizeType(type);
+
+    if (rootGetters['type-map/isSpoofed'](type)) {
+      state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
+
+      return;
+    }
 
     if ( !stop && !force && !getters.canWatch(params) ) {
       console.error(`Cannot Watch [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
@@ -550,6 +563,15 @@ export const mutations = {
 
   debug(state, on) {
     state.debugSocket = on !== false;
+  },
+
+  resetSubscriptions(state) {
+    clear(state.started);
+    clear(state.pendingFrames);
+    clear(state.queue);
+    clearInterval(state.queueTimer);
+    state.deferredRequests = {};
+    state.queueTimer = null;
   }
 };
 

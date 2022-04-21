@@ -149,7 +149,6 @@ export default class RoleTemplate extends SteveModel {
 
       norman.rules = this.rules;
       norman.locked = this.locked;
-      norman.newUserDefault = this.newUserDefault;
       norman.clusterCreatorDefault = this.clusterCreatorDefault || false;
       norman.projectCreatorDefault = this.projectCreatorDefault || false;
       norman.context = this.context;

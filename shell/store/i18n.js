@@ -222,7 +222,8 @@ export const actions = {
   },
 
   async mergeLoad({ commit }, { locale, module }) {
-    const translationsModule = await module();
+    const promise = typeof (module) === 'function' ? module() : Promise.resolve(module);
+    const translationsModule = await promise;
     const translations = translationsModule.default || translationsModule;
 
     return commit('mergeLoadTranslations', { locale, translations });
@@ -259,7 +260,7 @@ export const actions = {
     }
 
     const lastLoad = rootState.$plugin?.lastLoad;
-    const i18nExt = rootState.$plugin?.getDynamic('i18n', locale);
+    const i18nExt = rootState.$plugin?.getDynamic('l10n', locale);
     const reload = lastLoaded < lastLoad;
 
     lastLoaded = lastLoad;

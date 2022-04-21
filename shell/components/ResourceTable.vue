@@ -18,7 +18,7 @@ export const defaultTableSortGenerationFn = (schema, $store) => {
 
   const resource = schema.id;
   const inStore = $store.getters['currentStore'](resource);
-  const generation = $store.getters[`${ inStore }/currentGeneration`](resource);
+  const generation = $store.getters[`${ inStore }/currentGeneration`]?.(resource);
 
   if ( generation ) {
     return `${ resource }/${ generation }`;

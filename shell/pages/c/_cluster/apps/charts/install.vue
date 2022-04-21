@@ -1388,6 +1388,8 @@ export default {
   $slideout-width: 35%;
 
   .install-steps {
+    padding-top: 0;
+
     position: relative;
     overflow: hidden;
 
@@ -1404,6 +1406,7 @@ export default {
 
   .wizard {
     .logo-bg {
+      margin-right: 10px;
       height: $title-height;
       width: $title-height;
       background-color: white;

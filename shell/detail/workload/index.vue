@@ -1,7 +1,9 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { STATE, NAME, NODE, POD_IMAGES } from '@shell/config/table-headers';
-import { POD, WORKLOAD_TYPES } from '@shell/config/types';
+import {
+  STATE, NAME, NODE, POD_IMAGES, POD_RESTARTS
+} from '@shell/config/table-headers';
+import { POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
 import SortableTable from '@shell/components/SortableTable';
 import Tab from '@shell/components/Tabbed/Tab';
 import Loading from '@shell/components/Loading';
@@ -12,7 +14,9 @@ import DashboardMetrics from '@shell/components/DashboardMetrics';
 import V1WorkloadMetrics from '@shell/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
+import PlusMinus from '@shell/components/form/PlusMinus';
 
+const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
 const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
 
@@ -41,7 +45,8 @@ export default {
     Loading,
     ResourceTabs,
     CountGauge,
-    SortableTable
+    SortableTable,
+    PlusMinus
   },
 
   mixins: [CreateEditView, V1WorkloadMetrics],
@@ -65,12 +70,20 @@ export default {
 
   data() {
     return {
-      allPods: null, allJobs: [], WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL, showMetrics: false
+      allPods:     null,
+      allJobs:     [],
+      WORKLOAD_METRICS_DETAIL_URL,
+      WORKLOAD_METRICS_SUMMARY_URL,
+      showMetrics: false,
     };
   },
 
   computed:   {
     ...mapGetters(['currentCluster']),
+
+    isActive() {
+      return this.value.metadata.state.name === 'active';
+    },
 
     isJob() {
       return this.value.type === WORKLOAD_TYPES.JOB;
@@ -143,7 +156,8 @@ export default {
         STATE,
         NAME,
         NODE,
-        POD_IMAGES
+        POD_IMAGES,
+        POD_RESTARTS
       ];
     },
 
@@ -171,14 +185,51 @@ export default {
       const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
 
       return !jobGauges.find(jg => jg.count === total);
-    }
+    },
+
+    canScale() {
+      return !!SCALABLE_TYPES.includes(this.value.type) && this.value.canUpdate;
+    },
   },
+  methods: {
+    async scale(isUp) {
+      try {
+        if (isUp) {
+          await this.value.scaleUp();
+        } else {
+          await this.value.scaleDown();
+        }
+      } catch (err) {
+        this.$store.dispatch('growl/fromError', {
+          title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.value.name }),
+          err
+        },
+        { root: true });
+      }
+    },
+    async scaleDown() {
+      await this.scale(false);
+    },
+    async scaleUp() {
+      await this.scale(true);
+    },
+  }
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
+    <div v-if="canScale" class="right-align flex">
+      <PlusMinus
+        class="text-right"
+        :label="t('tableHeaders.scale')"
+        :value="value.spec.replicas"
+        :disabled="!isActive"
+        @minus="scaleDown"
+        @plus="scaleUp"
+      />
+    </div>
     <h3>
       {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
     </h3>
@@ -249,6 +300,9 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+.right-align {
+  float: right;
+}
 .gauges {
   display: flex;
   justify-content: space-around;

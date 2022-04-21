@@ -1,4 +1,4 @@
-import Resource from '@shell/plugins/steve/resource-class';
+import Resource from '@shell/plugins/dashboard-store/resource-class';
 
 export default class Schema extends Resource {
   get groupName() {

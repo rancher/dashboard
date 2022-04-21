@@ -222,29 +222,25 @@ export default {
     },
 
     remove(btnCB) {
+      if (this.doneLocation) {
+        // doneLocation will recompute to undefined when delete request completes
+        this.cachedDoneLocation = { ...this.doneLocation };
+      }
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
-        this.$refs.customPrompt.remove();
+        this.$refs.customPrompt.remove(btnCB);
 
         return;
       }
-
-      let goTo;
-
-      if (this.doneLocation) {
-        // doneLocation will recompute to undefined when delete request completes
-        goTo = { ...this.doneLocation };
-      }
-
       const serialRemove = this.toRemove.some(resource => resource.removeSerially);
 
       if (serialRemove) {
-        this.serialRemove(goTo, btnCB);
+        this.serialRemove(btnCB);
       } else {
-        this.parallelRemove(goTo, btnCB);
+        this.parallelRemove(btnCB);
       }
     },
 
-    async serialRemove(goTo, btnCB) {
+    async serialRemove(btnCB) {
       try {
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
@@ -254,33 +250,31 @@ export default {
 
         await this.refreshSpoofedTypes(spoofedTypes);
 
-        if ( goTo && !isEmpty(goTo) ) {
-          this.currentRouter.push(goTo);
-        }
-        btnCB(true);
-        this.close();
+        this.done();
       } catch (err) {
         this.error = err;
         btnCB(false);
       }
     },
 
-    async parallelRemove(goTo, btnCB) {
+    async parallelRemove(btnCB) {
       try {
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
         await Promise.all(this.toRemove.map(resource => resource.remove()));
         await this.refreshSpoofedTypes(spoofedTypes);
-
-        if ( goTo && !isEmpty(goTo) ) {
-          this.currentRouter.push(goTo);
-        }
-        btnCB(true);
-        this.close();
+        this.done();
       } catch (err) {
         this.error = err;
         btnCB(false);
       }
+    },
+
+    done() {
+      if ( this.cachedDoneLocation && !isEmpty(this.cachedDoneLocation) ) {
+        this.currentRouter.push(this.cachedDoneLocation);
+      }
+      this.close();
     },
 
     getSpoofedTypes(resources) {
@@ -345,6 +339,8 @@ export default {
               :value="toRemove"
               :names="names"
               :type="type"
+              @errors="e => error = e"
+              @done="done"
             />
             <div v-if="needsConfirm" class="mt-10">
               <span
