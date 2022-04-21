@@ -112,7 +112,7 @@ export default {
       v-if="selectLabel"
       v-model="selected"
       :label="selectLabel"
-      :class="{ 'in-input': !isView, 'validation-space': true}"
+      :class="{ 'in-input': !isView}"
       :options="options"
       :searchable="false"
       :clearable="false"
@@ -302,9 +302,4 @@ export default {
   }
 }
 
-.validation-space {
-  // Prevent an input from growing if the input next to
-  // it has validation errors
-  height: 61px;
-}
 </style>

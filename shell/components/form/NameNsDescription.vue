@@ -337,6 +337,7 @@ export default {
           :mode="mode"
           :label="t(descriptionLabel)"
           :placeholder="t(descriptionPlaceholder)"
+          :min-height="30"
         />
       </div>
       <div
