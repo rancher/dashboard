@@ -48,15 +48,16 @@ export default {
     vmiIp() {
       const vmiResources = this.$store.getters['harvester/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.value) || null;
+      const networksName = this.row.networksName || [];
 
       return (resource?.status?.interfaces || []).filter((O) => {
-        return isIpv4(O.ipAddress);
+        return isIpv4(O.ipAddress) && networksName.includes(O.name);
       }).map(O => O.ipAddress);
     },
 
     showIP() {
       return this.row.stateDisplay !== OFF;
-    }
+    },
   },
 };
 </script>
