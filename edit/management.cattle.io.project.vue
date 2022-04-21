@@ -65,8 +65,12 @@ export default {
       return !!(this.value?.links?.update && projectOptions && projectOptions.isEditable);
     },
 
+    isDescriptionDisabled() {
+      return (this.mode === _EDIT && !this.canEditProject) || false;
+    },
+
     canEditTabElements() {
-      if (!this.canEditProject) {
+      if (this.mode === _EDIT && !this.canEditProject) {
         return _VIEW;
       }
 
@@ -193,7 +197,7 @@ export default {
       :mode="mode"
       :namespaced="false"
       description-key="spec.description"
-      :description-disabled="!canEditProject"
+      :description-disabled="isDescriptionDisabled"
       name-key="spec.displayName"
       :normalize-name="false"
     />
