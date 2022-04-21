@@ -165,7 +165,7 @@ export default {
           storageMaximum:   formatSi(diskStatus[key]?.storageMaximum, formatOptions),
           storageScheduled: formatSi(diskStatus[key]?.storageScheduled, formatOptions),
           blockDevice,
-          displayName:      key,
+          displayName:      blockDevice?.displayName || key,
           forceFormatted:   blockDevice?.spec?.fileSystem?.forceFormatted || false,
         };
       });
@@ -354,7 +354,7 @@ export default {
           const size = formatSi(sizeBytes, { increment: 1024 });
           const parentDevice = d.status?.deviceStatus?.parentDevice;
           const isChildAdded = this.newDisks.find(newDisk => newDisk.blockDevice?.status?.deviceStatus?.parentDevice === devPath);
-          const name = d.metadata?.name;
+          const name = d.displayName;
 
           let label = `${ name } (Type: ${ deviceType }, Size: ${ size })`;
 
