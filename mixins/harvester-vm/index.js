@@ -239,7 +239,7 @@ export default {
         };
       }
 
-      const runStrategy = spec.runStrategy;
+      const runStrategy = spec.runStrategy || 'Manual';
       const machineType = value.machineType;
       const cpu = spec.template.spec.domain?.cpu?.cores;
       const memory = spec.template.spec.domain.resources.limits.memory;
