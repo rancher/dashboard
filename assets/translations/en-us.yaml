@@ -3534,7 +3534,7 @@ probe:
     placeholder: Select a check type
 
 project:
-  membersEditOnly: For users which can only manage projects members, please note that for new members added, their roles need to match the permissions that the current user has available
+  membersEditOnly: Only permissions equal to or below those of the current user can be applied
   members:
     label: Members
   containerDefaultResourceLimit: Container Default Resource Limit
