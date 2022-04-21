@@ -33,10 +33,6 @@
       "@shell/store/*": [
         "../../node_modules/@rancher/shell/store/*"
       ],
-      // TODO: RC fix @pkg references
-      // "@pkg/*": [
-      //   "../../pkg/*"
-      // ]
     }
   },
   "include": [

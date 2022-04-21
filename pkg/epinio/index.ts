@@ -4,21 +4,6 @@ import epinioStore from './store/epinio-store';
 import epinioMgmtStore from './store/epinio-mgmt-store';
 import epinioRoutes from './routing/epinio-routing';
 
-// TODO: RC rename plugin-dev to `dev-2.6.6`
-// TODO: RC Test standalone
-// TODO: RC prompt remove (explorer, epinio)
-// TODO: RC x Create config
-// TODO: RC x Create app
-// -- file selector
-// TODO: RC x charts list empty
-// TODO: RC x charts refresh error (empty popyp)
-// TODO: RC x merge latest master
-// TODO: RC X Nav Bugs
-// - X Explorer --> Burger Menu Epinio link
-// TODO: RC x BUG - Switch NS
-// TODO: RC X review old epinio PRs comments
-// TODO: RC X review new epinio PRs comments
-
 const onEnter: OnNavToPackage = async(store, config) => {
   await store.dispatch(`${ epinioMgmtStore.config.namespace }/loadManagement`);
 };
