@@ -71,12 +71,6 @@ export default {
       default: '',
     },
 
-    validators: {
-      type:    Array,
-      default: () => {
-        return [];
-      }
-    }
   },
 
   data() {
@@ -127,11 +121,9 @@ export default {
       :create-option="(name) => ({ label: name, value: name })"
       :multiple="false"
       :mode="mode"
-      :validators="validators"
       :option-label="optionLabel"
       :placement="$attrs.placement ? $attrs.placement : null"
       :v-bind="$attrs"
-      @setValid="(isValid) => { $emit('setValid', isValid) }"
       @input="change"
     />
     <Select

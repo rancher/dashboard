@@ -286,7 +286,7 @@ export default {
     const detailResource = options.resourceDetail || options.resource || resource;
     const editResource = options.resourceEdit || options.resource || resource;
 
-    // TODO: RC These aren't right... signature is (rawType, subType).. not (rawType, resourceId)
+    // FIXME: These aren't right... signature is (rawType, subType).. not (rawType, resourceId)
     // Remove id? How does subtype get in (cluster/node)
     this.detailComponent = this.$store.getters['type-map/importDetail'](detailResource, id);
     this.editComponent = this.$store.getters['type-map/importEdit'](editResource, id);

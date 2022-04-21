@@ -42,10 +42,6 @@ export default {
       type:    Array,
       default: () => [],
     },
-    minHeight: {
-      type:    Number,
-      default: 30
-    },
     nameLabel: {
       type:    String,
       default: 'nameNsDescription.name.label',
@@ -131,12 +127,6 @@ export default {
     horizontal: {
       type:    Boolean,
       default: true,
-    },
-    validators: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
     },
   },
 
@@ -324,9 +314,7 @@ export default {
             :options="namespaces"
             :searchable="true"
             :taggable="namespaceNewAllowed"
-            :validators="validators"
             @input="changeNameAndNamespace($event)"
-            @setValid="(isValid) => { $emit('setValid', isValid) }"
           />
           <LabeledInput
             v-else
@@ -349,7 +337,6 @@ export default {
           :mode="mode"
           :label="t(descriptionLabel)"
           :placeholder="t(descriptionPlaceholder)"
-          :min-height="minHeight"
         />
       </div>
       <div

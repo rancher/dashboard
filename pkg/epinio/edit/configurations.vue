@@ -27,7 +27,6 @@ export default Vue.extend<Data, any, any, any>({
     return {
       errors:        [],
       namespaces:    [],
-      validFields:     { name: false },
     };
   },
 
@@ -49,15 +48,15 @@ export default Vue.extend<Data, any, any, any>({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
-      // return !Object.values(this.validFields).includes(false); // Validation does not work, and will be replaced with generic process
-      return !!this.value?.metadata.name;
+      const nameErrors = validateKubernetesName(this.value?.metadata.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+
+      return nameErrors.length === 0;
     },
   },
 
   async fetch() {
     this.namespaces = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
     this.value.data = { ...this.initialValue.configuration?.details };
-    this.validFields.name = this.isEdit;
   },
 
   methods: {
@@ -79,21 +78,6 @@ export default Vue.extend<Data, any, any, any>({
         this.errors = epinioExceptionToErrorsArray(err);
         saveCb(false);
       }
-    },
-    setValid(field: string, valid: boolean) {
-      this.validFields[field] = valid;
-    },
-    meetsNameRequirements( name = '') {
-      const nameErrors = validateKubernetesName(name, this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
-
-      if (nameErrors.length > 0) {
-        return {
-          isValid:      false,
-          errorMessage: nameErrors.join(', ')
-        };
-      }
-
-      return { isValid: true };
     },
     setData(data: any[]) {
       Vue.set(this.value, 'data', data);
@@ -124,11 +108,7 @@ export default Vue.extend<Data, any, any, any>({
       :description-hidden="true"
       :value="value.metadata"
       :mode="mode"
-      :min-height="90"
-      :validators="[ meetsNameRequirements ]"
-      @setValid="setValid('name', $event)"
     />
-
     <div class="row">
       <div class="col span-11">
         <KeyValue

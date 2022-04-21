@@ -30,14 +30,17 @@ export default {
       validFields:     { name: false },
       value:           { name: '' },
       submitted:       false,
-      mode:            _CREATE
+      mode:            _CREATE,
+      touched:         false,
     };
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
-      return !Object.values(this.validFields).includes(false);
+      const nameErrors = validateKubernetesName(this.value.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+
+      return nameErrors.length === 0;
     },
     ...mapState('action-menu', ['showPromptRemove']),
   },
@@ -59,6 +62,18 @@ export default {
         // Refetch apps when namespace is deleted
         this.$store.dispatch('findAll', { type: 'applications', opt: { force: true } });
       }
+    },
+
+    'value.name'(neu) {
+      if (!neu?.length && !this.touched) {
+        this.touched = true;
+
+        return [];
+      }
+
+      const errors = validateKubernetesName(neu || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+
+      this.errors = errors.length ? [errors.join(', ')] : [];
     }
   },
 
@@ -70,35 +85,22 @@ export default {
       // Create a skeleton namespace
       this.value = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.NAMESPACE });
     },
+
     closeCreateModal() {
       this.showCreateModal = false;
       this.errors = [];
+      this.touched = false;
     },
+
     async onSubmit(buttonCb) {
       try {
         await this.value.save();
         this.closeCreateModal();
         buttonCb(true);
       } catch (e) {
-        this.errors = epinioExceptionToErrorsArray(e);
+        this.errors = epinioExceptionToErrorsArray(e).map(JSON.stringify);
         buttonCb(false);
       }
-    },
-    meetsNameRequirements( name = '') {
-      const nameErrors = validateKubernetesName(name, this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
-
-      if (nameErrors.length > 0) {
-        return {
-          isValid:      false,
-          errorMessage: nameErrors.join(', ')
-        };
-      }
-
-      return { isValid: true };
-    },
-
-    setValid(field, valid) {
-      this.validFields[field] = valid;
     },
   }
 };
@@ -140,14 +142,12 @@ export default {
             :label="t('epinio.namespace.name')"
             :mode="mode"
             :required="true"
-            :validators="[ meetsNameRequirements ]"
-            @setValid="setValid('name', $event)"
           />
-          <Banner v-for="(err, i) in errors" :key="i" color="error" :label="JSON.stringify(err)" />
+          <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
         </div>
 
-        <div slot="actions">
-          <button class="btn role-secondary" @click="closeCreateModal">
+        <div slot="actions" class="model-actions">
+          <button class="btn role-secondary mr-10" @click="closeCreateModal">
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton
@@ -174,6 +174,10 @@ export default {
   background-color: rgb(0,0,0);
   background-color: rgba(0,0,0,0.4);
   border-radius: var(--border-radius);
+
+  .banner {
+    margin-bottom: 0;
+  }
 }
 
 .modal-content {
@@ -181,10 +185,17 @@ export default {
   margin: 15% auto;
   padding: 20px;
   border: 1px solid #888;
-  width: 60%;
+  width: 50%;
+  max-width: 500px;
 
   .model-body {
-    min-height: 90px;
+    min-height: 116px;
+  }
+
+  .model-actions {
+    justify-content: end;
+    display: flex;
+    flex: 1;
   }
 
 }
