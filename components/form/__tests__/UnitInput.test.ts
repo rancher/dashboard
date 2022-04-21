@@ -3,7 +3,7 @@ import { UNITS } from '@/utils/units';
 import UnitInput from '@/components/form/UnitInput.vue';
 import LabeledInput from '@/components/form/LabeledInput.vue';
 
-describe('unitInput', () => {
+describe('component: UnitInput', () => {
   it('should renders', () => {
     const wrapper = mount(UnitInput, { propsData: { value: 1 } });
 
@@ -153,5 +153,31 @@ describe('unitInput', () => {
 
     expect(addonText).toBe(suffix);
     expect(wrapper.emitted('input')![0][0]).not.toContain(suffix);
+  });
+
+  it('should format value to a valid integer', () => {
+    const wrapper = mount(UnitInput, { propsData: { delay: 0 } });
+    const value = '096';
+    const expectation = 96;
+
+    wrapper.find('input').setValue(value);
+
+    expect(wrapper.emitted('input')![0][0]).toBe(expectation);
+  });
+
+  it('should not correct value to a valid integer while typing', () => {
+    const value = 5096;
+    const delay = 1;
+    const wrapper = mount(UnitInput, { propsData: { delay } });
+
+    jest.useFakeTimers();
+    wrapper.find('input').setValue('4096');
+    wrapper.find('input').setValue('096');
+    wrapper.find('input').setValue(value);
+    jest.advanceTimersByTime(delay);
+    jest.useRealTimers();
+
+    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('input')![0][0]).toBe(value);
   });
 });
