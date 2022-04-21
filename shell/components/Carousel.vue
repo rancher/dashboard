@@ -20,7 +20,7 @@ export default {
   computed: {
 
     trackStyle() {
-      return `transform: translateX(-${ this.activeItemId * 100 / this.slider.length }%)`;
+      return `transform: translateX(-${ this.activeItemId * 100 / this.slider.length }%); width: calc(${ 60 * this.slider.length }%)`;
     },
 
   },
@@ -93,7 +93,7 @@ export default {
 
 .slide-track {
   display: flex;
-  width: calc(60% * 5);
+  // width: calc(60% * 5);
   animation: scrolls 10s ;
   position: relative;
 }
@@ -105,6 +105,7 @@ export default {
 .slide {
   min-height: 210px;
   width: 60%;
+  max-width: 60%;
   margin: 0 10px;
   position: relative;
   border: 1px solid var(--tabbed-border);
