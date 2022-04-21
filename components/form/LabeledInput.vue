@@ -63,6 +63,10 @@ export default {
   },
 
   computed: {
+    onInput() {
+      return this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
+    },
+
     hasLabel() {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
@@ -132,9 +136,9 @@ export default {
      * Emit on input with delay
      * Note: Arrow function is avoided due context binding
      */
-    onInput: debounce(function(value) {
+    delayInput(value) {
       this.$emit('input', value);
-    }, 500),
+    },
 
     onFocus() {
       this.onFocusLabeled();
