@@ -55,7 +55,7 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
 
-    canManageMembers() {
+    canViewMembers() {
       return canViewProjectMembershipEditor(this.$store);
     },
 
@@ -187,11 +187,6 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <Banner
-      v-if="showBannerForOnlyManagingMembers"
-      color="info"
-      :label="t('project.membersEditOnly')"
-    />
     <NameNsDescription
       v-model="value"
       :mode="mode"
@@ -215,11 +210,16 @@ export default {
     </div>
     <Tabbed :side-tabs="true">
       <Tab
-        v-if="canManageMembers"
+        v-if="canViewMembers"
         name="members"
         :label="t('project.members.label')"
         :weight="10"
       >
+        <Banner
+          v-if="showBannerForOnlyManagingMembers"
+          color="info"
+          :label="t('project.membersEditOnly')"
+        />
         <ProjectMembershipEditor
           :mode="mode"
           :parent-id="value.id"

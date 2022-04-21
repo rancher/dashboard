@@ -120,9 +120,13 @@ export default class Project extends HybridModel {
 
   // users with permissions for projectroletemplatebindings should be able to manage members on projects
   get canUpdate() {
-    const canUpdateRoleBindings = this.$rootGetters['type-map/optionsFor']('management.cattle.io.projectroletemplatebindings');
+    return super.canUpdate || this.canUpdateProjectBindings;
+  }
 
-    return super.canUpdate || canUpdateRoleBindings.isEditable;
+  get canUpdateProjectBindings() {
+    const schema = this.$rootGetters[`rancher/schemaFor`](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
+
+    return schema?.collectionMethods.includes('POST');
   }
 
   get canEditYaml() {
