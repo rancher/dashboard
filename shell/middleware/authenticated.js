@@ -324,14 +324,15 @@ export default async function({
 
       if (!clusterId) {
         clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
-        const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
+        const isSingleProduct = store.getters['isSingleProduct'];
 
-        if (isSingleVirtualCluster) {
+        if (isSingleProduct?.afterLoginRoute) {
           const value = {
             name:   'c-cluster-product',
+            ...isSingleProduct.afterLoginRoute,
             params: {
               cluster: clusterId,
-              product: VIRTUAL,
+              ...isSingleProduct.afterLoginRoute?.params
             },
           };
 

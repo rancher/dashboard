@@ -29,7 +29,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster', 'currentProduct']),
+    ...mapGetters(['isVirtualCluster', 'isMultiVirtualCluster', 'currentProduct']),
 
     hasFilter() {
       return this.filter.length > 0;

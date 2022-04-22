@@ -58,7 +58,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleVirtualCluster']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -140,7 +140,7 @@ export default {
     displayVersion() {
       let { displayVersion } = getVersionInfo(this.$store);
 
-      if (this.isVirtualProduct && this.isSingleVirtualCluster) {
+      if (this.isVirtualProduct && this.isSingleProduct) {
         const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
 
         displayVersion = setting?.value || 'unknown';
@@ -571,7 +571,7 @@ export default {
             {{ displayVersion }}
           </span>
 
-          <span v-if="isSingleVirtualCluster">
+          <span v-if="isSingleProduct">
             <v-popover
               popover-class="localeSelector"
               placement="top"

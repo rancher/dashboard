@@ -48,7 +48,7 @@ export default class Namespace extends SteveModel {
       });
     }
 
-    if (this.$rootGetters['isRancher'] && !this.$rootGetters['isSingleVirtualCluster']) {
+    if (this.$rootGetters['isRancher'] && !this.$rootGetters['isSingleProduct']) {
       insertAt(out, 0, {
         action:     'move',
         label:      this.t('namespace.move'),
@@ -164,7 +164,7 @@ export default class Namespace extends SteveModel {
   }
 
   get listLocation() {
-    if (this.$rootGetters['isSingleVirtualCluster']) {
+    if (this.$rootGetters['isSingleProduct']) {
       return { name: 'c-cluster-product-resource' };
     }
 

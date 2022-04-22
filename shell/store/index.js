@@ -404,9 +404,9 @@ export const getters = {
       return state.isSingleProduct;
     }
 
-    if (state.isSingleVirtualCluster) {
+    if (rootGetters.isSingleVirtualCluster) {
       return {
-        logo:            '~/assets/images/providers/harvester.svg',
+        logo:            require('~shell/assets/images/providers/harvester.svg'),
         productNameKey:  'product.harvester',
         version:         rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
         afterLoginRoute: {
