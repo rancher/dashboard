@@ -1,5 +1,8 @@
 <script>
 import { get } from '@/utils/object';
+import { TIME_FORMAT, DATE_FORMAT } from '@/store/prefs';
+import day from 'dayjs';
+import { escapeHtml } from '@/utils/string';
 
 export default {
   props:      {
@@ -24,9 +27,11 @@ export default {
 
       return this.row?.detailLocation;
     },
+
     clusterHasIssues() {
-      return this.row.status?.conditions?.some(condition => condition.error === true);
+      return this.row.status?.conditions?.some(condition => condition.error === true) || this.snapshotErrors.length;
     },
+
     statusErrorConditions() {
       if (this.clusterHasIssues) {
         return this.row?.status.conditions.filter(condition => condition.error === true);
@@ -34,6 +39,25 @@ export default {
 
       return false;
     },
+
+    snapshotErrors() {
+      const snapshots = this.row.etcdSnapshots;
+
+      if (!snapshots.length) {
+        return [];
+      }
+
+      const dateFormat = escapeHtml(this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+
+      return snapshots.filter(snapshot => snapshot.errorMessage).map((snapshot) => {
+        return {
+          time: `${ day(snapshot.snapshotFile.createdAt).format(dateFormat) } ${ day(snapshot.snapshotFile.createdAt).format(timeFormat) }`,
+          msg:  snapshot.errorMessage
+        };
+      });
+    },
+
     formattedConditions() {
       if (this.clusterHasIssues) {
         const filteredConditions = this.statusErrorConditions;
@@ -44,12 +68,17 @@ export default {
             formattedTooltip.push(`<p>${ [c.type] } (${ c.status })</p>`);
           });
 
+        this.snapshotErrors.forEach((err) => {
+          formattedTooltip.push(`<p>${ this.t('cluster.snapshot.failed', { time: err.time }) }: ${ err.msg } </p> `);
+        });
+
         return formattedTooltip.toString().replaceAll(',', '');
       }
 
       return false;
     },
-  }
+  },
+
 };
 
 </script>
