@@ -215,8 +215,8 @@ export default {
     },
 
     goToEdit(queryMode) {
-      // 'goToEdit' is the exact name of an action for AlertmanagerConfig
-      // and this method executes the action.
+    // 'goToEdit' is the exact name of an action for AlertmanagerConfig
+    // and this method executes the action.
       this.$router.push({
         name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
         params: {
@@ -231,8 +231,8 @@ export default {
       });
     },
     goToEditYaml(queryMode) {
-      // 'goToEditYaml' is the exact name of an action for AlertmanagerConfig
-      // and this method executes the action.
+    // 'goToEditYaml' is the exact name of an action for AlertmanagerConfig
+    // and this method executes the action.
       this.$router.push({
         name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
         params: {
@@ -246,9 +246,25 @@ export default {
         }
       });
     },
-    promptRemove() {
-      // 'promptRemove' is the exact name of an action for AlertmanagerConfig
-      // and this method executes the action.
+    promptRemove(actionData) {
+    // 'promptRemove' is the exact name of an action for AlertmanagerConfig
+    // and this method executes the action.
+
+      // Get the name of the receiver to delete from the action info.
+      const nameOfReceiverToDelete = actionData.route.query.receiverName;
+
+      // Remove it from the configuration of the parent AlertmanagerConfig
+      // resource.
+      const existingReceivers = this.alertmanagerConfigResource.spec.receivers;
+      const receiversMinusDeletedItem = existingReceivers.filter((receiver) => {
+        return receiver.name !== nameOfReceiverToDelete;
+      });
+
+      this.alertmanagerConfigResource.spec.receivers = receiversMinusDeletedItem;
+
+      // After saving the AlertmanagerConfig, the resource has been deleted.
+      this.alertmanagerConfigResource.save(...arguments);
+      this.$router.push(this.doneLocationOverride);
     }
   }
 };

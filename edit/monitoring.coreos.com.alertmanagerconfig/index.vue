@@ -43,7 +43,7 @@ export default {
           cluster:              this.$store.getters['clusterId'],
           alertmanagerconfigid: this.value.id
         },
-        query: { mode: _CREATE }
+        query: { mode: _CREATE, currentView: _CONFIG }
       },
       defaultReceiverValues,
       editReceiverLink: {
@@ -52,7 +52,7 @@ export default {
           cluster:              this.$store.getters['clusterId'],
           alertmanagerconfigid: this.value.id
         },
-        query: { mode: _EDIT }
+        query: { mode: _CREATE, currentView: _CONFIG }
       },
       receiverTableHeaders: [
         {
