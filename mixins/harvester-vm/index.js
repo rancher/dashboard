@@ -12,7 +12,7 @@ import { formatSi, parseSi } from '@/utils/units';
 import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '@/config/harvester-map';
 import { _CLONE } from '@/config/query-params';
 import {
-  PVC, HCI, STORAGE_CLASS, NODE, SECRET
+  PVC, HCI, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP
 } from '@/config/types';
 import { HCI_SETTING } from '@/config/settings';
 import { HCI as HCI_ANNOTATIONS, HOSTNAME } from '@/config/labels-annotations';
@@ -58,6 +58,7 @@ export const OS = [{
   value: 'xandros'
 }, {
   label: 'Other Linux',
+  match: ['centos'],
   value: 'otherLinux'
 }];
 
@@ -110,6 +111,7 @@ export default {
       spec:               null,
       osType:             'linux',
       sshKey:             [],
+      runStrategy:        'RerunOnFailure',
       installAgent:       true,
       hasCreateVolumes:   [],
       installUSBTablet:   true,
@@ -127,7 +129,9 @@ export default {
       cpu:                '',
       reservedMemory:     null,
       accessCredentials:  [],
-      efiEnabled:          false,
+      efiEnabled:         false,
+      secureBoot:         false,
+      userDataTemplateId: ''
     };
   },
 
@@ -198,6 +202,10 @@ export default {
     needNewSecret() {
       // When creating a template it is always necessary to create a new secret.
       return this.resource === HCI.VM_VERSION || this.isCreate;
+    },
+
+    isManual() {
+      return this.runStrategy === 'Manual';
     }
   },
 
@@ -218,7 +226,6 @@ export default {
       if (!spec) {
         return;
       }
-
       const resources = spec.template.spec.domain.resources;
 
       // If the user is created via yaml, there may be no "resources.limits": kubectl apply -f https://kubevirt.io/labs/manifests/vm.yaml
@@ -232,6 +239,7 @@ export default {
         };
       }
 
+      const runStrategy = spec.runStrategy || 'Manual';
       const machineType = value.machineType;
       const cpu = spec.template.spec.domain?.cpu?.cores;
       const memory = spec.template.spec.domain.resources.limits.memory;
@@ -263,11 +271,18 @@ export default {
       const installUSBTablet = this.isInstallUSBTablet(spec);
       const installAgent = this.isCreate ? true : this.hasInstallAgent(userData, osType, true);
       const efiEnabled = this.isEfiEnabled(spec);
+      const secureBoot = this.isSecureBoot(spec);
 
       const secretRef = this.getSecret(spec);
       const accessCredentials = this.getAccessCredentials(spec);
 
+      if (Object.prototype.hasOwnProperty.call(spec, 'running')) {
+        delete spec.running;
+        spec.runStrategy = 'RerunOnFailure';
+      }
+
       this.$set(this, 'spec', spec);
+      this.$set(this, 'runStrategy', runStrategy);
       this.$set(this, 'secretRef', secretRef);
       this.$set(this, 'accessCredentials', accessCredentials);
       this.$set(this, 'userScript', userData);
@@ -284,6 +299,7 @@ export default {
 
       this.$set(this, 'installUSBTablet', installUSBTablet);
       this.$set(this, 'efiEnabled', efiEnabled);
+      this.$set(this, 'secureBoot', secureBoot);
 
       this.$set(this, 'hasCreateVolumes', hasCreateVolumes);
       this.$set(this, 'networkRows', networkRows);
@@ -519,12 +535,10 @@ export default {
         }
       }
 
-      const isRunVM = this.isCreate ? this.isRunning : this.isRestartImmediately ? true : this.value.spec.running;
-
       let spec = {
         ...this.spec,
-        running:  isRunVM,
-        template: {
+        runStrategy: this.runStrategy,
+        template:    {
           ...this.spec.template,
           metadata: {
             ...this.spec?.template?.metadata,
@@ -893,12 +907,18 @@ export default {
     },
 
     deleteQGA(config) {
-      const { userDataJson, osType } = config;
+      const { userDataJson, osType, deletePackage = false } = config;
 
-      if (Array.isArray(userDataJson.packages)) {
+      const userDataTemplateValue = this.$store.getters['harvester/byId'](CONFIG_MAP, this.userDataTemplateId)?.data?.cloudInit || '';
+
+      if (Array.isArray(userDataJson.packages) && deletePackage) {
+        const templateHasQGAPackage = this.convertToJson(userDataTemplateValue);
+
         for (let i = 0; i < userDataJson.packages.length; i++) {
           if (userDataJson.packages[i] === 'qemu-guest-agent') {
-            userDataJson.packages.splice(i, 1);
+            if (!(Array.isArray(templateHasQGAPackage?.packages) && templateHasQGAPackage.packages.includes('qemu-guest-agent'))) {
+              userDataJson.packages.splice(i, 1);
+            }
           }
         }
 
@@ -1127,21 +1147,16 @@ export default {
       }
     },
 
-    setEfiEnabled(value) {
-      const smmEnabled = this.spec?.template?.spec?.domain?.features?.smm?.enabled;
-      const efiEnabled = this.spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
-
-      if (value) {
-        if (!smmEnabled) {
-          set(this.spec.template.spec.domain, 'features.smm.enabled', true);
-        }
-
-        if (!efiEnabled) {
-          set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', true);
-        }
-      } else {
+    setBootMethod(boot = { efi: false, secureBoot: false }) {
+      if (boot.efi && boot.secureBoot) {
+        set(this.spec.template.spec.domain, 'features.smm.enabled', true);
+        set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', true);
+      } else if (boot.efi && !boot.secureBoot) {
         set(this.spec.template.spec.domain, 'features.smm.enabled', false);
         set(this.spec.template.spec.domain, 'firmware.bootloader.efi.secureBoot', false);
+      } else {
+        this.$delete(this.spec.template.spec.domain, 'firmware');
+        this.$delete(this.spec.template.spec.domain.features, 'smm');
       }
     },
 
@@ -1182,6 +1197,25 @@ export default {
     toggleAdvanced() {
       this.showAdvanced = !this.showAdvanced;
     },
+
+    updateAgent(value) {
+      if (!value) {
+        this.deletePackage = true;
+      }
+    },
+
+    updateDataTemplateId(type, id) {
+      if (type === 'user') {
+        const oldInstallAgent = this.installAgent;
+
+        this.userDataTemplateId = id;
+        this.$nextTick(() => {
+          if (oldInstallAgent) {
+            this.installAgent = oldInstallAgent;
+          }
+        });
+      }
+    }
   },
 
   watch: {
@@ -1190,30 +1224,12 @@ export default {
         if (Array.isArray(neu)) {
           const imageId = neu[0]?.image;
           const image = this.images.find( I => imageId === I.id);
-          const imageName = image?.displayName;
+          const osType = image?.imageOSType;
 
           const oldImageId = old[0]?.image;
 
-          if (imageName && this.isCreate && oldImageId === imageId) {
-            OS.find( (os) => {
-              if (os.match) {
-                const hasMatch = os.match.find(matchValue => imageName.toLowerCase().includes(matchValue));
-
-                if (hasMatch) {
-                  this.osType = os.value;
-
-                  return true;
-                }
-              } else {
-                const hasMatch = imageName.toLowerCase().includes(os.value);
-
-                if (hasMatch) {
-                  this.osType = os.value;
-
-                  return true;
-                }
-              }
-            });
+          if (this.isCreate && oldImageId === imageId) {
+            this.osType = osType;
           }
         }
       }
@@ -1245,18 +1261,31 @@ export default {
     },
 
     efiEnabled(val) {
-      this.setEfiEnabled(val);
+      this.setBootMethod({ efi: val, secureBoot: this.secureBoot });
+    },
+
+    secureBoot(val) {
+      this.setBootMethod({ efi: this.efiEnabled, secureBoot: val });
     },
 
     installAgent: {
+      /**
+       * rules
+       * 1. The value in user Data is the first priority
+       * 2. After selecting the template, if checkbox is checked, only merge operation will be performed on user data,
+       *    if checkbox is unchecked, no value will be deleted in user data
+       */
       handler(neu) {
         if (this.deleteAgent) {
-          const out = this.getUserData({ installAgent: neu, osType: this.osType });
+          const out = this.getUserData({
+            installAgent: neu, osType: this.osType, deletePackage: this.deletePackage
+          });
 
           this.$set(this, 'userScript', out);
           this.refreshYamlEditor();
         }
         this.deleteAgent = true;
+        this.deletePackage = false;
       },
       immediate: true
     },
@@ -1268,7 +1297,7 @@ export default {
       this.refreshYamlEditor();
     },
 
-    userScript(neu) {
+    userScript(neu, old) {
       const hasInstallAgent = this.hasInstallAgent(neu, this.osType, this.installAgent);
 
       if (hasInstallAgent !== this.installAgent) {

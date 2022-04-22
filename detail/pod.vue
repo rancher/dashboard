@@ -59,10 +59,10 @@ export default {
 
       return (containers || []).map((container) => {
         const status = findBy(statuses, 'name', container.name);
-        const state = status.state || {};
+        const state = status?.state || {};
 
         // There can be only one member of a `ContainerState`
-        const s = Object.values(state)[0];
+        const s = Object.values(state)[0] || {};
         const reason = s.reason || '';
         const message = s.message || '';
         const showBracket = s.reason && s.message;
@@ -70,8 +70,8 @@ export default {
         return {
           ...container,
           status:           status || {},
-          stateDisplay:     this.value.containerStateDisplay(status),
-          stateBackground:  this.value.containerStateColor(status).replace('text', 'bg'),
+          stateDisplay:     status ? this.value.containerStateDisplay(status) : undefined,
+          stateBackground:  status ? this.value.containerStateColor(status).replace('text', 'bg') : undefined,
           nameSort:         sortableNumericSuffix(container.name).toLowerCase(),
           readyIcon:        status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5',
           availableActions: this.value.containerActions,

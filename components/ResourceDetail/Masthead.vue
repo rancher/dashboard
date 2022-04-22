@@ -239,7 +239,7 @@ export default {
         });
       }
 
-      if ( this.hasEdit ) {
+      if ( this.hasEdit && this.parent?.showConfigView !== false) {
         out.push({
           labelKey: 'resourceDetail.masthead.config',
           value:    'config',
@@ -346,6 +346,7 @@ export default {
           <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
           <span v-else-if="namespace && !hasMultipleNamespaces">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
           <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
+          <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
         </div>
       </div>
       <slot name="right">
@@ -421,7 +422,7 @@ export default {
       margin: 5px 20px 5px 0px;
     }
 
-    .live-date {
+    .live-data {
       color: var(--body-text)
     }
   }

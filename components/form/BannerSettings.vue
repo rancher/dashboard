@@ -7,6 +7,8 @@ import RadioGroup from '@/components/form/RadioGroup';
 import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default ({
+  name: 'BannerSettings',
+
   props: {
     value: {
       type:    Object,

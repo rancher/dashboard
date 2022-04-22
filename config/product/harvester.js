@@ -198,9 +198,10 @@ export function init(store) {
     },
     resource:       MANAGEMENT.MANAGED_CHART,
     resourceDetail: HCI.MANAGED_CHART,
-    resourceEdit:   HCI.MANAGED_CHART,
-    showState:      false
+    resourceEdit:   HCI.MANAGED_CHART
   });
+
+  configureType(MANAGEMENT.MANAGED_CHART, { showState: false });
 
   virtualType({
     labelKey:   'harvester.vmTemplate.label',
@@ -215,7 +216,7 @@ export function init(store) {
     exact: false,
   });
 
-  configureType(HCI.BACKUP, { showListMasthead: false });
+  configureType(HCI.BACKUP, { showListMasthead: false, showConfigView: false });
   virtualType({
     labelKey:   'harvester.backup.label',
     name:       HCI.BACKUP,

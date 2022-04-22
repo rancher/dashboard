@@ -1,4 +1,5 @@
 <script>
+import day from 'dayjs';
 import { dasherize, ucFirst } from '@/utils/string';
 import { get, clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
@@ -14,6 +15,19 @@ import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
+
+// Its quicker to render if we directly supply the components for the formatters
+// rather than just the name of a global component - so create a map of the formatter comoponents
+const FORMATTERS = {};
+
+const components = require.context('@/components/formatter', false, /[A-Z]\w+\.(vue)$/);
+
+components.keys().forEach((fileName) => {
+  const componentConfig = components(fileName);
+  const componentName = fileName.split('/').pop().split('.')[0];
+
+  FORMATTERS[componentName] = componentConfig.default || componentConfig;
+});
 
 export const COLUMN_BREAKPOINTS = {
   /**
@@ -270,13 +284,33 @@ export default {
   },
 
   mounted() {
-    this.loadingDelayTimer = setTimeout(() => {
+    this._loadingDelayTimer = setTimeout(() => {
       this.loadingDelay = true;
     }, 200);
+
+    // Add scroll listener to the main element
+    const $main = $('main');
+
+    this._onScroll = this.onScroll.bind(this);
+    $main.on('scroll', this._onScroll);
+
+    this.updateLiveAndDelayed();
   },
 
   beforeDestroy() {
     clearTimeout(this.loadingDelayTimer);
+    clearTimeout(this._scrollTimer);
+    clearTimeout(this._loadingDelayTimer);
+    clearTimeout(this._liveColumnsTimer);
+    clearTimeout(this._delayedColumnsTimer);
+
+    const $main = $('main');
+
+    $main.off('scroll', this._onScroll);
+  },
+
+  updated() {
+    this.updateLiveAndDelayed();
   },
 
   watch: {
@@ -327,7 +361,8 @@ export default {
     },
 
     columns() {
-      const out = this.headers.slice();
+      // Filter out any columns that are too heavy to show for large page sizes
+      const out = this.headers.slice().filter(c => !c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage));
 
       if ( this.groupBy ) {
         const entry = out.find(x => x.name === this.groupBy);
@@ -376,6 +411,78 @@ export default {
         'overflow-y':      this.overflowY,
         'overflow-x':      this.overflowX,
       };
+    },
+
+    // Do we have any live columns?
+    hasLiveColumns() {
+      const liveColumns = this.columns.find(c => c.formatter?.startsWith('Live') || c.liveUpdates);
+
+      return !!liveColumns;
+    },
+
+    hasDelayedColumns() {
+      const delaeydColumns = this.columns.find(c => c.delayLoading);
+
+      return !!delaeydColumns;
+    },
+
+    // Generate row and column data for easier rendering in the template
+    // ensures we only call methods like `valueFor` once
+    displayRows() {
+      const rows = [];
+
+      this.groupedRows.forEach((grp) => {
+        const group = {
+          grp,
+          key:  grp.key,
+          ref:  grp.ref,
+          rows: [],
+        };
+
+        rows.push(group);
+
+        grp.rows.forEach((row) => {
+          const rowData = {
+            row,
+            key:                        this.get(row, this.keyField),
+            showSubRow:                 this.showSubRow(row, this.keyField),
+            canRunBulkActionOfInterest: this.canRunBulkActionOfInterest(row),
+            columns:                    []
+          };
+
+          group.rows.push(rowData);
+
+          this.columns.forEach((c) => {
+            const value = this.valueFor(row, c);
+            let component;
+            let formatted = value;
+            let needRef = false;
+
+            if (Array.isArray(value)) {
+              formatted = value.join(', ');
+            }
+
+            if (c.formatter && FORMATTERS[c.formatter]) {
+              component = FORMATTERS[c.formatter];
+              needRef = true;
+            }
+
+            rowData.columns.push({
+              col:       c,
+              value,
+              formatted,
+              component,
+              needRef,
+              delayed:   c.delayLoading,
+              live:      c.formatter?.startsWith('Live') || c.liveUpdates,
+              label:     this.labelFor(c),
+              dasherize: dasherize(c.formatter || ''),
+            });
+          });
+        });
+      });
+
+      return rows;
     }
   },
 
@@ -383,6 +490,91 @@ export default {
 
     get,
     dasherize,
+
+    onScroll() {
+      if (this.hasLiveColumns || this.hasDelayedColumns) {
+        clearTimeout(this._liveColumnsTimer);
+        clearTimeout(this._scrollTimer);
+        clearTimeout(this._delayedColumnsTimer);
+        this._scrollTimer = setTimeout(() => {
+          this.updateLiveColumns();
+          this.updateDelayedColumns();
+        }, 300);
+      }
+    },
+
+    updateLiveAndDelayed() {
+      if (this.hasLiveColumns) {
+        this.updateLiveColumns();
+      }
+
+      if (this.hasDelayedColumns) {
+        this.updateDelayedColumns();
+      }
+    },
+
+    updateDelayedColumns() {
+      if (!this.$refs.column || this.pagedRows.length === 0) {
+        return;
+      }
+
+      const delayedColumns = this.$refs.column.filter(c => c.startDelayedLoading && !c.__delayedLoading);
+      // We add 100 pixels here - so we will render the delayed columns for a few extra rows below what is visible
+      // This way if you scroll slowly, you won't see the columns being loaded
+      const clientHeight = (window.innerHeight || document.documentElement.clientHeight) + 100;
+
+      let scheduled = 0;
+
+      for (let i = 0; i < delayedColumns.length; i++) {
+        const dc = delayedColumns[i];
+        const y = dc.$el.getBoundingClientRect().y;
+
+        if (y >= 0 && y <= clientHeight) {
+          dc.startDelayedLoading(true);
+          dc.__delayedLoading = true;
+
+          scheduled++;
+
+          // Only update 4 at a time
+          if (scheduled === 4) {
+            this._delayedColumnsTimer = setTimeout(this.updateDelayedColumns, 100);
+
+            return;
+          }
+        }
+      }
+    },
+
+    updateLiveColumns() {
+      if (!this.$refs.column || !this.hasLiveColumns || this.pagedRows.length === 0) {
+        return;
+      }
+
+      const clientHeight = window.innerHeight || document.documentElement.clientHeight;
+      const liveColumns = this.$refs.column.filter(c => !!c.liveUpdate);
+      const now = day();
+      let next = Number.MAX_SAFE_INTEGER;
+
+      for (let i = 0; i < liveColumns.length; i++) {
+        const column = liveColumns[i];
+        const y = column.$el.getBoundingClientRect().y;
+
+        if (y >= 0 && y <= clientHeight) {
+          const diff = column.liveUpdate(now);
+
+          if (diff < next) {
+            next = diff;
+          }
+        }
+      }
+
+      if (next < 1 ) {
+        next = 1;
+      }
+
+      // Schedule again
+      this._liveColumnsTimer = setTimeout(() => this.updateLiveColumns(), next * 1000);
+    },
 
     labelFor(col) {
       if ( col.labelKey ) {
@@ -395,6 +587,12 @@ export default {
     },
 
     valueFor(row, col) {
+      if (typeof col.value === 'function') {
+        return col.value(row);
+      }
+
+      // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // Use to debug table columns using expensive value getters
+
       const expr = col.value || col.name;
       const out = get(row, expr);
 
@@ -403,25 +601,6 @@ export default {
       }
 
       return out;
-    },
-
-    /**
-     * Format values to render in the sorted table
-     * In the absence of predefined formatter table would use this
-     *
-     * @param {Object} row
-     * @param {Object} col
-     *
-     * @return {String}
-     */
-    formatValue(row, col) {
-      const valFor = this.valueFor(row, col);
-
-      if ( Array.isArray(valFor) ) {
-        return valFor.join(', ');
-      }
-
-      return valFor;
     },
 
     isExpanded(row) {
@@ -590,7 +769,7 @@ export default {
             ref="searchQuery"
             v-model="eventualSearchQuery"
             type="search"
-            class="input-sm"
+            class="input-sm search-box"
             :placeholder="t('sortableTable.search')"
           >
         </div>
@@ -649,11 +828,11 @@ export default {
           </tr>
         </slot>
       </tbody>
-      <tbody v-for="group in groupedRows" v-else :key="group.key" :class="{ group: groupBy }">
+      <tbody v-for="group in displayRows" v-else :key="group.key" :class="{ group: groupBy }">
         <slot v-if="groupBy" name="group-row" :group="group" :fullColspan="fullColspan">
           <tr class="group-row">
             <td :colspan="fullColspan">
-              <slot name="group-by" :group="group">
+              <slot name="group-by" :group="group.grp">
                 <div v-trim-whitespace class="group-tab">
                   {{ group.ref }}
                 </div>
@@ -662,56 +841,75 @@ export default {
           </tr>
         </slot>
         <template v-for="(row, i) in group.rows">
-          <slot name="main-row" :row="row">
-            <slot :name="'main-row:' + (row.mainRowKey || i)" :full-colspan="fullColspan">
+          <slot name="main-row" :row="row.row">
+            <slot :name="'main-row:' + (row.row.mainRowKey || i)" :full-colspan="fullColspan">
               <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
               because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
               the value of :class changes. -->
-              <tr :key="get(row,keyField)" class="main-row" :class="{ 'has-sub-row': showSubRow(row, keyField)}" :data-node-id="get(row,keyField)" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
+              <tr :key="row.key" class="main-row" :class="{ 'has-sub-row': row.showSubRow}" :data-node-id="row.key" :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest">
                 <td v-if="tableActions" class="row-check" align="middle">
-                  {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="get(row,keyField)" :value="selectedRows.includes(row)" />
+                  {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="row.key" :value="selectedRows.includes(row.row)" />
                 </td>
                 <td v-if="subExpandColumn" class="row-expand" align="middle">
                   <i
                     data-title="Toggle Expand"
                     :class="{
                       icon: true,
-                      'icon-chevron-right': !isExpanded(row),
-                      'icon-chevron-down': isExpanded(row)
+                      'icon-chevron-right': !expanded[row[keyField]],
+                      'icon-chevron-down': !!expanded[row[keyField]]
                     }"
-                    @click.stop="toggleExpand(row)"
+                    @click.stop="toggleExpand(row.row)"
                   />
                 </td>
-                <template v-for="col in columns">
+                <template v-for="col in row.columns">
                   <slot
-                    :name="'col:' + col.name"
-                    :row="row"
-                    :col="col"
+                    :name="'col:' + col.col.name"
+                    :row="row.row"
+                    :col="col.col"
                     :dt="dt"
                     :expanded="expanded"
-                    :rowKey="get(row,keyField)"
+                    :rowKey="row.key"
                   >
                     <td
-                      :key="col.name"
-                      :data-title="labelFor(col)"
-                      :align="col.align || 'left'"
-                      :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter, [col.breakpoint]: !!col.breakpoint, ['skip-select']: col.skipSelect}"
-                      :width="col.width"
+                      :key="col.col.name"
+                      :data-title="col.col.label"
+                      :align="col.col.align || 'left'"
+                      :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
+                      :width="col.col.width"
                     >
-                      <slot :name="'cell:' + col.name" :row="row" :col="col" :value="valueFor(row,col)">
+                      <slot :name="'cell:' + col.col.name" :row="row.row" :col="col.col" :value="col.value">
                         <component
-                          :is="col.formatter"
-                          v-if="col.formatter"
-                          :value="valueFor(row,col)"
-                          :row="row"
-                          :col="col"
-                          v-bind="col.formatterOpts"
-                          :row-key="get(row,keyField)"
+                          :is="col.component"
+                          v-if="col.component && col.needRef"
+                          ref="column"
+                          :value="col.value"
+                          :row="row.row"
+                          :col="col.col"
+                          v-bind="col.col.formatterOpts"
+                          :row-key="row.key"
                         />
-                        <template v-else-if="valueFor(row,col) !== ''">
-                          {{ formatValue(row,col) }}
+                        <component
+                          :is="col.component"
+                          v-else-if="col.component"
+                          :value="col.value"
+                          :row="row.row"
+                          :col="col.col"
+                          v-bind="col.col.formatterOpts"
+                          :row-key="row.key"
+                        />
+                        <component
+                          :is="col.col.formatter"
+                          v-else-if="col.col.formatter"
+                          :value="col.value"
+                          :row="row.row"
+                          :col="col.col"
+                          v-bind="col.col.formatterOpts"
+                          :row-key="row.key"
+                        />
+                        <template v-else-if="col.value !== ''">
+                          {{ col.formatted }}
                         </template>
-                        <template v-else-if="col.dashIfEmpty">
+                        <template v-else-if="col.col.dashIfEmpty">
                           <span class="text-muted">&mdash;</span>
                         </template>
                       </slot>
@@ -729,17 +927,23 @@ export default {
             </slot>
           </slot>
           <slot
-            v-if="showSubRow(row, keyField)"
+            v-if="row.showSubRow"
             name="sub-row"
             :full-colspan="fullColspan"
-            :row="row"
+            :row="row.row"
             :sub-matches="subMatches"
           >
-            <tr v-if="row.stateDescription" :key="get(row,keyField) + '-description'" class="state-description sub-row">
+            <tr
+              v-if="row.row.stateDescription"
+              :key="row.row[keyField] + '-description'"
+              class="state-description sub-row"
+              @mouseenter="onRowMouseEnter"
+              @mouseleave="onRowMouseLeave"
+            >
               <td v-if="tableActions" class="row-check" align="middle">
               </td>
-              <td :colspan="fullColspan - (tableActions ? 1: 0)" :class="{ 'text-error' : row.stateObj.error }">
-                {{ row.stateDescription }}
+              <td :colspan="fullColspan - (tableActions ? 1: 0)" :class="{ 'text-error' : row.row.stateObj.error }">
+                {{ row.row.stateDescription }}
               </td>
             </tr>
           </slot>
@@ -840,6 +1044,10 @@ export default {
       margin-right: 5px;
       width: 20px;
     }
+  }
+
+  .search-box {
+    height: 40px;
   }
 </style>
 

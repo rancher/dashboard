@@ -9,6 +9,7 @@ import { NAME } from '@/config/product/auth';
 import { MODE, _EDIT } from '@/config/query-params';
 import { mapState } from 'vuex';
 import { BLANK_CLUSTER } from '@/store';
+import { allHash } from '~/utils/promise';
 
 export default {
   components: {
@@ -28,12 +29,18 @@ export default {
   async fetch() {
     await this.updateRows();
 
-    this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
-      .then(res => !!res?.actions?.refreshauthprovideraccess);
-
+    const authConfigSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.AUTH_CONFIG);
     const grbSchema = this.$store.getters['rancher/schemaFor'](NORMAN.GLOBAL_ROLE_BINDING);
 
-    this.canCreateGlobalRoleBinding = grbSchema?.collectionMethods?.includes('POST');
+    const hash = await allHash({
+      user:      this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' }),
+      providers: authConfigSchema ? this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG }) : Promise.resolve([])
+    });
+
+    const nonLocalAuthProvider = !!hash.providers.find(p => p.name !== 'local' && p.enabled === true);
+
+    this.canRefreshAccess = nonLocalAuthProvider && !!hash.user?.actions?.refreshauthprovideraccess;
+    this.canCreateGlobalRoleBinding = nonLocalAuthProvider && grbSchema?.collectionMethods?.includes('POST');
   },
   data() {
     return {

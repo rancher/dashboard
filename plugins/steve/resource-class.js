@@ -144,6 +144,7 @@ export const STATES_ENUM = {
   STOPPING:         'stopping',
   SUCCEEDED:        'succeeded',
   SUCCESS:          'success',
+  SUCCESSFUL:          'successful',
   SUPERSEDED:       'superseded',
   SUSPENDED:        'suspended',
   UNAVAILABLE:      'unavailable',
@@ -384,6 +385,9 @@ export const STATES = {
   },
   [STATES_ENUM.SUCCESS]:            {
     color: 'success', icon: 'dot-open', label: 'Success'
+  },
+  [STATES_ENUM.SUCCESSFUL]:            {
+    color: 'success', icon: 'dot-open', label: 'Successful'
   },
   [STATES_ENUM.SUPERSEDED]:         {
     color: 'info', icon: 'dot-open', label: 'Superseded'

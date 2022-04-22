@@ -16,13 +16,13 @@ const PERF_DATA = {
   pod: {
     count:     4000,
     statusRow: 10
-  }
+  },
 };
 
 const DEFAULTS = {
   count:     1, // One copy of each resource
   statusRow: 0, // Don't add any status rows (0 = None, 1 = All, N = 1 out of N)
-  custom:    null // Custom function that can modify each row = takes node and index - e.g. (node, index) => { node.metadata.state.error = true}
+  custom:    null // Custom function that can modify each row = takes node and index - e.g. (node, index) => { node.metadata.state.error = true; }
 };
 
 export function perfLoadAll(type, data) {

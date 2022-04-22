@@ -1,13 +1,10 @@
-import { SEARCH_QUERY } from '@/config/query-params';
 import { get } from '@/utils/object';
 import { addObject, addObjects, isArray, removeAt } from '@/utils/array';
 
 export default {
   data() {
-    const searchQuery = this.$route.query.q || null;
-
     return {
-      searchQuery,
+      searchQuery:    null,
       previousFilter: null,
       previousResult: null,
     };
@@ -121,10 +118,6 @@ export default {
   },
 
   watch: {
-    searchQuery(q) {
-      this.$router.applyQuery({ [SEARCH_QUERY]: q || undefined });
-    },
-
     arrangedRows(q) {
       // The rows changed so the old filter result is no longer useful
       this.previousResult = null;
@@ -164,19 +157,23 @@ function matches(fields, token, item) {
     }
 
     let modifier;
-    const idx = field.indexOf(':');
-
-    if ( idx > 0 ) {
-      modifier = field.substr(idx + 1);
-      field = field.substr(0, idx);
-    }
-
     let val;
 
-    if ( field.includes('.') ) {
-      val = get(item, field);
+    if (typeof field === 'function') {
+      val = field(item);
     } else {
-      val = item[field];
+      const idx = field.indexOf(':');
+
+      if ( idx > 0 ) {
+        modifier = field.substr(idx + 1);
+        field = field.substr(0, idx);
+      }
+
+      if ( field.includes('.') ) {
+        val = get(item, field);
+      } else {
+        val = item[field];
+      }
     }
 
     if ( val === undefined ) {

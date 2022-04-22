@@ -171,8 +171,12 @@ export default {
       });
     },
 
-    remove(idx) {
-      removeAt(this.rows, idx);
+    /**
+     * Remove item and emits removed row and its own index value
+     */
+    remove(row, index) {
+      this.$emit('remove', { row, index });
+      removeAt(this.rows, index);
       this.queueUpdate();
     },
 
@@ -275,13 +279,18 @@ export default {
           </div>
         </slot>
         <div v-if="showRemove" class="remove">
-          <slot name="remove-button" :remove="() => remove(idx)" :i="idx" :row="row">
+          <slot
+            name="remove-button"
+            :remove="() => remove(row, idx)"
+            :i="idx"
+            :row="row"
+          >
             <button
               type="button"
               :disabled="isView"
               class="btn role-link"
               :data-testid="`remove-item-${idx}`"
-              @click="remove(idx)"
+              @click="remove(idx, row)"
             >
               {{ removeLabel }}
             </button>

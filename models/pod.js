@@ -172,4 +172,12 @@ export default class Pod extends SteveModel {
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
   }
+
+  get restartCount() {
+    if (this.status.containerStatuses) {
+      return this.status?.containerStatuses[0].restartCount || 0;
+    }
+
+    return 0;
+  }
 }

@@ -825,7 +825,16 @@ export const actions = {
       hash.upgrades = dispatch('harvester/findAll', { type: HCI.UPGRADE });
     }
 
-    await allHash(hash);
+    const res = await allHash(hash);
+
+    await dispatch('cleanNamespaces');
+
+    const filters = getters['prefs/get'](NAMESPACE_FILTERS)?.[id];
+
+    commit('updateNamespaces', {
+      filters: filters || [ALL_USER],
+      all:     res.virtualNamespaces
+    });
 
     commit('clusterChanged', true);
 

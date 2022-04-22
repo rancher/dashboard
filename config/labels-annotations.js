@@ -91,6 +91,7 @@ export const CATALOG = {
   DEPLOYED_OS:   'catalog.cattle.io/deploys-on-os',
 
   MIGRATED: 'apps.cattle.io/migrated',
+  MANAGED:  'catalog.cattle.io/managed'
 };
 
 export const FLEET = {
@@ -126,6 +127,7 @@ export const ANNOTATIONS_TO_FOLD = [
 export const HCI = {
   CLUSTER_ID:                   'harvesterhci.io/clusterId',
   CLOUD_INIT:                   'harvesterhci.io/cloud-init-template',
+  CURRENT_IP:                   'rke2.io/internal-ip',
   OWNED_BY:                     'harvesterhci.io/owned-by',
   CREATED_BY:                   'kubevirt.io/created-by',
   IMAGE_ID:                     'harvesterhci.io/imageId',
@@ -150,6 +152,7 @@ export const HCI = {
   MIGRATION_STATE:              'harvesterhci.io/migrationState',
   VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates',
   IMAGE_NAME:                   'harvesterhci.io/image-name',
+  INIT_IP:                      'etcd.rke2.cattle.io/node-address',
   NODE_SCHEDULABLE:             'kubevirt.io/schedulable',
   NETWORK_ROUTE:                'network.harvesterhci.io/route',
   CLOUD_PROVIDER_IPAM:          'cloudprovider.harvesterhci.io/ipam',
@@ -161,6 +164,8 @@ export const HCI = {
   DYNAMIC_SSHKEYS_NAMES:        'harvesterhci.io/dynamic-ssh-key-names',
   DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
   VM_VOLUME_STATUS:             'harvesterhci.io/volume-status',
+  IMAGE_SUFFIX:                 'harvesterhci.io/image-type',
+  OS_TYPE:                      'harvesterhci.io/os-type'
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge

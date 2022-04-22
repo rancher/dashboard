@@ -2,6 +2,9 @@ import NormanModel from '@/plugins/steve/norman-class';
 import { SNAPSHOT } from '@/config/labels-annotations';
 import { CAPI } from '@/config/types';
 import { findBy } from '@/utils/array';
+import { get } from '@/utils/object';
+import { base64Decode } from '~/utils/crypto';
+import { ucFirst } from '@/utils/string';
 
 export default class EtcdBackup extends NormanModel {
   /**
@@ -42,5 +45,25 @@ export default class EtcdBackup extends NormanModel {
 
   get nameDisplay() {
     return this.snapshotFile?.name || this.name;
+  }
+
+  get errorMessage() {
+    const inError = get(this, 'snapshotFile.status') === 'failed';
+
+    if (inError) {
+      return base64Decode(this.snapshotFile?.message);
+    } else {
+      return null;
+    }
+  }
+
+  get stateDescription() {
+    const trans = this.stateObj?.transitioning || false;
+    const error = this.stateObj?.error || this.snapshotFile?.status === 'failed' || false;
+    const message = this.stateObj?.message;
+
+    const fileMessage = this.snapshotFile?.status === 'failed' ? base64Decode(this.snapshotFile?.message) : null;
+
+    return trans || error ? fileMessage || ucFirst(message) : '';
   }
 }

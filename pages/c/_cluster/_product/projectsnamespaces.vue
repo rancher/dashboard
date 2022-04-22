@@ -90,6 +90,7 @@ export default {
           groupByLabel:     `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
           isFake:           true,
           mainRowKey:       project.id,
+          nameDisplay:      project.spec?.displayName, // Enable filtering by the project name
           project,
           availableActions: []
         };

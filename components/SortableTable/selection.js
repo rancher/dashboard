@@ -14,14 +14,10 @@ export default {
     this._onRowClickBound = this.onRowClick.bind(this);
     this._onRowMousedownBound = this.onRowMousedown.bind(this);
     this._onRowContextBound = this.onRowContext.bind(this);
-    this._onRowMouseEnterBound = this.onRowMouseEnter.bind(this);
-    this._onRowMouseLeaveBound = this.onRowMouseLeave.bind(this);
 
     $table.on('click', '> TBODY > TR', this._onRowClickBound);
     $table.on('mousedown', '> TBODY > TR', this._onRowMousedownBound);
     $table.on('contextmenu', '> TBODY > TR', this._onRowContextBound);
-    $table.on('mouseenter', '> TBODY > TR', this._onRowMouseEnterBound);
-    $table.on('mouseleave', '> TBODY > TR', this._onRowMouseLeaveBound);
   },
 
   beforeDestroy() {
@@ -30,8 +26,6 @@ export default {
     $table.off('click', '> TBODY > TR', this._onRowClickBound);
     $table.off('mousedown', '> TBODY > TR', this._onRowMousedownBound);
     $table.off('contextmenu', '> TBODY > TR', this._onRowContextBound);
-    $table.off('mouseenter', '> TBODY > TR', this._onRowMouseEnterBound);
-    $table.off('mouseleave', '> TBODY > TR', this._onRowMouseLeaveBound);
   },
 
   computed: {
@@ -49,25 +43,22 @@ export default {
       return NONE;
     },
 
+    // NOTE: The logic here could be simplified and made more performant
     bulkActionsForSelection() {
       let disableAll = false;
       // pagedRows is all rows in the current page
       const all = this.pagedRows;
+      const allRows = this.arrangedRows;
       let selected = this.selectedRows;
-
-      // Can't be any actions if there are no rows
-      if (!all.length) {
-        return [];
-      }
 
       // Nothing is selected
       if ( !this.selectedRows.length ) {
         // and there are no rows
-        if ( !all ) {
+        if ( !allRows ) {
           return [];
         }
 
-        const firstNode = all[0];
+        const firstNode = allRows[0];
 
         selected = firstNode ? [firstNode] : [];
         disableAll = true;
@@ -278,7 +269,7 @@ export default {
 
         this.$store.commit(`action-menu/show`, {
           resources,
-          elem: actionElement
+          event: e.originalEvent || e, // Handle jQuery event and raw event
         });
 
         return;
