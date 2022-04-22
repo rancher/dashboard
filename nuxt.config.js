@@ -1,7 +1,7 @@
 import config from './shell/nuxt.config';
 
 export default config(__dirname, {
-  excludes: [],
+  excludes: ['epinio'],
   // excludes: ['fleet', 'example']
   // autoLoad: ['fleet', 'example']
 });
