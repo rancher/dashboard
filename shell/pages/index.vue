@@ -6,10 +6,10 @@ export default {
   middleware({ redirect, store } ) {
     const seenWhatsNew = store.getters['prefs/get'](SEEN_WHATS_NEW);
     const versionInfo = getVersionInfo(store);
-    const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
+    const isSingleProduct = store.getters['isSingleProduct'];
 
     // If this is a new version, then take the user to the home page to view the release notes
-    if (versionInfo.fullVersion !== seenWhatsNew && !isSingleVirtualCluster) {
+    if (versionInfo.fullVersion !== seenWhatsNew && !isSingleProduct) {
       return redirect({ name: 'home' });
     }
 
