@@ -3,7 +3,9 @@ import { escapeHtml } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import SteveModel from '@/plugins/steve/steve-class';
 import { exceptionToErrorsArray } from '~/utils/error';
-import { handleConflict } from '~/plugins/steve/normalize';
+import { handleConflict } from '@/plugins/steve/normalize';
+import { MACHINE_ROLES } from '@/config/labels-annotations';
+import { notOnlyOfRole } from '@/models/cluster.x-k8s.io.machine';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
@@ -82,19 +84,30 @@ export default class CapiMachineDeployment extends SteveModel {
     return this.status?.unavailableReplicas || 0;
   }
 
-  scalePool(delta, save = true, depth = 0) {
+  get isControlPlane() {
+    return `${ this.spec?.template?.metadata?.labels?.[MACHINE_ROLES.CONTROL_PLANE] }` === 'true';
+  }
+
+  get isEtcd() {
+    return `${ this.spec?.template?.metadata?.labels?.[MACHINE_ROLES.ETCD] }` === 'true';
+  }
+
+  // use this pool's definition in the cluster's rkeConfig to scale, not this.spec.replicas
+  get inClusterSpec() {
     const machineConfigName = this.template.metadata.annotations['rke.cattle.io/cloned-from-name'];
     const machinePools = this.cluster.spec.rkeConfig.machinePools;
 
-    const clustersMachinePool = machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
+    return machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
+  }
 
-    if (!clustersMachinePool) {
+  scalePool(delta, save = true, depth = 0) {
+    if (!this.inClusterSpec || !this.canScalePool) {
       return;
     }
 
     const initialValue = this.cluster.toJSON();
 
-    clustersMachinePool.quantity += delta;
+    this.inClusterSpec.quantity += delta;
 
     if ( !save ) {
       return;
@@ -116,7 +129,7 @@ export default class CapiMachineDeployment extends SteveModel {
 
           if ( conflicts === false ) {
             // It was automatically figured out, save again
-            // (pass in the delta again as `clustersMachinePool.quantity` would have reset from the re-fetch done in `save`)
+            // (pass in the delta again as `this.inClusterSpec.quantity` would have reset from the re-fetch done in `save`)
             return this.scalePool(delta, true, depth + 1);
           } else {
             errors = conflicts;
@@ -129,6 +142,21 @@ export default class CapiMachineDeployment extends SteveModel {
         }, { root: true });
       });
     }, 1000);
+  }
+
+  // prevent scaling pool to 0 if it would scale down the only etcd or control plane node
+  canScalePool(delta) {
+    if (!this.canUpdate ) {
+      return false;
+    }
+    // scaling a pool down to more than 0 is always ok, scaling workers only is always ok
+    if (this.inClusterSpec?.quantity > (delta * -1) || (!this.isEtcd && !this.isControlPlane)) {
+      return true;
+    }
+
+    const allPoolsInCluster = this.cluster.pools;
+
+    return notOnlyOfRole(this, allPoolsInCluster);
   }
 
   get stateParts() {
