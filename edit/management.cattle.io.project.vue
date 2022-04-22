@@ -141,7 +141,7 @@ export default {
           const savedProject = await this.value.save();
 
           if (this.membershipUpdate.save) {
-            this.membershipUpdate.save(savedProject.id);
+            await this.membershipUpdate.save(savedProject.id);
           }
         } else if (this.mode === _EDIT) {
           if (this.canEditProject) {
@@ -152,7 +152,7 @@ export default {
           if (this.membershipUpdate.save) {
             const norman = await this.value.norman;
 
-            this.membershipUpdate.save(norman.id);
+            await this.membershipUpdate.save(norman.id);
           }
         }
 
