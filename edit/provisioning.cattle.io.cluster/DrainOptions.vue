@@ -4,9 +4,9 @@ import Checkbox from '@/components/form/Checkbox.vue';
 import UnitInput from '@/components/form/UnitInput.vue';
 
 const DEFAULTS = {
-  deleteEmptyDirData:              false, // Show; Kill pods using emptyDir volumes and lose the data
+  deleteEmptyDirData:              true, // Show; Kill pods using emptyDir volumes and lose the data
   disableEviction:                 false, // Hide; false = evict pods, true = delete pods
-  enabled:                         false, // Show; true = Nodes must be drained before upgrade; false = YOLO
+  enabled:                         true, // Show; true = Nodes must be drained before upgrade; false = YOLO
   force:                           false, // Show; true = Delete standalone pods, false = fail if there are any
   gracePeriod:                     -1, // Show; Pod shut down time, negative value uses pod default
   ignoreDaemonSets:                true, // Hide; true = work, false = never work because there's always daemonSets
@@ -46,6 +46,10 @@ export default {
     out.customTimeout = out.timeout >= 0;
 
     return out;
+  },
+
+  created() {
+    this.update();
   },
 
   methods: {

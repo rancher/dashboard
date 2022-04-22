@@ -1449,7 +1449,8 @@ export default {
           set(rkeConfig.chartValues, name, userValues);
         }
       });
-    }
+    },
+    get
   },
 };
 </script>
@@ -1731,7 +1732,7 @@ export default {
             />
 
             <S3Config
-              v-if="rkeConfig.etcd.s3"
+              v-if="s3Backup"
               v-model="rkeConfig.etcd.s3"
               :namespace="value.metadata.namespace"
               :register-before-hook="registerBeforeHook"
@@ -1827,6 +1828,9 @@ export default {
         </Tab>
 
         <Tab name="upgrade" label-key="cluster.tabs.upgrade">
+          <Banner v-if="get(rkeConfig, 'upgradeStrategy.controlPlaneDrainOptions.deleteEmptyDirData')" color="warning">
+            {{ t('cluster.rke2.deleteEmptyDir', {}, true) }}
+          </Banner>
           <div class="row">
             <div class="col span-6">
               <h3>Control Plane</h3>

@@ -1586,6 +1586,7 @@ cluster:
     drain:
       label: Drain Nodes
       toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
+    deleteEmptyDir: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
     address:
       tooltip: Cluster networking values cannot be changed after the cluster is created.
       header: Addressing
