@@ -59,7 +59,21 @@ export default Vue.extend<Data, any, any, any>({
     }
   },
 
-  computed: {}
+  computed: {
+    resourcesUssage() {
+      return this.value.instances?.reduce((acc: any, curr: { millicpus: number; memoryBytes: number }) => {
+        acc = {
+          millicpus:   acc.millicpus += curr.millicpus,
+          memoryBytes: acc.memoryBytes += curr.memoryBytes / (1024 * 1024) // bytes to megabytes
+        };
+
+        return acc;
+      }, {
+        millicpus:    0,
+        memoryBytes: 0,
+      });
+    }
+  }
 
 });
 </script>
@@ -103,9 +117,7 @@ export default Vue.extend<Data, any, any, any>({
         <div class="box box-timers">
           <h4>Uptime : <b>1d 32min</b></h4>
           <div>
-            <span>
-              Created: 2d ago
-            </span>
+            <span> Created: 2d ago </span>
             <span>
               Modifed: 2d ago
             </span>
@@ -141,7 +153,11 @@ export default Vue.extend<Data, any, any, any>({
             <ul>
               <li>
                 <h4>Origin</h4>
-                <span>{{ value.sourceInfo.label }}</span>
+                <span v-if="value.sourceInfo.label === 'Git'">
+                  <i class="icon icon-fw icon-github"></i>
+                  {{ value.sourceInfo.label }}
+                </span>
+                <span v-else>{{ value.sourceInfo.label }}</span>
               </li>
 
               <li v-for="d of value.sourceInfo.details" :key="d.label">
@@ -161,8 +177,8 @@ export default Vue.extend<Data, any, any, any>({
         </SimpleBox>
         <SimpleBox>
           <div class="deployment__origin__row">
-            <h4>Metrics</h4>
-            <table class="stats">
+            <h4>Application Metrics</h4>
+            <table class="stats mt-15">
               <thead>
                 <tr>
                   <th></th>
@@ -173,15 +189,15 @@ export default Vue.extend<Data, any, any, any>({
               </thead>
               <tr>
                 <td>{{ t('tableHeaders.memory') }}</td>
-                <td>{{ value.instanceMemory.min }}</td>
-                <td>{{ value.instanceMemory.max }}</td>
-                <td>{{ value.instanceMemory.avg }}</td>
+                <td>{{ 0 }}</td>
+                <td>{{ resourcesUssage.memoryBytes.toFixed(2) }} MiB</td>
+                <td>{{ (resourcesUssage.memoryBytes / value.instances.length).toFixed(2) }} MiB</td>
               </tr>
               <tr>
                 <td>{{ t('tableHeaders.cpu') }}</td>
-                <td>{{ value.instanceCpu.min }}</td>
-                <td>{{ value.instanceCpu.max }}</td>
-                <td>{{ value.instanceCpu.avg }}</td>
+                <td>{{ 0 }}</td>
+                <td>{{ resourcesUssage.millicpus.toFixed(2) }} m</td>
+                <td>{{ (resourcesUssage.millicpus / value.instances.length).toFixed(2) }} m</td>
               </tr>
             </table>
           </div>
@@ -189,9 +205,6 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </div>
     <div>
-      <!-- <h3 v-if="value.instances" class="mt-20">
-        {{ t('epinio.applications.create.instances') }}
-      </h3> -->
       <ResourceTable :schema="appInstanceSchema" :rows="value.instances" :table-actions="false" />
     </div>
   </div>
