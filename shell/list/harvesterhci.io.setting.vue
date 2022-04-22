@@ -42,7 +42,7 @@ export default {
       allRows.push(...rows.managedcharts);
     }
 
-    allRows.push(...rows.haversterSettings);
+    allRows.push(...rows.harvesterSettings);
 
     if (isSingleVirtualCluster) {
       allRows = [...rows.settings, ...allRows];
