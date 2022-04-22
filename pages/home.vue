@@ -322,18 +322,20 @@ export default {
                   </div>
                 </template>
                 <template v-if="canCreateCluster" #header-middle>
-                  <n-link
-                    :to="importLocation"
-                    class="btn btn-sm role-primary"
-                  >
-                    {{ t('cluster.importAction') }}
-                  </n-link>
-                  <n-link
-                    :to="createLocation"
-                    class="btn btn-sm role-primary"
-                  >
-                    {{ t('generic.create') }}
-                  </n-link>
+                  <div class="table-heading">
+                    <n-link
+                      :to="importLocation"
+                      class="btn btn-sm role-primary"
+                    >
+                      {{ t('cluster.importAction') }}
+                    </n-link>
+                    <n-link
+                      :to="createLocation"
+                      class="btn btn-sm role-primary"
+                    >
+                      {{ t('generic.create') }}
+                    </n-link>
+                  </div>
                 </template>
                 <template #col:name="{row}">
                   <td>
@@ -407,6 +409,12 @@ export default {
   }
   .table-heading {
     align-items: center;
+    display: flex;
+    height: 39px;
+
+    & > a {
+      margin-left: 5px;
+    }
   }
   .panel:not(:first-child) {
     margin-top: 20px;
