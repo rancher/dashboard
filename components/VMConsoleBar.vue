@@ -54,7 +54,7 @@ export default {
 
       const url = `https://${ host }${ prefix }/c/${ params.cluster }/${ params.product }/console/${ uid }/${ type }`;
 
-      window.open(url, '_blank', 'toolbars=0,width=900,height=700,left=0,top=0');
+      window.open(url, '_blank', 'toolbars=0,width=900,height=700,left=0,top=0,noreferrer');
     },
 
     isEmpty(o) {
