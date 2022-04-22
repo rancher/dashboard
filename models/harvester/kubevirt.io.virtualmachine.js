@@ -347,6 +347,12 @@ export default class VirtVm extends SteveModel {
     });
   }
 
+  get networksName() {
+    const interfaces = this.spec.template.spec.domain.devices?.interfaces || [];
+
+    return interfaces.map(I => I.name);
+  }
+
   get isOff() {
     return !this.isVMExpectedRunning ? { status: OFF } : null;
   }

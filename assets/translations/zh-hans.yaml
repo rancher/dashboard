@@ -5918,6 +5918,9 @@ harvester:
       checksum: 校验和
     harvesterMonitoring:
       label: Harvester Monitoring
+      section:
+        prometheus: Prometheus 配置
+        prometheusNodeExporter: Prometheus 节点资源采集配置
       tips:
         scrape: 每次采集数据的间隔时间
         evaluation: 每次评估规则的间隔时间

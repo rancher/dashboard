@@ -5873,6 +5873,9 @@ harvester:
       checksum: Checksum
     harvesterMonitoring:
       label: Harvester Monitoring
+      section:
+        prometheus: Prometheus Configuration
+        prometheusNodeExporter: Prometheus Node Exporter Configuration
       tips:
         scrape: Interval between consecutive scrapes
         evaluation: Interval between consecutive evaluations
