@@ -935,7 +935,7 @@ export default {
           >
             <tr
               v-if="row.row.stateDescription"
-              :key="row[keyField] + '-description'"
+              :key="row.row[keyField] + '-description'"
               class="state-description sub-row"
               @mouseenter="onRowMouseEnter"
               @mouseleave="onRowMouseLeave"
