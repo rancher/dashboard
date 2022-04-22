@@ -28,7 +28,7 @@ export default class HciVmTemplateVersion extends SteveModel {
     return [
       {
         action:     'launchFromTemplate',
-        icon:       'icon plus',
+        icon:       'icon icon-spinner',
         enabled:    canCreateVM,
         label:      this.t('harvester.action.launchFormTemplate'),
       },
@@ -56,9 +56,9 @@ export default class HciVmTemplateVersion extends SteveModel {
   applyDefaults() {
     const spec = {
       vm: {
-        metadata: { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
-        spec:     {
-          running:              true,
+        metadata:    { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
+        spec:        {
+          runStrategy: 'Manual',
           template:             {
             metadata: { annotations: {} },
             spec:     {
@@ -87,7 +87,8 @@ export default class HciVmTemplateVersion extends SteveModel {
                     memory: null,
                     cpu:    ''
                   }
-                }
+                },
+                features: { acpi: { enabled: true } },
               },
               hostname: '',
               networks: [{

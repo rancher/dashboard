@@ -17,6 +17,16 @@ export default {
       type:     Object,
       required: true
     },
+
+    resourceName: {
+      type:     String,
+      default: ''
+    },
+
+    showReserved: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -24,7 +34,7 @@ export default {
   },
 
   computed: {
-    storageUsage() {
+    usage() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);
       let out = 0;
@@ -37,10 +47,26 @@ export default {
         }
       });
 
-      return out;
+      return Number(out);
     },
 
-    storageTotal() {
+    reserved() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);
+      let reserved = 0;
+
+      const disks = longhornNode?.spec?.disks || {};
+
+      Object.values(disks).map((disk) => {
+        if (disk.allowScheduling) {
+          reserved += disk.storageReserved;
+        }
+      });
+
+      return reserved;
+    },
+
+    total() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);
       let out = 0;
@@ -56,28 +82,113 @@ export default {
       return out;
     },
 
-    storageUnits() {
-      const exponent = exponentNeeded(this.storageTotal, 1024);
+    units() {
+      const exponent = exponentNeeded(this.total, 1024);
 
       return `${ UNITS[exponent] }iB`;
+    },
+
+    used() {
+      let out = this.formatter(this.usage || 0);
+
+      if (!Number.parseFloat(out) > 0) {
+        out = this.formatter(this.usage || 0, { canRoundToZero: false });
+      }
+
+      return out;
+    },
+
+    formatReserved() {
+      let out = this.formatter(this.reserved || 0);
+
+      if (!Number.parseFloat(out) > 0) {
+        out = this.formatter(this.reserved || 0, { canRoundToZero: false });
+      }
+
+      return out;
+    },
+
+    usedAmountTemplateValues() {
+      return {
+        used:  this.used,
+        total: this.formatter(this.total || 0),
+        unit:  this.units,
+      };
+    },
+
+    reservedAmountTemplateValues() {
+      return {
+        used:  this.formatReserved,
+        total: this.formatter(this.total || 0),
+        unit:  this.units,
+      };
     },
   },
 
   methods: {
-    memoryFormatter(value) {
-      const minExponent = exponentNeeded(this.storageTotal, 1024);
+    formatter(value, format) {
+      const minExponent = exponentNeeded(this.total, 1024);
       const formatOptions = {
         addSuffix:   false,
         increment:   1024,
         minExponent,
       };
 
-      return formatSi(value, formatOptions);
+      return formatSi(value, {
+        ...formatOptions,
+        ...format,
+      });
     },
   }
 };
 </script>
 
 <template>
-  <ConsumptionGauge :capacity="storageTotal" :used="storageUsage" :units="storageUnits" :number-formatter="memoryFormatter" />
+  <div>
+    <div
+      v-if="showReserved"
+    >
+      <ConsumptionGauge
+        :capacity="total"
+        :used="reserved"
+        :units="units"
+        :number-formatter="formatter"
+        :resource-name="resourceName"
+      >
+        <template #title="{formattedPercentage}">
+          <span>
+            {{ t('clusterIndexPage.hardwareResourceGauge.reserved') }}
+          </span>
+          <span>
+            {{ t('node.detail.glance.consumptionGauge.amount', reservedAmountTemplateValues) }}
+            <span class="ml-10 percentage">
+              /&nbsp;{{ formattedPercentage }}
+            </span>
+          </span>
+        </template>
+      </ConsumptionGauge>
+    </div>
+    <ConsumptionGauge
+      :capacity="total"
+      :used="usage"
+      :units="units"
+      :number-formatter="formatter"
+      :resource-name="showReserved ? '' : resourceName"
+      :class="{
+        'mt-10': showReserved,
+      }"
+    >
+      <template #title="{formattedPercentage}">
+        <span>
+          {{ t('node.detail.glance.consumptionGauge.used') }}
+        </span>
+        <span>
+          {{ t('node.detail.glance.consumptionGauge.amount', usedAmountTemplateValues) }}
+          <span class="ml-10 percentage">
+            /&nbsp;{{ formattedPercentage }}
+          </span>
+        </span>
+      </template>
+    </ConsumptionGauge>
+  </div>
 </template>

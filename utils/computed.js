@@ -20,16 +20,16 @@ export function integerString(path) {
 /**
  * Creates a computed property that handles converting strings a list of strings that look like ['key=value'] into { key: value } and back
  * @param {*} path The path of the real value
- * @param {*} delimeter the character/s used between the key/value. Default value '='.
+ * @param {*} delimiter the character/s used between the key/value. Default value '='.
  * @returns the computed property
  */
-export function keyValueStrings(path, delimeter = '=') {
+export function keyValueStrings(path, delimiter = '=') {
   return {
     get() {
       const result = {};
 
-      get(this, path).forEach((entry) => {
-        const [key, value] = entry.split(delimeter);
+      get(this, path)?.forEach((entry) => {
+        const [key, value] = entry.split(delimiter);
 
         result[key] = value;
       });
@@ -37,7 +37,7 @@ export function keyValueStrings(path, delimeter = '=') {
       return result;
     },
     set(value) {
-      const newValue = Object.entries(value).map(([key, value]) => `${ key }${ delimeter }${ value }`);
+      const newValue = Object.entries(value).map(([key, value]) => `${ key }${ delimiter }${ value }`);
 
       set(this, path, newValue);
     }

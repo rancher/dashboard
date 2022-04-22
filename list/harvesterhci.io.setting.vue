@@ -2,11 +2,10 @@
 import { mapGetters } from 'vuex';
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
-
 import { DEV } from '@/store/prefs';
 import { HCI, MANAGEMENT } from '@/config/types';
 import { allHash } from '@/utils/promise';
-import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, ALLOWED_SETTINGS, SETTING } from '@/config/settings';
+import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '@/config/settings';
 
 export default {
   components: { Banner, Loading },
@@ -15,7 +14,7 @@ export default {
     const isDev = this.$store.getters['prefs/get'](DEV);
     const isSingleVirtualCluster = this.$store.getters['isSingleVirtualCluster'];
 
-    const hash = { haversterSettings: this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }) };
+    const hash = { harvesterSettings: this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }) };
 
     if (isSingleVirtualCluster) {
       hash.settings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
@@ -25,15 +24,25 @@ export default {
       hash.clusterNetwork = this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK });
     }
 
+    if (this.$store.getters['harvester/schemaFor'](MANAGEMENT.MANAGED_CHART)) {
+      hash.managedcharts = this.$store.dispatch('harvester/findAll', { type: MANAGEMENT.MANAGED_CHART });
+    }
+
     const rows = await allHash(hash);
 
     let allRows = [];
 
     if (rows.clusterNetwork) {
-      allRows = [...rows.clusterNetwork, ...rows.haversterSettings];
-    } else {
-      allRows = rows.haversterSettings;
+      allRows.push(...rows.clusterNetwork);
     }
+
+    const monitoring = (rows.managedcharts || []).find(c => c.id === 'fleet-local/rancher-monitoring');
+
+    if (monitoring) {
+      allRows.push(...rows.managedcharts);
+    }
+
+    allRows.push(...rows.harvesterSettings);
 
     if (isSingleVirtualCluster) {
       allRows = [...rows.settings, ...allRows];
@@ -53,7 +62,6 @@ export default {
       SETTINGS = {
         ...HCI_ALLOWED_SETTINGS,
         ...HCI_SINGLE_CLUSTER_ALLOWED_SETTING,
-        [SETTING.SERVER_URL]: ALLOWED_SETTINGS.SERVER_URL,
       };
     }
 
@@ -68,8 +76,7 @@ export default {
         data:        settingsMap[setting],
       };
 
-      s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline');
-
+      s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline' || s.customFormatter === 'json');
       s.hasActions = !s.readOnly || isDev;
       initSettings.push(s);
     });
@@ -91,7 +98,12 @@ export default {
         const isHarvester = s.data?.type?.includes('harvesterhci');
 
         if (s.kind === 'json') {
-          s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default || '{}'), null, 2);
+          try {
+            s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default || '{}'), null, 2);
+          } catch (e) {
+            console.error(`${ s.data.id }: wrong format`); // eslint-disable-line no-console
+            s.json = {};
+          }
         } else if (s.kind === 'enum') {
           const v = s.data.value || s.data.default;
 
@@ -123,7 +135,7 @@ export default {
       return HCI_ALLOWED_SETTINGS.find(setting => setting.id === id);
     },
 
-    toogleHide(s) {
+    toggleHide(s) {
       this.initSettings.find((setting) => {
         if (setting.id === s.id) {
           setting.hide = !setting.hide;
@@ -154,7 +166,7 @@ export default {
           <h2 v-html="t(setting.description, {}, true)">
           </h2>
         </div>
-        <div v-if="setting.hasActions" class="action">
+        <div v-if="setting.hasActions" :id="setting.id" class="action">
           <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions" @click="showActionMenu($event, setting)">
             <i class="icon icon-actions" />
           </button>
@@ -162,7 +174,7 @@ export default {
       </div>
       <div value>
         <div v-if="setting.hide">
-          <button class="btn btn-sm role-primary" @click="toogleHide(setting)">
+          <button class="btn btn-sm role-primary" @click="toggleHide(setting)">
             {{ t('advancedSettings.show') }} {{ setting.id }}
           </button>
         </div>
@@ -175,7 +187,7 @@ export default {
           <pre v-else class="text-muted">&lt;{{ t('advancedSettings.none') }}&gt;</pre>
         </div>
         <div v-if="setting.canHide && !setting.hide" class="mt-5">
-          <button class="btn btn-sm role-primary" @click="toogleHide(setting)">
+          <button class="btn btn-sm role-primary" @click="toggleHide(setting)">
             {{ t('advancedSettings.hide') }} {{ setting.id }}
           </button>
         </div>

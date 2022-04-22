@@ -9,6 +9,22 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import { WORKLOAD_TYPES } from '@/config/types';
 import { diffFrom } from '@/utils/time';
 import { mapGetters } from 'vuex';
+import { ACTIVELY_REMOVE, NEVER_ADD } from '@/utils/create-yaml';
+
+const HIDE = [
+  'metadata.labels.pod-template-hash',
+  'spec.selector.matchLabels.pod-template-hash',
+  'spec.template.metadata.labels.pod-template-hash',
+  'metadata.fields'
+];
+
+const REMOVE = [...ACTIVELY_REMOVE, ...NEVER_ADD, ...HIDE];
+
+const REMOVE_KEYS = REMOVE.reduce((obj, item) => {
+  obj[item] = true;
+
+  return obj;
+}, {});
 
 export default {
   components: {
@@ -31,11 +47,12 @@ export default {
       currentRevision:    null,
       revisions:          [],
       editorMode:         EDITOR_MODES.DIFF_CODE,
-      showDiff:           false
+      showDiff:           false,
     };
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+    ...mapGetters(['currentCluster']),
     workload() {
       return this.resources[0];
     },
@@ -79,6 +96,9 @@ export default {
     },
     selectedRevisionId() {
       return this.selectedRevision.id;
+    },
+    sanitizedSelectedRevision() {
+      return this.sanitizeYaml(this.selectedRevision);
     }
   },
   fetch() {
@@ -103,15 +123,17 @@ export default {
           return hasRelationshipWithCurrentWorkload( replicaSet );
         });
 
-        const revisionOptions = workloadRevisions.map( (revision ) => {
-          const isCurrentRevision = this.getRevisionNumber(revision) === this.currentRevisionNumber;
+        const revisionOptions = workloadRevisions
+          .map( (revision ) => {
+            const isCurrentRevision = this.getRevisionNumber(revision) === this.currentRevisionNumber;
 
-          if (isCurrentRevision) {
-            this.currentRevision = revision;
-          }
+            if (isCurrentRevision) {
+              this.currentRevision = revision;
+            }
 
-          return this.buildRevisionOption( revision );
-        });
+            return this.buildRevisionOption( revision );
+          })
+          .sort((a, b) => b.revisionNumber - a.revisionNumber);
 
         this.revisions = revisionOptions;
       })
@@ -125,7 +147,7 @@ export default {
     },
     async save() {
       try {
-        await this.workload.rollBackWorkload(this.workload, this.rollbackRequestBody);
+        await this.workload.rollBackWorkload(this.currentCluster, this.workload, this.rollbackRequestBody);
         this.close();
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
@@ -152,7 +174,8 @@ export default {
       return {
         label:    optionLabel,
         value:    revision,
-        disabled: isCurrentRevision
+        disabled: isCurrentRevision,
+        revisionNumber
       };
     },
     getOptionLabel(option) {
@@ -165,6 +188,27 @@ export default {
       if (dialogs.length === 1) {
         dialogs[0].style.setProperty('--prompt-modal-width', width);
       }
+    },
+    sanitizeYaml(obj, path = '') {
+      const res = {};
+
+      if (!obj) {
+        return obj;
+      }
+
+      Object.keys(obj).forEach((key) => {
+        const keyPath = !path ? key : `${ path }.${ key }`;
+
+        if (!REMOVE_KEYS[keyPath]) {
+          res[key] = obj[key];
+
+          if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+            res[key] = this.sanitizeYaml(obj[key], keyPath);
+          }
+        }
+      });
+
+      return res;
     }
   }
 };
@@ -194,8 +238,8 @@ export default {
       <YamlEditor
         v-if="selectedRevision && showDiff"
         :key="selectedRevisionId"
-        v-model="selectedRevision"
-        :initial-yaml-values="currentRevision"
+        v-model="sanitizedSelectedRevision"
+        :initial-yaml-values="sanitizeYaml(currentRevision)"
         class="mt-10 "
         :editor-mode="editorMode"
         :as-object="true"

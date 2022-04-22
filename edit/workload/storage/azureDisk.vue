@@ -6,7 +6,7 @@ import { mapGetters } from 'vuex';
 export default {
   components: { LabeledInput, RadioGroup },
   props:      {
-    // volumeAttribtutes object
+    // volumeAttributes object
     value: {
       type:    Object,
       default: () => {
@@ -33,10 +33,20 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.azureDisk.diskName" :mode="mode" :label="t('workload.storage.csi.diskName')" />
+        <LabeledInput
+          v-model="value.azureDisk.diskName"
+          :mode="mode"
+          :required="true"
+          :label="t('workload.storage.csi.diskName')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model.number="value.azureDisk.diskURI" :mode="mode" :label="t('workload.storage.csi.diskURI')" />
+        <LabeledInput
+          v-model.number="value.azureDisk.diskURI"
+          :mode="mode"
+          :required="true"
+          :label="t('workload.storage.csi.diskURI')"
+        />
       </div>
     </div>
     <div class="row mb-10">

@@ -1,10 +1,15 @@
 <script>
+import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt, findBy } from '@/utils/array';
 import { clone } from '@/utils/object';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import { HCI as HCI_LABELS_ANNOTATIONS } from '@/config/labels-annotations';
+import { isHarvesterSatisfiesVersion } from '@/utils/cluster';
+import { NAME as HARVESTER } from '@/config/product/harvester';
+import { CAPI, SERVICE } from '@/config/types';
 
 export default {
   components: {
@@ -59,6 +64,16 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
+    canNotAccessService() {
+      return !this.$store.getters['cluster/schemaFor'](SERVICE);
+    },
+
+    serviceTypeTooltip() {
+      return this.canNotAccessService ? this.t('workload.container.noServiceAccess') : undefined;
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -102,13 +117,57 @@ export default {
 
     nodePortServicePorts() {
       return ((this.services.filter(svc => svc.spec.type === 'NodePort') || [])[0] || {})?.spec?.ports;
-    }
+    },
+
+    ipamOptions() {
+      return [{
+        label: 'DHCP',
+        value: 'dhcp',
+      }, {
+        label: 'Pool',
+        value: 'pool',
+      }];
+    },
+
+    ipamIndex() {
+      return this.rows.findIndex(row => row._serviceType === 'LoadBalancer' && row.protocol === 'TCP');
+    },
+
+    serviceWithIpam() {
+      return this.services.find(s => s?.metadata?.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM]);
+    },
+
+    showIpam() {
+      let cloudProvider;
+      const version = this.provisioningCluster?.kubernetesVersion;
+
+      if (this.provisioningCluster?.isRke2) {
+        const machineSelectorConfig = this.provisioningCluster?.spec?.rkeConfig?.machineSelectorConfig || {};
+        const agentConfig = (machineSelectorConfig[0] || {}).config;
+
+        cloudProvider = agentConfig?.['cloud-provider-name'];
+      } else if (this.provisioningCluster?.isRke1) {
+        const currentCluster = this.$store.getters['currentCluster'];
+
+        cloudProvider = currentCluster?.spec?.rancherKubernetesEngineConfig?.cloudProvider?.name;
+      }
+
+      return cloudProvider === HARVESTER &&
+              isHarvesterSatisfiesVersion(version);
+    },
+
+    provisioningCluster() {
+      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find(c => c?.status?.clusterName === this.currentCluster.metadata.name);
+
+      return out;
+    },
   },
 
   created() {
     this.queueUpdate = debounce(this.update, 500);
     this.rows.map((row) => {
       this.setServiceType(row);
+      this.setIpam(row);
     });
   },
 
@@ -123,6 +182,7 @@ export default {
         hostIP:        null,
         _showHost:     false,
         _serviceType:  '',
+        _ipam:         'dhcp',
       });
 
       this.queueUpdate();
@@ -187,6 +247,12 @@ export default {
 
       return '';
     },
+
+    setIpam(row) {
+      if (this.serviceWithIpam && row._serviceType === 'LoadBalancer' && row.protocol === 'TCP') {
+        row._ipam = this.serviceWithIpam?.metadata?.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM];
+      }
+    },
   },
 };
 </script>
@@ -197,7 +263,12 @@ export default {
       v-for="(row, idx) in rows"
       :key="idx"
       class="ports-row"
-      :class="{'show-host':row._showHost}"
+      :class="{
+        'show-host':row._showHost,
+        'loadBalancer': row._serviceType === 'LoadBalancer',
+        'tcp': row.protocol === 'TCP',
+        'show-ipam': showIpam,
+      }"
     >
       <div class="service-type col">
         <LabeledSelect
@@ -205,6 +276,8 @@ export default {
           :mode="mode"
           :label="t('workload.container.ports.createService')"
           :options="serviceTypes"
+          :disabled="canNotAccessService"
+          :tooltip="serviceTypeTooltip"
           @input="queueUpdate"
         />
       </div>
@@ -228,6 +301,7 @@ export default {
           max="65535"
           placeholder="e.g. 8080"
           :label="t('workload.container.ports.containerPort')"
+          :required="row._serviceType === 'LoadBalancer' "
           @input="queueUpdate"
         />
       </div>
@@ -286,6 +360,29 @@ export default {
         />
       </div>
 
+      <div v-if="showIpam && row._serviceType === 'LoadBalancer' && row.protocol === 'TCP'">
+        <div v-if="idx === ipamIndex">
+          <LabeledSelect
+            v-model="row._ipam"
+            :mode="mode"
+            :options="ipamOptions"
+            :label="t('harvester.service.ipam.label')"
+            :disabled="mode === 'edit'"
+            @input="queueUpdate"
+          />
+        </div>
+        <div v-else>
+          <LabeledSelect
+            v-model="rows[ipamIndex]._ipam"
+            :mode="mode"
+            :options="ipamOptions"
+            :label="t('harvester.service.ipam.label')"
+            :disabled="true"
+            @input="queueUpdate"
+          />
+        </div>
+      </div>
+
       <div v-if="showRemove" class="remove">
         <button type="button" class="btn role-link" @click="remove(idx)">
           {{ t('workloadPorts.remove') }}
@@ -326,6 +423,17 @@ $checkbox: 75;
     grid-template-columns: 20% 20% 145px 90px 140px .5fr .5fr;
   }
 
+  &.show-ipam.loadBalancer.tcp{
+    grid-template-columns: 20% 20% 145px 90px .5fr 140px .5fr;
+  }
+
+  &.show-ipam.show-host.loadBalancer{
+    grid-template-columns: 20% 10% 135px 90px 105px .5fr .5fr .5fr;
+  }
+
+  &.show-ipam.show-host.loadBalancer.tcp{
+    grid-template-columns: 12% 10% 135px 90px 105px .5fr .5fr 100px .5fr;
+  }
 }
 
 .add-host {

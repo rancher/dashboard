@@ -69,7 +69,7 @@ export default {
           label: 'monitoring.volume.modes.block',
         },
       ],
-      enablePersistantStorage: !!this.value?.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec,
+      enablePersistentStorage: !!this.value?.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec,
       warnUser:                false,
     };
   },
@@ -155,7 +155,7 @@ export default {
   },
 
   watch: {
-    enablePersistantStorage(enabled) {
+    enablePersistentStorage(enabled) {
       if (!!enabled) {
         this.$set(
           this.value.prometheus.prometheusSpec.storageSpec,
@@ -301,10 +301,10 @@ export default {
       </div>
       <div class="row row-full-height container-flex-center" style="min-height: 55px;">
         <div class="col span-6">
-          <Checkbox v-model="enablePersistantStorage" :label="t('monitoring.prometheus.storage.label')" />
+          <Checkbox v-model="enablePersistentStorage" :label="t('monitoring.prometheus.storage.label')" />
         </div>
       </div>
-      <template v-if="enablePersistantStorage">
+      <template v-if="enablePersistentStorage">
         <div class="row">
           <div class="col span-6">
             <LabeledInput

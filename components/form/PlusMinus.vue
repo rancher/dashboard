@@ -5,6 +5,10 @@ export default {
       type:     Number,
       required: true,
     },
+    label: {
+      type:    String,
+      default: ''
+    },
     minusTooltip: {
       type:    String,
       default: null,
@@ -41,6 +45,7 @@ export default {
 
 <template>
   <div class="plus-minus">
+    <span v-if="label" class="label">{{ label }} </span>
     <button v-tooltip="minusTooltip" :disabled="disabled || !canMinus" type="button" class="btn btn-sm role-secondary" @click="$emit('minus')">
       <i class="icon icon-sm icon-minus" />
     </button>
@@ -62,10 +67,14 @@ export default {
     background-color: var(--accent-btn);
   }
   .value {
-    width: 25px;
+    min-width: 25px;
+    max-width: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
+}
+.label {
+  padding-right: 1em;
 }
 </style>

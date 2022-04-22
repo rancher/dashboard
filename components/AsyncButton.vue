@@ -239,7 +239,6 @@ export default Vue.extend({
     <span
       v-if="labelAs === 'text' && displayLabel"
       v-tooltip="tooltip"
-      class="pl-5"
       v-html="displayLabel"
     />
   </button>

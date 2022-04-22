@@ -4,6 +4,7 @@ import { asciiLike, nlToBr } from '@/utils/string';
 import { HIDE_SENSITIVE } from '@/store/prefs';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import CodeMirror from '@/components/CodeMirror';
+import { binarySize } from '@/utils/crypto';
 
 export default {
   components: { CopyToClipboard, CodeMirror },
@@ -79,7 +80,7 @@ export default {
 
     body() {
       if (this.isBinary) {
-        return this.t('detailText.binary', { n: this.size });
+        return this.t('detailText.binary', { n: this.value.length ? binarySize(this.value) : 0 }, true);
       }
 
       if (this.expanded) {
@@ -147,7 +148,7 @@ export default {
     </h5>
 
     <span v-if="isEmpty" v-t="'detailText.empty'" class="text-italic" />
-    <span v-else-if="isBinary" class="text-italic">{{ t('detailText.binary', {n: size}) }}</span>
+    <span v-else-if="isBinary" class="text-italic">{{ body }}</span>
 
     <CodeMirror
       v-else-if="jsonStr"

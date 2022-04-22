@@ -1,6 +1,7 @@
 <script>
 import ButtonDropdown from '@/components/ButtonDropdown';
 import { mapGetters } from 'vuex';
+import { OFF } from '@/models/harvester/kubevirt.io.virtualmachine';
 
 export default {
   name: 'VMConsoleBar',
@@ -17,15 +18,11 @@ export default {
     },
   },
 
-  data() {
-    return { };
-  },
-
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    isRunning() {
-      return !!this.resource.isRunning;
+    isOff() {
+      return this.resource.stateDisplay === OFF;
     },
 
     options() {
@@ -57,7 +54,7 @@ export default {
 
       const url = `https://${ host }${ prefix }/c/${ params.cluster }/${ params.product }/console/${ uid }/${ type }`;
 
-      window.open(url, '_blank', 'toolbars=0,width=900,height=700,left=0,top=0');
+      window.open(url, '_blank', 'toolbars=0,width=900,height=700,left=0,top=0,noreferrer');
     },
 
     isEmpty(o) {
@@ -70,8 +67,8 @@ export default {
 <template>
   <div class="overview-web-console">
     <ButtonDropdown
-      :disabled="!isRunning"
-      :no-drop="!isRunning"
+      :disabled="isOff"
+      :no-drop="isOff"
       button-label="Console"
       :dropdown-options="options"
       size="sm"

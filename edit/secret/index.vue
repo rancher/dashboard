@@ -260,7 +260,7 @@ export default {
 </script>
 
 <template>
-  <form>
+  <form class="filled-height">
     <Loading v-if="$fetchState.pending" />
     <CruResource
       v-else
@@ -288,7 +288,7 @@ export default {
         :hide-sensitive-data="hideSensitiveData"
       />
       <Tabbed v-else :side-tabs="true" default-tab="data">
-        <Tab name="data" :label="dataLabel">
+        <Tab name="data" :label="dataLabel" :weight="99">
           <component
             :is="dataComponent"
             :value="value"
@@ -296,7 +296,7 @@ export default {
             :hide-sensitive-data="hideSensitiveData"
           />
         </Tab>
-        <Tab name="labels" label-key="generic.labelsAndAnnotations">
+        <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="-1">
           <Labels v-model="value" :mode="mode" />
         </Tab>
       </Tabbed>

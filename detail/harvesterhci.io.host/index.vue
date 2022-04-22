@@ -41,14 +41,23 @@ export default {
 
     const hash = {
       nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
-      hostNetworks:  this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
-      longhornNodes: this.$store.dispatch(`${ inStore }/findAll`, { type: LONGHORN.NODES }),
-      blockDevices:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
       pods:          this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
     };
 
+    if (this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK)) {
+      hash.hostNetworks = this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK });
+    }
+
+    if (this.$store.getters['harvester/schemaFor'](HCI.BLOCK_DEVICE)) {
+      hash.blockDevices = this.$store.dispatch('harvester/findAll', { type: HCI.BLOCK_DEVICE });
+    }
+
+    if (this.$store.getters['harvester/schemaFor'](LONGHORN.NODES)) {
+      hash.longhornNodes = this.$store.dispatch('harvester/findAll', { type: LONGHORN.NODES });
+    }
+
     const res = await allHash(hash);
-    const hostNetworkResource = res.hostNetworks.find( O => this.value.id === O.attachNodeName);
+    const hostNetworkResource = (res.hostNetworks || []).find( O => this.value.id === O.attachNodeName);
 
     this.loadMetrics();
 
@@ -71,7 +80,7 @@ export default {
           originPath:     d?.spec?.fileSystem?.mountPoint,
           path:           d?.spec?.fileSystem?.mountPoint,
           blockDevice:    d,
-          displayName:    d?.spec?.devPath,
+          displayName:    d?.displayName,
           forceFormatted: d?.spec?.fileSystem?.forceFormatted || false,
         };
       });
@@ -84,11 +93,11 @@ export default {
 
   data() {
     return {
-      metrics:             null,
-      mode:                'view',
-      hostNetworkResource: null,
-      newDisks:            [],
-      disks:               [],
+      metrics:               null,
+      mode:                  'view',
+      hostNetworkResource:   null,
+      newDisks:              [],
+      disks:                 [],
     };
   },
 
@@ -97,7 +106,7 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
       const diskStatus = longhornNode?.status?.diskStatus || {};
-      const diskSpec = longhornNode.spec?.disks || {};
+      const diskSpec = longhornNode?.spec?.disks || {};
 
       const formatOptions = {
         increment:    1024,
@@ -120,7 +129,7 @@ export default {
           storageMaximum:   formatSi(diskStatus[key]?.storageMaximum, formatOptions),
           storageScheduled: formatSi(diskStatus[key]?.storageScheduled, formatOptions),
           blockDevice,
-          displayName:      blockDevice?.spec?.devPath || key,
+          displayName:      blockDevice?.displayName || key,
           forceFormatted:   blockDevice?.spec?.fileSystem?.forceFormatted || false,
         };
       });
@@ -150,6 +159,14 @@ export default {
 
       return out;
     },
+
+    hasBlockDevicesSchema() {
+      return !!this.$store.getters['harvester/schemaFor'](HCI.BLOCK_DEVICE);
+    },
+
+    hasHostNetworksSchema() {
+      return !!this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK);
+    }
   },
 
   methods: {
@@ -181,6 +198,7 @@ export default {
         <Instance :node="value" />
       </Tab>
       <Tab
+        v-if="hasHostNetworksSchema"
         name="network"
         :label="t('harvester.host.tabs.network')"
         :weight="2"
@@ -200,6 +218,7 @@ export default {
         </ArrayListGrouped>
       </Tab>
       <Tab
+        v-if="hasBlockDevicesSchema"
         name="disk"
         :weight="1"
         :label="t('harvester.host.tabs.disk')"

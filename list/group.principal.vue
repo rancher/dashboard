@@ -8,6 +8,8 @@ import { applyProducts } from '@/store/type-map';
 import { NAME } from '@/config/product/auth';
 import { MODE, _EDIT } from '@/config/query-params';
 import { mapState } from 'vuex';
+import { BLANK_CLUSTER } from '@/store';
+import { allHash } from '~/utils/promise';
 
 export default {
   components: {
@@ -27,16 +29,26 @@ export default {
   async fetch() {
     await this.updateRows();
 
-    this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
-      .then(res => !!res?.actions?.refreshauthprovideraccess);
+    const authConfigSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.AUTH_CONFIG);
+    const grbSchema = this.$store.getters['rancher/schemaFor'](NORMAN.GLOBAL_ROLE_BINDING);
+
+    const hash = await allHash({
+      user:      this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' }),
+      providers: authConfigSchema ? this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG }) : Promise.resolve([])
+    });
+
+    const nonLocalAuthProvider = !!hash.providers.find(p => p.name !== 'local' && p.enabled === true);
+
+    this.canRefreshAccess = nonLocalAuthProvider && !!hash.user?.actions?.refreshauthprovideraccess;
+    this.canCreateGlobalRoleBinding = nonLocalAuthProvider && grbSchema?.collectionMethods?.includes('POST');
   },
   data() {
     return {
-      rows:             [],
-      hasGroups:        false,
-      canRefreshAccess: false,
-      assignLocation:   {
-        path:   `/c/local/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
+      rows:                        [],
+      canCreateGlobalRoleBinding:  false,
+      canRefreshAccess:            false,
+      assignLocation:              {
+        path:   `/c/${ BLANK_CLUSTER }/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }
       },
       initialLoad: true,
@@ -65,10 +77,7 @@ export default {
       // Upfront load all global roles, this makes it easier to sync fetch them later on
       await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE });
 
-      const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
-
-      // Are there principals that are groups? (don't use rows, it's filtered by those with roles)
-      this.hasGroups = principals.filter(principal => principal.principalType === 'group')?.length;
+      await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
     },
     async refreshGroupMemberships(buttonDone) {
       try {
@@ -92,7 +101,7 @@ export default {
       await applyProducts(this.$store);
 
       // Force spoofed type getInstances to execute again
-      this.rows = await this.$store.dispatch('cluster/findAll', {
+      this.rows = await this.$store.dispatch('management/findAll', {
         type: NORMAN.SPOOFED.GROUP_PRINCIPAL,
         opt:  { force }
       }, { root: true });
@@ -120,7 +129,7 @@ export default {
           @click="refreshGroupMemberships"
         />
         <n-link
-          v-if="hasGroups"
+          v-if="canCreateGlobalRoleBinding"
           :to="assignLocation"
           class="btn role-primary"
         >

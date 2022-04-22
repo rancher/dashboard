@@ -49,6 +49,7 @@ export const CAPI = {
   CLUSTER_NAMESPACE:    'cluster.x-k8s.io/cluster-namespace',
   FORCE_MACHINE_REMOVE: 'provisioning.cattle.io/force-machine-remove',
   MACHINE_NAME:         'cluster.x-k8s.io/machine',
+  DELETE_MACHINE:       'cluster.x-k8s.io/delete-machine',
   PROVIDER:             'provider.cattle.io'
 };
 
@@ -86,8 +87,11 @@ export const CATALOG = {
   DISPLAY_NAME:     'catalog.cattle.io/display-name',
 
   SUPPORTED_OS: 'catalog.cattle.io/os',
+  PERMITTED_OS: 'catalog.cattle.io/permits-os',
+  DEPLOYED_OS:   'catalog.cattle.io/deploys-on-os',
 
   MIGRATED: 'apps.cattle.io/migrated',
+  MANAGED:  'catalog.cattle.io/managed'
 };
 
 export const FLEET = {
@@ -100,6 +104,8 @@ export const FLEET = {
 export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
 
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
+
+export const SNAPSHOT = { CLUSTER_NAME: 'rke.cattle.io/cluster-name' };
 
 export const ISTIO = { AUTO_INJECTION: 'istio-injection' };
 
@@ -121,6 +127,7 @@ export const ANNOTATIONS_TO_FOLD = [
 export const HCI = {
   CLUSTER_ID:                   'harvesterhci.io/clusterId',
   CLOUD_INIT:                   'harvesterhci.io/cloud-init-template',
+  CURRENT_IP:                   'rke2.io/internal-ip',
   OWNED_BY:                     'harvesterhci.io/owned-by',
   CREATED_BY:                   'kubevirt.io/created-by',
   IMAGE_ID:                     'harvesterhci.io/imageId',
@@ -132,6 +139,8 @@ export const HCI = {
   OS:                           'harvesterhci.io/os',
   NETWORK_TYPE:                 'network.harvesterhci.io/type',
   VM_NAME:                      'harvesterhci.io/vmName',
+  VM_NAME_PREFIX:               'harvesterhci.io/vmNamePrefix',
+  VM_RESERVED_MEMORY:           'harvesterhci.io/reservedMemory',
   MAINTENANCE_STATUS:           'harvesterhci.io/maintain-status',
   HOST_CUSTOM_NAME:             'harvesterhci.io/host-custom-name',
   HOST_CONSOLE_URL:             'harvesterhci.io/host-console-url',
@@ -143,6 +152,29 @@ export const HCI = {
   MIGRATION_STATE:              'harvesterhci.io/migrationState',
   VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates',
   IMAGE_NAME:                   'harvesterhci.io/image-name',
-  NODE_SCHEDULABLE:             'kubevirt.io/schedulabl',
+  INIT_IP:                      'etcd.rke2.cattle.io/node-address',
+  NODE_SCHEDULABLE:             'kubevirt.io/schedulable',
   NETWORK_ROUTE:                'network.harvesterhci.io/route',
+  CLOUD_PROVIDER_IPAM:          'cloudprovider.harvesterhci.io/ipam',
+  OS_UPGRADE_IMAGE:             'harvesterhci.io/os-upgrade-image',
+  UPGRADE_IMAGE:                'harvesterhci.io/upgradeImage',
+  LATEST_UPGRADE:               'harvesterhci.io/latestUpgrade',
+  UPGRADE_STATE:                'harvesterhci.io/upgradeState',
+  REAY_MESSAGE:                 'harvesterhci.io/read-message',
+  DYNAMIC_SSHKEYS_NAMES:        'harvesterhci.io/dynamic-ssh-key-names',
+  DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
+  VM_VOLUME_STATUS:             'harvesterhci.io/volume-status',
+  IMAGE_SUFFIX:                 'harvesterhci.io/image-type',
+  OS_TYPE:                      'harvesterhci.io/os-type'
+};
+
+// Annotations that can be on management.cattle.io.cluster to configure a custom badge
+// Can't use ui.cattle.io - it seems to strip these out - so using io.rancher
+export const CLUSTER_BADGE = {
+  // Badge text - badge is only shown if badge text is not empty
+  TEXT:        'ui.rancher/badge-text',
+  // Badge color - as a hex color - e.g. #ff00ff
+  COLOR:       'ui.rancher/badge-color',
+  // Custom icon text - max 2 characters
+  ICON_TEXT:   'ui.rancher/badge-icon-text',
 };

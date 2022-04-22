@@ -149,7 +149,13 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.metadata.name" :mode="mode" :label="t('persistentVolumeClaim.name')" @input="$emit('input', value)" />
+        <LabeledInput
+          v-model="value.metadata.name"
+          :mode="mode"
+          :label="t('persistentVolumeClaim.name')"
+          :required="true"
+          @input="$emit('input', value)"
+        />
       </div>
     </div>
     <div class="row mb-10">
@@ -163,11 +169,19 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <LabeledSelect v-if="createPV" v-model="spec.storageClassName" :mode="mode" :label="t('persistentVolumeClaim.storageClass')" :options="storageClassNames" />
+        <LabeledSelect
+          v-if="createPV"
+          v-model="spec.storageClassName"
+          :mode="mode"
+          :required="true"
+          :label="t('persistentVolumeClaim.storageClass')"
+          :options="storageClassNames"
+        />
         <LabeledSelect
           v-else
           :value="spec.volumeName"
           :get-option-label="volumeName"
+          :required="true"
           :mode="mode"
           :label="t('persistentVolumeClaim.volumes')"
           :options="availablePVs"
@@ -183,9 +197,9 @@ export default {
           <span class="text-error">*</span>
         </div>
         <div class="access-modes">
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" label="Single-Node Read/Write" @input="e=>updateMode('ReadWriteOnce', e)" />
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadOnlyMany')" label="Many-Node Read-Only" @input="e=>updateMode('ReadOnlyMany', e)" />
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteMany')" label="Many-Node Read/Write" @input="e=>updateMode('ReadWriteMany', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" :label="t('persistentVolumeClaim.accessModesOptions.singleNodeRW')" @input="e=>updateMode('ReadWriteOnce', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadOnlyMany')" :label="t('persistentVolumeClaim.accessModesOptions.manyNodeR')" @input="e=>updateMode('ReadOnlyMany', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteMany')" :label="t('persistentVolumeClaim.accessModesOptions.manyNodeRW')" @input="e=>updateMode('ReadWriteMany', e)" />
         </div>
       </div>
       <div v-if="createPV" class="col span-6">

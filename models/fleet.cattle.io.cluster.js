@@ -34,7 +34,7 @@ export default class FleetCluster extends SteveModel {
 
     insertAt(out, 3, {
       action:     'assignTo',
-      label:      'Assign to&hellip;',
+      label:      'Change workspace',
       icon:       'icon icon-copy',
       bulkable:   true,
       bulkAction: 'assignToBulk',
@@ -116,7 +116,7 @@ export default class FleetCluster extends SteveModel {
   }
 
   get norman() {
-    const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.metadata.name);
+    const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.metadata.labels?.[FLEET_LABELS.CLUSTER_NAME]);
 
     return norman;
   }

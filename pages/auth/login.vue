@@ -123,6 +123,7 @@ export default {
 
       providers:          [],
       providerComponents: [],
+      customLoginError:    {}
     };
   },
 
@@ -149,15 +150,34 @@ export default {
       return this.err;
     },
 
+    errorToDisplay() {
+      if (this.customLoginError?.showMessage === 'true' && this.customLoginError?.message && this.errorMessage) {
+        return `${ this.customLoginError.message } \n ${ this.errorMessage }`;
+      }
+
+      if (this.errorMessage) {
+        return this.errorMessage;
+      }
+
+      return '';
+    },
+
     kubectlCmd() {
       return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
     }
+
   },
 
   created() {
     this.providerComponents = this.providers.map((name) => {
       return importLogin(configType[name]);
     });
+  },
+
+  async fetch() {
+    const { value } = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.BANNERS });
+
+    this.customLoginError = JSON.parse(value).loginError;
   },
 
   mounted() {
@@ -263,7 +283,7 @@ export default {
           {{ t('login.welcome', {vendor}) }}
         </h1>
         <div class="login-messages">
-          <Banner v-if="errorMessage" :label="errorMessage" color="error" />
+          <Banner v-if="errorToDisplay" :label="errorToDisplay" color="error" />
           <h4 v-else-if="loggedOut" class="text-success text-center">
             {{ t('login.loggedOut') }}
           </h4>
@@ -317,6 +337,7 @@ export default {
               <div class="mb-20">
                 <LabeledInput
                   v-if="!firstLogin"
+                  id="username"
                   ref="username"
                   v-model.trim="username"
                   :label="t('login.username')"
@@ -325,6 +346,7 @@ export default {
               </div>
               <div class="">
                 <Password
+                  id="password"
                   ref="password"
                   v-model="password"
                   :label="t('login.password')"
@@ -335,6 +357,7 @@ export default {
             <div class="mt-20">
               <div class="col span-12 text-center">
                 <AsyncButton
+                  id="submit"
                   type="submit"
                   :action-label="t('login.loginWithLocal')"
                   :waiting-label="t('login.loggingIn')"
@@ -343,13 +366,13 @@ export default {
                   @click="loginLocal"
                 />
                 <div v-if="!firstLogin" class="mt-20">
-                  <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
+                  <Checkbox v-model="remember" :label="t('login.remember.label')" type="checkbox" />
                 </div>
               </div>
             </div>
           </form>
           <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
-            <a role="button" @click="toggleLocal">
+            <a id="login-useLocal" role="button" @click="toggleLocal">
               {{ t('login.useLocal') }}
             </a>
           </div>

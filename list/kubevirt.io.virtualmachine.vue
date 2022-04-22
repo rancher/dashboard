@@ -73,15 +73,16 @@ export default {
         },
         NAMESPACE,
         {
-          name:      'CPU',
-          label:     'CPU',
-          sort:      ['spec.template.spec.domain.cpu.cores'],
-          value:     'spec.template.spec.domain.cpu.cores',
-          align:     'center'
+          name:        'CPU',
+          label:       'CPU',
+          sort:        ['spec.template.spec.domain.cpu.cores'],
+          value:       'spec.template.spec.domain.cpu.cores',
+          align:       'center',
+          dashIfEmpty: true,
         },
         {
           name:          'Memory',
-          value:         'spec.template.spec.domain.resources.limits.memory',
+          value:         'displayMemory',
           sort:          ['memorySort'],
           align:         'center',
           labelKey:      'tableHeaders.memory',
@@ -104,7 +105,7 @@ export default {
           name:      'node',
           label:     'Node',
           value:     'id',
-          sort:      ['nameSort'],
+          sort:      ['realAttachNodeName'],
           formatter: 'HarvesterNodeName',
           labelKey:  'tableHeaders.node'
         },

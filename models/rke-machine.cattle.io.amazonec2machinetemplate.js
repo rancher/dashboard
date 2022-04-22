@@ -1,10 +1,6 @@
-import SteveModel from '@/plugins/steve/steve-class';
+import MachineTemplate from './rke-machine.cattle.io.machinetemplate';
 
-export default class Amazonec2MachineTemplate extends SteveModel {
-  get nameDisplay() {
-    return this.name.replace(`${ this.metadata.annotations['objectset.rio.cattle.io/owner-name'] }-`, '');
-  }
-
+export default class Amazonec2MachineTemplate extends MachineTemplate {
   get provider() {
     return 'amazonec2';
   }

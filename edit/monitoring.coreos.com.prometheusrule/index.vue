@@ -14,6 +14,7 @@ import { _CREATE } from '@/config/query-params';
 import isString from 'lodash/isString';
 import isEmpty from 'lodash/isEmpty';
 import GroupRules from './GroupRules';
+import { toMilliseconds } from './duration.js';
 
 export default {
   components: {
@@ -93,6 +94,16 @@ export default {
 
       return true;
     },
+
+    updateGroupInterval(group, interval) {
+      this.$set(group, 'interval', [null, undefined].includes(interval) ? undefined : `${ interval }s`);
+    },
+
+    getGroupInterval(interval) {
+      if (![null, undefined].includes(interval)) {
+        return Math.floor(toMilliseconds(interval) / 1000);
+      }
+    }
   },
 };
 </script>
@@ -145,14 +156,14 @@ export default {
           <div class="row">
             <div class="col span-6">
               <UnitInput
-                v-model="group.interval"
+                :value="getGroupInterval(group.interval)"
                 :suffix="t('suffix.seconds', {count: group.interval})"
                 :placeholder="
                   t('prometheusRule.groups.groupInterval.placeholder')
                 "
                 :label="t('prometheusRule.groups.groupInterval.label')"
                 :mode="mode"
-                @input="(e) => $set(filteredGroups[idx], 'interval', e)"
+                @input="(e) => updateGroupInterval(filteredGroups[idx], e)"
               />
             </div>
           </div>

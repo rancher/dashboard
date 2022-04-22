@@ -9,6 +9,7 @@ import { SHOW_PRE_RELEASE } from '@/store/prefs';
 import { set } from '@/utils/object';
 
 import SteveModel from '@/plugins/steve/steve-class';
+import { compatibleVersionsFor } from '@/store/catalog';
 
 export default class CatalogApp extends SteveModel {
   showMasthead(mode) {
@@ -67,18 +68,21 @@ export default class CatalogApp extends SteveModel {
     // null = no upgrade found
     // object = version available to upgrade to
 
-    if ( this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID] ) {
-      // Things managed by fleet shouldn't show ugrade available even if there might be.
+    if (
+      this.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MANAGED] ||
+      this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID]
+    ) {
+      // Things managed by fleet shouldn't show upgrade available even if there might be.
       return false;
     }
-
     const chart = this.matchingChart(false);
 
     if ( !chart ) {
       return null;
     }
 
-    const isWindows = this.$rootGetters['currentCluster'].providerOs === 'windows';
+    const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
+
     const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
 
     const thisVersion = this.spec?.chart?.metadata?.version;
@@ -88,20 +92,12 @@ export default class CatalogApp extends SteveModel {
       versions = chart.versions.filter(v => !isPrerelease(v.version));
     }
 
+    versions = compatibleVersionsFor(chart, workerOSs, showPreRelease);
+
     const newestChart = versions?.[0];
     const newestVersion = newestChart?.version;
 
     if ( !thisVersion || !newestVersion ) {
-      return null;
-    }
-
-    if (isWindows && newestChart?.annotations?.['catalog.cattle.io/os'] === 'linux') {
-      return null;
-    } else if (!isWindows && newestChart?.annotations?.['catalog.cattle.io/os'] === 'windows') {
-      return null;
-    }
-
-    if ( this.deployedAsLegacy || this.deployedAsMultiCluster ) {
       return null;
     }
 
@@ -120,6 +116,39 @@ export default class CatalogApp extends SteveModel {
     }
 
     return sortable(version);
+  }
+
+  get currentVersionCompatible() {
+    const workerOSs = this.$rootGetters['currentCluster'].workerOSs;
+
+    const chart = this.matchingChart(false);
+    const thisVersion = this.spec?.chart?.metadata?.version;
+
+    if (!chart) {
+      return true;
+    }
+
+    const versionInChart = chart.versions.find(version => version.version === thisVersion);
+
+    if (!versionInChart) {
+      return true;
+    }
+    const compatibleVersions = compatibleVersionsFor(chart, workerOSs, true) || [];
+
+    const thisVersionCompatible = !!compatibleVersions.find(version => version.version === thisVersion);
+
+    return thisVersionCompatible;
+  }
+
+  get stateDescription() {
+    if (this.currentVersionCompatible) {
+      return null;
+    }
+    if (this.upgradeAvailable) {
+      return this.t('catalog.os.versionIncompatible');
+    }
+
+    return this.t('catalog.os.chartIncompatible');
   }
 
   goToUpgrade(forceVersion, fromTools) {
@@ -206,6 +235,17 @@ export default class CatalogApp extends SteveModel {
     }
   }
 
+  get relatedResourcesToRemove() {
+    return async() => {
+      const crd = this.spec.chart.metadata.annotations[CATALOG_ANNOTATIONS.AUTO_INSTALL].replace('=match', '');
+
+      return await this.$dispatch('find', {
+        type: CATALOG.APP,
+        id:   `${ this.metadata.namespace }/${ crd }`
+      });
+    };
+  }
+
   get canDelete() {
     return this.hasAction('uninstall');
   }
@@ -233,8 +273,8 @@ export default class CatalogApp extends SteveModel {
 
   get deployedAsLegacy() {
     return async() => {
-      if (this.spec.values) {
-        const { clusterName, projectName } = this.spec?.values?.global;
+      if (this.spec?.values?.global) {
+        const { clusterName, projectName } = this.spec.values.global;
 
         if (clusterName && projectName) {
           try {

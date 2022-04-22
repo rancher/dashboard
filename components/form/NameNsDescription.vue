@@ -188,7 +188,9 @@ export default {
 
       const out = sortBy(
         choices.filter( (N) => {
-          return this.isVirtualCluster ? !N.isSystem && !N.isFleetManaged : true;
+          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
+
+          return this.isVirtualCluster ? !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace : true;
         }).map((obj) => {
           return {
             label: obj.nameDisplay,

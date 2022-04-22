@@ -32,9 +32,10 @@ export function init(store) {
   } = MONITORING;
 
   product({
-    ifHave:     IF_HAVE.V2_MONITORING, // possible RBAC issue here if mon turned on but user doesn't have view/read roles on pod monitors
-    icon:       'monitoring',
-    weight:     90,
+    ifHave:              IF_HAVE.V2_MONITORING, // possible RBAC issue here if mon turned on but user doesn't have view/read roles on pod monitors
+    icon:                'monitoring',
+    showNamespaceFilter: true,
+    weight:              90,
   });
 
   virtualType({

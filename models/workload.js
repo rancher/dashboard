@@ -1,11 +1,14 @@
 import { findBy, insertAt } from '@/utils/array';
-import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
+import {
+  TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS, CATTLE_PUBLIC_ENDPOINTS
+} from '@/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE, POD } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
 import SteveModel from '@/plugins/steve/steve-class';
 import { shortenedImage } from '@/utils/string';
-import { convertSelectorObj, matching } from '~/utils/selector';
+import { convertSelectorObj, matching } from '@/utils/selector';
+import { SEPARATOR } from '@/components/DetailTop';
 
 export default class Workload extends SteveModel {
   // remove clone as yaml/edit as yaml until API supported
@@ -18,7 +21,7 @@ export default class Workload extends SteveModel {
 
     insertAt(out, index, {
       action:  'addSidecar',
-      label:   'Add Sidecar',
+      label:   this.t('action.addSidecar'),
       icon:    'icon icon-plus',
       enabled: !!this.links.update,
     });
@@ -26,14 +29,14 @@ export default class Workload extends SteveModel {
     if (type !== WORKLOAD_TYPES.JOB && type !== WORKLOAD_TYPES.CRON_JOB) {
       insertAt(out, 0, {
         action:  'toggleRollbackModal',
-        label:   'Rollback',
+        label:   this.t('action.rollback'),
         icon:    'icon icon-history',
         enabled: !!this.links.update,
       });
 
       insertAt(out, 0, {
         action:     'redeploy',
-        label:      'Redeploy',
+        label:      this.t('action.redeploy'),
         icon:       'icon icon-refresh',
         enabled:    !!this.links.update,
         bulkable:   true,
@@ -60,7 +63,7 @@ export default class Workload extends SteveModel {
       action:     'openShell',
       enabled:    !!this.links.view,
       icon:       'icon icon-fw icon-chevron-right',
-      label:      'Execute Shell',
+      label:      this.t('action.openShell'),
       total:      1,
     });
 
@@ -116,7 +119,7 @@ export default class Workload extends SteveModel {
     });
   }
 
-  async rollBackWorkload( workload, rollbackRequestData ) {
+  async rollBackWorkload( cluster, workload, rollbackRequestData ) {
     const rollbackRequestBody = JSON.stringify(rollbackRequestData);
 
     if ( Array.isArray( workload ) ) {
@@ -125,7 +128,8 @@ export default class Workload extends SteveModel {
     const namespace = workload.metadata.namespace;
     const workloadName = workload.metadata.name;
 
-    await this.patch(rollbackRequestBody, { url: `/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
+    // Ensure we go out to the correct cluster
+    await this.patch(rollbackRequestBody, { url: `/k8s/clusters/${ cluster.id }/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
   }
 
   pause() {
@@ -179,6 +183,24 @@ export default class Workload extends SteveModel {
 
   addSidecar() {
     return this.goToEdit({ sidecar: true });
+  }
+
+  get showPodRestarts() {
+    return true;
+  }
+
+  get restartCount() {
+    const pods = this.pods;
+
+    let sum = 0;
+
+    pods.forEach((pod) => {
+      if (pod.status.containerStatuses) {
+        sum += pod.status?.containerStatuses[0].restartCount || 0;
+      }
+    });
+
+    return sum;
   }
 
   get hasSidecars() {
@@ -280,9 +302,59 @@ export default class Workload extends SteveModel {
     return initContainers;
   }
 
+  get endpoint() {
+    return this?.metadata?.annotations[CATTLE_PUBLIC_ENDPOINTS];
+  }
+
+  get desired() {
+    return this.spec?.replicas || 0;
+  }
+
+  get available() {
+    return this.status?.readyReplicas || 0;
+  }
+
+  get ready() {
+    const readyReplicas = Math.max(0, (this.status?.replicas || 0) - (this.status?.unavailableReplicas || 0));
+
+    if (this.type === WORKLOAD_TYPES.DAEMON_SET) {
+      return readyReplicas;
+    }
+
+    return `${ readyReplicas }/${ this.desired }`;
+  }
+
+  get unavailable() {
+    return this.status?.unavailableReplicas || 0;
+  }
+
+  get upToDate() {
+    return this.status?.updatedReplicas;
+  }
+
   get details() {
     const out = [];
     const type = this._type ? this._type : this.type;
+
+    const detailItem = {
+      endpoint:  {
+        label:     'Endpoints',
+        content:   this.endpoint,
+        formatter: 'WorkloadDetailEndpoints'
+      },
+      ready:     {
+        label:     'Ready',
+        content:   this.ready
+      },
+      upToDate:  {
+        label:     'Up-to-date',
+        content:   this.upToDate
+      },
+      available: {
+        label:     'Available',
+        content:   this.available
+      }
+    };
 
     if (type === WORKLOAD_TYPES.JOB) {
       const { completionTime, startTime } = this.status;
@@ -336,6 +408,34 @@ export default class Workload extends SteveModel {
       content:   this.imageNames,
       formatter: 'PodImages'
     });
+
+    switch (type) {
+    case WORKLOAD_TYPES.DEPLOYMENT:
+      out.push(detailItem.ready, detailItem.upToDate, detailItem.available, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.DAEMON_SET:
+      out.push(detailItem.ready, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.REPLICA_SET:
+      out.push(detailItem.ready, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.STATEFUL_SET:
+      out.push(detailItem.ready, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.REPLICATION_CONTROLLER:
+      out.push(detailItem.ready, SEPARATOR, detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.JOB:
+      out.push(detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.CRON_JOB:
+      out.push(detailItem.endpoint);
+      break;
+    case WORKLOAD_TYPES.POD:
+      out.push(detailItem.ready);
+      break;
+    default: break;
+    }
 
     return out;
   }
@@ -410,7 +510,9 @@ export default class Workload extends SteveModel {
     this.containers.forEach(container => ports.push(...(container.ports || [])));
     (this.initContainers || []).forEach(container => ports.push(...(container.ports || [])));
 
-    const services = await this.getServicesOwned();
+    // Only get services owned if we can access the service resource
+    const canAccessServices = this.$getters['schemaFor'](SERVICE);
+    const services = canAccessServices ? await this.getServicesOwned() : [];
     const clusterIPServicePorts = [];
     const loadBalancerServicePorts = [];
     const nodePortServicePorts = [];
@@ -617,6 +719,14 @@ export default class Workload extends SteveModel {
       if (loadBalancer.id) {
         loadBalancerProxy = loadBalancer;
       } else {
+        loadBalancer = clone(loadBalancer);
+
+        const portsWithIpam = ports.filter(p => p._ipam) || [];
+
+        if (portsWithIpam.length > 0) {
+          loadBalancer.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM] = portsWithIpam[0]._ipam;
+        }
+
         loadBalancerProxy = await this.$dispatch(`cluster/create`, loadBalancer, { root: true });
       }
       toSave.push(loadBalancerProxy);
@@ -656,7 +766,7 @@ export default class Workload extends SteveModel {
   }
 
   get pods() {
-    const relationships = get(this, 'metadata.relationships') || [];
+    const relationships = this.metadata?.relationships || [];
     const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
 
     if (podRelationship) {
@@ -667,33 +777,23 @@ export default class Workload extends SteveModel {
   }
 
   get podGauges() {
-    const out = {
-      active: { color: 'success' }, transitioning: { color: 'info' }, warning: { color: 'warning' }, error: { color: 'error' }
-    };
+    const out = { };
 
     if (!this.pods) {
       return out;
     }
 
     this.pods.map((pod) => {
-      const { status:{ phase } } = pod;
-      let group;
+      const { stateColor, stateDisplay } = pod;
 
-      switch (phase) {
-      case 'Running':
-        group = 'active';
-        break;
-      case 'Pending':
-        group = 'transitioning';
-        break;
-      case 'Failed':
-        group = 'error';
-        break;
-      default:
-        group = 'warning';
+      if (out[stateDisplay]) {
+        out[stateDisplay].count++;
+      } else {
+        out[stateDisplay] = {
+          color: stateColor.replace('text-', ''),
+          count: 1
+        };
       }
-
-      out[group].count ? out[group].count++ : out[group].count = 1;
     });
 
     return out;

@@ -25,12 +25,20 @@ export default {
     disabled: {
       type:    Boolean,
       default: false,
-    }
+    },
+
+    chartName: {
+      type:    String,
+      default: ''
+    },
   },
 
   computed: {
     displayLabel() {
-      return this.question?.label || this.question?.variable || '?';
+      const variable = this.question?.variable;
+      const displayLabel = this.$store.getters['i18n/withFallback'](`charts.${ this.chartName }."${ variable }".label`, null, '');
+
+      return displayLabel || this.question?.label || variable || '?';
     },
 
     showDescription() {
@@ -42,7 +50,13 @@ export default {
       const label = normalize(this.question?.label);
 
       return desc && desc !== label;
-    }
+    },
+
+    displayDescription() {
+      const variable = this.question?.variable;
+
+      return this.$store.getters['i18n/withFallback'](`charts.${ this.chartName }."${ variable }".description`, null, this.question?.description);
+    },
   },
 
   created() {

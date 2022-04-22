@@ -25,5 +25,20 @@ export const SOURCE_TYPE = {
   NEW:            'New',
   IMAGE:          'VM Image',
   ATTACH_VOLUME:  'Existing Volume',
-  CONTAINER:     'Container'
+  CONTAINER:      'Container'
 };
+
+export const VOLUME_TYPE = [{
+  label: 'disk',
+  value: 'disk'
+}, {
+  label: 'cd-rom',
+  value: 'cd-rom'
+}];
+
+export const ACCESS_CREDENTIALS = {
+  RESET_PWD:  'userPassword',
+  INJECT_SSH: 'sshPublicKey'
+};
+
+export const RunStrategys = ['Always', 'RerunOnFailure', 'Manual', 'Halted'];

@@ -9,6 +9,7 @@ import Masthead from '@/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, DEV } from '@/store/prefs';
 import MoveModal from '@/components/MoveModal';
 import { NAME as HARVESTER } from '@/config/product/harvester';
+import { defaultTableSortGenerationFn } from '@/components/ResourceTable.vue';
 
 export default {
   name:       'ListNamespace',
@@ -48,7 +49,7 @@ export default {
 
   computed: {
     isNamespaceCreatable() {
-      return (this.schema?.resourceMethods || []).includes('PUT');
+      return (this.schema?.collectionMethods || []).includes('POST');
     },
     headers() {
       const project = {
@@ -86,13 +87,21 @@ export default {
     rowsWithFakeNamespaces() {
       const fakeRows = this.projectsWithoutNamespaces.map((project) => {
         return {
-          groupByLabel:     `${ ('resourceTable.groupLabel.notInAProject') }-${ project }`,
+          groupByLabel:     `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
           isFake:           true,
           mainRowKey:       project.id,
+          nameDisplay:      project.spec?.displayName, // Enable filtering by the project name
           project,
           availableActions: []
         };
       });
+
+      if (this.showMockNotInProjectGroup) {
+        fakeRows.push( {
+          groupByLabel:     this.t('resourceTable.groupLabel.notInAProject'), // Same as the groupByLabel for the namespace model
+          mainRowKey:       'fake-empty',
+        });
+      }
 
       return [...this.rows, ...fakeRows];
     },
@@ -115,11 +124,15 @@ export default {
       }
 
       const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-      const isVirutalProduct = this.$store.getters['currentProduct'].name === HARVESTER;
+      const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       return this.namespaces.filter((namespace) => {
-        return isVirtualCluster && isVirutalProduct ? (!namespace.isSystem && !namespace.isObscure) : !namespace.isObscure;
+        return isVirtualCluster && isVirtualProduct ? (!namespace.isSystem && !namespace.isObscure) : !namespace.isObscure;
       });
+    },
+
+    showMockNotInProjectGroup() {
+      return !this.rows.some(row => !row.project);
     }
   },
   methods: {
@@ -168,7 +181,17 @@ export default {
     },
     clearSelection() {
       this.$refs.table.clearSelection();
-    }
+    },
+
+    sortGenerationFn() {
+      // The sort generation function creates a unique value and is used to create a key including sort details.
+      // The unique key determines if the list is redrawn or a cached version is shown.
+      // Because we ensure the 'not in a project' group is there via a row, and timing issues, the unqiue key doesn't change
+      // after a namespace is removed... so the list won't update... so we need to inject a string to ensure the key is fresh
+      const base = defaultTableSortGenerationFn(this.schema, this.$store);
+
+      return base + (this.showMockNotInProjectGroup ? '-mock' : '');
+    },
   }
 };
 </script>
@@ -192,6 +215,7 @@ export default {
       :headers="headers"
       :rows="filteredRows"
       :groupable="true"
+      :sort-generation-fn="sortGenerationFn"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
       v-on="$listeners"
@@ -226,6 +250,13 @@ export default {
         <tr :key="project.id" class="main-row">
           <td class="empty text-center" colspan="5">
             {{ t('projectNamespaces.noNamespaces') }}
+          </td>
+        </tr>
+      </template>
+      <template #main-row:fake-empty>
+        <tr class="main-row">
+          <td class="empty text-center" colspan="5">
+            {{ t('projectNamespaces.noProjectNoNamespaces') }}
           </td>
         </tr>
       </template>

@@ -6,8 +6,6 @@ import KeyValue from '@/components/form/KeyValue';
 import Labels from '@/components/form/Labels';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
-import { asciiLike } from '@/utils/string';
-import { base64Encode, base64Decode } from '@/utils/crypto';
 
 export default {
   name: 'CruConfigMap',
@@ -18,42 +16,40 @@ export default {
     KeyValue,
     Labels,
     Tab,
-    Tabbed,
+    Tabbed
   },
 
   mixins: [CreateEditView],
   data() {
     const { binaryData = {}, data = {} } = this.value;
 
-    const decodedBinaryData = {};
-
-    Object.keys(binaryData).forEach((key) => {
-      decodedBinaryData[key] = base64Decode(binaryData[key]);
-    });
-
-    return { allData: { ...decodedBinaryData, ...data } };
+    return {
+      data,
+      binaryData
+    };
   },
-
-  watch: {
-    allData(neu, old) {
-      this.$set(this.value, 'data', {});
-      this.$set(this.value, 'binaryData', {});
-
-      Object.keys(neu).forEach((key) => {
-        if (this.isBinary(neu[key])) {
-          const encoded = base64Encode(neu[key]);
-
-          this.$set(this.value.binaryData, key, encoded);
-        } else {
-          this.$set(this.value.data, key, neu[key]);
-        }
-      });
+  computed: {
+    hasBinaryData() {
+      return Object.keys(this.binaryData).length > 0;
     }
   },
 
+  watch: {
+    data(neu, old) {
+      this.updateValue(neu, 'data');
+    },
+    binaryData(neu, old) {
+      this.updateValue(neu, 'binaryData');
+    },
+  },
+
   methods: {
-    isBinary(value) {
-      return typeof value === 'string' && !asciiLike(value);
+    updateValue(val, type) {
+      this.$set(this.value, type, {});
+
+      Object.keys(val).forEach((key) => {
+        this.$set(this.value[type], key, val[key]);
+      });
     }
   }
 };
@@ -81,13 +77,29 @@ export default {
       <Tab name="data" :label="t('configmap.tabs.data.label')" :weight="2">
         <KeyValue
           key="data"
-          v-model="allData"
+          v-model="data"
           :mode="mode"
           :protip="t('configmap.tabs.data.protip')"
           :initial-empty-row="true"
           :value-can-be-empty="true"
           :read-multiple="true"
           :read-accept="'*'"
+        />
+      </Tab>
+      <Tab
+        name="binary-data"
+        :label="t('configmap.tabs.binaryData.label')"
+        :weight="1"
+      >
+        <KeyValue
+          key="binaryData"
+          v-model="binaryData"
+          :initial-empty-row="true"
+          :handle-base64="true"
+          :add-allowed="true"
+          :read-allowed="true"
+          :mode="mode"
+          :protip="t('configmap.tabs.data.protip')"
         />
       </Tab>
       <Tab
@@ -105,3 +117,9 @@ export default {
     </Tabbed>
   </CruResource>
 </template>
+
+<style lang="scss" scoped>
+.no-binary-data {
+  opacity: 0.8;
+}
+</style>

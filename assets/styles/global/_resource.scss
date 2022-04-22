@@ -3,6 +3,8 @@
     display: flex;
     flex-wrap: wrap;
     width: 100%;
+    flex-direction:row;
+    align-content: baseline;
   }
   .subtype-content {
     width: 100%;
@@ -12,10 +14,8 @@
     border: 1px solid var(--border);
     border-radius: 0;
     display: flex;
-    flex-basis: 40%;
+    flex-basis: 48%;
     margin: 10px;
-    min-height: 80px;
-    padding: 10px;
 
     &.disabled {
       cursor: not-allowed !important;
@@ -60,7 +60,6 @@
     }
 
     &:not(.top) {
-      align-items: top;
       flex-direction: column;
       justify-content: start;
       &:hover {
@@ -71,16 +70,15 @@
 
     .round-image {
       border-radius: 50%;
-      height: 50px;
-      margin-right: 10px;
-      width: 50px;
+      height: 60px;
+      width: 60px;
       overflow: hidden;
     }
 
     .banner-abbrv {
       align-items: center;
       background-color: var(--primary);
-      color: white;
+      color: var(--body-bg);
       display: flex;
       font-size: 2.5em;
       height: 100%;

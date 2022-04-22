@@ -171,8 +171,12 @@ export default {
       });
     },
 
-    remove(idx) {
-      removeAt(this.rows, idx);
+    /**
+     * Remove item and emits removed row and its own index value
+     */
+    remove(row, index) {
+      this.$emit('remove', { row, index });
+      removeAt(this.rows, index);
       this.queueUpdate();
     },
 
@@ -275,8 +279,19 @@ export default {
           </div>
         </slot>
         <div v-if="showRemove" class="remove">
-          <slot name="remove-button" :remove="() => remove(idx)" :i="idx" :row="row">
-            <button type="button" :disabled="isView" class="btn role-link" @click="remove(idx)">
+          <slot
+            name="remove-button"
+            :remove="() => remove(row, idx)"
+            :i="idx"
+            :row="row"
+          >
+            <button
+              type="button"
+              :disabled="isView"
+              class="btn role-link"
+              :data-testid="`remove-item-${idx}`"
+              @click="remove(idx, row)"
+            >
               {{ removeLabel }}
             </button>
           </slot>
@@ -291,8 +306,15 @@ export default {
     </div>
     <div v-if="showAdd && !isView" class="footer">
       <slot v-if="showAdd" name="add">
-        <button type="button" class="btn role-tertiary add" :disabled="loading" @click="add()">
-          <i v-if="loading" class="mr-5 icon icon-spinner icon-spin icon-lg" />  {{ addLabel }}
+        <button
+          type="button"
+          class="btn role-tertiary add"
+          :disabled="loading"
+          data-testid="add-item"
+          @click="add()"
+        >
+          <i v-if="loading" class="mr-5 icon icon-spinner icon-spin icon-lg" />
+          {{ addLabel }}
         </button>
       </slot>
     </div>

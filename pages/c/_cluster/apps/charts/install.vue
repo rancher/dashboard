@@ -21,6 +21,7 @@ import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Wizard from '@/components/Wizard';
+import TypeDescription from '@/components/TypeDescription';
 import ChartMixin from '@/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { CATALOG, MANAGEMENT } from '@/config/types';
@@ -35,6 +36,7 @@ import { findBy, insertAt } from '@/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@/utils/create-yaml';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { LINUX, WINDOWS } from '@/store/catalog';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -68,7 +70,8 @@ export default {
     Tabbed,
     UnitInput,
     YamlEditor,
-    Wizard
+    Wizard,
+    TypeDescription
   },
 
   mixins: [
@@ -525,6 +528,21 @@ export default {
 
     mcmRoute() {
       return { name: 'c-cluster-mcapps' };
+    },
+
+    windowsIncompatible() {
+      if (this.chart?.windowsIncompatible) {
+        return this.t('catalog.charts.windowsIncompatible');
+      }
+      if (this.versionInfo) {
+        const incompatibleVersion = !(this.versionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).includes('windows');
+
+        if (incompatibleVersion && !this.chart.windowsIncompatible) {
+          return this.t('catalog.charts.versionWindowsIncompatible');
+        }
+      }
+
+      return null;
     }
   },
 
@@ -782,7 +800,7 @@ export default {
       const cluster = this.currentCluster;
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = cluster?.providerOs === 'windows';
+      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
       const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
@@ -815,7 +833,7 @@ export default {
       const cluster = this.$store.getters['currentCluster'];
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = cluster?.providerOs === 'windows';
+      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
       const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
@@ -956,13 +974,15 @@ export default {
         }
       }
 
+      // 'more' contains the values for the CRD chart, which needs the same
+      // global and cattle values as the chart.
       for ( const dependency of more ) {
         out.charts.unshift({
           chartName:   dependency.name,
           version:     dependency.version,
           releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
           projectId:   this.project,
-          values:      this.addGlobalValuesTo({}),
+          values:      this.addGlobalValuesTo({ global: values.global }),
           annotations: {
             ...migratedAnnotations,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: dependency.repoType,
@@ -1016,6 +1036,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="!legacyApp && !mcapp" class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+    <TypeDescription resource="chart" />
     <Wizard
       v-if="value"
       :steps="steps"
@@ -1037,8 +1058,13 @@ export default {
         />
       </template>
       <template #bannerTitleImage>
-        <div class="logo-bg">
-          <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+        <div>
+          <div class="logo-bg">
+            <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+          </div>
+          <label v-if="windowsIncompatible" class="os-label">
+            {{ windowsIncompatible }}
+          </label>
         </div>
       </template>
       <template #basics>
@@ -1595,6 +1621,13 @@ export default {
       }
     }
   }
+}
+
+.os-label {
+  position: absolute;
+  background-color: var(--warning-banner-bg);
+  color:var(--warning);
+  margin-top: 5px;
 }
 
 </style>

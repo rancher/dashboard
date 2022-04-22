@@ -1,16 +1,17 @@
 <script>
-import { createPopper } from '@popperjs/core';
+import CompactInput from '@/mixins/compact-input';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
-import $ from 'jquery';
-import { onClickOption } from '@/utils/select';
+import { onClickOption, calculatePosition } from '@/utils/select';
 
 export default {
+  name: 'LabeledSelect',
+
   components: { LabeledTooltip },
-  mixins:     [LabeledFormElement, VueSelectOverrides],
+  mixins:     [CompactInput, LabeledFormElement, VueSelectOverrides],
 
   props: {
     appendToBody: {
@@ -22,6 +23,10 @@ export default {
       type:    Boolean
     },
     disabled: {
+      default: false,
+      type:    Boolean
+    },
+    required: {
       default: false,
       type:    Boolean
     },
@@ -105,6 +110,10 @@ export default {
   },
 
   computed: {
+    hasLabel() {
+      return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
+    },
+
     currentLabel() {
       const entry = findBy(this.options || [], 'value', this.value);
 
@@ -144,6 +153,11 @@ export default {
       this.onBlurLabeled();
     },
 
+    onOpen() {
+      this.$emit('on-open');
+      this.resizeHandler();
+    },
+
     getOptionLabel(option) {
       if (!option) {
         return;
@@ -164,57 +178,8 @@ export default {
       }
     },
 
-    withPopper(dropdownList, component, { width }) {
-      /**
-       * We need to explicitly define the dropdown width since
-       * it is usually inherited from the parent with CSS.
-       */
-      const componentWidth = $(component.$parent.$el).width();
-
-      dropdownList.style['min-width'] = `${ componentWidth }px`;
-      dropdownList.style.width = 'min-content';
-
-      /**
-       * Here we position the dropdownList relative to the $refs.toggle Element.
-       *
-       * The 'offset' modifier aligns the dropdown so that the $refs.toggle and
-       * the dropdownList overlap by 1 pixel.
-       *
-       * The 'toggleClass' modifier adds a 'drop-up' class to the Vue Select
-       * wrapper so that we can set some styles for when the dropdown is placed
-       * above.
-       */
-      const popper = createPopper(component.$refs.toggle, dropdownList, {
-        placement: this.placement || 'bottom-start',
-        modifiers: [
-          {
-            name:    'offset',
-            options: {
-              offset: ({ placement, reference, popper }) => {
-                if (placement.includes('top')) {
-                  return [0, 27];
-                } else {
-                  return [0, 2];
-                }
-              },
-            },
-          },
-          {
-            name:    'toggleClass',
-            enabled: true,
-            phase:   'write',
-            fn({ state }) {
-              component.$el.setAttribute('x-placement', state.placement);
-            },
-          }
-        ],
-      });
-
-      /**
-       * To prevent memory leaks Popper needs to be destroyed.
-       * If you return function, it will be called just before dropdown is removed from DOM.
-       */
-      return () => popper.destroy();
+    positionDropdown(dropdownList, component, { width }) {
+      calculatePosition(dropdownList, component, width, this.placement);
     },
 
     get,
@@ -263,6 +228,8 @@ export default {
       taggable: $attrs.taggable,
       taggable: $attrs.multiple,
       hoverable: hoverTooltip,
+      'compact-input': isCompact,
+      'no-label': !hasLabel,
     }"
     @click="focusSearch"
     @focus="focusSearch"
@@ -271,7 +238,7 @@ export default {
       :class="{ 'labeled-container': true, raised, empty, [mode]: true }"
       :style="{ border: 'none' }"
     >
-      <label>
+      <label v-if="hasLabel">
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
 
@@ -283,7 +250,7 @@ export default {
       v-bind="$attrs"
       class="inline"
       :append-to-body="appendToBody"
-      :calculate-position="withPopper"
+      :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length }"
       :disabled="isView || disabled || loading"
       :get-option-key="
@@ -303,11 +270,16 @@ export default {
       @search:blur="onBlur"
       @search:focus="onFocus"
       @search="onSearch"
-      @open="resizeHandler"
+      @open="onOpen"
     >
       <template #option="option">
         <template v-if="option.kind === 'group'">
-          <b>{{ getOptionLabel(option) }}</b>
+          <div class="vs__option-kind-group">
+            <b>{{ getOptionLabel(option) }}</b>
+            <div v-if="option.badge">
+              {{ option.badge }}
+            </div>
+          </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
           <hr />
@@ -335,6 +307,25 @@ export default {
 .labeled-select {
   position: relative;
 
+  &.no-label.compact-input {
+    ::v-deep .vs__actions:after {
+      top: -2px;
+    }
+
+    .labeled-container {
+      padding: 5px 0 1px 10px;
+    }
+  }
+
+  &.no-label:not(.compact-input) {
+    height: $input-height;
+    padding-top: 4px;
+
+    ::v-deep .vs__actions:after {
+      top: 0;
+    }
+  }
+
   .icon-spinner {
     position: absolute;
     left: calc(50% - .5em);
@@ -342,7 +333,7 @@ export default {
   }
 
   .labeled-container {
-    padding: $input-padding-sm 0 1px $input-padding-sm;
+    padding: $input-padding-sm 0 0 $input-padding-sm;
 
     label {
       margin: 0;
@@ -360,6 +351,57 @@ export default {
       }
     }
   }
+
+  &.taggable.compact-input {
+    min-height: $unlabeled-input-height;
+    ::v-deep .vs__selected-options {
+      padding-top: 8px !important;
+    }
+  }
+
+  &.taggable:not(.compact-input) {
+    min-height: $input-height;
+    ::v-deep .vs__selected-options {
+      // Need to adjust margin when there is a label in the control to add space between the label and the tags
+      margin-top: 0px;
+    }
+  }
+
+  &:not(.taggable) {
+    ::v-deep .vs__selected-options {
+      // Ensure whole select is clickable to close the select when open
+      .vs__selected {
+        width: 100%;
+      }
+    }
+  }
+
+  &.taggable {
+    ::v-deep .vs__selected-options {
+      padding: 3px 0;
+      .vs__selected {
+        border-color: var(--accent-btn);
+        height: 20px;
+        min-height: unset !important;
+        padding: 0 0 0 7px !important;
+
+        > button {
+          height: 20px;
+          line-height: 14px;
+        }
+
+        > button:hover {
+          background-color: var(--primary);
+          border-radius: 0;
+
+          &::after {
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+
   ::v-deep .vs__selected-options {
     margin-top: -5px;
   }
@@ -376,6 +418,12 @@ export default {
       position: relative;
       right: 3px;
       top: -10px;
+    }
+  }
+
+  ::v-deep .v-select.vs--open {
+    .vs__dropdown-toggle {
+      color: var(--outline) !important;
     }
   }
 
@@ -404,6 +452,24 @@ export default {
     .vs__selected-options {
       padding: 8px 0 7px 0;
     }
+  }
+}
+
+// Styling for option group badge
+.vs__dropdown-menu .vs__dropdown-option .vs__option-kind-group {
+  display: flex;
+  > b {
+    flex: 1;
+  }
+  > div {
+    background-color: var(--primary);
+    border-radius: 4px;
+    color: var(--primary-text);
+    font-size: 12px;
+    height: 18px;
+    line-height: 18px;
+    margin-top: 1px;
+    padding: 0 10px;
   }
 }
 </style>

@@ -10,14 +10,16 @@ import AppSummaryGraph from '@/components/formatter/AppSummaryGraph';
 import { sortBy } from '@/utils/sort';
 import { LEGACY } from '@/store/features';
 import { isAlternate } from '@/utils/platform';
+import IconMessage from '@/components/IconMessage';
+import TypeDescription from '@/components/TypeDescription';
 
 export default {
   components: {
-    AppSummaryGraph, LazyImage, Loading
+    AppSummaryGraph, LazyImage, Loading, IconMessage, TypeDescription
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
+    await this.$store.dispatch('catalog/load', { force: true, reset: true });
 
     const query = this.$route.query;
     const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
@@ -66,7 +68,7 @@ export default {
       allInstalled:    null,
       v1SystemCatalog: null,
       systemProject:   null,
-      legacyEnabled
+      legacyEnabled,
     };
   },
 
@@ -112,12 +114,11 @@ export default {
       const enabledCharts = (this.allCharts || []);
 
       let charts = filterAndArrangeCharts(enabledCharts, {
-        isWindows:      this.currentCluster.providerOs === 'windows',
         clusterProvider,
-        showDeprecated: this.showDeprecated,
-        showHidden:     this.showHidden,
-        showRepos:      [this.rancherCatalog._key],
-        showTypes:      [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
+        showDeprecated:   this.showDeprecated,
+        showHidden:       this.showHidden,
+        showRepos:        [this.rancherCatalog?._key],
+        showTypes:        [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
       });
 
       //  If legacy support is enabled, show V1 charts for some V1 Cluster tools
@@ -179,7 +180,7 @@ export default {
         chartName:        `v1-${ id }`,
         key:              `v1-${ id }`,
         versions:         this.getLegacyVersions(`rancher-${ id }`),
-        repoKey:          this.rancherCatalog._key,
+        repoKey:          this.rancherCatalog?._key,
         legacy:           true,
         legacyPage:       id,
         iconName:         `icon-${ id }`,
@@ -211,7 +212,7 @@ export default {
         name:   'c-cluster-explorer-tools-pages-page',
         params: {
           cluster: cluster.id,
-          prodct:  'explorer',
+          product: 'explorer',
           page:    id,
         }
       };
@@ -355,6 +356,17 @@ export default {
         margin: 0;
       }
 
+      .os-label {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 3px;
+        font-size: 12px;
+        line-height: 12px;
+        background-color: var(--primary);
+        color: var(--primary-text);
+      }
+
       .version {
         color: var(--muted);
         white-space: nowrap;
@@ -385,6 +397,10 @@ export default {
       .action {
         grid-area: action;
         white-space: nowrap;
+
+        button {
+          height: 30px;
+        }
       }
     }
   }
@@ -392,10 +408,11 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div v-else-if="options.length">
     <h1 v-html="t('catalog.tools.header')" />
+    <TypeDescription v-if="!legacyEnabled" resource="chart" />
 
-    <div v-if="options.length" class="grid">
+    <div class="grid">
       <div
         v-for="opt in options"
         :key="opt.chart.id"
@@ -406,9 +423,12 @@ export default {
           <LazyImage v-else :src="opt.chart.icon" />
         </div>
         <div class="name-version">
-          <h3 class="name">
-            {{ opt.chart.chartNameDisplay }}
-          </h3>
+          <div>
+            <h3 class="name">
+              {{ opt.chart.chartNameDisplay }}
+            </h3>
+            <label v-if="opt.chart.deploysOnWindows" class="os-label">{{ t('catalog.charts.deploysOnWindows') }}</label>
+          </div>
           <div class="version">
             <template v-if="opt.app && opt.app.upgradeAvailable">
               v{{ opt.app.currentVersion }} <b><i class="icon icon-chevron-right" /> v{{ opt.app.upgradeAvailable }}</b>
@@ -455,5 +475,8 @@ export default {
         </div>
       </div>
     </div>
+  </div>
+  <div v-else>
+    <IconMessage icon="icon-warning" message-key="catalog.tools.noTools" />
   </div>
 </template>

@@ -35,6 +35,10 @@ export default {
       type:    String,
       default: ''
     },
+    viewCode: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -117,6 +121,7 @@ export default {
   methods: {
     updateValue() {
       this.$refs['userTemplate'].updateValue();
+      this.$refs['networkTemplate'].updateValue();
     },
 
     update(value, type) {
@@ -126,6 +131,10 @@ export default {
       if (type === 'network') {
         this.$emit('updateNetworkData', value);
       }
+    },
+
+    updateTemplateId(type, id) {
+      this.$emit('updateDataTemplateId', type, id);
     },
 
     show(templateType) {
@@ -185,11 +194,13 @@ export default {
         ref="userTemplate"
         v-model="userScript"
         type="user"
+        :view-code="viewCode"
         :mode="mode"
         :config-id="configUserId"
         :options="optionUser"
         @show="show"
         @update="update"
+        @updateTemplateId="updateTemplateId"
       />
     </div>
 

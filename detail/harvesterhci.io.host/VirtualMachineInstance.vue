@@ -58,11 +58,8 @@ export default {
   computed: {
     headers() {
       return [
-        {
-          ...STATE,
-          width: 250
-        },
-        { ...NAME, width: 120 },
+        STATE,
+        NAME,
         {
           name:      'vmCPU',
           labelKey:  'tableHeaders.cpu',

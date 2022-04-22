@@ -1,11 +1,16 @@
 <script>
-import FleetRepos from '@/components/FleetRepos';
+import FleetRepos from '@/components/fleet/FleetRepos';
+import Masthead from '@/components/ResourceList/Masthead';
 import Loading from '@/components/Loading';
 import { FLEET } from '@/config/types';
 
 export default {
   name:       'ListGitRepo',
-  components: { Loading, FleetRepos },
+  components: {
+    Loading,
+    FleetRepos,
+    Masthead,
+  },
 
   props: {
     schema: {
@@ -38,9 +43,15 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <FleetRepos
-    v-else
-    :rows="rows"
-    :schema="schema"
-  />
+  <div v-else>
+    <Masthead
+      :schema="schema"
+      :resource="resource"
+      :create-button-label="t('fleet.gitRepo.repo.addRepo')"
+    />
+    <FleetRepos
+      :rows="rows"
+      :schema="schema"
+    />
+  </div>
 </template>

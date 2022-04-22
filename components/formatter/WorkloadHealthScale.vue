@@ -25,16 +25,16 @@ export default {
     },
   },
 
-  mounted() {
-    document.addEventListener('click', this.onClickOutside);
-  },
-
   beforeDestroy() {
     document.removeEventListener('click', this.onClickOutside);
   },
 
   data() {
-    return { disabled: false, expanded: false };
+    return {
+      disabled: false,
+      expanded: false,
+      loading:  true
+    };
   },
 
   computed: {
@@ -57,6 +57,10 @@ export default {
   },
 
   methods:  {
+    startDelayedLoading() {
+      this.loading = false;
+    },
+
     onClickOutside(event) {
       const { [`root-${ this.id }`]: component } = this.$refs;
 
@@ -64,6 +68,8 @@ export default {
         return;
       }
       this.expanded = false;
+      event.preventDefault();
+      event.stopPropagation();
     },
 
     async scaleDown() {
@@ -101,10 +107,16 @@ export default {
 
   watch: {
     expanded(neu) {
+      if (neu) {
+        document.addEventListener('click', this.onClickOutside);
+      } else {
+        document.removeEventListener('click', this.onClickOutside);
+      }
+
       // If the drop down content appears outside of the window then move it to be above the trigger
       // Do this is three steps
       // expanded: false & expanded-checked = false - Content does not appear in DOM
-      // expanded: true & expanded-checked = false - Content appears in DOM (so it's location can be calcualated to be in or out of an area) but isn't visible (user doesn't see content blip from below to above trigger)
+      // expanded: true & expanded-checked = false - Content appears in DOM (so it's location can be calculated to be in or out of an area) but isn't visible (user doesn't see content blip from below to above trigger)
       // expanded: true & expanded-checked = true - Content appears in DOM and is visible (it's final location is known so user can see)
       setTimeout(() => { // There be beasts without this (classes don't get applied... so drop down never gets shown)
         const dropdown = document.getElementById(this.id);
@@ -115,7 +127,7 @@ export default {
           return;
         }
 
-        // Ensire drop down will be inside of the window, otherwise show above the trigger
+        // Ensure drop down will be inside of the window, otherwise show above the trigger
         const bounding = dropdown.getBoundingClientRect();
         const insideWindow = this.insideBounds(bounding, {
           top:    0,
@@ -139,7 +151,10 @@ export default {
 </script>
 
 <template>
-  <div :id="`root-${id}`" :ref="`root-${id}`" class="hs-popover">
+  <div v-if="loading" class="hs-popover__loader">
+    <i class="icon icon-spinner" />
+  </div>
+  <div v-else :id="`root-${id}`" :ref="`root-${id}`" class="hs-popover">
     <div id="trigger" class="hs-popover__trigger" :class="{expanded}" @click="expanded = !expanded">
       <ProgressBarMulti v-if="parts" class="health" :values="parts" :show-zeros="true" />
       <i :class="{icon: true, 'icon-chevron-up': expanded, 'icon-chevron-down': !expanded}" />
@@ -147,7 +162,7 @@ export default {
     <div :id="id" class="hs-popover__content" :class="{expanded, [id]:true}">
       <div>
         <div v-for="obj in parts" :key="obj.label" class="counts">
-          <span>{{ obj.label }}</span>
+          <span class="counts-label">{{ obj.label }}</span>
           <span>{{ obj.value }}</span>
         </div>
         <div v-if="canScale" class="text-center scale">
@@ -166,6 +181,21 @@ $width: 150px;
 
 .hs-popover {
   position: relative;
+
+  &__loader {
+    align-items: center;
+    border: solid thin var(--sortable-table-top-divider);
+    display: flex;
+    height: $height;
+    width: $width;
+
+    > i {
+      font-size: 16px;
+      height: 16px;
+      margin-left: 5px;
+      width: 16px;
+    }
+  }
 
   &__trigger {
     display: flex;
@@ -230,6 +260,12 @@ $width: 150px;
     .counts {
       display: flex;
       justify-content: space-between;
+
+      &-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
     .scale {
       margin-top: 10px;

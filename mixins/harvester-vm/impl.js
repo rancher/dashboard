@@ -3,6 +3,7 @@ import isEqual from 'lodash/isEqual';
 import { clone } from '@/utils/object';
 import { HCI, SECRET } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
+import { OS } from '@/mixins/harvester-vm/index';
 
 export const QGA_JSON = {
   package_update: true,
@@ -12,15 +13,12 @@ export const QGA_JSON = {
       'systemctl',
       'enable',
       '--now',
-      'qemu-guest-agent'
+      'qemu-guest-agent.service'
     ]
   ]
 };
 
-export const QGA_MAP = {
-  default: 'qemu-guest-agent',
-  suse:    'qemu-ga.service'
-};
+export const QGA_MAP = { default: 'qemu-guest-agent.service' };
 
 export const USB_TABLET = [{
   bus:  'usb',
@@ -43,14 +41,21 @@ export default {
     },
 
     getOsType(vm) {
-      return vm?.metadata?.labels?.[HCI_ANNOTATIONS.OS] || 'linux';
+      return vm.metadata?.labels?.[HCI_ANNOTATIONS.OS];
     },
 
     getMatchQGA(osType) {
       const _QGA_JSON = clone(QGA_JSON);
+      let hasCustomQGA = false;
 
-      if (osType === 'openSUSE') {
-        _QGA_JSON.runcmd[0][3] = QGA_MAP['suse'];
+      OS.forEach((O) => {
+        if (O.match) {
+          hasCustomQGA = O.match.find(type => type === osType);
+        }
+      });
+
+      if (hasCustomQGA) {
+        _QGA_JSON.runcmd[0][3] = QGA_MAP[osType];
       } else {
         _QGA_JSON.runcmd[0][3] = QGA_MAP['default'];
       }
@@ -82,7 +87,7 @@ export default {
         return oldValue;
       }
 
-      return dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => S.join('-') === _QGA_JSON.runcmd[0].join('-'));
+      return dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
     },
 
     isInstallUSBTablet(spec) {
@@ -95,6 +100,14 @@ export default {
       } else {
         return false;
       }
+    },
+
+    isEfiEnabled(spec) {
+      return !!(spec?.template?.spec?.domain?.features?.smm && spec?.template?.spec?.domain?.firmware?.bootloader?.efi);
+    },
+
+    isSecureBoot(spec) {
+      return !!spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
     },
 
     getSecretCloudData(spec, type) {
@@ -119,13 +132,46 @@ export default {
       return secret;
     },
 
+    getAccessCredentials(spec) {
+      const secrets = this.$store.getters['harvester/all'](SECRET) || [];
+      const credentials = spec?.template?.spec?.accessCredentials || [];
+      const annotations = JSON.parse(spec.template.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES] || '[]');
+
+      return credentials.map((c) => {
+        const source = !!c.userPassword ? 'userPassword' : 'sshPublicKey';
+        const secretName = c[source]?.source?.secret?.secretName;
+        const secretRef = secrets.find(s => s.metadata.name === secretName);
+        const out = {
+          source, username: '', newPassword: '', users: [], sshkeys: [], secretName, secretRef
+        };
+
+        if (!secretRef) {
+          out.secretRef = undefined;
+        } else if (source === 'userPassword') {
+          const username = Object.keys(secretRef?.data)[0];
+          const newPassword = secretRef.decodedData[username];
+
+          out.username = username;
+          out.newPassword = newPassword;
+        } else {
+          const users = c[source].propagationMethod.qemuGuestAgent.users;
+          const sshkeys = annotations?.[secretName];
+
+          out.users = users;
+          out.sshkeys = sshkeys;
+        }
+
+        return out;
+      });
+    },
+
     getVolumeClaimTemplates(vm) {
       let out = [];
 
       try {
         out = JSON.parse(vm.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
       } catch (e) {
-        console.error(`Function: getVolumeClaimTemplates, ${ e }`); // eslint-disable-line no-console
+        new Error(`Function: getVolumeClaimTemplates, ${ e }`);
       }
 
       return out;

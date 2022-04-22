@@ -77,7 +77,7 @@ export default {
 
         let name = r[`${ this.direction }Id`];
 
-        // Skip things like toType/toNamspace+selector for now
+        // Skip things like toType/toNamespace+selector for now
         if ( !name ) {
           continue;
         }

@@ -1,5 +1,5 @@
 import { parse as parseUrl, addParam } from '@/utils/url';
-import { COUNT } from '@/config/types';
+import { MONITORING } from '@/config/types';
 
 export function computeDashboardUrl(embedUrl, clusterId, params) {
   const url = parseUrl(embedUrl);
@@ -20,8 +20,8 @@ export function computeDashboardUrl(embedUrl, clusterId, params) {
   return newUrl;
 }
 
-export async function dashboardExists(dispatch, clusterId, embedUrl, store = 'cluster') {
-  if (!await isMonitoringInstalled(dispatch, store)) {
+export async function dashboardExists(store, clusterId, embedUrl, storeName = 'cluster') {
+  if (!isMonitoringInstalled(store.getters, storeName)) {
     return false;
   }
 
@@ -34,7 +34,7 @@ export async function dashboardExists(dispatch, clusterId, embedUrl, store = 'cl
   const newUrl = `${ prefix }api/dashboards/uid/${ uid }`;
 
   try {
-    await dispatch(`${ store }/request`, { url: newUrl, redirectUnauthorized: false });
+    await store.dispatch(`${ storeName }/request`, { url: newUrl, redirectUnauthorized: false });
 
     return true;
   } catch (ex) {
@@ -42,8 +42,8 @@ export async function dashboardExists(dispatch, clusterId, embedUrl, store = 'cl
   }
 }
 
-export async function allDashboardsExist(dispatch, clusterId, embededUrls, store = 'cluster') {
-  const existPromises = embededUrls.map(url => dashboardExists(dispatch, clusterId, url, store));
+export async function allDashboardsExist(store, clusterId, embeddedUrls, storeName = 'cluster') {
+  const existPromises = embeddedUrls.map(url => dashboardExists(store, clusterId, url, storeName));
 
   return (await Promise.all(existPromises)).every(exists => exists);
 }
@@ -82,8 +82,6 @@ export async function failedProposals(dispatch, clusterId) {
   return response.data.result[0]?.values?.[0]?.[1] || 0;
 }
 
-async function isMonitoringInstalled(dispatch, store = 'cluster') {
-  const counts = await dispatch(`${ store }/findAll`, { type: COUNT });
-
-  return !!counts?.[0]?.counts?.['catalog.cattle.io.app']?.namespaces?.['cattle-monitoring-system'];
+function isMonitoringInstalled(getters, storeName = 'cluster') {
+  return !!getters[`${ storeName }/schemaFor`](MONITORING.SERVICEMONITOR);
 }

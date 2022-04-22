@@ -1,5 +1,5 @@
 // --------------------------------------
-// 1. Provided by Steve and always potentialy available
+// 1. Provided by Steve and always potentially available
 // --------------------------------------
 
 // Steve-specific virtual types
@@ -129,6 +129,8 @@ export const LONGHORN = {
   VOLUMES:       'longhorn.io.volume',
 };
 
+export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
+
 // --------------------------------------
 // 2. Only if Rancher is installed
 // --------------------------------------
@@ -143,7 +145,7 @@ export const MANAGEMENT = {
   CLUSTER_ROLE_TEMPLATE_BINDING: 'management.cattle.io.clusterroletemplatebinding',
   FEATURE:                       'management.cattle.io.feature',
   // GROUP:                         'management.cattle.io.group',
-  KONTANIER_DRIVER:              'management.cattle.io.kontainerdriver',
+  KONTAINER_DRIVER:              'management.cattle.io.kontainerdriver',
   MULTI_CLUSTER_APP:             'management.cattle.io.multiclusterapp',
   NODE:                          'management.cattle.io.node',
   NODE_DRIVER:                   'management.cattle.io.nodedriver',
@@ -158,6 +160,7 @@ export const MANAGEMENT = {
   GLOBAL_ROLE:                   'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
+  MANAGED_CHART:                 'management.cattle.io.managedchart'
 };
 
 export const CAPI = {
@@ -178,6 +181,7 @@ export const FLEET = {
   BUNDLE:        'fleet.cattle.io.bundle',
   CLUSTER:       'fleet.cattle.io.cluster',
   CLUSTER_GROUP: 'fleet.cattle.io.clustergroup',
+  DASHBOARD:     'fleet.cattle.io.dashboard',
   GIT_REPO:      'fleet.cattle.io.gitrepo',
   WORKSPACE:     'management.cattle.io.fleetworkspace',
   TOKEN:         'fleet.cattle.io.clusterregistrationtoken',
@@ -273,6 +277,8 @@ export const HCI = {
   BLOCK_DEVICE:       'harvesterhci.io.blockdevice',
   CLOUD_TEMPLATE:     'harvesterhci.io.cloudtemplate',
   HOST:               'harvesterhci.io.host',
+  VERSION:            'harvesterhci.io.version',
+  MANAGED_CHART:      'harvesterhci.io.managedchart',
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

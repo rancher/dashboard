@@ -1,7 +1,9 @@
+import Vue from 'vue';
 import { HCI } from '@/config/types';
 import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,
+  HCI as HCI_ANNOTATIONS
 } from '@/config/labels-annotations';
 import { get, clone } from '@/utils/object';
 import { formatSi } from '@/utils/units';
@@ -9,6 +11,23 @@ import { ucFirst } from '@/utils/string';
 import { stateDisplay, colorForState } from '@/plugins/steve/resource-class';
 import SteveModel from '@/plugins/steve/steve-class';
 
+export function isReady() {
+  function getStatusConditionOfType(type, defaultValue = []) {
+    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
+
+    return conditions.find( cond => cond.type === type);
+  }
+
+  const initialized = getStatusConditionOfType.call(this, 'Initialized');
+  const imported = getStatusConditionOfType.call(this, 'Imported');
+  const isCompleted = this.status?.progress === 100;
+
+  if ([initialized?.status, imported?.status].includes('False')) {
+    return false;
+  } else {
+    return isCompleted && true;
+  }
+}
 export default class HciVmImage extends SteveModel {
   get availableActions() {
     let out = super._availableActions;
@@ -26,12 +45,17 @@ export default class HciVmImage extends SteveModel {
     return [
       {
         action:     'createFromImage',
-        enabled:    canCreateVM && this.isReady,
+        enabled:    canCreateVM,
         icon:       'icon icon-fw icon-spinner',
         label:      this.t('harvester.action.createVM'),
+        disabled:   !this.isReady,
       },
       ...out
     ];
+  }
+
+  applyDefaults(resources = this, realMode) {
+    Vue.set(this.metadata, 'labels', { [HCI_ANNOTATIONS.OS_TYPE]: '', [HCI_ANNOTATIONS.IMAGE_SUFFIX]: '' });
   }
 
   createFromImage() {
@@ -48,15 +72,12 @@ export default class HciVmImage extends SteveModel {
     return this.spec?.displayName;
   }
 
-  get isReady() {
-    const initialized = this.getStatusConditionOfType('Initialized');
-    const imported = this.getStatusConditionOfType('Imported');
+  get isOSImage() {
+    return this?.metadata?.annotations?.[HCI_ANNOTATIONS.OS_UPGRADE_IMAGE] === 'True';
+  }
 
-    if ([initialized?.status, imported?.status].includes('False')) {
-      return false;
-    } else {
-      return true;
-    }
+  get isReady() {
+    return isReady.call(this);
   }
 
   get stateDisplay() {
@@ -80,12 +101,25 @@ export default class HciVmImage extends SteveModel {
     return stateDisplay(this.metadata.state.name);
   }
 
+  get imageMessage() {
+    const conditions = this?.status?.conditions || [];
+    const initialized = conditions.find( cond => cond.type === 'Initialized');
+    const imported = conditions.find( cond => cond.type === 'Imported');
+    const message = initialized?.message || imported?.message;
+
+    return ucFirst(message);
+  }
+
   get stateBackground() {
     return colorForState(this.stateDisplay).replace('text-', 'bg-');
   }
 
   get imageSource() {
     return get(this, `spec.sourceType`) || 'download';
+  }
+
+  get progress() {
+    return this?.status?.progress || 0;
   }
 
   get annotationsToIgnoreRegexes() {
@@ -105,6 +139,66 @@ export default class HciVmImage extends SteveModel {
       suffix:       'B',
       firstSuffix:  'B',
     });
+  }
+
+  getStatusConditionOfType(type, defaultValue = []) {
+    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
+
+    return conditions.find( cond => cond.type === type);
+  }
+
+  get stateObj() {
+    const state = clone(this.metadata?.state);
+    const initialized = this.getStatusConditionOfType('Initialized');
+    const imported = this.getStatusConditionOfType('Imported');
+
+    if ([initialized?.status, imported?.status].includes('False')) {
+      state.error = true;
+    }
+
+    return state;
+  }
+
+  get stateDescription() {
+    return this.imageMessage;
+  }
+
+  get displayName() {
+    return this.spec?.displayName;
+  }
+
+  get uploadImage() {
+    return async(file) => {
+      const formData = new FormData();
+
+      formData.append('chunk', file);
+
+      try {
+        this.$ctx.commit('harvester-common/uploadStart', this.metadata.name, { root: true });
+
+        await this.doAction('upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'File-Size':    file.size,
+          },
+          params: { size: file.size },
+        });
+      } catch (err) {
+        this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
+
+        return Promise.reject(err);
+      }
+
+      this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
+    };
+  }
+
+  get imageSuffix() {
+    return this.metadata?.labels?.[HCI_ANNOTATIONS.IMAGE_SUFFIX];
+  }
+
+  get imageOSType() {
+    return this.metadata?.labels?.[HCI_ANNOTATIONS.OS_TYPE];
   }
 
   get customValidationRules() {
@@ -154,58 +248,5 @@ export default class HciVmImage extends SteveModel {
       },
       ...out
     ];
-  }
-
-  getStatusConditionOfType(type, defaultValue = []) {
-    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
-
-    return conditions.find( cond => cond.type === type);
-  }
-
-  get stateObj() {
-    const state = clone(this.metadata?.state);
-    const initialized = this.getStatusConditionOfType('Initialized');
-    const imported = this.getStatusConditionOfType('Imported');
-
-    if ([initialized?.status, imported?.status].includes('False')) {
-      state.error = true;
-    }
-
-    return state;
-  }
-
-  get stateDescription() {
-    const imported = this.getStatusConditionOfType('Imported');
-
-    const status = imported?.status;
-    const message = imported?.message;
-
-    return status === 'False' ? ucFirst(message) : '';
-  }
-
-  get uploadImage() {
-    return async(file) => {
-      const formData = new FormData();
-
-      formData.append('chunk', file);
-
-      try {
-        this.$ctx.commit('harvester-common/uploadStart', this.metadata.name, { root: true });
-
-        await this.doAction('upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'File-Size':    file.size,
-          },
-          params: { size: file.size },
-        });
-      } catch (err) {
-        this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
-
-        return Promise.reject(err);
-      }
-
-      this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
-    };
   }
 }

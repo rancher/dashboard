@@ -1,5 +1,4 @@
 <script>
-import dayjs from 'dayjs';
 import { mapGetters } from 'vuex';
 import { HCI } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -8,7 +7,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 
 export default {
-  name: 'HarvesterListUpgrade',
+  name: 'HarvesterUpgrade',
 
   components: {
     ModalWithCard, LabeledSelect, Banner
@@ -19,7 +18,8 @@ export default {
 
     const res = await allHash({
       upgradeVersion: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.SETTING }),
-      upgrade:        this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.UPGRADE })
+      versions:       this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.VERSION }),
+      upgrade:        this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.UPGRADE }),
     });
 
     this.upgrade = res.upgrade;
@@ -39,18 +39,16 @@ export default {
     ...mapGetters(['currentCluster']),
 
     versionOptions() {
-      const settings = this.$store.getters['harvester/all'](HCI.SETTING);
+      const versions = this.$store.getters['harvester/all'](HCI.VERSION);
 
-      const upgradeVersion = settings.find( S => S.id === 'upgradable-versions');
-
-      return upgradeVersion?.upgradeableVersion || [];
+      return versions.map(V => V.metadata.name);
     },
 
     currentVersion() {
       const serverVersion = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
 
       return serverVersion.currentVersion || '';
-    },
+    }
   },
 
   watch: {
@@ -59,34 +57,23 @@ export default {
         let upgradeMessage = [];
         const list = neu || [];
 
-        const currentResource = list.find( O => !!O.isCurrentUpgrade);
+        const currentResource = list.find( O => !!O.isLatestUpgrade);
 
         upgradeMessage = currentResource ? currentResource.upgradeMessage : [];
 
         this.$set(this, 'upgradeMessage', upgradeMessage);
       },
       deep: true
-    },
-
-    versionOptions: {
-      handler(neu) {
-        const version = neu[0]?.value || '';
-
-        this.version = version;
-      },
-      deep: true,
     }
   },
 
   methods: {
     async handleUpgrade() {
-      const name = `upgrade-${ dayjs().format('MMDD-HHmmss') }`;
-
       const upgradeValue = {
         type:     HCI.UPGRADE,
         metadata: {
-          name,
-          namespace: 'harvester-system'
+          generateName: 'hvst-upgrade-',
+          namespace:    'harvester-system'
         },
         spec: { version: this.version }
       };
@@ -130,18 +117,18 @@ export default {
         />
       </h1>
       <button v-if="versionOptions.length" type="button" class="btn bg-warning btn-sm" @click="open">
-        <t k="harvester.dashboard.upgrade.upgrade" />
+        <t k="harvester.upgradePage.upgrade" />
       </button>
     </header>
 
     <ModalWithCard ref="deleteTip" name="deleteTip" :width="500">
       <template #title>
-        <t k="harvester.dashboard.upgrade.upgradeApp" />
+        <t k="harvester.upgradePage.upgradeApp" />
       </template>
 
       <template #content>
         <div class="currentVersion">
-          <span> <t k="harvester.dashboard.upgrade.currentVersion" /> </span>
+          <span> <t k="harvester.upgradePage.currentVersion" /> </span>
           <span class="version">{{ currentVersion }}</span>
         </div>
 
@@ -151,7 +138,7 @@ export default {
           <LabeledSelect
             v-model="version"
             class="mb-20"
-            :label="t('harvester.dashboard.upgrade.versionLabel')"
+            :label="t('harvester.upgradePage.versionLabel')"
             :options="versionOptions"
             :clearable="true"
           />
@@ -168,7 +155,7 @@ export default {
             <t k="generic.close" />
           </button>
           <button class="btn role-tertiary bg-primary btn-sm mr-20" @click.prevent="handleUpgrade">
-            <t k="harvester.dashboard.upgrade.upgrade" />
+            <t k="harvester.upgradePage.upgrade" />
           </button>
         </div>
       </template>

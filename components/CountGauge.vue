@@ -36,6 +36,10 @@ export default {
     plain: {
       type:    Boolean,
       default: false
+    },
+    graphical: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -70,7 +74,7 @@ export default {
 
 <template>
   <GradientBox class="count-gauge" :class="{clickable}" :primary-color-var="primaryColorVar" :plain="plain" @click.native="visitLocation()">
-    <div class="graphical">
+    <div v-if="graphical" class="graphical">
       <GraphCircle v-if="percentage > 0" :primary-stroke-color="`rgba(var(${primaryColorVar}))`" secondary-stroke-color="rgb(var(--resource-gauge-back-circle))" :percentage="percentage" />
       <GraphCircle v-if="percentage === 0" :primary-stroke-color="`rgba(var(${primaryColorVar}))`" secondary-stroke-color="rgb(var(--resource-gauge-back-circle))" class="zero" :percentage="100" />
     </div>

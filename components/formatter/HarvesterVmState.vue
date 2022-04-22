@@ -51,6 +51,10 @@ export default {
     warningMessage() {
       const out = [];
 
+      if (this.networkImpassability) {
+        out.push(this.t('harvester.network.message.vlanInactive', { name: this.row.realAttachNodeName }));
+      }
+
       if (this.row.warningMessage?.pod) {
         const pod = this.row.warningMessage.pod;
 
@@ -73,7 +77,11 @@ export default {
 
   methods: {
     migrationStateChanged(neu) {
-      this.isMigrating = !!neu;
+      if (neu === 'Failed') {
+        this.isMigrating = false;
+      } else {
+        this.isMigrating = !!neu;
+      }
     }
   },
 };

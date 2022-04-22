@@ -252,6 +252,10 @@ export default {
 <style lang="scss">
   @import '@/node_modules/xterm/css/xterm.css';
 
+  body, #__nuxt, #__layout, MAIN {
+    height: 100%;
+  }
+
   .harvester-shell-container {
     height: 100%;
     overflow: hidden;

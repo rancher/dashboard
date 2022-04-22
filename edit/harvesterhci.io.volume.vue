@@ -1,8 +1,8 @@
 <script>
-import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import CruResource from '@/components/CruResource';
 import UnitInput from '@/components/form/UnitInput';
+import ResourceTabs from '@/components/form/ResourceTabs';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import NameNsDescription from '@/components/form/NameNsDescription';
 
@@ -20,9 +20,9 @@ export default {
 
   components: {
     Tab,
-    Tabbed,
     UnitInput,
     CruResource,
+    ResourceTabs,
     LabeledSelect,
     NameNsDescription,
   },
@@ -48,6 +48,10 @@ export default {
       storage,
       imageId,
     };
+  },
+
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
   },
 
   computed: {
@@ -91,6 +95,9 @@ export default {
   },
 
   methods: {
+    willSave() {
+      this.update();
+    },
     update() {
       let imageAnnotations = '';
       let storageClassName = 'longhorn';
@@ -138,7 +145,14 @@ export default {
     >
       <NameNsDescription :value="value" :namespaced="true" :mode="mode" />
 
-      <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
+      <ResourceTabs
+        v-model="value"
+        class="mt-15"
+        :need-conditions="false"
+        :need-related="false"
+        :side-tabs="true"
+        :mode="mode"
+      >
         <Tab name="basic" :label="t('harvester.volume.tabs.basics')" :weight="3" class="bordered-table">
           <LabeledSelect
             v-model="source"
@@ -175,7 +189,7 @@ export default {
             @input="update"
           />
         </Tab>
-      </Tabbed>
+      </ResourceTabs>
     </CruResource>
   </div>
 </template>

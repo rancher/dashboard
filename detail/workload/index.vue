@@ -1,6 +1,8 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
-import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
+import {
+  STATE, NAME, NODE, POD_IMAGES, POD_RESTARTS
+} from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES } from '@/config/types';
 import SortableTable from '@/components/SortableTable';
 import Tab from '@/components/Tabbed/Tab';
@@ -12,7 +14,10 @@ import DashboardMetrics from '@/components/DashboardMetrics';
 import V1WorkloadMetrics from '@/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@/utils/grafana';
+import PlusMinus from '@/components/form/PlusMinus';
+import { SCALABLE_WORKLOAD_TYPES } from '~/config/types';
 
+const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
 const WORKLOAD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-1/rancher-workload?orgId=1';
 
@@ -41,7 +46,8 @@ export default {
     Loading,
     ResourceTabs,
     CountGauge,
-    SortableTable
+    SortableTable,
+    PlusMinus
   },
 
   mixins: [CreateEditView, V1WorkloadMetrics],
@@ -60,17 +66,25 @@ export default {
 
     const isMetricsSupportedKind = METRICS_SUPPORTED_KINDS.includes(this.value.type);
 
-    this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store.dispatch, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
+    this.showMetrics = isMetricsSupportedKind && await allDashboardsExist(this.$store, this.currentCluster.id, [WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL]);
   },
 
   data() {
     return {
-      allPods: null, allJobs: [], WORKLOAD_METRICS_DETAIL_URL, WORKLOAD_METRICS_SUMMARY_URL, showMetrics: false
+      allPods:     null,
+      allJobs:     [],
+      WORKLOAD_METRICS_DETAIL_URL,
+      WORKLOAD_METRICS_SUMMARY_URL,
+      showMetrics: false,
     };
   },
 
   computed:   {
     ...mapGetters(['currentCluster']),
+
+    isActive() {
+      return this.value.metadata.state.name === 'active';
+    },
 
     isJob() {
       return this.value.type === WORKLOAD_TYPES.JOB;
@@ -143,7 +157,8 @@ export default {
         STATE,
         NAME,
         NODE,
-        POD_IMAGES
+        POD_IMAGES,
+        POD_RESTARTS
       ];
     },
 
@@ -157,24 +172,76 @@ export default {
         kind:      WORKLOAD_TYPE_TO_KIND_MAPPING[this.value.type],
         workload:  this.graphVarsWorkload
       };
-    }
+    },
+
+    showPodGaugeCircles() {
+      const podGauges = Object.values(this.value.podGauges);
+      const total = this.value.pods.length;
+
+      return !podGauges.find(pg => pg.count === total);
+    },
+
+    showJobGaugeCircles() {
+      const jobGauges = Object.values(this.value.jobGauges);
+      const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
+
+      return !jobGauges.find(jg => jg.count === total);
+    },
+
+    canScale() {
+      return !!SCALABLE_TYPES.includes(this.value.type) && this.value.canUpdate;
+    },
   },
+  methods: {
+    async scale(isUp) {
+      try {
+        if (isUp) {
+          await this.value.scaleUp();
+        } else {
+          await this.value.scaleDown();
+        }
+      } catch (err) {
+        this.$store.dispatch('growl/fromError', {
+          title: this.t('workload.list.errorCannotScale', { direction: isUp ? 'up' : 'down', workloadName: this.value.name }),
+          err
+        },
+        { root: true });
+      }
+    },
+    async scaleDown() {
+      await this.scale(false);
+    },
+    async scaleUp() {
+      await this.scale(true);
+    },
+  }
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
+    <div v-if="canScale" class="right-align flex">
+      <PlusMinus
+        class="text-right"
+        :label="t('tableHeaders.scale')"
+        :value="value.spec.replicas"
+        :disabled="!isActive"
+        @minus="scaleDown"
+        @plus="scaleUp"
+      />
+    </div>
     <h3>
       {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
     </h3>
-    <div v-if="value.pods || value.jobGauges" class="gauges mb-20">
+    <div v-if="value.pods || value.jobGauges" class="gauges mb-20" :class="{'gauges__pods': !!value.pods}">
       <template v-if="value.jobGauges">
         <CountGauge
           v-for="(group, key) in value.jobGauges"
           :key="key"
           :total="isCronJob? totalRuns : value.pods.length"
           :useful="group.count || 0"
+          :graphical="showJobGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
           :name="t(`workload.gaugeStates.${key}`)"
         />
@@ -185,8 +252,9 @@ export default {
           :key="key"
           :total="value.pods.length"
           :useful="group.count || 0"
+          :graphical="showPodGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
-          :name="t(`workload.gaugeStates.${key}`)"
+          :name="key"
         />
       </template>
     </div>
@@ -207,7 +275,6 @@ export default {
           :rows="value.pods"
           :headers="podHeaders"
           key-field="id"
-          :table-actions="false"
           :schema="podSchema"
           :groupable="false"
           :search="false"
@@ -233,13 +300,25 @@ export default {
   </div>
 </template>
 
-  <style lang='scss' scoped>
-  .gauges {
-    display: flex;
-    justify-content: space-around;
-    &>*{
+<style lang='scss' scoped>
+.right-align {
+  float: right;
+}
+.gauges {
+  display: flex;
+  justify-content: space-around;
+  &>*{
     flex: 1;
     margin-right: $column-gutter;
+  }
+  &__pods {
+    flex-wrap: wrap;
+    justify-content: left;
+    .count-gauge {
+      width: 23%;
+      margin-bottom: 10px;
+      flex: initial;
+    }
   }
 }
 </style>

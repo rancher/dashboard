@@ -59,99 +59,375 @@ const REMAP_STATE = {
   waitcheckin:              'Wait Check-In',
   off:                      'Disabled',
   waitingforinfrastructure: 'Waiting for Infra',
+  waitingfornoderef:        'Waiting for Node Ref'
 };
 
 const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
 
 const DEFAULT_WAIT_INTERVAL = 1000;
-const DEFAULT_WAIT_TMIMEOUT = 30000;
+const DEFAULT_WAIT_TIMEOUT = 30000;
+
+export const STATES_ENUM = {
+  IN_USE:           'in-use',
+  IN_PROGRESS:      'in-progress',
+  PENDING_ROLLBACK: 'pending-rollback',
+  PENDING_UPGRADE:  'pending-upgrade',
+  ABORTED:          'aborted',
+  ACTIVATING:       'activating',
+  ACTIVE:           'active',
+  AVAILABLE:        'available',
+  BACKED_UP:        'backedup',
+  BOUND:            'bound',
+  BUILDING:         'building',
+  COMPLETED:        'completed',
+  CORDONED:         'cordoned',
+  COUNT:            'count',
+  CREATED:          'created',
+  CREATING:         'creating',
+  DEACTIVATING:     'deactivating',
+  DEGRADED:         'degraded',
+  DENIED:           'denied',
+  DEPLOYED:         'deployed',
+  DISABLED:         'disabled',
+  DISCONNECTED:     'disconnected',
+  DRAINED:          'drained',
+  DRAINING:         'draining',
+  ERR_APPLIED:      'errapplied',
+  ERROR:            'error',
+  ERRORING:         'erroring',
+  ERRORS:           'errors',
+  EXPIRED:          'expired',
+  FAIL:             'fail',
+  FAILED:           'failed',
+  HEALTHY:          'healthy',
+  INACTIVE:         'inactive',
+  INFO:             'info',
+  INITIALIZING:     'initializing',
+  INPROGRESS:       'inprogress',
+  LOCKED:           'locked',
+  MIGRATING:        'migrating',
+  MISSING:          'missing',
+  MODIFIED:         'modified',
+  NOT_APPLICABLE:   'notApplicable',
+  NOT_APLLIED:      'notapplied',
+  NOT_READY:        'notready',
+  OFF:              'off',
+  ORPHANED:         'orphaned',
+  OTHER:            'other',
+  OUT_OF_SYNC:      'outofsync',
+  ON_GOING:         'on-going',
+  PASS:             'pass',
+  PASSED:           'passed',
+  PAUSED:           'paused',
+  PENDING:          'pending',
+  PROVISIONING:     'provisioning',
+  PROVISIONED:      'provisioned',
+  PURGED:           'purged',
+  PURGING:          'purging',
+  READY:            'ready',
+  RECONNECTING:     'reconnecting',
+  REGISTERING:      'registering',
+  REINITIALIZING:   'reinitializing',
+  RELEASED:         'released',
+  REMOVED:          'removed',
+  REMOVING:         'removing',
+  REQUESTED:        'requested',
+  RESTARTING:       'restarting',
+  RESTORING:        'restoring',
+  RESIZING:         'resizing',
+  RUNNING:          'running',
+  SKIP:             'skip',
+  SKIPPED:          'skipped',
+  STARTING:         'starting',
+  STOPPED:          'stopped',
+  STOPPING:         'stopping',
+  SUCCEEDED:        'succeeded',
+  SUCCESS:          'success',
+  SUCCESSFUL:          'successful',
+  SUPERSEDED:       'superseded',
+  SUSPENDED:        'suspended',
+  UNAVAILABLE:      'unavailable',
+  UNHEALTHY:        'unhealthy',
+  UNINSTALLED:      'uninstalled',
+  UNINSTALLING:     'uninstalling',
+  UNKNOWN:          'unknown',
+  UNTRIGGERED:      'untriggered',
+  UPDATING:         'updating',
+  WAIT_APPLIED:     'waitapplied',
+  WAIT_CHECKIN:     'waitcheckin',
+  WAITING:          'waiting',
+  WARNING:          'warning',
+};
 
 export const STATES = {
-  'in-progress':      { color: 'info', icon: 'tag' },
-  'pending-rollback': { color: 'info', icon: 'dot-half' },
-  'pending-upgrade':  { color: 'info', icon: 'dot-half' },
-  aborted:            { color: 'warning', icon: 'error' },
-  activating:         { color: 'info', icon: 'tag' },
-  active:             { color: 'success', icon: 'dot-open' },
-  available:          { color: 'success', icon: 'dot-open' },
-  backedup:           { color: 'success', icon: 'backup' },
-  bound:              { color: 'success', icon: 'dot' },
-  building:           { color: 'success', icon: 'dot-open' },
-  completed:          { color: 'success', icon: 'dot' },
-  cordoned:           { color: 'info', icon: 'tag' },
-  count:              { color: 'success', icon: 'dot-open' },
-  created:            { color: 'info', icon: 'tag' },
-  creating:           { color: 'info', icon: 'tag' },
-  deactivating:       { color: 'info', icon: 'adjust' },
-  degraded:           { color: 'warning', icon: 'error' },
-  denied:             { color: 'error', icon: 'adjust' },
-  deployed:           { color: 'success', icon: 'dot-open' },
-  disabled:           { color: 'warning', icon: 'error' },
-  disconnected:       { color: 'warning', icon: 'error' },
-  drained:            { color: 'info', icon: 'tag' },
-  draining:           { color: 'warning', icon: 'tag' },
-  errapplied:         { color: 'error', icon: 'error' },
-  error:              { color: 'error', icon: 'error' },
-  erroring:           { color: 'error', icon: 'error' },
-  errors:             { color: 'error', icon: 'error' },
-  expired:            { color: 'warning', icon: 'error' },
-  fail:               { color: 'error', icon: 'error' },
-  failed:             { color: 'error', icon: 'error' },
-  healthy:            { color: 'success', icon: 'dot-open' },
-  inactive:           { color: 'error', icon: 'dot' },
-  initializing:       { color: 'warning', icon: 'error' },
-  inprogress:         { color: 'info', icon: 'spinner' },
-  locked:             { color: 'warning', icon: 'adjust' },
-  migrating:          { color: 'info', icon: 'info' },
-  missing:            { color: 'warning', icon: 'adjust' },
-  modified:           { color: 'warning', icon: 'edit' },
-  notApplicable:      { color: 'warning', icon: 'tag' },
-  notapplied:         { color: 'warning', icon: 'tag' },
-  notready:           { color: 'warning', icon: 'tag' },
-  off:                { color: 'darker', icon: 'error' },
-  orphaned:           { color: 'warning', icon: 'tag' },
-  other:              { color: 'info', icon: 'info' },
-  outofsync:          { color: 'warning', icon: 'tag' },
-  pass:               { color: 'success', icon: 'dot-dotfill' },
-  passed:             { color: 'success', icon: 'dot-dotfill' },
-  paused:             { color: 'info', icon: 'info' },
-  pending:            { color: 'info', icon: 'tag' },
-  provisioning:       { color: 'info', icon: 'dot' },
-  provisioned:        { color: 'success', icon: 'dot' },
-  purged:             { color: 'error', icon: 'purged' },
-  purging:            { color: 'info', icon: 'purged' },
-  ready:              { color: 'success', icon: 'dot-open' },
-  reconnecting:       { color: 'error', icon: 'error' },
-  registering:        { color: 'info', icon: 'tag' },
-  reinitializing:     { color: 'warning', icon: 'error' },
-  released:           { color: 'warning', icon: 'error' },
-  removed:            { color: 'error', icon: 'trash' },
-  removing:           { color: 'info', icon: 'trash' },
-  requested:          { color: 'info', icon: 'tag' },
-  restarting:         { color: 'info', icon: 'adjust' },
-  restoring:          { color: 'info', icon: 'medicalcross' },
-  running:            { color: 'success', icon: 'dot-open' },
-  skip:               { color: 'info', icon: 'dot-open' },
-  skipped:            { color: 'info', icon: 'dot-open' },
-  starting:           { color: 'info', icon: 'adjust' },
-  stopped:            { color: 'error', icon: 'dot' },
-  stopping:           { color: 'info', icon: 'adjust' },
-  succeeded:          { color: 'success', icon: 'dot-dotfill' },
-  success:            { color: 'success', icon: 'dot-open' },
-  superseded:         { color: 'info', icon: 'dot-open' },
-  suspended:          { color: 'info', icon: 'pause' },
-  unavailable:        { color: 'error', icon: 'error' },
-  unhealthy:          { color: 'error', icon: 'error' },
-  uninstalled:        { color: 'info', icon: 'trash' },
-  uninstalling:       { color: 'info', icon: 'trash' },
-  unknown:            { color: 'warning', icon: 'x' },
-  untriggered:        { color: 'success', icon: 'tag' },
-  updating:           { color: 'warning', icon: 'tag' },
-  waitapplied:        { color: 'info', icon: 'tag' },
-  waitcheckin:        { color: 'warning', icon: 'tag' },
-  waiting:            { color: 'info', icon: 'tag' },
-  warning:            { color: 'warning', icon: 'error' },
+  [STATES_ENUM.IN_USE]:           {
+    color: 'success', icon: 'dot-open', label: 'In Use'
+  },
+  [STATES_ENUM.IN_PROGRESS]:      {
+    color: 'info', icon: 'tag', label: 'In Progress'
+  },
+  [STATES_ENUM.PENDING_ROLLBACK]: {
+    color: 'info', icon: 'dot-half', label: 'Pending Rollback'
+  },
+  [STATES_ENUM.PENDING_UPGRADE]:  {
+    color: 'info', icon: 'dot-half', label: 'Pending Update'
+  },
+  [STATES_ENUM.ABORTED]:            {
+    color: 'warning', icon: 'error', label: 'Aborted'
+  },
+  [STATES_ENUM.ACTIVATING]:         {
+    color: 'info', icon: 'tag', label: 'Activating'
+  },
+  [STATES_ENUM.ACTIVE]:             {
+    color: 'success', icon: 'dot-open', label: 'Active'
+  },
+  [STATES_ENUM.AVAILABLE]:          {
+    color: 'success', icon: 'dot-open', label: 'Available'
+  },
+  [STATES_ENUM.BACKED_UP]:           {
+    color: 'success', icon: 'backup', label: 'Backed Up'
+  },
+  [STATES_ENUM.BOUND]:              {
+    color: 'success', icon: 'dot', label: 'Bound'
+  },
+  [STATES_ENUM.BUILDING]:           {
+    color: 'success', icon: 'dot-open', label: 'Building'
+  },
+  [STATES_ENUM.COMPLETED]:          {
+    color: 'success', icon: 'dot', label: 'Completed'
+  },
+  [STATES_ENUM.CORDONED]:           {
+    color: 'info', icon: 'tag', label: 'Cordoned'
+  },
+  [STATES_ENUM.COUNT]:              {
+    color: 'success', icon: 'dot-open', label: 'Count'
+  },
+  [STATES_ENUM.CREATED]:            {
+    color: 'info', icon: 'tag', label: 'Created'
+  },
+  [STATES_ENUM.CREATING]:           {
+    color: 'info', icon: 'tag', label: 'Creating'
+  },
+  [STATES_ENUM.DEACTIVATING]:       {
+    color: 'info', icon: 'adjust', label: 'Deactivating'
+  },
+  [STATES_ENUM.DEGRADED]:           {
+    color: 'warning', icon: 'error', label: 'Degraded'
+  },
+  [STATES_ENUM.DENIED]:             {
+    color: 'error', icon: 'adjust', label: 'Denied'
+  },
+  [STATES_ENUM.DEPLOYED]:           {
+    color: 'success', icon: 'dot-open', label: 'Deployed'
+  },
+  [STATES_ENUM.DISABLED]:           {
+    color: 'warning', icon: 'error', label: 'Disabled'
+  },
+  [STATES_ENUM.DISCONNECTED]:       {
+    color: 'warning', icon: 'error', label: 'Disconnected'
+  },
+  [STATES_ENUM.DRAINED]:            {
+    color: 'info', icon: 'tag', label: 'Drained'
+  },
+  [STATES_ENUM.DRAINING]:           {
+    color: 'warning', icon: 'tag', label: 'Draining'
+  },
+  [STATES_ENUM.ERR_APPLIED]:         {
+    color: 'error', icon: 'error', label: 'Error Applied'
+  },
+  [STATES_ENUM.ERROR]:              {
+    color: 'error', icon: 'error', label: 'Error'
+  },
+  [STATES_ENUM.ERRORING]:           {
+    color: 'error', icon: 'error', label: 'Erroring'
+  },
+  [STATES_ENUM.ERRORS]:             {
+    color: 'error', icon: 'error', label: 'Errors'
+  },
+  [STATES_ENUM.EXPIRED]:            {
+    color: 'warning', icon: 'error', label: 'Expired'
+  },
+  [STATES_ENUM.FAIL]:               {
+    color: 'error', icon: 'error', label: 'Fail'
+  },
+  [STATES_ENUM.FAILED]:             {
+    color: 'error', icon: 'error', label: 'Failed'
+  },
+  [STATES_ENUM.HEALTHY]:            {
+    color: 'success', icon: 'dot-open', label: 'Healthy'
+  },
+  [STATES_ENUM.INACTIVE]:           {
+    color: 'error', icon: 'dot', label: 'Inactive'
+  },
+  [STATES_ENUM.INITIALIZING]:       {
+    color: 'warning', icon: 'error', label: 'Initializing'
+  },
+  [STATES_ENUM.INPROGRESS]:         {
+    color: 'info', icon: 'spinner', label: 'In Progress'
+  },
+  [STATES_ENUM.INFO]:         {
+    color: 'info', icon: 'info', label: 'Info'
+  },
+  [STATES_ENUM.LOCKED]:             {
+    color: 'warning', icon: 'adjust', label: 'Locked'
+  },
+  [STATES_ENUM.MIGRATING]:          {
+    color: 'info', icon: 'info', label: 'Migrated'
+  },
+  [STATES_ENUM.MISSING]:            {
+    color: 'warning', icon: 'adjust', label: 'Missing'
+  },
+  [STATES_ENUM.MODIFIED]:           {
+    color: 'warning', icon: 'edit', label: 'Modified'
+  },
+  [STATES_ENUM.NOT_APPLICABLE]:      {
+    color: 'warning', icon: 'tag', label: 'Not Applicable'
+  },
+  [STATES_ENUM.NOT_APLLIED]:         {
+    color: 'warning', icon: 'tag', label: 'Not Applied'
+  },
+  [STATES_ENUM.NOT_READY]:           {
+    color: 'warning', icon: 'tag', label: 'Not Ready'
+  },
+  [STATES_ENUM.OFF]:                {
+    color: 'darker', icon: 'error', label: 'Off'
+  },
+  [STATES_ENUM.ON_GOING]:           {
+    color: 'info', icon: 'info', label: 'Info'
+  },
+  [STATES_ENUM.ORPHANED]:           {
+    color: 'warning', icon: 'tag', label: 'Orphaned'
+  },
+  [STATES_ENUM.OTHER]:              {
+    color: 'info', icon: 'info', label: 'Other'
+  },
+  [STATES_ENUM.OUT_OF_SYNC]:          {
+    color: 'warning', icon: 'tag', label: 'Out Of Sync'
+  },
+  [STATES_ENUM.PASS]:               {
+    color: 'success', icon: 'dot-dotfill', label: 'Pass'
+  },
+  [STATES_ENUM.PASSED]:             {
+    color: 'success', icon: 'dot-dotfill', label: 'Passed'
+  },
+  [STATES_ENUM.PAUSED]:             {
+    color: 'info', icon: 'info', label: 'Paused'
+  },
+  [STATES_ENUM.PENDING]:            {
+    color: 'info', icon: 'tag', label: 'Pending'
+  },
+  [STATES_ENUM.PROVISIONING]:       {
+    color: 'info', icon: 'dot', label: 'Provisioning'
+  },
+  [STATES_ENUM.PROVISIONED]:        {
+    color: 'success', icon: 'dot', label: 'Provisioned'
+  },
+  [STATES_ENUM.PURGED]:             {
+    color: 'error', icon: 'purged', label: 'Purged'
+  },
+  [STATES_ENUM.PURGING]:            {
+    color: 'info', icon: 'purged', label: 'Purging'
+  },
+  [STATES_ENUM.READY]:              {
+    color: 'success', icon: 'dot-open', label: 'Ready'
+  },
+  [STATES_ENUM.RECONNECTING]:       {
+    color: 'error', icon: 'error', label: 'Reconnecting'
+  },
+  [STATES_ENUM.REGISTERING]:        {
+    color: 'info', icon: 'tag', label: 'Registering'
+  },
+  [STATES_ENUM.REINITIALIZING]:     {
+    color: 'warning', icon: 'error', label: 'Reinitializing'
+  },
+  [STATES_ENUM.RELEASED]:           {
+    color: 'warning', icon: 'error', label: 'Released'
+  },
+  [STATES_ENUM.REMOVED]:            {
+    color: 'error', icon: 'trash', label: 'Removed'
+  },
+  [STATES_ENUM.REMOVING]:           {
+    color: 'info', icon: 'trash', label: 'Removing'
+  },
+  [STATES_ENUM.REQUESTED]:          {
+    color: 'info', icon: 'tag', label: 'Requested'
+  },
+  [STATES_ENUM.RESTARTING]:         {
+    color: 'info', icon: 'adjust', label: 'Restarting'
+  },
+  [STATES_ENUM.RESTORING]:          {
+    color: 'info', icon: 'medicalcross', label: 'Restoring'
+  },
+  [STATES_ENUM.RESIZING]:           {
+    color: 'warning', icon: 'dot', label: 'Resizing'
+  },
+  [STATES_ENUM.RUNNING]:            {
+    color: 'success', icon: 'dot-open', label: 'Running'
+  },
+  [STATES_ENUM.SKIP]:               {
+    color: 'info', icon: 'dot-open', label: 'Skip'
+  },
+  [STATES_ENUM.SKIPPED]:            {
+    color: 'info', icon: 'dot-open', label: 'Skipped'
+  },
+  [STATES_ENUM.STARTING]:           {
+    color: 'info', icon: 'adjust', label: 'Starting'
+  },
+  [STATES_ENUM.STOPPED]:            {
+    color: 'error', icon: 'dot', label: 'Stopped'
+  },
+  [STATES_ENUM.STOPPING]:           {
+    color: 'info', icon: 'adjust', label: 'Stopping'
+  },
+  [STATES_ENUM.SUCCEEDED]:          {
+    color: 'success', icon: 'dot-dotfill', label: 'Succeeded'
+  },
+  [STATES_ENUM.SUCCESS]:            {
+    color: 'success', icon: 'dot-open', label: 'Success'
+  },
+  [STATES_ENUM.SUCCESSFUL]:            {
+    color: 'success', icon: 'dot-open', label: 'Successful'
+  },
+  [STATES_ENUM.SUPERSEDED]:         {
+    color: 'info', icon: 'dot-open', label: 'Superseded'
+  },
+  [STATES_ENUM.SUSPENDED]:          {
+    color: 'info', icon: 'pause', label: 'Suspended'
+  },
+  [STATES_ENUM.UNAVAILABLE]:        {
+    color: 'error', icon: 'error', label: 'Unavailable'
+  },
+  [STATES_ENUM.UNHEALTHY]:          {
+    color: 'error', icon: 'error', label: 'Unhealthy'
+  },
+  [STATES_ENUM.UNINSTALLED]:        {
+    color: 'info', icon: 'trash', label: 'Uninstalled'
+  },
+  [STATES_ENUM.UNINSTALLING]:       {
+    color: 'info', icon: 'trash', label: 'Uninstalling'
+  },
+  [STATES_ENUM.UNKNOWN]:            {
+    color: 'warning', icon: 'x', label: 'Unknown'
+  },
+  [STATES_ENUM.UNTRIGGERED]:        {
+    color: 'success', icon: 'tag', label: 'Untriggered'
+  },
+  [STATES_ENUM.UPDATING]:           {
+    color: 'warning', icon: 'tag', label: 'Updating'
+  },
+  [STATES_ENUM.WAIT_APPLIED]:        {
+    color: 'info', icon: 'tag', label: 'Wait Applied'
+  },
+  [STATES_ENUM.WAIT_CHECKIN]:        {
+    color: 'warning', icon: 'tag', label: 'Wait Checkin'
+  },
+  [STATES_ENUM.WAITING]:            {
+    color: 'info', icon: 'tag', label: 'Waiting'
+  },
+  [STATES_ENUM.WARNING]:            {
+    color: 'warning', icon: 'error', label: 'Warning'
+  },
 };
 
 export function getStatesByType(type = 'info') {
@@ -177,12 +453,20 @@ export function getStatesByType(type = 'info') {
 }
 
 const SORT_ORDER = {
-  error:   1,
-  warning: 2,
-  info:    3,
-  success: 4,
-  other:   5,
+  error:    1,
+  warning:  2,
+  info:     3,
+  success:  4,
+  ready:    5,
+  notready:   6,
+  other:    7,
 };
+
+export function getStateLabel(state) {
+  const lowercaseState = state.toLowerCase();
+
+  return STATES[lowercaseState] ? STATES[lowercaseState].label : STATES[STATES_ENUM.UNKNOWN].label;
+}
 
 export function colorForState(state, isError, isTransitioning) {
   if ( isError ) {
@@ -284,15 +568,15 @@ export default class Resource {
   get customValidationRules() {
     return [
       /**
-       * Essentially a fake schema object with additonal params to extend validation
+       * Essentially a fake schema object with additional params to extend validation
        *
-       * @param {nullable} Value is nullabel
+       * @param {nullable} Value is nullable
        * @param {path} Path on the resource to the value to validate
        * @param {required} Value required
        * @param {requiredIf} Value required if value at path not empty
        * @param {translationKey} Human readable display key for param in path e.g. metadata.name === Name
        * @param {type} Type of field to validate
-       * @param {validators} array of strings where item is name of exported validator function in custom-validtors, args can be passed by prepending args seperated by colon. e.g maxLength:63
+       * @param {validators} array of strings where item is name of exported validator function in custom-validators, args can be passed by prepending args separated by colon. e.g maxLength:63
        */
       /* {
         nullable:       false,
@@ -465,7 +749,7 @@ export default class Resource {
     console.log('Starting wait for', msg); // eslint-disable-line no-console
 
     if ( !timeoutMs ) {
-      timeoutMs = DEFAULT_WAIT_TMIMEOUT;
+      timeoutMs = DEFAULT_WAIT_TIMEOUT;
     }
 
     if ( !intervalMs ) {
@@ -545,7 +829,7 @@ export default class Resource {
     return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
   }
 
-  waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
+  waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
     return this.waitForTestFn(() => {
       return this.isCondition(name, withStatus);
     }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
@@ -732,6 +1016,22 @@ export default class Resource {
     });
   }
 
+  async doActionGrowl(actionName, body, opt = {}) {
+    try {
+      await this.$dispatch('resourceAction', {
+        resource: this,
+        actionName,
+        body,
+        opt,
+      });
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('generic.notification.title.error'),
+        err:   err.data || err,
+      }, { root: true });
+    }
+  }
+
   // ------------------------------------------------------------------
 
   patch(data, opt = {}) {
@@ -841,7 +1141,11 @@ export default class Resource {
     return this;
   }
 
-  async remove(opt = {}) {
+  remove() {
+    return this._remove(...arguments);
+  }
+
+  async _remove(opt = {}) {
     if ( !opt.url ) {
       opt.url = this.linkFor('self');
     }
@@ -1333,7 +1637,7 @@ export default class Resource {
         const allOfResourceType = this.$rootGetters['cluster/all']( type );
 
         this.ownersByType[kind].forEach((resource, idx) => {
-          const resourceInstance = allOfResourceType.find(resource => resource?.metdata?.uid === resource.uid);
+          const resourceInstance = allOfResourceType.find(resourceByType => resourceByType?.metadata?.uid === resource.uid);
 
           if (resourceInstance) {
             owners.push(resourceInstance);

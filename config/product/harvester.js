@@ -190,6 +190,19 @@ export function init(store) {
   ], 'advanced');
 
   configureType(HCI.CLUSTER_NETWORK, { realResource: HCI.SETTING, showState: false });
+
+  configureType(HCI.MANAGED_CHART, {
+    location:    {
+      name:    'c-cluster-product-resource',
+      params:  { resource: HCI.MANAGED_CHART },
+    },
+    resource:       MANAGEMENT.MANAGED_CHART,
+    resourceDetail: HCI.MANAGED_CHART,
+    resourceEdit:   HCI.MANAGED_CHART
+  });
+
+  configureType(MANAGEMENT.MANAGED_CHART, { showState: false });
+
   virtualType({
     labelKey:   'harvester.vmTemplate.label',
     group:      'root',
@@ -203,7 +216,7 @@ export function init(store) {
     exact: false,
   });
 
-  configureType(HCI.BACKUP, { showListMasthead: false });
+  configureType(HCI.BACKUP, { showListMasthead: false, showConfigView: false });
   virtualType({
     labelKey:   'harvester.backup.label',
     name:       HCI.BACKUP,
@@ -251,6 +264,7 @@ export function init(store) {
     resourceDetail: HCI.CLOUD_TEMPLATE,
     resourceEdit:   HCI.CLOUD_TEMPLATE,
   });
+
   virtualType({
     labelKey:     'harvester.cloudTemplate.label',
     name:         HCI.CLOUD_TEMPLATE,

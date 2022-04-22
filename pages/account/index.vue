@@ -1,7 +1,8 @@
 <script>
 import BackLink from '@/components/BackLink';
 import PromptChangePassword from '@/components/PromptChangePassword';
-import { NORMAN } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
+import { SETTING } from '@/config/settings';
 import Loading from '@/components/Loading';
 import Principal from '@/components/auth/Principal';
 import BackRoute from '@/mixins/back-link';
@@ -9,11 +10,14 @@ import { mapGetters } from 'vuex';
 
 import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
+import CopyToClipboardText from '@/components/CopyToClipboardText';
+
+const API_ENDPOINT = '/v3';
 
 export default {
   layout:     'plain',
   components: {
-    BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal
+    CopyToClipboardText, BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal
   },
   mixins: [BackRoute],
   async fetch() {
@@ -22,9 +26,19 @@ export default {
     if (this.apiKeySchema) {
       this.rows = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
     }
+
+    // Get all settings - the API host setting may not be set, so this avoids a 404 request if we look for the specific setting
+    const allSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+    const apiHostSetting = allSettings.find(i => i.id === SETTING.API_HOST);
+    const serverUrlSetting = allSettings.find(i => i.id === SETTING.SERVER_URL);
+
+    this.apiHostSetting = apiHostSetting?.value;
+    this.serverUrlSetting = serverUrlSetting?.value;
   },
   data() {
     return {
+      apiHostSetting:    null,
+      serverUrlSetting:  null,
       rows:              null,
       canChangePassword: false
     };
@@ -34,6 +48,35 @@ export default {
 
     apiKeyheaders() {
       return this.apiKeySchema ? this.$store.getters['type-map/headersFor'](this.apiKeySchema) : [];
+    },
+
+    // Port of Ember code for API Url - see: https://github.com/rancher/ui/blob/8e07c492673171731f3b26af14c978bc103d1828/lib/shared/addon/endpoint/service.js#L58
+    apiUrlBase() {
+      let setting = this.apiHostSetting;
+
+      if (setting && setting.indexOf('http') !== 0) {
+        setting = `http://${ setting }`;
+      }
+
+      // Use Server Setting URL if the api host setting is not set
+      let url = setting || this.serverUrlSetting;
+
+      // If the URL is relative, add on the current base URL from the browser
+      if ( url.indexOf('http') !== 0 ) {
+        url = `${ window.location.origin }/${ url.replace(/^\/+/, '') }`;
+      }
+
+      // URL must end in a single slash
+      url = `${ url.replace(/\/+$/, '') }/`;
+
+      return url;
+    },
+
+    apiUrl() {
+      const base = this.apiUrlBase;
+      const path = API_ENDPOINT.replace(/^\/+/, '');
+
+      return `${ base }${ path }`;
     },
 
     apiKeySchema() {
@@ -103,7 +146,7 @@ export default {
     <BackLink :link="backLink" />
     <h1 v-t="'accountAndKeys.title'" />
 
-    <h4 v-t="'accountAndKeys.account.title'" />
+    <h2 v-t="'accountAndKeys.account.title'" />
     <div class="account">
       <Principal :key="principal.id" :value="principal.id" :use-muted="false" :show-labels="true" />
       <div>
@@ -121,7 +164,13 @@ export default {
 
     <hr />
     <div class="keys-header">
-      <h4 v-t="'accountAndKeys.apiKeys.title'" />
+      <div>
+        <h2 v-t="'accountAndKeys.apiKeys.title'" />
+        <div class="api-url">
+          <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
+          <CopyToClipboardText :text="apiUrl" />
+        </div>
+      </div>
       <button v-if="apiKeySchema" class="btn role-primary add mb-20" @click="addKey">
         {{ t('accountAndKeys.apiKeys.add.label') }}
       </button>
@@ -155,7 +204,7 @@ export default {
 
   .keys-header {
     display: flex;
-    h4 {
+    div {
       flex: 1;
     }
   }
@@ -165,6 +214,14 @@ export default {
     flex-direction: column;
     .add {
       align-self: flex-end;
+    }
+  }
+
+  .api-url {
+    display: flex;
+
+    > span {
+      margin-right: 6px;
     }
   }
 </style>

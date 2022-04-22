@@ -112,22 +112,7 @@ export default {
   methods: {
     async save(saveCb) {
       try {
-        if ( this.value.spec?.resourceQuota?.limit && !Object.keys(this.value.spec.resourceQuota.limit).length ) {
-          delete this.value.spec.resourceQuota.limit;
-        }
-
-        if ( this.value.spec?.resourceQuota && !Object.keys(this.value.spec.resourceQuota).length ) {
-          delete this.value.spec.resourceQuota;
-        }
-
-        if ( this.value.spec?.namespaceDefaultResourceQuota?.limit && !Object.keys(this.value.spec.namespaceDefaultResourceQuota.limit).length ) {
-          delete this.value.spec.namespaceDefaultResourceQuota.limit;
-        }
-
-        if ( this.value.spec?.namespaceDefaultResourceQuota && !Object.keys(this.value.spec.namespaceDefaultResourceQuota).length ) {
-          delete this.value.spec.namespaceDefaultResourceQuota;
-        }
-
+        // clear up of the unused resourceQuotas will now be done on the model side
         const savedProject = await this.value.save();
 
         if (this.membershipUpdate.save) {

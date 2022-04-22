@@ -45,9 +45,27 @@ export default class MgmtNodePool extends HybridModel {
     };
   }
 
+  get scale() {
+    return this.norman.quantity;
+  }
+
   scalePool(delta) {
     this.norman.quantity += delta;
-    this.norman.save();
+
+    if ( this.scaleTimer ) {
+      clearTimeout(this.scaleTimer);
+    }
+
+    this.scaleTimer = setTimeout(() => {
+      try {
+        this.norman.save();
+      } catch (error) {
+        this.$dispatch('growl/fromError', {
+          title: 'Error scaling pool',
+          error
+        }, { root: true });
+      }
+    }, 1000);
   }
 
   get nodes() {
@@ -56,16 +74,48 @@ export default class MgmtNodePool extends HybridModel {
     return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.spec.nodePoolName === nodePoolName);
   }
 
+  get nodeSummary() {
+    const res = {
+      errored:       0,
+      transitioning: 0,
+      unavailable:   0,
+      count:         0
+    };
+
+    if (!this.nodes) {
+      return res;
+    }
+
+    return this.nodes.reduce((res, n) => {
+      if (n.metadata.state.error ) {
+        res.errored++;
+      } else if (n.metadata.state.transitioning) {
+        res.transitioning++;
+      } else if (n.state !== 'active') {
+        res.unavailable++;
+      }
+
+      return res;
+    }, {
+      ...res,
+      count: this.nodes.length
+    });
+  }
+
   get desired() {
     return this.spec?.quantity || 0;
   }
 
   get pending() {
-    return Math.max(0, this.desired - (this.nodes?.length || 0));
+    return this.nodeSummary.transitioning;
   }
 
   get ready() {
-    return Math.max(0, (this.nodes?.length || 0) - (this.pending || 0));
+    return Math.max(0, this.nodeSummary.count - this.nodeSummary.unavailable);
+  }
+
+  get unavailable() {
+    return this.nodeSummary.errored;
   }
 
   get stateParts() {
@@ -76,6 +126,13 @@ export default class MgmtNodePool extends HybridModel {
         textColor: 'text-info',
         value:     this.pending,
         sort:      1,
+      },
+      {
+        label:     'Unavailable',
+        color:     'bg-error',
+        textColor: 'text-error',
+        value:     this.unavailable,
+        sort:      3,
       },
       {
         label:     'Ready',

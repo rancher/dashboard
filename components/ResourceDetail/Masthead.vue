@@ -100,6 +100,10 @@ export default {
       return null;
     },
 
+    shouldHifenize() {
+      return (this.mode === 'view' || this.mode === 'edit') && this.resourceSubtype?.length && this.value?.nameDisplay?.length;
+    },
+
     namespaceLocation() {
       if (!this.isNamespace) {
         return {
@@ -227,7 +231,7 @@ export default {
         });
       }
 
-      if ( this.hasEdit ) {
+      if ( this.hasEdit && this.parent?.showConfigView !== false) {
         out.push({
           labelKey: 'resourceDetail.masthead.config',
           value:    'config',
@@ -325,7 +329,7 @@ export default {
             </nuxt-link>
             <span v-else>{{ parent.displayName }}:</span>
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
-            <t v-else :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="value.nameDisplay" />
+            <t v-else :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="shouldHifenize ? ` - ${ value.nameDisplay }` : value.nameDisplay" />
             <BadgeState v-if="!isCreate && parent.showState" class="masthead-state" :value="value" />
           </h1>
         </div>
@@ -333,7 +337,8 @@ export default {
           <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
           <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
           <span v-else-if="namespace">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
-          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
+          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-data" :value="get(value, 'metadata.creationTimestamp')" /></span>
+          <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
         </div>
       </div>
       <slot name="right">
@@ -409,7 +414,7 @@ export default {
       margin: 5px 20px 5px 0px;
     }
 
-    .live-date {
+    .live-data {
       color: var(--body-text)
     }
   }

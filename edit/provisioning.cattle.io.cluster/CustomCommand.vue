@@ -6,6 +6,7 @@ import CopyCode from '@/components/CopyCode';
 import LabeledInput from '@/components/form/LabeledInput';
 import KeyValue from '@/components/form/KeyValue';
 import Taints from '@/components/form/Taints';
+import { MANAGEMENT } from '@/config/types';
 
 export default {
   components: {
@@ -22,6 +23,10 @@ export default {
       type:     Object,
       required: true,
     }
+  },
+
+  async fetch() {
+    await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
   },
 
   data() {
@@ -102,8 +107,30 @@ export default {
       return out.join(' ');
     },
 
-    isClusterReady() {
-      return this.cluster.mgmt && this.cluster.mgmt.isReady;
+    // Clusters need linux nodes with etcd, controlplane, and worker roles before windows nodes can be registration
+    readyForWindows() {
+      if (!this.cluster.mgmt || !this.cluster.mgmt.isReady) {
+        return false;
+      }
+      const nodes = this.cluster.nodes || [];
+
+      const allRoles = nodes.reduce((all, node) => {
+        const { isWorker, isEtcd, isControlPlane } = node;
+
+        if (isWorker && !all.includes('worker')) {
+          all.push('worker');
+        }
+        if (isEtcd && !all.includes('etcd')) {
+          all.push('etcd');
+        }
+        if (isControlPlane && !all.includes('controlPlane')) {
+          all.push('controlPlane');
+        }
+
+        return all;
+      }, []);
+
+      return allRoles.length === 3;
     }
 
   },
@@ -112,6 +139,10 @@ export default {
     toggleAdvanced() {
       this.showAdvanced = !this.showAdvanced;
     },
+
+    copiedWindows() {
+      this.$emit('copied-windows');
+    }
   },
 };
 
@@ -179,8 +210,8 @@ function sanitizeValue(v) {
       <template v-if="cluster.supportsWindows">
         <hr class="mt-20 mb-20" />
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
-        <template v-if="isClusterReady">
-          <CopyCode class="m-10 p-10">
+        <template v-if="readyForWindows">
+          <CopyCode class="m-10 p-10" @copied="copiedWindows">
             {{ windowsCommand }}
           </CopyCode>
           <Checkbox

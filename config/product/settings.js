@@ -34,7 +34,7 @@ export function init(store) {
     labelKey:       'advancedSettings.label',
     name:           'settings',
     namespaced:     false,
-    weight:         99,
+    weight:         100,
     icon:           'folder',
     route:          {
       name:   'c-cluster-product-resource',
@@ -71,10 +71,21 @@ export function init(store) {
     route:          { name: 'c-cluster-settings-brand' }
   });
 
+  virtualType({
+    ifHaveType:     MANAGEMENT.SETTING,
+    labelKey:       'banner.settingName',
+    name:           'banners',
+    namespaced:     false,
+    weight:         98,
+    icon:           'folder',
+    route:          { name: 'c-cluster-settings-banners' }
+  });
+
   basicType([
     'settings',
     'features',
-    'brand'
+    'brand',
+    'banners'
   ]);
 
   configureType(MANAGEMENT.SETTING, {

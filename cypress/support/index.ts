@@ -8,12 +8,12 @@ declare global {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
 
       byLabel(label: string,): Chainable<Element>;
-
     }
-}}
+  }
+}
 
 // TODO handle redirection errors better?
-// we see a lot of 'error nagivation cancelled' uncaught exceptions that don't actually break anything; ignore them here
+// we see a lot of 'error navigation cancelled' uncaught exceptions that don't actually break anything; ignore them here
 Cypress.on('uncaught:exception', (err, runnable) => {
   // returning false here prevents Cypress from failing the test
   if (err.message.includes('navigation guard')) {

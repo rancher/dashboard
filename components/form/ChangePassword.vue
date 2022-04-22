@@ -39,11 +39,11 @@ export default {
   },
   data(ctx) {
     return {
-      username:                    '',
-      errorMessages:               [],
-      pCanShowMissmatchedPassword: false,
-      pIsRandomGenerated:            false,
-      form:                        {
+      username:                   '',
+      errorMessages:              [],
+      pCanShowMismatchedPassword: false,
+      pIsRandomGenerated:         false,
+      form:                       {
         deleteKeys:        false,
         currentP:          '',
         newP:              '',
@@ -125,11 +125,11 @@ export default {
 
     passwordConfirmBlurred: {
       get() {
-        return this.pCanShowMissmatchedPassword;
+        return this.pCanShowMismatchedPassword;
       },
 
       set(p) {
-        this.pCanShowMissmatchedPassword = p;
+        this.pCanShowMismatchedPassword = p;
         this.validate();
       }
     },
@@ -179,7 +179,7 @@ export default {
     passwordsMatch() {
       const match = this.passwordNew === this.passwordConfirm;
 
-      this.errorMessages = this.passwordConfirmBlurred && !match ? [this.t('changePassword.errors.missmatchedPassword')] : [];
+      this.errorMessages = this.passwordConfirmBlurred && !match ? [this.t('changePassword.errors.mismatchedPassword')] : [];
 
       return match;
     },
@@ -194,7 +194,7 @@ export default {
       }
 
       if (this.isRandomGenerated) {
-        // If we're not changing current user... and password is randomly generated... there'll be no new/confirm missmatch
+        // If we're not changing current user... and password is randomly generated... there'll be no new/confirm mismatch
         return true;
       }
 
@@ -214,7 +214,7 @@ export default {
       const isValid = this.isValid();
 
       if (isValid) {
-        // Covers the case where we don't re-evaludate the error messages (don't need to at the time)
+        // Covers the case where we don't re-evaluate the error messages (don't need to at the time)
         this.errorMessages = [];
       }
 

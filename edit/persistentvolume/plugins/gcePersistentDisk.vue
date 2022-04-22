@@ -33,7 +33,7 @@ export default {
     return { readOnlyOptions };
   },
   computed: {
-    parition: {
+    partition: {
       get() {
         return this.value.spec.gcePersistentDisk.partition;
       },
@@ -52,7 +52,7 @@ export default {
         <LabeledInput v-model="value.spec.gcePersistentDisk.pdName" :mode="mode" :label="t('persistentVolume.gcePersistentDisk.persistentDiskName.label')" :placeholder="t('persistentVolume.gcePersistentDisk.persistentDiskName.placeholder')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="parition" :mode="mode" :label="t('persistentVolume.shared.partition.label')" :placeholder="t('persistentVolume.azureFile.secretName.placeholder')" type="number" />
+        <LabeledInput v-model="partition" :mode="mode" :label="t('persistentVolume.shared.partition.label')" :placeholder="t('persistentVolume.azureFile.secretName.placeholder')" type="number" />
       </div>
     </div>
     <div class="row mb-20">

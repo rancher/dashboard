@@ -112,8 +112,8 @@ export default {
   },
 
   watch: {
-    // This method is not that disimilar to persistentStorageType in Grafan config
-    // The reason for the divergence is that Grafna has a subkey on the chart
+    // This method is not that dissimilar to persistentStorageType in Grafana config
+    // The reason for the divergence is that Grafana has a subkey on the chart
     // where these keys are at the root of the chart. Vue complains about calling
     // this.$set(this, 'value', obj) as we need to do here to reset the values in bulk.
     // So rather than call each set on each line individually I give you this.
@@ -178,12 +178,12 @@ export default {
 
   created() {
     const { provider, clusterTypes } = this;
-    const matchedProvder = findBy(clusterTypes, 'id', provider);
+    const matchedProvider = findBy(clusterTypes, 'id', provider);
 
-    if (isEmpty(matchedProvder)) {
+    if (isEmpty(matchedProvider)) {
       this.clusterType = findBy(this.clusterTypes, 'id', 'other');
     } else {
-      this.clusterType = matchedProvder;
+      this.clusterType = matchedProvider;
     }
   },
 

@@ -78,6 +78,7 @@ export default {
         maxExponent: this.typeOption.inputExponent,
         minExponent: this.typeOption.inputExponent,
         increment:   this.typeOption.increment,
+        suffix:      this.typeOption.increment === 1024 ? 'i' : ''
       };
     },
     namespaceLimits() {
@@ -119,7 +120,10 @@ export default {
       const parsedNewValue = parseSi(newValue, this.siOptions) || 0;
       const min = Math.max(parsedNewValue, 0);
       const max = Math.min(min, this.max);
-      const value = formatSi(max, this.siOptions);
+      const value = formatSi(max, {
+        ...this.siOptions,
+        addSuffixSpace: false
+      });
 
       this.$emit('input', this.type, value);
     }

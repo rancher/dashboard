@@ -7,9 +7,9 @@ import SortableTable from '@/components/SortableTable';
 import CopyCode from '@/components/CopyCode';
 import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
-import { CAPI, MANAGEMENT, NORMAN } from '@/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
@@ -27,6 +27,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
+import { get } from '@/utils/object';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -65,6 +66,10 @@ export default {
       fetchOne.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
     }
 
+    if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
+      fetchOne.machines = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+    }
+
     if (this.value.isImported || this.value.isCustom) {
       fetchOne.clusterToken = this.value.getOrCreateToken();
     }
@@ -85,7 +90,11 @@ export default {
 
     const fetchTwo = {};
 
-    const machineDeploymentTemplateType = fetchOneRes.machineDeployments?.[0]?.templateType;
+    const thisClusterMachines = this.allMachineDeployments.filter((deployment) => {
+      return deployment?.spec?.clusterName === this.value.metadata.name;
+    });
+
+    const machineDeploymentTemplateType = thisClusterMachines?.[0]?.templateType;
 
     if (machineDeploymentTemplateType && this.$store.getters['management/schemaFor'](machineDeploymentTemplateType) ) {
       fetchTwo.mdtt = this.$store.dispatch('management/findAll', { type: machineDeploymentTemplateType });
@@ -148,6 +157,8 @@ export default {
       logOpen:   false,
       logSocket: null,
       logs:      [],
+
+      showWindowsWarning: false
     };
   },
 
@@ -156,7 +167,7 @@ export default {
       if (neu) {
         this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE });
       }
-    }
+    },
   },
 
   computed: {
@@ -189,15 +200,7 @@ export default {
     },
 
     machines() {
-      const machines = this.allMachines.filter((x) => {
-        if ( x.metadata?.namespace !== this.value.metadata.namespace ) {
-          return false;
-        }
-
-        return x.spec?.clusterName === this.value.metadata.name;
-      });
-
-      return [...machines, ...this.fakeMachines];
+      return [...this.value.machines, ...this.fakeMachines];
     },
 
     nodes() {
@@ -310,26 +313,21 @@ export default {
 
     rke2SnapshotHeaders() {
       return [
-        STATE_NORMAN,
         {
-          name:          'name',
-          labelKey:      'tableHeaders.name',
-          value:         'nameDisplay',
-          sort:          ['nameSort'],
-          canBeVariable: true,
+          ...STATE_NORMAN, value: 'snapshotFile.status', formatterOpts: { arbitrary: true }
         },
+        NAME,
         {
           name:      'size',
           labelKey:  'tableHeaders.size',
-          value:     'size',
-          sort:      'size',
+          value:     'snapshotFile.size',
+          sort:      'snapshotFile.size',
           formatter: 'Si',
           width:     150,
         },
         {
           ...AGE,
-          value:         'createdAt',
-          sort:          'createdAt:desc',
+          sort:          'snapshotFile.createdAt:desc',
           canBeVariable: true
         },
       ];
@@ -367,6 +365,14 @@ export default {
 
     timeFormatStr() {
       return escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+    },
+
+    hasWindowsMachine() {
+      return this.machines.some(machine => get(machine, 'status.nodeInfo.operatingSystem') === 'windows');
+    },
+
+    snapshotsGroupBy() {
+      return `$['metadata']['annotations']['etcdsnapshot.rke.io/storage']`;
     }
   },
 
@@ -481,6 +487,8 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
+    <Banner v-if="showWindowsWarning" color="error" :label="t('cluster.banner.os', { newOS: 'Windows', existingOS: 'Linux' })" />
+
     <Banner v-if="$fetchState.error" color="error" :label="$fetchState.error" />
     <ResourceTabs v-model="value" :default-tab="defaultTab">
       <Tab v-if="showMachines" name="machine-pools" :label-key="value.isCustom ? 'cluster.tabs.machines' : 'cluster.tabs.machinePools'" :weight="4">
@@ -547,7 +555,7 @@ export default {
           <template #group-by="{group}">
             <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
               <div v-trim-whitespace class="group-tab">
-                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.rows.length}, true)">
+                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.ref.scale}, true)">
                 </div>
                 <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
                 </div>
@@ -590,7 +598,7 @@ export default {
       </Tab>
 
       <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
-        <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" />
+        <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
           <CopyCode class="m-10 p-10">
@@ -611,11 +619,14 @@ export default {
 
       <Tab v-if="showSnapshots" name="snapshots" label="Snapshots" :weight="1">
         <SortableTable
+          class="snapshots"
           :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
           default-sort-by="age"
           :table-actions="value.isRke1"
           :rows="value.isRke1 ? rke1Snapshots : rke2Snapshots"
           :search="false"
+          :groupable="true"
+          :group-by="snapshotsGroupBy"
         >
           <template #header-right>
             <AsyncButton
@@ -624,6 +635,13 @@ export default {
               :disabled="!isClusterReady"
               @click="takeSnapshot"
             />
+          </template>
+          <template #group-by="{group}">
+            <div class="group-bar">
+              <div class="group-tab">
+                {{ t('cluster.snapshot.groupLabel') }}: {{ group.key }}
+              </div>
+            </div>
           </template>
         </SortableTable>
       </Tab>
@@ -686,4 +704,10 @@ export default {
     }
   }
 }
+
+.snapshots ::v-deep .state-description{
+  font-size: .8em;
+  color: var(--error);
+}
+
 </style>

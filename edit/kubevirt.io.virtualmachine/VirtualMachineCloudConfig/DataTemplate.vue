@@ -35,6 +35,10 @@ export default {
     configId: {
       type:    String,
       default: ''
+    },
+    viewCode: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -49,7 +53,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     editorMode() {
-      return this.isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE;
+      return this.isView || this.viewCode ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE;
     },
 
     isView() {
@@ -69,6 +73,8 @@ export default {
     id(neu, old) {
       const cloudInit = this.$store.getters['harvester/byId'](CONFIG_MAP, neu)?.data?.cloudInit || '';
 
+      this.$emit('updateTemplateId', this.type, neu);
+
       if (neu === _NEW) {
         this.$emit('show', this.type);
         this.id = old;
@@ -80,7 +86,6 @@ export default {
         this.yamlScript = cloudInit;
       }
 
-      this.$emit('update');
       this.$refs['yaml'].updateValue(cloudInit);
     },
 
