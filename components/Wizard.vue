@@ -355,6 +355,10 @@ $spacer: 10px;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
+  .cru__content-wizard & {
+    border: none;
+  }
+
   & > .title {
     flex: 1;
     min-height: 75px;

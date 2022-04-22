@@ -518,13 +518,12 @@ export default {
           </div>
         </slot>
       </div>
-
+      <!------ MULTI STEP PROCESS ------>
       <template v-if="showAsForm && steps.length">
         <div
           v-if="_selectedSubtype || !subtypes.length"
-          class="resource-container cru__content"
+          class="resource-container cru__content cru__content-wizard"
         >
-          <!------ SLOT ------>
           <template>
             <Wizard
               v-if="resource"
@@ -592,17 +591,15 @@ export default {
               </template>
             </Wizard>
           </template>
-
-        <!--------->
         </div>
       </template>
+      <!------ SINGLE PROCESS ------>
       <template v-else-if="showAsForm">
         <div
           v-if="_selectedSubtype || !subtypes.length"
           class="resource-container cru__content"
         >
           <slot />
-        <!--------->
         </div>
         <slot v-if="!isView" name="form-footer">
           <CruResourceFooter
@@ -637,6 +634,7 @@ export default {
           </CruResourceFooter>
         </slot>
       </template>
+      <!------ YAML ------>
       <section
         v-else
         class="cru-resource-yaml-container cru__content"
@@ -773,6 +771,9 @@ $logo-space: 100px;
 
   &__content {
     flex-grow: 1;
+    &-wizard {
+      display: flex;
+    }
   }
 
   &__footer {
