@@ -103,7 +103,6 @@ export const HELM = { PROJECTHELMCHART: 'helm.cattle.io.projecthelmchart' };
 export const MONITORING = {
   ALERTMANAGER:       'monitoring.coreos.com.alertmanager',
   ALERTMANAGERCONFIG: 'monitoring.coreos.com.alertmanagerconfig',
-  // check for required values
   PODMONITOR:         'monitoring.coreos.com.podmonitor',
   PROMETHEUS:         'monitoring.coreos.com.prometheus',
   PROMETHEUSRULE:     'monitoring.coreos.com.prometheusrule',

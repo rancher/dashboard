@@ -111,9 +111,6 @@ export default {
     },
     doneLocationOverride() {
       // Go to AlertmanagerConfig detail page
-      // https://192.168.0.18:8005/c/c-m-9ldb2hdm/monitoring/monitoring.coreos.com.alertmanagerconfig/default/test-slack#receivers
-
-      // https://192.168.0.18:8005/c/c-m-9ldb2hdm/monitoring/monitoring.coreos.com.alertmanagerconfig/default/default%2Ftest-slack
       return {
         name:   'c-cluster-product-resource-namespace-id',
         params: {

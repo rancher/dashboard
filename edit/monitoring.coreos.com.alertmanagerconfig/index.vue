@@ -95,6 +95,7 @@ export default {
       });
     },
     addNewReceiver(name) {
+      // ToDo: uncomment and implement this code
       // const existingReceiversOfSelectedType = this.value.spec.receivers[this.newReceiverType] || []
 
       // this.value.spec.receivers[this.newReceiverType] = this.value.spec.receivers;
