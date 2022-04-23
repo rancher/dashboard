@@ -1,16 +1,16 @@
 <script>
-import Tabbed from '@/components/Tabbed';
+// import Tabbed from '@/components/Tabbed';
 import createEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import Questions from '@/components/Questions';
+// import Questions from '@/components/Questions';
 
 export default {
   components: {
     CruResource,
     NameNsDescription,
-    Tabbed,
-    Questions
+    // Tabbed,
+    // Questions
   },
 
   mixins: [createEditView],

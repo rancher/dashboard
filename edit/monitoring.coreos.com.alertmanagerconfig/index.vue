@@ -11,7 +11,7 @@ import { EDITOR_MODES } from '@/components/YamlEditor';
 import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
 import RouteConfig from './routeConfig';
 import ResourceTable from '@/components/ResourceTable';
-import { _VIEW, _CREATE, _EDIT, _CONFIG } from '@/config/query-params';
+import { _VIEW, _CREATE, _CONFIG } from '@/config/query-params';
 
 export default {
   components: {

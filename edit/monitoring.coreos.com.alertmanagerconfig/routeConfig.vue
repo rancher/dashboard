@@ -29,7 +29,6 @@ export default {
   },
   methods: {
     updateSelectValue(event) {
-      console.log({ event });
       // this.value.receivers = event;
 
       this.$set(this.value, 'receivers', event);
