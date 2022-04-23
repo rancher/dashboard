@@ -526,7 +526,7 @@ export default {
               </div>
               <div v-if="group.ref" class="right mr-45">
                 <template v-if="value.hasLink('update')">
-                  <button v-tooltip="t('node.list.scaleDown')" :disabled="!group.ref.canScalePool(-1)" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
+                  <button v-tooltip="t('node.list.scaleDown')" :disabled="!group.ref.canScaleDownPool()" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
                     <i class="icon icon-sm icon-minus" />
                   </button>
                   <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">

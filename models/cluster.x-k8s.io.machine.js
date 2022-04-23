@@ -7,9 +7,17 @@ import { insertAt, findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import { downloadUrl } from '@/utils/download';
 import SteveModel from '@/plugins/steve/steve-class';
-// Prevent scaling down control plane or etcd nodes to zero
-// This is a little overly optimised but avoids iterating over the whole machine set every time
+
+/**
+ * Prevent scaling down control plane or etcd machines to zero
+ *
+ * @param {machine | machineDeployment} current
+ * @param {machine[]} all
+ * @returns
+ */
 export function notOnlyOfRole(current, all) {
+  // This is a little overly optimised but avoids iterating over all machines every time
+
   const foundType = { };
 
   if (current.isControlPlane) {

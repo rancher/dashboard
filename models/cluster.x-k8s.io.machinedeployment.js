@@ -101,7 +101,8 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   scalePool(delta, save = true, depth = 0) {
-    if (!this.inClusterSpec || !this.canScalePool) {
+    // This is used in different places with different scaling rules, so don't check if we can/cannot scale
+    if (!this.inClusterSpec) {
       return;
     }
 
@@ -145,18 +146,17 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   // prevent scaling pool to 0 if it would scale down the only etcd or control plane node
-  canScalePool(delta) {
-    if (!this.canUpdate ) {
+  canScaleDownPool() {
+    if (!this.canUpdate || this.inClusterSpec?.quantity === 0) {
       return false;
     }
-    // scaling a pool down to more than 0 is always ok, scaling workers only is always ok
-    if (this.inClusterSpec?.quantity > (delta * -1) || (!this.isEtcd && !this.isControlPlane)) {
+
+    // scaling workers is always ok
+    if (!this.isEtcd && !this.isControlPlane) {
       return true;
     }
 
-    const allPoolsInCluster = this.cluster.pools;
-
-    return notOnlyOfRole(this, allPoolsInCluster);
+    return notOnlyOfRole(this, this.cluster.machines);
   }
 
   get stateParts() {
