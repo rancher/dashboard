@@ -61,6 +61,11 @@ export default {
       default: false,
     },
 
+    textDisabled: {
+      type:    Boolean,
+      default: false,
+    },
+
     textValue: {
       type:    [String, Number],
       default: '',
@@ -149,7 +154,7 @@ export default {
       class="input-string col span-8"
       :label="textLabel"
       :placeholder="placeholder"
-      :disabled="disabled"
+      :disabled="disabled || textDisabled"
       :required="textRequired"
       :mode="mode"
       v-bind="$attrs"

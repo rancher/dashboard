@@ -92,6 +92,14 @@ export default {
       return this.schema?.id === NAMESPACE;
     },
 
+    isProject() {
+      return this.schema?.id === MANAGEMENT.PROJECT;
+    },
+
+    hasMultipleNamespaces() {
+      return !!this.value.namespaces;
+    },
+
     namespace() {
       if (this.value?.metadata?.namespace) {
         return this.value?.metadata?.namespace;
@@ -334,10 +342,10 @@ export default {
           </h1>
         </div>
         <div v-if="!isCreate" class="subheader">
-          <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
+          <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: <nuxt-link :to="project.detailLocation">{{ project.nameDisplay }}</nuxt-link></span>
           <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
-          <span v-else-if="namespace">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
-          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-data" :value="get(value, 'metadata.creationTimestamp')" /></span>
+          <span v-else-if="namespace && !hasMultipleNamespaces">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
+          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
           <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
         </div>
       </div>

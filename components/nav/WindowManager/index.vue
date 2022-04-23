@@ -111,6 +111,7 @@ export default {
       doc.addEventListener('touchstart', this.dragEnd, true);
 
       const eventY = event.screenY;
+
       const rect = boundingRect(event.target);
       const offset = eventY - rect.top;
 

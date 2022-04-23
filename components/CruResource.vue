@@ -92,7 +92,7 @@ export default {
     }
   },
 
-  data() {
+  data(props) {
     const yaml = this.createResourceYaml();
 
     return {

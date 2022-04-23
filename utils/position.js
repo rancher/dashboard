@@ -59,8 +59,6 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
     positionY = AUTO, // Preferred vertical position
   } = opt || {};
 
-  // console.log(positionX, positionY);
-
   const {
     fudgeX = 0,
     fudgeY = 0,
@@ -72,12 +70,26 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
   let trigger;
 
   if ( triggerElemOrEvent instanceof Event ) {
-    trigger = fakeRectFor(event);
+    trigger = fakeRectFor(triggerElemOrEvent);
   } else {
     trigger = boundingRect(triggerElemOrEvent);
   }
 
-  const content = boundingRect(contentElem);
+  let content = {};
+
+  if (contentElem) {
+    content = boundingRect(contentElem);
+  } else {
+    // Use a basic default menu size
+    content = {
+      top:    0,
+      right:  147.075,
+      bottom: 163.411,
+      left:   0,
+      width:  147.075,
+      height: 163.411
+    };
+  }
 
   // console.log('screen', screen);
   // console.log('trigger', trigger);
