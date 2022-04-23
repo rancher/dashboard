@@ -50,7 +50,7 @@ export default {
     namespacedSecrets() {
       const namespace = this.value?.metadata?.namespace;
 
-      return this.allSecrets.filter(secret => secret.metadata.namespace === namespace && (this._type === SECRET_TYPES.DOCKER || this._type === SECRET_TYPES.DOCKER_JSON));
+      return this.allSecrets.filter(secret => secret.metadata.namespace === namespace && (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
     },
 
     imagePullSecrets: {
@@ -90,7 +90,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
-    :validation-passed="true"
+    :validation-passed="!!value.metadata.name"
     :errors="errors"
     @error="e=>errors = e"
     @finish="save"
@@ -99,7 +99,6 @@ export default {
     <NameNsDescription
       :value="value"
       :mode="mode"
-      :register-before-hook="registerBeforeHook"
     />
 
     <Tabbed :side-tabs="true">
