@@ -2723,7 +2723,7 @@ monitoring:
         label: Prometheus Graph
       prometheusRules:
         description: Configured Rules
-        label: Prometheus Rules
+        label: PrometheusRules
       prometheusTargets:
         description: Configured Targets
         label: Prometheus Targets
@@ -2785,15 +2785,21 @@ monitoring:
         canCreate: Get started by clicking Create to add monitoring to a project
         cannotCreate: Contact the admin to add project monitoring
   route:
+    label: Route
     fields:
       groupBy: Group By
       groupInterval: Group Interval
       groupWait: Group Wait
       receiver: Receiver
       repeatInterval: Repeat Interval
-  routesAndReceivers: Routes and Receivers
+  routesAndReceivers: Routes and Receivers (Deprecated)
   monitors: Monitors
   projectMonitors: Project Monitoring
+  alertmanagerConfig:
+    description: Routes and receivers for project alerting and cluster alerting are configured within AlertmanagerConfig resources.
+    empty: Alerts have not been configured for any accessible namespaces.
+    getStarted: Get started by clicking Create to configure an alert.
+    receiverTooltip: Must match the name of a receiver defined in the same AlertmanagerConfig.
   installSteps:
     uninstallV1:
       stepTitle: Uninstall V1
@@ -2867,6 +2873,16 @@ monitoringReceiver:
     sendResolved:
       label: Enable send resolved alerts
 
+alertmanagerConfigReceiver:
+  name: Receiver Name
+  addButton: Add Receiver
+  receivers: Receivers
+  namespaceWarning: Could not render the secret selector because no namespace was found.
+  receiverTypes: "The following receiver types can be edited in forms: Email, Slack, PagerDuty, Opsgenie and Webhook. For other receiver types, edit the AlertmanagerConfig YAML."
+  slack:
+    keyId: Key Id from Secret
+    webhookUrl: Webhook URL
+    apiUrlTooltip: The secret's key that contains the Slack webhook URL. The secret needs to be in the same namespace as the AlertmanagerConfig object and accessible by the Prometheus Operator.
 monitoringRoute:
   groups:
     label: Group By
@@ -2877,7 +2893,11 @@ monitoringRoute:
     info: The root route has to match everything so matching cannot be configured.
     label: Match
   receiver:
+    type: Receiver Type
+    add: Add Receiver
     label: Receiver
+    oneOrMoreLabel: One or More Receivers
+    addMatch: Add match
   regex:
     label: Match Regex
   repeatInterval:
@@ -4553,6 +4573,7 @@ tableHeaders:
     watch: Watch
   ready: Ready
   reason: Reason
+  receivers: Receivers
   reclaimPolicy: Reclaim Policy
   repo: Repo
   repositories: Repositories
@@ -4566,6 +4587,7 @@ tableHeaders:
   restarts: Restarts
   role: Role
   roles: Roles
+  routes: Routes
   scale: Scale
   scope: Scope
   selector: Selector
@@ -6177,13 +6199,13 @@ typeLabel:
     }
   monitoring.coreos.com.alertmanager: |-
     {count, plural,
-      one { Alert Manager }
-      other { Alert Managers }
+      one { Alertmanager }
+      other { Alertmanagers }
     }
   monitoring.coreos.com.alertmanagerconfig: |-
     {count, plural,
-      one { Alert Manager Configuration }
-      other { Alert Manager Configurations }
+      one { AlertmanagerConfigs }
+      other { AlertmanagerConfigs }
     }
   monitoring.coreos.com.podmonitor: |-
     {count, plural,
@@ -6192,8 +6214,8 @@ typeLabel:
     }
   monitoring.coreos.com.prometheusrule: |-
     {count, plural,
-      one { Prometheus Rule }
-      other { Prometheus Rules }
+      one { PrometheusRule }
+      other { PrometheusRules }
     }
   monitoring.coreos.com.thanosruler: |-
     {count, plural,

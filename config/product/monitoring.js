@@ -23,6 +23,7 @@ export function init(store) {
   const {
     ALERTMANAGER,
     ALERTMANAGERCONFIG,
+    NAMESPACE,
     SERVICEMONITOR,
     PODMONITOR,
     PROMETHEUSRULE,
@@ -173,7 +174,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:         'Cluster Routes and Receivers',
+    label:         'Routes and Receivers',
     group:         'monitoring',
     name:     'route-receiver',
     icon:     'globe',
@@ -201,7 +202,7 @@ export function init(store) {
 
   basicType([
     ALERTMANAGERCONFIG,
-    'route-receiver'
+    'route-receiver',
   ], 'Alerting');
 
   basicType([
@@ -268,6 +269,16 @@ export function init(store) {
       value:    'description',
     },
     AGE
+  ]);
+
+  headers(ALERTMANAGERCONFIG, [
+    STATE,
+    NAME_COL,
+    NAMESPACE,
+    {
+      name:     'receivers',
+      labelKey: 'tableHeaders.receivers'
+    },
   ]);
 
   headers(PROMETHEUS, [

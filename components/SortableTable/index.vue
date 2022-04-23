@@ -271,6 +271,16 @@ export default {
       type:    Function,
       default: null,
     },
+
+    /**
+     * Allows you to link to a custom detail page for data that
+     * doesn't have a class model. For example, a receiver configuration
+     * block within an AlertmanagerConfig resource.
+     */
+    getCustomDetailLink: {
+      type:    Function,
+      default: null
+    }
   },
 
   data() {
@@ -703,7 +713,7 @@ export default {
   <div ref="container">
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
-      <div v-if="showHeaderRow" class="fixed-header-actions">
+      <div v-if="showHeaderRow" class="fixed-header-actions" :class="{'fixed-header-actions': true, button: true}">
         <div :class="bulkActionsClass" class="bulk">
           <slot name="header-left">
             <template v-if="tableActions">
@@ -762,7 +772,7 @@ export default {
           <slot name="header-middle" />
         </div>
 
-        <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search">
+        <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
           <slot name="header-right" />
           <input
             v-if="search"
@@ -772,6 +782,7 @@ export default {
             class="input-sm search-box"
             :placeholder="t('sortableTable.search')"
           >
+          <slot name="header-button" />
         </div>
       </div>
     </div>
@@ -889,13 +900,14 @@ export default {
                           :row-key="row.key"
                         />
                         <component
-                          :is="col.component"
-                          v-else-if="col.component"
-                          :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
+                          :is="col.formatter"
+                          v-if="col.formatter"
+                          :value="valueFor(row,col)"
+                          :row="row"
+                          :col="col"
+                          v-bind="col.formatterOpts"
+                          :row-key="get(row,keyField)"
+                          :get-custom-detail-link="getCustomDetailLink"
                         />
                         <component
                           :is="col.col.formatter"
@@ -1249,6 +1261,9 @@ $spacing: 10px;
     display: flex;
     align-items: center;
   }
+}
+.fixed-header-actions.button{
+  grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
 }
 
 .fixed-header-actions {

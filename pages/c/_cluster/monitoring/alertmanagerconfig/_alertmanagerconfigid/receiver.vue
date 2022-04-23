@@ -1,0 +1,351 @@
+<script>
+import ActionMenu from '@/components/ActionMenu';
+import ReceiverConfig from '@/edit/monitoring.coreos.com.alertmanagerconfig/receiverConfig';
+import ButtonGroup from '@/components/ButtonGroup';
+import ResourceYaml from '@/components/ResourceYaml';
+import { createYaml } from '@/utils/create-yaml';
+import { EDITOR_MODES } from '@/components/YamlEditor';
+import { MONITORING, SCHEMA } from '@/config/types';
+import {
+  _CREATE, _EDIT, _VIEW, _CONFIG, _YAML, _DETAIL
+} from '@/config/query-params';
+
+import { clone } from '@/utils/object';
+
+export default {
+  name:       'AlertmanagerConfigReceiverCreateEdit',
+  components: {
+    ActionMenu,
+    ButtonGroup,
+    ReceiverConfig,
+    ResourceYaml
+  },
+
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    const nameOfExistingReceiver = this.$route.query.receiverName;
+
+    const alertmanagerConfigId = this.$route.params.alertmanagerconfigid;
+    const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
+
+    const mode = this.$route.query.mode;
+
+    if (mode !== _CREATE) {
+      const existingReceiverData = alertmanagerConfigResource.spec.receivers.find((receiverData) => {
+        return receiverData.name === nameOfExistingReceiver;
+      });
+
+      if (existingReceiverData) {
+        this.receiverValue = existingReceiverData;
+      }
+    }
+
+    this.alertmanagerConfigId = alertmanagerConfigResource.id;
+
+    this.alertmanagerConfigResource = alertmanagerConfigResource;
+  },
+
+  // take edit link and edit request from AlertmanagerConfig resource
+  // and pass it to ReceiverConfig as a prop
+
+  data() {
+    return {
+      actionMenuTargetElement:     null,
+      actionMenuTargetEvent:       null,
+      alertmanagerConfigId:        '',
+      alertmanagerConfigResource:  {},
+      config:                      _CONFIG,
+      create:                      _CREATE,
+      detail:                      _DETAIL,
+      edit:                        _EDIT,
+      receiverActionMenuIsOpen:    false,
+      receiverName:                '',
+      receiverValue:               {},
+      showPreview:                 false,
+      view:                        _VIEW,
+      viewOptions:                [
+        {
+          labelKey: 'resourceDetail.masthead.config',
+          value:    'config',
+        }, {
+          labelKey: 'resourceDetail.masthead.yaml',
+          value:    _YAML,
+        }
+      ],
+      yaml: _YAML
+    };
+  },
+
+  computed: {
+    currentView() {
+      return this.$route.query.currentView;
+    },
+    resourceYaml() {
+      const resource = this.alertmanagerConfigResource;
+
+      const inStore = this.$store.getters['currentStore'](resource);
+      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
+      const clonedResource = clone(resource);
+
+      const out = createYaml(schemas, MONITORING.ALERTMANAGERCONFIG, clonedResource);
+
+      return out;
+    },
+
+    mode() {
+      // Use the route as a dependency of the
+      // computed property so that the component
+      // updates when you navigate between edit
+      // and view.
+      return this.$route.query.mode;
+    },
+    editorMode() {
+      if ( this.mode === this.view ) {
+        return EDITOR_MODES.VIEW_CODE;
+      } else if ( this.showPreview ) {
+        return EDITOR_MODES.DIFF_CODE;
+      }
+
+      return EDITOR_MODES.EDIT_CODE;
+    },
+    doneLocationOverride() {
+      // Go to AlertmanagerConfig detail page
+      // https://192.168.0.18:8005/c/c-m-9ldb2hdm/monitoring/monitoring.coreos.com.alertmanagerconfig/default/test-slack#receivers
+
+      // https://192.168.0.18:8005/c/c-m-9ldb2hdm/monitoring/monitoring.coreos.com.alertmanagerconfig/default/default%2Ftest-slack
+      return {
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          cluster:   this.$store.getters['clusterId'],
+          product:   'monitoring',
+          resource:  MONITORING.ALERTMANAGERCONFIG,
+          namespace: this.alertmanagerConfigResource?.metadata?.namespace,
+          id:        this.alertmanagerConfigResource?.name,
+        },
+        hash: '#receivers'
+      };
+    },
+    receiverActions() {
+      const alertmanagerConfigActions = this.alertmanagerConfigResource?.availableActions || [];
+
+      // Receivers are not a separate resource, so they
+      // should only have a subset of the AlertmanagerConfig
+      // actions. So we take AlertmanagerConfig's actions and filter
+      // out any that don't apply.
+      // Example action data:
+      // {
+      //     "action": "goToEdit",
+      //     "label": "Edit Config",
+      //     "icon": "icon icon-edit",
+      //     "enabled": true
+      // },
+      const receiverActions = alertmanagerConfigActions.filter((actionData) => {
+        if (actionData.divider) {
+          return true;
+        }
+        switch (actionData.action) {
+        case 'goToEdit':
+          return true;
+        case 'goToEditYaml':
+          return true;
+        case 'promptRemove':
+          return true;
+        default:
+          return false;
+        }
+      });
+
+      return receiverActions;
+    },
+    heading() {
+      switch (this.$route.query.mode) {
+      case this.create:
+        return 'Create Receiver in AlertmanagerConfig';
+      case this.edit:
+        return 'Edit Receiver in AlertmanagerConfig';
+      default:
+        return 'Receiver in AlertmanagerConfig';
+      }
+    },
+  },
+
+  methods: {
+    // When creating or editing a receiver, in both cases
+    // it is actually the one existing AlertmanagerConfig
+    // being saved. Therefore we take the save from the
+    // AlertmanagerConfig resource and pass it into the
+    // receiver config form.
+    saveOverride(buttonDone) {
+      if (this.alertmanagerConfigResource.yamlError) {
+        this.alertmanagerConfigResource.errors = this.alertmanagerConfigResource.errors || [];
+        this.alertmanagerConfigResource.errors.push(this.alertmanagerConfigResource.yamlError);
+
+        buttonDone(false);
+
+        return;
+      }
+      const mode = this.$route.query.mode;
+      const existingReceivers = this.alertmanagerConfigResource.spec.receivers;
+
+      if (mode === this.create) {
+        this.alertmanagerConfigResource.spec.receivers = [this.receiverValue, ...existingReceivers];
+      }
+
+      this.alertmanagerConfigResource.save(...arguments);
+    },
+
+    handleButtonGroupClick(event) {
+      if (event === this.yaml) {
+        this.goToEditYaml(this.view);
+      }
+      if (event === this.config) {
+        this.goToEdit(this.view);
+      }
+    },
+
+    toggleReceiverActionMenu() {
+      this.receiverActionMenuIsOpen = !this.receiverActionMenuIsOpen;
+    },
+
+    handleReceiverActionMenuClick(event) {
+      this.actionMenuTargetElement = this.$refs.actions;
+      this.actionMenuTargetEvent = event;
+      this.toggleReceiverActionMenu();
+    },
+
+    goToEdit(queryMode) {
+    // 'goToEdit' is the exact name of an action for AlertmanagerConfig
+    // and this method executes the action.
+      this.$router.push({
+        name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
+        params: {
+          cluster:              this.$store.getters['clusterId'],
+          alertmanagerconfigid: this.alertmanagerConfigId
+        },
+        query: {
+          mode:         queryMode || this.edit,
+          receiverName: this.receiverValue.name,
+          currentView:  this.config
+        }
+      });
+    },
+    goToEditYaml(queryMode) {
+    // 'goToEditYaml' is the exact name of an action for AlertmanagerConfig
+    // and this method executes the action.
+      this.$router.push({
+        name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
+        params: {
+          cluster:              this.$store.getters['clusterId'],
+          alertmanagerconfigid: this.alertmanagerConfigId
+        },
+        query: {
+          mode:         queryMode || this.edit,
+          receiverName: this.receiverValue.name,
+          currentView:  this.yaml
+        }
+      });
+    },
+    promptRemove(actionData) {
+    // 'promptRemove' is the exact name of an action for AlertmanagerConfig
+    // and this method executes the action.
+
+      // Get the name of the receiver to delete from the action info.
+      const nameOfReceiverToDelete = actionData.route.query.receiverName;
+
+      // Remove it from the configuration of the parent AlertmanagerConfig
+      // resource.
+      const existingReceivers = this.alertmanagerConfigResource.spec.receivers;
+      const receiversMinusDeletedItem = existingReceivers.filter((receiver) => {
+        return receiver.name !== nameOfReceiverToDelete;
+      });
+
+      this.alertmanagerConfigResource.spec.receivers = receiversMinusDeletedItem;
+
+      // After saving the AlertmanagerConfig, the resource has been deleted.
+      this.alertmanagerConfigResource.save(...arguments);
+      this.$router.push(this.doneLocationOverride);
+    }
+  }
+};
+</script>
+
+<template>
+  <div>
+    <header class="header">
+      <div class="title">
+        <div class="primaryheader">
+          <h1>
+            {{ heading }}
+          </h1>
+        </div>
+      </div>
+      <div class="actions-container">
+        <div class="actions">
+          <ButtonGroup
+            v-if="viewOptions && mode === view"
+            :value="currentView"
+            :options="viewOptions"
+            @input="handleButtonGroupClick"
+          />
+
+          <button
+            v-if="mode === view"
+            ref="actions"
+            aria-haspopup="true"
+            type="button"
+            class="btn role-multi-action actions"
+            @click="handleReceiverActionMenuClick"
+          >
+            <i class="icon icon-actions" />
+          </button>
+        </div>
+      </div>
+    </header>
+    <ResourceYaml
+      v-if="currentView === yaml"
+      ref="resourceyaml"
+      :value="alertmanagerConfigResource"
+      :mode="mode"
+      :initial-yaml-for-diff="null"
+      :yaml="resourceYaml"
+      :offer-preview="mode === edit"
+      :done-route="doneLocationOverride.name"
+      :done-override="doneLocationOverride"
+      :apply-hooks="alertmanagerConfigResource.applyHooks"
+      @error="e=>$emit('error', e)"
+    />
+    <ReceiverConfig
+      v-if="currentView === config || currentView === detail"
+      :value="receiverValue"
+      :mode="mode"
+      :alertmanager-config-id="alertmanagerConfigId"
+      :alertmanager-config-resource="alertmanagerConfigResource"
+      :save-override="saveOverride"
+      :done-location-override="doneLocationOverride"
+    />
+    <ActionMenu
+      :custom-actions="receiverActions"
+      :open="receiverActionMenuIsOpen"
+      :use-custom-target-element="true"
+      :custom-target-element="actionMenuTargetElement"
+      :custom-target-event="actionMenuTargetEvent"
+      @close="receiverActionMenuIsOpen = false"
+      @goToEdit="goToEdit"
+      @goToEditYaml="goToEditYaml"
+      @promptRemove="promptRemove"
+    />
+  </div>
+</template>
+
+<style lang='scss' scoped>
+.header{
+  H1{
+    flex: 1;
+  }
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+  padding-bottom: 20px;
+}
+
+</style>

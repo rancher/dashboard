@@ -110,7 +110,11 @@ export default {
     },
 
     editorMode() {
-      if ( this.isView ) {
+      // Include the mode in the route as a dependency
+      // of this computed property so that the editor
+      // toggles when you navigate back and forth between
+      // edit and view.
+      if ( this.$route.query.mode === _VIEW ) {
         return EDITOR_MODES.VIEW_CODE;
       } else if ( this.showPreview ) {
         return EDITOR_MODES.DIFF_CODE;
