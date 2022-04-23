@@ -7,6 +7,7 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import Checkbox from '@/components/form/Checkbox';
 import { SECRET } from '@/config/types';
+import { TYPES as SECRET_TYPES } from '@/models/secret';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
@@ -49,7 +50,7 @@ export default {
     namespacedSecrets() {
       const namespace = this.value?.metadata?.namespace;
 
-      return this.allSecrets.filter(secret => secret.metadata.namespace === namespace);
+      return this.allSecrets.filter(secret => secret.metadata.namespace === namespace && (this._type === SECRET_TYPES.DOCKER || this._type === SECRET_TYPES.DOCKER_JSON));
     },
 
     imagePullSecrets: {
