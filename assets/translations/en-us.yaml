@@ -4052,6 +4052,13 @@ selectOrCreateAuthSecret:
   createBasic: Create a HTTP Basic Auth Secret
   createS3: Create a S3-Compatible Auth Secret
 
+serviceAccount:
+  automount: Automount Service Account Token
+  imagePullSecrets: Image Pull Secrets
+  tabs:
+    serviceAccount:
+      label: Service Account
+
 servicePorts:
   header:
     label: Port Rules
