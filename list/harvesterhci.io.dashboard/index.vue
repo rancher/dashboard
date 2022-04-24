@@ -191,6 +191,7 @@ export default {
 
               if (nsStatistics.count) {
                 out[resource.type]['useful'] -= nsStatistics.count;
+                out[resource.type]['total'] -= nsStatistics.count;
               }
               Object.entries(nsStatistics?.states || {}).forEach((entry) => {
                 const color = colorForState(entry[0]);
@@ -446,7 +447,7 @@ export default {
     },
 
     ramUsed() {
-      return createMemoryValues(this.memorysTotal, this.metricAggregations?.memory);
+      return createMemoryValues(this.memoryTotal, this.metricAggregations?.memory);
     },
 
     hasMetricNodeSchema() {
