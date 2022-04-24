@@ -6310,6 +6310,11 @@ typeLabel:
       one { Network Attachment Definition }
       other { Network Attachment Definitions }
     }
+  harvesterhci.io.networkattachmentdefinition: |-
+    {count, plural,
+      one { Network }
+      other { Networks }
+    }
   harvesterhci.io.volume: |-
     {count, plural,
       one { Volume }

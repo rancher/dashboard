@@ -59,6 +59,7 @@ export const SECRET = 'secret';
 export const SERVICE_ACCOUNT = 'serviceaccount';
 export const STORAGE_CLASS = 'storage.k8s.io.storageclass';
 export const OBJECT_META = 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta';
+export const NETWORK_ATTACHMENT = 'k8s.cni.cncf.io.networkattachmentdefinition';
 
 export const RBAC = {
   ROLE:                 'rbac.authorization.k8s.io.role',
@@ -276,7 +277,7 @@ export const HCI = {
   NODE_NETWORK:       'network.harvesterhci.io.nodenetwork',
   CLUSTER_NETWORK:    'network.harvesterhci.io.clusternetwork',
   SUPPORT_BUNDLE:     'harvesterhci.io.supportbundle',
-  NETWORK_ATTACHMENT: 'k8s.cni.cncf.io.networkattachmentdefinition',
+  NETWORK_ATTACHMENT: 'harvesterhci.io.networkattachmentdefinition',
   CLUSTER:            'harvesterhci.io.management.cluster',
   DASHBOARD:          'harvesterhci.io.dashboard',
   BLOCK_DEVICE:       'harvesterhci.io.blockdevice',

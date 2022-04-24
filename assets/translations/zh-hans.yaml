@@ -6305,6 +6305,11 @@ typeLabel:
       one { 网络 }
       other { 网络 }
     }
+  harvesterhci.io.networkattachmentdefinition: |-
+    {count, plural,
+      one { 网络 }
+      other { 网络 }
+    }
   harvesterhci.io.volume: |-
     {count, plural,
       one { 卷 }

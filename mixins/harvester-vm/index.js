@@ -12,7 +12,7 @@ import { formatSi, parseSi } from '@/utils/units';
 import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '@/config/harvester-map';
 import { _CLONE } from '@/config/query-params';
 import {
-  PVC, HCI, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP
+  PVC, HCI, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP, NETWORK_ATTACHMENT
 } from '@/config/types';
 import { HCI_SETTING } from '@/config/settings';
 import { HCI as HCI_ANNOTATIONS, HOSTNAME } from '@/config/labels-annotations';
@@ -89,7 +89,7 @@ export default {
       images:             this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }),
       versions:           this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION }),
       templates:          this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE }),
-      networkAttachment:  this.$store.dispatch('harvester/findAll', { type: HCI.NETWORK_ATTACHMENT }),
+      networkAttachment:  this.$store.dispatch('harvester/findAll', { type: NETWORK_ATTACHMENT }),
       vmis:               this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
       vmims:              this.$store.dispatch('harvester/findAll', { type: HCI.VMIM }),
       vms:                this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
