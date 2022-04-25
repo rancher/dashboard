@@ -222,11 +222,6 @@ export default {
       return false;
     },
 
-    //
-    errorStrings() {
-      return ( this.errors || [] ).map(x => stringify(x));
-    },
-
     activeStepIndex() {
       return this.visibleSteps.findIndex(s => s.name === this.activeStep.name);
     },
@@ -253,10 +248,6 @@ export default {
 
     canNext() {
       return (this.activeStepIndex < this.visibleSteps.length - 1) && this.activeStep.ready;
-    },
-
-    readySteps() {
-      return this.visibleSteps.filter(step => step.ready);
     },
 
     stepsLoaded() {
