@@ -129,17 +129,40 @@ export default {
     <div>
       <div class="row mb-10">
         <div class="col span-6">
-          <LabeledInput v-model="value.name" :required="true" :mode="mode" :label="t('workload.storage.volumeName')" />
+          <LabeledInput
+            v-model="value.name"
+            :required="true"
+            :mode="mode"
+            :label="t('workload.storage.volumeName')"
+          />
         </div>
 
         <div class="col span-6">
-          <LabeledInput v-model="defaultMode" :mode="mode" :label="t('workload.storage.defaultMode')" />
+          <LabeledInput
+            v-model="defaultMode"
+            :mode="mode"
+            :label="t('workload.storage.defaultMode')"
+          />
         </div>
       </div>
       <div class="row">
         <div class="col span-6">
-          <LabeledSelect v-if="type==='secret'" v-model="value[type].secretName" :options="secretNames" :mode="mode" :label="t('workload.storage.subtypes.secret')" />
-          <LabeledSelect v-else-if="type==='configMap'" v-model="value[type].name" :options="configMapNames" :mode="mode" :label="t('workload.storage.subtypes.configMap')" />
+          <LabeledSelect
+            v-if="type==='secret'"
+            v-model="value[type].secretName"
+            :options="secretNames"
+            :mode="mode"
+            :required="true"
+            :label="t('workload.storage.subtypes.secret')"
+          />
+          <LabeledSelect
+            v-else-if="type==='configMap'"
+            v-model="value[type].name"
+            :options="configMapNames"
+            :required="true"
+            :mode="mode"
+            :label="t('workload.storage.subtypes.configMap')"
+          />
         </div>
         <div class="col span-6">
           <RadioGroup

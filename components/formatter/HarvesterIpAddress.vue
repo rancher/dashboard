@@ -1,5 +1,6 @@
 <script>
 import compact from 'lodash/compact';
+import { OFF } from '@/models/harvester/kubevirt.io.virtualmachine';
 import { get } from '@/utils/object';
 import { isIpv4 } from '@/utils/string';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
@@ -47,17 +48,22 @@ export default {
     vmiIp() {
       const vmiResources = this.$store.getters['harvester/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.value) || null;
+      const networksName = this.row.networksName || [];
 
       return (resource?.status?.interfaces || []).filter((O) => {
-        return isIpv4(O.ipAddress);
+        return isIpv4(O.ipAddress) && networksName.includes(O.name);
       }).map(O => O.ipAddress);
-    }
+    },
+
+    showIP() {
+      return this.row.stateDisplay !== OFF;
+    },
   },
 };
 </script>
 
 <template>
-  <div>
+  <div v-if="showIP">
     <span v-for="(ipValue) in ip" :key="ipValue">
       {{ ipValue }}<CopyToClipboard :text="ipValue" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
     </span>

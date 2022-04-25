@@ -3,7 +3,7 @@ import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { allHash } from '@/utils/promise';
-import { CAPI, MANAGEMENT } from '@/config/types';
+import { CAPI, MANAGEMENT, SNAPSHOT } from '@/config/types';
 import { MODE, _IMPORT } from '@/config/query-params';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@/store/features';
@@ -18,6 +18,8 @@ export default {
     const hash = {
       mgmtClusters:       this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
       rancherClusters:    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      etcdSnapshots:    this.$store.dispatch('management/findAll', { type: SNAPSHOT }),
+
     };
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {

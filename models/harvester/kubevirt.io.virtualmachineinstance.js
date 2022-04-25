@@ -1,5 +1,5 @@
 import { colorForState } from '@/plugins/steve/resource-class';
-import { HCI } from '@/config/types';
+import { HCI, NODE } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import SteveModel from '@/plugins/steve/steve-class';
 
@@ -27,7 +27,6 @@ export default class VirtVmInstance extends SteveModel {
   }
 
   get stateDisplay() {
-    // const phase = this?.status?.phase;
     if (this?.metadata?.deletionTimestamp) {
       return 'Terminating';
     }
@@ -104,6 +103,12 @@ export default class VirtVmInstance extends SteveModel {
     return null;
   }
 
+  get isTerminated() {
+    const conditions = this?.status?.conditions || [];
+
+    return conditions.filter(cond => cond.type === 'Ready')?.status === 'False';
+  }
+
   get getVMIApiPath() {
     const clusterId = this.$rootGetters['clusterId'];
 
@@ -114,6 +119,13 @@ export default class VirtVmInstance extends SteveModel {
     } else {
       return `/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/vnc`;
     }
+  }
+
+  get realAttachNodeName() {
+    const nodeName = this?.status?.nodeName;
+    const node = this.$getters['byId'](NODE, nodeName);
+
+    return node?.nameDisplay || '';
   }
 
   get getSerialConsolePath() {

@@ -105,7 +105,7 @@ export default {
           name:      'node',
           label:     'Node',
           value:     'id',
-          sort:      ['nameSort'],
+          sort:      ['realAttachNodeName'],
           formatter: 'HarvesterNodeName',
           labelKey:  'tableHeaders.node'
         },

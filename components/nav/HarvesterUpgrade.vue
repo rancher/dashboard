@@ -39,6 +39,10 @@ export default {
       return this.upgradeImage?.progress || 0;
     },
 
+    showImage() {
+      return !this.latestResource.isUpgradeSucceeded;
+    },
+
     imageMessage() {
       return this.latestResource?.upgradeImageMessage;
     },
@@ -142,12 +146,14 @@ export default {
             {{ overallMessage }}
           </p>
 
-          <h4>{{ t('harvester.upgradePage.upgradeImage') }}<span class="float-r text-info">{{ imageProgress }}%</span></h4>
-          <PercentageBar :value="imageProgress" preferred-direction="MORE" />
-          <p class="text-warning">
-            {{ imageMessage }}
-          </p>
-          <p class="bordered-section"></p>
+          <div v-if="showImage">
+            <h4>{{ t('harvester.upgradePage.upgradeImage') }}<span class="float-r text-info">{{ imageProgress }}%</span></h4>
+            <PercentageBar :value="imageProgress" preferred-direction="MORE" />
+            <p class="text-warning">
+              {{ imageMessage }}
+            </p>
+            <p class="bordered-section"></p>
+          </div>
 
           <h4>{{ t('harvester.upgradePage.createRepository') }} <span class="float-r text-info">{{ repoReady.isReady ? t('harvester.upgradePage.succeeded') : t('harvester.upgradePage.pending') }}</span></h4>
           <p v-if="repoReady.message" class="text-warning">

@@ -1579,13 +1579,14 @@ cluster:
       label: Worker Nodes
     controlPlaneConcurrency:
       label: Control Plane Concurrency
-      toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)"
+      toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     workerConcurrency:
       label: Worker Concurrency
-      toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time of a percentage (e.g. 10%)"
+      toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     drain:
       label: Drain Nodes
       toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
+    deleteEmptyDir: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
     address:
       tooltip: Cluster networking values cannot be changed after the cluster is created.
       header: Addressing
@@ -1641,6 +1642,7 @@ cluster:
         other {A snapshot has been requested for {count} clusters}
       }
     groupLabel: Location
+    failed: "Snapshot from {time} failed"
   tabs:
     ace: Authorized Endpoint
     addons: Add-On Config
@@ -2722,7 +2724,7 @@ monitoring:
         label: Prometheus Graph
       prometheusRules:
         description: Configured Rules
-        label: Prometheus Rules
+        label: PrometheusRules
       prometheusTargets:
         description: Configured Targets
         label: Prometheus Targets
@@ -2776,16 +2778,29 @@ monitoring:
         label: Key File Path
         placeholder: e.g. ./key-file.pfx
       secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart. For more information see our <a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
-
+  projectMonitoring:
+    list:
+      banner: Project Monitoring Configuration is stored in ProjectHelmChart resources
+      empty:
+        message: Project Monitoring has not been configured for any projects
+        canCreate: Get started by clicking Create to add monitoring to a project
+        cannotCreate: Contact the admin to add project monitoring
   route:
+    label: Route
     fields:
       groupBy: Group By
       groupInterval: Group Interval
       groupWait: Group Wait
       receiver: Receiver
       repeatInterval: Repeat Interval
-  routesAndReceivers: Routes and Receivers
+  routesAndReceivers: Routes and Receivers (Deprecated)
   monitors: Monitors
+  projectMonitors: Project Monitoring
+  alertmanagerConfig:
+    description: Routes and receivers for project alerting and cluster alerting are configured within AlertmanagerConfig resources.
+    empty: Alerts have not been configured for any accessible namespaces.
+    getStarted: Get started by clicking Create to configure an alert.
+    receiverTooltip: Must match the name of a receiver defined in the same AlertmanagerConfig.
   installSteps:
     uninstallV1:
       stepTitle: Uninstall V1
@@ -2800,6 +2815,7 @@ monitoring:
     general: General
     grafana: Grafana
     prometheus: Prometheus
+    projectMetrics: Project Metrics
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of {vendor} with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new {vendor} Monitoring chart in Cluster Explorer.'
   volume:
     modes:
@@ -2858,6 +2874,16 @@ monitoringReceiver:
     sendResolved:
       label: Enable send resolved alerts
 
+alertmanagerConfigReceiver:
+  name: Receiver Name
+  addButton: Add Receiver
+  receivers: Receivers
+  namespaceWarning: Could not render the secret selector because no namespace was found.
+  receiverTypes: "The following receiver types can be edited in forms: Email, Slack, PagerDuty, Opsgenie and Webhook. For other receiver types, edit the AlertmanagerConfig YAML."
+  slack:
+    keyId: Key Id from Secret
+    webhookUrl: Webhook URL
+    apiUrlTooltip: The secret's key that contains the Slack webhook URL. The secret needs to be in the same namespace as the AlertmanagerConfig object and accessible by the Prometheus Operator.
 monitoringRoute:
   groups:
     label: Group By
@@ -2868,7 +2894,11 @@ monitoringRoute:
     info: The root route has to match everything so matching cannot be configured.
     label: Match
   receiver:
+    type: Receiver Type
+    add: Add Receiver
     label: Receiver
+    oneOrMoreLabel: One or More Receivers
+    addMatch: Add match
   regex:
     label: Match Regex
   repeatInterval:
@@ -3834,6 +3864,7 @@ resourceDetail:
     description: Description
     endpoints: Endpoints
     labels: Labels
+    namespaces: Namespaces
     ownerReferences: |-
       {count, plural,
       =1 {Owner}
@@ -4021,6 +4052,13 @@ selectOrCreateAuthSecret:
   createSsh: Create a SSH Key Secret
   createBasic: Create a HTTP Basic Auth Secret
   createS3: Create a S3-Compatible Auth Secret
+
+serviceAccount:
+  automount: Automount Service Account Token
+  imagePullSecrets: Image Pull Secrets
+  tabs:
+    serviceAccount:
+      label: Service Account
 
 servicePorts:
   header:
@@ -4543,6 +4581,7 @@ tableHeaders:
     watch: Watch
   ready: Ready
   reason: Reason
+  receivers: Receivers
   reclaimPolicy: Reclaim Policy
   repo: Repo
   repositories: Repositories
@@ -4556,6 +4595,7 @@ tableHeaders:
   restarts: Restarts
   role: Role
   roles: Roles
+  routes: Routes
   scale: Scale
   scope: Scope
   selector: Selector
@@ -5457,6 +5497,7 @@ harvester:
     version: Version
   host:
     label: Hosts
+    inconsistentIP: "Host IP is inconsistent, current IP: { currentIP }, initial IP: { initIP }"
     promote:
       none: ' '
       running: promoting
@@ -5565,6 +5606,7 @@ harvester:
         Detach Volume
     restartTip: Restart the virtual machine now to take effect of the configuration changes.
     createRunning: Start virtual machine on creation
+    runStrategy: Run Strategy
     restartNow: Restart Now
     createSSHKey: Create a New...
     installAgent: Install guest agent
@@ -5573,6 +5615,7 @@ harvester:
     sshTitle: Add Public SSH Key
     imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
     efiEnabled: Booting in EFI mode
+    secureBoot: Secure Boot
     volume:
       dragTip: Drag and drop volumes, or use the volume's arrows, to change the boot order.
       volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
@@ -5870,6 +5913,9 @@ harvester:
       checksum: Checksum
     harvesterMonitoring:
       label: Harvester Monitoring
+      section:
+        prometheus: Prometheus Configuration
+        prometheusNodeExporter: Prometheus Node Exporter Configuration
       tips:
         scrape: Interval between consecutive scrapes
         evaluation: Interval between consecutive evaluations
@@ -6149,6 +6195,11 @@ typeLabel:
       one { Prometheus }
       other { Prometheis }
     }
+  helm.cattle.io.projecthelmchart: |-
+    {count, plural,
+      one { Project Monitor }
+      other { Project Monitors }
+    }
   monitoring.coreos.com.servicemonitor: |-
     {count, plural,
       one { Service Monitor }
@@ -6156,8 +6207,13 @@ typeLabel:
     }
   monitoring.coreos.com.alertmanager: |-
     {count, plural,
-      one { Alert Manager }
-      other { Alert Managers }
+      one { Alertmanager }
+      other { Alertmanagers }
+    }
+  monitoring.coreos.com.alertmanagerconfig: |-
+    {count, plural,
+      one { AlertmanagerConfigs }
+      other { AlertmanagerConfigs }
     }
   monitoring.coreos.com.podmonitor: |-
     {count, plural,
@@ -6166,8 +6222,8 @@ typeLabel:
     }
   monitoring.coreos.com.prometheusrule: |-
     {count, plural,
-      one { Prometheus Rule }
-      other { Prometheus Rules }
+      one { PrometheusRule }
+      other { PrometheusRules }
     }
   monitoring.coreos.com.thanosruler: |-
     {count, plural,
@@ -6253,6 +6309,11 @@ typeLabel:
     {count, plural,
       one { Network Attachment Definition }
       other { Network Attachment Definitions }
+    }
+  harvesterhci.io.networkattachmentdefinition: |-
+    {count, plural,
+      one { Network }
+      other { Networks }
     }
   harvesterhci.io.volume: |-
     {count, plural,
@@ -6430,6 +6491,7 @@ advancedSettings:
     'harv-support-bundle-namespaces': Specify resources in other namespaces to be collected by the support package.
     'harv-auto-disk-provision-paths': Specify the disks(using glob pattern) that Harvester will automatically add as VM storage.
     'harv-support-bundle-image': Support bundle image configuration. Find different versions in <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a>.
+    'harv-release-download-url': This setting allows you to configure the <code>upgrade release download</code> URL address. Harvester will get the ISO URL and checksum value from the (<code>$URL</code>/<code>$VERSION</code>/version.yaml) file hosted by the configured URL.
     'harvester-monitoring': Specifies the monitoring configuration that the Harvester's built-in Prometheus will use.
     'hide-local-cluster': Hide the local cluster
   editHelp:

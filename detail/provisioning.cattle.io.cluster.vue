@@ -9,7 +9,7 @@ import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
 import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
@@ -313,14 +313,10 @@ export default {
 
     rke2SnapshotHeaders() {
       return [
-        STATE_NORMAN,
         {
-          name:          'name',
-          labelKey:      'tableHeaders.name',
-          value:         'nameDisplay',
-          sort:          ['nameSort'],
-          canBeVariable: true,
+          ...STATE_NORMAN, value: 'snapshotFile.status', formatterOpts: { arbitrary: true }
         },
+        NAME,
         {
           name:      'size',
           labelKey:  'tableHeaders.size',
@@ -526,7 +522,7 @@ export default {
               </div>
               <div v-if="group.ref" class="right mr-45">
                 <template v-if="value.hasLink('update')">
-                  <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.replicas < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
+                  <button v-tooltip="t('node.list.scaleDown')" :disabled="!group.ref.canScaleDownPool()" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
                     <i class="icon icon-sm icon-minus" />
                   </button>
                   <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
@@ -623,6 +619,7 @@ export default {
 
       <Tab v-if="showSnapshots" name="snapshots" label="Snapshots" :weight="1">
         <SortableTable
+          class="snapshots"
           :headers="value.isRke1 ? rke1SnapshotHeaders : rke2SnapshotHeaders"
           default-sort-by="age"
           :table-actions="value.isRke1"
@@ -707,4 +704,10 @@ export default {
     }
   }
 }
+
+.snapshots ::v-deep .state-description{
+  font-size: .8em;
+  color: var(--error);
+}
+
 </style>

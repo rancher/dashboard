@@ -73,6 +73,8 @@ export default {
     id(neu, old) {
       const cloudInit = this.$store.getters['harvester/byId'](CONFIG_MAP, neu)?.data?.cloudInit || '';
 
+      this.$emit('updateTemplateId', this.type, neu);
+
       if (neu === _NEW) {
         this.$emit('show', this.type);
         this.id = old;
@@ -84,7 +86,6 @@ export default {
         this.yamlScript = cloudInit;
       }
 
-      this.$emit('update');
       this.$refs['yaml'].updateValue(cloudInit);
     },
 

@@ -181,72 +181,71 @@ export default {
 
 <template>
   <Loading v-if="!value" />
-  <div v-else>
-    <CruResource
-      :done-route="doneRoute"
-      :mode="mode"
-      :resource="value"
-      :validation-passed="valid"
-      :errors="errors"
-      :can-yaml="false"
-      class="create-edit"
-      @finish="save"
-    >
-      <div class="credentials">
-        <h2> {{ t("user.edit.credentials.label") }}</h2>
-        <div class="row">
-          <div class="col span-4">
-            <LabeledInput
-              ref="name"
-              v-model="form.username"
-              label-key="user.edit.credentials.username.label"
-              placeholder-key="user.edit.credentials.username.placeholder"
-              :required="isCreate"
-              :readonly="isEdit"
-              :disabled="isView || isEdit"
-              :ignore-password-managers="!isCreate"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
-              v-model="form.displayName"
-              label-key="user.edit.credentials.displayName.label"
-              placeholder-key="user.edit.credentials.displayName.placeholder"
-              :disabled="isView"
-            />
-          </div>
+  <CruResource
+    v-else
+    :done-route="doneRoute"
+    :mode="mode"
+    :resource="value"
+    :validation-passed="valid"
+    :errors="errors"
+    :can-yaml="false"
+    class="create-edit"
+    @finish="save"
+  >
+    <div class="credentials">
+      <h2> {{ t("user.edit.credentials.label") }}</h2>
+      <div class="row">
+        <div class="col span-4">
+          <LabeledInput
+            ref="name"
+            v-model="form.username"
+            label-key="user.edit.credentials.username.label"
+            placeholder-key="user.edit.credentials.username.placeholder"
+            :required="isCreate"
+            :readonly="isEdit"
+            :disabled="isView || isEdit"
+            :ignore-password-managers="!isCreate"
+          />
         </div>
-        <div class="row mt-20 mb-10">
-          <div class="col span-8">
-            <LabeledInput
-              v-model="form.description"
-              label-key="user.edit.credentials.userDescription.label"
-              placeholder-key="user.edit.credentials.userDescription.placeholder"
-              :disabled="isView"
-            />
-          </div>
+        <div class="col span-4">
+          <LabeledInput
+            v-model="form.displayName"
+            label-key="user.edit.credentials.displayName.label"
+            placeholder-key="user.edit.credentials.displayName.placeholder"
+            :disabled="isView"
+          />
         </div>
+      </div>
+      <div class="row mt-20 mb-10">
+        <div class="col span-8">
+          <LabeledInput
+            v-model="form.description"
+            label-key="user.edit.credentials.userDescription.label"
+            placeholder-key="user.edit.credentials.userDescription.placeholder"
+            :disabled="isView"
+          />
+        </div>
+      </div>
 
-        <ChangePassword
-          v-if="!isView"
-          ref="changePassword"
-          v-model="form.password"
-          :mode="mode"
-          :must-change-password="value.mustChangePassword"
-          @valid="validation.password = $event"
-        />
-      </div>
-      <div v-if="showGlobalRoles" class="global-permissions">
-        <GlobalRoleBindings
-          ref="grb"
-          :user-id="value.id || liveValue.id"
-          :mode="mode"
-          :real-mode="realMode"
-          type="user"
-          @hasChanges="validation.rolesChanged = $event"
-          @canLogIn="validation.roles = $event"
-        />
-      </div>
-    </CruResource>
-  </div>
+      <ChangePassword
+        v-if="!isView"
+        ref="changePassword"
+        v-model="form.password"
+        :mode="mode"
+        :must-change-password="value.mustChangePassword"
+        @valid="validation.password = $event"
+      />
+    </div>
+    <div v-if="showGlobalRoles" class="global-permissions">
+      <GlobalRoleBindings
+        ref="grb"
+        :user-id="value.id || liveValue.id"
+        :mode="mode"
+        :real-mode="realMode"
+        type="user"
+        @hasChanges="validation.rolesChanged = $event"
+        @canLogIn="validation.roles = $event"
+      />
+    </div>
+  </CruResource>
 </template>

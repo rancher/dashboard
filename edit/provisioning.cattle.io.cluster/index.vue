@@ -288,8 +288,7 @@ export default {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const techPreview = getters['i18n/t']('generic.techPreview');
-        const isTechPreview = group === 'rke2' || group === 'custom2';
-        let tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
+        let tag = '';
 
         // Always prefer the built-in icon if there is one
         let icon;
@@ -447,6 +446,7 @@ export default {
     :errors="errors"
     :subtypes="subTypes"
     :cancel-event="true"
+    class="create-cluster"
     @finish="save"
     @cancel="cancel"
     @select-type="selectType"

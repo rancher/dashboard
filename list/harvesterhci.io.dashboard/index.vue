@@ -11,7 +11,7 @@ import {
 } from '@/utils/units';
 import { REASON } from '@/config/table-headers';
 import {
-  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD, COUNT
+  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD, COUNT, NETWORK_ATTACHMENT
 } from '@/config/types';
 import ResourceSummary, { resourceCounts, colorToCountName } from '@/components/ResourceSummary';
 import { colorForState } from '@/plugins/steve/resource-class';
@@ -52,7 +52,18 @@ const RESOURCES = [{
     name: 'Host',
   }
 },
-{ type: HCI.VM }, { type: HCI.NETWORK_ATTACHMENT }, { type: HCI.IMAGE },
+{ type: HCI.VM },
+{
+  type:    NETWORK_ATTACHMENT,
+  spoofed: {
+    location: {
+      name:     'c-cluster-product-resource',
+      params:   { resource: HCI.NETWORK_ATTACHMENT }
+    },
+    name: 'Network',
+  }
+},
+{ type: HCI.IMAGE },
 {
   type:    PVC,
   spoofed: {
@@ -191,6 +202,7 @@ export default {
 
               if (nsStatistics.count) {
                 out[resource.type]['useful'] -= nsStatistics.count;
+                out[resource.type]['total'] -= nsStatistics.count;
               }
               Object.entries(nsStatistics?.states || {}).forEach((entry) => {
                 const color = colorForState(entry[0]);
@@ -446,7 +458,7 @@ export default {
     },
 
     ramUsed() {
-      return createMemoryValues(this.memorysTotal, this.metricAggregations?.memory);
+      return createMemoryValues(this.memoryTotal, this.metricAggregations?.memory);
     },
 
     hasMetricNodeSchema() {

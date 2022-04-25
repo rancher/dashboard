@@ -110,7 +110,11 @@ export default {
     },
 
     editorMode() {
-      if ( this.isView ) {
+      // Include the mode in the route as a dependency
+      // of this computed property so that the editor
+      // toggles when you navigate back and forth between
+      // edit and view.
+      if ( this.$route.query.mode === _VIEW ) {
         return EDITOR_MODES.VIEW_CODE;
       } else if ( this.showPreview ) {
         return EDITOR_MODES.DIFF_CODE;
@@ -334,7 +338,7 @@ export default {
       ref="yamleditor"
       v-model="currentYaml"
       :initial-yaml-values="initialYaml"
-      class="yaml-editor"
+      class="yaml-editor flex-content"
       :editor-mode="editorMode"
       @onInput="onInput"
       @onReady="onReady"
@@ -386,6 +390,14 @@ export default {
   </div>
 </template>
 
+<style lang='scss' scoped>
+.flex-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+</style>
+
 <style lang="scss">
 .resource-yaml {
   .yaml-editor {
@@ -396,4 +408,5 @@ export default {
     text-align: right;
   }
 }
+
 </style>
