@@ -279,8 +279,6 @@ export default function(dir, _appConfig) {
 
     loadingIndicator: path.join(SHELL_ABS, 'static/loading-indicator.html'),
 
-    // mode:    'spa', --- Use --spa CLI flag, or ?spa query param.
-
     loading: path.join(SHELL_ABS, 'components/nav/GlobalLoading.vue'),
 
     // Axios: https://axios.nuxtjs.org/options
@@ -606,7 +604,9 @@ export default function(dir, _appConfig) {
       ]
     },
 
-    typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}' } } }
+    typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}' } } },
+
+    ssr: false,
   };
 
   return config;

@@ -1,5 +1,7 @@
 ## Server-Side-Rendering (SSR)
 
+> Update: From Rancher 2.6.6 SSR mode is disabled for devs by default
+
 Nuxt supports server-side-rendering (SSR), where a node.js server runs the UI code on the server-side and responds with the fully-baked HTML of the desired page.  This allows it to make all the necessary API calls directly "to itself", with less latency, versus serving up an empty page which loads all the JS, then starts making API calls across the slower server<->user connection.
 
 But actually using this mode would require a node.js process (with sometimes considerable overhead) running inside of every Rancher container, and coordination with Rancher to proxy requests that should be for the UI to it.  So we don't actually ship anything using this mode, Rancher releases use single-page-app (SPA) mode only.

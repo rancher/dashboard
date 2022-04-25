@@ -25,7 +25,7 @@ API=https://your-rancher yarn dev
 # or put the variable into a .env file
 # Goto https://localhost:8005
 ```
-For single page app mode, run `API=https://your-rancher yarn dev --spa`.
+
 
 ## Other Building <odes
 ```bash
