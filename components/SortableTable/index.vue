@@ -898,6 +898,7 @@ export default {
                           :col="col.col"
                           v-bind="col.col.formatterOpts"
                           :row-key="row.key"
+                          :get-custom-detail-link="getCustomDetailLink"
                         />
                         <component
                           :is="col.component"
@@ -916,7 +917,6 @@ export default {
                           :col="col.col"
                           v-bind="col.col.formatterOpts"
                           :row-key="row.key"
-                          :get-custom-detail-link="getCustomDetailLink"
                         />
                         <template v-else-if="col.value !== ''">
                           {{ col.formatted }}
