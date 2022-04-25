@@ -900,14 +900,13 @@ export default {
                           :row-key="row.key"
                         />
                         <component
-                          :is="col.formatter"
-                          v-if="col.formatter"
-                          :value="valueFor(row,col)"
-                          :row="row"
-                          :col="col"
-                          v-bind="col.formatterOpts"
-                          :row-key="get(row,keyField)"
-                          :get-custom-detail-link="getCustomDetailLink"
+                          :is="col.component"
+                          v-else-if="col.component"
+                          :value="col.value"
+                          :row="row.row"
+                          :col="col.col"
+                          v-bind="col.col.formatterOpts"
+                          :row-key="row.key"
                         />
                         <component
                           :is="col.col.formatter"
@@ -917,6 +916,7 @@ export default {
                           :col="col.col"
                           v-bind="col.col.formatterOpts"
                           :row-key="row.key"
+                          :get-custom-detail-link="getCustomDetailLink"
                         />
                         <template v-else-if="col.value !== ''">
                           {{ col.formatted }}
