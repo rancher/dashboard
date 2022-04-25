@@ -208,11 +208,13 @@ export function DSL(store, product, module = 'type-map') {
     headers(type, headers) {
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
-        if (process.client && header.getValue) {
+        if (process.client && header?.getValue) {
           header.value = header.getValue;
         }
 
-        delete header.getValue;
+        if (header?.getValue) {
+          delete header.getValue;
+        }
       });
 
       store.commit(`${ module }/headers`, { type, headers });
