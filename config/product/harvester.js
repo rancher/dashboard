@@ -1,5 +1,5 @@
 import {
-  HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC
+  HCI, NODE, CONFIG_MAP, NAMESPACE, VIRTUAL_TYPES, MANAGEMENT, PVC, NETWORK_ATTACHMENT
 } from '@/config/types';
 import {
   STATE, NAME_UNLINKED, NAME as NAME_COL, AGE, NAMESPACE as NAMESPACE_COL,
@@ -229,7 +229,17 @@ export function init(store) {
     exact: false,
   });
 
-  configureType(HCI.NETWORK_ATTACHMENT, { isEditable: false, showState: false });
+  configureType(NETWORK_ATTACHMENT, { isEditable: false, showState: false });
+  configureType(HCI.NETWORK_ATTACHMENT, {
+    location:    {
+      name:    'c-cluster-product-resource',
+      params:  { resource: HCI.NETWORK_ATTACHMENT },
+    },
+    resource:       NETWORK_ATTACHMENT,
+    resourceDetail: HCI.NETWORK_ATTACHMENT,
+    resourceEdit:   HCI.NETWORK_ATTACHMENT,
+  });
+
   virtualType({
     labelKey:   'harvester.network.label',
     name:       HCI.NETWORK_ATTACHMENT,
