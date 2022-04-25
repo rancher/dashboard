@@ -160,7 +160,7 @@ validators: [`exampleValidator:${ this.metadata.name }:'customString':42]
 ## Custom Deletion Warnings
 To warn users about deleting a certain resource, you can customize the message that is shown to the user when they attempt to delete a resource.
 You can add the error message to the resource class model in this format:
-```
+```ts
 get warnDeletionMessage() {
   return this.t('path.to.delete.warning');
 }
@@ -188,7 +188,7 @@ There may be a situation where you need Rancher to create and edit data that is 
 
 A custom create component would typically need at least these imports:
 
-```
+```ts
 import AsyncButton from '@/components/AsyncButton';
 import { _CREATE } from '@/config/query-params';
 import { exceptionToErrorsArray } from '@/utils/error';
@@ -196,7 +196,7 @@ import { exceptionToErrorsArray } from '@/utils/error';
 
 The AsyncButton should be used to save the resource, and it will show a loading message if the resource takes time to be saved. The below example shows a minimal usage of AsyncButton:
 
-```
+```html
 <AsyncButton
   :disabled="!validationPassed"
   :mode="mode"
@@ -206,7 +206,7 @@ The AsyncButton should be used to save the resource, and it will show a loading 
 
 You can maintain the form validation state in `data()`:
 
-```
+```ts
 data() {
     return {
       errors:           [],
@@ -221,7 +221,7 @@ You will also need to provide the resource schema so that it can be used by `sav
 
 When a skeleton resource is not passed into your create/edit form as a value, you can create the new resource instance with a `dispatch` to the store as soon as the form is rendered. Then you can use it as the initial value for your form. An example of calling the store to create the initial resource value is below:
 
-```
+```ts
 this.value = await this.$store.dispatch('cluster/create', {
   type:     'chartInstallAction',
   metadata: {
@@ -233,7 +233,7 @@ this.value = await this.$store.dispatch('cluster/create', {
 
 When the resource is saved, it should call a `save` method. This can be the `save`defined in the CreateEditView mixin, or it can be a `save` method defined a form containing an AsyncButton. For example, this method is used in the `PromptChangePassword` component and provides a `buttonCb` callback to the AsyncButton:
 
-```
+```ts
 async submit(buttonCb) {
   try {
     await this.$refs.changePassword.save();
@@ -247,7 +247,7 @@ async submit(buttonCb) {
 
 The corresponding AsyncButton is:
 
-```
+```html
 <AsyncButton
   type="submit"
   mode="apply"

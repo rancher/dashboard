@@ -7,13 +7,16 @@ import KeyValue from '@/components/form/KeyValue';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabelValue from '@/components/LabelValue';
+import Select from '@/components/form/Select';
 import CreateEditView from '@/mixins/create-edit-view';
+import { OS } from '@/mixins/harvester-vm';
 import { VM_IMAGE_FILE_FORMAT } from '@/utils/validators/vm-image';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
 
 const DOWNLOAD = 'download';
 const UPLOAD = 'upload';
+const rawORqcow2 = 'raw_qcow2';
 
 export default {
   name: 'EditImage',
@@ -22,6 +25,7 @@ export default {
     Tab,
     Tabbed,
     KeyValue,
+    Select,
     CruResource,
     LabeledInput,
     NameNsDescription,
@@ -42,7 +46,10 @@ export default {
     if ( !this.value.spec ) {
       this.$set(this.value, 'spec', { sourceType: DOWNLOAD });
     }
-    this.value.metadata.generateName = 'image-';
+
+    if (!this.value.metadata.name) {
+      this.value.metadata.generateName = 'image-';
+    }
 
     return {
       url:         this.value.spec.url,
@@ -76,16 +83,38 @@ export default {
     'value.spec.url'(neu) {
       const url = neu.trim();
       const suffixName = url.split('/').pop();
-      const fileSuffiic = suffixName.split('.').pop().toLowerCase();
+      const fileSuffix = suffixName.split('.').pop().toLowerCase();
 
       this.value.spec.url = url;
-      if (VM_IMAGE_FILE_FORMAT.includes(fileSuffiic)) {
+      if (VM_IMAGE_FILE_FORMAT.includes(fileSuffix)) {
+        Object.keys(this.value.labels).forEach((key, idx) => {
+          if (key === HCI_ANNOTATIONS.IMAGE_SUFFIX) {
+            this.$refs.labels.remove(idx);
+          }
+        });
+        if (fileSuffix === 'iso') {
+          this.$refs.labels.add(HCI_ANNOTATIONS.IMAGE_SUFFIX, fileSuffix);
+        } else {
+          this.$refs.labels.add(HCI_ANNOTATIONS.IMAGE_SUFFIX, rawORqcow2);
+        }
+
         if (!this.value.spec.displayName) {
           this.$refs.nd.changeNameAndNamespace({
             text:     suffixName,
             selected: this.value.metadata.namespace,
           });
         }
+      }
+
+      const os = this.getOSType(url);
+
+      if (os) {
+        Object.keys(this.value.labels).forEach((key, idx) => {
+          if (key === HCI_ANNOTATIONS.OS_TYPE) {
+            this.$refs.labels.remove(idx);
+          }
+        });
+        this.$refs.labels.add(HCI_ANNOTATIONS.OS_TYPE, os.value);
       }
     },
 
@@ -144,6 +173,46 @@ export default {
       this.$refs.file.value = null;
       this.$refs.file.click();
     },
+
+    internalAnnotations(option) {
+      const optionKeys = [HCI_ANNOTATIONS.OS_TYPE, HCI_ANNOTATIONS.IMAGE_SUFFIX];
+
+      return optionKeys.find(O => O === option.key);
+    },
+
+    calculateOptions(keyName) {
+      if (keyName === HCI_ANNOTATIONS.OS_TYPE) {
+        return OS;
+      } else if (keyName === HCI_ANNOTATIONS.IMAGE_SUFFIX) {
+        return [{
+          label: 'ISO',
+          value: 'iso'
+        }, {
+          label: 'raw/qcow2',
+          value: rawORqcow2
+        }];
+      }
+
+      return [];
+    },
+
+    focusKey() {
+      this.$refs.key.focus();
+    },
+
+    getOSType(url) {
+      if (!url) {
+        return;
+      }
+
+      return OS.find( (os) => {
+        if (os.match) {
+          return os.match.find(matchValue => url.toLowerCase().includes(matchValue)) ? os.value : false;
+        } else {
+          return url.toLowerCase().includes(os.value.toLowerCase()) ? os.value : false;
+        }
+      });
+    }
   },
 
 };
@@ -220,7 +289,7 @@ export default {
                   id="file"
                   ref="file"
                   type="file"
-                  accept=".gz, .qcow, .qcow2, .raw, .img, .xz, .iso"
+                  accept=".qcow, .qcow2, .raw, .img, .iso"
                   @change="handleFileUpload()"
                 />
               </button>
@@ -249,13 +318,46 @@ export default {
       <Tab name="labels" :label="t('labels.labels.title')" :weight="2" class="bordered-table">
         <KeyValue
           key="labels"
+          ref="labels"
           :value="value.labels"
           :add-label="t('labels.addLabel')"
           :mode="mode"
           :pad-left="false"
           :read-allowed="false"
+          @focusKey="focusKey"
           @input="value.setLabels($event)"
-        />
+        >
+          <template #key="{ row, keyName, queueUpdate}">
+            <input
+              ref="key"
+              v-model="row[keyName]"
+              :placeholder="t('keyValue.keyPlaceholder')"
+              @input="queueUpdate"
+            />
+          </template>
+
+          <template #value="{row, keyName, valueName, queueUpdate}">
+            <Select
+              v-if="internalAnnotations(row)"
+              v-model="row[valueName]"
+              :searchable="true"
+              :clearable="false"
+              :options="calculateOptions(row[keyName])"
+              @input="queueUpdate"
+            />
+            <input
+              v-else
+              v-model="row[valueName]"
+              :disabled="isView"
+              :type="'text'"
+              :placeholder="t('keyValue.valuePlaceholder')"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              @input="queueUpdate"
+            />
+          </template>
+        </KeyValue>
       </Tab>
     </Tabbed>
   </CruResource>

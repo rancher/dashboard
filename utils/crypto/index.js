@@ -45,7 +45,7 @@ export function base64DecodeToBuffer(string) {
 }
 
 export function base64Decode(string) {
-  return base64DecodeToBuffer(string.replace(/[-_]/g, char => char === '-' ? '+' : '/')).toString();
+  return !string ? string : base64DecodeToBuffer(string.replace(/[-_]/g, char => char === '-' ? '+' : '/')).toString();
 }
 
 export function md5(data, digest, callback) {
@@ -54,6 +54,23 @@ export function md5(data, digest, callback) {
 
 export function sha256(data, digest, callback) {
   return hash('sha256', data, digest, callback);
+}
+
+export function binarySize(val) {
+  const size = `${ val }`.length;
+
+  // It is base64 encoded, so adjust size
+  let realSize = (3 * size / 4) ;
+
+  // Might be one or two padding characters
+  if (val.length > 0 && val[val.length - 1] === '=') {
+    realSize--;
+    if (val.length > 1 && val[val.length - 2] === '=') {
+      realSize--;
+    }
+  }
+
+  return realSize;
 }
 
 // *****************************

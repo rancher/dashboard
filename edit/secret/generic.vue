@@ -46,18 +46,18 @@ export default {
 </script>
 
 <template>
-  <div class="row">
-    <KeyValue
-      key="data"
-      v-model="value.data"
-      :mode="mode"
-      :initial-empty-row="true"
-      :value-base64="true"
-      :value-trim="false"
-      :value-concealed="isView && hideSensitiveData"
-      :file-modifier="fileModifier"
-      read-icon=""
-      add-icon=""
-    />
-  </div>
+  <KeyValue
+    key="data"
+    v-model="value.data"
+    :mode="mode"
+    :initial-empty-row="true"
+    :handle-base64="true"
+    :value-trim="false"
+    :add-allowed="true"
+    :read-allowed="true"
+    :value-concealed="isView && hideSensitiveData"
+    :file-modifier="fileModifier"
+    read-icon=""
+    add-icon=""
+  />
 </template>

@@ -180,9 +180,9 @@ export default {
       handler(neu) {
         const suffixName = neu?.split('/')?.pop();
         const splitName = suffixName?.split('.') || [];
-        const fileSuffiic = splitName?.pop()?.toLowerCase();
+        const fileSuffix = splitName?.pop()?.toLowerCase();
 
-        if (splitName.length > 1 && fileSuffiic === 'iso' && !this.imageValue.spec.displayName) {
+        if (splitName.length > 1 && fileSuffix === 'iso' && !this.imageValue.spec.displayName) {
           this.imageValue.spec.displayName = suffixName;
         }
       },

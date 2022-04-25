@@ -9,15 +9,69 @@ const CALC = 'calculate';
 const SHOW = 'show';
 
 export default {
+  props: {
+    customActions: {
+      // Custom actions can be used if you need the action
+      // menu to work for something that is not a Kubernetes
+      // resource, for example, a receiver within an
+      // AlertmanagerConfig.
+
+      // This prop can also be used to avoid
+      // a dependency on Vuex. For now, this component can have
+      // its state controlled by either props OR by Vuex, but if it
+      // gets unwieldy, it could later be split into two components,
+      // one with the dependency on Vuex and one without.
+      type:    Array,
+      default: () => {
+        return [];
+      }
+    },
+    open: {
+      // Use this prop to show and hide the action menu if
+      // you want to avoid an unnecessary dependency on Vuex.
+
+      // Note: There are known issues with performance if this component
+      // is included with every row of a table, so don't do that.
+      // Instead the ActionMenu component can be included once on a page,
+      // and then if you click on a list item, that can change
+      // the menu's target so that it can open in different locations.
+      type:    Boolean,
+      default: false
+    },
+    useCustomTargetElement: {
+      // The custom target element can be a
+      // variable in the component state of a list or detail page
+      // if you don't want a dependency on Vuex.
+      // Then when an action menu button is clicked, it can emit an event
+      // that triggers the target to be set to the clicked element,
+      // so that the dropdown menu can open where the context menu
+      // was clicked.
+      // This flag tells the component to look for and use the
+      // custom target element.
+      type:    Boolean,
+      default: false
+    },
+    customTargetElement: {
+      type:    HTMLElement,
+      default: null
+    },
+    customTargetEvent: {
+      // The event details from the user's click can be used
+      // for positioning the menu on the page.
+      type:    PointerEvent,
+      default: null
+    },
+  },
+
   data() {
-    return {
-      phase: HIDDEN,
-      style: {}
-    };
+    return { phase: HIDDEN, style: {} };
   },
 
   computed: {
     ...mapGetters({
+      // Use either these Vuex getters
+      // OR the props to set the action menu state,
+      // but don't use both.
       targetElem:  'action-menu/elem',
       targetEvent: 'action-menu/event',
       shouldShow:  'action-menu/showing',
@@ -27,7 +81,13 @@ export default {
     showing() {
       return this.phase !== HIDDEN;
     },
+    menuOptions() {
+      if (this.customActions.length > 0) {
+        return this.customActions;
+      }
 
+      return this.options;
+    },
   },
 
   watch: {
@@ -48,6 +108,15 @@ export default {
       },
     },
 
+    open() {
+      // This component has a timing issue where the
+      // mounted size of the expanded menu is used to
+      // calculate where its position should be. That means
+      // it won't work if the style is a computed property,
+      // so we put a watcher here to update the style instead.
+      this.updateStyle();
+    },
+
     '$route.path'(val, old) {
       this.hide();
     }
@@ -55,23 +124,35 @@ export default {
 
   methods: {
     hide() {
-      this.$store.commit('action-menu/hide');
+      if (this.useCustomTargetElement) {
+        // If the show/hide state is controlled
+        // by props, emit an event to close the menu.
+        this.$emit('close');
+      } else {
+        // If the show/hide state is controlled
+        // by Vuex, mutate the store to close the menu.
+        this.$store.commit('action-menu/hide');
+      }
     },
 
     updateStyle() {
-      if ( this.phase === SHOW ) {
+      if ( this.phase === SHOW || this.open ) {
         const menu = $('.menu', this.$el)[0];
-        const event = this.targetEvent;
-        const elem = this.targetElem;
+        let elem;
 
-        this.style = fitOnScreen(menu, event || elem, {
+        if (this.useCustomTargetElement) {
+          elem = this.customTargetElement;
+        } else {
+          elem = this.targetElem;
+        }
+
+        this.style = fitOnScreen(menu, elem, {
           overlapX:  true,
           fudgeX:    elem ? 4 : 0,
           fudgeY:    elem ? 4 : 0,
           positionX: (elem ? AUTO : CENTER),
           positionY: AUTO,
         });
-
         this.style.visibility = 'visible';
       } else {
         this.style = {};
@@ -79,15 +160,29 @@ export default {
     },
 
     execute(action, event, args) {
-      const opts = { alt: isAlternate(event) };
-
       if (action.disabled) {
         return;
       }
 
-      this.$store.dispatch('action-menu/execute', {
-        action, args, opts
-      });
+      if (this.useCustomTargetElement) {
+        // If the state of this component is controlled
+        // by props instead of Vuex, we assume you wouldn't want
+        // the mutation to have a dependency on Vuex either.
+        // So in that case we use events to execute actions instead.
+        // If an action list item is clicked, this
+        // component emits that event, then we assume the parent
+        // component will execute the action.
+        this.$emit(action.action);
+      } else {
+        // If the state of this component is controlled
+        // by Vuex, mutate the store when an action is clicked.
+        const opts = { alt: isAlternate(event) };
+
+        this.$store.dispatch('action-menu/execute', {
+          action, args, opts
+        });
+      }
+
       this.hide();
     },
 
@@ -99,14 +194,20 @@ export default {
 </script>
 
 <template>
-  <div v-if="showing">
+  <div v-if="showing || open">
     <div class="background" @click="hide" @contextmenu.prevent></div>
     <ul class="list-unstyled menu" :style="style">
-      <li v-for="opt in options" :key="opt.action" :disabled="opt.disabled" :class="{divider: opt.divider}" @click="execute(opt, $event)">
+      <li
+        v-for="opt in menuOptions"
+        :key="opt.action"
+        :disabled="opt.disabled"
+        :class="{divider: opt.divider}"
+        @click="execute(opt, $event)"
+      >
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
         <span v-html="opt.label" />
       </li>
-      <li v-if="!hasOptions(options)" class="no-actions">
+      <li v-if="!hasOptions(menuOptions)" class="no-actions">
         <span v-t="'sortableTable.noActions'" />
       </li>
     </ul>
@@ -124,6 +225,7 @@ export default {
     top: 0;
     left: 0;
     z-index: z-index('dropdownContent');
+    min-width: 145px;
 
     color: var(--dropdown-text);
     background-color: var(--dropdown-bg);

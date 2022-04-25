@@ -104,7 +104,7 @@ export default {
       return out;
     },
 
-    typeOpton() {
+    typeOption() {
       const masquerade = [{
         label: 'masquerade',
         value: 'masquerade'
@@ -213,7 +213,7 @@ export default {
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
-            :options="typeOpton"
+            :options="typeOption"
             :mode="mode"
             required
             @input="update"

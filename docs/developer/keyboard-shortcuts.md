@@ -3,7 +3,7 @@
 
 Shortcuts are implemented via [`vue-shortkey`](https://github.com/iFgR/vue-shortkey)
 
-```
+```html
 <button v-shortkey.once="['n']" class="hide" @shortkey="focus()" />
 ```
 

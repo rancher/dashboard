@@ -149,7 +149,13 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.metadata.name" :mode="mode" :label="t('persistentVolumeClaim.name')" @input="$emit('input', value)" />
+        <LabeledInput
+          v-model="value.metadata.name"
+          :mode="mode"
+          :label="t('persistentVolumeClaim.name')"
+          :required="true"
+          @input="$emit('input', value)"
+        />
       </div>
     </div>
     <div class="row mb-10">
@@ -163,11 +169,19 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <LabeledSelect v-if="createPV" v-model="spec.storageClassName" :mode="mode" :label="t('persistentVolumeClaim.storageClass')" :options="storageClassNames" />
+        <LabeledSelect
+          v-if="createPV"
+          v-model="spec.storageClassName"
+          :mode="mode"
+          :required="true"
+          :label="t('persistentVolumeClaim.storageClass')"
+          :options="storageClassNames"
+        />
         <LabeledSelect
           v-else
           :value="spec.volumeName"
           :get-option-label="volumeName"
+          :required="true"
           :mode="mode"
           :label="t('persistentVolumeClaim.volumes')"
           :options="availablePVs"

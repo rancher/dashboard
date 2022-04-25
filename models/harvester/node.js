@@ -1,5 +1,5 @@
 import pickBy from 'lodash/pickBy';
-import { HCI, LONGHORN, POD } from '@/config/types';
+import { HCI, LONGHORN, POD, NODE } from '@/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { clone } from '@/utils/object';
 import findLast from 'lodash/findLast';
@@ -86,6 +86,28 @@ export default class HciNode extends SteveModel {
     return colorForState(this.stateDisplay, this.stateObj?.error, this.stateObj?.transitioning).replace('text-', 'bg-');
   }
 
+  get stateDescription() {
+    const currentIP = this.metadata?.annotations?.[HCI_ANNOTATIONS.CURRENT_IP];
+    const initIP = this.metadata?.annotations?.[HCI_ANNOTATIONS.INIT_IP];
+
+    if (initIP && currentIP && currentIP !== initIP) {
+      return this.t('harvester.host.inconsistentIP', { currentIP, initIP });
+    }
+
+    return super.stateDescription;
+  }
+
+  get stateObj() {
+    const currentIP = this.metadata?.annotations?.[HCI_ANNOTATIONS.CURRENT_IP];
+    const initIP = this.metadata?.annotations?.[HCI_ANNOTATIONS.INIT_IP];
+
+    if (initIP && currentIP && currentIP !== initIP) {
+      this.metadata.state.error = true;
+    }
+
+    return this.metadata?.state;
+  }
+
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
@@ -146,7 +168,7 @@ export default class HciNode extends SteveModel {
     return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_SCHEDULABLE] === 'false' || this.spec.unschedulable;
   }
 
-  get isMigrateable() {
+  get isMigratable() {
     const states = ['in-progress', 'unavailable'];
 
     return !this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] && !this.isUnSchedulable && !states.includes(this.state);
@@ -228,5 +250,11 @@ export default class HciNode extends SteveModel {
     }, 0);
 
     return out;
+  }
+
+  get canDelete() {
+    const nodes = this.$rootGetters['harvester/all'](NODE) || [];
+
+    return nodes.length > 1;
   }
 }

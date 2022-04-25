@@ -40,7 +40,7 @@ export function init(store) {
 
   basicType([
     'networking.istio.io.envoyfilter',
-    'networking.istio.io.serviceentrie',
+    'networking.istio.io.serviceentry',
     'networking.istio.io.sidecar',
     'networking.istio.io.workloadentrie',
   ], 'Networking');
@@ -53,7 +53,7 @@ export function init(store) {
   ], 'RBAC');
 
   basicType([
-    'security.istio.io.authorizationpolicie',
+    'security.istio.io.authorizationpolicy',
     'security.istio.io.peerauthentication',
     'security.istio.io.requestauthentication',
   ], 'Security');

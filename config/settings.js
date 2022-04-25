@@ -19,6 +19,8 @@ export const SETTING = {
   API_HOST:                         'api-host',
   CA_CERTS:                         'cacerts',
 
+  // Allow the local cluste to be hidden
+  HIDE_LOCAL_CLUSTER:               'hide-local-cluster',
   AUTH_TOKEN_MAX_TTL_MINUTES:       'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:        'kubeconfig-generate-token',
   KUBECONFIG_TOKEN_TTL_MINUTES:     'kubeconfig-token-ttl-minutes',
@@ -86,6 +88,7 @@ export const ALLOWED_SETTINGS = {
     kind:    'enum',
     options: ['prompt', 'in', 'out']
   },
+  [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
 };
 
 // harvester Settings ID
@@ -112,6 +115,7 @@ export const HCI_SETTING = {
   SUPPORT_BUNDLE_NAMESPACES:        'support-bundle-namespaces',
   AUTO_DISK_PROVISION_PATHS:        'auto-disk-provision-paths',
   RANCHER_MONITORING:               'fleet-local/rancher-monitoring',
+  RELEASE_DOWNLOAD_URL:             'release-download-url'
 };
 
 export const HCI_ALLOWED_SETTINGS = {
@@ -146,6 +150,7 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.RANCHER_MONITORING]:                {
     kind: 'custom', from: 'import', canReset: true, customFormatter: 'json', alias: 'harvester-monitoring'
   },
+  [HCI_SETTING.RELEASE_DOWNLOAD_URL]: { kind: 'url' },
 };
 
 export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {

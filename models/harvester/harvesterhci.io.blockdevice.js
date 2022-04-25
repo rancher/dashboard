@@ -48,4 +48,8 @@ export default class HciBlockDevice extends SteveModel {
       icon,
     };
   }
+
+  get displayName() {
+    return this.status?.deviceStatus?.devPath || this?.metadata?.name;
+  }
 }

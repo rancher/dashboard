@@ -90,6 +90,8 @@
 //                               isRemovable: true,  -- Ditto, for remove/delete
 //                               showState: true,  -- If false, hide state in columns and masthead
 //                               showAge: true,    -- If false, hide age in columns and masthead
+//                               showConfigView: true -- If false, hide masthead config button in view mode
+//                               showListMasthead: true, -- If false, hide masthead in list view
 //                               canYaml: true,
 //                               resource: undefined       -- Use this resource in ResourceDetails instead
 //                               resourceDetail: undefined -- Use this resource specifically for ResourceDetail's detail component
@@ -111,8 +113,8 @@
 //   mapWeight,
 //   continueOnMatch
 // )
-import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
-import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
+import { AGE, NAME, NAMESPACE as NAMESPACE_COL, STATE } from '@/config/table-headers';
+import { COUNT, SCHEMA, MANAGEMENT, NAMESPACE } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
@@ -130,6 +132,7 @@ import isObject from 'lodash/isObject';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { sortBy } from '@/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@/utils/monitoring';
+import { NEU_VECTOR_NAMESPACE } from '@/config/product/neuvector';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -147,6 +150,8 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
 
+const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
+
 export const IF_HAVE = {
   V1_MONITORING:            'v1-monitoring',
   V2_MONITORING:            'v2-monitoring',
@@ -155,6 +160,7 @@ export const IF_HAVE = {
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
   HARVESTER_SINGLE_CLUSTER: 'harv-multi-cluster',
+  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -200,6 +206,15 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     headers(type, headers) {
+      headers.forEach((header) => {
+        // If on the client, then use the value getter if there is one
+        if (process.client && header.getValue) {
+          header.value = header.getValue;
+        }
+
+        delete header.getValue;
+      });
+
       store.commit(`${ module }/headers`, { type, headers });
     },
 
@@ -895,7 +910,7 @@ export const getters = {
           hasName = true;
           out.push(NAME);
           if ( namespaced ) {
-            out.push(NAMESPACE);
+            out.push(NAMESPACE_COL);
           }
         } else {
           out.push(fromSchema(col, rootGetters));
@@ -905,7 +920,7 @@ export const getters = {
       if ( !hasName ) {
         insertAt(out, 1, NAME);
         if ( namespaced ) {
-          insertAt(out, 2, NAMESPACE);
+          insertAt(out, 2, NAMESPACE_COL);
         }
       }
 
@@ -918,6 +933,10 @@ export const getters = {
       }
 
       return out;
+
+      function rowValueGetter(index) {
+        return row => row.metadata?.fields?.[index];
+      }
 
       function fromSchema(col, rootGetters) {
         let formatter, width, formatterOpts;
@@ -942,10 +961,25 @@ export const getters = {
         const description = col.description || '';
         const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
 
+        // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
+        // We will use JsonPath to look up this value, which is costly - so if we can detect this format
+        // Use a more efficient function to get the value
+        let value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
+
+        if (process.client) {
+          const found = value.match(FIELD_REGEX);
+
+          if (found && found.length === 2) {
+            const fieldIndex = parseInt(found[1], 10);
+
+            value = rowValueGetter(fieldIndex);
+          }
+        }
+
         return {
           name:    col.name.toLowerCase(),
           label:   exists(labelKey) ? t(labelKey) : col.name,
-          value:   col.field.startsWith('.') ? `$${ col.field }` : col.field,
+          value,
           sort:    [col.field],
           formatter,
           formatterOpts,
@@ -1625,6 +1659,9 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
     return getters.isSingleVirtualCluster;
+  }
+  case IF_HAVE.NEUVECTOR_NAMESPACE: {
+    return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);
   }
   default:
     return false;

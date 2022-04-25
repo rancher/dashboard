@@ -156,7 +156,7 @@ export default {
               target="_blank"
               prefix-label="harvester.setting.message.ca.prefix"
               middle-label="harvester.setting.message.ca.middle"
-              suffic-label="harvester.setting.message.ca.suffic"
+              suffix-label="harvester.setting.message.ca.suffix"
             />
           </Tip>
         </div>

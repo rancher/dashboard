@@ -61,6 +61,11 @@ export default {
       default: false,
     },
 
+    textDisabled: {
+      type:    Boolean,
+      default: false,
+    },
+
     textValue: {
       type:    [String, Number],
       default: '',
@@ -132,7 +137,7 @@ export default {
       :searchable="searchable"
       :disabled="disabled || isView"
       :clearable="false"
-      :class="{ 'in-input': !isView }"
+      class="in-input"
       :taggable="taggable"
       :create-option="(name) => ({ label: name, value: name })"
       :multiple="false"
@@ -149,7 +154,7 @@ export default {
       class="input-string col span-8"
       :label="textLabel"
       :placeholder="placeholder"
-      :disabled="disabled"
+      :disabled="disabled || textDisabled"
       :required="textRequired"
       :mode="mode"
       v-bind="$attrs"
@@ -184,13 +189,11 @@ export default {
     & .input-string {
       border-radius: var(--border-radius) 0 0 var(--border-radius);
       border-right: 0;
-      border-left: 1px solid var(--border);
+      border-left-width: 1px;
     }
 
     & .in-input {
       border-radius: 0 var(--border-radius) var(--border-radius) 0;
-      border-left: 0;
-      border-right: 1px solid var(--border);
 
       &.labeled-select {
         .selected {
@@ -200,36 +203,81 @@ export default {
         }
       }
 
+      &.focused:not(.vs__dropdown-up) {
+        border-bottom-right-radius: 0;
+      }
+
+      &.focused.vs__dropdown-up {
+        border-top-right-radius: 0;
+      }
+    }
+
+    .input-string {
+      &:hover:not(.focused):not(.disabled):not(:focus) {
+        padding-left: 10px !important;
+      }
+      &.focused, &:focus {
+        padding-left: 10px !important;
+      }
     }
   }
 
   & .input-string {
     padding-right: 0;
-    height: 100%;
     width: 60%;
     flex-grow: 1;
     border-radius: 0 var(--border-radius) var(--border-radius) 0;
-    border-left: 0;
+    border-left-width: 0;
     margin-left: -1px;
     position: relative;
     display: table;
     border-collapse: separate;
+
+    &:hover:not(.focused):not(.disabled):not(:focus):not(.view) {
+      border-left: 1px solid var(--input-hover-border);
+      border-right: 1px solid var(--input-hover-border);
+      padding-left: 9px;
+    }
+    &.focused, &:focus {
+      border-left: 1px solid var(--outline) !important;
+      border-right: 1px solid var(--outline) !important;
+      padding-left: 9px;
+    }
   }
 
   & .in-input {
     margin-right: 0;
-    border-radius: var(--border-radius) 0 0 var(--border-radius);
+
+    &:hover:not(.focused):not(.disabled):not(.view) {
+      border: 1px solid var(--input-hover-border) !important;
+    }
+
+    &.focused {
+      border: 1px solid var(--outline) !important;
+    }
+
+    &:hover:not(.focused):not(.disabled) {
+      border: 1px solid var(--input-hover-border) !important;
+    }
+
+    &.focused {
+      border: 1px solid var(--outline) !important;
+    }
 
     &.labeled-select.focused ::v-deep,
     &.unlabeled-select.focused ::v-deep {
       outline: none;
     }
 
+    &.labeled-select:not(.disabled):not(.view) ::v-deep,
+    &.unlabeled-select:not(.disabled):not(.view) ::v-deep {
+      border: solid 1px var(--input-border);
+    }
+
     &.labeled-select ::v-deep,
     &.unlabeled-select ::v-deep {
       box-shadow: none;
       width: 20%;
-      border: solid 1px var(--input-border);
       margin-right: 1px; // push the input box right so the full focus outline of the select can be seen, z-index borks
       // position: relative;
 
@@ -244,9 +292,15 @@ export default {
         }
       }
 
-      .vs__dropdown-toggle {
-        color: var(--primary) !important;
-        border-radius: var(--border-radius) 0 0 var(--border-radius);
+      .v-select:not(.vs--disabled) {
+        .vs__dropdown-toggle {
+          border-radius: var(--border-radius) 0 0 var(--border-radius);
+        }
+        &.vs--open {
+          .vs__dropdown-toggle {
+            color: var(--outline) !important;
+          }
+        }
       }
     }
   }

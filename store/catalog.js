@@ -603,6 +603,7 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
 }
 
 export function filterAndArrangeCharts(charts, {
+  clusterProvider = '',
   operatingSystems,
   category,
   searchQuery,
@@ -621,7 +622,9 @@ export function filterAndArrangeCharts(charts, {
       ( hideRepos?.length && hideRepos.includes(c.repoKey) ) ||
       ( showRepos?.length && !showRepos.includes(c.repoKey) ) ||
       ( hideTypes?.length && hideTypes.includes(c.chartType) ) ||
-      ( showTypes?.length && !showTypes.includes(c.chartType) ) ) {
+      ( showTypes?.length && !showTypes.includes(c.chartType) ) ||
+      (c.chartName === 'rancher-wins-upgrader' && clusterProvider === 'rke2')
+    ) {
       return false;
     }
 

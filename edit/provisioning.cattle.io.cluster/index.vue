@@ -5,7 +5,9 @@ import CruResource from '@/components/CruResource';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import EmberPage from '@/components/EmberPage';
 import ToggleSwitch from '@/components/form/ToggleSwitch';
-import { CHART, FROM_CLUSTER, SUB_TYPE, _IMPORT } from '@/config/query-params';
+import {
+  CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT
+} from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
@@ -79,8 +81,8 @@ export default {
       hash.nodeDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     }
 
-    if (this.$store.getters[`management/canList`](MANAGEMENT.KONTANIER_DRIVER)) {
-      hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTANIER_DRIVER });
+    if (this.$store.getters[`management/canList`](MANAGEMENT.KONTAINER_DRIVER)) {
+      hash.kontainerDrivers = this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
     }
 
     if ( this.value.id && !this.value.isRke2 ) {
@@ -152,35 +154,42 @@ export default {
     _RKE2:                () => _RKE2,
 
     emberLink() {
-      // Explicitly asked from query string?
-      if ( this.subType ) {
-        // For RKE1 and hosted Kubernetes Clusters, set the ember link so that we load the page rather than using RKE2 create
-        const selected = this.subTypes.find(s => s.id === this.subType);
+      if (this.value) {
+        // For custom RKE2 clusters, don't load an Ember page.
+        // It should be the dashboard.
+        if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.subType || '').toLowerCase() === 'custom')) {
+          // For admins, this.value.isCustom is used to check if it is a custom cluster.
+          // For cluster owners, this.subtype is used.
+          this.selectType('custom', false);
 
-        if (selected?.link) {
-          return selected.link;
+          return '';
+        }
+        // For RKE2/K3s clusters provisioned in Rancher with node pools,
+        // do not use an iFramed Ember page.
+        if ( this.value.isRke2 && this.value.machineProvider ) {
+          // Edit existing RKE2
+          this.selectType(this.value.machineProvider, false);
+
+          return '';
+        }
+        if ( this.subType ) {
+          // For RKE1 and hosted Kubernetes Clusters, set the ember link
+          // so that we load the page rather than using RKE2 create
+          const selected = this.subTypes.find(s => s.id === this.subType);
+
+          if (selected?.link) {
+            return selected.link;
+          }
+
+          this.selectType(this.subType, false);
+
+          return '';
         }
 
-        this.selectType(this.subType, false);
-
-        // } else if ( this.value.isImported ) {
-        //   // Edit exiting import
-        //   this.isImport = true;
-        //   this.selectType('import', false);
-        return '';
-      } else if ( this.value.isRke2 && this.value.isCustom ) {
-        // Edit exiting custom
-        this.selectType('custom', false);
-
-        return '';
-      } else if ( this.value.isRke2 && this.value.machineProvider ) {
-        // Edit exiting RKE2
-        this.selectType(this.value.machineProvider, false);
-
-        return '';
-      } else if ( this.value.mgmt?.emberEditPath ) {
-        // Iframe an old page
-        return this.value.mgmt.emberEditPath;
+        if ( this.value.mgmt?.emberEditPath ) {
+          // Iframe an old page
+          return this.value.mgmt.emberEditPath;
+        }
       }
 
       return '';
@@ -279,8 +288,7 @@ export default {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const techPreview = getters['i18n/t']('generic.techPreview');
-        const isTechPreview = group === 'rke2' || group === 'custom2';
-        let tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
+        let tag = '';
 
         // Always prefer the built-in icon if there is one
         let icon;
@@ -438,6 +446,7 @@ export default {
     :errors="errors"
     :subtypes="subTypes"
     :cancel-event="true"
+    class="create-cluster"
     @finish="save"
     @cancel="cancel"
     @select-type="selectType"

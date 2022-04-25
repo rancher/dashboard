@@ -72,7 +72,7 @@ export default {
 
   computed: {
     hasWindowsNodes() {
-      return this.kubeNodes.some(node => node.status.nodeInfo.operatingSystem === 'windows');
+      return (this.kubeNodes || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
     },
     tableGroup: mapPref(GROUP_RESOURCES),
 
@@ -85,20 +85,24 @@ export default {
         INTERNAL_EXTERNAL_IP,
         {
           ...KUBE_NODE_OS,
-          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+          getValue:   row => row.status?.nodeInfo?.operatingSystem
         },
         {
           ...CPU,
-          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+          getValue:   row => row.cpuUsagePercentage
         }, {
           ...RAM,
-          breakpoint: COLUMN_BREAKPOINTS.LAPTOP
+          breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
+          getValue:   row => row.ramUsagePercentage
         }];
 
       if (this.canViewPods) {
         headers.push({
           ...PODS,
-          breakpoint: COLUMN_BREAKPOINTS.DESKTOP
+          breakpoint: COLUMN_BREAKPOINTS.DESKTOP,
+          getValue:   row => row.podConsumedUsage
         });
       }
       headers.push(AGE);

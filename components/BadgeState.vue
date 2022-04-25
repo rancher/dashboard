@@ -58,7 +58,7 @@ export default {
   </span>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .badge-state {
     align-items: center;
     display: inline-flex;
@@ -85,7 +85,8 @@ export default {
       border-color: var(--success);
     }
   }
-
+</style>
+<style lang="scss">
   .sortable-table TD .badge-state {
     @include clip;
     display: inline-block;

@@ -92,7 +92,7 @@ export default {
 
     hide() {
       if ( this.tabs.length ) {
-        document.documentElement.style.setProperty('--wm-height', `calc(var(--wm-tab-height) + 2px)`);
+        document.documentElement.style.setProperty('--wm-height', `calc(var(--wm-tab-height, 29px) + 2px)`);
       } else {
         document.documentElement.style.setProperty('--wm-height', '0');
       }
@@ -111,6 +111,7 @@ export default {
       doc.addEventListener('touchstart', this.dragEnd, true);
 
       const eventY = event.screenY;
+
       const rect = boundingRect(event.target);
       const offset = eventY - rect.top;
 

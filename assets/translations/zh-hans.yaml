@@ -2030,7 +2030,7 @@ hpa:
       targetName: 目标名称
       value: 值
     source: 源
-  objectReferance:
+  objectReference:
     api:
       label: 引用的 API 版本
       placeholder: 例如：apps/v1beta1
@@ -5439,7 +5439,7 @@ harvester:
     PhysicalNic: 物理网卡
     cpu: CPU
     memory: 内存
-    virtaulName: 虚拟机名称
+    virtualName: 虚拟机名称
     promiscuous: Promiscuous
     ipv4Address: IPv4 地址
   generic:
@@ -5502,6 +5502,7 @@ harvester:
     version: 版本
   host:
     label: 主机
+    inconsistentIP: "主机IP不一致, 当前IP: { currentIP }, 初始化IP: { initIP }"
     promote:
       none: ' '
       running: 角色升级中
@@ -5610,6 +5611,7 @@ harvester:
         拔出卷
     restartTip: 重启虚拟机以使配置更改生效。
     createRunning: 创建后启动虚拟机
+    runStrategy: 虚拟机运行策略
     restartNow: 现在重启
     createSSHKey: 创建 SSH 密钥
     installAgent: 安装访客代理
@@ -5618,6 +5620,7 @@ harvester:
     sshTitle: 添加 SSH 公钥
     imageTip: 创建虚拟机所需的.iso，.img，.qcow2或.raw外部镜像地址
     efiEnabled: EFI 模式下启动
+    secureBoot: 安全启动
     volume:
       dragTip: 拖放卷或使用卷的箭头来更改引导顺序。
       volumeTip: 虚拟机仅包含一个 cd-rom 卷。你可能想要添加额外的磁盘卷。
@@ -5826,15 +5829,15 @@ harvester:
       noSetting:
         prefix: 在创建新备份之前, 必须在
         middle: '设置'
-        suffic: 中配置备份目标。
+        suffix: 中配置备份目标。
       errorTip:
         prefix: 非法的备份目标
         middle: 设置
-        suffic: "。错误信息： "
+        suffix: "。错误信息： "
       viewSetting:
         prefix: 点击
         middle: 此处
-        suffic: 查看备份配置。
+        suffix: 查看备份配置。
     restore:
       backup: 备份
       deletePreviousVolumes: 删除先前的卷
@@ -5853,15 +5856,15 @@ harvester:
       premise:
         prefix: '你需要先进行网络'
         middle: '设置'
-        suffic: '然后才能创建新网络。'
+        suffix: '然后才能创建新网络。'
       viewSetting:
         prefix: 点击
         middle: 此处
-        suffic: 查看默认集群网络配置。
+        suffix: 查看默认集群网络配置。
       errorTip:
         prefix: 非法的物理网卡
         middle: 设置
-        suffic: "。错误信息： "
+        suffix: "。错误信息： "
     layer3Network:
       mode:
         label: 模式
@@ -5896,7 +5899,7 @@ harvester:
       ca:
         prefix: '点击'
         middle: '此处'
-        suffic: '添加自定义证书。'
+        suffix: '添加自定义证书。'
     sslCertificates:
       publicCertificate: 公共证书
       privateKey: 私钥
@@ -5915,6 +5918,9 @@ harvester:
       checksum: 校验和
     harvesterMonitoring:
       label: Harvester Monitoring
+      section:
+        prometheus: Prometheus 配置
+        prometheusNodeExporter: Prometheus 节点资源采集配置
       tips:
         scrape: 每次采集数据的间隔时间
         evaluation: 每次评估规则的间隔时间
@@ -6295,6 +6301,11 @@ typeLabel:
       other { 主机 }
     }
   k8s.cni.cncf.io.networkattachmentdefinition: |-
+    {count, plural,
+      one { 网络 }
+      other { 网络 }
+    }
+  harvesterhci.io.networkattachmentdefinition: |-
     {count, plural,
       one { 网络 }
       other { 网络 }

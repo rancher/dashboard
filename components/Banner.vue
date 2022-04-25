@@ -20,6 +20,10 @@ export default Vue.extend({
     closable: {
       type:    Boolean,
       default: false,
+    },
+    stacked: {
+      type:    Boolean,
+      default: false,
     }
   },
   computed: {
@@ -34,7 +38,14 @@ export default Vue.extend({
 });
 </script>
 <template>
-  <div class="banner" :class="{[color]: true, closable}">
+  <div
+    class="banner"
+    :class="{
+      [color]: true,
+      closable,
+      stacked
+    }"
+  >
     <slot>
       <t v-if="labelKey" :k="labelKey" :raw="true" />
       <span v-else-if="messageLabel">{{ messageLabel }}</span>
@@ -56,6 +67,19 @@ export default Vue.extend({
     transition: all 0.2s ease;
     position: relative;
     line-height: 20px;
+
+    &.stacked {
+      padding: 0 10px;
+      margin: 0;
+      transition: none;
+
+      &:first-child {
+        padding-top: 10px;
+      }
+      &:last-child {
+        padding-bottom: 10px;
+      }
+    }
 
     &.closable {
       padding-right: 40px;

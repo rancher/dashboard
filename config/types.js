@@ -59,6 +59,7 @@ export const SECRET = 'secret';
 export const SERVICE_ACCOUNT = 'serviceaccount';
 export const STORAGE_CLASS = 'storage.k8s.io.storageclass';
 export const OBJECT_META = 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta';
+export const NETWORK_ATTACHMENT = 'k8s.cni.cncf.io.networkattachmentdefinition';
 
 export const RBAC = {
   ROLE:                 'rbac.authorization.k8s.io.role',
@@ -98,25 +99,30 @@ export const CATALOG = {
   REPO:           'catalog.cattle.io.repo',
 };
 
+export const HELM = { PROJECTHELMCHART: 'helm.cattle.io.projecthelmchart' };
+
 export const MONITORING = {
-  ALERTMANAGER:   'monitoring.coreos.com.alertmanager',
-  PODMONITOR:     'monitoring.coreos.com.podmonitor',
-  PROMETHEUS:     'monitoring.coreos.com.prometheus',
-  PROMETHEUSRULE: 'monitoring.coreos.com.prometheusrule',
-  SERVICEMONITOR: 'monitoring.coreos.com.servicemonitor',
-  THANOSRULER:    'monitoring.coreos.com.thanosruler',
-  SPOOFED:        {
-    RECEIVER:             'monitoring.coreos.com.receiver',
-    RECEIVER_SPEC:        'monitoring.coreos.com.receiver.spec',
-    RECEIVER_EMAIL:       'monitoring.coreos.com.receiver.email',
-    RECEIVER_SLACK:       'monitoring.coreos.com.receiver.slack',
-    RECEIVER_WEBHOOK:     'monitoring.coreos.com.receiver.webhook',
-    RECEIVER_PAGERDUTY:   'monitoring.coreos.com.receiver.pagerduty',
-    RECEIVER_OPSGENIE:    'monitoring.coreos.com.receiver.opsgenie',
-    RECEIVER_HTTP_CONFIG: 'monitoring.coreos.com.receiver.httpconfig',
-    RESPONDER:            'monitoring.coreos.com.receiver.responder',
-    ROUTE:                'monitoring.coreos.com.route',
-    ROUTE_SPEC:           'monitoring.coreos.com.route.spec',
+  ALERTMANAGER:       'monitoring.coreos.com.alertmanager',
+  ALERTMANAGERCONFIG: 'monitoring.coreos.com.alertmanagerconfig',
+  PODMONITOR:         'monitoring.coreos.com.podmonitor',
+  PROMETHEUS:         'monitoring.coreos.com.prometheus',
+  PROMETHEUSRULE:     'monitoring.coreos.com.prometheusrule',
+  SERVICEMONITOR:     'monitoring.coreos.com.servicemonitor',
+  THANOSRULER:        'monitoring.coreos.com.thanosruler',
+  SPOOFED:            {
+    RECEIVER:                         'monitoring.coreos.com.receiver',
+    RECEIVER_SPEC:                    'monitoring.coreos.com.receiver.spec',
+    RECEIVER_EMAIL:                   'monitoring.coreos.com.receiver.email',
+    RECEIVER_SLACK:                   'monitoring.coreos.com.receiver.slack',
+    RECEIVER_WEBHOOK:                 'monitoring.coreos.com.receiver.webhook',
+    RECEIVER_PAGERDUTY:               'monitoring.coreos.com.receiver.pagerduty',
+    RECEIVER_OPSGENIE:                'monitoring.coreos.com.receiver.opsgenie',
+    RECEIVER_HTTP_CONFIG:             'monitoring.coreos.com.receiver.httpconfig',
+    RESPONDER:                        'monitoring.coreos.com.receiver.responder',
+    ROUTE:                            'monitoring.coreos.com.route',
+    ROUTE_SPEC:                       'monitoring.coreos.com.route.spec',
+    ALERTMANAGERCONFIG_RECEIVER_SPEC:       'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers',
+    ALERTMANAGERCONFIG_ROUTE_SPEC:          'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route'
   }
 };
 
@@ -145,7 +151,7 @@ export const MANAGEMENT = {
   CLUSTER_ROLE_TEMPLATE_BINDING: 'management.cattle.io.clusterroletemplatebinding',
   FEATURE:                       'management.cattle.io.feature',
   // GROUP:                         'management.cattle.io.group',
-  KONTANIER_DRIVER:              'management.cattle.io.kontainerdriver',
+  KONTAINER_DRIVER:              'management.cattle.io.kontainerdriver',
   MULTI_CLUSTER_APP:             'management.cattle.io.multiclusterapp',
   NODE:                          'management.cattle.io.node',
   NODE_DRIVER:                   'management.cattle.io.nodedriver',
@@ -271,7 +277,7 @@ export const HCI = {
   NODE_NETWORK:       'network.harvesterhci.io.nodenetwork',
   CLUSTER_NETWORK:    'network.harvesterhci.io.clusternetwork',
   SUPPORT_BUNDLE:     'harvesterhci.io.supportbundle',
-  NETWORK_ATTACHMENT: 'k8s.cni.cncf.io.networkattachmentdefinition',
+  NETWORK_ATTACHMENT: 'harvesterhci.io.networkattachmentdefinition',
   CLUSTER:            'harvesterhci.io.management.cluster',
   DASHBOARD:          'harvesterhci.io.dashboard',
   BLOCK_DEVICE:       'harvesterhci.io.blockdevice',

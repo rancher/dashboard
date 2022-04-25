@@ -92,15 +92,33 @@ export default {
 <template>
   <div>
     <div>
-      <ArrayListGrouped v-model="templates" class="mb-20" @input="update()">
+      <ArrayListGrouped
+        v-model="templates"
+        class="mb-20"
+        @input="update()"
+      >
         <template #default="props">
           <div class="bordered-section">
-            <PersistentVolumeClaim v-if="props.row.value.metadata" :value="props.row.value" :mode="mode" @input="updatePVC(props.row.value)" />
+            <PersistentVolumeClaim
+              v-if="props.row.value.metadata"
+              :value="props.row.value"
+              :mode="mode"
+              @input="updatePVC(props.row.value)"
+            />
           </div>
-          <Mount :pod-spec="value.template.spec" :name="props.row.value.metadata.name" :mode="mode" :container="value.template.spec.containers[0]" />
+          <Mount
+            :name="props.row.value.metadata.name"
+            :mode="mode"
+            :container="value.template.spec.containers[0]"
+          />
         </template>
         <template #add>
-          <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addPVC">
+          <button
+            v-if="!isView"
+            type="button"
+            class="btn role-tertiary add"
+            @click="addPVC"
+          >
             {{ t('volumeClaimTemplate.add.label') }}
           </button>
         </template>

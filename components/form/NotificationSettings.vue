@@ -40,9 +40,16 @@ export default ({
           <div class="col span-12">
             <LabeledInput
               v-model="value.message"
+              <<<<<<<
+              h-e-a-d
               :disabled="value.showMessage === 'false' || disabled"
+              =="====="
+              :disabled="value.showMessage === 'false'"
+            >
+              >>>>>> master
               :label="t('notifications.loginError.messageLabel')"
-            />
+              />
+            </labeledinput>
           </div>
         </div>
       </div>

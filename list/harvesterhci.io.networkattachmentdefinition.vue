@@ -5,10 +5,20 @@ import MessageLink from '@/components/MessageLink';
 import ResourceTable from '@/components/ResourceTable';
 
 import { NAME, AGE, NAMESPACE } from '@/config/table-headers';
-import { HCI } from '@/config/types';
+import { HCI, NETWORK_ATTACHMENT, SCHEMA } from '@/config/types';
 
 import { findBy } from '@/utils/array';
 import { allHash } from '@/utils/promise';
+
+const schema = {
+  id:         HCI.NETWORK_ATTACHMENT,
+  type:       SCHEMA,
+  attributes: {
+    kind:       HCI.NETWORK_ATTACHMENT,
+    namespaced: true
+  },
+  metadata: { name: HCI.NETWORK_ATTACHMENT },
+};
 
 export default {
   name:       'HarvesterListNetworks',
@@ -16,18 +26,11 @@ export default {
     ResourceTable, Banner, Loading, MessageLink
   },
 
-  props: {
-    schema: {
-      type:     Object,
-      required: true,
-    }
-  },
-
   async fetch() {
     const currentCluster = this.$store.getters['currentCluster'];
     const storeName = currentCluster.isHarvester ? 'harvester' : 'cluster';
 
-    const _hash = { rows: this.$store.dispatch(`${ storeName }/findAll`, { type: HCI.NETWORK_ATTACHMENT }) };
+    const _hash = { rows: this.$store.dispatch(`${ storeName }/findAll`, { type: NETWORK_ATTACHMENT }) };
 
     if (this.$store.getters[`${ storeName }/schemaFor`](HCI.NODE_NETWORK)) {
       _hash.hostNetworks = this.$store.dispatch(`${ storeName }/findAll`, { type: HCI.NODE_NETWORK });
@@ -84,6 +87,10 @@ export default {
       ];
     },
 
+    schema() {
+      return schema;
+    },
+
     isVlanDisable() {
       const vlan = findBy((this.clusterNetworkSetting || []), 'metadata.name', 'vlan') || {};
 
@@ -99,6 +106,11 @@ export default {
 
       return notReadyCrd.map( O => O.linkMessage);
     },
+
+  },
+
+  typeDisplay() {
+    return this.$store.getters['type-map/labelFor'](schema, 99);
   },
 };
 </script>
@@ -112,7 +124,7 @@ export default {
           :to="to"
           prefix-label="harvester.network.message.premise.prefix"
           middle-label="harvester.network.message.premise.middle"
-          suffic-label="harvester.network.message.premise.suffic"
+          suffix-label="harvester.network.message.premise.suffix"
         />
       </Banner>
     </template>
@@ -123,7 +135,7 @@ export default {
           :to="to"
           prefix-label="harvester.network.message.viewSetting.prefix"
           middle-label="harvester.network.message.viewSetting.middle"
-          suffic-label="harvester.network.message.viewSetting.suffic"
+          suffix-label="harvester.network.message.viewSetting.suffix"
         />
       </Banner>
     </template>

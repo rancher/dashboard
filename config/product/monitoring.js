@@ -1,7 +1,7 @@
 import { DSL, IF_HAVE } from '@/store/type-map';
-import { MONITORING } from '@/config/types';
+import { MONITORING, HELM } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, RECEIVER_PROVIDERS, CONFIGURED_RECEIVER
+  STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, RECEIVER_PROVIDERS, CONFIGURED_RECEIVER
 } from '@/config/table-headers';
 import { getAllReceivers, getAllRoutes } from '@/utils/alertmanagerconfig';
 
@@ -19,8 +19,10 @@ export function init(store) {
     weightType,
     configureType,
   } = DSL(store, NAME);
+  const { PROJECTHELMCHART } = HELM;
   const {
     ALERTMANAGER,
+    ALERTMANAGERCONFIG,
     SERVICEMONITOR,
     PODMONITOR,
     PROMETHEUSRULE,
@@ -175,7 +177,8 @@ export function init(store) {
     group:         'monitoring',
     name:     'route-receiver',
     icon:     'globe',
-    route: { name: 'c-cluster-monitoring-route-receiver' }
+    route:  { name: 'c-cluster-monitoring-route-receiver' },
+    weight: 1
   });
 
   virtualType({
@@ -183,7 +186,8 @@ export function init(store) {
     group:         'monitoring',
     name:     'monitor',
     icon:     'globe',
-    route: { name: 'c-cluster-monitoring-monitor' }
+    route:  { name: 'c-cluster-monitoring-monitor' },
+    weight:         1,
   });
 
   configureType('route-receiver', { showListMasthead: false });
@@ -192,23 +196,31 @@ export function init(store) {
   basicType([
     'monitoring-overview',
     'monitor',
-    'route-receiver',
+    PROJECTHELMCHART,
   ]);
 
   basicType([
+    ALERTMANAGERCONFIG,
+    'route-receiver',
+  ], 'Alerting');
+
+  basicType([
     PROMETHEUSRULE,
-    ALERTMANAGER,
     PROMETHEUS
   ], 'Advanced');
 
   mapType(SERVICEMONITOR, store.getters['i18n/t'](`typeLabel.${ SERVICEMONITOR }`, { count: 2 }));
+  mapType(PROJECTHELMCHART, store.getters['i18n/t'](`typeLabel.${ PROJECTHELMCHART }`, { count: 2 }));
   mapType(PODMONITOR, store.getters['i18n/t'](`typeLabel.${ PODMONITOR }`, { count: 2 }));
   mapType(PROMETHEUSRULE, store.getters['i18n/t'](`typeLabel.${ PROMETHEUSRULE }`, { count: 2 }));
-  mapType(ALERTMANAGER, store.getters['i18n/t'](`typeLabel.${ ALERTMANAGER }`, { count: 2 }));
+  mapType(ALERTMANAGERCONFIG, store.getters['i18n/t'](`typeLabel.${ ALERTMANAGERCONFIG }`, { count: 2 }));
   mapType(RECEIVER, store.getters['i18n/t'](`typeLabel.${ RECEIVER }`, { count: 2 }));
   mapType(ROUTE, store.getters['i18n/t'](`typeLabel.${ ROUTE }`, { count: 2 }));
 
-  weightType(SERVICEMONITOR, 104, true);
+  configureType(PROJECTHELMCHART, { showListMasthead: false, showAge: false });
+
+  weightType(ALERTMANAGERCONFIG, 2, true);
+  weightType(SERVICEMONITOR, 105, true);
   weightType(PODMONITOR, 103, true);
   weightType(PROMETHEUSRULE, 102, true);
 
@@ -239,6 +251,33 @@ export function init(store) {
       formatter: 'Number',
     },
     AGE
+  ]);
+
+  headers(PROJECTHELMCHART, [
+    STATE,
+    {
+      name:          'name',
+      labelKey:      'tableHeaders.name',
+      value:         'projectDisplayName',
+      sort:          ['nameSort'],
+      formatter:     'LinkDetail',
+      canBeVariable: true,
+    },
+    {
+      labelKey: 'resourceDetail.masthead.detail',
+      value:    'description',
+    },
+    AGE
+  ]);
+
+  headers(ALERTMANAGERCONFIG, [
+    STATE,
+    NAME_COL,
+    NAMESPACE_COL,
+    {
+      name:     'receivers',
+      labelKey: 'tableHeaders.receivers'
+    },
   ]);
 
   headers(PROMETHEUS, [

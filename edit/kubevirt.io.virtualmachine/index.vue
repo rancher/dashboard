@@ -24,6 +24,7 @@ import AccessCredentials from '@/edit/kubevirt.io.virtualmachine/VirtualMachineA
 import { clear } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { HCI } from '@/config/types';
+import { RunStrategys } from '@/config/harvester-map';
 import { saferDump } from '@/utils/create-yaml';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { cleanForNew } from '@/plugins/steve/normalize';
@@ -78,10 +79,11 @@ export default {
       templateVersionId:     '',
       namePrefix:            '',
       isSingle:              true,
-      isRunning:             true,
+      startVM:               true,
       useTemplate:           false,
       hostname,
       isRestartImmediately,
+      RunStrategys,
     };
   },
 
@@ -141,10 +143,6 @@ export default {
 
     secretNamePrefix() {
       return this.value?.metadata?.name;
-    },
-
-    showRunning() {
-      return !(this.isEdit || this.isView);
     },
 
     isQemuInstalled() {
@@ -311,7 +309,7 @@ export default {
     },
 
     restartVM() {
-      if ( this.mode === 'edit' && this.value.hasAction('restart')) {
+      if ( this.mode === 'edit' && (this.value.hasAction('restart') || this.value.hasAction('start'))) {
         const cloneDeepNewVM = clone(this.value);
 
         delete cloneDeepNewVM?.metadata;
@@ -323,6 +321,10 @@ export default {
         if (!isEqual(oldVM, newVM) && this.isRestartImmediately) {
           this.value.doActionGrowl('restart', {});
         }
+      }
+
+      if (this.startVM && this.value.hasAction('start') && this.isManual) {
+        this.value.doActionGrowl('start', {});
       }
     },
 
@@ -342,7 +344,7 @@ export default {
       }
     },
 
-    validataCount(count) {
+    validateCount(count) {
       if (count > 10) {
         this.$set(this, 'count', 10);
       }
@@ -406,7 +408,7 @@ export default {
             type="number"
             :label="t('harvester.virtualMachine.instance.multiple.count')"
             required
-            @input="validataCount"
+            @input="validateCount"
           />
         </template>
       </NameNsDescription>
@@ -490,19 +492,19 @@ export default {
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledSelect
-                v-model="osType"
-                label-key="harvester.virtualMachine.osType"
-                :options="OS"
-                :disabled="!isCreate"
+                v-model="runStrategy"
+                label-key="harvester.virtualMachine.runStrategy"
+                :options="RunStrategys"
+                :mode="mode"
               />
             </div>
 
             <div class="col span-6">
               <LabeledSelect
-                v-model="machineType"
-                label-key="harvester.virtualMachine.input.MachineType"
-                :options="machineTypeOptions"
-                :mode="mode"
+                v-model="osType"
+                label-key="harvester.virtualMachine.osType"
+                :options="OS"
+                :disabled="!isCreate"
               />
             </div>
           </div>
@@ -512,14 +514,25 @@ export default {
             <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
           </div>
 
-          <div v-if="showAdvanced" class="row mb-20">
-            <div class="col span-6">
-              <LabeledInput
-                v-model="hostname"
-                :label-key="hostnameLabel"
-                :placeholder="hostPlaceholder"
-                :mode="mode"
-              />
+          <div v-if="showAdvanced" class="mb-20">
+            <div class="row">
+              <div class="col span-6">
+                <LabeledInput
+                  v-model="hostname"
+                  :label-key="hostnameLabel"
+                  :placeholder="hostPlaceholder"
+                  :mode="mode"
+                />
+              </div>
+
+              <div class="col span-6">
+                <LabeledSelect
+                  v-model="machineType"
+                  label-key="harvester.virtualMachine.input.MachineType"
+                  :options="machineTypeOptions"
+                  :mode="mode"
+                />
+              </div>
             </div>
 
             <div class="col span-6">
@@ -544,6 +557,7 @@ export default {
             :network-script="networkScript"
             @updateUserData="updateUserData"
             @updateNetworkData="updateNetworkData"
+            @updateDataTemplateId="updateDataTemplateId"
           />
 
           <Checkbox
@@ -562,6 +576,7 @@ export default {
             :disabled="isWindows"
             label-key="harvester.virtualMachine.installAgent"
             :mode="mode"
+            @input="updateAgent"
           />
 
           <Checkbox
@@ -571,13 +586,22 @@ export default {
             :label="t('harvester.virtualMachine.efiEnabled')"
             :mode="mode"
           />
+
+          <Checkbox
+            v-if="efiEnabled"
+            v-model="secureBoot"
+            class="check"
+            type="checkbox"
+            :label="t('harvester.virtualMachine.secureBoot')"
+            :mode="mode"
+          />
         </Tab>
       </Tabbed>
 
       <div class="mt-20">
         <Checkbox
-          v-if="showRunning"
-          v-model="isRunning"
+          v-if="isCreate && isManual"
+          v-model="startVM"
           class="check mb-20"
           type="checkbox"
           label-key="harvester.virtualMachine.createRunning"

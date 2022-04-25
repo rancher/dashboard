@@ -48,7 +48,7 @@ export default {
       ];
     },
 
-    filterdRows() {
+    filteredRows() {
       return this.rows.filter(r => !!r.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT]);
     },
 
@@ -71,7 +71,7 @@ export default {
     :headers="headers"
     :groupable="true"
     :schema="schema"
-    :rows="filterdRows"
+    :rows="filteredRows"
     key-field="_key"
     v-on="$listeners"
   />

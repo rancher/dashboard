@@ -4,6 +4,8 @@ import isEmpty from 'lodash/isEmpty';
 import DetailText from '@/components/DetailText';
 import { _VIEW } from '@/config/query-params';
 
+export const SEPARATOR = { separator: true };
+
 export default {
   components: { DetailText, Tag },
 
@@ -32,11 +34,37 @@ export default {
   },
 
   computed: {
+    namespaces() {
+      return (this.value?.namespaces || []).map((namespace) => {
+        return {
+          name:           namespace?.metadata?.name,
+          detailLocation: namespace.detailLocation
+        };
+      });
+    },
     details() {
-      return [
+      const items = [
         ...(this.moreDetails || []),
         ...(this.value?.details || []),
-      ].filter(x => !!`${ x.content }` && x.content !== undefined && x.content !== null);
+      ].filter(x => x.separator || (!!`${ x.content }` && x.content !== undefined && x.content !== null));
+
+      const groups = [];
+      let currentGroup = [];
+
+      items.forEach((i) => {
+        if (i.separator) {
+          groups.push(currentGroup);
+          currentGroup = [];
+        } else {
+          currentGroup.push(i);
+        }
+      });
+
+      if (currentGroup.length) {
+        groups.push(currentGroup);
+      }
+
+      return groups;
     },
 
     labels() {
@@ -71,12 +99,16 @@ export default {
       return !isEmpty(this.description);
     },
 
+    hasNamespaces() {
+      return !isEmpty(this.namespaces);
+    },
+
     annotationCount() {
       return Object.keys(this.annotations || {}).length;
     },
 
     isEmpty() {
-      const hasAnything = this.hasDetails || this.hasLabels || this.hasAnnotations || this.hasDescription;
+      const hasAnything = this.hasDetails || this.hasLabels || this.hasAnnotations || this.hasDescription || this.hasNamespaces;
 
       return !hasAnything;
     },
@@ -99,6 +131,17 @@ export default {
 
 <template>
   <div class="detail-top" :class="{empty: isEmpty}">
+    <div v-if="hasNamespaces" class="labels">
+      <span class="label">
+        {{ t('resourceDetail.detailTop.namespaces') }}:
+      </span>
+      <span>
+        <nuxt-link v-for="namespace in namespaces" :key="namespace.name" :to="namespace.detailLocation" class="namespaceLinkList">
+          {{ namespace.name }}
+        </nuxt-link>
+      </span>
+    </div>
+
     <div v-if="description" class="description">
       <span class="label">
         {{ t('resourceDetail.detailTop.description') }}:
@@ -106,18 +149,20 @@ export default {
       <span class="content">{{ description }}</span>
     </div>
 
-    <div v-if="hasDetails" class="details">
-      <div v-for="detail in details" :key="detail.label || detail.slotName" class="detail">
-        <span class="label">
-          {{ detail.label }}:
-        </span>
-        <component
-          :is="detail.formatter"
-          v-if="detail.formatter"
-          :value="detail.content"
-          v-bind="detail.formatterOpts"
-        />
-        <span v-else>{{ detail.content }}</span>
+    <div v-if="hasDetails">
+      <div v-for="group, index in details" :key="index" class="details">
+        <div v-for="detail in group" :key="detail.label || detail.slotName" class="detail">
+          <span class="label">
+            {{ detail.label }}:
+          </span>
+          <component
+            :is="detail.formatter"
+            v-if="detail.formatter"
+            :value="detail.content"
+            v-bind="detail.formatterOpts"
+          />
+          <span v-else>{{ detail.content }}</span>
+        </div>
       </div>
     </div>
 
@@ -160,6 +205,10 @@ export default {
       margin-top: 10px;
     }
 
+    .namespaceLinkList:not(:first-child):before {
+      content: ", ";
+    }
+
     .tags {
       display: inline-flex;
       flex-direction: row;
@@ -198,6 +247,10 @@ export default {
 
       .detail {
         margin-right: 20px;
+        margin-bottom: 3px;
+      }
+      &:not(:first-of-type) {
+        margin-top: 3px;
       }
     }
 

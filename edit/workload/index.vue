@@ -123,7 +123,8 @@ export default {
 
     this.allSecrets = hash.secrets || [];
     this.allConfigMaps = hash.configMaps || [];
-    this.allNodes = (hash.nodes || []).map(node => node.id);
+    this.allNodeObjects = hash.nodes || [];
+    this.allNodes = this.allNodeObjects.map(node => node.id);
     this.allServices = hash.services || [];
     this.pvcs = hash.pvcs || [];
     this.sas = hash.sas || [];
@@ -172,6 +173,7 @@ export default {
     return {
       allConfigMaps:     [],
       allNodes:          null,
+      allNodeObjects:    [],
       allSecrets:        [],
       allServices:       [],
       name:              this.value?.metadata?.name || null,
@@ -580,7 +582,7 @@ export default {
 
       if (template.spec.containers && template.spec.containers[0]) {
         const containerResources = template.spec.containers[0].resources;
-        const nvidiaGpuLimit = template.spec.containers[0].resources?.limits[GPU_KEY];
+        const nvidiaGpuLimit = template.spec.containers[0].resources?.limits?.[GPU_KEY];
 
         // Though not required, requests are also set to mirror the ember ui
         if (nvidiaGpuLimit > 0) {
@@ -821,7 +823,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
 
-  <form v-else>
+  <form v-else class="filled-height">
     <CruResource
       :validation-passed="true"
       :selected-subtype="type"
@@ -1011,7 +1013,7 @@ export default {
           </template>
         </Tab>
         <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling" :weight="tabWeightMap['podScheduling']">
-          <PodAffinity :mode="mode" :value="podTemplateSpec" />
+          <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" />
         </Tab>
         <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="tabWeightMap['nodeScheduling']">
           <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
