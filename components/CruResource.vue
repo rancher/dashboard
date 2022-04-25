@@ -259,10 +259,6 @@ export default {
       return this.visibleSteps.filter(step => step.ready);
     },
 
-    showSteps() {
-      return this.activeStep.showSteps !== false && this.visibleSteps.length > 1;
-    },
-
     stepsLoaded() {
       return !this.steps?.some(step => step.loading === true);
     },
@@ -601,7 +597,7 @@ export default {
         >
           <slot />
         </div>
-        <slot v-if="!isView" name="form-footer">
+        <slot name="form-footer">
           <CruResourceFooter
             class="cru__footer"
             :mode="mode"
@@ -615,21 +611,23 @@ export default {
             </template>
 
             <template #default>
-              <button
-                v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
-                type="button"
-                class="btn role-secondary"
-                @click="showPreviewYaml"
-              >
-                <t k="cruResource.previewYaml" />
-              </button>
-              <AsyncButton
-                v-if="!showSubtypeSelection"
-                ref="save"
-                :disabled="!canSave"
-                :mode="finishButtonMode || mode"
-                @click="$emit('finish', $event)"
-              />
+              <div v-if="!isView">
+                <button
+                  v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
+                  type="button"
+                  class="btn role-secondary"
+                  @click="showPreviewYaml"
+                >
+                  <t k="cruResource.previewYaml" />
+                </button>
+                <AsyncButton
+                  v-if="!showSubtypeSelection"
+                  ref="save"
+                  :disabled="!canSave"
+                  :mode="finishButtonMode || mode"
+                  @click="$emit('finish', $event)"
+                />
+              </div>
             </template>
           </CruResourceFooter>
         </slot>
