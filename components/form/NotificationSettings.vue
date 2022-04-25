@@ -11,6 +11,11 @@ export default ({
       type:    Object,
       default: () => {}
     },
+
+    disabled: {
+      type:    Boolean,
+      default: true,
+    }
   },
 
   components: { LabeledInput, Checkbox },
@@ -22,6 +27,7 @@ export default ({
     <div class="row mb-20">
       <div class="col span-6">
         <Checkbox
+          :disabled="disabled"
           :value="value.showMessage === 'true'"
           :label="t('notifications.loginError.showCheckboxLabel')"
           @input="e=>$set(value, 'showMessage', e.toString())"
@@ -34,7 +40,7 @@ export default ({
           <div class="col span-12">
             <LabeledInput
               v-model="value.message"
-              :disabled="value.showMessage === 'false'"
+              :disabled="value.showMessage === 'false' || disabled"
               :label="t('notifications.loginError.messageLabel')"
             />
           </div>

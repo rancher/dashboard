@@ -6527,7 +6527,7 @@ notifications:
   header: Custom notifications
   menuLabel: 'Custom Notifications'
   loginError:
-    header: Custom Error Messages
+    header: Login Failed Banner
     showCheckboxLabel: Show custom login error 
     messageLabel: Text to display
 resourceQuota:
