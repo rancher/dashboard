@@ -1,7 +1,7 @@
 import { DSL, IF_HAVE } from '@/store/type-map';
 import { MONITORING, HELM } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, RECEIVER_PROVIDERS, CONFIGURED_RECEIVER
+  STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, RECEIVER_PROVIDERS, CONFIGURED_RECEIVER
 } from '@/config/table-headers';
 import { getAllReceivers, getAllRoutes } from '@/utils/alertmanagerconfig';
 
@@ -23,7 +23,6 @@ export function init(store) {
   const {
     ALERTMANAGER,
     ALERTMANAGERCONFIG,
-    NAMESPACE,
     SERVICEMONITOR,
     PODMONITOR,
     PROMETHEUSRULE,
@@ -274,7 +273,7 @@ export function init(store) {
   headers(ALERTMANAGERCONFIG, [
     STATE,
     NAME_COL,
-    NAMESPACE,
+    NAMESPACE_COL,
     {
       name:     'receivers',
       labelKey: 'tableHeaders.receivers'
