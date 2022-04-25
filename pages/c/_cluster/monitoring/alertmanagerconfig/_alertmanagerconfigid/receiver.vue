@@ -158,11 +158,11 @@ export default {
     heading() {
       switch (this.$route.query.mode) {
       case this.create:
-        return 'Create Receiver in AlertmanagerConfig';
+        return this.t('monitoring.alertmanagerConfig.receiverFormNames.create');
       case this.edit:
-        return 'Edit Receiver in AlertmanagerConfig';
+        return this.t('monitoring.alertmanagerConfig.receiverFormNames.edit');
       default:
-        return 'Receiver in AlertmanagerConfig';
+        return this.t('monitoring.alertmanagerConfig.receiverFormNames.detail');
       }
     },
   },

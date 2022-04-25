@@ -2801,6 +2801,11 @@ monitoring:
     empty: Alerts have not been configured for any accessible namespaces.
     getStarted: Get started by clicking Create to configure an alert.
     receiverTooltip: Must match the name of a receiver defined in the same AlertmanagerConfig.
+    deprecationWarning: The Route and Receiver resources are deprecated. We recommend configuring alerts in AlertmanagerConfigs.
+    receiverFormNames:
+      create: Create Receiver in AlertmanagerConfig
+      edit: Edit Receiver in AlertmanagerConfig
+      detail: Receiver in AlertmanagerConfig
   installSteps:
     uninstallV1:
       stepTitle: Uninstall V1
