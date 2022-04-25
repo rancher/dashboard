@@ -6,10 +6,11 @@ import CreateEditView from '@/mixins/create-edit-view';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Checkbox from '@/components/form/Checkbox';
 
 export default {
   components: {
-    Loading, Banner, LabeledSelect
+    Loading, Banner, LabeledSelect, Checkbox
   },
 
   mixins: [CreateEditView],
@@ -169,6 +170,15 @@ export default {
           :required="true"
           :disabled="disabled"
           label="OS Image"
+        />
+      </div>
+      <div class="col span-6 pt-5">
+        <h3>Additional Linode Options</h3>
+        <Checkbox
+          v-model="value.createPrivateIp"
+          :mode="mode"
+          :disabled="disabled"
+          label="Private Networking"
         />
       </div>
     </div>
