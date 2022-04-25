@@ -183,12 +183,6 @@ export default class User extends HybridModel {
     return true;
   }
 
-  get roles() {
-    console.log('ROLES GET', this.$rootGetters[`management/all`](MANAGEMENT.GLOBAL_ROLE_BINDING));
-
-    return this.$rootGetters[`management/all`](MANAGEMENT.GLOBAL_ROLE_BINDING);
-  }
-
   get norman() {
     return this.$rootGetters['rancher/byId'](NORMAN.USER, this.id);
   }

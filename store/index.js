@@ -537,10 +537,6 @@ export const actions = {
       promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING });
     }
 
-    if ( getters['management/canList'](MANAGEMENT.GLOBAL_ROLE_BINDING) ) {
-      promises['globalRoleBindings'] = dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING });
-    }
-
     if ( getters['management/schemaFor'](NAMESPACE) ) {
       promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE });
     }

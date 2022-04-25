@@ -21,13 +21,11 @@ export function init(store) {
 
   product({
     ifHaveType:             new RegExp(`${ MANAGEMENT.SETTING }|${ MANAGEMENT.FEATURE }`, 'i'),
-    ifHaveVerb:             'PUT',
     inStore:                'management',
     icon:                   'globe',
     removable:              false,
     showClusterSwitcher:    false,
     category:               'configuration',
-    overrideIfHaveVerbFor: ['restricted-admin']
   });
 
   virtualType({
