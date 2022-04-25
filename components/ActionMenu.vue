@@ -136,16 +136,32 @@ export default {
     },
 
     updateStyle() {
-      if ( this.phase === SHOW || this.open ) {
+      if ( this.phase === SHOW && !this.useCustomTargetElement) {
         const menu = $('.menu', this.$el)[0];
-        let elem;
+        const event = this.targetEvent;
+        const elem = this.targetElem;
 
-        if (this.useCustomTargetElement) {
-          elem = this.customTargetElement;
-        } else {
-          elem = this.targetElem;
-        }
+        // If the action menu state is controlled with Vuex,
+        // use the target element and the target event
+        // to position the menu.
+        this.style = fitOnScreen(menu, event || elem, {
+          overlapX:  true,
+          fudgeX:    elem ? 4 : 0,
+          fudgeY:    elem ? 4 : 0,
+          positionX: (elem ? AUTO : CENTER),
+          positionY: AUTO,
+        });
+        this.style.visibility = 'visible';
 
+        return;
+      }
+
+      if ( this.open && this.useCustomTargetElement) {
+        const menu = $('.menu', this.$el)[0];
+        const elem = this.customTargetElement;
+
+        // If the action menu state is controlled with
+        // props, use the target element to position the menu.
         this.style = fitOnScreen(menu, elem, {
           overlapX:  true,
           fudgeX:    elem ? 4 : 0,
@@ -154,9 +170,11 @@ export default {
           positionY: AUTO,
         });
         this.style.visibility = 'visible';
-      } else {
-        this.style = {};
+
+        return;
       }
+
+      this.style = {};
     },
 
     execute(action, event, args) {
