@@ -347,52 +347,50 @@ export default {
 </script>
 
 <template>
-  <div>
-    <SortableTable
-      ref="table"
-      v-bind="$attrs"
-      :headers="_headers"
-      :rows="filteredRows"
-      :loading="loading"
-      :group-by="computedGroupBy"
-      :search="search"
-      :paging="true"
-      :paging-params="pagingParams"
-      :paging-label="pagingLabel"
-      :row-actions="rowActions"
-      :table-actions="_showBulkActions"
-      :overflow-x="overflowX"
-      :overflow-y="overflowY"
-      :get-custom-detail-link="getCustomDetailLink"
-      key-field="_key"
-      :sort-generation-fn="safeSortGenerationFn"
-      v-on="$listeners"
-    >
-      <template v-if="showGrouping" #header-middle>
-        <slot name="more-header-middle" />
-        <ButtonGroup v-model="group" :options="groupOptions" />
-      </template>
+  <SortableTable
+    ref="table"
+    v-bind="$attrs"
+    :headers="_headers"
+    :rows="filteredRows"
+    :loading="loading"
+    :group-by="computedGroupBy"
+    :search="search"
+    :paging="true"
+    :paging-params="pagingParams"
+    :paging-label="pagingLabel"
+    :row-actions="rowActions"
+    :table-actions="_showBulkActions"
+    :overflow-x="overflowX"
+    :overflow-y="overflowY"
+    :get-custom-detail-link="getCustomDetailLink"
+    key-field="_key"
+    :sort-generation-fn="safeSortGenerationFn"
+    v-on="$listeners"
+  >
+    <template v-if="showGrouping" #header-middle>
+      <slot name="more-header-middle" />
+      <ButtonGroup v-model="group" :options="groupOptions" />
+    </template>
 
-      <template v-if="showGrouping" #header-right>
-        <slot name="header-right" />
-      </template>
+    <template v-if="showGrouping" #header-right>
+      <slot name="header-right" />
+    </template>
 
-      <template #group-by="{group: thisGroup}">
-        <div class="group-tab" v-html="thisGroup.ref" />
-      </template>
+    <template #group-by="{group: thisGroup}">
+      <div class="group-tab" v-html="thisGroup.ref" />
+    </template>
 
-      <!-- Pass down templates provided by the caller -->
-      <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-        <slot :name="slot" v-bind="scope" />
-      </template>
+    <!-- Pass down templates provided by the caller -->
+    <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+      <slot :name="slot" v-bind="scope" />
+    </template>
 
-      <template #shortkeys>
-        <button v-shortkey.once="['enter']" class="hide detail" @shortkey="keyAction('detail')" />
-        <button v-shortkey.once="['e']" class="hide" @shortkey="keyAction('edit')" />
-        <button v-shortkey.once="['y']" class="hide" @shortkey="keyAction('yaml')" />
-        <button v-if="_showBulkActions" v-shortkey.once="['del']" class="hide" @shortkey="keyAction('remove')" />
-        <button v-if="_showBulkActions" v-shortkey.once="['backspace']" class="hide" @shortkey="keyAction('remove')" />
-      </template>
-    </SortableTable>
-  </div>
+    <template #shortkeys>
+      <button v-shortkey.once="['enter']" class="hide detail" @shortkey="keyAction('detail')" />
+      <button v-shortkey.once="['e']" class="hide" @shortkey="keyAction('edit')" />
+      <button v-shortkey.once="['y']" class="hide" @shortkey="keyAction('yaml')" />
+      <button v-if="_showBulkActions" v-shortkey.once="['del']" class="hide" @shortkey="keyAction('remove')" />
+      <button v-if="_showBulkActions" v-shortkey.once="['backspace']" class="hide" @shortkey="keyAction('remove')" />
+    </template>
+  </SortableTable>
 </template>

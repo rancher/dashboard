@@ -1,4 +1,4 @@
-import { MANAGEMENT, NORMAN } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import HybridModel from '@/plugins/steve/hybrid-class';
 
 export default class User extends HybridModel {

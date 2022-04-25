@@ -20,12 +20,12 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveType:             new RegExp(`${ MANAGEMENT.SETTING }|${ MANAGEMENT.FEATURE }`, 'i'),
-    inStore:                'management',
-    icon:                   'globe',
-    removable:              false,
-    showClusterSwitcher:    false,
-    category:               'configuration',
+    ifHaveType:          new RegExp(`${ MANAGEMENT.SETTING }|${ MANAGEMENT.FEATURE }`, 'i'),
+    inStore:             'management',
+    icon:                'globe',
+    removable:           false,
+    showClusterSwitcher: false,
+    category:            'configuration',
   });
 
   virtualType({
