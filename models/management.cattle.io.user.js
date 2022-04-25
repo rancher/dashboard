@@ -1,4 +1,4 @@
-import { NORMAN } from '@/config/types';
+import { MANAGEMENT, NORMAN } from '@/config/types';
 import HybridModel from '@/plugins/steve/hybrid-class';
 
 export default class User extends HybridModel {
@@ -181,6 +181,12 @@ export default class User extends HybridModel {
 
   get confirmRemove() {
     return true;
+  }
+
+  get roles() {
+    console.log('ROLES GET', this.$rootGetters[`management/all`](MANAGEMENT.GLOBAL_ROLE_BINDING));
+
+    return this.$rootGetters[`management/all`](MANAGEMENT.GLOBAL_ROLE_BINDING);
   }
 
   get norman() {
