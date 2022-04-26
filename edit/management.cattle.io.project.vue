@@ -1,5 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
+import isEmpty from 'lodash/isEmpty';
+import { allHash } from '@/utils/promise';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
@@ -14,7 +16,6 @@ import { MANAGEMENT } from '@/config/types';
 import { NAME } from '@/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@/config/query-params';
 import ProjectMembershipEditor from '@/components/form/Members/ProjectMembershipEditor';
-import { canViewProjectMembershipEditor } from '@/components/form/Members/ProjectMembershipEditor.vue';
 import { NAME as HARVESTER } from '@/config/product/harvester';
 import Banner from '@/components/Banner';
 
@@ -28,12 +29,34 @@ export default {
     if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
       this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
     }
+
+    const hash = await allHash({
+      allProjectRoles: this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING }),
+      roleTemplates:   this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE }),
+      norman:          this.value.norman,
+      user:            this.$store.getters['auth/v3User']
+    });
+
+    if (!isEmpty(hash.allProjectRoles)) {
+      this.allProjectRoles = hash.allProjectRoles;
+    }
+
+    if (!isEmpty(hash.norman)) {
+      this.norman = hash.norman;
+    }
+
+    if (!isEmpty(hash.user)) {
+      this.user = hash.user;
+    }
   },
   data() {
     this.$set(this.value, 'spec', this.value.spec || {});
     this.$set(this.value.spec, 'podSecurityPolicyTemplateId', this.value.status?.podSecurityPolicyTemplateId || '');
 
     return {
+      norman:                           undefined,
+      user:                             undefined,
+      allProjectRoles:                  [],
       allPSPs:                          [],
       projectRoleTemplateBindingSchema:         this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
       createLocation:                   {
@@ -55,8 +78,35 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
 
-    canViewMembers() {
-      return canViewProjectMembershipEditor(this.$store);
+    membershipEditorPermissions() {
+      const projRoles = this.allProjectRoles.filter(proj => proj.projectName === this.norman?.id);
+      const userProjRoles = projRoles.filter(proj => proj.userName === this.user?.id);
+      let verbs = [];
+
+      userProjRoles.forEach((role) => {
+        role.roleTemplate?.rules?.forEach((rule) => {
+          if (rule.resources.includes('projectroletemplatebindings')) {
+            verbs = rule.verbs;
+          }
+        });
+      });
+
+      if (verbs && verbs.length) {
+        return {
+          canView:   verbs.includes('list') || verbs.includes('*'),
+          canUpdate: verbs.includes('update') || verbs.includes('*')
+        };
+      }
+
+      return {};
+    },
+
+    membershipEditorMode() {
+      if (this.mode === _EDIT) {
+        return this.membershipEditorPermissions.canUpdate ? this.mode : _VIEW;
+      }
+
+      return this.mode;
     },
 
     canEditProject() {
@@ -208,18 +258,18 @@ export default {
     </div>
     <Tabbed :side-tabs="true">
       <Tab
-        v-if="canViewMembers"
+        v-if="membershipEditorPermissions.canView"
         name="members"
         :label="t('project.members.label')"
         :weight="10"
       >
         <Banner
-          v-if="showBannerForOnlyManagingMembers"
+          v-if="membershipEditorPermissions.canUpdate"
           color="info"
           :label="t('project.membersEditOnly')"
         />
         <ProjectMembershipEditor
-          :mode="mode"
+          :mode="membershipEditorMode"
           :parent-id="value.id"
           @has-owner-changed="onHasOwnerChanged"
           @membership-update="onMembershipUpdate"
