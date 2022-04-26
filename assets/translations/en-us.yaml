@@ -3534,6 +3534,7 @@ probe:
     placeholder: Select a check type
 
 project:
+  membersEditOnly: Only permissions equal to or below those of the current user can be applied
   members:
     label: Members
   containerDefaultResourceLimit: Container Default Resource Limit

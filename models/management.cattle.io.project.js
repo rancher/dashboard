@@ -117,4 +117,19 @@ export default class Project extends HybridModel {
       return normanProject;
     })();
   }
+
+  // users with permissions for projectroletemplatebindings should be able to manage members on projects
+  get canUpdate() {
+    return super.canUpdate || this.canUpdateProjectBindings;
+  }
+
+  get canUpdateProjectBindings() {
+    const schema = this.$rootGetters[`rancher/schemaFor`](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
+
+    return schema?.collectionMethods.includes('POST');
+  }
+
+  get canEditYaml() {
+    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : super.canUpdate;
+  }
 }
