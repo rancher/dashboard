@@ -300,6 +300,12 @@ export default {
         managedBy,
       };
     },
+
+    location() {
+      const { parent } = this;
+
+      return parent?.location;
+    },
   },
 
   methods: {
@@ -325,7 +331,7 @@ export default {
       <div class="title">
         <div class="primaryheader">
           <h1>
-            <nuxt-link v-if="parent.location" :to="parent.location">
+            <nuxt-link v-if="location" :to="location">
               {{ parent.displayName }}:
             </nuxt-link>
             <span v-else>{{ parent.displayName }}:</span>
