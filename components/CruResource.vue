@@ -222,42 +222,6 @@ export default {
       return false;
     },
 
-    activeStepIndex() {
-      return this.visibleSteps.findIndex(s => s.name === this.activeStep.name);
-    },
-
-    showPrevious() {
-      // If on first step...
-      if (this.activeStepIndex === 0) {
-        return false;
-      }
-      // .. or any previous step isn't hidden
-      for (let stepIndex = 0; stepIndex < this.activeStepIndex; stepIndex++) {
-        const step = this.visibleSteps[stepIndex];
-
-        if (!step) {
-          break;
-        }
-        if (!step.hidden) {
-          return true;
-        }
-      }
-
-      return false;
-    },
-
-    canNext() {
-      return (this.activeStepIndex < this.visibleSteps.length - 1) && this.activeStep.ready;
-    },
-
-    stepsLoaded() {
-      return !this.steps?.some(step => step.loading === true);
-    },
-
-    visibleSteps() {
-      return this.steps?.filter(step => !step.hidden);
-    },
-
     /**
      * Prevent issues for malformed types injection
      */
@@ -268,23 +232,9 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
   },
 
-  watch: {
-    stepsLoaded(neu, old) {
-      if (!old && neu && this.steps.length) {
-        this.activeStep = this.visibleSteps[this.initStepIndex];
-        this.goToStep(this.activeStepIndex + 1);
-      }
-    }
-  },
-
   created() {
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
-    }
-
-    if (this.steps.length) {
-      this.activeStep = this.visibleSteps[this.initStepIndex];
-      this.goToStep(this.activeStepIndex + 1);
     }
   },
 
@@ -366,25 +316,9 @@ export default {
       this.$refs.save.clicked();
     },
 
-    goToStep(number, fromNav) {
-      if (number < 1) {
-        return;
-      }
-
-      // if editFirstStep is false, do not allow returning to step 1 (restarting wizard) from top nav
-      if (!this.editFirstStep && (number === 1 && fromNav)) {
-        return;
-      }
-
-      const selected = this.visibleSteps[number - 1];
-
-      if ( !selected || (!this.isAvailable(selected) && number !== 1)) {
-        return;
-      }
-
-      this.activeStep = selected;
-
-      this.$emit('next', { step: selected });
+    handleStepChange(e) {
+      this.activeStep = e.step;
+      this.$emit('stepChange', { step: { ...e.step } });
     },
 
     cancel() {
@@ -395,34 +329,6 @@ export default {
       this.$emit('finish', cb);
     },
 
-    next() {
-      this.goToStep(this.activeStepIndex + 2);
-    },
-
-    back() {
-      this.goToStep(this.activeStepIndex);
-    },
-
-    // a step is not available if ready=false for any previous steps OR if the editFirstStep=false and it is the first step
-    isAvailable(step) {
-      if (!step) {
-        return false;
-      }
-
-      const idx = this.visibleSteps.findIndex(s => s.name === step.name);
-
-      if (idx === 0 && !this.editFirstStep) {
-        return false;
-      }
-
-      for (let i = 0; i < idx; i++) {
-        if ( this.visibleSteps[i].ready === false ) {
-          return false;
-        }
-      }
-
-      return true;
-    },
   }
 };
 </script>
@@ -514,6 +420,7 @@ export default {
           <template>
             <Wizard
               v-if="resource"
+              ref="Wizard"
               :steps="steps"
               :errors="errors"
               :edit-first-step="editFirstStep"
@@ -521,6 +428,7 @@ export default {
               :banner-title-subtext="bannerTitleSubtext"
               :finish-mode="finishMode"
               class="wizard"
+              @stepChange="handleStepChange"
               @cancel="cancel"
               @error="e=>errors = e"
               @finish="finish"
@@ -532,9 +440,8 @@ export default {
                   </div>
                 </template>
               </template>
-
-              <template #controlsContainer>
-                <slot name="form-footer">
+              <template #controlsContainer="{showPrevious, next, back, canNext, activeStepIndex, visibleSteps}">
+                <template name="form-footer">
                   <CruResourceFooter
                     class="cru__footer"
                     :mode="mode"
@@ -555,26 +462,26 @@ export default {
                       >
                         <t k="cruResource.previewYaml" />
                       </button>
-                      <slot v-if="showPrevious" name="back" :back="back">
+                      <template v-if="showPrevious" name="back">
                         <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
                           <t k="wizard.previous" />
                         </button>
-                      </slot>
-                      <slot v-if="activeStepIndex === visibleSteps.length-1" name="finish" :finish="finish">
+                      </template>
+                      <template v-if="activeStepIndex === visibleSteps.length-1" name="finish" :finish="finish">
                         <AsyncButton
                           :disabled="!activeStep.ready"
                           :mode="finishMode"
                           @click="finish"
                         />
-                      </slot>
-                      <slot v-else name="next" :next="next">
+                      </template>
+                      <template v-else name="next">
                         <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
                           <t k="wizard.next" />
                         </button>
-                      </slot>
+                      </template>
                     </div>
                   </CruResourceFooter>
-                </slot>
+                </template>
               </template>
             </Wizard>
           </template>

@@ -177,7 +177,10 @@ export default {
         return;
       }
 
-      const selected = this.visibleSteps[number - 1];
+      const selected = {
+        ...this.visibleSteps[number - 1],
+        index: number
+      };
 
       if ( !selected || (!this.isAvailable(selected) && number !== 1)) {
         return;
@@ -186,6 +189,7 @@ export default {
       this.activeStep = selected;
 
       this.$emit('next', { step: selected });
+      this.$emit('stepChange', { step: selected });
     },
 
     cancel() {
@@ -300,7 +304,16 @@ export default {
           </div>
         </template>
       </slot>
-      <slot name="controlsContainer">
+      <slot
+        name="controlsContainer"
+        :showPrevious="showPrevious"
+        :next="next"
+        :back="back"
+        :canNext="canNext"
+        :activeStepIndex="activeStepIndex"
+        :visibleSteps="visibleSteps"
+        :errorStrings="errorStrings"
+      >
         <div class="controls-container">
           <div v-for="(err,idx) in errorStrings" :key="idx">
             <Banner color="error" :label="err" :closable="true" @close="errors.splice(idx, 1)" />
@@ -354,10 +367,6 @@ $spacer: 10px;
   align-items: center;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
-
-  .cru__content-wizard & {
-    border: none;
-  }
 
   & > .title {
     flex: 1;
@@ -520,6 +529,15 @@ $spacer: 10px;
         margin-left: $spacer;
       }
     }
+  }
+}
+
+.cru__content-wizard {
+  .header {
+  margin-bottom: 3*$spacer;
+  }
+  .choice-banner {
+    display: unset;
   }
 }
 

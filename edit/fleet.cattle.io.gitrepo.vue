@@ -483,8 +483,6 @@ export default {
       </ArrayList>
     </template>
     <template #stepTargetInfo>
-      <div class="spacer" />
-
       <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
 
       <template v-if="!isLocal">
