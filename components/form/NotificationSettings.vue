@@ -24,12 +24,6 @@ export default ({
     }
   },
 
-  computed: {
-    uiDisabled() {
-      return this.mode === _VIEW;
-    }
-  }
-
 });
 </script>
 
@@ -38,7 +32,7 @@ export default ({
     <div class="row mb-20">
       <div class="col span-6">
         <Checkbox
-          :disabled="uiDisabled"
+          :mode="mode"
           :value="value.showMessage === 'true'"
           :label="t('notifications.loginError.showCheckboxLabel')"
           @input="e=>$set(value, 'showMessage', e.toString())"
@@ -51,7 +45,8 @@ export default ({
           <div class="col span-12">
             <LabeledInput
               v-model="value.message"
-              :disabled="value.showMessage === 'false' || uiDisabled"
+              :mode="mode"
+              :disabled="value.showMessage === 'false'"
               :label="t('notifications.loginError.messageLabel')"
             />
           </div>

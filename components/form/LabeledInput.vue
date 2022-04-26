@@ -53,10 +53,6 @@ export default {
       default: false
     },
 
-    disabled: {
-      type:    Boolean,
-      default: false
-    },
     /**
      * Optionally delay on input while typing
      */
@@ -64,7 +60,6 @@ export default {
       type:    Number,
       default: 0
     }
-
   },
 
   computed: {
