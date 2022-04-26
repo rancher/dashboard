@@ -1,14 +1,18 @@
 <script>
 import ArrayList from '@/components/form/ArrayList';
 import KeyValue from '@/components/form/KeyValue';
+import Banner from '@/components/Banner';
 import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
     ArrayList,
+    Banner,
     KeyValue,
     LabeledInput,
+    LabeledSelect
   },
   props: {
     mode: {
@@ -27,36 +31,25 @@ export default {
   data() {
     return { isView: _VIEW };
   },
-  methods: {
-    updateSelectValue(event) {
-      // this.value.receivers = event;
-
-      this.$set(this.value, 'receivers', event);
-    },
-  }
 
 };
 
 </script>
 <template>
   <div>
+    <h3>Receiver <i v-tooltip="t('monitoring.alertmanagerConfig.receiverTooltip')" class="icon icon-info" /></h3>
+    <Banner
+      color="info"
+      :label="t('monitoring.alertmanagerConfig.routeInfo')"
+    />
     <div class="row mb-20">
       <div class="col span-6">
-        <!-- ToDo: uncomment and implement this code -->
-        <!-- <LabeledSelect
-          :value="value.receivers"
-          class="lg"
-          :label="t('monitoringRoute.receiver.oneOrMoreLabel')"
-          :taggable="true"
-          :searchable="true"
-          :options="receiverOptions"
-          :multiple="true"
+        <LabeledSelect
+          v-model="value.receiver"
           :mode="mode"
-          :tooltip="t('monitoring.alertmanagerConfig.receiverTooltip')"
-          @input="updateSelectValue"
-        /> -->
-        <v-select>
-        </v-select>
+
+          :options="receiverOptions"
+        />
       </div>
     </div>
     <h3>Grouping</h3>

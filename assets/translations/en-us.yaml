@@ -2800,8 +2800,9 @@ monitoring:
     description: Routes and receivers for project alerting and cluster alerting are configured within AlertmanagerConfig resources.
     empty: Alerts have not been configured for any accessible namespaces.
     getStarted: Get started by clicking Create to configure an alert.
-    receiverTooltip: Must match the name of a receiver defined in the same AlertmanagerConfig.
+    receiverTooltip: This route will direct alerts to the selected receiver, which must be defined in the same AlertmanagerConfig.
     deprecationWarning: The Route and Receiver resources are deprecated. We recommend configuring alerts in AlertmanagerConfigs.
+    routeInfo: This form supports configuring one route that directs traffic to a receiver. To forward alerts to more receiver(s), add child routes in YAML.
     receiverFormNames:
       create: Create Receiver in AlertmanagerConfig
       edit: Edit Receiver in AlertmanagerConfig
