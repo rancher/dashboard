@@ -190,7 +190,12 @@ export default {
         // If an action list item is clicked, this
         // component emits that event, then we assume the parent
         // component will execute the action.
-        this.$emit(action.action);
+        this.$emit(action.action, {
+          action,
+          event,
+          ...args,
+          route: this.$route
+        });
       } else {
         // If the state of this component is controlled
         // by Vuex, mutate the store when an action is clicked.

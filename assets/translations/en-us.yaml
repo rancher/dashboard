@@ -2802,7 +2802,7 @@ monitoring:
     getStarted: Get started by clicking Create to configure an alert.
     receiverTooltip: This route will direct alerts to the selected receiver, which must be defined in the same AlertmanagerConfig.
     deprecationWarning: The Route and Receiver resources are deprecated. We recommend configuring alerts in AlertmanagerConfigs.
-    routeInfo: This form supports configuring one route that directs traffic to a receiver. To forward alerts to more receiver(s), add child routes in YAML.
+    routeInfo: This form supports configuring one route that directs traffic to a receiver. Alerts can be directed to more receiver(s) by configuring child routes in YAML.
     receiverFormNames:
       create: Create Receiver in AlertmanagerConfig
       edit: Edit Receiver in AlertmanagerConfig

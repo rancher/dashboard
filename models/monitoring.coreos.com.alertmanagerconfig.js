@@ -31,9 +31,37 @@ export default class AlertmanagerConfig extends SteveModel {
     set(this, 'spec', defaultSpec);
   }
 
+  get _availableActions() {
+    const out = super._availableActions;
+
+    return out;
+  }
+
+  getReceiverActions(alertmanagerConfigActions) {
+    return alertmanagerConfigActions.filter((actionData) => {
+      if (actionData.divider) {
+        return true;
+      }
+      switch (actionData.action) {
+      case 'goToEdit':
+        return true;
+      case 'goToEditYaml':
+        return true;
+      case 'promptRemove':
+        return true;
+      default:
+        return false;
+      }
+    });
+  }
+
+  get alertmanagerConfigDoneRouteName() {
+    return 'c-cluster-product-resource-namespace-id';
+  }
+
   getAlertmanagerConfigDetailRoute() {
     return {
-      name:   'c-cluster-product-resource-namespace-id',
+      name:   this.alertmanagerConfigDoneRouteName,
       params: {
         cluster:   this.$rootGetters['clusterId'],
         product:   'monitoring',
@@ -69,7 +97,7 @@ export default class AlertmanagerConfig extends SteveModel {
     };
   }
 
-  getEditReceiverYamlRoute(receiverName) {
+  getEditReceiverYamlRoute(receiverName, queryMode) {
     return {
       name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
       params: {
@@ -77,7 +105,7 @@ export default class AlertmanagerConfig extends SteveModel {
         alertmanagerconfigid: this.id
       },
       query: {
-        mode:         this.mode || _EDIT,
+        mode:         queryMode || _VIEW,
         receiverName,
         currentView:  _YAML
       }
@@ -88,11 +116,11 @@ export default class AlertmanagerConfig extends SteveModel {
     return {
       name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
       params: {
-        cluster:              this.$store.getters['clusterId'],
+        cluster:              this.$rootGetters['clusterId'],
         alertmanagerconfigid: this.id
       },
       query: {
-        mode:         queryMode || _EDIT,
+        mode:         queryMode || _VIEW,
         receiverName,
         currentView:  _CONFIG
       }
