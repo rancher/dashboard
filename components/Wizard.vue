@@ -313,6 +313,8 @@ export default {
         :activeStepIndex="activeStepIndex"
         :visibleSteps="visibleSteps"
         :errorStrings="errorStrings"
+        :finish="finish"
+        :cancel="cancel"
       >
         <div class="controls-container">
           <div v-for="(err,idx) in errorStrings" :key="idx">

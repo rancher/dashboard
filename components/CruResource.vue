@@ -317,18 +317,9 @@ export default {
     },
 
     handleStepChange(e) {
-      this.activeStep = e.step;
+      this.activeStep = { ...e.step };
       this.$emit('stepChange', { step: { ...e.step } });
     },
-
-    cancel() {
-      this.$emit('cancel');
-    },
-
-    finish(cb) {
-      this.$emit('finish', cb);
-    },
-
   }
 };
 </script>
@@ -429,9 +420,7 @@ export default {
               :finish-mode="finishMode"
               class="wizard"
               @stepChange="handleStepChange"
-              @cancel="cancel"
               @error="e=>errors = e"
-              @finish="finish"
             >
               <template #stepContainer class="step-container">
                 <template v-for="step in steps">
@@ -440,7 +429,7 @@ export default {
                   </div>
                 </template>
               </template>
-              <template #controlsContainer="{showPrevious, next, back, canNext, activeStepIndex, visibleSteps}">
+              <template #controlsContainer="{showPrevious, next, back, finish, canNext, activeStepIndex, visibleSteps}">
                 <template name="form-footer">
                   <CruResourceFooter
                     class="cru__footer"
