@@ -20,14 +20,18 @@ export default {
 
     // FIXME: RC Standalone - Tech Debt move this to steve store get/set prependPath
     // Cover cases where the steve store isn't actually going out to steve (epinio standalone)
-    const prependPath = process.env.rancherEnv === 'epinio' ? `/pp/v1/epinio/rancher` : '';
+    const prependPath = this.$config.rancherEnv === 'epinio' ? `/pp/v1/epinio/rancher` : '';
 
     if (prependPath) {
-      const url = parseUrl(opt.url);
+      if (opt.url.startsWith('/')) {
+        opt.url = prependPath + opt.url;
+      } else {
+        const url = parseUrl(opt.url);
 
-      if (!url.path.startsWith(prependPath)) {
-        url.path = prependPath + url.path;
-        opt.url = unParseUrl(url);
+        if (!url.path.startsWith(prependPath)) {
+          url.path = prependPath + url.path;
+          opt.url = unParseUrl(url);
+        }
       }
     }
 

@@ -59,11 +59,15 @@ export default {
     return await ps
       .then((prependPath = opt?.prependPath) => {
         if (isSingleProduct) {
-          const url = parseUrl(opt.url);
+          if (opt.url.startsWith('/')) {
+            opt.url = prependPath + opt.url;
+          } else {
+            const url = parseUrl(opt.url);
 
-          if (!url.path.startsWith(prependPath)) {
-            url.path = prependPath + url.path;
-            opt.url = unParseUrl(url);
+            if (!url.path.startsWith(prependPath)) {
+              url.path = prependPath + url.path;
+              opt.url = unParseUrl(url);
+            }
           }
         } else {
           const currentClusterId = clusterId || rootGetters['clusterId'];
