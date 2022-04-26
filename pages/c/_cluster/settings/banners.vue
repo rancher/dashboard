@@ -89,10 +89,6 @@ export default {
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
 
-    isLoginErrorBannerDisabled() {
-      return this.mode === _VIEW;
-    },
-
     headerMode() {
       return this.bannerVal?.showHeader === 'true' ? _EDIT : _VIEW;
     },
@@ -257,7 +253,7 @@ export default {
       </h2>
       <NotificationSettings
         v-model="bannerVal.loginError"
-        :disabled="isLoginErrorBannerDisabled"
+        :mode="mode"
         :label="t('notifications.loginError.messageLabel')"
       />
     </div>
