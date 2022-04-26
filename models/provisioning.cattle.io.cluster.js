@@ -98,7 +98,8 @@ export default class ProvCluster extends SteveModel {
         action:     'rotateEncryptionKey',
         label:      this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:       'icon icon-refresh',
-        enabled:    canEditRKE2cluster || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready),
+        // Disabling encryption key rotation for RKE2 for now because it was removed from v2.6.5
+        enabled:    (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready) // || canEditRKE2cluster
       }, {
         action:     'saveAsRKETemplate',
         label:      this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),
