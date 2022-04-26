@@ -11,7 +11,7 @@ import { EDITOR_MODES } from '@/components/YamlEditor';
 import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
 import RouteConfig from './routeConfig';
 import ResourceTable from '@/components/ResourceTable';
-import { _VIEW, _CREATE, _CONFIG } from '@/config/query-params';
+import { _VIEW, _CONFIG } from '@/config/query-params';
 
 export default {
   components: {
@@ -36,24 +36,9 @@ export default {
     const receiverOptions = this.value.spec.receivers.map(receiver => receiver.name);
 
     return {
-      config:             _CONFIG,
-      createReceiverLink: {
-        name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
-        params: {
-          cluster:              this.$store.getters['clusterId'],
-          alertmanagerconfigid: this.value.id
-        },
-        query: { mode: _CREATE, currentView: _CONFIG }
-      },
+      config:               _CONFIG,
+      createReceiverLink:   this.value.getCreateReceiverRoute(),
       defaultReceiverValues,
-      editReceiverLink: {
-        name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
-        params: {
-          cluster:              this.$store.getters['clusterId'],
-          alertmanagerconfigid: this.value.id
-        },
-        query: { mode: _CREATE, currentView: _CONFIG }
-      },
       receiverTableHeaders: [
         {
           name:          'name',
@@ -94,23 +79,10 @@ export default {
         };
       });
     },
-    addNewReceiver(name) {
-      // ToDo: uncomment and implement this code
-      // const existingReceiversOfSelectedType = this.value.spec.receivers[this.newReceiverType] || []
-
-      // this.value.spec.receivers[this.newReceiverType] = this.value.spec.receivers;
-    },
     getReceiverDetailLink(receiverData) {
-      return {
-        name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
-        params: {
-          cluster:              this.$store.getters['clusterId'],
-          alertmanagerconfigid: this.value.id
-        },
-        query: {
-          mode: _VIEW, receiverName: receiverData.name, currentView: _CONFIG
-        }
-      };
+      if (receiverData && receiverData.name) {
+        return this.value.getReceiverDetailLink(receiverData.name);
+      }
     },
   }
 };
