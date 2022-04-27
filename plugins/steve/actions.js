@@ -37,7 +37,6 @@ export default {
       return id && !isApi ? data : { data };
     }
 
-    opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
@@ -76,33 +75,56 @@ export default {
       // console.log('NOT Using Streaming for', opt.url);
     }
 
-    return this.$axios(opt).then((res) => {
-      if ( opt.depaginate ) {
-        // @TODO but API never sends it
-        /*
-        return new Promise((resolve, reject) => {
-          const next = res.pagination.next;
-          if (!next ) [
-            return resolve();
-          }
+    let paginatedResult;
 
-          dispatch('request')
-        });
-        */
+    while (true) {
+      try {
+        const out = await makeRequest(this, opt);
+
+        if (!opt.depaginate) {
+          return out;
+        }
+
+        if (!paginatedResult) {
+          // First result, so store it
+          paginatedResult = out;
+        } else {
+          // Subsequent request, so add to it
+          paginatedResult.data = paginatedResult.data.concat(out.data);
+        }
+
+        if (out?.pagination?.next) {
+          // More results to come, update options
+          opt.url = out.pagination.next;
+        } else {
+          // No more results, so clear out the pagination section (which will be stale from the first request)
+          delete paginatedResult.pagination?.first;
+          delete paginatedResult.pagination?.last;
+          delete paginatedResult.pagination?.next;
+          delete paginatedResult.pagination?.partial;
+
+          return paginatedResult;
+        }
+      } catch (err) {
+        return onError(err);
       }
+    }
 
-      let out;
+    function makeRequest(that, opt) {
+      return that.$axios(opt).then((res) => {
+        let out;
 
-      if ( opt.responseType ) {
-        out = res;
-      } else {
-        out = responseObject(res);
-      }
+        if ( opt.responseType ) {
+          out = res;
+        } else {
+          out = responseObject(res);
+        }
 
-      finishDeferred(key, 'resolve', out);
+        finishDeferred(key, 'resolve', out);
 
-      return out;
-    }).catch(onError);
+        return out;
+      });
+    }
 
     function finishDeferred(key, action = 'resolve', res) {
       const waiting = state.deferredRequests[key] || [];
@@ -232,10 +254,14 @@ export default {
       }
     }
 
+    const typeOptions = rootGetters['type-map/optionsFor'](type);
+
     console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
+    opt.depaginate = typeOptions?.depaginate;
+
     let streamStarted = false;
     let out;
 
@@ -319,7 +345,9 @@ export default {
   },
 
   async findMatching(ctx, { type, selector, opt }) {
-    const { getters, commit, dispatch } = ctx;
+    const {
+      getters, commit, dispatch, rootGetters
+    } = ctx;
 
     opt = opt || {};
     console.log(`Find Matching: [${ ctx.state.config.namespace }] ${ type }`, selector); // eslint-disable-line no-console
@@ -332,12 +360,15 @@ export default {
       return getters.matching( type, selector );
     }
 
+    const typeOptions = rootGetters['type-map/optionsFor'](type);
+
     opt = opt || {};
 
     opt.filter = opt.filter || {};
     opt.filter['labelSelector'] = selector;
 
     opt.url = getters.urlFor(type, null, opt);
+    opt.depaginate = typeOptions?.depaginate;
 
     const res = await dispatch('request', opt);
 

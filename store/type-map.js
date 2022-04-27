@@ -96,6 +96,7 @@
 //                               resource: undefined       -- Use this resource in ResourceDetails instead
 //                               resourceDetail: undefined -- Use this resource specifically for ResourceDetail's detail component
 //                               resourceEdit: undefined   -- Use this resource specifically for ResourceDetail's edit component
+//                               depaginate: undefined -- Use this to depaginate requests for this type
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -439,6 +440,7 @@ export const getters = {
       canYaml:     true,
       namespaced:  null,
       listGroups:  [],
+      depaginate:  false,
     };
 
     return (schemaOrType) => {
