@@ -102,47 +102,6 @@ export default {
       default: () => []
     },
 
-    // Initial step to show when Wizard loads.
-    initStepIndex: {
-      type:    Number,
-      default: 0
-    },
-
-    // if true, allow users to navigate back to the first step of the Wizard
-    // if false, only way back to step 1 is to cancel and undo all configuration
-    editFirstStep: {
-      type:    Boolean,
-      default: false
-    },
-
-    showBanner: {
-      type:    Boolean,
-      default: true,
-    },
-
-    // whether or not to show the overall title/image on left of banner header in first step
-    initialTitle: {
-      type:    Boolean,
-      default: true
-    },
-
-    // place the same title (e.g. the type of thing being created by wizard) on every page
-    bannerTitle: {
-      type:    String,
-      default: null
-    },
-
-    // circular image left of banner title
-    bannerImage: {
-      type:    String,
-      default: null
-    },
-
-    bannerTitleSubtext: {
-      type:    String,
-      default: null
-    },
-
     // The set of labels to display for the finish AsyncButton
     finishMode: {
       type:    String,
@@ -154,7 +113,6 @@ export default {
     const yaml = this.createResourceYaml();
 
     return {
-      activeStep:    null,
       isCancelModal: false,
       showAsForm:    this.$route.query[AS] !== _YAML,
       resourceYaml:  yaml,
@@ -315,17 +273,13 @@ export default {
     save() {
       this.$refs.save.clicked();
     },
-
-    handleStepChange(e) {
-      this.activeStep = { ...e.step };
-      this.$emit('stepChange', { step: { ...e.step } });
-    },
   }
 };
 </script>
 
 <template>
   <section class="cru">
+    <slot name="noticeBanner" />
     <form
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
@@ -408,72 +362,68 @@ export default {
           v-if="_selectedSubtype || !subtypes.length"
           class="resource-container cru__content cru__content-wizard"
         >
-          <template>
-            <Wizard
-              v-if="resource"
-              ref="Wizard"
-              :steps="steps"
-              :errors="errors"
-              :edit-first-step="editFirstStep"
-              :banner-title="bannerTitle"
-              :banner-title-subtext="bannerTitleSubtext"
-              :finish-mode="finishMode"
-              class="wizard"
-              @stepChange="handleStepChange"
-              @error="e=>errors = e"
-            >
-              <template #stepContainer class="step-container">
-                <template v-for="step in steps">
-                  <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
-                    <slot :step="step" :name="step.name" />
-                  </div>
-                </template>
+          <Wizard
+            v-if="resource"
+            ref="Wizard"
+            :steps="steps"
+            :errors="errors"
+            :finish-mode="finishMode"
+            class="wizard"
+            @error="e=>errors = e"
+          >
+            <template #stepContainer="{activeStep}" class="step-container">
+              <template v-for="step in steps">
+                <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
+                  <slot :step="step" :name="step.name" />
+                </div>
               </template>
-              <template #controlsContainer="{showPrevious, next, back, finish, canNext, activeStepIndex, visibleSteps}">
-                <template name="form-footer">
-                  <CruResourceFooter
-                    class="cru__footer"
-                    :mode="mode"
-                    :is-form="showAsForm"
-                    :show-cancel="showCancel"
-                    @cancel-confirmed="confirmCancel"
-                  >
-                    <!-- Pass down templates provided by the caller -->
-                    <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-                      <slot :name="slot" v-bind="scope" />
-                    </template>
-                    <div class="controls-steps">
-                      <button
-                        v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
-                        type="button"
-                        class="btn role-secondary"
-                        @click="showPreviewYaml"
-                      >
-                        <t k="cruResource.previewYaml" />
+            </template>
+            <template #controlsContainer="{showPrevious, next, back, activeStep, canNext, activeStepIndex, visibleSteps}">
+              <template name="form-footer">
+                <CruResourceFooter
+                  class="cru__footer"
+                  :mode="mode"
+                  :is-form="showAsForm"
+                  :show-cancel="showCancel"
+                  @cancel-confirmed="confirmCancel"
+                >
+                  <!-- Pass down templates provided by the caller -->
+                  <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+                    <slot :name="slot" v-bind="scope" />
+                  </template>
+                  <div class="controls-steps">
+                    <button
+                      v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
+                      type="button"
+                      class="btn role-secondary"
+                      @click="showPreviewYaml"
+                    >
+                      <t k="cruResource.previewYaml" />
+                    </button>
+                    <template v-if="showPrevious" name="back">
+                      <button type="button" class="btn role-secondary" @click="back()">
+                        <t k="wizard.previous" />
                       </button>
-                      <template v-if="showPrevious" name="back">
-                        <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
-                          <t k="wizard.previous" />
-                        </button>
-                      </template>
-                      <template v-if="activeStepIndex === visibleSteps.length-1" name="finish" :finish="finish">
-                        <AsyncButton
-                          :disabled="!activeStep.ready"
-                          :mode="finishMode"
-                          @click="finish"
-                        />
-                      </template>
-                      <template v-else name="next">
-                        <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
-                          <t k="wizard.next" />
-                        </button>
-                      </template>
-                    </div>
-                  </CruResourceFooter>
-                </template>
+                    </template>
+                    <template v-if="activeStepIndex === visibleSteps.length-1" name="finish">
+                      <AsyncButton
+                        v-if="!showSubtypeSelection"
+                        ref="save"
+                        :disabled="!activeStep.ready"
+                        :mode="finishButtonMode || mode"
+                        @click="$emit('finish', $event)"
+                      />
+                    </template>
+                    <template v-else name="next">
+                      <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
+                        <t k="wizard.next" />
+                      </button>
+                    </template>
+                  </div>
+                </CruResourceFooter>
               </template>
-            </Wizard>
-          </template>
+            </template>
+          </Wizard>
         </div>
       </template>
       <!------ SINGLE PROCESS ------>

@@ -189,7 +189,6 @@ export default {
       this.activeStep = selected;
 
       this.$emit('next', { step: selected });
-      this.$emit('stepChange', { step: selected });
     },
 
     cancel() {
@@ -297,7 +296,11 @@ export default {
           </ul>
         </div>
       </div>
-      <slot class="step-container" name="stepContainer">
+      <slot
+        class="step-container"
+        name="stepContainer"
+        :activeStep="activeStep"
+      >
         <template v-for="step in steps">
           <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
             <slot :step="step" :name="step.name" />
@@ -315,6 +318,7 @@ export default {
         :errorStrings="errorStrings"
         :finish="finish"
         :cancel="cancel"
+        :activeStep="activeStep"
       >
         <div class="controls-container">
           <div v-for="(err,idx) in errorStrings" :key="idx">

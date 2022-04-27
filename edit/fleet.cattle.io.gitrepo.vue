@@ -373,6 +373,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
+
   <CruResource
     v-else
     :done-route="doneRoute"
@@ -389,14 +390,14 @@ export default {
     @error="e=>errors = e"
     @finish="save"
   >
-    <Banner
-      v-if="isLocal && mode === 'create'"
-      color="info"
-      class="mb-40"
-    >
-      {{ t('fleet.gitRepo.createLocalBanner') }}
-    </Banner>
-
+    <template #noticeBanner>
+      <Banner
+        v-if="isLocal && mode === 'create'"
+        color="info"
+      >
+        {{ t('fleet.gitRepo.createLocalBanner') }}
+      </Banner>
+    </template>
     <template #stepRepoInfo>
       <NameNsDescription v-if="!isView" v-model="value" :namespaced="false" :mode="mode" />
 
@@ -536,15 +537,12 @@ export default {
           />
         </div>
       </div>
-
       <div class="spacer" />
-
       <Labels
         :value="value"
         :mode="mode"
         :display-side-by-side="false"
       />
     </template>
-  </CruResource>
   </CruResource>
 </template>
