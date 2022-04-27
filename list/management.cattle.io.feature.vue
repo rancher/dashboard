@@ -76,7 +76,13 @@ export default {
 
     promptForUrl() {
       return this.update?.id === 'multi-cluster-management' && this.noUrlSet;
-    }
+    },
+
+    enableRowActions() {
+      const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
+
+      return schema?.resourceMethods?.includes('PUT');
+    },
   },
 
   watch: {
@@ -180,7 +186,11 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <ResourceTable :schema="schema" :rows="filteredRows">
+    <ResourceTable
+      :schema="schema"
+      :rows="filteredRows"
+      :row-actions="enableRowActions"
+    >
       <template slot="cell:name" slot-scope="scope">
         <div class="feature-name">
           <div>{{ scope.row.nameDisplay }}</div>

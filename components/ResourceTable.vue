@@ -79,6 +79,11 @@ export default {
       default: 'sortableTable.paging.resource',
     },
 
+    rowActions: {
+      type:    Boolean,
+      default: true,
+    },
+
     groupable: {
       type:    Boolean,
       default: null, // Null: auto based on namespaced and type custom groupings
@@ -353,6 +358,7 @@ export default {
     :paging="true"
     :paging-params="pagingParams"
     :paging-label="pagingLabel"
+    :row-actions="rowActions"
     :table-actions="_showBulkActions"
     :overflow-x="overflowX"
     :overflow-y="overflowY"

@@ -9,6 +9,8 @@ const CALC = 'calculate';
 const SHOW = 'show';
 
 export default {
+  name: 'ActionMenu',
+
   props: {
     customActions: {
       // Custom actions can be used if you need the action
