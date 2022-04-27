@@ -16,15 +16,20 @@ export default {
   },
   methods: {
     async startDelayedLoading() {
-      const req = await this.$store.dispatch('management/request', { url: `/k8s/clusters/${ this.row?.id }/v1/counts` });
+      if (this.row?.isReady) {
+        const req = await this.$store.dispatch('management/request', { url: `/k8s/clusters/${ this.row?.id }/v1/counts` });
 
-      this.loading = false;
-      const usedPods = req.data?.[0]?.counts[POD]?.summary?.count || 0;
-      const totalPods = this.row?.status?.allocatable?.pods;
+        this.loading = false;
+        const usedPods = req.data?.[0]?.counts[POD]?.summary?.count || 0;
+        const totalPods = this.row?.status?.allocatable?.pods;
 
-      if (totalPods) {
-        this.podsUsage = `${ usedPods }/${ totalPods }`;
+        if (totalPods) {
+          this.podsUsage = `${ usedPods }/${ totalPods }`;
+        } else {
+          this.podsUsage = '——';
+        }
       } else {
+        this.loading = false;
         this.podsUsage = '——';
       }
     }
