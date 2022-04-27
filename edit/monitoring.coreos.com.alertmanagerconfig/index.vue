@@ -12,7 +12,7 @@ import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
 import RouteConfig from './routeConfig';
 import ResourceTable from '@/components/ResourceTable';
 import ActionMenu from '@/components/ActionMenu';
-import { _EDIT, _VIEW, _CONFIG } from '@/config/query-params';
+import { _CREATE, _EDIT, _VIEW, _CONFIG } from '@/config/query-params';
 
 export default {
   components: {
@@ -56,6 +56,7 @@ export default {
       actionMenuTargetElement:  null,
       actionMenuTargetEvent:    null,
       config:                   _CONFIG,
+      create:                   _CREATE,
       createReceiverLink:       this.value.getCreateReceiverRoute(),
       defaultReceiverValues,
       receiverActionMenuIsOpen: false,
@@ -201,8 +202,13 @@ export default {
         >
           <template #header-button>
             <nuxt-link v-if="createReceiverLink && createReceiverLink.name" :to="createReceiverLink">
-              <button class="btn role-primary">
-                Create Receiver
+              <button
+                class="btn role-primary"
+                :disabled="mode === create"
+                :tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')"
+              >
+                {{ t('monitoring.receiver.addReceiver') }}
+                <i v-if="mode === create" v-tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')" class="icon icon-info" />
               </button>
             </nuxt-link>
           </template>
@@ -234,5 +240,11 @@ export default {
     &[real-mode=view] .label {
       color: var(--input-label);
     }
+  }
+  button {
+    margin-left: 0.5em;
+  }
+  a:hover {
+      text-decoration: none;
   }
 </style>

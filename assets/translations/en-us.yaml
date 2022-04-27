@@ -2764,6 +2764,7 @@ monitoring:
       Warning: Prometheus Operators are currently deployed. Deploying multiple Prometheus Operators onto one cluster is not currently supported. Please remove all other Prometheus Operator deployments from this cluster before trying to install this chart.
       If you are migrating from an older version of {vendor} with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install this chart.
   receiver:
+    addReceiver: Add Receiver
     fields:
       name: Name
     tls:
@@ -2807,6 +2808,7 @@ monitoring:
       create: Create Receiver in AlertmanagerConfig
       edit: Edit Receiver in AlertmanagerConfig
       detail: Receiver in AlertmanagerConfig
+    disabledReceiverButton: The receiver form is available after the AlertmanagerConfig is created
   installSteps:
     uninstallV1:
       stepTitle: Uninstall V1
