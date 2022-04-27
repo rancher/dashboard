@@ -18,9 +18,11 @@ export default {
     const hash = {
       mgmtClusters:       this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
       rancherClusters:    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-      etcdSnapshots:    this.$store.dispatch('management/findAll', { type: SNAPSHOT }),
-
     };
+
+    if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
+      hash.etcdSnapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+    }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
       hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });

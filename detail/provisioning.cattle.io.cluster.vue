@@ -67,7 +67,7 @@ export default {
     }
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-      fetchOne.machines = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+      fetchOne.snapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
     if (this.value.isImported || this.value.isCustom) {
@@ -229,7 +229,13 @@ export default {
     },
 
     showSnapshots() {
-      return this.value.isRke2 || this.value.isRke1;
+      if (this.value.isRke1) {
+        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP);
+      } else if (this.value.isRke2) {
+        return this.$store.getters['management/canList'](SNAPSHOT);
+      }
+
+      return false;
     },
 
     machineHeaders() {
