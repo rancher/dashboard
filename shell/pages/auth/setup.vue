@@ -208,7 +208,7 @@ export default {
       const promises = [];
 
       try {
-        await applyProducts(this.$store);
+        await applyProducts(this.$store, this.$plugin);
         await this.$store.dispatch('loadManagement');
 
         if ( this.mustChangePassword ) {
@@ -240,11 +240,12 @@ export default {
 
         await Promise.all(promises);
 
-        buttonCb(true);
         setTimeout(() => {
+          buttonCb(true);
           this.done();
         }, 2000);
       } catch (err) {
+        console.error(err) ; // eslint-disable-line no-console
         buttonCb(false);
         this.errors = exceptionToErrorsArray(err);
       }
