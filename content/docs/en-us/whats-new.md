@@ -4,6 +4,10 @@ title: What's New in 2.6
 
 ## New in 2.6.5
 
+### NeuVector Integration
+
+- Access NeuVector directly from the Rancher UI.
+
 ### RKE2 Provisioning GA 
 
 - Provision RKE2 clusters from Rancher using our newest Kubernetes distro.
