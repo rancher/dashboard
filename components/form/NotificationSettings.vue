@@ -1,19 +1,29 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
+import { _EDIT, _VIEW } from '~/config/query-params';
 
 export default ({
 
   name: 'NotificationSettings',
+
+  components: { LabeledInput, Checkbox },
 
   props: {
     value: {
       type:    Object,
       default: () => {}
     },
+
+    mode: {
+      type: String,
+      validator(value) {
+        return [_EDIT, _VIEW].includes(value);
+      },
+      default: _EDIT,
+    }
   },
 
-  components: { LabeledInput, Checkbox },
 });
 </script>
 
@@ -22,6 +32,7 @@ export default ({
     <div class="row mb-20">
       <div class="col span-6">
         <Checkbox
+          :mode="mode"
           :value="value.showMessage === 'true'"
           :label="t('notifications.loginError.showCheckboxLabel')"
           @input="e=>$set(value, 'showMessage', e.toString())"
@@ -34,6 +45,7 @@ export default ({
           <div class="col span-12">
             <LabeledInput
               v-model="value.message"
+              :mode="mode"
               :disabled="value.showMessage === 'false'"
               :label="t('notifications.loginError.messageLabel')"
             />
