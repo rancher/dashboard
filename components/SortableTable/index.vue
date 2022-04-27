@@ -713,7 +713,7 @@ export default {
   <div ref="container">
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
-      <div v-if="showHeaderRow" class="fixed-header-actions" :class="{'fixed-header-actions': true, button: true}">
+      <div v-if="showHeaderRow" class="fixed-header-actions" :class="{button: !!$slots['header-button']}">
         <div :class="bulkActionsClass" class="bulk">
           <slot name="header-left">
             <template v-if="tableActions">
@@ -1320,6 +1320,7 @@ $spacing: 10px;
   .search {
     grid-area: search;
     text-align: right;
+    justify-content: flex-end;
   }
 
   .bulk-actions-dropdown {
