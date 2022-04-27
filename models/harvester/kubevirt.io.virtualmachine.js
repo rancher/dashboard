@@ -175,7 +175,7 @@ export default class VirtVm extends SteveModel {
 
   applyDefaults(resources = this, realMode) {
     const spec = {
-      runStrategy: 'Manual',
+      runStrategy: 'RerunOnFailure',
       template:             {
         metadata: { annotations: {} },
         spec:     {

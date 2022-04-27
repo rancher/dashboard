@@ -79,7 +79,6 @@ export default {
       templateVersionId:     '',
       namePrefix:            '',
       isSingle:              true,
-      startVM:               true,
       useTemplate:           false,
       hostname,
       isRestartImmediately,
@@ -322,10 +321,6 @@ export default {
           this.value.doActionGrowl('restart', {});
         }
       }
-
-      if (this.startVM && this.value.hasAction('start') && this.isManual) {
-        this.value.doActionGrowl('start', {});
-      }
     },
 
     updateBeforeSave() {
@@ -515,7 +510,7 @@ export default {
           </div>
 
           <div v-if="showAdvanced" class="mb-20">
-            <div class="row">
+            <div class="row mb-20">
               <div class="col span-6">
                 <LabeledInput
                   v-model="hostname"
@@ -599,15 +594,6 @@ export default {
       </Tabbed>
 
       <div class="mt-20">
-        <Checkbox
-          v-if="isCreate && isManual"
-          v-model="startVM"
-          class="check mb-20"
-          type="checkbox"
-          label-key="harvester.virtualMachine.createRunning"
-          :mode="mode"
-        />
-
         <span v-if="isEdit" class="restart">
           <Banner color="warning" class="banner-right">
             {{ t('harvester.virtualMachine.restartTip') }}

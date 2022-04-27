@@ -58,7 +58,7 @@ export default class HciVmTemplateVersion extends SteveModel {
       vm: {
         metadata:    { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
         spec:        {
-          runStrategy: 'Manual',
+          runStrategy: 'RerunOnFailure',
           template:             {
             metadata: { annotations: {} },
             spec:     {
