@@ -28,6 +28,9 @@ export default {
         } else {
           this.podsUsage = '——';
         }
+      } else {
+        this.loading = false;
+        this.podsUsage = '——';
       }
     }
   },
