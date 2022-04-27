@@ -25,7 +25,7 @@ export const NORMAN = {
   NODE:                          'node',
   PRINCIPAL:                     'principal',
   PROJECT:                       'project',
-  PROJECT_ROLE_TEMPLATE_BINDING: 'projectRoleTemplateBinding',
+  PROJECT_ROLE_TEMPLATE_BINDING: 'projectroletemplatebinding',
   SPOOFED:                       { GROUP_PRINCIPAL: 'group.principal' },
   ROLE_TEMPLATE:                 'roleTemplate',
   TOKEN:                         'token',
