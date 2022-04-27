@@ -1,6 +1,7 @@
 module.exports = {
-  testEnvironment: 'jsdom',
-  modulePaths:       [
+  testEnvironment:              'jsdom',
+  setupFilesAfterEnv: ['./jest.setup.js'],
+  modulePaths:                  [
     '<rootDir>'
   ],
   // tell Jest to handle `*.vue` files
