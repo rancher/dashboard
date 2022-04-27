@@ -481,7 +481,7 @@ export default {
           </template>
           <template #remove-button="scope">
             <button
-              v-if="canRemove(scope.row, scope.i)"
+              v-if="canRemove(scope.row, scope.i) && !isView"
               type="button"
               class="btn role-link close btn-sm"
               @click="() => onRemove(scope)"
