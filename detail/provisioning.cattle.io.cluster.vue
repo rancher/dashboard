@@ -67,7 +67,7 @@ export default {
     }
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-      fetchOne.machines = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+      fetchOne.snapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
     if (this.value.isImported || this.value.isCustom) {
