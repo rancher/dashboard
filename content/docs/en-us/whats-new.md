@@ -2,6 +2,21 @@
 title: What's New in 2.6
 ---
 
+## New in 2.6.5
+
+### RKE2 Provisioning GA 
+
+- Provision RKE2 clusters from Rancher using our newest Kubernetes distro.
+
+### Enhanced Windows Support 
+
+- Windows support for RKE2 is now GA along with a vSphere driver for Windows.
+
+### Project Monitoring V2 
+
+- Isolate metrics data between teams in the same cluster using Rancher projects.
+
+
 ## New in 2.6.4
 
 ### Kubernetes 1.22 Support
