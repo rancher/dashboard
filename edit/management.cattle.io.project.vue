@@ -79,50 +79,34 @@ export default {
     ...mapGetters(['currentCluster']),
 
     membershipEditorPermissions() {
-      const projRoles = this.allProjectRoles.filter(proj => proj.projectName === this.norman?.id);
-      const userProjRoles = projRoles.filter(proj => proj.userName === this.user?.id);
-      let verbs = [];
-
-      userProjRoles.forEach((role) => {
-        role.roleTemplate?.rules?.forEach((rule) => {
-          if (rule.resources.includes('projectroletemplatebindings')) {
-            verbs = rule.verbs;
-          }
-        });
-      });
-
-      if (verbs && verbs.length) {
-        return {
-          canView:   verbs.includes('list') || verbs.includes('*'),
-          canUpdate: verbs.includes('update') || verbs.includes('*')
-        };
-      }
-
-      return {};
+      return this.rolePermissions('projectroletemplatebindings');
     },
 
-    membershipEditorMode() {
-      if (this.mode === _EDIT) {
-        return this.membershipEditorPermissions.canUpdate ? this.mode : _VIEW;
-      }
+    canViewMembers() {
+      return this.membershipEditorPermissions.canView;
+    },
+    canUpdateMembers() {
+      return this.membershipEditorPermissions.canUpdate;
+    },
 
-      return this.mode;
+    projectEditorPermissions() {
+      return this.rolePermissions('projects');
     },
 
     canEditProject() {
-      return this.value?.links?.update;
+      return this.projectEditorPermissions.canUpdate;
+    },
+
+    membershipEditorMode() {
+      return this.mode === _EDIT && this.canUpdateMembers ? this.mode : _VIEW;
+    },
+
+    projectEditorMode() {
+      return this.mode === _EDIT && this.canEditProject ? this.mode : _VIEW;
     },
 
     isDescriptionDisabled() {
       return (this.mode === _EDIT && !this.canEditProject) || false;
-    },
-
-    canEditTabElements() {
-      if (this.mode === _EDIT && !this.canEditProject) {
-        return _VIEW;
-      }
-
-      return this.mode;
     },
 
     showBannerForOnlyManagingMembers() {
@@ -212,6 +196,29 @@ export default {
       }
     },
 
+    rolePermissions(resource) {
+      const projRoles = this.allProjectRoles.filter(proj => proj.projectName === this.norman?.id);
+      const userProjRoles = projRoles.filter(proj => proj.userName === this.user?.id);
+      let verbs = [];
+
+      userProjRoles.forEach((role) => {
+        role.roleTemplate?.rules?.forEach((rule) => {
+          if (rule.resources.includes(resource)) {
+            verbs = rule.verbs;
+          }
+        });
+      });
+
+      if (verbs && verbs.length) {
+        return {
+          canView:   verbs.includes('list') || verbs.includes('*') || verbs.includes('own'),
+          canUpdate: verbs.includes('update') || verbs.includes('*') || verbs.includes('own')
+        };
+      }
+
+      return {};
+    },
+
     onHasOwnerChanged(hasOwner) {
       this.$set(this, 'membershipHasOwner', hasOwner);
     },
@@ -258,13 +265,13 @@ export default {
     </div>
     <Tabbed :side-tabs="true">
       <Tab
-        v-if="membershipEditorPermissions.canView"
+        v-if="canViewMembers"
         name="members"
         :label="t('project.members.label')"
         :weight="10"
       >
         <Banner
-          v-if="membershipEditorPermissions.canUpdate"
+          v-if="canUpdateMembers"
           color="info"
           :label="t('project.membersEditOnly')"
         />
@@ -280,14 +287,14 @@ export default {
         :label="t('project.resourceQuotas')"
         :weight="9"
       >
-        <ResourceQuota v-model="value" :mode="canEditTabElements" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
+        <ResourceQuota v-model="value" :mode="projectEditorMode" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
       <Tab
         name="container-default-resource-limit"
         :label="resourceQuotaLabel"
         :weight="8"
       >
-        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="canEditTabElements" :show-tip="false" :register-before-hook="registerBeforeHook" />
+        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="projectEditorMode" :show-tip="false" :register-before-hook="registerBeforeHook" />
       </Tab>
       <Tab
         name="labels-and-annotations"
@@ -297,7 +304,7 @@ export default {
         <Labels
           default-container-class="labels-and-annotations-container"
           :value="value"
-          :mode="canEditTabElements"
+          :mode="projectEditorMode"
           :display-side-by-side="false"
         />
       </Tab>
