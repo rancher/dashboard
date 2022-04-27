@@ -37,8 +37,6 @@ export default {
   },
   methods: {
     watcherFunction(newValue) {
-      // eslint-disable-next-line no-console
-      console.log('WATCHER TRIGGERED!', JSON.stringify(newValue.length, null, 2), this.data);
       if (newValue.length) {
         if (!this.isChartFirstRendered) {
           this.parsedInfo = this.fdcConfig.parseData(this.data);
@@ -212,18 +210,16 @@ export default {
       return radius;
     },
     nodeImageSize(d) {
-      const { radius, padding } = this.fdcConfig.nodeDimensions(d);
+      const { size } = this.fdcConfig.nodeDimensions(d);
 
-      return (radius * 2) - padding;
+      return size;
     },
     nodeImagePosition(d) {
-      const { radius, padding } = this.fdcConfig.nodeDimensions(d);
+      const { position } = this.fdcConfig.nodeDimensions(d);
 
-      return -(((radius * 2) - padding) / 2);
+      return position;
     },
     setDetailsInfo(data, toUpdate) {
-      // eslint-disable-next-line no-console
-      console.log('NODE CLICKED', data);
       // get the data to be displayed on info box, per each different chart
       this.moreInfo = Object.assign([], this.fdcConfig.infoDetails(data));
 

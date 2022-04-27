@@ -144,21 +144,38 @@ export const gitRepoGraphConfig = {
      */
   nodeDimensions: (d) => {
     if (d.data?.isRepo) {
+      const radius = defaultNodeRadius * 3;
+      const padding = defaultNodePadding * 2.5;
+
       return {
-        radius:  defaultNodeRadius * 3,
-        padding: defaultNodePadding * 2.5
+        radius,
+        size:     (radius * 2) - padding,
+        position: -(((radius * 2) - padding) / 2)
       };
     }
     if (d.data?.isBundle) {
+      const radius = defaultNodeRadius * 2;
+      const padding = defaultNodePadding;
+
+      if (d.data?.id.indexOf('helm') !== -1) {
+        return {
+          radius,
+          size:     (radius * 1.5) - padding,
+          position: -(((radius * 1.5) - padding) / 2)
+        };
+      }
+
       return {
-        radius:  defaultNodeRadius * 2,
-        padding: defaultNodePadding
+        radius,
+        size:     (radius * 1.7) - padding,
+        position: -(((radius * 1.7) - padding) / 2)
       };
     }
 
     return {
-      radius:  defaultNodeRadius,
-      padding: defaultNodePadding
+      radius:   defaultNodeRadius,
+      size:     (defaultNodeRadius * 2) - defaultNodePadding,
+      position: -(((defaultNodeRadius * 2) - defaultNodePadding) / 2)
     };
   },
   /**
@@ -184,16 +201,16 @@ export const gitRepoGraphConfig = {
 
     const moreInfo = [
       {
+        labelKey:  'fleet.fdc.type',
+        value:    dataType
+      },
+      {
         type:     'title-link',
         labelKey: 'fleet.fdc.id',
         valueObj: {
           id:             data.id,
           detailLocation: data.detailLocation
         }
-      },
-      {
-        labelKey:  'fleet.fdc.type',
-        value:    dataType
       }
     ];
 
