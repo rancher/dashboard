@@ -1,4 +1,12 @@
 <script>
+/**
+ * The Route and Receiver resources are deprecated. Going forward,
+ * routes and receivers should be configured within AlertmanagerConfigs.
+ * Any updates to route configuration should be made to the route form
+ * that is based on the AlertmanagerConfig resource, which has a
+ * different API. The new forms are located in
+ * @/edit/monitoring.coreos.com.alertmanagerconfig/routeConfig.vue.
+ */
 import CruResource from '@/components/CruResource';
 import ArrayList from '@/components/form/ArrayList';
 import KeyValue from '@/components/form/KeyValue';

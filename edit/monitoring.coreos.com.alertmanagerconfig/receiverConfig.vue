@@ -100,10 +100,6 @@ export default {
       type:     Function,
       required:  true
     },
-    doneLocationOverride: {
-      type:     Object,
-      required:  true
-    }
   },
 
   mixins: [CreateEditView],
@@ -220,11 +216,11 @@ export default {
     },
 
     redirectAfterCancel() {
-      this.$router.push(this.doneLocationOverride);
+      this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
     },
 
     redirectToAlertmanagerConfig() {
-      this.$router.push(this.doneLocationOverride);
+      this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
     },
 
     createAddOptions(receiverType) {

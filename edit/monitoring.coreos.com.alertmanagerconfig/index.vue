@@ -11,10 +11,12 @@ import { EDITOR_MODES } from '@/components/YamlEditor';
 import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
 import RouteConfig from './routeConfig';
 import ResourceTable from '@/components/ResourceTable';
-import { _VIEW, _CREATE, _CONFIG } from '@/config/query-params';
+import ActionMenu from '@/components/ActionMenu';
+import { _CREATE, _EDIT, _VIEW, _CONFIG } from '@/config/query-params';
 
 export default {
   components: {
+    ActionMenu,
     CruResource,
     Loading,
     NameNsDescription,
@@ -26,35 +28,39 @@ export default {
 
   mixins: [CreateEditView],
 
-  fetch() {},
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+    const alertmanagerConfigId = this.value.id;
+
+    const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
+
+    this.alertmanagerConfigId = alertmanagerConfigId;
+    this.alertmanagerConfigResource = alertmanagerConfigResource;
+    this.alertmanagerConfigDetailRoute = alertmanagerConfigResource.getAlertmanagerConfigDetailRoute();
+
+    const alertmanagerConfigActions = alertmanagerConfigResource.availableActions;
+    const receiverActions = alertmanagerConfigResource.getReceiverActions(alertmanagerConfigActions);
+
+    this.receiverActions = receiverActions;
+  },
 
   data() {
     this.value.applyDefaults();
+
     const defaultReceiverValues = {};
     const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
     const routeSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_ROUTE_SPEC);
     const receiverOptions = this.value.spec.receivers.map(receiver => receiver.name);
 
     return {
-      config:             _CONFIG,
-      createReceiverLink: {
-        name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
-        params: {
-          cluster:              this.$store.getters['clusterId'],
-          alertmanagerconfigid: this.value.id
-        },
-        query: { mode: _CREATE, currentView: _CONFIG }
-      },
+      actionMenuTargetElement:  null,
+      actionMenuTargetEvent:    null,
+      config:                   _CONFIG,
+      create:                   _CREATE,
+      createReceiverLink:       this.value.getCreateReceiverRoute(),
       defaultReceiverValues,
-      editReceiverLink: {
-        name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
-        params: {
-          cluster:              this.$store.getters['clusterId'],
-          alertmanagerconfigid: this.value.id
-        },
-        query: { mode: _CREATE, currentView: _CONFIG }
-      },
-      receiverTableHeaders: [
+      receiverActionMenuIsOpen: false,
+      receiverTableHeaders:     [
         {
           name:          'name',
           labelKey:      'tableHeaders.name',
@@ -66,10 +72,13 @@ export default {
         // Add more columns
       ],
       newReceiverType:      null,
+      receiverActions:      [],
       receiverOptions,
       receiverTypes:        RECEIVERS_TYPES,
       routeSchema,
       receiverSchema,
+      selectedReceiverName: '',
+      selectedRowValue:     null,
       view:                 _VIEW,
     };
   },
@@ -94,24 +103,68 @@ export default {
         };
       });
     },
-    addNewReceiver(name) {
-      // ToDo: uncomment and implement this code
-      // const existingReceiversOfSelectedType = this.value.spec.receivers[this.newReceiverType] || []
-
-      // this.value.spec.receivers[this.newReceiverType] = this.value.spec.receivers;
-    },
     getReceiverDetailLink(receiverData) {
-      return {
-        name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
-        params: {
-          cluster:              this.$store.getters['clusterId'],
-          alertmanagerconfigid: this.value.id
-        },
-        query: {
-          mode: _VIEW, receiverName: receiverData.name, currentView: _CONFIG
-        }
-      };
+      if (receiverData && receiverData.name) {
+        return this.value.getReceiverDetailLink(receiverData.name);
+      }
     },
+
+    toggleReceiverActionMenu() {
+      this.receiverActionMenuIsOpen = true;
+    },
+    setActionMenuState(eventData) {
+      // This method is called when the user clicks a context menu
+      // for a receiver in the receiver in the receiver list view.
+      // It sets the target element so the menu can open where the
+      // user clicked.
+      const { event, targetElement } = eventData;
+
+      // TargetElement could be an array of more than
+      // one if there is more than one ref of the same name.
+      if (event && targetElement) {
+        this.actionMenuTargetElement = targetElement;
+        this.actionMenuTargetEvent = event;
+
+        // We take the selected receiver name out of the target
+        // element's ID to help us build the URL to link to
+        // the detail page of that receiver.
+        // We use a plus sign as the delimiter to separate the
+        // name because the plus is not an allowed character in
+        // Kubernetes names.
+        this.selectedReceiverName = targetElement.id.split('+').slice(2).join('');
+
+        this.toggleReceiverActionMenu();
+      } else {
+        throw new Error('Could not find action menu target element.');
+      }
+    },
+    goToEdit() {
+      // 'goToEdit' is the exact name of an action for AlertmanagerConfig
+      // and this method executes the action.
+      this.$router.push(this.alertmanagerConfigResource.getEditReceiverConfigRoute(this.selectedReceiverName, _EDIT));
+    },
+
+    goToEditYaml() {
+      // 'goToEditYaml' is the exact name of an action for AlertmanagerConfig
+      // and this method executes the action.
+      this.$router.push(this.alertmanagerConfigResource.getEditReceiverYamlRoute(this.selectedReceiverName, _EDIT));
+    },
+    promptRemove() {
+    // 'promptRemove' is the exact name of an action for AlertmanagerConfig
+    // and this method executes the action.
+      // Get the name of the receiver to delete from the action info.
+      const nameOfReceiverToDelete = this.selectedReceiverName;
+      // Remove it from the configuration of the parent AlertmanagerConfig
+      // resource.
+      const existingReceivers = this.alertmanagerConfigResource.spec.receivers;
+      const receiversMinusDeletedItem = existingReceivers.filter((receiver) => {
+        return receiver.name !== nameOfReceiverToDelete;
+      });
+
+      this.alertmanagerConfigResource.spec.receivers = receiversMinusDeletedItem;
+      // After saving the AlertmanagerConfig, the resource has been deleted.
+      this.alertmanagerConfigResource.save(...arguments);
+    }
   }
 };
 </script>
@@ -144,17 +197,35 @@ export default {
           :rows="value.spec.receivers"
           :get-custom-detail-link="getReceiverDetailLink"
           :table-actions="false"
+          :custom-actions="value.receiverActions"
+          @clickedActionButton="setActionMenuState"
         >
           <template #header-button>
             <nuxt-link v-if="createReceiverLink && createReceiverLink.name" :to="createReceiverLink">
-              <button class="btn role-primary">
-                Create Receiver
+              <button
+                class="btn role-primary"
+                :disabled="mode === create"
+                :tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')"
+              >
+                {{ t('monitoring.receiver.addReceiver') }}
+                <i v-if="mode === create" v-tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')" class="icon icon-info" />
               </button>
             </nuxt-link>
           </template>
         </ResourceTable>
       </Tab>
     </Tabbed>
+    <ActionMenu
+      :custom-actions="receiverActions"
+      :open="receiverActionMenuIsOpen"
+      :use-custom-target-element="true"
+      :custom-target-element="actionMenuTargetElement"
+      :custom-target-event="actionMenuTargetEvent"
+      @close="receiverActionMenuIsOpen = false"
+      @goToEdit="goToEdit"
+      @goToEditYaml="goToEditYaml"
+      @promptRemove="promptRemove"
+    />
   </CruResource>
 </template>
 
@@ -169,5 +240,11 @@ export default {
     &[real-mode=view] .label {
       color: var(--input-label);
     }
+  }
+  button {
+    margin-left: 0.5em;
+  }
+  a:hover {
+      text-decoration: none;
   }
 </style>

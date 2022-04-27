@@ -53,7 +53,7 @@ export function screenRect() {
   };
 }
 
-export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
+export function fitOnScreen(contentElem, triggerElemOrEvent, opt, useDefaults) {
   let {
     positionX = AUTO, // Preferred horizontal position
     positionY = AUTO, // Preferred vertical position
@@ -79,15 +79,16 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
 
   if (contentElem) {
     content = boundingRect(contentElem);
-  } else {
-    // Use a basic default menu size
+  }
+
+  if (useDefaults) {
     content = {
       top:    0,
-      right:  147.075,
-      bottom: 163.411,
+      right:  147,
+      bottom: 163,
       left:   0,
-      width:  147.075,
-      height: 163.411
+      width:  147,
+      height: 80
     };
   }
 

@@ -2764,6 +2764,7 @@ monitoring:
       Warning: Prometheus Operators are currently deployed. Deploying multiple Prometheus Operators onto one cluster is not currently supported. Please remove all other Prometheus Operator deployments from this cluster before trying to install this chart.
       If you are migrating from an older version of {vendor} with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install this chart.
   receiver:
+    addReceiver: Add Receiver
     fields:
       name: Name
     tls:
@@ -2800,7 +2801,14 @@ monitoring:
     description: Routes and receivers for project alerting and cluster alerting are configured within AlertmanagerConfig resources.
     empty: Alerts have not been configured for any accessible namespaces.
     getStarted: Get started by clicking Create to configure an alert.
-    receiverTooltip: Must match the name of a receiver defined in the same AlertmanagerConfig.
+    receiverTooltip: This route will direct alerts to the selected receiver, which must be defined in the same AlertmanagerConfig.
+    deprecationWarning: The Route and Receiver resources are deprecated. We recommend configuring alerts in AlertmanagerConfigs.
+    routeInfo: This form supports configuring one route that directs traffic to a receiver. Alerts can be directed to more receiver(s) by configuring child routes in YAML.
+    receiverFormNames:
+      create: Create Receiver in AlertmanagerConfig
+      edit: Edit Receiver in AlertmanagerConfig
+      detail: Receiver in AlertmanagerConfig
+    disabledReceiverButton: The receiver form is available after the AlertmanagerConfig is created
   installSteps:
     uninstallV1:
       stepTitle: Uninstall V1

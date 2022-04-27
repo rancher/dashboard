@@ -704,6 +704,22 @@ export default {
       const hasStateDescription = row.stateDescription;
 
       return hasInjectedSubRows || hasStateDescription;
+    },
+
+    handleActionButtonClick(i, event) {
+      // Each row in the table gets its own ref with
+      // a number based on its index. If you are using
+      // an ActionMenu that doen't have a dependency on Vuex,
+      // these refs are useful because you can reuse the
+      // same ActionMenu component on a page with many different
+      // target elements in a list,
+      // so you can still avoid the performance problems that
+      // could result if the ActionMenu was in every row. The menu
+      // will open on whichever target element is clicked.
+      this.$emit('clickedActionButton', {
+        event,
+        targetElement: this.$refs[`actionButton${ i }`][0],
+      });
     }
   }
 };
@@ -930,7 +946,15 @@ export default {
                 </template>
                 <td v-if="rowActions" align="middle">
                   <slot name="row-actions" :row="row">
-                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions">
+                    <button
+                      :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
+                      :ref="`actionButton${i}`"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                      type="button"
+                      class="btn btn-sm role-multi-action actions"
+                      @click="handleActionButtonClick(i, $event)"
+                    >
                       <i class="icon icon-actions" />
                     </button>
                   </slot>
