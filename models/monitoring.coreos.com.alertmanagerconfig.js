@@ -1,8 +1,6 @@
 import SteveModel from '@/plugins/steve/steve-class';
 import { MONITORING } from '@/config/types';
-import {
-  _YAML, _CREATE, _EDIT, _VIEW, _CONFIG
-} from '@/config/query-params';
+import { _YAML, _CREATE, _VIEW, _CONFIG } from '@/config/query-params';
 import { set } from '@/utils/object';
 
 export default class AlertmanagerConfig extends SteveModel {
