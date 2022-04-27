@@ -38,8 +38,7 @@ export const gitRepoGraphConfig = {
      * @param {String} state
      * @param {String} stateDisplay
      * @param {String} stateColor
-     * @param {String} matchingId
-     * @param {String} matchingId
+     * @param {String} matchingId (this can be different than the actual ID, depends on the usecase)
      */
   parseData:   (data) => {
     const bundles = data.bundles.map((bundle, i) => {
@@ -119,8 +118,7 @@ export const gitRepoGraphConfig = {
     return classArray;
   },
   /**
-     * Used to add the correct icon to each node (ties up with iconsConst)
-     * Will need to work on a proper long-term solution following up the release of the chart
+     * Used to add the correct icon to each node
      */
   fetchNodeIcon: (d) => {
     if (d.data?.isRepo) {
@@ -179,7 +177,8 @@ export const gitRepoGraphConfig = {
     };
   },
   /**
-     * Use @param {Obj} valueObj for compound values (usually associated with a template of some sort) or @param value for a simple straightforward value
+     * Use @param {Obj} valueObj for compound values (usually associated with a template of some sort on the actual component)
+     * or @param value for a simple straightforward value
      */
   infoDetails: (data) => {
     let dataType;

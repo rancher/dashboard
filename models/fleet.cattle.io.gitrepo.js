@@ -313,20 +313,6 @@ export default class GitRepo extends SteveModel {
     return 0;
   }
 
-  // get bundleDeployments() {
-  //   const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
-  //   const clusters = this.$getters['all'](FLEET.CLUSTER);
-
-  //   const bundleDeployments = bds.filter(bd => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
-
-  //   return bundleDeployments.map((bd) => {
-  //     return {
-  //       ...bd,
-  //       clusters
-  //     };
-  //   });
-  // }
-
   get bundleDeployments() {
     const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
 
