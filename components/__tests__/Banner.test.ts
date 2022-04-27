@@ -2,11 +2,10 @@ import { mount } from '@vue/test-utils';
 import Banner from '@/components/Banner.vue';
 
 describe('component: Banner', () => {
-  it('should display text based on label', async() => {
+  it('should display text based on label', () => {
     const label = 'test';
-    const wrapper = mount(Banner);
+    const wrapper = mount(Banner, { propsData: { label } });
 
-    await wrapper.setProps({ label });
     const element = wrapper.find('span').element;
 
     expect(element.textContent).toBe(label);

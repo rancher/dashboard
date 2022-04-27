@@ -3,7 +3,7 @@ import ArrayListGrouped from '@/components/form/ArrayListGrouped.vue';
 
 describe('component: ArrayListGrouped', () => {
   it('should display enabled add button', () => {
-    const wrapper = mount(ArrayListGrouped, { mocks: { $store: { getters: { 'i18n/t': jest.fn() } } } });
+    const wrapper = mount(ArrayListGrouped);
     const button = wrapper.find('[data-testid^="add-item"]').element as HTMLInputElement;
 
     expect(button.disabled).toBe(false);
@@ -11,10 +11,7 @@ describe('component: ArrayListGrouped', () => {
 
   it('should add more items', async() => {
     const wrapper = mount(ArrayListGrouped, {
-      mocks: {
-        propsData: { value: ['a', 'b'] },
-        $store:    { getters: { 'i18n/t': jest.fn() } }
-      },
+      mocks: { propsData: { value: ['a', 'b'] } },
       slots: { default: '<div id="test"/>' }
     });
     const button = wrapper.find('[data-testid^="add-item"]');
@@ -28,10 +25,7 @@ describe('component: ArrayListGrouped', () => {
 
   it('should allow to remove items', async() => {
     const wrapper = mount(ArrayListGrouped, {
-      mocks: {
-        propsData: { value: ['a', 'b'] },
-        $store:    { getters: { 'i18n/t': jest.fn() } }
-      },
+      mocks: { propsData: { value: ['a', 'b'] } },
       slots: { default: '<div id="test"/>' }
     });
 
