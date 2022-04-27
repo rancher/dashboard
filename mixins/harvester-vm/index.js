@@ -203,10 +203,6 @@ export default {
       // When creating a template it is always necessary to create a new secret.
       return this.resource === HCI.VM_VERSION || this.isCreate;
     },
-
-    isManual() {
-      return this.runStrategy === 'Manual';
-    }
   },
 
   async created() {
@@ -239,7 +235,7 @@ export default {
         };
       }
 
-      const runStrategy = spec.runStrategy || 'Manual';
+      const runStrategy = spec.runStrategy || 'RerunOnFailure';
       const machineType = value.machineType;
       const cpu = spec.template.spec.domain?.cpu?.cores;
       const memory = spec.template.spec.domain.resources.limits.memory;
