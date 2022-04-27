@@ -229,7 +229,13 @@ export default {
     },
 
     showSnapshots() {
-      return this.value.isRke2 || this.value.isRke1;
+      if (this.value.isRke1) {
+        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP);
+      } else if (this.value.isRke2) {
+        return this.$store.getters['management/canList'](SNAPSHOT);
+      }
+
+      return false;
     },
 
     machineHeaders() {
