@@ -58,7 +58,13 @@ export default {
       type:    String,
       default: ''
     },
-    forceReuse: {
+    // force inline pages to reuse cached Ember pages
+    forceInlineReuse: {
+      type:    Boolean,
+      default: false
+    },
+    // Do not reuse cached pages
+    forceNew: {
       type:    Boolean,
       default: false
     }
@@ -203,7 +209,7 @@ export default {
       if (iframeEl !== null) {
         const ready = iframeEl.getAttribute('data-ready') === 'true';
         const lastDidLoad = iframeEl.getAttribute('data-loaded') === 'true';
-        const doNotReuse = !!this.inline && !this.forceReuse;
+        const doNotReuse = (!!this.inline && !this.forceInlineReuse) || this.forceNew;
         // Was not inline but now is - can't reuse
         const inlineChanged = !!this.inline && (iframeEl.parentElement === document.body);
 
