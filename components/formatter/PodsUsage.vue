@@ -26,11 +26,11 @@ export default {
         if (totalPods) {
           this.podsUsage = `${ usedPods }/${ totalPods }`;
         } else {
-          this.podsUsage = '——';
+          this.podsUsage = '—';
         }
       } else {
         this.loading = false;
-        this.podsUsage = '——';
+        this.podsUsage = '—';
       }
     }
   },
