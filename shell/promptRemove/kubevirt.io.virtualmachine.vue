@@ -3,6 +3,7 @@ import { mapState, mapGetters } from 'vuex';
 import { HCI } from '@shell/config/types';
 import { isEmpty } from '@shell/utils/object';
 import Parse from 'url-parse';
+import { resourceNames } from '@shell/utils/string';
 
 export default {
   name: 'HarvesterPromptRemove',
@@ -64,22 +65,6 @@ export default {
 
       return this.t('promptRemove.andOthers', { count: remaining });
     },
-
-    resourceNames() {
-      return this.names.reduce((res, name, i) => {
-        if (i >= 5) {
-          return res;
-        }
-        res += `<b>${ name }</b>`;
-        if (i === this.names.length - 1) {
-          res += this.plusMore;
-        } else {
-          res += i === this.toRemove.length - 2 ? ' and ' : ', ';
-        }
-
-        return res;
-      }, '');
-    }
   },
 
   watch: {
@@ -97,6 +82,7 @@ export default {
   },
 
   methods: {
+    resourceNames,
     remove() {
       const parentComponent = this.$parent.$parent.$parent;
 
@@ -148,7 +134,7 @@ export default {
 <template>
   <div class="mt-10">
     {{ t('promptRemove.attemptingToRemove', {type}) }}
-    <span v-html="resourceNames"></span>
+    <span v-html="resourceNames(names, plusMore, t)"></span>
 
     <div class="mt-10">
       {{ t('harvester.virtualMachine.promptRemove.title') }}

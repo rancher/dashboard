@@ -142,6 +142,22 @@ export function pluralize(str) {
   }
 }
 
+export function resourceNames(names, plusMore, t) {
+  return names.reduce((res, name, i) => {
+    if (i >= 5) {
+      return res;
+    }
+    res += `<b>${ escapeHtml( name ) }</b>`;
+    if (i === names.length - 1) {
+      res += plusMore;
+    } else {
+      res += i === names.length - 2 ? t('generic.and') : t('generic.comma');
+    }
+
+    return res;
+  }, '');
+}
+
 export function indent(lines, count = 2, token = ' ', afterRegex = null) {
   if (typeof lines === 'string') {
     lines = lines.split(/\n/);
