@@ -327,7 +327,7 @@ export default {
             <tr v-else-if="search">
               <td v-t="'wm.containerLogs.noMatch'" colspan="2" class="msg text-muted" />
             </tr>
-            <tr v-else v-t="'wm.containerLogs.noData'" colspan="2" class="msg text-muted" />
+            <tr v-else v-t="'epinio.applications.wm.noData'" colspan="2" class="msg text-muted" />
           </tbody>
         </table>
       </div>

@@ -50,6 +50,11 @@ export default {
       default:    false
     },
 
+    directory: {
+      type:    Boolean,
+      default:    false
+    },
+
     rawData: {
       type:    Boolean,
       default:    false
@@ -139,6 +144,7 @@ export default {
       type="file"
       class="hide"
       :multiple="multiple"
+      :webkitdirectory="directory"
       @change="fileChange"
     />
   </button>
