@@ -16,7 +16,7 @@ title: What's New in 2.6
 
 - Windows support for RKE2 is now GA along with a vSphere driver for Windows.
 
-### Project Monitoring V2 
+### Prometheus Federator 
 
 - Isolate metrics data between teams in the same cluster using Rancher projects.
 
