@@ -1906,6 +1906,12 @@ export default {
         </Tab>
 
         <Tab name="addons" label-key="cluster.tabs.addons" @active="showAddons">
+          <Banner
+            v-if="isEdit"
+            color="warning"
+          >
+            {{ t('cluster.addOns.dependencyBanner') }}
+          </Banner>
           <div v-if="versionInfo && addonVersions.length" :key="addonsRev">
             <div v-for="v in addonVersions" :key="v._key">
               <h3>{{ labelForAddon(v.name) }}</h3>
