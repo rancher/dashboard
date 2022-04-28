@@ -271,7 +271,6 @@ export default Vue.extend<Data, any, any, any>({
           :mode="mode"
           :raw-data="true"
           :directory="true"
-          :multiple="true"
           @selected="onFolderSelected"
         />
       </div>

@@ -152,6 +152,7 @@ epinio:
         label: Restart
     wm:
       containerName: 'Instance: {label}'
+      noData: There are no log entries to show.
   namespace:
     tableHeaders:
       appCount: Applications
@@ -169,4 +170,3 @@ epinio:
       createBy: Created By
     promptRemove:
       unbind: Unbind from applications before deleting
-    
