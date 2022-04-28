@@ -19,7 +19,7 @@ Wizard will emit these events:
 */
 
 export default {
-  name: 'Wizzard',
+  name: 'Wizard',
 
   components: {
     AsyncButton,
