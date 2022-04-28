@@ -11,7 +11,13 @@ import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG
 } from '@/config/query-params';
 
+/**
+ * Resource Detail Masthead component.
+ */
 export default {
+
+  name: 'MastheadResourceDetail',
+
   components: {
     BadgeState, Banner, ButtonGroup
   },
@@ -350,6 +356,7 @@ export default {
         </div>
       </div>
       <slot name="right">
+        console.log
         <div class="actions-container">
           <div class="actions">
             <ButtonGroup
