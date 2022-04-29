@@ -1109,9 +1109,23 @@ export default {
       });
     },
 
+    showAddonConfirmation() {
+      return new Promise((resolve, reject) => {
+        this.$store.dispatch('cluster/promptModal', { component: 'AddonConfigConfirmationDialog', resources: [value => resolve(value)] });
+      });
+    },
+
     async saveOverride(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
+      }
+
+      if (this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion) {
+        const shouldContinue = await this.showAddonConfirmation();
+
+        if (!shouldContinue) {
+          return btnCb('cancelled');
+        }
       }
 
       for (const [index] of this.machinePools.entries()) { // validator machine config

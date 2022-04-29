@@ -277,6 +277,10 @@ accountAndKeys:
 addClusterMemberDialog:
   title: Add Cluster Member
 
+addonConfigConfirmation:
+  title: Add-On Config Reset
+  body: Changing the Kubernetes Version can reset the Add-On Config values. You should check that the values are as expected before continuing.
+
 addProjectMemberDialog:
   title: Add Project Member
 
