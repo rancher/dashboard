@@ -177,10 +177,7 @@ export default {
         return;
       }
 
-      const selected = {
-        ...this.visibleSteps[number - 1],
-        index: number
-      };
+      const selected = this.visibleSteps[number - 1];
 
       if ( !selected || (!this.isAvailable(selected) && number !== 1)) {
         return;
@@ -376,7 +373,7 @@ $spacer: 10px;
 
   & > .title {
     flex: 1;
-    min-height: 75px;
+    min-height: 60px;
   }
   .step-sequence {
     flex:1;

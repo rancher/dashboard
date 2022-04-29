@@ -13,7 +13,6 @@ import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
 } from '@/config/query-params';
 import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
-import Loading from '@/components/Loading';
 import Wizard from '@/components/Wizard';
 
 export default {
@@ -25,7 +24,6 @@ export default {
     Banner,
     CruResourceFooter,
     ResourceYaml,
-    Loading,
     Wizard
   },
 
@@ -128,14 +126,14 @@ export default {
 
   computed: {
     canSave() {
-      const { validationPassed, showAsForm } = this;
+      const { validationPassed, showAsForm, steps } = this;
+
+      if (showAsForm && steps?.length) {
+        return validationPassed && this.steps.every(step => step.ready);
+      }
 
       if (showAsForm) {
-        if (validationPassed) {
-          return true;
-        }
-      } else {
-        return true;
+        return !!validationPassed;
       }
 
       return false;
@@ -180,14 +178,14 @@ export default {
       return false;
     },
 
+    ...mapGetters({ t: 'i18n/t' }),
+
     /**
      * Prevent issues for malformed types injection
      */
     hasErrors() {
       return this.errors?.length && Array.isArray(this.errors);
     },
-
-    ...mapGetters({ t: 'i18n/t' }),
   },
 
   created() {
@@ -269,7 +267,6 @@ export default {
       this.$router.applyQuery({ [SUB_TYPE]: id });
       this.$emit('select-type', id);
     },
-
     save() {
       this.$refs.save.clicked();
     },

@@ -96,7 +96,7 @@ export default {
         label:          this.t('fleet.gitRepo.add.steps.repoInfo.label'),
         subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
         descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
-        ready:          true,
+        ready:          false,
         weight:         30
       },
       stepTargetInfo: {
@@ -232,6 +232,11 @@ export default {
         { label: this.t('fleet.gitRepo.tls.skip'), value: _SKIP },
       ];
     },
+
+    stepOneRequires() {
+      return !!this.value.metadata.name && !!this.refValue;
+    }
+
   },
 
   watch: {
@@ -335,10 +340,16 @@ export default {
         delete spec.branch;
         spec.revision = text;
       }
+
+      this.$set(this.addRepositorySteps[0], 'ready', this.stepOneRequires);
     },
 
     updateTlsMode(event) {
       this.tlsMode = event;
+    },
+
+    onUpdateRepoName() {
+      this.$set(this.addRepositorySteps[0], 'ready', this.stepOneRequires);
     },
 
     updateTls() {
@@ -399,7 +410,7 @@ export default {
       </Banner>
     </template>
     <template #stepRepoInfo>
-      <NameNsDescription v-if="!isView" v-model="value" :namespaced="false" :mode="mode" />
+      <NameNsDescription v-if="!isView" v-model="value" :namespaced="false" :mode="mode" @change="onUpdateRepoName" />
 
       <div class="row" :class="{'mt-20': isView}">
         <div class="col span-6">

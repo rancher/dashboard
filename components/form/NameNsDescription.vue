@@ -19,6 +19,9 @@ export function normalizeName(str) {
 }
 
 export default {
+
+  name: 'NameNsDescription',
+
   components: { LabeledInput, InputWithSelect },
 
   props: {
