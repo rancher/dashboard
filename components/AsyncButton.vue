@@ -201,11 +201,15 @@ export default Vue.extend({
       this.$emit('click', cb);
     },
 
-    done(success: boolean) {
-      this.phase = (success ? SUCCESS : ERROR );
-      this.timer = setTimeout(() => {
-        this.timerDone();
-      }, this.delay );
+    done(success: boolean | 'cancelled') {
+      if (success === 'cancelled') {
+        this.phase = ACTION;
+      } else {
+        this.phase = (success ? SUCCESS : ERROR );
+        this.timer = setTimeout(() => {
+          this.timerDone();
+        }, this.delay );
+      }
     },
 
     timerDone() {
