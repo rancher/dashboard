@@ -9,6 +9,8 @@ import { get } from '@/utils/object';
 import Select from '@/components/form/Select';
 import FileSelector from '@/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@/config/query-params';
+import { asciiLike } from '@/utils/string';
+
 export default {
   components: {
     Select,
@@ -217,20 +219,23 @@ export default {
   data() {
     const rows = [];
 
+    console.log('DATA!!!', this.value);
+
     if ( this.asMap ) {
       const input = this.value || {};
 
       Object.keys(input).forEach((key) => {
         let value = input[key];
 
-        if ( this.handleBase64 ) {
+        if ( this.handleBase64 && asciiLike(base64Decode(value))) {
           value = base64Decode(value);
         }
 
         rows.push({
           key,
           value,
-          binary:    this.displayValuesAsBinary,
+          binary:    this.displayValuesAsBinary || (this.handleBase64 && !asciiLike(base64Decode(input[key]))),
+          canEncode: this.handleBase64 && asciiLike(base64Decode(input[key])),
           supported: true,
         });
       });
@@ -240,13 +245,14 @@ export default {
       for ( const row of input ) {
         let value = row[this.valueName] || '';
 
-        if ( this.handleBase64 ) {
+        if ( this.handleBase64 && asciiLike(base64Decode(value))) {
           value = base64Decode(value);
         }
         const entry = {
           [this.keyName]:   row[this.keyName] || '',
           [this.valueName]: value,
-          binary:           this.displayValuesAsBinary,
+          binary:           this.displayValuesAsBinary || (this.handleBase64 && !asciiLike(base64Decode(row[this.valueName]))),
+          canEncode:        this.handleBase64 && asciiLike(base64Decode(row[this.valueName])),
           supported:        this.supported(row),
         };
 
@@ -266,6 +272,8 @@ export default {
         supported:        true
       });
     }
+
+    console.log('ROWS!', rows);
 
     return { rows };
   },
@@ -376,10 +384,10 @@ export default {
             out[key] = JSON.parse(JSON.stringify(value));
           } else {
             value = value || '';
-            if ( this.valueTrim ) {
+            if (this.valueTrim && asciiLike(value)) {
               value = value.trim();
             }
-            if ( value && this.handleBase64 ) {
+            if (row.canEncode) {
               value = base64Encode(value);
             }
             if ( key && (value || this.valueCanBeEmpty) ) {
@@ -395,7 +403,7 @@ export default {
         out = this.rows.map((row) => {
           let value = row[this.valueName];
 
-          if ( value && this.handleBase64 ) {
+          if (row.canEncode) {
             value = base64Encode(value);
           }
           const entry = {
@@ -412,6 +420,8 @@ export default {
           return entry;
         });
       }
+
+      console.log('OUTPUT!', out);
       this.$emit('input', out);
     },
     onPaste(index, event, pastedValue) {
