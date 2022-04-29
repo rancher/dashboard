@@ -4542,6 +4542,7 @@ tableHeaders:
   ingressDefaultBackend: Default
   ingressTarget: Target
   internalExternalIp: External/Internal IP
+  ipaddress: IP Address
   jobs: Jobs
   key: Key
   keys: Data

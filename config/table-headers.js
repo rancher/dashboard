@@ -906,3 +906,9 @@ export const FLEET_BUNDLE_TYPE = {
   sort:     ['bundleType'],
   width:    100,
 };
+
+export const IP_ADDRESS = {
+  name:          'ipaddress',
+  value:         'ipaddress',
+  labelKey:      'tableHeaders.ipaddress',
+};

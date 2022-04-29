@@ -9,7 +9,7 @@ import Tab from '@/components/Tabbed/Tab';
 import { allHash } from '@/utils/promise';
 import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME, IP_ADDRESS
 } from '@/config/table-headers';
 import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@/components/AsyncButton.vue';
@@ -267,6 +267,7 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
+        IP_ADDRESS,
         MANAGEMENT_NODE_OS,
         ROLES,
         AGE
