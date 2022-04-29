@@ -773,6 +773,10 @@ export const actions = {
 
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
+    // This is a workaround for a timing issue where the mgmt cluster schema may not be available
+    // Try and wait until the schema exists before proceeding
+    await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
+
     // See if it really exists
     const cluster = await dispatch('management/find', {
       type: MANAGEMENT.CLUSTER,
@@ -825,7 +829,16 @@ export const actions = {
       hash.upgrades = dispatch('harvester/findAll', { type: HCI.UPGRADE });
     }
 
-    await allHash(hash);
+    const res = await allHash(hash);
+
+    await dispatch('cleanNamespaces');
+
+    const filters = getters['prefs/get'](NAMESPACE_FILTERS)?.[id];
+
+    commit('updateNamespaces', {
+      filters: filters || [ALL_USER],
+      all:     res.virtualNamespaces
+    });
 
     commit('clusterChanged', true);
 

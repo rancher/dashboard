@@ -287,11 +287,8 @@ export default {
       function addType(id, group, disabled = false, link = null, iconClass = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
-        const techPreview = getters['i18n/t']('generic.techPreview');
-        const isTechPreview = group === 'rke2' || group === 'custom2';
-        let tag = isTechPreview ? techPreview : getters['i18n/withFallback'](`cluster.providerTag."${ id }"`, { techPreview }, '');
+        const tag = '';
 
-        // Always prefer the built-in icon if there is one
         let icon;
 
         try {
@@ -302,10 +299,6 @@ export default {
           iconClass = undefined;
         } else if (!iconClass) {
           icon = require('~/assets/images/generic-driver.svg');
-        }
-
-        if (group === 'rke2' && id === 'harvester') {
-          tag = getters['i18n/withFallback'](`cluster.providerTag.rke2."${ id }"`, { tag: techPreview }, '');
         }
 
         const subtype = {
@@ -436,7 +429,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="emberLink" class="embed">
-    <EmberPage :src="emberLink" />
+    <EmberPage :force-new="true" :src="emberLink" />
   </div>
   <CruResource
     v-else
@@ -447,6 +440,7 @@ export default {
     :errors="errors"
     :subtypes="subTypes"
     :cancel-event="true"
+    class="create-cluster"
     @finish="save"
     @cancel="cancel"
     @select-type="selectType"

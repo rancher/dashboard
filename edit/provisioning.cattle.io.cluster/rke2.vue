@@ -265,7 +265,7 @@ export default {
       set(this.value.spec.rkeConfig, 'upgradeStrategy', {
         controlPlaneConcurrency:  '1',
         controlPlaneDrainOptions: {},
-        workerConcurrency:        '1',
+        workerConcurrency:        '10%',
         workerDrainOptions:       {},
       });
     }
@@ -819,6 +819,10 @@ export default {
       }
 
       return null;
+    },
+
+    showForm() {
+      return !!this.credentialId || !this.needCredential;
     }
   },
 
@@ -1105,9 +1109,23 @@ export default {
       });
     },
 
+    showAddonConfirmation() {
+      return new Promise((resolve, reject) => {
+        this.$store.dispatch('cluster/promptModal', { component: 'AddonConfigConfirmationDialog', resources: [value => resolve(value)] });
+      });
+    },
+
     async saveOverride(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
+      }
+
+      if (this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion) {
+        const shouldContinue = await this.showAddonConfirmation();
+
+        if (!shouldContinue) {
+          return btnCb('cancelled');
+        }
       }
 
       for (const [index] of this.machinePools.entries()) { // validator machine config
@@ -1445,7 +1463,8 @@ export default {
           set(rkeConfig.chartValues, name, userValues);
         }
       });
-    }
+    },
+    get
   },
 };
 </script>
@@ -1464,6 +1483,7 @@ export default {
     :done-route="doneRoute"
     :apply-hooks="applyHooks"
     :generate-yaml="generateYaml"
+    class="rke2"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
@@ -1481,9 +1501,10 @@ export default {
       :mode="mode"
       :provider="provider"
       :cancel="cancelCredential"
+      :showing-form="showForm"
     />
 
-    <div v-if="credentialId || !needCredential" class="mt-20">
+    <div v-if="showForm" class="mt-20">
       <NameNsDescription
         v-if="!isView"
         v-model="value"
@@ -1725,7 +1746,7 @@ export default {
             />
 
             <S3Config
-              v-if="rkeConfig.etcd.s3"
+              v-if="s3Backup"
               v-model="rkeConfig.etcd.s3"
               :namespace="value.metadata.namespace"
               :register-before-hook="registerBeforeHook"
@@ -1821,6 +1842,9 @@ export default {
         </Tab>
 
         <Tab name="upgrade" label-key="cluster.tabs.upgrade">
+          <Banner v-if="get(rkeConfig, 'upgradeStrategy.controlPlaneDrainOptions.deleteEmptyDirData')" color="warning">
+            {{ t('cluster.rke2.deleteEmptyDir', {}, true) }}
+          </Banner>
           <div class="row">
             <div class="col span-6">
               <h3>Control Plane</h3>
@@ -1896,6 +1920,12 @@ export default {
         </Tab>
 
         <Tab name="addons" label-key="cluster.tabs.addons" @active="showAddons">
+          <Banner
+            v-if="isEdit"
+            color="warning"
+          >
+            {{ t('cluster.addOns.dependencyBanner') }}
+          </Banner>
           <div v-if="versionInfo && addonVersions.length" :key="addonsRev">
             <div v-for="v in addonVersions" :key="v._key">
               <h3>{{ labelForAddon(v.name) }}</h3>
@@ -2040,6 +2070,7 @@ export default {
     </template>
   </CruResource>
 </template>
+
 <style lang="scss" scoped>
   .k3s-tech-preview-info {
     color: var(--error);

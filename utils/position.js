@@ -53,13 +53,11 @@ export function screenRect() {
   };
 }
 
-export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
+export function fitOnScreen(contentElem, triggerElemOrEvent, opt, useDefaults) {
   let {
     positionX = AUTO, // Preferred horizontal position
     positionY = AUTO, // Preferred vertical position
   } = opt || {};
-
-  // console.log(positionX, positionY);
 
   const {
     fudgeX = 0,
@@ -72,12 +70,27 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
   let trigger;
 
   if ( triggerElemOrEvent instanceof Event ) {
-    trigger = fakeRectFor(event);
+    trigger = fakeRectFor(triggerElemOrEvent);
   } else {
     trigger = boundingRect(triggerElemOrEvent);
   }
 
-  const content = boundingRect(contentElem);
+  let content = {};
+
+  if (contentElem) {
+    content = boundingRect(contentElem);
+  }
+
+  if (useDefaults) {
+    content = {
+      top:    0,
+      right:  147,
+      bottom: 163,
+      left:   0,
+      width:  147,
+      height: 80
+    };
+  }
 
   // console.log('screen', screen);
   // console.log('trigger', trigger);

@@ -119,6 +119,14 @@ export default {
       type:    [String, Number],
       default: ''
     },
+
+    /**
+     * Optionally delay on input while typing
+     */
+    delay: {
+      type:    Number,
+      default: 500
+    }
   },
 
   computed: {
@@ -200,6 +208,7 @@ export default {
     :min="min"
     :mode="mode"
     :label="label"
+    :delay="delay"
     :label-key="labelKey"
     :tooltip="tooltip"
     :tooltip-key="tooltipKey"

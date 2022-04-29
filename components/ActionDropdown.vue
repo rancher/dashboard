@@ -1,5 +1,7 @@
 <script>
 export default {
+  name: 'ActionDropdown',
+
   props: {
     size: {
       type:    String,

@@ -3,16 +3,18 @@ import { load } from 'js-yaml';
 import { colorForState } from '@/plugins/steve/resource-class';
 import { POD, NODE, HCI, PVC } from '@/config/types';
 import { findBy } from '@/utils/array';
+import { parseSi } from '@/utils/units';
 import { get } from '@/utils/object';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@/config/labels-annotations';
 import { _CLONE } from '@/config/query-params';
 import SteveModel from '@/plugins/steve/steve-class';
 
+export const OFF = 'Off';
+
 const VMI_WAITING_MESSAGE = 'The virtual machine is waiting for resources to become available.';
 const VM_ERROR = 'VM error';
 const STOPPING = 'Stopping';
-const OFF = 'Off';
 const WAITING = 'Waiting';
 const NOT_READY = 'Not Ready';
 const AGENT_CONNECTED = 'AgentConnected';
@@ -173,7 +175,7 @@ export default class VirtVm extends SteveModel {
 
   applyDefaults(resources = this, realMode) {
     const spec = {
-      running:              true,
+      runStrategy: 'RerunOnFailure',
       template:             {
         metadata: { annotations: {} },
         spec:     {
@@ -203,8 +205,7 @@ export default class VirtVm extends SteveModel {
                 cpu:    ''
               }
             },
-            features: { smm: { enabled: false } },
-            firmware: { bootloader: { efi: { secureBoot: false } } },
+            features: { acpi: { enabled: true } },
           },
           evictionStrategy: 'LiveMigrate',
           hostname:         '',
@@ -346,6 +347,12 @@ export default class VirtVm extends SteveModel {
     });
   }
 
+  get networksName() {
+    const interfaces = this.spec.template.spec.domain.devices?.interfaces || [];
+
+    return interfaces.map(I => I.name);
+  }
+
   get isOff() {
     return !this.isVMExpectedRunning ? { status: OFF } : null;
   }
@@ -364,8 +371,8 @@ export default class VirtVm extends SteveModel {
     }
     const { running = null, runStrategy = null } = this.spec;
 
-    if (running !== null) {
-      return running;
+    if (running) {
+      return true;
     }
 
     if (runStrategy !== null) {
@@ -375,8 +382,9 @@ export default class VirtVm extends SteveModel {
       case RunStrategy.Halted:
         return false;
       case RunStrategy.Always:
-      case RunStrategy.RerunOnFailure:
         return true;
+      case RunStrategy.RerunOnFailure:
+        return ['Starting', 'Running'].includes(this.status?.printableStatus);
       case RunStrategy.Manual:
       default:
         changeRequests = new Set(
@@ -388,6 +396,10 @@ export default class VirtVm extends SteveModel {
         }
         if (changeRequests.has(StateChangeRequest.Start)) {
           return true;
+        }
+
+        if (changeRequests.size === 0 ) {
+          return ['Starting', 'Running'].includes(this.status?.printableStatus);
         }
 
         return this.isVMCreated; // if there is no change request we can assume created is representing running (current and expected)
@@ -482,7 +494,7 @@ export default class VirtVm extends SteveModel {
   }
 
   get isBeingStopped() {
-    if (this && !this.isVMExpectedRunning && this.isVMCreated) {
+    if (this && !this.isVMExpectedRunning && this.isVMCreated && this.vmi?.isTerminated) {
       return { status: STOPPING };
     }
 
@@ -798,7 +810,9 @@ export default class VirtVm extends SteveModel {
   get memorySort() {
     const memory = this?.spec?.template?.spec?.domain?.resources?.requests?.memory || 0;
 
-    return parseInt(memory);
+    const formatSize = parseSi(memory);
+
+    return parseInt(formatSize);
   }
 
   get ingoreVMMessage() {

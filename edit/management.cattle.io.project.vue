@@ -12,14 +12,15 @@ import Tabbed from '@/components/Tabbed';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import { MANAGEMENT } from '@/config/types';
 import { NAME } from '@/config/product/explorer';
-import { PROJECT_ID } from '@/config/query-params';
+import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@/config/query-params';
 import ProjectMembershipEditor from '@/components/form/Members/ProjectMembershipEditor';
 import { canViewProjectMembershipEditor } from '@/components/form/Members/ProjectMembershipEditor.vue';
 import { NAME as HARVESTER } from '@/config/product/harvester';
+import Banner from '@/components/Banner';
 
 export default {
   components: {
-    ContainerResourceLimit, CruResource, Labels, LabeledSelect, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab
+    ContainerResourceLimit, CruResource, Labels, LabeledSelect, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
   },
 
   mixins: [CreateEditView],
@@ -54,8 +55,28 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
 
-    canManageMembers() {
+    canViewMembers() {
       return canViewProjectMembershipEditor(this.$store);
+    },
+
+    canEditProject() {
+      return this.value?.links?.update;
+    },
+
+    isDescriptionDisabled() {
+      return (this.mode === _EDIT && !this.canEditProject) || false;
+    },
+
+    canEditTabElements() {
+      if (this.mode === _EDIT && !this.canEditProject) {
+        return _VIEW;
+      }
+
+      return this.mode;
+    },
+
+    showBannerForOnlyManagingMembers() {
+      return this.mode === _EDIT && !this.canEditProject;
     },
 
     isK3s() {
@@ -113,10 +134,24 @@ export default {
     async save(saveCb) {
       try {
         // clear up of the unused resourceQuotas will now be done on the model side
-        const savedProject = await this.value.save();
 
-        if (this.membershipUpdate.save) {
-          this.membershipUpdate.save(savedProject.id);
+        if (this.mode === _CREATE) {
+          const savedProject = await this.value.save();
+
+          if (this.membershipUpdate.save) {
+            await this.membershipUpdate.save(savedProject.id);
+          }
+        } else if (this.mode === _EDIT) {
+          if (this.canEditProject) {
+            await this.value.save();
+          }
+
+          // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects
+          if (this.membershipUpdate.save) {
+            const norman = await this.value.norman;
+
+            await this.membershipUpdate.save(norman.id);
+          }
         }
 
         saveCb(true);
@@ -155,6 +190,7 @@ export default {
       :mode="mode"
       :namespaced="false"
       description-key="spec.description"
+      :description-disabled="isDescriptionDisabled"
       name-key="spec.displayName"
       :normalize-name="false"
     />
@@ -171,14 +207,37 @@ export default {
       </div>
     </div>
     <Tabbed :side-tabs="true">
-      <Tab v-if="canManageMembers" name="members" :label="t('project.members.label')" :weight="10">
-        <ProjectMembershipEditor :mode="mode" :parent-id="value.id" @has-owner-changed="onHasOwnerChanged" @membership-update="onMembershipUpdate" />
+      <Tab
+        v-if="canViewMembers"
+        name="members"
+        :label="t('project.members.label')"
+        :weight="10"
+      >
+        <Banner
+          v-if="showBannerForOnlyManagingMembers"
+          color="info"
+          :label="t('project.membersEditOnly')"
+        />
+        <ProjectMembershipEditor
+          :mode="mode"
+          :parent-id="value.id"
+          @has-owner-changed="onHasOwnerChanged"
+          @membership-update="onMembershipUpdate"
+        />
       </Tab>
-      <Tab name="resource-quotas" :label="t('project.resourceQuotas')" :weight="9">
-        <ResourceQuota v-model="value" :mode="mode" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
+      <Tab
+        name="resource-quotas"
+        :label="t('project.resourceQuotas')"
+        :weight="9"
+      >
+        <ResourceQuota v-model="value" :mode="canEditTabElements" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
-      <Tab name="container-default-resource-limit" :label="resourceQuotaLabel" :weight="8">
-        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="mode" :show-tip="false" :register-before-hook="registerBeforeHook" />
+      <Tab
+        name="container-default-resource-limit"
+        :label="resourceQuotaLabel"
+        :weight="8"
+      >
+        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="canEditTabElements" :show-tip="false" :register-before-hook="registerBeforeHook" />
       </Tab>
       <Tab
         name="labels-and-annotations"
@@ -188,7 +247,7 @@ export default {
         <Labels
           default-container-class="labels-and-annotations-container"
           :value="value"
-          :mode="mode"
+          :mode="canEditTabElements"
           :display-side-by-side="false"
         />
       </Tab>

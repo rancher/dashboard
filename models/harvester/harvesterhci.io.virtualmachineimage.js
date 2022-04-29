@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { HCI } from '@/config/types';
 import {
   DESCRIPTION,
@@ -51,6 +52,10 @@ export default class HciVmImage extends SteveModel {
       },
       ...out
     ];
+  }
+
+  applyDefaults(resources = this, realMode) {
+    Vue.set(this.metadata, 'labels', { [HCI_ANNOTATIONS.OS_TYPE]: '', [HCI_ANNOTATIONS.IMAGE_SUFFIX]: '' });
   }
 
   createFromImage() {
@@ -136,55 +141,6 @@ export default class HciVmImage extends SteveModel {
     });
   }
 
-  get customValidationRules() {
-    const out = [];
-
-    if (this.imageSource === 'download') {
-      const urlFormat = {
-        nullable:       false,
-        path:           'spec.url',
-        validators:     ['imageUrl'],
-      };
-
-      const urlRequired = {
-        nullable:       false,
-        path:           'spec.url',
-        required:       true,
-        translationKey: 'harvester.image.url'
-      };
-
-      out.push(urlFormat, urlRequired);
-    }
-
-    if (this.imageSource === 'upload') {
-      const fileRequired = {
-        nullable:       false,
-        path:           'metadata.annotations',
-        validators:     ['fileRequired'],
-      };
-
-      out.push(fileRequired);
-    }
-
-    return [
-      {
-        nullable:       false,
-        path:           'spec.displayName',
-        required:       true,
-        minLength:      1,
-        maxLength:      63,
-        translationKey: 'generic.name'
-      },
-      {
-        nullable:       false,
-        path:           'spec.displayName',
-        required:       true,
-        translationKey: 'generic.name'
-      },
-      ...out
-    ];
-  }
-
   getStatusConditionOfType(type, defaultValue = []) {
     const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
 
@@ -235,5 +191,62 @@ export default class HciVmImage extends SteveModel {
 
       this.$ctx.commit('harvester-common/uploadEnd', this.metadata.name, { root: true });
     };
+  }
+
+  get imageSuffix() {
+    return this.metadata?.labels?.[HCI_ANNOTATIONS.IMAGE_SUFFIX];
+  }
+
+  get imageOSType() {
+    return this.metadata?.labels?.[HCI_ANNOTATIONS.OS_TYPE];
+  }
+
+  get customValidationRules() {
+    const out = [];
+
+    if (this.imageSource === 'download') {
+      const urlFormat = {
+        nullable:       false,
+        path:           'spec.url',
+        validators:     ['imageUrl'],
+      };
+
+      const urlRequired = {
+        nullable:       false,
+        path:           'spec.url',
+        required:       true,
+        translationKey: 'harvester.image.url'
+      };
+
+      out.push(urlFormat, urlRequired);
+    }
+
+    if (this.imageSource === 'upload') {
+      const fileRequired = {
+        nullable:       false,
+        path:           'metadata.annotations',
+        validators:     ['fileRequired'],
+      };
+
+      out.push(fileRequired);
+    }
+
+    return [
+      {
+        nullable:       false,
+        path:           'spec.displayName',
+        required:       true,
+        minLength:      1,
+        maxLength:      63,
+        translationKey: 'generic.name'
+      },
+      {
+        nullable:       false,
+        path:           'spec.displayName',
+        required:       true,
+        translationKey: 'generic.name'
+      },
+      ...out
+    ];
   }
 }

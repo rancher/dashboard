@@ -79,6 +79,11 @@ export default {
       default: 'sortableTable.paging.resource',
     },
 
+    rowActions: {
+      type:    Boolean,
+      default: true,
+    },
+
     groupable: {
       type:    Boolean,
       default: null, // Null: auto based on namespaced and type custom groupings
@@ -101,6 +106,10 @@ export default {
       type:    Function,
       default: null,
     },
+    getCustomDetailLink: {
+      type:    Function,
+      default: null
+    }
   },
 
   data() {
@@ -333,6 +342,10 @@ export default {
 
       return defaultTableSortGenerationFn(this.schema, this.$store);
     },
+
+    handleActionButtonClick(event) {
+      this.$emit('clickedActionButton', event);
+    }
   }
 };
 </script>
@@ -349,16 +362,23 @@ export default {
     :paging="true"
     :paging-params="pagingParams"
     :paging-label="pagingLabel"
+    :row-actions="rowActions"
     :table-actions="_showBulkActions"
     :overflow-x="overflowX"
     :overflow-y="overflowY"
+    :get-custom-detail-link="getCustomDetailLink"
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
+    @clickedActionButton="handleActionButtonClick"
     v-on="$listeners"
   >
     <template v-if="showGrouping" #header-middle>
       <slot name="more-header-middle" />
       <ButtonGroup v-model="group" :options="groupOptions" />
+    </template>
+
+    <template v-if="showGrouping" #header-right>
+      <slot name="header-right" />
     </template>
 
     <template #group-by="{group: thisGroup}">

@@ -74,16 +74,49 @@ export default class MgmtNodePool extends HybridModel {
     return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.spec.nodePoolName === nodePoolName);
   }
 
+  get nodeSummary() {
+    // Use three buckets of states rather than actual states.
+    // These are used in `stateParts` which is show in the same context as `stateParts` for machine deployments (rke2 pools))
+    // Using actual states here would look strange when against bucket states for RKE2
+    const res = {
+      pending:      0,
+      unavailable:  0,
+      ready:        0,
+    };
+
+    if (!this.nodes) {
+      return res;
+    }
+
+    return this.nodes.reduce((res, n) => {
+      if (n.metadata.state.error ) {
+        res.unavailable++;
+      } else if (n.metadata.state.transitioning) {
+        res.pending++;
+      } else if (n.state !== 'active') {
+        res.unavailable++;
+      } else {
+        res.ready++;
+      }
+
+      return res;
+    }, { ...res });
+  }
+
   get desired() {
     return this.spec?.quantity || 0;
   }
 
   get pending() {
-    return Math.max(0, this.desired - (this.nodes?.length || 0));
+    return this.nodeSummary.pending;
   }
 
   get ready() {
-    return Math.max(0, (this.nodes?.length || 0) - (this.pending || 0));
+    return this.nodeSummary.ready;
+  }
+
+  get unavailable() {
+    return this.nodeSummary.unavailable;
   }
 
   get stateParts() {
@@ -94,6 +127,13 @@ export default class MgmtNodePool extends HybridModel {
         textColor: 'text-info',
         value:     this.pending,
         sort:      1,
+      },
+      {
+        label:     'Unavailable',
+        color:     'bg-error',
+        textColor: 'text-error',
+        value:     this.unavailable,
+        sort:      3,
       },
       {
         label:     'Ready',

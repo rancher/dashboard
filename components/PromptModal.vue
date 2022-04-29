@@ -5,7 +5,7 @@ import { importDialog } from '@/utils/dynamic-importer';
 
 export default {
   data() {
-    return { opened: false };
+    return { opened: false, backgroundClosing: null };
   },
 
   computed:   {
@@ -55,8 +55,16 @@ export default {
 
       this.errors = [];
       this.$store.commit('action-menu/togglePromptModal');
+      if (this.backgroundClosing) {
+        this.backgroundClosing();
+      }
     },
-  }
+
+    // We're using register instead of just making use of $refs because the $refs is always undefined when referencing the component
+    registerBackgroundClosing(fn) {
+      this.$set(this, 'backgroundClosing', fn);
+    }
+  },
 };
 </script>
 
@@ -69,7 +77,7 @@ export default {
     :scrollable="true"
     @closed="close()"
   >
-    <component :is="component" v-if="opened && component" :resources="resources" @close="close()" />
+    <component :is="component" v-if="opened && component" :resources="resources" :register-background-closing="registerBackgroundClosing" @close="close()" />
   </modal>
 </template>
 

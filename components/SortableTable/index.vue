@@ -271,6 +271,16 @@ export default {
       type:    Function,
       default: null,
     },
+
+    /**
+     * Allows you to link to a custom detail page for data that
+     * doesn't have a class model. For example, a receiver configuration
+     * block within an AlertmanagerConfig resource.
+     */
+    getCustomDetailLink: {
+      type:    Function,
+      default: null
+    }
   },
 
   data() {
@@ -694,6 +704,22 @@ export default {
       const hasStateDescription = row.stateDescription;
 
       return hasInjectedSubRows || hasStateDescription;
+    },
+
+    handleActionButtonClick(i, event) {
+      // Each row in the table gets its own ref with
+      // a number based on its index. If you are using
+      // an ActionMenu that doen't have a dependency on Vuex,
+      // these refs are useful because you can reuse the
+      // same ActionMenu component on a page with many different
+      // target elements in a list,
+      // so you can still avoid the performance problems that
+      // could result if the ActionMenu was in every row. The menu
+      // will open on whichever target element is clicked.
+      this.$emit('clickedActionButton', {
+        event,
+        targetElement: this.$refs[`actionButton${ i }`][0],
+      });
     }
   }
 };
@@ -703,7 +729,7 @@ export default {
   <div ref="container">
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
-      <div v-if="showHeaderRow" class="fixed-header-actions">
+      <div v-if="showHeaderRow" class="fixed-header-actions" :class="{button: !!$slots['header-button']}">
         <div :class="bulkActionsClass" class="bulk">
           <slot name="header-left">
             <template v-if="tableActions">
@@ -762,7 +788,7 @@ export default {
           <slot name="header-middle" />
         </div>
 
-        <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search">
+        <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
           <slot name="header-right" />
           <input
             v-if="search"
@@ -772,6 +798,7 @@ export default {
             class="input-sm search-box"
             :placeholder="t('sortableTable.search')"
           >
+          <slot name="header-button" />
         </div>
       </div>
     </div>
@@ -887,6 +914,7 @@ export default {
                           :col="col.col"
                           v-bind="col.col.formatterOpts"
                           :row-key="row.key"
+                          :get-custom-detail-link="getCustomDetailLink"
                         />
                         <component
                           :is="col.component"
@@ -918,7 +946,15 @@ export default {
                 </template>
                 <td v-if="rowActions" align="middle">
                   <slot name="row-actions" :row="row">
-                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions">
+                    <button
+                      :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
+                      :ref="`actionButton${i}`"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                      type="button"
+                      class="btn btn-sm role-multi-action actions"
+                      @click="handleActionButtonClick(i, $event)"
+                    >
                       <i class="icon icon-actions" />
                     </button>
                   </slot>
@@ -935,7 +971,7 @@ export default {
           >
             <tr
               v-if="row.row.stateDescription"
-              :key="row[keyField] + '-description'"
+              :key="row.row[keyField] + '-description'"
               class="state-description sub-row"
               @mouseenter="onRowMouseEnter"
               @mouseleave="onRowMouseLeave"
@@ -1250,6 +1286,9 @@ $spacing: 10px;
     align-items: center;
   }
 }
+.fixed-header-actions.button{
+  grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
+}
 
 .fixed-header-actions {
   padding: 0 0 20px 0;
@@ -1305,6 +1344,7 @@ $spacing: 10px;
   .search {
     grid-area: search;
     text-align: right;
+    justify-content: flex-end;
   }
 
   .bulk-actions-dropdown {

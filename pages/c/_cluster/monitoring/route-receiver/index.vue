@@ -1,8 +1,17 @@
 <script>
+/**
+ * The Route and Receiver resources are deprecated. Going forward,
+ * routes and receivers should be configured within AlertmanagerConfigs.
+ * Any updates to receiver configuration forms, such as Slack/email/PagerDuty
+ * etc, should be made to the receiver forms that are based on the
+ * AlertmanagerConfig resource, which has a different API. The new forms are
+ * located in @/edit/monitoring.coreos.com.alertmanagerconfig/types.
+ */
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import Banner from '@/components/Banner';
 import { MONITORING } from '@/config/types';
 import { areRoutesSupportedFormat, getSecret } from '@/utils/alertmanagerconfig';
 import { MODE, _EDIT } from '@/config/query-params';
@@ -10,10 +19,11 @@ import { MODE, _EDIT } from '@/config/query-params';
 export default {
   name:       'ListRoute',
   components: {
+    Banner,
     Loading,
     ResourceTable,
-    Tabbed,
     Tab,
+    Tabbed,
   },
 
   async fetch() {
@@ -63,13 +73,19 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <div class="row header mb-40">
+    <div class="row header mb-10">
       <h1>  {{ t('monitoring.routesAndReceivers') }}</h1>
       <div>
         <button class="btn btn-lg role-primary float right" @click="$router.push(createRoute)">
           {{ t('resourceList.head.create') }}
         </button>
       </div>
+    </div>
+    <div class="row">
+      <Banner
+        color="info"
+        :label="t('monitoring.alertmanagerConfig.deprecationWarning')"
+      />
     </div>
     <Tabbed ref="tabs" :default-tab="initTab">
       <Tab :name="routeSchema.id" :label="$store.getters['type-map/labelFor'](routeSchema, 2)">

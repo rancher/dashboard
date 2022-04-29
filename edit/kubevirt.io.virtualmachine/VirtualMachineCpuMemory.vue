@@ -81,6 +81,7 @@ export default {
           v-int-number
           label="CPU"
           suffix="C"
+          :delay="0"
           required
           :disabled="disabled"
           :mode="mode"
@@ -97,6 +98,7 @@ export default {
           :label="t('harvester.virtualMachine.input.memory')"
           :mode="mode"
           :input-exponent="3"
+          :delay="0"
           :increment="1024"
           :output-modifier="true"
           :disabled="disabled"

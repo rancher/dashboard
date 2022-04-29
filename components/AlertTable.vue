@@ -11,6 +11,13 @@ const MAX_FAILURES = 2;
 export default {
   components: { SortableTable },
 
+  props:      {
+    alertManagerURL: {
+      type:    String,
+      default: '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy'
+    }
+  },
+
   data() {
     const eventHeaders = [
       {
@@ -61,7 +68,7 @@ export default {
   methods: {
     async loadAlertManagerEvents() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const alertsEvents = await this.$store.dispatch(`${ inStore }/request`, { url: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy/api/v1/alerts` });
+      const alertsEvents = await this.$store.dispatch(`${ inStore }/request`, { url: `/k8s/clusters/${ this.currentCluster.id }${ this.alertManagerURL }/api/v1/alerts` });
 
       if (alertsEvents.data) {
         this.allAlerts = alertsEvents.data;
@@ -70,6 +77,7 @@ export default {
 
     async fetchDeps() {
       try {
+        // ToDo: does this need to point somewhere else if the alert manager is dynamic?
         const am = await this.$store.dispatch('cluster/find', { type: ENDPOINTS, id: `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-alertmanager` });
 
         if (!isEmpty(am) && !isEmpty(am.subsets)) {

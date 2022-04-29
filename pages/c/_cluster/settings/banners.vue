@@ -88,6 +88,7 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
+
     headerMode() {
       return this.bannerVal?.showHeader === 'true' ? _EDIT : _VIEW;
     },
@@ -252,13 +253,14 @@ export default {
       </h2>
       <NotificationSettings
         v-model="bannerVal.loginError"
+        :mode="mode"
         :label="t('notifications.loginError.messageLabel')"
       />
     </div>
     <template v-for="err in errors">
       <Banner :key="err" color="error" :label="err" />
     </template>
-    <div>
+    <div v-if="mode === 'edit'">
       <AsyncButton class="pull-right mt-20" mode="apply" @click="save" />
     </div>
   </div>

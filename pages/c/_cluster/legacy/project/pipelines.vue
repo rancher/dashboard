@@ -58,7 +58,7 @@ export default {
       <Tab name="configuration" label-key="legacy.configuration" :weight="2" />
     </Tabbed>
     <div id="legacy-pipelines" class="embed-pipelines">
-      <EmberPage v-if="pipelinesPage" inline="legacy-pipelines" :src="pipelinesPage" :force-reuse="true" @before-nav="intercept" />
+      <EmberPage v-if="pipelinesPage" inline="legacy-pipelines" :src="pipelinesPage" :force-inline-reuse="true" @before-nav="intercept" />
     </div>
   </div>
 </template>

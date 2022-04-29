@@ -71,7 +71,9 @@ export default {
       type:    Boolean,
       default: true,
     },
-    namespaceType: {
+    namespaceFilter: { type: Function, default: null },
+    namespaceMapper: { type: Function, default: null },
+    namespaceType:   {
       type:    String,
       default: NAMESPACE,
     },
@@ -91,7 +93,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -100,7 +101,10 @@ export default {
       type:    String,
       default: 'nameNsDescription.description.placeholder',
     },
-
+    descriptionDisabled: {
+      type:    Boolean,
+      default: false,
+    },
     // Use specific fields on the value instead of the normal metadata locations
     nameKey: {
       type:    String,
@@ -187,16 +191,16 @@ export default {
       const choices = this.$store.getters[`${ inStore }/all`](this.namespaceType);
 
       const out = sortBy(
-        choices.filter( (N) => {
-          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
+        choices.filter( this.namespaceFilter || ((choice) => {
+          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(choice.metadata.name);
 
-          return this.isVirtualCluster ? !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace : true;
-        }).map((obj) => {
+          return this.isVirtualCluster ? !choice.isSystem && !choice.isFleetManaged && !isSettingSystemNamespace : true;
+        })).map(this.namespaceMapper || ((obj) => {
           return {
             label: obj.nameDisplay,
             value: obj.id,
           };
-        }),
+        })),
         'label'
       );
 
@@ -306,6 +310,7 @@ export default {
             :text-placeholder="t(namePlaceholder)"
             :text-value="name"
             :text-required="nameRequired"
+            :text-disabled="nameDisabled"
             :select-label="t(namespaceLabel)"
             :select-placeholder="t(namespacePlaceholder)"
             :select-value="namespace"
@@ -333,6 +338,7 @@ export default {
           key="description"
           v-model="description"
           :mode="mode"
+          :disabled="descriptionDisabled"
           :label="t(descriptionLabel)"
           :placeholder="t(descriptionPlaceholder)"
           :min-height="30"

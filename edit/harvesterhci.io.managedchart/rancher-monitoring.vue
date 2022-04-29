@@ -36,12 +36,17 @@ export default {
     doneLocationOverride() {
       return this.value.listLocation;
     },
+
+    prometheusNodeExporter() {
+      return this.value.spec.values['prometheus-node-exporter'];
+    }
   },
 };
 </script>
 
 <template>
   <div>
+    <h3>{{ t('harvester.setting.harvesterMonitoring.section.prometheus') }}</h3>
     <div class="row">
       <div class="col span-6">
         <LabeledInput
@@ -120,6 +125,44 @@ export default {
         <LabeledInput
           v-model="value.spec.values.prometheus.prometheusSpec.resources.limits.memory"
           :label="t('monitoring.prometheus.config.limits.memory')"
+          :required="true"
+          :mode="mode"
+        />
+      </div>
+    </div>
+    <hr class="divider mt-30 mb-20" />
+    <h3>{{ t('harvester.setting.harvesterMonitoring.section.prometheusNodeExporter') }}</h3>
+    <div class="row mt-10">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="prometheusNodeExporter.resources.limits.cpu"
+          :label="t('monitoring.prometheus.config.limits.cpu')"
+          :required="true"
+          :mode="mode"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="prometheusNodeExporter.resources.limits.memory"
+          :label="t('monitoring.prometheus.config.limits.memory')"
+          :required="true"
+          :mode="mode"
+        />
+      </div>
+    </div>
+    <div class="row mt-10">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="prometheusNodeExporter.resources.requests.cpu"
+          :label="t('monitoring.prometheus.config.requests.cpu')"
+          :required="true"
+          :mode="mode"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="prometheusNodeExporter.resources.requests.memory"
+          :label="t('monitoring.prometheus.config.requests.memory')"
           :required="true"
           :mode="mode"
         />

@@ -32,7 +32,7 @@ export default {
         resource:  this.type,
         namespace: this.namespace,
         id:        this.value,
-        product:   this.product,
+        product:   this.product || EXPLORER,
       };
 
       return { name, params };
