@@ -32,7 +32,6 @@ export default {
   data() {
     this.$set(this.value, 'http_config', this.value.http_config || {});
     this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
-
     const isDriverUrl = this.value.url === MS_TEAMS_URL || this.value.url === ALIBABA_CLOUD_SMS_URL;
 
     return { showNamespaceBanner: isDriverUrl && this.mode !== _VIEW };

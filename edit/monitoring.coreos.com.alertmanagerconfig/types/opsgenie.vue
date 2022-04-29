@@ -4,6 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import Select from '@/components/form/Select';
 import Checkbox from '@/components/form/Checkbox';
 import InputWithSelect from '@/components/form/InputWithSelect';
+import SimpleSecretSelector from '@/components/form/SimpleSecretSelector';
 import { _VIEW } from '@/config/query-params';
 
 export const TARGETS = [
@@ -42,7 +43,7 @@ export const TYPES = [
 
 export default {
   components: {
-    ArrayList, Checkbox, InputWithSelect, LabeledInput, Select
+    ArrayList, Checkbox, InputWithSelect, LabeledInput, Select, SimpleSecretSelector
   },
   props:      {
     mode: {
@@ -81,7 +82,10 @@ export default {
       },
       responders,
       TARGETS,
-      TYPES
+      TYPES,
+      view:                          _VIEW,
+      initialApiKeySecretName:  this.value?.apiKey?.name ? this.value.apiKey.name : '',
+      initialApiKeySecretKey:  this.value?.apiKey?.key ? this.value.apiKey.key : ''
     };
   },
 
@@ -117,6 +121,36 @@ export default {
     },
     targetLabel(target) {
       return TARGETS.find(t => t.value === target).label;
+    },
+    updateApiKeySecretName(name) {
+      const existingKey = this.value.apiKey?.key || '';
+
+      if (this.value.apiKey) {
+        this.value.apiKey = {
+          key: existingKey,
+          name
+        };
+      } else {
+        this.value['apiKey'] = {
+          key: '',
+          name
+        };
+      }
+    },
+    updateApiKeySecretKey(key) {
+      const existingName = this.value.apiKey?.name || '';
+
+      if (this.value.apiKey) {
+        this.value.apiKey = {
+          name: existingName,
+          key
+        };
+      } else {
+        this.value['apiKey'] = {
+          name: '',
+          key
+        };
+      }
     }
   }
 };
@@ -129,17 +163,25 @@ export default {
         <h3>Target</h3>
       </div>
     </div>
-    <div v-if="namespace" class="row mb-20">
-      <div class="col span-12">
-        <LabeledInput v-model="value.apiKey" :mode="mode" label="API Key" />
-      </div>
+    <div class="row mb-20">
+      <SimpleSecretSelector
+        v-if="namespace"
+        :initial-key="initialApiKeySecretKey"
+        :mode="mode"
+        :initial-name="initialApiKeySecretName"
+        :namespace="namespace"
+        :disabled="mode === view"
+        :secret-name-label="t('monitoring.alertmanagerConfig.opsgenie.apiKey')"
+        @updateSecretName="updateApiKeySecretName"
+        @updateSecretKey="updateApiKeySecretKey"
+      />
+      <Banner v-else color="error">
+        {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
+      </Banner>
     </div>
-    <Banner v-else color="error">
-      {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
-    </Banner>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxyUrl" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput v-model="value.httpConfig.proxyUrl" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
       </div>
     </div>
     <div class="row mb-20">

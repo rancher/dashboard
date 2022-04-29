@@ -2812,8 +2812,27 @@ monitoring:
     receiverFormNames:
       create: Create Receiver in AlertmanagerConfig
       edit: Edit Receiver in AlertmanagerConfig
+      editYaml: Edit AlertmanagerConfig
       detail: Receiver in AlertmanagerConfig
     disabledReceiverButton: The receiver form is available after the AlertmanagerConfig is created
+    email:
+      username: Auth Username
+      password: Secret with Auth Password
+    slack:
+      apiUrl: Secret with Slack Webhook URL
+    pagerDuty:
+      routingKey: Secret with Routing Key
+      serviceKey: Secret with Service Key
+    opsgenie:
+      apiKey: Secret with API Key
+    webhook:
+      url: URL
+      urlSecret: URL Secret
+      urlSecretTooltip: 'urlSecret takes precedence over url. One of urlSecret and url should be defined.'
+    auth:
+      bearerTokenSecret: Bearer Token Secret
+      basicAuthUsername: Secret with Basic Auth Username
+      basicAuthPassword: Secret with Basic Auth Password
   installSteps:
     uninstallV1:
       stepTitle: Uninstall V1
@@ -2860,7 +2879,7 @@ monitoringReceiver:
     title: Webhook Config
     urlTooltip: For some webhooks this a url that points to the service DNS
     modifyNamespace: If <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> default values were changed, please update the url below in the format http://&lt;new_service_name&gt;.&lt;new_namespace&gt.svc.&lt;port&gt/&lt;path&gt
-    banner: To use MS Teams or SMS you will need to have <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> installed first.
+    banner: To use MS Teams or SMS you will need to have at least one instance of <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> installed first.
     add:
       generic: Generic
       msTeams: MS Teams
@@ -2888,13 +2907,13 @@ monitoringReceiver:
       label: Enable send resolved alerts
 
 alertmanagerConfigReceiver:
+  secretKeyId: Key Id from Secret
   name: Receiver Name
   addButton: Add Receiver
   receivers: Receivers
-  namespaceWarning: Could not render the secret selector because no namespace was found.
+  namespaceWarning: Could not render the secret selector because no namespace was found to get secrets from.
   receiverTypes: "The following receiver types can be edited in forms: Email, Slack, PagerDuty, Opsgenie and Webhook. For other receiver types, edit the AlertmanagerConfig YAML."
   slack:
-    keyId: Key Id from Secret
     webhookUrl: Webhook URL
     apiUrlTooltip: The secret's key that contains the Slack webhook URL. The secret needs to be in the same namespace as the AlertmanagerConfig object and accessible by the Prometheus Operator.
 monitoringRoute:

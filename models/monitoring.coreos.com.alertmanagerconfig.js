@@ -9,14 +9,11 @@ export default class AlertmanagerConfig extends SteveModel {
       return this.spec;
     }
     const existingReceivers = this.spec?.route?.receivers || [];
-    const existingReceiverNames = existingReceivers.map((receiver) => {
-      return receiver.name;
-    });
 
     const defaultSpec = {
       receivers: [...existingReceivers],
       route:     {
-        receivers:      existingReceiverNames,
+        receivers:      this.spec?.route?.receivers || [],
         groupBy:        this.spec?.route?.groupBy || [],
         groupWait:      this.spec?.route?.groupWait || '30s',
         groupInterval:  this.spec?.route?.groupInterval || '5m',
