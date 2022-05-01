@@ -1,6 +1,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
+import { escapeHtml } from '@/utils/string';
 import Card from '@shell/components/Card';
 import Checkbox from '@shell/components/form/Checkbox';
 import { alternateLabel } from '@shell/utils/platform';
@@ -145,7 +146,7 @@ export default {
         if (i >= 5) {
           return res;
         }
-        res += `<b>${ name }</b>`;
+        res += `<b>${ escapeHtml(name) }</b>`;
         if (i === this.names.length - 1) {
           res += this.plusMore;
         } else {
@@ -213,6 +214,8 @@ export default {
   },
 
   methods: {
+    escapeHtml,
+
     close() {
       this.confirmName = '';
       this.error = '';
@@ -344,7 +347,7 @@ export default {
             />
             <div v-if="needsConfirm" class="mt-10">
               <span
-                v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
+                v-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
               ></span>
             </div>
           </template>
@@ -373,7 +376,7 @@ export default {
 
 <style lang='scss'>
   .prompt-remove {
-    &.card-container {
+    &.card-container {§
       box-shadow: none;
     }
     #confirm {
