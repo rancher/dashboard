@@ -1,5 +1,5 @@
 {
-  "experimentalSessionSupport": true,
+  "experimentalSessionAndOrigin": true,
   "testFiles": [
     "tests/setup/**/*.spec.ts",
     "tests/pages/**/*.spec.ts",
