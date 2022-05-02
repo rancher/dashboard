@@ -219,8 +219,6 @@ export default {
   data() {
     const rows = [];
 
-    console.log('DATA!!!', this.value);
-
     if ( this.asMap ) {
       const input = this.value || {};
 
@@ -272,8 +270,6 @@ export default {
         supported:        true
       });
     }
-
-    console.log('ROWS!', rows);
 
     return { rows };
   },
@@ -421,7 +417,6 @@ export default {
         });
       }
 
-      console.log('OUTPUT!', out);
       this.$emit('input', out);
     },
     onPaste(index, event, pastedValue) {
@@ -457,6 +452,10 @@ export default {
       return this.filteredKeyOptions;
     },
     binaryTextSize(val) {
+      if (this.handleBase64) {
+        return this.t('detailText.binary', { n: val.length ? binarySize(base64Decode(val)) : 0 }, true);
+      }
+
       return this.t('detailText.binary', { n: val.length ? binarySize(val) : 0 }, true);
     },
     get,
