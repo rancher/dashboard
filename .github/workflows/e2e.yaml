@@ -7,6 +7,7 @@ env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
   CATTLE_BOOTSTRAP_PASSWORD: password
+  TEST_SKIP_SETUP: false
   TEST_BASE_URL: https://127.0.0.1:8005
   API: https://127.0.0.1
 jobs:
