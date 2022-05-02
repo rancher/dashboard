@@ -75,6 +75,7 @@ export default {
     <slot name="cancel">
       <button
         v-if="!isView && showCancel"
+        id="cru-cancel"
         type="button"
         class="btn role-secondary"
         @click="confirmCancelRequired ? checkCancel(true) : $emit('cancel-confirmed', true)"

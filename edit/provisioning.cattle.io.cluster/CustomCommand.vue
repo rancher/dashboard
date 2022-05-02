@@ -202,7 +202,10 @@ function sanitizeValue(v) {
     <InfoBox :step="showAdvanced ? 3 : 2" class="step-box">
       <h3 v-t="'cluster.custom.registrationCommand.label'" />
       <h4 v-t="'cluster.custom.registrationCommand.linuxDetail'" />
-      <CopyCode class="m-10 p-10">
+      <CopyCode
+        id="copiedLinux"
+        class="m-10 p-10"
+      >
         {{ linuxCommand }}
       </CopyCode>
       <Checkbox v-if="clusterToken.insecureNodeCommand" v-model="insecure" label-key="cluster.custom.registrationCommand.insecure" />
@@ -211,7 +214,11 @@ function sanitizeValue(v) {
         <hr class="mt-20 mb-20" />
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
         <template v-if="readyForWindows">
-          <CopyCode class="m-10 p-10" @copied="copiedWindows">
+          <CopyCode
+            id="copiedWindows"
+            class="m-10 p-10"
+            @copied="copiedWindows"
+          >
             {{ windowsCommand }}
           </CopyCode>
           <Checkbox

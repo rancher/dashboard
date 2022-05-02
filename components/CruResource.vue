@@ -269,6 +269,7 @@ export default {
     >
       <div
         v-if="hasErrors"
+        id="cru-errors"
         class="cru__errors"
       >
         <Banner

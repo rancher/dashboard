@@ -1,6 +1,7 @@
 module.exports = {
-  testEnvironment: 'jsdom',
-  modulePaths:       [
+  testEnvironment:              'jsdom',
+  setupFilesAfterEnv: ['./jest.setup.js'],
+  modulePaths:                  [
     '<rootDir>'
   ],
   // tell Jest to handle `*.vue` files
@@ -15,7 +16,7 @@ module.exports = {
     // process js with `babel-jest`
     '^.+\\.js$':   '<rootDir>/node_modules/babel-jest',
     // process `*.vue` files with `vue-jest`
-    '.*\\.(vue)$': '<rootDir>/node_modules/vue-jest',
+    '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue2-jest',
     // process `*.ts` files with `ts-jest`
     '^.+\\.tsx?$': 'ts-jest'
   },
