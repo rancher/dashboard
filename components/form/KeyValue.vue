@@ -224,16 +224,18 @@ export default {
 
       Object.keys(input).forEach((key) => {
         let value = input[key];
+        const decodedValue = base64Decode(input[key]);
+        const asciiValue = asciiLike(decodedValue);
 
-        if ( this.handleBase64 && asciiLike(base64Decode(value))) {
+        if ( this.handleBase64 && asciiValue) {
           value = base64Decode(value);
         }
 
         rows.push({
           key,
           value,
-          binary:    this.displayValuesAsBinary || (this.handleBase64 && !asciiLike(base64Decode(input[key]))),
-          canEncode: this.handleBase64 && asciiLike(base64Decode(input[key])),
+          binary:    this.displayValuesAsBinary || (this.handleBase64 && !asciiValue),
+          canEncode: this.handleBase64 && asciiValue,
           supported: true,
         });
       });
@@ -242,15 +244,17 @@ export default {
 
       for ( const row of input ) {
         let value = row[this.valueName] || '';
+        const decodedValue = base64Decode(row[this.valueName]);
+        const asciiValue = asciiLike(decodedValue);
 
-        if ( this.handleBase64 && asciiLike(base64Decode(value))) {
+        if ( this.handleBase64 && asciiValue) {
           value = base64Decode(value);
         }
         const entry = {
           [this.keyName]:   row[this.keyName] || '',
           [this.valueName]: value,
-          binary:           this.displayValuesAsBinary || (this.handleBase64 && !asciiLike(base64Decode(row[this.valueName]))),
-          canEncode:        this.handleBase64 && asciiLike(base64Decode(row[this.valueName])),
+          binary:           this.displayValuesAsBinary || (this.handleBase64 && !asciiValue),
+          canEncode:        this.handleBase64 && asciiValue,
           supported:        this.supported(row),
         };
 
@@ -452,11 +456,10 @@ export default {
       return this.filteredKeyOptions;
     },
     binaryTextSize(val) {
-      if (this.handleBase64) {
-        return this.t('detailText.binary', { n: val.length ? binarySize(base64Decode(val)) : 0 }, true);
-      }
+      const handledValue = this.handleBase64 ? base64Decode(val) : val;
+      const n = val.length ? binarySize(handledValue) : 0;
 
-      return this.t('detailText.binary', { n: val.length ? binarySize(val) : 0 }, true);
+      return this.t('detailText.binary', { n }, true);
     },
     get,
   }
