@@ -15,6 +15,18 @@ export default {
     this.projectHelmCharts = await this.$store.dispatch('cluster/findAll', { type: HELM.PROJECTHELMCHART } );
     this.pending = false;
     this.$store.dispatch('type-map/configureType', { match: HELM.PROJECTHELMCHART, isCreatable: true });
+    this.headers = this.$store.getters['type-map/headersFor'](this.projectHelmChartSchema).map((header) => {
+      if (header.name === 'name') {
+        return {
+          ...header, value: 'projectDisplayName', labelKey: 'tableHeaders.project'
+        };
+      }
+      if (header.name === 'namespace') {
+        return { ...header, labelKey: 'tableHeaders.registrationNamespace' };
+      }
+
+      return { ...header };
+    }).filter(header => header.name !== 'system namespace');
   },
   data() {
     return {
@@ -22,6 +34,7 @@ export default {
       projectHelmChartSchema:      null,
       projectHelmCharts:           [],
       pending:                   true,
+      headers:                null
     };
   },
   computed: {
@@ -61,6 +74,7 @@ export default {
       <div v-else>
         <ResourceTable
           :rows="projectHelmCharts"
+          :headers="headers"
           :schema="projectHelmChartSchema"
           key-field="_key"
           :groupable="false"

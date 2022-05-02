@@ -4581,6 +4581,7 @@ tableHeaders:
   podRestarts: Restarts
   pods: Pods
   port: Port
+  project: Project
   protocol: Protocol
   provider: Provider
   publicPorts: Public Ports
@@ -4597,6 +4598,7 @@ tableHeaders:
   reason: Reason
   receivers: Receivers
   reclaimPolicy: Reclaim Policy
+  registrationNamespace: Registration Namespace
   repo: Repo
   repositories: Repositories
   repoName: Repository Name
