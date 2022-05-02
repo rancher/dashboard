@@ -2785,6 +2785,8 @@ monitoring:
         placeholder: e.g. ./key-file.pfx
       secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart. For more information see our <a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
   projectMonitoring:
+    detail:
+      error: "Unable to fetch Dashboard values with status: "
     list:
       banner: Project Monitoring Configuration is stored in ProjectHelmChart resources
       empty:
