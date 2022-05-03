@@ -14,7 +14,7 @@ import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 import Select from '@/components/form/Select';
-import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@/store/prefs';
+import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
@@ -91,7 +91,7 @@ export default {
       showDeprecated:       null,
       showHidden:           null,
       sliders:         sliderData,
-      chartMode:            'featured',
+      chartMode:            this.$store.getters['prefs/get'](SHOW_CHART_MODE),
       chartOptions:    [
         {
           label:       'Browse',
@@ -223,6 +223,12 @@ export default {
       });
     },
 
+    getFeaturedCharts() {
+      const newArray = (this.allCharts || []);
+
+      return newArray.slice(0, 5);
+    },
+
     filteredCharts() {
       const enabledCharts = (this.enabledCharts || []);
 
@@ -266,6 +272,10 @@ export default {
 
       return out;
     },
+
+    showCarousel() {
+      return this.chartMode === 'featured' && this.sliders.length;
+    }
   },
 
   watch: {
@@ -286,12 +296,9 @@ export default {
     if ( typeof window !== 'undefined' ) {
       window.c = this;
     }
-
-    this.activeItemId = 0;
   },
 
   methods: {
-
     colorForChart(chart) {
       const repos = this.repoOptions;
       const repo = findBy(repos, '_key', chart.repoKey);
@@ -407,8 +414,8 @@ export default {
       </div>
     </header>
     <Carousel
-      v-if="chartMode === 'featured'"
-      :sliders="sliders"
+      v-if="showCarousel"
+      :sliders="getFeaturedCharts"
     />
 
     <TypeDescription resource="chart" />
@@ -685,110 +692,6 @@ export default {
     }
     & i {
       color: var(--app-color8-accent)
-    }
-  }
-}
-
-.slider {
-  margin: auto;
-  position: relative;
-  width: 100%;
-  place-items: center;
-  overflow: hidden;
-  margin-bottom: 30px;
-  min-width: 700px;
-}
-
-.slide-track {
-  display: flex;
-  width: calc(60% * 5);
-  animation: scrolls 10s ;
-  position: relative;
-}
-
-.slider-badge {
-  background: var(--app-partner-accent);
-  color: var(--body-bg);
-}
-.slide {
-  min-height: 210px;
-  width: 60%;
-  margin: 0 10px;
-  position: relative;
-  border: 1px solid var(--tabbed-border);
-  border-radius: var(--border-radius);
-  left: 7%;
-
-  &:last-child {
-    left: -93%;
-  }
-
-  .slide-header {
-    background: var(--default);
-    width: 100%;
-    padding: 10px 15px;
-  }
-  .slide-content {
-    display: flex;
-    padding: 30px;
-
-    .slide-img {
-      width: 150px;
-
-      img {
-        width: 100%;
-      }
-    }
-
-    .slide-content-right {
-      border-left: 1px solid var(--tabbed-border);
-      margin-left: 30px;
-      padding-left: 30px;
-
-      span {
-        margin: 0;
-      }
-
-    }
-  }
-
-}
-
-.slider::before,
-.slider::after {
-  background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-  content: "";
-  height: 100%;
-  position: absolute;
-  width: 15%;
-  z-index: 2;
-}
-
-.slider::before {
-  left: 0;
-  top: 0;
-}
-.slider::after{
-  right: -1px;
-  top: 0;
-  transform: rotate(180deg);
-}
-
-.controls {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-top: 10px;
-
-  .control-item {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--muted);
-    margin: 5px;
-
-    &.active {
-      background:var(--darker);
     }
   }
 }
