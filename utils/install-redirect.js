@@ -1,6 +1,6 @@
 import { REPO_TYPE, REPO, CHART, VERSION } from '@/config/query-params';
 
-export default function(product, chartName, defaultResourceOrRoute) {
+export default function(product, chartName, defaultResourceOrRoute, install = true) {
   return async function middleware({ redirect, store } ) {
     const cluster = store.getters['currentCluster']?.id || 'local';
 
@@ -23,7 +23,7 @@ export default function(product, chartName, defaultResourceOrRoute) {
       }
 
       // Otherwise just let the middleware pass through
-    } else {
+    } else if (install) {
       // The product is not installed, redirect to the details chart
 
       await store.dispatch('catalog/load');
@@ -45,6 +45,11 @@ export default function(product, chartName, defaultResourceOrRoute) {
         // The chart's not available
         store.dispatch('loadingError', `Chart not found for ${ product }`);
       }
+    } else {
+      return redirect({
+        name:   'c-cluster-explorer',
+        params: { cluster },
+      });
     }
   };
 }

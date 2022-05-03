@@ -10,7 +10,7 @@ import LazyImage from '@/components/LazyImage';
 export default {
   components: { LazyImage },
 
-  middleware: InstallRedirect(NAME, CHART_NAME),
+  middleware: InstallRedirect(NAME, CHART_NAME, undefined, false),
 
   data() {
     return {
