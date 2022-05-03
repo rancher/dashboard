@@ -60,8 +60,8 @@ export default {
 
 <template>
   <div>
-    <Tabbed v-if="true" class="mt-30">
-      <Tab v-if="true" name="project-metrics" :label="t('monitoring.tabs.projectMetrics')" :weight="3">
+    <Tabbed v-if="value.status.dashboardValues" class="mt-30">
+      <Tab name="project-metrics" :label="t('monitoring.tabs.projectMetrics')" :weight="3">
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -73,9 +73,9 @@ export default {
           </DashboardMetrics>
         </template>
       </Tab>
-      <Tab v-if="true" name="active-alarms" :label="t('monitoring.overview.alertsList.label')" :weight="2">
+      <Tab name="active-alarms" :label="t('monitoring.overview.alertsList.label')" :weight="2">
         <template>
-          <AlertTable :alert-manager-url="relativeDashboardValues.alertmanagerURL" />
+          <AlertTable :monitoring-namespace="alertMonitoringNamespace" :alert-service-endpoint="alertServiceEndpoint" />
         </template>
       </Tab>
       <template #tab-row-extras>
@@ -119,6 +119,7 @@ export default {
         </div>
       </template>
     </Tabbed>
+    <div>{{ `${ t('monitoring.projectMonitoring.detail.error') }${ value.status.statusMessage || t('generic.unknown') }` }}</div>
   </div>
 </template>
 
