@@ -6,8 +6,8 @@ export default {
   name:       'Carousel',
   props:      {
     sliders: {
-      type:    Array,
-      default: null
+      type:     Array,
+      required: true,
     }
   },
   data() {
@@ -20,7 +20,10 @@ export default {
   computed: {
 
     trackStyle() {
-      return `transform: translateX(-${ this.activeItemId * 100 / this.slider.length }%); width: calc(${ 60 * this.slider.length }%)`;
+      const sliderItem = this.activeItemId * 100 / this.slider.length;
+      const width = 60 * this.slider.length;
+
+      return `transform: translateX(-${ sliderItem }%); width: ${ width }%`;
     },
 
   },
@@ -45,7 +48,7 @@ export default {
 
 <template>
   <div class="slider">
-    <div id="slide-track" ref="slider" style="transition: 1s ease-in-out" :style="trackStyle" class="slide-track">
+    <div id="slide-track" ref="slider" :style="trackStyle" class="slide-track">
       <div
         v-for="(slide, i) in slider"
         :id="`slide` + i"
@@ -58,12 +61,12 @@ export default {
         </div>
         <div class="slide-content">
           <div class="slide-img">
-            <img :src="require(`~/assets/images/featured/${slide.img}`)" />
+            <img :src="slide.icon ? slide.icon : `/_nuxt/assets/images/generic-catalog.svg`" />
           </div>
           <div class="slide-content-right">
-            <BadgeState label="Partner" color="slider-badge  mb-20" />
-            <h1>{{ slide.title }}</h1>
-            <p>{{ slide.content }}</p>
+            <BadgeState :label="slide.repoName" color="slider-badge mb-20" />
+            <h1>{{ slide.chartNameDisplay }}</h1>
+            <p>{{ slide.chartDescription }}</p>
           </div>
         </div>
       </div>
@@ -80,7 +83,7 @@ export default {
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
  .slider {
   margin: auto;
   position: relative;
@@ -93,9 +96,9 @@ export default {
 
 .slide-track {
   display: flex;
-  // width: calc(60% * 5);
   animation: scrolls 10s ;
   position: relative;
+  transition: 1s ease-in-out
 }
 
 .slider-badge {
@@ -149,12 +152,12 @@ export default {
 
 .slider::before,
 .slider::after {
-  background: linear-gradient(to right, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to right, var(--slider-light-bg) 0%, var(--slider-light-bg-right) 100%);
   content: "";
   height: 100%;
   position: absolute;
   width: 15%;
-  z-index: 2;
+  z-index: z-index('overContent');;
 }
 
 .slider::before {
@@ -177,11 +180,12 @@ export default {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--muted);
+    background: var(--scrollbar-thumb);
     margin: 5px;
+    cursor: pointer;
 
     &.active {
-      background:var(--darker);
+      background:var(--body-text);
     }
   }
 }
