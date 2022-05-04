@@ -93,7 +93,7 @@ export default {
         .force('charge', d3.forceManyBody().strength(this.fdcConfig.simulationParams.fdcStrength).distanceMax(this.fdcConfig.simulationParams.fdcDistanceMax))
         .force('collision', d3.forceCollide(this.fdcConfig.simulationParams.fdcForceCollide))
         .force('center', d3.forceCenter( this.fdcConfig.chartWidth / 2, this.fdcConfig.chartHeight / 2 ))
-        .alphaDecay(0.1)
+        .alphaDecay(this.fdcConfig.simulationParams.fdcAlphaDecay)
         .on('tick', this.ticked)
         .on('end', () => {
           if (!this.isChartFirstRenderAnimationFinished) {

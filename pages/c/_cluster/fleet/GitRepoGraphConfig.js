@@ -8,13 +8,15 @@ const chartWidth = 800;
 const chartHeight = 500;
 const fdcStrength = -300;
 const fdcDistanceMax = 500;
-const fdcForceCollide = 75;
+const fdcForceCollide = 80;
+const fdcAlphaDecay = 0.05;
 
 // setting up default sim params
 const simulationParams = {
   fdcStrength,
   fdcDistanceMax,
   fdcForceCollide,
+  fdcAlphaDecay
 };
 
 /**
