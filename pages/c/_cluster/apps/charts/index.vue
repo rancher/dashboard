@@ -19,44 +19,6 @@ import { removeObject, addObject, findBy } from '@/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
 
-const sliderData = [
-  {
-    id:      '1',
-    img:     'img1.jpg',
-    partner: 'Partner',
-    title:   '1 Universal Crossplan 1',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  },
-  {
-    id:      '2',
-    img:     'img1.jpg',
-    partner: 'Partner',
-    title:   '2 Upbound Universal Crossplan 2',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  },
-  {
-    id:      '3',
-    img:     'img1.jpg',
-    partner: 'Partner',
-    title:   '3 Upbound Universal Crossplan 3',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  },
-  {
-    id:      '4',
-    img:     'img1.jpg',
-    partner: 'Partner',
-    title:   '4 Upbound Universal Crossplan 4',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  },
-  {
-    id:      '5',
-    img:     'img1.jpg',
-    partner: 'Partner',
-    title:   '5 Upbound Universal Crossplan 5',
-    content: 'Upbound Universal Crossplan (Uxp) is Upbounds official enterprise-Grade Distribution of Crossplan',
-  }
-];
-
 export default {
   components: {
     AsyncButton,
@@ -90,7 +52,6 @@ export default {
       searchQuery:          null,
       showDeprecated:       null,
       showHidden:           null,
-      sliders:         sliderData,
       chartMode:            this.$store.getters['prefs/get'](SHOW_CHART_MODE),
       chartOptions:    [
         {
@@ -274,7 +235,7 @@ export default {
     },
 
     showCarousel() {
-      return this.chartMode === 'featured' && this.sliders.length;
+      return this.chartMode === 'featured' && this.getFeaturedCharts.length;
     }
   },
 
