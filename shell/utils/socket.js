@@ -21,6 +21,7 @@ export const EVENT_DISCONNECTED = STATE_DISCONNECTED;
 export const EVENT_MESSAGE = 'message';
 export const EVENT_FRAME_TIMEOUT = 'frame_timeout';
 export const EVENT_CONNECT_ERROR = 'connect_error';
+export const EVENT_DISCONNECT_ERROR = 'disconnect_error';
 
 export default class Socket extends EventTarget {
   url;
@@ -254,7 +255,6 @@ export default class Socket extends EventTarget {
 
   _closed() {
     console.log(`Socket ${ this.closingId } closed`); // eslint-disable-line no-console
-
     this.closingId = 0;
     this.socket = null;
     clearTimeout(this.reconnectTimer);
@@ -287,6 +287,11 @@ export default class Socket extends EventTarget {
       this.dispatchEvent(e);
       warningShown = true;
     } else if ( this.autoReconnect ) {
+      if (this.tries === 0) {
+        const e = new CustomEvent(EVENT_DISCONNECT_ERROR);
+
+        this.dispatchEvent(e);
+      }
       this.state = STATE_RECONNECTING;
       this.tries++;
       const delay = Math.max(1000, Math.min(1000 * this.tries, 30000));

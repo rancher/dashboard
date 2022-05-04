@@ -2040,6 +2040,12 @@ graphOptions:
   refresh: Refresh
   range: Range
 
+growl:
+  clearAll: Clear All Notifications
+  disconnected: 
+    message: "The connection to {url} closed unexpectedly {time}. Retrying..."
+    title: Websocket Disconnected 
+
 hpa:
   detail:
     currentMetrics:
