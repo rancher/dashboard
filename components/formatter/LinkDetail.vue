@@ -14,18 +14,11 @@ export default {
     reference: {
       type:    String,
       default: null,
-    },
-    getCustomDetailLink: {
-      type:    Function,
-      default: null
     }
   },
 
   computed: {
     to() {
-      if (this.getCustomDetailLink) {
-        return this.getCustomDetailLink(this.row);
-      }
       if ( this.row && this.reference ) {
         return get(this.row, this.reference);
       }

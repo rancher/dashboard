@@ -255,7 +255,7 @@ export function init(store) {
 
   headers(ALERTMANAGERCONFIG, [
     STATE,
-    NAME_COL,
+    { ...NAME_COL, formatter: 'ReceiverIcons' },
     NAMESPACE_COL,
     {
       name:     'receivers',

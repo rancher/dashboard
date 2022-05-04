@@ -66,7 +66,7 @@ export default {
           labelKey:      'tableHeaders.name',
           value:         'name',
           sort:          ['nameSort'],
-          formatter:     'LinkDetail',
+          formatter:     'ReceiverIcons',
           canBeVariable: true,
         }
         // Add more columns
