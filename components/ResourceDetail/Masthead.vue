@@ -372,7 +372,6 @@ export default {
         </div>
       </div>
       <slot name="right">
-        console.log
         <div class="actions-container">
           <div class="actions">
             <ButtonGroup
