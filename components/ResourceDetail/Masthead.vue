@@ -11,8 +11,15 @@ import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG
 } from '@/config/query-params';
 
-// ToDo: this component seem to be picking up a lot of logic from special cases, could be simplified down to parameters and then customized per use-case via wrapper component
+/**
+ * Resource Detail Masthead component.
+ *
+ * ToDo: this component seem to be picking up a lot of logic from special cases, could be simplified down to parameters and then customized per use-case via wrapper component
+ */
 export default {
+
+  name: 'MastheadResourceDetail',
+
   components: {
     BadgeState, Banner, ButtonGroup
   },
