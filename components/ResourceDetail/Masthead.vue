@@ -13,7 +13,7 @@ import {
 
 /**
  * Resource Detail Masthead component.
- * 
+ *
  * ToDo: this component seem to be picking up a lot of logic from special cases, could be simplified down to parameters and then customized per use-case via wrapper component
  */
 export default {
