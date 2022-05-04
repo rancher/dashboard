@@ -265,7 +265,7 @@ export default {
       set(this.value.spec.rkeConfig, 'upgradeStrategy', {
         controlPlaneConcurrency:  '1',
         controlPlaneDrainOptions: {},
-        workerConcurrency:        '1',
+        workerConcurrency:        '10%',
         workerDrainOptions:       {},
       });
     }
@@ -337,11 +337,9 @@ export default {
     },
 
     showK3sTechPreviewWarning() {
-      // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
-      // const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
+      const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
 
-      // return !!this.k3sVersions.find(v => v.version === selectedVersion);
-      return false;
+      return !!this.k3sVersions.find(v => v.version === selectedVersion);
     },
 
     // kubeletConfigs() {
@@ -401,8 +399,7 @@ export default {
           out.push({
             kind:  'group',
             label: this.t('cluster.provider.k3s'),
-            // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
-            // badge: this.t('generic.techPreview')
+            badge: this.t('generic.techPreview')
           });
         }
 
@@ -1109,9 +1106,23 @@ export default {
       });
     },
 
+    showAddonConfirmation() {
+      return new Promise((resolve, reject) => {
+        this.$store.dispatch('cluster/promptModal', { component: 'AddonConfigConfirmationDialog', resources: [value => resolve(value)] });
+      });
+    },
+
     async saveOverride(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
+      }
+
+      if (this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion) {
+        const shouldContinue = await this.showAddonConfirmation();
+
+        if (!shouldContinue) {
+          return btnCb('cancelled');
+        }
       }
 
       for (const [index] of this.machinePools.entries()) { // validator machine config
@@ -1906,6 +1917,12 @@ export default {
         </Tab>
 
         <Tab name="addons" label-key="cluster.tabs.addons" @active="showAddons">
+          <Banner
+            v-if="isEdit"
+            color="warning"
+          >
+            {{ t('cluster.addOns.dependencyBanner') }}
+          </Banner>
           <div v-if="versionInfo && addonVersions.length" :key="addonsRev">
             <div v-for="v in addonVersions" :key="v._key">
               <h3>{{ labelForAddon(v.name) }}</h3>

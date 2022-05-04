@@ -9,6 +9,8 @@ import { get } from '@/utils/object';
 import Select from '@/components/form/Select';
 import FileSelector from '@/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@/config/query-params';
+import { asciiLike } from '@/utils/string';
+
 export default {
   components: {
     Select,
@@ -222,15 +224,18 @@ export default {
 
       Object.keys(input).forEach((key) => {
         let value = input[key];
+        const decodedValue = base64Decode(input[key]);
+        const asciiValue = asciiLike(decodedValue);
 
-        if ( this.handleBase64 ) {
+        if ( this.handleBase64 && asciiValue) {
           value = base64Decode(value);
         }
 
         rows.push({
           key,
           value,
-          binary:    this.displayValuesAsBinary,
+          binary:    this.displayValuesAsBinary || (this.handleBase64 && !asciiValue),
+          canEncode: this.handleBase64 && asciiValue,
           supported: true,
         });
       });
@@ -239,14 +244,17 @@ export default {
 
       for ( const row of input ) {
         let value = row[this.valueName] || '';
+        const decodedValue = base64Decode(row[this.valueName]);
+        const asciiValue = asciiLike(decodedValue);
 
-        if ( this.handleBase64 ) {
+        if ( this.handleBase64 && asciiValue) {
           value = base64Decode(value);
         }
         const entry = {
           [this.keyName]:   row[this.keyName] || '',
           [this.valueName]: value,
-          binary:           this.displayValuesAsBinary,
+          binary:           this.displayValuesAsBinary || (this.handleBase64 && !asciiValue),
+          canEncode:        this.handleBase64 && asciiValue,
           supported:        this.supported(row),
         };
 
@@ -376,10 +384,10 @@ export default {
             out[key] = JSON.parse(JSON.stringify(value));
           } else {
             value = value || '';
-            if ( this.valueTrim ) {
+            if (this.valueTrim && asciiLike(value)) {
               value = value.trim();
             }
-            if ( value && this.handleBase64 ) {
+            if (row.canEncode) {
               value = base64Encode(value);
             }
             if ( key && (value || this.valueCanBeEmpty) ) {
@@ -395,7 +403,7 @@ export default {
         out = this.rows.map((row) => {
           let value = row[this.valueName];
 
-          if ( value && this.handleBase64 ) {
+          if (row.canEncode) {
             value = base64Encode(value);
           }
           const entry = {
@@ -412,6 +420,7 @@ export default {
           return entry;
         });
       }
+
       this.$emit('input', out);
     },
     onPaste(index, event, pastedValue) {
@@ -447,7 +456,10 @@ export default {
       return this.filteredKeyOptions;
     },
     binaryTextSize(val) {
-      return this.t('detailText.binary', { n: val.length ? binarySize(val) : 0 }, true);
+      const handledValue = this.handleBase64 ? base64Decode(val) : val;
+      const n = val.length ? binarySize(handledValue) : 0;
+
+      return this.t('detailText.binary', { n }, true);
     },
     get,
   }

@@ -196,6 +196,20 @@ steps:
     token:
       from_secret: google_auth_key
 
+- name: create-pr-in-rancher
+  image: curlimages/curl:7.81.0
+  user: root
+  environment:
+    PAT_USERNAME:
+      from_secret: pat_username
+    PAT_TOKEN:
+      from_secret: github_token
+  commands:
+  - apk -U --no-cache add bash
+  - scripts/create-pr-in-rancher
+  depends_on:
+  - upload
+
 ---
 kind: pipeline
 name: embedded-master
@@ -308,6 +322,7 @@ steps:
     target: releases.rancher.com/dashboard/${DRONE_TAG}.tar.gz
     token:
       from_secret: google_auth_key
+
 
 ---
 

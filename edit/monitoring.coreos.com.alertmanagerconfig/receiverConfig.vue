@@ -11,6 +11,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CreateEditView from '@/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
 import ButtonDropdown from '@/components/ButtonDropdown';
+import AddWebhookButton from '@/edit/monitoring.coreos.com.alertmanagerconfig/types/webhook.add.vue';
 import { _CREATE, _VIEW } from '@/config/query-params';
 
 export const RECEIVERS_TYPES = [
@@ -58,13 +59,14 @@ export const RECEIVERS_TYPES = [
     label: 'monitoringReceiver.custom.label',
     title: 'monitoringReceiver.custom.title',
     info:  'monitoringReceiver.custom.info',
-    key:   'webhook_configs',
+    key:   'webhookConfigs',
     logo:  require(`~/assets/images/vendor/custom.svg`)
   },
 ];
 
 export default {
   components: {
+    AddWebhookButton,
     ArrayListGrouped,
     Banner,
     ButtonDropdown,
@@ -123,7 +125,14 @@ export default {
      */
     const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
 
+    // debugger;
+
+    if (!receiverSchema) {
+      throw new Error("Can't render the form because the AlertmanagerConfig schema is not loaded yet.");
+    }
+
     const expectedFields = Object.keys(receiverSchema.resourceFields);
+
     const suffix = {};
 
     Object.keys(this.value).forEach((key) => {
@@ -219,13 +228,13 @@ export default {
       this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
     },
 
-    redirectToAlertmanagerConfig() {
-      this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
+    redirectToReceiverDetail() {
+      this.$router.push(this.alertmanagerConfigResource.getReceiverDetailLink(this.value.name));
     },
 
     createAddOptions(receiverType) {
       return receiverType.addOptions.map();
-    }
+    },
   }
 };
 </script>
@@ -243,7 +252,7 @@ export default {
     @error="e=>errors = e"
     @finish="() => {
       saveOverride()
-      redirectToAlertmanagerConfig()
+      redirectToReceiverDetail()
     }"
     @cancel="redirectAfterCancel"
   >
@@ -306,8 +315,11 @@ export default {
                 :namespace="alertmanagerConfigNamespace"
               />
             </template>
-            <template v-if="receiverType.addButton" #add>
-              <component :is="getComponent(receiverType.addButton)" :model="value[receiverType.key]" :mode="mode" />
+            <template v-if="receiverType.key === 'webhookConfigs'" #add>
+              <AddWebhookButton
+                :model="value['webhookConfigs']"
+                :mode="mode"
+              />
             </template>
           </ArrayListGrouped>
         </div>

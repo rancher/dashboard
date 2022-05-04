@@ -556,6 +556,7 @@ export default class ProvCluster extends SteveModel {
         path:           'metadata.name',
         translationKey: 'cluster.name.label',
         validators:     [`clusterName:${ this.isRke2 }`],
+        maxLength:      63,
       },
     ];
   }

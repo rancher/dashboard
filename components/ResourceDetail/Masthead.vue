@@ -1,6 +1,6 @@
 <script>
 import { KUBERNETES, PROJECT } from '@/config/labels-annotations';
-import { FLEET, NAMESPACE, MANAGEMENT } from '@/config/types';
+import { FLEET, NAMESPACE, MANAGEMENT, HELM } from '@/config/types';
 import ButtonGroup from '@/components/ButtonGroup';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
@@ -13,6 +13,8 @@ import {
 
 /**
  * Resource Detail Masthead component.
+ * 
+ * ToDo: this component seem to be picking up a lot of logic from special cases, could be simplified down to parameters and then customized per use-case via wrapper component
  */
 export default {
 
@@ -100,6 +102,10 @@ export default {
 
     isProject() {
       return this.schema?.id === MANAGEMENT.PROJECT;
+    },
+
+    isProjectHelmChart() {
+      return this.schema?.id === HELM.PROJECTHELMCHART;
     },
 
     hasMultipleNamespaces() {
@@ -313,6 +319,16 @@ export default {
         managedBy,
       };
     },
+
+    displayName() {
+      let displayName = this.value.nameDisplay;
+
+      if (this.isProjectHelmChart) {
+        displayName = this.value.projectDisplayName;
+      }
+
+      return this.shouldHifenize ? ` - ${ displayName }` : displayName;
+    }
   },
 
   methods: {
@@ -343,7 +359,7 @@ export default {
             </nuxt-link>
             <span v-else>{{ parent.displayName }}:</span>
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
-            <t v-else :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="shouldHifenize ? ` - ${ value.nameDisplay }` : value.nameDisplay" />
+            <t v-else :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="displayName" />
             <BadgeState v-if="!isCreate && parent.showState" class="masthead-state" :value="value" />
           </h1>
         </div>

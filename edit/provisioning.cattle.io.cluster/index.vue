@@ -429,7 +429,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="emberLink" class="embed">
-    <EmberPage :src="emberLink" />
+    <EmberPage :force-new="true" :src="emberLink" />
   </div>
   <CruResource
     v-else

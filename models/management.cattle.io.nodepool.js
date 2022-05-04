@@ -75,11 +75,13 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get nodeSummary() {
+    // Use three buckets of states rather than actual states.
+    // These are used in `stateParts` which is show in the same context as `stateParts` for machine deployments (rke2 pools))
+    // Using actual states here would look strange when against bucket states for RKE2
     const res = {
-      errored:       0,
-      transitioning: 0,
-      unavailable:   0,
-      count:         0
+      pending:      0,
+      unavailable:  0,
+      ready:        0,
     };
 
     if (!this.nodes) {
@@ -88,18 +90,17 @@ export default class MgmtNodePool extends HybridModel {
 
     return this.nodes.reduce((res, n) => {
       if (n.metadata.state.error ) {
-        res.errored++;
+        res.unavailable++;
       } else if (n.metadata.state.transitioning) {
-        res.transitioning++;
+        res.pending++;
       } else if (n.state !== 'active') {
         res.unavailable++;
+      } else {
+        res.ready++;
       }
 
       return res;
-    }, {
-      ...res,
-      count: this.nodes.length
-    });
+    }, { ...res });
   }
 
   get desired() {
@@ -107,15 +108,15 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get pending() {
-    return this.nodeSummary.transitioning;
+    return this.nodeSummary.pending;
   }
 
   get ready() {
-    return Math.max(0, this.nodeSummary.count - this.nodeSummary.unavailable);
+    return this.nodeSummary.ready;
   }
 
   get unavailable() {
-    return this.nodeSummary.errored;
+    return this.nodeSummary.unavailable;
   }
 
   get stateParts() {
