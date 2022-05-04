@@ -42,11 +42,15 @@ export default {
     add({ value }) {
       switch (value) {
       case 'generic':
-        return this.model.push({});
+        this.model.push({});
+
+        return;
       case 'ms-teams':
-        return this.model.push({ url: MS_TEAMS_URL });
+        this.model.push({ url: MS_TEAMS_URL });
+
+        return;
       case 'alibaba-cloud-sms':
-        return this.model.push({ url: ALIBABA_CLOUD_SMS_URL });
+        this.model.push({ url: ALIBABA_CLOUD_SMS_URL });
       }
     }
   }
