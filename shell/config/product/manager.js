@@ -2,7 +2,6 @@ import { AGE, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
 import {
   CAPI,
   CATALOG,
-  MANAGEMENT,
   NORMAN,
   HCI
 } from '@shell/config/types';
@@ -115,7 +114,6 @@ export function init(store) {
   configureType(CATALOG.CLUSTER_REPO, { showListMasthead: false });
 
   basicType([
-    MANAGEMENT.CLUSTER,
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
