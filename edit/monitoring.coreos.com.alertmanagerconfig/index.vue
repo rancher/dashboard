@@ -66,6 +66,13 @@ export default {
           labelKey:      'tableHeaders.name',
           value:         'name',
           sort:          ['nameSort'],
+          formatter:     'LinkDetail',
+          canBeVariable: true,
+        },
+        {
+          name:          'type',
+          labelKey:      'tableHeaders.type',
+          value:         'name',
           formatter:     'ReceiverIcons',
           canBeVariable: true,
         }

@@ -4618,6 +4618,7 @@ tableHeaders:
   ready: Ready
   reason: Reason
   receivers: Receivers
+  receiverTypes: Receiver Types
   reclaimPolicy: Reclaim Policy
   registrationNamespace: Registration Namespace
   repo: Repo

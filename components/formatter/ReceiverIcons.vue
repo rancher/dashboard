@@ -10,21 +10,9 @@ export default {
     row: {
       type:     Object,
       required: true
-    },
-    // this is used to pass through a detail link for instances in which 'row' is not a kubernetes resource/ doesn't have resource-class methods like detailLocation
-    getCustomDetailLink: {
-      type:    Function,
-      default: null
     }
   },
   computed: {
-    to() {
-      if (this.getCustomDetailLink) {
-        return this.getCustomDetailLink(this.row);
-      }
-
-      return this.row?.detailLocation;
-    },
 
     types() {
     // get count and logo for all configured types in every receiver in the alertmanagerconfig
@@ -85,6 +73,14 @@ export default {
       }
 
       return types;
+    },
+
+    countDisplay(type, count) {
+      if (count > 1) {
+        return `${ type }(x${ count })`;
+      }
+
+      return type;
     }
   }
 };
@@ -92,17 +88,19 @@ export default {
 
 <template>
   <span class="name-container">
-    <n-link v-if="to" :to="to">
-      {{ value }}
-    </n-link>
-    <span v-else>{{ value }}</span>
-    <template v-for="(type, i) in types">
-      <div :key="i" class="logo">
+    <template v-for="(type, key, i) in types">
+      <div :key="key" class="logo">
         <img :src="type.logo" />
       </div>
-      <span v-if="type.count>1" :key="i" class="text-muted">
-        {{ `(x${type.count})` }}
+      <span :key="key+i">
+        <span v-if="i<Object.keys(types).length-1" class="comma">
+          {{ `${countDisplay(key, type.count)}, ` }}
+        </span>
+        <span v-else>
+          {{ countDisplay(key, type.count) }}
+        </span>
       </span>
+
     </template>
   </span>
 </template>
@@ -119,5 +117,8 @@ export default {
   .name-container{
     display: flex;
     align-items: center;
+  }
+  .comma{
+    margin-right: 2px;
   }
 </style>
