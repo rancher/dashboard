@@ -2902,6 +2902,12 @@ monitoringReceiver:
     bearerTokenFile:
       label: Bearer Token File
       placeholder: e.g. ./user_token
+  tls:
+    ca: Secret with CA
+    cert: Secret with Client Cert
+    key: Secret with Client Key
+    serverName: Server Name
+    serverNameTooltip: Used to verify the hostname for the targets.
   shared:
     proxyUrl:
       label: Proxy URL

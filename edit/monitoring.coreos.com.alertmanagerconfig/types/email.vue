@@ -121,6 +121,6 @@ export default {
         {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
       </Banner>
     </div>
-    <TLS v-model="value" class="mb-20" :mode="mode" />
+    <TLS v-model="value" class="mb-20" :mode="mode" :namespace="namespace" />
   </div>
 </template>

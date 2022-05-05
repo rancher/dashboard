@@ -63,7 +63,8 @@ export default {
       ],
       msTeamsUrl:          MS_TEAMS_URL,
       alibabaCloudSmsUrl:  ALIBABA_CLOUD_SMS_URL,
-      selectedWebhookType: 'generic'
+      selectedWebhookType: 'generic',
+      none:                '__[[NONE]]__'
     };
   },
   methods: {
@@ -71,10 +72,14 @@ export default {
       const existingKey = this.value.urlSecret?.key || '';
 
       if (this.value.urlSecret) {
-        this.value.urlSecret = {
-          key: existingKey,
-          name
-        };
+        if (name === this.none) {
+          delete this.value.urlSecret;
+        } else {
+          this.value.urlSecret = {
+            key: existingKey,
+            name
+          };
+        }
       } else {
         this.value['urlSecret'] = {
           key: '',
@@ -119,6 +124,7 @@ export default {
     <div class="row mb-20">
       <LabeledSelect
         v-model="selectedWebhookType"
+        :disabled="mode === view"
         :label="t('monitoringReceiver.webhook.add.selectWebhookType')"
         :placeholder="t('monitoringReceiver.webhook.add.generic')"
         :localized-label="true"
@@ -168,7 +174,7 @@ export default {
     <div class="row mb-20">
       <Checkbox v-model="value.sendResolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
     </div>
-    <TLS v-model="value.httpConfig" class="mb-20" :mode="mode" />
+    <TLS v-model="value.httpConfig" class="mb-20" :mode="mode" :namespace="namespace" />
     <Auth v-model="value.httpConfig" :mode="mode" :namespace="namespace" />
   </div>
 </template>
