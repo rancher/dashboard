@@ -1,4 +1,5 @@
 <script>
+import { get } from '@/utils/object';
 import BadgeState from '@/components/BadgeState';
 
 export default {
@@ -8,7 +9,31 @@ export default {
     sliders: {
       type:     Array,
       required: true,
-    }
+    },
+    keyField: {
+      type:    String,
+      default: 'key',
+    },
+    disabledField: {
+      type:    String,
+      default: 'disabled',
+    },
+    asLink: {
+      type:    Boolean,
+      default: false,
+    },
+    linkField: {
+      type:    String,
+      default: 'link'
+    },
+    targetField: {
+      type:    String,
+      default: 'target',
+    },
+    rel: {
+      type:    String,
+      default: 'noopener noreferrer nofollow'
+    },
   },
   data() {
     return {
@@ -29,6 +54,11 @@ export default {
   },
 
   methods: {
+    get,
+
+    select(slide, i) {
+      this.$emit('clicked', slide, i);
+    },
     scrollSlide(i) {
       this.activeItemId = i;
       setTimeout(() => {
@@ -50,11 +80,16 @@ export default {
   <div class="slider">
     <div id="slide-track" ref="slider" :style="trackStyle" class="slide-track">
       <div
-        v-for="(slide, i) in slider"
+        :is="asLink ? 'a' : 'div'"
+        v-for="(slide, i) in sliders"
         :id="`slide` + i"
         ref="slide"
-        :key="i"
+        :key="get(slide, keyField)"
         class="slide"
+        :href="asLink ? get(slide, linkField) : null"
+        :target="get(slide, targetField)"
+        :rel="rel"
+        @click="select(slide, i)"
       >
         <div class="slide-header">
           Featured chart
@@ -114,6 +149,7 @@ export default {
   border: 1px solid var(--tabbed-border);
   border-radius: var(--border-radius);
   left: 7%;
+  cursor: pointer;
 
   &:last-child {
     left: -93%;

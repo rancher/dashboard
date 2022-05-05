@@ -184,12 +184,6 @@ export default {
       });
     },
 
-    getFeaturedCharts() {
-      const newArray = (this.allCharts || []);
-
-      return newArray.slice(0, 5);
-    },
-
     filteredCharts() {
       const enabledCharts = (this.enabledCharts || []);
 
@@ -202,6 +196,12 @@ export default {
         hideTypes:        [CATALOG._CLUSTER_TPL],
         showPrerelease:   this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
+    },
+
+    getFeaturedCharts() {
+      const newArray = (this.filteredCharts || []);
+
+      return newArray.slice(0, 5);
     },
 
     categories() {
@@ -377,6 +377,7 @@ export default {
     <Carousel
       v-if="showCarousel"
       :sliders="getFeaturedCharts"
+      @clicked="(row) => selectChart(row)"
     />
 
     <TypeDescription resource="chart" />
