@@ -169,6 +169,13 @@ export const mutations = {
   },
 
   setSelected(state, locale) {
+    // this will set the lang param on HTML (best place to add this action since all locale changes go through this mutation)
+    if (locale === NONE) {
+      document.querySelector('html').removeAttribute('lang');
+    } else {
+      document.querySelector('html').setAttribute('lang', locale);
+    }
+
     state.selected = locale;
   },
 
