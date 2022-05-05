@@ -59,7 +59,7 @@ export default class MgmtCluster extends HybridModel {
     });
 
     insertAt(out, 2, {
-      action:     'copyConfig',
+      action:     'copyKubeConfig',
       label:      this.t('cluster.copyConfig'),
       bulkable:   false,
       enabled:    this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
