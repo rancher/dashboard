@@ -2883,6 +2883,7 @@ monitoringReceiver:
     modifyNamespace: If <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> default values were changed, please update the url below in the format http://&lt;new_service_name&gt;.&lt;new_namespace&gt.svc.&lt;port&gt/&lt;path&gt
     banner: To use MS Teams or SMS you will need to have at least one instance of <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> installed first.
     add:
+      selectWebhookType: Select Webhook Type
       generic: Generic
       msTeams: MS Teams
       alibabaCloudSms: SMS
@@ -2901,6 +2902,12 @@ monitoringReceiver:
     bearerTokenFile:
       label: Bearer Token File
       placeholder: e.g. ./user_token
+  tls:
+    ca: Secret with CA
+    cert: Secret with Client Cert
+    key: Secret with Client Key
+    serverName: Server Name
+    serverNameTooltip: Used to verify the hostname for the targets.
   shared:
     proxyUrl:
       label: Proxy URL

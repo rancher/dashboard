@@ -1,17 +1,26 @@
 <script>
 
 import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 import Banner from '@/components/Banner';
 import SimpleSecretSelector from '@/components/form/SimpleSecretSelector';
 import { _VIEW } from '@/config/query-params';
-import { ALIBABA_CLOUD_SMS_URL, MS_TEAMS_URL } from '@/edit/monitoring.coreos.com.receiver/types/webhook.add.vue';
 import TLS from '../tls';
 import Auth from '../auth';
 
+export const MS_TEAMS_URL = 'http://rancher-alerting-drivers-prom2teams.cattle-monitoring-system.svc:8089/v2/connector';
+export const ALIBABA_CLOUD_SMS_URL = 'http://rancher-alerting-drivers-sachet.cattle-monitoring-system.svc:9876/alert';
+
 export default {
   components: {
-    Auth, Banner, Checkbox, LabeledInput, SimpleSecretSelector, TLS
+    Auth,
+    Banner,
+    Checkbox,
+    LabeledInput,
+    LabeledSelect,
+    SimpleSecretSelector,
+    TLS,
   },
   props:      {
     mode: {
@@ -37,7 +46,25 @@ export default {
       showNamespaceBanner:  isDriverUrl && this.mode !== _VIEW,
       view:                 _VIEW,
       initialUrlSecretName:  this.value?.urlSecret?.name ? this.value.urlSecret.name : '',
-      initialUrlSecretKey:  this.value?.urlSecret?.key ? this.value.urlSecret.key : ''
+      initialUrlSecretKey:  this.value?.urlSecret?.key ? this.value.urlSecret.key : '',
+      webhookOptons:        [
+        {
+          label: this.t('monitoringReceiver.webhook.add.generic'),
+          value: 'generic'
+        },
+        {
+          label: this.t('monitoringReceiver.webhook.add.msTeams'),
+          value: 'ms-teams'
+        },
+        {
+          label: this.t('monitoringReceiver.webhook.add.alibabaCloudSms'),
+          value: 'alibaba-cloud-sms'
+        }
+      ],
+      msTeamsUrl:          MS_TEAMS_URL,
+      alibabaCloudSmsUrl:  ALIBABA_CLOUD_SMS_URL,
+      selectedWebhookType: 'generic',
+      none:                '__[[NONE]]__',
     };
   },
   methods: {
@@ -45,10 +72,14 @@ export default {
       const existingKey = this.value.urlSecret?.key || '';
 
       if (this.value.urlSecret) {
-        this.value.urlSecret = {
-          key: existingKey,
-          name
-        };
+        if (name === this.none) {
+          delete this.value.urlSecret;
+        } else {
+          this.value.urlSecret = {
+            key: existingKey,
+            name
+          };
+        }
       } else {
         this.value['urlSecret'] = {
           key: '',
@@ -70,6 +101,21 @@ export default {
           key
         };
       }
+    },
+    updateWebhookType(event) {
+      switch (event) {
+      case ('ms-teams'):
+        this.value.url = this.msTeamsUrl;
+        break;
+      case ('alibaba-cloud-sms'):
+        this.value.url = this.alibabaCloudSmsUrl;
+        break;
+      default:
+        this.value.url = '';
+      }
+    },
+    updateWebhookUrl(val) {
+      this.value.url = val;
     }
   }
 };
@@ -77,6 +123,18 @@ export default {
 
 <template>
   <div>
+    <Banner v-if="mode !== view" color="info" v-html="t('monitoringReceiver.webhook.banner', {}, raw=true)" />
+    <div class="row mb-20">
+      <LabeledSelect
+        v-model="selectedWebhookType"
+        :disabled="mode === view"
+        :label="t('monitoringReceiver.webhook.add.selectWebhookType')"
+        :placeholder="t('monitoringReceiver.webhook.add.generic')"
+        :localized-label="true"
+        :options="webhookOptons"
+        @input="updateWebhookType($event)"
+      />
+    </div>
     <div class="row">
       <div class="col span-12">
         <h3 class="mb-0">
@@ -119,7 +177,7 @@ export default {
     <div class="row mb-20">
       <Checkbox v-model="value.sendResolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
     </div>
-    <TLS v-model="value.httpConfig" class="mb-20" :mode="mode" />
+    <TLS v-model="value.httpConfig" class="mb-20" :mode="mode" :namespace="namespace" />
     <Auth v-model="value.httpConfig" :mode="mode" :namespace="namespace" />
   </div>
 </template>

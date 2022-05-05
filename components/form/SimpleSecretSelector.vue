@@ -76,7 +76,8 @@ export default {
     return {
       secrets: [],
       name:    props.initialName,
-      key:     props.initialKey
+      key:     props.initialKey,
+      none:    NONE
     };
   },
 
@@ -107,6 +108,10 @@ export default {
 
   methods: {
     updateSecretName(value) {
+      if (value === this.none) {
+        // The key should appear blank if the secret name is cleared
+        this.key = '';
+      }
       if (value) {
         this.$emit('updateSecretName', value);
       }
@@ -130,7 +135,7 @@ export default {
         :options="secretNames"
         :label="secretNameLabel"
         :mode="mode"
-        @input="updateSecretName"
+        @input="updateSecretName(name)"
       />
       <LabeledSelect
         v-model="key"
@@ -139,7 +144,7 @@ export default {
         :options="keys"
         :label="keyNameLabel"
         :mode="mode"
-        @input="updateSecretKey"
+        @input="updateSecretKey(key)"
       />
     </div>
   </div>

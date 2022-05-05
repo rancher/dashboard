@@ -51,8 +51,9 @@ export default {
       authTypes,
       authType,
       view:                               _VIEW,
-      initialBearerTokenSecretName:       this.value?.bearerSecretToken?.name ? this.value.bearerSecretToken.name : '',
-      initialBearerTokenSecretKey:        this.value?.bearerSecretToken?.key ? this.value.bearerSecretToken.key : '',
+      none:                               '__[[NONE]]__',
+      initialBearerTokenSecretName:       this.value?.bearerTokenSecret?.name ? this.value.bearerTokenSecret.name : '',
+      initialBearerTokenSecretKey:        this.value?.bearerTokenSecret?.key ? this.value.bearerTokenSecret.key : '',
       initialBasicAuthUsernameSecretName: this.value?.basicAuth?.username?.name ? this.value.basicAuth.username.name : '',
       initialBasicAuthUsernameSecretKey:  this.value?.basicAuth?.username?.key ? this.value.basicAuth.username.key : '',
       initialBasicAuthPasswordSecretName: this.value?.basicAuth?.password?.name ? this.value.basicAuth.password.name : '',
@@ -77,10 +78,14 @@ export default {
       const existingKey = this.value.bearerTokenSecret?.key || '';
 
       if (this.value.bearerTokenSecret) {
-        this.value.bearerTokenSecret = {
-          key: existingKey,
-          name,
-        };
+        if (name === this.none) {
+          delete this.value.bearerTokenSecret;
+        } else {
+          this.value.bearerTokenSecret = {
+            key: existingKey,
+            name,
+          };
+        }
       } else {
         this.value['bearerTokenSecret'] = {
           key: '',
@@ -120,10 +125,15 @@ export default {
       const existingKey = this.value.basicAuth.username?.key || '';
 
       if (this.value.basicAuth.username) {
-        this.value.basicAuth.username = {
-          key: existingKey,
-          name,
-        };
+        if (name === this.none) {
+          // Clear out the secret data if none is selected
+          delete this.value.basicAuth.username;
+        } else {
+          this.value.basicAuth.username = {
+            key: existingKey,
+            name,
+          };
+        }
       } else {
         this.value.basicAuth['username'] = {
           key: '',
@@ -176,10 +186,15 @@ export default {
       const existingKey = this.value.basicAuth.password?.key || '';
 
       if (this.value.basicAuth.password) {
-        this.value.basicAuth.password = {
-          key: existingKey,
-          name,
-        };
+        if (name === this.none) {
+          // Clear out the secret data if no secret is selected
+          delete this.value.basicAuth.password;
+        } else {
+          this.value.basicAuth.password = {
+            key: existingKey,
+            name,
+          };
+        }
       } else {
         this.value.basicAuth['password'] = {
           key: '',
