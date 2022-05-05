@@ -58,6 +58,7 @@ export default {
           v-int-number
           label-key="harvester.generic.cpu"
           suffix="%"
+          :delay="0"
           required
           :mode="mode"
           class="mb-20"
@@ -68,6 +69,7 @@ export default {
           v-int-number
           label-key="harvester.generic.memory"
           suffix="%"
+          :delay="0"
           required
           :mode="mode"
           class="mb-20"
@@ -78,6 +80,7 @@ export default {
           v-int-number
           label-key="harvester.generic.storage"
           suffix="%"
+          :delay="0"
           required
           :mode="mode"
           class="mb-20"
