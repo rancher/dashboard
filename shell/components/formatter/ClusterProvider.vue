@@ -12,7 +12,7 @@ export default {
 <template>
   <div>
     <template v-if="row.machineProvider">
-    {{ row.machineProviderDisplay }}
+      {{ row.machineProviderDisplay }}
     </template>
     <template v-else-if="row.isCustom">
       {{ t('cluster.provider.custom') }}
