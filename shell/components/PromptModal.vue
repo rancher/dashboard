@@ -92,7 +92,7 @@ export default {
     & .v--modal-box.v--modal {
       width: var(--prompt-modal-width) !important;
       left: unset !important;
-      margin: auto !important
+      margin: auto !important;
     }
   }
 </style>
