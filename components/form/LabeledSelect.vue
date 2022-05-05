@@ -271,7 +271,7 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
-      @option:selecting="$emit('input')"
+      @option:selecting="$emit('input', $event)"
     >
       <template #option="option">
         <template v-if="option.kind === 'group'">

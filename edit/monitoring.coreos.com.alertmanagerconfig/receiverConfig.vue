@@ -11,7 +11,6 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CreateEditView from '@/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
 import ButtonDropdown from '@/components/ButtonDropdown';
-import AddWebhookButton from '@/edit/monitoring.coreos.com.alertmanagerconfig/types/webhook.add.vue';
 import { _CREATE, _VIEW } from '@/config/query-params';
 
 export const RECEIVERS_TYPES = [
@@ -51,8 +50,6 @@ export const RECEIVERS_TYPES = [
     title:        'monitoringReceiver.webhook.title',
     key:          'webhookConfigs',
     logo:         require(`~/assets/images/vendor/webhook.svg`),
-    banner:       'webhook.banner',
-    addButton:    'webhook.add'
   },
   {
     name:  'custom',
@@ -66,7 +63,6 @@ export const RECEIVERS_TYPES = [
 
 export default {
   components: {
-    AddWebhookButton,
     ArrayListGrouped,
     Banner,
     ButtonDropdown,
@@ -294,12 +290,6 @@ export default {
           :editor-mode="editorMode"
         />
         <div v-else>
-          <component
-            :is="getComponent(receiverType.banner)"
-            v-if="receiverType.banner"
-            :model="value[receiverType.key]"
-            :mode="mode"
-          />
           <ArrayListGrouped
             v-model="value[receiverType.key]"
             class="namespace-list"
@@ -313,12 +303,6 @@ export default {
                 :value="props.row.value"
                 :mode="mode"
                 :namespace="alertmanagerConfigNamespace"
-              />
-            </template>
-            <template v-if="receiverType.key === 'webhookConfigs'" #add>
-              <AddWebhookButton
-                :model="value['webhookConfigs']"
-                :mode="mode"
               />
             </template>
           </ArrayListGrouped>
