@@ -42,6 +42,9 @@ export default {
     remainingTypes(currentType) {
       return this.mappedTypes
         .filter(mappedType => !this.typeValues.includes(mappedType.value) || mappedType.value === currentType);
+    },
+    emitRemove(data) {
+      this.$emit('remove', data.index?.value);
     }
   },
 };
@@ -66,6 +69,7 @@ export default {
       :default-add-value="remainingTypes()[0] ? remainingTypes()[0].value : ''"
       :add-allowed="remainingTypes().length > 0"
       :mode="mode"
+      @remove="emitRemove"
     >
       <template #columns="props">
         <Row v-model="value" :mode="mode" :types="remainingTypes(typeValues[props.i])" :type="typeValues[props.i]" @type-change="updateType(props.i, $event)" />

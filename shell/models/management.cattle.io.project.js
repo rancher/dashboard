@@ -2,7 +2,7 @@ import { DEFAULT_PROJECT, SYSTEM_PROJECT } from '@shell/config/labels-annotation
 import { MANAGEMENT, NAMESPACE, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 
-function clearResourceQuotas(val, type) {
+function clearUnusedResourceQuotas(val, type) {
   if (val[type]?.limit && Object.keys(val[type].limit).length) {
     Object.keys(val[type].limit).forEach((key) => {
       if (!val[type].limit[key]) {
@@ -88,8 +88,8 @@ export default class Project extends HybridModel {
         clusterId:                     this.$rootGetters['currentCluster'].id,
         creatorId:                     this.$rootGetters['auth/principalId'],
         containerDefaultResourceLimit: this.spec.containerDefaultResourceLimit,
-        namespaceDefaultResourceQuota: clearResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'namespaceDefaultResourceQuota'),
-        resourceQuota:                 clearResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'resourceQuota'),
+        namespaceDefaultResourceQuota: clearUnusedResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'namespaceDefaultResourceQuota'),
+        resourceQuota:                 clearUnusedResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'resourceQuota'),
       }, { root: true });
 
       // The backend seemingly required both labels/annotation and metadata.labels/annotations or it doesn't save the labels and annotations
@@ -111,8 +111,8 @@ export default class Project extends HybridModel {
       normanProject.setLabels(this.metadata.labels);
       normanProject.description = this.spec.description;
       normanProject.containerDefaultResourceLimit = this.spec.containerDefaultResourceLimit;
-      normanProject.namespaceDefaultResourceQuota = clearResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'namespaceDefaultResourceQuota');
-      normanProject.resourceQuota = clearResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'resourceQuota');
+      normanProject.namespaceDefaultResourceQuota = clearUnusedResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'namespaceDefaultResourceQuota');
+      normanProject.resourceQuota = clearUnusedResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'resourceQuota');
 
       return normanProject;
     })();

@@ -168,6 +168,17 @@ export default {
 
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
+    },
+
+    removeQuota(key) {
+      ['resourceQuota', 'namespaceDefaultResourceQuota'].forEach((specProp) => {
+        if (this.value?.spec[specProp]?.limit && this.value?.spec[specProp]?.limit[key]) {
+          delete this.value?.spec[specProp]?.limit[key];
+        }
+        if (this.value?.spec[specProp]?.usedLimit && this.value?.spec[specProp]?.usedLimit[key]) {
+          delete this.value?.spec[specProp]?.usedLimit[key];
+        }
+      });
     }
   },
 };
@@ -230,7 +241,12 @@ export default {
         :label="t('project.resourceQuotas')"
         :weight="9"
       >
-        <ResourceQuota v-model="value" :mode="canEditTabElements" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
+        <ResourceQuota
+          v-model="value"
+          :mode="canEditTabElements"
+          :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
+          @remove="removeQuota"
+        />
       </Tab>
       <Tab
         name="container-default-resource-limit"
