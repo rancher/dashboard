@@ -5,6 +5,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import LabeledInput from '@shell/components/form/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
+import Banner from '@shell/components/Banner';
 
 import { EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
@@ -30,7 +31,8 @@ export default Vue.extend<Data, any, any, any>({
     ArrayList,
     NameNsDescription,
     LabeledInput,
-    KeyValue
+    KeyValue,
+    Banner
   },
 
   props: {
@@ -111,7 +113,12 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <div>
+  <div v-if="!namespaces.length">
+    <Banner color="warning">
+      {{ t('epinio.warnings.noNamespace') }}
+    </Banner>
+  </div>
+  <div v-else>
     <div class="col">
       <NameNsDescription
         name-key="name"

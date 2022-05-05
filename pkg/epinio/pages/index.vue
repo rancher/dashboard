@@ -90,7 +90,7 @@ export default Vue.extend<Data, any, any, any>({
             this.setClusterState(c, 'error', {
               state: {
                 error:   true,
-                message: `Network Error. If this instance uses an invalid certificate click on the URL above to bypass checks and refresh`
+                message: `Network Error. It may be that the certificate isn't trusted. Click on the URL above if you'd like to bypass checks and then refresh`
               }
             });
           } else {

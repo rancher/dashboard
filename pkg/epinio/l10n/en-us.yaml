@@ -159,7 +159,7 @@ epinio:
       configCount: Configs
     name: Name
     create: Create a Namespace
-    deleteWarning: All applications and configs in a namespace will be deleted.
+    deleteWarning: All applications and configurations in a namespace will be deleted.
   configurations:
     pairs:
       label: Config Data
@@ -170,3 +170,5 @@ epinio:
       createBy: Created By
     promptRemove:
       unbind: Unbind from applications before deleting
+  warnings:
+    noNamespace: There are no namespaces. Please create one before proceeding
