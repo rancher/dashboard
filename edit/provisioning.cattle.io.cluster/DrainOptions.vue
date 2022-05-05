@@ -105,7 +105,14 @@ export default {
       </div>
       <div>
         <Checkbox v-model="customTimeout" label="Timeout after" @input="update" />
-        <UnitInput v-if="customTimeout" v-model="timeout" label="Drain Timeout" suffix="Seconds" @input="update" class="drain-timeout" />
+        <UnitInput
+          v-if="customTimeout"
+          v-model="timeout"
+          label="Drain Timeout"
+          suffix="Seconds"
+          class="drain-timeout"
+          @input="update"
+        />
       </div>
     </template>
   </div>
