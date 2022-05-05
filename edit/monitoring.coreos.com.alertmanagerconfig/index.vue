@@ -68,6 +68,13 @@ export default {
           sort:          ['nameSort'],
           formatter:     'LinkDetail',
           canBeVariable: true,
+        },
+        {
+          name:          'type',
+          labelKey:      'tableHeaders.type',
+          value:         'name',
+          formatter:     'ReceiverIcons',
+          canBeVariable: true,
         }
         // Add more columns
       ],

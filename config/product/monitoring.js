@@ -258,8 +258,10 @@ export function init(store) {
     NAME_COL,
     NAMESPACE_COL,
     {
-      name:     'receivers',
-      labelKey: 'tableHeaders.receivers'
+      name:      'receivers',
+      labelKey:  'tableHeaders.receivers',
+      formatter: 'ReceiverIcons',
+      value:     'name'
     },
   ]);
 

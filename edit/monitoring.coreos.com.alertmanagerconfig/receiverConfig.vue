@@ -333,7 +333,7 @@ export default {
     $margin: 10px;
     $logo: 60px;
 
-    .box-container {
+    .box-container.create-resource-container {
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
