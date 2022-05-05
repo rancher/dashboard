@@ -3,6 +3,7 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import DashboardMetrics from '@/components/DashboardMetrics';
 import AlertTable from '@/components/AlertTable';
+import Banner from '@/components/Banner';
 import { parse as parseUrl } from '@/utils/url';
 
 export default {
@@ -10,7 +11,8 @@ export default {
     Tabbed,
     Tab,
     DashboardMetrics,
-    AlertTable
+    AlertTable,
+    Banner
   },
   props: {
     value: {
@@ -119,7 +121,11 @@ export default {
         </div>
       </template>
     </Tabbed>
-    <div>{{ `${ t('monitoring.projectMonitoring.detail.error') }${ value.status.statusMessage || t('generic.unknown') }` }}</div>
+    <div v-else>
+      <Banner color="error">
+        {{ `${ t('monitoring.projectMonitoring.detail.error') }${ value.status.statusMessage || t('generic.unknown') }` }}
+      </Banner>
+    </div>
   </div>
 </template>
 
