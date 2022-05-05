@@ -64,7 +64,7 @@ export default {
       msTeamsUrl:          MS_TEAMS_URL,
       alibabaCloudSmsUrl:  ALIBABA_CLOUD_SMS_URL,
       selectedWebhookType: 'generic',
-      none:                '__[[NONE]]__'
+      none:                '__[[NONE]]__',
     };
   },
   methods: {
@@ -102,7 +102,7 @@ export default {
         };
       }
     },
-    updateWebhookUrl(event) {
+    updateWebhookType(event) {
       switch (event) {
       case ('ms-teams'):
         this.value.url = this.msTeamsUrl;
@@ -113,6 +113,9 @@ export default {
       default:
         this.value.url = '';
       }
+    },
+    updateWebhookUrl(val) {
+      this.value.url = val;
     }
   }
 };
@@ -129,7 +132,7 @@ export default {
         :placeholder="t('monitoringReceiver.webhook.add.generic')"
         :localized-label="true"
         :options="webhookOptons"
-        @input="updateWebhookUrl($event)"
+        @input="updateWebhookType($event)"
       />
     </div>
     <div class="row">

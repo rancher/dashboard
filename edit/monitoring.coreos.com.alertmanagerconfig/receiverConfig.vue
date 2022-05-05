@@ -224,8 +224,8 @@ export default {
       this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
     },
 
-    redirectToReceiverDetail() {
-      this.$router.push(this.alertmanagerConfigResource.getReceiverDetailLink(this.value.name));
+    redirectToReceiverDetail(name) {
+      this.$router.push(this.alertmanagerConfigResource.getReceiverDetailLink(name));
     },
 
     createAddOptions(receiverType) {
@@ -248,7 +248,7 @@ export default {
     @error="e=>errors = e"
     @finish="() => {
       saveOverride()
-      redirectToReceiverDetail()
+      redirectToReceiverDetail(value.name)
     }"
     @cancel="redirectAfterCancel"
   >
