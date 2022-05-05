@@ -6,6 +6,7 @@ import { base64Encode } from '@shell/utils/crypto';
 import { NAMESPACE_FILTERS } from '@shell/store/prefs';
 import { createNamespaceFilterKeyWithId } from '@shell/utils/namespace-filter';
 import { parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
+// import https from 'https';
 
 const createId = (schema: any, resource: any) => {
   const name = resource.meta?.name || resource.name;
@@ -55,6 +56,8 @@ export default {
     } else {
       ps = dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE }, { root: true }).then(() => '');
     }
+
+    // opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     return await ps
       .then((prependPath = opt?.prependPath) => {

@@ -10,6 +10,7 @@ import { EPINIO_TYPES } from '../types';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
+import Banner from '@shell/components/Banner';
 
 interface Data {
 }
@@ -19,7 +20,8 @@ export default Vue.extend<Data, any, any, any>({
     Loading,
     CruResource,
     NameNsDescription,
-    KeyValue
+    KeyValue,
+    Banner
   },
   mixins: [CreateEditView],
 
@@ -87,7 +89,12 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="!value || namespaces.length === 0" />
+  <Loading v-if="!value || !namespaces" />
+  <div v-else-if="!namespaces.length">
+    <Banner color="warning">
+      {{ t('epinio.warnings.noNamespace') }}
+    </Banner>
+  </div>
   <CruResource
     v-else-if="value && namespaces.length > 0"
     :min-height="'7em'"
