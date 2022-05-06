@@ -261,6 +261,7 @@ export default {
       :options="options"
       :map-keydown="mappedKeys"
       :placeholder="placeholder"
+      :push-tags="pushTags"
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
       :selectable="selectable"

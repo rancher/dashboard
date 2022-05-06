@@ -55,6 +55,11 @@ export default {
       default: ''
     },
 
+    pushTags: {
+      type:    Boolean,
+      default: false,
+    },
+
     value: {
       type:    [String, Number, Object],
       default: ''

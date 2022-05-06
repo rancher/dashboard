@@ -87,6 +87,7 @@ export default {
         :tooltip="certificateTooltip"
         :hover-tooltip="true"
         :searchable="true"
+        :push-tags="true"
         @input="onSecretInput"
       />
     </div>
