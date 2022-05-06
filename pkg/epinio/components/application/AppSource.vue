@@ -1,14 +1,18 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
+import jsyaml from 'js-yaml';
+
 import Application from '../../models/applications';
 import LabeledInput from '@shell/components/form/LabeledInput.vue';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 import RadioGroup from '@shell/components/form/RadioGroup.vue';
-
-import { APPLICATION_SOURCE_TYPE } from '../../types';
+import { sortBy } from '@shell/utils/sort';
 import { generateZip } from '@shell/utils/download';
+
+import { APPLICATION_SOURCE_TYPE, EPINIO_TYPES } from '../../types';
+import { EpinioAppInfo } from './AppInfo.vue';
 
 interface Archive{
   tarball: string,
@@ -94,14 +98,14 @@ export default Vue.extend<Data, any, any, any>({
       },
 
       types:        [{
-        label: this.t('epinio.applications.steps.source.folder.label'),
-        value: APPLICATION_SOURCE_TYPE.FOLDER
-      }, {
         label: this.t('epinio.applications.steps.source.archive.label'),
         value: APPLICATION_SOURCE_TYPE.ARCHIVE
       }, {
         label: this.t('epinio.applications.steps.source.containerUrl.label'),
         value: APPLICATION_SOURCE_TYPE.CONTAINER_URL
+      }, {
+        label: this.t('epinio.applications.steps.source.folder.label'),
+        value: APPLICATION_SOURCE_TYPE.FOLDER
       }, {
         label: this.t('epinio.applications.steps.source.gitUrl.label'),
         value: APPLICATION_SOURCE_TYPE.GIT_URL
@@ -121,6 +125,41 @@ export default Vue.extend<Data, any, any, any>({
       this.archive.fileName = file.name;
 
       this.update();
+    },
+
+    onManifestFileSelected(file: string) {
+      try {
+        const parsed: any = jsyaml.load(file);
+
+        if (parsed.origin) {
+          if (parsed.origin.container) {
+            Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
+            Vue.set(this.container, 'url', parsed.origin.container);
+          } else if (parsed.origin.git) {
+            Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.GIT_URL);
+            Vue.set(this.gitUrl, 'url', parsed.origin.git.url);
+            Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
+          }
+        }
+
+        const appInfo: EpinioAppInfo = {
+          meta: {
+            name:      parsed.name || '',
+            namespace: this.namespaces?.[0]?.name || ''
+          },
+          configuration: {
+            instances:   parsed.configuration.instances || 1,
+            environment: parsed.configuration.environment || {},
+            routes:      parsed.configuration.routes || []
+          }
+        };
+
+        this.update();
+        this.updateAppInfo(appInfo);
+        this.updateConfigurations(parsed.configuration.configurations || []);
+      } catch (e) {
+        console.error('Failed to parse or process manifest: ', e); // eslint-disable-line no-console
+      }
     },
 
     onFolderSelected(files: any[]) {
@@ -178,6 +217,14 @@ export default Vue.extend<Data, any, any, any>({
       });
     },
 
+    updateAppInfo(info: EpinioAppInfo) {
+      this.$emit('changeAppInfo', info);
+    },
+
+    updateConfigurations(configs: string[]) {
+      this.$emit('changeAppConfig', configs);
+    },
+
     onImageType(defaultImage: boolean) {
       if (defaultImage) {
         this.builderImage.value = DEFAULT_BUILD_PACK;
@@ -220,59 +267,77 @@ export default Vue.extend<Data, any, any, any>({
         APPLICATION_SOURCE_TYPE.FOLDER,
         APPLICATION_SOURCE_TYPE.GIT_URL,
       ].includes(this.type);
-    }
+    },
+
+    namespaces() {
+      return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
+    },
   }
 });
 </script>
 
 <template>
   <div class="appSource">
-    <LabeledSelect
-      v-model="type"
-      label="Source Type"
-      :options="types"
-      :mode="mode"
-      :clearable="false"
-      :reduce="(e) => e.value"
-    />
+    <div class="button-row">
+      <LabeledSelect
+        v-model="type"
+        label="Source Type"
+        :options="types"
+        :mode="mode"
+        :clearable="false"
+        :reduce="(e) => e.value"
+      />
+      <FileSelector
+        v-tooltip="t('epinio.applications.steps.source.manifest.tooltip')"
+        class="role-tertiary add mt-5"
+        :label="t('epinio.applications.steps.source.manifest.button')"
+        :mode="mode"
+        :raw-data="false"
+        @selected="onManifestFileSelected"
+      />
+    </div>
 
     <template v-if="type === APPLICATION_SOURCE_TYPE.ARCHIVE">
       <div class="spacer archive">
         <h3>{{ t('epinio.applications.steps.source.archive.file.label') }}</h3>
-        <LabeledInput
-          v-model="archive.fileName"
-          :disabled="true"
-          :tooltip="t('epinio.applications.steps.source.archive.file.tooltip')"
-          :label="t('epinio.applications.steps.source.archive.file.inputLabel')"
-          :required="true"
-        />
-        <FileSelector
-          class="role-tertiary add mt-5"
-          :label="t('generic.readFromFile')"
-          :mode="mode"
-          :raw-data="true"
-          @selected="onFileSelected"
-        />
+        <div class="button-row">
+          <LabeledInput
+            v-model="archive.fileName"
+            :disabled="true"
+            :tooltip="t('epinio.applications.steps.source.archive.file.tooltip')"
+            :label="t('epinio.applications.steps.source.archive.file.inputLabel')"
+            :required="true"
+          />
+          <FileSelector
+            class="role-tertiary add mt-5"
+            :label="t('epinio.applications.steps.source.archive.file.button')"
+            :mode="mode"
+            :raw-data="true"
+            @selected="onFileSelected"
+          />
+        </div>
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.FOLDER">
       <div class="spacer archive">
         <h3>{{ t('epinio.applications.steps.source.folder.file.label') }}</h3>
-        <LabeledInput
-          v-model="archive.fileName"
-          :disabled="true"
-          :tooltip="t('epinio.applications.steps.source.folder.file.tooltip')"
-          :label="t('epinio.applications.steps.source.folder.file.inputLabel')"
-          :required="true"
-        />
-        <FileSelector
-          class="role-tertiary add mt-5"
-          :label="t('generic.readFromFolder')"
-          :mode="mode"
-          :raw-data="true"
-          :directory="true"
-          @selected="onFolderSelected"
-        />
+        <div class="button-row">
+          <LabeledInput
+            v-model="archive.fileName"
+            :disabled="true"
+            :tooltip="t('epinio.applications.steps.source.folder.file.tooltip')"
+            :label="t('epinio.applications.steps.source.folder.file.inputLabel')"
+            :required="true"
+          />
+          <FileSelector
+            class="role-tertiary add mt-5"
+            :label="t('epinio.applications.steps.source.folder.file.button')"
+            :mode="mode"
+            :raw-data="true"
+            :directory="true"
+            @selected="onFolderSelected"
+          />
+        </div>
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.CONTAINER_URL">
@@ -339,12 +404,18 @@ export default Vue.extend<Data, any, any, any>({
 <style lang="scss" scoped>
 .appSource {
   max-width: 500px;
+
+  .button-row {
+    display: flex;
+    align-items: center;
+    .file-selector {
+      margin-top: 0 !important;
+      margin-left: 5px;
+    }
+  }
 }
 .archive {
   display: flex;
   flex-direction: column;
-  .file-selector {
-        align-self: end;
-  }
 }
 </style>

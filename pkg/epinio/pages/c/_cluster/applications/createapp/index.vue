@@ -6,7 +6,7 @@ import Loading from '@shell/components/Loading.vue';
 import Wizard from '@shell/components/Wizard.vue';
 import { EPINIO_TYPES } from '../../../../../types';
 import { _CREATE } from '@shell/config/query-params';
-import AppInfo from '../../../../../components/application/AppInfo.vue';
+import AppInfo, { EpinioAppInfo } from '../../../../../components/application/AppInfo.vue';
 import AppSource, { EpinioAppSource } from '../../../../../components/application/AppSource.vue';
 import AppConfiguration from '../../../../../components/application/AppConfiguration.vue';
 import AppProgress from '../../../../../components/application/AppProgress.vue';
@@ -53,14 +53,14 @@ export default Vue.extend<Data, any, any, any>({
       errors:        [],
       source:        undefined,
       steps:         [{
-        name:           'basics',
-        label:          this.t('epinio.applications.steps.basics.label'),
-        subtext:        this.t('epinio.applications.steps.basics.subtext'),
-        ready:          false,
-      }, {
         name:           'source',
         label:          this.t('epinio.applications.steps.source.label'),
         subtext:        this.t('epinio.applications.steps.source.subtext'),
+        ready:          false,
+      }, {
+        name:           'basics',
+        label:          this.t('epinio.applications.steps.basics.label'),
+        subtext:        this.t('epinio.applications.steps.basics.subtext'),
         ready:          false,
       }, {
         name:           'configurations',
@@ -88,14 +88,14 @@ export default Vue.extend<Data, any, any, any>({
       });
     },
 
-    updateInfo(changes: any) {
+    updateInfo(changes: EpinioAppInfo) {
       this.value.meta = this.value.meta || {};
       this.value.configuration = this.value.configuration || {};
       this.set(this.value.meta, changes.meta);
       this.set(this.value.configuration, changes.configuration);
     },
 
-    updateSource(changes: any) {
+    updateSource(changes: EpinioAppSource) {
       this.source = {};
       this.set(this.source, changes);
     },
@@ -141,7 +141,7 @@ export default Vue.extend<Data, any, any, any>({
           :application="value"
           :mode="mode"
           @change="updateInfo"
-          @valid="steps[0].ready = $event"
+          @valid="steps[1].ready = $event"
         ></AppInfo>
       </template>
       <template #source>
@@ -150,7 +150,9 @@ export default Vue.extend<Data, any, any, any>({
           :source="source"
           :mode="mode"
           @change="updateSource"
-          @valid="steps[1].ready = $event"
+          @changeAppInfo="updateInfo"
+          @changeAppConfig="updateConfigurations"
+          @valid="steps[0].ready = $event"
         ></AppSource>
       </template>
       <template #configurations>

@@ -75,13 +75,15 @@ epinio:
           label: Folder
           file:
             label: Folder
-            inputLabel: Folder
+            inputLabel: Name
+            button: Select Folder
             tooltip: This should contain your application files
         archive:
           label: Archive
           file:
             label: Archive File
-            inputLabel: File Name
+            inputLabel: Name
+            button: Select File
             tooltip: This should be a compressed file containing your application
           builderimage:
             label: Paketo Builder Image
@@ -94,6 +96,9 @@ epinio:
             label: Container Image
             inputLabel: Image
             tooltip: Container Image for the app workload
+        manifest:
+          button: From Manifest
+          tooltip: Manifests can provide app configuration from another app
         gitUrl:
           label: Git URL
           url:

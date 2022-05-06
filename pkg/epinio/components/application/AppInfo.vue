@@ -5,23 +5,26 @@ import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import LabeledInput from '@shell/components/form/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
-import Banner from '@shell/components/Banner';
+import Banner from '@shell/components/Banner.vue';
 
 import { EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 
+export interface EpinioAppInfo {
+  meta: {
+    name: string,
+    namespace: string
+  },
+  configuration: {
+    instances: number,
+    environment: {},
+    routes: string[]
+  }
+}
+
 interface Data {
   errors: string[],
-  values: {
-    meta: {
-      name: string,
-      namespace: string
-    },
-    configuration: {
-      instances: number,
-      environment: {}
-    }
-  }
+  values: EpinioAppInfo
 }
 
 // Data, Methods, Computed, Props
@@ -64,6 +67,17 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   mounted() {
+    this.values = {
+      meta: {
+        name:      this.application.meta?.name,
+        namespace: this.application.meta?.namespace
+      },
+      configuration: {
+        instances:   this.application.configuration?.instances || 1,
+        environment: this.application.configuration?.environment || {},
+        routes:      this.application.configuration?.routes || [],
+      },
+    };
     this.$emit('valid', this.valid);
   },
 
