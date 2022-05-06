@@ -798,6 +798,8 @@ export default {
       }
 
       const cluster = this.currentCluster;
+      const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+      const systemProjectId = projects.find(p => p.spec?.displayName === 'System')?.id || '';
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
@@ -808,6 +810,7 @@ export default {
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
       setIfNotSet(cattle, 'systemDefaultRegistry', defaultRegistry);
       setIfNotSet(global, 'systemDefaultRegistry', defaultRegistry);
+      setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
       setIfNotSet(cattle, 'url', serverUrl);
       setIfNotSet(cattle, 'rkePathPrefix', pathPrefix);
       setIfNotSet(cattle, 'rkeWindowsPathPrefix', windowsPathPrefix);
