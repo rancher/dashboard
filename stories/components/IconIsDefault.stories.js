@@ -1,4 +1,4 @@
-import IconIsDefault from '@/components/formatter/IconIsDefault';
+import IconIsDefault from '@shell/components/formatter/IconIsDefault';
 
 const DefaultColumnState = {
   name:      'builtIn',

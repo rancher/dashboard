@@ -21,15 +21,15 @@ Rancher’s reusable forms are intended to be flexible enough to allow YAML file
 
 This section describes the workflow for creating forms to create or edit resources in Rancher. We recommend using the CruResource component for create/edit forms because it is designed to handle resource that can also be managed through YAML config files, with process automated through GitOps.
 
-You will need to create a file for the create/edit form. For normal Kubernetes resources, this file should be located in the `@/components/edit` directory.
+You will need to create a file for the create/edit form. For normal Kubernetes resources, this file should be located in the `@shell/components/edit` directory.
 
 The file will need these imports:
 ```
-import CreateEditView from '@/mixins/create-edit-view/impl';
+import CreateEditView from '@shell/mixins/create-edit-view/impl';
 // An example types file 
-import { POD } from '@/config/types';
-import { exceptionToErrorsArray } from '@/utils/error';
-import CruResource from '@/components/CruResource.vue';
+import { POD } from '@shell/config/types';
+import { exceptionToErrorsArray } from '@shell/utils/error';
+import CruResource from '@shell/components/CruResource.vue';
 
 ```
 
@@ -90,10 +90,10 @@ export function exampleValidator(value, getters, errors, validatorArgs, displayK
 In order to make a custom validator available for usage in forms and component, it will need to exposed by importing the new validator function into `utils/custom-validators.js`:
 
 ```diff
-import { podAffinity } from '@/utils/validators/pod-affinity';
-import { roleTemplateRules } from '@/utils/validators/role-template';
-import { clusterName } from '@/utils/validators/cluster-name';
-+ import { exampleValidator } from '@/utils/validators/setting';
+import { podAffinity } from '@shell/utils/validators/pod-affinity';
+import { roleTemplateRules } from '@shell/utils/validators/role-template';
+import { clusterName } from '@shell/utils/validators/cluster-name';
++ import { exampleValidator } from '@shell/utils/validators/setting';
 ```
 
 and add it to the default exports:
@@ -189,9 +189,9 @@ There may be a situation where you need Rancher to create and edit data that is 
 A custom create component would typically need at least these imports:
 
 ```ts
-import AsyncButton from '@/components/AsyncButton';
-import { _CREATE } from '@/config/query-params';
-import { exceptionToErrorsArray } from '@/utils/error';
+import AsyncButton from '@shell/components/AsyncButton';
+import { _CREATE } from '@shell/config/query-params';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 ```
 
 The AsyncButton should be used to save the resource, and it will show a loading message if the resource takes time to be saved. The below example shows a minimal usage of AsyncButton:

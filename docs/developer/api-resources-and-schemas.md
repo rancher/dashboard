@@ -71,7 +71,7 @@ Schemas are provided in bulk via the APIs and cached locally in the relevant sto
 A schema can be fetched synchronously via store getter
 
 ```ts
-import { POD } from '@/config/types';
+import { POD } from '@shell/config/types';
 
 this.$store.getters['cluster/schemaFor'](POD)`
 ```
