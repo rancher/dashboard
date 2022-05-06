@@ -2809,7 +2809,7 @@ monitoring:
     empty: Alerts have not been configured for any accessible namespaces.
     getStarted: Get started by clicking Create to configure an alert.
     receiverTooltip: This route will direct alerts to the selected receiver, which must be defined in the same AlertmanagerConfig.
-    deprecationWarning: The Route and Receiver resources are deprecated. We recommend configuring alerts in AlertmanagerConfigs.
+    deprecationWarning: The Route and Receiver resources are deprecated. Going forward, routes and receivers should not be managed as separate Kubernetes resources on this page. They should be configured as YAML fields in an AlertmanagerConfig resource.
     routeInfo: This form supports configuring one route that directs traffic to a receiver. Alerts can be directed to more receiver(s) by configuring child routes in YAML.
     receiverFormNames:
       create: Create Receiver in AlertmanagerConfig
