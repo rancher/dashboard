@@ -1673,6 +1673,8 @@ cluster:
   toggle:
     v1: RKE1
     v2: RKE2/K3s
+  validation:
+    iamInstanceProfileName: If the Amazon cloud provider is selected the "IAM Instance Profile Name" must be defined for each Machine Pool
 
 clusterIndexPage:
   hardwareResourceGauge:

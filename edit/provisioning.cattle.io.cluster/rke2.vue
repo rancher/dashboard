@@ -331,9 +331,7 @@ export default {
     },
 
     agentConfig() {
-      // The one we want is the first one with no selector.
-      // If there are multiple with no selector, that will fall under the unsupported message below.
-      return this.value.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+      return this.value.agentConfig;
     },
 
     showK3sTechPreviewWarning() {
@@ -1125,6 +1123,14 @@ export default {
         }
       }
 
+      if (this.value.cloudProvider === 'aws') {
+        const missingProfileName = this.machinePools.some(mp => !mp.config.iamInstanceProfile);
+
+        if (missingProfileName) {
+          this.errors.push(this.t('cluster.validation.iamInstanceProfileName', {}, true));
+        }
+      }
+
       for (const [index] of this.machinePools.entries()) { // validator machine config
         if ( typeof this.$refs.pool[index]?.test === 'function' ) {
           try {
@@ -1556,6 +1562,7 @@ export default {
               <MachinePool
                 ref="pool"
                 :value="obj"
+                :cluster="value"
                 :mode="mode"
                 :provider="provider"
                 :credential-id="credentialId"
