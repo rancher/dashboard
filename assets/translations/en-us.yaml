@@ -2928,12 +2928,19 @@ alertmanagerConfigReceiver:
 monitoringRoute:
   groups:
     label: Group By
+    addGroupByLabel: Labels to Group Alerts By
   info: This is the top-level Route used by Alertmanager as the default destination for any Alerts that do not match any other Routes. This Route must exist and cannot be deleted.
   interval:
     label: Group Interval
   matching:
     info: The root route has to match everything so matching cannot be configured.
     label: Match
+    addMatcher: Add Matcher
+    matchType: Match Type
+    name: Name
+    nameTooltip: Label to match
+    value: Value
+    valueTooltip: Label value to match
   receiver:
     type: Receiver Type
     add: Add Receiver
