@@ -2,7 +2,7 @@ import { normalizeType } from './normalize';
 
 const cache = {};
 
-function find(cache, type) {
+function find(cache, type, ctx) {
   const impl = cache[type];
 
   if ( impl ) {
@@ -12,7 +12,17 @@ function find(cache, type) {
   }
 
   try {
-    const base = require(`@/models/${ type }`);
+    const pluginModel = ctx.rootState.$plugin.getDynamic('models', type);
+    let base;
+
+    if (!pluginModel) {
+      base = require(`@shell/models/${ type }`);
+    } else if (typeof pluginModel === 'function') {
+      // pluginModel could be an object in the case the plugin is built-in
+      base = pluginModel();
+    } else {
+      base = pluginModel;
+    }
 
     // New Class models
     if ( base?.default?.prototype ) {
@@ -38,7 +48,7 @@ function find(cache, type) {
  * @param {*} store the name of the store that the type comes from
  * @param {*} type the type we'd like to lookup
  */
-export function lookup(store, type) {
+export function lookup(store, type, _name, ctx) {
   type = normalizeType(type).replace(/\//g, '');
 
   let out;
@@ -48,11 +58,16 @@ export function lookup(store, type) {
   ];
 
   for ( const t of tries ) {
-    out = find(cache, t);
+    out = find(cache, t, ctx);
     if ( out ) {
       return out;
     }
   }
 
   return null;
+}
+
+// Delete a cached model
+export function clearModelCache(type) {
+  delete cache[type];
 }

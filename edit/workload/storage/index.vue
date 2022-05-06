@@ -218,6 +218,7 @@ export default {
           .default;
       case 'csi':
         return require(`@/edit/workload/storage/csi/index.vue`).default;
+
       default: {
         let component;
 

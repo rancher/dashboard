@@ -3,7 +3,7 @@ import { LAST_NAMESPACE } from '@/store/prefs';
 import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { clear } from '@/utils/array';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
+import { DEFAULT_WORKSPACE } from '@/config/types';
 import { handleConflict } from '@/plugins/steve/normalize';
 
 export default {

@@ -288,3 +288,5 @@ export const HCI = {
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';
+
+export const DEFAULT_WORKSPACE = 'fleet-default';

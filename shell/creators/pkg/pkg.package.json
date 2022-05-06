@@ -1,0 +1,24 @@
+{
+  "name": "NAME",
+  "description": "NAME plugin",
+  "version": "0.1.0",
+  "private": false,
+  "rancher": true,
+  "publishConfig": {
+    "registry": "http://localhost:4873"
+  },
+  "scripts": {},
+  "engines": {
+    "node": ">=12"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "@vue/cli-plugin-typescript": "^4.5.15"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

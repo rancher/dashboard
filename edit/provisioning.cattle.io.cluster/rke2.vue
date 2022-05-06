@@ -7,9 +7,14 @@ import { mapGetters } from 'vuex';
 
 import CreateEditView from '@/mixins/create-edit-view';
 
-import { CAPI, MANAGEMENT, NORMAN, SCHEMA } from '@/config/types';
+import {
+  CAPI,
+  MANAGEMENT,
+  NORMAN,
+  SCHEMA,
+  DEFAULT_WORKSPACE
+} from '@/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 
 import { findBy, removeObject, clear } from '@/utils/array';
 import { createYaml } from '@/utils/create-yaml';

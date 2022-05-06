@@ -8,14 +8,13 @@ import ToggleSwitch from '@/components/form/ToggleSwitch';
 import {
   CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT
 } from '@/config/query-params';
-import { DEFAULT_WORKSPACE } from '@/models/provisioning.cattle.io.cluster';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@/utils/sort';
 import { set } from '@/utils/object';
 import { mapPref, PROVISIONER, _RKE1, _RKE2 } from '@/store/prefs';
 import { filterAndArrangeCharts } from '@/store/catalog';
 import { CATALOG } from '@/config/labels-annotations';
-import { CAPI, MANAGEMENT } from '@/config/types';
+import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@/store/features';
 import { allHash } from '@/utils/promise';
 import { BLANK_CLUSTER } from '@/store';
