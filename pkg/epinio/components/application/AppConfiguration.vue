@@ -28,6 +28,10 @@ export default Vue.extend<Data, any, any, any>({
     await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.CONFIGURATION });
   },
 
+  mounted() {
+    this.values = this.application.configuration.configurations;
+  },
+
   data() {
     return { values: this.application.configuration.configurations };
   },

@@ -244,7 +244,7 @@ export default class EpinioApplication extends EpinioResource {
         label:   'Container',
         details: [{
           label: 'Image',
-          value: this.origin.Container
+          value: this.origin.Container || this.origin.container
         }]
       };
     default:
