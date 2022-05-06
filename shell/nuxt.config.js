@@ -136,7 +136,7 @@ export default function(dir, _appConfig) {
         reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
       }
 
-      // // Serve the code for the UI package in case its used for dynamic loading (but not if the same pacakge was provided in node_modules)
+      // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
       // if (!nmPackages[name]) {
       //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
       //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
@@ -526,7 +526,7 @@ export default function(dir, _appConfig) {
       '@nuxtjs/webpack-profile',
       'cookie-universal-nuxt',
       'portal-vue/nuxt',
-      path.join(NUXT_SHELL, 'plugins/steve/rehydrate-all'),
+      path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
     ],
 
     // Vue plugins

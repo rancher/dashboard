@@ -46,14 +46,14 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      show:          false,
-      showTooltip:   false,
+      show:              false,
+      showTooltip:       false,
       kubeConfigCopying: false,
       searchShortcut,
       shellShortcut,
       VIRTUAL,
       LOGGED_OUT,
-      harvesterLogo: require('~shell/assets/images/providers/harvester.svg'),
+      harvesterLogo:     require('~shell/assets/images/providers/harvester.svg'),
     };
   },
 
@@ -301,6 +301,7 @@ export default {
         </template>
       </div>
       <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
+        <img v-if="currentProduct.iconHeader" v-bind="$attrs" :src="currentProduct.iconHeader" class="cluster-os-logo mr-10" style="width: 44px; height: 36px;" />
         <div class="product-name">
           {{ prod }}
         </div>

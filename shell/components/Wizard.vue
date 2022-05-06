@@ -35,6 +35,13 @@ export default {
       if a step has ready=true, the wizard also allows navigation *back* to it
     hidden: Don't show step, though include in DOM (dynamic steps must be in DOM to determine if they will include themselves in wizard)
     loading: Wizard will block until all steps are not loading
+    nextButton?: {
+      labelKey?: default to `wizard.next`
+      style?:  defaults to `btn role-primary`
+    },
+    previousButton: {
+      disable: defaults to false
+    }
   }
   */
     steps: {
@@ -79,6 +86,12 @@ export default {
     },
 
     bannerTitleSubtext: {
+      type:    String,
+      default: null
+    },
+
+    // Verb shown in the header, defaults to finishMode
+    headerMode: {
       type:    String,
       default: null
     },
@@ -129,6 +142,10 @@ export default {
       return false;
     },
 
+    canPrevious() {
+      return !this.activeStep?.previousButton?.disable && (this.activeStepIndex > 1 || this.editFirstStep);
+    },
+
     canNext() {
       return (this.activeStepIndex < this.visibleSteps.length - 1) && this.activeStep.ready;
     },
@@ -147,6 +164,13 @@ export default {
 
     visibleSteps() {
       return this.steps.filter(step => !step.hidden);
+    },
+
+    nextButtonStyle() {
+      return this.activeStep.nextButton?.style || `btn role-primary`;
+    },
+    nextButtonLabel() {
+      return this.activeStep.nextButton?.labelKey || `wizard.next`;
     }
   },
 
@@ -234,65 +258,67 @@ export default {
       <div class="header">
         <div class="title">
           <div v-if="showBanner" class="top choice-banner">
-            <div v-show="initialTitle || activeStepIndex > 0" class="title">
-              <!-- Logo -->
-              <slot name="bannerTitleImage">
-                <div v-if="bannerImage" class="round-image">
-                  <LazyImage :src="bannerImage" class="logo" />
+            <slot name="bannerTitle">
+              <div v-show="initialTitle || activeStepIndex > 0" class="title">
+                <!-- Logo -->
+                <slot name="bannerTitleImage">
+                  <div v-if="bannerImage" class="round-image">
+                    <LazyImage :src="bannerImage" class="logo" />
+                  </div>
+                </slot>
+                <!-- Title with subtext -->
+                <div class="subtitle">
+                  <h2 v-if="bannerTitle">
+                    {{ bannerTitle }}
+                  </h2>
+                  <span v-if="bannerTitleSubtext" class="subtext">{{ bannerTitleSubtext }}</span>
                 </div>
-              </slot>
-              <!-- Title with subtext -->
-              <div class="subtitle">
-                <h2 v-if="bannerTitle">
-                  {{ bannerTitle }}
-                </h2>
-                <span v-if="bannerTitleSubtext" class="subtext">{{ bannerTitleSubtext }}</span>
               </div>
-            </div>
+            </slot>
             <!-- Step number with subtext -->
             <div v-if="activeStep && showSteps" class="subtitle">
-              <h2>{{ t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
+              <h2>{{ t(`asyncButton.${headerMode || finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
               <slot name="bannerSubtext">
-                <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+                <span v-if="activeStep.subtext !== null" class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
               </slot>
             </div>
           </div>
-        </div>
-        <div class="step-sequence">
-          <ul
-            v-if="showSteps"
-            class="steps"
-            tabindex="0"
-            @keyup.right.stop="selectNext(1)"
-            @keyup.left.stop="selectNext(-1)"
-          >
-            <template v-for="(step, idx ) in visibleSteps">
-              <li
+          </slot>
+          <div class="step-sequence">
+            <ul
+              v-if="showSteps"
+              class="steps"
+              tabindex="0"
+              @keyup.right.stop="selectNext(1)"
+              @keyup.left.stop="selectNext(-1)"
+            >
+              <template v-for="(step, idx ) in visibleSteps">
+                <li
 
-                :id="step.name"
-                :key="step.name+'li'"
-                :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
-                role="presentation"
-              >
-                <span
-                  :aria-controls="'step' + idx+1"
-                  :aria-selected="step.name === activeStep.name"
-                  role="tab"
-                  class="controls"
-                  @click.prevent="goToStep(idx+1, true)"
+                  :id="step.name"
+                  :key="step.name+'li'"
+                  :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
+                  role="presentation"
                 >
-                  <span class="icon icon-lg" :class="{'icon-dot': step.name === activeStep.name, 'icon-dot-open':step.name !== activeStep.name}" />
-                  <span>
-                    {{ step.label }}
+                  <span
+                    :aria-controls="'step' + idx+1"
+                    :aria-selected="step.name === activeStep.name"
+                    role="tab"
+                    class="controls"
+                    @click.prevent="goToStep(idx+1, true)"
+                  >
+                    <span class="icon icon-lg" :class="{'icon-dot': step.name === activeStep.name, 'icon-dot-open':step.name !== activeStep.name}" />
+                    <span>
+                      {{ step.label }}
+                    </span>
                   </span>
-                </span>
-              </li>
-              <div v-if="idx!==visibleSteps.length-1" :key="step.name" class="divider" />
-            </template>
-          </ul>
+                </li>
+                <div v-if="idx!==visibleSteps.length-1" :key="step.name" class="divider" />
+              </template>
+            </ul>
+          </div>
         </div>
       </div>
-
       <div class="step-container">
         <template v-for="step in steps">
           <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
@@ -314,7 +340,7 @@ export default {
 
           <div class="controls-steps">
             <slot v-if="showPrevious" name="back" :back="back">
-              <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
+              <button :disabled="!canPrevious" type="button" class="btn role-secondary" @click="back()">
                 <t k="wizard.previous" />
               </button>
             </slot>
@@ -326,8 +352,8 @@ export default {
               />
             </slot>
             <slot v-else name="next" :next="next">
-              <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
-                <t k="wizard.next" />
+              <button :disabled="!canNext" type="button" :class="nextButtonStyle" @click="next()">
+                <t :k="nextButtonLabel" />
               </button>
             </slot>
           </div>
@@ -354,14 +380,20 @@ $spacer: 10px;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
+ $minHeight: 75px;
   & > .title {
     flex: 1;
     min-height: 75px;
+    min-height: $minHeight;
+    display: flex;
   }
   .step-sequence {
     flex:1;
+    min-height: $minHeight;
+    display: flex;
 
     .steps {
+      flex: 1;
       margin: 0 30px;
       display:flex;
       justify-content: space-between;
@@ -379,6 +411,10 @@ $spacer: 10px;
         flex-grow: 1;
         align-items: center;
 
+        & > span > span:last-of-type {
+          padding-bottom: 0;
+        }
+
         &:last-of-type{
           flex-grow: 0;
         }
@@ -389,8 +425,10 @@ $spacer: 10px;
           align-items: center;
           width: 40px;
           overflow: visible;
+          padding-top: 15px;
           & > span {
-            padding-bottom: 10px;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
             white-space: nowrap;
           }
         }
@@ -418,7 +456,7 @@ $spacer: 10px;
         flex-basis: 100%;
         border-top: 1px solid var(--border);
         position: relative;
-        top: 5px;
+        top: 28px;
       }
     }
   }
@@ -445,7 +483,7 @@ $spacer: 10px;
         justify-content: space-evenly;
 
         & > .subtitle {
-          margin: 0 20px;
+          margin-right: 20px;
         }
       }
 

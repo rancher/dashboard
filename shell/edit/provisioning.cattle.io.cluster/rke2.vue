@@ -270,7 +270,7 @@ export default {
       set(this.value.spec.rkeConfig, 'upgradeStrategy', {
         controlPlaneConcurrency:  '1',
         controlPlaneDrainOptions: {},
-        workerConcurrency:        '10%',
+        workerConcurrency:        '1',
         workerDrainOptions:       {},
       });
     }

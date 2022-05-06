@@ -2,7 +2,7 @@ import { normalizeType } from './normalize';
 
 const cache = {};
 
-function find(cache, type, ctx) {
+function find(cache, type, rootState) {
   const impl = cache[type];
 
   if ( impl ) {
@@ -12,7 +12,7 @@ function find(cache, type, ctx) {
   }
 
   try {
-    const pluginModel = ctx.rootState.$plugin.getDynamic('models', type);
+    const pluginModel = rootState.$plugin.getDynamic('models', type);
     let base;
 
     if (!pluginModel) {
@@ -48,7 +48,7 @@ function find(cache, type, ctx) {
  * @param {*} store the name of the store that the type comes from
  * @param {*} type the type we'd like to lookup
  */
-export function lookup(store, type, _name, ctx) {
+export function lookup(store, type, _name, rootState) {
   type = normalizeType(type).replace(/\//g, '');
 
   let out;
@@ -58,7 +58,7 @@ export function lookup(store, type, _name, ctx) {
   ];
 
   for ( const t of tries ) {
-    out = find(cache, t, ctx);
+    out = find(cache, t, rootState);
     if ( out ) {
       return out;
     }

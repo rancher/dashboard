@@ -43,6 +43,12 @@ export default {
       type:    String,
       default: ''
     },
+
+    titleProtip: {
+      type:    String,
+      default: ''
+    },
+
     protip: {
       type: [String, Boolean],
       default() {
@@ -420,7 +426,6 @@ export default {
           return entry;
         });
       }
-
       this.$emit('input', out);
     },
     onPaste(index, event, pastedValue) {
@@ -471,6 +476,7 @@ export default {
       <slot name="title">
         <h3>
           {{ title }}
+          <i v-if="titleProtip" v-tooltip="titleProtip" class="icon icon-info" />
         </h3>
       </slot>
     </div>

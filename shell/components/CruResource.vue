@@ -89,6 +89,13 @@ export default {
     applyHooks: {
       type:    Function,
       default: null,
+    },
+
+    // Used to prevent cancel and create buttons from moving
+    // as form validation errors appear and disappear.
+    minHeight: {
+      type:    String,
+      default: ''
     }
   },
 
@@ -111,17 +118,14 @@ export default {
 
   computed: {
     canSave() {
-      const { validationPassed, showAsForm } = this;
-
-      if (showAsForm) {
-        if (validationPassed) {
-          return true;
-        }
-      } else {
+      // Don't apply validation rules if the form is not shown.
+      if (!this.showAsForm) {
         return true;
       }
 
-      return false;
+      // Disable the save button if there are form validation
+      // errors while the user is typing.
+      return this.validationPassed;
     },
 
     canDiff() {
@@ -345,6 +349,7 @@ export default {
         <div
           v-if="_selectedSubtype || !subtypes.length"
           class="resource-container cru__content"
+          :style="[minHeight ? { 'min-height': minHeight } : {}]"
         >
           <slot />
         </div>

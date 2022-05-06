@@ -1,7 +1,7 @@
 <script>
 import LabeledInput from '@shell/components/form/LabeledInput';
 import Checkbox from '@shell/components/form/Checkbox';
-import { _EDIT, _VIEW } from '~/config/query-params';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default ({
 

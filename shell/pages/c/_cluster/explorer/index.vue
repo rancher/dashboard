@@ -161,7 +161,7 @@ export default {
 
     accessibleResources() {
       // This is a list of IDs for allowed resources counts.
-      const defaultAllowedResources = Object.keys(this.clusterCounts?.[0].counts).filter((typeId) => {
+      const defaultAllowedResources = Object.keys(this.clusterCounts?.[0]?.counts || {}).filter((typeId) => {
         return this.$store.getters['type-map/isIgnored']({ id: typeId });
       });
 

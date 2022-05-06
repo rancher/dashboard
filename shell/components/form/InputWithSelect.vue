@@ -75,11 +75,12 @@ export default {
       type:    String,
       default: '',
     },
+
   },
 
   data() {
     return {
-      selected: this.selectValue || this.options[0],
+      selected: this.selectValue || this.options[0].value,
       string:   this.textValue,
     };
   },
@@ -116,7 +117,7 @@ export default {
       v-if="selectLabel"
       v-model="selected"
       :label="selectLabel"
-      :class="{ 'in-input': !isView }"
+      :class="{ 'in-input': !isView}"
       :options="options"
       :searchable="false"
       :clearable="false"
@@ -305,4 +306,5 @@ export default {
     }
   }
 }
+
 </style>

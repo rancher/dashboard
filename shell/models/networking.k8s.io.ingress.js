@@ -4,15 +4,37 @@ import { get } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
+function tlsHosts(spec) {
+  const tls = spec.tls || [];
+
+  return tls.flatMap(tls => tls.hosts || []);
+}
+
+function isTlsHost(spec, host) {
+  return tlsHosts(spec).includes(host);
+}
+
+export function ingressFullPath(resource, rule) {
+  const spec = resource.spec;
+  const hostValue = rule.host || '';
+  const path = rule?.http?.paths || [];
+  const pathValue = path.path || '';
+  let protocol = '';
+
+  if (hostValue) {
+    protocol = isTlsHost(spec, hostValue) ? 'https://' : 'http://';
+  }
+
+  return `${ protocol }${ hostValue }${ pathValue }`;
+}
+
 export default class Ingress extends SteveModel {
   get tlsHosts() {
-    const tls = this.spec.tls || [];
-
-    return tls.flatMap(tls => tls.hosts || []);
+    return tlsHosts(this.spec);
   }
 
   get isTlsHost() {
-    return host => this.tlsHosts.includes(host);
+    return host => isTlsHost(this.spec, host);
   }
 
   targetTo(workloads, serviceName) {
@@ -50,10 +72,8 @@ export default class Ingress extends SteveModel {
   }
 
   createPathForListPage(workloads, rule, path, certificates) {
-    const hostValue = rule.host || '';
-    const pathValue = path.path || '';
     const serviceName = get(path?.backend, this.serviceNamePath);
-    const fullPath = this.fullPath(hostValue, pathValue);
+    const fullPath = this.fullPath(rule);
 
     return {
       // isUrl thinks urls which contain '*' are valid so I'm adding an additional check for '*'
@@ -68,14 +88,8 @@ export default class Ingress extends SteveModel {
     };
   }
 
-  fullPath(hostValue, pathValue) {
-    let protocol = '';
-
-    if (hostValue) {
-      protocol = this.isTlsHost(hostValue) ? 'https://' : 'http://';
-    }
-
-    return `${ protocol }${ hostValue }${ pathValue }`;
+  fullPath(rule) {
+    return ingressFullPath(this, rule);
   }
 
   certLink(cert, certificates = []) {

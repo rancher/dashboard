@@ -6,11 +6,16 @@ import { sortBy } from '@shell/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@shell/utils/array';
 import { NAME as HARVESTER } from '@shell/config/product/harvester';
 import {
-  ALL_USER, ALL, ALL_SYSTEM, ALL_ORPHANS, NAMESPACED_YES, NAMESPACED_NO
-} from '@shell/store';
+  NAMESPACE_FILTER_SPECIAL as SPECIAL,
+  NAMESPACE_FILTER_ALL_USER as ALL_USER,
+  NAMESPACE_FILTER_ALL as ALL,
+  NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
+  NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
+  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
+  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
+  createNamespaceFilterKey,
+} from '@shell/utils/namespace-filter';
 import { KEY } from '@shell/utils/platform';
-
-const SPECIAL = 'special';
 
 export default {
   data() {
@@ -24,7 +29,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster']),
+    ...mapGetters(['isVirtualCluster', 'isSingleVirtualCluster', 'isMultiVirtualCluster', 'currentProduct']),
 
     hasFilter() {
       return this.filter.length > 0;
@@ -75,9 +80,22 @@ export default {
       };
     },
 
+    key() {
+      return createNamespaceFilterKey(this.$store.getters['clusterId'], this.currentProduct);
+    },
+
     options() {
       const t = this.$store.getters['i18n/t'];
       let out = [];
+
+      if (this.currentProduct.customNamespaceFilter) {
+        // Sometimes the component can show before the 'currentProduct' has caught up, so access the product via the getter rather
+        // than caching it in the `fetch`
+        return this.$store.getters[`${ this.currentProduct.inStore }/namespaceFilterOptions`]({
+          addNamespace,
+          divider
+        });
+      }
 
       if (!this.isVirtualCluster) {
         out = [
@@ -108,7 +126,7 @@ export default {
           },
         ];
 
-        divider();
+        divider(out);
       }
 
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
@@ -165,7 +183,7 @@ export default {
           if (firstProject) {
             firstProject = false;
           } else {
-            divider();
+            divider(out);
           }
 
           out.push({
@@ -176,14 +194,14 @@ export default {
 
           const forThisProject = namespacesByProject[id] || [];
 
-          addNamespace(forThisProject);
+          addNamespace(out, forThisProject);
         }
 
         const orphans = namespacesByProject[null];
 
         if (orphans.length) {
           if (!firstProject) {
-            divider();
+            divider(out);
           }
 
           out.push({
@@ -193,15 +211,15 @@ export default {
             disabled: true,
           });
 
-          addNamespace(orphans);
+          addNamespace(out, orphans);
         }
       } else {
-        addNamespace(namespaces);
+        addNamespace(out, namespaces);
       }
 
       return out;
 
-      function addNamespace(namespaces) {
+      function addNamespace(out, namespaces) {
         if (!isArray(namespaces)) {
           namespaces = [namespaces];
         }
@@ -218,7 +236,7 @@ export default {
         );
       }
 
-      function divider() {
+      function divider(out) {
         out.push({
           kind:     'divider',
           label:    `Divider ${ out.length }`,
@@ -234,8 +252,8 @@ export default {
     value: {
       get() {
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
-        const clusterId = this.$store.getters['clusterId'];
-        const values = prefs[clusterId] || [ALL_USER];
+        const prefDefault = this.currentProduct.customNamespaceFilter ? [] : [ALL_USER];
+        const values = prefs[this.key] || prefDefault;
         const options = this.options;
 
         // Remove values that are not valid options
@@ -275,13 +293,16 @@ export default {
         // If there was something selected and you remove it, go back to user by default
         // Unless it was user or all
         if (neu.length === 0 && !hadUser && !hadAll) {
-          ids = [ALL_USER];
+          ids = this.currentProduct.customNamespaceFilter ? [] : [ALL_USER];
         } else {
           ids = neu.map(x => x.id);
         }
 
         this.$nextTick(() => {
-          this.$store.dispatch('switchNamespaces', ids);
+          this.$store.dispatch('switchNamespaces', {
+            ids,
+            key: this.key
+          });
         });
       },
     }

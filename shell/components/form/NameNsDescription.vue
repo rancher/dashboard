@@ -42,7 +42,6 @@ export default {
       type:    Array,
       default: () => [],
     },
-
     nameLabel: {
       type:    String,
       default: 'nameNsDescription.name.label',
@@ -133,7 +132,7 @@ export default {
     horizontal: {
       type:    Boolean,
       default: true,
-    }
+    },
   },
 
   data() {
@@ -192,7 +191,7 @@ export default {
 
     namespaces() {
       const inStore = this.$store.getters['currentStore'](this.namespaceType);
-      const choices = this.$store.getters[`${ inStore }/all`](this.namespaceType);
+      const choices = this.namespacesOverride || this.$store.getters[`${ inStore }/all`](this.namespaceType);
 
       const out = sortBy(
         choices.filter( this.namespaceFilter || ((choice) => {

@@ -1,5 +1,5 @@
 import { productsLoaded } from '@shell/store/type-map';
-import { clearModelCache } from '@shell/plugins/steve/model-loader';
+import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 
@@ -156,6 +156,9 @@ export default function({
       // Remove the plugin itself
       store.dispatch('uiplugins/removePlugin', name);
 
+      // Unregister vuex stores
+      plugin.stores.forEach(pStore => pStore.unregister(store));
+
       // Update last load since we removed a plugin
       _lastLoaded = new Date().getTime();
     },
@@ -175,10 +178,10 @@ export default function({
         });
       });
 
-      // i18n
-      Object.keys(plugin.i18n).forEach((name) => {
-        plugin.i18n[name].forEach((fn) => {
-          this.register('i18n', name, fn);
+      // l10n
+      Object.keys(plugin.l10n).forEach((name) => {
+        plugin.l10n[name].forEach((fn) => {
+          this.register('l10n', name, fn);
         });
       });
 
@@ -186,6 +189,9 @@ export default function({
       if (productsLoaded()) {
         this.loadProducts([plugin]);
       }
+
+      // Register vuex stores
+      plugin.stores.forEach(pStore => pStore.register()(store));
 
       // Locales
       plugin.locales.forEach((localeObj) => {
@@ -199,7 +205,7 @@ export default function({
     /**
      * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n
      * @param {String} type type of thing to register, e.g. 'edit'
-     * @param {String} name type of thing to register, e.g. 'edit'
+     * @param {String} name unique name of 'something'
      * @param {Function} fn function that dynamically loads the module for the thing being registered
      */
     register(type, name, fn) {
@@ -207,8 +213,8 @@ export default function({
         dynamic[type] = {};
       }
 
-      // Accumulate i18n resources rather than replace
-      if (type === 'i18n') {
+      // Accumulate l10n resources rather than replace
+      if (type === 'l10n') {
         if (!dynamic[type][name]) {
           dynamic[type][name] = [];
         }
@@ -220,7 +226,7 @@ export default function({
     },
 
     unregister(type, name, fn) {
-      if (type === 'i18n') {
+      if (type === 'l10n') {
         if (dynamic[type]?.[name]) {
           const index = dynamic[type][name].find(func => func === fn);
 

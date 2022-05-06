@@ -1,16 +1,24 @@
 import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
 import { IPlugin } from './types';
+import coreStore, { coreStoreModule, coreStoreState } from '@/shell/plugins/dashboard-store';
+import {
+  PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
+} from '@/shell/core/types';
 
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
   public types: any = {};
-  public i18n: { [key: string]: Function[] } = {};
+  public l10n: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
   public products: Function[] = [];
   public productNames: string[] = [];
   public routes: { parent?: string, route: RouteConfig }[] = [];
+  public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
+  public onEnter: OnNavToPackage = () => Promise.resolve();
+  public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
+  public _onLogOut: OnLogOut = () => Promise.resolve();
 
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
@@ -52,26 +60,117 @@ export class Plugin implements IPlugin {
     this.locales.push({ locale, label });
   }
 
-  addRoute(parentOrRoute: any, route?: any): void {
-    if (typeof (parentOrRoute) === 'string') {
-      this.routes.push({ parent: parentOrRoute as string, route });
-    } else {
-      this.routes.push({ route: parentOrRoute as RouteConfig });
-    }
+  addL10n(locale: string, fn: Function) {
+    this.register('l10n', locale, fn);
+  }
+
+  addRoutes(routes: PluginRouteConfig[] | RouteConfig[]) {
+    routes.forEach((r: PluginRouteConfig | RouteConfig) => {
+      if (Object.keys(r).includes('parent')) {
+        const pConfig = r as PluginRouteConfig;
+
+        if (pConfig.parent) {
+          this.addRoute(pConfig.parent, pConfig.route);
+        } else {
+          this.addRoute(pConfig.route);
+        }
+      } else {
+        this.addRoute(r as RouteConfig);
+      }
+    });
+  }
+
+  addRoute(parentOrRoute: RouteConfig | string, optionalRoute?: RouteConfig): void {
+    // Always add the pkg name to the route metadata
+    const hasParent = typeof (parentOrRoute) === 'string';
+    const parent: string | undefined = hasParent ? parentOrRoute as string : undefined;
+    const route: RouteConfig = hasParent ? optionalRoute as RouteConfig : parentOrRoute as RouteConfig;
+
+    route.meta = {
+      ...route?.meta,
+      pkg: this.name,
+    };
+
+    this.routes.push({ parent, route });
   }
 
   addUninstallHook(hook: Function) {
     this.uninstallHooks.push(hook);
   }
 
-  register(type: string, name: string, fn: Function) {
-    // Accumulate i18n resources rather than replace
-    if (type === 'i18n') {
-      if (!this.i18n[name]) {
-        this.i18n[name] = [];
+  addStore(storeName: string, register: RegisterStore, unregister: UnregisterStore) {
+    this.stores.push({
+      storeName, register, unregister
+    });
+  }
+
+  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig) {
+    this.stores.push({
+      storeName,
+      register: () => {
+        return coreStore(
+          this.storeFactory(storeSpecifics, config),
+          config,
+        );
+      },
+      unregister: (store: any) => {
+        store.unregisterModule(storeName);
+      }
+    });
+  }
+
+  private storeFactory(storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig) {
+    return {
+      ...coreStoreModule,
+
+      state() {
+        return {
+          ...coreStoreState(config.namespace, config.baseUrl, config.isClusterStore),
+          ...storeSpecifics.state()
+        };
+      },
+
+      getters: {
+        ...coreStoreModule.getters,
+        ...storeSpecifics.getters
+      },
+
+      mutations: {
+        ...coreStoreModule.mutations,
+        ...storeSpecifics.mutations
+      },
+
+      actions: {
+        ...coreStoreModule.actions,
+        ...storeSpecifics.actions
+      },
+    };
+  }
+
+  public addNavHooks(
+    onEnter: OnNavToPackage = () => Promise.resolve(),
+    onLeave: OnNavAwayFromPackage = () => Promise.resolve(),
+    onLogOut: OnLogOut = () => Promise.resolve(),
+  ): void {
+    this.onEnter = onEnter;
+    this.onLeave = onLeave;
+    this._onLogOut = onLogOut;
+  }
+
+  public async onLogOut(store: any) {
+    await Promise.all(this.stores.map((s: any) => store.dispatch(`${ s.storeName }/onLogout`)));
+
+    await this._onLogOut(store);
+  }
+
+  public register(type: string, name: string, fn: Function) {
+    // Accumulate l10n resources rather than replace
+    if (type === 'l10n') {
+      if (!this.l10n[name]) {
+        this.l10n[name] = [];
       }
 
-      this.i18n[name].push(fn);
+      this.l10n[name].push(fn);
     } else {
       if (!this.types[type]) {
         this.types[type] = {};

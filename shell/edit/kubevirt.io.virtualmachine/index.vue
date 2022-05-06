@@ -27,7 +27,6 @@ import { HCI } from '@shell/config/types';
 import { RunStrategys } from '@shell/config/harvester-map';
 import { saferDump } from '@shell/utils/create-yaml';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { cleanForNew } from '@shell/plugins/steve/normalize';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 
@@ -277,7 +276,7 @@ export default {
         this.$set(this, 'spec', cloneValue.spec);
         const suffix = i < 10 ? `0${ i }` : i;
 
-        cleanForNew(this.value);
+        this.value.cleanForNew();
         this.value.metadata.name = `${ this.namePrefix }${ join }${ suffix }`;
         this.$set(this.value.spec.template.spec, 'hostname', `${ baseHostname }${ join }${ suffix }`);
         this.secretName = '';

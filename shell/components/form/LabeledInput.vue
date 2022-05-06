@@ -62,6 +62,13 @@ export default {
     }
   },
 
+  data() {
+    return {
+      updated:          false,
+      validationErrors: '',
+    };
+  },
+
   computed: {
     onInput() {
       return this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
@@ -156,20 +163,17 @@ export default {
 
 <template>
   <div
+    class="labeled-input"
     :class="{
-      'labeled-input': true,
       focused,
       [mode]: true,
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
-      'has-tooltip': hasTooltip,
-      'compact-input': isCompact,
-      hideArrows
     }"
   >
     <slot name="label">
-      <label v-if="hasLabel">
+      <label>
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
 
@@ -212,6 +216,7 @@ export default {
         @blur="onBlur"
       />
     </slot>
+
     <slot name="suffix" />
     <LabeledTooltip
       v-if="tooltipKey && !focused"
@@ -228,27 +233,13 @@ export default {
     <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
     <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
   </div>
+  </div>
 </template>
-<style scoped lang="scss">
-  .labeled-input.view {
-    input {
-      text-overflow: ellipsis;
-    }
-  }
 
-.hideArrows {
-  /* Hide arrows on number input when it overlaps with the unit */
-  /* Chrome, Safari, Edge, Opera */
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  /* Firefox */
-  input[type=number] {
-    -moz-appearance: textfield;
-  }
+<style>
+.validation-message {
+  padding: 5px;
+  position: absolute;
+  bottom: -35px;
 }
-
 </style>

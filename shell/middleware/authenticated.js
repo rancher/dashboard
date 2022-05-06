@@ -5,7 +5,7 @@ import {
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import { _ALL_IF_AUTHED } from '@shell/plugins/steve/actions';
+import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError } from '@shell/utils/error';
@@ -13,6 +13,16 @@ import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
 import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
+
+const getPackageFromRoute = (route) => {
+  if (!route?.meta) {
+    return;
+  }
+  // Sometimes meta is an array... sometimes not
+  const arraySafe = Array.isArray(route.meta) ? route.meta : [route.meta];
+
+  return arraySafe.find(m => !!m.pkg)?.pkg;
+};
 
 let beforeEachSetup = false;
 
@@ -248,12 +258,51 @@ export default async function({
 
   try {
     let clusterId = get(route, 'params.cluster');
-    const product = get(route, 'params.product');
+
+    const pkg = getPackageFromRoute(route);
+    const product = route?.params?.product;
+
+    const oldPkg = getPackageFromRoute(from);
     const oldProduct = from?.params?.product;
+
+    // Leave an old pkg where we weren't before?
+    const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find(p => p.name === oldPkg) : null;
+
+    if (oldPkg && oldPkg !== pkg ) {
+      // Execute anything optional the plugin wants to. For example resetting it's store to remove data
+      await oldPkgPlugin.onLeave(store, {
+        clusterId,
+        product,
+        oldProduct,
+        oldIsExt: !!oldPkg
+      });
+    }
+
+    // Sometimes this needs to happen before or alongside other things... but is always needed
+    const always = [
+      store.dispatch('loadManagement')
+    ];
+
+    // Entering a new package where we weren't before?
+    const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find(p => p.name === pkg) : null;
+
+    // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the to `route`
+    if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) {
+      // Execute mandatory store actions
+      await Promise.all(always);
+
+      // Execute anything optional the plugin wants to
+      await newPkgPlugin.onEnter(store, {
+        clusterId,
+        product,
+        oldProduct,
+        oldIsExt: !!oldPkg
+      });
+    }
 
     if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
       const res = [
-        store.dispatch('loadManagement'),
+        ...always,
         store.dispatch('loadVirtual', {
           id: clusterId,
           oldProduct,
@@ -261,43 +310,36 @@ export default async function({
       ];
 
       await Promise.all(res);
-    } else if ( clusterId ) {
-      // Run them in parallel
-      const res = [
-        store.dispatch('loadManagement'),
-        store.dispatch('loadCluster', {
-          id: clusterId,
-          product,
-          oldProduct,
-        }),
-      ];
-
-      await Promise.all(res);
     } else {
-      await store.dispatch('loadManagement');
-
-      clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
-      const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
-
-      if (isSingleVirtualCluster) {
-        const value = {
-          name:   'c-cluster-product',
-          params: {
-            cluster: clusterId,
-            product: VIRTUAL,
-          },
-        };
-
-        await store.dispatch('prefs/set', {
-          key: AFTER_LOGIN_ROUTE,
-          value,
-        });
-      } else if ( clusterId) {
-        await store.dispatch('loadCluster', {
-          id: clusterId,
-          product,
+      // Always run loadCluster, it handles 'unload' as well
+      // Run them in parallel
+      await Promise.all([
+        ...always,
+        store.dispatch('loadCluster', {
+          id:     clusterId,
+          oldPkg: oldPkgPlugin,
+          newPkg: newPkgPlugin,
           oldProduct,
-        });
+        })]);
+
+      if (!clusterId) {
+        clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
+        const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
+
+        if (isSingleVirtualCluster) {
+          const value = {
+            name:   'c-cluster-product',
+            params: {
+              cluster: clusterId,
+              product: VIRTUAL,
+            },
+          };
+
+          await store.dispatch('prefs/set', {
+            key: AFTER_LOGIN_ROUTE,
+            value,
+          });
+        }
       }
     }
   } catch (e) {

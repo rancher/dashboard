@@ -133,8 +133,8 @@ export default function($plugin) {
 Next, create a new file `pkg/testplugin/product.js` with this content:
 
 ```
-export function init($plugin, pluginName) {
-  const { product } = $plugin.DSL(pluginName);
+export function init($plugin, store) {
+  const { product } = $plugin.DSL(store, $plugin.name);
 
   product({
     icon:                  'gear',
@@ -146,7 +146,7 @@ export function init($plugin, pluginName) {
 
 ```
 
-You should now be able to run the UI again wtih:
+You should now be able to run the UI again with:
 
 ```
 yarn dev
@@ -160,7 +160,7 @@ The developer experience is still the same - you can edit the code in `pkg/testp
 
 ## Use Case: Dynamically loading a UI Plugin
 
-In the previous use case, the UI package we created was statically built into the UI - this works great for the developer use case where we want to be able to iterate, make changes and see those via hot-reload as we do with Rancher Dashbaord today.
+In the previous use case, the UI package we created was statically built into the UI - this works great for the developer use case where we want to be able to iterate, make changes and see those via hot-reload as we do with Rancher Dashboard today.
 
 This use case illustrates being able to build a UI plugin as a package and then be able to load that into the UI, dynamically at run-time.
 

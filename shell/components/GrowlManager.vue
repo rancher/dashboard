@@ -124,6 +124,7 @@ export default {
     border-radius: var(--border-radius);
     margin: 10px;
     position: relative;
+    word-break: break-all;
 
     .close {
       position: absolute;

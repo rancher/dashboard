@@ -97,6 +97,8 @@
 //                               resourceDetail: undefined -- Use this resource specifically for ResourceDetail's detail component
 //                               resourceEdit: undefined   -- Use this resource specifically for ResourceDetail's edit component
 //                               depaginate: undefined -- Use this to depaginate requests for this type
+//                               resourceEditMasthead: true   -- Show the Masthead in the edit resource component
+//                               customRoute: undefined,
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -125,13 +127,13 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveDetail
+  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveDetail, resolveWindowComponent, importWindowComponent
 
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import isObject from 'lodash/isObject';
-import { normalizeType } from '@shell/plugins/steve/normalize';
+import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
@@ -346,14 +348,15 @@ export const state = function() {
     hideBulkActions:         {},
     schemaGeneration:        1,
     cache:                   {
-      typeMove:     {},
-      groupLabel:   {},
-      ignore:       {},
-      list:         {},
-      detail:       {},
-      edit:         {},
-      componentFor: {},
-      promptRemove: {},
+      typeMove:         {},
+      groupLabel:       {},
+      ignore:           {},
+      list:             {},
+      detail:           {},
+      edit:             {},
+      componentFor:     {},
+      promptRemove:     {},
+      windowComponents: {},
     },
   };
 };
@@ -444,6 +447,8 @@ export const getters = {
       namespaced:  null,
       listGroups:  [],
       depaginate:  false,
+      customRoute:          undefined,
+      resourceEditMasthead: true,
     };
 
     return (schemaOrType) => {
@@ -732,7 +737,7 @@ export const getters = {
   },
 
   getSpoofedInstance(state, getters, rootState, rootGetters) {
-    return async(type, id, product) => {
+    return async(type, product, id) => {
       const productInstances = await getters.getSpoofedInstances(type, product);
 
       return productInstances.find( instance => instance.id === id);
@@ -741,6 +746,21 @@ export const getters = {
 
   allSpoofedTypes(state, getters, rootState, rootGetters) {
     return Object.values(state.spoofedTypes).flat();
+  },
+
+  spoofedSchemas(state, getters, rootState, rootGetters) {
+    return (product) => {
+      const types = state.spoofedTypes[product] || [];
+
+      return types.flatMap((type) => {
+        const schemas = type.schemas || [];
+
+        return schemas.map(schema => ({
+          ...schema,
+          isSpoofed: true
+        }));
+      });
+    };
   },
 
   allSpoofedSchemas(state, getters, rootState, rootGetters) {
@@ -795,6 +815,7 @@ export const getters = {
           count:       count ? count.summary.count || 0 : null,
           byNamespace: count ? count.namespaces : {},
           revision:    count ? count.revision : null,
+          route:       typeOptions.customRoute
         };
       }
 
@@ -1054,6 +1075,14 @@ export const getters = {
     };
   },
 
+  hasCustomWindowComponent(state, getters, rootState) {
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
+
+      return hasCustom(state, rootState, 'windowComponents', key, key => resolveWindowComponent(key));
+    };
+  },
+
   importComponent(state, getters) {
     return (path) => {
       return importEdit(path);
@@ -1083,6 +1112,12 @@ export const getters = {
       const type = getters.componentFor(rawType);
 
       return importCustomPromptRemove(type);
+    };
+  },
+
+  importWindowComponent(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'windowComponents', getters.componentFor(rawType, subType), importWindowComponent);
     };
   },
 

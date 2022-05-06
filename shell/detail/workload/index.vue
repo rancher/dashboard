@@ -3,7 +3,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import {
   STATE, NAME, NODE, POD_IMAGES, POD_RESTARTS
 } from '@shell/config/table-headers';
-import { POD, WORKLOAD_TYPES } from '@shell/config/types';
+import { POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
 import SortableTable from '@shell/components/SortableTable';
 import Tab from '@shell/components/Tabbed/Tab';
 import Loading from '@shell/components/Loading';
@@ -15,7 +15,6 @@ import V1WorkloadMetrics from '@shell/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
-import { SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
