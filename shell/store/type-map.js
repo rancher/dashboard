@@ -438,15 +438,15 @@ export const getters = {
 
   optionsFor(state) {
     const def = {
-      isCreatable: true,
-      isEditable:  true,
-      isRemovable: true,
-      showState:   true,
-      showAge:     true,
-      canYaml:     true,
-      namespaced:  null,
-      listGroups:  [],
-      depaginate:  false,
+      isCreatable:          true,
+      isEditable:           true,
+      isRemovable:          true,
+      showState:            true,
+      showAge:              true,
+      canYaml:              true,
+      namespaced:           null,
+      listGroups:           [],
+      depaginate:           false,
       customRoute:          undefined,
       resourceEditMasthead: true,
     };

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import KeyValue from '@/components/form/KeyValue.vue';
-import { directiveSsr as t } from '@/plugins/i18n';
+import { directiveSsr as t } from '@shell/plugins//i18n';
 
 describe('component: KeyValue', () => {
   it('should display a not encoded value', () => {

@@ -3,7 +3,7 @@ import { escapeHtml } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { handleConflict } from '@shell/plugins/steve/normalize';
+import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 
@@ -126,7 +126,7 @@ export default class CapiMachineDeployment extends SteveModel {
         let errors = exceptionToErrorsArray(err);
 
         if ( err.status === 409 && depth < 2 ) {
-          const conflicts = handleConflict(initialValue, value, liveModel, this.$rootGetters);
+          const conflicts = handleConflict(initialValue, value, liveModel, this.$rootGetters, this.$store);
 
           if ( conflicts === false ) {
             // It was automatically figured out, save again

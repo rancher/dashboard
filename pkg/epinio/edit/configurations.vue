@@ -10,7 +10,7 @@ import { EPINIO_TYPES } from '../types';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
-import Banner from '@shell/components/Banner';
+import Banner from '@shell/components/Banner.vue';
 
 interface Data {
 }

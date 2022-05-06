@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import Mount from '@/edit/workload/storage/Mount.vue';
+import Mount from '@shell/edit//workload/storage/Mount.vue';
 
 describe('component: Mount', () => {
   it('should display alway at least 1 mount point input', () => {

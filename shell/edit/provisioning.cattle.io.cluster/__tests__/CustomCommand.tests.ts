@@ -1,5 +1,5 @@
 import { mount, createLocalVue } from '@vue/test-utils';
-import CustomCommand from '@/edit/provisioning.cattle.io.cluster/CustomCommand.vue';
+import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand.vue';
 import VTooltip from 'v-tooltip';
 
 const localVue = createLocalVue();

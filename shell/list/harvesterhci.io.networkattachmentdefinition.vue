@@ -4,13 +4,8 @@ import Loading from '@shell/components/Loading';
 import MessageLink from '@shell/components/MessageLink';
 import ResourceTable from '@shell/components/ResourceTable';
 
-<<<<<<< HEAD:shell/list/harvesterhci.io.networkattachmentdefinition.vue
 import { NAME, AGE, NAMESPACE } from '@shell/config/table-headers';
 import { HCI, NETWORK_ATTACHMENT, SCHEMA } from '@shell/config/types';
-=======
-import { NAME, AGE, NAMESPACE } from '@shell/config/table-headers';
-import { HCI } from '@shell/config/types';
->>>>>>> 521966520 (Plugins: Rejig files to new shell locations (#5623)):shell/list/k8s.cni.cncf.io.networkattachmentdefinition.vue
 
 import { findBy } from '@shell/utils/array';
 import { allHash } from '@shell/utils/promise';

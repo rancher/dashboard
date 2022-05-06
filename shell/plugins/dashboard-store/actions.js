@@ -206,7 +206,9 @@ export default {
   },
 
   async findMatching(ctx, { type, selector, opt }) {
-    const { getters, commit, dispatch, rootGetters } = ctx;
+    const {
+      getters, commit, dispatch, rootGetters
+    } = ctx;
 
     opt = opt || {};
     console.log(`Find Matching: [${ ctx.state.config.namespace }] ${ type }`, selector); // eslint-disable-line no-console

@@ -3,7 +3,7 @@ import { SNAPSHOT } from '@shell/config/labels-annotations';
 import { CAPI } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { base64Decode } from '~/utils/crypto';
+import { base64Decode } from '@shell/utils/crypto';
 import { ucFirst } from '@shell/utils/string';
 
 export default class EtcdBackup extends NormanModel {

@@ -1,6 +1,6 @@
 <script>
 import { RECEIVERS_TYPES } from '@shell/edit/monitoring.coreos.com.alertmanagerconfig/receiverConfig.vue';
-import { MONITORING } from '~/config/types';
+import { MONITORING } from '@shell/config/types';
 export default {
   props:      {
     value: {

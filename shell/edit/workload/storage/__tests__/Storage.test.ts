@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import Storage from '@/edit/workload/storage/index.vue';
+import Storage from '@shell/edit//workload/storage/index.vue';
 
 describe('component: Storage', () => {
   // TODO: Complete test after integrating #5631
