@@ -799,7 +799,7 @@ export default {
 
       const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-      const systemProjectId = projects.find(p => p.spec?.displayName === 'System')?.id || '';
+      const systemProjectId = projects.find(p => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
