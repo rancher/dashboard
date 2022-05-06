@@ -3,7 +3,7 @@ import Tabbed from '@/components/Tabbed';
 import createEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import Questions from '@/components/Questions';
-import { CONFIG_MAP, NAMESPACE } from '@/config/types';
+import { CONFIG_MAP, NAMESPACE, HELM } from '@/config/types';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 import Loading from '@/components/Loading';
@@ -36,6 +36,8 @@ export default {
     // ToDo: try to find a better way of loading these or just load the ones we need
     await this.$store.dispatch(`${ inStore }/findAll`, { type: CONFIG_MAP });
 
+    this.projectHelmCharts = await this.$store.dispatch('cluster/findAll', { type: HELM.PROJECTHELMCHART } );
+
     const federatorSystemNamespacesConfigMap = await this.getConfigMap('cattle-monitoring-system/prometheus-federator-system-namespaces');
 
     this.systemNamespaces = JSON.parse(federatorSystemNamespacesConfigMap?.data?.['system-namespaces.json']);
@@ -51,7 +53,8 @@ export default {
     return {
       systemNamespaces:       null,
       namespaces:             [],
-      loading:                true
+      loading:                true,
+      projectHelmCharts: []
     };
   },
 
@@ -79,8 +82,10 @@ export default {
     },
     namespaceFilter(namespace) {
       const excludeProjects = [...this.systemNamespaces?.systemProjectLabelValues || [], this.systemNamespaces?.projectReleaseLabelValue];
+      const existingMonitorNamespaces = this.projectHelmCharts.map(projectHelmChart => projectHelmChart.metadata.namespace);
+      const monitorAlreadyExists = existingMonitorNamespaces.includes(namespace.id);
 
-      return namespace?.metadata?.labels?.['helm.cattle.io/helm-project-operated'] && !excludeProjects.includes(namespace.projectId);
+      return namespace?.metadata?.labels?.['helm.cattle.io/helm-project-operated'] && !excludeProjects.includes(namespace.projectId) && !monitorAlreadyExists;
     },
     namespaceMapper(namespace) {
       return {
