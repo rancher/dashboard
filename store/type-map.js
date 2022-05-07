@@ -164,6 +164,33 @@ export const IF_HAVE = {
   NEUVECTOR_NAMESPACE:      'neuvector-namespace',
 };
 
+const getProductData = (inOpt, productName) => {
+  const opt = {
+    name:                productName,
+    weight:              1,
+    inStore:             'cluster',
+    removable:           true,
+    showClusterSwitcher: true,
+    showNamespaceFilter: false,
+    public:              true,
+    filterMode:          'namespaces',
+    ...inOpt
+  };
+
+  for ( const k of ['ifHaveGroup', 'ifHaveType'] ) {
+    if ( opt[k] ) {
+      opt[k] = regexToString(ensureRegex(opt[k]));
+    }
+  }
+  // console.log('TypeMap mutation: ', {
+  //   name:        'product',
+  //   storeModule: `type-map/product`,
+  //   payload:     opt
+  // });
+
+  return opt;
+};
+
 export function DSL(store, product, module = 'type-map') {
   // store.commit(`${ module }/product`, { name: product });
 
@@ -204,23 +231,23 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/basicType`, {
         product, types, group
       });
-      console.log('TypeMap mutation: ', {
-        name:        'basicType',
-        storeModule: `${ module }/basicType`,
-        payload:     {
-          product, types, group
-        }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'basicType',
+      //   storeModule: `${ module }/basicType`,
+      //   payload:     {
+      //     product, types, group
+      //   }
+      // });
     },
 
     // Type- and Group-dependent
     groupBy(type, field) {
       store.commit(`${ module }/groupBy`, { type, field });
-      console.log('TypeMap mutation: ', {
-        name:        'groupBy',
-        storeModule: `${ module }/groupBy`,
-        payload:     { type, field }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'groupBy',
+      //   storeModule: `${ module }/groupBy`,
+      //   payload:     { type, field }
+      // });
     },
 
     headers(type, headers) {
@@ -234,56 +261,56 @@ export function DSL(store, product, module = 'type-map') {
       });
 
       store.commit(`${ module }/headers`, { type, headers });
-      console.log('TypeMap mutation: ', {
-        name:        'headers',
-        storeModule: `${ module }/headers`,
-        payload:     { type, headers }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'headers',
+      //   storeModule: `${ module }/headers`,
+      //   payload:     { type, headers }
+      // });
     },
 
     hideBulkActions(type, field) {
       store.commit(`${ module }/hideBulkActions`, { type, field });
-      console.log('TypeMap mutation: ', {
-        name:        'hideBulkActions',
-        storeModule: `${ module }/hideBulkActions`,
-        payload:     { type, field }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'hideBulkActions',
+      //   storeModule: `${ module }/hideBulkActions`,
+      //   payload:     { type, field }
+      // });
     },
 
     configureType(match, options) {
       store.commit(`${ module }/configureType`, { ...options, match });
-      console.log('TypeMap mutation: ', {
-        name:        'configureType',
-        storeModule: `${ module }/configureType`,
-        payload:     { ...options, match }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'configureType',
+      //   storeModule: `${ module }/configureType`,
+      //   payload:     { ...options, match }
+      // });
     },
 
     componentForType(match, replace) {
       store.commit(`${ module }/componentForType`, { match, replace });
-      console.log('TypeMap mutation: ', {
-        name:        'componentForType',
-        storeModule: `${ module }/componentForType`,
-        payload:     { match, replace }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'componentForType',
+      //   storeModule: `${ module }/componentForType`,
+      //   payload:     { match, replace }
+      // });
     },
 
     ignoreType(regexOrString) {
       store.commit(`${ module }/ignoreType`, regexOrString);
-      console.log('TypeMap mutation: ', {
-        name:        'ignoreType',
-        storeModule: `${ module }/ignoreType`,
-        payload:     regexOrString
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'ignoreType',
+      //   storeModule: `${ module }/ignoreType`,
+      //   payload:     regexOrString
+      // });
     },
 
     ignoreGroup(regexOrString) {
       store.commit(`${ module }/ignoreGroup`, regexOrString);
-      console.log('TypeMap mutation: ', {
-        name:        'ignoreGroup',
-        storeModule: `${ module }/ignoreGroup`,
-        payload:     regexOrString
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'ignoreGroup',
+      //   storeModule: `${ module }/ignoreGroup`,
+      //   payload:     regexOrString
+      // });
     },
 
     weightGroup(input, weight, forBasic) {
@@ -291,42 +318,42 @@ export function DSL(store, product, module = 'type-map') {
         store.commit(`${ module }/weightGroup`, {
           groups: input, weight, forBasic
         });
-        console.log('TypeMap mutation: ', {
-          name:        'weightGroup',
-          storeModule: `${ module }/weightGroup`,
-          payload:     {
-            groups: input, weight, forBasic
-          }
-        });
+        // console.log('TypeMap mutation: ', {
+        //   name:        'weightGroup',
+        //   storeModule: `${ module }/weightGroup`,
+        //   payload:     {
+        //     groups: input, weight, forBasic
+        //   }
+        // });
       } else {
         store.commit(`${ module }/weightGroup`, {
           group: input, weight, forBasic
         });
-        console.log('TypeMap mutation: ', {
-          name:        'weightGroup',
-          storeModule: `${ module }/weightGroup`,
-          payload:     {
-            group: input, weight, forBasic
-          }
-        });
+        // console.log('TypeMap mutation: ', {
+        //   name:        'weightGroup',
+        //   storeModule: `${ module }/weightGroup`,
+        //   payload:     {
+        //     group: input, weight, forBasic
+        //   }
+        // });
       }
     },
 
     setGroupDefaultType(input, defaultType) {
       if ( isArray(input) ) {
         store.commit(`${ module }/setGroupDefaultType`, { groups: input, defaultType });
-        console.log('TypeMap mutation: ', {
-          name:        'setGroupDefaultType',
-          storeModule: `${ module }/setGroupDefaultType`,
-          payload:     { groups: input, defaultType }
-        });
+        // console.log('TypeMap mutation: ', {
+        //   name:        'setGroupDefaultType',
+        //   storeModule: `${ module }/setGroupDefaultType`,
+        //   payload:     { groups: input, defaultType }
+        // });
       } else {
         store.commit(`${ module }/setGroupDefaultType`, { group: input, defaultType });
-        console.log('TypeMap mutation: ', {
-          name:        'setGroupDefaultType',
-          storeModule: `${ module }/setGroupDefaultType`,
-          payload:     { group: input, defaultType }
-        });
+        // console.log('TypeMap mutation: ', {
+        //   name:        'setGroupDefaultType',
+        //   storeModule: `${ module }/setGroupDefaultType`,
+        //   payload:     { group: input, defaultType }
+        // });
       }
     },
 
@@ -335,24 +362,24 @@ export function DSL(store, product, module = 'type-map') {
         store.commit(`${ module }/weightType`, {
           types: input, weight, forBasic
         });
-        console.log('TypeMap mutation: ', {
-          name:        'weightType',
-          storeModule: `${ module }/weightType`,
-          payload:     {
-            types: input, weight, forBasic
-          }
-        });
+        // console.log('TypeMap mutation: ', {
+        //   name:        'weightType',
+        //   storeModule: `${ module }/weightType`,
+        //   payload:     {
+        //     types: input, weight, forBasic
+        //   }
+        // });
       } else {
         store.commit(`${ module }/weightType`, {
           type: input, weight, forBasic
         });
-        console.log('TypeMap mutation: ', {
-          name:        'weightType',
-          storeModule: `${ module }/weightType`,
-          payload:     {
-            type: input, weight, forBasic
-          }
-        });
+        // console.log('TypeMap mutation: ', {
+        //   name:        'weightType',
+        //   storeModule: `${ module }/weightType`,
+        //   payload:     {
+        //     type: input, weight, forBasic
+        //   }
+        // });
       }
     },
 
@@ -360,57 +387,57 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/mapGroup`, {
         match, replace, weight, continueOnMatch
       });
-      console.log('TypeMap mutation: ', {
-        name:        'mapGroup',
-        storeModule: `${ module }/mapGroup`,
-        payload:     {
-          match, replace, weight, continueOnMatch
-        }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'mapGroup',
+      //   storeModule: `${ module }/mapGroup`,
+      //   payload:     {
+      //     match, replace, weight, continueOnMatch
+      //   }
+      // });
     },
 
     mapType(match, replace, weight = 5, continueOnMatch = false) {
       store.commit(`${ module }/mapType`, {
         match, replace, weight, continueOnMatch
       });
-      console.log('TypeMap mutation: ', {
-        name:        'mapType',
-        storeModule: `${ module }/mapType`,
-        payload:     {
-          match, replace, weight, continueOnMatch
-        }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'mapType',
+      //   storeModule: `${ module }/mapType`,
+      //   payload:     {
+      //     match, replace, weight, continueOnMatch
+      //   }
+      // });
     },
 
     moveType(match, group, weight = 5, continueOnMatch = false) {
       store.commit(`${ module }/moveType`, {
         match, group, weight,
       });
-      console.log('TypeMap mutation: ', {
-        name:        'moveType',
-        storeModule: `${ module }/moveType`,
-        payload:     {
-          match, group, weight,
-        }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'moveType',
+      //   storeModule: `${ module }/moveType`,
+      //   payload:     {
+      //     match, group, weight,
+      //   }
+      // });
     },
 
     virtualType(obj) {
       store.commit(`${ module }/virtualType`, { product, obj });
-      console.log('TypeMap mutation: ', {
-        name:        'virtualType',
-        storeModule: `${ module }/virtualType`,
-        payload:     { product, obj }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'virtualType',
+      //   storeModule: `${ module }/virtualType`,
+      //   payload:     { product, obj }
+      // });
     },
 
     spoofedType(obj) {
       store.commit(`${ module }/spoofedType`, { product, obj });
-      console.log('TypeMap mutation: ', {
-        name:        'spoofedType',
-        storeModule: `${ module }/spoofedType`,
-        payload:     { product, obj }
-      });
+      // console.log('TypeMap mutation: ', {
+      //   name:        'spoofedType',
+      //   storeModule: `${ module }/spoofedType`,
+      //   payload:     { product, obj }
+      // });
     }
   };
 }
@@ -427,13 +454,80 @@ export async function applyProducts(store) {
 
   const products = ctx.keys().filter(path => !path.endsWith('.js')).map(path => path.substr(2));
 
-  for ( const product of products ) {
-    const impl = await loadProduct(product);
+  console.log({ products });
+  const productDataList = [];
+  let typeConfigurationList = [];
+  const basicTypeList = [];
+
+  for ( const productName of products ) {
+    // Here we do 300 mutations to the store because each file
+    // in the config/product directory does its configuration
+    // imperatively.
+
+    const impl = await loadProduct(productName);
+
+    console.log({
+      productName,
+      impl
+    });
 
     if ( impl?.init ) {
+      // Each file in the config/product directory
+      // also initializes its own store module.
       impl.init(store);
+
+      // const {
+      //   product,
+      //   basicType,
+      //   configureType,
+      //   virtualType,
+      //   headers,
+      //   hideBulkActions,
+      // } = DSL(store, NAME);
+    } else if (impl.config) {
+      const {
+        product,
+        typeConfigurations,
+        basicTypes,
+        headers,
+
+        virtualTypes,
+        weights,
+      } = impl.config;
+      const productData = getProductData(product, impl.NAME);
+      const typeConfigData = Object.keys(typeConfigurations).map((key) => {
+        console.log({
+          key,
+          config: typeConfigurations[key]
+        });
+
+        return { ...typeConfigurations[key], match: key } ;
+      });
+
+      // configureType(MANAGEMENT.USER, { showListMasthead: false });
+
+      console.log('adding data to list ', { productData, typeConfigData });
+      console.log('from config file ', {
+        typeConfigurations,
+        basicTypes,
+        headers,
+
+        virtualTypes,
+        weights,
+      });
+
+      productDataList.push(productData);
+      typeConfigurationList = typeConfigurationList.concat(typeConfigData);
+      basicTypeList.push({ product: productName, basicTypes });
     }
   }
+
+  console.log({
+    productDataList, typeConfigurationList, basicTypeList
+  });
+  store.commit('type-map/products', productDataList);
+  store.commit('type-map/configureTypes', typeConfigurationList);
+  store.commit('type-map/basicTypes', basicTypeList);
 }
 
 export const state = function() {
@@ -1410,6 +1504,20 @@ export const mutations = {
     }
   },
 
+  // Can add multiple products at a time to reduce
+  // number of mutations to the store
+  products(state, products) {
+    const existing = state.products;
+
+    console.log({
+      existing,
+      products,
+      state
+    });
+
+    state.products = [...existing, ...products];
+  },
+
   virtualType(state, { product, obj }) {
     if ( !state.virtualTypes[product] ) {
       state.virtualTypes[product] = [];
@@ -1478,6 +1586,21 @@ export const mutations = {
     for ( const t of types ) {
       state.basicTypes[product][t] = group;
     }
+  },
+
+  basicTypes(state, basicTypesForEachProduct) {
+    basicTypesForEachProduct.forEach((productData) => {
+      const { product, basicTypes, group = ROOT } = productData;
+
+      console.log('product data in basicTypes mutation', productData);
+
+      if ( !state.basicTypes[product] ) {
+        state.basicTypes[product] = {};
+      }
+      for (const type of basicTypes) {
+        state.basicTypes[product][type] = group;
+      }
+    });
   },
 
   ignoreGroup(state, match) {
@@ -1602,7 +1725,30 @@ export const mutations = {
       state.typeOptions.push(obj);
     }
   },
+  configureTypes(state, options) {
+    console.log('in configure types mutation ', { state, options });
+    const newTypeConfigurations = [];
 
+    options.forEach((option) => {
+      const match = regexToString(ensureRegex(option.match));
+
+      const idx = state.typeOptions.findIndex(obj => obj.match === match);
+      let obj = { ...option, match };
+
+      if ( idx >= 0 ) {
+        obj = Object.assign(obj, state.typeOptions[idx]);
+        state.typeOptions.splice(idx, 1, obj);
+      } else {
+        const obj = Object.assign({}, options, { match });
+
+        newTypeConfigurations.push(obj);
+      }
+    });
+
+    const existingTypeConfigs = state.typeOptions;
+
+    state.typeOptions = [...existingTypeConfigs, newTypeConfigurations];
+  },
 };
 
 export const actions = {

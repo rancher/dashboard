@@ -3,13 +3,13 @@ const sideNavData = [
     name:        'cluster',
     label:       'Cluster',
     weight:      99,
-    defaultType: '__vue_devtool_undefined__',
+    defaultType: '',
     children:    [
       {
         label:        'Cluster Dashboard',
         labelDisplay: 'Cluster Dashboard',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        true,
         namespaced:   false,
         route:        {
@@ -27,7 +27,7 @@ const sideNavData = [
         label:        'Projects/Namespaces',
         labelDisplay: '<i class="icon icon-fw icon-globe"></i>Projects/Namespaces',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        true,
         namespaced:   false,
         route:        {
@@ -64,7 +64,7 @@ const sideNavData = [
         label:        'Cluster Members',
         labelDisplay: '<i class="icon icon-fw icon-globe"></i>Cluster Members',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        true,
         namespaced:   false,
         route:        {
@@ -84,13 +84,13 @@ const sideNavData = [
     name:        'workload',
     label:       'Workload',
     weight:      98,
-    defaultType: '__vue_devtool_undefined__',
+    defaultType: '',
     children:    [
       {
         label:        ' Workloads ',
         labelDisplay: '<i class="icon icon-fw icon-folder"></i> Workloads ',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        false,
         namespaced:   true,
         route:        {
@@ -229,7 +229,7 @@ const sideNavData = [
         label:        'Charts',
         labelDisplay: '<i class="icon icon-fw icon-compass"></i>Charts',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        false,
         namespaced:   false,
         route:        {
@@ -391,7 +391,7 @@ const sideNavData = [
     name:        'storage',
     label:       'Storage',
     weight:      95,
-    defaultType: '__vue_devtool_undefined__',
+    defaultType: '',
     children:    [
       {
         label:        'PersistentVolumes',
@@ -498,7 +498,7 @@ const sideNavData = [
         label:        'Monitoring',
         labelDisplay: 'Monitoring',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        true,
         namespaced:   false,
         route:        {
@@ -516,9 +516,9 @@ const sideNavData = [
         label:        'Monitors',
         labelDisplay: '<i class="icon icon-fw icon-globe"></i>Monitors',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        false,
-        namespaced:   '__vue_devtool_undefined__',
+        namespaced:   '',
         route:        {
           name:   'c-cluster-monitoring-monitor',
           params: {
@@ -553,7 +553,7 @@ const sideNavData = [
         name:        'Alerting',
         label:       'Alerting',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'AlertmanagerConfigs',
@@ -578,9 +578,9 @@ const sideNavData = [
             label:        'Routes and Receivers',
             labelDisplay: '<i class="icon icon-fw icon-globe"></i>Routes and Receivers',
             mode:         'basic',
-            count:        '__vue_devtool_undefined__',
+            count:        '',
             exact:        false,
-            namespaced:   '__vue_devtool_undefined__',
+            namespaced:   '',
             route:        {
               name:   'c-cluster-monitoring-route-receiver',
               params: {
@@ -598,7 +598,7 @@ const sideNavData = [
         name:        'Advanced',
         label:       'Advanced',
         weight:      -1,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'PrometheusRules',
@@ -651,7 +651,7 @@ const sideNavData = [
         label:        'Alerts',
         labelDisplay: 'Alerts',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        true,
         namespaced:   true,
         route:        {
@@ -670,7 +670,7 @@ const sideNavData = [
         label:        'Catalogs',
         labelDisplay: 'Catalogs',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        true,
         namespaced:   true,
         route:        {
@@ -689,7 +689,7 @@ const sideNavData = [
         label:        'CIS Scans',
         labelDisplay: 'CIS Scans',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        true,
         namespaced:   true,
         route:        {
@@ -708,7 +708,7 @@ const sideNavData = [
         label:        'Notifiers',
         labelDisplay: 'Notifiers',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        true,
         namespaced:   true,
         route:        {
@@ -727,7 +727,7 @@ const sideNavData = [
         label:        'Project',
         labelDisplay: 'Project',
         mode:         'basic',
-        count:        '__vue_devtool_undefined__',
+        count:        '',
         exact:        true,
         namespaced:   true,
         route:        {
@@ -748,13 +748,13 @@ const sideNavData = [
     name:        'inUse',
     label:       'More Resources',
     weight:      0,
-    defaultType: '__vue_devtool_undefined__',
+    defaultType: '',
     children:    [
       {
         name:        'admission',
         label:       'Admission',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'MutatingWebhookConfigurations',
@@ -800,7 +800,7 @@ const sideNavData = [
         name:        'API',
         label:       'API',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'APIServices',
@@ -884,7 +884,7 @@ const sideNavData = [
         name:        'apps',
         label:       'Apps',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'ControllerRevisions',
@@ -968,7 +968,7 @@ const sideNavData = [
         name:        'Calico',
         label:       'Calico',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'BlockAffinities',
@@ -1128,7 +1128,7 @@ const sideNavData = [
         name:        'core',
         label:       'Core',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'Nodes',
@@ -1288,7 +1288,7 @@ const sideNavData = [
         name:        'Discovery',
         label:       'Discovery',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'EndpointSlices',
@@ -1315,7 +1315,7 @@ const sideNavData = [
         name:        'K3s',
         label:       'K3s',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'Project Monitors',
@@ -1342,7 +1342,7 @@ const sideNavData = [
         name:        'Monitoring',
         label:       'Monitoring',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'AlertmanagerConfigs',
@@ -1445,7 +1445,7 @@ const sideNavData = [
         name:        'Networking',
         label:       'Networking',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'IngressClasses',
@@ -1491,7 +1491,7 @@ const sideNavData = [
         name:        'Policy',
         label:       'Policy',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'PodSecurityPolicies',
@@ -1518,7 +1518,7 @@ const sideNavData = [
         name:        'Rancher',
         label:       'Rancher',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'Authentication Providers',
@@ -1602,7 +1602,7 @@ const sideNavData = [
         name:        'RBAC',
         label:       'RBAC',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'ClusterRoleBindings',
@@ -1686,7 +1686,7 @@ const sideNavData = [
         name:        'Scheduling',
         label:       'Scheduling',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'PriorityClasses',
@@ -1713,7 +1713,7 @@ const sideNavData = [
         name:        'Storage',
         label:       'Storage',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'CSINodes',
@@ -1740,7 +1740,7 @@ const sideNavData = [
         name:        'Tigera',
         label:       'Tigera',
         weight:      0,
-        defaultType: '__vue_devtool_undefined__',
+        defaultType: '',
         children:    [
           {
             label:        'Installations',
