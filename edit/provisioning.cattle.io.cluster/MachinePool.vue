@@ -31,6 +31,11 @@ export default {
       required: true,
     },
 
+    cluster: {
+      type:     Object,
+      default: () => ({})
+    },
+
     credentialId: {
       type:     String,
       required: true,
@@ -162,11 +167,11 @@ export default {
       </div>
     </div>
     <hr class="mt-10" />
-
     <component
       :is="configComponent"
       v-if="value.config"
       ref="configComponent"
+      :cluster="cluster"
       :uuid="uuid"
       :mode="mode"
       :value="value.config"
