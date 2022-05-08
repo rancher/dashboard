@@ -556,8 +556,19 @@ export default class ProvCluster extends SteveModel {
         path:           'metadata.name',
         translationKey: 'cluster.name.label',
         validators:     [`clusterName:${ this.isRke2 }`],
+        maxLength:      63,
       },
     ];
+  }
+
+  get agentConfig() {
+    // The one we want is the first one with no selector.
+    // If there are multiple with no selector, that will fall under the unsupported message below.
+    return this.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+  }
+
+  get cloudProvider() {
+    return this.agentConfig['cloud-provider-name'];
   }
 
   get canClone() {

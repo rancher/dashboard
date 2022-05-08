@@ -22,10 +22,14 @@ export default {
   },
   methods: {
     continue(value) {
-      this.resources[0](value);
+      if (this.resources[0]) {
+        this.resources[0](value);
+        delete this.resources[0];
+        this.$emit('close', value);
+      }
     },
+
     close() {
-      this.$emit('close', false);
       this.continue(false);
     },
 
@@ -34,7 +38,6 @@ export default {
     },
 
     apply(buttonDone) {
-      this.$emit('close', true);
       this.continue(true);
     }
   }

@@ -180,12 +180,6 @@ export default {
       return project?.description;
     },
 
-    projectDetailLink(group) {
-      const project = group.rows[0].project;
-
-      return project?.detailLocation;
-    },
-
     clearSelection() {
       this.$refs.table.clearSelection();
     },
@@ -230,12 +224,7 @@ export default {
       <template #group-by="group">
         <div class="project-bar" :class="{'has-description': projectDescription(group.group)}">
           <div v-trim-whitespace class="group-tab">
-            <div class="project-name">
-              <n-link v-if="showProjectActionButton(group.group)" :to="projectDetailLink(group.group)">
-                <span v-html="projectLabel(group.group)" />
-              </n-link>
-              <span v-else v-html="projectLabel(group.group)" />
-            </div>
+            <div class="project-name" v-html="projectLabel(group.group)" />
             <div v-if="projectDescription(group.group)" class="description text-muted text-small">
               {{ projectDescription(group.group) }}
             </div>

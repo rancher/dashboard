@@ -126,9 +126,9 @@ export default {
       default: true,
     },
 
-    // Can be a chartVersion or a resource Schema
+    // Can be a chartVersion, resource Schema, or an Array of question objects
     source: {
-      type:     Object,
+      type:     [Object, Array],
       required: true,
     },
 

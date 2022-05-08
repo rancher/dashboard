@@ -331,17 +331,13 @@ export default {
     },
 
     agentConfig() {
-      // The one we want is the first one with no selector.
-      // If there are multiple with no selector, that will fall under the unsupported message below.
-      return this.value.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+      return this.value.agentConfig;
     },
 
     showK3sTechPreviewWarning() {
-      // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
-      // const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
+      const selectedVersion = this.value?.spec?.kubernetesVersion || 'none';
 
-      // return !!this.k3sVersions.find(v => v.version === selectedVersion);
-      return false;
+      return !!this.k3sVersions.find(v => v.version === selectedVersion);
     },
 
     // kubeletConfigs() {
@@ -401,8 +397,7 @@ export default {
           out.push({
             kind:  'group',
             label: this.t('cluster.provider.k3s'),
-            // NOTE: Put this back in when RKE2 is out of tech preview, but K3s is not
-            // badge: this.t('generic.techPreview')
+            badge: this.t('generic.techPreview')
           });
         }
 
@@ -1128,6 +1123,14 @@ export default {
         }
       }
 
+      if (this.value.cloudProvider === 'aws') {
+        const missingProfileName = this.machinePools.some(mp => !mp.config.iamInstanceProfile);
+
+        if (missingProfileName) {
+          this.errors.push(this.t('cluster.validation.iamInstanceProfileName', {}, true));
+        }
+      }
+
       for (const [index] of this.machinePools.entries()) { // validator machine config
         if ( typeof this.$refs.pool[index]?.test === 'function' ) {
           try {
@@ -1559,6 +1562,7 @@ export default {
               <MachinePool
                 ref="pool"
                 :value="obj"
+                :cluster="value"
                 :mode="mode"
                 :provider="provider"
                 :credential-id="credentialId"

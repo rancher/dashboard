@@ -5,7 +5,13 @@ import TypeDescription from '@/components/TypeDescription';
 import { get } from '@/utils/object';
 import { AS, _YAML } from '@/config/query-params';
 
+/**
+ * Resource List Masthead component.
+ */
 export default {
+
+  name: 'MastheadResourceList',
+
   components: {
     Favorite,
     TypeDescription,

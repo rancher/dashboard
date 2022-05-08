@@ -1,16 +1,16 @@
 <script>
 import ArrayList from '@/components/form/ArrayList';
-import KeyValue from '@/components/form/KeyValue';
 import Banner from '@/components/Banner';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _VIEW } from '@/config/query-params';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 
 export default {
   components: {
     ArrayList,
     Banner,
-    KeyValue,
+    ArrayListGrouped,
     LabeledInput,
     LabeledSelect
   },
@@ -29,7 +29,18 @@ export default {
     },
   },
   data() {
-    return { isView: _VIEW };
+    this.$set(this.value, 'matchers', this.value.matchers || []);
+    this.$set(this.value, 'groupBy', this.value.groupBy || []);
+
+    return {
+      isView:     _VIEW,
+      matchTypes: [
+        { label: 'Match Equal', value: '=' },
+        { label: 'Match Not Equal', value: '!=' },
+        { label: 'Match Regexp', value: '=~' },
+        { label: 'Match Not Regexp', value: '!~' },
+      ]
+    };
   },
 
 };
@@ -47,7 +58,6 @@ export default {
         <LabeledSelect
           v-model="value.receiver"
           :mode="mode"
-
           :options="receiverOptions"
         />
       </div>
@@ -56,18 +66,14 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <span class="label">
-          {{ t("monitoringRoute.groups.label") }}:
+          {{ t("monitoringRoute.groups.addGroupByLabel'") }}
         </span>
         <ArrayList
-          v-if="!isView || (value.groupBy && value.groupBy.length > 0)"
           v-model="value.groupBy"
-          :label="t('monitoringRoute.groups.label')"
+          class="mt-10"
           :mode="mode"
           :initial-empty-row="true"
         />
-        <div v-else>
-          {{ t('generic.none') }}
-        </div>
       </div>
     </div>
     <h3>Waiting and Intervals</h3>
@@ -97,43 +103,42 @@ export default {
       </div>
     </div>
 
-    <h3>Matching</h3>
-    <div class="row mb-20">
-      <div class="col span-12">
-        <span class="label">
-          {{ t('monitoringRoute.matching.label') }}
-        </span>
-        <KeyValue
-          v-if="!isView || Object.keys(value.match || {}).length > 0"
-          v-model="value.match"
-          :options="receiverOptions"
-          :label="t('monitoringRoute.receiver.label')"
-          :mode="mode"
-          :read-allowed="false"
-          :add-label="t('monitoringRoute.receiver.addMatch')"
-        />
-        <div v-else>
-          {{ t('generic.none') }}
+    <h3>Matchers</h3>
+    <ArrayListGrouped
+      v-model="value.matchers"
+      class="mt-20"
+      :mode="mode"
+      :add-label="t('monitoringRoute.matching.addMatcher')"
+      :default-add-value="{matchers:[]}"
+    >
+      <template #default="props">
+        <div class="row mt-20 mb-20">
+          <div class="col span-4">
+            <LabeledInput
+              v-model="props.row.value.name"
+              :label="t('monitoringRoute.matching.name')"
+              :tooltip="t('monitoringRoute.matching.nameTooltip')"
+              :mode="mode"
+            />
+          </div>
+          <div class="col span-4">
+            <LabeledInput
+              v-model="props.row.value.value"
+              :label="t('monitoringRoute.matching.value')"
+              :tooltip="t('monitoringRoute.matching.valueTooltip')"
+              :mode="mode"
+            />
+          </div>
+          <div class="col span-4">
+            <LabeledSelect
+              v-model="props.row.value.matchType"
+              :label="t('monitoringRoute.matching.matchType')"
+              :mode="mode"
+              :options="matchTypes"
+            />
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="row mt-40">
-      <div class="col span-12">
-        <span class="label">
-          {{ t('monitoringRoute.regex.label') }}:
-        </span>
-        <KeyValue
-          v-if="!isView || Object.keys(value.matchers || {}).length > 0"
-          v-model="value.matchers"
-          :label="t('monitoringRoute.receiver.label')"
-          :mode="mode"
-          :read-allowed="false"
-          add-label="Add match regex"
-        />
-        <div v-else>
-          {{ t('generic.none') }}
-        </div>
-      </div>
-    </div>
+      </template>
+    </ArrayListGrouped>
   </div>
 </template>

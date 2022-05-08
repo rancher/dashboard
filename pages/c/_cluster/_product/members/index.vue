@@ -6,7 +6,14 @@ import Masthead from '@/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@/components/form/Members/ClusterPermissionsEditor.vue';
 
+/**
+ * Explorer members page.
+ * Route: /c/local/explorer/members
+ */
 export default {
+
+  name: 'ExplorerMembers',
+
   components: {
     Loading, Masthead, ResourceTable
   },
@@ -68,7 +75,6 @@ export default {
       :schema="schema"
       :resource="resource"
       :favorite-resource="VIRTUAL_TYPES.CLUSTER_MEMBERS"
-      :is-creatable="canManageMembers"
       :create-location="createLocation"
       :create-button-label="t('members.createActionLabel')"
     />

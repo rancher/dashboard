@@ -37,6 +37,9 @@ export function set(obj, path, value) {
 }
 
 export function get(obj, path) {
+  if ( !path) {
+    throw new Error('Cannot translate an empty input. The t function requires a string.');
+  }
   if ( path.startsWith('$') ) {
     try {
       return JSONPath({

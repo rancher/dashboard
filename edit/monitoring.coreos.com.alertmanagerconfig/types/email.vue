@@ -2,10 +2,12 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
 import TLS from '../tls';
+import SimpleSecretSelector from '@/components/form/SimpleSecretSelector';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
-    Checkbox, LabeledInput, TLS
+    Checkbox, LabeledInput, SimpleSecretSelector, TLS
   },
   props:      {
     mode: {
@@ -25,8 +27,45 @@ export default {
     this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
     this.$set(this.value, 'requireTls', this.value.requireTls || false);
 
-    return {};
+    return {
+      view:                          _VIEW,
+      initialAuthPasswordSecretName:  this.value?.authPassword?.name ? this.value.authPassword.name : '',
+      initialAuthPasswordSecretKey:  this.value.authPassword?.key ? this.value.authPassword.key : ''
+    };
   },
+
+  methods: {
+    updateAuthPasswordSecretName(name) {
+      const existingKey = this.value.authPassword?.key || '';
+
+      if (this.value.authPassword) {
+        this.value.authPassword = {
+          key: existingKey,
+          name
+        };
+      } else {
+        this.value['authPassword'] = {
+          key: '',
+          name
+        };
+      }
+    },
+    updateAuthPasswordSecretKey(key) {
+      const existingName = this.value.authPassword?.name || '';
+
+      if (this.value.authPassword) {
+        this.value.authPassword = {
+          name: existingName,
+          key
+        };
+      } else {
+        this.value['authPassword'] = {
+          name: '',
+          key
+        };
+      }
+    }
+  }
 };
 </script>
 
@@ -63,15 +102,25 @@ export default {
     </div>
     <div v-if="namespace" class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.authUsername" :mode="mode" label="Username" placeholder="e.g. John" />
-      </div>
-      <div class="col span-6">
-        <LabeledInput v-model="value.authPassword" :mode="mode" label="Password" type="password" autocomplete="password" />
+        <LabeledInput v-model="value.authUsername" :mode="mode" :label="t('monitoring.alertmanagerConfig.email.username')" placeholder="e.g. John" />
       </div>
     </div>
-    <Banner v-else color="error">
-      {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
-    </Banner>
-    <TLS v-model="value" class="mb-20" :mode="mode" />
+    <div class="row mb-20">
+      <SimpleSecretSelector
+        v-if="namespace"
+        :initial-key="initialAuthPasswordSecretKey"
+        :mode="mode"
+        :initial-name="initialAuthPasswordSecretName"
+        :namespace="namespace"
+        :disabled="mode === view"
+        :secret-name-label="t('monitoring.alertmanagerConfig.email.password')"
+        @updateSecretName="updateAuthPasswordSecretName"
+        @updateSecretKey="updateAuthPasswordSecretKey"
+      />
+      <Banner v-else color="error">
+        {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
+      </Banner>
+    </div>
+    <TLS v-model="value" class="mb-20" :mode="mode" :namespace="namespace" />
   </div>
 </template>
