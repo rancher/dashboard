@@ -93,6 +93,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    noDefaultNamespace: {
+      type:    Boolean,
+      default: false
+    },
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -153,7 +157,7 @@ export default {
         namespace = metadata?.namespace;
       }
 
-      if (!namespace) {
+      if (!namespace && !this.noDefaultNamespace) {
         namespace = this.$store.getters['defaultNamespace'];
         if (metadata) {
           metadata.namespace = namespace;

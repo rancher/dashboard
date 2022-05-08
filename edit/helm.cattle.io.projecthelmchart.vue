@@ -1,16 +1,22 @@
 <script>
-// import Tabbed from '@/components/Tabbed';
+import Tabbed from '@/components/Tabbed';
 import createEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
-import NameNsDescription from '@/components/form/NameNsDescription';
-// import Questions from '@/components/Questions';
+import Questions from '@/components/Questions';
+import { CONFIG_MAP, NAMESPACE } from '@/config/types';
+import LabeledSelect from '@/components/form/LabeledSelect';
+import LabeledInput from '@/components/form/LabeledInput';
+import Loading from '@/components/Loading';
+import jsyaml from 'js-yaml';
 
 export default {
   components: {
     CruResource,
-    NameNsDescription,
-    // Tabbed,
-    // Questions
+    LabeledSelect,
+    LabeledInput,
+    Tabbed,
+    Questions,
+    Loading
   },
 
   mixins: [createEditView],
@@ -24,30 +30,64 @@ export default {
 
   async fetch() {
     await this.$store.dispatch('catalog/load');
+    const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
-    this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
-      repoType:      'cluster',
-      repoName:      'museum',
-      chartName:     'chartmuseum',
-      versionName: '2.7.0'
-    });
+    // this seems excessive but if we're gonna pull up specific configMaps we need then we need the configmaps to be in the store.
+    // ToDo: try to find a better way of loading these or just load the ones we need
+    await this.$store.dispatch(`${ inStore }/findAll`, { type: CONFIG_MAP });
+
+    const federatorSystemNamespacesConfigMap = await this.getConfigMap('cattle-monitoring-system/prometheus-federator-system-namespaces');
+
+    this.systemNamespaces = JSON.parse(federatorSystemNamespacesConfigMap?.data?.['system-namespaces.json']);
+
+    this.namespaces = this.$store.getters[`${ inStore }/all`](NAMESPACE)
+      .filter(this.namespaceFilter)
+      .map(this.namespaceMapper);
+
+    this.loading = false;
   },
 
   data() {
-    return { questions: null, versionInfo: null };
+    return {
+      systemNamespaces:       null,
+      namespaces:             [],
+      loading:                true
+    };
+  },
+
+  computed: {
+    selectedNamespaceQuestions() {
+      const inStore = this.$store.getters['currentStore']();
+
+      const configMapRelationship = this.currentNamespace?.metadata?.relationships.find(relationship => relationship?.toType === 'configmap');
+
+      const questionsYaml = this.$store.getters[`${ inStore }/byId`](configMapRelationship?.toType, configMapRelationship?.toId)?.data?.['questions.yaml'];
+
+      return jsyaml.load(questionsYaml)?.questions;
+    },
+    currentNamespace() {
+      return this.namespaces.find(namespace => namespace.id === this.value?.metadata?.namespace);
+    }
   },
 
   methods: {
+    getNamespaceConfigMapId(namespace) {
+      return this.currentNamespace?.metadata?.relationships.find(relationship => relationship?.toType === 'configmap')?.toId;
+    },
+    async getConfigMap(id) {
+      return await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id });
+    },
     namespaceFilter(namespace) {
-      // we only want the namespaces that match this format
-      // ToDo: this is returning the system namespace for some reason and it shouldn't
-      // ToDo: this should also filter out namespaces in projects that already have a project monitor
-      return namespace.id === `cattle-project-${ namespace.projectId }`;
+      const excludeProjects = [...this.systemNamespaces?.systemProjectLabelValues || [], this.systemNamespaces?.projectReleaseLabelValue];
+
+      return namespace?.metadata?.labels?.['helm.cattle.io/helm-project-operated'] && !excludeProjects.includes(namespace.projectId);
     },
     namespaceMapper(namespace) {
       return {
-        label: namespace.project.spec.displayName,
-        value: namespace.id,
+        ...namespace,
+        configMapId: this.getNamespaceConfigMapId(namespace),
+        label:       namespace?.project?.spec?.displayName,
+        value:       namespace?.id,
       };
     }
   }
@@ -56,6 +96,7 @@ export default {
 
 <template>
   <CruResource
+    v-if="!loading"
     :done-route="doneRoute"
     :resource="value"
     :mode="mode"
@@ -63,26 +104,44 @@ export default {
     :apply-hooks="applyHooks"
     @finish="save"
   >
-    <NameNsDescription
-      :value="value"
-      :mode="mode"
-      :namespace-filter="namespaceFilter"
-      :namespace-mapper="namespaceMapper"
-      name-disabled
-      namespace-label="namespace.project.label"
-    />
-    <!-- ToDo: go back and see where questions.yaml landed in the chart -->
-    <!-- <Tabbed
-      v-if="versionInfo"
-      ref="tabs"
-      :side-tabs="true"
-    >
-      <Questions
-        v-model="value"
-        tabbed="multiple"
-        :target-namespace="value.metadata.namespace"
-        :source="versionInfo"
-      />
-    </Tabbed> -->
+    <div class="row">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="value.metadata.namespace"
+          :label="t('namespace.project.label')"
+          :options="namespaces"
+          required
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.metadata.description"
+          :label="t('nameNsDescription.description.label')"
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-12">
+        <Tabbed
+          v-if="!!currentNamespace"
+          ref="tabs"
+          :side-tabs="true"
+        >
+          <Questions
+            v-model="value"
+            tabbed="multiple"
+            :target-namespace="value.metadata.namespace"
+            :source="selectedNamespaceQuestions"
+          />
+        </Tabbed>
+      </div>
+    </div>
   </CruResource>
+  <Loading v-else />
 </template>
+
+<style lang="scss" scoped>
+.row {
+  margin-bottom: 20px;
+}
+</style>

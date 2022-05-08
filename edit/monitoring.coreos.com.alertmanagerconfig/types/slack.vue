@@ -2,12 +2,12 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
 import Banner from '@/components/Banner';
-import SecretSelector from '@/components/form/SecretSelector';
+import SimpleSecretSelector from '@/components/form/SimpleSecretSelector';
 import { _CREATE, _VIEW } from '@/config/query-params';
 
 export default {
   components: {
-    Banner, Checkbox, LabeledInput, SecretSelector
+    Banner, Checkbox, LabeledInput, SimpleSecretSelector
   },
   props:      {
     mode: {
@@ -35,8 +35,45 @@ export default {
       );
     }
 
-    return { view: _VIEW };
+    return {
+      view:              _VIEW,
+      initialSecretKey:  this.value?.apiURL?.key ? this.value.apiURL.key : '',
+      initialSecretName: this.value.apiURL?.name ? this.value.apiURL.name : ''
+    };
   },
+
+  methods: {
+    updateSecretName(name) {
+      const existingKey = this.value.apiURL?.key || '';
+
+      if (this.value.apiURL) {
+        this.value.apiURL = {
+          key: existingKey,
+          name
+        };
+      } else {
+        this.value['apiURL'] = {
+          key: '',
+          name
+        };
+      }
+    },
+    updateSecretKey(key) {
+      const existingName = this.value.apiURL?.name || '';
+
+      if (this.value.apiURL) {
+        this.value.apiURL = {
+          key,
+          name: existingName
+        };
+      } else {
+        this.value['apiURL'] = {
+          key,
+          name: ''
+        };
+      }
+    }
+  }
 };
 </script>
 
@@ -48,15 +85,17 @@ export default {
       </div>
     </div>
     <div class="row mb-20">
-      <SecretSelector
+      <SimpleSecretSelector
         v-if="namespace"
-        v-model="value.apiURL"
+        :initial-key="initialSecretKey"
         :mode="mode"
+        :initial-name="initialSecretName"
         :tooltip="t('alertmanagerConfigReceiver.slack.apiUrlTooltip')"
         :namespace="namespace"
         :disabled="mode === view"
-        :secret-name-label="t('alertmanagerConfigReceiver.slack.keyId')"
-        :show-key-selector="true"
+        :secret-name-label="t('monitoring.alertmanagerConfig.slack.apiUrl')"
+        @updateSecretName="updateSecretName"
+        @updateSecretKey="updateSecretKey"
       />
       <Banner v-else color="error">
         {{ t('alertmanagerConfigReceiver.namespaceWarning') }}

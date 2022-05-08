@@ -253,30 +253,15 @@ export function init(store) {
     AGE
   ]);
 
-  headers(PROJECTHELMCHART, [
-    STATE,
-    {
-      name:          'name',
-      labelKey:      'tableHeaders.name',
-      value:         'projectDisplayName',
-      sort:          ['nameSort'],
-      formatter:     'LinkDetail',
-      canBeVariable: true,
-    },
-    {
-      labelKey: 'resourceDetail.masthead.detail',
-      value:    'description',
-    },
-    AGE
-  ]);
-
   headers(ALERTMANAGERCONFIG, [
     STATE,
     NAME_COL,
     NAMESPACE_COL,
     {
-      name:     'receivers',
-      labelKey: 'tableHeaders.receivers'
+      name:      'receivers',
+      labelKey:  'tableHeaders.receivers',
+      formatter: 'ReceiverIcons',
+      value:     'name'
     },
   ]);
 

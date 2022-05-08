@@ -50,15 +50,13 @@ export const RECEIVERS_TYPES = [
     title:        'monitoringReceiver.webhook.title',
     key:          'webhookConfigs',
     logo:         require(`~/assets/images/vendor/webhook.svg`),
-    banner:       'webhook.banner',
-    addButton:    'webhook.add'
   },
   {
     name:  'custom',
     label: 'monitoringReceiver.custom.label',
     title: 'monitoringReceiver.custom.title',
     info:  'monitoringReceiver.custom.info',
-    key:   'webhook_configs',
+    key:   'webhookConfigs',
     logo:  require(`~/assets/images/vendor/custom.svg`)
   },
 ];
@@ -123,7 +121,14 @@ export default {
      */
     const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
 
+    // debugger;
+
+    if (!receiverSchema) {
+      throw new Error("Can't render the form because the AlertmanagerConfig schema is not loaded yet.");
+    }
+
     const expectedFields = Object.keys(receiverSchema.resourceFields);
+
     const suffix = {};
 
     Object.keys(this.value).forEach((key) => {
@@ -219,13 +224,13 @@ export default {
       this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
     },
 
-    redirectToAlertmanagerConfig() {
-      this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
+    redirectToReceiverDetail(name) {
+      this.$router.push(this.alertmanagerConfigResource.getReceiverDetailLink(name));
     },
 
     createAddOptions(receiverType) {
       return receiverType.addOptions.map();
-    }
+    },
   }
 };
 </script>
@@ -243,7 +248,7 @@ export default {
     @error="e=>errors = e"
     @finish="() => {
       saveOverride()
-      redirectToAlertmanagerConfig()
+      redirectToReceiverDetail(value.name)
     }"
     @cancel="redirectAfterCancel"
   >
@@ -285,12 +290,6 @@ export default {
           :editor-mode="editorMode"
         />
         <div v-else>
-          <component
-            :is="getComponent(receiverType.banner)"
-            v-if="receiverType.banner"
-            :model="value[receiverType.key]"
-            :mode="mode"
-          />
           <ArrayListGrouped
             v-model="value[receiverType.key]"
             class="namespace-list"
@@ -306,9 +305,6 @@ export default {
                 :namespace="alertmanagerConfigNamespace"
               />
             </template>
-            <template v-if="receiverType.addButton" #add>
-              <component :is="getComponent(receiverType.addButton)" :model="value[receiverType.key]" :mode="mode" />
-            </template>
           </ArrayListGrouped>
         </div>
       </Tab>
@@ -321,7 +317,7 @@ export default {
     $margin: 10px;
     $logo: 60px;
 
-    .box-container {
+    .box-container.create-resource-container {
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;

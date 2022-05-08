@@ -29,6 +29,11 @@ export default {
       required: true,
     },
 
+    cluster: {
+      type:     Object,
+      default: () => ({})
+    },
+
     credentialId: {
       type:     String,
       required: true,
@@ -147,6 +152,10 @@ export default {
         this.t('cluster.machineConfig.amazonEc2.securityGroup.mode.default', { defaultGroup: DEFAULT_GROUP }),
         this.t('cluster.machineConfig.amazonEc2.securityGroup.mode.custom')
       ];
+    },
+
+    isIamInstanceProfileNameRequired() {
+      return this.cluster?.cloudProvider === 'aws';
     },
 
     instanceOptions() {
@@ -476,6 +485,7 @@ export default {
               v-model="value.iamInstanceProfile"
               :mode="mode"
               :disabled="disabled"
+              :required="isIamInstanceProfileNameRequired"
               :tooltip="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.tooltip')"
               :label="t('cluster.machineConfig.amazonEc2.iamInstanceProfile.label')"
             />

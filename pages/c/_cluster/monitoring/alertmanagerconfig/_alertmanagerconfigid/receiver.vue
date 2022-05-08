@@ -24,7 +24,7 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
-    const nameOfExistingReceiver = this.$route.query.receiverName;
+    this.receiverName = this.$route.query.receiverName;
 
     const alertmanagerConfigId = this.$route.params.alertmanagerconfigid;
     const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
@@ -33,7 +33,7 @@ export default {
 
     if (mode !== _CREATE) {
       const existingReceiverData = alertmanagerConfigResource.spec.receivers.find((receiverData) => {
-        return receiverData.name === nameOfExistingReceiver;
+        return receiverData.name === this.receiverName;
       });
 
       if (existingReceiverData) {
@@ -134,7 +134,16 @@ export default {
       case this.create:
         return this.t('monitoring.alertmanagerConfig.receiverFormNames.create');
       case this.edit:
+        if (this.currentView === this.yaml) {
+          // When you edit as YAML, you edit the whole AlertmanagerConfig
+          // at once, so the header is just "Edit AlertmanagerConfig"
+          return this.t('monitoring.alertmanagerConfig.receiverFormNames.editYaml');
+        }
+
+        // When you edit as a form, you edit only the receiver,
+        // so the form header is "Edit Receiver in AlertmanagerConfig"
         return this.t('monitoring.alertmanagerConfig.receiverFormNames.edit');
+
       default:
         return this.t('monitoring.alertmanagerConfig.receiverFormNames.detail');
       }
@@ -207,7 +216,10 @@ export default {
       // After saving the AlertmanagerConfig, the resource has been deleted.
       this.alertmanagerConfigResource.save(...arguments);
       this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
-    }
+    },
+    redirectToReceiverDetail(receiverName) {
+      return this.alertmanagerConfigResource.getReceiverDetailLink(receiverName);
+    },
   }
 };
 </script>
@@ -252,7 +264,7 @@ export default {
       :initial-yaml-for-diff="null"
       :yaml="resourceYaml"
       :offer-preview="mode === edit"
-      :done-route="alertmanagerConfigResource.alertmanagerConfigDoneRouteName"
+      :done-route="JSON.stringify(redirectToReceiverDetail(receiverName))"
       :done-override="alertmanagerConfigDetailRoute"
       :apply-hooks="alertmanagerConfigResource.applyHooks"
       @error="e=>$emit('error', e)"

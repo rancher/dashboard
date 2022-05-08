@@ -68,6 +68,13 @@ export default {
           sort:          ['nameSort'],
           formatter:     'LinkDetail',
           canBeVariable: true,
+        },
+        {
+          name:          'type',
+          labelKey:      'tableHeaders.type',
+          value:         'name',
+          formatter:     'ReceiverIcons',
+          canBeVariable: true,
         }
         // Add more columns
       ],
@@ -150,8 +157,8 @@ export default {
       this.$router.push(this.alertmanagerConfigResource.getEditReceiverYamlRoute(this.selectedReceiverName, _EDIT));
     },
     promptRemove() {
-    // 'promptRemove' is the exact name of an action for AlertmanagerConfig
-    // and this method executes the action.
+      // 'promptRemove' is the exact name of an action for AlertmanagerConfig
+      // and this method executes the action.
       // Get the name of the receiver to delete from the action info.
       const nameOfReceiverToDelete = this.selectedReceiverName;
       // Remove it from the configuration of the parent AlertmanagerConfig
@@ -208,7 +215,11 @@ export default {
                 :tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')"
               >
                 {{ t('monitoring.receiver.addReceiver') }}
-                <i v-if="mode === create" v-tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')" class="icon icon-info" />
+                <i
+                  v-if="mode === create"
+                  v-tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')"
+                  class="icon icon-info"
+                />
               </button>
             </nuxt-link>
           </template>

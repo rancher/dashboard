@@ -370,6 +370,7 @@ export default class VirtVm extends SteveModel {
       return false;
     }
     const { running = null, runStrategy = null } = this.spec;
+    const conditions = this?.status?.conditions || [];
 
     if (running) {
       return true;
@@ -384,6 +385,10 @@ export default class VirtVm extends SteveModel {
       case RunStrategy.Always:
         return true;
       case RunStrategy.RerunOnFailure:
+        if (this.status?.printableStatus === 'ErrorUnschedulable' && conditions.find(C => C.message && C.message.includes(IgnoreMessages))) {
+          return true;
+        }
+
         return ['Starting', 'Running'].includes(this.status?.printableStatus);
       case RunStrategy.Manual:
       default:

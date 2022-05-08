@@ -1,6 +1,5 @@
 <script>
 import Tip from '@/components/Tip';
-import { HCI } from '@/config/types';
 import { HCI_SETTING } from '@/config/settings';
 import Password from '@/components/form/Password';
 import MessageLink from '@/components/MessageLink';
@@ -66,7 +65,7 @@ export default {
     },
 
     toCA() {
-      return `${ HCI.SETTING }/${ HCI_SETTING.ADDITIONAL_CA }?mode=edit`;
+      return `${ HCI_SETTING.ADDITIONAL_CA }?mode=edit`;
     }
   },
 

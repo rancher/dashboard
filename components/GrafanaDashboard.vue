@@ -55,7 +55,7 @@ export default {
   },
   watch: {
     currentUrl() {
-      if (this.graphHistory) {
+      if (this.graphHistory && this.graphWindow?.angular) {
         const angularElement = this.graphWindow.angular.element(this.graphDocument.querySelector('.grafana-app'));
         const injector = angularElement.injector();
 
