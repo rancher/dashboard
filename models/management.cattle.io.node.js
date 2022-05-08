@@ -1,5 +1,7 @@
 import { MANAGEMENT_NODE } from '@/config/labels-annotations';
-import { CAPI, MANAGEMENT, NODE, NORMAN } from '@/config/types';
+import {
+  ADDRESSES, CAPI, MANAGEMENT, NODE, NORMAN
+} from '@/config/types';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import { listNodeRoles } from '@/models/cluster/node';
 import { insertAt } from '@/utils/array';
@@ -127,6 +129,10 @@ export default class MgmtNode extends HybridModel {
 
   get canClone() {
     return false;
+  }
+
+  get ipaddress() {
+    return this.status.internalNodeStatus?.addresses?.find(({ type }) => type === ADDRESSES.INTERNAL_IP)?.address || '-';
   }
 
   get canScaleDown() {

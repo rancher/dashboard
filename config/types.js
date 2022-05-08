@@ -288,3 +288,8 @@ export const HCI = {
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';
+
+export const ADDRESSES = {
+  HOSTNAME:    'Hostname',
+  INTERNAL_IP: 'InternalIP'
+};
