@@ -290,7 +290,7 @@ export default {
               :disabled="isView"
               class="btn role-link"
               :data-testid="`remove-item-${idx}`"
-              @click="remove(idx, row)"
+              @click="remove(row, idx)"
             >
               {{ removeLabel }}
             </button>
