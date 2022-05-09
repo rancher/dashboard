@@ -285,7 +285,7 @@ export default {
     <div>
       <TopLevelMenu v-if="isMultiCluster || !isSingleProduct"></TopLevelMenu>
     </div>
-    <div class="menu-spacer">
+    <div class="menu-spacer" :class="{'isSingleProduct': isSingleProduct }">
       <n-link v-if="isSingleProduct" :to="singleProductLogoRoute">
         <img
           class="side-menu-logo"
@@ -512,6 +512,11 @@ export default {
 
     > .menu-spacer {
       flex: 0 0 calc(var(--header-height) + 10px);
+
+      &.isSingleProduct  {
+        display: flex;
+        justify-content: center;
+      }
     }
 
     .title {
