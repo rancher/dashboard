@@ -1,3 +1,5 @@
+// This is to mitigate an issue where the SVG icons being imported from the project weren't being rendered on Firefox
+// To know more about this technique, check this doc: https://developer.mozilla.org/en-US/docs/Web/SVG/Element/defs
 export const getChartIcon = type => `<defs>
 <!-- GIT REPO ICON -->
 <svg id="git" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" style="enable-background:new 0 0 96 96" xml:space="preserve"><path class="st0" d="M92.138 43.888 52.018 3.77a5.918 5.918 0 0 0-8.369 0l-8.33 8.332L45.887 22.67a7.025 7.025 0 0 1 7.23 1.684 7.031 7.031 0 0 1 1.67 7.275l10.185 10.185a7.03 7.03 0 0 1 7.275 1.67 7.04 7.04 0 0 1 0 9.958 7.042 7.042 0 0 1-11.492-7.658l-9.5-9.499v24.997a7.09 7.09 0 0 1 1.861 1.331 7.042 7.042 0 1 1-7.65-1.537V35.849a7.04 7.04 0 0 1-3.822-9.234l-10.418-10.42-27.51 27.508a5.921 5.921 0 0 0 0 8.371l40.121 40.118a5.919 5.919 0 0 0 8.37 0l39.93-39.932a5.92 5.92 0 0 0 0-8.37z"/></svg>

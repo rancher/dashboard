@@ -12,6 +12,7 @@ const fdcForceCollide = 80;
 const fdcAlphaDecay = 0.05;
 
 // setting up default sim params
+// check documentation here: https://github.com/d3/d3-force#forceSimulation
 const simulationParams = {
   fdcStrength,
   fdcDistanceMax,
@@ -111,39 +112,39 @@ export const gitRepoGraphConfig = {
   /**
      * Used to add relevant classes to each main node instance
      */
-  extendNodeClass: (d) => {
+  extendNodeClass: ({ data }) => {
     const classArray = [];
 
     // node type
-    d.data?.isRepo ? classArray.push('repo') : d.data?.isBundle ? classArray.push('bundle') : classArray.push('bundle-deployment');
+    data?.isRepo ? classArray.push('repo') : data?.isBundle ? classArray.push('bundle') : classArray.push('bundle-deployment');
 
     return classArray;
   },
   /**
      * Used to add the correct icon to each node
      */
-  fetchNodeIcon: (d) => {
-    if (d.data?.isRepo) {
+  fetchNodeIcon: ({ data }) => {
+    if (data?.isRepo) {
       return 'git';
     }
 
-    if ( d.data?.isBundle) {
-      if (d.data?.id.indexOf('helm') !== -1) {
+    if ( data?.isBundle) {
+      if (data?.id.indexOf('helm') !== -1) {
         return 'helm';
       }
 
       return 'bundle';
     }
 
-    if (d.data?.isBundleDeployment) {
+    if (data?.isBundleDeployment) {
       return 'node';
     }
   },
   /**
      * Used to set node dimensions
      */
-  nodeDimensions: (d) => {
-    if (d.data?.isRepo) {
+  nodeDimensions: ({ data }) => {
+    if (data?.isRepo) {
       const radius = defaultNodeRadius * 3;
       const padding = defaultNodePadding * 2.5;
 
@@ -153,11 +154,11 @@ export const gitRepoGraphConfig = {
         position: -(((radius * 2) - padding) / 2)
       };
     }
-    if (d.data?.isBundle) {
+    if (data?.isBundle) {
       const radius = defaultNodeRadius * 2;
       const padding = defaultNodePadding;
 
-      if (d.data?.id.indexOf('helm') !== -1) {
+      if (data?.id.indexOf('helm') !== -1) {
         return {
           radius,
           size:     (radius * 1.5) - padding,
