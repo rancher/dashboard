@@ -48,6 +48,14 @@ export default {
     ...mapGetters({ t: 'i18n/t' })
   },
 
+  methods: {
+    setCA(ca) {
+      const encoded = btoa(ca);
+
+      this.$set(this.value, 'endpointCA', encoded);
+    }
+  },
+
   created() {
     const { credentialSecretName, credentialSecretNamespace } = this.value;
 
@@ -89,9 +97,29 @@ export default {
         <Checkbox v-model="value.insecureTLSSkipVerify" class="mt-10" :mode="mode" :label="t('backupRestoreOperator.s3.insecureTLSSkipVerify')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.endpointCA" :mode="mode" type="multiline" :label="t('backupRestoreOperator.s3.endpointCA')" />
-        <FileSelector v-if="mode!=='view'" class="btn btn-sm role-primary mt-5" :mode="mode" :label="t('generic.readFromFile')" @selected="e=>$set(value, 'endpointCA', e)" />
+        <LabeledInput v-model="value.endpointCA" :mode="mode" type="multiline" :label="t('backupRestoreOperator.s3.endpointCA.label')" />
+        <div class="ca-controls">
+          <FileSelector v-if="mode!=='view'" class="btn btn-sm role-primary mt-5" :mode="mode" :label="t('generic.readFromFile')" @selected="e=> setCA(e)" />
+          <div class="ca-tooltip">
+            <i v-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')" class="icon icon-info" />
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
+<style lang="scss" scoped>
+  .ca-controls {
+    display: flex;
+
+    .ca-tooltip {
+      flex: 1;
+      margin-top: 4px;
+      text-align: right;
+
+      > i {
+        font-size: 16px;
+      };
+    }
+  }
+</style>

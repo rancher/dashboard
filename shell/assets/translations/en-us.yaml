@@ -686,7 +686,9 @@ backupRestoreOperator:
     bucketName: Bucket Name
     credentialSecretName: Credential Secret
     endpoint: Endpoint
-    endpointCA: Endpoint CA
+    endpointCA:
+      label: Endpoint CA
+      prompt: Endpoint CA must be Base64 encoded
     folder: Folder
     insecureTLSSkipVerify: Skip TLS Verifications
     region: Region
