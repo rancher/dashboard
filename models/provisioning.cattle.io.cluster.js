@@ -9,6 +9,10 @@ import { AS, MODE, _VIEW, _YAML } from '@/config/query-params';
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
+/**
+ * Class representing Cluster resource.
+ * @extends SteveModal
+ */
 export default class ProvCluster extends SteveModel {
   get details() {
     const out = [
@@ -152,6 +156,13 @@ export default class ProvCluster extends SteveModel {
     }
 
     return false;
+  }
+
+  promptRemove(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'ConfirmNameToRemoveDialog'
+    });
   }
 
   get isImportedK3s() {

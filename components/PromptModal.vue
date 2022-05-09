@@ -3,7 +3,13 @@ import { mapState } from 'vuex';
 import { isArray } from '@/utils/array';
 import { importDialog } from '@/utils/dynamic-importer';
 
+/**
+ * @name PromptModal
+ * @description Modal component.
+ */
 export default {
+  name: 'PromptModal',
+
   data() {
     return { opened: false, backgroundClosing: null };
   },
