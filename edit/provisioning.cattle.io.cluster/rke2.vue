@@ -1723,6 +1723,8 @@ export default {
             <div class="col span-6">
               <LabeledInput
                 v-model="rkeConfig.etcd.snapshotScheduleCron"
+                type="cron"
+                placeholder="0 * * * *"
                 :mode="mode"
                 :label="t('cluster.rke2.etcd.snapshotScheduleCron.label')"
               />
