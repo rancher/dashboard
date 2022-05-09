@@ -231,6 +231,10 @@ export default {
     createAddOptions(receiverType) {
       return receiverType.addOptions.map();
     },
+
+    getReceiverDetailRoute(name) {
+      return JSON.stringify(this.alertmanagerConfigResource.getReceiverDetailLink(name));
+    }
   }
 };
 </script>
@@ -238,7 +242,7 @@ export default {
 <template>
   <CruResource
     class="receiver"
-    :done-route="doneRoute"
+    :done-route="getReceiverDetailRoute(value.name)"
     :mode="mode"
     :resource="alertmanagerConfigResource"
     :subtypes="[]"
