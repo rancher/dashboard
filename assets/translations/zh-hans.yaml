@@ -2932,7 +2932,7 @@ namespace:
 
 namespaceFilter:
   noMatchingOptions: 没有匹配的选项
-  more: "+{更多}"
+  more: "+{more}"
   selected:
     label: |-
       {total, plural,
