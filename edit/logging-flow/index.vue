@@ -50,7 +50,7 @@ export default {
 
   async fetch() {
     const hasAccessToClusterOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_OUTPUT);
-    const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`][LOGGING.OUTPUT];
+    const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.OUTPUT);
     const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
     const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
