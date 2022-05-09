@@ -131,15 +131,13 @@ export default Vue.extend<Data, any, any, any>({
       try {
         const parsed: any = jsyaml.load(file);
 
-        if (parsed.origin) {
-          if (parsed.origin.container) {
-            Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
-            Vue.set(this.container, 'url', parsed.origin.container);
-          } else if (parsed.origin.git) {
-            Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.GIT_URL);
-            Vue.set(this.gitUrl, 'url', parsed.origin.git.url);
-            Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
-          }
+        if (parsed.origin?.container) {
+          Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
+          Vue.set(this.container, 'url', parsed.origin.container);
+        } else if (parsed.origin.git?.url && parsed.origin.git?.revision) {
+          Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.GIT_URL);
+          Vue.set(this.gitUrl, 'url', parsed.origin.git.url);
+          Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
         }
 
         const appInfo: EpinioAppInfo = {

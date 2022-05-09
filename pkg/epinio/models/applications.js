@@ -3,6 +3,7 @@ import { createEpinioRoute } from '../utils/custom-routing';
 import { formatSi } from '@shell/utils/units';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import EpinioResource from './epinio-resource';
+import { downloadFile } from '@shell/utils/download';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -141,6 +142,13 @@ export default class EpinioApplication extends EpinioResource {
       enabled:    isRunning
     },
     { divider: true },
+    {
+      action:     'createManifest',
+      label:      this.t('epinio.applications.actions.createManifest.label'),
+      icon:       'icon icon-fw icon-download',
+    },
+    { divider: true },
+
     ...super._availableActions);
 
     return res;
@@ -554,5 +562,21 @@ export default class EpinioApplication extends EpinioResource {
     await this.followLink('restart', { method: 'post' });
     await this.forceFetch();
     this.showAppLog();
+  }
+
+  createManifest() {
+    const date = new Date().toISOString().split('.')[0];
+    const fileName = `${ this.metadata.namespace }-${ this.nameDisplay }-${ date }.json`;
+
+    const manifest = {
+      name:          this.metadata.name,
+      configuration: this.configuration,
+      origin:        this.origin,
+    };
+
+    downloadFile(fileName, JSON.stringify(manifest))
+      .catch((e) => {
+        console.error('Failed to download manifest: ', e);// eslint-disable-line no-console
+      });
   }
 }

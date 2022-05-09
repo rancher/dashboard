@@ -155,6 +155,8 @@ epinio:
         label: Rebuild
       restart:
         label: Restart
+      createManifest:
+        label: Download Manifest
     wm:
       containerName: 'Instance: {label}'
       noData: There are no log entries to show.
