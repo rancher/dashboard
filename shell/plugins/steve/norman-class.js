@@ -48,4 +48,12 @@ export default class NormanModel extends Resource {
       delete this.annotations[key];
     }
   }
+
+  setResourceQuotas(spec) {
+    const keys = ['resourceQuota', 'namespaceDefaultResourceQuota'];
+
+    keys.forEach((key) => {
+      Vue.set(this, key, { ...spec[key] });
+    });
+  }
 }
