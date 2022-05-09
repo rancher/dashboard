@@ -193,7 +193,7 @@ export default {
   }
 
   .model-actions {
-    justify-content: end;
+    justify-content: flex-end;
     display: flex;
     flex: 1;
   }
