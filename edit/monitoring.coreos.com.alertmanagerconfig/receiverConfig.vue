@@ -250,10 +250,7 @@ export default {
     :errors="errors"
     :cancel-event="true"
     @error="e=>errors = e"
-    @finish="() => {
-      saveOverride()
-      redirectToReceiverDetail(value.name)
-    }"
+    @finish="saveOverride()"
     @cancel="redirectAfterCancel"
   >
     <div class="row mb-10">

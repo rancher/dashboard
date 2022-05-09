@@ -173,6 +173,7 @@ export default {
       }
 
       this.alertmanagerConfigResource.save(...arguments);
+      this.redirectToAlertmanagerConfigDetail();
     },
     handleButtonGroupClick(event) {
       if (event === this.yaml) {
@@ -220,6 +221,11 @@ export default {
     redirectToReceiverDetail(receiverName) {
       return this.alertmanagerConfigResource.getReceiverDetailLink(receiverName);
     },
+    redirectToAlertmanagerConfigDetail() {
+      const route = this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute();
+
+      this.$router.push(route);
+    }
   }
 };
 </script>
@@ -276,7 +282,6 @@ export default {
       :alertmanager-config-id="alertmanagerConfigId"
       :alertmanager-config-resource="alertmanagerConfigResource"
       :save-override="saveOverride"
-      :done-location-override="alertmanagerConfigDetailRoute"
     />
     <ActionMenu
       :custom-actions="receiverActions"
