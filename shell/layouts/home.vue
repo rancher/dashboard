@@ -1,11 +1,12 @@
 <script>
-import Header from '@shell/components/nav/Header';
-import Brand from '@shell/mixins/brand';
-import FixedBanner from '@shell/components/FixedBanner';
-import GrowlManager from '@shell/components/GrowlManager';
+import Header from '@/components/nav/Header';
+import Brand from '@/mixins/brand';
+import FixedBanner from '@/components/FixedBanner';
+import GrowlManager from '@/components/GrowlManager';
+import { mapPref, DEV } from '@shell/store/prefs';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
-import { mapPref, DEV } from '@shell/store/prefs';
+import BrowserTabVisibility from '@/mixins/browser-tab-visibility';
 
 export default {
 
@@ -17,9 +18,16 @@ export default {
     AwsComplianceBanner
   },
 
-  mixins: [Brand],
+  mixins: [Brand, BrowserTabVisibility],
 
   middleware: ['authenticated'],
+
+  mounted() {
+    this.setTabVisibilityListener(true);
+  },
+  beforeDestroy() {
+    this.setTabVisibilityListener(false);
+  },
 
   data() {
     return {
