@@ -84,7 +84,8 @@ export default class AlertmanagerConfig extends SteveModel {
       name:   'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver',
       params: {
         cluster:              this.$rootGetters['clusterId'],
-        alertmanagerconfigid: this.id
+        alertmanagerconfigid: this.id,
+        receiverName
       },
       query: {
         mode: _VIEW, receiverName, currentView: _CONFIG
