@@ -20,6 +20,8 @@ export default {
   },
 
   async fetch() {
+    this.principal = this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.value);
+
     if ( this.principal ) {
       return;
     }
@@ -39,7 +41,7 @@ export default {
 
   data() {
     // Load from cache immediately if possible
-    return { principal: this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.value) };
+    return { principal: null };
   },
 
   computed: {
