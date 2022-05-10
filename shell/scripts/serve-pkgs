@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+
+const fs = require('fs-extra');
+const path = require('path');
+
+console.log(__dirname);
+
+const dir = path.resolve('.');
+const pkgs = path.join(dir, 'dist-pkg');
+let port = 4500;
+
+var express = require('express')
+var serveStatic = require('serve-static');
+ 
+var app = express()
+
+function catalog(res) {
+  const response = [];
+  fs.readdirSync(pkgs).forEach((f) => {
+    const pkgFile = path.join(pkgs, f, 'package.json');
+
+    if (fs.existsSync(pkgFile)) {
+      const rawdata = fs.readFileSync(pkgFile);
+      const pkg = JSON.parse(rawdata);
+
+      response.push(pkg);
+    }
+  });
+
+  res.json(response)
+}
+
+app.use('/', (req, res, next) => {
+  if (req.url === '/') {
+    return catalog(res);
+  }
+
+  return next();
+});
+ 
+app.use(serveStatic(pkgs));
+
+if (process.env.PORT) {
+  port = parseInt(process.env.PORT);
+}
+
+const base = `http://127.0.0.1:${ port }`;
+
+console.log('');
+console.log(`Serving catalog on ${ base }`)
+console.log('');
+console.log(`Serving packages:`);
+console.log('');
+fs.readdirSync(pkgs).forEach((f) => {
+  const main = `${ f }.umd.min.js`;
+
+  if (fs.existsSync(path.join(pkgs, f, main))) {
+    console.log(`  ${ f } available at: ${ base }/${ f }/${ main }`);
+  }
+});
+ 
+app.listen(port)

@@ -97,3 +97,6 @@ cypress/screenshots
 
 # Storybook
 storybook-static/
+
+# Packages
+dist-pkg

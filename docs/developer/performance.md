@@ -16,7 +16,7 @@ List views can become slow to load when the UI attempts to load too much informa
 
 ## Deferring Duplicate Requests
 
-In `plugins/steve/actions.js`, if there are multiple requests for the same URL including the same path and headers, the store will recognize that a similar request already exists. Instead of making another request, it will defer it, and at the end it will only send one API call. This works for all resources in general.
+In `plugins/dashboard-store/actions.js`, if there are multiple requests for the same URL including the same path and headers, the store will recognize that a similar request already exists. Instead of making another request, it will defer it, and at the end it will only send one API call. This works for all resources in general.
 
 # Pagination
 

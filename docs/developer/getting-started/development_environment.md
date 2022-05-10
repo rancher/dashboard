@@ -76,11 +76,6 @@ See the [Running For Development](../../../README.md#running-for-development) se
 
 ## Debugging the Dashboard
 
-#### SSR vs SPA
-It's important to understand the difference between SSR and SPA modes described in the [Server-Side-Rendering (SSR)](../../../README.md#server-side-rendering-ssr) section. When running in the default SSR mode you will not be able to step through some methods such as Vue component's `async fetch`. It is therefore advised to switch to SPA mode before attempting to step through the code (see linked guide.. either start with `--spa` or load page with url param `?spa` / `&spa`).
-
-SSR adds additional complexity for the store and some component functions. More on this can be found in the `Resource` section of Development guide.
-
 ### Breakpoints
 Finding the correct file in Dev Tools and reliably setting a breakpoint can be hit and miss, even in SPA mode. It is advised to manually add a `debugger` statement in code instead. 
 

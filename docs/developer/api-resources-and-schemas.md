@@ -58,7 +58,7 @@ The dashboard will proxy requests to the API, so the interfaces are available vi
 
 The high-level way the entire UI works is that API calls are made to load data from the server, and then a "watch" is started to notify us of changes so that information can be kept up to date at all times without polling or refreshing.  You can load a single resource by ID, an entire collection of all those resources, or something in between, and they should still stay up to date.  This works by having an array of a single authoritative copy of all the "known" models saved in the API stores (`management` & `cluster`) and updating the data when an event is received from the "subscribe" websocket.  The update is done on the _existing_ copy, so that anything that refers to it finds out that it changed through Vue's reactivity.  When manipulating models or collections of results from the API, some care is needed to make sure you are keeping that single copy and not making extras or turning a "live" array of models into a "dead" clone of it.
 
-The most basic operations are `find({type, id})` to load a single resource by ID, `findAll({type})` load all of them.  These (anything starting with `find`) are async calls to the API.  Getters like `all(type)` and `byId(type, id)` are synchronous and return only info that has already been previously loaded.  See `plugins/steve/` for all the available actions and getters.
+The most basic operations are `find({type, id})` to load a single resource by ID, `findAll({type})` load all of them.  These (anything starting with `find`) are async calls to the API.  Getters like `all(type)` and `byId(type, id)` are synchronous and return only info that has already been previously loaded.  See `plugins/dashboard-store/` for all the available actions and getters.
 
 ## Resources
 
@@ -71,7 +71,7 @@ Schemas are provided in bulk via the APIs and cached locally in the relevant sto
 A schema can be fetched synchronously via store getter
 
 ```ts
-import { POD } from '@/config/types';
+import { POD } from '@shell/config/types';
 
 this.$store.getters['cluster/schemaFor'](POD)`
 ```
@@ -151,13 +151,13 @@ return hasAccess ? this.$store.dispatch('cluster/findAll', { type }) : Promise.r
 
 The ES6 class models in the `models` directory are used to represent Kubernetes resources. The class applies properties and methods to the resource, which defines how the resource can function in the UI and what other components can do with it. Different APIs return models in different structures, but the implementation of the models allows some common functionality to be available for any of them, such as `someModel.name`, `someModel.description`, `setLabels` or `setAnnotations`.
 
-Much of the reused functionality for each model is taken from the Steve plugin. The class-based models use functionality from `plugins/steve/resource-class.js`.
+Much of the reused functionality for each model is taken from the Steve plugin. The class-based models use functionality from `plugins/dashboard-store/resource-class.js`.
 
-The `Resource` class in `plugins/steve/resource-class.js` should not have any fields defined that conflict with any key ever returned by the APIs (e.g. name, description, state, etc used to be a problem). The `SteveModel` (`plugins/steve/steve-class.js`) and `NormanModel` (`plugins/steve/norman-class.js`) know how to handle those keys separately now, so the computed name/description/etc is only in the Steve implementation. It is no longer needed to use names like `_name` to avoid naming conflicts.
+The `Resource` class in `plugins/dashboard-store/resource-class.js` should not have any fields defined that conflict with any key ever returned by the APIs (e.g. name, description, state, etc used to be a problem). The `SteveModel` (`plugins/steve/steve-class.js`) and `NormanModel` (`plugins/steve/norman-class.js`) know how to handle those keys separately now, so the computed name/description/etc is only in the Steve implementation. It is no longer needed to use names like `_name` to avoid naming conflicts.
 
 ### Extending Models
 
-The `Resource` class in `plugins/steve/resource-class.js` is the base class for everything and should not be directly extended. (There is a proxy-based counterpart of `Resource` which is the default export from `plugins/steve/resource-instance.js` as well.) If a model needs to extend the basic functionality of a resource, it should extend one of these three models:
+The `Resource` class in `plugins/dashboard-store/resource-class.js` is the base class for everything and should not be directly extended. (There is a proxy-based counterpart of `Resource` which is the default export from `plugins/dashboard-store/resource-instance.js` as well.) If a model needs to extend the basic functionality of a resource, it should extend one of these three models:
 
 - `NormanModel`: For a Rancher management type being loaded via the Norman API (/v3, the Rancher store). These have names, descriptions and labels at the root of the object. 
 - `HybridModel`: This model is used for old Rancher types, such as a Project (mostly in management.cattle.io), that are loaded with the Steve API (/v1, the cluster/management stores). These have the name and description at the root, but labels under metadata.
@@ -169,15 +169,15 @@ The Norman and Hybrid models extend the basic Resource class. The Hybrid model i
 
 The Rancher API returns plain objects containing resource data, but we need to convert that data into classes so that we can use methods on them.
 
-Whenever we get an object from the API, we run the `classify` function (at `plugins/steve/classify.js`) which looks at the type field and figures out what type it is supposed to be. That file gives you an instance of a model which you can use to access the properties.
+Whenever we get an object from the API, we run the `classify` function (at `plugins/dashboard-store/classify.js`) which looks at the type field and figures out what type it is supposed to be. That file gives you an instance of a model which you can use to access the properties.
 
-This 'rehydration' process is important for server-side rendering, in which the server side returns a block of JSON that needs to be converted to classes. In `plugins/steve/rehydrate-all.js`, we use `this.nuxt.hook` to add a hook in which nuxt looks over all the objects. It recurses over the object from nuxt, which is the data that you get back from the server when server-side rendering mode is turned on, and converts all of the objects to classes. While the `rehydrate-all` code is not used in production, it may be in the future.
+This 'rehydration' process is important for server-side rendering, in which the server side returns a block of JSON that needs to be converted to classes. In `plugins/dashboard-store/rehydrate-all.js`, we use `this.nuxt.hook` to add a hook in which nuxt looks over all the objects. It recurses over the object from nuxt, which is the data that you get back from the server when server-side rendering mode is turned on, and converts all of the objects to classes. While the `rehydrate-all` code is not used in production, it may be in the future.
 
 We also 'dehydrate' resources by stripping out properties with double underscores before sending data to the Rancher API. We remove these properties because they are only used on the client side.
 
 ## Creating and Fetching Resources
 
-Most of the options to create and fetch resources can be achieved via dispatching actions defined in `/plugins/steve/actions.js`
+Most of the options to create and fetch resources can be achieved via dispatching actions defined in `/plugins/dashboard-store/actions.js`
 
 | Function    | Action | Example Command | Description |
 |-------------|--------|-----------------|-----|
@@ -191,7 +191,7 @@ Once objects of most types are fetched they will be automatically updated. See [
 
 ## Synchronous Fetching
 
-It's possible to retrieve values from the store synchronously via `getters`. For resources this is not normally advised (they may not yet have been fetched), however for items such as schemas, it is valid. Some of the core getters are defined in `/plugins/steve/getters.js`:
+It's possible to retrieve values from the store synchronously via `getters`. For resources this is not normally advised (they may not yet have been fetched), however for items such as schemas, it is valid. Some of the core getters are defined in `/plugins/dashboard-store/getters.js`:
 
 ```ts
 $store.getters['<store type>/byId'](<resource type>, <id>])

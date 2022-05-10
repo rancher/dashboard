@@ -1,0 +1,181 @@
+typeLabel:
+  namespaces: |-
+    {count, plural,
+      one { Namespaces }
+      other { Namespaces }
+    }
+  applications: |-
+    {count, plural,
+      one { Applications }
+      other { Applications }
+    }
+  services: |-
+    {count, plural,
+      one { Services }
+      other { Services }
+    }
+  configurations: |-
+    {count, plural,
+      one { Configurations }
+      other { Configurations }
+    }
+epinio:
+  label: Epinio
+  tableHeaders:
+    namespace: Namespace
+  instances:
+    header: Epinio instances
+    none:
+      header: No instances of Epinio were found
+      description: To view an Epinio cluster be sure to import a Cluster where one is installed
+    tableHeaders:
+      api: URL
+      version: Version
+      explore: Explore
+      cluster: Rancher Cluster
+  applications:
+    tableHeaders:
+      route: Routes
+      boundConfigs: Bound Configs
+      deployedBy: Last Deployed By
+    detail:
+      counts:
+        label: Counts
+        config: Configs
+        routes: Routes
+        envVars: Environment Vars
+      routes:
+        label: Routes
+      deployment:
+        label: Deployment
+        summary: Summary
+        instances: Instances
+        memory: Memory
+        cpu: CPU
+    create:
+      title: Application
+      titleSubText: Epinio
+      instances: Instances
+      envvar:
+        title: Environment Variables
+        keyLabel: Name
+        valueLabel: Value
+      routes:
+        title: Routes
+        tooltip: Replace the default route (<app name>.<epinio domain>) with one or more custom routes
+        placeholder: e.g. my-custom-route.com/my-app
+    steps:
+      basics:
+        label: Details
+        subtext: Basic info about your app
+      source:
+        label: Source
+        subtext: Provide the source
+        folder:
+          label: Folder
+          file:
+            label: Folder
+            inputLabel: Name
+            button: Select Folder
+            tooltip: This should contain your application files
+        archive:
+          label: Archive
+          file:
+            label: Archive File
+            inputLabel: Name
+            button: Select File
+            tooltip: This should be a compressed file containing your application
+          builderimage:
+            label: Paketo Builder Image
+            tooltip: Paketo builder image to use for staging
+            default: Default Image
+            custom: Custom Image
+        containerUrl:
+          label: Container Image
+          url:
+            label: Container Image
+            inputLabel: Image
+            tooltip: Container Image for the app workload
+        manifest:
+          button: From Manifest
+          tooltip: Manifests can provide app configuration from another app
+        gitUrl:
+          label: Git URL
+          url:
+            label: URL
+            inputLabel: URL
+            tooltip: URL of the Git Repository
+          branch:
+            label: Branch
+            inputLabel: Branch
+            tooltip: Branch to deploy
+      configurations:
+        label: Configurations
+        subtext: Bind a config
+        select:
+          placeholderWithOptions: Select configs to bind app to
+          placeholderNoOptions: There are no configs in this namespace
+        next: Create
+      progress:
+        label: Progress
+        subtext: Status of create
+        table:
+          stage:
+            label: Stage
+          description: Description
+          status: Status
+          run:
+            label: Run
+    action:
+      create:
+        label: Create
+        description: The Application will be created ready to deploy source to
+      gitFetch:
+        label: Fetch
+        description: Fetch the files at the git repository's branch
+      upload:
+        label: Upload
+        description: Upload the source for the Application
+      build:
+        label: Build
+        description: Build the source for the Application
+      deploy:
+        label: Deploy
+        description: Deploy and start the Application
+    actions:
+      shell:
+        label: App Shell
+      onlyShell:
+        label: Shell
+      viewAppLogs:
+        label: App Logs
+      viewStagingLogs:
+        label: Last Build Logs
+      restage:
+        label: Rebuild
+      restart:
+        label: Restart
+      createManifest:
+        label: Download Manifest
+    wm:
+      containerName: 'Instance: {label}'
+      noData: There are no log entries to show.
+  namespace:
+    tableHeaders:
+      appCount: Applications
+      configCount: Configs
+    name: Name
+    create: Create a Namespace
+    deleteWarning: All applications and configurations in a namespace will be deleted.
+  configurations:
+    pairs:
+      label: Config Data
+      tooltip: Data made available to bound applications via the path <code>/configurations/&lt;configuration name&gt;/&lt;data name&gt;/</code>
+    tableHeaders:
+      boundApps: Bound Applications
+      variableCount: No. of variables
+      createBy: Created By
+    promptRemove:
+      unbind: Unbind from applications before deleting
+  warnings:
+    noNamespace: There are no namespaces. Please create one before proceeding
