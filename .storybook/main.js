@@ -22,7 +22,7 @@ module.exports = {
     const sassLoader = {
       loader: 'sass-loader',
       options: {
-        prependData: `@use "sass:math"; @import '~assets/styles/app.scss'; @import '~stories/global.scss'; `,
+        prependData: `@use "sass:math"; @import '~shell/assets/styles/app.scss'; @import '~stories/global.scss'; `,
         sassOptions: {
           importer: (url, prev, done) => {
             if (url.indexOf('~/') === 0) {
@@ -77,7 +77,7 @@ module.exports = {
     config.resolve.alias['~'] = baseFolder;
     config.resolve.alias['@'] = baseFolder;
 
-    // Cheat for importing ~assets
+    // Cheat for importing ~shell/assets
     config.resolve.modules.push(baseFolder);
 
     return config;

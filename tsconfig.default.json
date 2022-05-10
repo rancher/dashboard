@@ -12,14 +12,21 @@
     "allowJs": true,
     "sourceMap": true,
     "strict": true,
-    "noEmit": true,
+    "noEmit": false,
     "baseUrl": ".",
+    "rootDir": ".",
     "paths": {
       "~/*": [
         "./*"
       ],
       "@/*": [
         "./*"
+      ],
+      "@shell/*": [
+        "./shell/*"
+      ],
+      "@pkg/*": [
+        "./shell/pkg/*"
       ]
     },
     "typeRoots": [

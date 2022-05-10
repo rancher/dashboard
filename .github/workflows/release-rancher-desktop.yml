@@ -9,7 +9,8 @@ env:
   OUTPUT_DIR: dist
   RELEASE_DIR: release
   ARTIFACT_NAME: rancher-dashboard-desktop-embed
-  STEVE_API: "https://127.0.0.1:9443"
+  API: "https://127.0.0.1:9443"
+  RESOURCE_BASE: "https://127.0.0.1:9443"
   
 jobs:
   build:
@@ -25,12 +26,8 @@ jobs:
         node-version: '12.x'
     
     - name: Install & Build
-      run: |
-        mkdir ${{ env.RELEASE_DIR }}
-        yarn install --frozen-lockfile
-        NUXT_ENV_commit=${GITHUB_SHA} NUXT_ENV_version=${GITHUB_REF_NAME} OUTPUT_DIR=${{ env.OUTPUT_DIR }}/${{ env.ARTIFACT_NAME }} API=${{ env.STEVE_API }} RESOURCE_BASE=${{ env.STEVE_API }} ROUTER_BASE='/dashboard' RANCHER_ENV=desktop yarn run build --spa
-        tar -czf ${{ env.RELEASE_DIR }}/${{ env.ARTIFACT_NAME }}.tar.gz -C ${{ env.OUTPUT_DIR }}/${{ env.ARTIFACT_NAME }} .
-        sha512sum ${{ env.RELEASE_DIR }}/${{ env.ARTIFACT_NAME }}.tar.gz > ${{ env.RELEASE_DIR }}/${{ env.ARTIFACT_NAME }}.tar.gz.sha512sum
+      run:
+        ROUTER_BASE="/dashboard" RANCHER_ENV=desktop ./.github/workflows/scripts/build-dashboard.sh
 
     - name: Upload Build
       uses: actions/upload-artifact@v2
