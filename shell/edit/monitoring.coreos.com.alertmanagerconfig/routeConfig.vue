@@ -1,6 +1,5 @@
 <script>
 import ArrayList from '@shell/components/form/ArrayList';
-import KeyValue from '@shell/components/form/KeyValue';
 import Banner from '@shell/components/Banner';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
