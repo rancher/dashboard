@@ -397,6 +397,15 @@ export default {
         toToggle = content.slice(from, to + 1);
       }
 
+      // check if there is already duplicate content selected (selectedRows) on the list to toggle...
+      this.selectedRows.forEach((item) => {
+        if (toToggle.includes(item)) {
+          const index = toToggle.findIndex(tt => tt === item);
+
+          toToggle.splice(index, 1);
+        }
+      });
+
       return toToggle;
     },
 
