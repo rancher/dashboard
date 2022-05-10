@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import PodsUsage from '@/components/formatter/PodsUsage.vue';
+import PodsUsage from '@shell/components/formatter/PodsUsage.vue';
 
 describe('component: PodsUsage', () => {
   it('should not display values if data is not ready', () => {

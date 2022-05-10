@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import ArrayListGrouped from '@/components/form/ArrayListGrouped.vue';
+import ArrayListGrouped from '@shell/components/form/ArrayListGrouped.vue';
 
 describe('component: ArrayListGrouped', () => {
   it('should display enabled add button', () => {

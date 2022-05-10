@@ -1,5 +1,5 @@
 import { mount, createLocalVue } from '@vue/test-utils';
-import CopyCode from '@/components/CopyCode.vue';
+import CopyCode from '@shell/components/CopyCode.vue';
 import VTooltip from 'v-tooltip';
 
 const localVue = createLocalVue();

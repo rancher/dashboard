@@ -1,5 +1,5 @@
 import { mount, createLocalVue } from '@vue/test-utils';
-import CruResource from '@/components/CruResource.vue';
+import CruResource from '@shell/components/CruResource.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
 import VModal from 'vue-js-modal';
 

@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import KeyValue from '@/components/form/KeyValue.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
 import { directiveSsr as t } from '@shell/plugins//i18n';
 
 describe('component: KeyValue', () => {
