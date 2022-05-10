@@ -80,7 +80,7 @@ export default {
     namespaceFilter(namespace) {
       const excludeProjects = [...this.systemNamespaces?.systemProjectLabelValues || [], this.systemNamespaces?.projectReleaseLabelValue];
 
-      return namespace?.metadata?.labels?.['helm.cattle.io/helm-project-operated'] && !excludeProjects.includes(namespace.projectId);
+      return namespace?.project && namespace?.metadata?.labels?.['helm.cattle.io/helm-project-operated'] && !excludeProjects.includes(namespace.projectId);
     },
     namespaceMapper(namespace) {
       return {
