@@ -376,7 +376,7 @@ export default {
 
 <style lang='scss'>
   .prompt-remove {
-    &.card-container {§
+    &.card-container {
       box-shadow: none;
     }
     #confirm {
