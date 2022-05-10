@@ -58,7 +58,7 @@ export default {
 <template>
   <div class="color-input" :class="{[mode]:mode, disabled: mode !== editMode}">
     <label class="text-label"><t v-if="labelKey" :k="labelKey" :raw="true" />{{ label }}</label>
-    <div class="preview-container" @click.stop="$refs.input.click">
+    <div class="preview-container" @click.stop="$refs.input.click($event)">
       <span :style="{'background-color': inputValue}" class="color-display">
         <input
           ref="input"
