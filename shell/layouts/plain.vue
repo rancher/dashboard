@@ -8,6 +8,7 @@ import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
+import AzureWarning from '@shell/components/auth/AzureWarning';
 
 export default {
 
@@ -19,8 +20,8 @@ export default {
     PromptRemove,
     FixedBanner,
     GrowlManager,
-    AwsComplianceBanner
-
+    AwsComplianceBanner,
+    AzureWarning
   },
 
   middleware: ['authenticated'],
@@ -41,6 +42,7 @@ export default {
   <div class="dashboard-root">
     <FixedBanner :header="true" />
     <AwsComplianceBanner />
+    <AzureWarning />
 
     <div class="dashboard-content">
       <Header :simple="true" />

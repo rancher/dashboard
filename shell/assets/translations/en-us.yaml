@@ -442,6 +442,14 @@ authConfig:
     graphEndpoint: Graph Endpoint
     tokenEndpoint: Token Endpoint
     authEndpoint: Auth Endpoint
+    updateEndpoint:
+      banner:
+        message: 'Azure AD Authentication must be updated: it is using the Azure Graph API, which will be deprecated at the end of 2022.'
+        linkText: 'Update it here.'
+      modal:
+        title: Are you sure? This update is irreversible.
+        body: There will be no perceptible difference to authentication functionality in Rancher, but the underlying changes made to your Rancher instance cannot be reverted. You will not need to modify your Azure AD app as a part of this update.
+      button: Update Endpoint
   oidc:
     oidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account

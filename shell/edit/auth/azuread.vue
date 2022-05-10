@@ -13,16 +13,22 @@ import AuthConfig from '@shell/mixins/auth-config';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
+// Azure AD Graph will be deprecated end of 2022, see: https://docs.microsoft.com/en-us/graph/migrate-azure-ad-graph-overview
+export const OLD_ENDPOINTS = {
+  standard: { graphEndpoint: 'https://graph.windows.net/' },
+  china:    { graphEndpoint: 'https://graph.chinacloudapi.cn/' }
+};
+
 const ENDPOINT_MAPPING = {
   standard: {
     endpoint:      'https://login.microsoftonline.com/',
-    graphEndpoint: 'https://graph.windows.net/',
+    graphEndpoint: 'https://graph.microsoft.com',
     tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/token`,
     authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/authorize`,
   },
   china: {
     endpoint:      'https://login.chinacloudapi.cn/',
-    graphEndpoint: 'https://graph.chinacloudapi.cn/',
+    graphEndpoint: 'https://microsoftgraph.chinacloudapi.cn',
     tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/token`,
     authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/authorize`,
   },
@@ -94,6 +100,19 @@ export default {
         }
       };
     },
+
+    needsUpdate() {
+      return this.model?.graphEndpoint === OLD_ENDPOINTS.standard.graphEndpoint || this.model?.graphEndpoint === OLD_ENDPOINTS.china.graphEndpoint;
+    },
+
+    modalConfig() {
+      return {
+        applyAction: this.updateEndpoint,
+        applyMode:   'update',
+        title:       this.t('authConfig.azuread.updateEndpoint.modal.title'),
+        body:        this.t('authConfig.azuread.updateEndpoint.modal.body')
+      };
+    }
   },
 
   watch: {
@@ -125,9 +144,11 @@ export default {
 
   methods: {
     setEndpoints(endpoint) {
-      Object.keys(ENDPOINT_MAPPING[endpoint]).forEach((key) => {
-        this.$set(this.model, key, ENDPOINT_MAPPING[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId));
-      });
+      if (this.editConfig || !this.model.enabled) {
+        Object.keys(ENDPOINT_MAPPING[endpoint]).forEach((key) => {
+          this.$set(this.model, key, ENDPOINT_MAPPING[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId));
+        });
+      }
     },
 
     getNewApplicationSecret() {
@@ -140,6 +161,27 @@ export default {
       }
 
       return applicationSecretOrId;
+    },
+
+    promptUpdate() {
+      this.$store.dispatch('management/promptModal', { component: 'GenericPrompt', resources: [this.modalConfig] });
+    },
+
+    // update the authconfig to change the azure ad graph endpoint to the microsoft graph endpoint
+    // only relevant for setups upgrading to 2.6.6 with azuread auth already enabled
+    updateEndpoint(btnCB) {
+      if (this.needsUpdate) {
+        this.model.doAction('upgrade')
+          .then(() => {
+            this.reloadModel();
+            this.$store.dispatch('growl/success', { message: 'Graph endpoint updated successfully.' });
+            btnCB(true);
+          })
+          .catch((err) => {
+            this.$store.dispatch('growl/fromError', { title: 'Error updating graph endpoint', err });
+            btnCB(false);
+          });
+      }
     }
   },
 };
@@ -172,6 +214,11 @@ export default {
             <tr><td>{{ t(`authConfig.azuread.graphEndpoint`) }}: </td><td>{{ model.graphEndpoint }}</td></tr>
             <tr><td>{{ t(`authConfig.azuread.tokenEndpoint`) }}: </td><td>{{ model.tokenEndpoint }}</td></tr>
             <tr><td>{{ t(`authConfig.azuread.authEndpoint`) }}: </td><td>{{ model.authEndpoint }}</td></tr>
+          </template>
+          <template v-if="needsUpdate" slot="actions">
+            <button type="button" class="btn btn-sm role-secondary mr-10 update" @click="promptUpdate">
+              {{ t('authConfig.azuread.updateEndpoint.button') }}
+            </button>
           </template>
         </AuthBanner>
 
@@ -276,3 +323,22 @@ export default {
     </CruResource>
   </div>
 </template>
+
+<style lang='scss'>
+  .update {
+  border-color: var(--warning);
+  background-color: var(--warning-banner-bg);
+  color: var(--warning) !important;
+
+  &:hover, &._hover {
+    background-color: var(--warning-hover-bg);
+
+    color: var(--warning-text) !important;
+  }
+
+  &:focus, &.focused {
+    background-color: var(--warning-hover-bg);
+    color: var(--warning-text) !important;
+  }
+  }
+</style>
