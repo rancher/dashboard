@@ -271,6 +271,7 @@ export default {
         [this.keyName]:   '',
         [this.valueName]: '',
         binary:           false,
+        canEncode:        this.handleBase64,
         supported:        true
       });
     }
@@ -316,7 +317,8 @@ export default {
         [this.valueName]: value,
       };
 
-      obj.binary = this.displayValuesAsBinary;
+      obj.binary = false;
+      obj.canEncode = this.handleBase64;
       obj.supported = true;
       this.rows.push(obj);
       this.queueUpdate();
