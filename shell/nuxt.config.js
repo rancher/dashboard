@@ -351,7 +351,10 @@ export default function(dir, _appConfig) {
         useShortDoctype:            !dev
       },
 
-      filenames: { chunk: ({ isDev }) => isDev ? '[name].js' : '[name].[contenthash].js' },
+      // Don't include `[name]` in prod file names
+      // This flattens out the folder structure (avoids crazy paths like `_nuxt/pages/account/create-key/pages/c/_cluster/_product/_resource/_id/pages/c/_cluster/_product/_resource`)
+      // and uses nuxt's workaround to address issues with filenames containing `//` (see https://github.com/nuxt/nuxt.js/issues/8274)
+      filenames: { chunk: ({ isDev }) => isDev ? '[name].js' : '[contenthash].js' },
       // @TODO figure out how to split chunks up better, by product
       // optimization: {
       //   splitChunks: {
