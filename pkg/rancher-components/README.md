@@ -1,28 +1,22 @@
-# rancher-components
-
+# @rancher/components
+A library of custom components used to build Rancher UIs.
 ## Project setup
 ```
-npm install
+yarn
 ```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
 ### Compiles and minifies for production
 ```
-npm run build
+yarn build:lib
 ```
 
 ### Run your unit tests
 ```
-npm run test:unit
+yarn test:unit
 ```
 
 ### Lints and fixes files
 ```
-npm run lint
+yarn lint
 ```
 
 ### Customize configuration
