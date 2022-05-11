@@ -17,3 +17,4 @@ utils/dynamic-importer.js
 shell/assets/fonts
 assets/fonts
 shell/pkg/import.js
+pkg/rancher-components/*
