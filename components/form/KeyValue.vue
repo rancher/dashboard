@@ -442,6 +442,7 @@ export default {
         [this.keyName]:   (split[0] || '').trim(),
         [this.valueName]: (split[1] || '').trim(),
         supported:        true,
+        canEncode:        this.handleBase64,
         binary:           this.displayValuesAsBinary
       }));
 
