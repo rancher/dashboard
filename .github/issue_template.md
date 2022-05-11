@@ -18,7 +18,7 @@
 <!-- If applicable, add screenshots to help explain your problem and/or errors in the browser's dev console -->
 
 **Additional context**
-<!--Add any other context about the problem here.—>
+<!--Add any other context about the problem here. -->
 
 <!--------- For feature requests --------->
 **Detailed Description**
