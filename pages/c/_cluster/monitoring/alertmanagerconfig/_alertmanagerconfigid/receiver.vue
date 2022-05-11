@@ -27,8 +27,8 @@ export default {
     this.receiverName = this.$route.query.receiverName;
 
     const alertmanagerConfigId = this.$route.params.alertmanagerconfigid;
-    const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
-
+    const originalAlertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
+    const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/clone`, { resource: originalAlertmanagerConfigResource });
     const mode = this.$route.query.mode;
 
     if (mode !== _CREATE) {
@@ -151,7 +151,6 @@ export default {
   },
 
   methods: {
-
     // When creating or editing a receiver, in both cases
     // it is actually the one existing AlertmanagerConfig
     // being saved. Therefore we take the save from the

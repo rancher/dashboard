@@ -12,7 +12,6 @@ import CreateEditView from '@/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
 import ButtonDropdown from '@/components/ButtonDropdown';
 import { _CREATE, _VIEW } from '@/config/query-params';
-import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export const RECEIVERS_TYPES = [
   {
@@ -149,7 +148,6 @@ export default {
       EDITOR_MODES,
       expectedFields,
       fileFound:            false,
-      receiver:             {},
       receiverTypes:        RECEIVERS_TYPES,
       suffixYaml,
       view:                 _VIEW,
@@ -157,8 +155,13 @@ export default {
     };
   },
 
-  created() {
-    this.registerBeforeHook(this.willSave, 'willSave');
+  mounted() {
+    if (this.mode === this.create) {
+      if (!this.alertmanagerConfigResource.spec.receivers) {
+        this.alertmanagerConfigResource.spec.receivers = [];
+      }
+      this.alertmanagerConfigResource.spec.receivers.push(this.value);
+    }
   },
 
   computed: {
@@ -229,35 +232,9 @@ export default {
       this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
     },
 
-    redirectToReceiverDetail(name) {
-      this.$router.push(this.alertmanagerConfigResource.getReceiverDetailLink(name));
-    },
-
     createAddOptions(receiverType) {
       return receiverType.addOptions.map();
     },
-
-    getReceiverDetailRoute(name) {
-      return JSON.stringify(this.alertmanagerConfigResource.getReceiverDetailLink(name));
-    },
-
-    willSave() {
-      const mode = this.$route.query.mode;
-      const existingReceivers = this.alertmanagerConfigResource.spec.receivers || [];
-
-      if (mode === this.create) {
-        this.alertmanagerConfigResource.spec.receivers = [this.value, ...existingReceivers];
-      }
-    },
-
-    async save(btnCB) {
-      try {
-        await this.applyHooks(BEFORE_SAVE_HOOKS);
-        this.saveOverride(btnCB);
-      } catch {
-        btnCB(false);
-      }
-    }
   }
 };
 </script>
@@ -272,9 +249,8 @@ export default {
     :can-yaml="true"
     :errors="errors"
     :cancel-event="true"
-    :apply-hooks="applyHooks"
     @error="e=>errors = e"
-    @finish="save"
+    @finish="saveOverride()"
     @cancel="redirectAfterCancel"
   >
     <div class="row mb-10">
