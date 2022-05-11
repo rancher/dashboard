@@ -1,7 +1,7 @@
 {
   "name": "@rancher/components",
   "repository": "git://github.com:rancher/dashboard.git",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "private": true,
   "module": "./main.js",
   "main": "./dist/@rancher/components.umd.min.js",
