@@ -5,6 +5,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import Footer from '@shell/components/form/Footer';
 import { ANNOTATIONS_TO_FOLD } from '@shell/config/labels-annotations';
 import { ensureRegex } from '@shell/utils/string';
+import { typeOf } from '@shell/utils/sort';
 
 import {
   _CREATE,
@@ -46,7 +47,7 @@ export default {
     },
 
     doneRoute: {
-      type:    String,
+      type:    [String, Object],
       default: null,
     },
 
@@ -312,6 +313,11 @@ export default {
         return typeof (this.doneOverride) === 'function' ? this.doneOverride() : this.$router.replace(this.doneOverride);
       }
       if ( !this.doneRoute ) {
+        return;
+      }
+      if (typeOf(this.doneRoute) === 'object') {
+        this.$router.replace(this.doneRoute);
+
         return;
       }
       this.$router.replace({
