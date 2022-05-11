@@ -24,7 +24,7 @@ export default {
 
   props: {
     doneRoute: {
-      type:    String,
+      type:    [String, Object],
       default: null
     },
 
