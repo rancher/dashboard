@@ -2,7 +2,7 @@ import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } f
 import { createEpinioRoute } from '../utils/custom-routing';
 import { formatSi } from '@shell/utils/units';
 import { classify } from '@shell/plugins/dashboard-store/classify';
-import EpinioResource from './epinio-resource';
+import EpinioNamespacedResource from './epinio-namespaced-resource';
 import { downloadFile } from '@shell/utils/download';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
@@ -22,7 +22,7 @@ const STATES_MAPPED = {
   unknown:           'unknown',
 };
 
-export default class EpinioApplication extends EpinioResource {
+export default class EpinioApplication extends EpinioNamespacedResource {
   buildCache = {};
 
   get details() {
@@ -315,28 +315,6 @@ export default class EpinioApplication extends EpinioResource {
       ...stats,
       avg: avg === '0.00' ? 0 : avg,
     };
-  }
-
-  // ------------------------------------------------------------------
-  // Methods here are required for generic components to handle `namespaced` concept
-
-  set metadata(metadata) {
-    this.meta = {
-      namespace: metadata.namespace,
-      name:      metadata.name,
-    };
-  }
-
-  get metadata() {
-    return this.meta || {};
-  }
-
-  get namespaceLocation() {
-    return createEpinioRoute(`c-cluster-resource-id`, {
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  EPINIO_TYPES.NAMESPACE,
-      id:       this.meta.namespace,
-    });
   }
 
   // ------------------------------------------------------------------

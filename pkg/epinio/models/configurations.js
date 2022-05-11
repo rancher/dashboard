@@ -1,11 +1,10 @@
 import { EPINIO_TYPES } from '../types';
-import { createEpinioRoute } from '../utils/custom-routing';
-import EpinioResource from './epinio-resource';
+import EpinioNamespacedResource from './epinio-namespaced-resource';
 
 // POST - {"name":"my-service","data":{"foo":"bar"}}
 // GET - { "boundapps": null, "name": "my-service" }
 
-export default class EpinioConfiguration extends EpinioResource {
+export default class EpinioConfiguration extends EpinioNamespacedResource {
   get links() {
     return {
       update: this.getUrl(),
@@ -35,28 +34,6 @@ export default class EpinioConfiguration extends EpinioResource {
 
   get variableCount() {
     return Object.keys(this.configuration?.details || {}).length;
-  }
-
-  // ------------------------------------------------------------------
-  // Methods here are required for generic components to handle `namespaced` concept
-
-  set metadata(metadata) {
-    this.meta = {
-      namespace: metadata.namespace,
-      name:      metadata.name,
-    };
-  }
-
-  get metadata() {
-    return this.meta;
-  }
-
-  get namespaceLocation() {
-    return createEpinioRoute(`c-cluster-resource-id`, {
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  EPINIO_TYPES.NAMESPACE,
-      id:       this.meta.namespace,
-    });
   }
 
   // ------------------------------------------------------------------
