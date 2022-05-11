@@ -387,7 +387,7 @@ export default {
             if (this.valueTrim && asciiLike(value)) {
               value = value.trim();
             }
-            if (row.canEncode) {
+            if ( value && this.handleBase64 ) {
               value = base64Encode(value);
             }
             if ( key && (value || this.valueCanBeEmpty) ) {
