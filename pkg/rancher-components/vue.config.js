@@ -5,7 +5,11 @@ module.exports = {
   chainWebpack: (config) => {
     config.resolve.alias.set(
       '@',
-      path.resolve(__dirname, '../../')
+      path.resolve(__dirname, '../../shell/')
+    )
+    config.resolve.alias.set(
+      '@shell',
+      path.resolve(__dirname, '../../shell/')
     )
     config.resolve.alias.set(
       '~',
