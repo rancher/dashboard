@@ -16,6 +16,7 @@ import {
 } from '@/config/query-params';
 import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { exceptionToErrorsArray } from '../utils/error';
+import { typeOf } from '@/utils/sort';
 
 export default {
   components: {
@@ -46,7 +47,7 @@ export default {
     },
 
     doneRoute: {
-      type:    String,
+      type:    [String, Object],
       default: null,
     },
 
@@ -312,6 +313,11 @@ export default {
         return typeof (this.doneOverride) === 'function' ? this.doneOverride() : this.$router.replace(this.doneOverride);
       }
       if ( !this.doneRoute ) {
+        return;
+      }
+      if (typeOf(this.doneRoute) === 'object') {
+        this.$router.replace(this.doneRoute);
+
         return;
       }
       this.$router.replace({
