@@ -32,7 +32,7 @@ export default {
     const mode = this.$route.query.mode;
 
     if (mode !== _CREATE) {
-      const existingReceiverData = alertmanagerConfigResource.spec.receivers.find((receiverData) => {
+      const existingReceiverData = (alertmanagerConfigResource.spec.receivers || []).find((receiverData) => {
         return receiverData.name === this.receiverName;
       });
 
@@ -151,6 +151,7 @@ export default {
   },
 
   methods: {
+
     // When creating or editing a receiver, in both cases
     // it is actually the one existing AlertmanagerConfig
     // being saved. Therefore we take the save from the
@@ -164,12 +165,6 @@ export default {
         buttonDone(false);
 
         return;
-      }
-      const mode = this.$route.query.mode;
-      const existingReceivers = this.alertmanagerConfigResource.spec.receivers;
-
-      if (mode === this.create) {
-        this.alertmanagerConfigResource.spec.receivers = [this.receiverValue, ...existingReceivers];
       }
 
       this.alertmanagerConfigResource.save(...arguments);
@@ -208,7 +203,7 @@ export default {
       const nameOfReceiverToDelete = actionData.route.query.receiverName;
       // Remove it from the configuration of the parent AlertmanagerConfig
       // resource.
-      const existingReceivers = this.alertmanagerConfigResource.spec.receivers;
+      const existingReceivers = this.alertmanagerConfigResource.spec.receivers || [];
       const receiversMinusDeletedItem = existingReceivers.filter((receiver) => {
         return receiver.name !== nameOfReceiverToDelete;
       });

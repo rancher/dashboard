@@ -12,6 +12,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
 import ButtonDropdown from '@/components/ButtonDropdown';
 import { _CREATE, _VIEW } from '@/config/query-params';
+import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export const RECEIVERS_TYPES = [
   {
@@ -156,6 +157,10 @@ export default {
     };
   },
 
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
+
   computed: {
     editorMode() {
       if ( this.$route.query.mode === _VIEW ) {
@@ -234,6 +239,24 @@ export default {
 
     getReceiverDetailRoute(name) {
       return JSON.stringify(this.alertmanagerConfigResource.getReceiverDetailLink(name));
+    },
+
+    willSave() {
+      const mode = this.$route.query.mode;
+      const existingReceivers = this.alertmanagerConfigResource.spec.receivers || [];
+
+      if (mode === this.create) {
+        this.alertmanagerConfigResource.spec.receivers = [this.value, ...existingReceivers];
+      }
+    },
+
+    async save(btnCB) {
+      try {
+        await this.applyHooks(BEFORE_SAVE_HOOKS);
+        this.saveOverride(btnCB);
+      } catch {
+        btnCB(false);
+      }
     }
   }
 };
@@ -249,8 +272,9 @@ export default {
     :can-yaml="true"
     :errors="errors"
     :cancel-event="true"
+    :apply-hooks="applyHooks"
     @error="e=>errors = e"
-    @finish="saveOverride()"
+    @finish="save"
     @cancel="redirectAfterCancel"
   >
     <div class="row mb-10">
