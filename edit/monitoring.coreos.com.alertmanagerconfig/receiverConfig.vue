@@ -242,7 +242,7 @@ export default {
 <template>
   <CruResource
     class="receiver"
-    :done-route="getReceiverDetailRoute(value.name)"
+    :done-route="alertmanagerConfigResource.getAlertmanagerConfigDetailRoute()"
     :mode="mode"
     :resource="alertmanagerConfigResource"
     :subtypes="[]"
