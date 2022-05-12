@@ -230,10 +230,10 @@ export default {
       <template v-else>
         <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
 
-        <InfoBox v-if="!model.enabled" class="mt-20 mb-20 p-10">
-          Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that is may take up to 5 minutes for the whitelisted URL to propagate.
+        <InfoBox v-if="!model.enabled" id="reply-info" class="mt-20 mb-20 p-10">
+          {{ t('authConfig.azuread.reply.info') }}
           <br />
-          <label>Reply URL: </label> <CopyToClipboardText :plain="true" :text="replyUrl" />
+          <label>{{ t('authConfig.azuread.reply.label') }} </label> <CopyToClipboardText :plain="true" :text="replyUrl" />
         </InfoBox>
 
         <div class="row mb-20">
@@ -326,19 +326,23 @@ export default {
 
 <style lang='scss'>
   .update {
-  border-color: var(--warning);
-  background-color: var(--warning-banner-bg);
-  color: var(--warning) !important;
+    border-color: var(--warning);
+    background-color: var(--warning-banner-bg);
+    color: var(--warning) !important;
 
-  &:hover, &._hover {
-    background-color: var(--warning-hover-bg);
+    &:hover, &._hover {
+      background-color: var(--warning-hover-bg);
 
-    color: var(--warning-text) !important;
+      color: var(--warning-text) !important;
+    }
+
+    &:focus, &.focused {
+      background-color: var(--warning-hover-bg);
+      color: var(--warning-text) !important;
+    }
   }
 
-  &:focus, &.focused {
-    background-color: var(--warning-hover-bg);
-    color: var(--warning-text) !important;
-  }
+  #reply-info {
+    flex-grow: 0;
   }
 </style>
