@@ -10,7 +10,7 @@ import { FLEET, SCHEMA } from '@shell/config/types';
 import { createYaml } from '@shell/utils/create-yaml';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import DetailTop from '@shell/components/DetailTop';
-import { clone, set, diff } from '@shell/utils/object';
+import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import ForceDirectedTreeChart from '@shell/components/fleet/ForceDirectedTreeChart';
 

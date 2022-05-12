@@ -1,7 +1,7 @@
 <script>
 import * as d3 from 'd3';
-import { STATES } from '@/plugins/steve/resource-class';
-import BadgeState from '@/components/BadgeState';
+import { STATES } from '@shell/plugins/dashboard-store/resource-class';
+import BadgeState from '@shell/components/BadgeState';
 import { getChartIcon } from './chartIcons.js';
 
 export default {

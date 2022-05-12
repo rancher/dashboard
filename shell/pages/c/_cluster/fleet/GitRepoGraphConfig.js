@@ -1,5 +1,5 @@
-import { STATES } from '@/plugins/steve/resource-class';
-import { FLEET } from '@/config/types';
+import { STATES } from '@shell/plugins/dashboard-store/resource-class';
+import { FLEET } from '@shell/config/types';
 
 // some default values
 const defaultNodeRadius = 20;
