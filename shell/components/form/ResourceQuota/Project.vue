@@ -44,7 +44,7 @@ export default {
         .filter(mappedType => !this.typeValues.includes(mappedType.value) || mappedType.value === currentType);
     },
     emitRemove(data) {
-      this.$emit('remove', data.index?.value);
+      this.$emit('remove', data.row?.value);
     }
   },
 };
