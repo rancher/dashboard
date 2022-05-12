@@ -1,4 +1,4 @@
-import { NORMAN } from '@/config/types';
+import { NORMAN } from '@shell/config/types';
 
 export default {
   methods: {

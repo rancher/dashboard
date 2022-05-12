@@ -24,11 +24,11 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import { NAME as HARVESTER } from '@shell/config/product/harvester';
 import isEqual from 'lodash/isEqual';
-import { ucFirst } from '@/utils/string';
-import { getVersionInfo, markSeenReleaseNotes } from '@/utils/version';
-import { sortBy } from '@/utils/sort';
-import PageHeaderActions from '@/mixins/page-actions';
-import BrowserTabVisibility from '@/mixins/browser-tab-visibility';
+import { ucFirst } from '@shell/utils/string';
+import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
+import { sortBy } from '@shell/utils/sort';
+import PageHeaderActions from '@shell/mixins/page-actions';
+import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
