@@ -1,10 +1,11 @@
 import { DEFAULT_PROJECT, SYSTEM_PROJECT } from '@shell/config/labels-annotations';
 import { MANAGEMENT, NAMESPACE, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import isEmpty from 'lodash/isEmpty';
 
 function clearUnusedResourceQuotas(spec, types) {
   types.forEach((type) => {
-    if (spec[type]?.limit && Object.keys(spec[type].limit).length) {
+    if (spec[type]?.limit && !isEmpty(spec[type].limit)) {
       Object.keys(spec[type].limit).forEach((key) => {
         if (!spec[type].limit[key]) {
           delete spec[type].limit[key];
@@ -12,7 +13,7 @@ function clearUnusedResourceQuotas(spec, types) {
       });
     }
 
-    if (spec[type]?.usedLimit && Object.keys(spec[type].usedLimit).length) {
+    if (spec[type]?.usedLimit && !isEmpty(spec[type].usedLimit)) {
       Object.keys(spec[type].usedLimit).forEach((key) => {
         if (!spec[type].usedLimit[key]) {
           delete spec[type].usedLimit[key];
@@ -20,15 +21,15 @@ function clearUnusedResourceQuotas(spec, types) {
       });
     }
 
-    if ( spec[type]?.limit && !Object.keys(spec[type].limit).length ) {
+    if ( spec[type]?.limit && isEmpty(spec[type].limit) ) {
       spec[type].limit = null;
     }
 
-    if ( spec[type]?.usedLimit && !Object.keys(spec[type].usedLimit).length ) {
+    if ( spec[type]?.usedLimit && isEmpty(spec[type].usedLimit) ) {
       spec[type].usedLimit = null;
     }
 
-    if ( spec[type] && Object.keys(spec[type]).length && Object.keys(spec[type]).every( k => spec[type][k] === null ) ) {
+    if ( spec[type] && !isEmpty(spec[type]) && Object.keys(spec[type]).every( k => spec[type][k] === null ) ) {
       spec[type] = null;
     }
   });
