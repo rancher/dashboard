@@ -3,6 +3,10 @@
 .v--modal-overlay {
   background-color: var(--overlay-bg);
   z-index: z-index('modalOverlay');
+
+  .v--modal-box {
+    overflow-y: auto;
+  }
 }
 
 .v--modal {
