@@ -16,14 +16,14 @@ describe('Home Page', () => {
     burgerMenuPo.checkVisible();
   });
 
-  it('Displays welcome section', () => {
+  it('Displays changelog section', () => {
     const homePage = new HomePagePo();
 
     homePage
       .checkIsCurrentPage();
 
     homePage
-      .title()
-      .should('eq', 'Welcome to Rancher');
+      .changelog()
+      .should('include', `What's new in 2.6`);
   });
 });

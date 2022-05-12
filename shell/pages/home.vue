@@ -284,7 +284,10 @@ export default {
     <IndentedPanel class="mt-20 mb-20">
       <div v-if="!readWhatsNewAlready" class="row">
         <div class="col span-12">
-          <Banner color="info whats-new">
+          <Banner
+            id="changelog-banner"
+            color="info whats-new"
+          >
             <div>{{ t('landing.seeWhatsNew') }}</div>
             <a class="hand" @click.prevent.stop="showWhatsNew"><span v-html="t('landing.whatsNewLink')" /></a>
           </Banner>
