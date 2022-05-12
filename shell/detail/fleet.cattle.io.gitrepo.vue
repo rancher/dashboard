@@ -31,8 +31,8 @@ export default {
 
   data() {
     return {
-      allFleet:   [],
-      allBundles: [],
+      allFleet:      [],
+      allBundles:    []
     };
   },
 
@@ -95,11 +95,12 @@ export default {
       v-if="gitRepoHasClusters"
       :value="value"
       :bundles="bundles"
+      class="mb-20"
     />
     <Banner
       v-else
       color="info"
-      class="mb-40"
+      class="mb-20"
     >
       {{ t('fleet.fleetSummary.noClustersGitRepo') }}
     </Banner>

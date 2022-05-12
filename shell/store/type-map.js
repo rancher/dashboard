@@ -99,6 +99,8 @@
 //                               depaginate: undefined -- Use this to depaginate requests for this type
 //                               resourceEditMasthead: true   -- Show the Masthead in the edit resource component
 //                               customRoute: undefined,
+//                               hasGraph: undefined   -- If true, render ForceDirectedTreeChart graph (ATTENTION: option graphConfig is needed also!!!)
+//                               graphConfig: undefined   -- Use this to pass along the graph configuration
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -127,7 +129,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveDetail, resolveWindowComponent, importWindowComponent
+  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent
 
 } from '@shell/utils/dynamic-importer';
 
@@ -153,6 +155,7 @@ export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
+const graphConfigMap = {};
 
 const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
@@ -227,6 +230,10 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     configureType(match, options) {
+      if (options.graphConfig) {
+        graphConfigMap[match] = options.graphConfig;
+        delete options.graphConfig;
+      }
       store.commit(`${ module }/configureType`, { ...options, match });
     },
 
@@ -1032,11 +1039,35 @@ export const getters = {
     };
   },
 
-  hasCustomDetail(state, getters, rootState) {
+  hasCustomDetail(state, getters) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
+      const cache = state.cache.detail;
 
-      return hasCustom(state, rootState, 'detail', key, key => resolveDetail(key));
+      if ( cache[key] !== undefined ) {
+        return cache[key];
+      }
+
+      try {
+        require.resolve(`@/detail/${ key }`);
+        cache[key] = true;
+      } catch (e) {
+        cache[key] = false;
+      }
+
+      return cache[key];
+    };
+  },
+
+  hasGraph(state, getters) {
+    return (resource) => {
+      const typeOptions = getters['optionsFor'](resource);
+
+      if (typeOptions && typeOptions.hasGraph) {
+        return graphConfigMap[resource];
+      }
+
+      return null;
     };
   },
 

@@ -1909,6 +1909,17 @@ fleet:
           =1 {Matches 1 of {total, number} existing clusters: "{sample}"}
           other {Matches {matched, number} of {total, number} existing clusters, including "{sample}"}
         }
+  fdc:
+    loadingChart: Loading chart data...
+    renderingChart: Rendering chart...
+    id: ID
+    type: Type
+    state: State
+    cluster: Cluster
+    error: Error
+    ready: Ready
+    errors: Errors
+
 footer:
   docs: Docs
   download: Download CLI
@@ -3957,6 +3968,7 @@ resourceDetail:
     project: Project
     detail: Detail
     config: Config
+    graph: Graph
     yaml: YAML
     managedWarning: |-
       This {type} is managed by {hasName, select,
