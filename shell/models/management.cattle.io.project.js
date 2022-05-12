@@ -1,25 +1,40 @@
 import { DEFAULT_PROJECT, SYSTEM_PROJECT } from '@shell/config/labels-annotations';
 import { MANAGEMENT, NAMESPACE, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import isEmpty from 'lodash/isEmpty';
 
-function clearResourceQuotas(val, type) {
-  if (val[type]?.limit && Object.keys(val[type].limit).length) {
-    Object.keys(val[type].limit).forEach((key) => {
-      if (!val[type].limit[key]) {
-        delete val[type].limit[key];
-      }
-    });
-  }
+function clearUnusedResourceQuotas(spec, types) {
+  types.forEach((type) => {
+    if (spec[type]?.limit && !isEmpty(spec[type].limit)) {
+      Object.keys(spec[type].limit).forEach((key) => {
+        if (!spec[type].limit[key]) {
+          delete spec[type].limit[key];
+        }
+      });
+    }
 
-  if ( val[type]?.limit && !Object.keys(val[type].limit).length ) {
-    delete val[type].limit;
-  }
+    if (spec[type]?.usedLimit && !isEmpty(spec[type].usedLimit)) {
+      Object.keys(spec[type].usedLimit).forEach((key) => {
+        if (!spec[type].usedLimit[key]) {
+          delete spec[type].usedLimit[key];
+        }
+      });
+    }
 
-  if ( val[type] && !Object.keys(val[type]).length ) {
-    delete val[type];
-  }
+    if ( spec[type]?.limit && isEmpty(spec[type].limit) ) {
+      spec[type].limit = null;
+    }
 
-  return val[type];
+    if ( spec[type]?.usedLimit && isEmpty(spec[type].usedLimit) ) {
+      spec[type].usedLimit = null;
+    }
+
+    if ( spec[type] && !isEmpty(spec[type]) && Object.keys(spec[type]).every( k => spec[type][k] === null ) ) {
+      spec[type] = null;
+    }
+  });
+
+  return spec;
 }
 
 export default class Project extends HybridModel {
@@ -79,6 +94,8 @@ export default class Project extends HybridModel {
 
   get normanNewProject() {
     return (async() => {
+      const clearedResourceQuotas = clearUnusedResourceQuotas(this.spec, ['resourceQuota', 'namespaceDefaultResourceQuota']);
+
       const normanProject = await this.$dispatch('rancher/create', {
         type:                          NORMAN.PROJECT,
         name:                          this.spec.displayName,
@@ -88,13 +105,12 @@ export default class Project extends HybridModel {
         clusterId:                     this.$rootGetters['currentCluster'].id,
         creatorId:                     this.$rootGetters['auth/principalId'],
         containerDefaultResourceLimit: this.spec.containerDefaultResourceLimit,
-        namespaceDefaultResourceQuota: clearResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'namespaceDefaultResourceQuota'),
-        resourceQuota:                 clearResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'resourceQuota'),
       }, { root: true });
 
       // The backend seemingly required both labels/annotation and metadata.labels/annotations or it doesn't save the labels and annotations
       normanProject.setAnnotations(this.metadata.annotations);
       normanProject.setLabels(this.metadata.labels);
+      normanProject.setResourceQuotas(clearedResourceQuotas);
 
       return normanProject;
     })();
@@ -107,12 +123,13 @@ export default class Project extends HybridModel {
         id:         this.id.replace('/', ':'),
       }, { root: true });
 
+      const clearedResourceQuotas = clearUnusedResourceQuotas(this.spec, ['resourceQuota', 'namespaceDefaultResourceQuota']);
+
       normanProject.setAnnotations(this.metadata.annotations);
       normanProject.setLabels(this.metadata.labels);
+      normanProject.setResourceQuotas(clearedResourceQuotas);
       normanProject.description = this.spec.description;
       normanProject.containerDefaultResourceLimit = this.spec.containerDefaultResourceLimit;
-      normanProject.namespaceDefaultResourceQuota = clearResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'namespaceDefaultResourceQuota');
-      normanProject.resourceQuota = clearResourceQuotas(JSON.parse(JSON.stringify(this.spec)), 'resourceQuota');
 
       return normanProject;
     })();
