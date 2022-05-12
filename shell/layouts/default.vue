@@ -579,7 +579,10 @@ export default {
               placement="top"
               trigger="click"
             >
-              <a class="locale-chooser">
+              <a
+                id="locale-selector"
+                class="locale-chooser"
+              >
                 {{ locale }}
               </a>
 

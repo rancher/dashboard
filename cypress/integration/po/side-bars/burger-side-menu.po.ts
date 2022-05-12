@@ -2,7 +2,7 @@ import ComponentPo from '@/cypress/integration/po/components/component.po';
 
 export default class BurgerMenuPo extends ComponentPo {
   constructor() {
-    super('.side-menu');
+    super('#side-menu');
   }
 
   /**
@@ -10,7 +10,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static toggle(): Cypress.Chainable {
-    return cy.get('.menu-icon').click({ force: true });
+    return cy.get('#top-level-menu').click({ force: true });
   }
 
   /**
@@ -32,7 +32,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   private static sideMenu(): Cypress.Chainable {
-    return cy.get('body').get('.side-menu');
+    return cy.get('body').get('#side-menu');
   }
 
   /**
@@ -64,6 +64,6 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   localization(): Cypress.Chainable {
-    return this.self().find('.locale-chooser');
+    return this.self().find('#locale-selector');
   }
 }

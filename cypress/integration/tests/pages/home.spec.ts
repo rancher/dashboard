@@ -8,7 +8,15 @@ describe('Home Page', () => {
     HomePagePo.goTo();
   });
 
-  it('Renders', () => {
+  it('Has a top-level nav menu', () => {
+    BurgerMenuPo.toggle();
+
+    const burgerMenuPo = new BurgerMenuPo();
+
+    burgerMenuPo.checkVisible();
+  });
+
+  it('Displays welcome section', () => {
     const homePage = new HomePagePo();
 
     homePage
@@ -17,13 +25,5 @@ describe('Home Page', () => {
     homePage
       .title()
       .should('eq', 'Welcome to Rancher');
-  });
-
-  it('Has a top-level nav menu', () => {
-    BurgerMenuPo.toggle();
-
-    const burgerMenuPo = new BurgerMenuPo();
-
-    burgerMenuPo.checkVisible();
   });
 });
