@@ -22,7 +22,7 @@ describe('Local authentication', () => {
 
     cy.wait('@loginReq').then((login) => {
       expect(login.response?.statusCode).to.not.equal(200);
-      cy.url().should('equal', `${ Cypress.config().baseUrl }/auth/login`);
+      cy.url().should('include', `${ Cypress.config().baseUrl }/auth/login`);
     });
   });
 });
