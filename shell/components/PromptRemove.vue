@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
-import { escapeHtml } from '@/utils/string';
+import { escapeHtml } from '@shell/utils/string';
 import Card from '@shell/components/Card';
 import Checkbox from '@shell/components/form/Checkbox';
 import { alternateLabel } from '@shell/utils/platform';
