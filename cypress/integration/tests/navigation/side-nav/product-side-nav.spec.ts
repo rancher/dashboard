@@ -14,7 +14,7 @@ describe('Side navigation: Cluster ', () => {
     burgerMenuPo.clusters().eq(0).should('be.visible').click();
     // Navigation has some issues for the first click
     // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(2000);
+    cy.wait(4000);
   });
 
   it('Can access to first navigation link on click', () => {
