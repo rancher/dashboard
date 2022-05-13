@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import Card from '@shell/components/Card';
+import { Card } from '@pkg/rancher-components/src/components/Card';
 import Banner from '@shell/components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import Checkbox from '@shell/components/form/Checkbox';

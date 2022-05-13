@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import day from 'dayjs';
-import Card from '@shell/components/Card';
+import { Card } from '@pkg/rancher-components/src/components/Card';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Banner from '@shell/components/Banner';

@@ -2,7 +2,7 @@
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
 import { escapeHtml } from '@shell/utils/string';
-import Card from '@shell/components/Card';
+import { Card } from '@pkg/rancher-components/src/components/Card';
 import Checkbox from '@shell/components/form/Checkbox';
 import { alternateLabel } from '@shell/utils/platform';
 import { uniq } from '@shell/utils/array';

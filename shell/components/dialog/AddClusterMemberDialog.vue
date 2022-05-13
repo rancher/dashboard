@@ -1,5 +1,5 @@
 <script>
-import Card from '@shell/components/Card';
+import { Card } from '@pkg/rancher-components/src/components/Card';
 import ClusterPermissionsEditor from '@shell/components/form/Members/ClusterPermissionsEditor';
 
 export default {

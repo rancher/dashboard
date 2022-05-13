@@ -1,7 +1,7 @@
 <script>
 import { SNAPSHOT, NORMAN } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
-import Card from '@shell/components/Card';
+import { Card } from '@pkg/rancher-components/src/components/Card';
 import Banner from '@shell/components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 

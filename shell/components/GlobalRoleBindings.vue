@@ -6,7 +6,7 @@ import Checkbox from '@shell/components/form/Checkbox';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { addObjects, isArray } from '@shell/utils/array';
-import Card from '@shell/components/Card';
+import { Card } from '@pkg/rancher-components/src/components/Card';
 
 /**
  * Display checkboxes for each global role, checked for given user or principal (group). Can save changes.

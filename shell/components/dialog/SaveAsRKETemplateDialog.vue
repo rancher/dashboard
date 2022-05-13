@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import Card from '@shell/components/Card';
+import { Card } from '@pkg/rancher-components/src/components/Card';
 import Banner from '@shell/components/Banner';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import { exceptionToErrorsArray } from '@shell/utils/error';

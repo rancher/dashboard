@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
-import Card from '@shell/components/Card';
+import { Card } from '@pkg/rancher-components/src/components/Card';
 import Banner from '@shell/components/Banner';
 import Date from '@shell/components/formatter/Date.vue';
 import RadioGroup from '@shell/components/form/RadioGroup.vue';

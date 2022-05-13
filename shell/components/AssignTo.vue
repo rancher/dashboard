@@ -4,7 +4,7 @@ import { FLEET, NORMAN } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import KeyValue from '@shell/components/form/KeyValue';
 import AsyncButton from '@shell/components/AsyncButton';
-import Card from '@shell/components/Card';
+import { Card } from '@pkg/rancher-components/src/components/Card';
 import Banner from '@shell/components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { set } from '@shell/utils/object';
