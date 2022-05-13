@@ -7,7 +7,6 @@ env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
   CATTLE_BOOTSTRAP_PASSWORD: password
-  TEST_SKIP_SETUP: false
   TEST_BASE_URL: https://127.0.0.1:8005
   API: https://127.0.0.1
 jobs:
@@ -15,36 +14,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        if: "!contains(github.event.pull_request.title, '[skip-e2e]')"
+        if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
         uses: actions/checkout@v2
 
       - name: Setup node
-        if: "!contains(github.event.pull_request.title, '[skip-e2e]')"
+        if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
         uses: actions/setup-node@v2
         with:
           node-version: '14.x'
       
       - name: Install packages
-        if: "!contains(github.event.pull_request.title, '[skip-e2e]')"
+        if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
         run: yarn install
       
       - name: Prepare build
-        if: "!contains(github.event.pull_request.title, '[skip-e2e]')"
+        if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
         run: yarn e2e:pre-prod
       
       - name: Run tests
-        if: "!contains(github.event.pull_request.title, '[skip-e2e]')"
+        if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
         run: yarn e2e:prod
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
-        if: "always() && !contains(github.event.pull_request.title, '[skip-e2e]')"
+        if: "always() && !contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
         with:
           name: cypress-screenshots
           path: cypress/screenshots
       
       - uses: actions/upload-artifact@v2
-        if: "always() && !contains(github.event.pull_request.title, '[skip-e2e]')"
+        if: "always() && !contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
         with:
           name: cypress-videos
           path: cypress/videos
