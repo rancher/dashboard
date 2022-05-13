@@ -12,17 +12,18 @@ describe('Side navigation: Cluster ', () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.clusters().eq(0).should('be.visible').click();
+    // Navigation has some issues for the first click
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(2000);
   });
 
   it('Can access to first navigation link on click', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.visibleNavTypes().eq(0).as('firstLink');
-    cy.get('@firstLink').should('be.visible').click();
-
-    cy.get('@firstLink').then((linkEl) => {
-      cy.location('href').should('equal', linkEl.prop('href'));
-    });
+    productNavPo.visibleNavTypes().eq(0).should('be.visible').click()
+      .then((link) => {
+        cy.url().should('equal', link.prop('href'));
+      });
   });
 
   it('Can open second menu groups on click', () => {
@@ -76,7 +77,7 @@ describe('Side navigation: Cluster ', () => {
       productNavPo.visibleNavTypes().each((link, idx) => {
         productNavPo.visibleNavTypes().eq(idx)
           .click({ force: true })
-          .then(linkEl => cy.location('href').should('equal', linkEl.prop('href')));
+          .then(linkEl => cy.url().should('equal', linkEl.prop('href')));
       });
     });
   });
