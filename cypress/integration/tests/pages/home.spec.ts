@@ -1,5 +1,6 @@
 import HomePagePo from '@/cypress/integration/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/integration/po/side-bars/burger-side-menu.po';
+import PageActions from '@/cypress/integration/po/side-bars/page-actions.po';
 
 describe('Home Page', () => {
   beforeEach(() => {
@@ -18,10 +19,14 @@ describe('Home Page', () => {
 
   it('Displays changelog section', () => {
     const homePage = new HomePagePo();
+    const pageActionsPo = new PageActions();
 
+    PageActions.open();
+    pageActionsPo.restoreLink().click();
     homePage
       .checkIsCurrentPage();
 
+    // This element is hidden after navigating to the page
     homePage
       .changelog()
       .should('include', `What's new in 2.6`);

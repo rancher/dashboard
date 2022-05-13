@@ -22,6 +22,7 @@ describe('Local authentication', () => {
 
     cy.wait('@loginReq').then((login) => {
       expect(login.response?.statusCode).to.not.equal(200);
+      // URL is partial as it may change based on the authentication configuration present
       cy.url().should('include', `${ Cypress.config().baseUrl }/auth/login`);
     });
   });
