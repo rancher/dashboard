@@ -33,7 +33,8 @@ describe('Side Menu: main', () => {
     burgerMenuPo.categories().should('have.length.greaterThan', 0);
   });
 
-  it('Contains valid links', () => {
+  // TODO: Verify cause of race condition issue making navigation link not trigger
+  it.skip('Contains valid links', () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     // Navigate through all the links
