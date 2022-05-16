@@ -101,6 +101,9 @@ export default {
     max() {
       return this.projectLimit - this.namespaceContribution;
     },
+    availableResourceQuotas() {
+      return formatSi(this.projectLimit - this.totalContribution, { ...this.siOptions, addSuffixSpace: false });
+    },
     slices() {
       const out = [];
 
@@ -112,7 +115,42 @@ export default {
       });
 
       return out;
-    }
+    },
+    tooltip() {
+      const t = this.$store.getters['i18n/t'];
+      const out = [
+        {
+          label: t('resourceQuota.tooltip.reserved'),
+          value: formatSi(this.namespaceContribution, { ...this.siOptions, addSuffixSpace: false }),
+        },
+        {
+          label: t('resourceQuota.tooltip.namespace'),
+          value: this.value.limit[this.type]
+        },
+        {
+          label: t('resourceQuota.tooltip.available'),
+          value: this.availableResourceQuotas
+        },
+        {
+          label: t('resourceQuota.tooltip.max'),
+          value: this.projectResourceQuotaLimits[this.type]
+        }
+      ];
+
+      let formattedTooltip = '<div class="quota-percentage-tooltip">';
+
+      (out || []).forEach((v) => {
+        formattedTooltip += `
+        <div style='margin-top: 5px; display: flex; justify-content: space-between;'>
+          ${ v.label }
+          <span style='margin-left: 20px;'>${ v.value }</span>
+        </div>`;
+      });
+      formattedTooltip += '</div>';
+
+      return formattedTooltip;
+    },
+
   },
 
   methods: {
@@ -140,7 +178,13 @@ export default {
       :options="types"
     />
     <div class="resource-availability mr-10">
-      <PercentageBar class="percentage-bar" :value="percentageUsed" :slices="slices" :color-stops="{'100': '--primary'}" />
+      <PercentageBar
+        v-tooltip="tooltip"
+        class="percentage-bar"
+        :value="percentageUsed"
+        :slices="slices"
+        :color-stops="{'100': '--primary'}"
+      />
     </div>
     <UnitInput
       :value="value.limit[type]"

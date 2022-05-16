@@ -6711,6 +6711,12 @@ resourceQuota:
     unitlessPlaceholder: e.g. 10
   add:
     label: Add Resource
+  tooltip:
+    reserved: 'Other Namespaces:'
+    namespace: 'This Namespace:'
+    available: 'Available:'
+    max: 'Total:'
+
 
 
 ##############################
