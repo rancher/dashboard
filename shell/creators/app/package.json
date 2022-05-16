@@ -1,18 +1,15 @@
 {
   "name": "@rancher/create-app",
-  "description": "UI Application generator",
-  "version": "0.1.56",
+  "description": "Rancher UI Application generator",
+  "version": "0.0.0",
   "license": "Apache-2.0",
-  "author": "Rancher Labs, Inc.",
+  "author": "SUSE",
   "private": false,
   "bin": "./init",
   "files": [
     "*.*",
     "init"
   ],
-  "publishConfig": {
-    "registry": "http://localhost:4873"
-  },
   "engines": {
     "node": ">=12"
   },

@@ -4,9 +4,8 @@
   "version": "0.6.2",
   "private": false,
   "rancher": true,
-  "publishConfig": {
-    "registry": "http://localhost:4873"
-  },
+  "license": "Apache-2.0",
+  "author": "SUSE",  
   "scripts": {
     "dev": "./node_modules/.bin/nuxt dev",
     "nuxt": "./node_modules/.bin/nuxt"

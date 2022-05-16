@@ -3,7 +3,7 @@
   "description": "Rancher Dashboard",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
-  "author": "Rancher Labs, Inc.",
+  "author": "SUSE",
   "private": true,
   "engines": {
     "node": ">=12"
