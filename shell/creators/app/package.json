@@ -1,7 +1,7 @@
 {
   "name": "@rancher/create-app",
   "description": "UI Application generator",
-  "version": "0.1.57",
+  "version": "0.1.58",
   "license": "Apache-2.0",
   "author": "SUSE",
   "private": false,
