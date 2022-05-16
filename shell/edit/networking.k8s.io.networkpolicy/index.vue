@@ -9,7 +9,7 @@ import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import Labels from '@shell/components/form/Labels';
 import { NAMESPACE, POD } from '@shell/config/types';
 import { convert, matching, simplify } from '@shell/utils/selector';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import { addObject, removeObject } from '@shell/utils/array';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import PolicyRules from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRules';

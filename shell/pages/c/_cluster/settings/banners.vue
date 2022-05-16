@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';

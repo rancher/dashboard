@@ -1,7 +1,7 @@
 <script>
 // TODO: Remove jquery dep
 import $ from 'jquery'
-import { addObject, removeObject } from '@/utils/array'
+import { addObject, removeObject } from '@shell/utils/array'
 
 const _EDIT = 'edit'
 const _VIEW = 'view'

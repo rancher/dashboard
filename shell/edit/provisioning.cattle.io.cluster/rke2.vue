@@ -31,7 +31,7 @@ import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import CruResource from '@shell/components/CruResource';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';

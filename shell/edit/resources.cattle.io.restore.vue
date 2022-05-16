@@ -3,7 +3,7 @@ import CruResource from '@shell/components/CruResource';
 import createEditView from '@shell/mixins/create-edit-view';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
 import RadioGroup from '@shell/components/form/RadioGroup';

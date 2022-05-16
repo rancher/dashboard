@@ -3,7 +3,7 @@ import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import Loading from '@shell/components/Loading';
 import CruResource from '@shell/components/CruResource';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import LabelValue from '@shell/components/LabelValue';
 import VM_MIXIN from '@shell/mixins/harvester-vm';
 import { allHash } from '@shell/utils/promise';

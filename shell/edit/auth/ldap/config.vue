@@ -1,7 +1,7 @@
 <script>
 import RadioGroup from '@shell/components/form/RadioGroup';
 import LabeledInput from '@shell/components/form/LabeledInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import UnitInput from '@shell/components/form/UnitInput';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import FileSelector from '@shell/components/form/FileSelector';

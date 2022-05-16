@@ -4,7 +4,7 @@ import Application from '../../models/applications';
 import ApplicationAction, { APPLICATION_ACTION_TYPE } from '../../models/application-action';
 
 import SortableTable from '@shell/components/SortableTable/index.vue';
-import Checkbox from '@shell/components/form/Checkbox.vue';
+import Checkbox from '@pkg/rancher-components/src/components/Form/Checkbox/Checkbox.vue';
 import BadgeState from '@pkg/rancher-components/src/components/BadgeState/BadgeState.vue';
 import { STATE, DESCRIPTION } from '@shell/config/table-headers';
 import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE } from '../../types';

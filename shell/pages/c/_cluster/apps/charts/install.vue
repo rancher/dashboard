@@ -9,7 +9,7 @@ import { mapGetters } from 'vuex';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import LazyImage from '@shell/components/LazyImage';

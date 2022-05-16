@@ -1,7 +1,7 @@
 <script>
 import debounce from 'lodash/debounce';
 import jsyaml from 'js-yaml';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import YamlEditor from '@shell/components/YamlEditor';
 import { mapGetters } from 'vuex';
 import FileSelector from '@shell/components/form/FileSelector';

@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import RadioGroup from '@shell/components/form/RadioGroup';
 

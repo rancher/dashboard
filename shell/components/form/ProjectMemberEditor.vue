@@ -5,7 +5,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import { Card } from '@pkg/rancher-components/src/components/Card';
 import RadioGroup from '@shell/components/form/RadioGroup';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 
 export default {

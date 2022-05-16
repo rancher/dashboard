@@ -1,6 +1,6 @@
 <script>
 import LabeledInput from '@shell/components/form/LabeledInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
 import { _CREATE, _VIEW } from '@shell/config/query-params';

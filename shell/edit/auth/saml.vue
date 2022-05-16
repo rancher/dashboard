@@ -4,7 +4,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import AuthConfig from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import LabeledInput from '@shell/components/form/LabeledInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';

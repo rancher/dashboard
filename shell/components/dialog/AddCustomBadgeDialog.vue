@@ -7,7 +7,7 @@ import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import ClusterBadge from '@shell/components/ClusterBadge';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import ColorInput from '@shell/components/form/ColorInput';
 import { parseColor, textColor } from '@shell/utils/color';

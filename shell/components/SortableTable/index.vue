@@ -3,7 +3,7 @@ import day from 'dayjs';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import ActionDropdown from '@shell/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';

@@ -8,7 +8,7 @@
  * located in @shell/edit/monitoring.coreos.com.alertmanagerconfig/types.
  */
 import LabeledInput from '@shell/components/form/LabeledInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import { _CREATE } from '@shell/config/query-params';
 
 export default {

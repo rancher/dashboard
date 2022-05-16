@@ -2,7 +2,7 @@
 import ArrayList from '@shell/components/form/ArrayList';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import Select from '@shell/components/form/Select';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import InputWithSelect from '@shell/components/form/InputWithSelect';
 import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
 import { _VIEW } from '@shell/config/query-params';

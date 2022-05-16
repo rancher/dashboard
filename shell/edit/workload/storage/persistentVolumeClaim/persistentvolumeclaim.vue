@@ -2,7 +2,7 @@
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 import RadioGroup from '@shell/components/form/RadioGroup';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import { mapGetters } from 'vuex';
 import { removeObject, addObject } from '@shell/utils/array';

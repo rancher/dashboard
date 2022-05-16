@@ -2,7 +2,7 @@
 import AnsiUp from 'ansi_up';
 import { addParams } from '@shell/utils/url';
 import { LOGS_TIME, LOGS_WRAP, DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
 import day from 'dayjs';
 import Select from '@shell/components/form/Select';

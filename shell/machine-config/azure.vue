@@ -7,7 +7,7 @@ import merge from 'lodash/merge';
 import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import LabeledInput from '@shell/components/form/LabeledInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import ArrayList from '@shell/components/form/ArrayList';
 import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';

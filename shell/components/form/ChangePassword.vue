@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
 import { NORMAN } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';

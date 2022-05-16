@@ -3,7 +3,7 @@ import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ArrayList from '@shell/components/form/ArrayList';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import { NORMAN } from '@shell/config/types';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE } from '@shell/config/query-params';

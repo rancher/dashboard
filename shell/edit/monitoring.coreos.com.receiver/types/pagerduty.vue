@@ -9,7 +9,7 @@
  */
 import LabeledInput from '@shell/components/form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 
 export default {
   components: {

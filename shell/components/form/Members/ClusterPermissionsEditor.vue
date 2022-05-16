@@ -6,7 +6,7 @@ import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import RadioGroup from '@shell/components/form/RadioGroup';
 import { Card } from '@pkg/rancher-components/src/components/Card';
 import Loading from '@shell/components/Loading';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 
 export function canViewClusterPermissionsEditor(store) {

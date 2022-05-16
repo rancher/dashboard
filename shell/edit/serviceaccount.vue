@@ -5,7 +5,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Labels from '@shell/components/form/Labels';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import { SECRET } from '@shell/config/types';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
