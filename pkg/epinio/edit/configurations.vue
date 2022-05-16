@@ -11,6 +11,7 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
 import Banner from '@shell/components/Banner.vue';
+import { sortBy } from '@shell/utils/sort';
 
 interface Data {
 }
@@ -26,10 +27,7 @@ export default Vue.extend<Data, any, any, any>({
   mixins: [CreateEditView],
 
   data() {
-    return {
-      errors:        [],
-      namespaces:    [],
-    };
+    return { errors: [] };
   },
 
   props: {
@@ -49,15 +47,19 @@ export default Vue.extend<Data, any, any, any>({
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
     validationPassed() {
       const nameErrors = validateKubernetesName(this.value?.metadata.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
 
       return nameErrors.length === 0;
     },
+
+    namespaces() {
+      return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
+    },
   },
 
-  async fetch() {
-    this.namespaces = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
+  fetch() {
     this.value.data = { ...this.initialValue.configuration?.details };
   },
 
