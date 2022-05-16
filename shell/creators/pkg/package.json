@@ -1,7 +1,7 @@
 {
   "name": "@rancher/create-pkg",
-  "description": "Rancher UI Package generator",
-  "version": "0.0.0",
+  "description": "UI Package generator",
+  "version": "0.1.38",
   "license": "Apache-2.0",
   "author": "SUSE",
   "private": false,
