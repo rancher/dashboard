@@ -121,7 +121,7 @@ export default {
       const out = [
         {
           label: t('resourceQuota.tooltip.reserved'),
-          value: this.namespaceResourceQuotaLimits[0][this.type],
+          value: formatSi(this.namespaceContribution, { ...this.siOptions, addSuffixSpace: false }),
         },
         {
           label: t('resourceQuota.tooltip.namespace'),
