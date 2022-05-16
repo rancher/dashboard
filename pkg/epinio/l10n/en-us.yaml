@@ -21,12 +21,12 @@ typeLabel:
     }
   "catalog-service": |-
     {count, plural,
-      one { Service Catalog }
+      one { Catalog }
       other { Catalog }
     }
   "service-instance": |-
     {count, plural,
-      one { Service Instances }
+      one { Instances }
       other { Instances }
     }
 epinio:
@@ -187,6 +187,10 @@ epinio:
       createBy: Created By
     promptRemove:
       unbind: Unbind from applications before deleting
+    bindApps:
+      label: Bind to Applications (optional)
+      placeholderWithOptions: Applications
+      placeholderNoOptions: There are no apps in this namespace
   serviceInstance:
     tableHeaders:
       service: Service
