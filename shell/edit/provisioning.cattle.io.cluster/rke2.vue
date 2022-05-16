@@ -29,7 +29,7 @@ import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import BadgeState from '@shell/components/BadgeState';
+import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import Checkbox from '@shell/components/form/Checkbox';
 import CruResource from '@shell/components/CruResource';

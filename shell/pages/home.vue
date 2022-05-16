@@ -4,7 +4,7 @@ import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import SortableTable from '@shell/components/SortableTable';
-import BadgeState from '@shell/components/BadgeState';
+import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import SimpleBox from '@shell/components/SimpleBox';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';

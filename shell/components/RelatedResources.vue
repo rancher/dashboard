@@ -4,7 +4,7 @@ import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/reso
 import { NAME, NAMESPACE, STATE, TYPE } from '@shell/config/table-headers';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import BadgeState from '@shell/components/BadgeState';
+import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
 
 export default {
   components: { ResourceTable, BadgeState },
