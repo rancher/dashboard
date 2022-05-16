@@ -96,6 +96,10 @@ export default {
       type:    Boolean,
       default: false
     },
+    namespacesOverride: {
+      type:    Array,
+      default: null,
+    },
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -132,7 +136,7 @@ export default {
     horizontal: {
       type:    Boolean,
       default: true,
-    },
+    }
   },
 
   data() {

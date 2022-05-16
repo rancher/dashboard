@@ -19,6 +19,16 @@ typeLabel:
       one { Configurations }
       other { Configurations }
     }
+  "catalog-service": |-
+    {count, plural,
+      one { Service Catalog }
+      other { Catalog }
+    }
+  "service-instance": |-
+    {count, plural,
+      one { Service Instances }
+      other { Instances }
+    }
 epinio:
   label: Epinio
   tableHeaders:
@@ -177,5 +187,12 @@ epinio:
       createBy: Created By
     promptRemove:
       unbind: Unbind from applications before deleting
+  serviceInstance:
+    tableHeaders:
+      service: Service
+  catalogService:
+    tableHeaders:
+      shortDesc: Headline
+      desc: Description
   warnings:
     noNamespace: There are no namespaces. Please create one before proceeding

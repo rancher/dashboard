@@ -104,7 +104,8 @@ export default {
         if ( opt.responseType ) {
           return res;
         } else {
-          const out = res.data || {};
+          const preOut = res.data || {};
+          const out = preOut.services || preOut.catalog_services || preOut;// TODO: See https://github.com/epinio/ui/issues/97#issuecomment-1124880156
           const schema = getters.schemaFor(type);
 
           if (Array.isArray(out)) {
@@ -184,6 +185,19 @@ export default {
         type:              'schema',
         links:             { collection: '/api/v1/namespaces' },
         collectionMethods: ['get', 'post'],
+      }, {
+        product:           EPINIO_PRODUCT_NAME,
+        id:                EPINIO_TYPES.CATALOG_SERVICE,
+        type:              'schema',
+        links:             { collection: '/api/v1/services' },
+        collectionMethods: ['get', 'post'],
+      }, {
+        product:           EPINIO_PRODUCT_NAME,
+        id:                EPINIO_TYPES.SERVICE_INSTANCE,
+        type:              'schema',
+        links:             { collection: '/api/v1/namespaces/from-ui/services' },
+        collectionMethods: ['get', 'post'],
+        attributes:        { namespaced: true }
       }, {
         product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.APP_INSTANCE,

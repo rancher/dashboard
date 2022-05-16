@@ -13,7 +13,8 @@ export function init($plugin: any, store: any) {
     headers,
     configureType,
     spoofedType,
-    weightType
+    weightType,
+    weightGroup
   } = $plugin.DSL(store, $plugin.name);
 
   const isEpinioSingleProduct = process.env.rancherEnv === 'epinio';
@@ -93,6 +94,34 @@ export function init($plugin: any, store: any) {
     customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.CONFIGURATION }),
   });
 
+  const SERVICE_GROUP = 'Services';
+
+  weightGroup(SERVICE_GROUP, 1, true);
+
+  // Service Instance
+  weightType(EPINIO_TYPES.SERVICE_INSTANCE, 151, true);
+  configureType(EPINIO_TYPES.SERVICE_INSTANCE, {
+    isCreatable:      false,
+    isEditable:       false,
+    isRemovable:      false,
+    showState:        true,
+    showAge:          false,
+    canYaml:          false,
+    customRoute:      createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.SERVICE_INSTANCE }),
+  });
+
+  // Catalog Service
+  weightType(EPINIO_TYPES.CATALOG_SERVICE, 150, true);
+  configureType(EPINIO_TYPES.CATALOG_SERVICE, {
+    isCreatable:      false,
+    isEditable:       false,
+    isRemovable:      false,
+    showState:        false,
+    showAge:          false,
+    canYaml:          false,
+    customRoute:      createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.CATALOG_SERVICE }),
+  });
+
   // Namespace resource
   weightType(EPINIO_TYPES.NAMESPACE, 100, true);
   configureType(EPINIO_TYPES.NAMESPACE, {
@@ -107,7 +136,13 @@ export function init($plugin: any, store: any) {
   });
 
   basicType([
+    EPINIO_TYPES.SERVICE_INSTANCE,
+    EPINIO_TYPES.CATALOG_SERVICE,
+  ], SERVICE_GROUP);
+
+  basicType([
     EPINIO_TYPES.APP,
+    SERVICE_GROUP,
     EPINIO_TYPES.NAMESPACE,
     EPINIO_TYPES.CONFIGURATION
   ]);
@@ -248,6 +283,34 @@ export function init($plugin: any, store: any) {
       labelKey:  'epinio.configurations.tableHeaders.createBy',
       value:     'configuration.user',
       sort:      ['configuration.user'],
+    },
+  ]);
+
+  headers(EPINIO_TYPES.SERVICE_INSTANCE, [
+    STATE,
+    SIMPLE_NAME,
+    { // This will be a link once the service instance detail / create / edit pages are created
+      name:      'catalog_service',
+      labelKey:  'epinio.serviceInstance.tableHeaders.service',
+      value:     'catalog_service',
+      sort:      ['catalog_service'],
+    },
+
+  ]);
+
+  headers(EPINIO_TYPES.CATALOG_SERVICE, [
+    SIMPLE_NAME,
+    {
+      name:      'short_description',
+      labelKey:  'epinio.catalogService.tableHeaders.shortDesc',
+      value:     'short_description',
+      sort:      ['short_description'],
+    },
+    {
+      name:      'description',
+      labelKey:  'epinio.catalogService.tableHeaders.desc',
+      value:     'description',
+      sort:      ['description'],
     },
   ]);
 }

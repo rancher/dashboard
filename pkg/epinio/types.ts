@@ -7,13 +7,15 @@ export const EPINIO_STANDALONE_CLUSTER_NAME = 'default';
 
 export const EPINIO_TYPES = {
   // From API
-  APP:           'applications',
-  NAMESPACE:     'namespaces',
-  CONFIGURATION: 'configurations',
+  APP:              'applications',
+  NAMESPACE:        'namespaces',
+  CONFIGURATION:    'configurations',
+  CATALOG_SERVICE:  'catalog-service',
+  SERVICE_INSTANCE: 'service-instance',
   // Internal
-  INSTANCE:      'instance',
-  APP_ACTION:    'application-action',
-  APP_INSTANCE:  'application-instance',
+  INSTANCE:         'instance',
+  APP_ACTION:       'application-action',
+  APP_INSTANCE:     'application-instance',
 };
 
 // // https://github.com/epinio/epinio/blob/7eb93b6dc735f8a6db26b8a242ae62a34877014c/pkg/api/core/v1/models/models.go#L96
