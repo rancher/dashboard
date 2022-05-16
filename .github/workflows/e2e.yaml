@@ -1,8 +1,13 @@
 name: E2E test
 on:
   pull_request:
-    branches:
-      - master
+      branches:
+        - master
+  workflow_dispatch:
+    environment:
+      description: 'Environment to run tests against'
+      type: environment
+      required: true 
 env:
   TEST_USERNAME: admin
   TEST_PASSWORD: password
