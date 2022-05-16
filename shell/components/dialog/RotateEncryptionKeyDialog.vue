@@ -2,7 +2,7 @@
 import { SNAPSHOT, NORMAN } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@pkg/rancher-components/src/components/Card';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 import { sortBy } from '@shell/utils/sort';

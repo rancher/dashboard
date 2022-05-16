@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import sortBy from 'lodash/sortBy';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import DetailText from '@shell/components/DetailText';
 import Footer from '@shell/components/form/Footer';
 import LabeledInput from '@shell/components/form/LabeledInput';

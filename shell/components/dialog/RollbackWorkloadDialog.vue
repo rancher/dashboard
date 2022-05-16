@@ -4,7 +4,7 @@ import day from 'dayjs';
 import { Card } from '@pkg/rancher-components/src/components/Card';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { WORKLOAD_TYPES } from '@shell/config/types';
 import { diffFrom } from '@shell/utils/time';

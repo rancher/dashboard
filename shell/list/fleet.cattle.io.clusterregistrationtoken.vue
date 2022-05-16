@@ -1,6 +1,6 @@
 <script>
 import { FLEET } from '@shell/config/types';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import { isHarvesterCluster } from '@shell/utils/cluster';

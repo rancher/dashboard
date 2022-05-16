@@ -2,7 +2,7 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import merge from 'lodash/merge';
 import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@shell/components/form/LabeledSelect';

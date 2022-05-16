@@ -1,6 +1,6 @@
 <script>
 import Loading from '@shell/components/Loading';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';

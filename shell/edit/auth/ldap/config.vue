@@ -3,7 +3,7 @@ import RadioGroup from '@shell/components/form/RadioGroup';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import Checkbox from '@shell/components/form/Checkbox';
 import UnitInput from '@shell/components/form/UnitInput';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import FileSelector from '@shell/components/form/FileSelector';
 
 const DEFAULT_NON_TLS_PORT = 389;

@@ -1,7 +1,7 @@
 <script>
 import Vue from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { Card } from '@pkg/rancher-components/src/components/Card';
 import RadioGroup from '@shell/components/form/RadioGroup';
 import UnitInput from '@shell/components/form/UnitInput';

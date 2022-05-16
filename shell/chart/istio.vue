@@ -6,7 +6,7 @@ import YamlEditor from '@shell/components/YamlEditor';
 import { mapGetters } from 'vuex';
 import FileSelector from '@shell/components/form/FileSelector';
 import Tab from '@shell/components/Tabbed/Tab';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 
 const defaultOverlayFile = `#apiVersion: install.istio.io/v1alpha1
 #kind: IstioOperator

@@ -4,7 +4,7 @@ import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import { _CREATE } from '@shell/config/query-params';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Loading from '@shell/components/Loading';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Checkbox from '@shell/components/form/Checkbox';
 

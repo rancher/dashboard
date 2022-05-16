@@ -5,7 +5,7 @@ import CruResource from '@shell/components/CruResource';
 import InfoBox from '@shell/components/InfoBox';
 import RadioGroup from '@shell/components/form/RadioGroup';
 import LabeledInput from '@shell/components/form/LabeledInput';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';

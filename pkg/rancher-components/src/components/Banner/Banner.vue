@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from 'vue'
-import { stringify } from '@/utils/error'
-import { nlToBr } from '@/utils/string'
+import { stringify } from '@shell/utils/error'
+import { nlToBr } from '@shell/utils/string'
 
 export default Vue.extend({
   props: {

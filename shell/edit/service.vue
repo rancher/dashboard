@@ -15,7 +15,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@shell/models/service';
 import { ucFirst } from '@shell/utils/string';
 import CruResource from '@shell/components/CruResource';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import Labels from '@shell/components/form/Labels';
 import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOnConfig';
 import { clone } from '@shell/utils/object';

@@ -2,7 +2,7 @@
 import LabeledInput from '@shell/components/form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { get, set } from '@shell/utils/object';
 
 export default {

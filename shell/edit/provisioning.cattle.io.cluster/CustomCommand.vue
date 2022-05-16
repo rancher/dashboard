@@ -1,5 +1,5 @@
 <script>
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import InfoBox from '@shell/components/InfoBox';
 import Checkbox from '@shell/components/form/Checkbox';
 import CopyCode from '@shell/components/CopyCode';

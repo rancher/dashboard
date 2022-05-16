@@ -1,7 +1,7 @@
 <script>
 import LabelValue from '@shell/components/LabelValue';
 import BadgeState from '@shell/components/BadgeState';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 
 export default {
   components: {

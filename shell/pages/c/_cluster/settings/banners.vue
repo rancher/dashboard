@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import Checkbox from '@shell/components/form/Checkbox';
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import BannerSettings from '@shell/components/form/BannerSettings';
 import { allHash } from '@shell/utils/promise';
 import { MANAGEMENT } from '@shell/config/types';

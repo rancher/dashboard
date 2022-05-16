@@ -7,7 +7,7 @@ import FileSelector from '@shell/components/form/FileSelector';
 import SimpleBox from '@shell/components/SimpleBox';
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { allHash } from '@shell/utils/promise';
 import { MANAGEMENT } from '@shell/config/types';
 import { getVendor, setVendor } from '@shell/config/private-label';

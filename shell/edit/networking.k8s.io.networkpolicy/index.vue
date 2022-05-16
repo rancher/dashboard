@@ -5,7 +5,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import CruResource from '@shell/components/CruResource';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import Labels from '@shell/components/form/Labels';
 import { NAMESPACE, POD } from '@shell/config/types';
 import { convert, matching, simplify } from '@shell/utils/selector';

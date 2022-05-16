@@ -1,6 +1,6 @@
 <script>
 import Loading from '@shell/components/Loading';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import Questions from '@shell/components/Questions';

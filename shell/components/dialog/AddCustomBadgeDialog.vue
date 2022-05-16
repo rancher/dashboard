@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import { CLUSTER_BADGE } from '@shell/config/labels-annotations';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@pkg/rancher-components/src/components/Card';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import ClusterBadge from '@shell/components/ClusterBadge';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { exceptionToErrorsArray } from '@shell/utils/error';

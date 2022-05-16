@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import Banner from '@shell/components/Banner.vue';
+import Banner from '@pkg/rancher-components/src/components/Banner.vue';
 
 describe('component: Banner', () => {
   it('should display text based on label', () => {

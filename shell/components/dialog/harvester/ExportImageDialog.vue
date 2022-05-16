@@ -4,7 +4,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 
 import { sortBy } from '@shell/utils/sort';
 import { Card } from '@pkg/rancher-components/src/components/Card';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';

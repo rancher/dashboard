@@ -3,7 +3,7 @@ import { KUBERNETES, PROJECT } from '@shell/config/labels-annotations';
 import { FLEET, NAMESPACE, MANAGEMENT, HELM } from '@shell/config/types';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import BadgeState from '@shell/components/BadgeState';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { get } from '@shell/utils/object';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';

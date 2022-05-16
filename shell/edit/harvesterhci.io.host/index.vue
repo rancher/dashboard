@@ -21,7 +21,7 @@ import { clone } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import KeyValue from '@shell/components/form/KeyValue';
 import { sortBy } from '@shell/utils/sort';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import HarvesterDisk from './HarvesterDisk';
 
 const LONGHORN_SYSTEM = 'longhorn-system';

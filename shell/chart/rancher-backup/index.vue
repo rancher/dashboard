@@ -4,7 +4,7 @@ import S3 from '@shell/chart/rancher-backup/S3';
 import RadioGroup from '@shell/components/form/RadioGroup';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import LabeledInput from '@shell/components/form/LabeledInput';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { get } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, SECRET, PV } from '@shell/config/types';

@@ -6,7 +6,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { HCI, SCHEMA, CAPI, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import Labels from '@shell/edit/provisioning.cattle.io.cluster/Labels';
 import AgentEnv from '@shell/edit/provisioning.cattle.io.cluster/AgentEnv';
 import { set, get, clone } from '@shell/utils/object';

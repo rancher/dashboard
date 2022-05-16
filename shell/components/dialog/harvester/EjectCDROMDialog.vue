@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 
 import { Card } from '@pkg/rancher-components/src/components/Card';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import Checkbox from '@shell/components/form/Checkbox';
 import { exceptionToErrorsArray } from '@shell/utils/error';

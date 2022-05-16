@@ -1,5 +1,5 @@
 <script>
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import Loading from '@shell/components/Loading';
 import MessageLink from '@shell/components/MessageLink';
 import Masthead from '@shell/components/ResourceList/Masthead';

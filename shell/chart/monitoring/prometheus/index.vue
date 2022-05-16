@@ -2,7 +2,7 @@
 import isEmpty from 'lodash/isEmpty';
 import { mapGetters } from 'vuex';
 
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import Checkbox from '@shell/components/form/Checkbox';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';

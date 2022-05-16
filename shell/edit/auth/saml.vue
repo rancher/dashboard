@@ -5,7 +5,7 @@ import AuthConfig from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import Checkbox from '@shell/components/form/Checkbox';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';

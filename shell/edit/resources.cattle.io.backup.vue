@@ -4,7 +4,7 @@ import createEditView from '@shell/mixins/create-edit-view';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import RadioGroup from '@shell/components/form/RadioGroup';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Loading from '@shell/components/Loading';

@@ -3,7 +3,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 
 import { removeAt } from '@shell/utils/array';
 
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import CruResource from '@shell/components/CruResource';
 import LabeledInput from '@shell/components/form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';

@@ -5,7 +5,7 @@ import { NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { importCloudCredential } from '@shell/utils/dynamic-importer';
 import { CAPI } from '@shell/config/labels-annotations';
 import { clear } from '@shell/utils/array';
