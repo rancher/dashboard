@@ -29,11 +29,11 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   mounted() {
-    this.values = this.application.configuration.configurations;
+    this.values = this.application.configuration.configurations.filter((cc: string) => this.configurations.find((c: any) => c.value === cc));
   },
 
   data() {
-    return { values: this.application.configuration.configurations };
+    return { values: [] };
   },
 
   computed: {

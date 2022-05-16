@@ -1039,23 +1039,11 @@ export const getters = {
     };
   },
 
-  hasCustomDetail(state, getters) {
+  hasCustomDetail(state, getters, rootState) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
-      const cache = state.cache.detail;
 
-      if ( cache[key] !== undefined ) {
-        return cache[key];
-      }
-
-      try {
-        require.resolve(`@/detail/${ key }`);
-        cache[key] = true;
-      } catch (e) {
-        cache[key] = false;
-      }
-
-      return cache[key];
+      return hasCustom(state, rootState, 'detail', key, key => resolveList(key));
     };
   },
 
