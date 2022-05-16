@@ -3,7 +3,7 @@ import CompactInput from '@shell/mixins/compact-input';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import LabeledTooltip from '@shell/components/form/LabeledTooltip';
+import { LabeledTooltip } from '@pkg/rancher-components/src/components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 

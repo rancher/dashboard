@@ -2,7 +2,7 @@
 import CompactInput from '@shell/mixins/compact-input';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import TextAreaAutoGrow from '@shell/components/form/TextAreaAutoGrow';
-import LabeledTooltip from '@shell/components/form/LabeledTooltip';
+import { LabeledTooltip } from '@pkg/rancher-components/src/components/LabeledTooltip';
 import { escapeHtml } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
