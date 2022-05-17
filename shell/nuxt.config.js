@@ -612,7 +612,16 @@ export default function(dir, _appConfig) {
       ]
     },
 
-    typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}', ignorePatterns: ['./pkg/rancher-components/*'] } } },
+    typescript: {
+      typeCheck: {
+        eslint: {
+          exclude: [
+            './pkg/rancher-components/*'
+          ],
+          files: './shell/**/*.{ts,js,vue}',
+        }
+      }
+    },
 
     ssr: false,
   };
