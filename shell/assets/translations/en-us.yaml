@@ -998,7 +998,7 @@ cluster:
       note: '<b>Important:</b> Configure the vSphere Cloud Provider and Storage Provider options in the Add-On Config tab.'
     harvester:
       label: Harvester
-  copyConfig: Copy Config to Clipboard
+  copyConfig: Copy KubeConfig to Clipboard
   custom:
     nodeRole:
       label: Node Role
