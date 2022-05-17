@@ -22,7 +22,7 @@ const STATES_MAPPED = {
   unknown:           'unknown',
 };
 
-export default class EpinioApplication extends EpinioNamespacedResource {
+export default class EpinioApplicationModel extends EpinioNamespacedResource {
   buildCache = {};
 
   get details() {

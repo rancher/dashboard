@@ -1,3 +1,5 @@
+import EpinioApplicationModel from './models/applications';
+
 export const EPINIO_PRODUCT_NAME = 'epinio';
 
 export const EPINIO_MGMT_STORE = 'epiniomgmt';
@@ -39,3 +41,32 @@ export const APPLICATION_ACTION_STATE = {
   FAIL:    'fail',
   PENDING:  'pending',
 };
+
+// --------------------------------------
+// Temporary code until models are typed
+interface EpinioMeta {
+  name: string,
+  namespace: string
+}
+
+export interface EpinioApplicationResource {
+  configuration: {
+    instances: number,
+    configurations: string[],
+    environment: Map<string, string>,
+    routes: string[]
+  },
+  image_url: string // eslint-disable-line camelcase
+  meta: EpinioMeta
+  origin: {
+    Kind: number,
+    git?: {
+      repository: string
+    }
+  }
+  stage_id: string // eslint-disable-line camelcase
+  status: string
+  statusmessage: string
+}
+
+export type EpinioApplication = EpinioApplicationResource & EpinioApplicationModel;
