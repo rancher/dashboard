@@ -9,7 +9,7 @@ import { CIS, CONFIG_MAP } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import createEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { RadioGroup } from '@components/Form/Radio';
 import { get } from '@shell/utils/object';
 import { _VIEW, _CREATE } from '@shell/config/query-params';

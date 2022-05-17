@@ -1,7 +1,7 @@
 <script>
 import { Banner } from '@components/Banner';
 import InfoBox from '@shell/components/InfoBox';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import CopyCode from '@shell/components/CopyCode';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import KeyValue from '@shell/components/form/KeyValue';

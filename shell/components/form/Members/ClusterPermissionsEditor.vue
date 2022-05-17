@@ -6,7 +6,7 @@ import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { RadioGroup } from '@components/Form/Radio';
 import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 
 export function canViewClusterPermissionsEditor(store) {

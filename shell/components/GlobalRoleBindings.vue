@@ -2,7 +2,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { addObjects, isArray } from '@shell/utils/array';

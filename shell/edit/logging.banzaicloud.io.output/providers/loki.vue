@@ -1,7 +1,7 @@
 <script>
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import SecretSelector from '@shell/components/form/SecretSelector';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
   components: {

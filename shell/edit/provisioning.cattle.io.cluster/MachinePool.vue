@@ -1,7 +1,7 @@
 <script>
 
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { _EDIT } from '@shell/config/query-params';
 import { importMachineConfig } from '@shell/utils/dynamic-importer';
 import Taints from '@shell/components/form/Taints.vue';

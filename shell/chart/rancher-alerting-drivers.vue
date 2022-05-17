@@ -1,5 +1,5 @@
 <script>
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
 
 export default {

@@ -3,7 +3,7 @@ import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
 import { escapeHtml } from '@shell/utils/string';
 import { Card } from '@components/Card';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { alternateLabel } from '@shell/utils/platform';
 import { uniq } from '@shell/utils/array';
 import AsyncButton from '@shell/components/AsyncButton';

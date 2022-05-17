@@ -9,7 +9,7 @@ import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import { NAMESPACE, POD } from '@shell/config/types';
 import { convert, matching, simplify } from '@shell/utils/selector';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { addObject, removeObject } from '@shell/utils/array';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import PolicyRules from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRules';

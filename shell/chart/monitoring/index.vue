@@ -5,7 +5,7 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
 import Alerting from '@shell/chart/monitoring/alerting';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import ClusterSelector from '@shell/chart/monitoring/ClusterSelector';
 import Grafana from '@shell/chart/monitoring/grafana';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';

@@ -7,7 +7,7 @@ import { LabeledInput } from '@pkg/rancher-components/src/components/Form/Labele
 import KeyValue from '@shell/components/form/KeyValue';
 import UnitInput from '@shell/components/form/UnitInput';
 import { RadioGroup } from '@components/Form/Radio';
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { addObject, addObjects, findBy } from '@shell/utils/array';

@@ -2,7 +2,7 @@
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import ColorInput from '@shell/components/form/ColorInput';
 
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import FileSelector from '@shell/components/form/FileSelector';
 import SimpleBox from '@shell/components/SimpleBox';
 import Loading from '@shell/components/Loading';

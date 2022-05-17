@@ -612,6 +612,7 @@ export default function(dir, _appConfig) {
       ]
     },
 
+    // typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}' } } },
     typescript: { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } },
 
     ssr: false,

@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 
-import { Checkbox } from '@components/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
