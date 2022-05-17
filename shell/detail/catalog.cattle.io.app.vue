@@ -4,7 +4,7 @@ import Loading from '@shell/components/Loading';
 import Markdown from '@shell/components/Markdown';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import RelatedResources from '@shell/components/RelatedResources';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';

@@ -1,6 +1,6 @@
 <script>
 import Loading from '@shell/components/Loading';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import { computeDashboardUrl } from '@shell/utils/grafana';
 
 export default {

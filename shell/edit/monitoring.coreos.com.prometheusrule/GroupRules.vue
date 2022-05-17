@@ -1,7 +1,7 @@
 <script>
 import has from 'lodash/has';
 
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import { removeAt } from '@shell/utils/array';
 import { _VIEW } from '@shell/config/query-params';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';

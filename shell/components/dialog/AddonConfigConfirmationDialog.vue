@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card } from '@pkg/rancher-components/src/components/Card';
+import { Card } from '@components/Card';
 
 export default {
   components: {

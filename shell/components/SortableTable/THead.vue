@@ -1,5 +1,5 @@
 <script>
-import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
+import { Checkbox } from '@components/Checkbox';
 import { SOME, NONE } from './selection';
 
 export default {

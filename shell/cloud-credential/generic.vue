@@ -1,7 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import KeyValue from '@shell/components/form/KeyValue';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import { simplify, iffyFields, likelyFields } from '@shell/store/plugins';
 
 export default {

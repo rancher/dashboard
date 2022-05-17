@@ -4,7 +4,7 @@ import { HCI } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import ModalWithCard from '@shell/components/ModalWithCard';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 
 export default {
   name: 'HarvesterUpgrade',

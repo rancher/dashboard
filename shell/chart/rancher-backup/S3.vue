@@ -1,6 +1,6 @@
 <script>
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
-import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
+import { Checkbox } from '@components/Checkbox';
 import FileSelector from '@shell/components/form/FileSelector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { mapGetters } from 'vuex';

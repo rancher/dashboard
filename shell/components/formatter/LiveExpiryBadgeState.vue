@@ -1,6 +1,6 @@
 <script>
 import day from 'dayjs';
-import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
+import { BadgeState } from '@components/BadgeState';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { safeSetTimeout } from '@shell/utils/time';
 

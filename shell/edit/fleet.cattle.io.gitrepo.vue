@@ -4,7 +4,7 @@ import { mapGetters } from 'vuex';
 import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ArrayList from '@shell/components/form/ArrayList';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import InputWithSelect from '@shell/components/form/InputWithSelect';

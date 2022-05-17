@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import ChangePassword from '@shell/components/form/ChangePassword';
-import { Card } from '@pkg/rancher-components/src/components/Card';
+import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 
 export default {

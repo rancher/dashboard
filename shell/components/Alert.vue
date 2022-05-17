@@ -1,5 +1,5 @@
 <script>
-import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
+import { BadgeState } from '@components/BadgeState';
 
 const STATUS_CLASS_MAP = {
   success: {

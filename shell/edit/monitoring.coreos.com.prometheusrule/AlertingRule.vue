@@ -4,7 +4,7 @@ import has from 'lodash/has';
 import isEmpty from 'lodash/isEmpty';
 import pickBy from 'lodash/pickBy';
 
-import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
+import { Checkbox } from '@components/Checkbox';
 import CodeMirror from '@shell/components/CodeMirror';
 import KeyValue from '@shell/components/form/KeyValue';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';

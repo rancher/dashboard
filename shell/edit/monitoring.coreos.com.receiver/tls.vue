@@ -8,7 +8,7 @@
  * located in @shell/edit/monitoring.coreos.com.alertmanagerconfig/types.
  */
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 
 export default {
   components: { Banner, LabeledInput },

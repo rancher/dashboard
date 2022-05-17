@@ -4,9 +4,9 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { RadioGroup } from '@components/Form/Radio';
-import { Card } from '@pkg/rancher-components/src/components/Card';
+import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
-import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
+import { Checkbox } from '@components/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 
 export function canViewClusterPermissionsEditor(store) {

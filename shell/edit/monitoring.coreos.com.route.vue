@@ -16,7 +16,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { MONITORING } from '@shell/config/types';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import { createDefaultRouteName } from '@shell/utils/alertmanagerconfig';
 import Loading from '@shell/components/Loading';
 

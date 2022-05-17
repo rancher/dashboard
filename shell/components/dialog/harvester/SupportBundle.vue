@@ -5,7 +5,7 @@ import { HCI } from '@shell/config/types';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import GraphCircle from '@shell/components/graph/Circle';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 
 export default {
   name: 'SupportBundle',

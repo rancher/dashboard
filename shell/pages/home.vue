@@ -1,10 +1,10 @@
 <script>
 import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import SortableTable from '@shell/components/SortableTable';
-import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
+import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import SimpleBox from '@shell/components/SimpleBox';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';

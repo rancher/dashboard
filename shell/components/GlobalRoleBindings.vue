@@ -2,11 +2,11 @@
 <script>
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
-import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
+import { Checkbox } from '@components/Checkbox';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { addObjects, isArray } from '@shell/utils/array';
-import { Card } from '@pkg/rancher-components/src/components/Card';
+import { Card } from '@components/Card';
 
 /**
  * Display checkboxes for each global role, checked for given user or principal (group). Can save changes.

@@ -1,6 +1,6 @@
 <script>
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
-import Checkbox from '@pkg/rancher-components/src/components/Form/Checkbox/Checkbox.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 
 const DEFAULTS = {

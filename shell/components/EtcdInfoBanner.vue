@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { mapGetters } from 'vuex';
 import { hasLeader, leaderChanges, failedProposals } from '@shell/utils/grafana';

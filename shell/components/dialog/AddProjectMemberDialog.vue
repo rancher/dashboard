@@ -1,5 +1,5 @@
 <script>
-import { Card } from '@pkg/rancher-components/src/components/Card';
+import { Card } from '@components/Card';
 import ProjectMemberEditor from '@shell/components/form/ProjectMemberEditor';
 import { NORMAN } from '@shell/config/types';
 

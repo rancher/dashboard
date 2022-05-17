@@ -9,7 +9,7 @@ import MatchExpressions from '@shell/components/form/MatchExpressions';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
-import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
+import { Checkbox } from '@components/Checkbox';
 import uniq from 'lodash/uniq';
 import UnitInput from '@shell/components/form/UnitInput';
 import { NODE, PVC, STORAGE_CLASS } from '@shell/config/types';

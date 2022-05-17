@@ -10,7 +10,7 @@
 import { MONITORING } from '@shell/config/types';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import Loading from '@shell/components/Loading';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import Tabbed from '@shell/components/Tabbed';

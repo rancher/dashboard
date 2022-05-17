@@ -6,8 +6,8 @@ import { HCI } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
-import { Card } from '@pkg/rancher-components/src/components/Card';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 

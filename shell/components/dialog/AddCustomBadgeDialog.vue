@@ -2,12 +2,12 @@
 import { mapGetters } from 'vuex';
 import { CLUSTER_BADGE } from '@shell/config/labels-annotations';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card } from '@pkg/rancher-components/src/components/Card';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
 import ClusterBadge from '@shell/components/ClusterBadge';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
+import { Checkbox } from '@components/Checkbox';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import ColorInput from '@shell/components/form/ColorInput';
 import { parseColor, textColor } from '@shell/utils/color';

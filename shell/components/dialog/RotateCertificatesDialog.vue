@@ -1,7 +1,7 @@
 <script>
-import { Card } from '@pkg/rancher-components/src/components/Card';
+import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 
 import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';

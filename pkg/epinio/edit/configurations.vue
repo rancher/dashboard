@@ -12,7 +12,7 @@ import { epinioExceptionToErrorsArray } from '../utils/errors';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
 import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import Banner from '@pkg/rancher-components/src/components/Banner.vue';
+import Banner from '@components/Banner/Banner.vue';
 
 interface Data {
 }

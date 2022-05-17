@@ -1,10 +1,10 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import { Card } from '@pkg/rancher-components/src/components/Card';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
+import { Checkbox } from '@components/Checkbox';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {

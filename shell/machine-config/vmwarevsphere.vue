@@ -2,11 +2,11 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-// import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
+// import { Checkbox } from '@components/Checkbox';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 import UnitInput from '@shell/components/form/UnitInput';
-import { Card } from '@pkg/rancher-components/src/components/Card';
+import { Card } from '@components/Card';
 import { RadioGroup } from '@components/Form/Radio';
 import KeyValue from '@shell/components/form/KeyValue';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';

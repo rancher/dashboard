@@ -8,8 +8,8 @@
  * located in @shell/edit/monitoring.coreos.com.alertmanagerconfig/types.
  */
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
-import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Checkbox } from '@components/Checkbox';
+import { Banner } from '@components/Banner';
 import { _VIEW } from '@shell/config/query-params';
 import { ALIBABA_CLOUD_SMS_URL, MS_TEAMS_URL } from '@shell/edit/monitoring.coreos.com.receiver/types/webhook.add.vue';
 import TLS from '../tls';

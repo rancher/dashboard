@@ -3,7 +3,7 @@ import FleetClusters from '@shell/components/fleet/FleetClusters';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import { isHarvesterCluster } from '@shell/utils/cluster';
-import { Banner } from '@pkg/rancher-components/src/components/Banner';
+import { Banner } from '@components/Banner';
 
 export default {
   name:       'ListCluster',

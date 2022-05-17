@@ -1,5 +1,5 @@
 <script>
-import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
+import { BadgeState } from '@components/BadgeState';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 export default {
   components: { BadgeState },
