@@ -1,25 +1,25 @@
-import { WelcomePagePo } from '@/cypress/integration/po/pages/welcome.po';
-import { FirstLoginPagePo } from '@/cypress/integration/po/pages/first-login.po';
+import { RancherSetupPagePo } from '@/cypress/integration/po/pages/rancher-setup.po';
+import { RancherSetupAuthVerifyPage } from '@/cypress/integration/po/pages/rancher-setup-auth-verify.po';
 
-describe('Welcome', () => {
+describe('Rancher setup', () => {
   it('Requires initial setup', () => {
     cy.visit('');
 
-    new WelcomePagePo().hasInfoMessage();
+    new RancherSetupPagePo().hasInfoMessage();
     cy.url().should('equal', `${ Cypress.config().baseUrl }/auth/login`);
   });
 
   it('Set initial Docker bootstrap password and admin password as single session', () => {
-    WelcomePagePo.goTo(); // Needs to happen before the page element is created/located
+    RancherSetupPagePo.goTo(); // Needs to happen before the page element is created/located
     cy.intercept('POST', '/v3-public/localProviders/local?action=login').as('bootstrapReq');
-    const welcome = new WelcomePagePo();
+    const rancherSetup = new RancherSetupPagePo();
 
-    welcome.canSubmit()
+    rancherSetup.canSubmit()
       .should('eq', true);
-    welcome.password().set(Cypress.env('bootstrapPassword'));
-    welcome.canSubmit()
+    rancherSetup.password().set(Cypress.env('bootstrapPassword'));
+    rancherSetup.canSubmit()
       .should('eq', true);
-    welcome.submit();
+    rancherSetup.submit();
 
     cy.wait('@bootstrapReq').then((login) => {
       expect(login.response?.statusCode).to.equal(200);
@@ -28,14 +28,14 @@ describe('Welcome', () => {
 
     cy.intercept('PUT', '/v1/userpreferences/*').as('firstLoginReq');
 
-    const firstLogin = new FirstLoginPagePo();
+    const rancherSetupAuthVerify = new RancherSetupAuthVerifyPage();
 
-    firstLogin.canSubmit()
+    rancherSetupAuthVerify.canSubmit()
       .should('eq', false);
-    firstLogin.termsAgreement().set();
-    firstLogin.canSubmit()
+    rancherSetupAuthVerify.termsAgreement().set();
+    rancherSetupAuthVerify.canSubmit()
       .should('eq', true);
-    firstLogin.submit();
+    rancherSetupAuthVerify.submit();
 
     // TODO: This assertion is commented as it started to fail after rebasing and cannot be corrected as it's not possible to run Rancher locally
     // cy.wait('@firstLoginReq').then((login) => {

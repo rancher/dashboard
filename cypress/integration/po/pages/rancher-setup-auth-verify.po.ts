@@ -5,16 +5,16 @@ import RadioGroupInputPo from '@/cypress/integration/po/components/radio-group-i
 import AsyncButtonPo from '@/cypress/integration/po/components/async-button.po';
 import FormPo from '@/cypress/integration/po/components/form.po';
 
-export class FirstLoginPagePo extends PagePo {
+export class RancherSetupAuthVerifyPage extends PagePo {
   static url: string = '/auth/login'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(FirstLoginPagePo.url);
+    return super.goTo(RancherSetupAuthVerifyPage.url);
   }
 
   form: FormPo;
 
   constructor() {
-    super(FirstLoginPagePo.url);
+    super(RancherSetupAuthVerifyPage.url);
 
     this.form = new FormPo('form', this.self());
   }

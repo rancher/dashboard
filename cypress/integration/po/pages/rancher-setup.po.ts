@@ -3,16 +3,16 @@ import LabeledInputPo from '@/cypress/integration/po/components/labeled-input.po
 import AsyncButtonPo from '@/cypress/integration/po/components/async-button.po';
 import FormPo from '@/cypress/integration/po/components/form.po';
 
-export class WelcomePagePo extends PagePo {
+export class RancherSetupPagePo extends PagePo {
   static url: string = '/auth/login'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(WelcomePagePo.url);
+    return super.goTo(RancherSetupPagePo.url);
   }
 
   form: FormPo;
 
   constructor() {
-    super(WelcomePagePo.url);
+    super(RancherSetupPagePo.url);
 
     this.form = new FormPo('form', this.self());
   }
