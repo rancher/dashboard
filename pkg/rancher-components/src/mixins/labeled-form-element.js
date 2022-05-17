@@ -8,64 +8,64 @@ export default {
 
   props: {
     mode: {
-      type: String,
+      type:    String,
       default: _EDIT
     },
 
     label: {
-      type: String,
+      type:    String,
       default: null
     },
 
     labelKey: {
-      type: String,
+      type:    String,
       default: null
     },
 
     placeholderKey: {
-      type: String,
+      type:    String,
       default: null
     },
 
     tooltip: {
-      type: [String, Object],
+      type:    [String, Object],
       default: null
     },
 
     hoverTooltip: {
-      type: Boolean,
+      type:    Boolean,
       default: true
     },
 
     tooltipKey: {
-      type: String,
+      type:    String,
       default: null
     },
 
     required: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     },
 
     disabled: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     },
 
     placeholder: {
-      type: [String, Number],
+      type:    [String, Number],
       default: ''
     },
 
     value: {
-      type: [String, Number, Object],
+      type:    [String, Number, Object],
       default: ''
     }
   },
 
   data () {
     return {
-      raised: this.mode === _VIEW || !!`${this.value}`,
+      raised:  this.mode === _VIEW || !!`${this.value}`,
       focused: false,
       blurred: null
     };

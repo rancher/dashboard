@@ -11,7 +11,7 @@ export default {
      * A value having the properties `stateBackground` and `stateDisplay`
      */
     value: {
-      type: Object,
+      type:    Object,
       default: null
     },
 
@@ -19,7 +19,7 @@ export default {
      * Badge color. `stateBackground` of the value property takes precedence if supplied
      */
     color: {
-      type: String,
+      type:    String,
       default: null
     },
 
@@ -27,7 +27,7 @@ export default {
      * Optional icon to be shown before the label
      */
     icon: {
-      type: String,
+      type:    String,
       default: null
     },
 
@@ -35,7 +35,7 @@ export default {
      * Label to display in the badge. `stateDisplay` of the value property takes precedence if supplied
      */
     label: {
-      type: String,
+      type:    String,
       default: null
     }
   },

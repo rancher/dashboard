@@ -5,64 +5,64 @@ const _VIEW = 'view';
 
 export default {
   components: { RadioButton },
-  props: {
+  props:      {
     // Name for the checkbox grouping, must be unique on page
     name: {
-      type: String,
+      type:     String,
       required: true
     },
 
     // Options can be an array of {label, value}, or just values
     options: {
-      type: Array,
+      type:     Array,
       required: true
     },
 
     // If options are just values, then labels can be a corresponding display value
     labels: {
-      type: Array,
+      type:    Array,
       default: null
     },
 
     // The selected value
     value: {
-      type: [Boolean, String, Object],
+      type:    [Boolean, String, Object],
       default: null
     },
 
     disabled: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     },
 
     mode: {
-      type: String,
+      type:    String,
       default: 'edit'
     },
 
     // Label for above the radios
     label: {
-      type: String,
+      type:    String,
       default: null
     },
     labelKey: {
-      type: String,
+      type:    String,
       default: null
     },
 
     // Label for above the radios
     tooltip: {
-      type: [String, Object],
+      type:    [String, Object],
       default: null
     },
     tooltipKey: {
-      type: String,
+      type:    String,
       default: null
     },
 
     // show radio buttons in column or row
     row: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     }
   },

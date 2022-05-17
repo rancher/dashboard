@@ -2,17 +2,17 @@
 export default {
   props: {
     value: {
-      type: [String, Object],
+      type:    [String, Object],
       default: null
     },
 
     status: {
-      type: String,
+      type:    String,
       default: 'error'
     },
 
     hover: {
-      type: Boolean,
+      type:    Boolean,
       default: true
     }
   }

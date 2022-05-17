@@ -10,29 +10,29 @@ export default {
 
   props: {
     mode: {
-      type: String,
+      type:    String,
       default: _EDIT
     },
 
     minHeight: {
-      type: Number,
+      type:    Number,
       default: 25
     },
     maxHeight: {
-      type: Number,
+      type:    Number,
       default: 200
     },
     placeholder: {
-      type: String,
+      type:    String,
       default: ''
     },
     spellcheck: {
-      type: Boolean,
+      type:    Boolean,
       default: true
     },
 
     disabled: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     }
   },
@@ -40,7 +40,7 @@ export default {
   data () {
     return {
       curHeight: this.minHeight,
-      overflow: 'hidden'
+      overflow:  'hidden'
     };
   },
 

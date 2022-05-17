@@ -1,30 +1,30 @@
 <script>
 export default {
-  name: 'card',
+  name:  'card',
   props: {
     title: {
-      type: String,
+      type:    String,
       default: ''
     },
     content: {
-      type: String,
+      type:    String,
       default: ''
     },
     buttonAction: {
-      type: Function,
+      type:    Function,
       // TODO: is this the correct default? Originally () => { }
       default: () => true
     },
     buttonText: {
-      type: String,
+      type:    String,
       default: 'go'
     },
     showHighlightBorder: {
-      type: Boolean,
+      type:    Boolean,
       default: true
     },
     showActions: {
-      type: Boolean,
+      type:    Boolean,
       default: true
     }
   }

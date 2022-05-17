@@ -8,46 +8,46 @@ import { isValidCron } from 'cron-validator';
 
 export default {
   components: { LabeledTooltip, TextAreaAutoGrow },
-  mixins: [LabeledFormElement],
+  mixins:     [LabeledFormElement],
 
   props: {
     type: {
-      type: String,
+      type:    String,
       default: 'text'
     },
 
     status: {
-      type: String,
+      type:    String,
       default: null
     },
 
     subLabel: {
-      type: String,
+      type:    String,
       default: null
     },
 
     tooltip: {
       default: null,
-      type: [String, Object]
+      type:    [String, Object]
     },
 
     hoverTooltip: {
-      type: Boolean,
+      type:    Boolean,
       default: true
     },
 
     ignorePasswordManagers: {
       default: false,
-      type: Boolean
+      type:    Boolean
     },
 
     maxlength: {
-      type: Number,
+      type:    Number,
       default: null
     },
 
     hideArrows: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     }
   },

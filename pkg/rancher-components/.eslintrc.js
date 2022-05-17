@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  env: {
+  env:  {
     node: true
   },
   extends: [
@@ -12,10 +12,23 @@ module.exports = {
     ecmaVersion: 2020
   },
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-console':            process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-debugger':           process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'vue/no-mutating-props': 'warn',
-    semi: ['warn', 'always']
+    semi:                    ['warn', 'always'],
+
+    'key-spacing': ['warn', {
+      align: {
+        beforeColon: false,
+        afterColon:  true,
+        on:          'value',
+        mode:        'minimum'
+      },
+      multiLine: {
+        beforeColon: false,
+        afterColon:  true
+      }
+    }]
   },
   overrides: [
     {

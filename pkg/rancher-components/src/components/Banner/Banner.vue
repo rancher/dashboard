@@ -6,19 +6,19 @@ import { nlToBr } from '@shell/utils/string';
 export default Vue.extend({
   props: {
     color: {
-      type: String,
+      type:    String,
       default: 'secondary'
     },
     label: {
-      type: [String, Error, Object],
+      type:    [String, Error, Object],
       default: null
     },
     labelKey: {
-      type: String,
+      type:    String,
       default: null
     },
     closable: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     }
   },

@@ -9,57 +9,57 @@ const _VIEW = 'view';
 export default {
   props: {
     value: {
-      type: [Boolean, Array],
+      type:    [Boolean, Array],
       default: false
     },
 
     label: {
-      type: String,
+      type:    String,
       default: null
     },
 
     labelKey: {
-      type: String,
+      type:    String,
       default: null
     },
 
     disabled: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     },
 
     indeterminate: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     },
 
     mode: {
-      type: String,
+      type:    String,
       default: _EDIT
     },
 
     tooltip: {
-      type: [String, Object],
+      type:    [String, Object],
       default: null
     },
 
     tooltipKey: {
-      type: String,
+      type:    String,
       default: null
     },
 
     valueWhenTrue: {
-      type: null,
+      type:    null,
       default: true
     },
 
     descriptionKey: {
-      type: String,
+      type:    String,
       default: null
     },
 
     description: {
-      type: String,
+      type:    String,
       default: null
     }
   },

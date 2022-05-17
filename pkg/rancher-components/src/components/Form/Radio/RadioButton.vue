@@ -5,45 +5,45 @@ export default {
   props: {
     // The name of the input, for grouping
     name: {
-      type: String,
+      type:    String,
       default: ''
     },
 
     // The value for this option
     val: {
-      required: true,
+      required:  true,
       validator: x => true
     },
 
     // The selected value...
     value: {
-      required: true,
+      required:  true,
       validator: x => true
     },
 
     // The label shown next to the radio
     label: {
-      type: String,
+      type:    String,
       default: ''
     },
 
     disabled: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     },
 
     mode: {
-      type: String,
+      type:    String,
       default: 'edit'
     },
 
     descriptionKey: {
-      type: String,
+      type:    String,
       default: null
     },
 
     description: {
-      type: String,
+      type:    String,
       default: null
     }
   },
