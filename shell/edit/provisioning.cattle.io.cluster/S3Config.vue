@@ -1,6 +1,6 @@
 <script>
 import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NORMAN } from '@shell/config/types';
 

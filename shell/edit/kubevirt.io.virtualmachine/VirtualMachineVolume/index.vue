@@ -4,7 +4,7 @@ import InfoBox from '@shell/components/InfoBox';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import BadgeStateFormatter from '@shell/components/formatter/BadgeStateFormatter';
 import UnitInput from '@shell/components/form/UnitInput';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ModalWithCard from '@shell/components/ModalWithCard';
 

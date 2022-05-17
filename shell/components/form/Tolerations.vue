@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import Select from '@shell/components/form/Select';
 import UnitInput from '@shell/components/form/UnitInput';
 import { _VIEW } from '@shell/config/query-params';

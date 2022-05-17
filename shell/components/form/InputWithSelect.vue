@@ -1,6 +1,6 @@
 <script>
 import labeledFormElement from '@shell/mixins/labeled-form-element';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Select from '@shell/components/form/Select';
 export default {

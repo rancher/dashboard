@@ -6,7 +6,7 @@ import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import DetailText from '@shell/components/DetailText';
 import Footer from '@shell/components/form/Footer';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import RadioGroup from '@shell/components/form/RadioGroup';
 import Select from '@shell/components/form/Select';

@@ -2,7 +2,7 @@
 import { randomStr } from '@shell/utils/string';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import { HCI } from '@shell/config/types';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import GraphCircle from '@shell/components/graph/Circle';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';

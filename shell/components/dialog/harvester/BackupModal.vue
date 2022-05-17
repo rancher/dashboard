@@ -4,7 +4,7 @@ import { mapGetters } from 'vuex';
 import { Card } from '@pkg/rancher-components/src/components/Card';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 
 export default {
   name: 'BackupModal',

@@ -33,7 +33,7 @@ import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import CruResource from '@shell/components/CruResource';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
 import MatchExpressions from '@shell/components/form/MatchExpressions';

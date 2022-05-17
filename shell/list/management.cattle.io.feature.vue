@@ -5,7 +5,7 @@ import { Card } from '@pkg/rancher-components/src/components/Card';
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 

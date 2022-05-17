@@ -4,6 +4,10 @@ const path = require('path')
 module.exports = {
   chainWebpack: (config) => {
     config.resolve.alias.set(
+      '~',
+      path.resolve(__dirname, 'src')
+    )
+    config.resolve.alias.set(
       '@',
       path.resolve(__dirname, '../../shell/')
     )
@@ -12,8 +16,12 @@ module.exports = {
       path.resolve(__dirname, '../../shell/')
     )
     config.resolve.alias.set(
-      '~',
-      path.resolve(__dirname, 'src')
+      '@components',
+      path.resolve(__dirname, 'src/components')
+    )
+    config.resolve.alias.set(
+      '@mixins',
+      path.resolve(__dirname, 'src/mixins')
     )
   },
   css: {

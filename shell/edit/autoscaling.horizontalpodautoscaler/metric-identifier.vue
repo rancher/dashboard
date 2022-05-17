@@ -1,5 +1,5 @@
 <script>
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { convert, simplify } from '@shell/utils/selector'; /*  matching, */
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 

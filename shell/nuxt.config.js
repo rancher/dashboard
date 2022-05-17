@@ -303,9 +303,11 @@ export default function(dir, _appConfig) {
     },
 
     alias: {
-      '~shell': SHELL_ABS,
-      '@shell': SHELL_ABS,
-      '@pkg':   path.join(dir, 'pkg'),
+      '~shell':      SHELL_ABS,
+      '@shell':      SHELL_ABS,
+      '@pkg':        path.join(dir, 'pkg'),
+      '@components': path.join(dir, 'pkg', 'rancher-components', 'src', 'components'),
+      '@mixins':     path.join(dir, 'pkg', 'rancher-components', 'src', 'mixins'),
     },
 
     modulesDir: [

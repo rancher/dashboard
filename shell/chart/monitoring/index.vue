@@ -8,7 +8,7 @@ import Alerting from '@shell/chart/monitoring/alerting';
 import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import ClusterSelector from '@shell/chart/monitoring/ClusterSelector';
 import Grafana from '@shell/chart/monitoring/grafana';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import Loading from '@shell/components/Loading';
 import Prometheus from '@shell/chart/monitoring/prometheus';
 import Tab from '@shell/components/Tabbed/Tab';

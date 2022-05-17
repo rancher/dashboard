@@ -2,7 +2,7 @@
 import CruResource from '@shell/components/CruResource';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import KeyValue from '@shell/components/form/KeyValue';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import RadioGroup from '@shell/components/form/RadioGroup';

@@ -4,7 +4,7 @@ import Masthead from '@shell/components/ResourceList/Masthead';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { Card } from '@pkg/rancher-components/src';
 import { mapGetters, mapState } from 'vuex';
-import LabeledInput from '@shell/components/form/LabeledInput.vue';
+import LabeledInput from '@pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
 import AsyncButton from '@shell/components/AsyncButton';
 import { _CREATE } from '@shell/config/query-params';

@@ -1,11 +1,11 @@
 import { shallowMount } from '@vue/test-utils'
-import { Badge } from './index'
+import { BadgeState } from './index'
 
 describe('BadgeState.vue', () => {
   it('renders props.msg when passed', () => {
     const label = 'Hello, World!'
 
-    const wrapper = shallowMount(Badge, {
+    const wrapper = shallowMount(BadgeState, {
       propsData: { label }
     })
 

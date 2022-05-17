@@ -12,7 +12,7 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import CruResource from '@shell/components/CruResource';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';

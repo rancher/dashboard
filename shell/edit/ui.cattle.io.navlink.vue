@@ -4,7 +4,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { SERVICE } from '@shell/config/types';
 import { PROTOCOLS } from '@shell/config/schema';
 import CruResource from '@shell/components/CruResource';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import RadioGroup from '@shell/components/form/RadioGroup';
 import FileImageSelector from '@shell/components/form/FileImageSelector';
 import NameNsDescription, { normalizeName } from '@shell/components/form/NameNsDescription';

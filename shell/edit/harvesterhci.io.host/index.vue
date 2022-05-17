@@ -6,7 +6,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Footer from '@shell/components/form/Footer';
 import InfoBox from '@shell/components/InfoBox';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import ButtonDropdown from '@shell/components/ButtonDropdown';

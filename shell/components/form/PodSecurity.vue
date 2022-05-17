@@ -3,7 +3,7 @@ import RadioGroup from '@shell/components/form/RadioGroup';
 import ArrayList from '@shell/components/form/ArrayList';
 import KeyValue from '@shell/components/form/KeyValue';
 import { mapGetters } from 'vuex';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 
 export default {
   components: {

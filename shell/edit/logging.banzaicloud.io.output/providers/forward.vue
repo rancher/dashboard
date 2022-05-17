@@ -1,5 +1,5 @@
 <script>
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { updatePort } from './utils';
 

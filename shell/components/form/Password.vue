@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { CHARSET, randomStr } from '@shell/utils/string';
 
 export default {

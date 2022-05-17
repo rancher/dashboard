@@ -4,7 +4,7 @@ import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import RadioGroup from '@shell/components/form/RadioGroup';
 import Select from '@shell/components/form/Select';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import ArrayList from '@shell/components/form/ArrayList';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';

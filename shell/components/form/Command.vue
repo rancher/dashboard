@@ -1,7 +1,7 @@
 <script>
 import Vue from 'vue';
 
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import ShellInput from '@shell/components/form/ShellInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';

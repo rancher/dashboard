@@ -3,7 +3,7 @@ import Vue, { PropType } from 'vue';
 import jsyaml from 'js-yaml';
 
 import Application from '../../models/applications';
-import LabeledInput from '@shell/components/form/LabeledInput.vue';
+import LabeledInput from '@pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';

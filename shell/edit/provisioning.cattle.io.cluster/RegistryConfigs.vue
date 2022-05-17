@@ -1,7 +1,7 @@
 <script>
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { set } from '@shell/utils/object';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import CreateEditView from '@shell/mixins/create-edit-view';

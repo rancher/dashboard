@@ -8,7 +8,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import CruResource from '@shell/components/CruResource';
 import RadioGroup from '@shell/components/form/RadioGroup';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';

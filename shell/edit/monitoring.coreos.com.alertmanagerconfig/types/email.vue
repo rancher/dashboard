@@ -1,5 +1,5 @@
 <script>
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import TLS from '../tls';
 import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';

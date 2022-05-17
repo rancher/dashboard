@@ -1,7 +1,7 @@
 <script>
 import { removeObject } from '@shell/utils/array';
 import { USERNAME } from '@shell/config/cookies';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import BrandImage from '@shell/components/BrandImage';
 import InfoBox from '@shell/components/InfoBox';

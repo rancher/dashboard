@@ -5,7 +5,7 @@ import { POD, NODE, NAMESPACE } from '@shell/config/types';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import RadioGroup from '@shell/components/form/RadioGroup';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { randomStr } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import debounce from 'lodash/debounce';
