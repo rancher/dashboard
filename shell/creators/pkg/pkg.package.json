@@ -4,9 +4,6 @@
   "version": "0.1.0",
   "private": false,
   "rancher": true,
-  "publishConfig": {
-    "registry": "http://localhost:4873"
-  },
   "scripts": {},
   "engines": {
     "node": ">=12"
