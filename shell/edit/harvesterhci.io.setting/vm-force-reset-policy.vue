@@ -1,7 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 
 export default {
   name: 'HarvesterVMForceDeletePolicy',

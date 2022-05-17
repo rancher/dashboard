@@ -1,5 +1,5 @@
 <script>
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { _VIEW } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';

@@ -1,5 +1,5 @@
 <script>
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import ArrayList from '@shell/components/form/ArrayList';
 import KeyValue from '@shell/components/form/KeyValue';
 import { mapGetters } from 'vuex';

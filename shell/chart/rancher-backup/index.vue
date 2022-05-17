@@ -1,7 +1,7 @@
 <script>
 import Tab from '@shell/components/Tabbed/Tab';
 import S3 from '@shell/chart/rancher-backup/S3';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';

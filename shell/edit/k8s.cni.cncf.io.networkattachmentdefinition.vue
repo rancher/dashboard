@@ -3,7 +3,7 @@ import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
 import { HCI } from '@shell/config/labels-annotations';

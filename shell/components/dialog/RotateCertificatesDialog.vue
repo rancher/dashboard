@@ -3,7 +3,7 @@ import { Card } from '@pkg/rancher-components/src/components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';
 
 import { get, set } from '@shell/utils/object';

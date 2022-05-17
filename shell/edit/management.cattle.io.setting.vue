@@ -6,7 +6,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import TextAreaAutoGrow from '@shell/components/form/TextAreaAutoGrow';
 
 import { ALLOWED_SETTINGS, SETTING } from '@shell/config/settings';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { setBrand } from '@shell/config/private-label';
 
 export default {

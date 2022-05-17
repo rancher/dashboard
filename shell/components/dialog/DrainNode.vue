@@ -3,7 +3,7 @@ import Vue from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import { Card } from '@pkg/rancher-components/src/components/Card';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import UnitInput from '@shell/components/form/UnitInput';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 

@@ -7,7 +7,7 @@ import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import UnitInput from '@shell/components/form/UnitInput';
 import { Card } from '@pkg/rancher-components/src/components/Card';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import KeyValue from '@shell/components/form/KeyValue';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import ArrayListSelect from '@shell/components/form/ArrayListSelect';

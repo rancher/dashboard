@@ -32,7 +32,7 @@ import Command from '@shell/components/form/Command';
 import LifecycleHooks from '@shell/components/form/LifecycleHooks';
 import Storage from '@shell/edit/workload/storage';
 import Labels from '@shell/components/form/Labels';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { UI_MANAGED } from '@shell/config/labels-annotations';
 import { removeObject } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';

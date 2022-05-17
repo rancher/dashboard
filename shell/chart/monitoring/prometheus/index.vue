@@ -8,7 +8,7 @@ import { LabeledInput } from '@pkg/rancher-components/src/components/Form/Labele
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import StorageClassSelector from '@shell/chart/monitoring/StorageClassSelector';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 
 import { set } from '@shell/utils/object';
 import { simplify, convert } from '@shell/utils/selector';

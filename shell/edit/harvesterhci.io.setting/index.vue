@@ -1,6 +1,6 @@
 <script>
 import CruResource from '@shell/components/CruResource';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import TextAreaAutoGrow from '@shell/components/form/TextAreaAutoGrow';

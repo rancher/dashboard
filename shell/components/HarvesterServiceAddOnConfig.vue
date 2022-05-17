@@ -1,7 +1,7 @@
 <script>
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { _CREATE } from '@shell/config/query-params';
 import { get } from '@shell/utils/object';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';

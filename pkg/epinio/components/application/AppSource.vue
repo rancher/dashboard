@@ -7,7 +7,7 @@ import LabeledInput from '@pkg/rancher-components/src/components/Form/LabeledInp
 
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
-import RadioGroup from '@shell/components/form/RadioGroup.vue';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { sortBy } from '@shell/utils/sort';
 import { generateZip } from '@shell/utils/download';
 

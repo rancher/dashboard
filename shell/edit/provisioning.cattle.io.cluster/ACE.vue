@@ -1,5 +1,5 @@
 <script>
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
 import { set } from '@shell/utils/object';

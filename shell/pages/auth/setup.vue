@@ -8,7 +8,7 @@ import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { setSetting, SETTING } from '@shell/config/settings';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { isDevBuild } from '@shell/utils/version';

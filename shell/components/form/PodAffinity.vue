@@ -4,7 +4,7 @@ import { get, set, isEmpty, clone } from '@shell/utils/object';
 import { POD, NODE, NAMESPACE } from '@shell/config/types';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { randomStr } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';

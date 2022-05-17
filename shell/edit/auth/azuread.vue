@@ -3,7 +3,7 @@ import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import InfoBox from '@shell/components/InfoBox';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
 import AuthBanner from '@shell/components/auth/AuthBanner';

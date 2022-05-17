@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 
 export default {
   components: {

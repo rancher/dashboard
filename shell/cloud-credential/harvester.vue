@@ -2,7 +2,7 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 
 import { get, set } from '@shell/utils/object';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';

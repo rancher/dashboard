@@ -8,7 +8,7 @@ import DetailText from '@shell/components/DetailText';
 import Footer from '@shell/components/form/Footer';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { diffFrom } from '@shell/utils/time';

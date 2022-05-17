@@ -2,7 +2,7 @@
 import { MANAGEMENT, RBAC } from '@shell/config/types';
 import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import ArrayList from '@shell/components/form/ArrayList';

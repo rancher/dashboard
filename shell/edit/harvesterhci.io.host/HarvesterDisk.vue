@@ -3,8 +3,7 @@ import { LabeledInput } from '@pkg/rancher-components/src/components/Form/Labele
 import LabelValue from '@shell/components/LabelValue';
 import { BadgeState } from '@pkg/rancher-components/src/components/BadgeState';
 import { Banner } from '@pkg/rancher-components/src/components/Banner';
-import RadioGroup from '@shell/components/form/RadioGroup';
-import { RadioButton } from '@components/Form/Radio';
+import { RadioGroup, RadioButton } from '@components/Form/Radio';
 
 export default {
   components: {

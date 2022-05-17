@@ -5,7 +5,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import ArrayList from '@shell/components/form/ArrayList';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { PROVISIONER_OPTIONS } from '@shell/models/storage.k8s.io.storageclass';

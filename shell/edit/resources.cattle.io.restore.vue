@@ -6,7 +6,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { Checkbox } from '@pkg/rancher-components/src/components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import S3 from '@shell/chart/rancher-backup/S3';
 import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@shell/config/types';
