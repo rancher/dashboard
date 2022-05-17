@@ -337,7 +337,8 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <!-- v-if="currentCluster" Temporary Workaround for #5946 -->
+  <Loading v-if="$fetchState.pending && currentCluster" />
   <section v-else class="dashboard">
     <header>
       <div class="title">

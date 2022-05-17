@@ -58,6 +58,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
+    ...mapGetters(['currentCluster']),
     ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
@@ -529,7 +530,8 @@ export default {
 </script>
 
 <template>
-  <div class="dashboard-root">
+  <!-- v-if="currentCluster" Temporary Workaround for #5946 -->
+  <div v-if="currentCluster" class="dashboard-root">
     <FixedBanner :header="true" />
 
     <div v-if="managementReady" class="dashboard-content">
