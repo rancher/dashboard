@@ -1,10 +1,8 @@
 <script>
 // TODO: Remove jquery dep
 import $ from 'jquery';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
-
-const _EDIT = 'edit';
-const _VIEW = 'view';
 
 export default {
   props: {

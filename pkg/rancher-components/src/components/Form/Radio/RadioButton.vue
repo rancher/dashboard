@@ -1,5 +1,5 @@
 <script>
-const _VIEW = 'view';
+import { _VIEW } from '@shell/config/query-params';
 
 export default {
   props: {
