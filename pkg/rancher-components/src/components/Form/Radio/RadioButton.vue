@@ -6,65 +6,65 @@ export default {
     // The name of the input, for grouping
     name: {
       type:    String,
-      default: ''
+      default: '',
     },
 
     // The value for this option
     val: {
       required:  true,
-      validator: x => true
+      validator: x => true,
     },
 
     // The selected value...
     value: {
       required:  true,
-      validator: x => true
+      validator: x => true,
     },
 
     // The label shown next to the radio
     label: {
       type:    String,
-      default: ''
+      default: '',
     },
 
     disabled: {
       type:    Boolean,
-      default: false
+      default: false,
     },
 
     mode: {
       type:    String,
-      default: 'edit'
+      default: 'edit',
     },
 
     descriptionKey: {
       type:    String,
-      default: null
+      default: null,
     },
 
     description: {
       type:    String,
       default: null
-    }
+    },
   },
 
-  data () {
+  data() {
     return { isChecked: this.value === this.val };
   },
 
   computed: {
-    isDisabled () {
+    isDisabled() {
       return this.mode === _VIEW || this.disabled;
     },
 
-    muteLabel () {
+    muteLabel() {
       // Don't mute the label if the mode is view and the button is checked
       return this.disabled && !(this.mode === _VIEW && this.isChecked);
     }
   },
 
   watch: {
-    value (neu) {
+    value(neu) {
       this.isChecked = this.val === neu;
       if (this.isChecked) {
         this.$refs.custom.focus();
@@ -73,7 +73,7 @@ export default {
   },
 
   methods: {
-    clicked (e) {
+    clicked(e) {
       if (this.isDisabled) {
         return;
       }
@@ -83,7 +83,7 @@ export default {
       }
 
       this.$emit('input', this.val);
-    }
+    },
   }
 };
 </script>

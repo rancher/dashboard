@@ -35,7 +35,7 @@ export default {
 
     mode: {
       type:    String,
-      default: _EDIT
+      default: _EDIT,
     },
 
     tooltip: {
@@ -61,7 +61,7 @@ export default {
     description: {
       type:    String,
       default: null
-    }
+    },
   },
 
   computed: {

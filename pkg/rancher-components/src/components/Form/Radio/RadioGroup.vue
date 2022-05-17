@@ -9,7 +9,7 @@ export default {
     // Name for the checkbox grouping, must be unique on page
     name: {
       type:     String,
-      required: true
+      required: true,
     },
 
     // Options can be an array of {label, value}, or just values
@@ -21,7 +21,7 @@ export default {
     // If options are just values, then labels can be a corresponding display value
     labels: {
       type:    Array,
-      default: null
+      default: null,
     },
 
     // The selected value
@@ -68,7 +68,7 @@ export default {
   },
 
   computed: {
-    normalizedOptions () {
+    normalizedOptions() {
       const out = [];
 
       for (let i = 0; i < this.options.length; i++) {
@@ -92,18 +92,18 @@ export default {
       return out;
     },
 
-    isView () {
+    isView() {
       return this.mode === _VIEW;
     },
 
-    isDisabled () {
+    isDisabled() {
       return (this.disabled || this.isView);
     }
   },
 
   methods: {
     // keyboard left/right event listener to select next/previous option
-    clickNext (direction) {
+    clickNext(direction) {
       const opts = this.normalizedOptions;
       const selected = opts.find(x => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;

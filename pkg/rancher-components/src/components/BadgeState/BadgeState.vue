@@ -12,7 +12,7 @@ export default {
      */
     value: {
       type:    Object,
-      default: null
+      default: null,
     },
 
     /**
@@ -20,7 +20,7 @@ export default {
      */
     color: {
       type:    String,
-      default: null
+      default: null,
     },
 
     /**
@@ -28,7 +28,7 @@ export default {
      */
     icon: {
       type:    String,
-      default: null
+      default: null,
     },
 
     /**
@@ -36,16 +36,16 @@ export default {
      */
     label: {
       type:    String,
-      default: null
+      default: null,
     }
   },
 
   computed: {
-    bg () {
+    bg() {
       return this.value?.stateBackground || this.color;
     },
 
-    msg () {
+    msg() {
       return this.value?.stateDisplay || this.label;
     }
   }

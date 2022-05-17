@@ -7,19 +7,19 @@ export default Vue.extend({
   props: {
     color: {
       type:    String,
-      default: 'secondary'
+      default: 'secondary',
     },
     label: {
       type:    [String, Error, Object],
-      default: null
+      default: null,
     },
     labelKey: {
       type:    String,
-      default: null
+      default: null,
     },
     closable: {
       type:    Boolean,
-      default: false
+      default: false,
     }
   },
   computed: {
@@ -30,7 +30,7 @@ export default Vue.extend({
       return !(typeof this.label === 'string') ? stringify(this.label) : undefined;
     }
   },
-  methods: { nlToBr }
+  methods: { nlToBr },
 });
 </script>
 <template>

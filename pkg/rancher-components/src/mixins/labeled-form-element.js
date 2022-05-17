@@ -63,7 +63,7 @@ export default {
     }
   },
 
-  data () {
+  data() {
     return {
       raised:  this.mode === _VIEW || !!`${this.value}`,
       focused: false,
@@ -72,19 +72,19 @@ export default {
   },
 
   computed: {
-    empty () {
+    empty() {
       return !!`${this.value}`;
     },
 
-    isView () {
+    isView() {
       return this.mode === _VIEW;
     },
 
-    isDisabled () {
+    isDisabled() {
       return this.disabled || this.isView;
     },
 
-    isSearchable () {
+    isSearchable() {
       const { searchable } = this;
       const options = (this.options || []);
 
@@ -97,7 +97,7 @@ export default {
   },
 
   methods: {
-    resizeHandler (e) {
+    resizeHandler(e) {
       // since the DD is positioned there is no way to 'inherit' the size of the input, this calcs the size of the parent and set the dd width if it is smaller. If not let it grow with the regular styles
       this.$nextTick(() => {
         const DD = $(this.$refs.select).find('ul.vs__dropdown-menu');
@@ -109,24 +109,24 @@ export default {
         }
       });
     },
-    onFocus () {
+    onFocus() {
       this.$emit('on-focus');
 
       return this.onFocusLabeled();
     },
 
-    onFocusLabeled () {
+    onFocusLabeled() {
       this.raised = true;
       this.focused = true;
     },
 
-    onBlur () {
+    onBlur() {
       this.$emit('on-blur');
 
       return this.onBlurLabeled();
     },
 
-    onBlurLabeled () {
+    onBlurLabeled() {
       this.focused = false;
 
       if (!this.value) {

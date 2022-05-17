@@ -16,15 +16,15 @@ export default {
 
     minHeight: {
       type:    Number,
-      default: 25
+      default: 25,
     },
     maxHeight: {
       type:    Number,
-      default: 200
+      default: 200,
     },
     placeholder: {
       type:    String,
-      default: ''
+      default: '',
     },
     spellcheck: {
       type:    Boolean,
@@ -33,43 +33,43 @@ export default {
 
     disabled: {
       type:    Boolean,
-      default: false
+      default: false,
     }
   },
 
-  data () {
+  data() {
     return {
       curHeight: this.minHeight,
-      overflow:  'hidden'
+      overflow:  'hidden',
     };
   },
 
   computed: {
-    isDisabled () {
+    isDisabled() {
       return this.disabled || this.mode === _VIEW;
     },
 
-    style () {
+    style() {
       // This sets the height to one-line for SSR pageload so that it's already right
       // (unless the input is long)
       return `height: ${this.curHeight}px; overflow: ${this.overflow};`;
-    }
+    },
   },
 
   watch: {
     $attrs: {
       deep: true,
-      handler () {
+      handler() {
         this.queueResize();
       }
-    }
+    },
   },
 
-  created () {
+  created() {
     this.queueResize = debounce(this.autoSize, 100);
   },
 
-  mounted () {
+  mounted() {
     $(this.$refs.ta).css('height', `${this.curHeight}px`);
     this.$nextTick(() => {
       this.autoSize();
@@ -77,16 +77,16 @@ export default {
   },
 
   methods: {
-    onInput (val) {
+    onInput(val) {
       this.$emit('input', val);
       this.queueResize();
     },
 
-    focus () {
+    focus() {
       this.$refs.ta.focus();
     },
 
-    autoSize () {
+    autoSize() {
       const el = this.$refs.ta;
 
       if (!el) {

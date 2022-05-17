@@ -13,55 +13,55 @@ export default {
   props: {
     type: {
       type:    String,
-      default: 'text'
+      default: 'text',
     },
 
     status: {
       type:    String,
-      default: null
+      default: null,
     },
 
     subLabel: {
       type:    String,
-      default: null
+      default: null,
     },
 
     tooltip: {
       default: null,
-      type:    [String, Object]
+      type:    [String, Object],
     },
 
     hoverTooltip: {
       type:    Boolean,
-      default: true
+      default: true,
     },
 
     ignorePasswordManagers: {
       default: false,
-      type:    Boolean
+      type:    Boolean,
     },
 
     maxlength: {
       type:    Number,
-      default: null
+      default: null,
     },
 
     hideArrows: {
       type:    Boolean,
-      default: false
+      default: false,
     }
   },
 
   computed: {
-    hasLabel () {
+    hasLabel() {
       return !!this.label || !!this.labelKey || !!this.$slots.label;
     },
 
-    hasSuffix () {
+    hasSuffix() {
       return !!this.$slots.suffix;
     },
 
-    cronHint () {
+    cronHint() {
       if (this.type !== 'cron' || !this.value) {
         return;
       }
@@ -77,7 +77,7 @@ export default {
       }
     },
 
-    _placeholder () {
+    _placeholder() {
       if (this.placeholder) {
         return this.placeholder;
       }
@@ -88,7 +88,7 @@ export default {
       return '';
     },
 
-    _maxlength () {
+    _maxlength() {
       if (this.type === 'text' && this.maxlength) {
         return this.maxlength;
       }
@@ -98,7 +98,7 @@ export default {
   },
 
   methods: {
-    focus () {
+    focus() {
       const comp = this.$refs.value;
 
       if (comp) {
@@ -106,7 +106,7 @@ export default {
       }
     },
 
-    select () {
+    select() {
       const comp = this.$refs.value;
 
       if (comp) {
@@ -114,17 +114,17 @@ export default {
       }
     },
 
-    onFocus () {
+    onFocus() {
       this.onFocusLabeled();
     },
 
-    onBlur () {
+    onBlur() {
       this.$emit('blur');
       this.onBlurLabeled();
     },
 
-    escapeHtml
-  }
+    escapeHtml,
+  },
 };
 </script>
 
