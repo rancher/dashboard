@@ -28,7 +28,7 @@ export default {
      */
     icon: {
       type:    String,
-      default: null,
+      default: null
     },
 
     /**
@@ -37,7 +37,7 @@ export default {
     label: {
       type:    String,
       default: null,
-    }
+    },
   },
 
   computed: {
@@ -58,8 +58,7 @@ export default {
   </span>
 </template>
 
-<!-- TODO: Investigate why these styles aren't scoped.. -->
-<style lang="scss">
+<style lang="scss" scoped>
   .badge-state {
     align-items: center;
     display: inline-flex;
@@ -86,7 +85,8 @@ export default {
       border-color: var(--success);
     }
   }
-
+</style>
+<style lang="scss">
   // TODO: Investigate why this is here.. I don't think that styles for sortable table should belong here
   .sortable-table TD .badge-state {
     @include clip;
