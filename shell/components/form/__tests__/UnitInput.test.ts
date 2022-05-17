@@ -27,7 +27,6 @@ describe('component: UnitInput', () => {
     const wrapper = mount(UnitInput, {
       propsData: {
         value: 1,
-        delay: 0,
         mode
       }
     });
@@ -41,7 +40,7 @@ describe('component: UnitInput', () => {
     ['2G', '2000000000'],
     ['3', '3'],
   ])('should parse values with SI modifier %p and return %p', (value, expected) => {
-    const wrapper = mount(UnitInput, { propsData: { value, delay: 0 } });
+    const wrapper = mount(UnitInput, { propsData: { value } });
     const label = wrapper.findComponent(LabeledInput);
 
     expect(label.props('value')).toBe(expected);
@@ -55,7 +54,6 @@ describe('component: UnitInput', () => {
         value: 1,
         inputExponent,
         baseUnit,
-        delay: 0
       }
     });
     const expectedUnits = `${ UNITS[inputExponent] }${ baseUnit }`;
@@ -71,7 +69,7 @@ describe('component: UnitInput', () => {
   ])('should (%p) force use of SI modifier and return %p', async(outputModifier, expected) => {
     const wrapper = mount(UnitInput, {
       propsData: {
-        value: 1, inputExponent: 3, outputModifier: !outputModifier, delay: 0
+        value: 1, inputExponent: 3, outputModifier: !outputModifier
       }
     });
     const inputWrapper = wrapper.find('input');
@@ -89,7 +87,6 @@ describe('component: UnitInput', () => {
         value:          1,
         inputExponent,
         outputModifier: true,
-        delay:          0
       }
     });
 
@@ -104,7 +101,7 @@ describe('component: UnitInput', () => {
   ])('based on increment %p and exponent M, it should use binary modifier and return unit %p', (increment, expected) => {
     const wrapper = mount(UnitInput, {
       propsData: {
-        value: 1, inputExponent: 2, increment, delay: 0
+        value: 1, inputExponent: 2, increment
       }
     });
 
@@ -117,7 +114,7 @@ describe('component: UnitInput', () => {
   ])('should force emission of value type as %p', (outputAs) => {
     const wrapper = mount(UnitInput, {
       propsData: {
-        value: 1, inputExponent: 3, outputAs, delay: 0
+        value: 1, inputExponent: 3, outputAs
       }
     });
 
@@ -132,7 +129,7 @@ describe('component: UnitInput', () => {
   ])('should appended base unit %p value to SI modifier and return %p', (baseUnit, expected) => {
     const wrapper = mount(UnitInput, {
       propsData: {
-        value: 1, baseUnit, inputExponent: 2, delay: 0
+        value: 1, baseUnit, inputExponent: 2
       }
     });
     const addonText = wrapper.find('.addon').text();
@@ -142,11 +139,7 @@ describe('component: UnitInput', () => {
 
   it('should display suffix outside of the value', () => {
     const suffix = 'seconds';
-    const wrapper = mount(UnitInput, {
-      propsData: {
-        value: 1, suffix, delay: 0
-      }
-    });
+    const wrapper = mount(UnitInput, { propsData: { value: 1, suffix } });
     const addonText = wrapper.find('.addon').text();
 
     wrapper.find('input').setValue(1);
@@ -156,7 +149,7 @@ describe('component: UnitInput', () => {
   });
 
   it('should format value to a valid integer', () => {
-    const wrapper = mount(UnitInput, { propsData: { delay: 0 } });
+    const wrapper = mount(UnitInput);
     const value = '096';
     const expectation = 96;
 
