@@ -1,6 +1,6 @@
 <script>
 import $ from 'jquery';
-import debounce from 'lodash.debounce';
+import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
