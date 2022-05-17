@@ -1,7 +1,7 @@
-import $ from 'jquery'
+import $ from 'jquery';
 
-const _EDIT = 'edit'
-const _VIEW = 'view'
+const _EDIT = 'edit';
+const _VIEW = 'view';
 
 export default {
   inheritAttrs: false,
@@ -68,31 +68,31 @@ export default {
       raised: this.mode === _VIEW || !!`${this.value}`,
       focused: false,
       blurred: null
-    }
+    };
   },
 
   computed: {
     empty () {
-      return !!`${this.value}`
+      return !!`${this.value}`;
     },
 
     isView () {
-      return this.mode === _VIEW
+      return this.mode === _VIEW;
     },
 
     isDisabled () {
-      return this.disabled || this.isView
+      return this.disabled || this.isView;
     },
 
     isSearchable () {
-      const { searchable } = this
-      const options = (this.options || [])
+      const { searchable } = this;
+      const options = (this.options || []);
 
       if (searchable || options.length >= 10) {
-        return true
+        return true;
       }
 
-      return false
+      return false;
     }
   },
 
@@ -100,40 +100,40 @@ export default {
     resizeHandler (e) {
       // since the DD is positioned there is no way to 'inherit' the size of the input, this calcs the size of the parent and set the dd width if it is smaller. If not let it grow with the regular styles
       this.$nextTick(() => {
-        const DD = $(this.$refs.select).find('ul.vs__dropdown-menu')
-        const selectWidth = $(this.$refs.select).width()
-        const dropWidth = DD.width()
+        const DD = $(this.$refs.select).find('ul.vs__dropdown-menu');
+        const selectWidth = $(this.$refs.select).width();
+        const dropWidth = DD.width();
 
         if (dropWidth < selectWidth) {
-          DD.width(selectWidth)
+          DD.width(selectWidth);
         }
-      })
+      });
     },
     onFocus () {
-      this.$emit('on-focus')
+      this.$emit('on-focus');
 
-      return this.onFocusLabeled()
+      return this.onFocusLabeled();
     },
 
     onFocusLabeled () {
-      this.raised = true
-      this.focused = true
+      this.raised = true;
+      this.focused = true;
     },
 
     onBlur () {
-      this.$emit('on-blur')
+      this.$emit('on-blur');
 
-      return this.onBlurLabeled()
+      return this.onBlurLabeled();
     },
 
     onBlurLabeled () {
-      this.focused = false
+      this.focused = false;
 
       if (!this.value) {
-        this.raised = false
+        this.raised = false;
       }
 
-      this.blurred = Date.now()
+      this.blurred = Date.now();
     }
   }
-}
+};

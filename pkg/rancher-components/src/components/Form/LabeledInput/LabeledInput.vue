@@ -1,10 +1,10 @@
 <script>
-import LabeledFormElement from '@mixins/labeled-form-element'
-import { TextAreaAutoGrow } from '@components/Form'
-import { LabeledTooltip } from '@components/LabeledTooltip'
-import { escapeHtml } from '@shell/utils/string'
-import cronstrue from 'cronstrue'
-import { isValidCron } from 'cron-validator'
+import LabeledFormElement from '@mixins/labeled-form-element';
+import { TextAreaAutoGrow } from '@components/Form';
+import { LabeledTooltip } from '@components/LabeledTooltip';
+import { escapeHtml } from '@shell/utils/string';
+import cronstrue from 'cronstrue';
+import { isValidCron } from 'cron-validator';
 
 export default {
   components: { LabeledTooltip, TextAreaAutoGrow },
@@ -54,78 +54,78 @@ export default {
 
   computed: {
     hasLabel () {
-      return !!this.label || !!this.labelKey || !!this.$slots.label
+      return !!this.label || !!this.labelKey || !!this.$slots.label;
     },
 
     hasSuffix () {
-      return !!this.$slots.suffix
+      return !!this.$slots.suffix;
     },
 
     cronHint () {
       if (this.type !== 'cron' || !this.value) {
-        return
+        return;
       }
       if (!isValidCron(this.value)) {
-        return this.t('generic.invalidCron')
+        return this.t('generic.invalidCron');
       }
       try {
-        const hint = cronstrue.toString(this.value)
+        const hint = cronstrue.toString(this.value);
 
-        return hint
+        return hint;
       } catch (e) {
-        return this.t('generic.invalidCron')
+        return this.t('generic.invalidCron');
       }
     },
 
     _placeholder () {
       if (this.placeholder) {
-        return this.placeholder
+        return this.placeholder;
       }
       if (this.placeholderKey) {
-        return this.t(this.placeholderKey)
+        return this.t(this.placeholderKey);
       }
 
-      return ''
+      return '';
     },
 
     _maxlength () {
       if (this.type === 'text' && this.maxlength) {
-        return this.maxlength
+        return this.maxlength;
       }
 
-      return null
+      return null;
     }
   },
 
   methods: {
     focus () {
-      const comp = this.$refs.value
+      const comp = this.$refs.value;
 
       if (comp) {
-        comp.focus()
+        comp.focus();
       }
     },
 
     select () {
-      const comp = this.$refs.value
+      const comp = this.$refs.value;
 
       if (comp) {
-        comp.select()
+        comp.select();
       }
     },
 
     onFocus () {
-      this.onFocusLabeled()
+      this.onFocusLabeled();
     },
 
     onBlur () {
-      this.$emit('blur')
-      this.onBlurLabeled()
+      this.$emit('blur');
+      this.onBlurLabeled();
     },
 
     escapeHtml
   }
-}
+};
 </script>
 
 <template>

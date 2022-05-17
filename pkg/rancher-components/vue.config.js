@@ -1,28 +1,28 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require('path')
+const path = require('path');
 
 module.exports = {
   chainWebpack: (config) => {
     config.resolve.alias.set(
       '~',
       path.resolve(__dirname, 'src')
-    )
+    );
     config.resolve.alias.set(
       '@',
       path.resolve(__dirname, '../../shell/')
-    )
+    );
     config.resolve.alias.set(
       '@shell',
       path.resolve(__dirname, '../../shell/')
-    )
+    );
     config.resolve.alias.set(
       '@components',
       path.resolve(__dirname, 'src/components')
-    )
+    );
     config.resolve.alias.set(
       '@mixins',
       path.resolve(__dirname, 'src/mixins')
-    )
+    );
   },
   css: {
     extract: false,
@@ -35,4 +35,4 @@ module.exports = {
       }
     }
   }
-}
+};

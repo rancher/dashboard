@@ -42,14 +42,14 @@ export default {
 
   computed: {
     bg () {
-      return this.value?.stateBackground || this.color
+      return this.value?.stateBackground || this.color;
     },
 
     msg () {
-      return this.value?.stateDisplay || this.label
+      return this.value?.stateDisplay || this.label;
     }
   }
-}
+};
 </script>
 
 <template>

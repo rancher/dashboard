@@ -1,7 +1,7 @@
 <script>
-import { RadioButton } from '@components/Form/Radio'
+import { RadioButton } from '@components/Form/Radio';
 
-const _VIEW = 'view'
+const _VIEW = 'view';
 
 export default {
   components: { RadioButton },
@@ -69,55 +69,55 @@ export default {
 
   computed: {
     normalizedOptions () {
-      const out = []
+      const out = [];
 
       for (let i = 0; i < this.options.length; i++) {
-        const opt = this.options[i]
+        const opt = this.options[i];
 
         if (typeof opt === 'object' && opt) {
-          out.push(opt)
+          out.push(opt);
         } else if (this.labels) {
           out.push({
             label: this.labels[i],
             value: opt
-          })
+          });
         } else {
           out.push({
             label: opt,
             value: opt
-          })
+          });
         }
       }
 
-      return out
+      return out;
     },
 
     isView () {
-      return this.mode === _VIEW
+      return this.mode === _VIEW;
     },
 
     isDisabled () {
-      return (this.disabled || this.isView)
+      return (this.disabled || this.isView);
     }
   },
 
   methods: {
     // keyboard left/right event listener to select next/previous option
     clickNext (direction) {
-      const opts = this.normalizedOptions
-      const selected = opts.find(x => x.value === this.value)
-      let newIndex = (selected ? opts.indexOf(selected) : -1) + direction
+      const opts = this.normalizedOptions;
+      const selected = opts.find(x => x.value === this.value);
+      let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;
 
       if (newIndex >= opts.length) {
-        newIndex = opts.length - 1
+        newIndex = opts.length - 1;
       } else if (newIndex < 0) {
-        newIndex = 0
+        newIndex = 0;
       }
 
-      this.$emit('input', opts[newIndex].value)
+      this.$emit('input', opts[newIndex].value);
     }
   }
-}
+};
 </script>
 
 <template>

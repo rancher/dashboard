@@ -16,4 +16,4 @@
 //   window.Vue.use(ComponentLibrary)
 // }
 
-export * from './index'
+export * from './index';

@@ -28,7 +28,7 @@ export default {
       default: true
     }
   }
-}
+};
 </script>
 
 <template>

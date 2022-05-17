@@ -1,1 +1,1 @@
-export { default as TextAreaAutoGrow } from './TextAreaAutoGrow.vue'
+export { default as TextAreaAutoGrow } from './TextAreaAutoGrow.vue';

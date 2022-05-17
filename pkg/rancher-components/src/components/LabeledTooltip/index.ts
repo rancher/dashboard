@@ -1,1 +1,1 @@
-export { default as LabeledTooltip } from './LabeledTooltip.vue'
+export { default as LabeledTooltip } from './LabeledTooltip.vue';

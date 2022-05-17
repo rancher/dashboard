@@ -1,9 +1,9 @@
 <script>
-import $ from 'jquery'
-import debounce from 'lodash.debounce'
+import $ from 'jquery';
+import debounce from 'lodash.debounce';
 
-const _VIEW = 'view'
-const _EDIT = 'edit'
+const _VIEW = 'view';
+const _EDIT = 'edit';
 
 export default {
   inheritAttrs: false,
@@ -41,18 +41,18 @@ export default {
     return {
       curHeight: this.minHeight,
       overflow: 'hidden'
-    }
+    };
   },
 
   computed: {
     isDisabled () {
-      return this.disabled || this.mode === _VIEW
+      return this.disabled || this.mode === _VIEW;
     },
 
     style () {
       // This sets the height to one-line for SSR pageload so that it's already right
       // (unless the input is long)
-      return `height: ${this.curHeight}px; overflow: ${this.overflow};`
+      return `height: ${this.curHeight}px; overflow: ${this.overflow};`;
     }
   },
 
@@ -60,53 +60,53 @@ export default {
     $attrs: {
       deep: true,
       handler () {
-        this.queueResize()
+        this.queueResize();
       }
     }
   },
 
   created () {
-    this.queueResize = debounce(this.autoSize, 100)
+    this.queueResize = debounce(this.autoSize, 100);
   },
 
   mounted () {
-    $(this.$refs.ta).css('height', `${this.curHeight}px`)
+    $(this.$refs.ta).css('height', `${this.curHeight}px`);
     this.$nextTick(() => {
-      this.autoSize()
-    })
+      this.autoSize();
+    });
   },
 
   methods: {
     onInput (val) {
-      this.$emit('input', val)
-      this.queueResize()
+      this.$emit('input', val);
+      this.queueResize();
     },
 
     focus () {
-      this.$refs.ta.focus()
+      this.$refs.ta.focus();
     },
 
     autoSize () {
-      const el = this.$refs.ta
+      const el = this.$refs.ta;
 
       if (!el) {
-        return
+        return;
       }
 
-      const $el = $(el)
+      const $el = $(el);
 
-      $el.css('height', '1px')
+      $el.css('height', '1px');
 
-      const border = parseInt($el.css('borderTopWidth'), 10) || 0 + parseInt($el.css('borderBottomWidth'), 10) || 0
-      const neu = Math.max(this.minHeight, Math.min(el.scrollHeight + border, this.maxHeight))
+      const border = parseInt($el.css('borderTopWidth'), 10) || 0 + parseInt($el.css('borderBottomWidth'), 10) || 0;
+      const neu = Math.max(this.minHeight, Math.min(el.scrollHeight + border, this.maxHeight));
 
-      $el.css('overflowY', (el.scrollHeight > neu ? 'auto' : 'hidden'))
-      $el.css('height', `${neu}px`)
+      $el.css('overflowY', (el.scrollHeight > neu ? 'auto' : 'hidden'));
+      $el.css('height', `${neu}px`);
 
-      this.curHeight = neu
+      this.curHeight = neu;
     }
   }
-}
+};
 </script>
 
 <template>

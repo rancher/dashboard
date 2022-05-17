@@ -1,7 +1,7 @@
 <script lang="ts">
-import Vue from 'vue'
-import { stringify } from '@shell/utils/error'
-import { nlToBr } from '@shell/utils/string'
+import Vue from 'vue';
+import { stringify } from '@shell/utils/error';
+import { nlToBr } from '@shell/utils/string';
 
 export default Vue.extend({
   props: {
@@ -27,11 +27,11 @@ export default Vue.extend({
      * Return message text as label
      */
     messageLabel (): string | void {
-      return !(typeof this.label === 'string') ? stringify(this.label) : undefined
+      return !(typeof this.label === 'string') ? stringify(this.label) : undefined;
     }
   },
   methods: { nlToBr }
-})
+});
 </script>
 <template>
   <div class="banner" :class="{[color]: true, closable}">

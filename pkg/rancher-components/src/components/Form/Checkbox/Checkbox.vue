@@ -1,10 +1,10 @@
 <script>
 // TODO: Remove jquery dep
-import $ from 'jquery'
-import { addObject, removeObject } from '@shell/utils/array'
+import $ from 'jquery';
+import { addObject, removeObject } from '@shell/utils/array';
 
-const _EDIT = 'edit'
-const _VIEW = 'view'
+const _EDIT = 'edit';
+const _VIEW = 'view';
 
 export default {
   props: {
@@ -66,10 +66,10 @@ export default {
 
   computed: {
     isDisabled () {
-      return (this.disabled || this.mode === _VIEW)
+      return (this.disabled || this.mode === _VIEW);
     },
     isChecked () {
-      return this.isMulti() ? this.value.find(v => v === this.valueWhenTrue) : this.value === this.valueWhenTrue
+      return this.isMulti() ? this.value.find(v => v === this.valueWhenTrue) : this.value === this.valueWhenTrue;
     }
   },
 
@@ -77,42 +77,42 @@ export default {
     clicked (event) {
       if (event.target.tagName === 'A' && event.target.href) {
         // Ignore links inside the checkbox label so you can click them
-        return true
+        return true;
       }
 
-      event.stopPropagation()
-      event.preventDefault()
+      event.stopPropagation();
+      event.preventDefault();
 
       if (this.isDisabled) {
-        return
+        return;
       }
 
-      const click = $.Event('click')
+      const click = $.Event('click');
 
-      click.shiftKey = event.shiftKey
-      click.altKey = event.altKey
-      click.ctrlKey = event.ctrlKey
-      click.metaKey = event.metaKey
+      click.shiftKey = event.shiftKey;
+      click.altKey = event.altKey;
+      click.ctrlKey = event.ctrlKey;
+      click.metaKey = event.metaKey;
 
       // Flip the value
       if (this.isMulti()) {
         if (this.isChecked) {
-          removeObject(this.value, this.valueWhenTrue)
+          removeObject(this.value, this.valueWhenTrue);
         } else {
-          addObject(this.value, this.valueWhenTrue)
+          addObject(this.value, this.valueWhenTrue);
         }
-        this.$emit('input', this.value)
+        this.$emit('input', this.value);
       } else {
-        this.$emit('input', !this.value)
-        $(this.$el).trigger(click)
+        this.$emit('input', !this.value);
+        $(this.$el).trigger(click);
       }
     },
 
     isMulti () {
-      return Array.isArray(this.value)
+      return Array.isArray(this.value);
     }
   }
-}
+};
 </script>
 
 <template>

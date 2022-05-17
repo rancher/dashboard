@@ -3,4 +3,4 @@ module.exports = {
   testMatch: [
     '**/*.spec.{j,t}s?(x)'
   ]
-}
+};

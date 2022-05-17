@@ -1,5 +1,5 @@
 <script>
-const _VIEW = 'view'
+const _VIEW = 'view';
 
 export default {
   props: {
@@ -49,25 +49,25 @@ export default {
   },
 
   data () {
-    return { isChecked: this.value === this.val }
+    return { isChecked: this.value === this.val };
   },
 
   computed: {
     isDisabled () {
-      return this.mode === _VIEW || this.disabled
+      return this.mode === _VIEW || this.disabled;
     },
 
     muteLabel () {
       // Don't mute the label if the mode is view and the button is checked
-      return this.disabled && !(this.mode === _VIEW && this.isChecked)
+      return this.disabled && !(this.mode === _VIEW && this.isChecked);
     }
   },
 
   watch: {
     value (neu) {
-      this.isChecked = this.val === neu
+      this.isChecked = this.val === neu;
       if (this.isChecked) {
-        this.$refs.custom.focus()
+        this.$refs.custom.focus();
       }
     }
   },
@@ -75,17 +75,17 @@ export default {
   methods: {
     clicked (e) {
       if (this.isDisabled) {
-        return
+        return;
       }
 
       if (e.srcElement?.tagName === 'A') {
-        return
+        return;
       }
 
-      this.$emit('input', this.val)
+      this.$emit('input', this.val);
     }
   }
-}
+};
 </script>
 
 <template>

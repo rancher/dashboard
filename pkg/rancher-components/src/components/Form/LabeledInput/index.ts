@@ -1,1 +1,1 @@
-export { default as LabeledInput } from './LabeledInput.vue'
+export { default as LabeledInput } from './LabeledInput.vue';
