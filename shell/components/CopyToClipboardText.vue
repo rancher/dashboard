@@ -28,12 +28,8 @@ export default {
         if (t.tagName === 'I') {
           t = t.parentElement || t;
         }
-        t.classList.add('copied');
         setTimeout(() => {
-          try {
-            t.classList.remove('copied');
-            this.copied = false;
-          } catch (_e) {}
+          this.copied = false;
         }, 500);
       }
     },
@@ -42,8 +38,8 @@ export default {
 </script>
 
 <template>
-  <a class="copy-to-clipboard-text" :class="{'plain': plain}" href="#" @click="clicked">
-    {{ text }} <i v-if="!copied" class="icon icon-copy" /><i v-else class="icon icon-checkmark" />
+  <a class="copy-to-clipboard-text" :class="{ 'copied': copied, 'plain': plain}" href="#" @click="clicked">
+    {{ text }} <i class="icon" :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}" />
   </a>
 </template>
 <style lang="scss" scoped>
