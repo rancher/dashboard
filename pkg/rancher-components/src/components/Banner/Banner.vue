@@ -38,10 +38,10 @@ export default Vue.extend({
 });
 </script>
 <template>
-  <div 
-    class="banner" 
+  <div
+    class="banner"
     :class="{
-      [color]: true, 
+      [color]: true,
       closable,
       stacked
       }"

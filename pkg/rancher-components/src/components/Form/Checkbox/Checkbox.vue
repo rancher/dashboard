@@ -65,16 +65,16 @@ export default {
   },
 
   computed: {
-    isDisabled () {
+    isDisabled() {
       return (this.disabled || this.mode === _VIEW);
     },
-    isChecked () {
+    isChecked() {
       return this.isMulti() ? this.value.find(v => v === this.valueWhenTrue) : this.value === this.valueWhenTrue;
     }
   },
 
   methods: {
-    clicked (event) {
+    clicked(event) {
       if (event.target.tagName === 'A' && event.target.href) {
         // Ignore links inside the checkbox label so you can click them
         return true;
@@ -108,7 +108,7 @@ export default {
       }
     },
 
-    isMulti () {
+    isMulti() {
       return Array.isArray(this.value);
     }
   }

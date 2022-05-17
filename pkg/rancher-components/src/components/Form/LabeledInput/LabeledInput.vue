@@ -1,14 +1,16 @@
 <script>
-import LabeledFormElement from '@mixins/labeled-form-element';
+import CompactInput from '@shell/mixins/compact-input';
+import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import { TextAreaAutoGrow } from '@components/Form';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import { escapeHtml } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
+import { debounce } from 'lodash';
 
 export default {
   components: { LabeledTooltip, TextAreaAutoGrow },
-  mixins:     [LabeledFormElement],
+  mixins:     [LabeledFormElement, CompactInput],
 
   props: {
     type: {
@@ -49,12 +51,35 @@ export default {
     hideArrows: {
       type:    Boolean,
       default: false,
+    },
+
+    /**
+     * Optionally delay on input while typing
+     */
+    delay: {
+      type:    Number,
+      default: 0
     }
   },
 
+  data() {
+    return {
+      updated:          false,
+      validationErrors: '',
+    };
+  },
+
   computed: {
+    onInput() {
+      return this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
+    },
+
     hasLabel() {
-      return !!this.label || !!this.labelKey || !!this.$slots.label;
+      return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
+    },
+
+    hasTooltip() {
+      return !!this.tooltip || !!this.tooltipKey;
     },
 
     hasSuffix() {
@@ -94,7 +119,7 @@ export default {
       }
 
       return null;
-    }
+    },
   },
 
   methods: {
@@ -114,6 +139,14 @@ export default {
       }
     },
 
+    /**
+     * Emit on input with delay
+     * Note: Arrow function is avoided due context binding
+     */
+    delayInput(value) {
+      this.$emit('input', value);
+    },
+
     onFocus() {
       this.onFocusLabeled();
     },
@@ -130,14 +163,13 @@ export default {
 
 <template>
   <div
+    class="labeled-input"
     :class="{
-      'labeled-input': true,
       focused,
       [mode]: true,
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
-      hideArrows
     }"
   >
     <slot name="label">
@@ -162,7 +194,7 @@ export default {
         :placeholder="_placeholder"
         autocapitalize="off"
         :class="{ conceal: type === 'multiline-password' }"
-        @input="$emit('input', $event)"
+        @input="onInput($event)"
         @focus="onFocus"
         @blur="onBlur"
       />
@@ -179,7 +211,7 @@ export default {
         autocomplete="off"
         autocapitalize="off"
         :data-lpignore="ignorePasswordManagers"
-        @input="$emit('input', $event.target.value)"
+        @input="onInput($event.target.value)"
         @focus="onFocus"
         @blur="onBlur"
       />
@@ -202,23 +234,10 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
-
-.hideArrows {
-  /* Hide arrows on number input
-when it overlaps with the unit */
-
-  /* Chrome, Safari, Edge, Opera */
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  /* Firefox */
-  input[type=number] {
-    -moz-appearance: textfield;
-  }
+<style>
+.validation-message {
+  padding: 5px;
+  position: absolute;
+  bottom: -35px;
 }
-
 </style>

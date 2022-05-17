@@ -56,7 +56,7 @@ export default {
   </div>
 </template>
 
-<style lang='scss' scoped>
+<style lang='scss'>
  .card-container {
   &.highlight-border {
     border-left: 5px solid var(--primary);
