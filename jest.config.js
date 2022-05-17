@@ -8,11 +8,13 @@ module.exports = {
   moduleFileExtensions: ['js', 'json', 'vue', 'ts'],
   watchman:             false,
   moduleNameMapper:     {
-    '^~/(.*)$':    '<rootDir>/$1',
-    '^~~/(.*)$':   '<rootDir>/$1',
-    '^@/(.*)$':    '<rootDir>/$1',
-    '@shell/(.*)': '<rootDir>/shell/$1',
-    '@pkg/(.*)':   '<rootDir>/shell/pkg/$1',
+    '^~/(.*)$':         '<rootDir>/$1',
+    '^~~/(.*)$':        '<rootDir>/$1',
+    '^@/(.*)$':         '<rootDir>/$1',
+    '@shell/(.*)':      '<rootDir>/shell/$1',
+    '@pkg/(.*)':        '<rootDir>/shell/pkg/$1',
+    '@components/(.*)': '<rootDir>/pkg/rancher-components/src/components/$1',
+    '@mixins/(.*)':     '<rootDir>/pkg/rancher-components/src/mixins/$1',
   },
   transform: {
     // process js with `babel-jest`
