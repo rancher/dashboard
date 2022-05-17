@@ -1,6 +1,6 @@
 <script>
 import { RadioGroup } from '@components/Form/Radio';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import KeyValue from '@shell/components/form/KeyValue';
 import ArrayList from '@shell/components/form/ArrayList';

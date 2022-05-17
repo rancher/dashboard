@@ -1,7 +1,7 @@
 <script>
 import { _EDIT } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { NORMAN, SECRET } from '@shell/config/types';
 import { SECRET_TYPES } from '@shell/config/secret';

@@ -5,7 +5,7 @@ import { mapGetters } from 'vuex';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
   name: 'CloneTemplateModal',

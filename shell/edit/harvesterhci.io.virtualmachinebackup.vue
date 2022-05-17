@@ -1,7 +1,7 @@
 <script>
 import Footer from '@shell/components/form/Footer';
 import { RadioGroup } from '@components/Form/Radio';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';

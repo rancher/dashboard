@@ -1,6 +1,6 @@
 <script>
 import ArrayList from '@shell/components/form/ArrayList';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import Select from '@shell/components/form/Select';
 import { Checkbox } from '@components/Form/Checkbox';
 import InputWithSelect from '@shell/components/form/InputWithSelect';

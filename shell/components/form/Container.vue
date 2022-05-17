@@ -4,7 +4,7 @@ import Command from '@shell/components/form/Command';
 import Security from '@shell/components/form/Security';
 import WorkloadPorts from '@shell/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 
 export default {

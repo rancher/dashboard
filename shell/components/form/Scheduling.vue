@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import { isEmpty, get } from '@shell/utils/object';
 import Tolerations from '@shell/components/form/Tolerations';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { _VIEW } from '@shell/config/query-params';
 import PodScheduling from '@shell/components/form/PodScheduling';
 import NodeScheduling from '@shell/components/form/NodeScheduling';

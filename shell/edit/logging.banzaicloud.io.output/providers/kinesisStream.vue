@@ -1,6 +1,6 @@
 <script>
 import SecretSelector from '@shell/components/form/SecretSelector';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
   components: { LabeledInput, SecretSelector },

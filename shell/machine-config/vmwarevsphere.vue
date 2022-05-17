@@ -9,7 +9,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { Card } from '@components/Card';
 import { RadioGroup } from '@components/Form/Radio';
 import KeyValue from '@shell/components/form/KeyValue';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import ArrayListSelect from '@shell/components/form/ArrayListSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { get, set } from '@shell/utils/object';

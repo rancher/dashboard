@@ -5,7 +5,7 @@ import throttle from 'lodash/throttle';
 import ArrayList from '@shell/components/form/ArrayList';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import KeyValue from '@shell/components/form/KeyValue';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { RadioGroup } from '@components/Form/Radio';
 import ServicePorts from '@shell/components/form/ServicePorts';

@@ -1,6 +1,6 @@
 <script>
 import { parseSi, formatSi, UNITS, FRACTIONAL } from '@shell/utils/units';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { _EDIT } from '@shell/config/query-params';
 
 export default {

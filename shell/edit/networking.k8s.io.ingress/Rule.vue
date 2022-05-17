@@ -1,6 +1,6 @@
 <script>
 import RulePath from '@shell/edit/networking.k8s.io.ingress/RulePath';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { random32 } from '@shell/utils/string';
 
 export default {

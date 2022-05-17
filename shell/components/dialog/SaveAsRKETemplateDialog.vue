@@ -2,7 +2,7 @@
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
-import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 const DEFAULT_REVISION = 'v1';
