@@ -16,8 +16,9 @@ describe('component: UnitInput', () => {
 
     await input.setValue(2);
     await input.setValue(4);
+    input.trigger('blur');
 
-    expect(wrapper.emitted('input')).toHaveLength(2);
+    expect(wrapper.emitted('input')).toHaveLength(1);
   });
 
   it.each([
@@ -76,6 +77,7 @@ describe('component: UnitInput', () => {
 
     await wrapper.setProps({ outputModifier });
     await inputWrapper.setValue(3);
+    inputWrapper.trigger('blur');
 
     expect(wrapper.emitted('input')![0][0]).toBe(expected);
   });
@@ -89,8 +91,10 @@ describe('component: UnitInput', () => {
         outputModifier: true,
       }
     });
+    const input = wrapper.find('input');
 
-    await wrapper.find('input').setValue(2);
+    await input.setValue(2);
+    input.trigger('blur');
 
     expect(wrapper.emitted('input')![0][0]).toContain(UNITS[inputExponent]);
   });
@@ -118,7 +122,10 @@ describe('component: UnitInput', () => {
       }
     });
 
-    wrapper.find('input').setValue(2);
+    const input = wrapper.find('input');
+
+    input.setValue(2);
+    input.trigger('blur');
 
     expect(typeof wrapper.emitted('input')![0][0]).toBe(outputAs);
   });
@@ -142,7 +149,10 @@ describe('component: UnitInput', () => {
     const wrapper = mount(UnitInput, { propsData: { value: 1, suffix } });
     const addonText = wrapper.find('.addon').text();
 
-    wrapper.find('input').setValue(1);
+    const input = wrapper.find('input');
+
+    input.setValue(1);
+    input.trigger('blur');
 
     expect(addonText).toBe(suffix);
     expect(wrapper.emitted('input')![0][0]).not.toContain(suffix);
@@ -152,8 +162,10 @@ describe('component: UnitInput', () => {
     const wrapper = mount(UnitInput);
     const value = '096';
     const expectation = 96;
+    const input = wrapper.find('input');
 
-    wrapper.find('input').setValue(value);
+    input.setValue(value);
+    input.trigger('blur');
 
     expect(wrapper.emitted('input')![0][0]).toBe(expectation);
   });
@@ -162,11 +174,14 @@ describe('component: UnitInput', () => {
     const value = 5096;
     const delay = 1;
     const wrapper = mount(UnitInput, { propsData: { delay } });
+    const input = wrapper.find('input');
 
     jest.useFakeTimers();
-    wrapper.find('input').setValue('4096');
-    wrapper.find('input').setValue('096');
-    wrapper.find('input').setValue(value);
+
+    input.setValue('4096');
+    input.setValue('096');
+    input.setValue(value);
+    input.trigger('blur');
     jest.advanceTimersByTime(delay);
     jest.useRealTimers();
 

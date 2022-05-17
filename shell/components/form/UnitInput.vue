@@ -215,7 +215,7 @@ export default {
     :required="required"
     :placeholder="placeholder"
     :hide-arrows="hideArrows"
-    @input="update($event)"
+    @blur="update($event.target.value)"
   >
     <template #suffix>
       <div
