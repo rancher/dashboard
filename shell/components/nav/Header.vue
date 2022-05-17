@@ -424,7 +424,7 @@ export default {
         class="actions"
       >
         <i
-          id="page-actions-menu"
+          data-testid="page-actions-menu"
           class="icon icon-actions"
           @blur="showPageActionsMenu(false)"
           @click="showPageActionsMenu(true)"
@@ -441,7 +441,7 @@ export default {
         >
           <template slot="popover" class="user-menu">
             <ul
-              id="page-actions-dropdown"
+              data-testid="page-actions-dropdown"
               class="list-unstyled dropdown"
               @click.stop="showPageActionsMenu(false)"
             >

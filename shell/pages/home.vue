@@ -285,7 +285,7 @@ export default {
       <div v-if="!readWhatsNewAlready" class="row">
         <div class="col span-12">
           <Banner
-            id="changelog-banner"
+            data-testid="changelog-banner"
             color="info whats-new"
           >
             <div>{{ t('landing.seeWhatsNew') }}</div>

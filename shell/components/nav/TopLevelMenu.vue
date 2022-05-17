@@ -366,7 +366,7 @@ export default {
               trigger="click"
             >
               <a
-                id="locale-selector"
+                data-testid="locale-selector"
                 class="locale-chooser"
               >
                 {{ selectedLocaleLabel }}

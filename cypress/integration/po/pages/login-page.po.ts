@@ -41,7 +41,7 @@ export class LoginPagePo extends PagePo {
 
   useLocal() {
     return this.self().then(($page) => {
-      const elements = $page.find('#login-useLocal');
+      const elements = $page.find('[data-testid="login-useLocal"]');
 
       return elements?.[0];
     });

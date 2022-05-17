@@ -64,6 +64,6 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   localization(): Cypress.Chainable {
-    return this.self().find('#locale-selector');
+    return this.self().find('[data-testid="locale-selector"]');
   }
 }

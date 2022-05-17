@@ -31,14 +31,14 @@ export default {
     </div>
     <div
       v-if="titleKey"
-      id="banner-title-key"
+      data-testid="banner-title-key"
       class="title"
     >
       <t :k="titleKey" />
     </div>
     <h1
       v-else-if="title"
-      id="banner-title"
+      data-testid="banner-title"
       class="title"
       v-html="title"
     ></h1>
