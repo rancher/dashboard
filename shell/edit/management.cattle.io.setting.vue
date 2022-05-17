@@ -3,7 +3,7 @@ import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@pkg/rancher-components/src/components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import TextAreaAutoGrow from '@shell/components/form/TextAreaAutoGrow';
+import { TextAreaAutoGrow } from '@components/Form/TextArea';
 
 import { ALLOWED_SETTINGS, SETTING } from '@shell/config/settings';
 import { RadioGroup } from '@components/Form/Radio';
