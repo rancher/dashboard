@@ -453,7 +453,7 @@ export const mutations = {
     state.isRancher = isRancher;
   },
 
-  clusterChanged(state, ready) {
+  clusterReady(state, ready) {
     state.clusterReady = ready;
   },
 
@@ -486,7 +486,7 @@ export const mutations = {
     state.workspace = value;
   },
 
-  setCluster(state, neu) {
+  clusterId(state, neu) {
     state.clusterId = neu;
   },
 
@@ -634,7 +634,7 @@ export const actions = {
     const samePackage = oldPkg?.name === newPkg?.name;
     const isMultiCluster = getters['isMultiCluster'];
 
-    // Are we in the same package and cluster?
+    // Are we in the same cluster and package?
     if ( sameCluster && samePackage) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
@@ -653,12 +653,14 @@ export const actions = {
       s => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
 
-    // Should we leave/forget the current cluster?
+    // Should we leave/forget the current cluster? Only if we're going from an existing cluster to a new cluster, or the package has changed
+    // (latter catches cases like nav from explorer cluster A to epinio cluster A)
     if ( (state.clusterId && id) || !samePackage) {
       // Clear the old cluster state out if switching to a new one.
       // If there is not an id then stay connected to the old one behind the scenes,
       // so that the nav and header stay the same when going to things like prefs
-      commit('clusterChanged', false);
+      commit('clusterReady', false);
+      commit('clusterId', undefined);
 
       await dispatch('cluster/unsubscribe');
       commit('cluster/reset');
@@ -682,18 +684,16 @@ export const actions = {
     if ( id ) {
       // Remember the current cluster
       dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
-      commit('setCluster', id);
+      commit('clusterId', id);
 
       // Use a pseudo cluster ID to pretend we have a cluster... to ensure some screens that don't care about a cluster but 'require' one to show
       if (id === BLANK_CLUSTER) {
-        commit('clusterChanged', true);
+        commit('clusterReady', true);
 
         return;
       }
     } else {
-      // Forget the current cluster
-      commit('setCluster', undefined);
-
+      // Switching to a global page with no cluster id, keep it the same.
       return;
     }
 
@@ -705,7 +705,7 @@ export const actions = {
       dispatch(`${ newPkgClusterStore }/loadSchemas`, true);
       await dispatch(`${ newPkgClusterStore }/loadCluster`, { id });
 
-      commit('clusterChanged', true);
+      commit('clusterReady', true);
       console.log('Done loading pkg cluster:', newPkgClusterStore); // eslint-disable-line no-console
 
       // Everything below here is rancher/kube cluster specific
@@ -733,7 +733,7 @@ export const actions = {
         throw new Error('Unready cluster');
       }
     } catch {
-      commit('setCluster', null);
+      commit('clusterId', null);
       commit('cluster/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);
     }
@@ -788,7 +788,7 @@ export const actions = {
       all:     res.namespaces
     });
 
-    commit('clusterChanged', true);
+    commit('clusterReady', true);
 
     console.log('Done loading cluster.'); // eslint-disable-line no-console
   },
@@ -826,7 +826,7 @@ export const actions = {
     }
 
     if ( state.clusterId && id ) {
-      commit('clusterChanged', false);
+      commit('clusterReady', false);
 
       await dispatch('harvester/unsubscribe');
       commit('harvester/reset');
@@ -841,7 +841,7 @@ export const actions = {
     }
 
     if (id) {
-      commit('setCluster', id);
+      commit('clusterId', id);
     }
 
     console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
@@ -864,7 +864,7 @@ export const actions = {
     }
 
     if ( !cluster ) {
-      commit('setCluster', null);
+      commit('clusterId', null);
       commit('harvester/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);
     }
@@ -913,7 +913,7 @@ export const actions = {
       all:     res.virtualNamespaces
     });
 
-    commit('clusterChanged', true);
+    commit('clusterReady', true);
 
     console.log('Done loading virtual cluster.'); // eslint-disable-line no-console
   },
@@ -967,8 +967,8 @@ export const actions = {
     commit('prefs/reset');
 
     await dispatch('cluster/unsubscribe');
-    commit('clusterChanged', false);
-    commit('setCluster', null);
+    commit('clusterReady', false);
+    commit('clusterId', null);
     commit('cluster/reset');
 
     await dispatch('rancher/unsubscribe');
