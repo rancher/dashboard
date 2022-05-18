@@ -151,8 +151,8 @@ export default {
       this.onFocusLabeled();
     },
 
-    onBlur() {
-      this.$emit('blur');
+    onBlur(event) {
+      this.$emit('blur', event);
       this.onBlurLabeled();
     },
 
