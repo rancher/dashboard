@@ -50,7 +50,7 @@ export default {
 
     hideArrows: {
       type:    Boolean,
-      default: false,
+      default: false
     },
 
     /**
@@ -151,8 +151,8 @@ export default {
       this.onFocusLabeled();
     },
 
-    onBlur() {
-      this.$emit('blur');
+    onBlur(event) {
+      this.$emit('blur', event);
       this.onBlurLabeled();
     },
 
@@ -216,6 +216,7 @@ export default {
         @blur="onBlur"
       />
     </slot>
+
     <slot name="suffix" />
     <LabeledTooltip
       v-if="tooltipKey && !focused"
