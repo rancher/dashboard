@@ -1,5 +1,5 @@
 <script>
-// TODO: Remove jquery dep
+// TODO: Issue #5070 Remove jquery dep
 import $ from 'jquery';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
