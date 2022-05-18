@@ -35,3 +35,21 @@ CODE:not(.language-jsx) {
 .sbdocs-table tr td {
   padding: 18px 31px!important;
 }
+
+
+table {
+  tr {
+    background: transparent;
+  }
+  .color-sample {
+    width: 25px;
+    height: 25px;
+    border: 1px solid $medium;
+    margin: 0 10px 0 0;
+    display: inline-flex;
+    vertical-align: text-bottom;
+  }
+}
+
+
+

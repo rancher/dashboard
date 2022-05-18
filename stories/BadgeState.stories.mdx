@@ -1,6 +1,7 @@
 
-import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
 import BadgeState from '../components/BadgeState.vue';
+import dedent from 'ts-dedent';
 
 <Meta title="Components/BadgeState" component={BadgeState} />
 
@@ -10,8 +11,20 @@ export const Template = (args, { argTypes }) => ({
   template:   '<BadgeState v-bind="$props" />',
 })
 
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import BadgeState from '../components/BadgeState.vue';
+  `}
+/>
+
 # BadgeState
 Badges are used to highlight important changes of state in an element, mark them, or draw attention to counters.
+
+
+### How to start
 
 <br/>
 
@@ -22,10 +35,9 @@ Badges are used to highlight important changes of state in an element, mark them
 - Badges should not provide interaction. However, its parent element may.
 - Don't use long texts within a badge. Whenever possible, limit it to a maximum of 3 words or less. 
 
-### States
+### States of badge
 
 Different contextual variations of the badge can be used to communicate the different states of an element or the content. Use visually hidden text to convey meaning to assertive technologies.
-
 
 #### Info
 <Canvas>
@@ -37,6 +49,7 @@ Different contextual variations of the badge can be used to communicate the diff
     }}>
     {Template.bind({})}
   </Story>
+  
 </Canvas>
 
 #### Warning

@@ -24,7 +24,10 @@ export const Story = (args, { argTypes }) => ({
 
 Story.story = { name: 'PercentageBar' };
 Story.args = {
-  value:              45,
+  value:              40,
   showPercentage:     true.valueOf,
   preferredDirection: 'LESS'
 };
+
+
+
