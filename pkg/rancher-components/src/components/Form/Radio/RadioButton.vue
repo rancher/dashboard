@@ -6,46 +6,46 @@ export default {
     // The name of the input, for grouping
     name: {
       type:    String,
-      default: '',
+      default: ''
     },
 
     // The value for this option
     val: {
       required:  true,
-      validator: x => true,
+      validator: x => true
     },
 
     // The selected value...
     value: {
       required:  true,
-      validator: x => true,
+      validator: x => true
     },
 
     // The label shown next to the radio
     label: {
       type:    String,
-      default: '',
+      default: ''
     },
 
     disabled: {
       type:    Boolean,
-      default: false,
+      default: false
     },
 
     mode: {
       type:    String,
-      default: 'edit',
+      default: 'edit'
     },
 
     descriptionKey: {
       type:    String,
-      default: null,
+      default: null
     },
 
     description: {
       type:    String,
       default: null
-    },
+    }
   },
 
   data() {
@@ -83,7 +83,7 @@ export default {
       }
 
       this.$emit('input', this.val);
-    },
+    }
   }
 };
 </script>

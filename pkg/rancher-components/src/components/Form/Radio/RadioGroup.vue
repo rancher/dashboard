@@ -8,7 +8,7 @@ export default {
     // Name for the checkbox grouping, must be unique on page
     name: {
       type:     String,
-      required: true,
+      required: true
     },
 
     // Options can be an array of {label, value}, or just values
@@ -20,7 +20,7 @@ export default {
     // If options are just values, then labels can be a corresponding display value
     labels: {
       type:    Array,
-      default: null,
+      default: null
     },
 
     // The selected value

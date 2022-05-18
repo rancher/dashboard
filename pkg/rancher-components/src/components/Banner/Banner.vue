@@ -11,19 +11,19 @@ export default Vue.extend({
     },
     label: {
       type:    [String, Error, Object],
-      default: null,
+      default: null
     },
     labelKey: {
       type:    String,
-      default: null,
+      default: null
     },
     closable: {
       type:    Boolean,
-      default: false,
+      default: false
     },
     stacked: {
       type:    Boolean,
-      default: false,
+      default: false
     }
   },
   computed: {
@@ -34,7 +34,7 @@ export default Vue.extend({
       return !(typeof this.label === 'string') ? stringify(this.label) : undefined;
     }
   },
-  methods: { nlToBr },
+  methods: { nlToBr }
 });
 </script>
 <template>
@@ -44,8 +44,8 @@ export default Vue.extend({
       [color]: true,
       closable,
       stacked
-      }"
-    >
+    }"
+  >
     <slot>
       <t v-if="labelKey" :k="labelKey" :raw="true" />
       <span v-else-if="messageLabel">{{ messageLabel }}</span>

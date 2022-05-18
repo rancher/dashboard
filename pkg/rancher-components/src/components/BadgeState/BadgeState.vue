@@ -12,7 +12,7 @@ export default {
      */
     value: {
       type:    Object,
-      default: null,
+      default: null
     },
 
     /**
@@ -20,7 +20,7 @@ export default {
      */
     color: {
       type:    String,
-      default: null,
+      default: null
     },
 
     /**
@@ -36,8 +36,8 @@ export default {
      */
     label: {
       type:    String,
-      default: null,
-    },
+      default: null
+    }
   },
 
   computed: {

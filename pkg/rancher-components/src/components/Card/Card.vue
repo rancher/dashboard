@@ -1,6 +1,6 @@
 <script>
 export default {
-  name:  'card',
+  name:  'Card',
   props: {
     title: {
       type:    String,

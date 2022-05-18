@@ -15,37 +15,37 @@ export default {
   props: {
     type: {
       type:    String,
-      default: 'text',
+      default: 'text'
     },
 
     status: {
       type:    String,
-      default: null,
+      default: null
     },
 
     subLabel: {
       type:    String,
-      default: null,
+      default: null
     },
 
     tooltip: {
       default: null,
-      type:    [String, Object],
+      type:    [String, Object]
     },
 
     hoverTooltip: {
       type:    Boolean,
-      default: true,
+      default: true
     },
 
     ignorePasswordManagers: {
       default: false,
-      type:    Boolean,
+      type:    Boolean
     },
 
     maxlength: {
       type:    Number,
-      default: null,
+      default: null
     },
 
     hideArrows: {
@@ -65,7 +65,7 @@ export default {
   data() {
     return {
       updated:          false,
-      validationErrors: '',
+      validationErrors: ''
     };
   },
 
@@ -119,7 +119,7 @@ export default {
       }
 
       return null;
-    },
+    }
   },
 
   methods: {
@@ -156,8 +156,8 @@ export default {
       this.onBlurLabeled();
     },
 
-    escapeHtml,
-  },
+    escapeHtml
+  }
 };
 </script>
 
