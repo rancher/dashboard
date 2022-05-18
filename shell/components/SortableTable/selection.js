@@ -434,7 +434,6 @@ export default {
 
       this.update(add, remove);
     },
-
     update(toAdd, toRemove) {
       toRemove.forEach((row) => {
         const index = this.selectedRows.findIndex(r => r === row);
