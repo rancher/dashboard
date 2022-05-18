@@ -1,73 +1,45 @@
+import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_TYPES } from './types';
+import { createElementalRoute, rootElementalRoute } from './utils/custom-routing';
+
 export function init($plugin, store) {
   const {
     product, virtualType, basicType, spoofedType, configureType
   } = $plugin.DSL(store, $plugin.name);
 
-  const OS_ELEMENTAL = {
-    DASHBOARD:           'Dashboard',
-    OPERATIONS:          'Operations',
-    MACHINE_INVENTORIES: 'Machine Inventories',
-  };
-
+  // app in sidebar
   product({
     icon:                  'gear',
     inStore:               'management',
     removable:             false,
     showClusterSwitcher:   false,
-    to:                  {
-      name:    'os-elemental',
-      params: { product: 'os-elemental' }
-    }
+    to:                  rootElementalRoute()
   });
 
   virtualType({
     // label:        store.getters['i18n/t']('fleet.dashboard.menuLabel'),
-    label:        OS_ELEMENTAL.DASHBOARD,
+    label:        ELEMENTAL_TYPES.OPERATIONS,
     icon:         'folder',
     group:        'Root',
     namespaced:   false,
-    name:         OS_ELEMENTAL.DASHBOARD,
-    weight:       3,
-    customRoute:        {
-      name:   $plugin.name,
-      params: { product: $plugin.name }
-    }
-  });
-
-  virtualType({
-    // label:        store.getters['i18n/t']('fleet.dashboard.menuLabel'),
-    label:        OS_ELEMENTAL.OPERATIONS,
-    icon:         'folder',
-    group:        'Root',
-    namespaced:   false,
-    name:         OS_ELEMENTAL.OPERATIONS,
+    name:         ELEMENTAL_TYPES.OPERATIONS,
     weight:       2,
-    route:        {
-      name:   'c-cluster-product',
-      params: { product: $plugin.name, resource: 'operations' }
-    }
+    route:        createElementalRoute('area', { product: ELEMENTAL_PRODUCT_NAME, area: ELEMENTAL_TYPES.OPERATIONS })
   });
 
   virtualType({
     // label:        store.getters['i18n/t']('fleet.dashboard.menuLabel'),
-    label:        OS_ELEMENTAL.MACHINE_INVENTORIES,
+    label:        ELEMENTAL_TYPES.MACHINE_INVENTORIES,
     icon:         'folder',
     group:        'Root',
     namespaced:   false,
-    name:         OS_ELEMENTAL.MACHINE_INVENTORIES,
+    name:         ELEMENTAL_TYPES.MACHINE_INVENTORIES,
     weight:       1,
-    route:        {
-      name:   'c-cluster-product',
-      params: { product: $plugin.name, resource: 'machines' }
-    }
+    route:        createElementalRoute('area', { product: ELEMENTAL_PRODUCT_NAME, area: ELEMENTAL_TYPES.MACHINE_INVENTORIES })
   });
 
   basicType([
-    OS_ELEMENTAL.DASHBOARD,
-    OS_ELEMENTAL.OPERATIONS,
-    OS_ELEMENTAL.MACHINE_INVENTORIES,
+    ELEMENTAL_TYPES.DASHBOARD,
+    ELEMENTAL_TYPES.OPERATIONS,
+    ELEMENTAL_TYPES.MACHINE_INVENTORIES,
   ]);
-
-  // configureType(OS_ELEMENTAL.OPERATIONS, { isCreatable: false });
-  // configureType(OS_ELEMENTAL.MACHINE_INVENTORIES, { showListMasthead: false });
 }

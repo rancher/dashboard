@@ -16,7 +16,7 @@ const routes: RouteConfig[] = [{
   component: CreateApp,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-applications`,
-  path:      `/:product/c/:cluster/applications`,
+  path:      `/:product/c/:cluster/application ds`,
   component: ListApp,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }`,
