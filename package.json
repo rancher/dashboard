@@ -124,6 +124,7 @@
     "@vue/cli-plugin-babel": "^4.5.15",
     "@vue/cli-plugin-typescript": "^4.5.15",
     "@vue/cli-service": "^4.5.13",
+    "@vue/eslint-config-standard": "^5.1.2",
     "@vue/test-utils": "1.2.1",
     "@vue/vue2-jest": "^27.0.0",
     "add": "^2.0.6",
