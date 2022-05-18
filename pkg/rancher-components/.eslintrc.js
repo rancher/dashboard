@@ -8,7 +8,10 @@ module.exports = {
     '../../.eslintrc.js'
   ],
   parserOptions: { ecmaVersion: 2020 },
-  rules:         { 'vue/no-mutating-props': 'warn' },
+  rules:         {
+    'vue/no-mutating-props':                'warn',
+    '@typescript-eslint/no-empty-function': ['error', { allow: ['arrowFunctions'] }]
+  },
   settings:      { 'import/ignore': ['vue'] },
   overrides:     [
     {
