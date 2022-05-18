@@ -286,7 +286,7 @@ export default async function({
     // Entering a new package where we weren't before?
     const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find(p => p.name === pkg) : null;
 
-    // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the to `route`
+    // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the `to` route
     if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) {
       // Execute mandatory store actions
       await Promise.all(always);
