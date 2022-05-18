@@ -307,7 +307,6 @@ export default function(dir, _appConfig) {
       '@shell':      SHELL_ABS,
       '@pkg':        path.join(dir, 'pkg'),
       '@components': path.join(dir, 'pkg', 'rancher-components', 'src', 'components'),
-      '@mixins':     path.join(dir, 'pkg', 'rancher-components', 'src', 'mixins'),
     },
 
     modulesDir: [

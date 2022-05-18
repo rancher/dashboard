@@ -19,10 +19,6 @@ module.exports = {
       '@components',
       path.resolve(__dirname, 'src/components')
     );
-    config.resolve.alias.set(
-      '@mixins',
-      path.resolve(__dirname, 'src/mixins')
-    );
   },
   css: {
     extract:       false,
