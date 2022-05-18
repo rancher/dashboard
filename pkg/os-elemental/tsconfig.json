@@ -25,23 +25,38 @@
     ],
     "paths": {
       "@shell/core/*": [
-        "../../node_modules/@rancher/shell/core/*"
+        "../../shell/core/*"
       ],
       "@shell/config/*": [
-        "../../node_modules/@rancher/shell/config/*"
+        "../../shell/config/*"
       ],
       "@shell/store/*": [
-        "../../node_modules/@rancher/shell/store/*"
+        "../../shell/store/*"
       ],
+      "@shell/plugins/*": [
+        "../../shell/plugins/*"
+      ],
+      "@shell/utils/*": [
+        "../../shell/utils/*"
+      ],
+      "@shell/models/*": [
+        "../../shell/models/*"
+      ],
+      "@pkg/*": [
+        "./*"
+      ]
     }
   },
   "include": [
     "**/*.ts",
+    "**/*.d.ts",
     "**/*.tsx",
     "**/*.vue",
-    "../../node_modules/@rancher/shell/types/*.d.ts",
-    "../../node_modules/@rancher/shell/core/*.ts",
-    "../../node_modules/@rancher/shell/config/**/*.js"
+    "../../shell/types/*.d.ts",
+    "../../shell/core/*.ts",
+    "../../shell/config/**/*.js",
+    "**/*.yaml",
+    "../../vue-shim.d.ts",
   ],
   "exclude": [
     "node_modules"
