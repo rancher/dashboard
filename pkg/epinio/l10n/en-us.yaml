@@ -193,7 +193,12 @@ epinio:
       placeholderNoOptions: There are no apps in this namespace
   serviceInstance:
     tableHeaders:
-      service: Service
+      service: Catalog Service
+    create:
+      catalogService:
+        label: Catalog Service
+        placeholderNoOptions: There are no known services
+        placeholderWithOptions: Select the type of Service to create
   catalogService:
     tableHeaders:
       shortDesc: Headline

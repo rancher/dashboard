@@ -1,4 +1,5 @@
 import EpinioApplicationModel from './models/applications';
+import EpinioCatalogServiceModel from './models/catalog-service';
 
 export const EPINIO_PRODUCT_NAME = 'epinio';
 
@@ -70,3 +71,21 @@ export interface EpinioApplicationResource {
 }
 
 export type EpinioApplication = EpinioApplicationResource & EpinioApplicationModel;
+
+export interface EpinioHelmRepoResource {
+  name: string,
+  url: string,
+}
+
+export interface EpinioCatalogServiceResource {
+  name: string,
+  description: string,
+  short_description: string, // eslint-disable-line camelcase
+  chart: string,
+  chartVersion: string,
+  appVersion: string,
+  helm_repo: EpinioHelmRepoResource, // eslint-disable-line camelcase
+  values: string,
+}
+
+export type EpinioCatalogService = EpinioCatalogServiceResource & EpinioCatalogServiceModel;
