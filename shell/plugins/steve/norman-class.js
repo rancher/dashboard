@@ -56,4 +56,11 @@ export default class NormanModel extends Resource {
       Vue.set(this, key, { ...spec[key] });
     });
   }
+
+  // hack to set _replace=true for PUT requests on Norman saves (check implementation on resource-class.js)
+  // This is the only was to prevent merging of objects, which in turn can cause undesired side effects for data on nested objects
+  // https://github.com/rancher/rancher/issues/35688#issuecomment-1130046378
+  setReplaceFlagForNormanReq() {
+    Vue.set(this, '__replace__', true);
+  }
 }

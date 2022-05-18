@@ -143,7 +143,7 @@ export default {
           }
         } else if (this.mode === _EDIT) {
           if (this.canEditProject) {
-            await this.value.save();
+            await this.value.save(true);
           }
 
           // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects

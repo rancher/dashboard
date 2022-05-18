@@ -69,8 +69,12 @@ export default class Project extends HybridModel {
     return this.listLocation;
   }
 
-  async save() {
+  async save(forceReplaceOnReq) {
     const norman = await this.norman;
+
+    if (forceReplaceOnReq) {
+      norman.setReplaceFlagForNormanReq();
+    }
 
     const newValue = await norman.save();
 
