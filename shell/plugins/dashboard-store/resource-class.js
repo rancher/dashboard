@@ -767,7 +767,7 @@ export default class Resource {
         console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
         clearInterval(interval);
         clearTimeout(timeout);
-        reject(new Error(`Failed while: ${ msg }`));
+        reject(new Error(`Failed waiting for: ${ msg }`));
       }, timeoutMs);
 
       const interval = setInterval(() => {

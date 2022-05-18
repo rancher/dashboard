@@ -6,12 +6,14 @@ export default class EpinioServiceInstanceModel extends EpinioNamespacedResource
       update:      this.getUrl(),
       self:        this.getUrl(),
       remove:      this.getUrl(),
+      bind:        `${ this.getUrl() }/bind`,
+      unbind:      `${ this.getUrl() }/unbind`,
       create:      this.getUrl(this.metadata?.namespace, null), // ensure name is null
     };
   }
 
   getUrl(namespace = 'from-ui', name = this.metadata?.name) {
-  // getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
+    // getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
     // Add baseUrl in a generic way
     return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/services/${ name || '' }` });
   }
@@ -54,6 +56,28 @@ export default class EpinioServiceInstanceModel extends EpinioNamespacedResource
         name:            this.name,
         catalog_service: this.catalog_service
       }
+    });
+  }
+
+  async bindApp(appName) {
+    await this.followLink('bind', {
+      method:  'post',
+      headers: {
+        'content-type': 'application/json',
+        accept:         'application/json'
+      },
+      data: { app_name: appName }
+    });
+  }
+
+  async unbindApp(appName) {
+    await this.followLink('unbind', {
+      method:  'post',
+      headers: {
+        'content-type': 'application/json',
+        accept:         'application/json'
+      },
+      data: { app_name: appName }
     });
   }
 }
