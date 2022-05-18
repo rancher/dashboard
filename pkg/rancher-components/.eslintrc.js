@@ -9,6 +9,7 @@ module.exports = {
   ],
   parserOptions: { ecmaVersion: 2020 },
   rules:         { 'vue/no-mutating-props': 'warn' },
+  settings:      { 'import/ignore': ['vue'] },
   overrides:     [
     {
       files: [
