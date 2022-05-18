@@ -397,6 +397,9 @@ export default {
         toToggle = content.slice(from, to + 1);
       }
 
+      // check if there is already duplicate content selected (selectedRows) on the list to toggle...
+      toToggle = toToggle.filter(item => !this.selectedRows.includes(item));
+
       return toToggle;
     },
 
