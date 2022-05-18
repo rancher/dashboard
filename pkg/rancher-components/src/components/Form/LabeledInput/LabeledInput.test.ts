@@ -1,6 +1,6 @@
 
 import { mount } from '@vue/test-utils';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { LabeledInput } from './index';
 
 describe('component: LabeledInput', () => {
   it('should emit input only once', () => {
