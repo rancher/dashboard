@@ -42,7 +42,8 @@ export default {
       initialRoutingKeySecretName: this.value.routingKey?.name || '',
       initialServiceKeySecretKey:  this.value.serviceKey?.key || '',
       initialServiceKeySecretName: this.value.serviceKey?.name || '',
-      view:                        _VIEW
+      view:                        _VIEW,
+      none:                        '__[[NONE]]__',
     };
   },
   watch: {
@@ -57,10 +58,14 @@ export default {
       const existingKey = this.value.routingKey?.key || '';
 
       if (this.value.routingKey) {
-        this.value.routingKey = {
-          key: existingKey,
-          name
-        };
+        if (name === this.none) {
+          delete this.value.routingKey;
+        } else {
+          this.value.routingKey = {
+            key: existingKey,
+            name,
+          };
+        }
       } else {
         this.value['routingKey'] = {
           key: '',
@@ -87,10 +92,14 @@ export default {
       const existingKey = this.value.serviceKey?.key || '';
 
       if (this.value.serviceKey) {
-        this.value.serviceKey = {
-          key: existingKey,
-          name
-        };
+        if (name === this.none) {
+          delete this.value.serviceKey;
+        } else {
+          this.value.serviceKey = {
+            key: existingKey,
+            name,
+          };
+        }
       } else {
         this.value['serviceKey'] = {
           key: '',
