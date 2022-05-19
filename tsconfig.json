@@ -8,6 +8,7 @@
     ".nuxt", 
     "dist", 
     "cypress", 
-    "shell/creators"
+    "shell/creators",
+    "pkg/rancher-components"
   ]
 }

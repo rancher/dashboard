@@ -8,6 +8,9 @@
   "engines": {
     "node": ">=12"
   },
+  "workspaces": [
+    "pkg/rancher-components"
+  ],
   "scripts": {
     "build-pkg": "./shell/scripts/build-pkg.sh",
     "publish-pkg": "./shell/scripts/publish-pkg.sh",
