@@ -27,12 +27,12 @@ export default {
     this.receiverName = this.$route.query.receiverName;
 
     const alertmanagerConfigId = this.$route.params.alertmanagerconfigid;
-    const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
-
+    const originalAlertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/find`, { type: MONITORING.ALERTMANAGERCONFIG, id: alertmanagerConfigId });
+    const alertmanagerConfigResource = await this.$store.dispatch(`${ inStore }/clone`, { resource: originalAlertmanagerConfigResource });
     const mode = this.$route.query.mode;
 
     if (mode !== _CREATE) {
-      const existingReceiverData = alertmanagerConfigResource.spec.receivers.find((receiverData) => {
+      const existingReceiverData = (alertmanagerConfigResource.spec.receivers || []).find((receiverData) => {
         return receiverData.name === this.receiverName;
       });
 
@@ -165,12 +165,6 @@ export default {
 
         return;
       }
-      const mode = this.$route.query.mode;
-      const existingReceivers = this.alertmanagerConfigResource.spec.receivers;
-
-      if (mode === this.create) {
-        this.alertmanagerConfigResource.spec.receivers = [this.receiverValue, ...existingReceivers];
-      }
 
       this.alertmanagerConfigResource.save(...arguments);
       this.redirectToAlertmanagerConfigDetail();
@@ -208,7 +202,7 @@ export default {
       const nameOfReceiverToDelete = actionData.route.query.receiverName;
       // Remove it from the configuration of the parent AlertmanagerConfig
       // resource.
-      const existingReceivers = this.alertmanagerConfigResource.spec.receivers;
+      const existingReceivers = this.alertmanagerConfigResource.spec.receivers || [];
       const receiversMinusDeletedItem = existingReceivers.filter((receiver) => {
         return receiver.name !== nameOfReceiverToDelete;
       });
