@@ -50,7 +50,7 @@ export default {
     const defaultReceiverValues = {};
     const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
     const routeSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_ROUTE_SPEC);
-    const receiverOptions = this.value.spec.receivers.map(receiver => receiver.name);
+    const receiverOptions = (this.value?.spec?.receivers || []).map(receiver => receiver.name);
 
     return {
       actionMenuTargetElement:  null,
@@ -163,7 +163,7 @@ export default {
       const nameOfReceiverToDelete = this.selectedReceiverName;
       // Remove it from the configuration of the parent AlertmanagerConfig
       // resource.
-      const existingReceivers = this.alertmanagerConfigResource.spec.receivers;
+      const existingReceivers = this.alertmanagerConfigResource.spec.receivers || [];
       const receiversMinusDeletedItem = existingReceivers.filter((receiver) => {
         return receiver.name !== nameOfReceiverToDelete;
       });
@@ -201,7 +201,7 @@ export default {
         <ResourceTable
           :headers="receiverTableHeaders"
           :schema="receiverSchema"
-          :rows="value.spec.receivers"
+          :rows="value.spec.receivers || []"
           :get-custom-detail-link="getReceiverDetailLink"
           :table-actions="false"
           :custom-actions="value.receiverActions"
