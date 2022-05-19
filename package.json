@@ -25,6 +25,7 @@
     "mem-dev": "node --max-old-space-size=8192 ./node_modules/.bin/nuxt dev",
     "docker-dev": "docker run --rm --name dashboard-dev -p 8005:8005 -e API=$API -v $(pwd):/src -v dashboard_node:/src/node_modules rancher/dashboard:dev",
     "build": "./node_modules/.bin/nuxt build --devtools",
+    "build:lib": "cd pkg/rancher-components && yarn build:lib",
     "analyze": "./node_modules/.bin/nuxt build --analyze",
     "start": "./node_modules/.bin/nuxt start",
     "generate": "./node_modules/.bin/nuxt generate",
