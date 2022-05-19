@@ -1,4 +1,4 @@
-import PercentageBar from '@/components/PercentageBar';
+import PercentageBar from '@shell/components/PercentageBar';
 
 export default {
   title:      'Components/PercentageBar',

@@ -12,7 +12,7 @@ The official Kubernetes [glossary](https://kubernetes.io/docs/reference/glossary
 | Steve | New Rancher API |
 | Rancher (Product) | A [Kubernetes Management Platform](https://rancher.com/products/rancher/). This product includes the Rancher API and UIs  |
 | RKE | [Rancher Kubernetes Engine](https://rancher.com/products/rke/) - A certified Kubernetes distribution |
-| SSR | Server Side Rendering. Enabled by default when developing the Dashboard |
+| SSR | Server Side Rendering. Disabled by default when developing the Dashboard (enabled pre 2.6.6) |
 | SPA | Single Page Application. Enabled by default in production |
 | Vue | [A frontend client framework used by the Dashboard](https://vuejs.org/) |
 | Vuex | [Frontend state management](https://vuex.vuejs.org/) |

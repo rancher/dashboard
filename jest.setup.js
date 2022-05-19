@@ -1,5 +1,5 @@
 import { config } from '@vue/test-utils';
-import { directiveSsr as t } from '@/plugins/i18n';
+import { directiveSsr as t } from '@shell/plugins/i18n';
 
 config.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
 config.directives = { t };
