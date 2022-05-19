@@ -33,6 +33,21 @@ export default class ProvCluster extends SteveModel {
     return out;
   }
 
+  // using this computed because on the provisioning cluster we are
+  // displaying the oldest age between provisioning.cluster and management.cluster
+  // so that on a version upgrade of Rancher (ex: 2.5.x to 2.6.x)
+  // we can have the correct age of the cluster displayed on the UI side
+  get creationTimestamp() {
+    const provCreationTimestamp = Date.parse(this.metadata.creationTimestamp);
+    const mgmtCreationTimestamp = Date.parse(this.mgmt?.metadata?.creationTimestamp);
+
+    if (mgmtCreationTimestamp && mgmtCreationTimestamp < provCreationTimestamp) {
+      return this.mgmt?.metadata?.creationTimestamp;
+    }
+
+    return this.metadata.creationTimestamp;
+  }
+
   get availableActions() {
     // No actions for Harvester clusters
     if (this.isHarvester) {

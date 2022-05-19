@@ -10,6 +10,14 @@ import { DSL } from '@shell/store/type-map';
 
 export const NAME = 'manager';
 
+// hack the table header for AGE on provisioning.cluster
+// to display the custom model prop 'creationTimestamp'
+const PROV_CLUSTER_AGE_HEADER = { ...AGE };
+
+PROV_CLUSTER_AGE_HEADER.value = 'creationTimestamp';
+PROV_CLUSTER_AGE_HEADER.getValue = row => row.creationTimestamp;
+PROV_CLUSTER_AGE_HEADER.sort = 'creationTimestamp:desc';
+
 export function init(store) {
   const {
     product,
@@ -157,7 +165,7 @@ export function init(store) {
       formatter: 'ClusterProvider',
     },
     MACHINE_SUMMARY,
-    AGE,
+    PROV_CLUSTER_AGE_HEADER,
     {
       name:  'explorer',
       label: ' ',
