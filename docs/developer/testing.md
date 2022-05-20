@@ -4,6 +4,8 @@
 
 This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents) and require a blank state of Rancher.
 
+Because of this, we extend the [Cypress best practices](https://docs.cypress.io/guides/references/best-practices#How-It-Works), so be sure to read them before write any test.
+
 ### Initial Setup
 
 For the cypress test runner to consume the UI, you should specify the environment variables:
@@ -47,13 +49,15 @@ Some examples of PO functionality
 HomePage.gotTo()
 new HomePagePo().checkIsCurrentPage()
 new BurgerMenuPo().clusters()
-new AsyncButtonPO('.my-button').isDisabled()
+new AsyncButtonPO('[data-testid="my-button"]').isDisabled()
 new LoginPagePo().username().set('admin')
 ```
 
 POs all inherit a root `component.po`. Common component functionality can be added there. They also expose their core cypress (chainable) element.
 
 There are a large number of pages and components in the Dashboard and only a small set of POs. These will be expanded as the tests grow.
+
+Note: When selecting an element be sure to use the attribute `data-testid`, even in case of lists where elements are distinguished by an index suffix.
 
 ### Tips
 
