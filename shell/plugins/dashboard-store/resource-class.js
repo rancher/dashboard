@@ -1116,12 +1116,12 @@ export default class Resource {
       opt.data.annotations = opt.data._annotations;
     }
 
-    // handle __replace__ opt as a query param _replace=true for norman PUT requests
-    if (opt?.data.__replace__ && opt.method === 'put') {
+    // handle "replace" opt as a query param _replace=true for norman PUT requests
+    if (opt?.replace && opt.method === 'put') {
       const argParam = opt.url.includes('?') ? '&' : '?';
 
       opt.url = `${ opt.url }${ argParam }_replace=true`;
-      delete opt.data.__replace__;
+      delete opt.replace;
     }
 
     try {

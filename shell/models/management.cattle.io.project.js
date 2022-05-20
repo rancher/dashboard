@@ -72,11 +72,7 @@ export default class Project extends HybridModel {
   async save(forceReplaceOnReq) {
     const norman = await this.norman;
 
-    if (forceReplaceOnReq) {
-      norman.setReplaceFlagForNormanReq();
-    }
-
-    const newValue = await norman.save();
+    const newValue = await norman.save({ replace: forceReplaceOnReq });
 
     newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
 
