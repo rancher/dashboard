@@ -135,7 +135,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get canDelete() {
-    return this.stateObj.transitioning === true && this.stateObj.name !== 'active' && this._canDelete;
+    return super.canDelete && this.stateObj.name !== 'removing';
   }
 
   get canEditYaml() {
