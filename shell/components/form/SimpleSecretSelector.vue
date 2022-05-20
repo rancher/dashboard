@@ -135,7 +135,7 @@ export default {
         :options="secretNames"
         :label="secretNameLabel"
         :mode="mode"
-        @input="updateSecretName(name)"
+        @selecting="updateSecretName(name)"
       />
       <LabeledSelect
         v-model="key"
@@ -144,7 +144,7 @@ export default {
         :options="keys"
         :label="keyNameLabel"
         :mode="mode"
-        @input="updateSecretKey(key)"
+        @selecting="updateSecretKey(key)"
       />
     </div>
   </div>
