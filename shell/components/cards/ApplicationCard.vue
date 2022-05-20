@@ -37,7 +37,7 @@ export default {
  .application-card {
     display: flex;
     flex-direction: row;
-    background: var(--sortable-table-header-bg);
+    outline: 1px solid var(--border);
     border-radius: var(--border-radius);
 
     @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
