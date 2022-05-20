@@ -1,0 +1,5 @@
+elemental:
+  menuLabels:
+    dashboard: Dashboard
+    operations: Operations
+    machineInventories: Machine Inventories

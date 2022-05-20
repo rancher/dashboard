@@ -15,5 +15,4 @@ export default function($plugin: IPlugin) {
 
   // Add Vue Routes
   $plugin.addRoutes(elementalRouting);
-  console.log('LOADING NIINTIDSADSAADSASd');
 }
