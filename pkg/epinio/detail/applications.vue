@@ -70,7 +70,22 @@ export default Vue.extend<Data, any, any, any>({
         millicpus:    0,
         memoryBytes: 0,
       });
-    }
+    },
+    choseIcon() {
+      return this.value.metadata.icon || 'fa-cube';
+    },
+    setIconType() {
+      switch (this.value.sourceInfo.label) {
+      case 'File system':
+        return 'icon-file';
+      case 'Git':
+        return 'icon-github';
+      case 'Container':
+        return 'icon-docker';
+      default:
+        return 'icon-epinio';
+      }
+    },
   }
 });
 </script>
@@ -80,7 +95,7 @@ export default Vue.extend<Data, any, any, any>({
     <ApplicationCard>
       <!-- Icon slot -->
       <template v-slot:cardIcon>
-        <i class="icon icon-fw icon-github"></i>
+        <i class="icon icon-fw" :class="setIconType"></i>
       </template>
 
       <!-- Routes links slot -->

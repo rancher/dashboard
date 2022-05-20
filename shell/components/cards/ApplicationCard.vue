@@ -120,7 +120,7 @@ export default {
         grid-auto-columns: minmax(0, 1fr);
         grid-auto-flow: column;
         grid-gap: 10px;
-        padding: 20px;
+        padding: 30px 0 0 0;
         font-size: 18px;
         font-weight: 300;
 
