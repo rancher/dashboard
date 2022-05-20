@@ -1,0 +1,154 @@
+#!/usr/bin/env node
+
+const fs = require('fs-extra');
+const path = require('path');
+
+const targets = {
+  dev:  './node_modules/.bin/nuxt dev',
+  nuxt: './node_modules/.bin/nuxt',
+};
+
+const files = [
+  'tsconfig.json',
+  'vue.config.js',
+  'babel.config.js',
+  'index.ts'
+];
+
+const topLevelScripts = {
+  'build-pkg':  './node_modules/@rancher/shell/scripts/build-pkg.sh',
+  'serve-pkgs': './node_modules/@rancher/shell/scripts/serve-pkgs',
+};
+
+const typeFolders = [
+  'i18n',
+  'models',
+  'edit',
+  'list',
+  'detail'
+];
+
+console.log('');
+console.log('Creating Skeleton UI Package');
+
+const args = process.argv;
+
+if (args.length !== 3) {
+  console.log('Expected single argument of package name');
+}
+
+const name = args[2];
+const folder = path.resolve('.');
+const pkgFolder = path.join(folder, 'pkg', name);
+
+let addTypeFolders = false;
+
+if (args.length > 3) {
+  addTypeFolders = args[3] === '-t';
+}
+
+const isNodeModulesShell = !fs.existsSync(path.join(folder, 'shell'));
+
+if (!isNodeModulesShell) {
+  Object.keys(topLevelScripts).forEach((script) => {
+    topLevelScripts[script] = topLevelScripts[script].replace('./node_modules/@rancher/shell', './shell');
+  });
+}
+
+console.log(`  Creating package folder: ${ pkgFolder }`);
+
+fs.ensureDirSync(pkgFolder);
+
+console.log('  Creating package.json');
+fs.copySync(path.join(__dirname, 'pkg.package.json'), path.join(pkgFolder, 'package.json'));
+
+const rawdata = fs.readFileSync(path.join(pkgFolder, 'package.json'));
+const pkg = JSON.parse(rawdata);
+
+pkg.name = name;
+pkg.description = `${ name } plugin`;
+
+Object.keys(targets).forEach((target) => {
+  if (!pkg.scripts[target]) {
+    pkg.scripts[target] = targets[target];
+    console.log(`  Adding script '${ target }' to package.json`);
+  }
+});
+
+// Add dependencies
+// pkg.dependencies['@rancher/shell'] = '^0.6.2';
+// pkg.dependencies['core-js'] = '3.18.3';
+
+fs.writeFileSync(path.join(pkgFolder, 'package.json'), JSON.stringify(pkg, null, 2));
+
+// Create type folders if needed
+if (addTypeFolders) {
+  typeFolders.forEach((dir) => {
+    const dest = path.join(path.join(pkgFolder, dir));
+
+    if (!fs.existsSync(dest)) {
+      console.log(`  Creating folder: ${ dir }`);
+      fs.mkdirSync(dest);
+    }
+  });
+}
+
+// Copy base files
+files.forEach((file) => {
+  const src = path.join(__dirname, file);
+  const dest = path.join(path.join(pkgFolder, file));
+
+  if (!fs.existsSync(dest)) {
+    console.log(`  Adding file: ${ file }`);
+    fs.copySync(src, dest);
+  }
+});
+
+// require("child_process").spawn('yarn', ['install'], {
+//   cwd: process.cwd(),
+//   stdio: "inherit"
+// });
+
+// Update tsconfig
+
+const topLevelRawdata = fs.readFileSync(path.join(folder, 'package.json'));
+const topLevelPkg = JSON.parse(topLevelRawdata);
+let updated = false;
+
+Object.keys(topLevelScripts).forEach((target) => {
+  if (!topLevelPkg.scripts[target]) {
+    topLevelPkg.scripts[target] = topLevelScripts[target];
+    console.log(`  Adding script '${ target }' to top-level package.json`);
+    updated = true;
+  }
+});
+
+if (updated) {
+  fs.writeFileSync(path.join(folder, 'package.json'), JSON.stringify(topLevelPkg, null, 2));
+}
+
+// Update tsconfig if needed
+if (!isNodeModulesShell) {
+  const tsconfig = require(path.join(pkgFolder, 'tsconfig.json'));
+
+  tsconfig.include = updateArray(tsconfig.include);
+
+  Object.keys(tsconfig.compilerOptions.paths).forEach((p) => {
+    tsconfig.compilerOptions.paths[p] = updateArray(tsconfig.compilerOptions.paths[p]);
+  });
+
+  fs.writeFileSync(path.join(pkgFolder, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
+  console.log('  Updated tsconfig.json for shell folder location');
+}
+
+console.log('');
+
+function updateArray(data) {
+  const updated = [];
+
+  data.forEach((inc) => {
+    updated.push(inc.replace('../../node_modules/@rancher/shell', '../../shell'));
+  });
+
+  return updated;
+}

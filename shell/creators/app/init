@@ -1,0 +1,95 @@
+#!/usr/bin/env node
+
+const fs = require('fs-extra');
+const path = require('path');
+const exec = require('child_process').exec;
+
+const targets = {
+  'dev': './node_modules/.bin/nuxt dev',
+  'nuxt': './node_modules/.bin/nuxt',
+};
+
+const files = [
+  'tsconfig.json',
+  'nuxt.config.js',
+  '.eslintignore',
+  '.eslintrc.js',
+  'babel.config.js',
+  '.vscode/settings.json'
+];
+
+console.log('');
+console.log('Creating Skeleton Application');
+
+const args = process.argv;
+let appFolder = path.resolve('.');
+
+if (args.length == 3) {
+  const name = args[2];
+  const folder = path.resolve('.');
+
+  appFolder = path.join(folder, name);
+  console.log(`  Creating application folder: ${ appFolder}`);
+  fs.ensureDirSync(appFolder);  
+}
+
+// Check that there is a package file
+
+let setName = false;
+
+if (!fs.existsSync(path.join(appFolder, './package.json'))) {
+  console.log('  Adding package.json');
+  fs.copySync(path.join(__dirname, 'app.package.json'), path.join(appFolder, 'package.json'));
+  setName = true;
+}
+
+const rawdata = fs.readFileSync(path.join(appFolder, 'package.json'));
+const pkg = JSON.parse(rawdata);
+
+if (!pkg.scripts) {
+  pkg.scripts = {};
+}
+
+if (setName) {
+  const dirName = path.basename(appFolder);
+
+  pkg.name = dirName;
+}
+
+Object.keys(targets).forEach((target) => {
+  if (!pkg.scripts[target]) {
+    pkg.scripts[target] = targets[target];
+    console.log(`  Adding script '${ target }' to package.json`);
+  }
+});
+
+// Add dependencies
+pkg.dependencies['@rancher/shell'] = '^0.6.16';
+pkg.dependencies['core-js'] = '^3.20.3';
+pkg.dependencies['css-loader'] = '4.3.0';
+
+fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null, 2));
+
+// Copy base files
+files.forEach((file) => {
+  const src = path.join(__dirname, file);
+  const dest = path.join(appFolder, file);
+
+  if (!fs.existsSync(dest)) {
+    console.log('  Adding file: ' + file);
+
+    const folder = path.dirname(file);
+
+    fs.ensureDirSync(folder);
+
+    // Create the folder if needed
+    fs.copySync(src, dest);
+  }
+});
+
+// require("child_process").spawn('yarn', ['install'], {
+//   cwd: process.cwd(),
+//   stdio: "inherit"
+// });
+
+console.log('');
