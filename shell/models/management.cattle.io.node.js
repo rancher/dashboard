@@ -1,5 +1,5 @@
 import { MANAGEMENT_NODE } from '@shell/config/labels-annotations';
-import { 
+import {
   ADDRESSES, CAPI, MANAGEMENT, NODE, NORMAN
 } from '@shell/config/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
