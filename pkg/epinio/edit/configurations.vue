@@ -15,7 +15,6 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Banner from '@components/Banner/Banner.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
 
-
 interface Data {
 }
 
