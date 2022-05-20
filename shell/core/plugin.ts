@@ -1,10 +1,10 @@
 import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
 import { IPlugin } from './types';
-import coreStore, { coreStoreModule, coreStoreState } from '@/shell/plugins/dashboard-store';
+import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
   PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
-} from '@/shell/core/types';
+} from '@shell/core/types';
 
 export class Plugin implements IPlugin {
   public id: string;
