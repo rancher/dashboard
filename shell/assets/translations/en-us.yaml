@@ -2947,6 +2947,7 @@ monitoringRoute:
   groups:
     label: Group By
     addGroupByLabel: Labels to Group Alerts By
+    groupByTooltip: Add each key-value pair as a string in the format key:value. The special label ... will aggregate by all possible labels. If provided, the ... must be the only element in the list.
   info: This is the top-level Route used by Alertmanager as the default destination for any Alerts that do not match any other Routes. This Route must exist and cannot be deleted.
   interval:
     label: Group Interval
@@ -4601,6 +4602,7 @@ tableHeaders:
   ingressDefaultBackend: Default
   ingressTarget: Target
   internalExternalIp: External/Internal IP
+  ipaddress: IP Address
   jobs: Jobs
   key: Key
   keys: Data

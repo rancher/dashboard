@@ -134,17 +134,6 @@ export default {
     </Masthead>
 
     <ResourceTable :schema="schema" :rows="rows" :namespaced="false">
-      <template #cell:provider="{row}">
-        <template v-if="row.machineProvider">
-          {{ row.machineProviderDisplay }}
-          <div class="text-muted">
-            {{ row.provisionerDisplay }}
-          </div>
-        </template>
-        <template v-else>
-          {{ row.provisionerDisplay }}
-        </template>
-      </template>
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
