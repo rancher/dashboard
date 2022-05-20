@@ -1,5 +1,6 @@
 {
   "experimentalSessionAndOrigin": true,
+  "trashAssetsBeforeRuns": true,
   "testFiles": [
     "tests/setup/**/*.spec.ts",
     "tests/pages/**/*.spec.ts",

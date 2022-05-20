@@ -1,5 +1,6 @@
 /// <reference types="cypress" />
 require('dotenv').config();
+const { rmdir } = require('fs');
 
 /**
  * @type {Cypress.PluginConfig}
@@ -9,6 +10,8 @@ module.exports = (
   on: Cypress.PluginEvents,
   config: Cypress.PluginConfigOptions
 ) => {
+  deletePassedVideos(on);
+
   // `on` is used to hook into various events Cypress emits
   // `config` is the resolved Cypress config
   const url = process.env.TEST_BASE_URL || 'https://localhost:8005';
@@ -37,4 +40,40 @@ const skipSetup = (config: Cypress.PluginConfigOptions) => {
   } else {
     return config.testFiles;
   }
+};
+
+/**
+ * Only upload videos for specs with failing
+ * Run this function after every spec to delete passed tests video
+ * https://docs.cypress.io/guides/guides/screenshots-and-videos#Only-upload-videos-for-specs-with-failing-or-retried-tests
+ *
+ * @param on
+ */
+const deletePassedVideos = (on: Cypress.PluginEvents) => {
+  on('after:spec', (_, results) => {
+    // console.log(results);
+    if (results && results.video) {
+      const failures = results.tests.filter(({ state }) => state === 'failed');
+
+      if (!failures.length) {
+        console.log('Deleting video for passed tests');
+
+        return new Promise((resolve, reject) => {
+          rmdir(
+            results.video,
+            { maxRetries: 10, recursive: true },
+            (err: Error) => {
+              if (err) {
+                console.error(err);
+
+                return reject(err);
+              }
+
+              return resolve();
+            }
+          );
+        });
+      }
+    }
+  });
 };
