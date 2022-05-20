@@ -198,17 +198,17 @@ export default Vue.extend<Data, any, any, any>({
 </template>
 
 <style lang="scss" scoped>
-.application-details {
-  max-width: 1280px;
-}
 .simple-box-row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  grid-gap: 10px;
+
+  @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
+    grid-auto-flow: row;
+  }
   .simple-box {
     width: 100%;
-    max-width: 400px;
-    margin-bottom: 20px;
     ul {
       word-break: break-all;
       padding-left: 20px;
@@ -296,12 +296,12 @@ export default Vue.extend<Data, any, any, any>({
     }
   }
 }
+
 .deployment {
   margin-bottom: 60px;
   .simple-box {
     width: 100%;
     margin-bottom: 0;
-    max-width: 400px;
   }
   .app-instances {
     tr td {
