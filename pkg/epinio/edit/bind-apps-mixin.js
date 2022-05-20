@@ -1,9 +1,5 @@
-import { EpinioApplication, EPINIO_TYPES } from '@pkg/types';
+import { EPINIO_TYPES } from '@pkg/types';
 import { sortBy } from '@shell/utils/sort';
-import { PropType } from 'vue';
-import ServiceInstance from '../models/service-instance';
-import CreateEditView from '@shell/mixins/create-edit-view';
-import Poller from '~/shell/utils/poller';
 
 export default {
   name: 'EpinioBindAppsMixin',

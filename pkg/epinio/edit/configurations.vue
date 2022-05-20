@@ -6,7 +6,7 @@ import CruResource from '@shell/components/CruResource.vue';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import { mapGetters } from 'vuex';
 import EpinioConfiguration from '../models/configurations';
-import { EpinioApplication, EPINIO_TYPES } from '../types';
+import { EPINIO_TYPES } from '../types';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
