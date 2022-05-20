@@ -87,7 +87,8 @@ export default {
   }
 </style>
 <style lang="scss">
-  // TODO: Investigate why this is here.. I don't think that styles for sortable table should belong here
+  // TODO: #6005 
+  // Investigate why this is here.. I don't think that styles for sortable table should belong here
   .sortable-table TD .badge-state {
     @include clip;
     display: inline-block;
