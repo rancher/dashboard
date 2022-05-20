@@ -7,12 +7,17 @@ import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import PlusMinus from '@shell/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
+import ApplicationCard from '~/shell/components/cards/ApplicationCard.vue';
 interface Data {
 }
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
   components: {
-    SimpleBox, ConsumptionGauge, ResourceTable, PlusMinus
+    SimpleBox,
+    ConsumptionGauge,
+    ResourceTable,
+    PlusMinus,
+    ApplicationCard
   },
   props: {
     value: {
@@ -72,57 +77,36 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div class="application-details">
-    <div class="simple-box-row mt-40">
-      <SimpleBox class="routes">
-        <div class="box box-two-cols">
-          <h1>{{ value.routeCount }}</h1>
-          <div>
-            <h3>
-              {{ t('epinio.applications.detail.counts.routes') }}
-            </h3>
+    <ApplicationCard>
+      <!-- Icon slot -->
+      <template v-slot:cardIcon>
+        <i class="icon icon-fw icon-github"></i>
+      </template>
 
-            <ul>
-              <li v-for="route in value.configuration.routes" :key="route.id">
-                <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
-                <span v-else :key="route.id + 'a'">{{ `https://${route}` }}</span>
-              </li>
-            </ul>
-          </div>
+      <!-- Routes links slot -->
+      <template v-slot:routesLinks>
+        <ul>
+          <li v-for="route in value.configuration.routes" :key="route.id">
+            <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
+            <span v-else :key="route.id + 'b'">{{ `https://${route}` }}</span>
+          </li>
+        </ul>
+      </template>
+
+      <!-- Resources count slot -->
+      <template v-slot:resourcesCount>
+        <div>
+          {{ value.configCount }} {{ t('epinio.applications.detail.counts.config') }}
         </div>
-      </SimpleBox>
-      <SimpleBox class="services">
-        <div class="box box-two-cols">
-          <h1>{{ value.configCount }}</h1>
-          <div>
-            <h3>
-              {{ t('epinio.applications.detail.counts.config') }}
-            </h3>
-          </div>
+        <div>
+          {{ value.configCount }} {{ t('epinio.applications.detail.counts.services') }}
         </div>
-      </SimpleBox>
-      <SimpleBox class="services">
-        <div class="box box-two-cols">
-          <h1>{{ 0 }}</h1>
-          <!-- // TODO: Add services count to applications.js, read from there. -->
-          <div>
-            <h3>
-              {{ t('epinio.applications.detail.counts.services') }}
-            </h3>
-          </div>
+        <div>
+          {{ value.envCount }} {{ t('epinio.applications.detail.counts.envVars') }}
         </div>
-      </SimpleBox>
-      <SimpleBox>
-        <div class="box box-timers">
-          <h4>Uptime : <b>1d 32min</b></h4>
-          <!-- <div>
-            <span> Created: 2d ago </span>
-            <span>
-              Modifed: 2d ago
-            </span>
-          </div> -->
-        </div>
-      </SimpleBox>
-    </div>
+      </template>
+    </ApplicationCard>
+
     <h3 v-if="value.deployment" class="mt-20 mb-20">
       {{ t('epinio.applications.detail.deployment.label') }}
     </h3>
@@ -203,6 +187,7 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </div>
     <div>
+      <!-- //TODO: Add Services & Configurations as tabs -->
       <ResourceTable :schema="appInstanceSchema" :rows="value.instances" :table-actions="false">
         <template #header-left>
           <h1>Instances</h1>
