@@ -51,7 +51,8 @@ epinio:
     detail:
       counts:
         label: Counts
-        config: Configs
+        services: Services
+        config: Configurations
         routes: Routes
         envVars: Environment Vars
       routes:

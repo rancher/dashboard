@@ -29,7 +29,9 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   mounted() {
-    this.values = this.application.configuration.configurations.filter((cc: string) => this.configurations.find((c: any) => c.value === cc));
+    if (this.application.configuration?.configurations.length) {
+      this.values = this.application.configuration.configurations.filter((cc: string) => this.configurations.find((c: any) => c.value === cc));
+    }
   },
 
   data() {
