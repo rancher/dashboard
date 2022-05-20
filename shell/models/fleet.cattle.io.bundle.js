@@ -91,7 +91,7 @@ export default class FleetBundle extends SteveModel {
   }
 
   get stateObj() {
-    const errorState = this.status.conditions.find((item) => {
+    const errorState = this.status?.conditions?.find((item) => {
       const { error, message } = item;
       const errState = !!error;
 

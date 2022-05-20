@@ -89,6 +89,7 @@ export const STATES_ENUM = {
   DEGRADED:         'degraded',
   DENIED:           'denied',
   DEPLOYED:         'deployed',
+  DEPLOYING:         'deploying',
   DISABLED:         'disabled',
   DISCONNECTED:     'disconnected',
   DRAINED:          'drained',
@@ -427,6 +428,9 @@ export const STATES = {
   },
   [STATES_ENUM.WARNING]:            {
     color: 'warning', icon: 'error', label: 'Warning', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.DEPLOYING]:            {
+    color: 'info', icon: 'info', label: 'Deploying', compoundIcon: 'info'
   },
 };
 
