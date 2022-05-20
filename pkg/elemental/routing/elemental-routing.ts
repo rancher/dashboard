@@ -12,14 +12,14 @@ const routes: RouteConfig[] = [
   },
   {
     name:      `${ ELEMENTAL_PRODUCT_NAME }-c-cluster-operations`,
-    path:      `/:product/c/:cluster/:operations`,
+    path:      `/:product/c/:cluster/operations`,
     component: Operations,
   },
   {
     name:      `${ ELEMENTAL_PRODUCT_NAME }-c-cluster-machine-inventories`,
-    path:      `/:product/c/:cluster/:machine-inventories`,
+    path:      `/:product/c/:cluster/machine-inventories`,
     component: MachineInventories,
-  }
+  },
 ];
 
 export default routes;

@@ -1,6 +1,6 @@
 {
-  "name": "os-elemental",
-  "description": "os-elemental plugin",
+  "name": "elemental",
+  "description": "Elemental plugin",
   "version": "0.1.0",
   "private": false,
   "rancher": true,
