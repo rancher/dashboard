@@ -1,5 +1,7 @@
 import { MANAGEMENT_NODE } from '@shell/config/labels-annotations';
-import { ADDRESSES, CAPI, MANAGEMENT, NODE, NORMAN } from '@shell/config/types';
+import { 
+  ADDRESSES, CAPI, MANAGEMENT, NODE, NORMAN
+} from '@shell/config/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { listNodeRoles } from '@shell/models/cluster/node';
 import { insertAt } from '@shell/utils/array';
