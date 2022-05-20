@@ -67,7 +67,9 @@ export default class ProvCluster extends SteveModel {
       canUpdateClusterTemplate = true;
     }
 
-    const canSaveRKETemplate = this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update') && canUpdateClusterTemplate;
+    const normanClusterSaveTemplateAction = !!this.normanCluster?.actions?.saveAsTemplate;
+
+    const canSaveRKETemplate = this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update') && canUpdateClusterTemplate && normanClusterSaveTemplateAction;
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -121,6 +123,18 @@ export default class ProvCluster extends SteveModel {
       }, { divider: true }];
 
     return actions.concat(out);
+  }
+
+  get normanCluster() {
+    const name = this.status?.clusterName;
+
+    if ( !name ) {
+      return null;
+    }
+
+    const out = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, name);
+
+    return out;
   }
 
   goToViewYaml() {
