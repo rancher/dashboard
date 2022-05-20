@@ -11,7 +11,6 @@ import ApplicationCard from '@/shell/components/cards/ApplicationCard.vue';
 
 interface Data {
 }
-
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
   components: {
@@ -241,7 +240,6 @@ export default Vue.extend<Data, any, any, any>({
         padding: 0;
         display: grid;
         grid-template-columns: 1fr 1fr;
-
         li {
           margin: 5px;
           list-style: none;
@@ -290,7 +288,6 @@ export default Vue.extend<Data, any, any, any>({
     }
   }
 }
-
 .deployment {
   margin-bottom: 60px;
   .simple-box {
