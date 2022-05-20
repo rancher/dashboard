@@ -101,9 +101,9 @@ export function init($plugin: any, store: any) {
   // Service Instance
   weightType(EPINIO_TYPES.SERVICE_INSTANCE, 151, true);
   configureType(EPINIO_TYPES.SERVICE_INSTANCE, {
-    isCreatable:      false,
+    isCreatable:      true,
     isEditable:       false,
-    isRemovable:      false,
+    isRemovable:      true,
     showState:        true,
     showAge:          false,
     canYaml:          false,
@@ -289,6 +289,14 @@ export function init($plugin: any, store: any) {
   headers(EPINIO_TYPES.SERVICE_INSTANCE, [
     STATE,
     SIMPLE_NAME,
+    {
+      name:          'namespace',
+      labelKey:      'epinio.tableHeaders.namespace',
+      value:         'metadata.namespace',
+      sort:          ['metadata.namespace'],
+      formatter:     'LinkDetail',
+      formatterOpts: { reference: 'nsLocation' }
+    },
     { // This will be a link once the service instance detail / create / edit pages are created
       name:      'catalog_service',
       labelKey:  'epinio.serviceInstance.tableHeaders.service',

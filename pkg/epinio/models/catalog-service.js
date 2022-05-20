@@ -1,6 +1,6 @@
 import EpinioNamespacedResource from './epinio-namespaced-resource';
 
-export default class EpinioCatalogService extends EpinioNamespacedResource {
+export default class EpinioCatalogServiceModel extends EpinioNamespacedResource {
   get links() {
     return {
       update:      this.getUrl(),
