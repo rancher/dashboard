@@ -98,11 +98,12 @@ export default class ApplicationActionResource extends Resource {
   }
 
   async deploy({ source }) {
-    this.application.showAppLog();
     const stageId = source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ? this.application.buildCache.stage.stage.id : null;
     const image = source.type === APPLICATION_SOURCE_TYPE.CONTAINER_URL ? source.container.url : this.application.buildCache.stage.image;
 
     await this.application.deploy(stageId, image, this.createDeployOrigin(source));
+
+    this.application.showAppLog();
   }
 
   createDeployOrigin(source) {
