@@ -1,7 +1,7 @@
 import config from './shell/nuxt.config';
 
 // Excludes the following plugins if there's no .env file.
-let defaultExcludes = 'epinio, rancher-components, harvester';
+let defaultExcludes = 'epinio, rancher-components, harvester, elemental';
 
 if (process.env.RANCHER_ENV === 'harvester') {
   defaultExcludes = defaultExcludes.replace(', harvester', '');
