@@ -2,7 +2,7 @@ import ComponentPo from '@/cypress/integration/po/components/component.po';
 
 export default class BurgerMenuPo extends ComponentPo {
   constructor() {
-    super('#side-menu');
+    super('[data-testid="side-menu"]');
   }
 
   /**

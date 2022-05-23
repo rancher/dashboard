@@ -34,6 +34,6 @@ export class RancherSetupPagePo extends PagePo {
   }
 
   private submitButton(): AsyncButtonPo {
-    return new AsyncButtonPo('#submit', this.self());
+    return new AsyncButtonPo('[data-testid="login-submit"]', this.self());
   }
 }

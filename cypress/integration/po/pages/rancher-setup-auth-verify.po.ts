@@ -43,6 +43,6 @@ export class RancherSetupAuthVerifyPage extends PagePo {
   }
 
   private submitButton(): AsyncButtonPo {
-    return new AsyncButtonPo('button.role-primary', this.self());
+    return new AsyncButtonPo('[data-testid="setup-submit"]', this.self());
   }
 }

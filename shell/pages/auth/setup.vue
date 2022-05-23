@@ -373,13 +373,13 @@ export default {
           <div
             id="submit"
             class="text-center mt-20"
-            data-testid="setup-submit"
           >
             <AsyncButton
               key="passwordSubmit"
               type="submit"
               mode="continue"
               :disabled="!saveEnabled"
+              data-testid="setup-submit"
               @click="save"
             />
           </div>
