@@ -37,6 +37,12 @@ It is possible to start the project and run all the tests at once with a single 
 - `yarn e2e:pre-prod`, to optionally initialize Docker and build the project, required for GitHub Actions
 - `yarn e2e:dev`, for production use case and CI, which will also restart Docker and build the project
 
+### Custom Commands
+
+As Cypress common practice, some custom commands have been created within `command.ts` file to simplify the development process. Please consult Cypress documentation for more details about when and how to use them.
+
+Worth mentioning the `cy.getId()` command, as it is mainly used to select elements. This would require to add `data-testid` to your element inside the markup.
+
 ### Writing tests
 
 Test specs should be grouped logically, normally by page or area of the Dashboard but also by a specific feature or component.

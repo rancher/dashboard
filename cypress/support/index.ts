@@ -7,6 +7,7 @@ declare global {
     interface Chainable {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
       byLabel(label: string,): Chainable<Element>;
+      getId(id: string,): Chainable<Element>;
     }
   }
 }

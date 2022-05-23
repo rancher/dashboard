@@ -48,3 +48,10 @@ Cypress.Commands.add('login', (
 Cypress.Commands.add('byLabel', (label) => {
   return cy.get('.labeled-input').contains(label).siblings('input');
 });
+
+/**
+ * Wrap the cy.get() command to simplify the selector declaration of the data-testid
+ */
+Cypress.Commands.add('getId', (id: string) => {
+  return cy.get(`[data-testid="${ id }"]`);
+});
