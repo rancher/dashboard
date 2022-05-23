@@ -18,7 +18,12 @@
   "cSpell.words": [
     "epinio",
     "chainable",
+    "kube",
+    "kubectl",
+    "Kubernetes",
     "nuxt",
-    "prepending"
+    "prepending",
+    "testid",
+    "vuex"
   ],
 }

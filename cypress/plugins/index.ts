@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /// <reference types="cypress" />
 require('dotenv').config();
 const { rmdir } = require('fs');
