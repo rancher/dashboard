@@ -1,4 +1,4 @@
-import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_TYPES } from './types';
+import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_PRODUCT_GROUP, ELEMENTAL_TYPES } from './types';
 import { createElementalRoute, rootElementalRoute } from './utils/custom-routing';
 
 export function init($plugin, store) {
@@ -6,6 +6,7 @@ export function init($plugin, store) {
 
   // app in sidebar
   product({
+    ifHaveGroup:         ELEMENTAL_PRODUCT_GROUP,
     icon:                'gear',
     inStore:             'management',
     removable:           false,
