@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import ServiceInstance from '../models/service-instance';
+import ServiceInstance from '../models/service';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';

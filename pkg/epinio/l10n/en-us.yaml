@@ -19,12 +19,12 @@ typeLabel:
       one { Configurations }
       other { Configurations }
     }
-  "catalog-service": |-
+  "catalogservice": |-
     {count, plural,
       one { Catalog }
       other { Catalog }
     }
-  "service-instance": |-
+  "service": |-
     {count, plural,
       one { Instances }
       other { Instances }
