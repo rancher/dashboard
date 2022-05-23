@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/integration/po/pages/page.po';
 import LabeledInputPo from '@/cypress/integration/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/integration/po/components/async-button.po';
+import PasswordPo from '~/cypress/integration/po/components/password.po';
 
 export class LoginPagePo extends PagePo {
   static url: string = '/auth/login'
@@ -16,8 +17,8 @@ export class LoginPagePo extends PagePo {
     return new LabeledInputPo(cy.getId('local-login-username'));
   }
 
-  password(): LabeledInputPo {
-    return new LabeledInputPo(cy.getId('local-login-password'));
+  password(): PasswordPo {
+    return new PasswordPo(cy.getId('local-login-password'));
   }
 
   canSubmit(): Cypress.Chainable<boolean> {
@@ -35,11 +36,7 @@ export class LoginPagePo extends PagePo {
   }
 
   useLocal() {
-    return this.self().then(($page) => {
-      const elements = $page.getId('login-useLocal');
-
-      return elements?.[0];
-    });
+    return this.self().getId('login-useLocal');
   }
 
   private submitButton(): AsyncButtonPo {
