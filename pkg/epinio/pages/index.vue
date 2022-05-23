@@ -36,6 +36,10 @@ export default Vue.extend<Data, any, any, any>({
     return { clustersSchema: this.$store.getters[`${ EPINIO_MGMT_STORE }/schemaFor`](EPINIO_TYPES.INSTANCE) };
   },
 
+  mounted() {
+    window.addEventListener('visibilitychange', this.visibilitychange);
+  },
+
   computed: {
     cluster(): string {
       return this.$route.params.cluster;
@@ -59,6 +63,12 @@ export default Vue.extend<Data, any, any, any>({
       await this.$store.dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE, opt: { force: true, load: _MERGE } });
       this.clusters.forEach((c: Cluster) => this.testCluster(c));
       buttonCb(true);
+    },
+
+    async visibilitychange() {
+      if (this.canRediscover && document.visibilityState === 'visible') {
+        await await this.$store.dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE, opt: { force: true, load: _MERGE } });
+      }
     },
 
     setClusterState(cluster: Cluster, state: string, metadataStateObj: { transitioning: boolean, error: boolean, message: string }) {

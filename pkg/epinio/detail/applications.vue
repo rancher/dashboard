@@ -75,7 +75,7 @@ export default Vue.extend<Data, any, any, any>({
       return this.value.metadata.icon || 'fa-cube';
     },
     setIconType() {
-      switch (this.value.sourceInfo.label) {
+      switch (this.value.sourceInfo?.label) {
       case 'File system':
         return 'icon-file';
       case 'Git':
@@ -99,7 +99,8 @@ export default Vue.extend<Data, any, any, any>({
       </template>
 
       <!-- Routes links slot -->
-      <template v-slot:routesLinks>
+      <template v-slot:top-left>
+        <h1>Routes</h1>
         <ul>
           <li v-for="route in value.configuration.routes" :key="route.id">
             <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
@@ -108,11 +109,18 @@ export default Vue.extend<Data, any, any, any>({
         </ul>
       </template>
 
+      <template v-slot:top-right>
+        <!-- // TODO: Depends on https://github.com/epinio/epinio/issues/1345 -->
+        <span>Uptime 1d 23min</span>
+        Age: 2d ago
+      </template>
+
       <!-- Resources count slot -->
       <template v-slot:resourcesCount>
-        <div>
+        <!-- // TODO: Depends on https://github.com/epinio/epinio/issues/1471 -->
+        <!-- <div>
           {{ value.configCount }} {{ t('epinio.applications.detail.counts.config') }}
-        </div>
+        </div> -->
         <div>
           {{ value.configCount }} {{ t('epinio.applications.detail.counts.services') }}
         </div>
@@ -186,13 +194,13 @@ export default Vue.extend<Data, any, any, any>({
               </thead>
               <tr>
                 <td>{{ t('tableHeaders.memory') }}</td>
-                <td>{{ 0 }}</td>
+                <td>{{ resourcesUssage.memoryBytes.toFixed(2) }} MiB</td>
                 <td>{{ resourcesUssage.memoryBytes.toFixed(2) }} MiB</td>
                 <td>{{ (resourcesUssage.memoryBytes / value.instances.length).toFixed(2) }} MiB</td>
               </tr>
               <tr>
                 <td>{{ t('tableHeaders.cpu') }}</td>
-                <td>{{ 0 }}</td>
+                <td>{{ resourcesUssage.millicpus.toFixed(2) }} m</td>
                 <td>{{ resourcesUssage.millicpus.toFixed(2) }} m</td>
                 <td>{{ (resourcesUssage.millicpus / value.instances.length).toFixed(2) }} m</td>
               </tr>

@@ -1,12 +1,5 @@
 <script>
-export default {
-  props: {
-    resourcesList: {
-      type:    Array,
-      default: () => []
-    }
-  }
-};
+export default {};
 </script>
 
 <template>
@@ -18,12 +11,10 @@ export default {
     <div class="application-card-details">
       <div class="application-card-details-top">
         <div>
-          <h1>Routes</h1>
-          <slot name="routesLinks" />
+          <slot name="top-left" />
         </div>
         <div>
-          <span>Uptime 1d 23min</span>
-          Age: 2d ago
+          <slot name="top-right" />
         </div>
       </div>
       <div class="application-card-details-bottom">
@@ -120,7 +111,7 @@ export default {
         grid-auto-columns: minmax(0, 1fr);
         grid-auto-flow: column;
         grid-gap: 10px;
-        padding: 30px 0 0 0;
+        padding: 30px 0 15px 0;
         font-size: 18px;
         font-weight: 300;
 
