@@ -10,27 +10,6 @@ export default class EpinioResource extends Resource {
     });
   }
 
-  async forceFetch() {
-    await this.$dispatch('find', {
-      type: this.type,
-      id:   `${ this.meta.namespace }/${ this.meta.name }`,
-      opt:  { force: true }
-    });
-  }
-
-  get detailLocation() {
-    const schema = this.$getters['schemaFor'](this.type);
-
-    const id = this.id?.replace(/.*\//, '');
-
-    return createEpinioRoute(`c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`, {
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  this.type,
-      id,
-      namespace: this.meta?.namespace,
-    });
-  }
-
   // ------------------------------------------------------------------
 
   get canClone() {

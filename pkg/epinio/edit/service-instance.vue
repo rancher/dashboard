@@ -148,7 +148,7 @@ export default Vue.extend<Data, any, any, any>({
       namespace-key="namespace"
       :namespaces-override="namespaces"
       :description-hidden="true"
-      :value="value"
+      :value="value.meta"
       :mode="mode"
     />
     <div class="row">
