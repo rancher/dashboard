@@ -3,7 +3,6 @@ import LabeledInputPo from '@/cypress/integration/po/components/labeled-input.po
 import CheckboxInputPo from '@/cypress/integration/po/components/checkbox-input.po';
 import RadioGroupInputPo from '@/cypress/integration/po/components/radio-group-input.po';
 import AsyncButtonPo from '@/cypress/integration/po/components/async-button.po';
-import FormPo from '@/cypress/integration/po/components/form.po';
 
 export class RancherSetupAuthVerifyPage extends PagePo {
   static url: string = '/auth/login'
@@ -11,32 +10,28 @@ export class RancherSetupAuthVerifyPage extends PagePo {
     return super.goTo(RancherSetupAuthVerifyPage.url);
   }
 
-  form: FormPo;
-
   constructor() {
     super(RancherSetupAuthVerifyPage.url);
-
-    this.form = new FormPo('form', this.self());
   }
 
   choosePassword(): RadioGroupInputPo {
-    return new RadioGroupInputPo(this.form.radioGroups().eq(0));
+    return new RadioGroupInputPo(cy.getId('setup-password-mode'));
   }
 
   password(): LabeledInputPo {
-    return new LabeledInputPo(this.form.labels().first());
+    return new LabeledInputPo(cy.getId('setup-password'));
   }
 
   confirmPassword(): LabeledInputPo {
-    return new LabeledInputPo(this.form.labels().eq(1));
+    return new LabeledInputPo(cy.getId('setup-password-confirm'));
   }
 
   serverUrl(): LabeledInputPo {
-    return new LabeledInputPo(this.form.labels().eq(1));
+    return new LabeledInputPo(cy.getId('setup-server-url'));
   }
 
   termsAgreement(): CheckboxInputPo {
-    return new CheckboxInputPo(this.form.checkboxes().eq(1));
+    return new CheckboxInputPo(cy.getId('setup-agreement'));
   }
 
   canSubmit(): Cypress.Chainable<boolean> {

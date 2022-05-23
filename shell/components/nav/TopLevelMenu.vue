@@ -242,7 +242,7 @@ export default {
 <template>
   <div>
     <div
-      id="top-level-menu"
+      data-testid="top-level-menu"
       class="menu"
       :class="{'raised': shown, 'unraised':!shown}"
       @click="toggle()"
@@ -253,7 +253,7 @@ export default {
     <transition name="fade">
       <div
         v-if="shown"
-        id="side-menu"
+        data-testid="side-menu"
         class="side-menu"
         tabindex="-1"
       >

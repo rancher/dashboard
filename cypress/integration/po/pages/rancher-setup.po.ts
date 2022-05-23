@@ -18,11 +18,11 @@ export class RancherSetupPagePo extends PagePo {
   }
 
   hasInfoMessage() {
-    this.self().get('.first-login-message').should('be.visible');
+    this.self().getId('first-login-message').should('be.visible');
   }
 
   password(): LabeledInputPo {
-    return new LabeledInputPo(this.form.labels().first());
+    return new LabeledInputPo(cy.getId('local-login-password'));
   }
 
   canSubmit(): Cypress.Chainable<boolean> {

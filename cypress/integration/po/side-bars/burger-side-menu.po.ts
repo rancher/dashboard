@@ -10,7 +10,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static toggle(): Cypress.Chainable {
-    return cy.get('#top-level-menu').click({ force: true });
+    return cy.getId('top-level-menu').click({ force: true });
   }
 
   /**
@@ -32,7 +32,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   private static sideMenu(): Cypress.Chainable {
-    return cy.get('body').get('#side-menu');
+    return cy.get('body').getId('side-menu');
   }
 
   /**
@@ -64,6 +64,6 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   localization(): Cypress.Chainable {
-    return this.self().find('[data-testid="locale-selector"]');
+    return this.self().getId('locale-selector');
   }
 }

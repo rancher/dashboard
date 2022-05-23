@@ -11,10 +11,10 @@ export default class HomePagePo extends PagePo {
   }
 
   title(): Cypress.Chainable<string> {
-    return this.self().find('[data-testid="banner-title"]').invoke('text');
+    return this.self().getId('banner-title').invoke('text');
   }
 
   changelog(): Cypress.Chainable<string> {
-    return this.self().find('[data-testid="changelog-banner"]').invoke('text');
+    return this.self().getId('changelog-banner').invoke('text');
   }
 }
