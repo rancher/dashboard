@@ -2,7 +2,7 @@ import { RouteConfig } from 'vue-router';
 import { ELEMENTAL_PRODUCT_NAME } from '../types';
 import Dashboard from '../pages/index.vue';
 import Operations from '../pages/Operations.vue';
-import MachineInventories from '../pages/MachineInventories.vue';
+import ListElementalResource from '../pages/resource/index.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -16,9 +16,9 @@ const routes: RouteConfig[] = [
     component: Operations,
   },
   {
-    name:      `${ ELEMENTAL_PRODUCT_NAME }-c-cluster-machine-inventories`,
-    path:      `/:product/c/:cluster/machine-inventories`,
-    component: MachineInventories,
+    name:      `${ ELEMENTAL_PRODUCT_NAME }-c-cluster-resource`,
+    path:      `/:product/c/:cluster/:resource`,
+    component: ListElementalResource,
   },
 ];
 
