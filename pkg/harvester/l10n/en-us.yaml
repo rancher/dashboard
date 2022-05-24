@@ -177,6 +177,7 @@ harvester:
 
     version: Version
   host:
+    console: Console
     label: Hosts
     inconsistentIP: "Host IP is inconsistent, current IP: { currentIP }, initial IP: { initIP }"
     promote:

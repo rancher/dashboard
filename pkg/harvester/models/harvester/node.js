@@ -64,6 +64,20 @@ export default class HciNode extends HarvesterResource {
     return true;
   }
 
+  get consoleUrl() {
+    const url = this.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CONSOLE_URL];
+
+    if (!url) {
+      return false;
+    }
+
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `http://${ url }`;
+    }
+
+    return url;
+  }
+
   get filteredSystemLabels() {
     const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
 

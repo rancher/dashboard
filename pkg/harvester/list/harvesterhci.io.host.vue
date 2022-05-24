@@ -70,10 +70,7 @@ export default {
     headers() {
       const out = [
         STATE,
-        {
-          ...NAME,
-          formatter: 'HarvesterHostName',
-        },
+        NAME,
         {
           name:      'host-ip',
           labelKey:  'tableHeaders.hostIp',
@@ -128,6 +125,13 @@ export default {
 
       out.push(AGE);
 
+      out.push({
+        name:  'console',
+        label: ' ',
+        align: 'right',
+        width: 65,
+      });
+
       return out;
     },
 
@@ -148,6 +152,10 @@ export default {
         this.$forceUpdate();
       }
     },
+
+    goto(row) {
+      window.open(row.consoleUrl, '_blank');
+    }
   },
 
   typeDisplay() {
@@ -160,7 +168,6 @@ export default {
 
     return this.$store.getters['type-map/labelFor'](paramSchema, 99);
   },
-
 };
 </script>
 
@@ -181,6 +188,12 @@ export default {
         <div class="name-console">
           {{ scope.row.internalIp }}<CopyToClipboard :text="scope.row.internalIp" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
         </div>
+      </template>
+
+      <template #cell:console="{row}">
+        <button type="button" class="btn btn-sm role-primary" @click="goto(row)">
+          {{ t('harvester.host.console') }}
+        </button>
       </template>
     </ResourceTable>
   </div>
