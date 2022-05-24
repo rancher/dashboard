@@ -1,5 +1,6 @@
 import EpinioApplicationModel from './models/applications';
-import EpinioCatalogServiceModel from './models/catalog-service';
+import EpinioCatalogServiceModel from './models/catalogservice';
+import EpinioConfigurationModel from './models/configurations';
 
 export const EPINIO_PRODUCT_NAME = 'epinio';
 
@@ -13,8 +14,8 @@ export const EPINIO_TYPES = {
   APP:              'applications',
   NAMESPACE:        'namespaces',
   CONFIGURATION:    'configurations',
-  CATALOG_SERVICE:  'catalog-service',
-  SERVICE_INSTANCE: 'service-instance',
+  CATALOG_SERVICE:  'catalogservice',
+  SERVICE_INSTANCE: 'service',
   // Internal
   INSTANCE:         'instance',
   APP_ACTION:       'application-action',
@@ -47,7 +48,16 @@ export const APPLICATION_ACTION_STATE = {
 // Temporary code until models are typed
 interface EpinioMeta {
   name: string,
-  namespace: string
+  namespace?: string,
+  createdAt: string,
+}
+
+interface EpinioMetaProperty {
+  metadata: {
+    name: string,
+    namespace?: string
+    creationTimestamp: string,
+  }
 }
 
 export interface EpinioApplicationResource {
@@ -70,7 +80,7 @@ export interface EpinioApplicationResource {
   statusmessage: string
 }
 
-export type EpinioApplication = EpinioApplicationResource & EpinioApplicationModel;
+export type EpinioApplication = EpinioApplicationResource & EpinioApplicationModel & EpinioMetaProperty;
 
 export interface EpinioHelmRepoResource {
   name: string,
@@ -88,4 +98,15 @@ export interface EpinioCatalogServiceResource {
   values: string,
 }
 
-export type EpinioCatalogService = EpinioCatalogServiceResource & EpinioCatalogServiceModel;
+export type EpinioCatalogService = EpinioCatalogServiceResource & EpinioCatalogServiceModel & EpinioMetaProperty;
+
+export interface EpinioConfigurationResource {
+  meta: EpinioMeta
+  configuration: {
+    user: string,
+    details: Map<string, {}>,
+    boundapps: string[],
+  }
+}
+
+export type EpinioConfiguration = EpinioConfigurationResource & EpinioConfigurationModel & EpinioMetaProperty;

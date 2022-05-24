@@ -2,10 +2,9 @@
 import Vue, { PropType } from 'vue';
 import Application from '../../models/applications';
 
-import { EPINIO_TYPES } from '../../types';
+import { EpinioConfiguration, EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import EpinioConfiguration from '../../models/configurations';
 
 interface Data {
   values: string[]
@@ -29,7 +28,7 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   mounted() {
-    this.values = this.application.configuration.configurations.filter((cc: string) => this.configurations.find((c: any) => c.value === cc));
+    this.values = this.application.configuration.configurations?.filter((cc: string) => this.configurations.find((c: any) => c.value === cc)) || [];
   },
 
   data() {

@@ -12,31 +12,10 @@ export default class EpinioServiceInstanceModel extends EpinioNamespacedResource
     };
   }
 
-  getUrl(namespace = 'from-ui', name = this.metadata?.name) {
+  getUrl(namespace = this.metadata?.namespace, name = this.metadata?.name) {
     // getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
     // Add baseUrl in a generic way
     return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/services/${ name || '' }` });
-  }
-
-  // ------------------------------------------------------------------
-
-  set metadata(metadata) {
-    this.name = metadata.name;
-    this.namespace = metadata.namespace;
-  }
-
-  get metadata() {
-    return { // TODO: See https://github.com/epinio/ui/issues/97#issuecomment-1124880156
-      name:      this.name,
-      namespace: this.namespace,
-    };
-  }
-
-  get meta() {
-    return { // TODO: See https://github.com/epinio/ui/issues/97#issuecomment-1124880156
-      name:      this.name,
-      namespace: this.namespace,
-    };
   }
 
   // ------------------------------------------------------------------
@@ -79,5 +58,13 @@ export default class EpinioServiceInstanceModel extends EpinioNamespacedResource
       },
       data: { app_name: appName }
     });
+  }
+
+  async delete(unbind = true) {
+    await this._remove({ data: { unbind } });
+  }
+
+  async remove() {
+    await this.delete(true);// TODO: RC wire in somehow
   }
 }

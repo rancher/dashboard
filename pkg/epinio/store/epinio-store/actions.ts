@@ -189,13 +189,13 @@ export default {
         product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.CATALOG_SERVICE,
         type:              'schema',
-        links:             { collection: '/api/v1/services' },
+        links:             { collection: '/api/v1/catalogservices' },
         collectionMethods: ['get', 'post'],
       }, {
         product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.SERVICE_INSTANCE,
         type:              'schema',
-        links:             { collection: '/api/v1/namespaces/from-ui/services' },
+        links:             { collection: '/api/v1/services' },
         collectionMethods: ['get', 'post'],
         attributes:        { namespaced: true }
       }, {

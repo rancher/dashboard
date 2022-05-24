@@ -21,6 +21,7 @@ import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { BLANK_CLUSTER } from '@shell/store';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { allHash } from '@shell/utils/promise';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 
@@ -41,10 +42,16 @@ export default {
   mixins: [PageHeaderActions],
 
   async fetch() {
-    this.clusters = await this.$store.dispatch('management/findAll', {
-      type: MANAGEMENT.CLUSTER,
-      opt:  { url: MANAGEMENT.CLUSTER }
-    });
+    const requests = {
+      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      clusters:        this.$store.dispatch('management/findAll', {
+        type: MANAGEMENT.CLUSTER,
+        opt:  { url: MANAGEMENT.CLUSTER }
+      })
+    };
+    const hash = await allHash(requests);
+
+    this.clusters = hash.rancherClusters;
   },
 
   data() {
@@ -125,12 +132,14 @@ export default {
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
+          getValue:      row => row.mgmt?.nameDisplay
         },
         {
-          label: this.t('landing.clusters.provider'),
-          value: 'status.provider',
-          name:  'Provider',
-          sort:  ['status.provider'],
+          label:     this.t('landing.clusters.provider'),
+          value:     'mgmt.status.provider',
+          name:      'Provider',
+          sort:      ['mgmt.status.provider'],
+          formatter: 'ClusterProvider'
         },
         {
           label: this.t('landing.clusters.kubernetesVersion'),
@@ -339,8 +348,8 @@ export default {
                 </template>
                 <template #col:name="{row}">
                   <td>
-                    <span>
-                      <n-link v-if="row.isReady" :to="{ name: 'c-cluster-explorer', params: { cluster: row.id }}">
+                    <span v-if="row.mgmt">
+                      <n-link v-if="row.mgmt.isReady" :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}">
                         {{ row.nameDisplay }}
                       </n-link>
                       <span v-else>{{ row.nameDisplay }}</span>
@@ -348,16 +357,16 @@ export default {
                   </td>
                 </template>
                 <template #col:cpu="{row}">
-                  <td v-if="cpuAllocatable(row)">
-                    {{ `${cpuAllocatable(row)} ${t('landing.clusters.cores', {count:cpuAllocatable(row) })}` }}
+                  <td v-if="row.mgmt && cpuAllocatable(row.mgmt)">
+                    {{ `${cpuAllocatable(row.mgmt)} ${t('landing.clusters.cores', {count:cpuAllocatable(row.mgmt) })}` }}
                   </td>
                   <td v-else>
                     &mdash;
                   </td>
                 </template>
                 <template #col:memory="{row}">
-                  <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
-                    {{ memoryAllocatable(row) }}
+                  <td v-if="row.mgmt && memoryAllocatable(row.mgmt) && !memoryAllocatable(row.mgmt).match(/^0 [a-zA-z]/)">
+                    {{ memoryAllocatable(row.mgmt) }}
                   </td>
                   <td v-else>
                     &mdash;

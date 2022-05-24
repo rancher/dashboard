@@ -3,7 +3,7 @@ import BrandImage from '@shell/components/BrandImage';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
-import { MANAGEMENT } from '@shell/config/types';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
@@ -57,7 +57,18 @@ export default {
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
+      const pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
+      let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
+      const available = pClusters.reduce((p, c) => {
+        p[c.mgmt] = true;
+
+        return p;
+      }, {});
+
+      // Filter to only show mgmt clusters that exist for the available provisionning clusters
+      // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
+      // provisionning cluster has been deleted
+      kubeClusters = kubeClusters.filter(c => !!available[c]);
 
       return kubeClusters.map((x) => {
         return {
@@ -112,14 +123,17 @@ export default {
       const items = options.filter(opt => opt.category === 'configuration');
 
       // Add plugin page
-      items.push({
-        label:   'Plugins',
-        inStore: 'management',
-        icon:    'icon-gear',
-        value:   'plugins',
-        weight:  1,
-        to:      { name: 'plugins' },
-      });
+      // Ony when developing for now
+      if (process.env.dev) {
+        items.push({
+          label:   'Plugins',
+          inStore: 'management',
+          icon:    'icon-gear',
+          value:   'plugins',
+          weight:  1,
+          to:      { name: 'plugins' },
+        });
+      }
 
       return items;
     },

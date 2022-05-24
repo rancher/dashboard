@@ -64,7 +64,12 @@ Object.keys(targets).forEach((target) => {
 });
 
 // Add dependencies
-pkg.dependencies['@rancher/shell'] = '^0.6.16';
+// Use the same shell version as this app creator
+
+const creatorPkgData = fs.readFileSync(path.join(__dirname, 'package.json'));
+const creatorPkg = JSON.parse(creatorPkgData);
+
+pkg.dependencies['@rancher/shell'] = `^${ creatorPkg.version }`;
 pkg.dependencies['core-js'] = '^3.20.3';
 pkg.dependencies['css-loader'] = '4.3.0';
 

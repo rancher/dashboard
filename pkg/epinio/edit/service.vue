@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import ServiceInstance from '../models/service-instance';
+import ServiceInstance from '../models/service';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
@@ -148,7 +148,7 @@ export default Vue.extend<Data, any, any, any>({
       namespace-key="namespace"
       :namespaces-override="namespaces"
       :description-hidden="true"
-      :value="value"
+      :value="value.meta"
       :mode="mode"
     />
     <div class="row">
