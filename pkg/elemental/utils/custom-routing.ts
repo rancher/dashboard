@@ -1,9 +1,9 @@
+import { LOCAL } from '@shell/config/query-params';
 import { ELEMENTAL_PRODUCT_NAME } from '../types';
-import { BLANK_CLUSTER } from '@shell/store';
 
 export const rootElementalRoute = () => ({
   name:    `${ ELEMENTAL_PRODUCT_NAME }-c-cluster`,
-  params: { product: ELEMENTAL_PRODUCT_NAME, cluster: BLANK_CLUSTER }
+  params: { product: ELEMENTAL_PRODUCT_NAME, cluster: LOCAL }
 });
 
 export const createElementalRoute = (name: string, params: Object) => ({

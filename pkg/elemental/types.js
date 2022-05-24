@@ -16,3 +16,11 @@ export const ELEMENTAL_SCHEMAS = {
   MANAGED_OS_VERSION_CHANNELS: 'rancheros.cattle.io.managedosversionchannels',
   MANAGED_OS_VERSIONS:         'rancheros.cattle.io.managedosversions',
 };
+
+export const ELEMENTAL_SCHEMA_IDS = {
+  MACHINE_INVENTORIES:         'rancheros.cattle.io.machineinventory',
+  MACHINE_REGISTRATIONS:       'rancheros.cattle.io.machineregistration',
+  MANAGED_OS_IMAGES:           'rancheros.cattle.io.managedosimage',
+  MANAGED_OS_VERSION_CHANNELS: 'rancheros.cattle.io.managedosversionchannel',
+  MANAGED_OS_VERSIONS:         'rancheros.cattle.io.managedosversion',
+};

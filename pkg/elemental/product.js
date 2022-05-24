@@ -1,4 +1,4 @@
-import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_PRODUCT_GROUP, ELEMENTAL_TYPES } from './types';
+import { ELEMENTAL_SCHEMA_IDS, ELEMENTAL_PRODUCT_GROUP, ELEMENTAL_TYPES } from './types';
 import { createElementalRoute, rootElementalRoute } from './utils/custom-routing';
 
 export function init($plugin, store) {
@@ -33,32 +33,19 @@ export function init($plugin, store) {
     namespaced:   false,
     name:         ELEMENTAL_TYPES.OPERATIONS,
     weight:       2,
-    route:        createElementalRoute(ELEMENTAL_TYPES.OPERATIONS, { product: ELEMENTAL_PRODUCT_NAME })
+    route:        createElementalRoute(ELEMENTAL_TYPES.OPERATIONS)
   });
 
-  // virtualType({
-  //   label:        store.getters['i18n/t']('elemental.menuLabels.machineInventories'),
-  //   icon:         'folder',
-  //   group:        'Root',
-  //   namespaced:   false,
-  //   name:         ELEMENTAL_TYPES.MACHINE_INVENTORIES,
-  //   weight:       1,
-  //   route:        createElementalRoute(ELEMENTAL_TYPES.MACHINE_INVENTORIES, { product: ELEMENTAL_PRODUCT_NAME })
-  // });
-
-  configureType(ELEMENTAL_TYPES.MACHINE_INVENTORIES, {
+  configureType(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, {
     isCreatable: true,
     isEditable:  true,
     isRemovable: true,
-    showState:   false,
-    showAge:     false,
-    canYaml:     false,
-    customRoute: createElementalRoute(ELEMENTAL_TYPES.MACHINE_INVENTORIES, { product: ELEMENTAL_PRODUCT_NAME })
+    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES })
   });
 
   basicType([
     ELEMENTAL_TYPES.DASHBOARD,
     ELEMENTAL_TYPES.OPERATIONS,
-    ELEMENTAL_TYPES.MACHINE_INVENTORIES,
+    ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
   ]);
 }
