@@ -178,6 +178,7 @@ harvester:
 
     version: 版本
   host:
+    console: 控制台
     label: 主机
     inconsistentIP: "主机 IP 不一致，当前 IP：{currentIP}，初始 IP：{initIP}"
     promote:
