@@ -8,6 +8,7 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import { SCHEMA } from '@shell/config/types';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -299,6 +300,12 @@ export const actions = {
       return;
     }
 
+    if (resourceType === SCHEMA) {
+      await dispatch('loadSchemas', true);
+
+      return;
+    }
+
     let have, want;
 
     if ( selector ) {
@@ -442,9 +449,10 @@ export const actions = {
     const type = msg.resourceType;
     const obj = {
       type,
-      id:        msg.id,
-      namespace: msg.namespace,
-      selector:  msg.selector
+      resourceType: type,
+      id:           msg.id,
+      namespace:    msg.namespace,
+      selector:     msg.selector,
     };
 
     // console.warn(`Resource stop: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
@@ -457,7 +465,7 @@ export const actions = {
       setTimeout(() => {
         // Delay a bit so that immediate start/error/stop causes
         // only a slow infinite loop instead of a tight one.
-        dispatch('watch', obj);
+        dispatch('resyncWatch', obj);
       }, 5000);
     }
   },
