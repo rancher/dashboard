@@ -1,6 +1,6 @@
 <script>
 import InputOrDisplay from '@shell/components/InputOrDisplay';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 import { clone } from '@shell/utils/object';

@@ -1,5 +1,5 @@
 <script>
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import MessageLink from '@shell/components/MessageLink';
 import ResourceTable from '@shell/components/ResourceTable';

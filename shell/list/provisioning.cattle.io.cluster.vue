@@ -1,5 +1,5 @@
 <script>
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { allHash } from '@shell/utils/promise';

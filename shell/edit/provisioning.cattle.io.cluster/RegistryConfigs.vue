@@ -1,8 +1,8 @@
 <script>
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { set } from '@shell/utils/object';
-import LabeledInput from '@shell/components/form/LabeledInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SecretSelector from '@shell/components/form/SecretSelector';

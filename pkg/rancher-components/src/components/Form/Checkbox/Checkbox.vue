@@ -1,4 +1,5 @@
 <script>
+// TODO: Issue #5070 Remove jquery dep
 import $ from 'jquery';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
@@ -32,7 +33,7 @@ export default {
 
     mode: {
       type:    String,
-      default: _EDIT,
+      default: _EDIT
     },
 
     tooltip: {
@@ -58,12 +59,12 @@ export default {
     description: {
       type:    String,
       default: null
-    },
+    }
   },
 
   computed: {
     isDisabled() {
-      return (this.disabled || this.mode === _VIEW );
+      return (this.disabled || this.mode === _VIEW);
     },
     isChecked() {
       return this.isMulti() ? this.value.find(v => v === this.valueWhenTrue) : this.value === this.valueWhenTrue;
@@ -72,7 +73,7 @@ export default {
 
   methods: {
     clicked(event) {
-      if ( event.target.tagName === 'A' && event.target.href ) {
+      if (event.target.tagName === 'A' && event.target.href) {
         // Ignore links inside the checkbox label so you can click them
         return true;
       }

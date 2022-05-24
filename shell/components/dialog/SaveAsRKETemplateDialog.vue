@@ -1,8 +1,8 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import Card from '@shell/components/Card';
-import Banner from '@shell/components/Banner';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 const DEFAULT_REVISION = 'v1';

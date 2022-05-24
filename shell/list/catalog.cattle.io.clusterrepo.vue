@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
 

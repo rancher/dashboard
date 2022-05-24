@@ -1,5 +1,5 @@
 <script>
-import BadgeState from '@shell/components/BadgeState';
+import { BadgeState } from '@components/BadgeState';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 
 const ACTIVE = 'healthy';

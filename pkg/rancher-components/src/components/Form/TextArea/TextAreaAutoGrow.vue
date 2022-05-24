@@ -14,15 +14,15 @@ export default {
 
     minHeight: {
       type:    Number,
-      default: 25,
+      default: 25
     },
     maxHeight: {
       type:    Number,
-      default: 200,
+      default: 200
     },
     placeholder: {
       type:    String,
-      default: '',
+      default: ''
     },
     spellcheck: {
       type:    Boolean,
@@ -31,14 +31,14 @@ export default {
 
     disabled: {
       type:    Boolean,
-      default: false,
+      default: false
     }
   },
 
   data() {
     return {
       curHeight: this.minHeight,
-      overflow:  'hidden',
+      overflow:  'hidden'
     };
   },
 
@@ -51,7 +51,7 @@ export default {
       // This sets the height to one-line for SSR pageload so that it's already right
       // (unless the input is long)
       return `height: ${ this.curHeight }px; overflow: ${ this.overflow };`;
-    },
+    }
   },
 
   watch: {
@@ -60,7 +60,7 @@ export default {
       handler() {
         this.queueResize();
       }
-    },
+    }
   },
 
   created() {
@@ -87,7 +87,7 @@ export default {
     autoSize() {
       const el = this.$refs.ta;
 
-      if ( !el ) {
+      if (!el) {
         return;
       }
 

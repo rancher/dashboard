@@ -8,6 +8,9 @@
   "engines": {
     "node": ">=12"
   },
+  "workspaces": [
+    "pkg/rancher-components"
+  ],
   "scripts": {
     "build-pkg": "./shell/scripts/build-pkg.sh",
     "publish-pkg": "./shell/scripts/publish-pkg.sh",
@@ -22,6 +25,7 @@
     "mem-dev": "node --max-old-space-size=8192 ./node_modules/.bin/nuxt dev",
     "docker-dev": "docker run --rm --name dashboard-dev -p 8005:8005 -e API=$API -v $(pwd):/src -v dashboard_node:/src/node_modules rancher/dashboard:dev",
     "build": "./node_modules/.bin/nuxt build --devtools",
+    "build:lib": "cd pkg/rancher-components && yarn build:lib",
     "analyze": "./node_modules/.bin/nuxt build --analyze",
     "start": "./node_modules/.bin/nuxt start",
     "generate": "./node_modules/.bin/nuxt generate",
@@ -124,6 +128,7 @@
     "@vue/cli-plugin-babel": "^4.5.15",
     "@vue/cli-plugin-typescript": "^4.5.15",
     "@vue/cli-service": "^4.5.13",
+    "@vue/eslint-config-standard": "^5.1.2",
     "@vue/test-utils": "1.2.1",
     "@vue/vue2-jest": "^27.0.0",
     "add": "^2.0.6",

@@ -7,7 +7,7 @@ import {
   LOGS_RANGE, LOGS_TIME, LOGS_WRAP, DATE_FORMAT, TIME_FORMAT
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
 import day from 'dayjs';

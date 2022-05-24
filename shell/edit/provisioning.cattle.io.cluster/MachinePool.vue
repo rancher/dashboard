@@ -1,13 +1,13 @@
 <script>
 
-import LabeledInput from '@shell/components/form/LabeledInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
 import { _EDIT } from '@shell/config/query-params';
 import { importMachineConfig } from '@shell/utils/dynamic-importer';
 import Taints from '@shell/components/form/Taints.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import { randomStr } from '@shell/utils/string';
 

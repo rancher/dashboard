@@ -1,6 +1,6 @@
 <script>
-import RadioButton from '@shell/components/form/RadioButton';
 import { _VIEW } from '@shell/config/query-params';
+import { RadioButton } from '@components/Form/Radio';
 
 export default {
   components: { RadioButton },
@@ -8,7 +8,7 @@ export default {
     // Name for the checkbox grouping, must be unique on page
     name: {
       type:     String,
-      required: true,
+      required: true
     },
 
     // Options can be an array of {label, value}, or just values
@@ -20,7 +20,7 @@ export default {
     // If options are just values, then labels can be a corresponding display value
     labels: {
       type:    Array,
-      default: null,
+      default: null
     },
 
     // The selected value
@@ -70,15 +70,15 @@ export default {
     normalizedOptions() {
       const out = [];
 
-      for ( let i = 0 ; i < this.options.length ; i++ ) {
+      for (let i = 0; i < this.options.length; i++) {
         const opt = this.options[i];
 
-        if ( typeof opt === 'object' && opt ) {
+        if (typeof opt === 'object' && opt) {
           out.push(opt);
-        } else if ( this.labels ) {
+        } else if (this.labels) {
           out.push({
             label: this.labels[i],
-            value: opt,
+            value: opt
           });
         } else {
           out.push({
@@ -105,11 +105,11 @@ export default {
     clickNext(direction) {
       const opts = this.normalizedOptions;
       const selected = opts.find(x => x.value === this.value);
-      let newIndex = (selected ? opts.indexOf(selected) : -1 ) + direction;
+      let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;
 
-      if ( newIndex >= opts.length ) {
+      if (newIndex >= opts.length) {
         newIndex = opts.length - 1;
-      } else if ( newIndex < 0 ) {
+      } else if (newIndex < 0) {
         newIndex = 0;
       }
 

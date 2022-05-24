@@ -12,7 +12,7 @@ export default {
      */
     value: {
       type:    Object,
-      default: null,
+      default: null
     },
 
     /**
@@ -20,7 +20,7 @@ export default {
      */
     color: {
       type:    String,
-      default: null,
+      default: null
     },
 
     /**
@@ -36,8 +36,8 @@ export default {
      */
     label: {
       type:    String,
-      default: null,
-    },
+      default: null
+    }
   },
 
   computed: {
@@ -87,6 +87,8 @@ export default {
   }
 </style>
 <style lang="scss">
+  // TODO: #6005 
+  // Investigate why this is here.. I don't think that styles for sortable table should belong here
   .sortable-table TD .badge-state {
     @include clip;
     display: inline-block;
