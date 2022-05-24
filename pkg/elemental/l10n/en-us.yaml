@@ -1,3 +1,29 @@
+typeLabel:
+  rancheros.cattle.io.machineinventory: |-
+    {count, plural,
+      one {Machine Inventory}
+      other {Machine Inventories}
+    }
+  rancheros.cattle.io.machineregistration: |-
+    {count, plural,
+      one {Machine Registration}
+      other {Machine Registrations}
+    }
+  rancheros.cattle.io.managedosimage: |-
+    {count, plural,
+      one {Managed OS Image}
+      other {Managed OS Images}
+    }
+  rancheros.cattle.io.managedosversionchannel: |-
+    {count, plural,
+      one {Managed OS Version Channel}
+      other {Managed OS Version Channels}
+    }
+  rancheros.cattle.io.managedosversion: |-
+    {count, plural,
+      one {Managed OS Version}
+      other {Managed OS Versions}
+    }
 elemental:
   menuLabels:
     dashboard: Dashboard
