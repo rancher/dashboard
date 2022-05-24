@@ -29,22 +29,18 @@ export default {
       await Promise.all(promises);
     },
 
-    async waitForServiceInstanceDeployed() { // serviceInstance
-      // TODO: Blocked, see https://github.com/epinio/ui/issues/120
-      // So util then put a big wait in
-      await new Promise(resolve => setTimeout(resolve, 20000));
-
+    async waitForServiceInstanceDeployed(serviceInstance) {
       // It would be nice to use waitForState here, but we need to manually update until Epinio pumps out updates via socket
-      // await serviceInstance.waitForTestFn(() => {
-      //   if (this.state === 'deployed') {
-      //     return true;
-      //   }
-      //   // This is an async fn, but we're in a sync fn. It might create a backlog if previous requests don't complete in time
-      //   serviceInstance.forceFetch();
-      // }, `service instance state = "deployed"`, 20000, 2000).catch((err) => {
-      //   console.warn(err); // eslint-disable-line no-console
-      //   throw new Error('waitingForDeploy');
-      // });
+      await serviceInstance.waitForTestFn(() => {
+        if (this.state === 'deployed') {
+          return true;
+        }
+        // This is an async fn, but we're in a sync fn. It might create a backlog if previous requests don't complete in time
+        serviceInstance.forceFetch();
+      }, `service instance state = "deployed"`, 30000, 2000).catch((err) => {
+        console.warn(err); // eslint-disable-line no-console
+        throw new Error('waitingForDeploy');
+      });
     },
 
     async updateConfigurations() {

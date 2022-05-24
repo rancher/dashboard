@@ -4,7 +4,7 @@ import EpinioNamespacedResource from './epinio-namespaced-resource';
 // POST - {"name":"my-service","data":{"foo":"bar"}}
 // GET - { "boundapps": null, "name": "my-service" }
 
-export default class EpinioConfiguration extends EpinioNamespacedResource {
+export default class EpinioConfigurationModel extends EpinioNamespacedResource {
   get links() {
     return {
       update: this.getUrl(),
