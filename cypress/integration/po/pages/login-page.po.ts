@@ -32,11 +32,16 @@ export class LoginPagePo extends PagePo {
   switchToLocal(): Cypress.Chainable {
     const useLocal = this.useLocal();
 
+    // TODO: We should have control over this instead of using a condition, as we want deterministic tests
     return useLocal ? useLocal.click() : cy;
   }
 
   useLocal() {
-    return this.self().getId('login-useLocal');
+    return this.self().then(($page) => {
+      const elements = $page.find('[data-testid="login-useLocal"]');
+
+      return elements?.[0];
+    });
   }
 
   private submitButton(): AsyncButtonPo {
