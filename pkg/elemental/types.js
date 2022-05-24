@@ -1,4 +1,5 @@
 export const ELEMENTAL_PRODUCT_NAME = 'elemental';
+export const ELEMENTAL_STORE = 'elemental';
 
 export const ELEMENTAL_PRODUCT_GROUP = 'rancheros.cattle.io';
 

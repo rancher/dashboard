@@ -2,7 +2,9 @@ import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_PRODUCT_GROUP, ELEMENTAL_TYPES } from
 import { createElementalRoute, rootElementalRoute } from './utils/custom-routing';
 
 export function init($plugin, store) {
-  const { product, virtualType, basicType } = $plugin.DSL(store, $plugin.name);
+  const {
+    product, virtualType, basicType, configureType
+  } = $plugin.DSL(store, $plugin.name);
 
   // app in sidebar
   product({
@@ -34,14 +36,24 @@ export function init($plugin, store) {
     route:        createElementalRoute(ELEMENTAL_TYPES.OPERATIONS, { product: ELEMENTAL_PRODUCT_NAME })
   });
 
-  virtualType({
-    label:        store.getters['i18n/t']('elemental.menuLabels.machineInventories'),
-    icon:         'folder',
-    group:        'Root',
-    namespaced:   false,
-    name:         ELEMENTAL_TYPES.MACHINE_INVENTORIES,
-    weight:       1,
-    route:        createElementalRoute(ELEMENTAL_TYPES.MACHINE_INVENTORIES, { product: ELEMENTAL_PRODUCT_NAME })
+  // virtualType({
+  //   label:        store.getters['i18n/t']('elemental.menuLabels.machineInventories'),
+  //   icon:         'folder',
+  //   group:        'Root',
+  //   namespaced:   false,
+  //   name:         ELEMENTAL_TYPES.MACHINE_INVENTORIES,
+  //   weight:       1,
+  //   route:        createElementalRoute(ELEMENTAL_TYPES.MACHINE_INVENTORIES, { product: ELEMENTAL_PRODUCT_NAME })
+  // });
+
+  configureType(ELEMENTAL_TYPES.MACHINE_INVENTORIES, {
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
+    showState:   false,
+    showAge:     false,
+    canYaml:     false,
+    customRoute: createElementalRoute(ELEMENTAL_TYPES.MACHINE_INVENTORIES, { product: ELEMENTAL_PRODUCT_NAME })
   });
 
   basicType([
