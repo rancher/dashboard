@@ -60,6 +60,17 @@ export default class ProvCluster extends SteveModel {
 
     const canSnapshot = ready && ((this.isRke2 && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('backupEtcd')));
 
+    const clusterTemplatesSchema = this.$getters['schemaFor']('management.cattle.io.clustertemplate');
+    let canUpdateClusterTemplate = false;
+
+    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods.includes('PUT'))) {
+      canUpdateClusterTemplate = true;
+    }
+
+    const normanClusterSaveTemplateAction = !!this.normanCluster?.actions?.saveAsTemplate;
+
+    const canSaveRKETemplate = this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update') && canUpdateClusterTemplate && normanClusterSaveTemplateAction;
+
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
@@ -108,10 +119,22 @@ export default class ProvCluster extends SteveModel {
         action:     'saveAsRKETemplate',
         label:      this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),
         icon:       'icon icon-folder',
-        enabled:    this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update'),
+        enabled:    canSaveRKETemplate,
       }, { divider: true }];
 
     return actions.concat(out);
+  }
+
+  get normanCluster() {
+    const name = this.status?.clusterName;
+
+    if ( !name ) {
+      return null;
+    }
+
+    const out = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, name);
+
+    return out;
   }
 
   goToViewYaml() {
