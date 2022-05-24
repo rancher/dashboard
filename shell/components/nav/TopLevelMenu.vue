@@ -60,7 +60,7 @@ export default {
       const pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
       let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
       const available = pClusters.reduce((p, c) => {
-        p[c.mgmt] = p;
+        p[c.mgmt] = true;
 
         return p;
       }, {});
