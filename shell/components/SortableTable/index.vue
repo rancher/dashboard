@@ -945,7 +945,10 @@ export default {
                   </slot>
                 </template>
                 <td v-if="rowActions" align="middle">
-                  <slot name="row-actions" :row="row">
+                  <slot
+                    name="row-actions"
+                    :row="row.row"
+                  >
                     <button
                       :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
                       :ref="`actionButton${i}`"
