@@ -29,3 +29,17 @@ elemental:
     dashboard: Dashboard
     operations: Operations
     machineInventories: Machine Inventories
+  dashboard:
+    title: Elemental
+    welcomeText: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta non purus sed placerat. Proin sodales varius varius. Vivamus bibendum nisl et eros malesuada rutrum. Praesent at aliquet neque. Morbi tempus, leo ac sagittis ornare, augue tortor finibus enim, sed interdum ipsum metus eu purus. Quisque leo risus, feugiat vel rhoncus ut, interdum non erat. Morbi luctus vestibulum ante vel placerat. Mauris non nunc ut arcu volutpat pretium. Etiam turpis lectus, lobortis eu lorem nec, auctor ultricies ligula. Sed pellentesque lacus a nulla sollicitudin rutrum.
+    getStarted: Get Started
+  osimage:
+    create:
+      configuration: Configuration
+      cloudConfiguration: Cloud Configuration
+      name:
+        label: Name
+        placeholder: Enter a name
+      device:
+        label: Device
+        placeholder: Enter a name

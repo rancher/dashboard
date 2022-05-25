@@ -3,7 +3,7 @@ import { createElementalRoute, rootElementalRoute } from './utils/custom-routing
 
 export function init($plugin, store) {
   const {
-    product, virtualType, basicType, configureType
+    product, virtualType, basicType, configureType, weightType
   } = $plugin.DSL(store, $plugin.name);
 
   // app in sidebar
@@ -22,20 +22,37 @@ export function init($plugin, store) {
     group:        'Root',
     namespaced:   false,
     name:         ELEMENTAL_TYPES.DASHBOARD,
-    weight:       3,
+    weight:      10,
     route:        rootElementalRoute()
   });
 
-  virtualType({
-    label:        store.getters['i18n/t']('elemental.menuLabels.operations'),
-    icon:         'folder',
-    group:        'Root',
-    namespaced:   false,
-    name:         ELEMENTAL_TYPES.OPERATIONS,
-    weight:       2,
-    route:        createElementalRoute(ELEMENTAL_TYPES.OPERATIONS)
+  // virtualType({
+  //   label:        store.getters['i18n/t']('elemental.menuLabels.operations'),
+  //   icon:         'folder',
+  //   group:        'Root',
+  //   namespaced:   false,
+  //   name:         ELEMENTAL_TYPES.OPERATIONS,
+  //   weight:       2,
+  //   route:        createElementalRoute(ELEMENTAL_TYPES.OPERATIONS)
+  // });
+
+  weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, 9, true);
+  configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, {
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
+    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES })
   });
 
+  weightType(ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS, 8, true);
+  configureType(ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS, {
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
+    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS })
+  });
+
+  weightType(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, 7, true);
   configureType(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, {
     isCreatable: true,
     isEditable:  true,
@@ -46,6 +63,8 @@ export function init($plugin, store) {
   basicType([
     ELEMENTAL_TYPES.DASHBOARD,
     ELEMENTAL_TYPES.OPERATIONS,
+    ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES,
+    ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
     ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
   ]);
 }
