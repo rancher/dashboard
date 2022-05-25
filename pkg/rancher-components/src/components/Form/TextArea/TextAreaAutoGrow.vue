@@ -90,15 +90,13 @@ export default {
         return;
       }
 
-      const $el = el;
+      el.style.height = '1px';
 
-      $el.style.height = '1px';
-
-      const border = parseInt(getComputedStyle($el)['borderTopWidth'], 10) || 0 + parseInt(getComputedStyle($el)['borderBottomWidth'], 10) || 0;
+      const border = parseInt(getComputedStyle(el)['borderTopWidth'], 10) || 0 + parseInt(getComputedStyle(el)['borderBottomWidth'], 10) || 0;
       const neu = Math.max(this.minHeight, Math.min(el.scrollHeight + border, this.maxHeight));
 
-      $el.style.overflowY = el.scrollHeight > neu ? 'auto' : 'hidden';
-      $el.style.height = `${ neu }px`;
+      el.style.overflowY = el.scrollHeight > neu ? 'auto' : 'hidden';
+      el.style.height = `${ neu }px`;
 
       this.curHeight = neu;
     }
