@@ -1,7 +1,6 @@
 import { RouteConfig } from 'vue-router';
 import { ELEMENTAL_PRODUCT_NAME } from '../types';
 import Dashboard from '../pages/index.vue';
-import OsImages from '../pages/OsImages.vue';
 import OsConfiguration from '../pages/OsConfiguration.vue';
 import ListElementalResource from '../pages/resource/index.vue';
 import CreateElementalResource from '../pages/resource/create.vue';
@@ -12,11 +11,6 @@ const routes: RouteConfig[] = [
     name:      `${ ELEMENTAL_PRODUCT_NAME }-c-cluster`,
     path:      `/:product/c/:cluster`,
     component: Dashboard,
-  },
-  {
-    name:      `${ ELEMENTAL_PRODUCT_NAME }-c-cluster-os-images`,
-    path:      `/:product/c/:cluster/os-images`,
-    component: OsImages,
   },
   {
     name:      `${ ELEMENTAL_PRODUCT_NAME }-c-cluster-os-configuration`,
