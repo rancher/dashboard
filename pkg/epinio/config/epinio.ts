@@ -301,6 +301,12 @@ export function init($plugin: any, store: any) {
       value:     'catalog_service',
       sort:      ['catalog_service'],
     },
+    {
+      name:      'boundApps',
+      labelKey:  'epinio.configurations.tableHeaders.boundApps',
+      value:     'applications',
+      search:    ['boundapps'],
+    },
     AGE
   ]);
 

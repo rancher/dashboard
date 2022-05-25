@@ -553,8 +553,6 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     const toBind = currentValues.filter(cV => !initialValues.includes(cV));
     const toUnbind = initialValues.filter(cV => !currentValues.includes(cV));
 
-    console.warn('toBind', toBind, 'toUnbind', toUnbind);
-
     await Promise.all([
       this.bindConfigurations(toBind),
       this.unbindConfiguration(toUnbind),

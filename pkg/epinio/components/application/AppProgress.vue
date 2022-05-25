@@ -1,6 +1,5 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import Application from '../../models/applications';
 import ApplicationAction, { APPLICATION_ACTION_TYPE } from '../../models/application-action';
 
 import SortableTable from '@shell/components/SortableTable/index.vue';

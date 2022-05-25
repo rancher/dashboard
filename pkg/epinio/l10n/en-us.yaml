@@ -9,25 +9,20 @@ typeLabel:
       one { Applications }
       other { Applications }
     }
-  services: |-
+  "services": |-
     {count, plural,
-      one { Services }
-      other { Services }
+      one { Instances }
+      other { Instances }
     }
   configurations: |-
     {count, plural,
       one { Configurations }
       other { Configurations }
     }
-  "catalogservice": |-
+  "catalogservices": |-
     {count, plural,
       one { Catalog }
       other { Catalog }
-    }
-  "service": |-
-    {count, plural,
-      one { Instances }
-      other { Instances }
     }
 epinio:
   label: Epinio
