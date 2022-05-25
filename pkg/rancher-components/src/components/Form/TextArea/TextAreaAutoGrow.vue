@@ -1,8 +1,15 @@
-<script>
+<script lang="ts">
+import Vue from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
-export default {
+declare module 'vue/types/vue' {
+  interface Vue {
+    queueResize(): void;
+  }
+}
+
+export default Vue.extend({
   inheritAttrs: false,
 
   props: {
@@ -42,11 +49,11 @@ export default {
   },
 
   computed: {
-    isDisabled() {
+    isDisabled(): boolean {
       return this.disabled || this.mode === _VIEW;
     },
 
-    style() {
+    style(): string {
       // This sets the height to one-line for SSR pageload so that it's already right
       // (unless the input is long)
       return `height: ${ this.curHeight }px; overflow: ${ this.overflow };`;
@@ -67,24 +74,24 @@ export default {
   },
 
   mounted() {
-    this.$refs.ta.style.height = `${ this.curHeight }px`;
+    (this.$refs.ta as HTMLElement).style.height = `${ this.curHeight }px`;
     this.$nextTick(() => {
       this.autoSize();
     });
   },
 
   methods: {
-    onInput(val) {
+    onInput(val: any[]) {
       this.$emit('input', val);
       this.queueResize();
     },
 
     focus() {
-      this.$refs.ta.focus();
+      (this.$refs?.ta as HTMLElement).focus();
     },
 
     autoSize() {
-      const el = this.$refs.ta;
+      const el = this.$refs.ta as HTMLElement;
 
       if (!el) {
         return;
@@ -101,7 +108,7 @@ export default {
       this.curHeight = neu;
     }
   }
-};
+});
 </script>
 
 <template>
@@ -119,6 +126,3 @@ export default {
     @blur="$emit('blur', $event)"
   />
 </template>
-
-<style lang='scss' scoped>
-</style>
