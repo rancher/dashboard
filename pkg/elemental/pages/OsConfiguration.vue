@@ -1,10 +1,10 @@
 <script>
-export default { name: 'Operations' };
+export default { name: 'OsConfiguration' };
 </script>
 
 <template>
   <div>
-    <h1>Operations!!!</h1>
+    <h1>OS Configuration!!!</h1>
   </div>
 </template>
 

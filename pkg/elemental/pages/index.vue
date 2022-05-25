@@ -1,8 +1,31 @@
 <script>
 import { mapGetters } from 'vuex';
+import { ELEMENTAL_TYPES, ELEMENTAL_SCHEMA_IDS } from '../types';
+import { createElementalRoute } from '../utils/custom-routing';
+import { allHash } from '@shell/utils/promise';
+import Loading from '@shell/components/Loading';
 
 export default {
-  name:     'Dashboard',
+  name:       'Dashboard',
+  components: { Loading },
+  async fetch() {
+    const hash = await allHash({
+      osImages:             this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES }),
+      machineRegistrations: this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS }),
+      machineInventories:   this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES }),
+    });
+
+    if (!hash.osImages?.length && !hash.machineRegistrations?.length && !hash.machineInventories?.length) {
+      this.showGetStarted = true;
+    }
+  },
+  data() {
+    return {
+      showGetStarted: false,
+      // getStartedLink: createElementalRoute('resource-create', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES })
+      getStartedLink: createElementalRoute(ELEMENTAL_TYPES.OS_IMAGES)
+    };
+  },
   computed: { ...mapGetters({ someElementalState: 'elemental/someElementalState' }) },
   methods:  {
     toggleState() {
@@ -14,13 +37,51 @@ export default {
 
 <template>
   <div>
-    <h1>OS ELEMENTAL!!! {{ someElementalState }}</h1>
+    <Loading v-if="$fetchState.pending" />
+    <!-- Get Started -->
+    <div v-else-if="showGetStarted">
+      <h1>{{ t('elemental.dashboard.title') }}</h1>
+      <div
+        class="elemental-empty-dashboard"
+      >
+        <i class="icon-fleet mb-30" />
+        <h3 class="mb-30">
+          {{ t('elemental.dashboard.welcomeText') }}
+        </h3>
+        <n-link
+          :to="getStartedLink"
+          class="btn role-primary"
+        >
+          {{ t('elemental.dashboard.getStarted') }}
+        </n-link>
+      </div>
+    </div>
+    <div v-else>
+      <h2>Some content for dashboard view to be defined...</h2>
+    </div>
+    <!-- <h1>OS ELEMENTAL!!! {{ someElementalState }}</h1>
     <button type="button" @click="toggleState">
       TOGGLE STATE
-    </button>
+    </button> -->
   </div>
 </template>
 
 <style lang="scss" scoped>
+.elemental-empty-dashboard {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  min-height: 100%;
 
+  .icon-fleet {
+    font-size: 100px;
+    color: var(--disabled-text);
+  }
+
+  > p > span {
+    color: var(--disabled-text);
+  }
+}
 </style>

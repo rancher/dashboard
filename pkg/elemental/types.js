@@ -5,6 +5,8 @@ export const ELEMENTAL_PRODUCT_GROUP = 'rancheros.cattle.io';
 
 export const ELEMENTAL_TYPES = {
   DASHBOARD:           'dashboard',
+  OS_IMAGES:           'os-images',
+  OS_CONFIGURATION:    'os-configuration',
   OPERATIONS:          'operations',
   MACHINE_INVENTORIES: 'machine-inventories',
 };
