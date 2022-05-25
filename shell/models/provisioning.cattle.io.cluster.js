@@ -38,14 +38,14 @@ export default class ProvCluster extends SteveModel {
   // so that on a version upgrade of Rancher (ex: 2.5.x to 2.6.x)
   // we can have the correct age of the cluster displayed on the UI side
   get creationTimestamp() {
-    const provCreationTimestamp = Date.parse(this.metadata.creationTimestamp);
+    const provCreationTimestamp = Date.parse(this.metadata?.creationTimestamp);
     const mgmtCreationTimestamp = Date.parse(this.mgmt?.metadata?.creationTimestamp);
 
     if (mgmtCreationTimestamp && mgmtCreationTimestamp < provCreationTimestamp) {
       return this.mgmt?.metadata?.creationTimestamp;
     }
 
-    return this.metadata.creationTimestamp;
+    return super.creationTimestamp;
   }
 
   get availableActions() {
