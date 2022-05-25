@@ -36,13 +36,16 @@ jobs:
       - name: Run tests
         run: yarn e2e:prod
 
-      - name: Upload Artifacts
+      - name: Upload screenshots
         uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
         with:
           name: run_${{github.run_number}}_id_${{github.run_id}}_screenshots
           path: cypress/screenshots
       
-      - uses: actions/upload-artifact@v2
+      - name: Upload videos
+        uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
         with:
           name: run_${{github.run_number}}_id_${{github.run_id}}_videos
           path: cypress/videos
