@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { ELEMENTAL_TYPES, ELEMENTAL_SCHEMA_IDS } from '../types';
+import { ELEMENTAL_SCHEMA_IDS } from '../types';
 import { createElementalRoute } from '../utils/custom-routing';
 import { allHash } from '@shell/utils/promise';
 import Loading from '@shell/components/Loading';
@@ -22,8 +22,7 @@ export default {
   data() {
     return {
       showGetStarted: false,
-      // getStartedLink: createElementalRoute('resource-create', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES })
-      getStartedLink: createElementalRoute(ELEMENTAL_TYPES.OS_IMAGES)
+      getStartedLink: createElementalRoute('resource-create', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES })
     };
   },
   computed: { ...mapGetters({ someElementalState: 'elemental/someElementalState' }) },
