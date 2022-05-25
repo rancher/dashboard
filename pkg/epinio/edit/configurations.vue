@@ -79,15 +79,15 @@ export default Vue.extend<Data, any, any, any>({
     async save(saveCb: (success: boolean) => void) {
       this.errors = [];
       try {
-        if (this.mode === 'create') {
+        if (this.isCreate) {
           await this.value.create();
-          await this.updateConfigurations();
+          await this.updateConfigurationAppBindings();
           await this.$store.dispatch('epinio/findAll', { type: this.value.type, opt: { force: true } });
         }
 
-        if (this.mode === 'edit') {
+        if (this.isEdit) {
           await this.value.update();
-          await this.updateConfigurations();
+          await this.updateConfigurationAppBindings();
           await this.value.forceFetch();
         }
 

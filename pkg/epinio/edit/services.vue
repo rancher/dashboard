@@ -48,13 +48,14 @@ export default Vue.extend<Data, any, any, any>({
       this.mixinFetch()
     ]);
 
-    Vue.set(this.value, 'namespace', this.initialValue.namespace || this.namespaces[0].metadata.name);
+    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0].meta.name);
   },
 
   data() {
     return {
       errors:                 [],
       failedWaitingForDeploy: false,
+      selectedApps:           this.value.boundapps
     };
   },
 
@@ -96,11 +97,18 @@ export default Vue.extend<Data, any, any, any>({
     async save(saveCb: (success: boolean) => void) {
       this.errors = [];
       try {
-        await this.value.create();
-        if (this.selectedApps.length) {
-          await this.updateServiceInstances(this.value);
+        if (this.isCreate) {
+          await this.value.create();
+          if (this.selectedApps.length) {
+            await this.updateServiceInstanceAppBindings(this.value);
+          }
+          await this.$store.dispatch('epinio/findAll', { type: this.value.type, opt: { force: true } });
         }
-        await this.$store.dispatch('epinio/findAll', { type: this.value.type, opt: { force: true } });
+
+        if (this.isEdit) {
+          await this.updateServiceInstanceAppBindings(this.value);
+          await this.value.forceFetch();
+        }
 
         saveCb(true);
         this.done();

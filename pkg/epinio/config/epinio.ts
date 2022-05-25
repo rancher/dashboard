@@ -100,7 +100,7 @@ export function init($plugin: any, store: any) {
   weightType(EPINIO_TYPES.SERVICE_INSTANCE, 151, true);
   configureType(EPINIO_TYPES.SERVICE_INSTANCE, {
     isCreatable:      true,
-    isEditable:       false,
+    isEditable:       true,
     isRemovable:      true,
     showState:        true,
     canYaml:          false,
