@@ -133,6 +133,14 @@ export default Vue.extend<Data, any, any, any>({
           this.values.services = (this.initialApplication.services || []);
         }
       }
+    },
+
+    hasConfigs(neu, old) {
+      if (!old && neu) {
+        if (!!this.initialApplication?.configuration?.configurations) {
+          this.values = this.initialApplication.configuration.configurations?.filter((cc: string) => this.configurations.find((c: any) => c.value === cc)) || [];
+        }
+      }
     }
 
   },
