@@ -42,13 +42,14 @@ jobs:
         with:
           name: run_${{github.run_number}}_id_${{github.run_id}}_screenshots
           path: cypress/screenshots
-      
-      - name: Upload videos
-        uses: actions/upload-artifact@v2
-        if: ${{ failure() }}
-        with:
-          name: run_${{github.run_number}}_id_${{github.run_id}}_videos
-          path: cypress/videos
+
+      # Disabled due freezing issues related to the CI machine resources
+      # - name: Upload videos
+      #   uses: actions/upload-artifact@v2
+      #   if: ${{ failure() }}
+      #   with:
+      #     name: run_${{github.run_number}}_id_${{github.run_id}}_videos
+      #     path: cypress/videos
 
   skip-e2e:
     if: "contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
