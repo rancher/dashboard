@@ -1,17 +1,23 @@
-<script>
+<script lang="ts">
+import Vue, { PropType } from 'vue';
+
+interface Badge {
+  stateBackground: string;
+  stateDisplay: string;
+}
 
 /**
  * Badge state component.
  * <p>Represents a badge whose label and color is either taken from the value property or
  * from the label and color properties. The state property takes precedence.</p>
  */
-export default {
+export default Vue.extend({
   props: {
     /**
      * A value having the properties `stateBackground` and `stateDisplay`
      */
     value: {
-      type:    Object,
+      type:    Object as PropType<Badge>,
       default: null
     },
 
@@ -41,15 +47,15 @@ export default {
   },
 
   computed: {
-    bg() {
+    bg(): string {
       return this.value?.stateBackground || this.color;
     },
 
-    msg() {
+    msg(): string {
       return this.value?.stateDisplay || this.label;
     }
   }
-};
+});
 </script>
 
 <template>
@@ -87,7 +93,7 @@ export default {
   }
 </style>
 <style lang="scss">
-  // TODO: #6005 
+  // TODO: #6005
   // Investigate why this is here.. I don't think that styles for sortable table should belong here
   .sortable-table TD .badge-state {
     @include clip;

@@ -1,5 +1,7 @@
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue';
+
+export default Vue.extend({
   name:  'Card',
   props: {
     title: {
@@ -12,7 +14,7 @@ export default {
     },
     buttonAction: {
       type:    Function,
-      default: () => { }
+      default: (): void => { }
     },
     buttonText: {
       type:    String,
@@ -27,7 +29,7 @@ export default {
       default: true
     }
   }
-};
+});
 </script>
 
 <template>
