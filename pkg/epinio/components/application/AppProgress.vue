@@ -7,7 +7,7 @@ import SortableTable from '@shell/components/SortableTable/index.vue';
 import Checkbox from '@shell/components/form/Checkbox.vue';
 import BadgeState from '@shell/components/BadgeState.vue';
 import { STATE, DESCRIPTION } from '@shell/config/table-headers';
-import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE } from '../../types';
+import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication } from '../../types';
 import { EpinioAppSource } from '../../components/application/AppSource.vue';
 
 interface Data {
@@ -26,7 +26,7 @@ export default Vue.extend<Data, any, any, any>({
 
   props: {
     application: {
-      type:     Object as PropType<Application>,
+      type:     Object as PropType<EpinioApplication>,
       required: true
     },
     source: {
@@ -55,11 +55,19 @@ export default Vue.extend<Data, any, any, any>({
       ...coreArgs,
     }));
 
+    if (this.application.configuration.configurations.length) {
+      this.actions.push(await this.$store.dispatch('epinio/create', {
+        action:      APPLICATION_ACTION_TYPE.BIND,
+        index:       1,
+        ...coreArgs,
+      }));
+    }
+
     if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ||
         this.source.type === APPLICATION_SOURCE_TYPE.FOLDER) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.UPLOAD,
-        index:       1,
+        index:       2,
         ...coreArgs,
       }));
     }
@@ -67,7 +75,7 @@ export default Vue.extend<Data, any, any, any>({
     if (this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.GIT_FETCH,
-        index:       1,
+        index:       2,
         ...coreArgs,
       }));
     }
@@ -77,14 +85,14 @@ export default Vue.extend<Data, any, any, any>({
         this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.BUILD,
-        index:       2,
+        index:       3,
         ...coreArgs,
       }));
     }
 
     this.actions.push(await this.$store.dispatch('epinio/create', {
       action:      APPLICATION_ACTION_TYPE.DEPLOY,
-      index:       3,
+      index:       4,
       ...coreArgs,
     }));
 

@@ -7,6 +7,7 @@ export const APPLICATION_ACTION_TYPE = {
   CREATE:    'create',
   GIT_FETCH: 'gitFetch',
   UPLOAD:    'upload',
+  BIND:      'bind',
   BUILD:     'build',
   DEPLOY:    'deploy',
 };
@@ -62,6 +63,9 @@ export default class ApplicationActionResource extends Resource {
     case APPLICATION_ACTION_TYPE.CREATE:
       await this.create(params);
       break;
+    case APPLICATION_ACTION_TYPE.BIND:
+      await this.bind(params);
+      break;
     case APPLICATION_ACTION_TYPE.GIT_FETCH:
       await this.gitFetch(params);
       break;
@@ -79,6 +83,10 @@ export default class ApplicationActionResource extends Resource {
 
   async create() {
     await this.application.create();
+  }
+
+  async bind() {
+    await this.application.bindConfigurations(this.application.configuration.configurations);
   }
 
   async upload({ source }) {

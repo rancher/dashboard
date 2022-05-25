@@ -51,23 +51,27 @@ export default {
         const appName = nsA.metadata.name;
         const configName = this.value.metadata.name;
 
+        const toBind = [];
+        const toUnbind = [];
+
         if (bindApps.includes(appName) && !nsA.configuration.configurations.includes(configName)) {
-          nsA.configuration.configurations.push(configName);
-          res.push(nsA);
+          toBind.push(configName);
         } else if (unbindApps.includes(appName)) {
           const index = nsA.configuration.configurations.indexOf(configName);
 
           if (index >= 0) {
-            nsA.configuration.configurations.splice(index, 1);
-            res.push(nsA);
+            toUnbind.push(configName);
           }
         }
+
+        res.push(nsA.bindConfigurations(toBind));
+        res.push(nsA.unbindConfiguration(toUnbind));
 
         return res;
       }, []);
 
       if (delta.length) {
-        await Promise.all(delta.map(d => d.update()));
+        await Promise.all(delta);
         await this.value.forceFetch();
       }
     }

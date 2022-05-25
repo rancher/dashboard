@@ -140,6 +140,9 @@ epinio:
       create:
         label: Create
         description: The Application will be created ready to deploy source to
+      bind:
+        label: Bind
+        description: Configurations will be bound to the new Application
       gitFetch:
         label: Fetch
         description: Fetch the files at the git repository's branch

@@ -159,17 +159,18 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
   get links() {
     return {
-      update:      this.getUrl(),
-      self:        this.getUrl(),
-      remove:      this.getUrl(),
-      create:      this.getUrl(this.meta?.namespace, null), // ensure name is null
-      store:       `${ this.getUrl() }/store`,
-      stage:       `${ this.getUrl() }/stage`,
-      deploy:      `${ this.getUrl() }/deploy`,
-      logs:        `${ this.getUrl() }/logs`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/logs
-      importGit:   `${ this.getUrl() }/import-git`,
-      restart:     `${ this.getUrl() }/restart`,
-      shell:       `${ this.getUrl() }/exec`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/exec
+      update:        this.getUrl(),
+      self:          this.getUrl(),
+      remove:        this.getUrl(),
+      create:        this.getUrl(this.meta?.namespace, null), // ensure name is null
+      store:         `${ this.getUrl() }/store`,
+      stage:         `${ this.getUrl() }/stage`,
+      deploy:        `${ this.getUrl() }/deploy`,
+      configBinding: `${ this.getUrl() }/configurationbindings`,
+      logs:          `${ this.getUrl() }/logs`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/logs
+      importGit:     `${ this.getUrl() }/import-git`,
+      restart:       `${ this.getUrl() }/restart`,
+      shell:         `${ this.getUrl() }/exec`.replace('/api/v1', '/wapi/v1'), // /namespaces/:namespace/applications/:app/exec
     };
   }
 
@@ -546,5 +547,48 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       .catch((e) => {
         console.error('Failed to download manifest: ', e);// eslint-disable-line no-console
       });
+  }
+
+  async updateConfigurations(initialValues = [], currentValues = this.configuration.configurations) {
+    const toBind = currentValues.filter(cV => !initialValues.includes(cV));
+    const toUnbind = initialValues.filter(cV => !currentValues.includes(cV));
+
+    console.warn('toBind', toBind, 'toUnbind', toUnbind);
+
+    await Promise.all([
+      this.bindConfigurations(toBind),
+      this.unbindConfiguration(toUnbind),
+    ]);
+  }
+
+  async bindConfigurations(configurations) {
+    if (!configurations?.length) {
+      return;
+    }
+
+    const opt = {
+      url:    `${ this.linkFor('configBinding') }`,
+      method:         'post',
+      data:   { names: configurations }
+    };
+
+    await this.$dispatch('request', { opt, type: this.type } );
+  }
+
+  async unbindConfiguration(configurations) {
+    if (!configurations?.length) {
+      return;
+    }
+
+    const promises = configurations.map((c) => {
+      const opt = {
+        url:    `${ this.linkFor('configBinding') }/${ c }`,
+        method:         'delete',
+      };
+
+      return this.$dispatch('request', { opt, type: this.type } );
+    });
+
+    return await Promise.all(promises);
   }
 }

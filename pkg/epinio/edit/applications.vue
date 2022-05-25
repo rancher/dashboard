@@ -50,6 +50,11 @@ export default Vue.extend<Data, any, any, any>({
       try {
         await this.value.update();
 
+        await this.value.updateConfigurations(
+          this.initialValue.configuration?.configurations || [],
+          this.value.configuration?.configurations || [],
+        );
+
         await this.value.forceFetch();
         saveCb(true);
         this.done();
@@ -102,6 +107,7 @@ export default Vue.extend<Data, any, any, any>({
       <Tab label="Configurations" name="configurations" :weight="10">
         <AppConfiguration
           :application="value"
+          :initial-application="initialValue"
           :mode="mode"
           @change="updateConfigurations"
         ></AppConfiguration>
