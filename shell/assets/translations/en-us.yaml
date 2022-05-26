@@ -3577,6 +3577,7 @@ prefs:
     emacs: 'Emacs'
     vim: 'Vim'
   advanced: Advanced
+  advancedTooltip: Enables 'View in API' option, enables a 'none' locale option, <br />enables shortcuts to toggle 'none' locale (shift+l) and toggle light or dark theme (shift+t)
   dev:
     label: Enable Developer Tools & Features
   hideDesc:

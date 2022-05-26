@@ -203,14 +203,18 @@ export default {
 
     <hr />
     <div class="row">
+      <div class="col span-3 prefs-advanced">
+        <h4 v-t="'prefs.advanced'" />
+        <Checkbox v-model="dev" :tooltip="t('prefs.advancedTooltip', {}, raw=true)" :label="t('prefs.dev.label', {}, true)" />
+        <Checkbox v-if="!isSingleVirtualCluster" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
+      </div>
+    </div>
+
+    <hr />
+    <div class="row">
       <div class="col span-8">
         <h4 v-t="'prefs.keymap.label'" />
         <ButtonGroup v-model="keymap" :options="keymapOptions" />
-      </div>
-      <div class="col span-4">
-        <h4 v-t="'prefs.advanced'" />
-        <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
-        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
       </div>
     </div>
 
@@ -229,5 +233,9 @@ export default {
 <style lang="scss" scoped>
   hr {
     margin: 20px 0;
+  }
+
+  .prefs-advanced .checkbox-outer-container:not(:last-of-type) {
+    margin-bottom: 8px;
   }
 </style>
