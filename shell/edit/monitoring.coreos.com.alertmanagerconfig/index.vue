@@ -36,7 +36,7 @@ export default {
 
     this.alertmanagerConfigId = alertmanagerConfigId;
     this.alertmanagerConfigResource = alertmanagerConfigResource;
-    this.alertmanagerConfigDetailRoute = alertmanagerConfigResource.getAlertmanagerConfigDetailRoute();
+    this.alertmanagerConfigDetailRoute = alertmanagerConfigResource._detailLocation;
 
     const alertmanagerConfigActions = alertmanagerConfigResource.availableActions;
     const receiverActions = alertmanagerConfigResource.getReceiverActions(alertmanagerConfigActions);
