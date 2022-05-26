@@ -43,7 +43,7 @@ export default {
 
     this.alertmanagerConfigId = alertmanagerConfigResource.id;
     this.alertmanagerConfigResource = alertmanagerConfigResource;
-    this.alertmanagerConfigDetailRoute = alertmanagerConfigResource.getAlertmanagerConfigDetailRoute();
+    this.alertmanagerConfigDetailRoute = alertmanagerConfigResource._detailLocation;
   },
 
   // take edit link and edit request from AlertmanagerConfig resource
@@ -210,13 +210,13 @@ export default {
       this.alertmanagerConfigResource.spec.receivers = receiversMinusDeletedItem;
       // After saving the AlertmanagerConfig, the resource has been deleted.
       this.alertmanagerConfigResource.save(...arguments);
-      this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
+      this.$router.push(this.alertmanagerConfigResource._detailLocation);
     },
     redirectToReceiverDetail(receiverName) {
       return this.alertmanagerConfigResource.getReceiverDetailLink(receiverName);
     },
     redirectToAlertmanagerConfigDetail() {
-      const route = this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute();
+      const route = this.alertmanagerConfigResource._detailLocation;
 
       this.$router.push(route);
     }

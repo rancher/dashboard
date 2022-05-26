@@ -229,7 +229,7 @@ export default {
     },
 
     redirectAfterCancel() {
-      this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
+      this.$router.push(this.alertmanagerConfigResource._detailLocation);
     },
 
     createAddOptions(receiverType) {
@@ -242,7 +242,7 @@ export default {
 <template>
   <CruResource
     class="receiver"
-    :done-route="alertmanagerConfigResource.getAlertmanagerConfigDetailRoute()"
+    :done-route="alertmanagerConfigResource._detailLocation"
     :mode="mode"
     :resource="alertmanagerConfigResource"
     :subtypes="[]"
