@@ -1,5 +1,36 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import $ from 'jquery';
+
+/**
+ * Sets the width of a DOM element. Adapted from [youmightnotneedjquery.com](https://youmightnotneedjquery.com/#set_width)
+ * @param {HTMLElement} el - The target DOM element
+ * @param {function | string | number} val - The desired width represented as a Number
+ */
+function setWidth(el, val) {
+  if (typeof val === 'function') {
+    val = val();
+  }
+
+  if (typeof val === 'string') {
+    el.style.width = val;
+
+    return;
+  }
+
+  el.style.width = `${ val }px`;
+}
+
+/**
+ * Gets the width of a DOM element. Adapted from [youmightnotneedjquery.com](https://youmightnotneedjquery.com/#get_width)
+ * @param {HTMLElement} el - The target DOM element
+ * @returns Number representing the width for the provided element
+ */
+function getWidth(el) {
+  if (!el.length) {
+    return;
+  }
+
+  return parseFloat(getComputedStyle(el).width.replace('px', ''));
+}
 
 export default {
   inheritAttrs: false,
@@ -98,12 +129,12 @@ export default {
     resizeHandler(e) {
       // since the DD is positioned there is no way to 'inherit' the size of the input, this calcs the size of the parent and set the dd width if it is smaller. If not let it grow with the regular styles
       this.$nextTick(() => {
-        const DD = $(this.$refs.select).find('ul.vs__dropdown-menu');
-        const selectWidth = $(this.$refs.select).width();
-        const dropWidth = DD.width();
+        const DD = this.$refs.select.querySelectorAll('ul.vs__dropdown-menu');
+        const selectWidth = getWidth(this.$refs.select);
+        const dropWidth = getWidth(DD);
 
         if (dropWidth < selectWidth) {
-          DD.width(selectWidth);
+          setWidth(DD, selectWidth);
         }
       });
     },
