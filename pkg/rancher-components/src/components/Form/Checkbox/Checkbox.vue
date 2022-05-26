@@ -1,6 +1,4 @@
 <script>
-// TODO: Issue #5070 Remove jquery dep
-import $ from 'jquery';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 
@@ -85,12 +83,14 @@ export default {
         return;
       }
 
-      const click = $.Event('click');
-
-      click.shiftKey = event.shiftKey;
-      click.altKey = event.altKey;
-      click.ctrlKey = event.ctrlKey;
-      click.metaKey = event.metaKey;
+      const click = new CustomEvent('click', {
+        bubbles: true,
+        cancelable: false,
+        shiftKey: event.shiftKey,
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey
+      })
 
       // Flip the value
       if (this.isMulti()) {
@@ -102,7 +102,7 @@ export default {
         this.$emit('input', this.value);
       } else {
         this.$emit('input', !this.value);
-        $(this.$el).trigger(click);
+        this.$el.dispatchEvent(click);
       }
     },
 
