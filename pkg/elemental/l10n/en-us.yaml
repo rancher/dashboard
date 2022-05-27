@@ -36,10 +36,21 @@ elemental:
   osimage:
     create:
       configuration: Configuration
+      spec: Spec
+      name:
+        label: Name
+        placeholder: Enter a name
+      targetCluster:
+        label: Target Cluster
+        placeholder: Enter a target cluster name
+      osImage:
+        label: OS Image
+        placeholder: Enter an OS image name
+  machineRegistration:
+    create:
+      configuration: Configuration
       cloudConfiguration: Cloud Configuration
       name:
         label: Name
         placeholder: Enter a name
-      device:
-        label: Device
-        placeholder: Enter a name
+
