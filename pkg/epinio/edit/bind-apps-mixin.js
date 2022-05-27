@@ -1,5 +1,5 @@
-import { EPINIO_TYPES } from '@pkg/types';
 import { sortBy } from '@shell/utils/sort';
+import { EPINIO_TYPES } from '~/pkg/epinio/types';
 
 export default {
   name: 'EpinioBindAppsMixin',
@@ -13,18 +13,17 @@ export default {
       return this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP });
     },
 
-    async updateServiceInstances(serviceInstance) {
+    async updateServiceInstanceAppBindings(serviceInstance) {
       // Service instance must be `deployed` before they can be bound to apps
       await this.waitForServiceInstanceDeployed(serviceInstance);
 
       const bindApps = this.selectedApps;
-      // TODO: Blocked, see https://github.com/epinio/ui/issues/121
-      // RC Edit Service Instance - unbindApps not easily discoverable at the moment.. so this fn just covers the create use case
-      // const unbindApps = (this.initialValue.configuration?.boundapps || []).filter(bA => !bindApps.includes(bA));
+      const unbindApps = (this.initialValue.boundapps || []).filter(bA => !bindApps.includes(bA));
 
-      const promises = bindApps.map((bA) => {
-        return this.value.bindApp(bA);
-      });
+      const promises = [
+        ...bindApps.map(bA => this.value.bindApp(bA)),
+        ...unbindApps.map(uBA => this.value.unbindApp(uBA))
+      ];
 
       await Promise.all(promises);
     },
@@ -32,7 +31,9 @@ export default {
     async waitForServiceInstanceDeployed(serviceInstance) {
       // It would be nice to use waitForState here, but we need to manually update until Epinio pumps out updates via socket
       await serviceInstance.waitForTestFn(() => {
-        if (this.state === 'deployed') {
+        const freshServiceInstance = this.$store.getters['epinio/byId'](EPINIO_TYPES.SERVICE_INSTANCE, `${ serviceInstance.meta.namespace }/${ serviceInstance.meta.name }`);
+
+        if (freshServiceInstance?.state === 'deployed') {
           return true;
         }
         // This is an async fn, but we're in a sync fn. It might create a backlog if previous requests don't complete in time
@@ -43,7 +44,7 @@ export default {
       });
     },
 
-    async updateConfigurations() {
+    async updateConfigurationAppBindings() {
       const bindApps = this.selectedApps;
       const unbindApps = (this.initialValue.configuration?.boundapps || []).filter(bA => !bindApps.includes(bA));
 
@@ -51,23 +52,27 @@ export default {
         const appName = nsA.metadata.name;
         const configName = this.value.metadata.name;
 
+        const toBind = [];
+        const toUnbind = [];
+
         if (bindApps.includes(appName) && !nsA.configuration.configurations.includes(configName)) {
-          nsA.configuration.configurations.push(configName);
-          res.push(nsA);
+          toBind.push(configName);
         } else if (unbindApps.includes(appName)) {
           const index = nsA.configuration.configurations.indexOf(configName);
 
           if (index >= 0) {
-            nsA.configuration.configurations.splice(index, 1);
-            res.push(nsA);
+            toUnbind.push(configName);
           }
         }
+
+        res.push(nsA.bindConfigurations(toBind));
+        res.push(nsA.unbindConfiguration(toUnbind));
 
         return res;
       }, []);
 
       if (delta.length) {
-        await Promise.all(delta.map(d => d.update()));
+        await Promise.all(delta);
         await this.value.forceFetch();
       }
     }

@@ -56,19 +56,18 @@ export default Vue.extend<Data, any, any, any>({
     Vue.set(this.value, 'data', { ...this.initialValue.configuration?.details });
 
     return {
-      errors:       [],
-      selectedApps: [],
+      errors:            [],
+      selectedApps:      [],
+      validationPassed: false
     };
+  },
+
+  mounted() {
+    this.updateValidation();
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-
-    validationPassed() {
-      const nameErrors = validateKubernetesName(this.value?.metadata.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
-
-      return nameErrors.length === 0;
-    },
 
     namespaces() {
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
@@ -80,15 +79,15 @@ export default Vue.extend<Data, any, any, any>({
     async save(saveCb: (success: boolean) => void) {
       this.errors = [];
       try {
-        if (this.mode === 'create') {
+        if (this.isCreate) {
           await this.value.create();
-          await this.updateConfigurations();
+          await this.updateConfigurationAppBindings();
           await this.$store.dispatch('epinio/findAll', { type: this.value.type, opt: { force: true } });
         }
 
-        if (this.mode === 'edit') {
+        if (this.isEdit) {
           await this.value.update();
-          await this.updateConfigurations();
+          await this.updateConfigurationAppBindings();
           await this.value.forceFetch();
         }
 
@@ -104,11 +103,39 @@ export default Vue.extend<Data, any, any, any>({
       Vue.set(this.value, 'data', data);
     },
 
+    updateValidation() {
+      const nameErrors = validateKubernetesName(this.value?.meta.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+
+      if (nameErrors.length === 0) {
+        const dataValues = Object.entries(this.value?.data || {});
+
+        if (!!dataValues.length) {
+          Vue.set(this, 'validationPassed', true);
+
+          return;
+        }
+      }
+
+      Vue.set(this, 'validationPassed', false);
+    }
+
   },
 
   watch: {
     'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
+    },
+
+    'value.meta.name'() {
+      this.updateValidation();
+    },
+
+    'value.data': {
+      deep: true,
+
+      handler(neu) {
+        this.updateValidation();
+      }
     }
   }
 });
@@ -139,7 +166,7 @@ export default Vue.extend<Data, any, any, any>({
       namespace-key="namespace"
       :namespaces-override="namespaces"
       :description-hidden="true"
-      :value="value.metadata"
+      :value="value.meta"
       :mode="mode"
     />
     <div class="row">

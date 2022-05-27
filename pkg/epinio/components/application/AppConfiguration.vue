@@ -13,6 +13,10 @@ export default Vue.extend<Data, any, any, any>({
   components: { LabeledSelect },
 
   props: {
+    initialApplication: {
+      type:     Object as PropType<Application>,
+      default: () => ({}),
+    },
     application: {
       type:     Object as PropType<Application>,
       required: true
@@ -25,10 +29,6 @@ export default Vue.extend<Data, any, any, any>({
 
   async fetch() {
     await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.CONFIGURATION });
-  },
-
-  mounted() {
-    this.values = this.application.configuration.configurations?.filter((cc: string) => this.configurations.find((c: any) => c.value === cc)) || [];
   },
 
   data() {
@@ -49,6 +49,10 @@ export default Vue.extend<Data, any, any, any>({
 
     noConfigs() {
       return !this.$fetchState.pending && !this.configurations.length;
+    },
+
+    hasConfigs() {
+      return !this.$fetchState.pending && !!this.configurations.length;
     }
   },
 
@@ -57,12 +61,21 @@ export default Vue.extend<Data, any, any, any>({
       this.$emit('change', this.values);
     },
 
-    noConfigs(neu) {
+    noConfigs(neu, old) {
       if (neu && this.values?.length) {
         // Selected configurations are no longer valid
         this.values = [];
       }
+    },
+
+    hasConfigs(neu, old) {
+      if (!old && neu) {
+        if (!!this.initialApplication?.configuration?.configurations) {
+          this.values = this.initialApplication.configuration.configurations?.filter((cc: string) => this.configurations.find((c: any) => c.value === cc)) || [];
+        }
+      }
     }
+
   },
 });
 
