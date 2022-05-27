@@ -1,10 +1,5 @@
-import { mount, createLocalVue } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand.vue';
-import VTooltip from 'v-tooltip';
-
-const localVue = createLocalVue();
-
-localVue.use(VTooltip);
 
 describe('component: CustomCommand', () => {
   it('should return linux commands with the right flags based on cluster information', () => {
@@ -19,7 +14,6 @@ describe('component: CustomCommand', () => {
           nodeCommand:         ` curl -fL ${ ip }/system-agent-install.sh | sudo  sh -s - --server ${ ip } --label 'cattle.io/os=linux' --token ${ token } --ca-checksum ${ checkSum }`
         }
       },
-      localVue,
       // stubs: { CopyCode: { template: '<div></div> ' } },
       data:     () => ({
         address:         '',
