@@ -1744,6 +1744,10 @@ containerResourceLimit:
   requestsMemory: Memory Reservation
 
 
+resource:
+  errors:
+    update: "Error updating {name}"
+
 cruResource:
   backToForm: Back to Form
   backBody: You will lose any changes made to the YAML.

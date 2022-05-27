@@ -1034,17 +1034,35 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  patch(data, opt = {}) {
+  patch(data, opt = {}, merge = false, alertOnError = false) {
     if ( !opt.url ) {
-      opt.url = this.linkFor('self');
+      // Workaround for the links not being correct - view link is the only one that seems correct
+      opt.url = this.linkFor('view') || this.linkFor('self');
     }
 
     opt.method = 'patch';
     opt.headers = opt.headers || {};
-    opt.headers['content-type'] = 'application/json-patch+json';
+
+    if (!opt.headers['content-type']) {
+      const contentType = merge ? 'application/strategic-merge-patch+json' : 'application/json-patch+json';
+
+      opt.headers['content-type'] = contentType;
+    }
     opt.data = data;
 
-    return this.$dispatch('request', { opt, type: this.type } );
+    const dispatch = this.$dispatch('request', { opt, type: this.type } );
+
+    return !alertOnError ? dispatch : dispatch.catch((e) => {
+      const title = this.t('resource.errors.update', { name: this.name });
+
+      console.error(title, e); // eslint-disable-line no-console
+
+      this.$dispatch('growl/error', {
+        title,
+        message: e?.message,
+        timeout: 5000
+      }, { root: true });
+    });
   }
 
   save() {
