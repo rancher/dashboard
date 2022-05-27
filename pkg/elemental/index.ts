@@ -12,7 +12,7 @@ export default function($plugin: IPlugin) {
   $plugin.metadata = require('./package.json');
 
   // Load a product
-  $plugin.addProduct(require('./product'));
+  $plugin.addProduct(require('./elemental-config'));
 
   // Add Vuex store
   $plugin.addDashboardStore(elementalStore.config.namespace, elementalStore.specifics, elementalStore.config);

@@ -1,13 +1,15 @@
 <script>
+import { CAPI } from '@shell/config/types';
 import Loading from '@shell/components/Loading.vue';
 import CruResource from '@shell/components/CruResource.vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
   name:       'OsImages',
   components: {
-    Loading, LabeledInput, CruResource
+    Loading, LabeledInput, LabeledSelect, CruResource
   },
   mixins:     [CreateEditView],
   props:      {
@@ -20,13 +22,37 @@ export default {
       required: true
     },
   },
+  async fetch() {
+    const rancherClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+
+    this.rancherClusters = rancherClusters;
+  },
   data() {
-    return {
-      modelData: {
-        name:   '',
-        device: ''
+    return { rancherClusters: [], clusterTargets: this.handleClusterTargets() };
+  },
+  computed: {
+    clusterTargetOptions() {
+      return this.rancherClusters.map((cluster) => {
+        return {
+          label: cluster.name,
+          value: cluster.name
+        };
+      });
+    }
+  },
+  methods: {
+    handleClusterTargets() {
+      if (this.value?.spec?.clusterTargets?.length) {
+        return this.value?.spec?.clusterTargets[0].clusterName;
       }
-    };
+
+      return this.value?.spec?.clusterTargets;
+    },
+    updateClusterTargets(opt) {
+      this.value.spec.clusterTargets = [
+        { clusterName: opt.value }
+      ];
+    }
   },
 };
 </script>
@@ -47,7 +73,7 @@ export default {
       <div class="col span-6 mb-20">
         <h3>{{ t('elemental.osimage.create.configuration') }}</h3>
         <LabeledInput
-          v-model.trim="modelData.name"
+          v-model.trim="value.metadata.name"
           :required="true"
           :label="t('elemental.osimage.create.name.label')"
           :placeholder="t('elemental.osimage.create.name.placeholder', null, true)"
@@ -55,14 +81,22 @@ export default {
         />
       </div>
     </div>
-    <div class="row mb-10">
+    <div v-if="value.spec" class="row mb-10">
       <div class="col span-6 mb-20">
-        <h3>{{ t('elemental.osimage.create.cloudConfiguration') }}</h3>
+        <h3>{{ t('elemental.osimage.create.spec') }}</h3>
+        <LabeledSelect
+          v-model.trim="clusterTargets"
+          class="mb-40"
+          :label="t('elemental.osimage.create.targetCluster.label')"
+          :placeholder="t('elemental.osimage.create.targetCluster.placeholder', null, true)"
+          :mode="mode"
+          :options="clusterTargetOptions"
+          @selecting="updateClusterTargets"
+        />
         <LabeledInput
-          v-model.trim="modelData.device"
-          :required="true"
-          :label="t('elemental.osimage.create.device.label')"
-          :placeholder="t('elemental.osimage.create.device.placeholder', null, true)"
+          v-model.trim="value.spec.osImage"
+          :label="t('elemental.osimage.create.osImage.label')"
+          :placeholder="t('elemental.osimage.create.osImage.placeholder', null, true)"
           :mode="mode"
         />
       </div>
