@@ -100,7 +100,7 @@ export function init($plugin: any, store: any) {
   weightType(EPINIO_TYPES.SERVICE_INSTANCE, 151, true);
   configureType(EPINIO_TYPES.SERVICE_INSTANCE, {
     isCreatable:      true,
-    isEditable:       false,
+    isEditable:       true,
     isRemovable:      true,
     showState:        true,
     canYaml:          false,
@@ -300,6 +300,12 @@ export function init($plugin: any, store: any) {
       labelKey:  'epinio.serviceInstance.tableHeaders.service',
       value:     'catalog_service',
       sort:      ['catalog_service'],
+    },
+    {
+      name:      'boundApps',
+      labelKey:  'epinio.configurations.tableHeaders.boundApps',
+      value:     'applications',
+      search:    ['boundapps'],
     },
     AGE
   ]);

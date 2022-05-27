@@ -1,5 +1,5 @@
 import EpinioApplicationModel from './models/applications';
-import EpinioCatalogServiceModel from './models/catalogservice';
+import EpinioCatalogServiceModel from './models/catalogservices';
 import EpinioConfigurationModel from './models/configurations';
 
 export const EPINIO_PRODUCT_NAME = 'epinio';
@@ -14,8 +14,8 @@ export const EPINIO_TYPES = {
   APP:              'applications',
   NAMESPACE:        'namespaces',
   CONFIGURATION:    'configurations',
-  CATALOG_SERVICE:  'catalogservice',
-  SERVICE_INSTANCE: 'service',
+  CATALOG_SERVICE:  'catalogservices',
+  SERVICE_INSTANCE: 'services',
   // Internal
   INSTANCE:         'instance',
   APP_ACTION:       'application-action',
