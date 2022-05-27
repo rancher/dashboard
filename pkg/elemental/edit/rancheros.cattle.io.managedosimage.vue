@@ -40,18 +40,28 @@ export default {
       });
     }
   },
+  watch: {
+    clusterTargets(neu) {
+      this.value.spec.clusterTargets = neu.map((val) => {
+        return { clusterName: val };
+      });
+    }
+  },
   methods: {
     handleClusterTargets() {
-      if (this.value?.spec?.clusterTargets?.length) {
-        return this.value?.spec?.clusterTargets[0].clusterName;
+      const clusterTargets = this.value?.spec?.clusterTargets;
+
+      if (clusterTargets?.length) {
+        const targetsArray = [];
+
+        clusterTargets.forEach((ct) => {
+          targetsArray.push(ct.clusterName);
+        });
+
+        return targetsArray;
       }
 
-      return this.value?.spec?.clusterTargets;
-    },
-    updateClusterTargets(opt) {
-      this.value.spec.clusterTargets = [
-        { clusterName: opt.value }
-      ];
+      return [];
     }
   },
 };
@@ -85,13 +95,13 @@ export default {
       <div class="col span-6 mb-20">
         <h3>{{ t('elemental.osimage.create.spec') }}</h3>
         <LabeledSelect
-          v-model.trim="clusterTargets"
+          v-model="clusterTargets"
           class="mb-40"
           :label="t('elemental.osimage.create.targetCluster.label')"
           :placeholder="t('elemental.osimage.create.targetCluster.placeholder', null, true)"
           :mode="mode"
           :options="clusterTargetOptions"
-          @selecting="updateClusterTargets"
+          :multiple="true"
         />
         <LabeledInput
           v-model.trim="value.spec.osImage"
