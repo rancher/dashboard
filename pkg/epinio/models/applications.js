@@ -185,18 +185,39 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
   }
 
-  get configurations() {
-    const all = this.$getters['all'](EPINIO_TYPES.CONFIGURATION);
+  get services() {
+    return this.$getters['all'](EPINIO_TYPES.SERVICE_INSTANCE)
+      .filter((s) => {
+        // This is a cheaty way to get bound services, waiting on https://github.com/epinio/epinio/issues/1471
+        return s.metadata.namespace === this.metadata.namespace &&
+          this.serviceConfigurations?.find(sc => sc.metadata.name.endsWith(s.metadata.name));
+      });
+  }
 
-    return (this.configuration.configurations || []).reduce((res, configName) => {
-      const s = all.find(allS => allS.meta.name === configName);
+  get allConfigurations() {
+    return this.$getters['all'](EPINIO_TYPES.CONFIGURATION)
+      .filter((s) => {
+        return s.metadata.namespace === this.metadata.namespace &&
+         this.configuration.configurations.find(c => c === s.metadata.name);
+      });
+  }
 
-      if (s) {
-        res.push(s);
-      }
+  get baseConfigurations() {
+    // This is a cheaty way to get bound services, waiting on https://github.com/epinio/epinio/issues/1471
+    return this.allConfigurations.filter(c => !!c.configuration.user);
+  }
 
-      return res;
-    }, []);
+  get baseConfigurationsNames() {
+    return this.baseConfigurations.map(c => c.meta.name);
+  }
+
+  get serviceConfigurations() {
+    // This is a cheaty way to get bound services, waiting on https://github.com/epinio/epinio/issues/1471
+    return this.allConfigurations.filter(c => !c.configuration.user);
+  }
+
+  get serviceConfigurationsNames() {
+    return this.serviceConfigurations.map(c => c.meta.name);
   }
 
   get envCount() {

@@ -168,7 +168,12 @@ export function init($plugin: any, store: any) {
     {
       name:      'configurations',
       labelKey:  'epinio.applications.tableHeaders.boundConfigs',
-      search:    ['configuration.configurations'],
+      search:    ['baseConfigurationsNames'],
+    },
+    {
+      name:      'services',
+      labelKey:  'epinio.applications.tableHeaders.boundServices',
+      search:    ['serviceConfigurationsNames'],
     },
     {
       name:     'deployedBy',

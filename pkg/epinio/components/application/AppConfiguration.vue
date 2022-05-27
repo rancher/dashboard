@@ -2,12 +2,15 @@
 import Vue, { PropType } from 'vue';
 import Application from '../../models/applications';
 
-import { EpinioConfiguration, EPINIO_TYPES } from '../../types';
+import { EpinioConfiguration, EpinioService, EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 interface Data {
-  values: string[]
+  values: {
+    configurations: string[],
+    services: string[],
+  }
 }
 export default Vue.extend<Data, any, any, any>({
   components: { LabeledSelect },
@@ -28,19 +31,40 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   async fetch() {
-    await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.CONFIGURATION });
+    await Promise.all([
+      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.CONFIGURATION }),
+      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.SERVICE_INSTANCE }),
+    ]);
   },
 
   data() {
-    return { values: [] };
+    return {
+      values: {
+        configurations: [],
+        services:       []
+      }
+    };
   },
 
   computed: {
     configurations() {
       const list = this.$store.getters['epinio/all'](EPINIO_TYPES.CONFIGURATION)
-        .filter((s: EpinioConfiguration) => s.metadata.namespace === this.application.metadata.namespace)
+        .filter((s: EpinioConfiguration) => s.metadata.namespace === this.application.metadata.namespace &&
+          !!s.configuration.user // Waiting on https://github.com/epinio/epinio/issues/1471
+        )
         .map((s: EpinioConfiguration) => ({
           label: s.metadata.name,
+          value: s.metadata.name,
+        }));
+
+      return sortBy(list, 'label');
+    },
+
+    services() {
+      const list = this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE_INSTANCE)
+        .filter((s: EpinioService) => s.metadata.namespace === this.application.metadata.namespace)
+        .map((s: EpinioService) => ({
+          label: `${ s.metadata.name } (${ s.catalog_service })`,
           value: s.metadata.name,
         }));
 
@@ -53,7 +77,15 @@ export default Vue.extend<Data, any, any, any>({
 
     hasConfigs() {
       return !this.$fetchState.pending && !!this.configurations.length;
-    }
+    },
+
+    noServices() {
+      return !this.$fetchState.pending && !this.services.length;
+    },
+
+    hasServices() {
+      return !this.$fetchState.pending && !!this.services.length;
+    },
   },
 
   watch: {
@@ -62,16 +94,34 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     noConfigs(neu, old) {
-      if (neu && this.values?.length) {
+      if (neu && this.values.configurations?.length) {
         // Selected configurations are no longer valid
-        this.values = [];
+        this.values.configurations = [];
+      }
+    },
+
+    noServices(neu, old) {
+      if (neu && this.values.services?.length) {
+        // Selected services are no longer valid
+        this.values.services = [];
       }
     },
 
     hasConfigs(neu, old) {
       if (!old && neu) {
         if (!!this.initialApplication?.configuration?.configurations) {
-          this.values = this.initialApplication.configuration.configurations?.filter((cc: string) => this.configurations.find((c: any) => c.value === cc)) || [];
+          // Filter out any we don't know about
+          this.values.configurations = this.initialApplication.baseConfigurationsNames?.filter((cc: string) => this.configurations.find((c: any) => c.value === cc)) || [];
+        }
+      }
+    },
+
+    hasServices(neu, old) {
+      if (!old && neu) {
+        if (!!this.initialApplication.serviceConfigurationsNames) {
+          // Filter out any we don't know about
+          // ?.filter((cc: string) => this.services.find((c: any) => c.value === cc)) Waiting on https://github.com/epinio/epinio/issues/1471
+          this.values.services = (this.initialApplication.services || []).map((s: EpinioService) => s.meta.name);
         }
       }
     }
@@ -82,19 +132,36 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <div class="col span-6">
-    <LabeledSelect
-      v-model="values"
-      data-testid="epinio_app-configuration_values"
-      :loading="$fetchState.pending"
-      :disabled="noConfigs"
-      :options="configurations"
-      :searchable="true"
-      :mode="mode"
-      :multiple="true"
-      :label="t('typeLabel.configurations', { count: 2})"
-      :placeholder="noConfigs ? t('epinio.applications.steps.configurations.select.placeholderNoOptions') : t('epinio.applications.steps.configurations.select.placeholderWithOptions')"
-    />
+  <div>
+    <div class="col span-6">
+      <LabeledSelect
+        v-model="values.configurations"
+        data-testid="epinio_app-configuration_configurations"
+        :loading="$fetchState.pending"
+        :disabled="$fetchState.pending || noConfigs"
+        :options="configurations"
+        :searchable="true"
+        :mode="mode"
+        :multiple="true"
+        :label="t('typeLabel.configurations', { count: 2})"
+        :placeholder="noConfigs ? t('epinio.applications.steps.configurations.configurations.select.placeholderNoOptions') : t('epinio.applications.steps.configurations.configurations.select.placeholderWithOptions')"
+      />
+    </div>
+    <div class="spacer"></div>
+    <div class="col span-6">
+      <LabeledSelect
+        v-model="values.services"
+        data-testid="epinio_app-configuration_services"
+        :loading="$fetchState.pending"
+        :disabled="$fetchState.pending || noServices"
+        :options="services"
+        :searchable="true"
+        :mode="mode"
+        :multiple="true"
+        :label="t('epinio.applications.steps.configurations.services.select.label')"
+        :placeholder="noServices ? t('epinio.applications.steps.configurations.services.select.placeholderNoOptions') : t('epinio.applications.steps.configurations.services.select.placeholderWithOptions')"
+      />
+    </div>
   </div>
 </template>
 

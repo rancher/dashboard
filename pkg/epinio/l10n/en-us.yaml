@@ -42,6 +42,7 @@ epinio:
     tableHeaders:
       route: Routes
       boundConfigs: Bound Configs
+      boundServices: Bound Services
       deployedBy: Last Deployed By
     detail:
       counts:
@@ -115,11 +116,17 @@ epinio:
             inputLabel: Branch
             tooltip: Branch to deploy
       configurations:
-        label: Configurations
-        subtext: Bind a config
-        select:
-          placeholderWithOptions: Select configs to bind app to
-          placeholderNoOptions: There are no configs in this namespace
+        label: Bindings
+        subtext: Bind to Application
+        configurations:
+          select:
+            placeholderWithOptions: Select configs to bind app to
+            placeholderNoOptions: There are no configs in this namespace
+        services:
+          select:
+            label: Services
+            placeholderWithOptions: Select services to bind app to
+            placeholderNoOptions: There are no services in this namespace
         next: Create
       progress:
         label: Progress
