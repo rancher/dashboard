@@ -24,6 +24,11 @@
     "nuxt",
     "prepending",
     "testid",
+    "autoscroll",
+    "protip",
+    "pvcs",
+    "testid",
+    "tolerations",
     "vuex"
   ],
 }
