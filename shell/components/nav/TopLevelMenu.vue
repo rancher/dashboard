@@ -23,6 +23,7 @@ export default {
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
+    const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     return {
       shown:          false,
@@ -31,7 +32,14 @@ export default {
       uiCommit:       UI_COMMIT,
       uiVersion:      UI_VERSION,
       clusterFilter:  '',
+      hasProvCluster,
     };
+  },
+
+  fetch() {
+    if (this.hasProvCluster) {
+      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+    }
   },
 
   computed: {
@@ -57,18 +65,21 @@ export default {
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
       let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
-      const available = pClusters.reduce((p, c) => {
-        p[c.mgmt] = true;
 
-        return p;
-      }, {});
+      if (this.hasProvCluster) {
+        const pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
+        const available = pClusters.reduce((p, c) => {
+          p[c.mgmt] = true;
 
-      // Filter to only show mgmt clusters that exist for the available provisionning clusters
-      // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
-      // provisionning cluster has been deleted
-      kubeClusters = kubeClusters.filter(c => !!available[c]);
+          return p;
+        }, {});
+
+        // Filter to only show mgmt clusters that exist for the available provisionning clusters
+        // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
+        // provisionning cluster has been deleted
+        kubeClusters = kubeClusters.filter(c => !!available[c]);
+      }
 
       return kubeClusters.map((x) => {
         return {
