@@ -188,9 +188,8 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
   get services() {
     return this.$getters['all'](EPINIO_TYPES.SERVICE_INSTANCE)
       .filter((s) => {
-        // This is a cheaty way to get bound services, waiting on https://github.com/epinio/epinio/issues/1471
         return s.metadata.namespace === this.metadata.namespace &&
-          this.serviceConfigurations?.find(sc => sc.metadata.name.endsWith(s.metadata.name));
+          this.serviceConfigurations?.find(sc => sc.configuration?.boundapps?.includes(this.metadata.name));
       });
   }
 
@@ -202,9 +201,12 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       });
   }
 
+  get allConfigurationsNames() {
+    return this.allConfigurations.map(c => c.meta.name);
+  }
+
   get baseConfigurations() {
-    // This is a cheaty way to get bound services, waiting on https://github.com/epinio/epinio/issues/1471
-    return this.allConfigurations.filter(c => !!c.configuration.user);
+    return this.allConfigurations.filter(c => !c.isServiceRelated);
   }
 
   get baseConfigurationsNames() {
@@ -212,8 +214,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
   }
 
   get serviceConfigurations() {
-    // This is a cheaty way to get bound services, waiting on https://github.com/epinio/epinio/issues/1471
-    return this.allConfigurations.filter(c => !c.configuration.user);
+    return this.allConfigurations.filter(c => c.isServiceRelated);
   }
 
   get serviceConfigurationsNames() {
@@ -536,7 +537,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     try {
       await this.$dispatch('request', { opt, type: this.type });
     } catch (e) {
-      if (e.errors?.[0].status === 500 && iteration === 0) {
+      if (e._status === 500 && iteration === 0) {
         // On fresh epinio's the first stage/build takes some time. Ideally we'd poll for the staging state, but this isn't available,
         // so be patient and give the same request another try
         await this.waitForStaging(stageId, 1);
@@ -661,5 +662,18 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     });
 
     return await Promise.all(promises);
+  }
+
+  async updateServices(initialValues = [], currentValues = []) {
+    const toBind = currentValues.filter(cV => !initialValues.includes(cV));
+    const toUnbind = initialValues.filter(cV => !currentValues.includes(cV));
+
+    console.warn('app', 'updateServices', toBind, toUnbind);
+    debugger;
+
+    await Promise.all([
+      ...toBind.map(s => s.bindApp(this.meta.name)),
+      ...toUnbind.map(s => s.unbindApp(this.meta.name)),
+    ]);
   }
 }

@@ -5,6 +5,12 @@ import Application from '../../models/applications';
 import { EpinioConfiguration, EpinioService, EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { _VIEW } from '@shell/config/query-params';
+
+export interface EpinioAppBindings {
+  configurations: string[],
+  services: EpinioService[],
+}
 
 interface Data {
   values: {
@@ -49,9 +55,7 @@ export default Vue.extend<Data, any, any, any>({
   computed: {
     configurations() {
       const list = this.$store.getters['epinio/all'](EPINIO_TYPES.CONFIGURATION)
-        .filter((s: EpinioConfiguration) => s.metadata.namespace === this.application.metadata.namespace &&
-          !!s.configuration.user // Waiting on https://github.com/epinio/epinio/issues/1471
-        )
+        .filter((s: EpinioConfiguration) => s.metadata.namespace === this.application.metadata.namespace && !s.isServiceRelated)
         .map((s: EpinioConfiguration) => ({
           label: s.metadata.name,
           value: s.metadata.name,
@@ -65,7 +69,7 @@ export default Vue.extend<Data, any, any, any>({
         .filter((s: EpinioService) => s.metadata.namespace === this.application.metadata.namespace)
         .map((s: EpinioService) => ({
           label: `${ s.metadata.name } (${ s.catalog_service })`,
-          value: s.metadata.name,
+          value: s,
         }));
 
       return sortBy(list, 'label');
@@ -86,11 +90,18 @@ export default Vue.extend<Data, any, any, any>({
     hasServices() {
       return !this.$fetchState.pending && !!this.services.length;
     },
+
+    isView() {
+      return this.mode === _VIEW;
+    }
   },
 
   watch: {
-    values() {
-      this.$emit('change', this.values);
+    values: {
+      deep: true,
+      handler() {
+        this.$emit('change', this.values);
+      }
     },
 
     noConfigs(neu, old) {
@@ -119,9 +130,7 @@ export default Vue.extend<Data, any, any, any>({
     hasServices(neu, old) {
       if (!old && neu) {
         if (!!this.initialApplication.serviceConfigurationsNames) {
-          // Filter out any we don't know about
-          // ?.filter((cc: string) => this.services.find((c: any) => c.value === cc)) Waiting on https://github.com/epinio/epinio/issues/1471
-          this.values.services = (this.initialApplication.services || []).map((s: EpinioService) => s.meta.name);
+          this.values.services = (this.initialApplication.services || []);
         }
       }
     }
@@ -138,7 +147,7 @@ export default Vue.extend<Data, any, any, any>({
         v-model="values.configurations"
         data-testid="epinio_app-configuration_configurations"
         :loading="$fetchState.pending"
-        :disabled="$fetchState.pending || noConfigs"
+        :disabled="$fetchState.pending || noConfigs || isView"
         :options="configurations"
         :searchable="true"
         :mode="mode"
@@ -153,7 +162,7 @@ export default Vue.extend<Data, any, any, any>({
         v-model="values.services"
         data-testid="epinio_app-configuration_services"
         :loading="$fetchState.pending"
-        :disabled="$fetchState.pending || noServices"
+        :disabled="$fetchState.pending || noServices || isView"
         :options="services"
         :searchable="true"
         :mode="mode"

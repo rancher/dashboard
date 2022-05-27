@@ -275,6 +275,13 @@ export function init($plugin: any, store: any) {
       search:    ['configuration.boundapps'],
     },
     {
+      name:      'service',
+      labelKey:  'epinio.configurations.tableHeaders.service.label',
+      sort:      ['origin'],
+      search:    ['origin'],
+      tooltip:   store.getters['i18n/t']('epinio.configurations.tableHeaders.service.tooltip')
+    },
+    {
       name:      'count',
       labelKey:  'epinio.configurations.tableHeaders.variableCount',
       value:     'variableCount',

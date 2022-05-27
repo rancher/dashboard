@@ -7,16 +7,24 @@ import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Loading from '@shell/components/Loading.vue';
 import AppInfo from '../components/application/AppInfo.vue';
-import AppConfiguration from '../components/application/AppConfiguration.vue';
+import AppConfiguration, { EpinioAppBindings } from '../components/application/AppConfiguration.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 
 interface Data {
+  bindings: EpinioAppBindings,
+  errors: string[],
 }
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
   data() {
-    return { errors: [] };
+    return {
+      bindings: {
+        configurations: [],
+        services:       []
+      },
+      errors: []
+    };
   },
 
   components: {
@@ -50,9 +58,16 @@ export default Vue.extend<Data, any, any, any>({
       try {
         await this.value.update();
 
+        console.warn('save', 'updateConfigurations', this.initialValue.baseConfigurationsNames, this.bindings?.configurations);
         await this.value.updateConfigurations(
-          this.initialValue.configuration?.configurations || [],
-          this.value.configuration?.configurations || [],
+          this.initialValue.baseConfigurationsNames || [],
+          this.bindings?.configurations || [],
+        );
+
+        console.warn('save', 'updateServices', this.initialValue.services, this.bindings?.services);
+        await this.value.updateServices(
+          this.initialValue.services || [],
+          this.bindings?.services || [],
         );
 
         await this.value.forceFetch();
@@ -77,8 +92,13 @@ export default Vue.extend<Data, any, any, any>({
       this.set(this.value.configuration, changes.configuration);
     },
 
-    updateConfigurations(changes: string[]) {
-      this.set(this.value.configuration, { configurations: changes });
+    updateConfigurations(changes: EpinioAppBindings) {
+      Vue.set(this, 'bindings', changes);
+      this.set(this.value.configuration, [
+        ...changes.configurations,
+        // .map(s => s.meta.name)
+        // ...changes.services
+      ]);
     },
   }
 
@@ -97,14 +117,14 @@ export default Vue.extend<Data, any, any, any>({
     @finish="save"
   >
     <ResourceTabs v-model="value" mode="mode">
-      <Tab label="Info" name="info" :weight="20">
+      <Tab label-key="epinio.applications.steps.basics.label" name="info" :weight="20">
         <AppInfo
           :application="value"
           :mode="mode"
           @change="updateInfo"
         ></AppInfo>
       </Tab>
-      <Tab label="Configurations" name="configurations" :weight="10">
+      <Tab label-key="epinio.applications.steps.configurations.label" name="configurations" :weight="10">
         <AppConfiguration
           :application="value"
           :initial-application="initialValue"

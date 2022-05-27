@@ -104,8 +104,7 @@ export default {
         if ( opt.responseType ) {
           return res;
         } else {
-          const preOut = res.data || {};
-          const out = preOut.services || preOut.catalog_services || preOut;// TODO: See https://github.com/epinio/ui/issues/97#issuecomment-1124880156
+          const out = res.data || {};
           const schema = getters.schemaFor(type);
 
           if (Array.isArray(out)) {

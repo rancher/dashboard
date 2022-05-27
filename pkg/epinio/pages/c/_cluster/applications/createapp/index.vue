@@ -8,7 +8,7 @@ import { EPINIO_TYPES } from '../../../../../types';
 import { _CREATE } from '@shell/config/query-params';
 import AppInfo, { EpinioAppInfo } from '../../../../../components/application/AppInfo.vue';
 import AppSource, { EpinioAppSource } from '../../../../../components/application/AppSource.vue';
-import AppConfiguration from '../../../../../components/application/AppConfiguration.vue';
+import AppConfiguration, { EpinioAppBindings } from '../../../../../components/application/AppConfiguration.vue';
 import AppProgress from '../../../../../components/application/AppProgress.vue';
 import { createEpinioRoute } from '../../../../../utils/custom-routing';
 
@@ -17,6 +17,7 @@ interface Data {
   mode: string,
   errors: string[],
   source?: EpinioAppSource,
+  bindings: EpinioAppBindings,
   steps: any[],
 }
 
@@ -50,6 +51,7 @@ export default Vue.extend<Data, any, any, any>({
       mode:          _CREATE,
       errors:        [],
       source:        undefined,
+      bindings:      undefined,
       steps:         [{
         name:           'source',
         label:          this.t('epinio.applications.steps.source.label'),
@@ -98,8 +100,14 @@ export default Vue.extend<Data, any, any, any>({
       this.set(this.source, changes);
     },
 
-    updateConfigurations(changes: string[]) {
+    updateManifestConfigurations(changes: string[]) {
       this.set(this.value.configuration, { configurations: changes });
+    },
+
+    updateConfigurations(changes: EpinioAppBindings) {
+      this.bindings = {};
+      this.set(this.bindings, changes);
+      this.set(this.value.configuration, [...changes.configurations]);
     },
 
     cancel() {
@@ -149,7 +157,7 @@ export default Vue.extend<Data, any, any, any>({
           :mode="mode"
           @change="updateSource"
           @changeAppInfo="updateInfo"
-          @changeAppConfig="updateConfigurations"
+          @changeAppConfig="updateManifestConfigurations"
           @valid="steps[0].ready = $event"
         ></AppSource>
       </template>
@@ -164,6 +172,7 @@ export default Vue.extend<Data, any, any, any>({
         <AppProgress
           :application="value"
           :source="source"
+          :bindings="bindings"
           :mode="mode"
           :step="step"
         ></AppProgress>
