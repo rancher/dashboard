@@ -54,7 +54,7 @@ export default Vue.extend<Data, any, any, any>({
       ...coreArgs,
     }));
 
-    if (this.application.configuration.configurations.length) {
+    if (this.application.configuration.configurations?.length) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.BIND,
         index:       1,
