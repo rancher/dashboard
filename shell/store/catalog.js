@@ -408,6 +408,10 @@ export const actions = {
     await dispatch('load', { force: true, reset: true });
   },
 
+  /*
+    Fetch full information about a specific version of a Helm chart,
+    including the standard values and README.
+  */
   async getVersionInfo({ state, getters, commit }, {
     repoType, repoName, chartName, versionName
   }) {
