@@ -2,27 +2,22 @@
 import { mapGetters } from 'vuex';
 import { ELEMENTAL_SCHEMA_IDS } from '../types';
 import { createElementalRoute } from '../utils/custom-routing';
-import { allHash } from '@shell/utils/promise';
 import Loading from '@shell/components/Loading';
 
 export default {
   name:       'Dashboard',
   components: { Loading },
   async fetch() {
-    const hash = await allHash({
-      osImages:             this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES }),
-      machineRegistrations: this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS }),
-      machineInventories:   this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES }),
-    });
+    const machineRegistrations = await this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS });
 
-    if (!hash.osImages?.length && !hash.machineRegistrations?.length && !hash.machineInventories?.length) {
+    if (!machineRegistrations?.length) {
       this.showGetStarted = true;
     }
   },
   data() {
     return {
       showGetStarted: false,
-      getStartedLink: createElementalRoute('resource-create', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES })
+      getStartedLink: createElementalRoute('resource-create', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS })
     };
   },
   computed: { ...mapGetters({ someElementalState: 'elemental/someElementalState' }) },

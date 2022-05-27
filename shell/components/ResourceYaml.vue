@@ -71,6 +71,11 @@ export default {
       default: true
     },
 
+    hideCancelAndSave: {
+      type:    Boolean,
+      default: false
+    },
+
     applyHooks: {
       type:    Function,
       default: null,
@@ -142,6 +147,9 @@ export default {
       if (neu === _CREATE && old === _VIEW) {
         this.currentYaml = this.value.cleanYaml(this.yaml, neu);
       }
+    },
+    currentYaml(neu) {
+      this.$emit('change', neu);
     }
   },
 
@@ -362,6 +370,7 @@ export default {
         v-if="showFooter"
         :mode="mode"
         :errors="errors"
+        :hide-cancel-and-save="hideCancelAndSave"
         @save="save"
         @done="done"
       >

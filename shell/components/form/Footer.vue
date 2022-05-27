@@ -25,6 +25,11 @@ export default Vue.extend({
     disableSave: {
       type:     Boolean,
       default: false,
+    },
+
+    hideCancelAndSave: {
+      type:     Boolean,
+      default: false,
     }
   },
 
@@ -58,14 +63,19 @@ export default Vue.extend({
       </div>
       <div class="right">
         <slot name="cancel">
-          <button type="button" class="btn role-secondary" @click="done">
+          <button
+            v-if="!hideCancelAndSave"
+            type="button"
+            class="btn role-secondary"
+            @click="done"
+          >
             <t k="generic.cancel" />
           </button>
         </slot>
         <slot name="middle" />
         <slot name="save">
           <AsyncButton
-            v-if="!isView"
+            v-if="!isView && !hideCancelAndSave"
             :mode="mode"
             :disabled="disableSave"
             @click="save"
