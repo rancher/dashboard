@@ -85,6 +85,7 @@ export default Vue.extend<Data, any, any, any>({
   <div class="col span-6">
     <LabeledSelect
       v-model="values"
+      data-testid="epinio_app-configuration_values"
       :loading="$fetchState.pending"
       :disabled="noConfigs"
       :options="configurations"

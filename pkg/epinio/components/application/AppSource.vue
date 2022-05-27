@@ -279,6 +279,7 @@ export default Vue.extend<Data, any, any, any>({
     <div class="button-row">
       <LabeledSelect
         v-model="type"
+        data-testid="epinio_app-source_type"
         label="Source Type"
         :options="types"
         :mode="mode"
@@ -287,6 +288,7 @@ export default Vue.extend<Data, any, any, any>({
       />
       <FileSelector
         v-tooltip="t('epinio.applications.steps.source.manifest.tooltip')"
+        data-testid="epinio_app-source_manifest"
         class="role-tertiary add mt-5"
         :label="t('epinio.applications.steps.source.manifest.button')"
         :mode="mode"
@@ -301,12 +303,14 @@ export default Vue.extend<Data, any, any, any>({
         <div class="button-row">
           <LabeledInput
             v-model="archive.fileName"
+            data-testid="epinio_app-source_archive_name"
             :disabled="true"
             :tooltip="t('epinio.applications.steps.source.archive.file.tooltip')"
             :label="t('epinio.applications.steps.source.archive.file.inputLabel')"
             :required="true"
           />
           <FileSelector
+            data-testid="epinio_app-source_archive_file"
             class="role-tertiary add mt-5"
             :label="t('epinio.applications.steps.source.archive.file.button')"
             :mode="mode"
@@ -322,12 +326,14 @@ export default Vue.extend<Data, any, any, any>({
         <div class="button-row">
           <LabeledInput
             v-model="archive.fileName"
+            data-testid="epinio_app-source_folder_name"
             :disabled="true"
             :tooltip="t('epinio.applications.steps.source.folder.file.tooltip')"
             :label="t('epinio.applications.steps.source.folder.file.inputLabel')"
             :required="true"
           />
           <FileSelector
+            data-testid="epinio_app-source_folder_file"
             class="role-tertiary add mt-5"
             :label="t('epinio.applications.steps.source.folder.file.button')"
             :mode="mode"
@@ -343,6 +349,7 @@ export default Vue.extend<Data, any, any, any>({
         <h3>{{ t('epinio.applications.steps.source.containerUrl.url.label') }}</h3>
         <LabeledInput
           v-model="container.url"
+          data-testid="epinio_app-source_container"
           :tooltip="t('epinio.applications.steps.source.containerUrl.url.tooltip')"
           :label="t('epinio.applications.steps.source.containerUrl.url.inputLabel')"
           :required="true"
@@ -355,6 +362,7 @@ export default Vue.extend<Data, any, any, any>({
         <h3>{{ t('epinio.applications.steps.source.gitUrl.url.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.url"
+          data-testid="epinio_app-source_git-url"
           :tooltip="t('epinio.applications.steps.source.gitUrl.url.tooltip')"
           :label="t('epinio.applications.steps.source.gitUrl.url.inputLabel')"
           :required="true"
@@ -365,22 +373,19 @@ export default Vue.extend<Data, any, any, any>({
         <h3>{{ t('epinio.applications.steps.source.gitUrl.branch.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.branch"
+          data-testid="epinio_app-source_git-branch"
           :tooltip="t('epinio.applications.steps.source.gitUrl.branch.tooltip')"
           :label="t('epinio.applications.steps.source.gitUrl.branch.inputLabel')"
           :required="true"
           @input="update"
         />
       </div>
-      <!-- <br><br>
-      Debug<br>
-      Mode: {{ mode }}<br>
-      Value: {{ JSON.stringify(value) }}<br>
-      initialModel: {{ JSON.stringify(initialModel) }}<br> -->
     </template>
     <template v-if="showBuilderImage">
       <div class="spacer">
         <RadioGroup
           name="defaultBuilderImage"
+          data-testid="epinio_app-source_builder-select"
           :value="builderImage.default"
           :labels="[t('epinio.applications.steps.source.archive.builderimage.default'), t('epinio.applications.steps.source.archive.builderimage.custom')]"
           :options="[true, false]"
@@ -389,6 +394,7 @@ export default Vue.extend<Data, any, any, any>({
         />
         <LabeledInput
           v-model="builderImage.value"
+          data-testid="epinio_app-source_builder-value"
           :disabled="builderImage.default"
           :tooltip="t('epinio.applications.steps.source.archive.builderimage.tooltip')"
           :mode="mode"
