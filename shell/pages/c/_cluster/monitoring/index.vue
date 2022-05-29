@@ -8,7 +8,7 @@ import { ENDPOINTS, MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
 
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
 import { haveV1MonitoringWorkloads } from '@shell/utils/monitoring';

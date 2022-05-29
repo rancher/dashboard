@@ -12,18 +12,34 @@ export default {
     }
   },
 
+  data() {
+    return { copied: false };
+  },
+
   methods: {
     clicked(event) {
-      event.preventDefault();
-      this.$copyText(this.text);
+      if (!this.copied) {
+        event.preventDefault();
+        this.$copyText(this.text);
+        this.copied = true;
+
+        let t = event.target;
+
+        if (t.tagName === 'I') {
+          t = t.parentElement || t;
+        }
+        setTimeout(() => {
+          this.copied = false;
+        }, 500);
+      }
     },
   }
 };
 </script>
 
 <template>
-  <a class="copy-to-clipboard-text" :class="{'plain': plain}" href="#" @click="clicked">
-    {{ text }} <i class="icon icon-copy" />
+  <a class="copy-to-clipboard-text" :class="{ 'copied': copied, 'plain': plain}" href="#" @click="clicked">
+    {{ text }} <i class="icon" :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}" />
   </a>
 </template>
 <style lang="scss" scoped>
@@ -34,6 +50,11 @@ export default {
       &:hover {
         text-decoration: none;
       }
+    }
+
+    &.copied {
+      pointer-events: none;
+      color: var(--success);
     }
   }
 </style>

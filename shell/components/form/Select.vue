@@ -2,7 +2,7 @@
 import { get } from '@shell/utils/object';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
-import LabeledTooltip from '@shell/components/form/LabeledTooltip';
+import { LabeledTooltip } from '@components/LabeledTooltip';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 
 export default {

@@ -1,6 +1,6 @@
 {
   "name": "@rancher/shell",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
@@ -55,7 +55,8 @@
     "@vue/cli-plugin-babel": "^4.5.15",
     "@vue/cli-plugin-typescript": "^4.5.15",
     "@vue/cli-service": "^4.5.13",
-    "@vue/test-utils": "^1.0.0-beta.27",
+    "@vue/test-utils": "1.2.1",
+    "@vue/vue2-jest": "^27.0.0",
     "add": "^2.0.6",
     "ansi_up": "^5.0.0",
     "babel-eslint": "^10.0.1",
@@ -81,17 +82,20 @@
     "eslint-config-standard": ">=12.0.0",
     "eslint-import-resolver-node": "0.3.4",
     "eslint-module-utils": "2.6.1",
-    "eslint-plugin-ava": "^9.0.0",
     "eslint-plugin-cypress": "^2.11.3",
+    "eslint-plugin-jest": "^23.6.0",    
     "eslint-plugin-import": "2.23.4",
-    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-n": "^15.2.0",
     "eslint-plugin-vue": "7.14.0",
     "event-target-shim": "^5.0.1",
     "express": "^4.17.1",
     "file-saver": "^2.0.2",
+    "frontmatter-markdown-loader": "^3.6.3",
     "identicon.js": "^2.3.3",
     "intl-messageformat": "^7.7.2",
     "is-url": "^1.2.4",
+    "jest": "^27.5.1",
+    "jest-serializer-vue": "^2.0.2",
     "jexl": "^2.2.2",
     "jquery": "^3.5.0",
     "js-cookie": "^2.2.0",
@@ -145,16 +149,6 @@
     "xterm-addon-web-links": "^0.4.0",
     "xterm-addon-webgl": "^0.9.0",
     "yarn": "^1.22.11"
-  },
-  "ava": {
-    "files": [
-      "test/**/*"
-    ],
-    "require": [
-      "./test/_setup.js"
-    ],
-    "tap": true,
-    "verbose": true
   },
   "nyc": {
     "extension": [

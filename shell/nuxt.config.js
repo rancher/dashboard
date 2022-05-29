@@ -303,9 +303,10 @@ export default function(dir, _appConfig) {
     },
 
     alias: {
-      '~shell': SHELL_ABS,
-      '@shell': SHELL_ABS,
-      '@pkg':   path.join(dir, 'pkg'),
+      '~shell':      SHELL_ABS,
+      '@shell':      SHELL_ABS,
+      '@pkg':        path.join(dir, 'pkg'),
+      '@components': path.join(dir, 'pkg', 'rancher-components', 'src', 'components'),
     },
 
     modulesDir: [
@@ -610,7 +611,7 @@ export default function(dir, _appConfig) {
       ]
     },
 
-    typescript: { typeCheck: { eslint: { files: './**/*.{ts,js,vue}' } } },
+    typescript: { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } },
 
     ssr: false,
   };

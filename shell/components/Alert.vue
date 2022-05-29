@@ -1,5 +1,5 @@
 <script>
-import BadgeState from '@shell/components/BadgeState';
+import { BadgeState } from '@components/BadgeState';
 
 const STATUS_CLASS_MAP = {
   success: {

@@ -1,7 +1,7 @@
 <script>
 import ArrayList from '@shell/components/form/ArrayList';
-import Banner from '@shell/components/Banner';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { Banner } from '@components/Banner';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _VIEW } from '@shell/config/query-params';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -12,7 +12,7 @@ export default {
     Banner,
     ArrayListGrouped,
     LabeledInput,
-    LabeledSelect
+    LabeledSelect,
   },
   props: {
     mode: {
@@ -21,11 +21,11 @@ export default {
     },
     value: {
       type:     Object,
-      required: true
+      required: true,
     },
     receiverOptions: {
       type:     Array,
-      required: true
+      required: true,
     },
   },
   data() {
@@ -39,16 +39,20 @@ export default {
         { label: 'Match Not Equal', value: '!=' },
         { label: 'Match Regexp', value: '=~' },
         { label: 'Match Not Regexp', value: '!~' },
-      ]
+      ],
     };
   },
-
 };
-
 </script>
 <template>
   <div>
-    <h3>Receiver <i v-tooltip="t('monitoring.alertmanagerConfig.receiverTooltip')" class="icon icon-info" /></h3>
+    <h3>
+      Receiver
+      <i
+        v-tooltip="t('monitoring.alertmanagerConfig.receiverTooltip')"
+        class="icon icon-info"
+      />
+    </h3>
     <Banner
       color="info"
       :label="t('monitoring.alertmanagerConfig.routeInfo')"
@@ -67,6 +71,10 @@ export default {
       <div class="col span-6">
         <span class="label">
           {{ t("monitoringRoute.groups.addGroupByLabel'") }}
+          <i
+            v-tooltip="t('monitoringRoute.groups.groupByTooltip')"
+            class="icon icon-info"
+          />
         </span>
         <ArrayList
           v-model="value.groupBy"
@@ -109,7 +117,7 @@ export default {
       class="mt-20"
       :mode="mode"
       :add-label="t('monitoringRoute.matching.addMatcher')"
-      :default-add-value="{matchers:[]}"
+      :default-add-value="{ matchers: [] }"
     >
       <template #default="props">
         <div class="row mt-20 mb-20">

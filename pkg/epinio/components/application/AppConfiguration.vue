@@ -2,10 +2,9 @@
 import Vue, { PropType } from 'vue';
 import Application from '../../models/applications';
 
-import { EPINIO_TYPES } from '../../types';
+import { EpinioConfiguration, EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import EpinioConfiguration from '../../models/configurations';
 
 interface Data {
   values: string[]
@@ -14,6 +13,10 @@ export default Vue.extend<Data, any, any, any>({
   components: { LabeledSelect },
 
   props: {
+    initialApplication: {
+      type:     Object as PropType<Application>,
+      default: () => ({}),
+    },
     application: {
       type:     Object as PropType<Application>,
       required: true
@@ -26,10 +29,6 @@ export default Vue.extend<Data, any, any, any>({
 
   async fetch() {
     await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.CONFIGURATION });
-  },
-
-  mounted() {
-    this.values = this.application.configuration.configurations.filter((cc: string) => this.configurations.find((c: any) => c.value === cc));
   },
 
   data() {
@@ -50,6 +49,10 @@ export default Vue.extend<Data, any, any, any>({
 
     noConfigs() {
       return !this.$fetchState.pending && !this.configurations.length;
+    },
+
+    hasConfigs() {
+      return !this.$fetchState.pending && !!this.configurations.length;
     }
   },
 
@@ -58,12 +61,21 @@ export default Vue.extend<Data, any, any, any>({
       this.$emit('change', this.values);
     },
 
-    noConfigs(neu) {
+    noConfigs(neu, old) {
       if (neu && this.values?.length) {
         // Selected configurations are no longer valid
         this.values = [];
       }
+    },
+
+    hasConfigs(neu, old) {
+      if (!old && neu) {
+        if (!!this.initialApplication?.configuration?.configurations) {
+          this.values = this.initialApplication.configuration.configurations?.filter((cc: string) => this.configurations.find((c: any) => c.value === cc)) || [];
+        }
+      }
     }
+
   },
 });
 

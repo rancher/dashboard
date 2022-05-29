@@ -1,6 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 
 export default {
   name: 'ListHarvesterImage',

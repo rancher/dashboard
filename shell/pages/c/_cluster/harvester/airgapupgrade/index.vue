@@ -1,7 +1,7 @@
 <script>
 import CruResource from '@shell/components/CruResource';
-import RadioGroup from '@shell/components/form/RadioGroup';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { RadioGroup } from '@components/Form/Radio';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 import { HCI } from '@shell/config/types';

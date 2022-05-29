@@ -1,6 +1,6 @@
 
 <script>
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 
 export default {

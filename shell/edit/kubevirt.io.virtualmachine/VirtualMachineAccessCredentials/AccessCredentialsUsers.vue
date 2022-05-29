@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import { clone } from '@shell/utils/object';
 import { randomStr } from '@shell/utils/string';
 
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ModalWithCard from '@shell/components/ModalWithCard';
 

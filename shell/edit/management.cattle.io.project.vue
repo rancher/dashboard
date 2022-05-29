@@ -16,7 +16,7 @@ import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
 import ProjectMembershipEditor from '@shell/components/form/Members/ProjectMembershipEditor';
 import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { NAME as HARVESTER } from '@shell/config/product/harvester';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 
 export default {
   components: {
@@ -143,7 +143,7 @@ export default {
           }
         } else if (this.mode === _EDIT) {
           if (this.canEditProject) {
-            await this.value.save();
+            await this.value.save(true);
           }
 
           // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects

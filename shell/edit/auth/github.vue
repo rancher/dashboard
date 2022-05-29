@@ -2,9 +2,9 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
-import RadioGroup from '@shell/components/form/RadioGroup';
-import LabeledInput from '@shell/components/form/LabeledInput';
-import Banner from '@shell/components/Banner';
+import { RadioGroup } from '@components/Form/Radio';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import { Banner } from '@components/Banner';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import { MANAGEMENT } from '@shell/config/types';
