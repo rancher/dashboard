@@ -1,0 +1,38 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+
+import ToggleSwitch from '@shell/components/form/ToggleSwitch';
+
+export const Template = (args, { argTypes }) => ({
+  components: { ToggleSwitch },
+  props:      Object.keys(argTypes),
+  template:   '<ToggleSwitch v-bind="$props" />',
+})
+
+<Meta title="Components/Form/ToggleSwitch" />
+
+# FileSelector
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import ToggleSwitch from '@shell/components/form/ToggleSwitch';
+  `}
+/>
+
+
+<Canvas>
+  <Story
+    name="ToggleSwitch"
+    args={{
+      value: '',
+      offLabel: 'Dark mode: '
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+
+<ArgsTable of={ToggleSwitch} />
