@@ -25,6 +25,9 @@ const STATES_MAPPED = {
 export default class EpinioApplicationModel extends EpinioMetaResource {
   buildCache = {};
 
+  // ------------------------------------------------------------------
+  // Dashboard plumbing
+
   get details() {
     const res = [];
 
@@ -174,6 +177,9 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     };
   }
 
+  // ------------------------------------------------------------------
+  // Getters
+
   getUrl(namespace = this.meta?.namespace, name = this.meta?.name) {
     // Add baseUrl in a generic way
     return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ namespace }/applications/${ name || '' }` });
@@ -313,7 +319,15 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     };
   }
 
+  /**
+   * Convenience, null safe accessor for routes
+   */
+  get routes() {
+    return this.configuration?.routes || [];
+  }
+
   // ------------------------------------------------------------------
+  // Change/handle changes of the app
 
   trace(text, ...args) {
     console.log(`### Application: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args.length ? args : '');// eslint-disable-line no-console
@@ -486,7 +500,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     }, { root: true });
   }
 
-  async waitForStaging(stageId) {
+  async waitForStaging(stageId, iteration = 0) {
     this.trace('Waiting for Application bits to be staged');
 
     const opt = {
@@ -498,7 +512,17 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       },
     };
 
-    await this.$dispatch('request', { opt, type: this.type });
+    try {
+      await this.$dispatch('request', { opt, type: this.type });
+    } catch (e) {
+      if (e.errors?.[0].status === 500 && iteration === 0) {
+        // On fresh epinio's the first stage/build takes some time. Ideally we'd poll for the staging state, but this isn't available,
+        // so be patient and give the same request another try
+        await this.waitForStaging(stageId, 1);
+      } else {
+        throw e;
+      }
+    }
   }
 
   async deploy(stageId, image, origin) {
@@ -510,21 +534,49 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       stage.id = stageId;
     }
 
-    const res = await this.followLink('deploy', {
-      method:         'post',
-      headers: { 'content-type': 'application/json' },
-      data:    {
-        app: {
-          name:      this.meta.name,
-          namespace: this.meta.namespace
-        },
-        stage,
-        image,
-        origin
-      }
-    });
+    try {
+      const res = await this.followLink('deploy', {
+        method:         'post',
+        headers: { 'content-type': 'application/json' },
+        data:    {
+          app: {
+            name:      this.meta.name,
+            namespace: this.meta.namespace
+          },
+          stage,
+          image,
+          origin
+        }
+      });
 
-    this.route = res.route;
+      this.route = res.route;
+    } catch (e) {
+      if (e.errors?.[0].status === 500) {
+        // On fresh epinio's the first deploy takes some time, so give the app some more time.
+        // Note - this will do the same for any 500... as we dont have a status code for the timeout
+        await this.waitForPseudoDeploy(e);
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  async waitForPseudoDeploy(origError) {
+    this.trace('Wait for deploy might have timed out, give the app more time');
+    await this.waitForTestFn(() => {
+      // Looking at their code the deploy request waits for the helm install command to return so we'd need something like the helm apps
+      // 'deployed' status. Unfortunately we don't have that... so wait for ready === desired replica sets instead
+      const fresh = this.$getters['byId'](EPINIO_TYPES.APP, `${ this.meta.namespace }/${ this.meta.name }`);
+
+      if (fresh.deployment?.readyreplicas === fresh.deployment?.desiredreplicas) {
+        return true;
+      }
+      // This is an async fn, but we're in a sync fn. It might create a backlog if previous requests don't complete in time
+      fresh.forceFetch();
+    }, `app ready replicas = desired`, 20000, 2000).catch((err) => {
+      console.warn('Original timeout request failed, also failed to wait for pseudo deployed state', err); // eslint-disable-line no-console
+      throw origError;
+    });
   }
 
   async restart() {

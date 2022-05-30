@@ -74,11 +74,11 @@ export default {
         <span v-else class="text-muted">&nbsp;</span>
       </template>
       <template #cell:route="{ row }">
-        <span v-if="row.configuration.routes.length" class="route">
-          <template v-for="(route, index) in row.configuration.routes">
+        <span v-if="row.routes.length" class="route">
+          <template v-for="(route, index) in row.routes">
             <a v-if="row.state === 'running'" :key="route.id" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
             <span v-else :key="route.id">{{ `https://${route}` }}</span>
-            <span v-if="index < row.configuration.routes.length - 1" :key="route.id + 'i'">, </span>
+            <span v-if="index < row.routes.length - 1" :key="route.id + 'i'">, </span>
           </template>
         </span>
         <span v-else class="text-muted">&nbsp;</span>
