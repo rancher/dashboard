@@ -48,6 +48,8 @@ elemental:
         placeholder: Enter an OS image name
   machineRegistration:
     create:
+      registrationToken: Registration Token
+      registrationURL: Registration URL
       configuration: Configuration
       cloudConfiguration: Cloud Configuration
       readFromFile: Read from File
