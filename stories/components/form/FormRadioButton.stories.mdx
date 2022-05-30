@@ -1,0 +1,68 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+
+import RadioButton from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton.vue';
+import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioGroup.vue';
+
+export const Template = (args, { argTypes }) => ({
+  components: { RadioButton },
+  props:      Object.keys(argTypes),
+  template:   '<RadioButton v-bind="$props" />',
+})
+
+export const Template2 = (args, { argTypes }) => ({
+  components: { RadioGroup },
+  props:      Object.keys(argTypes),
+  template:   '<RadioGroup v-bind="$props" />',
+})
+
+<Meta title="Components/Form/RadioButton" />
+
+# Radio Button
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton.vue';
+  `}
+/>
+
+<Canvas>
+  <Story
+    name="RadioButton"
+    args={{
+      label: 'Hello',
+      val: 'false',
+      value: 'true'
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<ArgsTable of={RadioButton} />
+
+# Radio button group
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioGroup.vue';
+  `}
+/>
+
+<Canvas>
+  <Story
+    name="RadioGroup"
+    args={{
+      label: 'Hello',
+      options: ["false", "true"],
+      row: 'false'
+    }}>
+    {Template2.bind({})}
+  </Story>
+</Canvas>
+
+<ArgsTable of={RadioGroup} />

@@ -1,0 +1,38 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+
+import FileSelector from '@shell/components/form/FileSelector';
+
+export const Template = (args, { argTypes }) => ({
+  components: { FileSelector },
+  props:      Object.keys(argTypes),
+  template:   '<FileSelector v-bind="$props" />',
+})
+
+<Meta title="Components/Form/FileSelector" />
+
+# FileSelector
+
+Note: need to add description 
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import FileSelector from '@shell/components/form/FileSelector';
+  `}
+/>
+
+<Canvas>
+  <Story
+    name="FileSelector"
+    args={{
+      label: 'Choose file',
+      selected: 'test'
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+<ArgsTable of={FileSelector} />
