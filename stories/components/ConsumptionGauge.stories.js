@@ -1,4 +1,4 @@
-import ConsumptionGauge from '@/components/ConsumptionGauge';
+import ConsumptionGauge from '@shell/components/ConsumptionGauge';
 
 export default {
   title:       'Components/ConsumptionGauge',

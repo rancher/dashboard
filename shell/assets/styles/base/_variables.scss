@@ -1,0 +1,60 @@
+$header-font: 'Poppins', sans-serif;
+$body-font: 'Lato', arial, helvetica, sans-serif;
+$mono-font: 'Roboto Mono', monospace;
+
+$max-width: 1440px !default;
+$min-width: 75% !default;
+$input-height: 61px;
+$unlabeled-input-height: 40px;
+
+$input-padding-lg: 18px;
+$input-padding-sm: 10px;
+$input-line-height: 18px;
+
+$column-gutter: 1.75%;
+
+$sideways-tabs-width: 200px;
+
+$array-list-remove-margin: 75px;
+
+$z-indexes: (
+  zero: 0,
+  default: 1,
+  overContent: 2,
+  hoverOverContent: 3,
+
+  mainHeader: 12,
+
+  tableGroup: 10,
+  fixedTableHeader: 11,
+
+  modalOverlay: 20,
+  modalContent: 21,
+
+  tooltip: 30,
+
+  dropdownOverlay: 40,
+  dropdownContent: 41,
+
+  loadingOverlay: 50,
+  loadingContent: 51
+);
+
+// Usage Example:
+// @media only screen and (min-width: map-get($breakpoints, '--viewport-*')) {
+// }
+$breakpoints: (
+  '--viewport-4':  480px, // Phone
+  '--viewport-7':  768px, // Tablet
+  '--viewport-9':  992px, // Laptop/Desktop
+  '--viewport-12': 1281px, // Desktop
+);
+
+$font-size-h2: 21px;
+
+/*
+ * Global spacing variables
+ */
+$space-s: 10px;
+$space-m: 20px;
+$space-l: 40px;

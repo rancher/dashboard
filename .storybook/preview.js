@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { themes } from '@storybook/theming';
-import { get } from '@/utils/object';
+import { get } from '@shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
