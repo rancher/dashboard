@@ -205,7 +205,7 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <!--workload  spec.upgradeStrategy -->
     <div v-if="strategyOptions" class="row mb-20">
       <div class="col" data-testid="input-policy-strategy">
@@ -276,6 +276,7 @@ export default {
           label-key="workload.upgrading.minReadySeconds.label"
           tooltip-key="workload.upgrading.minReadySeconds.tip"
           :mode="mode"
+          @input="update"
         />
       </div>
       <div
@@ -289,6 +290,7 @@ export default {
           label-key="workload.upgrading.revisionHistoryLimit.label"
           tooltip-key="workload.upgrading.revisionHistoryLimit.tip"
           :mode="mode"
+          @input="update"
         />
       </div>
     </div>
@@ -303,6 +305,7 @@ export default {
           label-key="workload.upgrading.progressDeadlineSeconds.label"
           tooltip-key="workload.upgrading.progressDeadlineSeconds.tip"
           :mode="mode"
+          @input="update"
         />
       </div>
     </div>
@@ -319,6 +322,7 @@ export default {
           label-key="workload.upgrading.terminationGracePeriodSeconds.label"
           tooltip-key="workload.upgrading.terminationGracePeriodSeconds.tip"
           :mode="mode"
+          @input="update"
         />
       </div>
     </div>

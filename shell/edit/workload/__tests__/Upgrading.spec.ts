@@ -17,6 +17,7 @@ describe('component: Upgrading', () => {
     const limit = 123;
 
     input.setValue(limit);
+    input.trigger('blur');
 
     expect(wrapper.props('value').revisionHistoryLimit).toBe(limit);
   });
