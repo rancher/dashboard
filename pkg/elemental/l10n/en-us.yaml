@@ -50,6 +50,7 @@ elemental:
     create:
       configuration: Configuration
       cloudConfiguration: Cloud Configuration
+      readFromFile: Read from File
       name:
         label: Name
         placeholder: Enter a name
