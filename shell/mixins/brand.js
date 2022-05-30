@@ -5,15 +5,15 @@ import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
 
 export default {
-  async fetch() {
-    this.globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING);
-  },
-
   data() {
-    return { globalSettings: [], brandCookie: null };
+    return { brandCookie: null };
   },
 
   computed: {
+    globalSettings() {
+      return this.$store.getters['management/all'](MANAGEMENT.SETTING);
+    },
+
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
@@ -33,6 +33,13 @@ export default {
     },
 
     theme() {
+      const setting = findBy(this.globalSettings, 'id', SETTING.THEME);
+
+      // This handles cases where the settings update after the page loads (like on log out)
+      if (setting?.value) {
+        return setting?.value;
+      }
+
       return this.$store.getters['prefs/theme'];
     }
   },
