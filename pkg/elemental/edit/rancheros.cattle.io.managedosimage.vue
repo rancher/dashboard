@@ -5,6 +5,7 @@ import CruResource from '@shell/components/CruResource.vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { _CREATE } from '@shell/config/query-params';
 
 export default {
   name:       'OsImages',
@@ -38,6 +39,9 @@ export default {
           value: cluster.name
         };
       });
+    },
+    isCreate() {
+      return this.mode === _CREATE;
     }
   },
   watch: {
@@ -71,15 +75,16 @@ export default {
   <Loading v-if="!value" />
   <CruResource
     v-else
+    :done-route="doneRoute"
     :can-yaml="false"
     :mode="mode"
     :resource="value"
     :errors="errors"
     @error="e=>errors = e"
     @finish="save"
+    @cancel="done"
   >
-    <h1>OsImages</h1>
-    <div class="row mt-40 mb-10">
+    <div class="row mt-40 mb-20">
       <div class="col span-6 mb-20">
         <h3>{{ t('elemental.osimage.create.configuration') }}</h3>
         <LabeledInput
@@ -88,10 +93,11 @@ export default {
           :label="t('elemental.osimage.create.name.label')"
           :placeholder="t('elemental.osimage.create.name.placeholder', null, true)"
           :mode="mode"
+          :disabled="!isCreate"
         />
       </div>
     </div>
-    <div v-if="value.spec" class="row mb-10">
+    <div v-if="value.spec" class="row mb-20">
       <div class="col span-6 mb-20">
         <h3>{{ t('elemental.osimage.create.spec') }}</h3>
         <LabeledSelect
