@@ -8,7 +8,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _CREATE } from '@shell/config/query-params';
 
 export default {
-  name:       'OsImages',
+  name:       'ManagedOsImagesEditView',
   components: {
     Loading, LabeledInput, LabeledSelect, CruResource
   },
