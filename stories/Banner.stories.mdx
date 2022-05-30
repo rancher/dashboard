@@ -1,0 +1,113 @@
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import Banner from '@/pkg/rancher-components/src/components/Banner/Banner';
+
+
+<Meta title="Components/Banner" component={Banner} />
+
+export const Template = (args, { argTypes, events }) => ({
+  components: { Banner },
+  props:      Object.keys(argTypes),
+  template:   '<Banner v-bind="$props" />'
+});
+
+
+# Banner
+
+Banner contain messages that communicate information to the user. They may also incorporate calls to action, or involve multiple tasks.
+
+### Description
+- They may be triggered by a user interaction or action or can be a system alert related to the section at hand.
+- Section alerts appear above the area or form they relate to.
+- Use a subject title and message to inform the user of details.
+- They appear as a fixed, full-width strip, on top of the screen throughout the application.
+<br/>
+
+### States
+
+<br/>
+
+#### Primary
+
+Primary banner are triggered by system events. They appear as a fixed, full-width strip, on top of the screen throughout the application.
+
+<Canvas>
+  <Story
+    name="Primary"
+    args={{
+      label:    'Banner Component - Primary',
+      closable: false,
+      color:    'primary',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Info
+Info alerts should be used when there are tips or information that a user can benefit from. They are display in the section of the application related to the information.
+
+<Canvas>
+  <Story
+    name="Info"
+    args={{
+      label:    'Banner Component - Info',
+      closable: false,
+      color:    'info',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Warning
+Warning banner should be used for messages that likely require attention. They are display in the section of the application related to the information.
+
+<Canvas>
+  <Story
+    name="Warning"
+    args={{
+      label:    'Banner Component - Warning',
+      closable: false,
+      color:    'warning',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Error
+Danger banners should be used when the system has failed to perform an action, or when the user has made an error. * Never include a "close" icon or link to dismiss the action. In cases when the alert should be dismissible use a warning banner instead. In many cases like this, the user path can be changed to achieve better results without requiring a close button in the component. They are display in the section of the application related to the information.
+
+<Canvas>
+  <Story
+    name="Error"
+    args={{
+      label:    'Banner Component - Error',
+      closable: false,
+      color:    'error',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+### Accessibility
+Badges are suitable for use as counters, for example to indicate the number of notifications.
+
+- The use of color to add meaning provides only a visual cue and does not convey information to the assistive technology user.
+- Use visually hidden text to convey meaning to assertive technologies. We recommend using the .sr-only class.
+
+<br/><br/>
+
+
+### Implementation
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import BadgeState from '@/pkg/rancher-components/src/components/Banner/Banner';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={Banner} />
