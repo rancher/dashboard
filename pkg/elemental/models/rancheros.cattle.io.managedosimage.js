@@ -1,7 +1,7 @@
 import Vue from 'vue';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import ElementalResource from './elemental-resource';
 
-export default class ManagedOsImage extends SteveModel {
+export default class ManagedOsImage extends ElementalResource {
   applyDefaults() {
     if ( !this.spec ) {
       Vue.set(this, 'spec', { osImage: '', clusterTargets: [] });
