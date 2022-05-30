@@ -4,60 +4,47 @@ import Banner from '../components/Banner.vue';
 # Banner
 
 Banner contain messages that communicate information to the user. They may also incorporate calls to action, or involve multiple tasks.
-- [Description](#description)
-- [States](#states)
-- [Accessibility](#accessibility)
-- [ArgsTables](#args-tables)
 <br/><br/>
 
 ### Description
 - They may be triggered by a user interaction or action or can be a system alert related to the section at hand.
-- Section alerts appear above the area or form they relate to.
 - Use a subject title and message to inform the user of details.
-- They appear as a fixed, full-width strip, on top of the screen throughout the application.
+- Badges are suitable for use as counters, for example to indicate the number of notifications.
 <br/>
 
-### States
 
 <br/>
 
-#### Primary
+### Primary
 
-Primary alerts are triggered by system events. They appear as a fixed, full-width strip, on top of the screen throughout the application.
+Primary banner are triggered by system events. They appear as a fixed, full-width strip, on top of the screen throughout the application.
 
 <Canvas>
   <Story id="components-banner--primary" />
 </Canvas>
 
-#### Info
-Info alerts should be used when there are tips or information that a user can benefit from.
+### Info
+Info alerts should be used when there are tips or information that a user can benefit from. They are display in the section of the application related to the information.
 
 <Canvas>    
   <Story id="components-banner--info" />
 </Canvas>
 
-#### Warning
-Warning alerts should be used for messages that likely require attention.
+### Warning
+Warning banner should be used for messages that likely require attention. They are display in the section of the application related to the information.
 <Canvas>    
   <Story id="components-banner--warning" />
 </Canvas>
 
-#### Error
-Danger alerts should be used when the system has failed to perform an action, or when the user has made an error. * Never include a close icon or link to dismiss the action. In cases when the alert should be dismissible use a warning alert instead. In many cases like this, the user path can be changed to achieve better results without requiring a close button in the component.
+### Error
+Danger banners should be used when the system has failed to perform an action, or when the user has made an error. * Never include a "close" icon or link to dismiss the action. In cases when the alert should be dismissible use a warning banner instead. In many cases like this, the user path can be changed to achieve better results without requiring a close button in the component. They are display in the section of the application related to the information.
 <Canvas>    
   <Story id="components-banner--error" />
 </Canvas>
 
 <br/><br/>
 
-### Accessibility
-Badges are suitable for use as counters, for example to indicate the number of notifications.
 
-- The use of color to add meaning provides only a visual cue and does not convey information to the assistive technology user.
-- Use visually hidden text to convey meaning to assertive technologies. We recommend using the .sr-only class.
-
-<br/><br/>
-
-### Args Tables
+### Properties
 
 <ArgsTable of={Banner} />

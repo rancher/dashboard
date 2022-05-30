@@ -11,6 +11,11 @@ export const Template = (args, { argTypes }) => ({
   template:   '<BadgeState v-bind="$props" />',
 })
 
+
+
+# BadgeState
+Badges are used to highlight important changes of state in an element, mark them, or draw attention to counters.
+
 <Source
   language='js'
   light
@@ -20,13 +25,7 @@ export const Template = (args, { argTypes }) => ({
   `}
 />
 
-# BadgeState
-Badges are used to highlight important changes of state in an element, mark them, or draw attention to counters.
 
-
-### How to start
-
-<br/>
 
 ### Description
 
@@ -35,16 +34,15 @@ Badges are used to highlight important changes of state in an element, mark them
 - Badges should not provide interaction. However, its parent element may.
 - Don't use long texts within a badge. Whenever possible, limit it to a maximum of 3 words or less. 
 
-### States of badge
 
-Different contextual variations of the badge can be used to communicate the different states of an element or the content. Use visually hidden text to convey meaning to assertive technologies.
+Different contextual variations of the badge can be used to communicate the different states of an element or the content: Blue for information, yellow for warning and red for errors.
 
-#### Info
+### Info
 <Canvas>
   <Story
     name="Info"
     args={{
-      label: 'Hello world',
+      label: 'New',
       color: 'bg-info'
     }}>
     {Template.bind({})}
@@ -52,30 +50,31 @@ Different contextual variations of the badge can be used to communicate the diff
   
 </Canvas>
 
-#### Warning
-Info about warning
+### Warning
 <Canvas>
   <Story
     name="Warning"
     args={{
-      label: 'Hello World',
+      label: 'expire soon',
       color: 'bg-warning'
     }}>
     {Template.bind({})}
   </Story>
 </Canvas>
 
-#### Error
+### Error
 
 <Canvas>
   <Story
     name="Error"
     args={{
-      label: 'Hello World',
+      label: '4 errors',
       color: 'bg-error'
     }}>
     {Template.bind({})}
   </Story>
 </Canvas>
+
+### Properties
 
 <ArgsTable of={BadgeState} />
