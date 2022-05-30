@@ -61,7 +61,7 @@ export default {
 
     const podSpec = get(this.value, 'template.spec');
 
-    const { terminationGracePeriodSeconds = 30 } = podSpec;
+    const terminationGracePeriodSeconds = podSpec?.terminationGracePeriodSeconds ?? 30;
 
     return {
       surgeUnits,
@@ -128,7 +128,9 @@ export default {
         maxUnavailable = `${ maxUnavailable }%`;
       }
 
-      this.$set(podSpec, 'terminationGracePeriodSeconds', terminationGracePeriodSeconds);
+      if (podSpec) {
+        this.$set(podSpec, 'terminationGracePeriodSeconds', terminationGracePeriodSeconds);
+      }
 
       switch (this.type) {
       case WORKLOAD_TYPES.DEPLOYMENT: {
