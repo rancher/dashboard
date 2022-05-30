@@ -251,6 +251,7 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
+        IP_ADDRESS,
         MACHINE_NODE_OS,
         ROLES,
         AGE,
