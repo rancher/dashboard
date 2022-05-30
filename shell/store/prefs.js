@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
 import { SETTING } from '@shell/config/settings';
+import { findBy } from '~/shell/utils/array';
 
 const definitions = {};
 
