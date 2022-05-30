@@ -16,6 +16,7 @@ export function init($plugin, store) {
     to:                  rootElementalRoute()
   });
 
+  // dashboard menu entry in Elemental
   virtualType({
     label:        store.getters['i18n/t']('elemental.menuLabels.dashboard'),
     icon:         'folder',
@@ -26,16 +27,7 @@ export function init($plugin, store) {
     route:        rootElementalRoute()
   });
 
-  // virtualType({
-  //   label:        store.getters['i18n/t']('elemental.menuLabels.operations'),
-  //   icon:         'folder',
-  //   group:        'Root',
-  //   namespaced:   false,
-  //   name:         ELEMENTAL_TYPES.OPERATIONS,
-  //   weight:       2,
-  //   route:        createElementalRoute(ELEMENTAL_TYPES.OPERATIONS)
-  // });
-
+  // registering Elemental resources
   weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, 9, true);
   configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, {
     isCreatable: true,
@@ -54,10 +46,26 @@ export function init($plugin, store) {
 
   weightType(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, 7, true);
   configureType(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, {
-    isCreatable: true,
+    isCreatable: false,
     isEditable:  true,
     isRemovable: true,
     customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES })
+  });
+
+  weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS, 6, true);
+  configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS, {
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
+    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS })
+  });
+
+  weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS, 5, true);
+  configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS, {
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
+    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS })
   });
 
   basicType([
@@ -66,5 +74,7 @@ export function init($plugin, store) {
     ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES,
     ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
     ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
+    ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS,
+    ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS,
   ]);
 }

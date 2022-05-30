@@ -15,4 +15,8 @@ export default class MachineRegistration extends ElementalResource {
       Vue.set(this, 'spec', { cloudConfig: DEFAULT_CREATION_YAML });
     }
   }
+
+  get hasSensitiveData() {
+    return true;
+  }
 }
