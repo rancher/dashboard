@@ -23,5 +23,5 @@ module.exports = {
       env: { jest: true }
     }
   ],
-  ignorePatterns: ['src/shim-tsx.d.ts']
+  ignorePatterns: ['src/shim-tsx.d.ts', 'src/shim-vue.d.ts']
 };
