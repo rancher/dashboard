@@ -40,6 +40,10 @@ export default Vue.extend<Data, any, any, any>({
     window.addEventListener('visibilitychange', this.visibilitychange);
   },
 
+  beforeDestroy() {
+    window.removeEventListener('visibilitychange', this.visibilitychange);
+  },
+
   computed: {
     cluster(): string {
       return this.$route.params.cluster;

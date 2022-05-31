@@ -109,7 +109,7 @@ export default Vue.extend<Data, any, any, any>({
           {{ value.configCount }} {{ t('epinio.applications.detail.counts.config') }}
         </div> -->
           <div>
-            {{ value.configCount }} {{ t('epinio.applications.detail.counts.services') }}
+            {{ value.configCount }} {{ t('epinio.applications.detail.counts.config') }}
           </div>
           <div>
             {{ value.envCount }} {{ t('epinio.applications.detail.counts.envVars') }}
