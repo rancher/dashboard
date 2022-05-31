@@ -2,13 +2,13 @@
 import isEqual from 'lodash/isEqual';
 import { mapGetters } from 'vuex';
 
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import CruResource from '@shell/components/CruResource';
-import RadioGroup from '@shell/components/form/RadioGroup';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { RadioGroup } from '@components/Form/Radio';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';

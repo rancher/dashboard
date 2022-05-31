@@ -1,5 +1,5 @@
 <script>
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/Select';
 import ArrayList from '@shell/components/form/ArrayList';
 import { NAMESPACE } from '@shell/config/types';

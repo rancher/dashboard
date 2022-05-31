@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
-import LabeledInput from '@shell/components/form/LabeledInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
   components: { Checkbox, LabeledInput },

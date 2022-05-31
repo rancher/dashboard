@@ -7,7 +7,7 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import RuleSelector from '@shell/components/form/RuleSelector';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';

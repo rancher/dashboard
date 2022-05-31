@@ -3,9 +3,9 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 
 import { removeAt } from '@shell/utils/array';
 
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';

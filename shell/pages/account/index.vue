@@ -8,7 +8,7 @@ import Principal from '@shell/components/auth/Principal';
 import BackRoute from '@shell/mixins/back-link';
 import { mapGetters } from 'vuex';
 
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 

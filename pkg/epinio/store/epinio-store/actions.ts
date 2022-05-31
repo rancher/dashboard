@@ -189,13 +189,13 @@ export default {
         product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.CATALOG_SERVICE,
         type:              'schema',
-        links:             { collection: '/api/v1/services' },
+        links:             { collection: '/api/v1/catalogservices' },
         collectionMethods: ['get', 'post'],
       }, {
         product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.SERVICE_INSTANCE,
         type:              'schema',
-        links:             { collection: '/api/v1/namespaces/from-ui/services' },
+        links:             { collection: '/api/v1/services' },
         collectionMethods: ['get', 'post'],
         attributes:        { namespaced: true }
       }, {
@@ -234,6 +234,7 @@ export default {
 
   loadCluster: async( { dispatch, commit, rootGetters }: any, { id }: any ) => {
     await dispatch(`findAll`, { type: EPINIO_TYPES.NAMESPACE });
+    dispatch(`findAll`, { type: EPINIO_TYPES.APP }); // This is used often, get a kick start
     await dispatch('cleanNamespaces', null, { root: true });
 
     const key = createNamespaceFilterKeyWithId(id, EPINIO_PRODUCT_NAME);

@@ -1,12 +1,12 @@
 <script>
 import CruResource from '@shell/components/CruResource';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import TextAreaAutoGrow from '@shell/components/form/TextAreaAutoGrow';
+import { TextAreaAutoGrow } from '@components/Form/TextArea';
 
 import { ALLOWED_SETTINGS, SETTING } from '@shell/config/settings';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import { setBrand } from '@shell/config/private-label';
 
 export default {

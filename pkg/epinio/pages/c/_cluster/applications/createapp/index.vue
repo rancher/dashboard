@@ -14,7 +14,6 @@ import { createEpinioRoute } from '../../../../../utils/custom-routing';
 
 interface Data {
   value?: Application,
-  initialValue?: Application,
   mode: string,
   errors: string[],
   source?: EpinioAppSource,
@@ -48,7 +47,6 @@ export default Vue.extend<Data, any, any, any>({
   data() {
     return {
       value:         undefined,
-      initialValue: undefined,
       mode:          _CREATE,
       errors:        [],
       source:        undefined,

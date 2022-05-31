@@ -6,13 +6,14 @@ import CruResource from '@shell/components/CruResource.vue';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import { mapGetters } from 'vuex';
 import EpinioConfiguration from '../models/configurations';
-import { EpinioApplication, EPINIO_TYPES } from '../types';
+import { EPINIO_TYPES } from '../types';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
-import Banner from '@shell/components/Banner.vue';
 import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import Banner from '@components/Banner/Banner.vue';
+import EpinioBindAppsMixin from './bind-apps-mixin.js';
 
 interface Data {
 }
@@ -26,16 +27,8 @@ export default Vue.extend<Data, any, any, any>({
     Banner,
     LabeledSelect
   },
-  mixins: [CreateEditView],
 
-  data() {
-    Vue.set(this.value, 'data', { ...this.initialValue.configuration?.details });
-
-    return {
-      errors:       [],
-      selectedApps: [],
-    };
-  },
+  mixins: [CreateEditView, EpinioBindAppsMixin],
 
   props: {
     mode: {
@@ -52,61 +45,49 @@ export default Vue.extend<Data, any, any, any>({
     }
   },
 
+  async fetch() {
+    await this.mixinFetch();
+
+    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0].metadata.name);
+    this.selectedApps = [...this.initialValue.configuration?.boundapps || []];
+  },
+
+  data() {
+    Vue.set(this.value, 'data', { ...this.initialValue.configuration?.details });
+
+    return {
+      errors:            [],
+      selectedApps:      [],
+      validationPassed: false
+    };
+  },
+
+  mounted() {
+    this.updateValidation();
+  },
+
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-
-    validationPassed() {
-      const nameErrors = validateKubernetesName(this.value?.metadata.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
-
-      return nameErrors.length === 0;
-    },
 
     namespaces() {
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
     },
 
-    allApps(): EpinioApplication[] {
-      return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.APP), 'meta.name');
-    },
-
-    nsApps() {
-      return this.allApps.filter((a: EpinioApplication) => a.meta.namespace === this.value.meta.namespace);
-    },
-
-    nsAppOptions() {
-      return this.allApps
-        .filter((a: EpinioApplication) => a.meta.namespace === this.value.meta.namespace)
-        .map((a: EpinioApplication) => ({
-          label: a.meta.name,
-          value: a.meta.name,
-        }));
-    },
-
-    noApps() {
-      return this.nsAppOptions.length === 0;
-    },
-
-  },
-
-  async fetch() {
-    await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP });
-    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0].metadata.name);
-    this.selectedApps = [...this.initialValue.configuration?.boundapps || []];
   },
 
   methods: {
     async save(saveCb: (success: boolean) => void) {
       this.errors = [];
       try {
-        if (this.mode === 'create') {
+        if (this.isCreate) {
           await this.value.create();
-          await this.updateBindings();
+          await this.updateConfigurationAppBindings();
           await this.$store.dispatch('epinio/findAll', { type: this.value.type, opt: { force: true } });
         }
 
-        if (this.mode === 'edit') {
+        if (this.isEdit) {
           await this.value.update();
-          await this.updateBindings();
+          await this.updateConfigurationAppBindings();
           await this.value.forceFetch();
         }
 
@@ -122,33 +103,20 @@ export default Vue.extend<Data, any, any, any>({
       Vue.set(this.value, 'data', data);
     },
 
-    async updateBindings() {
-      const bindApps = this.selectedApps;
-      const unbindApps = (this.initialValue.configuration?.boundapps || []).filter((bA: string) => !bindApps.includes(bA));
+    updateValidation() {
+      const nameErrors = validateKubernetesName(this.value?.meta.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
 
-      const delta: EpinioApplication[] = this.nsApps.reduce((res: EpinioApplication[], nsA: EpinioApplication) => {
-        const appName = nsA.metadata.name;
-        const configName = this.value.metadata.name;
+      if (nameErrors.length === 0) {
+        const dataValues = Object.entries(this.value?.data || {});
 
-        if (bindApps.includes(appName) && !nsA.configuration.configurations.includes(configName)) {
-          nsA.configuration.configurations.push(configName);
-          res.push(nsA);
-        } else if (unbindApps.includes(appName)) {
-          const index = nsA.configuration.configurations.indexOf(configName);
+        if (!!dataValues.length) {
+          Vue.set(this, 'validationPassed', true);
 
-          if (index >= 0) {
-            nsA.configuration.configurations.splice(index, 1);
-            res.push(nsA);
-          }
+          return;
         }
-
-        return res;
-      }, []);
-
-      if (delta.length) {
-        await Promise.all(delta.map(d => d.update()));
-        await this.value.forceFetch();
       }
+
+      Vue.set(this, 'validationPassed', false);
     }
 
   },
@@ -156,6 +124,18 @@ export default Vue.extend<Data, any, any, any>({
   watch: {
     'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
+    },
+
+    'value.meta.name'() {
+      this.updateValidation();
+    },
+
+    'value.data': {
+      deep: true,
+
+      handler(neu) {
+        this.updateValidation();
+      }
     }
   }
 });
@@ -186,7 +166,7 @@ export default Vue.extend<Data, any, any, any>({
       namespace-key="namespace"
       :namespaces-override="namespaces"
       :description-hidden="true"
-      :value="value.metadata"
+      :value="value.meta"
       :mode="mode"
     />
     <div class="row">

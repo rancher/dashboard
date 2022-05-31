@@ -1,6 +1,6 @@
 <script>
-import Checkbox from '@shell/components/form/Checkbox';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import SecretSelector from '@shell/components/form/SecretSelector';
 
 export default {

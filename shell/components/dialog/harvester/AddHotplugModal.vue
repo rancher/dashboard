@@ -4,10 +4,10 @@ import { sortBy } from '@shell/utils/sort';
 import { mapGetters } from 'vuex';
 import { PVC } from '@shell/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import Card from '@shell/components/Card';
-import Banner from '@shell/components/Banner';
+import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {

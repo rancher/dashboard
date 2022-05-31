@@ -1,10 +1,10 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import Card from '@shell/components/Card';
-import Banner from '@shell/components/Banner';
+import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {

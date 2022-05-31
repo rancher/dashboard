@@ -40,8 +40,7 @@
     "**/*.tsx",
     "**/*.vue",
     "../../node_modules/@rancher/shell/types/*.d.ts",
-    "../../node_modules/@rancher/shell/core/*.ts",
-    "../../node_modules/@rancher/shell/config/**/*.js"
+    "../../node_modules/@rancher/shell/core/types.ts",
   ],
   "exclude": [
     "node_modules"

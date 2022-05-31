@@ -9,25 +9,20 @@ typeLabel:
       one { Applications }
       other { Applications }
     }
-  services: |-
+  "services": |-
     {count, plural,
-      one { Services }
-      other { Services }
+      one { Instances }
+      other { Instances }
     }
   configurations: |-
     {count, plural,
       one { Configurations }
       other { Configurations }
     }
-  "catalog-service": |-
+  "catalogservices": |-
     {count, plural,
       one { Catalog }
       other { Catalog }
-    }
-  "service-instance": |-
-    {count, plural,
-      one { Instances }
-      other { Instances }
     }
 epinio:
   label: Epinio
@@ -141,6 +136,9 @@ epinio:
       create:
         label: Create
         description: The Application will be created ready to deploy source to
+      bind:
+        label: Bind
+        description: Configurations will be bound to the new Application
       gitFetch:
         label: Fetch
         description: Fetch the files at the git repository's branch
@@ -194,7 +192,13 @@ epinio:
       placeholderNoOptions: There are no apps in this namespace
   serviceInstance:
     tableHeaders:
-      service: Service
+      service: Catalog Service
+    create:
+      catalogService:
+        label: Catalog Service
+        placeholderNoOptions: There are no services
+        placeholderWithOptions: Select the type of Service to create
+        failedWaitingForDeploy: Service instance was created but failed to reach a deployed state in a reasonable amount of time, no applications were bound
   catalogService:
     tableHeaders:
       shortDesc: Headline

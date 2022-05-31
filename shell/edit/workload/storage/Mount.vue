@@ -1,6 +1,6 @@
 <script>
-import LabeledInput from '@shell/components/form/LabeledInput';
-import Checkbox from '@shell/components/form/Checkbox';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
 import { mapGetters } from 'vuex';
 import { removeObject } from '@shell/utils/array';
 export default {

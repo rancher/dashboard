@@ -2,7 +2,7 @@
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
-import TextAreaAutoGrow from '@shell/components/form/TextAreaAutoGrow';
+import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { clone } from '@shell/utils/object';
 
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';

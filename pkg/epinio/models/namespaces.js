@@ -1,15 +1,24 @@
-import EpinioResource from './epinio-resource';
+import EpinioMetaResource from './epinio-namespaced-resource';
 
-export default class EpinioNamespace extends EpinioResource {
+export default class EpinioNamespace extends EpinioMetaResource {
   get links() {
     return {
       self:   this.getUrl(),
       remove: this.getUrl(),
+      create: this.getUrl(null),
     };
   }
 
-  async save() {
-    await this._save(...arguments);
+  async create() {
+    await this.followLink('create', {
+      method:  'post',
+      headers: {
+        'content-type': 'application/json',
+        accept:         'application/json'
+      },
+      data: { name: this.meta.name }
+    });
+
     const namespaces = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
 
     // Find new namespace
@@ -39,9 +48,9 @@ export default class EpinioNamespace extends EpinioResource {
 
   // ------------------------------------------------------------------
 
-  getUrl() {
+  getUrl(name = this.meta.name) {
     // Add baseUrl in a generic way
-    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ this.name }` });
+    return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ name || '' }` });
   }
 
   // ------------------------------------------------------------------
@@ -52,9 +61,5 @@ export default class EpinioNamespace extends EpinioResource {
 
   get warnDeletionMessage() {
     return this.t('epinio.namespace.deleteWarning');
-  }
-
-  get metadata() {
-    return { name: this.name };
   }
 }

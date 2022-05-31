@@ -54,7 +54,7 @@ export default class AlertmanagerConfig extends SteveModel {
     return 'c-cluster-product-resource-namespace-id';
   }
 
-  getAlertmanagerConfigDetailRoute() {
+  get _detailLocation() {
     return {
       name:   this.alertmanagerConfigDoneRouteName,
       params: {
@@ -64,7 +64,8 @@ export default class AlertmanagerConfig extends SteveModel {
         namespace: this.metadata?.namespace,
         id:        this.name,
       },
-      hash: '#receivers'
+      hash:  '#receivers',
+      query: { as: 'config' }
     };
   }
 
