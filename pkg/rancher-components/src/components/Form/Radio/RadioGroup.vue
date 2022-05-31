@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
-import RadioButton from './RadioButton.vue';
+import RadioButton from '@components/Form/Radio/RadioButton.vue';
 
 interface option {
   value: boolean | string | Record<string, unknown> | unknown,
