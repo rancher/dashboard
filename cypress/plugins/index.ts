@@ -48,9 +48,11 @@ const skipSetup = (config: Cypress.PluginConfigOptions) => {
  * Only upload videos for specs with failing
  * Run this function after every spec to delete passed tests video
  * https://docs.cypress.io/guides/guides/screenshots-and-videos#Only-upload-videos-for-specs-with-failing-or-retried-tests
+ * TODO: Integrate this function when enabling videos once again with #6048
  *
  * @param on
  */
+// eslint-disable-next-line no-unused-vars
 const deletePassedVideos = (on: Cypress.PluginEvents) => {
   on('after:spec', (_, results) => {
     // console.log(results);
