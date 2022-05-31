@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
-import RadioButton from '@components/Form/Radio/RadioButton.vue';
+import RadioButton from './RadioButton.vue';
 
 interface option {
   value: boolean | string | Record<string, unknown> | unknown,
@@ -108,7 +108,7 @@ export default Vue.extend({
 
   methods: {
     // keyboard left/right event listener to select next/previous option
-    clickNext(direction: any) {
+    clickNext(direction: number) {
       const opts = this.normalizedOptions;
       const selected = opts.find(x => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;

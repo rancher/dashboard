@@ -46,7 +46,7 @@ export default Vue.extend({
     },
 
     valueWhenTrue: {
-      type:    Boolean,
+      type:    [Boolean, String, Number],
       default: true
     },
 
