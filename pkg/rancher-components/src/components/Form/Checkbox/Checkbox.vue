@@ -6,7 +6,7 @@ import { addObject, removeObject } from '@shell/utils/array';
 export default Vue.extend({
   props: {
     value: {
-      type:    Boolean,
+      type:    [Boolean, Array as () => Array<boolean>],
       default: false
     },
 
@@ -46,7 +46,7 @@ export default Vue.extend({
     },
 
     valueWhenTrue: {
-      type:    null,
+      type:    Boolean,
       default: true
     },
 
@@ -66,13 +66,19 @@ export default Vue.extend({
       return (this.disabled || this.mode === _VIEW);
     },
     isChecked(): boolean {
-      return this.isMulti() ? this.value.find(v => v === this.valueWhenTrue) : this.value === this.valueWhenTrue;
+      return this.isMulti(this.value) ? this.findTrueValues(this.value) : this.value === this.valueWhenTrue;
     }
   },
 
   methods: {
-    clicked(event) {
-      if (event.target.tagName === 'A' && event.target.href) {
+    isCustomEvent(event: Event): event is CustomEvent {
+      return 'shifKey' in event &&
+      'altKey' in event &&
+      'ctrlKey' in event &&
+      'metaKey' in event;
+    },
+    clicked(event: MouseEvent) {
+      if ((event.target as HTMLLinkElement).tagName === 'A' && (event.target as HTMLLinkElement).href) {
         // Ignore links inside the checkbox label so you can click them
         return true;
       }
@@ -84,17 +90,23 @@ export default Vue.extend({
         return;
       }
 
-      const click = new CustomEvent('click', {
+      const customEvent = {
         bubbles: true,
         cancelable: false,
         shiftKey: event.shiftKey,
         altKey: event.altKey,
         ctrlKey: event.ctrlKey,
         metaKey: event.metaKey
-      })
+      }
+
+      if (!this.isCustomEvent(event)) {
+        return;
+      }
+
+      const click = new CustomEvent('click', customEvent)
 
       // Flip the value
-      if (this.isMulti()) {
+      if (this.isMulti(this.value)) {
         if (this.isChecked) {
           removeObject(this.value, this.valueWhenTrue);
         } else {
@@ -107,8 +119,18 @@ export default Vue.extend({
       }
     },
 
-    isMulti() {
-      return Array.isArray(this.value);
+    isMulti(value: boolean | boolean[]): value is boolean[] {
+      return Array.isArray(value);
+    },
+
+    findTrueValues(value: boolean[]) {
+      const lookup = value.find(v => v === this.valueWhenTrue);
+    
+      if (typeof lookup === 'undefined') {
+        throw new TypeError('Method findTrueValue is undefined');
+      }
+
+      return lookup;
     }
   }
 });
