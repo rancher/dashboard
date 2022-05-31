@@ -4,7 +4,7 @@ import { NAMESPACE_FILTERS } from '@shell/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@shell/utils/array';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import {
   NAMESPACE_FILTER_SPECIAL as SPECIAL,
   NAMESPACE_FILTER_ALL_USER as ALL_USER,

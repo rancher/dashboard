@@ -6,7 +6,7 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';

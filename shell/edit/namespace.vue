@@ -15,7 +15,7 @@ import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 
 export default {
   components: {

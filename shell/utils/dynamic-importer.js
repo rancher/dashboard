@@ -7,7 +7,7 @@ export function importCloudCredential(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "cloud-credential" */ `@shell/cloud-credential/${name}`);
+  return () => import(/* webpackChunkName: "cloud_credential" */ `@shell/cloud_credential/${name}`);
 }
 
 export function importMachineConfig(name) {
@@ -15,7 +15,7 @@ export function importMachineConfig(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "machine-config" */ `@shell/machine-config/${name}`);
+  return () => import(/* webpackChunkName: "machine_config" */ `@shell/machine_config/${name}`);
 }
 
 export function importLogin(name) {

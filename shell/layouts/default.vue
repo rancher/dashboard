@@ -22,7 +22,7 @@ import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
@@ -311,7 +311,6 @@ export default {
       if ( this.gettingGroups ) {
         return;
       }
-
       this.gettingGroups = true;
 
       if ( !this.clusterReady ) {
@@ -326,6 +325,7 @@ export default {
       const currentType = this.$route.params.resource || '';
       let namespaces = null;
 
+      // TODO fix for harvester?
       if ( !this.$store.getters['isAllNamespaces'] ) {
         namespaces = Object.keys(this.namespaces);
       }
@@ -364,6 +364,7 @@ export default {
 
         for ( const mode of modes ) {
           const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
+
           const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
 
           if ( productId === EXPLORER || !this.isExplorer ) {

@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { NORMAN, STEVE } from '@shell/config/types';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 import { ucFirst } from '@shell/utils/string';
 import { isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
@@ -94,12 +94,12 @@ export default {
     },
 
     showPreferencesLink() {
-      return (this.$store.getters['management/schemaFor'](STEVE.PREFERENCE)?.resourceMethods || []).includes('PUT');
+      return (this.$store.getters['management/schemaFor'](STEVE.PREFERENCE, false, false)?.resourceMethods || []).includes('PUT');
     },
 
     showAccountAndApiKeyLink() {
       // Keep this simple for the moment and only check if the user can see tokens... plus the usual isRancher/isSingleProduct
-      const canSeeTokens = this.$store.getters['rancher/schemaFor'](NORMAN.TOKEN);
+      const canSeeTokens = this.$store.getters['rancher/schemaFor'](NORMAN.TOKEN, false, false);
 
       return canSeeTokens && (this.isRancher || this.isSingleProduct);
     },
