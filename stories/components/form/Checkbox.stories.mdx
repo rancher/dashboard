@@ -1,4 +1,8 @@
 import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1ac9a6c03 (Changed files name)
 import Checkbox from '@/pkg/rancher-components/src/components/Form/Checkbox/Checkbox';
 
 export const Template = (args, { argTypes }) => ({
@@ -9,6 +13,7 @@ export const Template = (args, { argTypes }) => ({
 
 <Meta 
   title="Components/Form/Checkbox"
+<<<<<<< HEAD
   decorators={[]}
 />
 
@@ -46,21 +51,53 @@ Checkboxes are used when the user may select any number (zero, one or several) o
     name="Selected"
     args={{
       label: 'Accept term of service',
+=======
+/>
+
+# Checkbox
+
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import Checkbox from '@/pkg/rancher-components/src/components/Form/Checkbox/Checkbox';
+  `}
+/>
+
+<Canvas>
+  <Story
+    name="Checked"
+    args={{
+      label: 'Hello',
+>>>>>>> 1ac9a6c03 (Changed files name)
       value: 'true'
     }}>
     {Template.bind({})}
   </Story>
+<<<<<<< HEAD
   Disabled
   <Story
     name="Disabled"
     args={{
       label: 'Accept term of service',
       disabled: true
+=======
+</Canvas>
+
+<Canvas>
+  <Story
+    name="Unchecked"
+    args={{
+      label: 'Hello'
+>>>>>>> 1ac9a6c03 (Changed files name)
     }}>
     {Template.bind({})}
   </Story>
 </Canvas>
 
+<<<<<<< HEAD
 ### Import 
 <Source
   language='js'
@@ -71,4 +108,6 @@ Checkboxes are used when the user may select any number (zero, one or several) o
 
 ### Props table
 
+=======
+>>>>>>> 1ac9a6c03 (Changed files name)
 <ArgsTable of={Checkbox} />
