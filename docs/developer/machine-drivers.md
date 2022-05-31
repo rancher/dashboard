@@ -2,8 +2,8 @@
 
 A machine driver consists of:
   - The actual driver run inside the server container.  This can be built-in to `rancher-machine` or loaded as an external binary.
-  - A component to create & edit the `cloud-credential` for the provider, which stores the user's auth information to talk to the provider API.
-  - A component to create & edit the `machine-config`, which describes the size, location, and other options for a particular machine to be deployed to the provider.
+  - A component to create & edit the `cloud_credential` for the provider, which stores the user's auth information to talk to the provider API.
+  - A component to create & edit the `machine_config`, which describes the size, location, and other options for a particular machine to be deployed to the provider.
   - An optional `model` to override properties of a generic `machine-template` object with details specific to this provider.
   - An optional `store` to facilitate communication with the provider's API and caching of information retrieved from it.
 
@@ -29,7 +29,7 @@ The standard drivers included in Rancher and their options are defined [here](ht
 
 Cloud Credentials store the username & password, or other similar information, needed to talk to a particular provider.  There is typically a 1-to-1 mapping of cloud credentials to drivers.  If one provider (e.g. Amazon) has both a *Machine* driver for RKE (using EC2) and a *Cluster* driver for Kontainer Engine (using EKS) then you can and should use a single shared type of credential (e.g. `aws`) for both.
 
-The cloud credential component lives in the top-level `cloud-credential` directory in the repo.  The file should be named the same as the driver, in all lowercase (e.g. `cloud-credential/digitalocean.vue`).
+The cloud credential component lives in the top-level `cloud_credential` directory in the repo.  The file should be named the same as the driver, in all lowercase (e.g. `cloud_credential/digitalocean.vue`).
 
 If there is a reason to rename it or map multiple drivers to the same credential, configure that in the [plugins store](`../../../../store/plugins.js`).  There is also other info in there about how guesses are taken on what each field is for and how it should be displayed.  These can be customized for your driver by importing and calling `configureCredential()` and `mapDriver()`.
 
@@ -41,7 +41,7 @@ Your component should emit a `validationChanged` event every time a value change
 
 Similar to the Cloud Credential component, the Machine Config component should display just controls for the fields on the driver that are relevant to the configuration of the machine to be created.  The machine pool name, saving, etc is handled outside of your component.  You probably want to use `fetch()` to load some info from the provider's API (e.g. list of regions or instance types).
 
-It should live in the top-level `machine-config` directory, again named the same as the driver and lowercase (e.g. `machine-config/digitalocean.vue`).
+It should live in the top-level `machine_config` directory, again named the same as the driver and lowercase (e.g. `machine_config/digitalocean.vue`).
 
 The selected cloud credential ID is available as a `credentialId` prop.  You will always know that ID, and can use it to make API calls (see [#api-calls] below), but **must not** rely on being able to actually retrieve the cloud credential model corresponding to it.  Users with lesser permissions may be able to edit a cluster, but not have permission to see the credential being used to manage it.
 

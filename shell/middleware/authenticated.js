@@ -11,7 +11,7 @@ import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 import { BACK_TO } from '@shell/config/local-storage';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 
@@ -305,7 +305,6 @@ export default async function({
         oldIsExt: !!oldPkg
       });
     }
-
     if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
       const res = [
         ...always,
