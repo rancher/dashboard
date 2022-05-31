@@ -4,7 +4,7 @@ import { _VIEW } from '@shell/config/query-params';
 import RadioButton from '@components/Form/Radio/RadioButton.vue';
 
 interface option {
-  value: boolean | string | object | unknown,
+  value: boolean | string | Record<string, unknown> | unknown,
   label: string | unknown
 }
 

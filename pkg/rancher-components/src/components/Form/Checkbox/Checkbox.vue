@@ -91,19 +91,19 @@ export default Vue.extend({
       }
 
       const customEvent = {
-        bubbles: true,
+        bubbles:    true,
         cancelable: false,
-        shiftKey: event.shiftKey,
-        altKey: event.altKey,
-        ctrlKey: event.ctrlKey,
-        metaKey: event.metaKey
-      }
+        shiftKey:   event.shiftKey,
+        altKey:     event.altKey,
+        ctrlKey:    event.ctrlKey,
+        metaKey:    event.metaKey
+      };
 
       if (!this.isCustomEvent(event)) {
         return;
       }
 
-      const click = new CustomEvent('click', customEvent)
+      const click = new CustomEvent('click', customEvent);
 
       // Flip the value
       if (this.isMulti(this.value)) {
@@ -125,7 +125,7 @@ export default Vue.extend({
 
     findTrueValues(value: boolean[]) {
       const lookup = value.find(v => v === this.valueWhenTrue);
-    
+
       if (typeof lookup === 'undefined') {
         throw new TypeError('Method findTrueValue is undefined');
       }

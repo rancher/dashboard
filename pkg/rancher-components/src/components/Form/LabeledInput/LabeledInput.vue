@@ -146,7 +146,7 @@ export default (
      * Emit on input with delay
      * Note: Arrow function is avoided due context binding
      */
-    delayInput(value: any[]) {
+    delayInput(value: string | number | Record<string, unknown>) {
       this.$emit('input', value);
     },
 
@@ -154,7 +154,7 @@ export default (
       this.onFocusLabeled();
     },
 
-    onBlur(event: any[]) {
+    onBlur(event: string | number | Record<string, unknown>) {
       this.$emit('blur', event);
       this.onBlurLabeled();
     },

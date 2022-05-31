@@ -22,5 +22,6 @@ module.exports = {
       ],
       env: { jest: true }
     }
-  ]
+  ],
+  ignorePatterns: ['src/shim-tsx.d.ts']
 };

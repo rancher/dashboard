@@ -4,6 +4,7 @@ import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 declare module 'vue/types/vue' {
+  /* eslint-disable no-unused-vars */
   interface Vue {
     queueResize(): void;
   }
@@ -81,7 +82,7 @@ export default Vue.extend({
   },
 
   methods: {
-    onInput(val: any[]) {
+    onInput(val: string) {
       this.$emit('input', val);
       this.queueResize();
     },
