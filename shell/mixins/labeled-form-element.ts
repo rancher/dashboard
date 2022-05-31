@@ -1,7 +1,14 @@
+import Vue from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { getWidth, setWidth } from '@shell/utils/width';
 
-export default {
+interface LabeledFormElement {
+  raised: boolean;
+  focused: boolean;
+  blurred: number | null;
+}
+
+export default Vue.extend({
   inheritAttrs: false,
 
   props: {
@@ -59,6 +66,16 @@ export default {
       type:    [String, Number, Object],
       default: ''
     },
+
+    options: {
+      default:   null,
+      type:      Array
+    },
+
+    searchable: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -66,23 +83,23 @@ export default {
       raised:  this.mode === _VIEW || !!`${ this.value }`,
       focused: false,
       blurred: null,
-    };
+    } as LabeledFormElement;
   },
 
   computed: {
-    empty() {
+    empty(): boolean {
       return !!`${ this.value }`;
     },
 
-    isView() {
+    isView(): boolean {
       return this.mode === _VIEW;
     },
 
-    isDisabled() {
+    isDisabled(): boolean {
       return this.disabled || this.isView;
     },
 
-    isSearchable() {
+    isSearchable(): boolean {
       const { searchable } = this;
       const options = ( this.options || [] );
 
@@ -95,12 +112,12 @@ export default {
   },
 
   methods: {
-    resizeHandler(e) {
+    resizeHandler() {
       // since the DD is positioned there is no way to 'inherit' the size of the input, this calcs the size of the parent and set the dd width if it is smaller. If not let it grow with the regular styles
       this.$nextTick(() => {
-        const DD = this.$refs.select.querySelectorAll('ul.vs__dropdown-menu');
-        const selectWidth = getWidth(this.$refs.select);
-        const dropWidth = getWidth(DD);
+        const DD = (this.$refs.select as HTMLElement).querySelectorAll('ul.vs__dropdown-menu');
+        const selectWidth = getWidth(this.$refs.select as Element) || 0;
+        const dropWidth = getWidth(DD) || 0;
 
         if (dropWidth < selectWidth) {
           setWidth(DD, selectWidth);
@@ -134,4 +151,4 @@ export default {
       this.blurred = Date.now();
     }
   }
-};
+});
