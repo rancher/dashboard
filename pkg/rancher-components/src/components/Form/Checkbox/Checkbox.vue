@@ -1,11 +1,12 @@
-<script>
+<script lang="ts">
+import Vue from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 
-export default {
+export default Vue.extend({
   props: {
     value: {
-      type:    [Boolean, Array],
+      type:    Boolean,
       default: false
     },
 
@@ -35,7 +36,7 @@ export default {
     },
 
     tooltip: {
-      type:    [String, Object],
+      type:    String,
       default: null
     },
 
@@ -61,10 +62,10 @@ export default {
   },
 
   computed: {
-    isDisabled() {
+    isDisabled(): boolean {
       return (this.disabled || this.mode === _VIEW);
     },
-    isChecked() {
+    isChecked(): boolean {
       return this.isMulti() ? this.value.find(v => v === this.valueWhenTrue) : this.value === this.valueWhenTrue;
     }
   },
@@ -110,7 +111,7 @@ export default {
       return Array.isArray(this.value);
     }
   }
-};
+});
 </script>
 
 <template>

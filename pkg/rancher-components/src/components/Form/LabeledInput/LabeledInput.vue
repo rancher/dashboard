@@ -1,14 +1,17 @@
-<script>
+<script lang="ts">
+import Vue, { VueConstructor } from 'vue';
 import CompactInput from '@shell/mixins/compact-input';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
-import { TextAreaAutoGrow } from '@components/Form';
-import { LabeledTooltip } from '@components/LabeledTooltip';
+import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
+import LabeledTooltip from '@components/LabeledTooltip/LabeledTootip.vue';
 import { escapeHtml } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
 
-export default {
+export default (
+  Vue as VueConstructor<Vue & InstanceType<typeof LabeledFormElement>& InstanceType<typeof CompactInput>>
+).extend({
   components: { LabeledTooltip, TextAreaAutoGrow },
   mixins:     [LabeledFormElement, CompactInput],
 
@@ -70,23 +73,23 @@ export default {
   },
 
   computed: {
-    onInput() {
+    onInput(): any | void {
       return this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
     },
 
-    hasLabel() {
+    hasLabel(): boolean {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
 
-    hasTooltip() {
+    hasTooltip(): boolean {
       return !!this.tooltip || !!this.tooltipKey;
     },
 
-    hasSuffix() {
+    hasSuffix(): boolean {
       return !!this.$slots.suffix;
     },
 
-    cronHint() {
+    cronHint(): string | undefined {
       if (this.type !== 'cron' || !this.value) {
         return;
       }
@@ -102,9 +105,9 @@ export default {
       }
     },
 
-    _placeholder() {
+    _placeholder(): string {
       if (this.placeholder) {
-        return this.placeholder;
+        return this.placeholder.toString();
       }
       if (this.placeholderKey) {
         return this.t(this.placeholderKey);
@@ -113,7 +116,7 @@ export default {
       return '';
     },
 
-    _maxlength() {
+    _maxlength(): number | null {
       if (this.type === 'text' && this.maxlength) {
         return this.maxlength;
       }
@@ -124,7 +127,7 @@ export default {
 
   methods: {
     focus() {
-      const comp = this.$refs.value;
+      const comp = this.$refs.value as HTMLInputElement;
 
       if (comp) {
         comp.focus();
@@ -132,7 +135,7 @@ export default {
     },
 
     select() {
-      const comp = this.$refs.value;
+      const comp = this.$refs.value as HTMLInputElement;
 
       if (comp) {
         comp.select();
@@ -143,7 +146,7 @@ export default {
      * Emit on input with delay
      * Note: Arrow function is avoided due context binding
      */
-    delayInput(value) {
+    delayInput(value: any[]) {
       this.$emit('input', value);
     },
 
@@ -151,14 +154,14 @@ export default {
       this.onFocusLabeled();
     },
 
-    onBlur(event) {
+    onBlur(event: any[]) {
       this.$emit('blur', event);
       this.onBlurLabeled();
     },
 
     escapeHtml
   }
-};
+});
 </script>
 
 <template>

@@ -50,10 +50,6 @@ export default {
       default: 'label',
       type:    String
     },
-    options: {
-      default:   null,
-      type:      Array
-    },
     placement: {
       default: null,
       type:    String
@@ -67,10 +63,6 @@ export default {
         return e;
       },
       type: Function
-    },
-    searchable: {
-      default: false,
-      type:    Boolean
     },
     selectable: {
       default: (opt) => {
