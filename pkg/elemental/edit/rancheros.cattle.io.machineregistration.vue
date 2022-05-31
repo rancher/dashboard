@@ -13,7 +13,6 @@ import { saferDump } from '@shell/utils/create-yaml';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { saveAs } from 'file-saver';
-import { addParams } from '@shell/utils/url';
 import AsyncButton from '@shell/components/AsyncButton';
 
 export default {
@@ -93,13 +92,7 @@ export default {
       }
     },
     async downloadRegistrationUrl(btnCb) {
-      const url = this.value.status.registrationURL;
-
-      // url = addParams(url, {
-      //   // previous:   this.previous,
-      //   pretty:     true,
-      //   limitBytes: 750 * 1024 * 1024,
-      // });
+      const url = `${ window.location.origin }/v1-rancheros/registration/${ this.value.status.registrationToken }`;
 
       try {
         const inStore = this.$store.getters['currentStore']();
@@ -146,7 +139,6 @@ export default {
         <DetailText
           :value="value.status.registrationURL"
           :label="t('elemental.machineRegistration.create.registrationURL')"
-          :conceal="true"
         />
       </div>
     </div>
@@ -160,9 +152,6 @@ export default {
           <li>
             <span class="instructionsTitle">1) Download the Machine Registration</span>
             <span class="ml-10"><AsyncButton mode="download" @click="downloadRegistrationUrl" /></span>
-            <p class="mt-10">
-              <i>(or click <a :href="value.status.registrationURL" rel="noopener" target="_blank">here</a> to get the file content)</i>
-            </p>
           </li>
           <li>
             <p class="instructionsTitle">

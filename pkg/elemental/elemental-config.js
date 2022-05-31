@@ -28,15 +28,7 @@ export function init($plugin, store) {
   });
 
   // registering Elemental resources
-  weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, 9, true);
-  configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, {
-    isCreatable: true,
-    isEditable:  true,
-    isRemovable: true,
-    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES })
-  });
-
-  weightType(ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS, 8, true);
+  weightType(ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS, 9, true);
   configureType(ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS, {
     isCreatable: true,
     isEditable:  true,
@@ -44,29 +36,36 @@ export function init($plugin, store) {
     customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS })
   });
 
-  weightType(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, 7, true);
+  weightType(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, 8, true);
   configureType(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, {
-    isCreatable: false,
+    isCreatable: true,
     isEditable:  true,
     isRemovable: true,
     customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES })
   });
 
-  weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS, 6, true);
-  configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS, {
+  weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, 7, true);
+  configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, {
     isCreatable: true,
     isEditable:  true,
     isRemovable: true,
-    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS })
+    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES })
   });
+  // weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS, 6, true);
+  // configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS, {
+  //   isCreatable: true,
+  //   isEditable:  true,
+  //   isRemovable: true,
+  //   customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS })
+  // });
 
-  weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS, 5, true);
-  configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS, {
-    isCreatable: true,
-    isEditable:  true,
-    isRemovable: true,
-    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS })
-  });
+  // weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS, 5, true);
+  // configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS, {
+  //   isCreatable: true,
+  //   isEditable:  true,
+  //   isRemovable: true,
+  //   customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS })
+  // });
 
   basicType([
     ELEMENTAL_TYPES.DASHBOARD,
@@ -74,7 +73,7 @@ export function init($plugin, store) {
     ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES,
     ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
     ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
-    ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS,
-    ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS,
+    // ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS,
+    // ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS,
   ]);
 }
