@@ -170,16 +170,30 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.name')" :value="value.name" :mode="mode">
-          <LabeledInput v-model="value.name" :label="t('harvester.fields.name')" :mode="mode" required />
+        <InputOrDisplay
+          :name="t('harvester.fields.name')"
+          :value="value.name"
+          :mode="mode"
+        >
+          <LabeledInput
+            v-model="value.name"
+            :label="t('harvester.fields.name')"
+            :mode="mode"
+            required
+            @input="update"
+          />
         </InputOrDisplay>
       </div>
 
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.type')" :value="value.type" :mode="mode">
+        <InputOrDisplay
+          :name="t('harvester.fields.type')"
+          :value="value.type"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
@@ -194,7 +208,11 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.volume')" :value="value.volumeName" :mode="mode">
+        <InputOrDisplay
+          :name="t('harvester.fields.volume')"
+          :value="value.volumeName"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.volumeName"
             :disabled="isDisabled"
@@ -208,7 +226,11 @@ export default {
       </div>
 
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
+        <InputOrDisplay
+          :name="t('harvester.fields.size')"
+          :value="value.size"
+          :mode="mode"
+        >
           <UnitInput
             v-model="value.size"
             :output-modifier="true"
@@ -217,6 +239,7 @@ export default {
             :label="t('harvester.fields.size')"
             :mode="mode"
             :disabled="true"
+            @input="update"
           />
         </InputOrDisplay>
       </div>
@@ -224,13 +247,27 @@ export default {
 
     <div class="row mb-20">
       <div v-if="!!image" class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.image')" :value="image" :mode="mode">
-          <LabeledInput v-model="image" :label="t('harvester.fields.image')" :mode="mode" :disabled="true" />
+        <InputOrDisplay
+          :name="t('harvester.fields.image')"
+          :value="image"
+          :mode="mode"
+        >
+          <LabeledInput
+            v-model="image"
+            :label="t('harvester.fields.image')"
+            :mode="mode"
+            :disabled="true"
+            @input="update"
+          />
         </InputOrDisplay>
       </div>
 
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
+        <InputOrDisplay
+          :name="t('harvester.virtualMachine.volume.bus')"
+          :value="value.bus"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.bus"
             :label="t('harvester.virtualMachine.volume.bus')"

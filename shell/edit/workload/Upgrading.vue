@@ -232,7 +232,11 @@ export default {
       </div>
     </div>
     <template v-if="strategy === 'RollingUpdate'">
-      <div v-if="isDeployment || isDaemonSet" class="row mb-20" data-testid="input-policy-surge">
+      <div
+        v-if="isDeployment || isDaemonSet"
+        class="row mb-20"
+        data-testid="input-policy-surge"
+      >
         <div v-if="isDeployment" class="col span-6">
           <InputWithSelect
             :text-value="maxSurge"
@@ -298,7 +302,10 @@ export default {
       v-if="isDeployment"
       class="row mb-20"
     >
-      <div class="col span-6" data-testid="input-policy-deadline">
+      <div
+        class="col span-6"
+        data-testid="input-policy-deadline"
+      >
         <UnitInput
           v-model="progressDeadlineSeconds"
           :suffix="t('suffix.seconds', {count: progressDeadlineSeconds})"

@@ -143,7 +143,7 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <div class="title clearfix">
       <h3>
         {{ label }}
@@ -158,6 +158,7 @@ export default {
           :label="t('probe.type.label')"
           :options="kindOptions"
           :placeholder="t('probe.type.placeholder')"
+          @input="update"
         />
 
         <div v-if="kind && kind!=='none'" class="spacer-small" />
@@ -171,6 +172,7 @@ export default {
             :mode="mode"
             :label="t('probe.httpGet.port.label')"
             :placeholder="t('probe.httpGet.port.placeholder')"
+            @input="update"
           />
 
           <div class="spacer-small" />
@@ -180,6 +182,7 @@ export default {
             :mode="mode"
             :label="t('probe.httpGet.path.label')"
             :placeholder="t('probe.httpGet.path.placeholder')"
+            @input="update"
           />
         </div>
 
@@ -192,6 +195,7 @@ export default {
             :mode="mode"
             :label="t('probe.httpGet.port.label')"
             :placeholder="t('probe.httpGet.port.placeholderDeux')"
+            @input="update"
           />
           <div class="spacer-small" />
         </div>
@@ -202,6 +206,7 @@ export default {
               v-model="exec.command"
               :label="t('probe.command.label')"
               :placeholder="t('probe.command.placeholder')"
+              @input="update"
             />
           </div>
           <div class="spacer-small" />
@@ -222,6 +227,7 @@ export default {
               min="1"
               :suffix="t('suffix.sec')"
               :placeholder="t('probe.checkInterval.placeholder')"
+              @input="update"
             />
           </div>
           <div class="col span-4">
@@ -232,6 +238,7 @@ export default {
               :label="t('probe.initialDelay.label')"
               min="0"
               :placeholder="t('probe.initialDelay.placeholder')"
+              @input="update"
             />
           </div>
           <div class="col span-4">
@@ -242,6 +249,7 @@ export default {
               :label="t('probe.timeout.placeholder')"
               min="0"
               :placeholder="t('probe.timeout.placeholder')"
+              @input="update"
             />
           </div>
         </div>
@@ -257,6 +265,7 @@ export default {
               :mode="mode"
               :label="t('probe.successThreshold.label')"
               :placeholder="t('probe.successThreshold.placeholder')"
+              @input="update"
             />
           </div>
           <div class="col span-6">
@@ -267,6 +276,7 @@ export default {
               :mode="mode"
               :label="t('probe.failureThreshold.label')"
               :placeholder="t('probe.failureThreshold.label')"
+              @input="update"
             />
           </div>
         </div>

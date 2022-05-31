@@ -112,7 +112,7 @@ export default {
 </script>
 
 <template>
-  <form @input="update">
+  <form>
     <div class="row mb-20">
       <div class="col span-6">
         <UnitInput
@@ -121,6 +121,7 @@ export default {
           :suffix="t('suffix.times', {count: completions})"
           label-key="workload.job.completions.label"
           tooltip-key="workload.job.completions.tip"
+          @input="update"
         />
       </div>
       <div class="col span-6">
@@ -130,6 +131,7 @@ export default {
           :suffix="t('suffix.times', {count: parallelism})"
           label-key="workload.job.parallelism.label"
           tooltip-key="workload.job.parallelism.tip"
+          @input="update"
         />
       </div>
     </div>
@@ -141,6 +143,7 @@ export default {
           :suffix="t('suffix.times', {count: backoffLimit})"
           label-key="workload.job.backoffLimit.label"
           tooltip-key="workload.job.backoffLimit.tip"
+          @input="update"
         />
       </div>
       <div class="col span-6">
@@ -150,6 +153,7 @@ export default {
           :suffix="t('suffix.seconds', {count: activeDeadlineSeconds})"
           label-key="workload.job.activeDeadlineSeconds.label"
           tooltip-key="workload.job.activeDeadlineSeconds.tip"
+          @input="update"
         />
       </div>
     </div>
@@ -162,6 +166,7 @@ export default {
             :mode="mode"
             label-key="workload.job.successfulJobsHistoryLimit.label"
             tooltip-key="workload.job.successfulJobsHistoryLimit.tip"
+            @input="update"
           />
         </div>
         <div class="col span-6">
@@ -170,6 +175,7 @@ export default {
             :mode="mode"
             label-key="workload.job.failedJobsHistoryLimit.label"
             tooltip-key="workload.job.failedJobsHistoryLimit.tip"
+            @input="update"
           />
         </div>
       </div>
@@ -181,10 +187,17 @@ export default {
             :suffix="t('suffix.seconds', {count: startingDeadlineSeconds})"
             label-key="workload.job.startingDeadlineSeconds.label"
             tooltip-key="workload.job.startingDeadlineSeconds.tip"
+            @input="update"
           />
         </div>
         <div class="col span-6">
-          <UnitInput v-model="terminationGracePeriodSeconds" :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'" :label="t('workload.upgrading.activeDeadlineSeconds.label')" :mode="mode">
+          <UnitInput
+            v-model="terminationGracePeriodSeconds"
+            :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'"
+            :label="t('workload.upgrading.activeDeadlineSeconds.label')"
+            :mode="mode"
+            @input="update"
+          >
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
@@ -221,7 +234,12 @@ export default {
     </template>
     <div v-else class="row">
       <div class="col span-6">
-        <UnitInput v-model="terminationGracePeriodSeconds" :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'" :label="t('workload.upgrading.activeDeadlineSeconds.label')" :mode="mode">
+        <UnitInput
+          v-model="terminationGracePeriodSeconds"
+          :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'"
+          :label="t('workload.upgrading.activeDeadlineSeconds.label')"
+          :mode="mode"
+        >
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}

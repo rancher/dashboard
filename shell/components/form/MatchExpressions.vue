@@ -156,12 +156,21 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
-    <button v-if="showRemove && !isView" type="button" class="btn role-link remove-expression" @click="$emit('remove')">
+  <div>
+    <button
+      v-if="showRemove && !isView"
+      type="button"
+      class="btn role-link remove-expression"
+      @click="$emit('remove')"
+    >
       <i class="icon icon-x" />
     </button>
 
-    <div v-if="rules.length" class="match-expression-header" :class="{'view':isView}">
+    <div
+      v-if="rules.length"
+      class="match-expression-header"
+      :class="{'view':isView}"
+    >
       <label>
         {{ t('workload.scheduling.affinity.matchExpressions.key') }}
       </label>
@@ -201,14 +210,23 @@ export default {
         />
       </div>
 
-      <div v-if="row.operator==='Exists' || row.operator==='DoesNotExist'" class="no-value">
+      <div
+        v-if="row.operator==='Exists' || row.operator==='DoesNotExist'"
+        class="no-value"
+      >
         <label class="text-muted">&hellip;</label>
       </div>
       <div v-else>
         <div v-if="isView">
           {{ row.values }}
         </div>
-        <input v-else v-model="row.values" :mode="mode" :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'" />
+        <input
+          v-else
+          v-model="row.values"
+          :mode="mode"
+          :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'"
+          @input="update"
+        />
       </div>
       <div class="remove-container">
         <button
@@ -225,7 +243,11 @@ export default {
       </div>
     </div>
     <div v-if="!isView" class="mt-20">
-      <button type="button" class="btn role-tertiary add" @click="addRule">
+      <button
+        type="button"
+        class="btn role-tertiary add"
+        @click="addRule"
+      >
         <t k="workload.scheduling.affinity.matchExpressions.addRule" />
       </button>
     </div>

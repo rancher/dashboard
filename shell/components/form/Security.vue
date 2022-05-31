@@ -105,7 +105,7 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <div>
       <div class="row">
         <div class="col span-6">
@@ -165,7 +165,12 @@ export default {
 
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model.number="runAsUser" :label="t('workload.container.security.runAsUser')" :mode="mode" />
+        <LabeledInput
+          v-model.number="runAsUser"
+          :label="t('workload.container.security.runAsUser')"
+          :mode="mode"
+          @input="update"
+        />
       </div>
     </div>
 
