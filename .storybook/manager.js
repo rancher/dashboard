@@ -2,9 +2,11 @@ import { addons } from '@storybook/addons';
 import rancherTheme from './theme';
 import installShortcut from './theme-shortcut';
 
+
 addons.setConfig({
   panelPosition: 'right',
-  theme: rancherTheme
+  theme: rancherTheme,
+
 });
 
 const loader = window.onload;
