@@ -43,6 +43,13 @@ const storePlugin = {
 Vue.use(storePlugin);
 
 export const parameters = {
+  previewTabs: { 
+    canvas: { hidden: true },
+    changelog: {
+      title: 'CHANGELOG',
+      hidden: false,
+    },
+  },
   actions: { argTypesRegex: "^on[A-Z].*" },
   layout: 'centered',
   // viewMode: 'docs',
@@ -57,12 +64,12 @@ export const parameters = {
     dark: {
       ...themes.dark,
       brandTitle: 'Rancher Storybook',
-      brandImage: 'https://raw.githubusercontent.com/rancher/dashboard/master/assets/images/pl/dark/rancher-logo.svg'
+      brandImage: 'https://raw.githubusercontent.com/rancher/dashboard/b099206b8f7d3da19218afe1cda5feb00810eb8e/shell/assets/images/pl/rancher-logo.svg'
     },
     light: {
       ...themes.normal,
       brandTitle: 'Rancher Storybook',
-      brandImage: 'https://raw.githubusercontent.com/rancher/dashboard/master/assets/images/pl/rancher-logo.svg'
+      brandImage: 'https://raw.githubusercontent.com/rancher/dashboard/b099206b8f7d3da19218afe1cda5feb00810eb8e/shell/assets/images/pl/rancher-logo.svg'
     },
     darkClass: 'theme-dark',
     lightClass: 'theme-light',
