@@ -10,15 +10,35 @@ describe('component: Upgrading', () => {
     expect(inputWraps).toHaveLength(7);
   });
 
-  it('should update state with inserted values', () => {
+  it.each([
+    ['min', 'minReadySeconds'],
+    ['limit', 'revisionHistoryLimit'],
+    ['deadline', 'progressDeadlineSeconds'],
+  ])('should set typed value in %p into %p', (field, key) => {
     // required to do not break the view
     const wrapper = mount(Upgrading);
-    const input = wrapper.find('[data-testid="input-policy-limit"]').find('input');
-    const limit = 123;
+    const input = wrapper.find(`[data-testid="input-policy-${ field }"]`).find('input');
+    const newValue = 123;
 
-    input.setValue(limit);
+    input.setValue(newValue);
     input.trigger('blur');
 
-    expect(wrapper.props('value').revisionHistoryLimit).toBe(limit);
+    expect(wrapper.props('value')[key]).toBe(newValue);
+  });
+
+  it.each([
+    ['surge', 'maxSurge', '%'],
+    ['unavailable', 'maxUnavailable', '%'],
+  ])('should set typed value in %p into %p and unit', (field, key, unit) => {
+    // required to do not break the view
+    const wrapper = mount(Upgrading);
+    const input = wrapper.find(`[data-testid="input-policy-${ field }"]`).find('input');
+    const newValue = 123;
+    const expectation = `${ newValue }${ unit }`;
+
+    input.setValue(newValue);
+    input.trigger('blur');
+
+    expect(wrapper.props('value').strategy.rollingUpdate[key]).toBe(expectation);
   });
 });

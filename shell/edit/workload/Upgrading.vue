@@ -251,7 +251,7 @@ export default {
         </div>
         <div
           class="col span-6"
-          data-testid="input-policy-max"
+          data-testid="input-policy-unavailable"
         >
           <InputWithSelect
             :text-value="maxUnavailable"
