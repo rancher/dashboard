@@ -1,8 +1,14 @@
-<script>
+<script lang="ts">
+import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
-import { RadioButton } from '@components/Form/Radio';
+import RadioButton from '@components/Form/Radio/RadioButton.vue';
 
-export default {
+interface option {
+  value: boolean | string | object | unknown,
+  label: string | unknown
+}
+
+export default Vue.extend({
   components: { RadioButton },
   props:      {
     // Name for the checkbox grouping, must be unique on page
@@ -67,14 +73,14 @@ export default {
   },
 
   computed: {
-    normalizedOptions() {
+    normalizedOptions(): option[] {
       const out = [];
 
       for (let i = 0; i < this.options.length; i++) {
         const opt = this.options[i];
 
         if (typeof opt === 'object' && opt) {
-          out.push(opt);
+          out.push(opt as option);
         } else if (this.labels) {
           out.push({
             label: this.labels[i],
@@ -91,18 +97,18 @@ export default {
       return out;
     },
 
-    isView() {
+    isView(): boolean {
       return this.mode === _VIEW;
     },
 
-    isDisabled() {
+    isDisabled(): boolean {
       return (this.disabled || this.isView);
     }
   },
 
   methods: {
     // keyboard left/right event listener to select next/previous option
-    clickNext(direction) {
+    clickNext(direction: any) {
       const opts = this.normalizedOptions;
       const selected = opts.find(x => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;
@@ -116,7 +122,7 @@ export default {
       this.$emit('input', opts[newIndex].value);
     }
   }
-};
+});
 </script>
 
 <template>
