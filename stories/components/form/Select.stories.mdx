@@ -1,0 +1,63 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import Select from '@/shell/components/form/Select.vue';
+
+export const Template = (args, { argTypes }) => ({
+  components: { LabeledSelect },
+  props:      Object.keys(argTypes),
+  template:   '<LabeledSelect v-bind="$props" />',
+})
+
+export const TemplateSelect = (args, { argTypes }) => ({
+  components: { Select },
+  props:      Object.keys(argTypes),
+  template:   '<Select v-bind="$props" />',
+})
+
+<Meta title="Components/Form/LabeledSelect" />
+
+# FileSelector
+
+Note: need to add description 
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import LabeledSelect from '@shell/components/form/LabeledSelect';
+  `}
+/>
+
+<Canvas>
+  <Story
+    name="LabeledSelect"
+    args={{
+      label: 'Select',
+      options: [
+        { id: '1', label: 'Option One' },
+        { id: '2', label: 'Option Two' },
+      ],
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+<ArgsTable of={LabeledSelect} />
+
+
+# FileSelector
+
+<Canvas>
+  <Story
+    name="Select"
+    args={{
+      label: 'Select',
+      options: ['value01', 'value02', 'value03', 'value04']
+    }}>
+    {TemplateSelect.bind({})}
+  </Story>
+</Canvas>
+
+<ArgsTable of={Select} />
