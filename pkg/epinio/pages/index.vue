@@ -65,9 +65,9 @@ export default Vue.extend<Data, any, any, any>({
       buttonCb(true);
     },
 
-    async visibilitychange() {
+    visibilitychange() {
       if (this.canRediscover && document.visibilityState === 'visible') {
-        await await this.$store.dispatch(`${ EPINIO_MGMT_STORE }/findAll`, { type: EPINIO_TYPES.INSTANCE, opt: { force: true, load: _MERGE } });
+        this.rediscover();
       }
     },
 

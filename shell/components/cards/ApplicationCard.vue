@@ -3,7 +3,7 @@ export default {};
 </script>
 
 <template>
-  <div class="application-card mt-40">
+  <div class="application-card mt-20">
     <div class="application-card-icon">
       <!-- Image goes here -->
       <slot name="cardIcon" />
@@ -44,6 +44,10 @@ export default {};
       i {
         font-size: 60px;
         opacity: 0.7;
+      }
+
+      @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
+        padding-bottom: 0;
       }
     }
 
@@ -126,6 +130,10 @@ export default {};
             padding-right: 0%;
           }
         }
+      }
+
+      @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
+        padding-top: 0;
       }
     }
  }

@@ -7,9 +7,11 @@ import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import PlusMinus from '@shell/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
-import ApplicationCard from '~/shell/components/cards/ApplicationCard.vue';
+import ApplicationCard from '@/shell/components/cards/ApplicationCard.vue';
+
 interface Data {
 }
+
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
   components: {
@@ -70,65 +72,51 @@ export default Vue.extend<Data, any, any, any>({
         millicpus:    0,
         memoryBytes: 0,
       });
-    },
-    choseIcon() {
-      return this.value.metadata.icon || 'fa-cube';
-    },
-    setIconType() {
-      switch (this.value.sourceInfo?.label) {
-      case 'File system':
-        return 'icon-file';
-      case 'Git':
-        return 'icon-github';
-      case 'Container':
-        return 'icon-docker';
-      default:
-        return 'icon-epinio';
-      }
-    },
+    }
   }
 });
 </script>
 
 <template>
-  <div class="application-details">
-    <ApplicationCard>
-      <!-- Icon slot -->
-      <template v-slot:cardIcon>
-        <i class="icon icon-fw" :class="setIconType"></i>
-      </template>
+  <div>
+    <div class="application-details">
+      <ApplicationCard>
+        <!-- Icon slot -->
+        <template v-slot:cardIcon>
+          <i class="icon icon-fw" :class="value.sourceInfo.icon || icon-epinio"></i>
+        </template>
 
-      <!-- Routes links slot -->
-      <template v-slot:top-left>
-        <h1>Routes</h1>
-        <ul>
-          <li v-for="route in value.configuration.routes" :key="route.id">
-            <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
-            <span v-else :key="route.id + 'b'">{{ `https://${route}` }}</span>
-          </li>
-        </ul>
-      </template>
+        <!-- Routes links slot -->
+        <template v-slot:top-left>
+          <h1>Routes</h1>
+          <ul>
+            <li v-for="route in value.configuration.routes" :key="route.id">
+              <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
+              <span v-else :key="route.id + 'b'">{{ `https://${route}` }}</span>
+            </li>
+          </ul>
+        </template>
 
-      <template v-slot:top-right>
+        <template v-slot:top-right>
         <!-- // TODO: Depends on https://github.com/epinio/epinio/issues/1345 -->
-        <!-- <span>Uptime 1d 23min</span>
-        Age: 2d ago -->
-      </template>
+        <!-- <span>Uptime 1d 23min</span> -->
+        </template>
 
-      <!-- Resources count slot -->
-      <template v-slot:resourcesCount>
-        <!-- // TODO: Depends on https://github.com/epinio/epinio/issues/1471 -->
-        <!-- <div>
+        <!-- Resources count slot -->
+        <template v-slot:resourcesCount>
+          <!-- // TODO: Depends on https://github.com/epinio/epinio/issues/1471 -->
+          <!-- <div>
           {{ value.configCount }} {{ t('epinio.applications.detail.counts.config') }}
         </div> -->
-        <div>
-          {{ value.configCount }} {{ t('epinio.applications.detail.counts.services') }}
-        </div>
-        <div>
-          {{ value.envCount }} {{ t('epinio.applications.detail.counts.envVars') }}
-        </div>
-      </template>
-    </ApplicationCard>
+          <div>
+            {{ value.configCount }} {{ t('epinio.applications.detail.counts.services') }}
+          </div>
+          <div>
+            {{ value.envCount }} {{ t('epinio.applications.detail.counts.envVars') }}
+          </div>
+        </template>
+      </ApplicationCard>
+    </div>
 
     <h3 v-if="value.deployment" class="mt-20 mb-20">
       {{ t('epinio.applications.detail.deployment.label') }}
@@ -265,12 +253,12 @@ export default Vue.extend<Data, any, any, any>({
       }
     }
     .deployment__origin__list {
-      display: flex;
       ul {
         margin: 20px 0;
         padding: 0;
         display: grid;
         grid-template-columns: 1fr 1fr;
+
         li {
           margin: 5px;
           list-style: none;
