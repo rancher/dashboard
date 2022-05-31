@@ -3,7 +3,7 @@ import BrandImage from '@shell/components/BrandImage';
 import { mapGetters, mapState } from 'vuex';
 import { stringify } from '@shell/utils/error';
 import { getVendor } from '@shell/config/private-label';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 
 export default {
   layout: 'home',

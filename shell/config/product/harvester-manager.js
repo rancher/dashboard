@@ -6,6 +6,8 @@ import { allHash } from '@shell/utils/promise';
 
 export const NAME = 'harvesterManager';
 
+export const HARVESTER_NAME = 'harvester';
+
 const MACHINE_POOLS = {
   name:      'summary',
   labelKey:  'tableHeaders.machines',

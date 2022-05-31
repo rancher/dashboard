@@ -14,7 +14,7 @@ import { setBrand, setVendor } from '@shell/config/private-label';
 import { addParam } from '@shell/utils/url';
 import { SETTING } from '@shell/config/settings';
 import semver from 'semver';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 import { BACK_TO } from '@shell/config/local-storage';
 import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
 import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
@@ -454,25 +454,24 @@ export const getters = {
     if (state.isSingleProduct !== undefined) {
       return state.isSingleProduct;
     }
-
+    // TODO not this
     if (rootGetters.isSingleVirtualCluster) {
-      return {
-        logo:            require('~shell/assets/images/providers/harvester.svg'),
-        productNameKey:  'product.harvester',
-        version:         rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
-        afterLoginRoute: {
-          name:   'c-cluster-product',
-          params: { product: VIRTUAL },
-        },
-        logoRoute: {
-          name:   'c-cluster-product-resource',
-          params: {
-            product:  VIRTUAL,
-            resource: HCI.DASHBOARD,
-          }
-        },
-        enableSessionCheck: true
-      };
+      // return {
+      //   logo:            require('~shell/assets/images/providers/harvester.svg'),
+      //   productNameKey:  'product.harvester',
+      //   version:         rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
+      //   afterLoginRoute: {
+      //     name:   'c-cluster-product',
+      //     params: { product: VIRTUAL },
+      //   },
+      //   logoRoute: {
+      //     name:   'c-cluster-product-resource',
+      //     params: {
+      //       product:  VIRTUAL,
+      //       resource: HCI.DASHBOARD,
+      //     }
+      //   },
+      // };
     }
 
     return false;
