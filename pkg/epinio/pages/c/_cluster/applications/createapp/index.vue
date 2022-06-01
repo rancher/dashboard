@@ -17,7 +17,7 @@ interface Data {
   mode: string,
   errors: string[],
   source?: EpinioAppSource,
-  bindings: EpinioAppBindings,
+  bindings?: EpinioAppBindings,
   steps: any[],
 }
 
