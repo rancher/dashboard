@@ -33,6 +33,7 @@ export function init($plugin, store) {
     isCreatable: true,
     isEditable:  true,
     isRemovable: true,
+    canYaml:     true,
     customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS })
   });
 
@@ -41,6 +42,7 @@ export function init($plugin, store) {
     isCreatable: true,
     isEditable:  true,
     isRemovable: true,
+    canYaml:     true,
     customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES })
   });
 
@@ -49,6 +51,7 @@ export function init($plugin, store) {
     isCreatable: true,
     isEditable:  true,
     isRemovable: true,
+    canYaml:     true,
     customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES })
   });
   // weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS, 6, true);

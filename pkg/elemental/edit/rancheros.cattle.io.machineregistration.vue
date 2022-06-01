@@ -2,23 +2,25 @@
 import Loading from '@shell/components/Loading.vue';
 import CruResource from '@shell/components/CruResource.vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
 import Labels from '@shell/components/form/Labels';
 import DetailText from '@shell/components/DetailText';
+import AsyncButton from '@shell/components/AsyncButton';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+
 import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { saveAs } from 'file-saver';
-import AsyncButton from '@shell/components/AsyncButton';
+import { downloadFile, generateZip } from '@shell/utils/download';
+import { ISO_BUILD_INSTRUCTIONS } from '../utils/iso-build-instructions.js';
 
 export default {
   name:       'MachineRegistrationEditView',
   components: {
-    Loading, LabeledInput, CruResource, YamlEditor, Labels, Banner, FileSelector, DetailText, AsyncButton
+    Loading, CruResource, YamlEditor, Labels, Banner, FileSelector, DetailText, AsyncButton, NameNsDescription
   },
   mixins:     [CreateEditView],
   props:      {
@@ -32,7 +34,11 @@ export default {
     },
   },
   data() {
-    return { cloudConfig: typeof this.value.spec.cloudConfig === 'string' ? this.value.spec.cloudConfig : saferDump(this.value.spec.cloudConfig), yamlErrors: null };
+    return {
+      cloudConfig:  typeof this.value.spec.cloudConfig === 'string' ? this.value.spec.cloudConfig : saferDump(this.value.spec.cloudConfig),
+      yamlErrors:   null,
+      instructions: ISO_BUILD_INSTRUCTIONS
+    };
   },
   watch: {
     cloudConfig: {
@@ -91,17 +97,44 @@ export default {
         component.updateValue(value);
       }
     },
-    async downloadRegistrationUrl(btnCb) {
+    async getMachineRegistrationData() {
       const url = `${ window.location.origin }/v1-rancheros/registration/${ this.value.status.registrationToken }`;
 
       try {
         const inStore = this.$store.getters['currentStore']();
         const res = await this.$store.dispatch(`${ inStore }/request`, { url, responseType: 'blob' });
-        const fileName = `${ this.value.metadata.name }_registrationURL.yaml`;
+        const machineRegFileName = `${ this.value.metadata.name }_registrationURL.yaml`;
 
-        saveAs(res.data, fileName);
-        btnCb(true);
+        return {
+          data:     res.data,
+          fileName: machineRegFileName
+        };
       } catch (e) {
+        return { error: e };
+      }
+    },
+    async downloadZip(btnCb) {
+      const machineReg = await this.getMachineRegistrationData();
+
+      if (machineReg.data) {
+        const zipData = {};
+        const instructionsData = {
+          data:     new Blob([this.instructions], { type: 'text/markdown; charset=UTF-8' }),
+          fileName: 'instructions.md'
+        };
+
+        zipData[machineReg.fileName] = machineReg.data;
+        zipData[instructionsData.fileName] = instructionsData.data;
+
+        try {
+          const zip = await generateZip(zipData);
+
+          downloadFile('generate_iso_image.zip', zip, 'application/zip');
+          btnCb(true);
+        } catch (error) {
+          btnCb(false);
+        }
+      } else {
         btnCb(false);
       }
     }
@@ -114,7 +147,7 @@ export default {
   <CruResource
     v-else
     :done-route="doneRoute"
-    :can-yaml="false"
+    :can-yaml="true"
     :mode="mode"
     :resource="value"
     :errors="errors"
@@ -126,19 +159,11 @@ export default {
       v-if="hasBeenCreated"
       class="row mt-40 mb-40"
     >
-      <div class="col span-6">
-        <h3>{{ t('elemental.machineRegistration.create.registrationToken') }}</h3>
-        <DetailText
-          :value="value.status.registrationToken"
-          :label="t('elemental.machineRegistration.create.registrationToken')"
-          :conceal="true"
-        />
-      </div>
-      <div class="col span-6">
-        <h3>{{ t('elemental.machineRegistration.create.registrationURL') }}</h3>
+      <div class="col span-8">
+        <h3>{{ t('elemental.machineRegistration.create.registrationURL.title') }}</h3>
         <DetailText
           :value="value.status.registrationURL"
-          :label="t('elemental.machineRegistration.create.registrationURL')"
+          :label="t('elemental.machineRegistration.create.registrationURL.label')"
         />
       </div>
     </div>
@@ -148,47 +173,16 @@ export default {
     >
       <div class="col span-12">
         <h3>Setting up an OS image</h3>
-        <ul class="instructions">
-          <li>
-            <span class="instructionsTitle">1) Download the Machine Registration</span>
-            <span class="ml-10"><AsyncButton mode="download" @click="downloadRegistrationUrl" /></span>
-          </li>
-          <li>
-            <p class="instructionsTitle">
-              2) Create a generic OS image with additional tooling (like cos-toolkit and e.g. xorriso for ISO creation)
-            </p>
-            <p><code>git clonehttps://github.com/rancher-sandbox/os2.git</code></p>
-            <p><code>cd os2</code></p>
-            <p><code>docker build -f Dockerfile .</code></p>
-          </li>
-          <li>
-            <p class="instructionsTitle">
-              3) Create the required ISO/vm/cloud image with the embedded token
-            </p>
-            <p><code>git clone https://github.com/rancher-sandbox/rancher-node-image.git</code></p>
-            <p><code>cd rancher-node-image</code></p>
-            <p><code>./elemental-iso-build "--the-image-you-built-in-step1--" "--format--" "-registrationData-"</code></p>
-            <p>Example: <code>elemental-iso-build 2641311c7f67 iso ./cxggjsnlppn9sl7g69j9srnzl7v9ljhv8qp8h9b7kmfxkfgl4br4mr</code></p>
-          </li>
-          <li>
-          </li>
-        </ul>
+        <p>Download the instructions and machine registration file <AsyncButton class="ml-10" mode="download" @click="downloadZip" /></p>
       </div>
     </div>
     <div
       class="row mb-40"
       :class="{'mt-40': !hasBeenCreated }"
     >
-      <div class="col span-6">
+      <div class="col span-12">
         <h3>{{ t('elemental.machineRegistration.create.configuration') }}</h3>
-        <LabeledInput
-          v-model.trim="value.metadata.name"
-          :required="true"
-          :label="t('elemental.machineRegistration.create.name.label')"
-          :placeholder="t('elemental.machineRegistration.create.name.placeholder', null, true)"
-          :mode="mode"
-          :disabled="!isCreate"
-        />
+        <NameNsDescription v-model="value" :mode="mode" :description-hidden="true" />
       </div>
     </div>
     <div class="row mb-20">
@@ -226,22 +220,4 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.instructions {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-
-  li {
-    margin-bottom: 20px;
-
-    .instructionsTitle {
-      text-decoration: underline;
-      margin-bottom: 10px;
-    }
-
-    code {
-      margin-bottom: 10px;
-    }
-  }
-}
 </style>
