@@ -14,12 +14,6 @@ During the transition to the new folder structured in 2.6.5 required by the plug
 For more information on plugins see [Plugins](./docs/developer/PLUGINS.md).
 
 ## Running for Development
-Create an `.env` file, this will allow us to specify a Rancher API endpoint and exclude different packages.
-```bash
-# Create your new .env file
-cp env.template .env
-```
-
 This is what you probably want to get started.
 ```bash
 # Install dependencies
