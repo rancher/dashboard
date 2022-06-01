@@ -33,7 +33,7 @@ export default {
   },
 
   async request({ rootGetters, dispatch, getters }: any, {
-    opt, type, clusterId, growlOnError = true
+    opt, type, clusterId, growlOnError = false
   }: any) {
     const spoofedRes = await handleSpoofedRequest(rootGetters, EPINIO_PRODUCT_NAME, opt, EPINIO_PRODUCT_NAME);
 
