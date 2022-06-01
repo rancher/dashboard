@@ -5,7 +5,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import { Card } from '@components/Card';
 import CommunityLinks from '@shell/components/CommunityLinks';
-import { MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT, SERVICE } from '@shell/config/types';
 import { getVendor, setBrand } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
@@ -89,7 +89,7 @@ export default {
         return false;
       }
 
-      return `${ this.cspAdapter.proxyUrl('https', '443') }generate/supportconfig`;
+      return `${ this.cspAdapter.proxyUrl('https', '443') }v1/generateSUSERancherSupportConfig`;
     },
 
     hasSupport() {
