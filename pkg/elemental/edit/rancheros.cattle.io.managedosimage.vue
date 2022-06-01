@@ -1,16 +1,18 @@
 <script>
-import { CAPI } from '@shell/config/types';
 import Loading from '@shell/components/Loading.vue';
 import CruResource from '@shell/components/CruResource.vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
+
 import { _CREATE } from '@shell/config/query-params';
+import { CAPI } from '@shell/config/types';
 
 export default {
   name:       'ManagedOsImagesEditView',
   components: {
-    Loading, LabeledInput, LabeledSelect, CruResource
+    Loading, LabeledInput, LabeledSelect, CruResource, NameNsDescription
   },
   mixins:     [CreateEditView],
   props:      {
@@ -76,7 +78,7 @@ export default {
   <CruResource
     v-else
     :done-route="doneRoute"
-    :can-yaml="false"
+    :can-yaml="true"
     :mode="mode"
     :resource="value"
     :errors="errors"
@@ -85,16 +87,9 @@ export default {
     @cancel="done"
   >
     <div class="row mt-40 mb-20">
-      <div class="col span-6 mb-20">
+      <div class="col span-12 mb-20">
         <h3>{{ t('elemental.osimage.create.configuration') }}</h3>
-        <LabeledInput
-          v-model.trim="value.metadata.name"
-          :required="true"
-          :label="t('elemental.osimage.create.name.label')"
-          :placeholder="t('elemental.osimage.create.name.placeholder', null, true)"
-          :mode="mode"
-          :disabled="!isCreate"
-        />
+        <NameNsDescription v-model="value" :mode="mode" :description-hidden="true" />
       </div>
     </div>
     <div v-if="value.spec" class="row mb-20">
