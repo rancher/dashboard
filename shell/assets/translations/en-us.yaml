@@ -3508,6 +3508,7 @@ persistentVolumeClaim:
       new: Use a Storage Class to provision a new Persistent Volume
       existing: Use an existing Persistent Volume
   expand:
+    label: Expand
     notSupported: Storage class does not support volume expansion
     notBound: Only bound PVCs can be expanded
   volumeClaim:
