@@ -6657,6 +6657,12 @@ branding:
     uploadLight: Upload Light Logo
     uploadDark: Upload Dark Logo
     useCustom: Use a Custom Logo
+  favicon:
+    label: Favicon
+    tip: 'Upload an icon to replace the Rancher favicon in the browser tab. Max file size is 20KB'
+    preview: Favicon Preview
+    upload: Upload Favicon
+    useCustom: Use a Custom Favicon
   options:
     default: Default Rancher Theme
     suse: SUSE Theme
