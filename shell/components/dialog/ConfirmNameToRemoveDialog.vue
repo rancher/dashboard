@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { alternateLabel } from '@shell/utils/platform';
 import AsyncButton from '@shell/components/AsyncButton';
@@ -21,7 +20,11 @@ export default {
     CopyToClipboardText
   },
 
-  props:      {
+  props:  {
+    /**
+     * @property resources to be deleted.
+     * @type {Resource[]} Array of the resource model's instance
+     */
     resources: {
       type:     Array,
       required: true
@@ -33,16 +36,12 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ t: 'i18n/t' }),
-
     nameToMatch() {
       return this.resources[0].nameDisplay;
     },
 
     deleteDisabled() {
-      const confirmFailed = this.confirmName !== this.nameToMatch;
-
-      return this.preventDelete || confirmFailed;
+      return this.confirmName !== this.nameToMatch;
     },
 
     protip() {
