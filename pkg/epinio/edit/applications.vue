@@ -58,13 +58,11 @@ export default Vue.extend<Data, any, any, any>({
       try {
         await this.value.update();
 
-        console.warn('save', 'updateConfigurations', this.initialValue.baseConfigurationsNames, this.bindings?.configurations);
         await this.value.updateConfigurations(
           this.initialValue.baseConfigurationsNames || [],
           this.bindings?.configurations || [],
         );
 
-        console.warn('save', 'updateServices', this.initialValue.services, this.bindings?.services);
         await this.value.updateServices(
           this.initialValue.services || [],
           this.bindings?.services || [],
