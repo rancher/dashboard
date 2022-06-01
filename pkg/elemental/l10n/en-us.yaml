@@ -49,7 +49,9 @@ elemental:
   machineRegistration:
     create:
       registrationToken: Registration Token
-      registrationURL: Registration URL
+      registrationURL: 
+        title: Registration URL (ends with registration token)
+        label: Registration URL
       configuration: Configuration
       cloudConfiguration: Cloud Configuration
       readFromFile: Read from File
