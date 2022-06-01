@@ -6743,6 +6743,7 @@ support:
     addLabel: "Please enter a valid Subscription ID:"
     removeTitle: Remove your ID?
     removeBody: "Note: This will not affect your subscription."
+
   suse:
     title: "Great News - You're covered"
     editBrand: Customize UI Theme
@@ -6750,6 +6751,9 @@ support:
       title: Get Support
       text: Login to SUSE Customer Center to access support for your subscription
       action: SUSE Customer Center
+      aws:
+        generateConfig: Generate Support Config
+        text: 'Login to SUSE Customer Center to access support for your subscription. Need to open a new support case? Download a support config file below.'
   promos:
     one:
       title: 24x7 Support
