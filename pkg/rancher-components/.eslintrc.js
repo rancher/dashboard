@@ -9,8 +9,9 @@ module.exports = {
   ],
   parserOptions: { ecmaVersion: 2020 },
   rules:         {
-    'vue/no-mutating-props':                'warn',
-    '@typescript-eslint/no-empty-function': ['error', { allow: ['arrowFunctions'] }]
+    'vue/no-mutating-props':                    'warn',
+    '@typescript-eslint/no-empty-function':     ['error', { allow: ['arrowFunctions'] }],
+    '@typescript-eslint/no-non-null-assertion': 'off'
   },
   settings:      { 'import/ignore': ['vue'] },
   overrides:     [

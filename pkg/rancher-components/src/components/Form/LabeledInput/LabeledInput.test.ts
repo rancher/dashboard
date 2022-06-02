@@ -15,7 +15,6 @@ describe('component: LabeledInput', () => {
     jest.useRealTimers();
 
     expect(wrapper.emitted('input')).toHaveLength(1);
-    /* eslint-disable @typescript-eslint/no-non-null-assertion */
     expect(wrapper.emitted('input')![0][0]).toBe(value);
   });
 });
