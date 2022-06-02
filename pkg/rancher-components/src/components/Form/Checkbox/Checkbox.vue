@@ -6,7 +6,7 @@ import { addObject, removeObject } from '@shell/utils/array';
 export default Vue.extend({
   props: {
     value: {
-      type:    [Boolean, Array as () => boolean[]],
+      type:    [Boolean, Array] as PropType<boolean | boolean[]>,
       default: false
     },
 
