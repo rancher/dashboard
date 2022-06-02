@@ -58,21 +58,6 @@ export default Vue.extend<Data, any, any, any>({
 
       return `${ matchGithub?.[4] }/${ matchGithub?.[5] }`;
     }
-  },
-  computed: {
-    resourcesUssage() {
-      return this.value.instances?.reduce((acc: any, curr: { millicpus: number; memoryBytes: number }) => {
-        acc = {
-          millicpus:   acc.millicpus += curr.millicpus,
-          memoryBytes: acc.memoryBytes += curr.memoryBytes / (1024 * 1024) // bytes to megabytes
-        };
-
-        return acc;
-      }, {
-        millicpus:    0,
-        memoryBytes: 0,
-      });
-    }
   }
 });
 </script>
@@ -182,15 +167,15 @@ export default Vue.extend<Data, any, any, any>({
               </thead>
               <tr>
                 <td>{{ t('tableHeaders.memory') }}</td>
-                <td>{{ resourcesUssage.memoryBytes.toFixed(2) }} MiB</td>
-                <td>{{ resourcesUssage.memoryBytes.toFixed(2) }} MiB</td>
-                <td>{{ (resourcesUssage.memoryBytes / value.instances.length).toFixed(2) }} MiB</td>
+                <td>{{ value.instanceMemory.min }} MiB</td>
+                <td>{{ value.instanceMemory.max }} MiB</td>
+                <td>{{ value.instanceMemory.avg }} MiB</td>
               </tr>
               <tr>
                 <td>{{ t('tableHeaders.cpu') }}</td>
-                <td>{{ resourcesUssage.millicpus.toFixed(2) }} m</td>
-                <td>{{ resourcesUssage.millicpus.toFixed(2) }} m</td>
-                <td>{{ (resourcesUssage.millicpus / value.instances.length).toFixed(2) }} m</td>
+                <td>{{ value.instanceCpu.min }} m</td>
+                <td>{{ value.instanceCpu.max }} m</td>
+                <td>{{ value.instanceCpu.avg }} m</td>
               </tr>
             </table>
           </div>
