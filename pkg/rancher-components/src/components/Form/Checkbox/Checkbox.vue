@@ -71,9 +71,6 @@ export default Vue.extend({
   },
 
   methods: {
-    isCustomEvent(event: Event): event is CustomEvent {
-      return ['shiftKey', 'altKey', 'ctrlKey', 'metaKey'].every(key => key in event);
-    },
     clicked(event: MouseEvent): boolean | void {
       if ((event.target as HTMLLinkElement).tagName === 'A' && (event.target as HTMLLinkElement).href) {
         // Ignore links inside the checkbox label so you can click them
@@ -95,10 +92,6 @@ export default Vue.extend({
         ctrlKey:    event.ctrlKey,
         metaKey:    event.metaKey
       };
-
-      if (!this.isCustomEvent(event)) {
-        return;
-      }
 
       const click = new CustomEvent('click', customEvent);
 
