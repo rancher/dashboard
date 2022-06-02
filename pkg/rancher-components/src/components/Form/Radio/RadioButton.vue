@@ -74,12 +74,8 @@ export default Vue.extend({
   },
 
   methods: {
-    clicked(e: Event) {
-      if (this.isDisabled) {
-        return;
-      }
-
-      if ((e.target as HTMLElement)?.tagName === 'A') {
+    clicked({ target }: { target?: HTMLElement }) {
+      if (this.isDisabled || target?.tagName === 'A') {
         return;
       }
 

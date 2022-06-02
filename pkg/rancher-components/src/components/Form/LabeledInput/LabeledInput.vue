@@ -10,7 +10,7 @@ import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
 
 export default (
-  Vue as VueConstructor<Vue & InstanceType<typeof LabeledFormElement>& InstanceType<typeof CompactInput>>
+  Vue as VueConstructor<Vue & InstanceType<typeof LabeledFormElement> & InstanceType<typeof CompactInput>>
 ).extend({
   components: { LabeledTooltip, TextAreaAutoGrow },
   mixins:     [LabeledFormElement, CompactInput],
@@ -126,7 +126,7 @@ export default (
   },
 
   methods: {
-    focus() {
+    focus(): void {
       const comp = this.$refs.value as HTMLInputElement;
 
       if (comp) {
@@ -134,7 +134,7 @@ export default (
       }
     },
 
-    select() {
+    select(): void {
       const comp = this.$refs.value as HTMLInputElement;
 
       if (comp) {
@@ -146,15 +146,15 @@ export default (
      * Emit on input with delay
      * Note: Arrow function is avoided due context binding
      */
-    delayInput(value: string | number | Record<string, unknown>) {
+    delayInput(value: string): void {
       this.$emit('input', value);
     },
 
-    onFocus() {
+    onFocus(): void {
       this.onFocusLabeled();
     },
 
-    onBlur(event: string | number | Record<string, unknown>) {
+    onBlur(event: string): void {
       this.$emit('blur', event);
       this.onBlurLabeled();
     },

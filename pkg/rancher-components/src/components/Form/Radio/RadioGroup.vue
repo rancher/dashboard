@@ -1,11 +1,11 @@
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import RadioButton from '@components/Form/Radio/RadioButton.vue';
 
-interface option {
-  value: boolean | string | Record<string, unknown> | unknown,
-  label: string | unknown
+interface Option {
+  value: unknown,
+  label: string
 }
 
 export default Vue.extend({
@@ -19,13 +19,13 @@ export default Vue.extend({
 
     // Options can be an array of {label, value}, or just values
     options: {
-      type:     Array,
+      type:     Array as PropType<Option[] | string[]>,
       required: true
     },
 
     // If options are just values, then labels can be a corresponding display value
     labels: {
-      type:    Array,
+      type:    Array as PropType<string[]>,
       default: null
     },
 
@@ -73,14 +73,14 @@ export default Vue.extend({
   },
 
   computed: {
-    normalizedOptions(): option[] {
-      const out = [];
+    normalizedOptions(): Option[] {
+      const out: Option[] = [];
 
       for (let i = 0; i < this.options.length; i++) {
         const opt = this.options[i];
 
         if (typeof opt === 'object' && opt) {
-          out.push(opt as option);
+          out.push(opt);
         } else if (this.labels) {
           out.push({
             label: this.labels[i],
@@ -108,7 +108,7 @@ export default Vue.extend({
 
   methods: {
     // keyboard left/right event listener to select next/previous option
-    clickNext(direction: number) {
+    clickNext(direction: number): void {
       const opts = this.normalizedOptions;
       const selected = opts.find(x => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;

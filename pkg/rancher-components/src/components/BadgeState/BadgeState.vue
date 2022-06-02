@@ -47,11 +47,11 @@ export default Vue.extend({
   },
 
   computed: {
-    bg(): string {
+    bg(): string | null {
       return this.value?.stateBackground || this.color;
     },
 
-    msg(): string {
+    msg(): string | null {
       return this.value?.stateDisplay || this.label;
     }
   }

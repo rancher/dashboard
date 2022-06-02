@@ -1,12 +1,12 @@
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 
 export default Vue.extend({
   props: {
     value: {
-      type:    [Boolean, Array as () => Array<boolean>],
+      type:    [Boolean, Array as () => boolean[]],
       default: false
     },
 
@@ -72,12 +72,9 @@ export default Vue.extend({
 
   methods: {
     isCustomEvent(event: Event): event is CustomEvent {
-      return 'shifKey' in event &&
-      'altKey' in event &&
-      'ctrlKey' in event &&
-      'metaKey' in event;
+      return ['shiftKey', 'altKey', 'ctrlKey', 'metaKey'].every(key => key in event);
     },
-    clicked(event: MouseEvent) {
+    clicked(event: MouseEvent): boolean | void {
       if ((event.target as HTMLLinkElement).tagName === 'A' && (event.target as HTMLLinkElement).href) {
         // Ignore links inside the checkbox label so you can click them
         return true;
@@ -123,7 +120,7 @@ export default Vue.extend({
       return Array.isArray(value);
     },
 
-    findTrueValues(value: boolean[]) {
+    findTrueValues(value: boolean[]): boolean {
       const lookup = value.find(v => v === this.valueWhenTrue);
 
       if (typeof lookup === 'undefined') {

@@ -82,16 +82,16 @@ export default Vue.extend({
   },
 
   methods: {
-    onInput(val: string) {
+    onInput(val: string): void {
       this.$emit('input', val);
       this.queueResize();
     },
 
-    focus() {
+    focus(): void {
       (this.$refs?.ta as HTMLElement).focus();
     },
 
-    autoSize() {
+    autoSize(): void {
       const el = this.$refs.ta as HTMLElement;
 
       if (!el) {
