@@ -2,7 +2,7 @@
 import isEmpty from 'lodash/isEmpty';
 import { createYaml } from '@shell/utils/create-yaml';
 import { clone } from '@shell/utils/object';
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
@@ -12,6 +12,7 @@ import CruResourceFooter from '@shell/components/CruResourceFooter';
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
 } from '@shell/config/query-params';
+
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 
 export default {
@@ -102,12 +103,20 @@ export default {
   data(props) {
     const yaml = this.createResourceYaml();
 
+    this.$on('createNamespace', (e) => {
+      // When createNamespace is set to true,
+      // the UI will attempt to create a new namespace
+      // before saving the resource.
+      this.createNamespace = e;
+    });
+
     return {
-      isCancelModal: false,
-      showAsForm:    this.$route.query[AS] !== _YAML,
-      resourceYaml:  yaml,
-      initialYaml:   yaml,
-      abbrSizes:     {
+      isCancelModal:   false,
+      createNamespace: false,
+      showAsForm:      this.$route.query[AS] !== _YAML,
+      resourceYaml:    yaml,
+      initialYaml:     yaml,
+      abbrSizes:       {
         3: '24px',
         4: '18px',
         5: '16px',
@@ -257,10 +266,32 @@ export default {
       this.$emit('select-type', id);
     },
 
+    clickSave(e) {
+      this.createNamespaceIfNeeded();
+      this.$emit('finish', e);
+    },
+
     save() {
       this.$refs.save.clicked();
     },
 
+    async createNamespaceIfNeeded() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      if (this.createNamespace) {
+        try {
+          const newNamespace = await this.$store.dispatch(`${ inStore }/create`, {
+            type:     NAMESPACE,
+            metadata: { name: this.resource.metadata.namespace }
+          }, { root: true });
+
+          newNamespace.applyDefaults();
+          newNamespace.save();
+        } catch (error) {
+          throw new Error(`Could not create the new namespace. ${ error }`);
+        }
+      }
+    },
   }
 };
 </script>
@@ -381,7 +412,7 @@ export default {
                   ref="save"
                   :disabled="!canSave"
                   :mode="finishButtonMode || mode"
-                  @click="$emit('finish', $event)"
+                  @click="clickSave($event)"
                 />
               </div>
             </template>
