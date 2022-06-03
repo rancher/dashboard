@@ -73,7 +73,7 @@ export default (
   },
 
   computed: {
-    onInput(): any | void {
+    onInput(): ((value: string) => void) | void {
       return this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
     },
 
