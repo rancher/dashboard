@@ -1,9 +1,9 @@
-import { HCI } from '@/config/types';
-import { get } from '@/utils/object';
-import { findBy } from '@/utils/array';
-import { colorForState } from '@/plugins/steve/resource-class';
-import SteveModel from '@/plugins/steve/steve-class';
-import { _CREATE } from '@/config/query-params';
+import { HCI } from '@shell/config/types';
+import { get } from '@shell/utils/object';
+import { findBy } from '@shell/utils/array';
+import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import SteveModel from '@shell/plugins/steve/steve-class';
+import { _CREATE } from '@shell/config/query-params';
 
 export default class HciVmBackup extends SteveModel {
   detailPageHeaderActionOverride(realMode) {
