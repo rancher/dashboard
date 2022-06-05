@@ -172,7 +172,8 @@ export interface ResourceProperties {
     // as a property in the Resource class
     __clone?: CloneObject,
     __rehydrate?: RehydrateObject,
-    state?: string,
+    state?: STATES_ENUM,
+    _state?: STATES_ENUM,
     displayName?: string,
     name?: string,
     $getters?: any,

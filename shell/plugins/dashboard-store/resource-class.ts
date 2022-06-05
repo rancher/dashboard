@@ -58,15 +58,17 @@ export default class Resource implements ResourceProperties {
   displayName?: string | undefined;
   name?: string | undefined;
   transitioning = false;
-  // Use a default state because it must be an enumerated type
-  // state: STATE_TYPE = 'UNKNOWN';
-  state: STATES_ENUM = STATES_ENUM.UNKNOWN;
+
   // Links can include anything, such as self, update, shell,
   // sshKeys, update, nodeConfig
   links: MapOfStrings = {};
   status: Conditions = { conditions: [] };
   isSpoofed = false;
   _type = '';
+
+  // Use a default state because it must be an enumerated type
+  // state: STATE_TYPE = 'UNKNOWN';
+  _state = STATES_ENUM.UNKNOWN
 
   actions: MapOfStrings = {};
   actionLinks: MapOfStrings = {};
@@ -132,6 +134,14 @@ export default class Resource implements ResourceProperties {
     Object.defineProperty(this, '$state', { value: this.$ctx.state });
 
     Object.defineProperty(this, '$rootState', { value: this.$ctx.rootState });
+  }
+
+  get state(): STATES_ENUM {
+    return this._state;
+  }
+
+  set state(val: STATES_ENUM) {
+    this._state = val;
   }
 
   get customValidationRules(): CustomValidationRule[] {
