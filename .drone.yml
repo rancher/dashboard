@@ -196,6 +196,17 @@ steps:
     token:
       from_secret: google_auth_key
 
+- name: create-pr-in-rancher
+  image: curlimages/curl:7.81.0
+  user: root
+  environment:
+    PAT_USERNAME:
+      from_secret: pat_username
+    PAT_TOKEN:
+      from_secret: github_token
+  commands:
+  - apk -U --no-cache add bash
+  - scripts/create-pr-in-rancher
 ---
 kind: pipeline
 name: embedded-master
@@ -308,3 +319,19 @@ steps:
     target: releases.rancher.com/dashboard/${DRONE_TAG}.tar.gz
     token:
       from_secret: google_auth_key
+
+---
+
+kind: pipeline
+name: fossa
+
+steps:
+- name: fossa
+  image: rancher/drone-fossa:latest
+  settings:
+    api_key:
+      from_secret: FOSSA_API_KEY
+  when:
+    instance:
+      - drone-publish.rancher.io
+

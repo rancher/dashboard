@@ -1,0 +1,182 @@
+$btn-padding: 0 21px 0 21px;
+$btn-sm-padding: 0 7px 0 7px;
+$btn-height: 40px;
+$btn-sm-height: 30px;
+
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the button component.
+// -----------------------------------------------------------------------------
+.btn,
+button,
+[class^='btn-'] {
+  align-items: center;
+  display: inline-flex;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: 0;
+  padding: $btn-padding;
+  border-radius: var(--border-radius);
+  color: var(--lightest);
+  line-height: $btn-height;
+  min-height: $btn-height;
+
+  > .icon:not(:only-child) {
+    margin-right: 6px;
+  }
+
+  &:hover {
+    text-decoration: none;
+    color: var(--lightest);
+  }
+
+  &.bg-transparent {
+    color: var(--body-text);
+  }
+}
+
+//icon button
+.icon-btn {
+  padding: 0;
+  line-height: initial;
+
+  &.btn-sm {
+    padding: 0;
+  }
+
+  span {
+    padding: 0 10px 0 5px;
+    vertical-align: middle;
+  }
+}
+
+.btn-sm,
+.btn-group-sm > .btn,
+.btn-sm .btn-label {
+  padding: $btn-sm-padding;
+  min-height: $btn-sm-height;
+  line-height: 28px;
+}
+
+//btn roles
+.role-primary {
+  background: var(--primary);
+  color: var(--primary-text);
+
+  &:hover, &._hover {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text);
+  }
+
+  &:focus, &.focused {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text);
+  }
+}
+
+.role-secondary {
+  background: transparent;
+  color: var(--primary) !important;
+  border: solid 1px var(--primary);
+  line-height: $btn-height - 2px;
+
+  &:hover, &._hover {
+    color: var(--lightest) !important;
+  }  
+
+  &:focus, &.focused {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text) !important;
+  }
+
+  &.btn-sm {
+    line-height: $btn-sm-height;
+  }
+}
+
+.role-tertiary {
+  background: var(--accent-btn);
+  border: solid 1px var(--primary);
+  color: var(--primary);
+
+  &:focus, &.focused {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text);
+  }
+
+  &.btn:not(.btn-sm) {
+    line-height: $btn-height - 2px;
+  }
+}
+
+.role-link {
+  background: transparent;
+  color: var(--link) !important;
+}
+
+.role-multi-action {
+  background: var(--accent-btn);
+  border: solid thin var(--primary);
+  color: var(--primary);
+  border-radius: 2px;
+}
+
+.icon-group i {
+  font-size: 1.5em;
+}
+
+//disabled
+.btn-disabled,
+.btn.disabled,
+.btn[disabled],
+fieldset[disabled] .btn {
+  cursor: not-allowed;
+  color: var(--disabled-text) !important;
+  &:not(.role-link){
+    background-color: var(--disabled-bg) !important;
+  }
+}
+
+.btn-group {
+  position: relative;
+  text-align: initial;
+  vertical-align: middle;
+  padding: 0;
+  border-radius: var(--border-radius);
+
+  .btn {
+    position: relative;
+    display: inline-flex;
+    border-radius: 0;
+    text-align: center;
+
+    &:focus {
+      // Move the focused one to the top so that the focus ring is all visible
+      z-index: 1;
+    }
+
+    &.active {
+      @extend .bg-primary;
+    }
+
+    &:first-child {
+      border-top-left-radius: var(--border-radius);
+      border-bottom-left-radius: var(--border-radius);
+    }
+
+    &:last-child {
+      border-top-right-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
+    }
+  }
+
+  .btn[disabled] {
+    // Ensure disabled button's border remains as-is, otherwise button appears vertically shorter than others in group
+    border: inherit;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@rancher/create-pkg",
+  "description": "Rancher UI Package generator",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "author": "SUSE",
+  "private": false,
+  "bin": "./init",
+  "files": [
+    "*.*",
+    "init"
+  ],
+  "engines": {
+    "node": ">=12"
+  },
+  "dependencies": {
+    "fs-extra": "^10.0.0"
+  }
+}
