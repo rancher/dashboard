@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { load } from 'js-yaml';
-import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/dashboard-store/resource-utils';
 import { POD, NODE, HCI, PVC } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 import { parseSi } from '@shell/utils/units';

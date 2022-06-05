@@ -1,7 +1,7 @@
 import { HCI } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { findBy } from '@shell/utils/array';
-import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/dashboard-store/resource-utils';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 export default class HciVmBackup extends SteveModel {

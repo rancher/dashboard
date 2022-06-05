@@ -81,7 +81,7 @@ Md5.prototype.digest = function(encoding) {
   }
 
   // eslint-disable-next-line node/no-deprecated-api, unicorn/no-new-buffer
-  const buff = new Buffer(out.buffer, out.byteOffset, out.byteLength);
+  const buff = new Buffer.alloc(out.buffer, out.byteOffset, out.byteLength);
 
   return encoding ? buff.toString(encoding) : buff;
 };

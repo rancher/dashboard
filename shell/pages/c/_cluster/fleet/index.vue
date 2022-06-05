@@ -2,7 +2,9 @@
 import { mapState } from 'vuex';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
-import { STATES_ENUM, STATES, getStateLabel } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES } from '@shell/plugins/dashboard-store/resource-constants';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/types/rancher-api-types';
+import { getStateLabel } from '@shell/plugins/dashboard-store/resource-utils';
 import { allHash } from '@shell/utils/promise';
 import Loading from '@shell/components/Loading';
 import CollapsibleCard from '@shell/components/CollapsibleCard.vue';

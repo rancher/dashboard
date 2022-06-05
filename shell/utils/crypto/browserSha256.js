@@ -162,8 +162,8 @@ Sha256.prototype.digest = function(encoding) {
   }
   // The value in state is little-endian rather than big-endian, so flip
   // each word into a new Uint8Array
-  // eslint-disable-next-line node/no-deprecated-api, unicorn/no-new-buffer
-  const out = new Buffer(DIGEST_LENGTH);
+  // eslint-disable-next-line n/no-deprecated-api, unicorn/no-new-buffer
+  const out = new Buffer.alloc(DIGEST_LENGTH);
 
   for (let i = 0; i < 8; i++) {
     out[i * 4] = (this.state[i] >>> 24) & 0xFF;

@@ -1,4 +1,4 @@
-/* eslint-disable node/no-deprecated-api, unicorn/no-new-buffer */
+/* eslint-disable n/no-deprecated-api, unicorn/no-new-buffer */
 import { Buffer } from 'buffer';
 import Md5 from './browserMd5';
 import Sha256 from './browserSha256';
@@ -18,7 +18,7 @@ export function base64Encode(string, alphabet = NORMAL) {
   if ( typeof Buffer.from === 'function' && Buffer.from !== Uint8Array.from ) {
     buf = Buffer.from(string);
   } else {
-    buf = new Buffer(string);
+    buf = new Buffer.alloc(string);
   }
   if (alphabet === URL) {
     const m = {
@@ -40,7 +40,7 @@ export function base64DecodeToBuffer(string) {
   if ( typeof Buffer.from === 'function' && Buffer.from !== Uint8Array.from ) {
     return Buffer.from(string, 'base64');
   } else {
-    return new Buffer(string, 'base64');
+    return new Buffer.alloc(string, 'base64');
   }
 }
 
@@ -89,7 +89,7 @@ function hash(algorithm, data, digest, callback) {
   }
 
   if ( typeof data === 'string' ) {
-    data = new Buffer(data);
+    data = new Buffer.alloc(data);
   }
 
   const sliceFn = arraySliceFn(data);
@@ -122,7 +122,7 @@ function hash(algorithm, data, digest, callback) {
     };
 
     reader.onload = function() {
-      const buf = new Buffer(new Uint8Array(reader.result));
+      const buf = new Buffer.alloc(new Uint8Array(reader.result));
 
       hash.update(buf);
       index += buf.length;
@@ -148,7 +148,7 @@ function hash(algorithm, data, digest, callback) {
     reader._continueReading();
   } else {
     if ( typeof data === 'object' && !isBuffer ) {
-      data = new Buffer(new Uint8Array(data));
+      data = new Buffer.alloc(new Uint8Array(data));
     }
 
     const out = hash.update(data).digest(digest);

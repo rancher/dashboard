@@ -1,5 +1,5 @@
 import { insertAt } from '@shell/utils/array';
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-utils';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';

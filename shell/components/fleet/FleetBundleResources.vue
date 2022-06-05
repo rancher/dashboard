@@ -1,5 +1,5 @@
 <script>
-import { colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-utils';
 import SortableTable from '@shell/components/SortableTable';
 import { randomStr } from '~shell/utils/string';
 

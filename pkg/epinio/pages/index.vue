@@ -8,7 +8,7 @@ import { EPINIO_MGMT_STORE, EPINIO_TYPES } from '../types';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 import { _MERGE } from '@shell/plugins/dashboard-store/actions';
-import { STATES_ENUM, STATE_TYPE } from '@shell/plugins/dashboard-store/types/rancher-api-types';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/types/rancher-api-types';
 
 interface Cluster extends Resource{
   id: string,

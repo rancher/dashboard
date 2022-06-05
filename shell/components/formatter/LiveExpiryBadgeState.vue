@@ -1,7 +1,7 @@
 <script>
 import day from 'dayjs';
 import { BadgeState } from '@components/BadgeState';
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-utils';
 import { safeSetTimeout } from '@shell/utils/time';
 
 export default {

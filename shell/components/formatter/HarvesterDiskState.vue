@@ -1,6 +1,6 @@
 <script>
 import { BadgeState } from '@components/BadgeState';
-import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-utils';
 
 const ACTIVE = 'healthy';
 const WARNING = 'warning';

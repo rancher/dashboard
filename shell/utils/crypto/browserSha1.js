@@ -82,7 +82,7 @@ Sha1.prototype.digest = function(encoding) {
   // The value in state is little-endian rather than big-endian, so flip
   // each word into a new Uint8Array
   // eslint-disable-next-line node/no-deprecated-api, unicorn/no-new-buffer
-  const out = new Buffer(DIGEST_LENGTH);
+  const out = new Buffer.alloc(DIGEST_LENGTH);
   const outView = new DataView(out.buffer);
 
   outView.setUint32(0, this.h0, false);

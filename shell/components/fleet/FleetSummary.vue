@@ -1,6 +1,7 @@
 <script>
 import capitalize from 'lodash/capitalize';
-import { STATES, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES } from '@shell/plugins/dashboard-store/resource-constants';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/types/rancher-api-types';
 import FleetStatus from '@shell/components/fleet/FleetStatus';
 
 const getResourceDefaultState = (labelGetter, stateKey) => {

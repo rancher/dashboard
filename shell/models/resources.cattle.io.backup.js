@@ -1,4 +1,4 @@
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-utils';
 import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
