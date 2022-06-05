@@ -1,38 +1,40 @@
+import jsyaml from 'js-yaml';
 import compact from 'lodash/compact';
+import forIn from 'lodash/forIn';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
-import jsyaml from 'js-yaml';
-import forIn from 'lodash/forIn';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
-
-import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
-import CustomValidators from '@shell/utils/custom-validators';
-import { downloadFile, generateZip } from '@shell/utils/download';
-import { eachLimit } from '@shell/utils/promise';
-import { clone, get } from '@shell/utils/object';
-import { DEV } from '@shell/store/prefs';
-import { sortableNumericSuffix } from '@shell/utils/sort';
+import { HttpRequest, ResponseObject } from '@/shell/plugins/steve/types/axiosTypes';
+import { Metadata } from '@/plugins/steve/types/kubeApiTypes';
+import { DetailLocation } from '@/plugins/steve/types/nuxtTypes';
 import {
-  coerceStringTypeToScalarType,
-  escapeHtml,
-  ucFirst
-} from '@shell/utils/string';
-import {
-  displayKeyFor,
-  validateChars,
-  validateDnsLikeTypes,
-  validateLength,
-  validateBoolean
-} from '@shell/utils/validators';
+  Action, CloneObject, Conditions, CustomValidationRule, MapOfStrings, MODES, RehydrateObject,
+  ResourceDetails, ResourceProperties, STATE_COLOR, STATE_TYPE, StateDetails, StateInfoForTypes,
+  StateList, STATES_ENUM
+} from '@/plugins/steve/types/rancherApiTypes';
+import { Context } from '@/plugins/steve/types/vuexTypes';
 
-import { NORMAN_NAME } from '@shell/config/labels-annotations';
+import { NORMAN_NAME } from '@/config/labels-annotations';
 import {
-  AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
-} from '@shell/config/query-params';
+  _CLONE, _CONFIG, _EDIT, _UNFLAG, _VIEW, _YAML, AS, MODE
+} from '@/config/query-params';
+import { DEV } from '@/store/prefs';
+import { addObject, addObjects, findBy, removeAt } from '@/utils/array';
+import CustomValidators from '@/utils/custom-validators';
+import { downloadFile, generateZip } from '@/utils/download';
+import { clone, get } from '@/utils/object';
+import { eachLimit } from '@/utils/promise';
+import { sortableNumericSuffix } from '@/utils/sort';
+import { coerceStringTypeToScalarType, escapeHtml, ucFirst } from '@/utils/string';
+import {
+  displayKeyFor, validateBoolean, validateChars, validateDnsLikeTypes, validateLength
+} from '@/utils/validators';
 
-import { normalizeType } from './normalize';
+// eslint-disable-next-line
+import { cleanForNew, normalizeType } from './normalize';
+import typeHelpers from '~/utils/type-helpers';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -47,7 +49,7 @@ const STRING_LIKE_TYPES = [
 ];
 const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
-const REMAP_STATE = {
+const REMAP_STATE: MapOfStrings = {
   disabled:                 'inactive',
   notapplied:               'Not Applied',
   notready:                 'Not Ready',
@@ -66,386 +68,291 @@ const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
 
 const DEFAULT_WAIT_INTERVAL = 1000;
-const DEFAULT_WAIT_TMIMEOUT = 30000;
+const DEFAULT_WAIT_TIMEOUT = 30000;
 
-export const STATES_ENUM = {
-  IN_USE:           'in-use',
-  IN_PROGRESS:      'in-progress',
-  PENDING_ROLLBACK: 'pending-rollback',
-  PENDING_UPGRADE:  'pending-upgrade',
-  ABORTED:          'aborted',
-  ACTIVATING:       'activating',
-  ACTIVE:           'active',
-  AVAILABLE:        'available',
-  BACKED_UP:        'backedup',
-  BOUND:            'bound',
-  BUILDING:         'building',
-  COMPLETED:        'completed',
-  CORDONED:         'cordoned',
-  COUNT:            'count',
-  CREATED:          'created',
-  CREATING:         'creating',
-  DEACTIVATING:     'deactivating',
-  DEGRADED:         'degraded',
-  DENIED:           'denied',
-  DEPLOYED:         'deployed',
-  DISABLED:         'disabled',
-  DISCONNECTED:     'disconnected',
-  DRAINED:          'drained',
-  DRAINING:         'draining',
-  ERR_APPLIED:      'errapplied',
-  ERROR:            'error',
-  ERRORING:         'erroring',
-  ERRORS:           'errors',
-  EXPIRED:          'expired',
-  FAIL:             'fail',
-  FAILED:           'failed',
-  HEALTHY:          'healthy',
-  INACTIVE:         'inactive',
-  INFO:             'info',
-  INITIALIZING:     'initializing',
-  INPROGRESS:       'inprogress',
-  LOCKED:           'locked',
-  MIGRATING:        'migrating',
-  MISSING:          'missing',
-  MODIFIED:         'modified',
-  NOT_APPLICABLE:   'notApplicable',
-  NOT_APLLIED:      'notapplied',
-  NOT_READY:        'notready',
-  OFF:              'off',
-  ORPHANED:         'orphaned',
-  OTHER:            'other',
-  OUT_OF_SYNC:      'outofsync',
-  ON_GOING:         'on-going',
-  PASS:             'pass',
-  PASSED:           'passed',
-  PAUSED:           'paused',
-  PENDING:          'pending',
-  PROVISIONING:     'provisioning',
-  PROVISIONED:      'provisioned',
-  PURGED:           'purged',
-  PURGING:          'purging',
-  READY:            'ready',
-  RECONNECTING:     'reconnecting',
-  REGISTERING:      'registering',
-  REINITIALIZING:   'reinitializing',
-  RELEASED:         'released',
-  REMOVED:          'removed',
-  REMOVING:         'removing',
-  REQUESTED:        'requested',
-  RESTARTING:       'restarting',
-  RESTORING:        'restoring',
-  RESIZING:         'resizing',
-  RUNNING:          'running',
-  SKIP:             'skip',
-  SKIPPED:          'skipped',
-  STARTING:         'starting',
-  STOPPED:          'stopped',
-  STOPPING:         'stopping',
-  SUCCEEDED:        'succeeded',
-  SUCCESS:          'success',
-  SUCCESSFUL:          'successful',
-  SUPERSEDED:       'superseded',
-  SUSPENDED:        'suspended',
-  UNAVAILABLE:      'unavailable',
-  UNHEALTHY:        'unhealthy',
-  UNINSTALLED:      'uninstalled',
-  UNINSTALLING:     'uninstalling',
-  UNKNOWN:          'unknown',
-  UNTRIGGERED:      'untriggered',
-  UPDATING:         'updating',
-  WAIT_APPLIED:     'waitapplied',
-  WAIT_CHECKIN:     'waitcheckin',
-  WAITING:          'waiting',
-  WARNING:          'warning',
-};
-
-export const STATES = {
+export const STATES: StateList = {
   [STATES_ENUM.IN_USE]:           {
-    color: 'success', icon: 'dot-open', label: 'In Use', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-open', label: 'In Use'
   },
   [STATES_ENUM.IN_PROGRESS]:      {
-    color: 'info', icon: 'tag', label: 'In Progress', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'In Progress'
   },
   [STATES_ENUM.PENDING_ROLLBACK]: {
-    color: 'info', icon: 'dot-half', label: 'Pending Rollback', compoundIcon: 'info'
+    color: 'info', icon: 'dot-half', label: 'Pending Rollback'
   },
   [STATES_ENUM.PENDING_UPGRADE]:  {
-    color: 'info', icon: 'dot-half', label: 'Pending Update', compoundIcon: 'info'
+    color: 'info', icon: 'dot-half', label: 'Pending Update'
   },
   [STATES_ENUM.ABORTED]:            {
-    color: 'warning', icon: 'error', label: 'Aborted', compoundIcon: 'warning'
+    color: 'warning', icon: 'error', label: 'Aborted'
   },
   [STATES_ENUM.ACTIVATING]:         {
-    color: 'info', icon: 'tag', label: 'Activating', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Activating'
   },
   [STATES_ENUM.ACTIVE]:             {
-    color: 'success', icon: 'dot-open', label: 'Active', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-open', label: 'Active'
   },
   [STATES_ENUM.AVAILABLE]:          {
-    color: 'success', icon: 'dot-open', label: 'Available', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-open', label: 'Available'
   },
   [STATES_ENUM.BACKED_UP]:           {
-    color: 'success', icon: 'backup', label: 'Backed Up', compoundIcon: 'checkmark'
+    color: 'success', icon: 'backup', label: 'Backed Up'
   },
   [STATES_ENUM.BOUND]:              {
-    color: 'success', icon: 'dot', label: 'Bound', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot', label: 'Bound'
   },
   [STATES_ENUM.BUILDING]:           {
-    color: 'success', icon: 'dot-open', label: 'Building', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-open', label: 'Building'
   },
   [STATES_ENUM.COMPLETED]:          {
-    color: 'success', icon: 'dot', label: 'Completed', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot', label: 'Completed'
   },
   [STATES_ENUM.CORDONED]:           {
-    color: 'info', icon: 'tag', label: 'Cordoned', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Cordoned'
   },
   [STATES_ENUM.COUNT]:              {
-    color: 'success', icon: 'dot-open', label: 'Count', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-open', label: 'Count'
   },
   [STATES_ENUM.CREATED]:            {
-    color: 'info', icon: 'tag', label: 'Created', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Created'
   },
   [STATES_ENUM.CREATING]:           {
-    color: 'info', icon: 'tag', label: 'Creating', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Creating'
   },
   [STATES_ENUM.DEACTIVATING]:       {
-    color: 'info', icon: 'adjust', label: 'Deactivating', compoundIcon: 'info'
+    color: 'info', icon: 'adjust', label: 'Deactivating'
   },
   [STATES_ENUM.DEGRADED]:           {
-    color: 'warning', icon: 'error', label: 'Degraded', compoundIcon: 'warning'
+    color: 'warning', icon: 'error', label: 'Degraded'
   },
   [STATES_ENUM.DENIED]:             {
-    color: 'error', icon: 'adjust', label: 'Denied', compoundIcon: 'error'
+    color: 'error', icon: 'adjust', label: 'Denied'
   },
   [STATES_ENUM.DEPLOYED]:           {
-    color: 'success', icon: 'dot-open', label: 'Deployed', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-open', label: 'Deployed'
   },
   [STATES_ENUM.DISABLED]:           {
-    color: 'warning', icon: 'error', label: 'Disabled', compoundIcon: 'warning'
+    color: 'warning', icon: 'error', label: 'Disabled'
   },
   [STATES_ENUM.DISCONNECTED]:       {
-    color: 'warning', icon: 'error', label: 'Disconnected', compoundIcon: 'warning'
+    color: 'warning', icon: 'error', label: 'Disconnected'
   },
   [STATES_ENUM.DRAINED]:            {
-    color: 'info', icon: 'tag', label: 'Drained', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Drained'
   },
   [STATES_ENUM.DRAINING]:           {
-    color: 'warning', icon: 'tag', label: 'Draining', compoundIcon: 'warning'
+    color: 'warning', icon: 'tag', label: 'Draining'
   },
   [STATES_ENUM.ERR_APPLIED]:         {
-    color: 'error', icon: 'error', label: 'Error Applied', compoundIcon: 'error'
+    color: 'error', icon: 'error', label: 'Error Applied'
   },
   [STATES_ENUM.ERROR]:              {
-    color: 'error', icon: 'error', label: 'Error', compoundIcon: 'error'
+    color: 'error', icon: 'error', label: 'Error'
   },
   [STATES_ENUM.ERRORING]:           {
-    color: 'error', icon: 'error', label: 'Erroring', compoundIcon: 'error'
+    color: 'error', icon: 'error', label: 'Erroring'
   },
   [STATES_ENUM.ERRORS]:             {
-    color: 'error', icon: 'error', label: 'Errors', compoundIcon: 'error'
+    color: 'error', icon: 'error', label: 'Errors'
   },
   [STATES_ENUM.EXPIRED]:            {
-    color: 'warning', icon: 'error', label: 'Expired', compoundIcon: 'warning'
+    color: 'warning', icon: 'error', label: 'Expired'
   },
   [STATES_ENUM.FAIL]:               {
-    color: 'error', icon: 'error', label: 'Fail', compoundIcon: 'error'
+    color: 'error', icon: 'error', label: 'Fail'
   },
   [STATES_ENUM.FAILED]:             {
-    color: 'error', icon: 'error', label: 'Failed', compoundIcon: 'error'
+    color: 'error', icon: 'error', label: 'Failed'
   },
   [STATES_ENUM.HEALTHY]:            {
-    color: 'success', icon: 'dot-open', label: 'Healthy', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-open', label: 'Healthy'
   },
   [STATES_ENUM.INACTIVE]:           {
-    color: 'error', icon: 'dot', label: 'Inactive', compoundIcon: 'error'
+    color: 'error', icon: 'dot', label: 'Inactive'
   },
   [STATES_ENUM.INITIALIZING]:       {
-    color: 'warning', icon: 'error', label: 'Initializing', compoundIcon: 'warning'
+    color: 'warning', icon: 'error', label: 'Initializing'
   },
   [STATES_ENUM.INPROGRESS]:         {
-    color: 'info', icon: 'spinner', label: 'In Progress', compoundIcon: 'info'
+    color: 'info', icon: 'spinner', label: 'In Progress'
   },
   [STATES_ENUM.INFO]:         {
-    color: 'info', icon: 'info', label: 'Info', compoundIcon: 'info'
+    color: 'info', icon: 'info', label: 'Info'
   },
   [STATES_ENUM.LOCKED]:             {
-    color: 'warning', icon: 'adjust', label: 'Locked', compoundIcon: 'warning'
+    color: 'warning', icon: 'adjust', label: 'Locked'
   },
   [STATES_ENUM.MIGRATING]:          {
-    color: 'info', icon: 'info', label: 'Migrated', compoundIcon: 'info'
+    color: 'info', icon: 'info', label: 'Migrated'
   },
   [STATES_ENUM.MISSING]:            {
-    color: 'warning', icon: 'adjust', label: 'Missing', compoundIcon: 'warning'
+    color: 'warning', icon: 'adjust', label: 'Missing'
   },
   [STATES_ENUM.MODIFIED]:           {
-    color: 'warning', icon: 'edit', label: 'Modified', compoundIcon: 'warning'
+    color: 'warning', icon: 'edit', label: 'Modified'
   },
   [STATES_ENUM.NOT_APPLICABLE]:      {
-    color: 'warning', icon: 'tag', label: 'Not Applicable', compoundIcon: 'warning'
+    color: 'warning', icon: 'tag', label: 'Not Applicable'
   },
   [STATES_ENUM.NOT_APLLIED]:         {
-    color: 'warning', icon: 'tag', label: 'Not Applied', compoundIcon: 'warning'
+    color: 'warning', icon: 'tag', label: 'Not Applied'
   },
   [STATES_ENUM.NOT_READY]:           {
-    color: 'warning', icon: 'tag', label: 'Not Ready', compoundIcon: 'warning'
+    color: 'warning', icon: 'tag', label: 'Not Ready'
   },
   [STATES_ENUM.OFF]:                {
     color: 'darker', icon: 'error', label: 'Off'
   },
   [STATES_ENUM.ON_GOING]:           {
-    color: 'info', icon: 'info', label: 'Info', compoundIcon: 'info'
+    color: 'info', icon: 'info', label: 'Info'
   },
   [STATES_ENUM.ORPHANED]:           {
-    color: 'warning', icon: 'tag', label: 'Orphaned', compoundIcon: 'warning'
+    color: 'warning', icon: 'tag', label: 'Orphaned'
   },
   [STATES_ENUM.OTHER]:              {
-    color: 'info', icon: 'info', label: 'Other', compoundIcon: 'info'
+    color: 'info', icon: 'info', label: 'Other'
   },
   [STATES_ENUM.OUT_OF_SYNC]:          {
-    color: 'warning', icon: 'tag', label: 'Out Of Sync', compoundIcon: 'warning'
+    color: 'warning', icon: 'tag', label: 'Out Of Sync'
   },
   [STATES_ENUM.PASS]:               {
-    color: 'success', icon: 'dot-dotfill', label: 'Pass', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-dotfill', label: 'Pass'
   },
   [STATES_ENUM.PASSED]:             {
-    color: 'success', icon: 'dot-dotfill', label: 'Passed', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-dotfill', label: 'Passed'
   },
   [STATES_ENUM.PAUSED]:             {
-    color: 'info', icon: 'info', label: 'Paused', compoundIcon: 'info'
+    color: 'info', icon: 'info', label: 'Paused'
   },
   [STATES_ENUM.PENDING]:            {
-    color: 'info', icon: 'tag', label: 'Pending', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Pending'
   },
   [STATES_ENUM.PROVISIONING]:       {
-    color: 'info', icon: 'dot', label: 'Provisioning', compoundIcon: 'info'
+    color: 'info', icon: 'dot', label: 'Provisioning'
   },
   [STATES_ENUM.PROVISIONED]:        {
-    color: 'success', icon: 'dot', label: 'Provisioned', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot', label: 'Provisioned'
   },
   [STATES_ENUM.PURGED]:             {
-    color: 'error', icon: 'purged', label: 'Purged', compoundIcon: 'error'
+    color: 'error', icon: 'purged', label: 'Purged'
   },
   [STATES_ENUM.PURGING]:            {
-    color: 'info', icon: 'purged', label: 'Purging', compoundIcon: 'info'
+    color: 'info', icon: 'purged', label: 'Purging'
   },
   [STATES_ENUM.READY]:              {
-    color: 'success', icon: 'dot-open', label: 'Ready', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-open', label: 'Ready'
   },
   [STATES_ENUM.RECONNECTING]:       {
-    color: 'error', icon: 'error', label: 'Reconnecting', compoundIcon: 'error'
+    color: 'error', icon: 'error', label: 'Reconnecting'
   },
   [STATES_ENUM.REGISTERING]:        {
-    color: 'info', icon: 'tag', label: 'Registering', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Registering'
   },
   [STATES_ENUM.REINITIALIZING]:     {
-    color: 'warning', icon: 'error', label: 'Reinitializing', compoundIcon: 'warning'
+    color: 'warning', icon: 'error', label: 'Reinitializing'
   },
   [STATES_ENUM.RELEASED]:           {
-    color: 'warning', icon: 'error', label: 'Released', compoundIcon: 'warning'
+    color: 'warning', icon: 'error', label: 'Released'
   },
   [STATES_ENUM.REMOVED]:            {
-    color: 'error', icon: 'trash', label: 'Removed', compoundIcon: 'error'
+    color: 'error', icon: 'trash', label: 'Removed'
   },
   [STATES_ENUM.REMOVING]:           {
-    color: 'info', icon: 'trash', label: 'Removing', compoundIcon: 'info'
+    color: 'info', icon: 'trash', label: 'Removing'
   },
   [STATES_ENUM.REQUESTED]:          {
-    color: 'info', icon: 'tag', label: 'Requested', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Requested'
   },
   [STATES_ENUM.RESTARTING]:         {
-    color: 'info', icon: 'adjust', label: 'Restarting', compoundIcon: 'info'
+    color: 'info', icon: 'adjust', label: 'Restarting'
   },
   [STATES_ENUM.RESTORING]:          {
-    color: 'info', icon: 'medicalcross', label: 'Restoring', compoundIcon: 'info'
+    color: 'info', icon: 'medicalcross', label: 'Restoring'
   },
   [STATES_ENUM.RESIZING]:           {
-    color: 'warning', icon: 'dot', label: 'Resizing', compoundIcon: 'warning'
+    color: 'warning', icon: 'dot', label: 'Resizing'
   },
   [STATES_ENUM.RUNNING]:            {
-    color: 'success', icon: 'dot-open', label: 'Running', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-open', label: 'Running'
   },
   [STATES_ENUM.SKIP]:               {
-    color: 'info', icon: 'dot-open', label: 'Skip', compoundIcon: 'info'
+    color: 'info', icon: 'dot-open', label: 'Skip'
   },
   [STATES_ENUM.SKIPPED]:            {
-    color: 'info', icon: 'dot-open', label: 'Skipped', compoundIcon: 'info'
+    color: 'info', icon: 'dot-open', label: 'Skipped'
   },
   [STATES_ENUM.STARTING]:           {
-    color: 'info', icon: 'adjust', label: 'Starting', compoundIcon: 'info'
+    color: 'info', icon: 'adjust', label: 'Starting'
   },
   [STATES_ENUM.STOPPED]:            {
-    color: 'error', icon: 'dot', label: 'Stopped', compoundIcon: 'error'
+    color: 'error', icon: 'dot', label: 'Stopped'
   },
   [STATES_ENUM.STOPPING]:           {
-    color: 'info', icon: 'adjust', label: 'Stopping', compoundIcon: 'info'
+    color: 'info', icon: 'adjust', label: 'Stopping'
   },
   [STATES_ENUM.SUCCEEDED]:          {
-    color: 'success', icon: 'dot-dotfill', label: 'Succeeded', compoundIcon: 'checkmark'
+    color: 'success', icon: 'dot-dotfill', label: 'Succeeded'
   },
   [STATES_ENUM.SUCCESS]:            {
-    color: 'success', icon: 'dot-open', label: 'Success', compoundIcon: 'checkmark'
-  },
-  [STATES_ENUM.SUCCESSFUL]:            {
-    color: 'success', icon: 'dot-open', label: 'Successful'
+    color: 'success', icon: 'dot-open', label: 'Success'
   },
   [STATES_ENUM.SUPERSEDED]:         {
-    color: 'info', icon: 'dot-open', label: 'Superseded', compoundIcon: 'info'
+    color: 'info', icon: 'dot-open', label: 'Superseded'
   },
   [STATES_ENUM.SUSPENDED]:          {
-    color: 'info', icon: 'pause', label: 'Suspended', compoundIcon: 'info'
+    color: 'info', icon: 'pause', label: 'Suspended'
   },
   [STATES_ENUM.UNAVAILABLE]:        {
-    color: 'error', icon: 'error', label: 'Unavailable', compoundIcon: 'error'
+    color: 'error', icon: 'error', label: 'Unavailable'
   },
   [STATES_ENUM.UNHEALTHY]:          {
-    color: 'error', icon: 'error', label: 'Unhealthy', compoundIcon: 'error'
+    color: 'error', icon: 'error', label: 'Unhealthy'
   },
   [STATES_ENUM.UNINSTALLED]:        {
-    color: 'info', icon: 'trash', label: 'Uninstalled', compoundIcon: 'info'
+    color: 'info', icon: 'trash', label: 'Uninstalled'
   },
   [STATES_ENUM.UNINSTALLING]:       {
-    color: 'info', icon: 'trash', label: 'Uninstalling', compoundIcon: 'info'
+    color: 'info', icon: 'trash', label: 'Uninstalling'
   },
   [STATES_ENUM.UNKNOWN]:            {
-    color: 'warning', icon: 'x', label: 'Unknown', compoundIcon: 'warning'
+    color: 'warning', icon: 'x', label: 'Unknown'
   },
   [STATES_ENUM.UNTRIGGERED]:        {
-    color: 'success', icon: 'tag', label: 'Untriggered', compoundIcon: 'checkmark'
+    color: 'success', icon: 'tag', label: 'Untriggered'
   },
   [STATES_ENUM.UPDATING]:           {
-    color: 'warning', icon: 'tag', label: 'Updating', compoundIcon: 'warning'
+    color: 'warning', icon: 'tag', label: 'Updating'
   },
   [STATES_ENUM.WAIT_APPLIED]:        {
-    color: 'info', icon: 'tag', label: 'Wait Applied', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Wait Applied'
   },
   [STATES_ENUM.WAIT_CHECKIN]:        {
-    color: 'warning', icon: 'tag', label: 'Wait Checkin', compoundIcon: 'warning'
+    color: 'warning', icon: 'tag', label: 'Wait Checkin'
   },
   [STATES_ENUM.WAITING]:            {
-    color: 'info', icon: 'tag', label: 'Waiting', compoundIcon: 'info'
+    color: 'info', icon: 'tag', label: 'Waiting'
   },
   [STATES_ENUM.WARNING]:            {
-    color: 'warning', icon: 'error', label: 'Warning', compoundIcon: 'warning'
+    color: 'warning', icon: 'error', label: 'Warning'
   },
 };
 
-export function getStatesByType(type = 'info') {
+export function getStatesByType(): StateInfoForTypes {
   const out = {
     info:    [],
     error:   [],
     success: [],
     warning: [],
-    unknown: [],
+    unknown: []
   };
 
-  forIn(STATES, (state, stateKey) => {
-    if (state.color) {
-      if (out[state.color]) {
-        out[state.color].push(stateKey);
-      } else {
-        out.unknown.push(stateKey);
-      }
+  forIn(STATES, (state: StateDetails, stateKey: STATE_TYPE) => {
+    try {
+      const color: STATE_COLOR = state.color;
+
+      out[color].push(stateKey);
+    } catch (err) {
+      out.unknown.push(stateKey);
     }
   });
 
@@ -462,13 +369,13 @@ const SORT_ORDER = {
   other:    7,
 };
 
-export function getStateLabel(state) {
+export function getStateLabel(state: STATE_TYPE): string {
   const lowercaseState = state.toLowerCase();
 
   return STATES[lowercaseState] ? STATES[lowercaseState].label : STATES[STATES_ENUM.UNKNOWN].label;
 }
 
-export function colorForState(state, isError, isTransitioning) {
+export function colorForState(state: STATE_TYPE | string, isError: boolean, isTransitioning: boolean): string {
   if ( isError ) {
     return 'text-error';
   }
@@ -491,7 +398,7 @@ export function colorForState(state, isError, isTransitioning) {
   return `text-${ color }`;
 }
 
-export function stateDisplay(state) {
+export function stateDisplay(state: STATE_TYPE): string {
   // @TODO use translations
   const key = (state || 'active').toLowerCase();
 
@@ -502,13 +409,17 @@ export function stateDisplay(state) {
   return key.split(/-/).map(ucFirst).join('-');
 }
 
-export function stateSort(color, display) {
+export function stateSort(color: string, display: string): string {
   color = color.replace(/^(text|bg)-/, '');
 
   return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ display }`;
 }
 
-function maybeFn(val) {
+function maybeFn(val: any): unknown {
+  // This either calls the function and returns
+  // the result, or returns the function itself. Why?
+  // This function and its caller should be refactored
+  // to clarify the intent.
   if ( isFunction(val) ) {
     return val(this);
   }
@@ -516,9 +427,69 @@ function maybeFn(val) {
   return val;
 }
 
-export default class Resource {
-  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+export default class Resource implements ResourceProperties {
+  // Intialize typed properties
+  $ctx: Context = {};
+  $getters: any;
+  $rootGetters: any;
+  $state: any;
+  $rootState: any;
+  $dispatch: any;
+  metadata: Metadata = {};
+  type = '';
+  kind = '';
+  id = '';
+  uid = '';
+  spec: any = {};
+  displayName?: string | undefined;
+  name?: string | undefined;
+  transitioning = false;
+  // Use a default state because it must be an enumerated type
+  // state: STATE_TYPE = 'UNKNOWN';
+  // Links can include anything, such as self, update, shell,
+  // sshKeys, update, nodeConfig
+  links: MapOfStrings = {};
+  status: Conditions = { conditions: [] };
+  isSpoofed = false;
+  _type = '';
+
+  actions: MapOfStrings = {};
+  actionLinks: MapOfStrings = {};
+  __rehydrate?: RehydrateObject = {};
+  __clone?: CloneObject = {};
+
+  set state(val: STATE_TYPE) {
+    this.state = val;
+  }
+
+  get state() {
+    return this.state;
+  }
+
+  constructor(data: any, ctx: Context, rehydrateNamespace = null, setClone = false) {
+    // make more specific
+
     for ( const k in data ) {
+      // The following properties are set here, among others:
+      // - metadata
+      // - type
+      // - kind
+      // - id
+      // - uid
+      // - spec
+      // - displayname
+      // - name
+      // - transitioning
+      // - state
+      // - links
+      // - status
+      // - isSpoofed
+      // - actions
+      // - actionLinks
+      // __rehydrate
+      // __clone
+
+      // eslint-disable-next-line
       this[k] = data[k];
     }
 
@@ -543,29 +514,22 @@ export default class Resource {
         writable:     true
       });
     }
+
+    // Since Context is a required property, it is defined in the
+    // constructor. Since the five below properties are also in
+    // the Context object, we initialize them in the constructor as well.
+    Object.defineProperty(this, '$getters', { value: this.$ctx.getters });
+
+    Object.defineProperty(this, '$rootGetters', { value: this.$ctx.rootGetters });
+
+    Object.defineProperty(this, '$dispatch', { value: this.$ctx.dispatch });
+
+    Object.defineProperty(this, '$state', { value: this.$ctx.state });
+
+    Object.defineProperty(this, '$rootState', { value: this.$ctx.rootState });
   }
 
-  get '$getters'() {
-    return this.$ctx.getters;
-  }
-
-  get '$rootGetters'() {
-    return this.$ctx.rootGetters;
-  }
-
-  get '$dispatch'() {
-    return this.$ctx.dispatch;
-  }
-
-  get '$state'() {
-    return this.$ctx.state;
-  }
-
-  get '$rootState'() {
-    return this.$ctx.rootState;
-  }
-
-  get customValidationRules() {
+  get customValidationRules(): CustomValidationRule[] {
     return [
       /**
        * Essentially a fake schema object with additional params to extend validation
@@ -588,7 +552,7 @@ export default class Resource {
     ];
   }
 
-  get _key() {
+  get _key(): string {
     const m = this.metadata;
 
     if ( m ) {
@@ -608,15 +572,15 @@ export default class Resource {
     return `${ this.type }/${ Math.random() }`;
   }
 
-  get schema() {
+  get schema(): any {
     return this.$getters['schemaFor'](this.type);
   }
 
-  toString() {
+  toString(): string {
     return `[${ this.type }: ${ this.id }]`;
   }
 
-  get typeDisplay() {
+  get typeDisplay(): string {
     const schema = this.schema;
 
     if ( schema ) {
@@ -626,15 +590,15 @@ export default class Resource {
     return '?';
   }
 
-  get nameDisplay() {
+  get nameDisplay(): string {
     return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.name || this.metadata?.name || this.id;
   }
 
-  get nameSort() {
+  get nameSort(): string {
     return sortableNumericSuffix(this.nameDisplay).toLowerCase();
   }
 
-  get namespacedName() {
+  get namespacedName(): string {
     const namespace = this.metadata?.namespace;
     const name = this.nameDisplay;
 
@@ -645,11 +609,11 @@ export default class Resource {
     return name;
   }
 
-  get namespacedNameSort() {
+  get namespacedNameSort(): string {
     return sortableNumericSuffix(this.namespacedName).toLowerCase();
   }
 
-  get groupByLabel() {
+  get groupByLabel(): string | undefined {
     const name = this.metadata?.namespace;
     let out;
 
@@ -662,47 +626,47 @@ export default class Resource {
     return out;
   }
 
-  setLabels(/* val */) {
+  setLabels(/* val */): void {
     throw new Error('Implement setLabels in subclass');
   }
 
-  setLabel(/* key, val */) {
+  setLabel(/* key, val */): void {
     throw new Error('Implement setLabel in subclass');
   }
 
-  setAnnotations(val) {
+  setAnnotations(): void {
     throw new Error('Implement setAnnotations in subclass');
   }
 
-  setAnnotation(key, val) {
+  setAnnotation(): void {
     throw new Error('Implement setAnnotation in subclass');
   }
 
   // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)
-  get stateDisplay() {
+  get stateDisplay(): string {
     return stateDisplay(this.state);
   }
 
-  get stateColor() {
+  get stateColor(): string {
     return colorForState.call(
       this,
       this.state,
-      this.stateObj?.error,
-      this.stateObj?.transitioning
+      this.stateObj?.error || false,
+      this.stateObj?.transitioning || false
     );
   }
 
-  get stateBackground() {
+  get stateBackground(): string {
     return this.stateColor.replace('text-', 'bg-');
   }
 
-  get stateIcon() {
+  get stateIcon(): string {
     let trans = false;
     let error = false;
 
     if ( this.metadata && this.metadata.state ) {
-      trans = this.metadata.state.transitioning;
-      error = this.metadata.state.error;
+      trans = this.metadata.state.transitioning || false;
+      error = this.metadata.state.error || false;
     }
 
     if ( trans ) {
@@ -727,11 +691,11 @@ export default class Resource {
     return `icon icon-${ icon }`;
   }
 
-  get stateSort() {
+  get stateSort(): string {
     return stateSort(this.stateColor, this.stateDisplay);
   }
 
-  get stateDescription() {
+  get stateDescription(): string {
     const trans = this.stateObj?.transitioning || false;
     const error = this.stateObj?.error || false;
     const message = this.stateObj?.message;
@@ -739,17 +703,17 @@ export default class Resource {
     return trans || error ? ucFirst(message) : '';
   }
 
-  get stateObj() {
+  get stateObj(): StateDetails | undefined {
     return this.metadata?.state;
   }
 
   // ------------------------------------------------------------------
 
-  waitForTestFn(fn, msg, timeoutMs, intervalMs) {
+  waitForTestFn(fn: () => any, msg: string, timeoutMs?: number, intervalMs?: number): Promise<Resource> {
     console.log('Starting wait for', msg); // eslint-disable-line no-console
 
     if ( !timeoutMs ) {
-      timeoutMs = DEFAULT_WAIT_TMIMEOUT;
+      timeoutMs = DEFAULT_WAIT_TIMEOUT;
     }
 
     if ( !intervalMs ) {
@@ -767,7 +731,7 @@ export default class Resource {
         console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
         clearInterval(interval);
         clearTimeout(timeout);
-        reject(new Error(`Failed waiting for: ${ msg }`));
+        reject(new Error(`Failed while: ${ msg }`));
       }, timeoutMs);
 
       const interval = setInterval(() => {
@@ -783,35 +747,35 @@ export default class Resource {
     });
   }
 
-  waitForState(state, timeout, interval) {
-    return this.waitForTestFn(() => {
+  waitForState(state: string, timeout: number, interval: number): Promise<Resource> {
+    return this.waitForTestFn((): boolean => {
       return (this.state || '').toLowerCase() === state.toLowerCase();
     }, `state=${ state }`, timeout, interval);
   }
 
-  waitForTransition() {
+  waitForTransition(): Promise<Resource> {
     return this.waitForTestFn(() => {
       return !this.transitioning;
     }, 'transition completion');
   }
 
-  waitForAction(name) {
+  waitForAction(name: string): Promise<Resource> {
     return this.waitForTestFn(() => {
       return this.hasAction(name);
     }, `action=${ name }`);
   }
 
-  waitForLink(name) {
+  waitForLink(name: string): Promise<Resource> {
     return this.waitForTestFn(() => {
       return this.hasLink(name);
     }, `link=${ name }`);
   }
 
-  hasCondition(condition) {
-    return this.isCondition(condition, null);
+  hasCondition(condition: string): boolean {
+    return this.isCondition(condition, '');
   }
 
-  isCondition(condition, withStatus = 'True') {
+  isCondition(condition: string, withStatus = 'True'): boolean {
     if ( !this.status || !this.status.conditions ) {
       return false;
     }
@@ -826,10 +790,10 @@ export default class Resource {
       return true;
     }
 
-    return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
+    return (entry || '').toLowerCase() === `${ withStatus }`.toLowerCase();
   }
 
-  waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
+  waitForCondition(name: string, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL): Promise<Resource> {
     return this.waitForTestFn(() => {
       return this.isCondition(name, withStatus);
     }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
@@ -837,11 +801,11 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  get availableActions() {
+  get availableActions(): Action[] {
     const all = this._availableActions;
 
     // Remove disabled items and consecutive dividers
-    let last = null;
+    let last: boolean | undefined = false;
     const out = all.filter((item) => {
       if ( item.enabled === false ) {
         return false;
@@ -877,7 +841,7 @@ export default class Resource {
   }
 
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
-  get _availableActions() {
+  get _availableActions(): Action[] {
     const all = [
       { divider: true },
       {
@@ -931,57 +895,57 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  get canDelete() {
+  get canDelete(): boolean {
     return this._canDelete;
   }
 
-  get _canDelete() {
+  get _canDelete(): boolean {
     return this.hasLink('remove') && this.$rootGetters['type-map/optionsFor'](this.type).isRemovable;
   }
 
-  get canClone() {
+  get canClone(): boolean {
     return true;
   }
 
-  get canUpdate() {
+  get canUpdate(): boolean {
     return this.hasLink('update') && this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
   }
 
-  get canCustomEdit() {
+  get canCustomEdit(): boolean {
     return this.$rootGetters['type-map/hasCustomEdit'](this.type, this.id);
   }
 
-  get canCreate() {
-    if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+  get canCreate(): boolean {
+    if ( this.schema && !this.schema?.collectionMethods.find((x: string) => x.toLowerCase() === 'post') ) {
       return false;
     }
 
     return this.$rootGetters['type-map/optionsFor'](this.type).isCreatable;
   }
 
-  get canViewInApi() {
+  get canViewInApi(): boolean {
     return this.hasLink('self') && this.$rootGetters['prefs/get'](DEV);
   }
 
-  get canYaml() {
+  get canYaml(): boolean {
     return this.hasLink('view');
   }
 
-  get canEditYaml() {
-    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : this.canUpdate;
+  get canEditYaml(): boolean {
+    return this.schema?.resourceMethods?.find((x: string) => x === 'blocked-PUT') ? false : this.canUpdate;
   }
 
   // ------------------------------------------------------------------
 
-  hasLink(linkName) {
+  hasLink(linkName: string): boolean {
     return !!this.linkFor(linkName);
   }
 
-  linkFor(linkName) {
+  linkFor(linkName: string): string {
     return (this.links || {})[linkName];
   }
 
-  followLink(linkName, opt = {}) {
+  followLink(linkName: string, opt: HttpRequest = {}): ResponseObject | Promise<ResponseObject> {
     if ( !opt.url ) {
       opt.url = (this.links || {})[linkName];
     }
@@ -994,20 +958,20 @@ export default class Resource {
       throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
     }
 
-    return this.$dispatch('request', { opt, type: this.type } );
+    return this.$dispatch('request', opt);
   }
 
   // ------------------------------------------------------------------
 
-  hasAction(actionName) {
+  hasAction(actionName: string): boolean {
     return !!this.actionLinkFor(actionName);
   }
 
-  actionLinkFor(actionName) {
+  actionLinkFor(actionName: string): string {
     return (this.actions || this.actionLinks || {})[actionName];
   }
 
-  doAction(actionName, body, opt = {}) {
+  doAction(actionName: string, body: any, opt: any = {}): any {
     return this.$dispatch('resourceAction', {
       resource: this,
       actionName,
@@ -1016,7 +980,7 @@ export default class Resource {
     });
   }
 
-  async doActionGrowl(actionName, body, opt = {}) {
+  async doActionGrowl(actionName: string, body: any, opt: any = {}): Promise<any> {
     try {
       await this.$dispatch('resourceAction', {
         resource: this,
@@ -1024,7 +988,7 @@ export default class Resource {
         body,
         opt,
       });
-    } catch (err) {
+    } catch (err: any) {
       this.$dispatch('growl/fromError', {
         title: this.$rootGetters['i18n/t']('generic.notification.title.error'),
         err:   err.data || err,
@@ -1034,47 +998,29 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  patch(data, opt = {}, merge = false, alertOnError = false) {
+  patch(data: any, opt: HttpRequest = {}): ResponseObject | Promise<ResponseObject> {
     if ( !opt.url ) {
-      // Workaround for the links not being correct - view link is the only one that seems correct
-      opt.url = this.linkFor('view') || this.linkFor('self');
+      opt.url = this.linkFor('self');
     }
 
     opt.method = 'patch';
     opt.headers = opt.headers || {};
-
-    if (!opt.headers['content-type']) {
-      const contentType = merge ? 'application/strategic-merge-patch+json' : 'application/json-patch+json';
-
-      opt.headers['content-type'] = contentType;
-    }
+    opt.headers['content-type'] = 'application/json-patch+json';
     opt.data = data;
 
-    const dispatch = this.$dispatch('request', { opt, type: this.type } );
-
-    return !alertOnError ? dispatch : dispatch.catch((e) => {
-      const title = this.t('resource.errors.update', { name: this.name });
-
-      console.error(title, e); // eslint-disable-line no-console
-
-      this.$dispatch('growl/error', {
-        title,
-        message: e?.message,
-        timeout: 5000
-      }, { root: true });
-    });
+    return this.$dispatch('request', opt);
   }
 
-  save() {
+  save(): Promise<Resource> {
     return this._save(...arguments);
   }
 
-  async _save(opt = {}) {
+  async _save(opt: HttpRequest = {}): Promise<Resource> {
     delete this.__rehydrate;
     delete this.__clone;
     const forNew = !this.id;
 
-    const errors = await this.validationErrors(this, opt.ignoreFields);
+    const errors = await this.validationErrors(this, opt.ignoreFields || []);
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);
@@ -1134,22 +1080,16 @@ export default class Resource {
       opt.data.annotations = opt.data._annotations;
     }
 
-    // handle "replace" opt as a query param _replace=true for norman PUT requests
-    if (opt?.replace && opt.method === 'put') {
-      const argParam = opt.url.includes('?') ? '&' : '?';
-
-      opt.url = `${ opt.url }${ argParam }_replace=true`;
-      delete opt.replace;
-    }
-
     try {
-      const res = await this.$dispatch('request', { opt, type: this.type } );
+      const res = await this.$dispatch('request', opt);
+
+      // console.log('### Resource Save', this.type, this.id);
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
         await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
       }
-    } catch (e) {
+    } catch (e: any) {
       if ( this.type && this.id && e?._status === 409) {
         // If there's a conflict, try to load the new version
         await this.$dispatch('find', {
@@ -1165,18 +1105,18 @@ export default class Resource {
     return this;
   }
 
-  remove() {
+  remove(): Promise<void> {
     return this._remove(...arguments);
   }
 
-  async _remove(opt = {}) {
+  async _remove(opt: HttpRequest = {}): Promise<void> {
     if ( !opt.url ) {
       opt.url = this.linkFor('self');
     }
 
     opt.method = 'delete';
 
-    const res = await this.$dispatch('request', { opt, type: this.type } );
+    const res = await this.$dispatch('request', opt);
 
     if ( res?._status === 204 ) {
       // If there's no body, assume the resource was immediately deleted
@@ -1187,7 +1127,7 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  currentRoute() {
+  currentRoute(): typeof window.$nuxt.$route {
     if ( process.server ) {
       return this.$rootState.$route;
     } else {
@@ -1195,7 +1135,7 @@ export default class Resource {
     }
   }
 
-  currentRouter() {
+  currentRouter(): typeof window.$nuxt.$router {
     if ( process.server ) {
       return this.$rootState.$router;
     } else {
@@ -1203,7 +1143,7 @@ export default class Resource {
     }
   }
 
-  get listLocation() {
+  get listLocation(): DetailLocation {
     return {
       name:   `c-cluster-product-resource`,
       params: {
@@ -1214,7 +1154,7 @@ export default class Resource {
     };
   }
 
-  get _detailLocation() {
+  get _detailLocation(): DetailLocation {
     const schema = this.$getters['schemaFor'](this.type);
 
     const id = this.id?.replace(/.*\//, '');
@@ -1231,15 +1171,15 @@ export default class Resource {
     };
   }
 
-  get detailLocation() {
+  get detailLocation(): DetailLocation {
     return this._detailLocation;
   }
 
-  goToDetail() {
+  goToDetail(): void {
     this.currentRouter().push(this.detailLocation);
   }
 
-  goToClone(moreQuery = {}) {
+  goToClone(moreQuery = {}): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1252,7 +1192,7 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  goToEdit(moreQuery = {}) {
+  goToEdit(moreQuery = {}): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1265,7 +1205,7 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  goToViewConfig(moreQuery = {}) {
+  goToViewConfig(moreQuery = {}): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1278,7 +1218,7 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  goToEditYaml() {
+  goToEditYaml(): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1290,7 +1230,7 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  goToViewYaml() {
+  goToViewYaml(): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1302,7 +1242,7 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  cloneYaml(moreQuery = {}) {
+  cloneYaml(moreQuery = {}): void {
     const location = this.detailLocation;
 
     location.query = {
@@ -1315,15 +1255,15 @@ export default class Resource {
     this.currentRouter().push(location);
   }
 
-  async download() {
+  async download(): Promise<void> {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
 
     downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
   }
 
-  async downloadBulk(items) {
-    const files = {};
-    const names = [];
+  async downloadBulk(items: any[]): Promise<void> {
+    const files: any = {};
+    const names: string[] = [];
 
     for ( const item of items ) {
       let name = `${ item.nameDisplay }.yaml`;
@@ -1336,8 +1276,8 @@ export default class Resource {
       names.push(name);
     }
 
-    await eachLimit(items, 10, (item, idx) => {
-      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
+    await eachLimit(items, 10, (item: any, idx: number) => {
+      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data: any) => {
         files[`resources/${ names[idx] }`] = data.data || data;
       });
     });
@@ -1347,11 +1287,11 @@ export default class Resource {
     downloadFile('resources.zip', zip, 'application/zip');
   }
 
-  viewInApi() {
+  viewInApi(): void {
     window.open(this.links.self, '_blank');
   }
 
-  promptRemove(resources) {
+  promptRemove(resources: Resource[] | Resource): void {
     if ( !resources ) {
       resources = this;
     }
@@ -1359,14 +1299,14 @@ export default class Resource {
     this.$dispatch('promptRemove', resources);
   }
 
-  get confirmRemove() {
+  get confirmRemove(): boolean {
     return false;
   }
 
-  applyDefaults() {
+  applyDefaults(): void {
   }
 
-  get urlFromAttrs() {
+  get urlFromAttrs(): string {
     const schema = this.$getters['schemaFor'](this.type);
     const { metadata:{ namespace = 'default' } } = this;
     let url = schema.links.collection;
@@ -1385,12 +1325,14 @@ export default class Resource {
 
   // convert yaml to object, clean for new if creating/cloning
   // map _type to type
-  cleanYaml(yaml, mode = 'edit') {
+  cleanYaml(yaml: string, mode = MODES._CREATE): any {
     try {
-      const obj = jsyaml.load(yaml);
+      // Returns either a plain object, a string, a number, null or undefined
+      // according to https://github.com/nodeca/js-yaml
+      const obj: any = jsyaml.load(yaml);
 
-      if (mode !== 'edit') {
-        this.$dispatch(`cleanForNew`, obj);
+      if (mode !== MODES._EDIT) {
+        cleanForNew(obj);
       }
 
       if (obj._type) {
@@ -1405,17 +1347,15 @@ export default class Resource {
     }
   }
 
-  cleanForNew() {
-    this.$dispatch(`cleanForNew`, this);
+  cleanForNew(): any {
+    cleanForNew(this);
   }
 
-  cleanForDiff() {
-    this.$dispatch(`cleanForDiff`, this.toJSON());
-  }
-
-  yamlForSave(yaml) {
+  yamlForSave(yaml: string): any {
     try {
-      const obj = jsyaml.load(yaml);
+      // Returns either a plain object, a string, a number, null or undefined
+      // according to https://github.com/nodeca/js-yaml
+      const obj: any = jsyaml.load(yaml);
 
       if (obj) {
         if (this._type) {
@@ -1429,7 +1369,7 @@ export default class Resource {
     }
   }
 
-  async saveYaml(yaml) {
+  async saveYaml(yaml: string): Promise<void> {
     /* Multipart support, but need to know the right cluster and work for management store
       and "apply" seems to only work for create, not update.
 
@@ -1445,7 +1385,7 @@ export default class Resource {
     const parsed = ary[0];
     */
 
-    const parsed = jsyaml.load(yaml); // will throw on invalid yaml, and return one or more documents (usually one)
+    const parsed: any = jsyaml.load(yaml); // will throw on invalid yaml, and return one or more documents (usually one)
 
     if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
       const err = this.$rootGetters['i18n/t']('resourceYaml.errors.namespaceRequired');
@@ -1484,8 +1424,8 @@ export default class Resource {
     }
   }
 
-  validationErrors(data, ignoreFields) {
-    const errors = [];
+  validationErrors(data: any, ignoreFields: string[]): string[] {
+    const errors: string[] = [];
     const {
       type: originalType,
       schema
@@ -1511,7 +1451,7 @@ export default class Resource {
     let field, key, val, displayKey;
 
     for ( let i = 0 ; i < keys.length ; i++ ) {
-      const fieldErrors = [];
+      const fieldErrors: string[] = [];
 
       key = keys[i];
       field = fields[key];
@@ -1570,14 +1510,18 @@ export default class Resource {
       errors.push(...fieldErrors);
     }
 
-    let { customValidationRules } = this;
+    let customValidationRules: CustomValidationRule[] | Function = this.customValidationRules;
 
     if (!isEmpty(customValidationRules)) {
       if (isFunction(customValidationRules)) {
+        // Whether customValdationRules is a function or an array to begin with,
+        // we assume it's an array after this line.
+        // eslint-disable-next-line
         customValidationRules = customValidationRules();
       }
 
-      customValidationRules.forEach((rule) => {
+      // eslint-disable-next-line
+      customValidationRules.forEach((rule: CustomValidationRule) => {
         const {
           path,
           requiredIf: requiredIfPath,
@@ -1620,13 +1564,14 @@ export default class Resource {
           errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));
         }
 
-        parsedRules.forEach((validator) => {
+        parsedRules.forEach((validator: string) => {
           const validatorAndArgs = validator.split(':');
-          const validatorName = validatorAndArgs.slice(0, 1);
+          const validatorName = validatorAndArgs.slice(0, 1)[0];
           const validatorArgs = validatorAndArgs.slice(1) || null;
           const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
 
           if (!isEmpty(validatorName) && validatorExists) {
+            // eslint-disable-next-line
             CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
           } else if (!isEmpty(validatorName) && !validatorExists) {
             // eslint-disable-next-line
@@ -1639,11 +1584,11 @@ export default class Resource {
     return uniq(errors);
   }
 
-  get ownersByType() {
-    const ownerReferences = this.metadata?.ownerReferences || [];
-    const ownersByType = {};
+  get ownersByType(): any[] {
+    const { metadata:{ ownerReferences = [] } } = this;
+    const ownersByType: any = {};
 
-    ownerReferences.forEach((owner) => {
+    ownerReferences.forEach((owner: Resource) => {
       if (!ownersByType[owner.kind]) {
         ownersByType[owner.kind] = [owner];
       } else {
@@ -1654,17 +1599,17 @@ export default class Resource {
     return ownersByType;
   }
 
-  get owners() {
-    const owners = [];
+  get owners(): Resource[] {
+    const owners: Resource[] = [];
 
     for ( const kind in this.ownersByType) {
       const schema = this.$rootGetters['cluster/schema'](kind);
 
       if (schema) {
         const type = schema.id;
-        const allOfResourceType = this.$rootGetters['cluster/all']( type );
+        const allOfResourceType: Resource[] = this.$rootGetters['cluster/all']( type );
 
-        this.ownersByType[kind].forEach((resource, idx) => {
+        this.ownersByType[kind].forEach((resource: Resource) => {
           const resourceInstance = allOfResourceType.find(resourceByType => resourceByType?.metadata?.uid === resource.uid);
 
           if (resourceInstance) {
@@ -1677,15 +1622,15 @@ export default class Resource {
     return owners;
   }
 
-  get details() {
+  get details(): ResourceDetails[] {
     return this._details;
   }
 
-  get _details() {
-    const details = [];
+  get _details(): ResourceDetails[] {
+    const details: ResourceDetails[] = [];
 
     if (this.owners?.length > 0) {
-      details.push({
+      const ownerDetails: ResourceDetails = {
         label:     this.t('resourceDetail.detailTop.ownerReferences', { count: this.owners.length }),
         formatter: 'ListLinkDetail',
         content:   this.owners.map(owner => ({
@@ -1694,40 +1639,47 @@ export default class Resource {
           col:   {},
           value: owner.metadata.name
         }))
-      });
+      };
+
+      details.push(ownerDetails);
     }
 
     if (get(this, 'metadata.deletionTimestamp')) {
-      details.push({
+      const ownerDetails: ResourceDetails = {
         label:         this.t('resourceDetail.detailTop.deleted'),
         formatter:     'LiveDate',
         formatterOpts: { addSuffix: true },
         content:       get(this, 'metadata.deletionTimestamp')
-      });
+      };
+
+      details.push(ownerDetails);
     }
 
     return details;
   }
 
-  get t() {
+  get t(): Function {
     return this.$rootGetters['i18n/t'];
   }
 
   // Returns array of MODELS that own this resource (async, network call)
-  findOwners() {
+  findOwners(): Resource[] {
     return this._getRelationship('owner', 'from');
   }
 
   // Returns array of {type, namespace, id} objects that own this resource (sync)
-  getOwners() {
+  getOwners(): Resource[] {
     return this._getRelationship('owner', 'from');
   }
 
-  findOwned() {
+  findOwned(): Promise<Resource[]> {
     return this._findRelationship('owner', 'to');
   }
 
-  _relationshipsFor(rel, direction) {
+  // Didn't create types for relationships
+  // because their keys are dynamically
+  // generated.
+  _relationshipsFor(rel: string, direction: string) {
     const out = { selectors: [], ids: [] };
 
     if ( !this.metadata?.relationships?.length ) {
@@ -1775,7 +1727,10 @@ export default class Resource {
     return out;
   }
 
-  _getRelationship(rel, direction) {
+  // Didn't create types for relationships
+  // because their keys are dynamically
+  // generated.
+  _getRelationship(rel: string, direction: string) {
     const res = this._relationshipsFor(rel, direction);
 
     if ( res.selectors?.length ) {
@@ -1786,9 +1741,12 @@ export default class Resource {
     return res.ids || [];
   }
 
-  async _findRelationship(rel, direction) {
+  // Didn't create types for relationships
+  // because their keys are dynamically
+  // generated.
+  async _findRelationship(rel: string, direction: string) {
     const { selectors, ids } = this._relationshipsFor(rel, direction);
-    const out = [];
+    const out: Resource[] = [];
 
     for ( const sel of selectors ) {
       const matching = await this.$dispatch('findMatching', sel);
@@ -1814,14 +1772,14 @@ export default class Resource {
     return out;
   }
 
-  get shortId() {
+  get shortId(): string {
     const splitId = this.id.split('/');
 
     return splitId.length > 1 ? splitId[1] : splitId[0];
   }
 
-  toJSON() {
-    const out = {};
+  toJSON(): Resource {
+    const out: any = {};
     const keys = Object.keys(this);
 
     for ( const k of keys ) {
