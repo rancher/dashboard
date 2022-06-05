@@ -231,6 +231,7 @@ export const AGE = {
 
 export const AGE_NORMAN = {
   ...AGE,
+  getValue:  row => row.created,
   value:     'created',
   sort:      'created:desc',
 };
