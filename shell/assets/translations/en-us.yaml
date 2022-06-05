@@ -182,6 +182,7 @@ product:
   clusterManagement: Cluster Management
   monitoring: Monitoring
   mcapps: Multi-cluster Apps
+  neuvector: NeuVector
   harvesterManager: Virtualization Management
   harvester: Harvester
   rancher: Rancher

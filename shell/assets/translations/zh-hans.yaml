@@ -185,6 +185,7 @@ product:
   clusterManagement: 集群管理
   monitoring: 监控
   mcapps: 多集群应用
+  neuvector: NeuVector
   harvesterManager: 虚拟化管理
   harvester: Harvester
   rancher: Rancher
