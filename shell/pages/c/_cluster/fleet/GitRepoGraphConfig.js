@@ -1,4 +1,4 @@
-import { STATES } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES } from '@shell/plugins/dashboard-store/resource-constants';
 import { FLEET } from '@shell/config/types';
 
 // some default values

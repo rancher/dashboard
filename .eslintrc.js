@@ -58,10 +58,11 @@ module.exports = {
     'no-eval':                           'warn',
     'no-trailing-spaces':                'warn',
     'no-undef':                          'warn',
-    'no-unused-vars':                    'warn',
     // Allow overload type definitions
     'no-redeclare':                      'off',
     '@typescript-eslint/no-redeclare':   ['error'],
+    'no-unused-vars':                    'off',
+    '@typescript-eslint/no-unused-vars': ['error'],
     'no-whitespace-before-property':     'warn',
     'object-curly-spacing':              ['warn', 'always'],
     'object-property-newline':           'warn',

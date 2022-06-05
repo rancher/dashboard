@@ -1,438 +1,52 @@
 import jsyaml from 'js-yaml';
 import compact from 'lodash/compact';
-import forIn from 'lodash/forIn';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
-import { HttpRequest, ResponseObject } from '@/shell/plugins/steve/types/axiosTypes';
-import { Metadata } from '@/plugins/steve/types/kubeApiTypes';
-import { DetailLocation } from '@/plugins/steve/types/nuxtTypes';
+import { HttpRequest, ResponseObject } from './types/axios-types';
+import { Metadata } from './types/kube-api-types';
+import { DetailLocation } from './types/router-types';
 import {
-  Action, CloneObject, Conditions, CustomValidationRule, MapOfStrings, MODES, RehydrateObject,
-  ResourceDetails, ResourceProperties, STATE_COLOR, STATE_TYPE, StateDetails, StateInfoForTypes,
-  StateList, STATES_ENUM
-} from '@/plugins/steve/types/rancherApiTypes';
-import { Context } from '@/plugins/steve/types/vuexTypes';
+  Action, CloneObject, Conditions, CustomValidationRule, MapOfStrings,
+  MODES, RehydrateObject, RelatedResource,
+  ResourceDetails, ResourceProperties, Selector, STATES_ENUM, STATE_TYPE,
+  StateDetails
+} from './types/rancher-api-types';
+import { Context } from './types/vuex-types';
 
-import { NORMAN_NAME } from '@/config/labels-annotations';
+import { NORMAN_NAME } from '@/shell/config/labels-annotations';
 import {
   _CLONE, _CONFIG, _EDIT, _UNFLAG, _VIEW, _YAML, AS, MODE
-} from '@/config/query-params';
-import { DEV } from '@/store/prefs';
-import { addObject, addObjects, findBy, removeAt } from '@/utils/array';
-import CustomValidators from '@/utils/custom-validators';
-import { downloadFile, generateZip } from '@/utils/download';
-import { clone, get } from '@/utils/object';
-import { eachLimit } from '@/utils/promise';
-import { sortableNumericSuffix } from '@/utils/sort';
-import { coerceStringTypeToScalarType, escapeHtml, ucFirst } from '@/utils/string';
+} from '@/shell/config/query-params';
+import { DEV } from '@/shell/store/prefs';
+import { addObject, addObjects, findBy, removeAt } from '@/shell/utils/array';
+import CustomValidators from '@/shell/utils/custom-validators';
+import { downloadFile, generateZip } from '@shell/utils/download';
+import { clone, get } from '@/shell/utils/object';
+import { eachLimit } from '@/shell/utils/promise';
+import { sortableNumericSuffix } from '@/shell/utils/sort';
+import { coerceStringTypeToScalarType, escapeHtml, ucFirst } from '@/shell/utils/string';
 import {
   displayKeyFor, validateBoolean, validateChars, validateDnsLikeTypes, validateLength
-} from '@/utils/validators';
+} from '@shell/utils/validators';
 
 // eslint-disable-next-line
-import { cleanForNew, normalizeType } from './normalize';
-import typeHelpers from '~/utils/type-helpers';
+import { normalizeType } from './normalize';
+import {
+  STATES, DEFAULT_ICON,
+  DEFAULT_WAIT_INTERVAL, DEFAULT_WAIT_TIMEOUT,
+  DNS_LIKE_TYPES, STRING_LIKE_TYPES
+} from './resource-constants';
 
-const STRING_LIKE_TYPES = [
-  'string',
-  'date',
-  'blob',
-  'enum',
-  'multiline',
-  'masked',
-  'password',
-  'dnsLabel',
-  'hostname',
-];
-const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
-
-const REMAP_STATE: MapOfStrings = {
-  disabled:                 'inactive',
-  notapplied:               'Not Applied',
-  notready:                 'Not Ready',
-  waitapplied:              'Wait Applied',
-  outofsync:                'Out of Sync',
-  'in-progress':            'In Progress',
-  gitupdating:              'Git Updating',
-  errapplied:               'Err Applied',
-  waitcheckin:              'Wait Check-In',
-  off:                      'Disabled',
-  waitingforinfrastructure: 'Waiting for Infra',
-  waitingfornoderef:        'Waiting for Node Ref'
-};
-
-const DEFAULT_COLOR = 'warning';
-const DEFAULT_ICON = 'x';
-
-const DEFAULT_WAIT_INTERVAL = 1000;
-const DEFAULT_WAIT_TIMEOUT = 30000;
-
-export const STATES: StateList = {
-  [STATES_ENUM.IN_USE]:           {
-    color: 'success', icon: 'dot-open', label: 'In Use'
-  },
-  [STATES_ENUM.IN_PROGRESS]:      {
-    color: 'info', icon: 'tag', label: 'In Progress'
-  },
-  [STATES_ENUM.PENDING_ROLLBACK]: {
-    color: 'info', icon: 'dot-half', label: 'Pending Rollback'
-  },
-  [STATES_ENUM.PENDING_UPGRADE]:  {
-    color: 'info', icon: 'dot-half', label: 'Pending Update'
-  },
-  [STATES_ENUM.ABORTED]:            {
-    color: 'warning', icon: 'error', label: 'Aborted'
-  },
-  [STATES_ENUM.ACTIVATING]:         {
-    color: 'info', icon: 'tag', label: 'Activating'
-  },
-  [STATES_ENUM.ACTIVE]:             {
-    color: 'success', icon: 'dot-open', label: 'Active'
-  },
-  [STATES_ENUM.AVAILABLE]:          {
-    color: 'success', icon: 'dot-open', label: 'Available'
-  },
-  [STATES_ENUM.BACKED_UP]:           {
-    color: 'success', icon: 'backup', label: 'Backed Up'
-  },
-  [STATES_ENUM.BOUND]:              {
-    color: 'success', icon: 'dot', label: 'Bound'
-  },
-  [STATES_ENUM.BUILDING]:           {
-    color: 'success', icon: 'dot-open', label: 'Building'
-  },
-  [STATES_ENUM.COMPLETED]:          {
-    color: 'success', icon: 'dot', label: 'Completed'
-  },
-  [STATES_ENUM.CORDONED]:           {
-    color: 'info', icon: 'tag', label: 'Cordoned'
-  },
-  [STATES_ENUM.COUNT]:              {
-    color: 'success', icon: 'dot-open', label: 'Count'
-  },
-  [STATES_ENUM.CREATED]:            {
-    color: 'info', icon: 'tag', label: 'Created'
-  },
-  [STATES_ENUM.CREATING]:           {
-    color: 'info', icon: 'tag', label: 'Creating'
-  },
-  [STATES_ENUM.DEACTIVATING]:       {
-    color: 'info', icon: 'adjust', label: 'Deactivating'
-  },
-  [STATES_ENUM.DEGRADED]:           {
-    color: 'warning', icon: 'error', label: 'Degraded'
-  },
-  [STATES_ENUM.DENIED]:             {
-    color: 'error', icon: 'adjust', label: 'Denied'
-  },
-  [STATES_ENUM.DEPLOYED]:           {
-    color: 'success', icon: 'dot-open', label: 'Deployed'
-  },
-  [STATES_ENUM.DISABLED]:           {
-    color: 'warning', icon: 'error', label: 'Disabled'
-  },
-  [STATES_ENUM.DISCONNECTED]:       {
-    color: 'warning', icon: 'error', label: 'Disconnected'
-  },
-  [STATES_ENUM.DRAINED]:            {
-    color: 'info', icon: 'tag', label: 'Drained'
-  },
-  [STATES_ENUM.DRAINING]:           {
-    color: 'warning', icon: 'tag', label: 'Draining'
-  },
-  [STATES_ENUM.ERR_APPLIED]:         {
-    color: 'error', icon: 'error', label: 'Error Applied'
-  },
-  [STATES_ENUM.ERROR]:              {
-    color: 'error', icon: 'error', label: 'Error'
-  },
-  [STATES_ENUM.ERRORING]:           {
-    color: 'error', icon: 'error', label: 'Erroring'
-  },
-  [STATES_ENUM.ERRORS]:             {
-    color: 'error', icon: 'error', label: 'Errors'
-  },
-  [STATES_ENUM.EXPIRED]:            {
-    color: 'warning', icon: 'error', label: 'Expired'
-  },
-  [STATES_ENUM.FAIL]:               {
-    color: 'error', icon: 'error', label: 'Fail'
-  },
-  [STATES_ENUM.FAILED]:             {
-    color: 'error', icon: 'error', label: 'Failed'
-  },
-  [STATES_ENUM.HEALTHY]:            {
-    color: 'success', icon: 'dot-open', label: 'Healthy'
-  },
-  [STATES_ENUM.INACTIVE]:           {
-    color: 'error', icon: 'dot', label: 'Inactive'
-  },
-  [STATES_ENUM.INITIALIZING]:       {
-    color: 'warning', icon: 'error', label: 'Initializing'
-  },
-  [STATES_ENUM.INPROGRESS]:         {
-    color: 'info', icon: 'spinner', label: 'In Progress'
-  },
-  [STATES_ENUM.INFO]:         {
-    color: 'info', icon: 'info', label: 'Info'
-  },
-  [STATES_ENUM.LOCKED]:             {
-    color: 'warning', icon: 'adjust', label: 'Locked'
-  },
-  [STATES_ENUM.MIGRATING]:          {
-    color: 'info', icon: 'info', label: 'Migrated'
-  },
-  [STATES_ENUM.MISSING]:            {
-    color: 'warning', icon: 'adjust', label: 'Missing'
-  },
-  [STATES_ENUM.MODIFIED]:           {
-    color: 'warning', icon: 'edit', label: 'Modified'
-  },
-  [STATES_ENUM.NOT_APPLICABLE]:      {
-    color: 'warning', icon: 'tag', label: 'Not Applicable'
-  },
-  [STATES_ENUM.NOT_APLLIED]:         {
-    color: 'warning', icon: 'tag', label: 'Not Applied'
-  },
-  [STATES_ENUM.NOT_READY]:           {
-    color: 'warning', icon: 'tag', label: 'Not Ready'
-  },
-  [STATES_ENUM.OFF]:                {
-    color: 'darker', icon: 'error', label: 'Off'
-  },
-  [STATES_ENUM.ON_GOING]:           {
-    color: 'info', icon: 'info', label: 'Info'
-  },
-  [STATES_ENUM.ORPHANED]:           {
-    color: 'warning', icon: 'tag', label: 'Orphaned'
-  },
-  [STATES_ENUM.OTHER]:              {
-    color: 'info', icon: 'info', label: 'Other'
-  },
-  [STATES_ENUM.OUT_OF_SYNC]:          {
-    color: 'warning', icon: 'tag', label: 'Out Of Sync'
-  },
-  [STATES_ENUM.PASS]:               {
-    color: 'success', icon: 'dot-dotfill', label: 'Pass'
-  },
-  [STATES_ENUM.PASSED]:             {
-    color: 'success', icon: 'dot-dotfill', label: 'Passed'
-  },
-  [STATES_ENUM.PAUSED]:             {
-    color: 'info', icon: 'info', label: 'Paused'
-  },
-  [STATES_ENUM.PENDING]:            {
-    color: 'info', icon: 'tag', label: 'Pending'
-  },
-  [STATES_ENUM.PROVISIONING]:       {
-    color: 'info', icon: 'dot', label: 'Provisioning'
-  },
-  [STATES_ENUM.PROVISIONED]:        {
-    color: 'success', icon: 'dot', label: 'Provisioned'
-  },
-  [STATES_ENUM.PURGED]:             {
-    color: 'error', icon: 'purged', label: 'Purged'
-  },
-  [STATES_ENUM.PURGING]:            {
-    color: 'info', icon: 'purged', label: 'Purging'
-  },
-  [STATES_ENUM.READY]:              {
-    color: 'success', icon: 'dot-open', label: 'Ready'
-  },
-  [STATES_ENUM.RECONNECTING]:       {
-    color: 'error', icon: 'error', label: 'Reconnecting'
-  },
-  [STATES_ENUM.REGISTERING]:        {
-    color: 'info', icon: 'tag', label: 'Registering'
-  },
-  [STATES_ENUM.REINITIALIZING]:     {
-    color: 'warning', icon: 'error', label: 'Reinitializing'
-  },
-  [STATES_ENUM.RELEASED]:           {
-    color: 'warning', icon: 'error', label: 'Released'
-  },
-  [STATES_ENUM.REMOVED]:            {
-    color: 'error', icon: 'trash', label: 'Removed'
-  },
-  [STATES_ENUM.REMOVING]:           {
-    color: 'info', icon: 'trash', label: 'Removing'
-  },
-  [STATES_ENUM.REQUESTED]:          {
-    color: 'info', icon: 'tag', label: 'Requested'
-  },
-  [STATES_ENUM.RESTARTING]:         {
-    color: 'info', icon: 'adjust', label: 'Restarting'
-  },
-  [STATES_ENUM.RESTORING]:          {
-    color: 'info', icon: 'medicalcross', label: 'Restoring'
-  },
-  [STATES_ENUM.RESIZING]:           {
-    color: 'warning', icon: 'dot', label: 'Resizing'
-  },
-  [STATES_ENUM.RUNNING]:            {
-    color: 'success', icon: 'dot-open', label: 'Running'
-  },
-  [STATES_ENUM.SKIP]:               {
-    color: 'info', icon: 'dot-open', label: 'Skip'
-  },
-  [STATES_ENUM.SKIPPED]:            {
-    color: 'info', icon: 'dot-open', label: 'Skipped'
-  },
-  [STATES_ENUM.STARTING]:           {
-    color: 'info', icon: 'adjust', label: 'Starting'
-  },
-  [STATES_ENUM.STOPPED]:            {
-    color: 'error', icon: 'dot', label: 'Stopped'
-  },
-  [STATES_ENUM.STOPPING]:           {
-    color: 'info', icon: 'adjust', label: 'Stopping'
-  },
-  [STATES_ENUM.SUCCEEDED]:          {
-    color: 'success', icon: 'dot-dotfill', label: 'Succeeded'
-  },
-  [STATES_ENUM.SUCCESS]:            {
-    color: 'success', icon: 'dot-open', label: 'Success'
-  },
-  [STATES_ENUM.SUPERSEDED]:         {
-    color: 'info', icon: 'dot-open', label: 'Superseded'
-  },
-  [STATES_ENUM.SUSPENDED]:          {
-    color: 'info', icon: 'pause', label: 'Suspended'
-  },
-  [STATES_ENUM.UNAVAILABLE]:        {
-    color: 'error', icon: 'error', label: 'Unavailable'
-  },
-  [STATES_ENUM.UNHEALTHY]:          {
-    color: 'error', icon: 'error', label: 'Unhealthy'
-  },
-  [STATES_ENUM.UNINSTALLED]:        {
-    color: 'info', icon: 'trash', label: 'Uninstalled'
-  },
-  [STATES_ENUM.UNINSTALLING]:       {
-    color: 'info', icon: 'trash', label: 'Uninstalling'
-  },
-  [STATES_ENUM.UNKNOWN]:            {
-    color: 'warning', icon: 'x', label: 'Unknown'
-  },
-  [STATES_ENUM.UNTRIGGERED]:        {
-    color: 'success', icon: 'tag', label: 'Untriggered'
-  },
-  [STATES_ENUM.UPDATING]:           {
-    color: 'warning', icon: 'tag', label: 'Updating'
-  },
-  [STATES_ENUM.WAIT_APPLIED]:        {
-    color: 'info', icon: 'tag', label: 'Wait Applied'
-  },
-  [STATES_ENUM.WAIT_CHECKIN]:        {
-    color: 'warning', icon: 'tag', label: 'Wait Checkin'
-  },
-  [STATES_ENUM.WAITING]:            {
-    color: 'info', icon: 'tag', label: 'Waiting'
-  },
-  [STATES_ENUM.WARNING]:            {
-    color: 'warning', icon: 'error', label: 'Warning'
-  },
-};
-
-export function getStatesByType(): StateInfoForTypes {
-  const out = {
-    info:    [],
-    error:   [],
-    success: [],
-    warning: [],
-    unknown: []
-  };
-
-  forIn(STATES, (state: StateDetails, stateKey: STATE_TYPE) => {
-    try {
-      const color: STATE_COLOR = state.color;
-
-      out[color].push(stateKey);
-    } catch (err) {
-      out.unknown.push(stateKey);
-    }
-  });
-
-  return out;
-}
-
-const SORT_ORDER = {
-  error:    1,
-  warning:  2,
-  info:     3,
-  success:  4,
-  ready:    5,
-  notready:   6,
-  other:    7,
-};
-
-export function getStateLabel(state: STATE_TYPE): string {
-  const lowercaseState = state.toLowerCase();
-
-  return STATES[lowercaseState] ? STATES[lowercaseState].label : STATES[STATES_ENUM.UNKNOWN].label;
-}
-
-export function colorForState(state: STATE_TYPE | string, isError: boolean, isTransitioning: boolean): string {
-  if ( isError ) {
-    return 'text-error';
-  }
-
-  if ( isTransitioning ) {
-    return 'text-info';
-  }
-
-  const key = (state || 'active').toLowerCase();
-  let color;
-
-  if ( STATES[key] && STATES[key].color ) {
-    color = maybeFn.call(this, STATES[key].color);
-  }
-
-  if ( !color ) {
-    color = DEFAULT_COLOR;
-  }
-
-  return `text-${ color }`;
-}
-
-export function stateDisplay(state: STATE_TYPE): string {
-  // @TODO use translations
-  const key = (state || 'active').toLowerCase();
-
-  if ( REMAP_STATE[key] ) {
-    return REMAP_STATE[key];
-  }
-
-  return key.split(/-/).map(ucFirst).join('-');
-}
-
-export function stateSort(color: string, display: string): string {
-  color = color.replace(/^(text|bg)-/, '');
-
-  return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ display }`;
-}
-
-function maybeFn(val: any): unknown {
-  // This either calls the function and returns
-  // the result, or returns the function itself. Why?
-  // This function and its caller should be refactored
-  // to clarify the intent.
-  if ( isFunction(val) ) {
-    return val(this);
-  }
-
-  return val;
-}
+import { stateDisplay, colorForState, stateSort } from '~/shell/plugins/dashboard-store/resource-utils';
 
 export default class Resource implements ResourceProperties {
   // Intialize typed properties
   $ctx: Context = {};
   $getters: any;
   $rootGetters: any;
-  $state: any;
   $rootState: any;
   $dispatch: any;
   metadata: Metadata = {};
@@ -446,6 +60,7 @@ export default class Resource implements ResourceProperties {
   transitioning = false;
   // Use a default state because it must be an enumerated type
   // state: STATE_TYPE = 'UNKNOWN';
+  state: STATES_ENUM = STATES_ENUM.UNKNOWN;
   // Links can include anything, such as self, update, shell,
   // sshKeys, update, nodeConfig
   links: MapOfStrings = {};
@@ -458,17 +73,7 @@ export default class Resource implements ResourceProperties {
   __rehydrate?: RehydrateObject = {};
   __clone?: CloneObject = {};
 
-  set state(val: STATE_TYPE) {
-    this.state = val;
-  }
-
-  get state() {
-    return this.state;
-  }
-
   constructor(data: any, ctx: Context, rehydrateNamespace = null, setClone = false) {
-    // make more specific
-
     for ( const k in data ) {
       // The following properties are set here, among others:
       // - metadata
@@ -489,7 +94,7 @@ export default class Resource implements ResourceProperties {
       // __rehydrate
       // __clone
 
-      // eslint-disable-next-line
+      // @ts-ignore
       this[k] = data[k];
     }
 
@@ -681,7 +286,8 @@ export default class Resource implements ResourceProperties {
     let icon;
 
     if ( STATES[key] && STATES[key].icon ) {
-      icon = maybeFn.call(this, STATES[key].icon);
+      // eslint-disable-next-line
+      return STATES[key].icon || ''
     }
 
     if ( !icon ) {
@@ -731,7 +337,7 @@ export default class Resource implements ResourceProperties {
         console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
         clearInterval(interval);
         clearTimeout(timeout);
-        reject(new Error(`Failed while: ${ msg }`));
+        reject(new Error(`Failed waiting for: ${ msg }`));
       }, timeoutMs);
 
       const interval = setInterval(() => {
@@ -1332,7 +938,7 @@ export default class Resource implements ResourceProperties {
       const obj: any = jsyaml.load(yaml);
 
       if (mode !== MODES._EDIT) {
-        cleanForNew(obj);
+        this.cleanForNew();
       }
 
       if (obj._type) {
@@ -1347,8 +953,12 @@ export default class Resource implements ResourceProperties {
     }
   }
 
-  cleanForNew(): any {
-    cleanForNew(this);
+  cleanForNew() {
+    this.$dispatch(`cleanForNew`, this);
+  }
+
+  cleanForDiff() {
+    this.$dispatch(`cleanForDiff`, this.toJSON());
   }
 
   yamlForSave(yaml: string): any {
@@ -1518,67 +1128,67 @@ export default class Resource implements ResourceProperties {
         // we assume it's an array after this line.
         // eslint-disable-next-line
         customValidationRules = customValidationRules();
-      }
+      } else {
+        // eslint-disable-next-line
+        customValidationRules.forEach((rule: CustomValidationRule) => {
+          const {
+            path,
+            requiredIf: requiredIfPath,
+            validators = [],
+            type: fieldType,
+          } = rule;
+          let pathValue = get(data, path);
 
-      // eslint-disable-next-line
-      customValidationRules.forEach((rule: CustomValidationRule) => {
-        const {
-          path,
-          requiredIf: requiredIfPath,
-          validators = [],
-          type: fieldType,
-        } = rule;
-        let pathValue = get(data, path);
+          const parsedRules = compact((validators || []));
+          let displayKey = path;
 
-        const parsedRules = compact((validators || []));
-        let displayKey = path;
-
-        if (rule.translationKey && this.$rootGetters['i18n/exists'](rule.translationKey)) {
-          displayKey = this.t(rule.translationKey);
-        }
-
-        if (isString(pathValue)) {
-          pathValue = pathValue.trim();
-        }
-        if (requiredIfPath) {
-          const reqIfVal = get(data, requiredIfPath);
-
-          if (!isEmpty(reqIfVal) && (isEmpty(pathValue) && pathValue !== 0)) {
-            errors.push(this.t('validation.required', { key: displayKey }));
-          }
-        }
-
-        validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
-        validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
-
-        if ( !isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
-          // DNS types should be lowercase
-          const tolower = (pathValue || '').toLowerCase();
-
-          if ( tolower !== pathValue ) {
-            pathValue = tolower;
-
-            Vue.set(data, path, pathValue);
+          if (rule.translationKey && this.$rootGetters['i18n/exists'](rule.translationKey)) {
+            displayKey = this.t(rule.translationKey);
           }
 
-          errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));
-        }
-
-        parsedRules.forEach((validator: string) => {
-          const validatorAndArgs = validator.split(':');
-          const validatorName = validatorAndArgs.slice(0, 1)[0];
-          const validatorArgs = validatorAndArgs.slice(1) || null;
-          const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
-
-          if (!isEmpty(validatorName) && validatorExists) {
-            // eslint-disable-next-line
-            CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
-          } else if (!isEmpty(validatorName) && !validatorExists) {
-            // eslint-disable-next-line
-            console.warn(this.t('validation.custom.missing', { validatorName }));
+          if (isString(pathValue)) {
+            pathValue = pathValue.trim();
           }
+          if (requiredIfPath) {
+            const reqIfVal = get(data, requiredIfPath);
+
+            if (!isEmpty(reqIfVal) && (isEmpty(pathValue) && pathValue !== 0)) {
+              errors.push(this.t('validation.required', { key: displayKey }));
+            }
+          }
+
+          validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
+          validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
+
+          if ( !isEmpty(pathValue) && fieldType && DNS_LIKE_TYPES.includes(fieldType) && typeof path === 'string' ) {
+            // DNS types should be lowercase
+            const tolower = (pathValue || '').toLowerCase();
+
+            if ( tolower !== pathValue ) {
+              pathValue = tolower;
+
+              Vue.set(data, path, pathValue);
+            }
+
+            errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));
+          }
+
+          parsedRules.forEach((validator: string) => {
+            const validatorAndArgs = validator.split(':');
+            const validatorName = validatorAndArgs.slice(0, 1)[0];
+            const validatorArgs = validatorAndArgs.slice(1) || null;
+            const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
+
+            if (!isEmpty(validatorName) && validatorExists) {
+              // @ts-ignore
+              CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
+            } else if (!isEmpty(validatorName) && !validatorExists) {
+              // eslint-disable-next-line
+              console.warn(this.t('validation.custom.missing', { validatorName }));
+            }
+          });
         });
-      });
+      }
     }
 
     return uniq(errors);
@@ -1679,8 +1289,9 @@ export default class Resource implements ResourceProperties {
   // Didn't create types for relationships
   // because their keys are dynamically
   // generated.
-  _relationshipsFor(rel: string, direction: string) {
-    const out = { selectors: [], ids: [] };
+  _relationshipsFor(rel: string, direction: string): RelatedResource {
+    const selectors: Selector[] = [];
+    const out: RelatedResource = { selectors, ids: [] };
 
     if ( !this.metadata?.relationships?.length ) {
       return out;
@@ -1696,11 +1307,13 @@ export default class Resource implements ResourceProperties {
       }
 
       if ( r.selector ) {
-        addObjects(out.selectors, {
+        const selector: Selector = {
           type:      r.toType,
           namespace: r.toNamespace,
           selector:  r.selector
-        });
+        };
+
+        addObjects(out.selectors, [selector]);
       } else {
         const type = r[`${ direction }Type`];
         let namespace = r[`${ direction }Namespace`];
@@ -1783,9 +1396,12 @@ export default class Resource implements ResourceProperties {
     const keys = Object.keys(this);
 
     for ( const k of keys ) {
+      // @ts-ignore
       if ( this[k]?.toJSON ) {
+        // @ts-ignore
         out[k] = this[k].toJSON();
       } else {
+        // @ts-ignore
         out[k] = clone(this[k]);
       }
     }

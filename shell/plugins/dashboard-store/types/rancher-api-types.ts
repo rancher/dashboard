@@ -6,7 +6,8 @@ export const enum STATE_COLORS {
     success = 'success',
     warning = 'warning',
     unknown = 'unknown',
-    darker = 'darker'
+    darker = 'darker',
+    never = 'never'
 }
 
 export type STATE_COLOR = keyof typeof STATE_COLORS;
@@ -27,10 +28,6 @@ export type StateDetails = {
     transitioning?: boolean;
     error?: boolean;
     message?: string;
-}
-
-export type StateInfoForTypes = {
-    [key in STATE_COLORS]: string[]
 }
 
 export const enum STATES_ENUM {
@@ -122,13 +119,16 @@ export const enum STATES_ENUM {
     WAIT_CHECKIN = 'waitcheckin',
     WAITING = 'waiting',
     WARNING = 'warning',
-  }
+}
+export type STATE_TYPE = keyof typeof STATES_ENUM;
 
-export type StateList = {
-    [key in STATES_ENUM]: StateDetails;
+export type StateInfoForTypes = {
+    [key in STATE_COLORS]: STATE_TYPE[]
 }
 
-export type STATE_TYPE = keyof typeof STATES_ENUM;
+export type StateList = {
+    [key: string]: StateDetails;
+}
 
 export type Action = {
     action?: string,
@@ -170,7 +170,6 @@ export type CloneObject = {
 export interface ResourceProperties {
     // Allows constructor to work by setting anything in data
     // as a property in the Resource class
-    [index: string]: any,
     __clone?: CloneObject,
     __rehydrate?: RehydrateObject,
     state?: string,
@@ -205,4 +204,17 @@ export type ResourceDetails = {
     formatterOpts?: {
         addSuffix?: boolean;
     };
+}
+
+export type Selector = {
+    id?: any;
+    name?: string;
+    type?: any;
+    namespace?: any;
+    selector?: any
+}
+
+export type RelatedResource = {
+    selectors: Selector[],
+    ids: any[]
 }
