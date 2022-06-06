@@ -184,7 +184,7 @@ epinio:
       configCount: Configs
     name: Name
     create: Create a Namespace
-    deleteWarning: All applications and configurations in a namespace will be deleted.
+    deleteWarning: All resources in a namespace will be deleted.
   configurations:
     pairs:
       label: Config Data
