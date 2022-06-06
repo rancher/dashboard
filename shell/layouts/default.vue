@@ -44,7 +44,7 @@ export default {
     GrowlManager,
     WindowManager,
     FixedBanner,
-    AwsComplianceBanner
+    AwsComplianceBanner,
     AzureWarning
   },
 

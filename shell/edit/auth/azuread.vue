@@ -15,22 +15,30 @@ const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
 // Azure AD Graph will be deprecated end of 2022, see: https://docs.microsoft.com/en-us/graph/migrate-azure-ad-graph-overview
 export const OLD_ENDPOINTS = {
-  standard: { graphEndpoint: 'https://graph.windows.net/' },
-  china:    { graphEndpoint: 'https://graph.chinacloudapi.cn/' }
+  standard: {
+    graphEndpoint: 'https://graph.windows.net/',
+    tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/token`,
+    authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/authorize`,
+  },
+  china: {
+    graphEndpoint: 'https://graph.chinacloudapi.cn/',
+    tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/token`,
+    authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/authorize`,
+  }
 };
 
 const ENDPOINT_MAPPING = {
   standard: {
     endpoint:      'https://login.microsoftonline.com/',
     graphEndpoint: 'https://graph.microsoft.com',
-    tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/token`,
-    authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/authorize`,
+    tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
+    authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`,
   },
   china: {
     endpoint:      'https://login.chinacloudapi.cn/',
     graphEndpoint: 'https://microsoftgraph.chinacloudapi.cn',
-    tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/token`,
-    authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/authorize`,
+    tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
+    authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`,
   },
   custom: {
     endpoint:      'https://login.microsoftonline.com/',
