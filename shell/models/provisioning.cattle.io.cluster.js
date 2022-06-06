@@ -7,6 +7,10 @@ import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 
+/**
+ * Class representing Cluster resource.
+ * @extends SteveModal
+ */
 export default class ProvCluster extends SteveModel {
   get details() {
     const out = [
@@ -178,6 +182,13 @@ export default class ProvCluster extends SteveModel {
     }
 
     return false;
+  }
+
+  promptRemove(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'ConfirmNameToRemoveDialog'
+    });
   }
 
   get isImportedK3s() {
