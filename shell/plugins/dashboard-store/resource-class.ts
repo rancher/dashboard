@@ -9,7 +9,7 @@ import { HttpRequest, ResponseObject } from './types/axios-types';
 import { Metadata } from './types/kube-api-types';
 import { DetailLocation } from './types/router-types';
 import {
-  Action, CloneObject, Conditions, CustomValidationRule, MapOfStrings,
+  Action, CloneObject, Conditions, Condition, CustomValidationRule, MapOfStrings,
   MODES, RehydrateObject, RelatedResource,
   ResourceDetails, ResourceProperties, Selector, STATES_ENUM, STATE_TYPE,
   StateDetails
@@ -49,14 +49,14 @@ export default class Resource implements ResourceProperties {
   $rootGetters: any;
   $rootState: any;
   $dispatch: any;
+  $state: any;
   metadata: Metadata = {};
   type = '';
   kind = '';
   id = '';
   uid = '';
   spec: any = {};
-  displayName?: string | undefined;
-  name?: string | undefined;
+  
   transitioning = false;
 
   // Links can include anything, such as self, update, shell,
@@ -64,7 +64,7 @@ export default class Resource implements ResourceProperties {
   links: MapOfStrings = {};
   status: Conditions = { conditions: [] };
   isSpoofed = false;
-  _type = '';
+  _type: string = '';
 
   // Use a default state because it must be an enumerated type
   // state: STATE_TYPE = 'UNKNOWN';
@@ -95,6 +95,8 @@ export default class Resource implements ResourceProperties {
       // - actionLinks
       // __rehydrate
       // __clone
+
+      console.log(`setting ${k} to `,data[k])
 
       // @ts-ignore
       this[k] = data[k];
@@ -292,7 +294,7 @@ export default class Resource implements ResourceProperties {
       return 'icon icon-error';
     }
 
-    const key = (this.state || '').toLowerCase();
+    const key = (this._state || '').toLowerCase();
     let icon;
 
     if ( STATES[key] && STATES[key].icon ) {
@@ -363,9 +365,9 @@ export default class Resource implements ResourceProperties {
     });
   }
 
-  waitForState(state: string, timeout: number, interval: number): Promise<Resource> {
+  waitForState(state: STATES_ENUM, timeout: number, interval: number): Promise<Resource> {
     return this.waitForTestFn((): boolean => {
-      return (this.state || '').toLowerCase() === state.toLowerCase();
+      return (this._state || '').toLowerCase() === state.toLowerCase();
     }, `state=${ state }`, timeout, interval);
   }
 
@@ -387,11 +389,11 @@ export default class Resource implements ResourceProperties {
     }, `link=${ name }`);
   }
 
-  hasCondition(condition: string): boolean {
+  hasCondition(condition: Condition): boolean {
     return this.isCondition(condition, '');
   }
 
-  isCondition(condition: string, withStatus = 'True'): boolean {
+  isCondition(condition: Condition, withStatus = 'True'): boolean {
     if ( !this.status || !this.status.conditions ) {
       return false;
     }
@@ -405,8 +407,9 @@ export default class Resource implements ResourceProperties {
     if ( !withStatus ) {
       return true;
     }
+    console.log('is condition, to lowercase ', entry)
 
-    return (entry || '').toLowerCase() === `${ withStatus }`.toLowerCase();
+    return (entry.type || '').toLowerCase() === `${ withStatus }`.toLowerCase();
   }
 
   waitForCondition(name: string, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL): Promise<Resource> {

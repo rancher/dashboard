@@ -18,7 +18,7 @@ export function base64Encode(string, alphabet = NORMAL) {
   if ( typeof Buffer.from === 'function' && Buffer.from !== Uint8Array.from ) {
     buf = Buffer.from(string);
   } else {
-    buf = new Buffer.alloc(string);
+    buf = new Buffer.from(string);
   }
   if (alphabet === URL) {
     const m = {
@@ -40,7 +40,7 @@ export function base64DecodeToBuffer(string) {
   if ( typeof Buffer.from === 'function' && Buffer.from !== Uint8Array.from ) {
     return Buffer.from(string, 'base64');
   } else {
-    return new Buffer.alloc(string, 'base64');
+    return new Buffer.from(string, 'base64');
   }
 }
 
@@ -89,7 +89,7 @@ function hash(algorithm, data, digest, callback) {
   }
 
   if ( typeof data === 'string' ) {
-    data = new Buffer.alloc(data);
+    data = new Buffer.from(data);
   }
 
   const sliceFn = arraySliceFn(data);
@@ -122,7 +122,7 @@ function hash(algorithm, data, digest, callback) {
     };
 
     reader.onload = function() {
-      const buf = new Buffer.alloc(new Uint8Array(reader.result));
+      const buf = new Buffer.from(new Uint8Array(reader.result));
 
       hash.update(buf);
       index += buf.length;

@@ -13,6 +13,7 @@ import { lookup } from './model-loader';
 export default {
 
   all: (state, getters) => (type) => {
+    console.log('getter all ', {state, getters, type})
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -21,6 +22,8 @@ export default {
       console.warn(`All of ${ type } is not loaded yet`); // eslint-disable-line no-console
       mutations.registerType(state, type);
     }
+
+    console.log('result of getting all ', state.types[type].list)
 
     return state.types[type].list;
   },
@@ -117,6 +120,12 @@ export default {
 
     if ( !schemas ) {
       if ( allowThrow ) {
+        console.log({
+          schemas,
+          type,
+          state,
+          getters
+        })
         throw new Error("Schemas aren't loaded yet");
       } else {
         return null;

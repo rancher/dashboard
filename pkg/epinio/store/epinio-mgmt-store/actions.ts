@@ -20,6 +20,7 @@ export default {
   },
 
   loadManagement(ctx: any) {
+    console.log('load management 1')
     const { state, commit, rootGetters } = ctx;
 
     // Use this to store non-cluster specific schemas. Cluster specific types are stored in epinio and are remove on cluster change
@@ -48,6 +49,7 @@ export default {
 
     // dispatch('loadSchemas')
     commit('managementChanged', { ready: true });
+    console.log('load management 2')
   },
 
   watch() {

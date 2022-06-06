@@ -60,6 +60,7 @@ function setProduct(store, to) {
 export default async function({
   route, app, store, redirect, $cookies, req, isDev, from, $plugin
 }) {
+  console.log('authenticated.js ran ')
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
     if ( route.path.startsWith('/__webpack_hmr/') ) {
@@ -96,6 +97,7 @@ export default async function({
   // Initial ?setup=admin-password can technically be on any route
   let initialPass = route.query[SETUP];
   let firstLogin = null;
+  console.log('authenticated.js ran right before load settings ')
 
   try {
     // Load settings, which will either be just the public ones if not logged in, or all if you are
@@ -282,6 +284,7 @@ export default async function({
     const always = [
       store.dispatch('loadManagement')
     ];
+    console.log('always ran')
 
     // Entering a new package where we weren't before?
     const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find(p => p.name === pkg) : null;

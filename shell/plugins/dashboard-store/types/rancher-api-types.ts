@@ -150,8 +150,16 @@ export interface MapOfNumbers {
     [key: string]: number;
 }
 
+export type Condition = {
+    error: boolean;
+    lastUpdateTime: string;
+    status: string;
+    transitioning: boolean;
+    type: string
+}
+
 export type Conditions = {
-    conditions: string[]
+    conditions: Condition[]
 }
 
 export type RehydrateObject = {
@@ -175,7 +183,7 @@ export interface ResourceProperties {
     state?: STATES_ENUM,
     _state?: STATES_ENUM,
     displayName?: string,
-    name?: string,
+    name: string,
     $getters?: any,
     $rootGetters?: any,
     $dispatch?: any,

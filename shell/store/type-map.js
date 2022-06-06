@@ -782,6 +782,7 @@ export const getters = {
   },
 
   allTypes(state, getters, rootState, rootGetters) {
+    console.log(' all types')
     return (product, mode = ALL) => {
       const module = findBy(state.products, 'name', product).inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);

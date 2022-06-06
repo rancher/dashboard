@@ -40,11 +40,17 @@ export default {
   },
 
   async loadSchemas(ctx, watch = true) {
+    console.log('load schemas')
     const {
       getters, dispatch, commit, rootGetters
     } = ctx;
     const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
     const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
+
+    console.log({
+      res,
+      spoofedTypes
+    })
 
     if (Array.isArray(res.data)) {
       res.data = res.data.concat(spoofedTypes);

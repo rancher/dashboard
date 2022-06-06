@@ -528,6 +528,7 @@ export const actions = {
   async loadManagement({
     getters, state, commit, dispatch, rootGetters
   }) {
+    console.log('load management ran')
     if ( state.managementReady) {
       // Do nothing, it's already loaded
       return;
