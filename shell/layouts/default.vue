@@ -13,6 +13,7 @@ import Group from '@shell/components/nav/Group';
 import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
+import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import {
   COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
 } from '@shell/config/types';
@@ -41,7 +42,8 @@ export default {
     Group,
     GrowlManager,
     WindowManager,
-    FixedBanner
+    FixedBanner,
+    AwsComplianceBanner
   },
 
   mixins: [PageHeaderActions, Brand],
@@ -531,7 +533,7 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
-
+    <AwsComplianceBanner />
     <div v-if="managementReady" class="dashboard-content">
       <Header />
       <nav v-if="clusterReady" class="side-nav">

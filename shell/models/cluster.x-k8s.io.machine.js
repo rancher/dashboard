@@ -1,4 +1,4 @@
-import { CAPI, NODE } from '@shell/config/types';
+import { ADDRESSES, CAPI, NODE } from '@shell/config/types';
 import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { listNodeRoles } from '@shell/models/cluster/node';
@@ -240,5 +240,9 @@ export default class CapiMachine extends SteveModel {
 
   get isRunning() {
     return this.status.phase === 'Running';
+  }
+
+  get ipaddress() {
+    return this.status?.addresses?.find(({ type }) => type === ADDRESSES.INTERNAL_IP)?.address || '-';
   }
 }

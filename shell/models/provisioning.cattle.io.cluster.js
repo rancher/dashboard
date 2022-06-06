@@ -37,6 +37,21 @@ export default class ProvCluster extends SteveModel {
     return out;
   }
 
+  // using this computed because on the provisioning cluster we are
+  // displaying the oldest age between provisioning.cluster and management.cluster
+  // so that on a version upgrade of Rancher (ex: 2.5.x to 2.6.x)
+  // we can have the correct age of the cluster displayed on the UI side
+  get creationTimestamp() {
+    const provCreationTimestamp = Date.parse(this.metadata?.creationTimestamp);
+    const mgmtCreationTimestamp = Date.parse(this.mgmt?.metadata?.creationTimestamp);
+
+    if (mgmtCreationTimestamp && mgmtCreationTimestamp < provCreationTimestamp) {
+      return this.mgmt?.metadata?.creationTimestamp;
+    }
+
+    return super.creationTimestamp;
+  }
+
   get availableActions() {
     // No actions for Harvester clusters
     if (this.isHarvester) {
@@ -117,8 +132,7 @@ export default class ProvCluster extends SteveModel {
         action:     'rotateEncryptionKey',
         label:      this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:       'icon icon-refresh',
-        // Disabling encryption key rotation for RKE2 for now because it was removed from v2.6.5
-        enabled:    (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready) // || canEditRKE2cluster
+        enabled:    canEditRKE2cluster || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready)
       }, {
         action:     'saveAsRKETemplate',
         label:      this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),

@@ -79,9 +79,22 @@ export default class extends SteveModel {
   }
 
   updateDefault(value) {
+    // Update model so that the list reflects the change straight away
     this.setAnnotation(STORAGE.DEFAULT_STORAGE_CLASS, value.toString());
     this.setAnnotation(STORAGE.BETA_DEFAULT_STORAGE_CLASS, value.toString());
-    this.save();
+
+    // Patch the annotations rather than saving the whole object, as ssome storage classes
+    // won't allow the complete object to be saved again
+    const data = {
+      metadata: {
+        annotations: {
+          [STORAGE.DEFAULT_STORAGE_CLASS]:      value.toString(),
+          [STORAGE.BETA_DEFAULT_STORAGE_CLASS]: value.toString()
+        }
+      }
+    };
+
+    return this.patch(data, {}, true, true);
   }
 
   setDefault() {
