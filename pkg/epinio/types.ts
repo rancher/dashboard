@@ -1,6 +1,7 @@
 import EpinioApplicationModel from './models/applications';
 import EpinioCatalogServiceModel from './models/catalogservices';
 import EpinioConfigurationModel from './models/configurations';
+import EpinioServiceModel from './models/services';
 
 export const EPINIO_PRODUCT_NAME = 'epinio';
 
@@ -110,3 +111,12 @@ export interface EpinioConfigurationResource {
 }
 
 export type EpinioConfiguration = EpinioConfigurationResource & EpinioConfigurationModel & EpinioMetaProperty;
+
+export interface EpinioServiceResource {
+  meta: EpinioMeta
+  boundapps: string[],
+  catalog_service: string, // eslint-disable-line camelcase
+  status: string,
+}
+
+export type EpinioService = EpinioServiceResource & EpinioServiceModel & EpinioMetaProperty;

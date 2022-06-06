@@ -174,9 +174,9 @@ export default {
           return;
         }
 
-        const { PodName, ContainerName, Message } = parsedData;
+        const { PodName, Message } = parsedData;
 
-        const line = `[${ PodName }] ${ ContainerName }: ${ Message }`;
+        const line = `[${ PodName }] ${ Message }`;
 
         this.backlog.push({
           id:     lastId++,

@@ -820,6 +820,8 @@ export default {
   }
 
   .user-name {
+    display: flex;
+    align-items: center;
     color: var(--secondary);
   }
 

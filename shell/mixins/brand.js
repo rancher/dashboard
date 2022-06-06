@@ -6,7 +6,6 @@ import { createCssVars } from '@shell/utils/color';
 
 export default {
   async fetch() {
-    this.globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING);
     if ( this.$store.getters['management/canList'](CATALOG.APP) ) {
       this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
     }
@@ -17,6 +16,10 @@ export default {
   },
 
   computed: {
+    globalSettings() {
+      return this.$store.getters['management/all'](MANAGEMENT.SETTING);
+    },
+
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
@@ -36,6 +39,13 @@ export default {
     },
 
     theme() {
+      const setting = findBy(this.globalSettings, 'id', SETTING.THEME);
+
+      // This handles cases where the settings update after the page loads (like on log out)
+      if (setting?.value) {
+        return setting?.value;
+      }
+
       return this.$store.getters['prefs/theme'];
     },
 

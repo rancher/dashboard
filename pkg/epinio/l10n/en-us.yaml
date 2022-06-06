@@ -42,6 +42,7 @@ epinio:
     tableHeaders:
       route: Routes
       boundConfigs: Bound Configs
+      boundServices: Bound Services
       deployedBy: Last Deployed By
     detail:
       counts:
@@ -115,11 +116,17 @@ epinio:
             inputLabel: Branch
             tooltip: Branch to deploy
       configurations:
-        label: Configurations
-        subtext: Bind a config
-        select:
-          placeholderWithOptions: Select configs to bind app to
-          placeholderNoOptions: There are no configs in this namespace
+        label: Bindings
+        subtext: Bind to Application
+        configurations:
+          select:
+            placeholderWithOptions: Select configs to bind app to
+            placeholderNoOptions: There are no configs in this namespace
+        services:
+          select:
+            label: Services
+            placeholderWithOptions: Select services to bind app to
+            placeholderNoOptions: There are no services in this namespace
         next: Create
       progress:
         label: Progress
@@ -135,9 +142,12 @@ epinio:
       create:
         label: Create
         description: The Application will be created ready to deploy source to
-      bind:
-        label: Bind
+      bind_configurations:
+        label: Bind Configurations
         description: Configurations will be bound to the new Application
+      bind_services:
+        label: Bind Services
+        description: Services will be bound to the new Application
       gitFetch:
         label: Fetch
         description: Fetch the files at the git repository's branch
@@ -174,7 +184,7 @@ epinio:
       configCount: Configs
     name: Name
     create: Create a Namespace
-    deleteWarning: All applications and configurations in a namespace will be deleted.
+    deleteWarning: All resources in a namespace will be deleted.
   configurations:
     pairs:
       label: Config Data
@@ -183,6 +193,9 @@ epinio:
       boundApps: Bound Applications
       variableCount: No. of variables
       createBy: Created By
+      service:
+        label: Service
+        tooltip: Configurations related to services are managed by the service itself
     promptRemove:
       unbind: Unbind from applications before deleting
     bindApps:

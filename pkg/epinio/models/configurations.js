@@ -1,10 +1,17 @@
 import { EPINIO_TYPES } from '../types';
 import EpinioNamespacedResource from './epinio-namespaced-resource';
 
-// POST - {"name":"my-service","data":{"foo":"bar"}}
-// GET - { "boundapps": null, "name": "my-service" }
-
 export default class EpinioConfigurationModel extends EpinioNamespacedResource {
+  get canCustomEdit() {
+    return !this.isServiceRelated;
+  }
+
+  get _canDelete() {
+    return !this.isServiceRelated && super._canDelete;
+  }
+
+  // ------------------------------------------------------------------
+
   get links() {
     return {
       update: this.getUrl(),
@@ -34,6 +41,14 @@ export default class EpinioConfigurationModel extends EpinioNamespacedResource {
 
   get variableCount() {
     return Object.keys(this.configuration?.details || {}).length;
+  }
+
+  get isServiceRelated() {
+    return !!this.configuration.origin;
+  }
+
+  get service() {
+    return this.isServiceRelated ? this.$getters['byId'](EPINIO_TYPES.SERVICE_INSTANCE, `${ this.meta.namespace }/${ this.configuration.origin }`) : null;
   }
 
   // ------------------------------------------------------------------
