@@ -92,9 +92,14 @@ export function init($plugin: any, store: any) {
     customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.CONFIGURATION }),
   });
 
+  const ADVANCED_GROUP = 'Advanced';
+
+  weightGroup(ADVANCED_GROUP, 1, true);
+
+  // Service Group
   const SERVICE_GROUP = 'Services';
 
-  weightGroup(SERVICE_GROUP, 1, true);
+  weightGroup(SERVICE_GROUP, 2, true);
 
   // Service Instance
   weightType(EPINIO_TYPES.SERVICE_INSTANCE, 151, true);
@@ -136,10 +141,14 @@ export function init($plugin: any, store: any) {
   ], SERVICE_GROUP);
 
   basicType([
+    EPINIO_TYPES.CONFIGURATION,
+  ], ADVANCED_GROUP);
+
+  basicType([
     EPINIO_TYPES.APP,
     SERVICE_GROUP,
     EPINIO_TYPES.NAMESPACE,
-    EPINIO_TYPES.CONFIGURATION
+    ADVANCED_GROUP
   ]);
 
   headers(EPINIO_TYPES.APP, [

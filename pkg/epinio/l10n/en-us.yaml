@@ -26,6 +26,13 @@ typeLabel:
     }
 epinio:
   label: Epinio
+  intro:
+    welcome: Welcome to Epinio
+    blurb: The Application Development Engine for Kubernetes
+    learnMoreLink: https://epinio.io/
+    learnMore: Learn more
+    noNamespaces: Create a Namespace, then create your Applications
+    getStarted: Get started
   tableHeaders:
     namespace: Namespace
   instances:

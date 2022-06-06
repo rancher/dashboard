@@ -12,6 +12,7 @@ import { sortBy } from '@shell/utils/sort';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
 import { mapGetters } from 'vuex';
+import Banner from '@shell/components/Banner.vue';
 
 interface Data {
 }
@@ -22,7 +23,8 @@ export default Vue.extend<Data, any, any, any>({
     Loading,
     CruResource,
     LabeledSelect,
-    NameNsDescription
+    NameNsDescription,
+    Banner
   },
 
   mixins: [CreateEditView, EpinioBindAppsMixin],
