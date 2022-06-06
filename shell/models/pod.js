@@ -16,41 +16,32 @@ export const WORKLOAD_PRIORITY = {
 
 export default class Pod extends SteveModel {
   get _availableActions() {
-    const out = super._availableActions;
-
-    // Add backwards, each one to the top
-    insertAt(out, 0, { divider: true });
-    insertAt(out, 0, this.openLogsMenuItem);
-    insertAt(out, 0, this.openShellMenuItem);
-
-    return out;
-  }
-
-  get openShellMenuItem() {
-    return {
-      action:     'openShell',
-      enabled:    !!this.links.view && this.isRunning,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      'Execute Shell',
-      total:      1,
+    const forceRemove = {
+      action:     'toggleForceRemoveModal',
+      altAction:  'forceMachineRemove',
+      label:      this.t('node.actions.forceDelete'),
+      icon:       'icon icon-trash',
     };
-  }
 
-  get openLogsMenuItem() {
-    return {
-      action:     'openLogs',
-      enabled:    !!this.links.view,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      'View Logs',
-      total:      1,
-    };
-  }
-
-  get containerActions() {
-    const out = [];
-
-    insertAt(out, 0, this.openLogsMenuItem);
-    insertAt(out, 0, this.openShellMenuItem);
+    const out = [
+      {
+        action:     'openShell',
+        enabled:    !!this.links.view && this.isRunning,
+        icon:       'icon icon-fw icon-chevron-right',
+        label:      'Execute Shell',
+        total:      1,
+      },
+      {
+        action:     'openLogs',
+        enabled:    !!this.links.view,
+        icon:       'icon icon-fw icon-chevron-right',
+        label:      'View Logs',
+        total:      1,
+      },
+      { divider: true },
+      ...super._availableActions, 
+      forceRemove
+    ];
 
     return out;
   }
@@ -64,6 +55,17 @@ export default class Pod extends SteveModel {
     }
 
     return containers[0]?.name;
+  }
+
+  toggleForceRemoveModal(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'ForcePodRemoveDialog'
+    });
+  }
+
+  forceMachineRemove() {
+    console.log('force machine remove');
   }
 
   openShell(containerName = this.defaultContainerName) {
@@ -171,6 +173,10 @@ export default class Pod extends SteveModel {
     const name = this.spec?.nodeName || this.$rootGetters['i18n/t']('generic.none');
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
+  }
+
+  remove() {
+    console.log('REMOVE')
   }
 
   get restartCount() {
