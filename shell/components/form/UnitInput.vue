@@ -183,6 +183,14 @@ export default {
   },
 
   methods: {
+    focus() {
+      const comp = this.$refs.value;
+
+      if (comp) {
+        comp.focus();
+      }
+    },
+
     update(inputValue) {
       let out = inputValue === '' ? null : inputValue;
 
@@ -202,6 +210,7 @@ export default {
 
 <template>
   <LabeledInput
+    ref="value"
     :value="displayValue"
     v-bind="$attrs"
     type="number"
