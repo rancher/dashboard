@@ -41,18 +41,6 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return res;
   }
 
-  get listLocation() {
-    return this.$rootGetters['type-map/optionsFor'](this.type).customRoute || createEpinioRoute(`c-cluster-applications`, { cluster: this.$rootGetters['clusterId'] });
-  }
-
-  get parentLocationOverride() {
-    return this.listLocation;
-  }
-
-  get doneRoute() {
-    return this.listLocation.name;
-  }
-
   get state() {
     return STATES_MAPPED[this.status] || STATES_MAPPED.unknown;
   }

@@ -298,7 +298,7 @@ export function init($plugin: any, store: any) {
 
   headers(EPINIO_TYPES.SERVICE_INSTANCE, [
     STATE,
-    SIMPLE_NAME,
+    NAME,
     {
       name:          'namespace',
       labelKey:      'epinio.tableHeaders.namespace',

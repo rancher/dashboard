@@ -161,6 +161,9 @@ export default Vue.extend<Data, any, any, any>({
     @finish="save"
     @cancel="done"
   >
+    <Banner v-if="value.isServiceRelated" color="info">
+      {{ t('epinio.configurations.tableHeaders.service.tooltip') }}
+    </Banner>
     <NameNsDescription
       name-key="name"
       namespace-key="namespace"
