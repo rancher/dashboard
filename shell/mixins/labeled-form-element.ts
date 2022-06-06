@@ -78,12 +78,12 @@ export default Vue.extend({
     },
   },
 
-  data() {
+  data(): LabeledFormElement {
     return {
       raised:  this.mode === _VIEW || !!`${ this.value }`,
       focused: false,
       blurred: null,
-    } as LabeledFormElement;
+    };
   },
 
   computed: {
