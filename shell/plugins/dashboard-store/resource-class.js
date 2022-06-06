@@ -1834,4 +1834,8 @@ export default class Resource {
 
     return out;
   }
+
+  get creationTimestamp() {
+    return this.metadata?.creationTimestamp;
+  }
 }
