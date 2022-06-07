@@ -14,28 +14,53 @@ export default Vue.extend({
   inheritAttrs: false,
 
   props: {
+    /**
+     * Sets the edit mode for Text Area.
+     * @values _EDIT, _VIEW
+     */
     mode: {
       type:    String,
       default: _EDIT
     },
 
+    /**
+     * Sets the Minimum height for Text Area. Prevents the height from becoming 
+     * smaller than the value specified in minHeight.
+     */
     minHeight: {
       type:    Number,
       default: 25
     },
+    
+    /**
+     * Sets the maximum height for Text Area. Prevents the height from becoming
+     * larger than the value specified in maxHeight.
+     */
     maxHeight: {
       type:    Number,
       default: 200
     },
+
+    /**
+     * Text that appears in the Text Area when it has no value set.
+     */
     placeholder: {
       type:    String,
       default: ''
     },
+
+    /**
+     * Specifies whether Text Area is subject to spell checking by the 
+     * underlying browser/OS.
+     */
     spellcheck: {
       type:    Boolean,
       default: true
     },
 
+    /**
+     * Disables the Text Area.
+     */
     disabled: {
       type:    Boolean,
       default: false
@@ -50,13 +75,18 @@ export default Vue.extend({
   },
 
   computed: {
+    /**
+     * Determines if the Text Area should be disabled.
+     */
     isDisabled(): boolean {
       return this.disabled || this.mode === _VIEW;
     },
 
+    /**
+     * Sets the height to one-line for SSR pageload so that it's already right 
+     * (unless the input is long)
+     */
     style(): string {
-      // This sets the height to one-line for SSR pageload so that it's already right
-      // (unless the input is long)
       return `height: ${ this.curHeight }px; overflow: ${ this.overflow };`;
     }
   },
@@ -82,15 +112,25 @@ export default Vue.extend({
   },
 
   methods: {
+    /** 
+     * Emits the input event and resizes the Text Area.
+    */
     onInput(val: string): void {
       this.$emit('input', val);
       this.queueResize();
     },
 
+    /**
+     * Gives focus to the Text Area.
+     */
     focus(): void {
       (this.$refs?.ta as HTMLElement).focus();
     },
 
+    /**
+     * Sets the overflowY and height of the Text Area based on the content 
+     * entered (calculated via scroll height).
+     */
     autoSize(): void {
       const el = this.$refs.ta as HTMLElement;
 

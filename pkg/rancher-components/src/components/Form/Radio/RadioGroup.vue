@@ -11,61 +11,91 @@ interface Option {
 export default Vue.extend({
   components: { RadioButton },
   props:      {
-    // Name for the checkbox grouping, must be unique on page
+    /**
+     * Name for the checkbox grouping, must be unique on page.
+     */
     name: {
       type:     String,
       required: true
     },
 
-    // Options can be an array of {label, value}, or just values
+    /**
+     * Options can be an array of {label, value}, or just values.
+     */
     options: {
       type:     Array as PropType<Option[] | string[]>,
       required: true
     },
 
-    // If options are just values, then labels can be a corresponding display value
+    /**
+     * If options are just values, then labels can be a corresponding display 
+     * value.
+     */
     labels: {
       type:    Array as PropType<string[]>,
       default: null
     },
 
-    // The selected value
+    /**
+     * The selected value.
+     */
     value: {
       type:    [Boolean, String, Object],
       default: null
     },
 
+    /**
+     * Disable the radio group.
+     */
     disabled: {
       type:    Boolean,
       default: false
     },
 
+    /**
+     * The radio group editing mode.
+     * @values _EDIT, _VIEW
+     */
     mode: {
       type:    String,
       default: 'edit'
     },
 
-    // Label for above the radios
+    /**
+     * Label for above the radios.
+     */
     label: {
       type:    String,
       default: null
     },
+
+    /**
+     * The i18n key to use for the radio group label.
+     */
     labelKey: {
       type:    String,
       default: null
     },
 
-    // Label for above the radios
+    /**
+     * Radio group tooltip.
+     */
     tooltip: {
       type:    [String, Object],
       default: null
     },
+
+    /**
+     * The i18n key to use for the radio group tooltip.
+     */
     tooltipKey: {
       type:    String,
       default: null
     },
 
-    // show radio buttons in column or row
+    /**
+     * Show radio buttons in column or row.
+     */
     row: {
       type:    Boolean,
       default: false
@@ -73,6 +103,9 @@ export default Vue.extend({
   },
 
   computed: {
+    /**
+     * Creates a collection of Options from the provided props.
+     */
     normalizedOptions(): Option[] {
       const out: Option[] = [];
 
@@ -97,17 +130,26 @@ export default Vue.extend({
       return out;
     },
 
+    /**
+     * Determines the view mode for the radio group.
+     */
     isView(): boolean {
       return this.mode === _VIEW;
     },
 
+    /**
+     * Determines if the radio group is disabled.
+     */
     isDisabled(): boolean {
       return (this.disabled || this.isView);
     }
   },
 
   methods: {
-    // keyboard left/right event listener to select next/previous option
+    /**
+     * Keyboard left/right event listener to select next/previous option. Emits
+     * the input event.
+     */
     clickNext(direction: number): void {
       const opts = this.normalizedOptions;
       const selected = opts.find(x => x.value === this.value);

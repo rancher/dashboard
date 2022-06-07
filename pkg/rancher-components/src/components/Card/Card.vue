@@ -4,26 +4,44 @@ import Vue from 'vue';
 export default Vue.extend({
   name:  'Card',
   props: {
+    /**
+     * The card's title.
+     */
     title: {
       type:    String,
       default: ''
     },
+    /**
+     * The text content for the card's body.
+     */
     content: {
       type:    String,
       default: ''
     },
+    /**
+     * The function to invoke when the default action button is clicked.
+     */
     buttonAction: {
       type:    Function,
       default: (): void => { }
     },
+    /**
+     * The text for the default action button.
+     */
     buttonText: {
       type:    String,
       default: 'go'
     },
+    /**
+     * Toggles the card's highlight-border class.
+     */
     showHighlightBorder: {
       type:    Boolean,
       default: true
     },
+    /**
+     * Toggles the card's Actions section.
+     */
     showActions: {
       type:    Boolean,
       default: true
