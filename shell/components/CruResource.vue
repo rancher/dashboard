@@ -2,13 +2,14 @@
 import isEmpty from 'lodash/isEmpty';
 import { createYaml } from '@shell/utils/create-yaml';
 import { clone } from '@shell/utils/object';
-import { SCHEMA, NAMESPACE } from '@shell/config/types';
+import { SCHEMA } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters } from 'vuex';
-import { stringify } from '@shell/utils/error';
+import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
+
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
 } from '@shell/config/query-params';
@@ -266,9 +267,20 @@ export default {
       this.$emit('select-type', id);
     },
 
-    clickSave(e) {
-      this.createNamespaceIfNeeded();
-      this.$emit('finish', e);
+    async clickSave(buttonDone) {
+      try {
+        await this.createNamespaceIfNeeded();
+
+        // If the attempt to create the new namespace
+        // is successful, save the resource.
+        this.$emit('finish');
+      } catch (err) {
+        // After the attempt to create the namespace,
+        // show any applicable errors if the namespace is
+        // invalid.
+        this.$emit('error', exceptionToErrorsArray(err.message));
+        buttonDone(false);
+      }
     },
 
     save() {
@@ -280,18 +292,17 @@ export default {
 
       if (this.createNamespace) {
         try {
-          const newNamespace = await this.$store.dispatch(`${ inStore }/create`, {
-            type:     NAMESPACE,
-            metadata: { name: this.resource.metadata.namespace }
-          }, { root: true });
+          const newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: this.resource.metadata.namespace }, { root: true });
 
           newNamespace.applyDefaults();
-          newNamespace.save();
-        } catch (error) {
-          throw new Error(`Could not create the new namespace. ${ error }`);
+          await newNamespace.save();
+        } catch (e) {
+          // this.errors = exceptionToErrorsArray(e);
+          this.$emit('error', exceptionToErrorsArray(e));
+          throw new Error(`Could not create the new namespace. ${ e.message }`);
         }
       }
-    },
+    }
   }
 };
 </script>
