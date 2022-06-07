@@ -326,6 +326,8 @@ export default {
       } else {
         spec.targets = [];
       }
+
+      this.stepOneReady();
     },
 
     changeRef({ text, selected }) {
@@ -341,7 +343,7 @@ export default {
         spec.revision = text;
       }
 
-      this.$set(this.addRepositorySteps[0], 'ready', this.stepOneRequires);
+      this.stepOneReady();
     },
 
     updateTlsMode(event) {
@@ -349,6 +351,10 @@ export default {
     },
 
     onUpdateRepoName() {
+     this.stepOneReady()
+    },
+
+    stepOneReady() {
       this.$set(this.addRepositorySteps[0], 'ready', this.stepOneRequires);
     },
 
