@@ -1,12 +1,7 @@
 import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
 
-<<<<<<< HEAD
 import RadioButton from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton';
 import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioGroup';
-=======
-import RadioButton from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton.vue';
-import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioGroup.vue';
->>>>>>> 1ac9a6c03 (Changed files name)
 
 export const Template = (args, { argTypes }) => ({
   components: { RadioButton },
@@ -23,7 +18,6 @@ export const Template2 = (args, { argTypes }) => ({
 <Meta title="Components/Form/RadioButton" />
 
 # Radio Button
-<<<<<<< HEAD
 A radio button or option button is a graphical control element that allows the user to choose only one of a predefined set of mutually exclusive options.
 
 ### Description
@@ -59,31 +53,11 @@ A radio button or option button is a graphical control element that allows the u
       label: 'Kubernetes',
       val: true,
       disabled: true
-=======
-
-<Source
-  language='js'
-  light
-  format={false}
-  code={`
-     import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton.vue';
-  `}
-/>
-
-<Canvas>
-  <Story
-    name="RadioButton"
-    args={{
-      label: 'Hello',
-      val: 'false',
-      value: 'true'
->>>>>>> 1ac9a6c03 (Changed files name)
     }}>
     {Template.bind({})}
   </Story>
 </Canvas>
 
-<<<<<<< HEAD
 ### Import
 
 <Source
@@ -101,41 +75,19 @@ A radio button or option button is a graphical control element that allows the u
 
 
 
-=======
-<ArgsTable of={RadioButton} />
-
-# Radio button group
-
-<Source
-  language='js'
-  light
-  format={false}
-  code={`
-     import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioGroup.vue';
-  `}
-/>
-
->>>>>>> 1ac9a6c03 (Changed files name)
 <Canvas>
   <Story
     name="RadioGroup"
     args={{
-<<<<<<< HEAD
       name: 'RadioGroup',
       label: 'Choose one of the following theme',
       options: ["Custom", "Dark", "Light"],
       row: false
-=======
-      label: 'Hello',
-      options: ["false", "true"],
-      row: 'false'
->>>>>>> 1ac9a6c03 (Changed files name)
     }}>
     {Template2.bind({})}
   </Story>
 </Canvas>
 
-<<<<<<< HEAD
 ### Import
 
 <Source
@@ -147,6 +99,4 @@ A radio button or option button is a graphical control element that allows the u
 
 ### Props table
 
-=======
->>>>>>> 1ac9a6c03 (Changed files name)
 <ArgsTable of={RadioGroup} />
