@@ -260,6 +260,10 @@ export default {
   },
 
   data() {
+    console.log('RKE create mode', this.mode);
+    console.log('RKE create value', this.value);
+    console.log('RKE create provider', this.provider);
+
     if ( !this.value.spec.rkeConfig ) {
       set(this.value.spec, 'rkeConfig', {});
     }
@@ -534,7 +538,7 @@ export default {
     },
 
     showCisProfile() {
-      return this.provider === 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
+      return (this.provider === 'custom' || this.provider === 'elemental') && ( this.serverArgs.profile || this.agentArgs.profile );
     },
 
     registryOptions() {
@@ -547,7 +551,7 @@ export default {
     },
 
     needCredential() {
-      if ( this.provider === 'custom' || this.provider === 'import' || this.mode === _VIEW ) {
+      if ( this.provider === 'custom' || this.provider === 'import' || this.provider === 'elemental' || this.mode === _VIEW ) {
         return false;
       }
 
@@ -1085,7 +1089,7 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || !!this.credentialId);
+      return (this.provider === 'custom' || this.provider === 'elemental' || !!this.credentialId);
     },
 
     cancelCredential() {
@@ -1097,7 +1101,7 @@ export default {
     done() {
       let routeName = 'c-cluster-product-resource';
 
-      if ( this.mode === _CREATE && (this.provider === 'import' || this.provider === 'custom') ) {
+      if ( this.mode === _CREATE && (this.provider === 'import' || this.provider === 'custom' || this.provider === 'elemental') ) {
         // Go show the registration command
         routeName = 'c-cluster-product-resource-namespace-id';
       }
