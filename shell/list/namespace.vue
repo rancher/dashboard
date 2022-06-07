@@ -22,7 +22,9 @@ export default {
     filterRow() {
       if (this.isVirtualCluster) {
         return this.rows.filter( (N) => {
-          return !N.isSystem && !N.isFleetManaged;
+          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
+
+          return !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace;
         });
       } else {
         return this.rows;
