@@ -11,6 +11,7 @@ export default {
   },
   async fetch() {
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
+    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
     await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
   },
   props:      {
@@ -37,6 +38,10 @@ export default {
       :schema="schema"
       v-on="$listeners"
     >
+      <template #cell:service="{ row }">
+        <LinkDetail v-if="row.service" :key="row.service.id" :row="row.service" :value="row.service.meta.name" />
+        <span v-else class="text-muted">&nbsp;</span>
+      </template>
       <template #cell:boundApps="{ row }">
         <span v-if="row.applications.length">
           <template v-for="(app, index) in row.applications">

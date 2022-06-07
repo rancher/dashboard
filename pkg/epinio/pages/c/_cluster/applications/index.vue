@@ -16,7 +16,9 @@ export default {
 
   async fetch() {
     await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
+    // Don't block on these, they can show asyncronously
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
+    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
   },
 
   data() {
@@ -65,20 +67,29 @@ export default {
       :group-by="groupBy"
     >
       <template #cell:configurations="{ row }">
-        <span v-if="row.configurations.length">
-          <template v-for="(configuration, index) in row.configurations">
+        <span v-if="row.baseConfigurations.length">
+          <template v-for="(configuration, index) in row.baseConfigurations">
             <LinkDetail :key="configuration.id" :row="configuration" :value="configuration.meta.name" />
-            <span v-if="index < row.configurations.length - 1" :key="configuration.id + 'i'">, </span>
+            <span v-if="index < row.baseConfigurations.length - 1" :key="configuration.id + 'i'">, </span>
+          </template>
+        </span>
+        <span v-else class="text-muted">&nbsp;</span>
+      </template>
+      <template #cell:services="{ row }">
+        <span v-if="row.services.length">
+          <template v-for="(service, index) in row.services">
+            <LinkDetail :key="service.id" :row="service" :value="service.meta.name" />
+            <span v-if="index < row.services.length - 1" :key="service.id + 'i'">, </span>
           </template>
         </span>
         <span v-else class="text-muted">&nbsp;</span>
       </template>
       <template #cell:route="{ row }">
-        <span v-if="row.configuration.routes.length" class="route">
-          <template v-for="(route, index) in row.configuration.routes">
+        <span v-if="row.routes.length" class="route">
+          <template v-for="(route, index) in row.routes">
             <a v-if="row.state === 'running'" :key="route.id" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
             <span v-else :key="route.id">{{ `https://${route}` }}</span>
-            <span v-if="index < row.configuration.routes.length - 1" :key="route.id + 'i'">, </span>
+            <span v-if="index < row.routes.length - 1" :key="route.id + 'i'">, </span>
           </template>
         </span>
         <span v-else class="text-muted">&nbsp;</span>
