@@ -29,6 +29,6 @@ describe('Home Page', () => {
     // This element is hidden after navigating to the page
     homePage
       .changelog()
-      .should('include', `What's new in 2.6`);
+      .should('contain', `What's new in`);
   });
 });
