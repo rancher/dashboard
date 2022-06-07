@@ -1,5 +1,5 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import $ from 'jquery';
+import { getWidth, setWidth } from '@shell/utils/width';
 
 export default {
   inheritAttrs: false,
@@ -98,12 +98,12 @@ export default {
     resizeHandler(e) {
       // since the DD is positioned there is no way to 'inherit' the size of the input, this calcs the size of the parent and set the dd width if it is smaller. If not let it grow with the regular styles
       this.$nextTick(() => {
-        const DD = $(this.$refs.select).find('ul.vs__dropdown-menu');
-        const selectWidth = $(this.$refs.select).width();
-        const dropWidth = DD.width();
+        const DD = this.$refs.select.querySelectorAll('ul.vs__dropdown-menu');
+        const selectWidth = getWidth(this.$refs.select);
+        const dropWidth = getWidth(DD);
 
         if (dropWidth < selectWidth) {
-          DD.width(selectWidth);
+          setWidth(DD, selectWidth);
         }
       });
     },

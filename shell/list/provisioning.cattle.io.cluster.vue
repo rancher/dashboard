@@ -1,9 +1,9 @@
 <script>
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { allHash } from '@shell/utils/promise';
-import { CAPI, MANAGEMENT, SNAPSHOT } from '@shell/config/types';
+import { CAPI, MANAGEMENT, SNAPSHOT, NORMAN } from '@shell/config/types';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
@@ -16,8 +16,9 @@ export default {
 
   async fetch() {
     const hash = {
-      mgmtClusters:       this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      rancherClusters:    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
+      mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
     };
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {

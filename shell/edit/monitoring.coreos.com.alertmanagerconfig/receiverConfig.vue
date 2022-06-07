@@ -2,9 +2,9 @@
 import { MONITORING } from '@shell/config/types';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import Loading from '@shell/components/Loading';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
@@ -229,7 +229,7 @@ export default {
     },
 
     redirectAfterCancel() {
-      this.$router.push(this.alertmanagerConfigResource.getAlertmanagerConfigDetailRoute());
+      this.$router.push(this.alertmanagerConfigResource._detailLocation);
     },
 
     createAddOptions(receiverType) {
@@ -242,7 +242,7 @@ export default {
 <template>
   <CruResource
     class="receiver"
-    :done-route="alertmanagerConfigResource.getAlertmanagerConfigDetailRoute()"
+    :done-route="alertmanagerConfigResource._detailLocation"
     :mode="mode"
     :resource="alertmanagerConfigResource"
     :subtypes="[]"

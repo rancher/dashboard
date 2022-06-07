@@ -2,10 +2,10 @@
 import Vue, { PropType } from 'vue';
 import Application from '../../models/applications';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
-import LabeledInput from '@shell/components/form/LabeledInput.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
-import Banner from '@shell/components/Banner.vue';
+import Banner from '@components/Banner/Banner.vue';
 
 import { EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';

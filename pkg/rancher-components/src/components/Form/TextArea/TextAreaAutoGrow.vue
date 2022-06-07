@@ -1,5 +1,4 @@
 <script>
-import $ from 'jquery';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -14,15 +13,15 @@ export default {
 
     minHeight: {
       type:    Number,
-      default: 25,
+      default: 25
     },
     maxHeight: {
       type:    Number,
-      default: 200,
+      default: 200
     },
     placeholder: {
       type:    String,
-      default: '',
+      default: ''
     },
     spellcheck: {
       type:    Boolean,
@@ -31,14 +30,14 @@ export default {
 
     disabled: {
       type:    Boolean,
-      default: false,
+      default: false
     }
   },
 
   data() {
     return {
       curHeight: this.minHeight,
-      overflow:  'hidden',
+      overflow:  'hidden'
     };
   },
 
@@ -51,7 +50,7 @@ export default {
       // This sets the height to one-line for SSR pageload so that it's already right
       // (unless the input is long)
       return `height: ${ this.curHeight }px; overflow: ${ this.overflow };`;
-    },
+    }
   },
 
   watch: {
@@ -60,7 +59,7 @@ export default {
       handler() {
         this.queueResize();
       }
-    },
+    }
   },
 
   created() {
@@ -68,7 +67,7 @@ export default {
   },
 
   mounted() {
-    $(this.$refs.ta).css('height', `${ this.curHeight }px`);
+    this.$refs.ta.style.height = `${ this.curHeight }px`;
     this.$nextTick(() => {
       this.autoSize();
     });
@@ -87,19 +86,17 @@ export default {
     autoSize() {
       const el = this.$refs.ta;
 
-      if ( !el ) {
+      if (!el) {
         return;
       }
 
-      const $el = $(el);
+      el.style.height = '1px';
 
-      $el.css('height', '1px');
-
-      const border = parseInt($el.css('borderTopWidth'), 10) || 0 + parseInt($el.css('borderBottomWidth'), 10) || 0;
+      const border = parseInt(getComputedStyle(el).getPropertyValue('borderTopWidth'), 10) || 0 + parseInt(getComputedStyle(el).getPropertyValue('borderBottomWidth'), 10) || 0;
       const neu = Math.max(this.minHeight, Math.min(el.scrollHeight + border, this.maxHeight));
 
-      $el.css('overflowY', (el.scrollHeight > neu ? 'auto' : 'hidden'));
-      $el.css('height', `${ neu }px`);
+      el.style.overflowY = el.scrollHeight > neu ? 'auto' : 'hidden';
+      el.style.height = `${ neu }px`;
 
       this.curHeight = neu;
     }

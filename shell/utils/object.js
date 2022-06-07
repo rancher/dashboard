@@ -192,6 +192,8 @@ export function diff(from, to) {
 
   const fromKeys = definedKeys(from);
   const toKeys = definedKeys(to);
+
+  // Return keys that are in 'from' but not 'to.'
   const missing = difference(fromKeys, toKeys);
 
   for ( const k of missing ) {

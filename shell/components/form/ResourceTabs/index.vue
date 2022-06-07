@@ -58,6 +58,11 @@ export default {
     needRelated: {
       type:    Boolean,
       default: true
+    },
+
+    alwaysShowEvents: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -84,7 +89,7 @@ export default {
       return this.isView && this.needConditions && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
     },
     showEvents() {
-      return this.isView && this.needEvents && !this.$fetchState.pending && this.hasEvents && this.events.length;
+      return this.isView && this.needEvents && !this.$fetchState.pending && this.hasEvents && (this.events.length || this.alwaysShowEvents);
     },
     showRelated() {
       return this.isView && this.needRelated && !this.$fetchState.pending;
@@ -92,14 +97,20 @@ export default {
     eventHeaders() {
       return [
         {
+          name:  'type',
+          label: this.t('tableHeaders.type'),
+          value: 'eventType',
+          sort:  'eventType',
+        },
+        {
           name:  'reason',
-          label: 'Reason',
+          label: this.t('tableHeaders.reason'),
           value: 'reason',
           sort:  'reason',
         },
         {
           name:          'date',
-          label:         'Updated',
+          label:         this.t('tableHeaders.updated'),
           value:         'date',
           sort:          'date:desc',
           formatter:     'LiveDate',
@@ -108,7 +119,7 @@ export default {
         },
         {
           name:  'message',
-          label: 'Message',
+          label: this.t('tableHeaders.message'),
           value: 'message',
           sort:  'message',
         },
@@ -119,9 +130,10 @@ export default {
         return event.involvedObject?.uid === this.value?.metadata?.uid;
       }).map((event) => {
         return {
-          reason:  (`${ event.reason || 'Unknown' }${ event.count > 1 ? ` (${ event.count })` : '' }`).trim(),
-          message: event.message || 'Unknown',
-          date:    event.lastTimestamp || event.firstTimestamp || event.metadata.creationTimestamp,
+          reason:    (`${ event.reason || this.t('generic.unknown') }${ event.count > 1 ? ` (${ event.count })` : '' }`).trim(),
+          message:   event.message || this.t('generic.unknown'),
+          date:      event.lastTimestamp || event.firstTimestamp || event.metadata.creationTimestamp,
+          eventType: event.eventType
         };
       });
     },

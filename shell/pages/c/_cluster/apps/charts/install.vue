@@ -6,12 +6,12 @@ import { mapPref, DIFF } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
 import { mapGetters } from 'vuex';
 
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -79,6 +79,16 @@ export default {
   ],
 
   async fetch() {
+    /*
+      fetchChart is defined in shell/mixins. It first checks the URL
+      query for an app name and namespace. It uses those values to check
+      for a catalog app resource. If found, it sets the form to edit
+      mode. If not, it sets the form to create mode.
+
+      If the app and app namespace are not provided in the query,
+      it checks for target name and namespace values defined in the
+      Helm chart itself.
+    */
     await this.fetchChart();
 
     this.errors = [];
@@ -93,22 +103,41 @@ export default {
       id:   'server-url'
     });
 
+    /*
+      Figure out the namespace where the chart is
+      being installed or upgraded.
+    */
     if ( this.existing ) {
+      /*
+      If the Helm chart is already installed,
+      use the existing namespace by default.
+    */
+
       this.forceNamespace = this.existing.metadata.namespace;
       this.nameDisabled = true;
     } else if (this.$route.query[FROM_CLUSTER] === _FLAGGED) {
+      /* For Fleet, use the fleet-default namespace. */
       this.forceNamespace = DEFAULT_WORKSPACE;
     } else if ( this.chart?.targetNamespace ) {
+      /* If a target namespace is defined in the chart,
+      set the target namespace as default. */
       this.forceNamespace = this.chart.targetNamespace;
     } else if ( this.query.appNamespace ) {
+      /* If a namespace is defined in the URL query,
+       use that namespace as default. */
       this.forceNamespace = this.query.appNamespace;
     } else {
       this.forceNamespace = null;
     }
 
+    /* Check if the app is deprecated. */
     this.legacyApp = this.existing ? await this.existing.deployedAsLegacy() : false;
+
+    /* Check if the app is a multicluster deprecated app.
+    (Multicluster apps were replaced by Fleet.) */
     this.mcapp = this.existing ? await this.existing.deployedAsMultiCluster() : false;
 
+    /* The form state is intialized as a chartInstallAction resource. */
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
       metadata: {
@@ -117,8 +146,19 @@ export default {
       }
     });
 
+    /* Logic for when the Helm chart is not already installed */
     if ( !this.existing) {
+      /*
+        The target name is used for Git repos for Fleet.
+        The target name indicates the name of the cluster
+        group that the chart is meant to be installed in.
+      */
       if ( this.chart?.targetName ) {
+        /*
+          Set the name of the chartInstallAction
+          to the name of the cluster group
+          where the chart should be installed.
+        */
         this.value.metadata.name = this.chart.targetName;
         this.nameDisabled = true;
       } else if ( this.query.appName ) {
@@ -130,11 +170,21 @@ export default {
       if ( this.query.description ) {
         this.customCmdOpts.description = this.query.description;
       }
-    }
+    } /* End of logic for when chart is already installed */
 
+    /*
+      Logic for what to do if the user is installing
+      the Helm chart for the first time and a default
+      namespace has been set.
+    */
     if (this.forceNamespace && !this.existing) {
       let ns;
 
+      /*
+        Before moving forward, check to make sure the
+        default namespace exists and the logged-in user
+        has permission to see it.
+      */
       try {
         ns = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.forceNamespace });
         const project = ns.metadata.annotations?.[PROJECT];
@@ -145,42 +195,96 @@ export default {
       } catch {}
     }
 
+    /* If no chart by the given app name and namespace
+     can be found, or if no version is found, do nothing. */
     if ( !this.chart || !this.query.versionName) {
       return;
     }
 
     if ( this.version && process.client ) {
+      /*
+        Check if the Helm chart has provided the name
+        of a Vue component to use for configuring
+        chart values. If so, load that component.
+
+        This will set this.valuesComponent,
+        this.componentHasTabs and this.showValuesComponent.
+      */
       await this.loadValuesComponent();
     }
 
+    /*
+      Check if the Helm chart has indicated
+      that the user should fill out the chart values
+      through a wizard-style workflow. If so, load
+      the chart steps.
+    */
     await this.loadChartSteps();
 
+    /*
+      this.loadedVersion will only be true if you select a non-defalut
+      option from the "Version" dropdown menu in Apps & Marketplace
+      when updating a previously installed app.
+    */
     if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
       let userValues;
 
+      /*
+        When you select a version, a new chart is loaded. Then
+        Rancher anticipates that you probably want to port all of your
+        previously customized, non-default values from the old chart
+        version to the new chart version, so it applies the previous
+        chart's customization to the new chart values before
+        you see the values form on the next page in the workflow.
+      */
       if ( this.loadedVersion ) {
-        // If changing charts once the page is loaded, diff from the chart you were
-        // previously on to get the actual customization, then apply onto the new chart values.
-
         if ( this.showingYaml ) {
           this.applyYamlToValues();
         }
+        /*
+          this.loadedVersionValues is taken from versionInfo,
+          which contains everything there is to know about a specific
+          version of a Helm chart, including all chart values,
+          chart metadata, a short app README and a more
+          version-specific README called the chart README.
 
+          Here we assume that any difference between the values in
+          two different Helm chart versions is a "user value," or
+          a user-selected customization.
+        */
         userValues = diff(this.loadedVersionValues, this.chartValues);
       } else if ( this.existing ) {
-        // For an existing app, use the values from the previous install
+        /* For an already installed app, use the values from the previous install. */
         userValues = clone(this.existing.spec?.values || {});
-        // For an existing app, use the values from the previous install
       } else {
-        // For an new app, start empty
+        /* For an new app, start empty. */
         userValues = {};
       }
 
+      /*
+        Remove global values if they are identical to
+        the currently available information about the cluster
+        and Rancher settings.
+
+        Immediately before the Helm chart is installed or
+        upgraded, the global values are re-added.
+      */
       this.removeGlobalValuesFrom(userValues);
+
+      /*
+        The merge() method is used to merge two or more objects
+        starting with the left-most to the right-most to create a
+        parent mapping object. When two keys are the same, the
+        generated object will have value for the rightmost key.
+        In this case, any values in userValues override any
+        matching values in versionInfo.
+      */
       this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
+
+      /* Serializes an object as a YAML document */
       this.valuesYaml = saferDump(this.chartValues);
 
-      // For YAML diff
+      /* For YAML diff */
       if ( !this.loadedVersion ) {
         this.originalYamlValues = this.valuesYaml;
       }
@@ -188,16 +292,18 @@ export default {
       this.loadedVersionValues = this.versionInfo?.values || {};
       this.loadedVersion = this.version?.key;
     }
-
+    /* Check if chart exists and if required values exist */
     this.updateStepOneReady();
 
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
 
-    // Look for annotation to say this app is a legacy migrated app (we look in either place for now)
+    /* Look for annotation to say this app is a legacy migrated app (we look in either place for now) */
     this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
   },
 
   data() {
+    /* Helm CLI options that are not persisted on the back end,
+    but are used for the final install/upgrade operation. */
     const defaultCmdOpts = {
       cleanupOnFail:       false,
       crds:                true,
@@ -511,6 +617,7 @@ export default {
     },
 
     legacyEnabled() {
+      // Check for the legacy feature flag in the settings
       return this.features(LEGACY);
     },
 
@@ -623,8 +730,12 @@ export default {
   },
 
   async mounted() {
+    // Load a Vue component named in the Helm chart
+    // for editing values
     await this.loadValuesComponent();
 
+    // Load Helm chart info used for showing
+    // wizard steps
     await this.loadChartSteps();
 
     window.scrollTop = 0;
@@ -650,9 +761,12 @@ export default {
     },
 
     async loadValuesComponent() {
-      // TODO: Remove RELEASE_NAME. This is only in until the component annotation is added to the OPA Gatekeeper chart
+      // TODO: Remove RELEASE_NAME. This is only in until the component annotation is added to the OPA Gatekeeper chart.
+
+      // The const component is a string, for example, 'monitoring'.
       const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT] || this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
 
+      // Load a values component for the UI if it is named in the Helm chart.
       if ( component ) {
         if ( this.$store.getters['catalog/haveComponent'](component) ) {
           this.valuesComponent = this.$store.getters['catalog/importComponent'](component);
@@ -887,7 +1001,13 @@ export default {
       return { errors: [] };
     },
 
+    /*
+      actionInput determines what values Rancher finally sends
+      to the backend when installing or upgrading the app. It
+      injects Rancher-specific values into the chart values.
+    */
     actionInput(isUpgrade) {
+      /* Default values defined in the Helm chart itself */
       const fromChart = this.versionInfo?.values || {};
 
       const errors = [];
@@ -898,14 +1018,27 @@ export default {
         errors.push(...yamlErrors);
       }
 
-      // Only save the values that differ from the chart's standard values.yaml
+      /*
+        Only save the values that differ from the chart's standard values.yaml.
+        chartValues is created by applying the user's customized onto
+        the default chart values.
+      */
       const values = diff(fromChart, this.chartValues);
 
-      // Add our special blend of 11 herbs and global values
+      /*
+        Refer to the developer docs at docs/developer/helm-chart-apps.md
+        for details on what values are injected and where they come from.
+      */
       this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
+
+      /*
+        Migrated annotations are required to allow a deprecated legacy app to be
+        upgraded.
+      */
       const migratedAnnotations = this.migratedApp ? { [CATALOG_ANNOTATIONS.MIGRATED]: 'true' } : {};
+
       const chart = {
         chartName:   this.chart.chartName,
         version:     this.version?.version || this.query.versionName,
@@ -923,6 +1056,10 @@ export default {
         chart.resetValues = this.cmdOptions.resetValues;
       }
 
+      /*
+        Configure Helm CLI options for doing the install or
+        upgrade operation.
+      */
       const out = {
         charts:    [chart],
         noHooks:   this.cmdOptions.hooks === false,
@@ -932,6 +1069,10 @@ export default {
         projectId: this.project,
       };
 
+      /*
+        Configure Helm CLI options that are specific to
+        installs or specific to upgrades.
+      */
       if ( isUpgrade ) {
         out.force = this.cmdOptions.force === true;
         out.historyMax = this.cmdOptions.historyMax;
@@ -943,6 +1084,11 @@ export default {
 
       const more = [];
 
+      /*
+        An example value for auto is ["rancher-monitoring-crd=match"].
+        It is an array of chart names that lets Rancher know of other
+        charts that should be auto-installed at the same time.
+      */
       let auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
 
       for ( const constraint of auto ) {
@@ -952,6 +1098,33 @@ export default {
           repoType:     this.chart.repoType,
           chartVersion: this.version.version,
         });
+
+        /*
+         An example return value for "provider":
+        [
+            {
+                "name": "rancher-monitoring-crd",
+                "version": "100.1.3+up19.0.3",
+                "description": "Installs the CRDs for rancher-monitoring.",
+                "apiVersion": "v1",
+                "annotations": {
+                    "catalog.cattle.io/certified": "rancher",
+                    "catalog.cattle.io/hidden": "true",
+                    "catalog.cattle.io/namespace": "cattle-monitoring-system",
+                    "catalog.cattle.io/release-name": "rancher-monitoring-crd"
+                },
+                "type": "application",
+                "urls": [
+                    "https://192.168.0.18:8005/k8s/clusters/c-m-hhpg69fv/v1/catalog.cattle.io.clusterrepos/rancher-charts?chartName=rancher-monitoring-crd&link=chart&version=100.1.3%2Bup19.0.3"
+                ],
+                "created": "2022-04-27T10:04:18.343124-07:00",
+                "digest": "ecf07ba23a9cdaa7ffbbb14345d94ea1240b7f3b8e0ce9be4640e3e585c484e2",
+                "key": "cluster/rancher-charts/rancher-monitoring-crd/100.1.3+up19.0.3",
+                "repoType": "cluster",
+                "repoName": "rancher-charts"
+            }
+        ]
+        */
 
         if ( provider ) {
           more.push(provider);
@@ -976,8 +1149,12 @@ export default {
         }
       }
 
-      // 'more' contains the values for the CRD chart, which needs the same
-      // global and cattle values as the chart.
+      /*
+        'more' contains the values for the CRD chart, which needs the same
+        global and cattle values as the chart. It could also contain additional
+        charts that may not be CRD charts but are also meant to be installed at
+        the same time.
+      */
       for ( const dependency of more ) {
         out.charts.unshift({
           chartName:   dependency.name,

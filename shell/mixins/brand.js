@@ -1,12 +1,18 @@
-import { MANAGEMENT } from '@shell/config/types';
+import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
 
 export default {
+  async fetch() {
+    if ( this.$store.getters['management/canList'](CATALOG.APP) ) {
+      this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
+    }
+  },
+
   data() {
-    return { brandCookie: null };
+    return { globalSettings: [], apps: [] };
   },
 
   computed: {
@@ -41,6 +47,10 @@ export default {
       }
 
       return this.$store.getters['prefs/theme'];
+    },
+
+    cspAdapter() {
+      return findBy(this.apps, 'metadata.name', 'csp-adapter' );
     }
   },
 
@@ -67,6 +77,33 @@ export default {
         this.setCustomColor(this.linkColor, 'link');
       }
     },
+
+    cspAdapter(neu) {
+      if (neu && !this.brand) {
+        const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
+
+        if (brandSetting) {
+          brandSetting.value = 'suse';
+          brandSetting.save();
+        } else {
+          const schema = this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING);
+          const url = schema?.linkFor('collection');
+
+          if (url) {
+            this.$store.dispatch('management/create', {
+              type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'suse', default: ''
+            }).then(setting => setting.save());
+          }
+        }
+      } else if (!neu) {
+        const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
+
+        if (brandSetting) {
+          brandSetting.value = '';
+          brandSetting.save();
+        }
+      }
+    }
   },
   methods: {
     setCustomColor(color, name = 'primary') {

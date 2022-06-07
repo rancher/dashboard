@@ -3,11 +3,11 @@ import Vue, { PropType } from 'vue';
 import jsyaml from 'js-yaml';
 
 import Application from '../../models/applications';
-import LabeledInput from '@shell/components/form/LabeledInput.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
-import RadioGroup from '@shell/components/form/RadioGroup.vue';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { sortBy } from '@shell/utils/sort';
 import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';

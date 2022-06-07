@@ -4,7 +4,7 @@ import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import AlertTable from '@shell/components/AlertTable';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import { parse as parseUrl } from '@shell/utils/url';
 import { ENDPOINTS } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';

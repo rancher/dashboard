@@ -7,6 +7,10 @@ import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 
+/**
+ * Class representing Cluster resource.
+ * @extends SteveModal
+ */
 export default class ProvCluster extends SteveModel {
   get details() {
     const out = [
@@ -31,6 +35,21 @@ export default class ProvCluster extends SteveModel {
     }
 
     return out;
+  }
+
+  // using this computed because on the provisioning cluster we are
+  // displaying the oldest age between provisioning.cluster and management.cluster
+  // so that on a version upgrade of Rancher (ex: 2.5.x to 2.6.x)
+  // we can have the correct age of the cluster displayed on the UI side
+  get creationTimestamp() {
+    const provCreationTimestamp = Date.parse(this.metadata?.creationTimestamp);
+    const mgmtCreationTimestamp = Date.parse(this.mgmt?.metadata?.creationTimestamp);
+
+    if (mgmtCreationTimestamp && mgmtCreationTimestamp < provCreationTimestamp) {
+      return this.mgmt?.metadata?.creationTimestamp;
+    }
+
+    return super.creationTimestamp;
   }
 
   get availableActions() {
@@ -59,6 +78,17 @@ export default class ProvCluster extends SteveModel {
     const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
     const canSnapshot = ready && ((this.isRke2 && this.canUpdate) || (this.isRke1 && this.mgmt?.hasAction('backupEtcd')));
+
+    const clusterTemplatesSchema = this.$getters['schemaFor']('management.cattle.io.clustertemplate');
+    let canUpdateClusterTemplate = false;
+
+    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods.includes('PUT'))) {
+      canUpdateClusterTemplate = true;
+    }
+
+    const normanClusterSaveTemplateAction = !!this.normanCluster?.actions?.saveAsTemplate;
+
+    const canSaveRKETemplate = this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update') && canUpdateClusterTemplate && normanClusterSaveTemplateAction;
 
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
@@ -102,16 +132,27 @@ export default class ProvCluster extends SteveModel {
         action:     'rotateEncryptionKey',
         label:      this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:       'icon icon-refresh',
-        // Disabling encryption key rotation for RKE2 for now because it was removed from v2.6.5
-        enabled:    (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready) // || canEditRKE2cluster
+        enabled:    canEditRKE2cluster || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready)
       }, {
         action:     'saveAsRKETemplate',
         label:      this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),
         icon:       'icon icon-folder',
-        enabled:    this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update'),
+        enabled:    canSaveRKETemplate,
       }, { divider: true }];
 
     return actions.concat(out);
+  }
+
+  get normanCluster() {
+    const name = this.status?.clusterName;
+
+    if ( !name ) {
+      return null;
+    }
+
+    const out = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, name);
+
+    return out;
   }
 
   goToViewYaml() {
@@ -156,6 +197,13 @@ export default class ProvCluster extends SteveModel {
     }
 
     return false;
+  }
+
+  promptRemove(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'ConfirmNameToRemoveDialog'
+    });
   }
 
   get isImportedK3s() {

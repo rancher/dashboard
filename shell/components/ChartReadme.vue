@@ -49,6 +49,7 @@ export default {
   .md {
     overflow: auto;
     max-width: 100%;
+    line-height: 1.6;
 
     ::v-deep {
       * + H1,
@@ -62,9 +63,12 @@ export default {
     }
 
     ::v-deep code {
-      padding: 0;
+      font-size: 13.5px;
       white-space: break-spaces;
-      word-break: break-word;
+      word-wrap: break-word;
+      padding-left: 5px;
+      padding-right: 5px;
+      border: 0;
     }
 
     ::v-deep pre {
@@ -74,6 +78,10 @@ export default {
 
     ::v-deep  > h1:first-of-type {
       display: none;
+    }
+
+    ::v-deep p {
+      margin-bottom: 0.5em;
     }
   }
 

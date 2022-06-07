@@ -8,6 +8,9 @@
   "engines": {
     "node": ">=12"
   },
+  "workspaces": [
+    "pkg/rancher-components"
+  ],
   "scripts": {
     "build-pkg": "./shell/scripts/build-pkg.sh",
     "publish-pkg": "./shell/scripts/publish-pkg.sh",
@@ -22,6 +25,7 @@
     "mem-dev": "node --max-old-space-size=8192 ./node_modules/.bin/nuxt dev",
     "docker-dev": "docker run --rm --name dashboard-dev -p 8005:8005 -e API=$API -v $(pwd):/src -v dashboard_node:/src/node_modules rancher/dashboard:dev",
     "build": "./node_modules/.bin/nuxt build --devtools",
+    "build:lib": "cd pkg/rancher-components && yarn build:lib",
     "analyze": "./node_modules/.bin/nuxt build --analyze",
     "start": "./node_modules/.bin/nuxt start",
     "generate": "./node_modules/.bin/nuxt generate",
@@ -30,7 +34,12 @@
     "cy:open": "cypress open",
     "e2e:pre": "NODE_ENV=dev yarn build",
     "e2e:run": "NODE_ENV=dev START_SERVER_AND_TEST_INSECURE=1 start-server-and-test start  https://localhost:8005/ cy:run",
-    "e2e:dev": "start-server-and-test dev https://localhost:8005 cy:open"
+    "e2e:dev": "start-server-and-test dev https://localhost:8005 cy:open",
+    "storybook": "yarn run install-storybook && start-storybook -s .storybook/public,assets -p 6006",
+    "build-storybook": "yarn run install-storybook && build-storybook -s .storybook/public,assets",
+    "install-storybook": "./scripts/storybook-install",
+    "remove-storybook": "./scripts/storybook-install -d",
+    "remove-storybook-deps": "./scripts/storybook-install -r"    
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.1.0",
@@ -124,6 +133,7 @@
     "@vue/cli-plugin-babel": "^4.5.15",
     "@vue/cli-plugin-typescript": "^4.5.15",
     "@vue/cli-service": "^4.5.13",
+    "@vue/eslint-config-standard": "^5.1.2",
     "@vue/test-utils": "1.2.1",
     "@vue/vue2-jest": "^27.0.0",
     "add": "^2.0.6",

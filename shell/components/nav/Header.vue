@@ -505,6 +505,7 @@ export default {
 <style lang="scss" scoped>
   HEADER {
     display: flex;
+    z-index: z-index('mainHeader');
 
     > .spacer {
       flex: 1;

@@ -2,10 +2,10 @@
 import CruResource from '@shell/components/CruResource';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import KeyValue from '@shell/components/form/KeyValue';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 import LabelValue from '@shell/components/LabelValue';
 import Select from '@shell/components/form/Select';
 import CreateEditView from '@shell/mixins/create-edit-view';

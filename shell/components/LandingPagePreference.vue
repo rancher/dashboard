@@ -1,8 +1,8 @@
 <script>
 import { mapPref, AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
-import RadioGroup from '@shell/components/form/RadioGroup';
-import RadioButton from '@shell/components/form/RadioButton';
+import { RadioGroup, RadioButton } from '@components/Form/Radio';
+
 import Select from '@shell/components/form/Select';
 import { MANAGEMENT } from '@shell/config/types';
 import { filterHiddenLocalCluster, filterOnlyKubernetesClusters } from '@shell/utils/cluster';

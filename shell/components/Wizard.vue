@@ -1,7 +1,7 @@
 <script>
 
 import AsyncButton from '@shell/components/AsyncButton';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { stringify } from '@shell/utils/error';
 

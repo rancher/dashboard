@@ -3,12 +3,12 @@ import Vue, { PropType } from 'vue';
 import ApplicationAction, { APPLICATION_ACTION_TYPE } from '../../models/application-action';
 
 import SortableTable from '@shell/components/SortableTable/index.vue';
-import Checkbox from '@shell/components/form/Checkbox.vue';
-import BadgeState from '@shell/components/BadgeState.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import BadgeState from '@components/BadgeState/BadgeState.vue';
 import { STATE, DESCRIPTION } from '@shell/config/table-headers';
 import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication } from '../../types';
 import { EpinioAppSource } from '../../components/application/AppSource.vue';
-import { EpinioAppBindings } from '~/pkg/epinio/components/application/AppConfiguration.vue';
+import { EpinioAppBindings } from '../../components/application/AppConfiguration.vue';
 
 interface Data {
   running: boolean;

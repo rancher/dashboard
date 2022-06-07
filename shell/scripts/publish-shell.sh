@@ -28,8 +28,8 @@ echo "Publishing version: $PKG_VERSION"
 cp -R ${SHELL_DIR}/creators/app ${PKG_DIST}
 cp -R ${SHELL_DIR}/creators/pkg ${PKG_DIST}
 
-sed -i.bak -e "s/0.0.0/"$PKG_VERSION"/g" ${PKG_DIST}/app/package.json
-sed -i.bak -e "s/0.0.0/"$PKG_VERSION"/g" ${PKG_DIST}/pkg/package.json
+sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/app/package.json
+sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/pkg/package.json
 
 rm ${PKG_DIST}/app/package.json.bak
 rm ${PKG_DIST}/pkg/package.json.bak
