@@ -9,7 +9,7 @@ import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import Checkbox from '~/pkg/rancher-components/src/components/Form/Checkbox/Checkbox.vue';
 
 export default {
-  nameL: 'ForcePodRemoveDialog',
+  name: 'ForcePodRemoveDialog',
 
   components: {
     AsyncButton,
@@ -55,12 +55,12 @@ export default {
     async remove(confirm) {
       try {
         if(this.forceDelete) {
-          await this.machine.forceMachineRemove();
+          this.$set(this.machine.metadata, 'deletionGracePeriodSeconds', 0)
         }
-        else {
-          await this.machine.remove();
-        }
-      //  confirm(true);
+        //console.log(this.machine.spec)
+        await this.machine.save()
+        await this.machine.remove();
+        confirm(true);
         this.close();
       } catch (e) {
         this.errors = exceptionToErrorsArray(e);

@@ -18,7 +18,7 @@ export default class Pod extends SteveModel {
   get _availableActions() {
     const forceRemove = {
       action:     'toggleForceRemoveModal',
-      altAction:  'forceMachineRemove',
+      altAction:  'remove',
       label:      this.t('node.actions.forceDelete'),
       icon:       'icon icon-trash',
     };
@@ -62,10 +62,6 @@ export default class Pod extends SteveModel {
       resources,
       component: 'ForcePodRemoveDialog'
     });
-  }
-
-  forceMachineRemove() {
-    console.log('force machine remove');
   }
 
   openShell(containerName = this.defaultContainerName) {
@@ -173,10 +169,6 @@ export default class Pod extends SteveModel {
     const name = this.spec?.nodeName || this.$rootGetters['i18n/t']('generic.none');
 
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
-  }
-
-  remove() {
-    console.log('REMOVE')
   }
 
   get restartCount() {

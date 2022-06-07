@@ -1176,6 +1176,8 @@ export default class Resource {
 
     opt.method = 'delete';
 
+    console.log(this)
+
     const res = await this.$dispatch('request', { opt, type: this.type } );
 
     if ( res?._status === 204 ) {
