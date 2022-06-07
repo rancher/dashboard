@@ -260,7 +260,7 @@ export default {
       <div class="header">
         <div class="title">
           <div v-if="showBanner" class="top choice-banner">
-            <slot name="bannerTitle">
+            <slot name="bannerTitle" v-if="!!bannerImage || !!bannerTitle">
               <div v-show="initialTitle || activeStepIndex > 0" class="title">
                 <!-- Logo -->
                 <slot name="bannerTitleImage">
@@ -598,12 +598,6 @@ $spacer: 10px;
 .wizard {
   .header {
     margin-bottom: 2*$spacer;
-  }
-}
-
-.cru__content-wizard {
-  .choice-banner {
-    display: unset;
   }
 }
 
