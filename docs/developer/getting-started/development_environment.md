@@ -37,6 +37,8 @@ To use the most recent version of Rancher that is actively in development, use t
 sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged -e CATTLE_BOOTSTRAP_PASSWORD=OPTIONAL_PASSWORD_HERE rancher/rancher:v2.6-head
 ```
 
+It is also possible to stop any existing Docker instance with `yarn docker:local:stop` and start a new instance using default values with `yarn docker:local:start`, where the password for the user will be `password`.
+
 Note that for Rancher to provision and manage downstream clusters, the Rancher server URL must be accessible from the Internet. If you’re running Rancher in Docker Desktop, the Rancher server URL is `https://localhost`. To make Rancher accessible to downstream clusters for development, you can:
 
 - Use ngrok to test provisioning with a local rancher server
@@ -48,8 +50,6 @@ Also for consideration:
 - [K3d](https://k3d.io/v4.4.8/#installation) lets you immediately install a Kubernetes cluster in a Docker container and interact with it with kubectl for development and testing purposes.
 
 You should be able to reach the older Ember UI by navigating to the Rancher API url. This same API Url will be used later when starting up the Dashboard.
-
-It is also possible to stop any existing Docker instance with `yarn docker:stop` and start a new instance using default values with `yarn docker:local`, where the password for the user will be `password`.
 
 ### Uninstalling Rancher
 
