@@ -14,7 +14,7 @@ describe('Side navigation: Cluster ', () => {
     burgerMenuPo.clusters().eq(0).should('be.visible').click();
   });
 
-  // TODO: Verify cause of race condition issue making navigation link not trigger
+  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger #5966
   it.skip('Can access to first navigation link on click', () => {
     const productNavPo = new ProductNavPo();
 
@@ -24,7 +24,7 @@ describe('Side navigation: Cluster ', () => {
       });
   });
 
-  // TODO: Verify cause of race condition issue making navigation link not trigger
+  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
   it.skip('Can open second menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
@@ -44,7 +44,7 @@ describe('Side navigation: Cluster ', () => {
     cy.get('@openGroup').find('ul').should('have.length', 0);
   });
 
-  // TODO: Verify cause of race condition issue making navigation link not trigger
+  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
   it.skip('Should flag second menu group as active on navigation', () => {
     const productNavPo = new ProductNavPo();
 
@@ -54,7 +54,7 @@ describe('Side navigation: Cluster ', () => {
     cy.get('@closedGroup').find('.nuxt-link-active').should('have.length.gt', 0);
   });
 
-  // TODO: Verify cause of race condition issue making navigation link not trigger
+  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
   it.skip('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
     const productNavPo = new ProductNavPo();
     // iterate through top-level groups
@@ -66,7 +66,7 @@ describe('Side navigation: Cluster ', () => {
       group.click();
       // check if it has sub-groups and expand them
       productNavPo.groups().eq(index).then((group) => {
-        // FIXME: This may lead to flaky tests and should be replace after ensuring the navigation to be stable
+        // FIXME: #5966: This may lead to flaky tests and should be replace after ensuring the navigation to be stable
         if (group.find('.accordion').length) {
           cy.wrap(group).get('.accordion .accordion').should('be.visible').click({ multiple: true });
         }
