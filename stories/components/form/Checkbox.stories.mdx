@@ -1,5 +1,4 @@
 import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
-
 import Checkbox from '@/pkg/rancher-components/src/components/Form/Checkbox/Checkbox';
 
 export const Template = (args, { argTypes }) => ({
@@ -10,6 +9,7 @@ export const Template = (args, { argTypes }) => ({
 
 <Meta 
   title="Components/Form/Checkbox"
+  decorators={[]}
 />
 
 # Checkbox
@@ -17,8 +17,6 @@ export const Template = (args, { argTypes }) => ({
 
 <Source
   language='js'
-  light
-  format={false}
   code={`
      import Checkbox from '@/pkg/rancher-components/src/components/Form/Checkbox/Checkbox';
   `}
@@ -28,21 +26,27 @@ export const Template = (args, { argTypes }) => ({
   <Story
     name="Checked"
     args={{
-      label: 'Hello',
-      value: 'true'
+      label: 'Checked',
+      value: true
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Unchecked"
+    args={{
+      label: 'Unchecked'
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Disabled"
+    args={{
+      label: 'disabled',
+      disabled: true
     }}>
     {Template.bind({})}
   </Story>
 </Canvas>
 
-<Canvas>
-  <Story
-    name="Unchecked"
-    args={{
-      label: 'Hello'
-    }}>
-    {Template.bind({})}
-  </Story>
-</Canvas>
 
 <ArgsTable of={Checkbox} />

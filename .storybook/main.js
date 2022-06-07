@@ -13,7 +13,11 @@ module.exports = {
     "@storybook/addon-links",
     "@storybook/addon-essentials",
     "@storybook/addon-a11y",
-    "storybook-dark-mode"
+    "storybook-dark-mode",
+    {
+      name: '@storybook/addon-docs',
+      options: { mdxBabelOptions: { babelrc: true, configFile: true } },
+    },
   ],
 
   staticDirs: [

@@ -33,8 +33,8 @@ export const Template2 = (args, { argTypes }) => ({
     name="RadioButton"
     args={{
       label: 'Hello',
-      val: 'false',
-      value: 'true'
+      val: false,
+      value: true
     }}>
     {Template.bind({})}
   </Story>
@@ -57,9 +57,10 @@ export const Template2 = (args, { argTypes }) => ({
   <Story
     name="RadioGroup"
     args={{
+      name: 'Name',
       label: 'Hello',
       options: ["false", "true"],
-      row: 'false'
+      row: false
     }}>
     {Template2.bind({})}
   </Story>
