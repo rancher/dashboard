@@ -590,10 +590,13 @@ $spacer: 10px;
   }
 }
 
-.cru__content-wizard {
+.wizard {
   .header {
-  margin-bottom: 3*$spacer;
+    margin-bottom: 2*$spacer;
   }
+}
+
+.cru__content-wizard {
   .choice-banner {
     display: unset;
   }
