@@ -241,30 +241,43 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     if (!this.origin) {
       return undefined;
     }
+    const appChart = {
+      label: 'App Chart',
+      value: this.configuration.appchart
+    };
+
     switch (this.origin.Kind) { // APPLICATION_MANIFEST_SOURCE_TYPE
     case APPLICATION_MANIFEST_SOURCE_TYPE.PATH:
-      return { label: 'File system', icon: 'icon-file' };
+      return {
+        label:   'File system',
+        icon:    'icon-file',
+        details: [
+          appChart
+        ]
+      };
     case APPLICATION_MANIFEST_SOURCE_TYPE.GIT:
       return {
         label:   'Git',
         icon:    'icon-file',
-        details: [{
-          label: 'Url',
-          value: this.origin.git.repository
-        }, {
-          label: 'Revision',
-          icon:  'icon-github',
-          value: this.origin.git.revision
-        }]
+        details: [
+          appChart, {
+            label: 'Url',
+            value: this.origin.git.repository
+          }, {
+            label: 'Revision',
+            icon:  'icon-github',
+            value: this.origin.git.revision
+          }]
       };
     case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:
       return {
         label:   'Container',
         icon:    'icon-docker',
-        details: [{
-          label: 'Image',
-          value: this.origin.Container || this.origin.container
-        }]
+        details: [
+          appChart, {
+            label: 'Image',
+            value: this.origin.Container || this.origin.container
+          }]
       };
     default:
       return undefined;
