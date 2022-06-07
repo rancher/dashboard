@@ -356,7 +356,7 @@ export default {
 
           <div class="controls-steps">
             <slot v-if="showPrevious" name="back" :back="back">
-              <button :disabled="!canPrevious" type="button" class="btn role-secondary" @click="back()">
+              <button :disabled="!canPrevious || (!editFirstStep && activeStepIndex===1)" type="button" class="btn role-secondary" @click="back()">
                 <t k="wizard.previous" />
               </button>
             </slot>
@@ -372,9 +372,9 @@ export default {
                 <t :k="nextButtonLabel" />
               </button>
             </slot>
-            <div class="controls-steps">
+            <!-- <div class="controls-steps">
               <slot v-if="showPrevious" name="back" :back="back">
-                <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
+                <button :disabled="" type="button" class="btn role-secondary" @click="back()">
                   <t k="wizard.previous" />
                 </button>
               </slot>
@@ -390,7 +390,7 @@ export default {
                   <t k="wizard.next" />
                 </button>
               </slot>
-            </div>
+            </div> -->
           </div>
         </div>
       </slot>
