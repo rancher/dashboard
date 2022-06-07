@@ -2,7 +2,7 @@
 
 ## E2E Tests
 
-This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents) and require a blank state of Rancher.
+This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents) and the CI will run using a blank state of Rancher executed locally. The aim is however to enable also tests using remote instances of Ranchers.
 
 Because of this, we extend the [Cypress best practices](https://docs.cypress.io/guides/references/best-practices#How-It-Works), so be sure to read them before write any test.
 
@@ -19,12 +19,12 @@ For the cypress test runner to consume the UI, you should specify the environmen
 
 ### Development with watch/dev
 
-While writing the tests, you can simply run the project and then open the Cypress dashboard with the commands
+While writing the tests, you can simply run Rancher dashboard and then open the Cypress dashboard with the commands
 
 - `yarn dev`
 - `yarn cy:open`
 
-The dashboard will contain the options and the list of test suites. These will automatically re-run if they are altered (hot reloading).
+The Cypress dashboard will contain the options and the list of test suites. These will automatically re-run if they are altered (hot reloading).
 
 For further information, consult [official documentation](https://docs.cypress.io/guides/guides/command-line#cypress-open).
 
