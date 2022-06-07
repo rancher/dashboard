@@ -14,8 +14,6 @@ export const Template = (args, { argTypes }) => ({
 
 <Source
   language='js'
-  light
-  format={false}
   code={`
      import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
   `}
@@ -25,11 +23,23 @@ export const Template = (args, { argTypes }) => ({
   <Story
     name="LabeledInput"
     args={{
-      label: 'Name:',
+      label: 'Label:',
+      value: 'Simon'
     }}>
     {Template.bind({})}
   </Story>
 </Canvas>
 
+<Canvas>
+  <Story
+    name="LabeledInput2"
+    args={{
+      label: 'Name:',
+      required: true
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
 
 <ArgsTable of={LabeledInput} />
+

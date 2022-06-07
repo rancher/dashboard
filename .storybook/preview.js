@@ -45,10 +45,6 @@ Vue.use(storePlugin);
 export const parameters = {
   previewTabs: { 
     canvas: { hidden: true },
-    changelog: {
-      title: 'CHANGELOG',
-      hidden: false,
-    },
   },
   actions: { argTypesRegex: "^on[A-Z].*" },
   layout: 'centered',
