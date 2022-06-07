@@ -12,7 +12,7 @@ export default {
   },
 
   data() {
-    return { globalSettings: [], apps: [] };
+    return { apps: [] };
   },
 
   computed: {

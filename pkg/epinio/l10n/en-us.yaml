@@ -77,6 +77,11 @@ epinio:
         instances: Instances
         memory: Memory
         cpu: CPU
+      tables:
+        label: Resources
+        instances: Instances
+        services: Services
+        configs: Configurations
     create:
       title: Application
       titleSubText: Epinio

@@ -8,6 +8,8 @@ import ResourceTable from '@shell/components/ResourceTable.vue';
 import PlusMinus from '@shell/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import ApplicationCard from '@/shell/components/cards/ApplicationCard.vue';
+import Tabbed from '@shell/components/Tabbed/index.vue';
+import Tab from '@shell/components/Tabbed/Tab.vue';
 
 interface Data {
 }
@@ -19,7 +21,9 @@ export default Vue.extend<Data, any, any, any>({
     ConsumptionGauge,
     ResourceTable,
     PlusMinus,
-    ApplicationCard
+    ApplicationCard,
+    Tabbed,
+    Tab,
   },
   props: {
     value: {
@@ -35,12 +39,35 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
   },
+  fetch() {
+    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
+    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
+  },
+
   data() {
+    const appInstanceSchema = this.$store.getters[`${ EPINIO_PRODUCT_NAME }/schemaFor`](EPINIO_TYPES.APP_INSTANCE);
+    const servicesSchema = this.$store.getters[`${ EPINIO_PRODUCT_NAME }/schemaFor`](EPINIO_TYPES.SERVICE_INSTANCE);
+    const servicesHeaders: [] = this.$store.getters['type-map/headersFor'](servicesSchema);
+    const configsSchema = this.$store.getters[`${ EPINIO_PRODUCT_NAME }/schemaFor`](EPINIO_TYPES.CONFIGURATION);
+    const configsHeaders: [] = this.$store.getters['type-map/headersFor'](configsSchema);
+
     return {
-      appInstanceSchema: this.$store.getters[`${ EPINIO_PRODUCT_NAME }/schemaFor`](EPINIO_TYPES.APP_INSTANCE),
       saving:            false,
+      appInstance: {
+        schema:  appInstanceSchema,
+        headers: this.$store.getters['type-map/headersFor'](appInstanceSchema),
+      },
+      services: {
+        schema:  servicesSchema,
+        headers: servicesHeaders.filter((h: any) => !['namespace', 'boundApps'].includes(h.name)),
+      },
+      configs: {
+        schema:  configsSchema,
+        headers: configsHeaders.filter((h: any) => !['namespace', 'boundApps', 'service'].includes(h.name)),
+      }
     };
   },
+
   methods: {
     async updateInstances(newInstances: number) {
       this.$set(this, 'saving', true);
@@ -58,6 +85,12 @@ export default Vue.extend<Data, any, any, any>({
 
       return `${ matchGithub?.[4] }/${ matchGithub?.[5] }`;
     }
+  },
+
+  computed: {
+    sourceIcon(): string {
+      return this.value.sourceInfo?.icon || 'icon-epinio';
+    }
   }
 });
 </script>
@@ -68,7 +101,7 @@ export default Vue.extend<Data, any, any, any>({
       <ApplicationCard>
         <!-- Icon slot -->
         <template v-slot:cardIcon>
-          <i class="icon icon-fw" :class="value.sourceInfo.icon || icon-epinio"></i>
+          <i class="icon icon-fw" :class="sourceIcon"></i>
         </template>
 
         <!-- Routes links slot -->
@@ -100,11 +133,11 @@ export default Vue.extend<Data, any, any, any>({
       </ApplicationCard>
     </div>
 
-    <h3 v-if="value.deployment" class="mt-20 mb-20">
+    <h3 v-if="value.deployment" class="mt-20">
       {{ t('epinio.applications.detail.deployment.label') }}
     </h3>
 
-    <div class="deployment">
+    <div v-if="value.deployment" class="deployment">
       <div class="simple-box-row app-instances">
         <SimpleBox>
           <ConsumptionGauge
@@ -179,13 +212,26 @@ export default Vue.extend<Data, any, any, any>({
         </SimpleBox>
       </div>
     </div>
+
+    <h3 class="mt-20">
+      {{ t('epinio.applications.detail.tables.label') }}
+    </h3>
+
     <div>
-      <!-- //TODO: Add Services & Configurations as tabs -->
-      <ResourceTable :schema="appInstanceSchema" :rows="value.instances" :table-actions="false">
-        <template #header-left>
-          <h1>Instances</h1>
-        </template>
-      </ResourceTable>
+      <Tabbed>
+        <Tab label-key="epinio.applications.detail.tables.instances" name="instances" :weight="3">
+          <ResourceTable :schema="appInstance.schema" :headers="appInstance.headers" :rows="value.instances" :table-actions="false">
+          </ResourceTable>
+        </Tab>
+        <Tab label-key="epinio.applications.detail.tables.services" name="services" :weight="2">
+          <ResourceTable :schema="services.schema" :headers="services.headers" :rows="value.services" :namespaced="false" :table-actions="false">
+          </ResourceTable>
+        </Tab>
+        <Tab label-key="epinio.applications.detail.tables.configs" name="configs" :weight="1">
+          <ResourceTable :schema="configs.schema" :headers="configs.headers" :rows="value.baseConfigurations" :namespaced="false" :table-actions="false">
+          </ResourceTable>
+        </Tab>
+      </Tabbed>
     </div>
   </div>
 </template>
@@ -291,7 +337,6 @@ export default Vue.extend<Data, any, any, any>({
 }
 
 .deployment {
-  margin-bottom: 60px;
   .simple-box {
     width: 100%;
     margin-bottom: 0;
