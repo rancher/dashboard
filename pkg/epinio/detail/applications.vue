@@ -82,10 +82,8 @@ export default Vue.extend<Data, any, any, any>({
           </ul>
         </template>
 
-        <template v-slot:top-right>
-        <!-- // TODO: Depends on https://github.com/epinio/epinio/issues/1345 -->
-        <!-- <span>Uptime 1d 23min</span> -->
-        </template>
+        <!-- <template v-slot:top-right>
+        </template> -->
 
         <!-- Resources count slot -->
         <template v-slot:resourcesCount>

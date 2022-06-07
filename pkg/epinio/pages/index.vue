@@ -71,7 +71,7 @@ export default Vue.extend<Data, any, any, any>({
 
     visibilitychange() {
       if (this.canRediscover && document.visibilityState === 'visible') {
-        this.rediscover();
+        this.rediscover(() => undefined);
       }
     },
 
