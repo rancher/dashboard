@@ -864,6 +864,20 @@ export const actions = {
       virtualBase = `/v1/harvester`;
     }
 
+    if (id !== 'local') { // multi-cluster
+      const systemNamespaces = await dispatch('management/find', {
+        type: MANAGEMENT.SETTING,
+        id:   SETTING.SYSTEM_NAMESPACES,
+        opt:  { url: `${ virtualBase }/${ MANAGEMENT.SETTING }s/${ SETTING.SYSTEM_NAMESPACES }`, force: true }
+      });
+
+      if (systemNamespaces) {
+        const namespace = (systemNamespaces.value || systemNamespaces.default)?.split(',');
+
+        commit('setSystemNamespaces', namespace);
+      }
+    }
+
     if ( !cluster ) {
       commit('clusterId', null);
       commit('harvester/applyConfig', { baseUrl: null });
