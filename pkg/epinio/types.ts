@@ -13,6 +13,7 @@ export const EPINIO_STANDALONE_CLUSTER_NAME = 'default';
 export const EPINIO_TYPES = {
   // From API
   APP:              'applications',
+  APP_CHARTS:       'appcharts',
   NAMESPACE:        'namespaces',
   CONFIGURATION:    'configurations',
   CATALOG_SERVICE:  'catalogservices',

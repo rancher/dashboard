@@ -71,7 +71,6 @@ export function init($plugin: any, store: any) {
   configureType(EPINIO_TYPES.INSTANCE, { customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.INSTANCE }) });
 
   // App resource
-  weightType(EPINIO_TYPES.APP, 300, true);
   configureType(EPINIO_TYPES.APP, {
     isCreatable:          true,
     isEditable:           true,
@@ -81,8 +80,17 @@ export function init($plugin: any, store: any) {
     customRoute:          createEpinioRoute('c-cluster-applications', { }),
   });
 
+  // App Chart resource
+  configureType(EPINIO_TYPES.APP_CHARTS, {
+    isCreatable:          false,
+    isEditable:           false,
+    isRemovable:          false,
+    showState:            false,
+    canYaml:              false,
+    customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.APP_CHARTS }),
+  });
+
   // Configuration resource
-  weightType(EPINIO_TYPES.CONFIGURATION, 200, true);
   configureType(EPINIO_TYPES.CONFIGURATION, {
     isCreatable: true,
     isEditable:  true,
@@ -92,17 +100,11 @@ export function init($plugin: any, store: any) {
     customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.CONFIGURATION }),
   });
 
+  // Groups
   const ADVANCED_GROUP = 'Advanced';
-
-  weightGroup(ADVANCED_GROUP, 1, true);
-
-  // Service Group
   const SERVICE_GROUP = 'Services';
 
-  weightGroup(SERVICE_GROUP, 2, true);
-
   // Service Instance
-  weightType(EPINIO_TYPES.SERVICE_INSTANCE, 151, true);
   configureType(EPINIO_TYPES.SERVICE_INSTANCE, {
     isCreatable:      true,
     isEditable:       true,
@@ -113,7 +115,6 @@ export function init($plugin: any, store: any) {
   });
 
   // Catalog Service
-  weightType(EPINIO_TYPES.CATALOG_SERVICE, 150, true);
   configureType(EPINIO_TYPES.CATALOG_SERVICE, {
     isCreatable:      false,
     isEditable:       false,
@@ -124,7 +125,6 @@ export function init($plugin: any, store: any) {
   });
 
   // Namespace resource
-  weightType(EPINIO_TYPES.NAMESPACE, 100, true);
   configureType(EPINIO_TYPES.NAMESPACE, {
     isCreatable:      true,
     isEditable:       true,
@@ -135,15 +135,25 @@ export function init($plugin: any, store: any) {
     showListMasthead: false // Disable default masthead because we provide a custom one.
   });
 
+  // Side Nav
+  weightType(EPINIO_TYPES.CATALOG_SERVICE, 150, true);
+  weightType(EPINIO_TYPES.SERVICE_INSTANCE, 151, true);
   basicType([
     EPINIO_TYPES.SERVICE_INSTANCE,
     EPINIO_TYPES.CATALOG_SERVICE,
   ], SERVICE_GROUP);
 
+  weightType(EPINIO_TYPES.CONFIGURATION, 200, true);
+  weightType(EPINIO_TYPES.APP_CHARTS, 150, true);
   basicType([
     EPINIO_TYPES.CONFIGURATION,
+    EPINIO_TYPES.APP_CHARTS
   ], ADVANCED_GROUP);
 
+  weightType(EPINIO_TYPES.APP, 300, true);
+  weightGroup(SERVICE_GROUP, 2, true);
+  weightType(EPINIO_TYPES.NAMESPACE, 100, true);
+  weightGroup(ADVANCED_GROUP, 1, true);
   basicType([
     EPINIO_TYPES.APP,
     SERVICE_GROUP,
@@ -339,6 +349,17 @@ export function init($plugin: any, store: any) {
       value:     'short_description',
       sort:      ['short_description'],
     },
+    {
+      name:      'description',
+      labelKey:  'epinio.catalogService.tableHeaders.desc',
+      value:     'description',
+      sort:      ['description'],
+    },
+    AGE
+  ]);
+
+  headers(EPINIO_TYPES.APP_CHARTS, [
+    SIMPLE_NAME,
     {
       name:      'description',
       labelKey:  'epinio.catalogService.tableHeaders.desc',

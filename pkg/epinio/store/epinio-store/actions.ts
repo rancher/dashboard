@@ -180,6 +180,13 @@ export default {
         attributes:        { namespaced: true }
       }, {
         product:           EPINIO_PRODUCT_NAME,
+        id:                EPINIO_TYPES.APP_CHARTS,
+        type:              'schema',
+        links:             { collection: '/api/v1/appcharts' },
+        collectionMethods: ['get'],
+        resourceFields:    { },
+      }, {
+        product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.NAMESPACE,
         type:              'schema',
         links:             { collection: '/api/v1/namespaces' },
