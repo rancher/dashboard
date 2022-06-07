@@ -366,6 +366,12 @@ export function init($plugin: any, store: any) {
       value:     'description',
       sort:      ['description'],
     },
+    {
+      name:      'helm_chart',
+      label:  'Helm Chart',
+      value:     'helm_chart',
+      sort:      ['helm_chart'],
+    },
     AGE
   ]);
 }

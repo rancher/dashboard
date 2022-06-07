@@ -2,6 +2,7 @@ import EpinioApplicationModel from './models/applications';
 import EpinioCatalogServiceModel from './models/catalogservices';
 import EpinioConfigurationModel from './models/configurations';
 import EpinioServiceModel from './models/services';
+import EpinioAppChartModel from './models/appcharts';
 
 export const EPINIO_PRODUCT_NAME = 'epinio';
 
@@ -66,6 +67,7 @@ export interface EpinioApplicationResource {
   configuration: {
     instances: number,
     configurations: string[],
+    appchart?: string,
     environment: Map<string, string>,
     routes: string[]
   },
@@ -83,6 +85,15 @@ export interface EpinioApplicationResource {
 }
 
 export type EpinioApplication = EpinioApplicationResource & EpinioApplicationModel & EpinioMetaProperty;
+
+export interface EpinioApplicationChartResource {
+  meta: EpinioMeta,
+  description: string,
+  helm_chart: string, // eslint-disable-line camelcase
+  short_description: string, // eslint-disable-line camelcase
+}
+
+export type EpinioAppChart = EpinioApplicationChartResource & EpinioAppChartModel & EpinioMetaProperty;
 
 export interface EpinioHelmRepoResource {
   name: string,

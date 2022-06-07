@@ -355,6 +355,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       data: {
         name:          this.meta.name,
         configuration: {
+          appchart:       this.configuration.appchart,
           instances:      this.configuration.instances,
           configurations: this.configuration.configurations,
           environment:    this.configuration.environment,

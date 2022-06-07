@@ -34,7 +34,7 @@ typeDescription:
   applications: Epinio uses Applications to transition your code, through build, to being deployed.
   services: Epinio can create instances of your services. Instances can be bound to your applications to provide data, for example a database service bound to an application might provide connection credentials.
   configurations: Configurations are a way to provide data to Applications. The data becomes available once the configuration is bound to them.
-  appcharts: Application Charts are a helm basis when deploying Applications
+  appcharts: Application charts define kube resources created by your application
 epinio:
   label: Epinio
   intro:
