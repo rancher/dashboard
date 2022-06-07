@@ -3,10 +3,10 @@ import isEmpty from 'lodash/isEmpty';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 
 import { get } from '@shell/utils/object';
 import { mapGetters } from 'vuex';

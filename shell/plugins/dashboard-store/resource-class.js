@@ -767,7 +767,7 @@ export default class Resource {
         console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
         clearInterval(interval);
         clearTimeout(timeout);
-        reject(new Error(`Failed while: ${ msg }`));
+        reject(new Error(`Failed waiting for: ${ msg }`));
       }, timeoutMs);
 
       const interval = setInterval(() => {
@@ -1034,17 +1034,35 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  patch(data, opt = {}) {
+  patch(data, opt = {}, merge = false, alertOnError = false) {
     if ( !opt.url ) {
-      opt.url = this.linkFor('self');
+      // Workaround for the links not being correct - view link is the only one that seems correct
+      opt.url = this.linkFor('view') || this.linkFor('self');
     }
 
     opt.method = 'patch';
     opt.headers = opt.headers || {};
-    opt.headers['content-type'] = 'application/json-patch+json';
+
+    if (!opt.headers['content-type']) {
+      const contentType = merge ? 'application/strategic-merge-patch+json' : 'application/json-patch+json';
+
+      opt.headers['content-type'] = contentType;
+    }
     opt.data = data;
 
-    return this.$dispatch('request', { opt, type: this.type } );
+    const dispatch = this.$dispatch('request', { opt, type: this.type } );
+
+    return !alertOnError ? dispatch : dispatch.catch((e) => {
+      const title = this.t('resource.errors.update', { name: this.name });
+
+      console.error(title, e); // eslint-disable-line no-console
+
+      this.$dispatch('growl/error', {
+        title,
+        message: e?.message,
+        timeout: 5000
+      }, { root: true });
+    });
   }
 
   save() {
@@ -1116,10 +1134,16 @@ export default class Resource {
       opt.data.annotations = opt.data._annotations;
     }
 
+    // handle "replace" opt as a query param _replace=true for norman PUT requests
+    if (opt?.replace && opt.method === 'put') {
+      const argParam = opt.url.includes('?') ? '&' : '?';
+
+      opt.url = `${ opt.url }${ argParam }_replace=true`;
+      delete opt.replace;
+    }
+
     try {
       const res = await this.$dispatch('request', { opt, type: this.type } );
-
-      // console.log('### Resource Save', this.type, this.id);
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
@@ -1809,5 +1833,9 @@ export default class Resource {
     }
 
     return out;
+  }
+
+  get creationTimestamp() {
+    return this.metadata?.creationTimestamp;
   }
 }

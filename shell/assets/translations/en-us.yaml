@@ -1744,6 +1744,10 @@ containerResourceLimit:
   requestsMemory: Memory Reservation
 
 
+resource:
+  errors:
+    update: "Error updating {name}"
+
 cruResource:
   backToForm: Back to Form
   backBody: You will lose any changes made to the YAML.
@@ -2959,6 +2963,7 @@ monitoringRoute:
   groups:
     label: Group By
     addGroupByLabel: Labels to Group Alerts By
+    groupByTooltip: Add each key-value pair as a string in the format key:value. The special label ... will aggregate by all possible labels. If provided, the ... must be the only element in the list.
   info: This is the top-level Route used by Alertmanager as the default destination for any Alerts that do not match any other Routes. This Route must exist and cannot be deleted.
   interval:
     label: Group Interval
@@ -3518,6 +3523,10 @@ persistentVolumeClaim:
     options:
       new: Use a Storage Class to provision a new Persistent Volume
       existing: Use an existing Persistent Volume
+  expand:
+    label: Expand
+    notSupported: Storage class does not support volume expansion
+    notBound: Only bound PVCs can be expanded
   volumeClaim:
     label: Volume Claim
     storageClass: Storage Class
@@ -4613,6 +4622,7 @@ tableHeaders:
   ingressDefaultBackend: Default
   ingressTarget: Target
   internalExternalIp: External/Internal IP
+  ipaddress: IP Address
   jobs: Jobs
   key: Key
   keys: Data
@@ -6749,6 +6759,7 @@ support:
     addLabel: "Please enter a valid Subscription ID:"
     removeTitle: Remove your ID?
     removeBody: "Note: This will not affect your subscription."
+
   suse:
     title: "Great News - You're covered"
     editBrand: Customize UI Theme
@@ -6756,6 +6767,9 @@ support:
       title: Get Support
       text: Login to SUSE Customer Center to access support for your subscription
       action: SUSE Customer Center
+      aws:
+        generateConfig: Generate Support Config
+        text: 'Login to SUSE Customer Center to access support for your subscription. Need to open a new support case? Download a support config file below.'
   promos:
     one:
       title: 24x7 Support

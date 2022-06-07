@@ -1,8 +1,8 @@
 <script>
 import CompactInput from '@shell/mixins/compact-input';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
-import TextAreaAutoGrow from '@shell/components/form/TextAreaAutoGrow';
-import LabeledTooltip from '@shell/components/form/LabeledTooltip';
+import { TextAreaAutoGrow } from '@components/Form';
+import { LabeledTooltip } from '@components/LabeledTooltip';
 import { escapeHtml } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
@@ -15,37 +15,37 @@ export default {
   props: {
     type: {
       type:    String,
-      default: 'text',
+      default: 'text'
     },
 
     status: {
       type:    String,
-      default: null,
+      default: null
     },
 
     subLabel: {
       type:    String,
-      default: null,
+      default: null
     },
 
     tooltip: {
       default: null,
-      type:    [String, Object],
+      type:    [String, Object]
     },
 
     hoverTooltip: {
       type:    Boolean,
-      default: true,
+      default: true
     },
 
     ignorePasswordManagers: {
       default: false,
-      type:    Boolean,
+      type:    Boolean
     },
 
     maxlength: {
       type:    Number,
-      default: null,
+      default: null
     },
 
     hideArrows: {
@@ -65,7 +65,7 @@ export default {
   data() {
     return {
       updated:          false,
-      validationErrors: '',
+      validationErrors: ''
     };
   },
 
@@ -119,7 +119,7 @@ export default {
       }
 
       return null;
-    },
+    }
   },
 
   methods: {
@@ -156,8 +156,8 @@ export default {
       this.onBlurLabeled();
     },
 
-    escapeHtml,
-  },
+    escapeHtml
+  }
 };
 </script>
 
@@ -232,7 +232,6 @@ export default {
     />
     <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
     <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
-  </div>
   </div>
 </template>
 

@@ -1,6 +1,6 @@
 <script>
 import UnitInput from '@shell/components/form/UnitInput';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import InputOrDisplay from '@shell/components/InputOrDisplay';
 import { HCI, PVC } from '@shell/config/types';

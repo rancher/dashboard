@@ -77,7 +77,6 @@ export function init($plugin: any, store: any) {
     isEditable:           true,
     isRemovable:          true,
     showState:            true,
-    showAge:              false,
     canYaml:              false,
     customRoute:          createEpinioRoute('c-cluster-applications', { }),
   });
@@ -89,7 +88,6 @@ export function init($plugin: any, store: any) {
     isEditable:  true,
     isRemovable: true,
     showState:   false,
-    showAge:     false,
     canYaml:     false,
     customRoute: createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.CONFIGURATION }),
   });
@@ -101,11 +99,10 @@ export function init($plugin: any, store: any) {
   // Service Instance
   weightType(EPINIO_TYPES.SERVICE_INSTANCE, 151, true);
   configureType(EPINIO_TYPES.SERVICE_INSTANCE, {
-    isCreatable:      false,
-    isEditable:       false,
-    isRemovable:      false,
+    isCreatable:      true,
+    isEditable:       true,
+    isRemovable:      true,
     showState:        true,
-    showAge:          false,
     canYaml:          false,
     customRoute:      createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.SERVICE_INSTANCE }),
   });
@@ -117,7 +114,6 @@ export function init($plugin: any, store: any) {
     isEditable:       false,
     isRemovable:      false,
     showState:        false,
-    showAge:          false,
     canYaml:          false,
     customRoute:      createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.CATALOG_SERVICE }),
   });
@@ -129,7 +125,6 @@ export function init($plugin: any, store: any) {
     isEditable:       true,
     isRemovable:      true,
     showState:        false,
-    showAge:          false,
     canYaml:          false,
     customRoute:      createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
     showListMasthead: false // Disable default masthead because we provide a custom one.
@@ -180,7 +175,8 @@ export function init($plugin: any, store: any) {
       labelKey: 'epinio.applications.tableHeaders.deployedBy',
       value:    'deployment.username',
       sort:     ['deployment.username'],
-    }
+    },
+    AGE
   ]);
 
   const { width, canBeVariable, ...instanceName } = SIMPLE_NAME;
@@ -229,6 +225,7 @@ export function init($plugin: any, store: any) {
       value:     'configCount',
       sort:      ['configCount'],
     },
+    AGE
   ]);
 
   headers(EPINIO_TYPES.INSTANCE, [
@@ -284,18 +281,33 @@ export function init($plugin: any, store: any) {
       value:     'configuration.user',
       sort:      ['configuration.user'],
     },
+    AGE
   ]);
 
   headers(EPINIO_TYPES.SERVICE_INSTANCE, [
     STATE,
     SIMPLE_NAME,
+    {
+      name:          'namespace',
+      labelKey:      'epinio.tableHeaders.namespace',
+      value:         'metadata.namespace',
+      sort:          ['metadata.namespace'],
+      formatter:     'LinkDetail',
+      formatterOpts: { reference: 'nsLocation' }
+    },
     { // This will be a link once the service instance detail / create / edit pages are created
       name:      'catalog_service',
       labelKey:  'epinio.serviceInstance.tableHeaders.service',
       value:     'catalog_service',
       sort:      ['catalog_service'],
     },
-
+    {
+      name:      'boundApps',
+      labelKey:  'epinio.configurations.tableHeaders.boundApps',
+      value:     'applications',
+      search:    ['boundapps'],
+    },
+    AGE
   ]);
 
   headers(EPINIO_TYPES.CATALOG_SERVICE, [
@@ -312,5 +324,6 @@ export function init($plugin: any, store: any) {
       value:     'description',
       sort:      ['description'],
     },
+    AGE
   ]);
 }

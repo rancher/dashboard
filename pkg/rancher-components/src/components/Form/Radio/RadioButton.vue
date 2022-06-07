@@ -1,5 +1,6 @@
 <script>
 import { _VIEW } from '@shell/config/query-params';
+
 export default {
   props: {
     // The name of the input, for grouping
@@ -11,13 +12,13 @@ export default {
     // The value for this option
     val: {
       required:  true,
-      validator: x => true,
+      validator: x => true
     },
 
     // The selected value...
     value: {
       required:  true,
-      validator: x => true,
+      validator: x => true
     },
 
     // The label shown next to the radio
@@ -33,7 +34,7 @@ export default {
 
     mode: {
       type:    String,
-      default: 'edit',
+      default: 'edit'
     },
 
     descriptionKey: {
@@ -44,7 +45,7 @@ export default {
     description: {
       type:    String,
       default: null
-    },
+    }
   },
 
   data() {
@@ -65,7 +66,7 @@ export default {
   watch: {
     value(neu) {
       this.isChecked = this.val === neu;
-      if ( this.isChecked ) {
+      if (this.isChecked) {
         this.$refs.custom.focus();
       }
     }
@@ -82,7 +83,7 @@ export default {
       }
 
       this.$emit('input', this.val);
-    },
+    }
   }
 };
 </script>

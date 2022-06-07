@@ -1,11 +1,11 @@
 <script>
 import CruResource from '@shell/components/CruResource';
 import createEditView from '@shell/mixins/create-edit-view';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Banner from '@shell/components/Banner';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { Banner } from '@components/Banner';
+import { RadioGroup } from '@components/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Loading from '@shell/components/Loading';
 import S3 from '@shell/chart/rancher-backup/S3';

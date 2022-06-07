@@ -1,6 +1,6 @@
 <script>
 import { HCI } from '@shell/config/types';
-import BadgeState from '@shell/components/BadgeState';
+import { BadgeState } from '@components/BadgeState';
 
 export default {
   components: { BadgeState },

@@ -7,6 +7,7 @@ export const APPLICATION_ACTION_TYPE = {
   CREATE:    'create',
   GIT_FETCH: 'gitFetch',
   UPLOAD:    'upload',
+  BIND:      'bind',
   BUILD:     'build',
   DEPLOY:    'deploy',
 };
@@ -62,6 +63,9 @@ export default class ApplicationActionResource extends Resource {
     case APPLICATION_ACTION_TYPE.CREATE:
       await this.create(params);
       break;
+    case APPLICATION_ACTION_TYPE.BIND:
+      await this.bind(params);
+      break;
     case APPLICATION_ACTION_TYPE.GIT_FETCH:
       await this.gitFetch(params);
       break;
@@ -81,6 +85,10 @@ export default class ApplicationActionResource extends Resource {
     await this.application.create();
   }
 
+  async bind() {
+    await this.application.bindConfigurations(this.application.configuration.configurations);
+  }
+
   async upload({ source }) {
     await this.application.storeArchive(source.archive.tarball);
   }
@@ -98,11 +106,12 @@ export default class ApplicationActionResource extends Resource {
   }
 
   async deploy({ source }) {
-    this.application.showAppLog();
     const stageId = source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ? this.application.buildCache.stage.stage.id : null;
     const image = source.type === APPLICATION_SOURCE_TYPE.CONTAINER_URL ? source.container.url : this.application.buildCache.stage.image;
 
     await this.application.deploy(stageId, image, this.createDeployOrigin(source));
+
+    this.application.showAppLog();
   }
 
   createDeployOrigin(source) {

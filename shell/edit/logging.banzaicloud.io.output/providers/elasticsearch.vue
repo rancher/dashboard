@@ -1,8 +1,8 @@
 <script>
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SecretSelector from '@shell/components/form/SecretSelector';
-import Checkbox from '@shell/components/form/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { _CREATE } from '@shell/config/query-params';
 import { updatePort, protocol, sslVersions } from './utils';
 

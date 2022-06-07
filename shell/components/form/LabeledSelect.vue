@@ -3,7 +3,7 @@ import CompactInput from '@shell/mixins/compact-input';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import LabeledTooltip from '@shell/components/form/LabeledTooltip';
+import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
 
@@ -271,7 +271,7 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
-      @option:selecting="$emit('input', $event)"
+      @option:selecting="$emit('selecting', $event)"
     >
       <template #option="option">
         <template v-if="option.kind === 'group'">

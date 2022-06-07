@@ -1,10 +1,10 @@
 <script>
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
-import Card from '@shell/components/Card';
-import Banner from '@shell/components/Banner';
+import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
   name: 'BackupModal',

@@ -19,7 +19,7 @@ Icons are font based and can be shown via the icon class
 <i class="icon icon-fw icon-gear" /></a>
 ```
 
-Icons can be browsed via `assets/fonts/icons/demo.html`.
+Icons can be browsed via `https://rancher.github.io/icons/`.
 
 Additional icon styles can be found in via `assets/styles/fonts/_icons.scss`.
 

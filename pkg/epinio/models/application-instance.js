@@ -3,12 +3,6 @@ import { EPINIO_PRODUCT_NAME } from '../types';
 
 export default class ApplicationInstanceResource extends Resource {
   get _availableActions() {
-    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
-
-    if (isSingleProduct) {
-      return [];
-    }
-
     return [{
       action:     'showAppShell',
       label:      this.t('epinio.applications.actions.onlyShell.label'),
@@ -29,12 +23,6 @@ export default class ApplicationInstanceResource extends Resource {
   }
 
   showAppShell() {
-    const isSingleProduct = !!this.$rootGetters['isSingleProduct'];
-
-    if (isSingleProduct) {
-      return;
-    }
-
     this.$dispatch('wm/open', {
       id:        `epinio-${ this.application.id }-app-shell`,
       label:     `${ this.application.meta.name } - App Shell`,

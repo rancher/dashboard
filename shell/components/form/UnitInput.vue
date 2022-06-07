@@ -1,6 +1,6 @@
 <script>
 import { parseSi, formatSi, UNITS, FRACTIONAL } from '@shell/utils/units';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { _EDIT } from '@shell/config/query-params';
 
 export default {
@@ -183,6 +183,14 @@ export default {
   },
 
   methods: {
+    focus() {
+      const comp = this.$refs.value;
+
+      if (comp) {
+        comp.focus();
+      }
+    },
+
     update(inputValue) {
       let out = inputValue === '' ? null : inputValue;
 
@@ -202,6 +210,7 @@ export default {
 
 <template>
   <LabeledInput
+    ref="value"
     :value="displayValue"
     v-bind="$attrs"
     type="number"

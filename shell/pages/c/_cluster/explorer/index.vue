@@ -4,7 +4,7 @@ import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allHash } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import { parseSi, createMemoryValues } from '@shell/utils/units';
 import {
   NAME,

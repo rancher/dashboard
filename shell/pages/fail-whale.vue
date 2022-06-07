@@ -1,6 +1,6 @@
 <script>
 import BrandImage from '@shell/components/BrandImage';
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import { stringify } from '@shell/utils/error';
 import { getVendor } from '@shell/config/private-label';
 import { NAME as HARVESTER } from '@shell/config/product/harvester';
@@ -11,7 +11,6 @@ export default {
   components: { BrandImage },
 
   data() {
-    const home = this.$router.resolve({ name: 'home' }).href;
     const store = this.$store;
 
     if ( process.client && !store.state.error && !store.state.cameFromError) {
@@ -19,10 +18,7 @@ export default {
       this.$router.replace('/');
     }
 
-    const isOnlyHarvester = getVendor() === HARVESTER;
-
     return {
-      home:          isOnlyHarvester ? 'c/local/harvester/harvesterhci.io.dashboard' : home,
       previousRoute: '',
       styles:        { '--custom-content': `'${ this.t('nav.failWhale.separator') }'` }
     };
@@ -30,6 +26,22 @@ export default {
 
   computed: {
     ...mapState(['error']),
+    ...mapGetters(['isSingleProduct']),
+
+    home() {
+      const isOnlyHarvester = getVendor() === HARVESTER;
+
+      if (isOnlyHarvester) {
+        // This looks like it's covered by `isSingleProduct?.afterLoginRoute` too
+        return 'c/local/harvester/harvesterhci.io.dashboard';
+      }
+
+      if (this.isSingleProduct?.afterLoginRoute) {
+        return this.$router.resolve(this.isSingleProduct.afterLoginRoute).href;
+      }
+
+      return this.$router.resolve({ name: 'home' }).href;
+    },
 
     displayError() {
       return stringify(this.error);

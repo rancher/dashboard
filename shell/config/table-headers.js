@@ -220,9 +220,9 @@ export const PODS = {
 export const AGE = {
   name:      'age',
   labelKey:  'tableHeaders.age',
-  value:     'metadata.creationTimestamp',
-  getValue:  row => row.metadata?.creationTimestamp,
-  sort:      'metadata.creationTimestamp:desc',
+  value:     'creationTimestamp',
+  getValue:  row => row.creationTimestamp,
+  sort:      'creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
   width:     100,
@@ -905,4 +905,11 @@ export const FLEET_BUNDLE_TYPE = {
   value:    'bundleType',
   sort:     ['bundleType'],
   width:    100,
+};
+
+export const IP_ADDRESS = {
+  name:          'ipaddress',
+  value:         'ipaddress',
+  labelKey:      'tableHeaders.ipaddress',
+
 };

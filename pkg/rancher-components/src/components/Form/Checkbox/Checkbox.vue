@@ -1,5 +1,4 @@
 <script>
-import $ from 'jquery';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 
@@ -32,7 +31,7 @@ export default {
 
     mode: {
       type:    String,
-      default: _EDIT,
+      default: _EDIT
     },
 
     tooltip: {
@@ -58,12 +57,12 @@ export default {
     description: {
       type:    String,
       default: null
-    },
+    }
   },
 
   computed: {
     isDisabled() {
-      return (this.disabled || this.mode === _VIEW );
+      return (this.disabled || this.mode === _VIEW);
     },
     isChecked() {
       return this.isMulti() ? this.value.find(v => v === this.valueWhenTrue) : this.value === this.valueWhenTrue;
@@ -72,7 +71,7 @@ export default {
 
   methods: {
     clicked(event) {
-      if ( event.target.tagName === 'A' && event.target.href ) {
+      if (event.target.tagName === 'A' && event.target.href) {
         // Ignore links inside the checkbox label so you can click them
         return true;
       }
@@ -84,12 +83,14 @@ export default {
         return;
       }
 
-      const click = $.Event('click');
-
-      click.shiftKey = event.shiftKey;
-      click.altKey = event.altKey;
-      click.ctrlKey = event.ctrlKey;
-      click.metaKey = event.metaKey;
+      const click = new CustomEvent('click', {
+        bubbles: true,
+        cancelable: false,
+        shiftKey: event.shiftKey,
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey
+      })
 
       // Flip the value
       if (this.isMulti()) {
@@ -101,7 +102,7 @@ export default {
         this.$emit('input', this.value);
       } else {
         this.$emit('input', !this.value);
-        $(this.$el).trigger(click);
+        this.$el.dispatchEvent(click);
       }
     },
 

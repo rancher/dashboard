@@ -1,16 +1,16 @@
 <script>
 import CruResource from '@shell/components/CruResource';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { CIS, CONFIG_MAP } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import createEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
-import Checkbox from '@shell/components/form/Checkbox';
-import RadioGroup from '@shell/components/form/RadioGroup';
+import { Checkbox } from '@components/Form/Checkbox';
+import { RadioGroup } from '@components/Form/Radio';
 import { get } from '@shell/utils/object';
 import { _VIEW, _CREATE } from '@shell/config/query-params';
 import { isValidCron } from 'cron-validator';

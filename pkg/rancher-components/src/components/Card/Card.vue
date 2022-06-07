@@ -1,8 +1,9 @@
 <script>
 export default {
-  props:      {
+  name:  'Card',
+  props: {
     title: {
-      type:     String,
+      type:    String,
       default: ''
     },
     content: {
@@ -11,7 +12,7 @@ export default {
     },
     buttonAction: {
       type:    Function,
-      default: () => {}
+      default: () => { }
     },
     buttonText: {
       type:    String,
@@ -56,11 +57,9 @@ export default {
 
 <style lang='scss'>
  .card-container {
-
   &.highlight-border {
     border-left: 5px solid var(--primary);
   }
-
   border-radius: var(--border-radius);
   display: flex;
   flex-basis: 40%;
@@ -87,12 +86,10 @@ export default {
      display: flex;
      padding-top: 20px;
    }
-
    & .card-title {
     align-items: center;
     display: flex;
     width: 100%;
-
      h5 {
        margin: 0;
      }

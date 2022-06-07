@@ -1,10 +1,10 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import Banner from '@shell/components/Banner';
-import Card from '@shell/components/Card';
+import { Banner } from '@components/Banner';
+import { Card } from '@components/Card';
 import { mapGetters, mapState } from 'vuex';
-import LabeledInput from '@shell/components/form/LabeledInput.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
 import AsyncButton from '@shell/components/AsyncButton';
 import { _CREATE } from '@shell/config/query-params';
@@ -28,7 +28,7 @@ export default {
       showCreateModal: false,
       errors:           [],
       validFields:     { name: false },
-      value:           { name: '' },
+      value:           { meta: { name: '' } },
       submitted:       false,
       mode:            _CREATE,
       touched:         false,
@@ -38,7 +38,7 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     validationPassed() {
-      const nameErrors = validateKubernetesName(this.value.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+      const nameErrors = validateKubernetesName(this.value.meta.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
 
       return nameErrors.length === 0;
     },
@@ -64,7 +64,7 @@ export default {
       }
     },
 
-    'value.name'(neu) {
+    'value.meta.name'(neu) {
       if (!neu?.length && !this.touched) {
         this.touched = true;
 
@@ -94,7 +94,7 @@ export default {
 
     async onSubmit(buttonCb) {
       try {
-        await this.value.save();
+        await this.value.create();
         this.closeCreateModal();
         buttonCb(true);
       } catch (e) {
@@ -138,7 +138,7 @@ export default {
         <div slot="body" class="model-body">
           <LabeledInput
             ref="namespaceName"
-            v-model="value.name"
+            v-model="value.meta.name"
             :label="t('epinio.namespace.name')"
             :mode="mode"
             :required="true"

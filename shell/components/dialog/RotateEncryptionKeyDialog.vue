@@ -1,15 +1,15 @@
 <script>
 import { SNAPSHOT, NORMAN } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
-import Card from '@shell/components/Card';
-import Banner from '@shell/components/Banner';
+import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 import { sortBy } from '@shell/utils/sort';
 import day from 'dayjs';
 import { escapeHtml } from '@shell/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
-import { set } from 'lodash';
+import { set } from '@shell/utils/object';
 
 export default {
   components: {
@@ -58,7 +58,10 @@ export default {
   },
 
   methods: {
-    close() {
+    close(buttonDone) {
+      if (buttonDone) {
+        buttonDone(true);
+      }
       this.$emit('close');
     },
 
@@ -102,11 +105,13 @@ export default {
           // rkeConfig.rotateEncyrptionKeys.generation in the YAML.
           set(this.cluster, 'spec.rkeConfig.rotateEncryptionKeys.generation', currentGeneration + 1);
           await this.cluster.save();
+
+          this.close(buttonDone);
         } else {
           await this.cluster.mgmt.doAction('rotateEncryptionKey');
+
+          this.close(buttonDone);
         }
-        buttonDone(true);
-        this.close();
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
         buttonDone(false);

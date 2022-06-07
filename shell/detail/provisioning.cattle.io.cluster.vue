@@ -1,6 +1,6 @@
 <script>
 import Loading from '@shell/components/Loading';
-import Banner from '@shell/components/Banner';
+import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
@@ -9,7 +9,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
 import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME, IP_ADDRESS
 } from '@shell/config/table-headers';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@shell/components/AsyncButton.vue';
@@ -76,6 +76,7 @@ export default {
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
       fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
+      fetchOne.normanClusters = this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
       fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
@@ -250,6 +251,7 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
+        IP_ADDRESS,
         MACHINE_NODE_OS,
         ROLES,
         AGE,
@@ -267,6 +269,7 @@ export default {
           formatter:     'LinkDetail',
           formatterOpts: { reference: 'kubeNodeDetailLocation' }
         },
+        IP_ADDRESS,
         MANAGEMENT_NODE_OS,
         ROLES,
         AGE
