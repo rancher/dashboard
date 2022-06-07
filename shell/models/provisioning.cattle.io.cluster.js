@@ -175,6 +175,10 @@ export default class ProvCluster extends SteveModel {
     this.currentRouter().push(location);
   }
 
+  get canDelete() {
+    return super.canDelete && this.stateObj.name !== 'removing';
+  }
+
   get canEditYaml() {
     if (!this.isRke2) {
       return false;
