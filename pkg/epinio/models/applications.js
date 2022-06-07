@@ -213,10 +213,6 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return Object.keys(this.configuration?.environment || []).length;
   }
 
-  get configCount() {
-    return this.configuration?.configurations.length;
-  }
-
   get routeCount() {
     return this.configuration?.routes.length;
   }

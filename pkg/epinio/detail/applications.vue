@@ -87,15 +87,14 @@ export default Vue.extend<Data, any, any, any>({
 
         <!-- Resources count slot -->
         <template v-slot:resourcesCount>
-          <!-- // TODO: Depends on https://github.com/epinio/epinio/issues/1471 -->
-          <!-- <div>
-          {{ value.configCount }} {{ t('epinio.applications.detail.counts.config') }}
-        </div> -->
-          <div>
-            {{ value.configCount }} {{ t('epinio.applications.detail.counts.config') }}
-          </div>
           <div>
             {{ value.envCount }} {{ t('epinio.applications.detail.counts.envVars') }}
+          </div>
+          <div>
+            {{ value.serviceConfigurations.length }} {{ t('epinio.applications.detail.counts.services') }}
+          </div>
+          <div>
+            {{ value.baseConfigurations.length }} {{ t('epinio.applications.detail.counts.config') }}
           </div>
         </template>
       </ApplicationCard>
@@ -165,15 +164,15 @@ export default Vue.extend<Data, any, any, any>({
               </thead>
               <tr>
                 <td>{{ t('tableHeaders.memory') }}</td>
-                <td>{{ value.instanceMemory.min }} MiB</td>
-                <td>{{ value.instanceMemory.max }} MiB</td>
-                <td>{{ value.instanceMemory.avg }} MiB</td>
+                <td>{{ value.instanceMemory.min }}</td>
+                <td>{{ value.instanceMemory.max }}</td>
+                <td>{{ value.instanceMemory.avg }}</td>
               </tr>
               <tr>
                 <td>{{ t('tableHeaders.cpu') }}</td>
-                <td>{{ value.instanceCpu.min }} m</td>
-                <td>{{ value.instanceCpu.max }} m</td>
-                <td>{{ value.instanceCpu.avg }} m</td>
+                <td>{{ value.instanceCpu.min }}</td>
+                <td>{{ value.instanceCpu.max }}</td>
+                <td>{{ value.instanceCpu.avg }}</td>
               </tr>
             </table>
           </div>

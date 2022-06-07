@@ -12,7 +12,7 @@ import { sortBy } from '@shell/utils/sort';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
 import { mapGetters } from 'vuex';
-import Banner from '@shell/components/Banner.vue';
+import Banner from '@components/Banner/Banner.vue';
 
 interface Data {
 }
