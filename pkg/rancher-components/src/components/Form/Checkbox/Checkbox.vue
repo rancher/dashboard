@@ -1,11 +1,12 @@
-<script>
+<script lang="ts">
+import Vue, { PropType } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
 
-export default {
+export default Vue.extend({
   props: {
     value: {
-      type:    [Boolean, Array],
+      type:    [Boolean, Array] as PropType<boolean | boolean[]>,
       default: false
     },
 
@@ -45,7 +46,7 @@ export default {
     },
 
     valueWhenTrue: {
-      type:    null,
+      type:    [Boolean, String, Number],
       default: true
     },
 
@@ -61,17 +62,17 @@ export default {
   },
 
   computed: {
-    isDisabled() {
+    isDisabled(): boolean {
       return (this.disabled || this.mode === _VIEW);
     },
-    isChecked() {
-      return this.isMulti() ? this.value.find(v => v === this.valueWhenTrue) : this.value === this.valueWhenTrue;
+    isChecked(): boolean {
+      return this.isMulti(this.value) ? this.findTrueValues(this.value) : this.value === this.valueWhenTrue;
     }
   },
 
   methods: {
-    clicked(event) {
-      if (event.target.tagName === 'A' && event.target.href) {
+    clicked(event: MouseEvent): boolean | void {
+      if ((event.target as HTMLLinkElement).tagName === 'A' && (event.target as HTMLLinkElement).href) {
         // Ignore links inside the checkbox label so you can click them
         return true;
       }
@@ -83,17 +84,19 @@ export default {
         return;
       }
 
-      const click = new CustomEvent('click', {
-        bubbles: true,
+      const customEvent = {
+        bubbles:    true,
         cancelable: false,
-        shiftKey: event.shiftKey,
-        altKey: event.altKey,
-        ctrlKey: event.ctrlKey,
-        metaKey: event.metaKey
-      })
+        shiftKey:   event.shiftKey,
+        altKey:     event.altKey,
+        ctrlKey:    event.ctrlKey,
+        metaKey:    event.metaKey
+      };
+
+      const click = new CustomEvent('click', customEvent);
 
       // Flip the value
-      if (this.isMulti()) {
+      if (this.isMulti(this.value)) {
         if (this.isChecked) {
           removeObject(this.value, this.valueWhenTrue);
         } else {
@@ -106,11 +109,21 @@ export default {
       }
     },
 
-    isMulti() {
-      return Array.isArray(this.value);
+    isMulti(value: boolean | boolean[]): value is boolean[] {
+      return Array.isArray(value);
+    },
+
+    findTrueValues(value: boolean[]): boolean {
+      const lookup = value.find(v => v === this.valueWhenTrue);
+
+      if (typeof lookup === 'undefined') {
+        throw new TypeError('Method findTrueValue is undefined');
+      }
+
+      return lookup;
     }
   }
-};
+});
 </script>
 
 <template>

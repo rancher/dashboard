@@ -1,5 +1,7 @@
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue';
+
+export default Vue.extend({
   props: {
     value: {
       type:    [String, Object],
@@ -16,7 +18,7 @@ export default {
       default: true
     }
   }
-};
+});
 </script>
 
 <template>

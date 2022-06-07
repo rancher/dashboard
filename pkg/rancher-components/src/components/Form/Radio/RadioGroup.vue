@@ -1,8 +1,14 @@
-<script>
+<script lang="ts">
+import Vue, { PropType } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
-import { RadioButton } from '@components/Form/Radio';
+import RadioButton from '@components/Form/Radio/RadioButton.vue';
 
-export default {
+interface Option {
+  value: unknown,
+  label: string
+}
+
+export default Vue.extend({
   components: { RadioButton },
   props:      {
     // Name for the checkbox grouping, must be unique on page
@@ -13,13 +19,13 @@ export default {
 
     // Options can be an array of {label, value}, or just values
     options: {
-      type:     Array,
+      type:     Array as PropType<Option[] | string[]>,
       required: true
     },
 
     // If options are just values, then labels can be a corresponding display value
     labels: {
-      type:    Array,
+      type:    Array as PropType<string[]>,
       default: null
     },
 
@@ -67,8 +73,8 @@ export default {
   },
 
   computed: {
-    normalizedOptions() {
-      const out = [];
+    normalizedOptions(): Option[] {
+      const out: Option[] = [];
 
       for (let i = 0; i < this.options.length; i++) {
         const opt = this.options[i];
@@ -91,18 +97,18 @@ export default {
       return out;
     },
 
-    isView() {
+    isView(): boolean {
       return this.mode === _VIEW;
     },
 
-    isDisabled() {
+    isDisabled(): boolean {
       return (this.disabled || this.isView);
     }
   },
 
   methods: {
     // keyboard left/right event listener to select next/previous option
-    clickNext(direction) {
+    clickNext(direction: number): void {
       const opts = this.normalizedOptions;
       const selected = opts.find(x => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;
@@ -116,7 +122,7 @@ export default {
       this.$emit('input', opts[newIndex].value);
     }
   }
-};
+});
 </script>
 
 <template>

@@ -33,10 +33,6 @@ export default {
       default: 'label',
       type:    String,
     },
-    options: {
-      default:   null,
-      type:      Array,
-    },
     placement: {
       default: null,
       type:    String,
@@ -69,10 +65,6 @@ export default {
       default: true,
     },
 
-    searchable: {
-      default: false,
-      type:    Boolean,
-    },
     status: {
       type:    String,
       default: null,

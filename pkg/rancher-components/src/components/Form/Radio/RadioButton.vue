@@ -1,7 +1,8 @@
-<script>
+<script lang="ts">
+import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 
-export default {
+export default Vue.extend({
   props: {
     // The name of the input, for grouping
     name: {
@@ -53,11 +54,11 @@ export default {
   },
 
   computed: {
-    isDisabled() {
+    isDisabled(): boolean {
       return this.mode === _VIEW || this.disabled;
     },
 
-    muteLabel() {
+    muteLabel(): boolean {
       // Don't mute the label if the mode is view and the button is checked
       return this.disabled && !(this.mode === _VIEW && this.isChecked);
     }
@@ -67,25 +68,21 @@ export default {
     value(neu) {
       this.isChecked = this.val === neu;
       if (this.isChecked) {
-        this.$refs.custom.focus();
+        (this.$refs.custom as HTMLElement).focus();
       }
     }
   },
 
   methods: {
-    clicked(e) {
-      if (this.isDisabled) {
-        return;
-      }
-
-      if (e.srcElement?.tagName === 'A') {
+    clicked({ target }: { target?: HTMLElement }) {
+      if (this.isDisabled || target?.tagName === 'A') {
         return;
       }
 
       this.$emit('input', this.val);
     }
   }
-};
+});
 </script>
 
 <template>
