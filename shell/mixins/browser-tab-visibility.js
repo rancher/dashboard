@@ -1,7 +1,9 @@
 import { NORMAN } from '@shell/config/types';
+import { mapGetters } from 'vuex';
 
 export default {
-  methods: {
+  computed: { ...mapGetters(['isSingleProduct']) },
+  methods:  {
     setTabVisibilityListener(isAdd) {
       const method = isAdd ? 'addEventListener' : 'removeEventListener';
 
@@ -20,5 +22,16 @@ export default {
         });
       }
     },
+  },
+
+  mounted() {
+    if (!this.isSingleProduct) {
+      this.setTabVisibilityListener(true);
+    }
+  },
+  beforeDestroy() {
+    if (!this.isSingleProduct) {
+      this.setTabVisibilityListener(false);
+    }
   },
 };

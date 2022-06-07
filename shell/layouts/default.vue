@@ -272,11 +272,6 @@ export default {
   mounted() {
     // Sync the navigation tree on fresh load
     this.$nextTick(() => this.syncNav());
-
-    this.setTabVisibilityListener(true);
-  },
-  beforeDestroy() {
-    this.setTabVisibilityListener(false);
   },
 
   methods: {

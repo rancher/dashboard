@@ -22,13 +22,6 @@ export default {
 
   middleware: ['authenticated'],
 
-  mounted() {
-    this.setTabVisibilityListener(true);
-  },
-  beforeDestroy() {
-    this.setTabVisibilityListener(false);
-  },
-
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
