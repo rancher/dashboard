@@ -2,12 +2,13 @@ import { config } from '@vue/test-utils';
 import { directiveSsr as t } from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
 import VModal from 'vue-js-modal';
-import vueSelect from 'vue-select';
+import vSelect from 'vue-select';
 
 import Vue from 'vue';
 
 Vue.config.productionTip = false;
-Vue.use(VTooltip).use(VModal).use(vueSelect);
+Vue.use(VTooltip).use(VModal);
+Vue.component('v-select', vSelect);
 
 config.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
 config.directives = { t };
