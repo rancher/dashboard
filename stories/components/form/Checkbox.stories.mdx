@@ -22,8 +22,7 @@ Checkboxes are used when the user may select any number (zero, one or several) o
 - Checkboxes should be used when enabling or disabling settings or preferences.
 - Use checkboxes when the user needs to select one or multiple items for a group of choices.
 
-<Canvas columns={2}>
-  Default
+
   <Story
     name="Checked"
     args={{
@@ -36,16 +35,7 @@ Checkboxes are used when the user may select any number (zero, one or several) o
   <Story
     name="Selected"
     args={{
-      label: 'Unchecked'
-    }}>
-    {Template.bind({})}
-  </Story>
-  Disabled
-  <Story
-    name="Disabled"
-    args={{
-      label: 'Accept term of service',
-      disabled: true
+      label: 'Allow cookies'
     }}>
     {Template.bind({})}
   </Story>
