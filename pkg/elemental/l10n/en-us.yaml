@@ -1,4 +1,9 @@
 typeLabel:
+  elemental:  |-
+    {count, plural,
+      one {Elemental Cluster}
+      other {Elemental Clusters}
+    }
   rancheros.cattle.io.machineinventory: |-
     {count, plural,
       one {Machine Inventory}
@@ -24,6 +29,12 @@ typeLabel:
       one {Managed OS Version}
       other {Managed OS Versions}
     }
+  elementalClusters: Clusters
+description:
+  rancheros.cattle.io.machineregistration: Endpoints to connect Machines
+  rancheros.cattle.io.machineinventory: Machine connected to Elemental
+  rancheros.cattle.io.managedosimage: Containerized OS Images for Machines
+  elementalClusters: Clusters managed by Elemental
 elemental:
   menuLabels:
     dashboard: Dashboard
@@ -31,8 +42,17 @@ elemental:
     machineInventories: Machine Inventories
   dashboard:
     title: Elemental
-    welcomeText: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed porta non purus sed placerat. Proin sodales varius varius. Vivamus bibendum nisl et eros malesuada rutrum. Praesent at aliquet neque. Morbi tempus, leo ac sagittis ornare, augue tortor finibus enim, sed interdum ipsum metus eu purus. Quisque leo risus, feugiat vel rhoncus ut, interdum non erat. Morbi luctus vestibulum ante vel placerat. Mauris non nunc ut arcu volutpat pretium. Etiam turpis lectus, lobortis eu lorem nec, auctor ultricies ligula. Sed pellentesque lacus a nulla sollicitudin rutrum.
-    getStarted: Get Started
+    btnLabel:
+      create: 
+        rancheros.cattle.io.machineregistration: Create Machine Registration
+        rancheros.cattle.io.machineinventory: Create Machine Inventory
+        rancheros.cattle.io.managedosimage: Create Managed OS Image
+        elementalClusters: Create Elemental Cluster
+      manage: 
+        rancheros.cattle.io.machineregistration: Manage Machine Registrations
+        rancheros.cattle.io.machineinventory: Manage Machine Inventories
+        rancheros.cattle.io.managedosimage: Manage Managed OS Images
+        elementalClusters: Manage Elemental Clusters
   osimage:
     create:
       configuration: Configuration
