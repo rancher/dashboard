@@ -10,7 +10,8 @@ export const Template = (args, { argTypes }) => ({
 
 <Meta title="Components/Form/Input" />
 
-# FileSelector
+# Text input
+Input elements with type ‘text’ allow users to enter any combination of letters, numbers, or symbols. A text box only allows for a single line of input.
 
 <Source
   language='js'
@@ -20,6 +21,15 @@ export const Template = (args, { argTypes }) => ({
      import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
   `}
 />
+
+
+### Description 
+
+- Always associate a label to every text field for good accessibility. Do not include a colon at the end of the label.
+- Use the appropriate length for the text input. The length of the input text field provides a hint to users as to how much text is expected.
+- An input text field only allows for a single line of input.
+
+
 
 <Canvas>
   <Story
@@ -31,5 +41,6 @@ export const Template = (args, { argTypes }) => ({
   </Story>
 </Canvas>
 
+### Props table
 
 <ArgsTable of={LabeledInput} />
