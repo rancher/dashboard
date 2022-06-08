@@ -89,7 +89,7 @@ export const STATES_ENUM = {
   DEGRADED:         'degraded',
   DENIED:           'denied',
   DEPLOYED:         'deployed',
-  DEPLOYING:         'deploying',
+  DEPLOYING:        'deploying',
   DISABLED:         'disabled',
   DISCONNECTED:     'disconnected',
   DRAINED:          'drained',
