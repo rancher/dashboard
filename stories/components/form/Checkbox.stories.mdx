@@ -13,7 +13,7 @@ export const Template = (args, { argTypes }) => ({
 />
 
 # Checkbox
-
+Checkboxes are used when the user may select any number (zero, one or several) of choices from a list.
 
 <Source
   language='js'
@@ -22,12 +22,19 @@ export const Template = (args, { argTypes }) => ({
   `}
 />
 
+### Description
+
+- Always associate a label to every checkbox for good accessibility. Do not include a colon at the end of the label.
+- Use a single checkbox when there is a choice between two options that represent status (for example opting in or out).
+- Checkboxes should be used when enabling or disabling settings or preferences.
+- Use checkboxes when the user needs to select one or multiple items for a group of choices.
+
 <Canvas>
   <Story
     name="Checked"
     args={{
-      label: 'Checked',
-      value: true
+      label: 'Accept term of service',
+      value: 'true'
     }}>
     {Template.bind({})}
   </Story>
@@ -49,5 +56,6 @@ export const Template = (args, { argTypes }) => ({
 </Canvas>
 
 
+### Props table
 
 <ArgsTable of={Checkbox} />
