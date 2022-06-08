@@ -16,48 +16,76 @@ export default (
   mixins:     [LabeledFormElement, CompactInput],
 
   props: {
+    /**
+     * The type of the Labeled Input.
+     * @values text, cron, multiline, multiline-password
+     */
     type: {
       type:    String,
       default: 'text'
     },
 
+    /**
+     * The status class of the Labeled Input and tooltip.
+     * @values info, success, warning, error 
+     */
     status: {
       type:    String,
       default: null
     },
 
+    /**
+     * The sub-label for the Labeled Input.
+     */
     subLabel: {
       type:    String,
       default: null
     },
 
+    /**
+     * The tooltip to display for the Labeled Input.
+     */
     tooltip: {
       default: null,
       type:    [String, Object]
     },
 
+    /**
+     * Renders the tooltip when hovering the cursor over the Labeled Input.
+     */
     hoverTooltip: {
       type:    Boolean,
       default: true
     },
 
+    /**
+     * Disables the password manager prompt to save the contents of the Labeled 
+     * Input.
+     */
     ignorePasswordManagers: {
       default: false,
       type:    Boolean
     },
 
+    /**
+     * The max length of the Labeled Input.
+     */
     maxlength: {
       type:    Number,
       default: null
     },
 
+    /**
+     * Hides arrows on the Labeled Input.
+     * @deprecated This doesn't appear to be in use for Labeled Input.
+     */
     hideArrows: {
       type:    Boolean,
       default: false
     },
 
     /**
-     * Optionally delay on input while typing
+     * Optionally delay on input while typing.
      */
     delay: {
       type:    Number,
@@ -73,22 +101,37 @@ export default (
   },
 
   computed: {
+    /**
+     * Determines if the Labeled Input @input event should be debounced.
+     */
     onInput(): ((value: string) => void) | void {
       return this.delay ? debounce(this.delayInput, this.delay) : this.delayInput;
     },
 
+    /**
+     * Determines if the Labeled Input should display a label.
+     */
     hasLabel(): boolean {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
 
+    /**
+     * Determines if the Labeled Input should display a tooltip.
+     */
     hasTooltip(): boolean {
       return !!this.tooltip || !!this.tooltipKey;
     },
 
+    /**
+     * Determines if the Labeled Input makes use of the suffix slot.
+     */
     hasSuffix(): boolean {
       return !!this.$slots.suffix;
     },
 
+    /**
+     * Determines if the Labeled Input should display a cron hint.
+     */
     cronHint(): string | undefined {
       if (this.type !== 'cron' || !this.value) {
         return;
@@ -105,6 +148,9 @@ export default (
       }
     },
 
+    /**
+     * The placeholder value for the Labeled Input.
+     */
     _placeholder(): string {
       if (this.placeholder) {
         return this.placeholder.toString();
@@ -116,6 +162,9 @@ export default (
       return '';
     },
 
+    /**
+     * The max length for the Labeled Input.
+     */
     _maxlength(): number | null {
       if (this.type === 'text' && this.maxlength) {
         return this.maxlength;
@@ -126,6 +175,9 @@ export default (
   },
 
   methods: {
+    /**
+     * Attempts to give the Labeled Input focus.
+     */
     focus(): void {
       const comp = this.$refs.value as HTMLInputElement;
 
@@ -134,6 +186,10 @@ export default (
       }
     },
 
+    /**
+     * Attempts to select the Labeled Input.
+     * @deprecated
+     */
     select(): void {
       const comp = this.$refs.value as HTMLInputElement;
 
@@ -143,17 +199,26 @@ export default (
     },
 
     /**
-     * Emit on input with delay
-     * Note: Arrow function is avoided due context binding
+     * Emit on input with delay. Note: Arrow function is avoided due context 
+     * binding.
      */
     delayInput(value: string): void {
       this.$emit('input', value);
     },
 
+    /**
+     * Handles the behavior of the Labeled Input when given focus.
+     * @see labeled-form-element.ts mixin for onFocusLabeled()
+     */
     onFocus(): void {
       this.onFocusLabeled();
     },
 
+    /**
+     * Handles the behavior of the Labeled Input when blurred and emits the blur 
+     * event.
+     * @see labeled-form-element.ts mixin for onBlurLabeled()
+     */
     onBlur(event: string): void {
       this.$emit('blur', event);
       this.onBlurLabeled();

@@ -3,16 +3,26 @@ import Vue from 'vue';
 
 export default Vue.extend({
   props: {
+    /**
+     * The Labeled Tooltip value.
+     */
     value: {
       type:    [String, Object],
       default: null
     },
 
+    /**
+     * The status for the Labeled Tooltip. Controls the Labeled Tooltip class.
+     * @values info, success, warning, error
+     */
     status: {
       type:    String,
       default: 'error'
     },
 
+    /**
+     * Displays the Labeled Tooltip on mouse hover.
+     */
     hover: {
       type:    Boolean,
       default: true

@@ -5,56 +5,92 @@ import { addObject, removeObject } from '@shell/utils/array';
 
 export default Vue.extend({
   props: {
+    /**
+     * The checkbox value.
+     */
     value: {
       type:    [Boolean, Array] as PropType<boolean | boolean[]>,
       default: false
     },
 
+    /**
+     * The checkbox label.
+     */
     label: {
       type:    String,
       default: null
     },
 
+    /**
+     * The i18n key to use for the checkbox label.
+     */
     labelKey: {
       type:    String,
       default: null
     },
 
+    /**
+     * Disable the checkbox.
+     */
     disabled: {
       type:    Boolean,
       default: false
     },
 
+    /**
+     * Display an indeterminate state. Useful for cases where a checkbox might 
+     * be the parent to child checkboxes, and we need to show that a subset of 
+     * children are checked.
+     */
     indeterminate: {
       type:    Boolean,
       default: false
     },
 
+    /**
+     * The checkbox editing mode.
+     * @values _EDIT, _VIEW
+     */
     mode: {
       type:    String,
       default: _EDIT
     },
 
+    /**
+     * The contents of the checkbox tooltip.
+     */
     tooltip: {
       type:    [String, Object],
       default: null
     },
 
+    /**
+     * The i18n key to use for the checkbox tooltip.
+     */
     tooltipKey: {
       type:    String,
       default: null
     },
 
+    /**
+     * A custom value to use when the checkbox is checked.
+     */
     valueWhenTrue: {
       type:    [Boolean, String, Number],
       default: true
     },
 
+    /**
+     * The i18n key to use for the checkbox description.
+     */
     descriptionKey: {
       type:    String,
       default: null
     },
 
+    /**
+     * The checkbox description.
+     */
     description: {
       type:    String,
       default: null
@@ -62,15 +98,29 @@ export default Vue.extend({
   },
 
   computed: {
+    /**
+     * Determines if the checkbox is disabled.
+     * @returns boolean: True when the disabled prop is true or when mode is 
+     * View.
+     */
     isDisabled(): boolean {
       return (this.disabled || this.mode === _VIEW);
     },
+    /**
+     * Determines if the checkbox is checked when using custom values or 
+     * multiple values.
+     * @returns boolean: True when at least one value is true in a collection or 
+     * when value matches `this.valueWhenTrue`.
+     */
     isChecked(): boolean {
       return this.isMulti(this.value) ? this.findTrueValues(this.value) : this.value === this.valueWhenTrue;
     }
   },
 
   methods: {
+    /**
+     * Toggles the checked state for the checkbox and emits an 'input' event.
+     */
     clicked(event: MouseEvent): boolean | void {
       if ((event.target as HTMLLinkElement).tagName === 'A' && (event.target as HTMLLinkElement).href) {
         // Ignore links inside the checkbox label so you can click them
@@ -109,10 +159,17 @@ export default Vue.extend({
       }
     },
 
+    /**
+     * Determines if there are multiple values for the checkbox.
+     */
     isMulti(value: boolean | boolean[]): value is boolean[] {
       return Array.isArray(value);
     },
 
+    /**
+     * Finds the first true value for multiple checkboxes.
+     * @param value A collection of values for the checkbox.
+     */
     findTrueValues(value: boolean[]): boolean {
       const lookup = value.find(v => v === this.valueWhenTrue);
 

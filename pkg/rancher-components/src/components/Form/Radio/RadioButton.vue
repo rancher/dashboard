@@ -4,45 +4,66 @@ import { _VIEW } from '@shell/config/query-params';
 
 export default Vue.extend({
   props: {
-    // The name of the input, for grouping
+    /**
+     * The name of the input, for grouping.
+     */
     name: {
       type:    String,
       default: ''
     },
 
-    // The value for this option
+    /** 
+     * The value for this option.
+     */ 
     val: {
       required:  true,
       validator: x => true
     },
 
-    // The selected value...
+    /** 
+     * The selected value.
+     */ 
     value: {
       required:  true,
       validator: x => true
     },
 
-    // The label shown next to the radio
+    /**
+     * The label shown next to the radio.
+     */ 
     label: {
       type:    String,
       default: ''
     },
 
+    /**
+     * Disable the radio.
+     */
     disabled: {
       type:    Boolean,
       default: false
     },
 
+    /**
+     * The radio editing mode.
+     * @values _EDIT, _VIEW
+     */
     mode: {
       type:    String,
       default: 'edit'
     },
 
+    /**
+     * The i18n key to use for the radio description.
+     */
     descriptionKey: {
       type:    String,
       default: null
     },
 
+    /**
+     * The radio description.
+     */
     description: {
       type:    String,
       default: null
@@ -54,10 +75,16 @@ export default Vue.extend({
   },
 
   computed: {
+    /**
+     * Determines if the radio is disabled.
+     */
     isDisabled(): boolean {
       return this.mode === _VIEW || this.disabled;
     },
 
+    /**
+     * Determines if the label for the radio should be muted.
+     */
     muteLabel(): boolean {
       // Don't mute the label if the mode is view and the button is checked
       return this.disabled && !(this.mode === _VIEW && this.isChecked);
@@ -74,6 +101,9 @@ export default Vue.extend({
   },
 
   methods: {
+    /**
+     * Emits the input event.
+     */
     clicked({ target }: { target?: HTMLElement }) {
       if (this.isDisabled || target?.tagName === 'A') {
         return;
