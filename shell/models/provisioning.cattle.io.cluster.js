@@ -52,16 +52,12 @@ export default class ProvCluster extends SteveModel {
     return super.creationTimestamp;
   }
 
-  get availableActions() {
+  get _availableActions() {
     // No actions for Harvester clusters
     if (this.isHarvester) {
       return [];
     }
 
-    return this._availableActions;
-  }
-
-  get _availableActions() {
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
 
