@@ -10,16 +10,8 @@ export const Template = (args, { argTypes }) => ({
 
 <Meta title="Components/Form/TextArea" />
 
-# FileSelector
-
-<Source
-  language='js'
-  light
-  format={false}
-  code={`
-     import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow';
-  `}
-/>
+# Text area
+Input elements with type ‘text’ allow users to enter any combination of letters, numbers, or symbols. A text box only allows for a single line of input. Use this only if there is no need for the label.
 
 
 <Canvas>
@@ -32,6 +24,17 @@ export const Template = (args, { argTypes }) => ({
   </Story>
 </Canvas>
 
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow';
+  `}
+/>
 
 
+
+
+### Props table
 <ArgsTable of={TextAreaAutoGrow} />
