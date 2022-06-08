@@ -63,3 +63,8 @@ table {
   }
 }
 
+#story--components-labeledtooltip--labeled-tooltip .labeled-tooltip,
+#story--components-labeledtooltip--labeled-tooltip .labeled-tooltip .status-icon {
+  position: inherit!important;
+}
+
