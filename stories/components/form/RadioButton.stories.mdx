@@ -40,8 +40,8 @@ A radio button or option button is a graphical control element that allows the u
     name="RadioButton"
     args={{
       label: 'Hello',
-      val: 'false',
-      value: 'true'
+      val: false,
+      value: true
     }}>
     {Template.bind({})}
   </Story>
@@ -66,9 +66,10 @@ A radio button or option button is a graphical control element that allows the u
   <Story
     name="RadioGroup"
     args={{
+      name: 'Name',
       label: 'Hello',
       options: ["false", "true"],
-      row: 'false'
+      row: false
     }}>
     {Template2.bind({})}
   </Story>

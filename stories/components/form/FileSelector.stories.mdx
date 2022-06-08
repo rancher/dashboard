@@ -22,11 +22,21 @@ export const Template = (args, { argTypes }) => ({
 />
 
 <Canvas>
+  FileSelector
   <Story
     name="FileSelector"
     args={{
       label: 'Choose file',
-      selected: 'test'
+      multiple: true
+    }}>
+    {Template.bind({})}
+  </Story>
+  FileSelector disabled
+  <Story
+    name="disabled"
+    args={{
+      label: 'Choose file',
+      disabled: true
     }}>
     {Template.bind({})}
   </Story>

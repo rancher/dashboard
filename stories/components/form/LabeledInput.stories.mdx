@@ -15,8 +15,6 @@ Input elements with type ‘text’ allow users to enter any combination of lett
 
 <Source
   language='js'
-  light
-  format={false}
   code={`
      import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
   `}
@@ -35,12 +33,27 @@ Input elements with type ‘text’ allow users to enter any combination of lett
   <Story
     name="LabeledInput"
     args={{
-      label: 'Name:',
+      label: 'Label:',
+      value: 'Simon'
     }}>
     {Template.bind({})}
   </Story>
 </Canvas>
 
+<<<<<<< HEAD
 ### Props table
+=======
+<Canvas>
+  <Story
+    name="LabeledInput2"
+    args={{
+      label: 'Name:',
+      required: true
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+>>>>>>> 7f15921e53c4b3fed0ceab996f42713199dedcbe
 
 <ArgsTable of={LabeledInput} />
+
