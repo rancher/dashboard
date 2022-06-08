@@ -335,6 +335,10 @@ export default {
       return this.value.spec.rkeConfig;
     },
 
+    isElementalCluster() {
+      return this.provider === 'elemental';
+    },
+
     advancedTitleAlt() {
       const machineSelectorLength = this.rkeConfig.machineSelectorConfig.length;
 
@@ -413,7 +417,7 @@ export default {
       const showK3s = allValidK3sVersions.length && !existingRke2;
       const out = [];
 
-      if ( showRke2 ) {
+      if ( showRke2 && this.provider !== 'elemental' ) {
         if ( showK3s ) {
           out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
         }
@@ -556,7 +560,7 @@ export default {
     },
 
     showCisProfile() {
-      return (this.provider === 'custom' || this.provider === 'elemental') && ( this.serverArgs.profile || this.agentArgs.profile );
+      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs.profile || this.agentArgs.profile );
     },
 
     registryOptions() {
@@ -569,7 +573,7 @@ export default {
     },
 
     needCredential() {
-      if ( this.provider === 'custom' || this.provider === 'import' || this.provider === 'elemental' || this.mode === _VIEW ) {
+      if ( this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW ) {
         return false;
       }
 
@@ -765,6 +769,7 @@ export default {
     defaultVersion() {
       const all = this.versionOptions.filter(x => !!x.value);
       const first = all[0]?.value;
+
       const preferred = all.find(x => x.value === this.defaultRke2)?.value;
 
       const rke2 = this.getAllOptionsAfterMinVersion(this.rke2Versions, null);
@@ -1107,7 +1112,7 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || this.provider === 'elemental' || !!this.credentialId);
+      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
     },
 
     cancelCredential() {
@@ -1119,7 +1124,7 @@ export default {
     done() {
       let routeName = 'c-cluster-product-resource';
 
-      if ( this.mode === _CREATE && (this.provider === 'import' || this.provider === 'custom' || this.provider === 'elemental') ) {
+      if ( this.mode === _CREATE && (this.provider === 'import' || this.provider === 'custom' || this.isElementalCluster) ) {
         // Go show the registration command
         routeName = 'c-cluster-product-resource-namespace-id';
       }

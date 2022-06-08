@@ -278,6 +278,7 @@ export default {
           });
 
           addType('custom', 'custom2', false);
+          addType('elemental', 'custom2', false);
         }
       }
 

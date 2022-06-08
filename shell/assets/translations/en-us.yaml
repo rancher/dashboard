@@ -1611,6 +1611,7 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+    elemental: Elemental Cluster
   providerTag:
     rke2:
       harvester: '{tag}'
