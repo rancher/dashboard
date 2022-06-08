@@ -252,7 +252,7 @@ export default class ProvCluster extends SteveModel {
     }, `set provisioner`, timeout, interval);
   }
 
-  waitForMgmt(timeout, interval) {
+  waitForMgmt(timeout = 60000, interval) {
     return this.waitForTestFn(() => {
       // `this` instance isn't getting updated with `status.clusterName`
       // Workaround - Get fresh copy from the store
@@ -260,7 +260,7 @@ export default class ProvCluster extends SteveModel {
       const name = this.status?.clusterName || pCluster?.status?.clusterName;
 
       return name && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
-    }, `mgmt cluster create`, timeout, interval);
+    }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval);
   }
 
   get provisioner() {
