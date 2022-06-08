@@ -429,7 +429,7 @@ export const STATES = {
   [STATES_ENUM.WARNING]:            {
     color: 'warning', icon: 'error', label: 'Warning', compoundIcon: 'warning'
   },
-  [STATES_ENUM.DEPLOYING]:            {
+  [STATES_ENUM.DEPLOYING]:          {
     color: 'info', icon: 'info', label: 'Deploying', compoundIcon: 'info'
   },
 };
