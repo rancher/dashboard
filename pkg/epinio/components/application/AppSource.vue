@@ -54,6 +54,11 @@ export interface EpinioAppSource {
   appChart: string,
 }
 
+interface FileWithRelativePath extends File {
+  // For some reason TS throws this as missing at transpile time .. so recreate it
+   readonly webkitRelativePath: string;
+}
+
 const DEFAULT_BUILD_PACK = 'paketobuildpacks/builder:full';
 
 // Data, Methods, Computed, Props
@@ -174,11 +179,12 @@ export default Vue.extend<Data, any, any, any>({
       }
     },
 
-    onFolderSelected(files: any[]) {
+    onFolderSelected(files: FileWithRelativePath | FileWithRelativePath[]) {
+      const safeFiles = Array.isArray(files) ? files : [files];
       let folderName: string = '';
 
       // Determine parent folder name
-      for (const f of files) {
+      for (const f of safeFiles) {
         const paths = f.webkitRelativePath.split('/');
 
         if (paths.length > 1) {
@@ -193,7 +199,7 @@ export default Vue.extend<Data, any, any, any>({
         }
       }
 
-      const filesToZip = files.reduce((res, f) => {
+      const filesToZip = safeFiles.reduce((res, f) => {
         let path = f.webkitRelativePath;
 
         if (folderName) {
