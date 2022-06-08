@@ -11,8 +11,8 @@ typeLabel:
     }
   appcharts: |-
     {count, plural,
-      one { Application Charts }
-      other { Application Charts }
+      one { Application Templates }
+      other { Application Templates }
     }
   "services": |-
     {count, plural,
@@ -33,8 +33,9 @@ typeDescription:
   namespaces: Namespaces group your applications, services and other resources. Deleting a namespace will delete all of it's resources.
   applications: Epinio uses Applications to transition your code, through build, to being deployed.
   services: Epinio can create instances of your services. Instances can be bound to your applications to provide data, for example a database service bound to an application might provide connection credentials.
-  configurations: Configurations are a way to provide data to Applications. The data becomes available once the configuration is bound to them.
-  appcharts: Application charts define kube resources created by your application
+  configurations: Configurations are a way to provide data to applications. The data becomes available once the configuration is bound to them.
+  appcharts: Application Templates define kube resources created by your application
+  catalogservices: Catalog Services provide additional, common functionality to applications. For example an instance of a database Catalog Service can be bound to an application.
 epinio:
   label: Epinio
   intro:
