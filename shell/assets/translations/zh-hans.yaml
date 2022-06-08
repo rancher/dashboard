@@ -7,6 +7,7 @@ generic:
   back: 返回
   cancel: 取消
   clear: 清除
+  clearAll: 清除全部
   close: 关闭
   comingSoon: 即将上线
   copy: 复制
@@ -5611,6 +5612,7 @@ harvester:
     virtualName: 虚拟机名称
     promiscuous: Promiscuous
     ipv4Address: IPv4 地址
+    filterLabels: 标签过滤
   generic:
     close: 关闭
     open: 打开

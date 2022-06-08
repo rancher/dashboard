@@ -7,6 +7,7 @@ generic:
   back: Back
   cancel: Cancel
   clear: Clear
+  clearAll: ClearAll
   close: Close
   comingSoon: Coming Soon
   copy: Copy
@@ -5587,6 +5588,7 @@ harvester:
     virtualName: Virtual machine name
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
+    filterLabels: Filter Labels
   generic:
     close: Close
     open: Open
