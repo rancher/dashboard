@@ -20,7 +20,7 @@ export default {
       authConfig:      null,
       authConfigRoute: {
         name:   'c-cluster-auth-config-id',
-        params: { id: 'azuread' }
+        params: { id: 'azuread', cluster: '_' }
       }
     };
   },

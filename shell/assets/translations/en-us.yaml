@@ -451,7 +451,7 @@ authConfig:
         linkText: 'Update it here.'
       modal:
         title: Are you sure? This update is irreversible.
-        body: There will be no perceptible difference to authentication functionality in Rancher, but the underlying changes made to your Rancher instance cannot be reverted. You will not need to modify your Azure AD app as a part of this update.
+        body: '<p><b>You may need to update your Azure AD app</b>. Please ensure the Azure AD app has the following application permissions for Microsoft Graph: User.Read.All, Group.Read.All</p>'
       button: Update Endpoint
   oidc:
     oidc: Configure an OIDC account

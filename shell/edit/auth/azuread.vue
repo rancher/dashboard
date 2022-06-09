@@ -118,7 +118,7 @@ export default {
         applyAction: this.updateEndpoint,
         applyMode:   'update',
         title:       this.t('authConfig.azuread.updateEndpoint.modal.title'),
-        body:        this.t('authConfig.azuread.updateEndpoint.modal.body')
+        body:        this.t('authConfig.azuread.updateEndpoint.modal.body', null, { raw: true })
       };
     }
   },
