@@ -184,6 +184,8 @@ export default {
       default:
         break;
       }
+
+      this.$emit('input', this.value);
     },
 
     updateWithUnits({ selected:units, text:value }, target) {

@@ -132,7 +132,7 @@ export default {
     },
 
     onImageChange() {
-      const imageResource = this.$store.getters['harvester/all'](HCI.IMAGE).find( I => this.value.image === I.id);
+      const imageResource = this.$store.getters['harvester/all'](HCI.IMAGE)?.find( I => this.value.image === I.id);
 
       if (this.idx === 0) {
         if (/iso$/i.test(imageResource?.imageSuffix)) {
@@ -157,7 +157,10 @@ export default {
 <template>
   <div>
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-hevi-name"
+        class="col span-6"
+      >
         <InputOrDisplay :name="t('harvester.fields.name')" :value="value.name" :mode="mode">
           <LabeledInput
             v-model="value.name"
@@ -169,7 +172,10 @@ export default {
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
+      <div
+        data-testid="input-hevi-type"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.type')"
           :value="value.type"
@@ -187,7 +193,10 @@ export default {
     </div>
 
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-hevi-image"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.image')"
           :value="imageName"
@@ -200,12 +209,15 @@ export default {
             :options="imagesOption"
             :mode="mode"
             :required="validateRequired"
-            @input="onImageChange; update"
+            @input="onImageChange"
           />
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
+      <div
+        data-testid="input-hevi-size"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.size')"
           :value="value.size"
@@ -228,7 +240,10 @@ export default {
     </div>
 
     <div class="row mb-20">
-      <div class="col span-3">
+      <div
+        data-testid="input-hevi-bus"
+        class="col span-3"
+      >
         <InputOrDisplay
           :name="t('harvester.virtualMachine.volume.bus')"
           :value="value.bus"

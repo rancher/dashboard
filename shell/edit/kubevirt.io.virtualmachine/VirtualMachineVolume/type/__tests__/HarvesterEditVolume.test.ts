@@ -18,7 +18,7 @@ describe('component: HarvesterEditVolume', () => {
       }
     });
 
-    const inputWraps = wrapper.findAll('[data-testid^=input-harvester-volume-]');
+    const inputWraps = wrapper.findAll('[data-testid^=input-hev-]');
 
     expect(inputWraps).toHaveLength(4);
   });
@@ -39,7 +39,7 @@ describe('component: HarvesterEditVolume', () => {
         },
       }
     });
-    const input = wrapper.find(`[data-testid="input-harvester-volume-${ field }"]`).find('input');
+    const input = wrapper.find(`[data-testid="input-hev-${ field }"]`).find('input');
     const newValue = 123;
 
     input.setValue(newValue);
@@ -51,7 +51,7 @@ describe('component: HarvesterEditVolume', () => {
   it.each([
     'type',
     'bus'
-  ])('should emit an update on %p selection change', async(field) => {
+  ])('should emit an update on %p selection change', (field) => {
     const wrapper = mount(HarvesterEditVolume, {
       propsData:  { mode: _EDIT, validateRequired: true },
       mocks:     {
@@ -65,7 +65,7 @@ describe('component: HarvesterEditVolume', () => {
       }
     });
     const select = wrapper
-      .find(`[data-testid="input-harvester-volume-${ field }"]`)
+      .find(`[data-testid="input-hev-${ field }"]`)
       .find(vSelect);
 
     // Component is not in Typescript

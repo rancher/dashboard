@@ -172,7 +172,10 @@ export default {
 <template>
   <div>
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-hee-name"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.name')"
           :value="value.name"
@@ -188,7 +191,10 @@ export default {
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
+      <div
+        data-testid="input-hee-type"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.type')"
           :value="value.type"
@@ -207,7 +213,10 @@ export default {
     </div>
 
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-hee-volumeName"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.volume')"
           :value="value.volumeName"
@@ -225,7 +234,10 @@ export default {
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
+      <div
+        data-testid="input-hee-size"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.size')"
           :value="value.size"
@@ -246,7 +258,11 @@ export default {
     </div>
 
     <div class="row mb-20">
-      <div v-if="!!image" class="col span-6">
+      <div
+        v-if="!!image"
+        data-testid="input-hee-image"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.image')"
           :value="image"
@@ -262,7 +278,10 @@ export default {
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
+      <div
+        data-testid="input-hee-bus"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.virtualMachine.volume.bus')"
           :value="value.bus"

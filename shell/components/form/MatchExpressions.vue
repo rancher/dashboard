@@ -188,13 +188,22 @@ export default {
       class="match-expression-row"
       :class="{'view':isView, 'mb-10': index !== rules.length - 1}"
     >
-      <div>
+      <div
+        :data-testid="`input-match-expression-key-${index}`"
+      >
         <div v-if="isView">
           {{ row.key }}
         </div>
-        <input v-else v-model="row.key" :mode="mode" />
+        <input
+          v-else
+          v-model="row.key"
+          :mode="mode"
+          @input="update"
+        />
       </div>
-      <div>
+      <div
+        :data-testid="`input-match-expression-operator-${index}`"
+      >
         <div v-if="isView">
           {{ row.operator }}
         </div>
@@ -216,7 +225,10 @@ export default {
       >
         <label class="text-muted">&hellip;</label>
       </div>
-      <div v-else>
+      <div
+        v-else
+        :data-testid="`input-match-expression-values-${index}`"
+      >
         <div v-if="isView">
           {{ row.values }}
         </div>

@@ -172,7 +172,10 @@ export default {
 <template>
   <div>
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-hen-name"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.name')"
           :value="value.name"
@@ -189,7 +192,10 @@ export default {
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
+      <div
+        data-testid="input-hen-model"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.model')"
           :value="value.model"
@@ -209,7 +215,10 @@ export default {
     </div>
 
     <div class="row" :class="{'mb-20': !isMasquerade}">
-      <div class="col span-6">
+      <div
+        data-testid="input-hen-networkName"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.network')"
           :value="value.networkName"
@@ -227,7 +236,10 @@ export default {
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
+      <div
+        data-testid="input-hen-type"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.type')"
           :value="value.type"
@@ -246,7 +258,10 @@ export default {
     </div>
 
     <div v-if="!isMasquerade" class="row">
-      <div class="col span-6">
+      <div
+        data-testid="input-hen-macAddress"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.macAddress')"
           :value="value.macAddress"

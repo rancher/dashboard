@@ -88,7 +88,6 @@ export default {
           this.tty = false;
           break;
         }
-        this.update();
       },
     },
   },
@@ -122,7 +121,10 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div class="col span-6">
+      <div
+        class="col span-6"
+        data-testid="input-command-command"
+      >
         <slot name="entrypoint">
           <ShellInput
             v-model="command"
@@ -133,7 +135,10 @@ export default {
           />
         </slot>
       </div>
-      <div class="col span-6">
+      <div
+        class="col span-6"
+        data-testid="input-command-args"
+      >
         <slot name="command">
           <ShellInput
             v-model="args"
@@ -147,7 +152,10 @@ export default {
     </div>
 
     <div class="row mt-20">
-      <div class="col span-6">
+      <div
+        class="col span-6"
+        data-testid="input-command-workingDir"
+      >
         <LabeledInput
           v-model="workingDir"
           :mode="mode"
@@ -158,7 +166,10 @@ export default {
       </div>
       <div class="col span-6">
         <div :style="{ 'align-items': 'center' }" class="row">
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="input-command-stdin"
+          >
             <LabeledSelect
               v-model="stdinSelect"
               :label="t('workload.container.command.stdin')"
@@ -167,7 +178,11 @@ export default {
               @input="update"
             />
           </div>
-          <div v-if="stdin" class="col span-6">
+          <div
+            v-if="stdin"
+            class="col span-6"
+            data-testid="input-command-tty"
+          >
             <Checkbox
               v-model="tty"
               :mode="mode"

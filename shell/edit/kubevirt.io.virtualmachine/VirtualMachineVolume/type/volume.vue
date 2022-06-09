@@ -106,7 +106,7 @@ export default {
     <div class="row mb-20">
       <div
         class="col span-6"
-        data-testid="input-harvester-volume-name"
+        data-testid="input-hev-name"
       >
         <InputOrDisplay
           :name="t('harvester.fields.name')"
@@ -125,7 +125,7 @@ export default {
 
       <div
         class="col span-6"
-        data-testid="input-harvester-volume-type"
+        data-testid="input-hev-type"
       >
         <InputOrDisplay
           :name="t('harvester.fields.type')"
@@ -147,7 +147,7 @@ export default {
     <div class="row mb-20">
       <div
         class="col span-6"
-        data-testid="input-harvester-volume-size"
+        data-testid="input-hev-size"
       >
         <InputOrDisplay
           :name="t('harvester.fields.size')"
@@ -169,7 +169,7 @@ export default {
       </div>
 
       <div
-        data-testid="input-harvester-volume-bus"
+        data-testid="input-hev-bus"
         class="col span-3"
       >
         <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">

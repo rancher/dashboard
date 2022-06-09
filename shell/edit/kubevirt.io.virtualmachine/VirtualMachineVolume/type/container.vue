@@ -49,7 +49,10 @@ export default {
 <template>
   <div>
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-hec-name"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.name')"
           :value="value.name"
@@ -65,7 +68,10 @@ export default {
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
+      <div
+        data-testid="input-hec-type"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.fields.type')"
           :value="value.type"
@@ -84,7 +90,10 @@ export default {
     </div>
 
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-hec-container"
+        class="col span-6"
+      >
         <InputOrDisplay
           :name="t('harvester.virtualMachine.volume.dockerImage')"
           :value="value.container"
@@ -100,7 +109,10 @@ export default {
         </InputOrDisplay>
       </div>
 
-      <div class="col span-3">
+      <div
+        data-testid="input-hec-bus"
+        class="col span-3"
+      >
         <InputOrDisplay
           :name="t('harvester.virtualMachine.volume.bus')"
           :value="value.bus"

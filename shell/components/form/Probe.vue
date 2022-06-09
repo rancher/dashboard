@@ -151,7 +151,10 @@ export default {
       </h3>
     </div>
     <div class="row">
-      <div class="col span-11-of-23">
+      <div
+        data-testid="input-probe-kind"
+        class="col span-11-of-23"
+      >
         <LabeledSelect
           v-model="kind"
           :mode="mode"
@@ -163,7 +166,11 @@ export default {
 
         <div v-if="kind && kind!=='none'" class="spacer-small" />
 
-        <div v-if="kind === 'HTTP' || kind === 'HTTPS'">
+        <!-- HTTP/HTTPS -->
+        <div
+          v-if="kind === 'HTTP' || kind === 'HTTPS'"
+          data-testid="input-probe-port"
+        >
           <LabeledInput
             v-model.number="httpGet.port"
             type="number"
@@ -177,16 +184,22 @@ export default {
 
           <div class="spacer-small" />
 
-          <LabeledInput
-            v-model="httpGet.path"
-            :mode="mode"
-            :label="t('probe.httpGet.path.label')"
-            :placeholder="t('probe.httpGet.path.placeholder')"
-            @input="update"
-          />
+          <div data-testid="input-probe-path">
+            <LabeledInput
+              v-model="httpGet.path"
+              :mode="mode"
+              :label="t('probe.httpGet.path.label')"
+              :placeholder="t('probe.httpGet.path.placeholder')"
+              @input="update"
+            />
+          </div>
         </div>
 
-        <div v-if="kind === 'tcp'">
+        <!-- TCP -->
+        <div
+          v-if="kind === 'tcp'"
+          data-testid="input-probe-socket"
+        >
           <LabeledInput
             v-model.number="tcpSocket.port"
             type="number"
@@ -200,7 +213,11 @@ export default {
           <div class="spacer-small" />
         </div>
 
-        <div v-if="kind === 'exec'">
+        <!-- Exec -->
+        <div
+          v-if="kind === 'exec'"
+          data-testid="input-probe-command"
+        >
           <div class="col span-12">
             <ShellInput
               v-model="exec.command"
@@ -217,9 +234,13 @@ export default {
         <hr v-if="kind && kind!=='none'" :style="{'position':'relative', 'margin':'0px'}" class="vertical" />
       </div>
 
+      <!-- none -->
       <div v-if="!isNone" class="col span-11-of-23">
         <div class="row">
-          <div class="col span-4">
+          <div
+            data-testid="input-probe-periodSeconds"
+            class="col span-4"
+          >
             <UnitInput
               v-model="probe.periodSeconds"
               :mode="mode"
@@ -230,7 +251,10 @@ export default {
               @input="update"
             />
           </div>
-          <div class="col span-4">
+          <div
+            data-testid="input-probe-initialDelaySeconds"
+            class="col span-4"
+          >
             <UnitInput
               v-model="probe.initialDelaySeconds"
               :mode="mode"
@@ -241,7 +265,10 @@ export default {
               @input="update"
             />
           </div>
-          <div class="col span-4">
+          <div
+            data-testid="input-probe-timeoutSeconds"
+            class="col span-4"
+          >
             <UnitInput
               v-model="probe.timeoutSeconds"
               :mode="mode"
@@ -257,7 +284,10 @@ export default {
         <div class="spacer-small" />
 
         <div class="row">
-          <div class="col span-6">
+          <div
+            data-testid="input-probe-successThreshold"
+            class="col span-6"
+          >
             <LabeledInput
               v-model.number="probe.successThreshold"
               type="number"
@@ -268,7 +298,10 @@ export default {
               @input="update"
             />
           </div>
-          <div class="col span-6">
+          <div
+            data-testid="input-probe-failureThreshold"
+            class="col span-6"
+          >
             <LabeledInput
               v-model.number="probe.failureThreshold"
               type="number"
