@@ -49,7 +49,7 @@ export default {
 
         switch (type) {
         case ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS:
-          btnDisabled = !this.resourcesData[type]?.length;
+          btnDisabled = false;
           break;
         case ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES:
           btnDisabled = !this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS]?.length;
