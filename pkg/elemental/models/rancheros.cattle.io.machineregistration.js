@@ -5,8 +5,8 @@ const DEFAULT_CREATION_YAML = `rancheros:
   install:
     device: /dev/vda
   users:
-  - name: root
-  passwd: root`;
+    name: root
+    passwd: root`;
 
 export default class MachineRegistration extends ElementalResource {
   applyDefaults() {
