@@ -456,7 +456,6 @@ export const getters = {
       depaginate:           false,
       customRoute:          undefined,
       resourceEditMasthead: true,
-      resourceDetailTop:    true, // Show the detail top in the masthead (set to false if you want to customise this for a given resource)
     };
 
     return (schemaOrType) => {
