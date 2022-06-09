@@ -2660,6 +2660,7 @@ members:
     custom:
       label: Custom
       description: Choose individual roles for this user.
+  localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store.  Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any other cluster managed by this installation."
 
 membershipEditor:
   label: Members
