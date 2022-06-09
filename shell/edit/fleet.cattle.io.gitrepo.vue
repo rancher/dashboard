@@ -351,7 +351,7 @@ export default {
     },
 
     onUpdateRepoName() {
-     this.stepOneReady()
+      this.stepOneReady();
     },
 
     stepOneReady() {
