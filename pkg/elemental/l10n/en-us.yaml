@@ -56,6 +56,7 @@ elemental:
   osimage:
     create:
       configuration: Configuration
+      createCluster: Create Elemental Cluster
       spec: Spec
       name:
         label: Name
