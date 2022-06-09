@@ -1,12 +1,12 @@
 <script>
-import Header from '@/components/nav/Header';
-import Brand from '@/mixins/brand';
-import FixedBanner from '@/components/FixedBanner';
-import GrowlManager from '@/components/GrowlManager';
+import Header from '@shell/components/nav/Header';
+import Brand from '@shell/mixins/brand';
+import FixedBanner from '@shell/components/FixedBanner';
+import GrowlManager from '@shell/components/GrowlManager';
 import { mapPref, DEV } from '@shell/store/prefs';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
-import BrowserTabVisibility from '@/mixins/browser-tab-visibility';
+import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 
 export default {
 

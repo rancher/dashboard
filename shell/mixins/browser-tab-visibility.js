@@ -25,12 +25,12 @@ export default {
   },
 
   mounted() {
-    if (!this.isSingleProduct) {
+    if (!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) {
       this.setTabVisibilityListener(true);
     }
   },
   beforeDestroy() {
-    if (!this.isSingleProduct) {
+    if (!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) {
       this.setTabVisibilityListener(false);
     }
   },
