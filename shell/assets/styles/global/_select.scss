@@ -28,6 +28,15 @@
     color: var(--error);
   }
 
+  label {
+    width: calc(100% - 20px);
+  }
+
+  .validation-message {
+    color: var(--error);
+    float: right;
+  }
+
   &.focused {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;

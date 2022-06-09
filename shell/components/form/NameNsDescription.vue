@@ -140,6 +140,14 @@ export default {
     horizontal: {
       type:    Boolean,
       default: true,
+    },
+    rules: {
+      default: () => ({
+        namespace:   [],
+        name:        [],
+        description: []
+      }),
+      type: Object,
     }
   },
 
@@ -349,6 +357,7 @@ export default {
         :mode="mode"
         :min-height="30"
         :required="nameRequired"
+        :rules="rules.namespace"
       />
       <button
         aria="Cancel create"
@@ -359,7 +368,7 @@ export default {
       >
         <i
           v-tooltip="t('generic.cancel')"
-          class="icon icon-lg icon-close "
+          class="icon icon-lg icon-close align-value"
         />
       </button>
     </div>
@@ -375,6 +384,7 @@ export default {
         :multiple="false"
         :label="t('namespace.label')"
         :placeholder="t('namespace.selectOrCreate')"
+        :rules="rules.namespace"
         required
         @selecting="selectNamespace"
       />
@@ -391,6 +401,7 @@ export default {
         :mode="mode"
         :min-height="30"
         :required="nameRequired"
+        :rules="rules.name"
       />
     </div>
 
@@ -403,6 +414,7 @@ export default {
         :label="t(descriptionLabel)"
         :placeholder="t(descriptionPlaceholder)"
         :min-height="30"
+        :rules="rules.description"
       />
     </div>
 
@@ -428,6 +440,10 @@ button {
   margin-right: 7px;
 
   cursor: pointer;
+
+  .align-value {
+    padding-top: 7px;
+  }
 }
 
 .row {

@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -23,7 +24,7 @@ export default {
     ContainerResourceLimit, CruResource, Labels, LabeledSelect, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
   async fetch() {
     if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
       this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
@@ -49,7 +50,8 @@ export default {
       membershipHasOwner:         false,
       membershipUpdate:   {},
       HARVESTER_TYPES,
-      RANCHER_TYPES
+      RANCHER_TYPES,
+      fvFormRuleSets:       [{ path: 'spec.displayName', rules: ['required'] }],
     };
   },
   computed: {
@@ -187,11 +189,12 @@ export default {
   <CruResource
     class="project"
     :done-route="'c-cluster-product-projectsnamespaces'"
-    :errors="errors"
+    :errors="fvUnreportedValidationErrors"
     :mode="mode"
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
+    :validation-passed="fvFormIsValid"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
@@ -204,6 +207,7 @@ export default {
       :description-disabled="isDescriptionDisabled"
       name-key="spec.displayName"
       :normalize-name="false"
+      :rules="{ name: fvGetAndReportPathRules('spec.displayName'), namespace: [], description: [] }"
     />
     <div class="row mb-20">
       <div class="col span-3">

@@ -117,6 +117,9 @@ export default {
   },
 
   methods: {
+    hasIcon(tab) {
+      return tab.displayAlertIcon || (tab.error && !tab.active);
+    },
     hashChange() {
       if (!this.scrollOnChange) {
         const scrollable = document.getElementsByTagName('main')[0];
@@ -220,7 +223,7 @@ export default {
         v-for="tab in sortedTabs"
         :id="tab.name"
         :key="tab.name"
-        :class="{tab: true, active: tab.active, disabled: tab.disabled}"
+        :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
         role="presentation"
       >
         <a
@@ -230,7 +233,7 @@ export default {
           @click.prevent="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
-          <i v-if="tab.displayAlertIcon" class="conditions-alert-icon icon-error icon-lg" />
+          <i v-if="hasIcon(tab)" v-tooltip="t('validation.tab')" class="conditions-alert-icon icon-warning icon-lg" />
         </a>
       </li>
       <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
@@ -317,6 +320,12 @@ export default {
           text-decoration: none;
         }
       }
+
+      &.error {
+          & A>i {
+            color: var(--error);
+          }
+        }
     }
   }
 

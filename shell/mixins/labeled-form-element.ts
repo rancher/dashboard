@@ -76,6 +76,13 @@ export default Vue.extend({
       default: false,
       type:    Boolean
     },
+
+    rules: {
+      default:   () => [],
+      type:      Array,
+      // we only want functions in the rules array
+      validator: (rules: any) => rules.every((rule: any) => ['function'].includes(typeof rule))
+    }
   },
 
   data(): LabeledFormElement {
@@ -87,6 +94,10 @@ export default Vue.extend({
   },
 
   computed: {
+    requiredField(): boolean {
+      // using "any" for a type on "rule" here is dirty but the use of the optional chaining operator makes it safe for what we're doing here.
+      return (this.required || this.rules.some((rule: any): boolean => rule?.name === 'required'));
+    },
     empty(): boolean {
       return !!`${ this.value }`;
     },
@@ -109,6 +120,33 @@ export default Vue.extend({
 
       return false;
     },
+    validationMessage(): string | undefined {
+      // we want to grab the required rule passed in if we can but if it's not there then we can just grab it from the formRulesGenerator
+      const requiredRule = this.rules.find((rule: any) => rule?.name === 'required');
+      const ruleMessages = [];
+      const value = this?.value;
+
+      if (requiredRule && this.blurred && !this.focused) {
+        const message = requiredRule(value);
+
+        if (!!message) {
+          return message;
+        }
+      }
+
+      for (const rule of this.rules) {
+        const message = rule(value);
+
+        if (!!message && rule.name !== 'required') { // we're catching 'required' above so we can ignore it here
+          ruleMessages.push(message);
+        }
+      }
+      if (ruleMessages.length > 0 && (this.blurred || this.focused)) {
+        return ruleMessages.join(', ');
+      } else {
+        return undefined;
+      }
+    }
   },
 
   methods: {
