@@ -36,8 +36,8 @@ Primary banner are triggered by system events. They appear as a fixed, full-widt
   <Story
     name="Primary"
     args={{
-      label:    'Banner Component - Primary',
-      closable: false,
+      label:    'Your account has been successfully migrated to the new user interface.',
+      closable: true,
       color:    'primary',
     }}>
     {Template.bind({})}
@@ -51,8 +51,8 @@ Info alerts should be used when there are tips or information that a user can be
   <Story
     name="Info"
     args={{
-      label:    'Banner Component - Info',
-      closable: false,
+      label:    'The new Patch Finder 2.0 will be released soon.',
+      closable: true,
       color:    'info',
     }}>
     {Template.bind({})}
@@ -66,8 +66,8 @@ Warning banner should be used for messages that likely require attention. They a
   <Story
     name="Warning"
     args={{
-      label:    'Banner Component - Warning',
-      closable: false,
+      label:    'Your browser is outdated. For a better experience consider upgrading it to the latest version available.',
+      closable: true,
       color:    'warning',
     }}>
     {Template.bind({})}
@@ -81,7 +81,7 @@ Danger banners should be used when the system has failed to perform an action, o
   <Story
     name="Error"
     args={{
-      label:    'Banner Component - Error',
+      label:    'The connection has been lost. Check your connection and refresh this page.',
       closable: false,
       color:    'error',
     }}>
@@ -89,27 +89,34 @@ Danger banners should be used when the system has failed to perform an action, o
   </Story>
 </Canvas>
 
+<br/>
 
-### Accessibility
-Badges are suitable for use as counters, for example to indicate the number of notifications.
-
-- The use of color to add meaning provides only a visual cue and does not convey information to the assistive technology user.
-- Use visually hidden text to convey meaning to assertive technologies. We recommend using the .sr-only class.
-
-<br/><br/>
-
-
-### Implementation
+### Import
 
 <Source
   language='js'
   light
   format={false}
   code={`
-     import BadgeState from '@/pkg/rancher-components/src/components/Banner/Banner';
+     import Banner from '@/pkg/rancher-components/src/components/Banner/Banner';
   `}
 />
 
 ### Props table
 
 <ArgsTable of={Banner} />
+
+<br/>
+
+### Accessibility
+Make sure that the information presented in an alert is important enough to justify taking away the user’s attention from what they are doing (ie. errors, warnings, validations, etc.).
+
+### General
+- Use the role='alert' attribute when defining the alert. It should only be used when the user needs immediate attention due to its intrusive nature.
+- The WAI-ARIA role='alert' is equivalent to aria-live='assertive'. Screen readers are notified immediately of the error so the user can take action to address the issue.
+- When an alert is present in the screen on load time (i.e. the alert isn't a response to a user's action), it should use the aria-live='polite' attribute to avoid disrupting the order in which the elements are presented on the screen. This does not apply to danger alerts though, since critical alerts should always come first.
+- The close button contains the aria-label='close' attibute and the icon uses aria-hidden='true' so it is ignored by assistive technologies. The danger alert does not include a button since it's not dismissable.
+
+### Considerations
+- Ensure that the close button is included in the tabbing order and the alert can be navigated to and dismissed with the keyboard. The
+- Make sure colour and icons aren't the only way information is conveyed.
