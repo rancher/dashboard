@@ -11,15 +11,6 @@ module.exports = (
   on: Cypress.PluginEvents,
   config: Cypress.PluginConfigOptions
 ) => {
-  // Disabled due freezing issues related to the CI machine resources
-  // deletePassedVideos(on);
-
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
-  config.env.username = process.env.TEST_USERNAME;
-  config.env.password = process.env.TEST_PASSWORD;
-  config.env.bootstrapPassword = process.env.CATTLE_BOOTSTRAP_PASSWORD;
-
   return config;
 };
 
