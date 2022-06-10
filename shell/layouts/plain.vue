@@ -7,6 +7,8 @@ import IndentedPanel from '@shell/components/IndentedPanel';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
+import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
+import AzureWarning from '@shell/components/auth/AzureWarning';
 
 export default {
 
@@ -17,7 +19,9 @@ export default {
     IndentedPanel,
     PromptRemove,
     FixedBanner,
-    GrowlManager
+    GrowlManager,
+    AwsComplianceBanner,
+    AzureWarning
   },
 
   middleware: ['authenticated'],
@@ -37,6 +41,8 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
+    <AwsComplianceBanner />
+    <AzureWarning />
 
     <div class="dashboard-content">
       <Header :simple="true" />

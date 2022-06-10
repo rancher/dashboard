@@ -3,12 +3,18 @@ import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
+import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
+import AzureWarning from '@shell/components/auth/AzureWarning';
 import { mapPref, DEV } from '@shell/store/prefs';
 
 export default {
 
   components: {
-    Header, FixedBanner, GrowlManager
+    Header,
+    FixedBanner,
+    GrowlManager,
+    AzureWarning,
+    AwsComplianceBanner
   },
 
   mixins: [Brand],
@@ -36,6 +42,9 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
+    <AwsComplianceBanner />
+    <AzureWarning />
+
     <div class="dashboard-content">
       <Header :simple="true" />
 

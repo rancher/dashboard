@@ -1,6 +1,7 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ColorInput from '@shell/components/form/ColorInput';
+import TypeDescription from '@shell/components/TypeDescription';
 
 import { Checkbox } from '@components/Form/Checkbox';
 import FileSelector from '@shell/components/form/FileSelector';
@@ -21,7 +22,7 @@ export default {
   layout: 'authenticated',
 
   components: {
-    LabeledInput, Checkbox, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput
+    LabeledInput, Checkbox, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput, TypeDescription
   },
 
   async fetch() {
@@ -189,6 +190,7 @@ export default {
     <h1 class="mb-20">
       {{ t('branding.label') }}
     </h1>
+    <TypeDescription resource="branding" />
     <div>
       <div class="row mb-20">
         <div class="col span-6">

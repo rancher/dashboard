@@ -135,6 +135,7 @@ export default Vue.extend<Data, any, any, any>({
   <div v-else>
     <div class="col">
       <NameNsDescription
+        data-testid="epinio_app-info_name-ns"
         name-key="name"
         namespace-key="namespace"
         :namespaces-override="namespaces"
@@ -147,6 +148,7 @@ export default Vue.extend<Data, any, any, any>({
     <div class="col span-6">
       <LabeledInput
         v-model.number="values.configuration.instances"
+        data-testid="epinio_app-info_instances"
         type="number"
         min="0"
         required
@@ -158,6 +160,7 @@ export default Vue.extend<Data, any, any, any>({
     <div class="col span-8">
       <ArrayList
         v-model="values.configuration.routes"
+        data-testid="epinio_app-info_routes"
         :title="t('epinio.applications.create.routes.title')"
         :protip="t('epinio.applications.create.routes.tooltip')"
         :mode="mode"
@@ -168,6 +171,7 @@ export default Vue.extend<Data, any, any, any>({
     <div class="col span-8">
       <KeyValue
         v-model="values.configuration.environment"
+        data-testid="epinio_app-info_envs"
         :mode="mode"
         :title="t('epinio.applications.create.envvar.title')"
         :key-label="t('epinio.applications.create.envvar.keyLabel')"

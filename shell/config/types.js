@@ -166,7 +166,9 @@ export const MANAGEMENT = {
   GLOBAL_ROLE:                   'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
-  MANAGED_CHART:                 'management.cattle.io.managedchart'
+  MANAGED_CHART:                 'management.cattle.io.managedchart',
+  USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
+  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider'
 };
 
 export const CAPI = {

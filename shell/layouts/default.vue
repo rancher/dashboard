@@ -13,6 +13,8 @@ import Group from '@shell/components/nav/Group';
 import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
+import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
+import AzureWarning from '@shell/components/auth/AzureWarning';
 import {
   COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
 } from '@shell/config/types';
@@ -41,7 +43,9 @@ export default {
     Group,
     GrowlManager,
     WindowManager,
-    FixedBanner
+    FixedBanner,
+    AwsComplianceBanner,
+    AzureWarning
   },
 
   mixins: [PageHeaderActions, Brand],
@@ -531,7 +535,8 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
-
+    <AwsComplianceBanner />
+    <AzureWarning />
     <div v-if="managementReady" class="dashboard-content">
       <Header />
       <nav v-if="clusterReady" class="side-nav">
@@ -577,7 +582,10 @@ export default {
               placement="top"
               trigger="click"
             >
-              <a class="locale-chooser">
+              <a
+                data-testid="locale-selector"
+                class="locale-chooser"
+              >
                 {{ locale }}
               </a>
 

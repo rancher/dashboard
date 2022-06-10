@@ -1,7 +1,7 @@
 import { EPINIO_TYPES } from '~/pkg/epinio/types';
 import EpinioNamespacedResource from './epinio-namespaced-resource';
 
-export default class EpinioServiceInstanceModel extends EpinioNamespacedResource {
+export default class EpinioServiceModel extends EpinioNamespacedResource {
   get links() {
     return {
       update:      this.getUrl(),

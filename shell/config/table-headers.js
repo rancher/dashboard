@@ -220,9 +220,9 @@ export const PODS = {
 export const AGE = {
   name:      'age',
   labelKey:  'tableHeaders.age',
-  value:     'metadata.creationTimestamp',
-  getValue:  row => row.metadata?.creationTimestamp,
-  sort:      'metadata.creationTimestamp:desc',
+  value:     'creationTimestamp',
+  getValue:  row => row.creationTimestamp,
+  sort:      'creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
   width:     100,
@@ -231,6 +231,7 @@ export const AGE = {
 
 export const AGE_NORMAN = {
   ...AGE,
+  getValue:  row => row.created,
   value:     'created',
   sort:      'created:desc',
 };
