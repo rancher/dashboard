@@ -407,6 +407,10 @@ export default {
     throw new Error('Not Implemented');
   },
 
+  createNamespace(ctx, resource) {
+    throw new Error('Not Implemented');
+  },
+
   cleanForDiff(ctx, resource) {
     throw new Error('Not Implemented');
   },

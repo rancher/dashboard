@@ -3022,6 +3022,10 @@ namespace:
   move: Move
   total: Total
   workloads: Workloads
+  label: Namespace
+  selectNamespace: Select Namespace
+  createNamespace: Create a New Namespace
+  selectOrCreate: Select or Create a Namespace
   resourceStates:
       success: 'Active'
       info: 'Transitioning'
