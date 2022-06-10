@@ -37,7 +37,12 @@ To use the most recent version of Rancher that is actively in development, use t
 sudo docker run -d --restart=unless-stopped -p 80:80 -p 443:443 --privileged -e CATTLE_BOOTSTRAP_PASSWORD=OPTIONAL_PASSWORD_HERE rancher/rancher:v2.6-head
 ```
 
-It is also possible to stop any existing Docker instance with `yarn docker:local:stop` and start a new instance using default values with `yarn docker:local:start`, where the password for the user will be `password`.
+Dashboard provides convenience methods to start and stop Rancher in a single docker container
+
+```bash
+yarn run docker:local:start
+yarn run docker:local:stop  // default user password as "password"
+```
 
 Note that for Rancher to provision and manage downstream clusters, the Rancher server URL must be accessible from the Internet. If you’re running Rancher in Docker Desktop, the Rancher server URL is `https://localhost`. To make Rancher accessible to downstream clusters for development, you can:
 
