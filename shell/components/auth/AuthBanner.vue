@@ -41,6 +41,7 @@ export default {
       <div class="text">
         {{ t('authConfig.stateBanner.enabled', tArgs) }}
       </div>
+      <slot name="actions" />
       <button type="button" class="btn-sm role-primary" @click="edit">
         {{ t('action.edit') }}
       </button>
