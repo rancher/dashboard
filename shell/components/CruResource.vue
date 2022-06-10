@@ -98,6 +98,13 @@ export default {
     minHeight: {
       type:    String,
       default: ''
+    },
+
+    // Used to allow creating namespaces that are not
+    // for Kubernetes resources, for example, an Epinio namespace.
+    namespaceKey: {
+      type:    String,
+      default: ''
     }
   },
 
@@ -292,7 +299,13 @@ export default {
 
       if (this.createNamespace) {
         try {
-          const newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: this.resource.metadata.namespace }, { root: true });
+          let newNamespace = null;
+
+          if (this.namespaceKey) {
+            newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: this.resource[this.namespaceKey] }, { root: true });
+          } else {
+            newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: this.resource.metadata.namespace }, { root: true });
+          }
 
           newNamespace.applyDefaults();
           await newNamespace.save();
