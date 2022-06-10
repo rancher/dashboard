@@ -13,16 +13,6 @@ export const Template = (args, { argTypes }) => ({
 # Toggle switch
 The toggle switch is a digital on/off controller that enables the user to switch between settings without submitting the form.
 
-
-<Source
-  language='js'
-  light
-  format={false}
-  code={`
-     import ToggleSwitch from '@shell/components/form/ToggleSwitch';
-  `}
-/>
-
 ### Description
 - Always associate a label to every checkbox for good accessibility. Do not include a colon at the end of the label.
 - Use a toggle switch when users have to choose between two mutually exclusive options.
@@ -40,6 +30,15 @@ The toggle switch is a digital on/off controller that enables the user to switch
   </Story>
 </Canvas>
 
+### Import 
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import ToggleSwitch from '@shell/components/form/ToggleSwitch';
+  `}
+/>
 
 ### Props table
 <ArgsTable of={ToggleSwitch} />

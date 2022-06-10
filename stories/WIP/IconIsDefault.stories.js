@@ -10,7 +10,7 @@ const DefaultNotTrue = { builtIn: false };
 const DefaultIsTrue = { builtIn: true };
 
 export default {
-  title:      'Components/Formatters/IconIsDefault',
+  title:      'WIP/IconIsDefault',
   component:  IconIsDefault,
   decorators: [],
 };

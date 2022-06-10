@@ -16,24 +16,22 @@ export const Template = (args, { argTypes }) => ({
 
 # Labeled Tooltip
 
-Badges are used to highlight important changes of state in an element, mark them, or draw attention to counters.
+Tooltips display additional information upon hovering or focusing on an element on the screen. The information should be contextual, helpful, provide extra nonessential information and give clarity to a user.
 
 <br/>
 
 ### Description
 
-- Add here
+- Tooltips are used to show more information in buttons, links, or important user data (non-actionable) where the space in screen is insufficient.
+- Use tooltip when an element needs more context or explanation.
+- Tooltips should only appear on :hover and :focus.
 
-
-Different contextual variations of the badge can be used to communicate the different states of an element or the content: Blue for information, yellow for warning and red for errors.
-
-#### Info
 <Canvas>
   <Story
     name="LabeledTooltip"
     args={{
       status: 'Hello world',
-      value: 'Tooltip text'
+      value: 'More context or explanation about an element.'
     }}>
     {Template.bind({})}
   </Story>
@@ -41,12 +39,10 @@ Different contextual variations of the badge can be used to communicate the diff
 </Canvas>
 
 
-### Implementation
+### Import
 
 <Source
   language='js'
-  light
-  format={false}
   code={`
      import LabeledTooltip from '@/pkg/rancher-components/src/components/LabeledTooltip/LabeledTooltip';
   `}
