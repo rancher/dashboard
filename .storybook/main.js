@@ -18,16 +18,12 @@ module.exports = {
       name: '@storybook/addon-docs',
       options: { mdxBabelOptions: { babelrc: true, configFile: true } },
     },
-<<<<<<< HEAD
   ],
 
   staticDirs: [
     'public',
     '../shell/assets'
-=======
->>>>>>> 7f15921e5 (Hide canvas tab from toolbar, some minor updates)
   ],
-
 
   webpackFinal: async (config, { configType }) => {
     const baseFolder = path.resolve(__dirname, '..');
