@@ -1,4 +1,4 @@
-import PagePo from '@/cypress/integration/po/pages/page.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
 
 export default class HomePagePo extends PagePo {
   static url: string = '/home'

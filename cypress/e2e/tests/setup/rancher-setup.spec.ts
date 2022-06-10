@@ -1,5 +1,5 @@
-import { RancherSetupPagePo } from '@/cypress/integration/po/pages/rancher-setup.po';
-import { RancherSetupAuthVerifyPage } from '@/cypress/integration/po/pages/rancher-setup-auth-verify.po';
+import { RancherSetupPagePo } from '@/cypress/e2e/po/pages/rancher-setup.po';
+import { RancherSetupAuthVerifyPage } from '@/cypress/e2e/po/pages/rancher-setup-auth-verify.po';
 
 describe('Rancher setup', () => {
   it('Requires initial setup', () => {

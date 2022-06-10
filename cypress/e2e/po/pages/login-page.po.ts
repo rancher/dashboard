@@ -1,7 +1,7 @@
-import PagePo from '@/cypress/integration/po/pages/page.po';
-import LabeledInputPo from '@/cypress/integration/po/components/labeled-input.po';
-import AsyncButtonPo from '@/cypress/integration/po/components/async-button.po';
-import PasswordPo from '~/cypress/integration/po/components/password.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import PasswordPo from '@/cypress/e2e/po/components/password.po';
 
 export class LoginPagePo extends PagePo {
   static url: string = '/auth/login'

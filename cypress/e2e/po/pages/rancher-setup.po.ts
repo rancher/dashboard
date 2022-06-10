@@ -1,7 +1,7 @@
-import PagePo from '@/cypress/integration/po/pages/page.po';
-import AsyncButtonPo from '@/cypress/integration/po/components/async-button.po';
-import FormPo from '@/cypress/integration/po/components/form.po';
-import PasswordPo from '~/cypress/integration/po/components/password.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
+import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import FormPo from '@/cypress/e2e/po/components/form.po';
+import PasswordPo from '@/cypress/e2e/po/components/password.po';
 
 export class RancherSetupPagePo extends PagePo {
   static url: string = '/auth/login'

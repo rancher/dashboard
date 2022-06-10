@@ -1,6 +1,6 @@
-import HomePagePo from '@/cypress/integration/po/pages/home.po';
-import BurgerMenuPo from '@/cypress/integration/po/side-bars/burger-side-menu.po';
-import PageActions from '@/cypress/integration/po/side-bars/page-actions.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
 
 describe('Home Page', () => {
   beforeEach(() => {

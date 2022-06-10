@@ -1,4 +1,4 @@
-import { LoginPagePo } from '@/cypress/integration/po/pages/login-page.po';
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
 describe('Local authentication', () => {
   it('Log in with valid credentials', () => {
