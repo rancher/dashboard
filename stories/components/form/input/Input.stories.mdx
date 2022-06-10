@@ -1,0 +1,107 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+
+import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
+import UnitInput from '@/shell/components/form/UnitInput.vue';
+
+export const TemplateLabeledInput = (args, { argTypes }) => ({
+  components: { LabeledInput },
+  props:      Object.keys(argTypes),
+  template:   '<LabeledInput v-bind="$props" />',
+})
+
+export const TemplateUnitInput = (args, { argTypes }) => ({
+  components: { UnitInput },
+  props:      Object.keys(argTypes),
+  template:   '<UnitInput v-bind="$props" />',
+})
+
+<Meta title="Components/Form/Input" />
+
+# Text input
+Input elements with type ‘text’ allow users to enter any combination of letters, numbers, or symbols. A text box only allows for a single line of input.
+
+
+### Description
+- Always associate a label to every text field for good accessibility. Do not include a colon at the end of the label.
+- Use the appropriate length for the text input. The length of the input text field provides a hint to users as to how much text is expected.
+- An input text field only allows for a single line of input.
+
+<br/>
+
+
+### Labeled Input
+<Canvas isColumn>
+  <Story
+    name="Labeled Input"
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon'
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+</Canvas>
+
+<br/>
+
+### Import
+
+<Source
+  language='js'
+  code={`
+     import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
+  `}
+/>
+
+### Props table
+<ArgsTable of={LabeledInput} />
+
+# Unit Input
+
+<br/>
+
+
+#### Unit Input control
+
+<Canvas isColumn>
+  <Story
+    name="UnitInput"
+    args={{
+      label: 'UnitInput',
+      type: 'text',
+      value: '123',
+      suffix: 'Seconds'
+    }}>
+    {TemplateUnitInput.bind({})}
+  </Story>
+</Canvas>
+
+
+#### UnitInput control with tooltip
+<Canvas isColumn>
+   <Story
+    name="UnitInput Tooltip"
+    args={{
+      label: 'UnitInputTooltip',
+      type: 'text',
+      value: '123',
+      suffix: 'Seconds',
+      tooltip: 'Tooltip for suffix'
+    }}>
+    {TemplateUnitInput.bind({})}
+  </Story>
+</Canvas>
+
+<br/>
+
+### Import
+
+<Source
+  language='js'
+  code={`
+     import UnitInput from '@/shell/components/form/UnitInput.vue';
+  `}
+/>
+
+### Props table
+<ArgsTable of={UnitInput} />
