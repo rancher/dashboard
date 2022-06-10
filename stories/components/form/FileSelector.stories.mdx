@@ -11,27 +11,24 @@ export const Template = (args, { argTypes }) => ({
 <Meta title="Components/Form/FileSelector" />
 
 # File Selector
+Input elements with type ‘file’ allows the user to select files from their file system or device storage.
 
-<Source
-  language='js'
-  light
-  format={false}
-  code={`
-     import FileSelector from '@shell/components/form/FileSelector';
-  `}
-/>
+### Description
+- Associate a label to every file input for good accessibility. Do not include a colon at the end of the label.
+- Use only to upload file.
+- Set a maximum file size in order to prevent a potential service outage.
 
-<Canvas>
-  FileSelector
+
+<Canvas columns={2}>
+  Default
   <Story
     name="FileSelector"
     args={{
       label: 'Choose file',
-      multiple: true
     }}>
     {Template.bind({})}
   </Story>
-  FileSelector disabled
+  Disabled
   <Story
     name="disabled"
     args={{
@@ -42,5 +39,17 @@ export const Template = (args, { argTypes }) => ({
   </Story>
 </Canvas>
 
+### Import 
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import FileSelector from '@shell/components/form/FileSelector';
+  `}
+/>
+
+### Props table
 
 <ArgsTable of={FileSelector} />

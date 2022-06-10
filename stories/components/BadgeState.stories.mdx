@@ -30,8 +30,8 @@ Badges are used to highlight important changes of state in an element, mark them
 
 Different contextual variations of the badge can be used to communicate the different states of an element or the content: Blue for information, yellow for warning and red for errors.
 
-#### Info
-<Canvas>
+<Canvas columns={2}>
+  Info
   <Story
     name="Info"
     args={{
@@ -40,11 +40,7 @@ Different contextual variations of the badge can be used to communicate the diff
     }}>
     {Template.bind({})}
   </Story>
-  
-</Canvas>
-
-#### Warning
-<Canvas>
+  Warning
   <Story
     name="Warning"
     args={{
@@ -53,11 +49,7 @@ Different contextual variations of the badge can be used to communicate the diff
     }}>
     {Template.bind({})}
   </Story>
-</Canvas>
-
-#### Error
-
-<Canvas>
+  Error
   <Story
     name="Error"
     args={{
@@ -68,7 +60,7 @@ Different contextual variations of the badge can be used to communicate the diff
   </Story>
 </Canvas>
 
-### Implementation
+### Import
 
 <Source
   language='js'
@@ -83,6 +75,3 @@ Different contextual variations of the badge can be used to communicate the diff
 
 <ArgsTable of={BadgeState} />
 
-<Canvas>
-  <h2>Some here</h2>
-</Canvas>
