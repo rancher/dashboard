@@ -1,20 +1,24 @@
 import PagePo from '@/cypress/integration/po/pages/page.po';
-import LabeledInputPo from '@/cypress/integration/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/integration/po/components/async-button.po';
+import FormPo from '@/cypress/integration/po/components/form.po';
 import PasswordPo from '~/cypress/integration/po/components/password.po';
 
-export class LoginPagePo extends PagePo {
+export class RancherSetupPagePo extends PagePo {
   static url: string = '/auth/login'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(LoginPagePo.url);
+    return super.goTo(RancherSetupPagePo.url);
   }
+
+  form: FormPo;
 
   constructor() {
-    super(LoginPagePo.url);
+    super(RancherSetupPagePo.url);
+
+    this.form = new FormPo('form', this.self());
   }
 
-  username(): LabeledInputPo {
-    return new LabeledInputPo(cy.getId('local-login-username'));
+  hasInfoMessage() {
+    this.self().getId('first-login-message').should('be.visible');
   }
 
   password(): PasswordPo {
@@ -27,21 +31,6 @@ export class LoginPagePo extends PagePo {
 
   submit(): Cypress.Chainable {
     return this.submitButton().click();
-  }
-
-  switchToLocal(): Cypress.Chainable {
-    const useLocal = this.useLocal();
-
-    // TODO: We should have control over this instead of using a condition, as we want deterministic tests
-    return useLocal ? useLocal.click() : cy;
-  }
-
-  useLocal() {
-    return this.self().then(($page) => {
-      const elements = $page.find('[data-testid="login-useLocal"]');
-
-      return elements?.[0];
-    });
   }
 
   private submitButton(): AsyncButtonPo {

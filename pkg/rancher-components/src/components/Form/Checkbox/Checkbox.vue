@@ -30,6 +30,14 @@ export default Vue.extend({
     },
 
     /**
+     * Random ID generated for binding label to input.
+     */
+    id: {
+      type:    String,
+      default: String(Math.random() * 1000)
+    },
+
+    /**
      * Disable the checkbox.
      */
     disabled: {
@@ -188,6 +196,7 @@ export default Vue.extend({
     <label
       class="checkbox-container"
       :class="{ 'disabled': isDisabled}"
+      :for="id"
       @keydown.enter.prevent="clicked($event)"
       @keydown.space.prevent="clicked($event)"
       @click="clicked($event)"
@@ -198,6 +207,7 @@ export default Vue.extend({
         :value="valueWhenTrue"
         type="checkbox"
         :tabindex="-1"
+        :name="id"
         @click.stop.prevent
       />
       <span
@@ -274,7 +284,10 @@ $fontColor: var(--input-label);
   }
 
   input {
-    display: none;
+    // display: none;
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
   }
 
   input:checked ~ .checkbox-custom {
