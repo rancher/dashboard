@@ -575,11 +575,17 @@ export default {
     },
 
     machineConfigSchema() {
+      let schemaAddress;
+
       if ( !this.hasMachinePools ) {
         return null;
+      } else if (this.isElementalCluster) {
+        schemaAddress = 'elemental.cattle.io.machineinventoryselectortemplate';
+      } else {
+        schemaAddress = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
 
-      const schema = this.$store.getters['management/schemaFor'](`${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`);
+      const schema = this.$store.getters['management/schemaFor'](schemaAddress);
 
       return schema;
     },
@@ -954,16 +960,33 @@ export default {
     },
 
     async addMachinePool(idx) {
-      if ( !this.machineConfigSchema ) {
+      if ( !this.machineConfigSchema && !this.isElementalCluster ) {
         return;
       }
+
+      // let machineConfigSchema;
+
+      // if (this.isElementalCluster) {
+      //   machineConfigSchema = {
+      //     id:         'elemental.cattle.io.machineinventoryselectortemplate',
+      //     attributes: { kind: 'MachineInventorySelectorTemplate' }
+      //   };
+      // } else {
+      //   machineConfigSchema = this.machineConfigSchema;
+      // }
+
+      const machineConfigSchema = this.machineConfigSchema;
+
+      console.log('ADD MACHINE POOL', machineConfigSchema);
 
       const numCurrentPools = this.machinePools.length || 0;
 
       const config = await this.$store.dispatch('management/createPopulated', {
-        type:     this.machineConfigSchema.id,
+        type:     machineConfigSchema.id,
         metadata: { namespace: DEFAULT_WORKSPACE }
       });
+
+      console.log('MACHINE POOL CONFIG', config);
 
       config.applyDefaults(idx, this.machinePools);
 
@@ -984,7 +1007,7 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind:       this.machineConfigSchema.attributes.kind,
+            kind:       machineConfigSchema.attributes.kind,
             name:       null,
           },
         },

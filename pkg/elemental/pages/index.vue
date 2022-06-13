@@ -3,6 +3,7 @@ import { ELEMENTAL_SCHEMA_IDS } from '../types';
 import { allHash } from '@shell/utils/promise';
 import { createElementalRoute } from '../utils/custom-routing';
 import Loading from '@shell/components/Loading';
+import { CAPI } from '@shell/config/types';
 
 export default {
   name:       'Dashboard',
@@ -33,6 +34,23 @@ export default {
     cards() {
       const out = [];
 
+      const clusterCreateRoute = {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          resource: CAPI.RANCHER_CLUSTER,
+          product:  'manager',
+        },
+        query: { type: 'elemental' }
+      };
+
+      const clusterManageRoute = {
+        name:   'c-cluster-product-resource',
+        params: {
+          resource: CAPI.RANCHER_CLUSTER,
+          product:  'manager',
+        }
+      };
+
       [ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
         ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
         'elementalClusters',
@@ -56,6 +74,7 @@ export default {
           break;
         case 'elementalClusters':
           btnDisabled = !this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES]?.length;
+          !this.resourcesData[type]?.length ? obj.btnRoute = clusterCreateRoute : obj.btnRoute = clusterManageRoute;
           break;
         case ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES:
           btnDisabled = true;

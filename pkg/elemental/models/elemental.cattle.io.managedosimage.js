@@ -1,10 +1,14 @@
 import Vue from 'vue';
 import ElementalResource from './elemental-resource';
+import { _CREATE } from '@shell/config/query-params';
 
 export default class ManagedOsImage extends ElementalResource {
-  applyDefaults() {
+  applyDefaults(vm, mode) {
     if ( !this.spec ) {
       Vue.set(this, 'spec', { osImage: '', clusterTargets: [] });
+    }
+    if ( !this.metadata || mode === _CREATE ) {
+      Vue.set(this, 'metadata', { namespace: 'fleet-default' });
     }
   }
 }

@@ -12,17 +12,21 @@ export const ELEMENTAL_TYPES = {
 };
 
 export const ELEMENTAL_SCHEMAS = {
-  MACHINE_INVENTORIES:         'elemental.cattle.io.machineinventories',
-  MACHINE_REGISTRATIONS:       'elemental.cattle.io.machineregistrations',
-  MANAGED_OS_IMAGES:           'elemental.cattle.io.managedosimages',
-  MANAGED_OS_VERSION_CHANNELS: 'elemental.cattle.io.managedosversionchannels',
-  MANAGED_OS_VERSIONS:         'elemental.cattle.io.managedosversions',
+  MACHINE_INVENTORIES:            'elemental.cattle.io.machineinventories',
+  MACHINE_REGISTRATIONS:          'elemental.cattle.io.machineregistrations',
+  MANAGED_OS_IMAGES:              'elemental.cattle.io.managedosimages',
+  MANAGED_OS_VERSION_CHANNELS:    'elemental.cattle.io.managedosversionchannels',
+  MANAGED_OS_VERSIONS:            'elemental.cattle.io.managedosversions',
+  MACHINE_INV_SELECTOR:           'elemental.cattle.io.machineinventoryselectors',
+  MACHINE_INV_SELECTOR_TEMPLATES: 'elemental.cattle.io.machineinventoryselectortemplates',
 };
 
 export const ELEMENTAL_SCHEMA_IDS = {
-  MACHINE_INVENTORIES:         'elemental.cattle.io.machineinventory',
-  MACHINE_REGISTRATIONS:       'elemental.cattle.io.machineregistration',
-  MANAGED_OS_IMAGES:           'elemental.cattle.io.managedosimage',
-  MANAGED_OS_VERSION_CHANNELS: 'elemental.cattle.io.managedosversionchannel',
-  MANAGED_OS_VERSIONS:         'elemental.cattle.io.managedosversion',
+  MACHINE_INVENTORIES:            'elemental.cattle.io.machineinventory',
+  MACHINE_REGISTRATIONS:          'elemental.cattle.io.machineregistration',
+  MANAGED_OS_IMAGES:              'elemental.cattle.io.managedosimage',
+  MANAGED_OS_VERSION_CHANNELS:    'elemental.cattle.io.managedosversionchannel',
+  MANAGED_OS_VERSIONS:            'elemental.cattle.io.managedosversion',
+  MACHINE_INV_SELECTOR:           'elemental.cattle.io.machineinventoryselector',
+  MACHINE_INV_SELECTOR_TEMPLATES: 'elemental.cattle.io.machineinventoryselectortemplate',
 };
