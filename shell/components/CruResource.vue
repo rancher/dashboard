@@ -7,11 +7,13 @@ import ResourceYaml from '@shell/components/ResourceYaml';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters } from 'vuex';
-import { stringify } from '@shell/utils/error';
+import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
+
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
 } from '@shell/config/query-params';
+
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 
 export default {
@@ -96,18 +98,33 @@ export default {
     minHeight: {
       type:    String,
       default: ''
+    },
+
+    // Used to allow creating namespaces that are not
+    // for Kubernetes resources, for example, an Epinio namespace.
+    namespaceKey: {
+      type:    String,
+      default: ''
     }
   },
 
   data(props) {
     const yaml = this.createResourceYaml();
 
+    this.$on('createNamespace', (e) => {
+      // When createNamespace is set to true,
+      // the UI will attempt to create a new namespace
+      // before saving the resource.
+      this.createNamespace = e;
+    });
+
     return {
-      isCancelModal: false,
-      showAsForm:    this.$route.query[AS] !== _YAML,
-      resourceYaml:  yaml,
-      initialYaml:   yaml,
-      abbrSizes:     {
+      isCancelModal:   false,
+      createNamespace: false,
+      showAsForm:      this.$route.query[AS] !== _YAML,
+      resourceYaml:    yaml,
+      initialYaml:     yaml,
+      abbrSizes:       {
         3: '24px',
         4: '18px',
         5: '16px',
@@ -257,10 +274,48 @@ export default {
       this.$emit('select-type', id);
     },
 
+    async clickSave(buttonDone) {
+      try {
+        await this.createNamespaceIfNeeded();
+
+        // If the attempt to create the new namespace
+        // is successful, save the resource.
+        this.$emit('finish');
+      } catch (err) {
+        // After the attempt to create the namespace,
+        // show any applicable errors if the namespace is
+        // invalid.
+        this.$emit('error', exceptionToErrorsArray(err.message));
+        buttonDone(false);
+      }
+    },
+
     save() {
       this.$refs.save.clicked();
     },
 
+    async createNamespaceIfNeeded() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      if (this.createNamespace) {
+        try {
+          let newNamespace = null;
+
+          if (this.namespaceKey) {
+            newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: this.resource[this.namespaceKey] }, { root: true });
+          } else {
+            newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: this.resource.metadata.namespace }, { root: true });
+          }
+
+          newNamespace.applyDefaults();
+          await newNamespace.save();
+        } catch (e) {
+          // this.errors = exceptionToErrorsArray(e);
+          this.$emit('error', exceptionToErrorsArray(e));
+          throw new Error(`Could not create the new namespace. ${ e.message }`);
+        }
+      }
+    }
   }
 };
 </script>
@@ -381,7 +436,7 @@ export default {
                   ref="save"
                   :disabled="!canSave"
                   :mode="finishButtonMode || mode"
-                  @click="$emit('finish', $event)"
+                  @click="clickSave($event)"
                 />
               </div>
             </template>

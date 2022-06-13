@@ -5,6 +5,7 @@ import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@shell/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
+import Banner from '@components/Banner/Banner.vue';
 
 /**
  * Explorer members page.
@@ -15,7 +16,7 @@ export default {
   name: 'ExplorerMembers',
 
   components: {
-    Loading, Masthead, ResourceTable
+    Banner, Loading, Masthead, ResourceTable
   },
 
   async fetch() {
@@ -64,6 +65,9 @@ export default {
     canManageMembers() {
       return canViewClusterPermissionsEditor(this.$store);
     },
+    isLocal() {
+      return this.$store.getters['currentCluster'].isLocal;
+    }
   },
 };
 </script>
@@ -78,6 +82,7 @@ export default {
       :create-location="createLocation"
       :create-button-label="t('members.createActionLabel')"
     />
+    <Banner v-if="isLocal" color="error" :label="t('members.localClusterWarning')" />
     <ResourceTable
       :schema="schema"
       :headers="headers"

@@ -1,6 +1,6 @@
 import ComponentPo from '@/cypress/integration/po/components/component.po';
 
-export default class LabeledInputPo extends ComponentPo {
+export default class PasswordPo extends ComponentPo {
   /**
    * Type value in the input
    * @param value Value to be typed
@@ -17,6 +17,7 @@ export default class LabeledInputPo extends ComponentPo {
    * @returns HTML Element
    */
   private input(): Cypress.Chainable {
-    return this.self();
+    return this.self()
+      .find('input');
   }
 }

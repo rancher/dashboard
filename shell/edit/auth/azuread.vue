@@ -13,18 +13,32 @@ import AuthConfig from '@shell/mixins/auth-config';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
-const ENDPOINT_MAPPING = {
+// Azure AD Graph will be deprecated end of 2022, see: https://docs.microsoft.com/en-us/graph/migrate-azure-ad-graph-overview
+export const OLD_ENDPOINTS = {
   standard: {
-    endpoint:      'https://login.microsoftonline.com/',
     graphEndpoint: 'https://graph.windows.net/',
     tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/token`,
     authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/authorize`,
   },
   china: {
-    endpoint:      'https://login.chinacloudapi.cn/',
     graphEndpoint: 'https://graph.chinacloudapi.cn/',
     tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/token`,
     authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/authorize`,
+  }
+};
+
+const ENDPOINT_MAPPING = {
+  standard: {
+    endpoint:      'https://login.microsoftonline.com/',
+    graphEndpoint: 'https://graph.microsoft.com',
+    tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
+    authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`,
+  },
+  china: {
+    endpoint:      'https://login.chinacloudapi.cn/',
+    graphEndpoint: 'https://microsoftgraph.chinacloudapi.cn',
+    tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
+    authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`,
   },
   custom: {
     endpoint:      'https://login.microsoftonline.com/',
@@ -94,6 +108,19 @@ export default {
         }
       };
     },
+
+    needsUpdate() {
+      return this.model?.graphEndpoint === OLD_ENDPOINTS.standard.graphEndpoint || this.model?.graphEndpoint === OLD_ENDPOINTS.china.graphEndpoint;
+    },
+
+    modalConfig() {
+      return {
+        applyAction: this.updateEndpoint,
+        applyMode:   'update',
+        title:       this.t('authConfig.azuread.updateEndpoint.modal.title'),
+        body:        this.t('authConfig.azuread.updateEndpoint.modal.body', null, { raw: true })
+      };
+    }
   },
 
   watch: {
@@ -125,9 +152,11 @@ export default {
 
   methods: {
     setEndpoints(endpoint) {
-      Object.keys(ENDPOINT_MAPPING[endpoint]).forEach((key) => {
-        this.$set(this.model, key, ENDPOINT_MAPPING[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId));
-      });
+      if (this.editConfig || !this.model.enabled) {
+        Object.keys(ENDPOINT_MAPPING[endpoint]).forEach((key) => {
+          this.$set(this.model, key, ENDPOINT_MAPPING[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId));
+        });
+      }
     },
 
     getNewApplicationSecret() {
@@ -140,6 +169,27 @@ export default {
       }
 
       return applicationSecretOrId;
+    },
+
+    promptUpdate() {
+      this.$store.dispatch('management/promptModal', { component: 'GenericPrompt', resources: [this.modalConfig] });
+    },
+
+    // update the authconfig to change the azure ad graph endpoint to the microsoft graph endpoint
+    // only relevant for setups upgrading to 2.6.6 with azuread auth already enabled
+    updateEndpoint(btnCB) {
+      if (this.needsUpdate) {
+        this.model.doAction('upgrade')
+          .then(() => {
+            this.reloadModel();
+            this.$store.dispatch('growl/success', { message: 'Graph endpoint updated successfully.' });
+            btnCB(true);
+          })
+          .catch((err) => {
+            this.$store.dispatch('growl/fromError', { title: 'Error updating graph endpoint', err });
+            btnCB(false);
+          });
+      }
     }
   },
 };
@@ -173,6 +223,11 @@ export default {
             <tr><td>{{ t(`authConfig.azuread.tokenEndpoint`) }}: </td><td>{{ model.tokenEndpoint }}</td></tr>
             <tr><td>{{ t(`authConfig.azuread.authEndpoint`) }}: </td><td>{{ model.authEndpoint }}</td></tr>
           </template>
+          <template v-if="needsUpdate" slot="actions">
+            <button type="button" class="btn btn-sm role-secondary mr-10 update" @click="promptUpdate">
+              {{ t('authConfig.azuread.updateEndpoint.button') }}
+            </button>
+          </template>
         </AuthBanner>
 
         <hr />
@@ -183,10 +238,10 @@ export default {
       <template v-else>
         <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
 
-        <InfoBox v-if="!model.enabled" class="mt-20 mb-20 p-10">
-          Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that is may take up to 5 minutes for the whitelisted URL to propagate.
+        <InfoBox v-if="!model.enabled" id="reply-info" class="mt-20 mb-20 p-10">
+          {{ t('authConfig.azuread.reply.info') }}
           <br />
-          <label>Reply URL: </label> <CopyToClipboardText :plain="true" :text="replyUrl" />
+          <label>{{ t('authConfig.azuread.reply.label') }} </label> <CopyToClipboardText :plain="true" :text="replyUrl" />
         </InfoBox>
 
         <div class="row mb-20">
@@ -276,3 +331,26 @@ export default {
     </CruResource>
   </div>
 </template>
+
+<style lang='scss'>
+  .update {
+    border-color: var(--warning);
+    background-color: var(--warning-banner-bg);
+    color: var(--warning) !important;
+
+    &:hover, &._hover {
+      background-color: var(--warning-hover-bg);
+
+      color: var(--warning-text) !important;
+    }
+
+    &:focus, &.focused {
+      background-color: var(--warning-hover-bg);
+      color: var(--warning-text) !important;
+    }
+  }
+
+  #reply-info {
+    flex-grow: 0;
+  }
+</style>

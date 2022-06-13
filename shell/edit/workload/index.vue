@@ -2,12 +2,18 @@
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@shell/utils/object';
 import {
-  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC, SERVICE_ACCOUNT, CAPI
+  CONFIG_MAP,
+  SECRET,
+  WORKLOAD_TYPES,
+  NODE,
+  SERVICE,
+  PVC,
+  SERVICE_ACCOUNT,
+  CAPI,
 } from '@shell/config/types';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
-import NameNsDescription from '@shell/components/form/NameNsDescription';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
@@ -36,6 +42,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { UI_MANAGED } from '@shell/config/labels-annotations';
 import { removeObject } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -56,31 +63,31 @@ const GPU_KEY = 'nvidia.com/gpu';
 export default {
   name:       'CruWorkload',
   components: {
+    ContainerResourceLimit,
+    Command,
+    CruResource,
+    HealthCheck,
+    Job,
+    KeyValue,
+    LabeledInput,
+    LabeledSelect,
+    Labels,
+    LifecycleHooks,
     Loading,
     NameNsDescription,
-    LabeledSelect,
-    LabeledInput,
-    ServiceNameSelect,
-    KeyValue,
-    Tabbed,
-    Tab,
-    Upgrading,
     Networking,
-    Job,
-    HealthCheck,
-    Security,
-    WorkloadPorts,
-    ContainerResourceLimit,
-    PodAffinity,
     NodeScheduling,
-    Tolerations,
-    CruResource,
-    Command,
-    LifecycleHooks,
-    Storage,
-    VolumeClaimTemplate,
-    Labels,
+    PodAffinity,
     RadioGroup,
+    Security,
+    ServiceNameSelect,
+    Storage,
+    Tab,
+    Tabbed,
+    Tolerations,
+    Upgrading,
+    VolumeClaimTemplate,
+    WorkloadPorts,
   },
 
   mixins: [CreateEditView],
@@ -88,13 +95,13 @@ export default {
   props: {
     value: {
       type:     Object,
-      required: true
+      required: true,
     },
 
     mode: {
       type:    String,
-      default: 'create'
-    }
+      default: 'create',
+    },
   },
 
   async fetch() {
@@ -145,23 +152,37 @@ export default {
 
     const spec = this.value.spec;
     let container;
-    const podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    const podTemplateSpec =
+      type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
     let containers = podTemplateSpec.containers;
 
-    if (this.mode === _CREATE || this.mode === _VIEW || (!createSidecar && !this.value.hasSidecars)) {
+    if (
+      this.mode === _CREATE ||
+      this.mode === _VIEW ||
+      (!createSidecar && !this.value.hasSidecars)
+    ) {
       container = containers[0];
     } else {
       if (!podTemplateSpec.initContainers) {
         podTemplateSpec.initContainers = [];
       }
-      const allContainers = [...podTemplateSpec.initContainers, ...podTemplateSpec.containers];
+      const allContainers = [
+        ...podTemplateSpec.initContainers,
+        ...podTemplateSpec.containers,
+      ];
 
       if (this.$route.query.init) {
-        podTemplateSpec.initContainers.push({ imagePullPolicy: 'Always', name: `container-${ allContainers.length }` });
+        podTemplateSpec.initContainers.push({
+          imagePullPolicy: 'Always',
+          name:            `container-${ allContainers.length }`,
+        });
         containers = podTemplateSpec.initContainers;
       }
       if (createSidecar) {
-        container = { imagePullPolicy: 'Always', name: `container-${ allContainers.length }` };
+        container = {
+          imagePullPolicy: 'Always',
+          name:            `container-${ allContainers.length }`,
+        };
         containers.push(container);
       } else {
         container = containers[0];
@@ -176,6 +197,7 @@ export default {
       allNodeObjects:    [],
       allSecrets:        [],
       allServices:       [],
+      isDeployment:      this.type === WORKLOAD_TYPES.DEPLOYMENT,
       name:              this.value?.metadata?.name || null,
       pvcs:              [],
       sas:               [],
@@ -184,7 +206,7 @@ export default {
       spec,
       type,
       servicesOwned:     [],
-      servicesToRemove:    [],
+      servicesToRemove:  [],
       portsForServices:  [],
       isInitContainer,
       container,
@@ -196,7 +218,6 @@ export default {
   },
 
   computed: {
-
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -233,14 +254,14 @@ export default {
         } else {
           this.$set(this.spec.template, 'spec', neu);
         }
-      }
+      },
     },
 
     podLabels: {
       get() {
         if (this.isCronJob) {
           if (!this.spec.jobTemplate.metadata) {
-            this.$set( this.spec.jobTemplate, 'metadata', { labels: {} });
+            this.$set(this.spec.jobTemplate, 'metadata', { labels: {} });
           }
 
           return this.spec.jobTemplate.metadata.labels;
@@ -254,18 +275,18 @@ export default {
       },
       set(neu) {
         if (this.isCronJob) {
-          this.$set( this.spec.jobTemplate.metadata, 'labels', neu);
+          this.$set(this.spec.jobTemplate.metadata, 'labels', neu);
         } else {
           this.$set(this.spec.template.metadata, 'labels', neu);
         }
-      }
+      },
     },
 
     podAnnotations: {
       get() {
         if (this.isCronJob) {
           if (!this.spec.jobTemplate.metadata) {
-            this.$set( this.spec.jobTemplate, 'metadata', { annotations: {} });
+            this.$set(this.spec.jobTemplate, 'metadata', { annotations: {} });
           }
 
           return this.spec.jobTemplate.metadata.annotations;
@@ -279,53 +300,68 @@ export default {
       },
       set(neu) {
         if (this.isCronJob) {
-          this.$set( this.spec.jobTemplate.metadata, 'annotations', neu);
+          this.$set(this.spec.jobTemplate.metadata, 'annotations', neu);
         } else {
           this.$set(this.spec.template.metadata, 'annotations', neu);
         }
-      }
+      },
     },
 
     allContainers() {
       const containers = this.podTemplateSpec?.containers || [];
       const initContainers = this.podTemplateSpec?.initContainers || [];
 
-      return [...containers, ...initContainers.map((each) => {
-        each._init = true;
+      return [
+        ...containers,
+        ...initContainers.map((each) => {
+          each._init = true;
 
-        return each;
-      })];
+          return each;
+        }),
+      ];
     },
 
     flatResources: {
       get() {
         const { limits = {}, requests = {} } = this.container.resources || {};
-        const { cpu: limitsCpu, memory: limitsMemory, [GPU_KEY]: limitsGpu } = limits;
+        const {
+          cpu: limitsCpu,
+          memory: limitsMemory,
+          [GPU_KEY]: limitsGpu,
+        } = limits;
         const { cpu: requestsCpu, memory: requestsMemory } = requests;
 
         return {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
+          limitsCpu,
+          limitsMemory,
+          requestsCpu,
+          requestsMemory,
+          limitsGpu,
         };
       },
       set(neu) {
         const {
-          limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
+          limitsCpu,
+          limitsMemory,
+          requestsCpu,
+          requestsMemory,
+          limitsGpu,
         } = neu;
 
         const out = {
           requests: {
             cpu:    requestsCpu,
-            memory: requestsMemory
+            memory: requestsMemory,
           },
           limits: {
             cpu:       limitsCpu,
             memory:    limitsMemory,
-            [GPU_KEY]: limitsGpu
-          }
+            [GPU_KEY]: limitsGpu,
+          },
         };
 
         this.$set(this.container, 'resources', cleanUp(out));
-      }
+      },
     },
 
     healthCheck: {
@@ -333,12 +369,14 @@ export default {
         const { readinessProbe, livenessProbe, startupProbe } = this.container;
 
         return {
-          readinessProbe, livenessProbe, startupProbe
+          readinessProbe,
+          livenessProbe,
+          startupProbe,
         };
       },
       set(neu) {
         Object.assign(this.container, neu);
-      }
+      },
     },
 
     imagePullSecrets: {
@@ -355,8 +393,7 @@ export default {
         this.podTemplateSpec.imagePullSecrets = neu.map((secret) => {
           return { name: secret };
         });
-      }
-
+      },
     },
 
     schema() {
@@ -400,13 +437,19 @@ export default {
     },
 
     headlessServices() {
-      return this.allServices.filter(service => service.spec.clusterIP === 'None' && service.metadata.namespace === this.value.metadata.namespace);
+      return this.allServices.filter(
+        service => service.spec.clusterIP === 'None' &&
+          service.metadata.namespace === this.value.metadata.namespace
+      );
     },
 
     workloadTypes() {
       return omitBy(WORKLOAD_TYPES, (type) => {
-        return type === WORKLOAD_TYPES.REPLICA_SET || type === WORKLOAD_TYPES.REPLICATION_CONTROLLER;
-      } );
+        return (
+          type === WORKLOAD_TYPES.REPLICA_SET ||
+          type === WORKLOAD_TYPES.REPLICATION_CONTROLLER
+        );
+      });
     },
 
     // array of id, label, description, initials for type selection step
@@ -419,26 +462,10 @@ export default {
           id:          type,
           description: `workload.typeDescriptions.'${ type }'`,
           label:       this.nameDisplayFor(type),
-          bannerAbbrv: this.initialDisplayFor(type)
+          bannerAbbrv: this.initialDisplayFor(type),
         };
 
         out.push(subtype);
-      }
-
-      return out;
-    },
-
-    nameNsColumns() {
-      const out = [];
-
-      if (this.isCronJob) {
-        out.push('schedule');
-      } else if (this.isReplicable) {
-        out.push('replicas');
-
-        if (this.isStatefulSet) {
-          out.push('service');
-        }
       }
 
       return out;
@@ -454,7 +481,7 @@ export default {
       return out;
     },
 
-    ...mapGetters({ t: 'i18n/t' })
+    ...mapGetters({ t: 'i18n/t' }),
   },
 
   watch: {
@@ -499,7 +526,7 @@ export default {
       const existing = containers.filter(container => container.__active)[0];
 
       Object.assign(existing, neu);
-    }
+    },
   },
 
   created() {
@@ -521,7 +548,10 @@ export default {
     initialDisplayFor(type) {
       const typeDisplay = this.nameDisplayFor(type);
 
-      return typeDisplay.split('').filter(letter => letter.match(/[A-Z]/)).join('');
+      return typeDisplay
+        .split('')
+        .filter(letter => letter.match(/[A-Z]/))
+        .join('');
     },
 
     cancel() {
@@ -529,7 +559,7 @@ export default {
     },
 
     async getPorts() {
-      const ports = await this.value.getPortsWithServiceType() || [];
+      const ports = (await this.value.getPortsWithServiceType()) || [];
 
       this.portsForServices = ports;
     },
@@ -540,7 +570,11 @@ export default {
         return;
       }
 
-      const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode, this.portsForServices) || {};
+      const { toSave = [], toRemove = [] } =
+        (await this.value.servicesFromContainerPorts(
+          this.mode,
+          this.portsForServices
+        )) || {};
 
       this.servicesOwned = toSave;
       this.servicesToRemove = toRemove;
@@ -549,17 +583,24 @@ export default {
         return;
       }
 
-      return Promise.all([...toSave.map(svc => svc.save()), ...toRemove.map((svc) => {
-        const ui = svc?.metadata?.annotations[UI_MANAGED];
+      return Promise.all([
+        ...toSave.map(svc => svc.save()),
+        ...toRemove.map((svc) => {
+          const ui = svc?.metadata?.annotations[UI_MANAGED];
 
-        if (ui) {
-          svc.remove();
-        }
-      })]);
+          if (ui) {
+            svc.remove();
+          }
+        }),
+      ]);
     },
 
     saveWorkload() {
-      if (this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB && this.mode === _CREATE) {
+      if (
+        this.type !== WORKLOAD_TYPES.JOB &&
+        this.type !== WORKLOAD_TYPES.CRON_JOB &&
+        this.mode === _CREATE
+      ) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
         Object.assign(this.value.metadata.labels, this.value.workloadSelector);
       }
@@ -572,7 +613,11 @@ export default {
         template = this.spec.template;
       }
 
-      if (this.type !== WORKLOAD_TYPES.JOB && this.type !== WORKLOAD_TYPES.CRON_JOB && this.mode === _CREATE) {
+      if (
+        this.type !== WORKLOAD_TYPES.JOB &&
+        this.type !== WORKLOAD_TYPES.CRON_JOB &&
+        this.mode === _CREATE
+      ) {
         if (!template.metadata) {
           template.metadata = { labels: this.value.workloadSelector };
         } else {
@@ -582,7 +627,8 @@ export default {
 
       if (template.spec.containers && template.spec.containers[0]) {
         const containerResources = template.spec.containers[0].resources;
-        const nvidiaGpuLimit = template.spec.containers[0].resources?.limits?.[GPU_KEY];
+        const nvidiaGpuLimit =
+          template.spec.containers[0].resources?.limits?.[GPU_KEY];
 
         // Though not required, requests are also set to mirror the ember ui
         if (nvidiaGpuLimit > 0) {
@@ -590,7 +636,7 @@ export default {
           containerResources.requests[GPU_KEY] = nvidiaGpuLimit;
         }
 
-        if (!this.nvidiaIsValid(nvidiaGpuLimit) ) {
+        if (!this.nvidiaIsValid(nvidiaGpuLimit)) {
           try {
             delete containerResources.requests[GPU_KEY];
             delete containerResources.limits[GPU_KEY];
@@ -625,7 +671,11 @@ export default {
       const ports = this.value.containers.reduce((total, each) => {
         const containerPorts = each.ports || [];
 
-        total.push(...containerPorts.filter(port => port._serviceType && port._serviceType !== ''));
+        total.push(
+          ...containerPorts.filter(
+            port => port._serviceType && port._serviceType !== ''
+          )
+        );
 
         return total;
       }, []);
@@ -647,7 +697,8 @@ export default {
 
         matchExpressions.forEach((expression) => {
           if (expression.values) {
-            expression.values = typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+            expression.values =
+              typeof expression.values === 'string' ? [expression.values] : [...expression.values];
           }
         });
       });
@@ -659,7 +710,8 @@ export default {
 
         matchExpressions.forEach((expression) => {
           if (expression.values) {
-            expression.values = typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+            expression.values =
+              typeof expression.values === 'string' ? [expression.values] : [...expression.values];
           }
         });
       });
@@ -672,11 +724,13 @@ export default {
         podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [];
 
       preferredDuringSchedulingIgnoredDuringExecution.forEach((term) => {
-        const matchExpressions = term?.podAffinityTerm?.labelSelector?.matchExpressions || [];
+        const matchExpressions =
+          term?.podAffinityTerm?.labelSelector?.matchExpressions || [];
 
         matchExpressions.forEach((expression) => {
           if (expression.values) {
-            expression.values = typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+            expression.values =
+              typeof expression.values === 'string' ? [expression.values] : [...expression.values];
           }
         });
       });
@@ -686,7 +740,8 @@ export default {
 
         matchExpressions.forEach((expression) => {
           if (expression.values) {
-            expression.values = typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+            expression.values =
+              typeof expression.values === 'string' ? [expression.values] : [...expression.values];
           }
         });
       });
@@ -744,7 +799,10 @@ export default {
       while (allNames.includes(`container-${ nameNumber }`)) {
         nameNumber++;
       }
-      const container = { imagePullPolicy: 'Always', name: `container-${ nameNumber }` };
+      const container = {
+        imagePullPolicy: 'Always',
+        name:            `container-${ nameNumber }`,
+      };
 
       this.podTemplateSpec.containers.push(container);
       this.selectContainer(container);
@@ -815,8 +873,8 @@ export default {
       }
 
       //
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -833,57 +891,58 @@ export default {
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
+      :value="value"
       @finish="save"
       @select-type="selectType"
       @error="e=>errors = e"
     >
-      <div class="row">
-        <div class="col span-12">
-          <NameNsDescription :value="value" :extra-columns="nameNsColumns" :mode="mode" @change="name=value.metadata.name">
-            <template #schedule>
-              <LabeledInput
-                v-model="spec.schedule"
-                type="cron"
-                required
-                :mode="mode"
-                :label="t('workload.cronSchedule')"
-                placeholder="0 * * * *"
-              />
-            </template>
-            <template #replicas>
-              <LabeledInput
-                v-model.number="spec.replicas"
-                type="number"
-                min="0"
-                required
-                :mode="mode"
-                :label="t('workload.replicas')"
-              />
-            </template>
-            <template #service>
-              <LabeledSelect
-                v-model="spec.serviceName"
-                option-label="metadata.name"
-                :reduce="service=>service.metadata.name"
-                :mode="mode"
-                :label="t('workload.serviceName')"
-                :options="headlessServices"
-                required
-              />
-            </template>
-          </NameNsDescription>
+      <NameNsDescription
+        :value="value"
+        :mode="mode"
+        @change="name=value.metadata.name"
+      />
+      <div class="row mb-10">
+        <div v-if="isCronJob" class="col span-4">
+          <LabeledInput
+            v-model="spec.schedule"
+            type="cron"
+            required
+            :mode="mode"
+            :label="t('workload.cronSchedule')"
+            placeholder="0 * * * *"
+          />
         </div>
-      </div>
-      <div v-if="containerOptions.length > 1" class="container-row">
-        <div class="col span-4">
+        <div v-if="isStatefulSet || isDeployment" class="col span-4">
+          <LabeledInput
+            v-model.number="spec.replicas"
+            type="number"
+            min="0"
+            required
+            :mode="mode"
+            :label="t('workload.replicas')"
+          />
+        </div>
+        <div v-if="isStatefulSet" class="col span-4">
+          <LabeledSelect
+            v-model="spec.serviceName"
+            option-label="metadata.name"
+            :reduce="service=>service.metadata.name"
+            :mode="mode"
+            :label="t('workload.serviceName')"
+            :options="headlessServices"
+            required
+          />
+        </div>
+        <div v-if="containerOptions.length > 1" class="col span-3">
           <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
-        </div>
-        <div v-if="allContainers.length > 1 && !isView" class="col">
-          <button type="button" class="btn-sm role-link" @click="removeContainer(container)">
-            {{ t('workload.container.removeContainer') }}
-          </button>
+          <div class="delete-container-button">
+            <button v-if="allContainers.length > 1 && !isView" type="button" class="btn-sm role-link" @click="removeContainer(container)">
+              {{ t('workload.container.removeContainer') }}
+            </button>
+          </div>
         </div>
       </div>
+
       <Tabbed :key="containerChange" :side-tabs="true">
         <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']">
           <div>
@@ -1079,28 +1138,28 @@ export default {
 </template>
 
 <style lang='scss'>
-.container-row{
+.container-row {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.type-placeholder{
+.type-placeholder {
   color: white;
-    font-size: 2.5em;
-    height: 100%;
-    width: 100%;
-    background-color: var(--primary);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  font-size: 2.5em;
+  height: 100%;
+  width: 100%;
+  background-color: var(--primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.type-description{
-  color: var(--input-label)
+.type-description {
+  color: var(--input-label);
 }
 
-.next-dropdown{
+.next-dropdown {
   display: inline-block;
 }
 </style>
