@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
@@ -326,6 +327,7 @@ export default {
       if (e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
         this.$parent.$emit('createNamespace', true);
+        Vue.nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
         this.$parent.$emit('createNamespace', false);
