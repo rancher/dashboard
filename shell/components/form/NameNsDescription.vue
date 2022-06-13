@@ -426,7 +426,6 @@ button {
   margin-right: 10px;
 
   cursor: pointer;
-  color: rgb(255, 0, 0);
 }
 
 .row {

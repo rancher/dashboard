@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import { createYaml } from '@shell/utils/create-yaml';
-import { clone } from '@shell/utils/object';
+import { clone, get } from '@shell/utils/object';
 import { SCHEMA } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import { Banner } from '@components/Banner';
@@ -100,11 +100,10 @@ export default {
       default: ''
     },
 
-    // Used to allow creating namespaces that are not
-    // for Kubernetes resources, for example, an Epinio namespace.
+    // Location of `namespace` value within the resource. Used when creating the namespace
     namespaceKey: {
       type:    String,
-      default: ''
+      default: 'metadata.namespace'
     }
   },
 
@@ -299,13 +298,7 @@ export default {
 
       if (this.createNamespace) {
         try {
-          let newNamespace = null;
-
-          if (this.namespaceKey) {
-            newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: this.resource[this.namespaceKey] }, { root: true });
-          } else {
-            newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: this.resource.metadata.namespace }, { root: true });
-          }
+          const newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: get(this.resource, this.namespaceKey) }, { root: true });
 
           newNamespace.applyDefaults();
           await newNamespace.save();
