@@ -25,12 +25,12 @@ export default {
   },
 
   mounted() {
-    if (!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) {
+    if ((!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) && this.$config.rancherEnv !== 'desktop') {
       this.setTabVisibilityListener(true);
     }
   },
   beforeDestroy() {
-    if (!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) {
+    if ((!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) && this.$config.rancherEnv !== 'desktop') {
       this.setTabVisibilityListener(false);
     }
   },
