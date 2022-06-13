@@ -280,7 +280,7 @@ export default {
 
         // If the attempt to create the new namespace
         // is successful, save the resource.
-        this.$emit('finish');
+        this.$emit('finish', buttonDone);
       } catch (err) {
         // After the attempt to create the namespace,
         // show any applicable errors if the namespace is
