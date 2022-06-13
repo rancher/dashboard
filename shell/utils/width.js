@@ -1,6 +1,6 @@
 /**
  * Sets the width of a DOM element. Adapted from [youmightnotneedjquery.com](https://youmightnotneedjquery.com/#set_width)
- * @param {HTMLElement} el - The target DOM element
+ * @param {NodeListOf<Element> | Element} el - The target DOM element
  * @param {function | string | number} val - The desired width represented as a Number
  */
 export function setWidth(el, val) {
@@ -19,7 +19,7 @@ export function setWidth(el, val) {
 
 /**
  * Gets the width of a DOM element. Adapted from [youmightnotneedjquery.com](https://youmightnotneedjquery.com/#get_width)
- * @param {HTMLElement} el - The target DOM element
+ * @param {NodeListOf<Element> | Element} el - The target DOM element
  * @returns Number representing the width for the provided element
  */
 export function getWidth(el) {

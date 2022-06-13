@@ -100,3 +100,6 @@ storybook-static/
 
 # Packages
 dist-pkg
+
+# Others
+.todo

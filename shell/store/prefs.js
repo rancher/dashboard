@@ -163,7 +163,13 @@ export const getters = {
     return definition.options.slice();
   },
 
-  theme: (state, getters) => {
+  theme: (state, getters, rootState, rootGetters) => {
+    const setting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.THEME);
+
+    if (setting?.value) {
+      return setting?.value;
+    }
+
     let theme = getters['get'](THEME);
     const pcs = getters['get'](PREFERS_SCHEME);
 

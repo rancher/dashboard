@@ -6,7 +6,7 @@ import { NAMESPACE } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { _VIEW, _EDIT } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import InputWithSelect from '@shell/components/form/InputWithSelect';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export function normalizeName(str) {
   return (str || '')
@@ -19,7 +19,10 @@ export function normalizeName(str) {
 }
 
 export default {
-  components: { LabeledInput, InputWithSelect },
+  components: {
+    LabeledInput,
+    LabeledSelect
+  },
 
   props: {
     value: {
@@ -178,6 +181,7 @@ export default {
       namespace,
       name,
       description,
+      createNamespace: false
     };
   },
 
@@ -194,31 +198,51 @@ export default {
     },
 
     namespaces() {
-      const inStore = this.$store.getters['currentStore'](this.namespaceType);
-      const choices = this.namespacesOverride || this.$store.getters[`${ inStore }/all`](this.namespaceType);
+      const currentStore = this.$store.getters['currentStore'](this.namespaceType);
+      const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
 
-      const out = sortBy(
-        choices.filter( this.namespaceFilter || ((choice) => {
-          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(choice.metadata.name);
+      const filtered = namespaces.filter( this.namespaceFilter || ((namespace) => {
+        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
 
-          return this.isVirtualCluster ? !choice.isSystem && !choice.isFleetManaged && !isSettingSystemNamespace : true;
-        })).map(this.namespaceMapper || ((obj) => {
-          return {
-            label: obj.nameDisplay,
-            value: obj.id,
-          };
-        })),
-        'label'
-      );
+        if (this.isVirtualCluster) {
+          // For virtual clusters, filter out the namespace
+          // if it is a system namespace or if it is managed by
+          // Fleet.
+          return !namespace.isSystem && !namespace.isFleetManaged && !isSettingSystemNamespace;
+        }
+
+        // By default, include the namespace in the dropdown.
+        return true;
+      }));
+
+      const withLabels = filtered.map(this.namespaceMapper || ((obj) => {
+        return {
+          label: obj.nameDisplay,
+          value: obj.id,
+        };
+      }));
+
+      const sortedByLabel = sortBy(withLabels, 'label');
 
       if (this.forceNamespace) {
-        out.unshift({
+        sortedByLabel.unshift({
           label: this.forceNamespace,
           value: this.forceNamespace,
         });
       }
 
-      return out;
+      return [
+        {
+          label: this.t('namespace.createNamespace'),
+          value: ''
+        },
+        {
+          label:    'divider',
+          disabled: true,
+          kind:     'divider'
+        },
+        ...sortedByLabel
+      ];
     },
 
     isView() {
@@ -229,11 +253,10 @@ export default {
       if (!this.horizontal) {
         return `span-8`;
       }
-
-      let cols = (this.nameNsHidden ? 0 : 1) + (this.descriptionHidden ? 0 : 1) + this.extraColumns.length;
+      // Name and namespace take up two columns.
+      let cols = (this.nameNsHidden ? 0 : 2) + (this.descriptionHidden ? 0 : 1) + this.extraColumns.length;
 
       cols = Math.max(2, cols); // If there's only one column, make it render half-width as if there were two
-
       const span = 12 / cols; // If there's 5, 7, or more columns this will break; don't do that.
 
       return `span-${ span }`;
@@ -298,73 +321,114 @@ export default {
       this.name = (e.text || '').toLowerCase();
       this.namespace = e.selected;
     },
+
+    selectNamespace(e) {
+      if (e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
+        this.createNamespace = true;
+        this.$parent.$emit('createNamespace', true);
+      } else {
+        this.createNamespace = false;
+        this.$parent.$emit('createNamespace', false);
+      }
+    }
   },
 };
 </script>
 
 <template>
-  <div>
-    <div class="name-ns-description" :class="{'flip-direction': !horizontal, row: true}">
-      <div v-show="!nameNsHidden" :class="{ col: true, [colSpan]: true }">
-        <slot :namespaces="namespaces" name="namespace">
-          <InputWithSelect
-            v-if="namespaced"
-            ref="name"
-            class="namespace-select"
-            :mode="mode"
-            :disabled="namespaceReallyDisabled"
-            :text-label="t(nameLabel)"
-            :text-placeholder="t(namePlaceholder)"
-            :text-value="name"
-            :text-required="nameRequired"
-            :text-disabled="nameDisabled"
-            :select-label="t(namespaceLabel)"
-            :select-placeholder="t(namespacePlaceholder)"
-            :select-value="namespace"
-            :options="namespaces"
-            :searchable="true"
-            :taggable="namespaceNewAllowed"
-            @input="changeNameAndNamespace($event)"
-          />
-          <LabeledInput
-            v-else
-            ref="name"
-            key="name"
-            v-model="name"
-            :label="t(nameLabel)"
-            :placeholder="t(namePlaceholder)"
-            :disabled="nameReallyDisabled"
-            :mode="mode"
-            :min-height="30"
-            :required="nameRequired"
-          />
-        </slot>
-      </div>
-      <div v-show="!descriptionHidden" :class="{ col: true, [colSpan]: true }">
-        <LabeledInput
-          key="description"
-          v-model="description"
-          :mode="mode"
-          :disabled="descriptionDisabled"
-          :label="t(descriptionLabel)"
-          :placeholder="t(descriptionPlaceholder)"
-          :min-height="30"
-        />
-      </div>
-      <div
-        v-for="slot in extraColumns"
-        :key="slot"
-        :class="{ col: true, [colSpan]: true }"
+  <div class="row mb-20">
+    <div v-if="namespaced && !nameNsHidden && createNamespace" class="col span-3">
+      <LabeledInput
+        ref="namespace"
+        v-model="namespace"
+        :label="t('namespace.label')"
+        :placeholder="t('namespace.selectOrCreate')"
+        :disabled="namespaceReallyDisabled"
+        :mode="mode"
+        :min-height="30"
+        :required="nameRequired"
+      />
+      <button
+        aria="Cancel create"
+        @click="() => {
+          createNamespace = false
+          $parent.$emit('createNamespace', false)
+        }"
       >
-        <slot :name="slot">
-        </slot>
-      </div>
+        <i
+          v-tooltip="t('generic.cancel')"
+          class="icon icon-lg icon-close "
+        />
+      </button>
+    </div>
+    <div v-if="namespaced && !nameNsHidden && !createNamespace" class="col span-3">
+      <LabeledSelect
+        v-show="!createNamespace"
+        v-model="namespace"
+        :clearable="true"
+        :options="namespaces"
+        :disabled="namespaceReallyDisabled"
+        :searchable="true"
+        :mode="mode"
+        :multiple="false"
+        :label="t('namespace.label')"
+        :placeholder="t('namespace.selectOrCreate')"
+        required
+        @selecting="selectNamespace"
+      />
+    </div>
+
+    <div v-if="!nameNsHidden" class="col span-3">
+      <LabeledInput
+        ref="name"
+        key="name"
+        v-model="name"
+        :label="t(nameLabel)"
+        :placeholder="t(namePlaceholder)"
+        :disabled="nameReallyDisabled"
+        :mode="mode"
+        :min-height="30"
+        :required="nameRequired"
+      />
+    </div>
+
+    <div v-show="!descriptionHidden" :class="['col', extraColumns.length > 0 ? 'span-3' : 'span-6']">
+      <LabeledInput
+        key="description"
+        v-model="description"
+        :mode="mode"
+        :disabled="descriptionDisabled"
+        :label="t(descriptionLabel)"
+        :placeholder="t(descriptionPlaceholder)"
+        :min-height="30"
+      />
+    </div>
+
+    <div
+      v-for="slot in extraColumns"
+      :key="slot"
+      :class="{ col: true, [colSpan]: true }"
+    >
+      <slot :name="slot">
+      </slot>
     </div>
     <div v-if="showSpacer" class="spacer"></div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+button {
+  all: unset;
+  height: 0;
+  position: relative;
+  top: -35px;
+  float: right;
+  margin-right: 10px;
+
+  cursor: pointer;
+  color: rgb(255, 0, 0);
+}
+
 .row {
   &.name-ns-description {
     max-height: $input-height;

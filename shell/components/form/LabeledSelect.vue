@@ -50,10 +50,6 @@ export default {
       default: 'label',
       type:    String
     },
-    options: {
-      default:   null,
-      type:      Array
-    },
     placement: {
       default: null,
       type:    String
@@ -67,10 +63,6 @@ export default {
         return e;
       },
       type: Function
-    },
-    searchable: {
-      default: false,
-      type:    Boolean
     },
     selectable: {
       default: (opt) => {
@@ -212,6 +204,14 @@ export default {
         this.dropdownShouldOpen(this.$refs['select-input'], true);
       }
     },
+
+    getOptionKey(opt) {
+      if (this.optionKey) {
+        return get(opt, this.optionKey);
+      }
+
+      return this.getOptionLabel(opt);
+    }
   },
 };
 </script>
@@ -252,10 +252,9 @@ export default {
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length }"
+      :clearable="clearable"
       :disabled="isView || disabled || loading"
-      :get-option-key="
-        (opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))
-      "
+      :get-option-key="getOptionKey"
       :get-option-label="(opt) => getOptionLabel(opt)"
       :label="optionLabel"
       :options="options"
@@ -305,8 +304,13 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+
 .labeled-select {
   position: relative;
+  // Prevent namespace field from wiggling or changing
+  // height when it is toggled from a LabeledInput to a
+  // LabeledSelect.
+  padding-bottom: 1px;
 
   &.no-label.compact-input {
     ::v-deep .vs__actions:after {
@@ -334,6 +338,9 @@ export default {
   }
 
   .labeled-container {
+    // Make LabeledSelect and LabeledInput the same height so they
+    // don't wiggle when you toggle between them.
+    padding: 7px 0 0 $input-padding-sm;
     padding: $input-padding-sm 0 0 $input-padding-sm;
 
     label {
