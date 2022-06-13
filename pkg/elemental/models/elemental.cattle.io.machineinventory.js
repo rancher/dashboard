@@ -1,15 +1,16 @@
 import ElementalResource from './elemental-resource';
-import { insertAt } from '@shell/utils/array';
 import { CAPI } from '@shell/config/types';
 
 export default class MachineInventory extends ElementalResource {
   get _availableActions() {
     const out = super._availableActions;
 
-    insertAt(out, out?.length, {
+    out.push({
       action:     'createCluster',
+      bulkAction: 'createCluster',
       label:      this.t('elemental.osimage.create.createCluster'),
       enabled:    true,
+      bulkable:   true
     });
 
     return out;

@@ -4,6 +4,11 @@ typeLabel:
       one {Elemental Cluster}
       other {Elemental Clusters}
     }
+  elemental.cattle.io.machineinventoryselectortemplate: |-
+    {count, plural,
+      one {Mach. Inv. Selec. Template}
+      other {Mach. Inv. Selec. Templates}
+    }
   elemental.cattle.io.machineinventory: |-
     {count, plural,
       one {Machine Inventory}

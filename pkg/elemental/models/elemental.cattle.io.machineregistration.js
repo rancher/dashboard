@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import ElementalResource from './elemental-resource';
+import { _CREATE } from '@shell/config/query-params';
 
 const DEFAULT_CREATION_YAML = `elemental:
   install:
@@ -9,9 +10,12 @@ const DEFAULT_CREATION_YAML = `elemental:
     passwd: root`;
 
 export default class MachineRegistration extends ElementalResource {
-  applyDefaults() {
+  applyDefaults(vm, mode) {
     if ( !this.spec ) {
       Vue.set(this, 'spec', { cloudConfig: DEFAULT_CREATION_YAML });
+    }
+    if ( !this.metadata || mode === _CREATE ) {
+      Vue.set(this, 'metadata', { namespace: 'fleet-default' });
     }
   }
 }
