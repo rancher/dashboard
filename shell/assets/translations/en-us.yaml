@@ -182,6 +182,7 @@ product:
   clusterManagement: Cluster Management
   monitoring: Monitoring
   mcapps: Multi-cluster Apps
+  neuvector: NeuVector
   harvesterManager: Virtualization Management
   harvester: Harvester
   rancher: Rancher
@@ -441,6 +442,17 @@ authConfig:
     graphEndpoint: Graph Endpoint
     tokenEndpoint: Token Endpoint
     authEndpoint: Auth Endpoint
+    reply:
+      info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
+      label: Reply URL
+    updateEndpoint:
+      banner:
+        message: 'Azure AD Authentication must be updated: it is using the Azure Graph API, which will be deprecated at the end of 2022.'
+        linkText: 'Update it here.'
+      modal:
+        title: Are you sure? This update is irreversible.
+        body: '<p><b>You may need to update your Azure AD app</b>. Please ensure the Azure AD app has the following application permissions for Microsoft Graph: User.Read.All, Group.Read.All</p>'
+      button: Update Endpoint
   oidc:
     oidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
@@ -1482,6 +1494,7 @@ cluster:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
       unit: "Minutes"
+  managementTimeout: The cluster to become available. It's possible the cluster was created. We suggest checking the clusters page before trying to create another.
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
     addClusterMember:
@@ -2671,6 +2684,7 @@ members:
     custom:
       label: Custom
       description: Choose individual roles for this user.
+  localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store.  Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any other cluster managed by this installation."
 
 membershipEditor:
   label: Members
@@ -3020,6 +3034,10 @@ namespace:
   move: Move
   total: Total
   workloads: Workloads
+  label: Namespace
+  selectNamespace: Select Namespace
+  createNamespace: Create a New Namespace
+  selectOrCreate: Select or Create a Namespace
   resourceStates:
       success: 'Active'
       info: 'Transitioning'
@@ -6153,6 +6171,7 @@ typeDescription:
   #       Should fit on one line.
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
+  branding: "Branding allows administrators to globally re-brand the UI by customizing the Rancher product name, logos and color scheme."
   chart: "All charts have at least one version that is installable on clusters with Linux and Windows nodes unless otherwise indicated."
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
   cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.

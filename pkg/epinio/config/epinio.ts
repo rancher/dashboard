@@ -168,7 +168,12 @@ export function init($plugin: any, store: any) {
     {
       name:      'configurations',
       labelKey:  'epinio.applications.tableHeaders.boundConfigs',
-      search:    ['configuration.configurations'],
+      search:    ['baseConfigurationsNames'],
+    },
+    {
+      name:      'services',
+      labelKey:  'epinio.applications.tableHeaders.boundServices',
+      search:    ['serviceConfigurationsNames'],
     },
     {
       name:     'deployedBy',
@@ -268,6 +273,13 @@ export function init($plugin: any, store: any) {
       name:      'boundApps',
       labelKey:  'epinio.configurations.tableHeaders.boundApps',
       search:    ['configuration.boundapps'],
+    },
+    {
+      name:      'service',
+      labelKey:  'epinio.configurations.tableHeaders.service.label',
+      sort:      ['origin'],
+      search:    ['origin'],
+      tooltip:   store.getters['i18n/t']('epinio.configurations.tableHeaders.service.tooltip')
     },
     {
       name:      'count',

@@ -55,7 +55,7 @@ export default Vue.extend<Data, any, any, any>({
     return {
       errors:                 [],
       failedWaitingForDeploy: false,
-      selectedApps:           this.value.boundapps
+      selectedApps:           this.value.boundapps || []
     };
   },
 

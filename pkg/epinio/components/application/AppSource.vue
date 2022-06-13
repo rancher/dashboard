@@ -39,7 +39,7 @@ interface Data {
   gitUrl: GitUrl,
   builderImage: BuilderImage,
   types: any[],
-  type: string, // APPLICATION_SOURCE_TYPE,
+  unSafeType: string, // APPLICATION_SOURCE_TYPE || { } from the select component
   APPLICATION_SOURCE_TYPE: typeof APPLICATION_SOURCE_TYPE
 }
 
@@ -110,7 +110,7 @@ export default Vue.extend<Data, any, any, any>({
         label: this.t('epinio.applications.steps.source.gitUrl.label'),
         value: APPLICATION_SOURCE_TYPE.GIT_URL
       }],
-      type: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
+      unSafeType: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
       APPLICATION_SOURCE_TYPE
     };
   },
@@ -132,10 +132,10 @@ export default Vue.extend<Data, any, any, any>({
         const parsed: any = jsyaml.load(file);
 
         if (parsed.origin?.container) {
-          Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
+          Vue.set(this, 'unSafeType', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
           Vue.set(this.container, 'url', parsed.origin.container);
         } else if (parsed.origin.git?.url && parsed.origin.git?.revision) {
-          Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.GIT_URL);
+          Vue.set(this, 'unSafeType', APPLICATION_SOURCE_TYPE.GIT_URL);
           Vue.set(this.gitUrl, 'url', parsed.origin.git.url);
           Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
         }
@@ -270,6 +270,12 @@ export default Vue.extend<Data, any, any, any>({
     namespaces() {
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
     },
+
+    type() {
+      // There's a bug in the select component which fires off the option ({ value, label}) instead of the value
+      // (possibly `reduce` related). This the workaround
+      return this.unSafeType.value || this.unSafeType;
+    }
   }
 });
 </script>
@@ -278,7 +284,8 @@ export default Vue.extend<Data, any, any, any>({
   <div class="appSource">
     <div class="button-row">
       <LabeledSelect
-        v-model="type"
+        v-model="unSafeType"
+        data-testid="epinio_app-source_type"
         label="Source Type"
         :options="types"
         :mode="mode"
@@ -287,6 +294,7 @@ export default Vue.extend<Data, any, any, any>({
       />
       <FileSelector
         v-tooltip="t('epinio.applications.steps.source.manifest.tooltip')"
+        data-testid="epinio_app-source_manifest"
         class="role-tertiary add mt-5"
         :label="t('epinio.applications.steps.source.manifest.button')"
         :mode="mode"
@@ -301,12 +309,14 @@ export default Vue.extend<Data, any, any, any>({
         <div class="button-row">
           <LabeledInput
             v-model="archive.fileName"
+            data-testid="epinio_app-source_archive_name"
             :disabled="true"
             :tooltip="t('epinio.applications.steps.source.archive.file.tooltip')"
             :label="t('epinio.applications.steps.source.archive.file.inputLabel')"
             :required="true"
           />
           <FileSelector
+            data-testid="epinio_app-source_archive_file"
             class="role-tertiary add mt-5"
             :label="t('epinio.applications.steps.source.archive.file.button')"
             :mode="mode"
@@ -322,12 +332,14 @@ export default Vue.extend<Data, any, any, any>({
         <div class="button-row">
           <LabeledInput
             v-model="archive.fileName"
+            data-testid="epinio_app-source_folder_name"
             :disabled="true"
             :tooltip="t('epinio.applications.steps.source.folder.file.tooltip')"
             :label="t('epinio.applications.steps.source.folder.file.inputLabel')"
             :required="true"
           />
           <FileSelector
+            data-testid="epinio_app-source_folder_file"
             class="role-tertiary add mt-5"
             :label="t('epinio.applications.steps.source.folder.file.button')"
             :mode="mode"
@@ -343,6 +355,7 @@ export default Vue.extend<Data, any, any, any>({
         <h3>{{ t('epinio.applications.steps.source.containerUrl.url.label') }}</h3>
         <LabeledInput
           v-model="container.url"
+          data-testid="epinio_app-source_container"
           :tooltip="t('epinio.applications.steps.source.containerUrl.url.tooltip')"
           :label="t('epinio.applications.steps.source.containerUrl.url.inputLabel')"
           :required="true"
@@ -355,6 +368,7 @@ export default Vue.extend<Data, any, any, any>({
         <h3>{{ t('epinio.applications.steps.source.gitUrl.url.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.url"
+          data-testid="epinio_app-source_git-url"
           :tooltip="t('epinio.applications.steps.source.gitUrl.url.tooltip')"
           :label="t('epinio.applications.steps.source.gitUrl.url.inputLabel')"
           :required="true"
@@ -365,22 +379,19 @@ export default Vue.extend<Data, any, any, any>({
         <h3>{{ t('epinio.applications.steps.source.gitUrl.branch.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.branch"
+          data-testid="epinio_app-source_git-branch"
           :tooltip="t('epinio.applications.steps.source.gitUrl.branch.tooltip')"
           :label="t('epinio.applications.steps.source.gitUrl.branch.inputLabel')"
           :required="true"
           @input="update"
         />
       </div>
-      <!-- <br><br>
-      Debug<br>
-      Mode: {{ mode }}<br>
-      Value: {{ JSON.stringify(value) }}<br>
-      initialModel: {{ JSON.stringify(initialModel) }}<br> -->
     </template>
     <template v-if="showBuilderImage">
       <div class="spacer">
         <RadioGroup
           name="defaultBuilderImage"
+          data-testid="epinio_app-source_builder-select"
           :value="builderImage.default"
           :labels="[t('epinio.applications.steps.source.archive.builderimage.default'), t('epinio.applications.steps.source.archive.builderimage.custom')]"
           :options="[true, false]"
@@ -389,6 +400,7 @@ export default Vue.extend<Data, any, any, any>({
         />
         <LabeledInput
           v-model="builderImage.value"
+          data-testid="epinio_app-source_builder-value"
           :disabled="builderImage.default"
           :tooltip="t('epinio.applications.steps.source.archive.builderimage.tooltip')"
           :mode="mode"

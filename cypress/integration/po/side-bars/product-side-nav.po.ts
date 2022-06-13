@@ -5,15 +5,26 @@ export default class ProductNavPo extends ComponentPo {
     super('.side-nav');
   }
 
-  groups() {
+  /**
+   * Get all navigation accordion groups
+   * @returns {Cypress.Chainable}
+   */
+  groups(): Cypress.Chainable {
     return this.self().find('.accordion.has-children');
   }
 
-  expandedGroup() {
+  /**
+   * Get all the expanded accordion groups
+   * @returns
+   */
+  expandedGroup(): Cypress.Chainable {
     return this.self().find('.accordion.expanded');
   }
 
-  visibleNavTypes() {
+  /**
+   * Get all the visible child links
+   */
+  visibleNavTypes(): Cypress.Chainable {
     return this.self().find('.accordion.expanded li.nav-type>a');
   }
 }

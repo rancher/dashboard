@@ -4,12 +4,13 @@ import { epinioExceptionToErrorsArray } from '../utils/errors';
 import Vue from 'vue';
 
 export const APPLICATION_ACTION_TYPE = {
-  CREATE:    'create',
-  GIT_FETCH: 'gitFetch',
-  UPLOAD:    'upload',
-  BIND:      'bind',
-  BUILD:     'build',
-  DEPLOY:    'deploy',
+  CREATE:              'create',
+  GIT_FETCH:           'gitFetch',
+  UPLOAD:              'upload',
+  BIND_CONFIGURATIONS: 'bind_configurations',
+  BIND_SERVICES:       'bind_services',
+  BUILD:               'build',
+  DEPLOY:              'deploy',
 };
 
 export default class ApplicationActionResource extends Resource {
@@ -63,8 +64,11 @@ export default class ApplicationActionResource extends Resource {
     case APPLICATION_ACTION_TYPE.CREATE:
       await this.create(params);
       break;
-    case APPLICATION_ACTION_TYPE.BIND:
-      await this.bind(params);
+    case APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS:
+      await this.bindConfigurations(params);
+      break;
+    case APPLICATION_ACTION_TYPE.BIND_SERVICES:
+      await this.bindServices(params);
       break;
     case APPLICATION_ACTION_TYPE.GIT_FETCH:
       await this.gitFetch(params);
@@ -85,8 +89,12 @@ export default class ApplicationActionResource extends Resource {
     await this.application.create();
   }
 
-  async bind() {
-    await this.application.bindConfigurations(this.application.configuration.configurations);
+  async bindConfigurations() {
+    await this.application.updateConfigurations([], this.bindings.configurations);
+  }
+
+  async bindServices() {
+    await this.application.updateServices([], this.bindings.services);
   }
 
   async upload({ source }) {

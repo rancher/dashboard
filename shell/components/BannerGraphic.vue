@@ -29,10 +29,19 @@ export default {
     <div class="graphic">
       <BrandImage class="banner" file-name="banner.svg" :draggable="false" />
     </div>
-    <div v-if="titleKey" class="title">
+    <div
+      v-if="titleKey"
+      data-testid="banner-title-key"
+      class="title"
+    >
       <t :k="titleKey" />
     </div>
-    <h1 v-else-if="title" class="title" v-html="title"></h1>
+    <h1
+      v-else-if="title"
+      data-testid="banner-title"
+      class="title"
+      v-html="title"
+    ></h1>
     <div v-if="pref" class="close-button" @click="hide()">
       <i class="icon icon-close" />
     </div>

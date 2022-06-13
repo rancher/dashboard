@@ -888,7 +888,7 @@ export default {
                     @click.stop="toggleExpand(row.row)"
                   />
                 </td>
-                <template v-for="col in row.columns">
+                <template v-for="(col, j) in row.columns">
                   <slot
                     :name="'col:' + col.col.name"
                     :row="row.row"
@@ -900,6 +900,7 @@ export default {
                     <td
                       :key="col.col.name"
                       :data-title="col.col.label"
+                      :data-testid="`sortable-cell-${ i }-${ j }`"
                       :align="col.col.align || 'left'"
                       :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
                       :width="col.col.width"

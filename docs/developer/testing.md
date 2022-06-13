@@ -2,11 +2,46 @@
 
 ## E2E Tests
 
-This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents).
+This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents) and the CI will run using a blank state of Rancher executed locally. The aim is however to enable also tests using remote instances of Ranchers.
+
+Because of this, we extend the [Cypress best practices](https://docs.cypress.io/guides/references/best-practices#How-It-Works), so be sure to read them before write any test.
 
 ### Initial Setup
 
-For the cypress test runner to consume the UI, you must specify two environment variables, `TEST_USERNAME` and `TEST_PASSWORD`. By default the test runner will attempt to visit a locally running dashboard at `https://localhost:8005`. This may be overwritten with the `DEV_UI` environment variable. Run `yarn e2e:dev` to start the dashboard in SSR mode and open the cypress test runner. Run tests through the cypress GUI once the UI is built. Cypress tests will automatically re-run if they are altered (hot reloading). Alternatively the dashboard ui and cypress may be run separately with `yarn dev` and `yarn cypress open`.
+For the cypress test runner to consume the UI, you should specify the environment variables:
+
+- Local authentication credentials
+  - `TEST_USERNAME`, default `admin`
+  - `TEST_PASSWORD`, user password or custom during first Rancher run
+  - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` password (do not pick `admin`)
+- `TEST_BASE_URL` // URL used by Cypress to run the tests, default `https://localhost:8005`
+- `TEST_SKIP_SETUP` // Avoid to execute bootstrap setup tests for already initialized Rancher instances
+
+### Development with watch/dev
+
+While writing the tests, you can simply run Rancher dashboard and then open the Cypress dashboard with the commands
+
+- `yarn dev`
+- `yarn cy:open`
+
+The Cypress dashboard will contain the options and the list of test suites. These will automatically re-run if they are altered (hot reloading).
+
+For further information, consult [official documentation](https://docs.cypress.io/guides/guides/command-line#cypress-open).
+
+### Local and CI/prod run
+
+It is possible to start the project and run all the tests at once with a single command. There's however a difference between `dev` and `production` run. The first will not require an official certificate and will build the project in `.nuxt`, while the production will enable all the SSL configurations to run encrypted.
+
+- `yarn e2e:pre-dev`, to optionally initialize Docker and build the project, if not already done
+- `yarn e2e:dev`, single run local development
+- `yarn e2e:pre-prod`, to optionally initialize Docker and build the project, required for GitHub Actions
+- `yarn e2e:dev`, for production use case and CI, which will also restart Docker and build the project
+
+### Custom Commands
+
+As Cypress common practice, some custom commands have been created within `command.ts` file to simplify the development process. Please consult Cypress documentation for more details about when and how to use them.
+
+Worth mentioning the `cy.getId()` command, as it is mainly used to select elements. This would require to add `data-testid` to your element inside the markup.
 
 ### Writing tests
 
@@ -20,13 +55,15 @@ Some examples of PO functionality
 HomePage.gotTo()
 new HomePagePo().checkIsCurrentPage()
 new BurgerMenuPo().clusters()
-new AsyncButtonPO('.my-button').isDisabled()
+new AsyncButtonPO('[data-testid="my-button"]').isDisabled()
 new LoginPagePo().username().set('admin')
 ```
 
 POs all inherit a root `component.po`. Common component functionality can be added there. They also expose their core cypress (chainable) element.
 
 There are a large number of pages and components in the Dashboard and only a small set of POs. These will be expanded as the tests grow.
+
+Note: When selecting an element be sure to use the attribute `data-testid`, even in case of lists where elements are distinguished by an index suffix.
 
 ### Tips
 

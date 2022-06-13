@@ -65,7 +65,7 @@ export const gitRepoGraphConfig = {
 
       bds.forEach((bd) => {
         const bdLowercaseState = bd.state ? bd.state.toLowerCase() : 'unknown';
-        const bdStateColor = STATES[bdLowercaseState].color;
+        const bdStateColor = STATES[bdLowercaseState]?.color;
 
         const cluster = data.clustersList.find((cluster) => {
           const clusterString = `${ cluster.namespace }-${ cluster.name }`;
