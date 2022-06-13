@@ -901,7 +901,7 @@ export default {
         :mode="mode"
         @change="name=value.metadata.name"
       />
-      <div class="row mb-10">
+      <div v-if="isCronJob || isReplicable || (isReplicable && isStatefulSet) || containerOptions.length > 1" class="row mb-20">
         <div v-if="isCronJob" class="col span-3">
           <LabeledInput
             v-model="spec.schedule"
