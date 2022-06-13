@@ -423,7 +423,7 @@ button {
   position: relative;
   top: -35px;
   float: right;
-  margin-right: 10px;
+  margin-right: 7px;
 
   cursor: pointer;
 }
