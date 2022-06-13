@@ -269,9 +269,12 @@ export const POD_IMAGES = {
 };
 
 export const POD_RESTARTS = {
-  name:      'pod_restarts',
-  labelKey:  'tableHeaders.podRestarts',
-  value:     'restartCount'
+  name:         'pod_restarts',
+  labelKey:     'tableHeaders.podRestarts',
+  formatter:    'DelayedValue',
+  delayLoading: true,
+  value:        'restartCount',
+  getValue:     row => row.restartCount,
 };
 
 export const ENDPOINTS = {
@@ -414,6 +417,7 @@ export const TYPE = {
   name:     'type',
   labelKey: 'tableHeaders.type',
   value:    'typeDisplay',
+  getValue: row => row.typeDisplay,
   sort:     ['typeDisplay'],
   width:    100,
 };
@@ -636,6 +640,7 @@ export const WORKLOAD_HEALTH_SCALE = {
   name:         'workloadHealthScale',
   labelKey:     'tableHeaders.health',
   formatter:    'WorkloadHealthScale',
+  getValue:     () => undefined,
   width:        150,
   skipSelect:   true,
   delayLoading: true,

@@ -436,10 +436,23 @@ export default {
       return !!delaeydColumns;
     },
 
+    columnFormmatterIDs() {
+      const columnsIds = {};
+
+      this.columns.forEach((c) => {
+        if (c.formatter) {
+          columnsIds[c.formatter] = dasherize(c.formatter);
+        }
+      });
+
+      return columnsIds;
+    },
+
     // Generate row and column data for easier rendering in the template
     // ensures we only call methods like `valueFor` once
     displayRows() {
       const rows = [];
+      const columnFormmatterIDs = this.columnFormmatterIDs;
 
       this.groupedRows.forEach((grp) => {
         const group = {
@@ -463,7 +476,7 @@ export default {
           group.rows.push(rowData);
 
           this.columns.forEach((c) => {
-            const value = this.valueFor(row, c);
+            const value = c.delayLoading ? undefined : this.valueFor(row, c);
             let component;
             let formatted = value;
             let needRef = false;
@@ -486,7 +499,7 @@ export default {
               delayed:   c.delayLoading,
               live:      c.formatter?.startsWith('Live') || c.liveUpdates,
               label:     this.labelFor(c),
-              dasherize: dasherize(c.formatter || ''),
+              dasherize: columnFormmatterIDs[c.formatter] || '',
             });
           });
         });
@@ -601,7 +614,8 @@ export default {
         return col.value(row);
       }
 
-      // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // Use to debug table columns using expensive value getters
+      // Use to debug table columns using expensive value getters
+      // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
 
       const expr = col.value || col.name;
       const out = get(row, expr);
