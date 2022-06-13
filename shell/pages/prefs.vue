@@ -203,9 +203,10 @@ export default {
 
     <hr />
     <div class="row">
-      <div class="col span-3 prefs-advanced">
+      <div class="col prefs-advanced">
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :tooltip="t('prefs.advancedTooltip', {}, raw=true)" :label="t('prefs.dev.label', {}, true)" />
+        <br />
         <Checkbox v-if="!isSingleVirtualCluster" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
       </div>
     </div>
