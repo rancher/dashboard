@@ -16,6 +16,7 @@ import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { downloadFile, generateZip } from '@shell/utils/download';
 import { ISO_BUILD_INSTRUCTIONS } from '../utils/iso-build-instructions.js';
+import { MANAGEMENT } from '@shell/config/types';
 
 export default {
   name:       'MachineRegistrationEditView',
@@ -32,6 +33,14 @@ export default {
       type:     String,
       required: true
     },
+  },
+  async fetch() {
+    const serverUrl = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'server-url',
+    });
+
+    console.log('SERVER URL', serverUrl);
   },
   data() {
     return {
@@ -98,7 +107,7 @@ export default {
       }
     },
     async getMachineRegistrationData() {
-      const url = `${ window.location.origin }/v1-rancheros/registration/${ this.value.status.registrationToken }`;
+      const url = `${ window.location.origin }/elemental/registration/${ this.value.status.registrationToken }`;
 
       try {
         const inStore = this.$store.getters['currentStore']();

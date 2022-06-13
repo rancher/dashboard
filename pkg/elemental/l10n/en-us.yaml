@@ -4,36 +4,36 @@ typeLabel:
       one {Elemental Cluster}
       other {Elemental Clusters}
     }
-  rancheros.cattle.io.machineinventory: |-
+  elemental.cattle.io.machineinventory: |-
     {count, plural,
       one {Machine Inventory}
       other {Machine Inventories}
     }
-  rancheros.cattle.io.machineregistration: |-
+  elemental.cattle.io.machineregistration: |-
     {count, plural,
       one {Machine Registration}
       other {Machine Registrations}
     }
-  rancheros.cattle.io.managedosimage: |-
+  elemental.cattle.io.managedosimage: |-
     {count, plural,
       one {Managed OS Image}
       other {Managed OS Images}
     }
-  rancheros.cattle.io.managedosversionchannel: |-
+  elemental.cattle.io.managedosversionchannel: |-
     {count, plural,
       one {Managed OS Version Channel}
       other {Managed OS Version Channels}
     }
-  rancheros.cattle.io.managedosversion: |-
+  elemental.cattle.io.managedosversion: |-
     {count, plural,
       one {Managed OS Version}
       other {Managed OS Versions}
     }
   elementalClusters: Clusters
 description:
-  rancheros.cattle.io.machineregistration: Endpoints to connect Machines
-  rancheros.cattle.io.machineinventory: Machine connected to Elemental
-  rancheros.cattle.io.managedosimage: Containerized OS Images for Machines
+  elemental.cattle.io.machineregistration: Endpoints to connect Machines
+  elemental.cattle.io.machineinventory: Machine connected to Elemental
+  elemental.cattle.io.managedosimage: Containerized OS Images for Machines
   elementalClusters: Clusters managed by Elemental
 elemental:
   menuLabels:
@@ -44,14 +44,14 @@ elemental:
     title: Elemental
     btnLabel:
       create: 
-        rancheros.cattle.io.machineregistration: Create Machine Registration
-        rancheros.cattle.io.machineinventory: Create Machine Inventory
-        rancheros.cattle.io.managedosimage: Create Managed OS Image
+        elemental.cattle.io.machineregistration: Create Machine Registration
+        elemental.cattle.io.machineinventory: Create Machine Inventory
+        elemental.cattle.io.managedosimage: Create Managed OS Image
         elementalClusters: Create Elemental Cluster
       manage: 
-        rancheros.cattle.io.machineregistration: Manage Machine Registrations
-        rancheros.cattle.io.machineinventory: Manage Machine Inventories
-        rancheros.cattle.io.managedosimage: Manage Managed OS Images
+        elemental.cattle.io.machineregistration: Manage Machine Registrations
+        elemental.cattle.io.machineinventory: Manage Machine Inventories
+        elemental.cattle.io.managedosimage: Manage Managed OS Images
         elementalClusters: Manage Elemental Clusters
   osimage:
     create:
