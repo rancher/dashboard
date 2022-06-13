@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import ElementalResource from './elemental-resource';
 
-const DEFAULT_CREATION_YAML = `rancheros:
+const DEFAULT_CREATION_YAML = `elemental:
   install:
     device: /dev/vda
   users:
