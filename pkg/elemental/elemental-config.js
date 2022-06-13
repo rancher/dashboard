@@ -43,10 +43,19 @@ export function init($plugin, store) {
     isEditable:  true,
     isRemovable: true,
     canYaml:     true,
-    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES })
+    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, namespace: 'fleet-default' })
   });
 
-  weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, 7, true);
+  weightType(ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES, 7, true);
+  configureType(ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES, {
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
+    canYaml:     true,
+    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES })
+  });
+
+  weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, 6, true);
   configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, {
     isCreatable: true,
     isEditable:  true,
@@ -73,9 +82,10 @@ export function init($plugin, store) {
   basicType([
     ELEMENTAL_TYPES.DASHBOARD,
     ELEMENTAL_TYPES.OPERATIONS,
-    ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES,
     ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
     ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
+    ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES,
+    ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES,
     // ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS,
     // ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSION_CHANNELS,
   ]);
