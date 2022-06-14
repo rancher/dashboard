@@ -19,17 +19,10 @@ export function normalizeName(str) {
 }
 
 export default {
-<<<<<<< HEAD
-
-  name: 'NameNsDescription',
-
-  components: { LabeledInput, InputWithSelect },
-=======
   components: {
     LabeledInput,
     LabeledSelect
   },
->>>>>>> master
 
   props: {
     value: {

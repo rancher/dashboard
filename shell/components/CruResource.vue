@@ -294,11 +294,6 @@ export default {
       this.$router.applyQuery({ [SUB_TYPE]: id });
       this.$emit('select-type', id);
     },
-<<<<<<< HEAD
-    save() {
-      this.$refs.save.clicked();
-    },
-=======
 
     async clickSave(buttonDone) {
       try {
@@ -342,7 +337,6 @@ export default {
         }
       }
     }
->>>>>>> master
   }
 };
 </script>
