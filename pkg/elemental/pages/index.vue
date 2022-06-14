@@ -2,6 +2,7 @@
 import { ELEMENTAL_SCHEMA_IDS } from '../types';
 import { allHash } from '@shell/utils/promise';
 import { createElementalRoute } from '../utils/custom-routing';
+import { filterForElementalClusters } from '../utils/elemental-utils';
 import Loading from '@shell/components/Loading';
 import { CAPI } from '@shell/config/types';
 
@@ -20,7 +21,7 @@ export default {
 
     this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS] = allDispatches.machineRegistrations;
     this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES] = allDispatches.machineInventories;
-    this.resourcesData[this.ELEMENTAL_CLUSTERS] = this.filterForElementalClusters(allDispatches.rancherClusters);
+    this.resourcesData[this.ELEMENTAL_CLUSTERS] = filterForElementalClusters(allDispatches.rancherClusters);
     this.resourcesData[ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES] = allDispatches.managedOsImages;
   },
   data() {
@@ -85,10 +86,6 @@ export default {
     }
   },
   methods: {
-    filterForElementalClusters(clusters) {
-      return clusters.filter(cluster => cluster.spec?.rkeConfig?.machinePools?.length &&
-      cluster.spec?.rkeConfig?.machinePools[0].machineConfigRef.kind === 'MachineInventorySelectorTemplate');
-    },
     handleRoute(card) {
       if (!card.btnDisabled) {
         this.$router.replace(card.btnRoute);

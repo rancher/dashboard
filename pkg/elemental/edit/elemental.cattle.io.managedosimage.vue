@@ -6,6 +6,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
+import { filterForElementalClusters } from '../utils/elemental-utils';
 import { _CREATE } from '@shell/config/query-params';
 import { CAPI } from '@shell/config/types';
 
@@ -28,14 +29,14 @@ export default {
   async fetch() {
     const rancherClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
 
-    this.rancherClusters = rancherClusters;
+    this.elementalClusters = filterForElementalClusters(rancherClusters);
   },
   data() {
-    return { rancherClusters: [], clusterTargets: this.handleClusterTargets() };
+    return { elementalClusters: [], clusterTargets: this.handleClusterTargets() };
   },
   computed: {
     clusterTargetOptions() {
-      return this.rancherClusters.map((cluster) => {
+      return this.elementalClusters.map((cluster) => {
         return {
           label: cluster.name,
           value: cluster.name

@@ -36,9 +36,10 @@ export default {
       default: () => ({})
     },
 
+    // no credentials are required for elemental machine pools
     credentialId: {
-      type:     String,
-      required: true,
+      type:    String,
+      default: null
     },
 
     mode: {
