@@ -39,7 +39,7 @@ export default {
       const nodeName = this.row?.nodeName;
       const nn = this.allNodeNetwork.find( N => N.attachNodeName === nodeName);
 
-      return (!!nn?.message || !this.enableClusterNetwork) && this.row?.attachNetwork?.length && this?.row?.actualState === 'Running';
+      return (!!nn?.message || !this.enableClusterNetwork) && this.row?.attachNetwork && this?.row?.actualState === 'Running';
     },
 
     enableClusterNetwork() {
@@ -51,7 +51,7 @@ export default {
     warningMessage() {
       const out = [];
 
-      if (this.networkImpassability) {
+      if (this.networkImpassability && this.allClusterNetwork.length) {
         out.push(this.t('harvester.network.message.vlanInactive', { name: this.row.realAttachNodeName }));
       }
 
