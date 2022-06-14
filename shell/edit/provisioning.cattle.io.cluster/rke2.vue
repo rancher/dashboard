@@ -16,6 +16,7 @@ import {
   DEFAULT_WORKSPACE,
   SECRET
 } from '@shell/config/types';
+import { ELEMENTAL_SCHEMA_IDS, KIND } from '@pkg/elemental/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
 import { findBy, removeObject, clear } from '@shell/utils/array';
@@ -192,6 +193,8 @@ export default {
       this.value.spec.machineSelectorConfig.unshift({ config: {} });
     }
 
+    console.log('************** VALUE **************', this.value);
+
     if ( this.value.spec.cloudCredentialSecretName ) {
       await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
       this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
@@ -264,10 +267,6 @@ export default {
   },
 
   data() {
-    console.log('RKE create mode', this.mode);
-    console.log('RKE create value', this.value);
-    console.log('RKE create provider', this.provider);
-
     if ( !this.value.spec.rkeConfig ) {
       set(this.value.spec, 'rkeConfig', {});
     }
@@ -336,7 +335,7 @@ export default {
     },
 
     isElementalCluster() {
-      return this.provider === 'elemental';
+      return this.provider === 'elemental' || this.value?.machineProvider === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
 
     advancedTitleAlt() {
@@ -598,7 +597,7 @@ export default {
       if ( !this.hasMachinePools ) {
         return null;
       } else if (this.isElementalCluster) {
-        schemaAddress = 'elemental.cattle.io.machineinventoryselectortemplate';
+        schemaAddress = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
       } else {
         schemaAddress = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
@@ -982,29 +981,12 @@ export default {
         return;
       }
 
-      // let machineConfigSchema;
-
-      // if (this.isElementalCluster) {
-      //   machineConfigSchema = {
-      //     id:         'elemental.cattle.io.machineinventoryselectortemplate',
-      //     attributes: { kind: 'MachineInventorySelectorTemplate' }
-      //   };
-      // } else {
-      //   machineConfigSchema = this.machineConfigSchema;
-      // }
-
-      const machineConfigSchema = this.machineConfigSchema;
-
-      console.log('ADD MACHINE POOL', machineConfigSchema);
-
       const numCurrentPools = this.machinePools.length || 0;
 
       const config = await this.$store.dispatch('management/createPopulated', {
-        type:     machineConfigSchema.id,
+        type:     this.machineConfigSchema.id,
         metadata: { namespace: DEFAULT_WORKSPACE }
       });
-
-      console.log('MACHINE POOL CONFIG', config);
 
       config.applyDefaults(idx, this.machinePools);
 
@@ -1025,7 +1007,7 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind:       machineConfigSchema.attributes.kind,
+            kind:       this.machineConfigSchema.attributes.kind,
             name:       null,
           },
         },
@@ -1034,6 +1016,11 @@ export default {
       if (this.provider === 'vmwarevsphere') {
         pool.pool.machineOS = 'linux';
       }
+
+      if (this.isElementalCluster) {
+        pool.pool.machineConfigRef.apiVersion = 'elemental.cattle.io/v1beta1';
+      }
+
       this.machinePools.push(pool);
 
       this.$nextTick(() => {
