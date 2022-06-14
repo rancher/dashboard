@@ -901,7 +901,7 @@ export default {
         :mode="mode"
         @change="name=value.metadata.name"
       />
-      <div v-if="isCronJob || isReplicable || (isReplicable && isStatefulSet) || containerOptions.length > 1" class="row mb-20">
+      <div v-if="isCronJob || isReplicable || isStatefulSet || containerOptions.length > 1" class="row mb-20">
         <div v-if="isCronJob" class="col span-3">
           <LabeledInput
             v-model="spec.schedule"
@@ -922,7 +922,7 @@ export default {
             :label="t('workload.replicas')"
           />
         </div>
-        <div v-if="isReplicable && isStatefulSet" class="col span-3">
+        <div v-if="isStatefulSet" class="col span-3">
           <LabeledSelect
             v-model="spec.serviceName"
             option-label="metadata.name"
