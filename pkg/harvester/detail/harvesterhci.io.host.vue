@@ -10,10 +10,10 @@ import { formatSi } from '@shell/utils/units';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { findBy } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
-import Basic from './HarvesterHostBasic';
-import Instance from './VirtualMachineInstance';
-import Disk from './HarvesterHostDisk';
-import Network from './HarvesterHostNetwork';
+import Basic from '../components/HarvesterHostBasic';
+import Instance from '../components/VirtualMachineInstance';
+import Disk from '../components/HarvesterHostDisk';
+import Network from '../components/HarvesterHostNetwork';
 
 export default {
   name: 'DetailHost',

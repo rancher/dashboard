@@ -1,6 +1,6 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import Setting from '../harvesterhci.io.setting';
+import Setting from './harvesterhci.io.setting';
 
 export default {
   name:       'EditManagedChart',

@@ -66,12 +66,13 @@ export default {
 
     const resource = this.$route.params.resource;
     const name = this.value.metadata.name;
-    const path = `${ resource }/${ name }`;
+    // const path = `${ resource }/${ name }`;
+    const path = `setting/${ name }`;
 
     const hasCustomComponent = this.$store.getters['type-map/hasComponent'](path);
 
     if ( hasCustomComponent ) {
-      customComponent = this.$store.getters['type-map/importComponent'](path);
+      customComponent = this.$store.getters['type-map/importEdit'](path);
     }
     this.hasCustomComponent = hasCustomComponent;
     this.customComponent = customComponent;

@@ -1,5 +1,5 @@
 <script>
-import Setting from '../harvesterhci.io.setting';
+import Setting from './harvesterhci.io.setting';
 
 export default {
   name:       'EditClusterNetwork',

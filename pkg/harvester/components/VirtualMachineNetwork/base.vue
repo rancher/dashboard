@@ -5,7 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 import { clone } from '@shell/utils/object';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-import { MANAGEMENT_NETWORK } from '../../../mixins/harvester-vm';
+import { MANAGEMENT_NETWORK } from '../../mixins/harvester-vm';
 
 const MODEL = [{
   label: 'virtio',

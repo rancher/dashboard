@@ -20,7 +20,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import KeyValue from '@shell/components/form/KeyValue';
 import { sortBy } from '@shell/utils/sort';
 import { Banner } from '@components/Banner';
-import HarvesterDisk from './HarvesterDisk';
+import HarvesterDisk from '../components/HarvesterDisk';
 
 const LONGHORN_SYSTEM = 'longhorn-system';
 
