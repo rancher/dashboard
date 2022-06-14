@@ -12,6 +12,7 @@ export default {
     const allDispatches = await allHash({
       machineRegistrations: this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS }),
       machineInventories:   this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES }),
+      rancherClusters:      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
       managedOsImages:      this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES }),
     });
 
@@ -19,16 +20,11 @@ export default {
 
     this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS] = allDispatches.machineRegistrations;
     this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES] = allDispatches.machineInventories;
+    this.resourcesData[this.ELEMENTAL_CLUSTERS] = this.filterForElementalClusters(allDispatches.rancherClusters);
     this.resourcesData[ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES] = allDispatches.managedOsImages;
   },
   data() {
-    return {
-      createMachineRegistration: createElementalRoute('resource-create', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS }),
-      manageMachineRegistration: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS }),
-      manageMachineInventories:  createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES }),
-      createManagedOsImages:     createElementalRoute('resource-create', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES }),
-      manageManagedOsImages:     createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES })
-    };
+    return { ELEMENTAL_CLUSTERS: 'elementalClusters' };
   },
   computed: {
     cards() {
@@ -53,7 +49,7 @@ export default {
 
       [ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
         ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
-        'elementalClusters',
+        this.ELEMENTAL_CLUSTERS,
         ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES].forEach((type) => {
         const obj = {
           count:    this.resourcesData[type]?.length || 0,
@@ -70,14 +66,14 @@ export default {
           btnDisabled = false;
           break;
         case ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES:
-          btnDisabled = !this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS]?.length;
+          btnDisabled = !this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS]?.length && !this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES]?.length;
           break;
-        case 'elementalClusters':
-          btnDisabled = !this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES]?.length;
+        case this.ELEMENTAL_CLUSTERS:
+          btnDisabled = !this.resourcesData[ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES]?.length && !this.resourcesData[this.ELEMENTAL_CLUSTERS]?.length;
           !this.resourcesData[type]?.length ? obj.btnRoute = clusterCreateRoute : obj.btnRoute = clusterManageRoute;
           break;
         case ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES:
-          btnDisabled = true;
+          btnDisabled = !this.resourcesData[this.ELEMENTAL_CLUSTERS]?.length && !this.resourcesData[ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES]?.length;
           break;
         }
 
@@ -89,6 +85,10 @@ export default {
     }
   },
   methods: {
+    filterForElementalClusters(clusters) {
+      return clusters.filter(cluster => cluster.spec?.rkeConfig?.machinePools?.length &&
+      cluster.spec?.rkeConfig?.machinePools[0].machineConfigRef.kind === 'MachineInventorySelectorTemplate');
+    },
     handleRoute(card) {
       if (!card.btnDisabled) {
         this.$router.replace(card.btnRoute);
