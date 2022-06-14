@@ -440,6 +440,11 @@ $spacer: 10px;
           width: 40px;
           overflow: visible;
           padding-top: 15px;
+
+          .cru__content & {
+            padding-top: 4px;
+
+          }
           & > span {
             padding-bottom: 5px;
             margin-bottom: 5px;
@@ -471,6 +476,10 @@ $spacer: 10px;
         border-top: 1px solid var(--border);
         position: relative;
         top: 28px;
+
+        .cru__content & {
+          top: 16px;
+        }
       }
     }
   }
