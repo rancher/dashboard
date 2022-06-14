@@ -442,13 +442,17 @@ $spacer: 10px;
           padding-top: 15px;
 
           .cru__content & {
-            padding-top: 4px;
+            padding-top: 0;
 
           }
           & > span {
             padding-bottom: 5px;
             margin-bottom: 5px;
             white-space: nowrap;
+
+            .cru__content & {
+              padding-bottom: 3px;
+            }
           }
         }
 
@@ -478,7 +482,7 @@ $spacer: 10px;
         top: 28px;
 
         .cru__content & {
-          top: 16px;
+          top: 13px;
         }
       }
     }
@@ -489,6 +493,7 @@ $spacer: 10px;
     flex-basis: 40%;
     display: flex;
     align-items: center;
+    margin-bottom: $spacer;
 
     &.selected{
       background-color: var(--accent-btn);
