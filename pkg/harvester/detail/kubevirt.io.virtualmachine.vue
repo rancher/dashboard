@@ -4,19 +4,19 @@ import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { EVENT, HCI, SERVICE, POD } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import VM_MIXIN from '../../mixins/harvester-vm';
+import VM_MIXIN from '../mixins/harvester-vm';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { allHash } from '@shell/utils/promise';
 import { allDashboardsExist } from '@shell/utils/grafana';
 
-import CloudConfig from '../../edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
-import Volume from '../../edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
-import Network from '../../edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
-import AccessCredentials from '../../edit/kubevirt.io.virtualmachine/VirtualMachineAccessCredentials';
-import Events from './VirtualMachineTabs/VirtualMachineEvents';
-import Migration from './VirtualMachineTabs/VirtualMachineMigration';
-import OverviewBasics from './VirtualMachineTabs/VirtualMachineBasics';
-import OverviewKeypairs from './VirtualMachineTabs/VirtualMachineKeypairs';
+import CloudConfig from '../components/VirtualMachineCloudConfig';
+import Volume from '../components/VirtualMachineVolume';
+import Network from '../components/VirtualMachineNetwork';
+import AccessCredentials from '../components/VirtualMachineAccessCredentials';
+import Events from '../components/VirtualMachineTabs/VirtualMachineEvents';
+import Migration from '../components/VirtualMachineTabs/VirtualMachineMigration';
+import OverviewBasics from '../components/VirtualMachineTabs/VirtualMachineBasics';
+import OverviewKeypairs from '../components/VirtualMachineTabs/VirtualMachineKeypairs';
 
 const VM_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/harvester-vm-detail-1/vm-info-detail?orgId=1';
 

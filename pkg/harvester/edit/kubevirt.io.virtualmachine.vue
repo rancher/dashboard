@@ -13,13 +13,13 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
-import SSHKey from './VirtualMachineSSHKey';
-import Volume from './VirtualMachineVolume';
-import Network from './VirtualMachineNetwork';
-import CpuMemory from './VirtualMachineCpuMemory';
-import CloudConfig from './VirtualMachineCloudConfig';
+import SSHKey from '../components/VirtualMachineSSHKey';
+import Volume from '../components/VirtualMachineVolume';
+import Network from '../components/VirtualMachineNetwork';
+import CpuMemory from '../components/VirtualMachineCpuMemory';
+import CloudConfig from '../components/VirtualMachineCloudConfig';
 import NodeScheduling from '@shell/components/form/NodeScheduling';
-import AccessCredentials from './VirtualMachineAccessCredentials';
+import AccessCredentials from '../components/VirtualMachineAccessCredentials';
 
 import { clear } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
@@ -30,7 +30,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 
-import VM_MIXIN from '../../mixins/harvester-vm';
+import VM_MIXIN from '../mixins/harvester-vm';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
 export default {

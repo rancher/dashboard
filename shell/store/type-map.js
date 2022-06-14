@@ -798,13 +798,8 @@ export const getters = {
 
   allTypes(state, getters, rootState, rootGetters) {
     return (product, mode = ALL) => {
-      let module;
+      const module = findBy(state.products, 'name', product).inStore;
 
-      try {
-        module = findBy(state.products, 'name', product).inStore;
-      } catch {
-        debugger;
-      }
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
       const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
       const isDev = rootGetters['prefs/get'](DEV);
@@ -1120,12 +1115,6 @@ export const getters = {
       const key = getters.componentFor(rawType, subType);
 
       return hasCustom(state, rootState, 'windowComponents', key, key => resolveWindowComponent(key));
-    };
-  },
-
-  importComponent(state, getters) {
-    return (path) => {
-      return importEdit(path);
     };
   },
 

@@ -46,7 +46,6 @@ export const getters = {
         }
       }
     }
-
     const out = _filter(map);
 
     return { ...out };

@@ -5,16 +5,16 @@ import Loading from '@shell/components/Loading';
 import CruResource from '@shell/components/CruResource';
 import { Checkbox } from '@components/Form/Checkbox';
 import LabelValue from '@shell/components/LabelValue';
-import VM_MIXIN from '../../mixins/harvester-vm';
+import VM_MIXIN from '../mixins/harvester-vm';
 import { allHash } from '@shell/utils/promise';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { HCI } from '@shell/config/types';
-import CpuMemory from '../../edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
+import CpuMemory from '../components/VirtualMachineCpuMemory';
 
-import OverviewKeypairs from '../kubevirt.io.virtualmachine/VirtualMachineTabs/VirtualMachineKeypairs';
-import Volume from '../../edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
-import Network from '../../edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
-import CloudConfig from '../../edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
+import OverviewKeypairs from '../components/VirtualMachineTabs/VirtualMachineKeypairs';
+import Volume from '../components/VirtualMachineVolume';
+import Network from '../components/VirtualMachineNetwork';
+import CloudConfig from '../components/VirtualMachineCloudConfig';
 const UNDEFINED = 'n/a';
 
 export default {

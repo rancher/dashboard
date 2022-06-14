@@ -8,11 +8,11 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 
-import Volume from './kubevirt.io.virtualmachine/VirtualMachineVolume';
-import Network from './kubevirt.io.virtualmachine/VirtualMachineNetwork';
-import CpuMemory from './kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
-import CloudConfig from './kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
-import SSHKey from './kubevirt.io.virtualmachine/VirtualMachineSSHKey';
+import Volume from '../components/VirtualMachineVolume';
+import Network from '../components/VirtualMachineNetwork';
+import CpuMemory from '../components/VirtualMachineCpuMemory';
+import CloudConfig from '../components/VirtualMachineCloudConfig';
+import SSHKey from '../components/VirtualMachineSSHKey';
 
 import { HCI } from '@shell/config/types';
 import { randomStr } from '@shell/utils/string';
