@@ -1,5 +1,13 @@
 # Performance
 
+## Scale Testing Tools
+
+For performance testing with many clusters or many nodes, the tool that the backend devs use for performance testing is https://github.com/rancher/rancher2-scaling.
+
+For quickly deploying a lot of resources on the same cluster, the QA team is considering this tool called `clusterloader2`: https://github.com/kubernetes/perf-tests/tree/master/clusterloader2
+
+For simulating a larger cluster than what the hardware actually provides, you can use K3d to simlate more space. With K3d it is possible to deploy more resources as you can simulate three times the CPU and memory that is actually available.
+
 ## Flame Graph
 
 To inspect performance in the Rancher UI, open the Chrome developer tools and click the **Performance** tab. From there, you can see a flame chart to see what tasks take the most time. You can record performance, analyze local time vs. network time, and analyze whether some network calls can be made serially or in parallel.

@@ -51,6 +51,11 @@ Kubernetes is too complex to document it all here, but a good starting point wou
 3. **YAML config files:** Every aspect of a Kubernetes cluster can be specified declaratively in YAML configuration files. Each YAML file ends in `.yml` or `.yaml` and consists of key-value pairs, in which the order of the keys doesn't matter but the indentation does. These declarative config files are important because they allow Kubernetes admins and operators to easily see how something in Kubernetes is configured and to look at past versions of config files to see how it has changed in the past.
 4. **Kubernetes API:** Every Kubernetes cluster has a Kubernetes API server. When you manipulate a Kubernetes cluster using the `kubectl` command line tool, that tool calls the Kubernetes API. When Rancher manages Kubernetes clusters, it calls the Kubernetes API server of each individual cluster that it manages.
 5. **etcd:** All data about the Kubernetes cluster is stored in a database called `etcd`. When you back up a Kubernetes cluster, you are backing up `etcd`. When you restore a Kubernetes cluster, you restore `etcd`. When you call the Kubernetes API server with `kubectl`, the server gives you the data you want from `etcd`. If `etcd` is corrupted, the Kubernetes cluster needs to be restored from backup. In a Kubernetes cluster, the best practice is to assign three nodes in the cluster with the `etcd` role, which means the distributed `etcd` database will run on those three nodes. (It needs an odd number of nodes so that if there is an inconsistency in the database, it can be resolved with a majority vote.)
+6. **Networking:** For newcomers to Kubernetes, one of the most challenging aspects to understand is Kubernetes networking. Although it is complex, it is essential to understand networking so that you can understand how data flows through a cluster. I found the following resources helpful for getting a more intuitive understanding of how workloads, Ingresses and different types of Services work together:
+
+- https://stackoverflow.com/questions/45079988/ingress-vs-load-balancer
+- https://www.ibm.com/docs/en/cloud-private/3.2.0?topic=networking-kubernetes-service-types
+- https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0
 
 ## 5. Rancher
 

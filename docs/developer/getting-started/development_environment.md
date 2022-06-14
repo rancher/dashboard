@@ -26,7 +26,9 @@ The Dashboard is shipped with the Rancher package which contains the Rancher API
 
 ### Installing Rancher
 
-See <https://rancher.com/docs/rancher/v2.6/en/installation/>. This covers two methods confirmed to work with the Dashboard
+See <https://rancher.com/docs/rancher/v2.6/en/installation/>. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions/rancher-v2-6-5/
+
+The above linked installation docs cover two methods confirmed to work with the Dashboard:
 
 - [Single Docker Container](https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/)
 - [Kube Cluster (via Helm)](https://rancher.com/docs/rancher/v2.6/en/installation/install-rancher-on-k8s/)
@@ -109,3 +111,20 @@ gh pr checkout 4284
 ```
 
 The GitHub CLI installation instructions are [here.](https://github.com/cli/cli#installation)
+
+
+## Working with Different Rancher Versions
+
+Most of the time, you will be working with the Docker install because when you pull a Docker image such as `v2.6-head`, it will be based on the newest version of the `master` branch. By contrast, the Helm chart installs only work with released Rancher versions.
+
+To find the version or age of the Rancher instance that you are working with, click the hamburger menu in the top left corner. At the bottom of the side nav that appears, there is a commit hash. If you click the commit hash, you will see more details that you can use to make sure you are working with the correct Rancher version.
+
+The Rancher UI files are hosted remotely from a location configured in the global Rancher settings. This means it is possible for a Rancher instance to use a newer version of the UI without upgrading Rancher. To see what UI version a specific Rancher instance is using, go to the global settings in Rancher and look at the settings named `ui-dashboard-index ` and `ui-index`. The `ui-dashboard-index` is where the Vue frontend comes from, and the `ui-index` is where the iFramed Ember pages come from. Most of the time, the value for the Vue dashboard points to the `latest` branch because it is built from master, so if you pull a fresh Docker image of Rancher, it will be built from the state of `master` at the time you pull the image. Shortly before a Rancher release, the default setting for the dashboard is changed from `latest` to a released Rancher version.
+
+The UI team tries to avoid branching a release version from `latest` until a short time before a Rancher release in order to prevent merge conflicts. This is something to keep in mind, because if you are working on a feature that is targeted for a future release, but the latest version of Rancher has a released version in the default global settings, you will need to tell QA that they will need to change the global setting to point to the `latest` branch in order to see your changes.
+
+A common mistake is to accidentally work from the wrong Rancher version. Because the Docker images are cached on your machine, the `latest` image will not actually be the latest image unless you force Docker to re-fetch the image. For details on forcing Docker to pull a new image, see these docs: https://docs.docker.com/engine/reference/commandline/pull/
+
+### Upgrading Rancher with Docker
+
+If you want to use a more long-lived Rancher instance, you may need to upgrade Rancher without just killing the container running in Docker. In that case, you can follow these docs to upgrade Rancher with Docker: https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/
