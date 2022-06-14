@@ -74,11 +74,15 @@ export default class Project extends HybridModel {
 
     const newValue = await norman.save({ replace: forceReplaceOnReq });
 
-    newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
+    try {
+      await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
 
-    await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
+      await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
 
-    return newValue;
+      return newValue;
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   async remove() {
