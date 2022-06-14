@@ -864,7 +864,7 @@ export const actions = {
       virtualBase = `/v1/harvester`;
     }
 
-    if (id !== 'local') { // multi-cluster
+    if (id !== 'local' && getters['management/canList'](MANAGEMENT.SETTING)) { // multi-cluster
       const systemNamespaces = await dispatch('management/find', {
         type: MANAGEMENT.SETTING,
         id:   SETTING.SYSTEM_NAMESPACES,
