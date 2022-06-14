@@ -4937,7 +4937,7 @@ wizard:
   finish: Finish
   next: Next
   step: "Step {number}"
-
+  edit: 'Edit'
 wm:
   connection:
     connected: Connected

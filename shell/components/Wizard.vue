@@ -279,7 +279,7 @@ export default {
             </slot>
             <!-- Step number with subtext -->
             <div v-if="activeStep && showSteps" class="subtitle">
-              <h2>{{ t(`asyncButton.${headerMode || finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
+              <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
               <slot name="bannerSubtext">
                 <span v-if="activeStep.subtext !== null" class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
               </slot>
