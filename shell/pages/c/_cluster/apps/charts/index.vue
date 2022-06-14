@@ -2,6 +2,8 @@
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
+import Carousel from '@shell/components/Carousel';
+import ButtonGroup from '@shell/components/ButtonGroup';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import TypeDescription from '@shell/components/TypeDescription';
 import {
@@ -12,7 +14,7 @@ import { sortBy } from '@shell/utils/sort';
 import { mapGetters } from 'vuex';
 import { Checkbox } from '@components/Form/Checkbox';
 import Select from '@shell/components/form/Select';
-import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@shell/store/prefs';
+import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
 import { removeObject, addObject, findBy } from '@shell/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
@@ -21,6 +23,8 @@ export default {
   components: {
     AsyncButton,
     Banner,
+    Carousel,
+    ButtonGroup,
     Loading,
     Checkbox,
     Select,
@@ -48,6 +52,17 @@ export default {
       searchQuery:         null,
       showDeprecated:      null,
       showHidden:          null,
+      chartMode:           this.$store.getters['prefs/get'](SHOW_CHART_MODE),
+      chartOptions:    [
+        {
+          label:       'Browse',
+          value:       'browse',
+        },
+        {
+          label: 'Featured',
+          value: 'featured'
+        }
+      ]
     };
   },
 
@@ -154,6 +169,12 @@ export default {
       });
     },
 
+    getFeaturedCharts() {
+      const newArray = (this.filteredCharts || []);
+
+      return newArray.slice(0, 5);
+    },
+
     categories() {
       const map = {};
 
@@ -183,6 +204,10 @@ export default {
 
       return out;
     },
+
+    showCarousel() {
+      return this.chartMode === 'featured' && this.getFeaturedCharts.length;
+    }
 
   },
 
@@ -313,7 +338,18 @@ export default {
           {{ t('catalog.charts.header') }}
         </h1>
       </div>
+      <div class="actions-container">
+        <ButtonGroup
+          v-model="chartMode"
+          :options="chartOptions"
+        />
+      </div>
     </header>
+    <Carousel
+      v-if="showCarousel"
+      :sliders="getFeaturedCharts"
+      @clicked="(row) => selectChart(row)"
+    />
     <TypeDescription resource="chart" />
     <div class="left-right-split">
       <Select

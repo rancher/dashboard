@@ -1,6 +1,6 @@
 <script>
-import { get } from '@/utils/object';
-import BadgeState from '@/components/BadgeState';
+import { get } from '@shell/utils/object';
+import { BadgeState } from '@components/BadgeState';
 
 export default {
   components: { BadgeState },
@@ -13,10 +13,6 @@ export default {
     keyField: {
       type:    String,
       default: 'key',
-    },
-    disabledField: {
-      type:    String,
-      default: 'disabled',
     },
     asLink: {
       type:    Boolean,
@@ -96,7 +92,7 @@ export default {
         </div>
         <div class="slide-content">
           <div class="slide-img">
-            <img :src="slide.icon ? slide.icon : `/_nuxt/assets/images/generic-catalog.svg`" />
+            <img :src="slide.icon ? slide.icon : `/_nuxt/shell/assets/images/generic-catalog.svg`" />
           </div>
           <div class="slide-content-right">
             <BadgeState :label="slide.repoName" color="slider-badge mb-20" />
