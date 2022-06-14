@@ -2,7 +2,7 @@
 import isString from 'lodash/isString';
 import { HCI } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
-import impl from '../../../mixins/harvester-vm/impl';
+import impl from '../../mixins/harvester-vm/impl';
 
 export default {
   mixins: [impl],

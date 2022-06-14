@@ -1,6 +1,6 @@
 <script>
-import HarvesterIpAddress from '../../../components/formatter/HarvesterIpAddress';
-import VMConsoleBar from '../../../components/VMConsoleBar';
+import HarvesterIpAddress from '@shell/components/formatter/HarvesterIpAddress';
+import VMConsoleBar from '../VMConsoleBar';
 import LabelValue from '@shell/components/LabelValue';
 import InputOrDisplay from '@shell/components/InputOrDisplay';
 import { HCI } from '@shell/config/types';
