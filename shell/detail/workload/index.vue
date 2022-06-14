@@ -1,8 +1,6 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import {
-  STATE, NAME, NODE, POD_IMAGES, POD_RESTARTS
-} from '@shell/config/table-headers';
+import { NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
 import { POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
 import SortableTable from '@shell/components/SortableTable';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -152,13 +150,7 @@ export default {
     },
 
     podHeaders() {
-      return [
-        STATE,
-        NAME,
-        NODE,
-        POD_IMAGES,
-        POD_RESTARTS
-      ];
+      return this.$store.getters['type-map/headersFor'](this.podSchema).filter(h => h !== NAMESPACE_COL);
     },
 
     graphVarsWorkload() {
