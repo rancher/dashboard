@@ -17,18 +17,26 @@ export default {
     },
   },
 
+  data() {
+    return { searchQuery: null };
+  },
+
   methods: {
     showDetails(chart) {
-      this.$router.push({
-        name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-catalog`,
-        params: { cluster: this.$route.params.cluster, chart },
-        query:  { [CHART]: chart }
-      });
+      this.$router.push(chart.detailLocation);
     },
   },
   computed: {
     list() {
-      return this.$store.getters['epinio/all'](EPINIO_TYPES.CATALOG_SERVICE);
+      const list = this.$store.getters['epinio/all'](EPINIO_TYPES.CATALOG_SERVICE);
+
+      if (!this.searchQuery) {
+        return list;
+      } else {
+        const query = this.searchQuery.toLowerCase();
+
+        return list.filter(e => e?.chart.toLowerCase().includes(query) || e?.description.toLowerCase().includes(query) || e?.short_description.toLowerCase().includes(query));
+      }
     },
   }
 };
@@ -37,6 +45,16 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
+    <div class="filter-block">
+      <input
+        ref="searchQuery"
+        v-model="searchQuery"
+        type="search"
+        class="input-sm"
+        :placeholder="t('catalog.charts.search')"
+      >
+    </div>
+
     <SelectIconGrid
       :rows="list"
       name-field="name"

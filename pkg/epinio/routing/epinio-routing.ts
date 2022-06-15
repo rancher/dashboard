@@ -24,10 +24,6 @@ const routes: RouteConfig[] = [{
   path:      `/:product`,
   component: ListEpinio,
 }, {
-  name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-catalog`,
-  path:      `/:product/c/:cluster/catalog/`,
-  component: CatalogDetails,
-}, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-resource`,
   path:      `/:product/c/:cluster/:resource`,
   component: ListEpinioResource,

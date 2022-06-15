@@ -14,4 +14,11 @@ export default class EpinioCatalogServiceModel extends EpinioMetaResource {
     // Add baseUrl in a generic way
     return this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/catalogservices/${ name || '' }` });
   }
+
+  get details() {
+    return [{
+      label:   'Chart Version',
+      content: this.chartVersion,
+    }];
+  }
 }
