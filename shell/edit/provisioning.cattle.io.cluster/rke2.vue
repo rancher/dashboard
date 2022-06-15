@@ -17,7 +17,7 @@ import {
   SECRET,
   HCI,
 } from '@shell/config/types';
-import { ELEMENTAL_SCHEMA_IDS, KIND } from '@pkg/elemental/types';
+import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '@pkg/elemental/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
 import { findBy, removeObject, clear } from '@shell/utils/array';
@@ -264,6 +264,8 @@ export default {
   },
 
   data() {
+    console.log('******** RKE2 PROVIDER *******', this.provider);
+
     if ( !this.value.spec.rkeConfig ) {
       set(this.value.spec, 'rkeConfig', {});
     }
@@ -333,7 +335,7 @@ export default {
     },
 
     isElementalCluster() {
-      return this.provider === 'elemental' || this.value?.machineProvider === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
+      return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
 
     advancedTitleAlt() {
@@ -414,7 +416,7 @@ export default {
       const showK3s = allValidK3sVersions.length && !existingRke2;
       const out = [];
 
-      if ( showRke2 && this.provider !== 'elemental' ) {
+      if ( showRke2 && !this.isElementalCluster ) {
         if ( showK3s ) {
           out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
         }
@@ -984,7 +986,13 @@ export default {
 
       if ( existing?.length ) {
         for ( const pool of existing ) {
-          const type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          let type;
+
+          if (this.isElementalCluster) {
+            type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+          } else {
+            type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          }
           let config;
 
           if ( this.$store.getters['management/canList'](type) ) {
@@ -1197,6 +1205,7 @@ export default {
     },
 
     async saveOverride(btnCb) {
+      console.log('*********** OBJECT ON SAVE RKE2!!!!!! **************', this.value);
       if ( this.errors ) {
         clear(this.errors);
       }
