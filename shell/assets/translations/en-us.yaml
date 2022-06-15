@@ -1497,6 +1497,7 @@ cluster:
       label: Roles
     labels:
       label: Kubernetes Node Labels
+    noAccessBanner: "You do not have access to see this machine pool's configuration."
     autoReplace:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
@@ -1573,7 +1574,7 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
-    elemental: Elemental Cluster
+    machineinventoryselectortemplate: Elemental Cluster
   providerTag:
     rke2:
       harvester: '{tag}'

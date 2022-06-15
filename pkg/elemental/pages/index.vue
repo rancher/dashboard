@@ -1,5 +1,5 @@
 <script>
-import { ELEMENTAL_SCHEMA_IDS } from '../types';
+import { ELEMENTAL_SCHEMA_IDS, ELEMENTAL_CLUSTER_PROVIDER } from '../types';
 import { allHash } from '@shell/utils/promise';
 import { createElementalRoute } from '../utils/custom-routing';
 import { filterForElementalClusters } from '../utils/elemental-utils';
@@ -37,7 +37,7 @@ export default {
           resource: CAPI.RANCHER_CLUSTER,
           product:  'manager',
         },
-        query: { type: 'elemental' }
+        query: { type: ELEMENTAL_CLUSTER_PROVIDER }
       };
 
       const clusterManageRoute = {
