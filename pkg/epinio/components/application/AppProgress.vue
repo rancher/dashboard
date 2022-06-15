@@ -9,6 +9,7 @@ import { STATE, DESCRIPTION } from '@shell/config/table-headers';
 import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication } from '../../types';
 import { EpinioAppSource } from '../../components/application/AppSource.vue';
 import { EpinioAppBindings } from '../../components/application/AppConfiguration.vue';
+import EpinioNamespace from '~/pkg/epinio/models/namespaces';
 
 interface Data {
   running: boolean;
@@ -35,7 +36,7 @@ export default Vue.extend<Data, any, any, any>({
     },
     bindings: {
       type:     Object as PropType<EpinioAppBindings>,
-      required: true
+      default: () => null
     },
     mode: {
       type:     String,
@@ -54,16 +55,24 @@ export default Vue.extend<Data, any, any, any>({
       type:        EPINIO_TYPES.APP_ACTION,
     };
 
+    if (!this.namespaces.find((ns: EpinioNamespace) => ns.name === this.application.namespace)) {
+      this.actions.push(await this.$store.dispatch('epinio/create', {
+        action:      APPLICATION_ACTION_TYPE.CREATE_NS,
+        index:       0, // index used for sorting
+        ...coreArgs,
+      }));
+    }
+
     this.actions.push(await this.$store.dispatch('epinio/create', {
       action:      APPLICATION_ACTION_TYPE.CREATE,
-      index:       0, // index used for sorting
+      index:       1, // index used for sorting
       ...coreArgs,
     }));
 
     if (this.bindings?.configurations?.length) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS,
-        index:       1,
+        index:       2,
         ...coreArgs,
       }));
     }
@@ -71,7 +80,7 @@ export default Vue.extend<Data, any, any, any>({
     if (this.bindings?.services?.length) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.BIND_SERVICES,
-        index:       2,
+        index:       3,
         ...coreArgs,
       }));
     }
@@ -80,7 +89,7 @@ export default Vue.extend<Data, any, any, any>({
         this.source.type === APPLICATION_SOURCE_TYPE.FOLDER) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.UPLOAD,
-        index:       3,
+        index:       4,
         ...coreArgs,
       }));
     }
@@ -88,7 +97,7 @@ export default Vue.extend<Data, any, any, any>({
     if (this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.GIT_FETCH,
-        index:       3,
+        index:       4,
         ...coreArgs,
       }));
     }
@@ -98,14 +107,14 @@ export default Vue.extend<Data, any, any, any>({
         this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.BUILD,
-        index:       4,
+        index:       5,
         ...coreArgs,
       }));
     }
 
     this.actions.push(await this.$store.dispatch('epinio/create', {
       action:      APPLICATION_ACTION_TYPE.DEPLOY,
-      index:       5,
+      index:       6,
       ...coreArgs,
     }));
 
@@ -121,7 +130,7 @@ export default Vue.extend<Data, any, any, any>({
           labelKey: 'epinio.applications.steps.progress.table.stage.label',
           value:    'name',
           sort:     ['index'],
-          width:    100,
+          width:    150,
         },
         {
           ...DESCRIPTION,
@@ -144,7 +153,11 @@ export default Vue.extend<Data, any, any, any>({
   computed: {
     actionsToRun() {
       return this.actions.filter((action: ApplicationAction) => action.run);
-    }
+    },
+
+    namespaces() {
+      return this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE);
+    },
   },
 
   watch: {

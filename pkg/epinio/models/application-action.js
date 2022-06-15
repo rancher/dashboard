@@ -1,9 +1,10 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class';
-import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE } from '../types';
+import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE, EPINIO_PRODUCT_NAME } from '../types';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import Vue from 'vue';
 
 export const APPLICATION_ACTION_TYPE = {
+  CREATE_NS:           'create_namespace',
   CREATE:              'create',
   GIT_FETCH:           'gitFetch',
   UPLOAD:              'upload',
@@ -61,6 +62,9 @@ export default class ApplicationActionResource extends Resource {
 
   async innerExecute(params) {
     switch (this.action) {
+    case APPLICATION_ACTION_TYPE.CREATE_NS:
+      await this.createNamespace(params);
+      break;
     case APPLICATION_ACTION_TYPE.CREATE:
       await this.create(params);
       break;
@@ -83,6 +87,12 @@ export default class ApplicationActionResource extends Resource {
       await this.deploy(params);
       break;
     }
+  }
+
+  async createNamespace() {
+    const ns = await this.$dispatch(`${ EPINIO_PRODUCT_NAME }/createNamespace`, { name: this.application.meta.namespace }, { root: true });
+
+    await ns.create();
   }
 
   async create() {
