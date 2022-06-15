@@ -129,27 +129,6 @@ export default {
   },
 
   watch: {
-    'value.networkName': {
-      handler(neu) {
-        if (neu === MANAGEMENT_NETWORK) {
-          this.value.isPod = true;
-          this.value.macAddress = '';
-        } else {
-          this.value.isPod = false;
-        }
-
-        this.$set(this, 'isMasquerade', this.value.isPod);
-
-        if (this.value.isPod) {
-          this.value.type = 'masquerade';
-        } else {
-          this.value.type = 'bridge';
-        }
-
-        this.update();
-      }
-    },
-
     rows: {
       handler(neu) {
         const hasManagementNetwork = !!neu.some(N => N.isPod);
@@ -162,6 +141,27 @@ export default {
   },
 
   methods: {
+    /**
+     * Patch k8s value based on type of network
+     */
+    updateNetworkName(neu) {
+      if (neu === MANAGEMENT_NETWORK) {
+        this.value.isPod = true;
+        this.value.macAddress = '';
+      } else {
+        this.value.isPod = false;
+      }
+
+      this.$set(this, 'isMasquerade', this.value.isPod);
+
+      if (this.value.isPod) {
+        this.value.type = 'masquerade';
+      } else {
+        this.value.type = 'bridge';
+      }
+      this.update();
+    },
+
     update() {
       this.$emit('update');
     }
@@ -231,7 +231,7 @@ export default {
             :mode="mode"
             required
             :disabled="isDisabled"
-            @input="update"
+            @input="updateNetworkName"
           />
         </InputOrDisplay>
       </div>

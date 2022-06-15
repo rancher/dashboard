@@ -26,7 +26,7 @@ describe('component: HarvesterEditNetwork', () => {
 
   it.each([
     'model',
-    // 'networkName',
+    'networkName',
     'type',
   ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(HarvesterEditNetwork, { propsData: { mode: _EDIT } });
