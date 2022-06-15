@@ -169,8 +169,6 @@ export function init($plugin: any, store: any) {
       labelKey:      'epinio.tableHeaders.namespace',
       value:         'meta.namespace',
       sort:          ['meta.namespace'],
-      formatter:     'LinkDetail',
-      formatterOpts: { reference: 'nsLocation' }
     },
     {
       name:     'dep-status',
@@ -285,8 +283,6 @@ export function init($plugin: any, store: any) {
       labelKey:      'epinio.tableHeaders.namespace',
       value:         'meta.namespace',
       sort:          ['meta.namespace'],
-      formatter:     'LinkDetail',
-      formatterOpts: { reference: 'nsLocation' }
     },
     {
       name:      'boundApps',
@@ -323,14 +319,20 @@ export function init($plugin: any, store: any) {
       labelKey:      'epinio.tableHeaders.namespace',
       value:         'metadata.namespace',
       sort:          ['metadata.namespace'],
-      formatter:     'LinkDetail',
-      formatterOpts: { reference: 'nsLocation' }
     },
-    { // This will be a link once the service instance detail / create / edit pages are created
-      name:      'catalog_service',
-      labelKey:  'epinio.serviceInstance.tableHeaders.service',
-      value:     'catalog_service',
-      sort:      ['catalog_service'],
+    {
+      name:          'catalog_service',
+      labelKey:      'epinio.serviceInstance.tableHeaders.service',
+      value:         'catalog_service',
+      sort:          ['catalog_service'],
+      formatter:     'LinkDetail',
+      formatterOpts: { reference: 'serviceLocation' }
+    },
+    {
+      name:      'catalog_service_version',
+      labelKey:  'epinio.serviceInstance.tableHeaders.serviceVersion',
+      value:     'catalog_service_version',
+      sort:      ['catalog_service_version'],
     },
     {
       name:      'boundApps',

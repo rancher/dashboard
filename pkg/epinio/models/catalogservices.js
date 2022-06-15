@@ -28,22 +28,25 @@ export default class EpinioCatalogServiceModel extends EpinioMetaResource {
   }
 
   get details() {
-    return [{
-      label:   this.t('epinio.catalogService.detail.chartVersion'),
-      content: this.chartVersion,
-    }, {
-      label:   this.t('epinio.catalogService.detail.appVersion'),
-      content: this.appVersion,
-    }, {
-      label:         this.t('epinio.catalogService.detail.helmChart'),
-      content:       this.helm_repo.name,
-      formatter:     `Link`,
-      formatterOpts: {
-        urlKey:   'helm_repo.url',
-        labelKey: 'helm_repo.name',
-        row:      this,
+    return [
+      {
+        label:   this.t('epinio.catalogService.detail.appVersion'),
+        content: this.appVersion,
       }
-    }];
+    //   {
+    //   label:   this.t('epinio.catalogService.detail.chartVersion'),
+    //   content: this.chartVersion,
+    // }, {
+    //   label:         this.t('epinio.catalogService.detail.helmChart'),
+    //   content:       this.helm_repo.name,
+    //   formatter:     `Link`,
+    //   formatterOpts: {
+    //     urlKey:   'helm_repo.url',
+    //     labelKey: 'helm_repo.name',
+    //     row:      this,
+    //   }
+    // }
+    ];
   }
 
   get services() {

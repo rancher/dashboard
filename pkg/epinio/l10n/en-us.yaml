@@ -233,6 +233,7 @@ epinio:
   serviceInstance:
     tableHeaders:
       service: Catalog Service
+      serviceVersion: Catalog Service Version
     create:
       catalogService:
         label: Catalog Service
@@ -246,7 +247,7 @@ epinio:
     detail:
       servicesTitle: "{catalogService} Services"
       chartVersion: Chart Version
-      appVersion: App Version
+      appVersion: Version
       helmChart: Helm Chart
   warnings:
     noNamespace: There are no namespaces. Please create one before proceeding

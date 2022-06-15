@@ -128,6 +128,7 @@ export interface EpinioServiceResource {
   meta: EpinioMeta
   boundapps: string[],
   catalog_service: string, // eslint-disable-line camelcase
+  catalog_service_version: string, // eslint-disable-line camelcase
   status: string,
 }
 
