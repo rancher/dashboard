@@ -1,8 +1,7 @@
 <script>
-import { EPINIO_TYPES, EPINIO_PRODUCT_NAME } from '../types';
+import { EPINIO_TYPES } from '../types';
 import Loading from '@shell/components/Loading';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
-import { CHART } from '@shell/config/query-params';
 
 export default {
   name:       'EpinioCatalogList',
@@ -24,6 +23,10 @@ export default {
   methods: {
     showDetails(chart) {
       this.$router.push(chart.detailLocation);
+    },
+
+    colorFor() {
+      return `color-1`;
     },
   },
   computed: {
@@ -57,6 +60,7 @@ export default {
 
     <SelectIconGrid
       :rows="list"
+      :color-for="colorFor"
       name-field="name"
       icon-field="serviceIcon"
       description-field="short_description"
