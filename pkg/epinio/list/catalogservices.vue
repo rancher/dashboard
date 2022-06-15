@@ -68,3 +68,13 @@ export default {
     />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.filter-block {
+  display: flex;
+  justify-content: flex-end;
+  input {
+    width: 315px;
+  }
+}
+</style>

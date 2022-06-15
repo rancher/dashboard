@@ -13,6 +13,8 @@ import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
 import { mapGetters } from 'vuex';
 
+export const EPINIO_SERVICE_PARAM = 'service';
+
 interface Data {
 }
 
@@ -48,6 +50,7 @@ export default Vue.extend<Data, any, any, any>({
       this.mixinFetch()
     ]);
 
+    Vue.set(this.value, 'catalog_service', this.$route.query[EPINIO_SERVICE_PARAM]);
     Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0].meta.name);
   },
 
