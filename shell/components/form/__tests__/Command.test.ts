@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Command from '@shell/components/form/Command.vue';
 import { _EDIT } from '@shell/config/query-params';
-import vSelect, { VueSelectMethods } from 'vue-select';
 
 describe('component: Command', () => {
   it('should display all the inputs', () => {
@@ -47,18 +46,18 @@ describe('component: Command', () => {
 
   it.each([
     'stdin',
-  ])('should emit an update on %p selection change', (field) => {
+  ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(Command, {
       propsData: { mode: _EDIT },
       data:      () => ({ stdin: true })
     });
-    const select = wrapper
-      .find(`[data-testid="input-command-${ field }"]`)
-      .find(vSelect);
+    const select = wrapper.find(`[data-testid="input-command-${ field }"]`);
 
-    // Component is not in Typescript
-    (select.vm as any as VueSelectMethods).select('whatever');
+    select.find('button').trigger('click');
+    await wrapper.trigger('keydown.down');
+    await wrapper.trigger('keydown.enter');
 
     expect(wrapper.emitted('input')).toHaveLength(1);
   });
 });
+//

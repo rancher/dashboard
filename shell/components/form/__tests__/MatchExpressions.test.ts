@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils';
 import MatchExpressions from '@shell/components/form/MatchExpressions.vue';
 import { _CREATE } from '@shell/config/query-params';
-import vSelect, { VueSelectMethods } from 'vue-select';
 import Vue from 'vue';
 
 describe('component: MatchExpressions', () => {
@@ -67,13 +66,12 @@ describe('component: MatchExpressions', () => {
         ]
       })
     });
-    const select = wrapper
-      .find(`[data-testid="input-match-expression-${ field }-0"]`)
-      .find(vSelect);
 
-    // Component is not in Typescript
-    (select.vm as any as VueSelectMethods).select('whatever');
-    await Vue.nextTick();
+    const select = wrapper.find(`[data-testid="input-match-expression-${ field }-0"]`);
+
+    select.find('button').trigger('click');
+    await wrapper.trigger('keydown.down');
+    await wrapper.trigger('keydown.enter');
 
     // TODO: #6167: Fix issue with Select emitting 2 times
     expect(wrapper.emitted('input')).toHaveLength(2);

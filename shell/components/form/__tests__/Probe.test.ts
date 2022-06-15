@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Probe from '@shell/components/form/Probe.vue';
 import { _EDIT } from '@shell/config/query-params';
-import vSelect, { VueSelectMethods } from 'vue-select';
 
 describe('component: Probe', () => {
   describe.each([
@@ -47,15 +46,15 @@ describe('component: Probe', () => {
 
   it.each([
     'kind',
-  ])('should emit an update on %p selection change', (field) => {
+  ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(Probe, { propsData: { mode: _EDIT } });
-    const select = wrapper
-      .find(`[data-testid="input-probe-${ field }"]`)
-      .find(vSelect);
 
-    // Component is not in Typescript
-    (select.vm as any as VueSelectMethods).select('whatever');
+    const select = wrapper.find(`[data-testid="input-probe-${ field }"]`);
 
-    expect(wrapper.emitted('input')).toHaveLength(1);
+    select.find('button').trigger('click');
+    await wrapper.trigger('keydown.down');
+    await wrapper.trigger('keydown.enter');
+
+    expect(wrapper.emitted('input')).toHaveLength(2);
   });
 });

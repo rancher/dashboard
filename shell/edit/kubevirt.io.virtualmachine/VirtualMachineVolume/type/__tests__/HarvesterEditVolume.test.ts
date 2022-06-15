@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils';
 import HarvesterEditVolume from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineVolume/type/volume.vue';
 import { _EDIT } from '@shell/config/query-params';
-import vSelect, { VueSelectMethods } from 'vue-select';
 
 describe('component: HarvesterEditVolume', () => {
   it('should display all the inputs', () => {
@@ -51,7 +50,7 @@ describe('component: HarvesterEditVolume', () => {
   it.each([
     'type',
     'bus'
-  ])('should emit an update on %p selection change', (field) => {
+  ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(HarvesterEditVolume, {
       propsData:  { mode: _EDIT, validateRequired: true },
       mocks:     {
@@ -64,12 +63,11 @@ describe('component: HarvesterEditVolume', () => {
         },
       }
     });
-    const select = wrapper
-      .find(`[data-testid="input-hev-${ field }"]`)
-      .find(vSelect);
+    const select = wrapper.find(`[data-testid="input-hev-${ field }"]`);
 
-    // Component is not in Typescript
-    (select.vm as any as VueSelectMethods).select('whatever');
+    select.find('button').trigger('click');
+    await wrapper.trigger('keydown.down');
+    await wrapper.trigger('keydown.enter');
 
     expect(wrapper.emitted('update')).toHaveLength(1);
   });

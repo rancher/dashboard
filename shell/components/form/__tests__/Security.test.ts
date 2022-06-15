@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils';
 import Security from '@shell/components/form/Security.vue';
 import { _EDIT } from '@shell/config/query-params';
-import vSelect, { VueSelectMethods } from 'vue-select';
 
 describe('component: Security', () => {
   it('should display all the inputs', () => {
@@ -43,14 +42,13 @@ describe('component: Security', () => {
   it.each([
     'add',
     'drop',
-  ])('should emit an update on %p selection change', (field) => {
+  ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(Security, { propsData: { mode: _EDIT } });
-    const select = wrapper
-      .find(`[data-testid="input-security-${ field }"]`)
-      .find(vSelect);
+    const select = wrapper.find(`[data-testid="input-security-${ field }"]`);
 
-    // Component is not in Typescript
-    (select.vm as any as VueSelectMethods).select('whatever');
+    select.find('button').trigger('click');
+    await wrapper.trigger('keydown.down');
+    await wrapper.trigger('keydown.enter');
 
     expect(wrapper.emitted('input')).toHaveLength(1);
   });

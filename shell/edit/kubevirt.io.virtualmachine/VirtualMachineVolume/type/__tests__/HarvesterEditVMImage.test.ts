@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils';
 import HarvesterEditVMImage from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineVolume/type/vmImage.vue';
 import { _CREATE } from '@shell/config/query-params';
-import vSelect, { VueSelectMethods } from 'vue-select';
 
 describe('component: HarvesterEditVMImage', () => {
   it('should display all the inputs', () => {
@@ -89,7 +88,7 @@ describe('component: HarvesterEditVMImage', () => {
     'type',
     'image',
     'bus',
-  ])('should emit an update on %p selection change', (field) => {
+  ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(HarvesterEditVMImage, {
       propsData: {
         mode:             _CREATE,
@@ -107,12 +106,11 @@ describe('component: HarvesterEditVMImage', () => {
         },
       }
     });
-    const select = wrapper
-      .find(`[data-testid="input-hevi-${ field }"]`)
-      .find(vSelect);
+    const select = wrapper.find(`[data-testid="input-hevi-${ field }"]`);
 
-    // Component is not in Typescript
-    (select.vm as any as VueSelectMethods).select('whatever');
+    select.find('button').trigger('click');
+    await wrapper.trigger('keydown.down');
+    await wrapper.trigger('keydown.enter');
 
     expect(wrapper.emitted('update')).toHaveLength(1);
   });
