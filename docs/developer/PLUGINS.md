@@ -4,7 +4,7 @@ During the transition to the new folder structured in 2.6.5 required by the plug
 - Run the script `./scripts/rejig` to move folders to their new location in the `shell` folder and update the appropriate import statements
   Use this to convert older PRs to the new format
 - Run the script `./scripts/rejig -d` to move folders to their old location and update imports again
-  Use this to convert newer branches to the old format (possibly useful for branches) 
+  Use this to convert newer branches to the old format (possibly useful for branches)
   > IMPORTANT - This script contains a `git reset --hard`
 
 ## Step 1
@@ -175,13 +175,26 @@ The `testplugin` plugin will be built and the output placed in `dist-pkg\testplu
 Next, edit the `nuxt.config.js` file in the root folder and replace it with this:
 
 ```
-import config from '@rancher/shell/nuxt.config';
+import config from './shell/nuxt.config';
+
+// Excludes the following plugins if there's no .env file.
+const excludes = process.env.EXCLUDES_PKG || 'epinio, rancher-components, testplugin';
 
 export default config(__dirname, {
-  excludes:   ['testplugin'],
-  autoImport: []
+  excludes: excludes.replace(/\s/g, '').split(','),
+  // excludes: ['fleet', 'example']
+  // autoLoad: ['fleet', 'example']
 });
+```
 
+**NOTE**: If you're actively working with Plugins, we can make use of the `.env` file instead of hardcoded the excludes in the `nuxt.config.js` file so your changes on the file won't be tracked by Git.
+
+```
+# First, create the .env file from template
+cp env.example .env
+
+# Then, add the following to the .env file
+EXCLUDES_PKG='epinio, rancher-components, testplugin'
 ```
 
 What we have done here is add the `testplugin` plugin to the `excludes` configuration - this means that when we build and run the UI, we won't include the `testplugin` plugin.

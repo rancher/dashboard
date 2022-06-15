@@ -331,7 +331,7 @@ export default {
     <div class="rd-header-right">
       <HarvesterUpgrade v-if="isVirtualCluster" />
       <div
-        v-if="currentCluster && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
+        v-if="(currentCluster || currentProduct.customNamespaceFilter) && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
         class="top"
       >
         <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
@@ -420,9 +420,11 @@ export default {
 
       <div
         v-if="showPageActions"
+        id="page-actions"
         class="actions"
       >
         <i
+          data-testid="page-actions-menu"
           class="icon icon-actions"
           @blur="showPageActionsMenu(false)"
           @click="showPageActionsMenu(true)"
@@ -438,7 +440,11 @@ export default {
           :container="false"
         >
           <template slot="popover" class="user-menu">
-            <ul class="list-unstyled dropdown" @click.stop="showPageActionsMenu(false)">
+            <ul
+              data-testid="page-actions-dropdown"
+              class="list-unstyled dropdown"
+              @click.stop="showPageActionsMenu(false)"
+            >
               <li v-for="a in pageActions" :key="a.label" class="user-menu-item">
                 <a v-if="!a.separator" @click="pageAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
                 <div v-else class="menu-separator">

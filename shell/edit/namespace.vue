@@ -65,13 +65,6 @@ export default {
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
-    extraColumns() {
-      if ( this.$store.getters['isRancher'] && !this.isSingleProduct) {
-        return ['project-col'];
-      }
-
-      return [];
-    },
 
     projectOpts() {
       const clusterId = this.$store.getters['currentCluster'].id;
@@ -166,7 +159,6 @@ export default {
       :value="value"
       :namespaced="false"
       :mode="mode"
-      :extra-columns="extraColumns"
     >
       <template v-if="!isSingleProduct" #project-col>
         <LabeledSelect v-model="projectName" :label="t('namespace.project.label')" :options="projectOpts" />

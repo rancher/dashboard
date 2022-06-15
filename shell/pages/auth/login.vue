@@ -291,7 +291,11 @@ export default {
             {{ t('login.loginAgain') }}
           </h4>
         </div>
-        <div v-if="firstLogin" class="first-login-message">
+        <div
+          v-if="firstLogin"
+          class="first-login-message"
+          data-testid="first-login-message"
+        >
           <InfoBox color="info">
             <t k="setup.defaultPassword.intro" :raw="true" />
 
@@ -340,6 +344,7 @@ export default {
                   id="username"
                   ref="username"
                   v-model.trim="username"
+                  data-testid="local-login-username"
                   :label="t('login.username')"
                   autocomplete="username"
                 />
@@ -349,6 +354,7 @@ export default {
                   id="password"
                   ref="password"
                   v-model="password"
+                  data-testid="local-login-password"
                   :label="t('login.password')"
                   autocomplete="password"
                 />
@@ -358,6 +364,7 @@ export default {
               <div class="col span-12 text-center">
                 <AsyncButton
                   id="submit"
+                  data-testid="login-submit"
                   type="submit"
                   :action-label="t('login.loginWithLocal')"
                   :waiting-label="t('login.loggingIn')"
@@ -372,7 +379,12 @@ export default {
             </div>
           </form>
           <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
-            <a id="login-useLocal" role="button" @click="toggleLocal">
+            <a
+              id="login-useLocal"
+              data-testid="login-useLocal"
+              role="button"
+              @click="toggleLocal"
+            >
               {{ t('login.useLocal') }}
             </a>
           </div>
