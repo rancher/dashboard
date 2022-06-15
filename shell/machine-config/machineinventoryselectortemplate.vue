@@ -5,14 +5,14 @@ import { Banner } from '@components/Banner';
 import { ELEMENTAL_SCHEMA_IDS } from '@pkg/elemental/types';
 import { set } from '@shell/utils/object';
 import { convert, matching, simplify } from '@shell/utils/selector';
+import throttle from 'lodash/throttle';
 
 export default {
   components: { MatchExpressions, Banner },
   mixins:     [CreateEditView],
   async fetch() {
     this.machineInventories = await this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES });
-
-    console.log('MACH. INV. SELECTOR TEMPLATE', this.value);
+    this.updateMatchingMachineInventories();
   },
   data() {
     if ( !this.value.spec?.template?.spec?.selector ) {
@@ -43,25 +43,44 @@ export default {
       set(this, 'value.spec.template.spec.selector.matchLabels', matchLabels);
       set(this, 'value.spec.template.spec.selector.matchExpressions', matchExpressions);
 
-      console.log('********* matchChanged **********', this.value.spec.template.spec.selector);
-
-      // this.updateMatchingClusters();
+      this.updateMatchingMachineInventories();
     },
+
+    updateMatchingMachineInventories: throttle(function() {
+      const all = this.machineInventories;
+      const match = matching(all, this.expressions);
+      const matched = match.length || 0;
+      const sample = match[0]?.nameDisplay;
+
+      this.matchingMachineInventories = {
+        matched,
+        total:   all.length,
+        isAll:   matched === all.length,
+        isNone:  matched === 0,
+        sample,
+      };
+    }, 250, { leading: true })
   },
 };
 </script>
 
 <template>
   <div>
-    <h3 class="mt-20 mb-20">
-      Machine Inventory Selector
-    </h3>
+    <h2 v-t="'elemental.clusterGroup.selector.label'" class="mt-20 mb-20" />
     <MatchExpressions
       :mode="mode"
       :value="expressions"
       :show-remove="false"
       @input="matchChanged($event)"
     />
+    <Banner v-if="matchingMachineInventories" :color="(matchingMachineInventories.isNone || matchingMachineInventories.isAll ? 'warning' : 'success')">
+      <span v-if="matchingMachineInventories.isAll" v-html="t('elemental.clusterGroup.selector.matchesAll', matchingMachineInventories)" />
+      <span v-else-if="matchingMachineInventories.isNone" v-html="t('elemental.clusterGroup.selector.matchesNone', matchingMachineInventories)" />
+      <span
+        v-else
+        v-html="t('elemental.clusterGroup.selector.matchesSome', matchingMachineInventories)"
+      />
+    </Banner>
   </div>
 </template>
 
