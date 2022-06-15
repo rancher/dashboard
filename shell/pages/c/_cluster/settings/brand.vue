@@ -14,6 +14,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { getVendor, setVendor } from '@shell/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { setFavIcon } from '@shell/utils/favicon';
 
 const Color = require('color');
 const parse = require('url-parse');
@@ -34,6 +35,7 @@ export default {
       uiColorSetting:         fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
       uiLinkColorSetting:     fetchOrCreateSetting(this.$store, SETTING.LINK_COLOR, ''),
       uiCommunitySetting:     fetchOrCreateSetting(this.$store, SETTING.COMMUNITY_LINKS, 'true'),
+      uiFaviconSetting:       fetchOrCreateSetting(this.$store, SETTING.FAVICON, ''),
     });
 
     Object.assign(this, hash);
@@ -49,6 +51,13 @@ export default {
         this.uiLogoLight = hash.uiLogoLightSetting.value;
 
         this.customizeLogo = true;
+      } catch {}
+    }
+    if (hash.uiFaviconSetting.value) {
+      try {
+        this.uiFavicon = hash.uiFaviconSetting.value;
+
+        this.customizeFavicon = true;
       } catch {}
     }
     if (hash.uiColorSetting.value) {
@@ -73,6 +82,10 @@ export default {
       uiLogoLightSetting: {},
       uiLogoLight:        '',
       customizeLogo:      false,
+
+      uiFaviconSetting:   {},
+      uiFavicon:          '',
+      customizeFavicon:   false,
 
       uiColorSetting:     {},
       uiColor:            null,
@@ -147,6 +160,12 @@ export default {
         this.uiLogoDarkSetting.value = '';
       }
 
+      if (this.customizeFavicon) {
+        this.uiFaviconSetting.value = this.uiFavicon;
+      } else {
+        this.uiFaviconSetting.value = '';
+      }
+
       if (this.customizeColor) {
         this.uiColorSetting.value = Color(this.uiColor).rgb().string();
       } else {
@@ -169,11 +188,14 @@ export default {
           this.uiLogoLightSetting.save(),
           this.uiColorSetting.save(),
           this.uiLinkColorSetting.save(),
-          this.uiCommunitySetting.save()
+          this.uiCommunitySetting.save(),
+          this.uiFaviconSetting.save()
         ]);
         if (this.uiPLSetting.value !== this.vendor) {
           setVendor(this.uiPLSetting.value);
         }
+
+        setFavIcon(this.$store);
         btnCB(true);
       } catch (err) {
         this.errors.push(err);
@@ -198,7 +220,7 @@ export default {
         </div>
       </div>
 
-      <h3 class="mt-40 mb-5 pb-5">
+      <h3 class="mt-20 mb-5 pb-5">
         {{ t('branding.uiIssues.label') }}
       </h3>
       <label class="text-label">
@@ -213,7 +235,7 @@ export default {
         </div>
       </div>
 
-      <h3 class="mt-40 mb-5 pb-5">
+      <h3 class="mt-20 mb-5 pb-5">
         {{ t('branding.logos.label') }}
       </h3>
       <label class="text-label">
@@ -257,6 +279,37 @@ export default {
           <SimpleBox v-if="uiLogoDark || uiLogoLight" class="theme-dark  mb-10">
             <label class="text-muted">{{ t('branding.logos.darkPreview') }}</label>
             <img class="logo-preview" :src="uiLogoDark ? uiLogoDark : uiLogoLight" />
+          </SimpleBox>
+        </div>
+      </div>
+
+      <h3 class="mt-20 mb-5 pb-5">
+        {{ t('branding.favicon.label') }}
+      </h3>
+      <label class="text-label">
+        {{ t('branding.favicon.tip', {}, true) }}
+      </label>
+
+      <div class="row mt-10 mb-20">
+        <Checkbox v-model="customizeFavicon" :label="t('branding.favicon.useCustom')" :mode="mode" />
+      </div>
+
+      <div v-if="customizeFavicon" class="row mb-20">
+        <div class="col logo-container span-12">
+          <div class="mb-10">
+            <FileSelector
+              :byte-limit="20000"
+              :read-as-data-url="true"
+              class="role-secondary"
+              :label="t('branding.favicon.upload')"
+              :mode="mode"
+              @error="setError"
+              @selected="updateLogo($event, 'uiFavicon')"
+            />
+          </div>
+          <SimpleBox v-if="uiFavicon" class="theme-light">
+            <label class="text-muted">{{ t('branding.favicon.preview') }}</label>
+            <img class="logo-preview" :src="uiFavicon" />
           </SimpleBox>
         </div>
       </div>
