@@ -1058,7 +1058,7 @@ export default {
       const finalPools = [];
 
       for ( const entry of this.machinePools ) {
-        console.log('machine pool entry on save', entry);
+        console.log('*** machine pool entry config on save ***', entry.config);
         if ( entry.remove ) {
           continue;
         }
@@ -1613,7 +1613,7 @@ export default {
             </Tab>
           </template>
           <div v-if="!unremovedMachinePools.length">
-            You do not have any machine pools defined, click the plus to add one.
+            {{ t('cluster.machinePool.noPoolsDisclaimer') }}
           </div>
         </Tabbed>
         <div class="spacer" />

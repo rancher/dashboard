@@ -1498,6 +1498,7 @@ cluster:
     labels:
       label: Kubernetes Node Labels
     noAccessBanner: "You do not have access to see this machine pool's configuration."
+    noPoolsDisclaimer: You do not have any machine pools defined, click the plus to add one.
     autoReplace:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
