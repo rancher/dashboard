@@ -4,6 +4,7 @@ import { EPINIO_PRODUCT_NAME } from '../types';
 
 import CreateApp from '../pages/c/_cluster/applications/createapp/index.vue';
 import ListApp from '../pages/c/_cluster/applications/index.vue';
+import CatalogDetails from '../pages/c/_cluster/catalog/index.vue';
 import ListEpinio from '../pages/index.vue';
 import ListEpinioResource from '../pages/c/_cluster/_resource/index.vue';
 import CreateEpinioResource from '../pages/c/_cluster/_resource/create.vue';
@@ -22,6 +23,10 @@ const routes: RouteConfig[] = [{
   name:      `${ EPINIO_PRODUCT_NAME }`,
   path:      `/:product`,
   component: ListEpinio,
+}, {
+  name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-catalog`,
+  path:      `/:product/c/:cluster/catalog/`,
+  component: CatalogDetails,
 }, {
   name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-resource`,
   path:      `/:product/c/:cluster/:resource`,

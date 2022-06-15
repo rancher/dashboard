@@ -2,6 +2,7 @@
 import { EPINIO_TYPES, EPINIO_PRODUCT_NAME } from '../types';
 import Loading from '@shell/components/Loading';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
+import { CHART } from '@shell/config/query-params';
 
 export default {
   name:       'EpinioCatalogList',
@@ -18,15 +19,10 @@ export default {
 
   methods: {
     showDetails(chart) {
-      console.log('chart: ', chart);
       this.$router.push({
         name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-catalog`,
-        params: {
-          cluster:  this.$route.params.cluster,
-          product:  this.$store.getters['productId'],
-          chart:   this.chart
-        },
-        query: {}
+        params: { cluster: this.$route.params.cluster, chart },
+        query:  { [CHART]: chart }
       });
     },
   },
