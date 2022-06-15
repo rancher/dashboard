@@ -1567,7 +1567,7 @@ export default {
           @addTab="addMachinePool($event)"
           @removeTab="removeMachinePool($event)"
         >
-          <template v-for="obj in machinePools">
+          <template v-for="(obj, idx) in machinePools">
             <Tab v-if="!obj.remove" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
               <MachinePool
                 ref="pool"
@@ -1576,6 +1576,8 @@ export default {
                 :mode="mode"
                 :provider="provider"
                 :credential-id="credentialId"
+                :idx="idx"
+                :machine-pools="machinePools"
                 @error="e=>errors = e"
               />
             </Tab>
