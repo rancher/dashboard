@@ -1,1 +1,9 @@
-{"experimentalSessionSupport": true, "testFiles":"**/*.spec.ts"}
+{
+  "experimentalSessionAndOrigin": true,
+  "trashAssetsBeforeRuns": true,
+  "testFiles": [
+    "tests/setup/**/*.spec.ts",
+    "tests/pages/**/*.spec.ts",
+    "tests/navigation/**/*.spec.ts"
+  ]
+}

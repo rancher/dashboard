@@ -12,7 +12,6 @@ import { sortBy } from '@shell/utils/sort';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
 import { mapGetters } from 'vuex';
-import Banner from '@components/Banner/Banner.vue';
 
 interface Data {
 }
@@ -24,7 +23,6 @@ export default Vue.extend<Data, any, any, any>({
     CruResource,
     LabeledSelect,
     NameNsDescription,
-    Banner
   },
 
   mixins: [CreateEditView, EpinioBindAppsMixin],
@@ -136,12 +134,7 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="!value || !namespaces" />
-  <div v-else-if="!namespaces.length">
-    <Banner color="warning">
-      {{ t('epinio.warnings.noNamespace') }}
-    </Banner>
-  </div>
+  <Loading v-if="!value || !namespaces || $fetchState.pending" />
   <CruResource
     v-else-if="value && namespaces.length > 0"
     :can-yaml="false"
@@ -150,6 +143,7 @@ export default Vue.extend<Data, any, any, any>({
     :validation-passed="validationPassed"
     :resource="value"
     :errors="errors"
+    namespace-key="meta.namespace"
     @error="e=>errors = e"
     @finish="save"
   >

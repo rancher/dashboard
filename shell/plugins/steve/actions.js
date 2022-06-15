@@ -5,6 +5,8 @@ import { set } from '@shell/utils/object';
 import { deferred } from '@shell/utils/promise';
 import { streamJson, streamingSupported } from '@shell/utils/stream';
 import isObject from 'lodash/isObject';
+import { classify } from '@shell/plugins/dashboard-store/classify';
+import { NAMESPACE } from '@shell/config/types';
 
 export default {
   async request({ state, dispatch, rootGetters }, pOpt ) {
@@ -253,6 +255,13 @@ export default {
     } else {
       return res;
     }
+  },
+
+  createNamespace(ctx, obj) {
+    return classify(ctx, {
+      type:     NAMESPACE,
+      metadata: { name: obj.name }
+    });
   },
 
   cleanForNew(ctx, obj) {

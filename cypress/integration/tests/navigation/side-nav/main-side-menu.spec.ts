@@ -2,11 +2,11 @@ import HomePagePo from '@/cypress/integration/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/integration/po/side-bars/burger-side-menu.po';
 
 Cypress.config();
-describe('Burger Side Menu', () => {
+describe('Side Menu: main', () => {
   beforeEach(() => {
     cy.login();
     HomePagePo.goTo();
-    BurgerMenuPo.openIfClosed();
+    BurgerMenuPo.toggle();
   });
 
   it('Opens and closes on menu icon click', () => {
@@ -15,42 +15,38 @@ describe('Burger Side Menu', () => {
     BurgerMenuPo.checkClosed();
   });
 
-  it('Has clusters', () => {
+  it('Can display list of available clusters', () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.clusters().should('exist');
   });
 
-  it('Has a localization link', () => {
+  it('Can display the localization menu', () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.localization().should('exist');
   });
 
-  it('Has at least one menu category', () => {
+  it('Can display at least one menu category label', () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.categories().should('have.length.greaterThan', 0);
   });
 
-  it('Contains valid links', () => {
+  // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
+  it.skip('Contains valid links', () => {
     const burgerMenuPo = new BurgerMenuPo();
 
-    burgerMenuPo.links().each((link, idx) => {
-      BurgerMenuPo.openIfClosed();
-      const linkElement = burgerMenuPo.links().eq(idx);
-
-      return linkElement.then((linkEl) => {
-        linkElement.click();
-
-        return cy.location('href').then((url) => {
-          if (url.includes('explorer')) {
-            cy.intercept(/.+\/v1\/nodes$/).as('nodeRequest');
-            cy.wait(['@nodeRequest']);
-          }
+    // Navigate through all the links
+    burgerMenuPo.links().each((_, idx) => {
+      BurgerMenuPo.toggle();
+      // Cant bind to looped element due DOM changes while opening/closing side bar
+      burgerMenuPo.links().eq(idx).should('be.visible').click({ force: true })
+        .then((linkEl) => {
           cy.location('href').should('include', linkEl.prop('href'));
+          // Always open menu after navigation, to make visible other links
+          BurgerMenuPo.toggle();
         });
-      });
     });
   });
 });

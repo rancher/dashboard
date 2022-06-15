@@ -164,8 +164,11 @@ epinio:
           run:
             label: Run
     action:
+      create_namespace:
+        label: Create Namespace
+        description: A Namespace will be created to contain your Application
       create:
-        label: Create
+        label: Create Application
         description: The Application will be created ready to deploy source to
       bind_configurations:
         label: Bind Configurations
