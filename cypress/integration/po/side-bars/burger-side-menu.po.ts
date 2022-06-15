@@ -1,54 +1,69 @@
 import ComponentPo from '@/cypress/integration/po/components/component.po';
-import { CypressChainable } from '@/cypress/integration/po/po.types';
 
 export default class BurgerMenuPo extends ComponentPo {
   constructor() {
-    super('.side-menu');
+    super('[data-testid="side-menu"]');
   }
 
-  // Burger Menu
-
-  static toggle(): CypressChainable {
-    return cy.get('.menu-icon').click();
+  /**
+   * Toggle side navigation
+   * @returns {Cypress.Chainable}
+   */
+  static toggle(): Cypress.Chainable {
+    return cy.getId('top-level-menu').click({ force: true });
   }
 
-  static openIfClosed(): CypressChainable {
-    return cy.get('body').then((body) => {
-      if (body.find('.menu.raised').length === 0) {
-        return this.toggle();
-      }
-    });
-  }
-
+  /**
+   * Check if menu is open
+   */
   static checkOpen() {
-    this.sideMenuGlass().should('exist');
+    this.sideMenu().should('exist');
   }
 
+  /**
+   * Check if menu is closed
+   */
   static checkClosed() {
-    this.sideMenuGlass().should('not.exist');
+    this.sideMenu().should('not.exist');
   }
 
-  private static sideMenuGlass() {
-    return cy.get('body').get('.side-menu-glass');
+  /**
+   * Get side navigation
+   * @returns {Cypress.Chainable}
+   */
+  private static sideMenu(): Cypress.Chainable {
+    return cy.get('body').getId('side-menu');
   }
 
-  // Body
-
-  categories() {
+  /**
+   * Get menu category labels
+   * @returns {Cypress.Chainable}
+   */
+  categories(): Cypress.Chainable {
     return this.self().find('.body .category');
   }
 
-  links() {
+  /**
+   * Get all the links of the side navigation
+   * @returns {Cypress.Chainable}
+   */
+  links(): Cypress.Chainable {
     return this.self().find('.body .option');
   }
 
-  clusters() {
+  /**
+   * Get all the available cluster navigation links
+   * @returns {Cypress.Chainable}
+   */
+  clusters(): Cypress.Chainable {
     return this.self().find('.body .clusters .cluster.selector.option');
   }
 
-  // Footer
-
-  localization() {
-    return this.self().find('.locale-chooser');
+  /**
+   * Get i18n menu
+   * @returns {Cypress.Chainable}
+   */
+  localization(): Cypress.Chainable {
+    return this.self().getId('locale-selector');
   }
 }

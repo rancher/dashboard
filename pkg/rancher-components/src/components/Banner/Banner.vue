@@ -5,22 +5,38 @@ import { stringify } from '@shell/utils/error';
 
 export default Vue.extend({
   props: {
+    /**
+     * A color class that represents the color of the banner.
+     * @values primary, secondary, success, warning, error, info
+     */
     color: {
       type:    String,
       default: 'secondary'
     },
+    /**
+     * The label to display as the banner's default content.
+     */
     label: {
       type:    [String, Error, Object],
       default: null
     },
+    /**
+     * The i18n key for the label to display as the banner's default content.
+     */
     labelKey: {
       type:    String,
       default: null
     },
+    /**
+     * Toggles the banner's close button.
+     */
     closable: {
       type:    Boolean,
       default: false
     },
+    /**
+     * Toggles the stacked class for the banner.
+     */
     stacked: {
       type:    Boolean,
       default: false
@@ -28,7 +44,7 @@ export default Vue.extend({
   },
   computed: {
     /**
-     * Return message text as label
+     * Return message text as label.
      */
     messageLabel(): string | void {
       return !(typeof this.label === 'string') ? stringify(this.label) : undefined;

@@ -24,6 +24,9 @@
       "@shell/*": [
         "../../shell/*"
       ],
+      "@components/*": [
+        "src/components/*"
+      ],
       "~/*": [
         "src/*"
       ]
