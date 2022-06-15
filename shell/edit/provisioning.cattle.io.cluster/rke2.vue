@@ -1022,7 +1022,7 @@ export default {
         // We don't allow the user to edit any of the fields in metadata from the UI so it's safe to override it with the
         // metadata defined by the latest backend value. This is primarily used to ensure the resourceVersion is up to date.
         delete clonedCurrentConfig.metadata;
-        machinePool.config = merge(machinePool.config, clonedLatestConfig);
+        machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
       }
     },
 
