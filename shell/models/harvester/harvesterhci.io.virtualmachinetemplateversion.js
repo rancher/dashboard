@@ -105,6 +105,10 @@ export default class HciVmTemplateVersion extends SteveModel {
     Vue.set(this, 'spec', spec);
   }
 
+  get canDelete() {
+    return this.hasLink('remove') && this.$rootGetters['type-map/optionsFor'](this.type).isRemovable && !this.isDefaultVersion;
+  }
+
   get template() {
     return this.$rootGetters['harvester/all'](HCI.VM_TEMPLATE).find((T) => {
       return T.id === this.spec.templateId;
@@ -183,6 +187,10 @@ export default class HciVmTemplateVersion extends SteveModel {
     const template = templates.find(T => this.templateId === T.id);
 
     return template?.status?.defaultVersion;
+  }
+
+  get isDefaultVersion() {
+    return this.defaultVersion === this?.status?.version;
   }
 
   get customValidationRules() {
