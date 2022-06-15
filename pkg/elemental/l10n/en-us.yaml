@@ -21,8 +21,8 @@ typeLabel:
     }
   elemental.cattle.io.managedosimage: |-
     {count, plural,
-      one {Managed OS Image}
-      other {Managed OS Images}
+      one {OS Image Upgrade}
+      other {OS Images Upgrade}
     }
   elemental.cattle.io.managedosversionchannel: |-
     {count, plural,
@@ -84,4 +84,13 @@ elemental:
       name:
         label: Name
         placeholder: Enter a name
-
+  clusterGroup:
+    selector:
+      label: Machine Inventory Selectors
+      matchesAll: Matches all {total, number} existing Machine Inventories
+      matchesNone: Matches no existing Machine Inventories
+      matchesSome: |-
+        {matched, plural,
+          =1 {Matches 1 of {total, number} existing Machine Inventories: "{sample}"}
+          other {Matches {matched, number} of {total, number} existing Machine Inventories, including "{sample}"}
+        }

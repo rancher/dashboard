@@ -189,8 +189,6 @@ export default {
       this.value.spec.machineSelectorConfig.unshift({ config: {} });
     }
 
-    console.log('************** VALUE **************', this.value);
-
     if ( this.value.spec.cloudCredentialSecretName ) {
       await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
       this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
@@ -263,8 +261,6 @@ export default {
   },
 
   data() {
-    console.log('******** RKE2 PROVIDER *******', this.provider);
-
     if ( !this.value.spec.rkeConfig ) {
       set(this.value.spec, 'rkeConfig', {});
     }
@@ -1054,11 +1050,9 @@ export default {
     },
 
     async saveMachinePools() {
-      console.log('**** SAVING MACHINE POOLS.......... ****');
       const finalPools = [];
 
       for ( const entry of this.machinePools ) {
-        console.log('*** machine pool entry config on save ***', entry.config);
         if ( entry.remove ) {
           continue;
         }
@@ -1150,7 +1144,6 @@ export default {
     },
 
     async saveOverride(btnCb) {
-      console.log('*********** OBJECT ON SAVE RKE2!!!!!! **************', this.value);
       if ( this.errors ) {
         clear(this.errors);
       }
