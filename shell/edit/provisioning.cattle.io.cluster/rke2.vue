@@ -1054,9 +1054,11 @@ export default {
     },
 
     async saveMachinePools() {
+      console.log('**** SAVING MACHINE POOLS.......... ****');
       const finalPools = [];
 
       for ( const entry of this.machinePools ) {
+        console.log('machine pool entry on save', entry);
         if ( entry.remove ) {
           continue;
         }
