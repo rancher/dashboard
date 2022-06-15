@@ -40,4 +40,21 @@ describe('component: Upgrading', () => {
 
     expect(wrapper.props('value').strategy.rollingUpdate[key]).toBe(expectation);
   });
+
+  it.each([
+    'surge',
+    'unavailable',
+    'min',
+    'limit',
+    'deadline',
+  ])('should emit an update on %p input blur', (field) => {
+    const wrapper = mount(Upgrading);
+    const input = wrapper.find(`[data-testid="input-policy-${ field }"]`).find('input');
+    const newValue = 123;
+
+    input.setValue(newValue);
+    input.trigger('blur');
+
+    expect(wrapper.emitted('input')).toHaveLength(1);
+  });
 });
