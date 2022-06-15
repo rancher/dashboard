@@ -63,6 +63,7 @@ export default {
       :color-for="colorFor"
       name-field="name"
       icon-field="serviceIcon"
+      key-field="name"
       description-field="short_description"
       @clicked="(row) => showDetails(row)"
     />
