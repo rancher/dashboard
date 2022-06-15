@@ -1,5 +1,6 @@
 import ElementalResource from './elemental-resource';
 import { CAPI } from '@shell/config/types';
+import { ELEMENTAL_CLUSTER_PROVIDER } from '../types';
 
 export default class MachineInventory extends ElementalResource {
   constructor() {
@@ -36,7 +37,7 @@ export default class MachineInventory extends ElementalResource {
         resource: CAPI.RANCHER_CLUSTER,
         product:  'manager',
       },
-      query: { type: 'elemental' }
+      query: { type: ELEMENTAL_CLUSTER_PROVIDER }
     });
   }
 }
