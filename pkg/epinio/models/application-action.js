@@ -19,6 +19,10 @@ export default class ApplicationActionResource extends Resource {
   run = true;
   state = APPLICATION_ACTION_STATE.PENDING;
 
+  // application; // : EpinioApplication;
+  // bindings; // : EpinioAppBindings;
+  // type; // : EPINIO_TYPES / string;
+
   get name() {
     return this.t(`epinio.applications.action.${ this.action }.label`);
   }

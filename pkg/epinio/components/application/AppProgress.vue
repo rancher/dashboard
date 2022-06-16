@@ -49,13 +49,17 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   async fetch() {
-    const coreArgs = {
+    const coreArgs: Partial<ApplicationAction & {
+      application: EpinioApplication,
+      bindings: EpinioAppBindings,
+      type: string,
+    }> = {
       application: this.application,
       bindings:    this.bindings,
       type:        EPINIO_TYPES.APP_ACTION,
     };
 
-    if (!this.namespaces.find((ns: EpinioNamespace) => ns.name === this.application.namespace)) {
+    if (!this.namespaces.find((ns: EpinioNamespace) => ns.name === coreArgs.application?.meta.namespace)) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
         action:      APPLICATION_ACTION_TYPE.CREATE_NS,
         index:       0, // index used for sorting
