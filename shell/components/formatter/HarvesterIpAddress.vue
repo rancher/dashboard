@@ -7,7 +7,7 @@ import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { HCI } from '@shell/config/types';
 import { MANAGEMENT_NETWORK } from '@shell/mixins/harvester-vm';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
-// todo decide where to put harvester-specific config in shell
+// TODO decide where to put harvester-specific config in shell
 const OFF = 'Off';
 
 export default {

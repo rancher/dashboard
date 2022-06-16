@@ -1,8 +1,9 @@
 import Vue from 'vue';
 import Parse from 'url-parse';
 import { HCI } from '@shell/config/types';
+import { PRODUCT_NAME } from '../types';
 
-export const state = function() {
+const state = function() {
   return {
     latestBundleId:   '',
     bundlePending:    false,
@@ -12,7 +13,7 @@ export const state = function() {
   };
 };
 
-export const mutations = {
+const mutations = {
   setLatestBundleId(state, bundleId) {
     state.latestBundleId = bundleId;
   },
@@ -40,7 +41,7 @@ export const mutations = {
   },
 };
 
-export const getters = {
+const getters = {
   getBundleId(state) {
     return state.latestBundleId;
   },
@@ -62,7 +63,7 @@ export const getters = {
   },
 };
 
-export const actions = {
+const actions = {
   async bundleProgress({
     state, dispatch, commit, rootGetters
   }) {
@@ -123,4 +124,29 @@ export const actions = {
       }
     }, 1000);
   }
+};
+
+const harvesterFactory = () => {
+  return {
+    state,
+
+    getters: { ...getters },
+
+    mutations: { ...mutations },
+
+    actions: { ...actions },
+  };
+};
+const config = {
+  namespace:      `${ PRODUCT_NAME }-common`,
+  isClusterStore: false
+};
+
+/**
+ * `epinio` store is like a `cluster` store...
+ * .. it contains epinio instance specific resources that should be setup/reset when navigating to/away from an epinio instances
+ */
+export default {
+  specifics: harvesterFactory(),
+  config
 };

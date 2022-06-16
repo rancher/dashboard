@@ -168,6 +168,11 @@ export default {
 
     supportLink() {
       const product = this.$store.getters['currentProduct'].name;
+      const singleProduct = this.$store.getters['isSingleProduct'];
+
+      if (singleProduct?.supportRoute) {
+        return { ...singleProduct.supportRoute, params: { ...singleProduct.supportRoute.params, cluster: this.clusterId } };
+      }
 
       return { name: `c-cluster-${ product }-support` };
     },

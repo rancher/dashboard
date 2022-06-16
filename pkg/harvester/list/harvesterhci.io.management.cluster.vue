@@ -109,7 +109,7 @@ export default {
             <n-link
               v-if="row.isReady"
               :to="{
-                name: `c-cluster-${VIRTUAL}`,
+                name: `${VIRTUAL}-c-cluster`,
                 params: {
                   cluster: row.status.clusterName,
                 }
