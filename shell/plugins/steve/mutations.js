@@ -5,7 +5,7 @@ import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 export default {
   loadAll(state, { type, data, ctx }) {
     // Performance testing in dev and when env var is set
-    if (process.env.dev && process.env.perfTest) {
+    if (process.env.dev && !!process.env.perfTest) {
       data = perfLoadAll(type, data);
     }
 
