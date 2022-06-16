@@ -35,10 +35,10 @@ const ENDPOINT_MAPPING = {
     authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`,
   },
   china: {
-    endpoint:      'https://login.chinacloudapi.cn/',
+    endpoint:      'https://login.partner.microsoftonline.cn/',
     graphEndpoint: 'https://microsoftgraph.chinacloudapi.cn',
-    tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
-    authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`,
+    tokenEndpoint: `https://login.partner.microsoftonline.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
+    authEndpoint:  `https://login.partner.microsoftonline.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`,
   },
   custom: {
     endpoint:      'https://login.microsoftonline.com/',
