@@ -5116,6 +5116,7 @@ workload:
       sysctls: Sysctls
       sysctlsKey: Name
     standard: Standard Container
+    terminationState: "Last state: Terminated with {lsExitCode}: {lsDescription}, started: {lsStartedAt}, finished: {lsFinishedAt}"
     titles:
       container: Container
       command: Command
@@ -6705,7 +6706,7 @@ notifications:
   menuLabel: 'Custom Notifications'
   loginError:
     header: Login Failed Banner
-    showCheckboxLabel: Show custom login error 
+    showCheckboxLabel: Show custom login error
     messageLabel: Text to display
 resourceQuota:
   label: Resource Quotas

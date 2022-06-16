@@ -60,12 +60,34 @@ export default {
       return (containers || []).map((container) => {
         const status = findBy(statuses, 'name', container.name);
         const state = status?.state || {};
+        const descriptions = [];
 
         // There can be only one member of a `ContainerState`
         const s = Object.values(state)[0] || {};
         const reason = s.reason || '';
         const message = s.message || '';
         const showBracket = s.reason && s.message;
+        const description = `${ reason }${ showBracket ? ' (' : '' }${ message }${ showBracket ? ')' : '' }`;
+
+        if (description) {
+          descriptions.push(description);
+        }
+
+        // add lastState to show termination reason
+        if (status?.lastState?.terminated) {
+          const ls = status?.lastState?.terminated;
+          const lsReason = ls.reason || '';
+          const lsMessage = ls.message || '';
+          const lsExitCode = ls.exitCode || '';
+          const lsStartedAt = ls.startedAt || '';
+          const lsFinishedAt = ls.finishedAt || '';
+          const lsShowBracket = ls.reason && ls.message;
+          const lsDescription = `${ lsReason }${ lsShowBracket ? ' (' : '' }${ lsMessage }${ lsShowBracket ? ')' : '' }`;
+
+          descriptions.push(this.t('workload.container.terminationState', {
+            lsDescription, lsExitCode, lsStartedAt, lsFinishedAt
+          }));
+        }
 
         return {
           ...container,
@@ -76,7 +98,7 @@ export default {
           readyIcon:        status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5',
           availableActions: this.value.containerActions,
           stateObj:         status, // Required if there's a description
-          stateDescription: `${ reason }${ showBracket ? ' (' : '' }${ message }${ showBracket ? ')' : '' }`, // Required to display the description
+          stateDescription: descriptions.join(' | '), // Required to display the description
           initIcon:         this.value.containerIsInit(container) ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-minus icon-2x text-muted ml-5',
 
           // Call openShell here so that opening the shell
