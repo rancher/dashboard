@@ -765,6 +765,7 @@ export const actions = {
 
     // If we've entered a new store ensure everything has loaded correctly
     if (newPkgClusterStore) {
+      debugger;
       // Mirror actions on the 'cluster' store for our specific pkg `cluster` store
       dispatch(`${ newPkgClusterStore }/loadSchemas`, true);
       await dispatch(`${ newPkgClusterStore }/loadCluster`, { id });

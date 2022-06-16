@@ -25,23 +25,25 @@ export function init($plugin, store) {
 
   const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
 
-  // if (isSingleVirtualCluster) {
-  store.dispatch('setIsSingleProduct', {
-    logo:                require(`@shell/assets/images/providers/harvester.svg`),
-    productNameKey:      'product.harvester',
-    version:         store.getters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
-    afterLoginRoute: {
-      name:   'harvester-c-cluster',
-      params: { product: NAME },
-    },
-    logoRoute: {
-      name:   'harvester-c-cluster-resource',
-      params: {
-        product:  NAME,
-        resource: HCI.DASHBOARD,
-      }
-    }
-  });
+  // TODO detect need to set single product before clusters are loaded
+  // if (isSingleVirtualCluster || !isSingleVirtualCluster) {
+  //   store.dispatch('setIsSingleProduct', {
+  //     logo:                require(`@shell/assets/images/providers/harvester.svg`),
+  //     productNameKey:      'product.harvester',
+  //     version:         store.getters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
+  //     afterLoginRoute: {
+  //       name:   'harvester-c-cluster',
+  //       params: { product: NAME },
+  //     },
+  //     logoRoute: {
+  //       name:   'harvester-c-cluster-resource',
+  //       params: {
+  //         product:  NAME,
+  //         resource: HCI.DASHBOARD,
+  //       }
+  //     },
+  //     supportRoute: { name: 'harvester-c-cluster-support' }
+  //   });
   // }
 
   product({

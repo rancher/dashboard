@@ -245,7 +245,6 @@ export default async function({
       window.location.href = backTo;
     }
   }
-
   // Load stuff
   await applyProducts(store, $plugin);
 
@@ -315,6 +314,7 @@ export default async function({
         oldIsExt: !!oldPkg
       });
     }
+<<<<<<< HEAD
 
     // Ensure that the activeNamespaceCache is updated given the change of context either from or to a place where it uses workspaces
     // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
@@ -329,6 +329,9 @@ export default async function({
 
     if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
       setProduct(store, route);
+=======
+    if (product === VIRTUAL || route.name === `${ VIRTUAL }-c-cluster` || route.name?.startsWith(`${ VIRTUAL }-c-cluster-`)) {
+>>>>>>> harvester custom routes
       const res = [
         ...always,
         store.dispatch('loadVirtual', {

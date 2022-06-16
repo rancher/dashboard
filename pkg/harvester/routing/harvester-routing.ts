@@ -2,10 +2,14 @@ import { RouteConfig } from 'vue-router';
 import { PRODUCT_NAME } from '../types';
 
 import ListHarvester from '../pages/c/_cluster/index.vue';
+import HarvesterSupport from '../pages/c/_cluster/support/index.vue';
+import HarvesterConsoleSerial from '../pages/c/_cluster/console/_uid/serial.vue';
+import HarvesterConsoleVnc from '../pages/c/_cluster/console/_uid/vnc.vue';
 import ListHarvesterResource from '../pages/c/_cluster/_resource/index.vue';
 import CreateHarvesterResource from '../pages/c/_cluster/_resource/create.vue';
 import ViewHarvesterResource from '../pages/c/_cluster/_resource/_id.vue';
 import ViewHarvesterNsResource from '../pages/c/_cluster/_resource/_namespace/_id.vue';
+import HarvesterAirgapUpdgrade from '../pages/c/_cluster/airgapupgrade/index.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -34,6 +38,27 @@ const routes: RouteConfig[] = [
     name:      `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
     path:      `/:product/c/:cluster/:resource/:namespace/:id`,
     component: ViewHarvesterNsResource,
-  }];
+  },
+  {
+    name:      `${ PRODUCT_NAME }-c-cluster-support`,
+    path:      `/:product/c/:cluster/support`,
+    component: HarvesterSupport,
+  },
+  {
+    name:      `${ PRODUCT_NAME }-c-cluster-console-uid-serial`,
+    path:      `/:product/c/:cluster/console/:uid/serial`,
+    component: HarvesterConsoleSerial,
+  },
+  {
+    name:      `${ PRODUCT_NAME }-c-cluster-console-uid-vnc`,
+    path:      `/:product/c/:cluster/console/:uid/vnc`,
+    component: HarvesterConsoleVnc,
+  },
+  {
+    name:      `${ PRODUCT_NAME }-c-cluster-airgapupgrade`,
+    path:      `/:product/c/:cluster/airgapupgrade`,
+    component: HarvesterAirgapUpdgrade,
+  }
+];
 
 export default routes;
