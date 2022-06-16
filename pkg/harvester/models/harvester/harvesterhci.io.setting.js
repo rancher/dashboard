@@ -48,7 +48,7 @@ export default class HciSetting extends SteveModel {
     const router = this.currentRouter();
 
     router.push({
-      name:   'c-cluster-harvester-airgapupgrade',
+      name:   'harvester-c-cluster-airgapupgrade',
       params: { cluster: this.$rootGetters['currentCluster'].id, product: 'harvester' },
     });
   }

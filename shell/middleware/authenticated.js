@@ -236,7 +236,6 @@ export default async function({
       window.location.href = backTo;
     }
   }
-
   // Load stuff
   await applyProducts(store, $plugin);
 
@@ -305,7 +304,7 @@ export default async function({
         oldIsExt: !!oldPkg
       });
     }
-    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
+    if (product === VIRTUAL || route.name === `${ VIRTUAL }-c-cluster` || route.name?.startsWith(`${ VIRTUAL }-c-cluster-`)) {
       const res = [
         ...always,
         store.dispatch('loadVirtual', {
