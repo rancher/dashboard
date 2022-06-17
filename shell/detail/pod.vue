@@ -12,6 +12,9 @@ import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import Loading from '@shell/components/Loading';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import day from 'dayjs';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { escapeHtml } from '@shell/utils/string';
 
 const POD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1';
 const POD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-pod?orgId=1';
@@ -60,12 +63,34 @@ export default {
       return (containers || []).map((container) => {
         const status = findBy(statuses, 'name', container.name);
         const state = status?.state || {};
+        const descriptions = [];
 
         // There can be only one member of a `ContainerState`
         const s = Object.values(state)[0] || {};
         const reason = s.reason || '';
         const message = s.message || '';
         const showBracket = s.reason && s.message;
+        const description = `${ reason }${ showBracket ? ' (' : '' }${ message }${ showBracket ? ')' : '' }`;
+
+        if (description) {
+          descriptions.push(description);
+        }
+
+        // add lastState to show termination reason
+        if (status?.lastState?.terminated) {
+          const ls = status?.lastState?.terminated;
+          const lsReason = ls.reason || '';
+          const lsMessage = ls.message || '';
+          const lsExitCode = ls.exitCode || '';
+          const lsStartedAt = this.dateTimeFormat(ls.startedAt);
+          const lsFinishedAt = this.dateTimeFormat(ls.finishedAt);
+          const lsShowBracket = ls.reason && ls.message;
+          const lsDescription = `${ lsReason }${ lsShowBracket ? ' (' : '' }${ lsMessage }${ lsShowBracket ? ')' : '' }`;
+
+          descriptions.push(this.t('workload.container.terminationState', {
+            lsDescription, lsExitCode, lsStartedAt, lsFinishedAt
+          }));
+        }
 
         return {
           ...container,
@@ -76,7 +101,7 @@ export default {
           readyIcon:        status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5',
           availableActions: this.value.containerActions,
           stateObj:         status, // Required if there's a description
-          stateDescription: `${ reason }${ showBracket ? ' (' : '' }${ message }${ showBracket ? ')' : '' }`, // Required to display the description
+          stateDescription: descriptions.join(' | '), // Required to display the description
           initIcon:         this.value.containerIsInit(container) ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-minus icon-2x text-muted ml-5',
 
           // Call openShell here so that opening the shell
@@ -173,6 +198,13 @@ export default {
       } else {
         return `${ this.v1MonitoringContainerBaseUrl }/${ this.metricsID }`;
       }
+    },
+
+    dateTimeFormatString() {
+      const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+
+      return `${ dateFormat } ${ timeFormat }`;
     }
   },
 
@@ -183,6 +215,10 @@ export default {
       this.metricsID = id;
       this.selection = c;
     },
+
+    dateTimeFormat(value) {
+      return value ? day(value).format(this.dateTimeFormatString) : '';
+    }
   }
 };
 </script>
