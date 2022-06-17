@@ -5,7 +5,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import { Card } from '@components/Card';
 import CommunityLinks from '@shell/components/CommunityLinks';
-import { MANAGEMENT, SERVICE } from '@shell/config/types';
+import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { getVendor, setBrand } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
@@ -47,25 +47,26 @@ export default {
       return setting;
     };
 
-    if ( this.$store.getters['management/canList'](SERVICE) ) {
-      this.svcs = await this.$store.dispatch('management/findAll', { type: SERVICE });
+    if ( this.$store.getters['management/canList'](CATALOG.APP) ) {
+      this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
     }
     this.supportSetting = await fetchOrCreateSetting('has-support', 'false');
     this.brandSetting = await fetchOrCreateSetting(SETTING.BRAND, '');
     this.communitySetting = await fetchOrCreateSetting(SETTING.COMMUNITY_LINKS, 'true');
-
+    this.serverUrlSetting = await fetchOrCreateSetting(SETTING.SERVER_URL, '');
     this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
   },
 
   data() {
     return {
-      svcs:             [],
+      apps:                 [],
       vendor:               getVendor(),
       supportKey:           '',
       supportSetting:       null,
       brandSetting:         null,
       uiIssuesSetting:      null,
-      communitySetting: null,
+      communitySetting:     null,
+      serverSetting:        null,
       promos:               [
         'support.promos.one',
         'support.promos.two',
@@ -77,11 +78,21 @@ export default {
 
   computed: {
     cspAdapter() {
-      return findBy(this.svcs, 'id', 'cattle-system/rancher-csp-adapter' );
+      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
     },
 
     hasAWSSupport() {
       return !!this.cspAdapter;
+    },
+
+    serverUrl() {
+      if (process.client) {
+        // Client-side rendered: use the current window location
+        return window.location.origin;
+      }
+
+      // Server-side rendered
+      return this.serverSetting?.value || '';
     },
 
     supportConfigLink() {
@@ -89,7 +100,7 @@ export default {
         return false;
       }
 
-      return `${ this.cspAdapter.proxyUrl('https', '443') }v1/generateSUSERancherSupportConfig`;
+      return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig`;
     },
 
     hasSupport() {
