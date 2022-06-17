@@ -206,7 +206,7 @@ export default {
       :normalize-name="false"
     />
     <div class="row mb-20">
-      <div class="col span-12">
+      <div class="col span-3">
         <LabeledSelect
           v-if="pspOptions"
           v-model="value.spec.podSecurityPolicyTemplateId"
