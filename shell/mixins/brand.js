@@ -53,7 +53,7 @@ export default {
     },
 
     cspAdapter() {
-      return findBy(this.apps, 'metadata.name', 'csp-adapter' );
+      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
     }
   },
 
