@@ -12,6 +12,9 @@ import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import Loading from '@shell/components/Loading';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import day from 'dayjs';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { escapeHtml } from '@shell/utils/string';
 
 const POD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1';
 const POD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-pod?orgId=1';
@@ -79,8 +82,8 @@ export default {
           const lsReason = ls.reason || '';
           const lsMessage = ls.message || '';
           const lsExitCode = ls.exitCode || '';
-          const lsStartedAt = ls.startedAt || '';
-          const lsFinishedAt = ls.finishedAt || '';
+          const lsStartedAt = this.dateTimeFormat(ls.startedAt);
+          const lsFinishedAt = this.dateTimeFormat(ls.finishedAt);
           const lsShowBracket = ls.reason && ls.message;
           const lsDescription = `${ lsReason }${ lsShowBracket ? ' (' : '' }${ lsMessage }${ lsShowBracket ? ')' : '' }`;
 
@@ -195,6 +198,13 @@ export default {
       } else {
         return `${ this.v1MonitoringContainerBaseUrl }/${ this.metricsID }`;
       }
+    },
+
+    dateTimeFormatString() {
+      const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+
+      return `${ dateFormat } ${ timeFormat }`;
     }
   },
 
@@ -205,6 +215,10 @@ export default {
       this.metricsID = id;
       this.selection = c;
     },
+
+    dateTimeFormat(value) {
+      return value ? day(value).format(this.dateTimeFormatString) : '';
+    }
   }
 };
 </script>
