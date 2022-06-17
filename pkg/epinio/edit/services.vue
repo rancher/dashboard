@@ -71,12 +71,13 @@ export default Vue.extend<Data, any, any, any>({
       }
 
       const nameErrors = validateKubernetesName(this.value?.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+      const nsErrors = validateKubernetesName(this.value?.meta.namespace || '', '', this.$store.getters, undefined, []);
 
-      if (nameErrors.length > 0) {
-        return false;
+      if (nameErrors.length === 0 && nsErrors.length === 0) {
+        return !this.failedWaitingForDeploy;
       }
 
-      return !this.failedWaitingForDeploy;
+      return false;
     },
 
     namespaces() {
@@ -128,7 +129,7 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   watch: {
-    'value.namespace'() {
+    'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
     }
   }

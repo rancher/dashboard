@@ -9,6 +9,7 @@ import Loading from '@shell/components/Loading.vue';
 
 import { EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
+import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
 
 export interface EpinioAppInfo {
   meta: {
@@ -99,7 +100,9 @@ export default Vue.extend<Data, any, any, any>({
         return false;
       }
       const validName = !!this.values.meta?.name;
-      const validNamespace = !!this.values.meta?.namespace;
+
+      const nsErrors = validateKubernetesName(this.values.meta?.namespace || '', '', this.$store.getters, undefined, []);
+      const validNamespace = nsErrors.length === 0;
       const validInstances = typeof this.values.configuration?.instances !== 'string' && this.values.configuration?.instances >= 0;
 
       return validName && validNamespace && validInstances;

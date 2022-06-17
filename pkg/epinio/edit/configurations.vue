@@ -105,8 +105,9 @@ export default Vue.extend<Data, any, any, any>({
 
     updateValidation() {
       const nameErrors = validateKubernetesName(this.value?.meta.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+      const nsErrors = validateKubernetesName(this.value?.meta.namespace || '', '', this.$store.getters, undefined, []);
 
-      if (nameErrors.length === 0) {
+      if (nameErrors.length === 0 && nsErrors.length === 0) {
         const dataValues = Object.entries(this.value?.data || {});
 
         if (!!dataValues.length) {
@@ -124,6 +125,7 @@ export default Vue.extend<Data, any, any, any>({
   watch: {
     'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
+      this.updateValidation(); // For when a user is supplying their own ns
     },
 
     'value.meta.name'() {
