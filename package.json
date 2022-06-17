@@ -117,7 +117,8 @@
     "xterm-addon-fit": "^0.4.0",
     "xterm-addon-search": "^0.7.0",
     "xterm-addon-web-links": "^0.4.0",
-    "xterm-addon-webgl": "^0.9.0"
+    "xterm-addon-webgl": "^0.9.0",
+    "yaml": "^2.0.0"
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.14.5",
@@ -159,7 +160,6 @@
     "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-jest": "^23.6.0",
     "eslint-plugin-import": "2.23.4",
-    "eslint-plugin-jest": "^23.6.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-vue": "7.14.0",
     "frontmatter-markdown-loader": "^3.6.3",

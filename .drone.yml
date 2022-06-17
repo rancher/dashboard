@@ -15,7 +15,7 @@ platform:
 steps:
 - name: test
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - scripts/ci
 
@@ -41,7 +41,7 @@ platform:
 steps:
 - name: gate
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-upload-gate
 
@@ -103,13 +103,13 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-hosted
 
 - name: upload-gate
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-upload-gate
 
@@ -146,7 +146,7 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-hosted
 
@@ -180,7 +180,7 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-hosted
 
@@ -227,13 +227,13 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-embedded
 
 - name: upload-gate
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-upload-gate
 
@@ -270,7 +270,7 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-embedded
 
@@ -304,7 +304,7 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-embedded
 
