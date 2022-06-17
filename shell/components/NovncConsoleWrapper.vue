@@ -1,9 +1,114 @@
 <script>
 import KeyTable from '@novnc/novnc/core/input/keysym';
-import NovncConsole from '@shell/components/NovncConsole';
+import NovncConsole from '@/shell/components/NovncConsole';
+import NovncConsoleItem from '@/shell/components/NovncConsoleItem';
+import { HCI } from '@/shell/config/types';
+
+const SHORT_KEYS = {
+  ControlLeft: {
+    label: 'Ctrl',
+    value: KeyTable.XK_Control_L,
+  },
+  AltLeft: {
+    label: 'Alt',
+    value: KeyTable.XK_Alt_L,
+  }
+};
+
+const FUNCTION_KEYS = {
+  Delete: {
+    label: 'Del',
+    value: KeyTable.XK_Delete,
+  },
+  PrintScreen: {
+    label: 'Print Screen',
+    value: KeyTable.XK_Print,
+  },
+};
+
+const NORMAL_KEYS = {
+  KeyN: {
+    label: 'N',
+    value: KeyTable.XK_n,
+  },
+  KeyT: {
+    label: 'T',
+    value: KeyTable.XK_t,
+  },
+  KeyW: {
+    label: 'W',
+    value: KeyTable.XK_w,
+  },
+  KeyY: {
+    label: 'Y',
+    value: KeyTable.XK_y,
+  },
+};
+
+const F_KEYS = {
+  F1: {
+    label: 'F1',
+    value: KeyTable.XK_F1,
+  },
+  F2: {
+    label: 'F2',
+    value: KeyTable.XK_F2,
+  },
+  F3: {
+    label: 'F3',
+    value: KeyTable.XK_F3,
+  },
+  F4: {
+    label: 'F4',
+    value: KeyTable.XK_F4,
+  },
+  F5: {
+    label: 'F5',
+    value: KeyTable.XK_F5,
+  },
+  F6: {
+    label: 'F6',
+    value: KeyTable.XK_F6,
+  },
+  F7: {
+    label: 'F7',
+    value: KeyTable.XK_F7,
+  },
+  F8: {
+    label: 'F8',
+    value: KeyTable.XK_F8,
+  },
+  F9: {
+    label: 'F9',
+    value: KeyTable.XK_F9,
+  },
+  F10: {
+    label: 'F10',
+    value: KeyTable.XK_F10,
+  },
+  F11: {
+    label: 'F11',
+    value: KeyTable.XK_F11,
+  },
+  F12: {
+    label: 'F12',
+    value: KeyTable.XK_F12,
+  },
+};
 
 export default {
-  components: { NovncConsole },
+  components: { NovncConsole, NovncConsoleItem },
+
+  async fetch() {
+    this.vmResource = await this.$store.dispatch('harvester/find', { type: HCI.VM, id: this.value.id });
+  },
+
+  data() {
+    return {
+      keysRecord: [],
+      vmResource: {},
+    };
+  },
 
   props: {
     value: {
@@ -19,11 +124,44 @@ export default {
     isDown() {
       return this.isEmpty(this.value);
     },
+
     url() {
       const ip = `${ window.location.hostname }:${ window.location.port }`;
 
       return `wss://${ ip }${ this.value?.getVMIApiPath }`;
     },
+
+    allKeys() {
+      return {
+        ...SHORT_KEYS,
+        ...FUNCTION_KEYS,
+        ...NORMAL_KEYS,
+        ...F_KEYS,
+      };
+    },
+
+    keymap() {
+      const out = {
+        ...SHORT_KEYS,
+        PrintScreen: FUNCTION_KEYS.PrintScreen,
+        ...F_KEYS,
+      };
+
+      out.AltLeft.keys = { PrintScreen: FUNCTION_KEYS.PrintScreen, ...F_KEYS };
+      out.ControlLeft.keys = {
+        AltLeft: {
+          ...Object.assign(SHORT_KEYS.AltLeft, {}),
+          keys: { Delete: FUNCTION_KEYS.Delete }
+        },
+        ...NORMAL_KEYS,
+      };
+
+      return out;
+    },
+
+    hasSoftRebootAction() {
+      return !!this.vmResource?.actions?.softreboot;
+    }
   },
 
   methods: {
@@ -35,26 +173,22 @@ export default {
       this.$refs.novncConsole.disconnect();
     },
 
-    sendCtrlAltDel() {
-      this.$refs.novncConsole.ctrlAltDelete();
+    sendKeys() {
+      this.keysRecord.forEach((key) => {
+        this.$refs.novncConsole.sendKey(this.allKeys[key].value, key, true);
+      });
+
+      this.keysRecord.reverse().forEach((key) => {
+        this.$refs.novncConsole.sendKey(this.allKeys[key].value, key, false);
+      });
+
       this.$refs.popover.isOpen = false;
+      this.keysRecord = [];
     },
 
-    sendPrintScreen() {
-      this.$refs.novncConsole.sendKey(KeyTable.XK_Meta_L, 'MetaLeft', true);
-      this.$refs.novncConsole.sendKey(KeyTable.XK_Print, 'PrintScreen', true);
-      this.$refs.novncConsole.sendKey(KeyTable.XK_Print, 'PrintScreen', false);
-      this.$refs.novncConsole.sendKey(KeyTable.XK_comma, 'MetaLeft', false);
-      this.$refs.popover.isOpen = false;
+    softReboot() {
+      this.vmResource.softrebootVM();
     },
-
-    sendCtrlShortKeys(key) {
-      this.$refs.novncConsole.sendKey(KeyTable.XK_Control_L, 'ControlLeft', true);
-      this.$refs.novncConsole.sendKey(0, key, true);
-      this.$refs.novncConsole.sendKey(0, key, false);
-      this.$refs.novncConsole.sendKey(KeyTable.XK_Control_L, 'ControlLeft', false);
-      this.$refs.popover.isOpen = false;
-    }
   }
 };
 </script>
@@ -67,58 +201,21 @@ export default {
           ref="popover"
           placement="top"
           trigger="click"
-          offset="-485"
+          :container="false"
+          @auto-hide="keysRecord = []"
         >
           <button class="btn btn-sm bg-primary">
-            <i class="icon icon-actions"></i>
+            {{ t("harvester.virtualMachine.detail.console.shortKeys") }}
           </button>
 
           <template slot="popover">
-            <ul class="list-unstyled dropdown" style="margin: -1px;">
-              <li
-                class="p-10 hand"
-                @click="sendCtrlAltDel()"
-              >
-                Ctrl + Alt + Delete
-              </li>
-
-              <li
-                class="p-10 hand"
-                @click="sendPrintScreen()"
-              >
-                Print Screen
-              </li>
-
-              <li
-                class="p-10 hand"
-                @click="sendCtrlShortKeys('KeyT')"
-              >
-                Ctrl + T
-              </li>
-
-              <li
-                class="p-10 hand"
-                @click="sendCtrlShortKeys('KeyN')"
-              >
-                Ctrl + N
-              </li>
-
-              <li
-                class="p-10 hand"
-                @click="sendCtrlShortKeys('KeyW')"
-              >
-                Ctrl + W
-              </li>
-
-              <li
-                class="p-10 hand"
-                @click="sendCtrlShortKeys('KeyY')"
-              >
-                Ctrl + Y
-              </li>
-            </ul>
+            <novnc-console-item :items="keymap" :path="keysRecord" :pos="0" @sendKeys="sendKeys" />
           </template>
         </v-popover>
+
+        <button v-if="hasSoftRebootAction" class="btn btn-sm bg-primary" @click="softReboot">
+          {{ t("harvester.action.softreboot") }}
+        </button>
       </div>
       <NovncConsole v-if="url && !isDown" ref="novncConsole" :url="url" />
       <p v-if="isDown">
@@ -128,23 +225,18 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
   .vm-console {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 30px auto;
   }
 
-  .vm-console, ::v-deep .vm-console > DIV, ::v-deep .vm-console > DIV > DIV {
+  .vm-console, .vm-console > DIV, .vm-console > DIV > DIV {
     height: 100%;
   }
 
   .combination-keys {
-    position: fixed;
-    right: 0;
-    top: 0;
+    background: rgb(40, 40, 40);
   }
 </style>
