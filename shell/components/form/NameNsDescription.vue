@@ -324,7 +324,7 @@ export default {
     },
 
     selectNamespace(e) {
-      if (e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
+      if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
         this.$parent.$emit('createNamespace', true);
         Vue.nextTick(() => this.$refs.namespace.focus());
