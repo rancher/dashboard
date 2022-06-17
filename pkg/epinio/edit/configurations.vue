@@ -48,7 +48,7 @@ export default Vue.extend<Data, any, any, any>({
   async fetch() {
     await this.mixinFetch();
 
-    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0].metadata.name);
+    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0]?.metadata.name);
     this.selectedApps = [...this.initialValue.configuration?.boundapps || []];
   },
 
@@ -142,9 +142,9 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="!value || !namespaces || $fetchState.pending" />
+  <Loading v-if="!value || $fetchState.pending" />
   <CruResource
-    v-else-if="value && namespaces.length > 0"
+    v-else-if="value"
     :min-height="'7em'"
     :mode="mode"
     :done-route="doneRoute"

@@ -60,7 +60,7 @@ export default Vue.extend<Data, any, any, any>({
     this.values = {
       meta: {
         name:      this.application.meta?.name,
-        namespace: this.application.meta?.namespace || this.namespaces[0].metadata.name
+        namespace: this.application.meta?.namespace || this.namespaces[0]?.metadata.name
       },
       configuration: {
         instances:   this.application.configuration?.instances || 1,

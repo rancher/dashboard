@@ -51,7 +51,7 @@ export default Vue.extend<Data, any, any, any>({
     ]);
 
     Vue.set(this.value, 'catalog_service', this.$route.query[EPINIO_SERVICE_PARAM]);
-    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0].meta.name);
+    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0]?.meta.name);
   },
 
   data() {
@@ -137,9 +137,9 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="!value || !namespaces || $fetchState.pending" />
+  <Loading v-if="!value || $fetchState.pending" />
   <CruResource
-    v-else-if="value && namespaces.length > 0"
+    v-else-if="value"
     :can-yaml="false"
     :done-route="doneRoute"
     :mode="mode"
