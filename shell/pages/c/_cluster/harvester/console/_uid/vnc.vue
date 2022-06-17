@@ -44,3 +44,9 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <NovncConsoleWrapper v-else ref="console" v-model="vmi" class="novnc-wrapper" />
 </template>
+
+<style>
+HTML, BODY, MAIN, #__nuxt, #__layout, #app {
+  height: 100%;
+}
+</style>

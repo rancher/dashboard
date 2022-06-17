@@ -5857,6 +5857,7 @@ harvester:
         down: No events in the past hour
       console:
         down: This Virtual Machine is down. Please start it to access its console.
+        shortKeys: Short Keys
 
   volume:
     label: Volumes

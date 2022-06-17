@@ -5902,6 +5902,7 @@ harvester:
         down: 过去一小时没有事件
       console:
         down: 此虚拟机已关闭。请启动虚拟机以访问其控制台。
+        shortKeys: 快捷键
 
   volume:
     label: 卷
