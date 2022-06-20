@@ -139,7 +139,14 @@ export default {
         return get(opt, opt.optionKey);
       }
 
-      return this.getOptionLabel(opt);
+      const label = this.getOptionLabel(opt);
+
+      // label may be type of object
+      if (typeof label === 'string' || typeof label === 'number') {
+        return label;
+      } else {
+        return Math.random(100000);
+      }
     },
     report(e) {
       alert(e);

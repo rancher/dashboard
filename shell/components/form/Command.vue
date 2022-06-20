@@ -88,7 +88,6 @@ export default {
           this.tty = false;
           break;
         }
-        this.update();
       },
     },
   },
@@ -120,50 +119,70 @@ export default {
 };
 </script>
 <template>
-  <div @input="update">
+  <div>
     <div class="row">
-      <div class="col span-6">
+      <div
+        class="col span-6"
+        data-testid="input-command-command"
+      >
         <slot name="entrypoint">
           <ShellInput
             v-model="command"
             :mode="mode"
             :label="t('workload.container.command.command')"
             :placeholder="t('generic.placeholder', {text: '/bin/sh'}, true)"
+            @input="update"
           />
         </slot>
       </div>
-      <div class="col span-6">
+      <div
+        class="col span-6"
+        data-testid="input-command-args"
+      >
         <slot name="command">
           <ShellInput
             v-model="args"
             :mode="mode"
             :label="t('workload.container.command.args')"
             :placeholder="t('generic.placeholder', {text: '/usr/sbin/httpd -f httpd.conf'}, true)"
+            @input="update"
           />
         </slot>
       </div>
     </div>
 
     <div class="row mt-20">
-      <div class="col span-6">
+      <div
+        class="col span-6"
+        data-testid="input-command-workingDir"
+      >
         <LabeledInput
           v-model="workingDir"
           :mode="mode"
           :label="t('workload.container.command.workingDir')"
           :placeholder="t('generic.placeholder', {text: '/myapp'}, true)"
+          @input="update"
         />
       </div>
       <div class="col span-6">
         <div :style="{ 'align-items': 'center' }" class="row">
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="input-command-stdin"
+          >
             <LabeledSelect
               v-model="stdinSelect"
               :label="t('workload.container.command.stdin')"
               :options="commandOptions"
               :mode="mode"
+              @input="update"
             />
           </div>
-          <div v-if="stdin" class="col span-6">
+          <div
+            v-if="stdin"
+            class="col span-6"
+            data-testid="input-command-tty"
+          >
             <Checkbox
               v-model="tty"
               :mode="mode"
