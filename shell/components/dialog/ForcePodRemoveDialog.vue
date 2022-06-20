@@ -95,13 +95,13 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-restore" :show-highlight-border="false">
+  <Card class="prompt-remove" :show-highlight-border="false">
     <h4 slot="title" class="text-default-text">
-      {{ t('promptForceRemove.modalTitle') }}
+      {{ t('promptRemove.title') }}
     </h4>
     <div slot="body" class="pl-10 pr-10">
       <span
-        v-html="t('promptForceRemove.removeWarning', { nameToMatch }, true)"
+        v-html="t('promptRemove.attemptingToRemove', { type }, true)"
       ></span>
       <div class="mb-10">
         <Checkbox
@@ -110,6 +110,9 @@ export default {
         />
       </div>
       <input id="confirm" v-model="confirmName" type="text" />
+      <div class="text-error mb-10 mt-10">
+        {{ error }}
+      </div>
       <div class="text-info mt-20">
         {{ protip }}
       </div>
