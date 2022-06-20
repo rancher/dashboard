@@ -15,7 +15,7 @@ import { saferDump } from '@shell/utils/create-yaml';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { downloadFile, generateZip } from '@shell/utils/download';
-import { ISO_BUILD_INSTRUCTIONS } from '../utils/iso-build-instructions.js';
+import IsoBluildInstructions from '../utils/iso-build-instructions.md';
 
 export default {
   name:       'MachineRegistrationEditView',
@@ -36,8 +36,7 @@ export default {
   data() {
     return {
       cloudConfig:  typeof this.value.spec.cloudConfig === 'string' ? this.value.spec.cloudConfig : saferDump(this.value.spec.cloudConfig),
-      yamlErrors:   null,
-      instructions: ISO_BUILD_INSTRUCTIONS
+      yamlErrors:   null
     };
   },
   watch: {
@@ -119,7 +118,7 @@ export default {
       if (machineReg.data) {
         const zipData = {};
         const instructionsData = {
-          data:     new Blob([this.instructions], { type: 'text/markdown; charset=UTF-8' }),
+          data:     new Blob([IsoBluildInstructions.body], { type: 'text/markdown; charset=UTF-8' }),
           fileName: 'instructions.md'
         };
 
