@@ -9,6 +9,7 @@ import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
+import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 
 export default {
 
@@ -26,7 +27,7 @@ export default {
 
   middleware: ['authenticated'],
 
-  mixins: [Brand],
+  mixins: [Brand, BrowserTabVisibility],
 
   data() {
     return {

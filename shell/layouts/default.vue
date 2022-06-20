@@ -28,6 +28,7 @@ import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
+import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -48,7 +49,7 @@ export default {
     AzureWarning
   },
 
-  mixins: [PageHeaderActions, Brand],
+  mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
 
   data() {
     return {

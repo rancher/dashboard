@@ -420,6 +420,7 @@ export const getters = {
             resource: HCI.DASHBOARD,
           }
         },
+        enableSessionCheck: true
       };
     }
 
