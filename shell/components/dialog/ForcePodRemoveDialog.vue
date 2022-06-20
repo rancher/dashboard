@@ -52,14 +52,37 @@ export default {
       this.$emit('close');
     },
 
+    async forceRemoveMachine(opt = {}) {
+      const machine  = this.machine;
+
+      if ( !opt.url ) {
+          opt.url = machine.linkFor('self');
+        }
+
+        opt.method = 'delete';
+
+        opt.data = {
+          gracePeriodSeconds: 0,
+          force: true
+        }
+
+      const res = await this.$dispatch('request', { opt, type: machine.type } );
+      if ( res?._status === 204 ) {
+        // If there's no body, assume the resource was immediately deleted
+        // and drop it from the store as if a remove event happened.
+        await this.$dispatch('ws.resource.remove', { data: machine });
+      }
+    },
+
     async remove(confirm) {
+
       try {
         if(this.forceDelete) {
-          this.$set(this.machine.metadata, 'deletionGracePeriodSeconds', 0)
+          await this.forceRemoveMachine()
+        } else {
+          await this.machine.remove();
         }
-        //console.log(this.machine.spec)
-        await this.machine.save()
-        await this.machine.remove();
+
         confirm(true);
         this.close();
       } catch (e) {
@@ -83,7 +106,7 @@ export default {
       <div class="mb-10">
         <Checkbox
           v-model="forceDelete"
-          label="nameToMatch"
+          :label="t('promptForceRemove.forceDelete')"
         />
       </div>
       <input id="confirm" v-model="confirmName" type="text" />

@@ -1180,14 +1180,12 @@ export default class Resource {
 
     opt.method = 'delete';
 
-    console.log(this)
-
     const res = await this.$dispatch('request', { opt, type: this.type } );
 
     if ( res?._status === 204 ) {
       // If there's no body, assume the resource was immediately deleted
       // and drop it from the store as if a remove event happened.
-      await this.$dispatch('ws.resource.remove', { data: this });
+       await this.$dispatch('ws.resource.remove', { data: {} });
     }
   }
 
