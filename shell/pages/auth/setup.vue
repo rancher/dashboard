@@ -355,7 +355,11 @@ export default {
             </template>
 
             <div class="checkbox mt-40">
-              <Checkbox id="checkbox-telemetry" v-model="telemetry" label-key="setup.telemetry" />
+              <Checkbox id="checkbox-telemetry" v-model="telemetry">
+                <template #label>
+                  <t k="setup.telemetry" :raw="true" :name="productName" />
+                </template>
+              </Checkbox>
             </div>
             <div class="checkbox pt-10 eula">
               <Checkbox
