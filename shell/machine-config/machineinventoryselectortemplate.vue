@@ -12,6 +12,12 @@ export default {
   mixins:     [CreateEditView],
   async fetch() {
     this.machineInventories = await this.$store.dispatch('management/findAll', { type: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES });
+    this.machineInventorySelectorKeyOptions = this.getUniqueLabels(this.machineInventories).map((item) => {
+      return {
+        label: item,
+        value: item
+      };
+    });
     this.updateMatchingMachineInventories();
   },
   data() {
@@ -29,13 +35,31 @@ export default {
     );
 
     return {
-      machineInventories:         null,
-      matchingMachineInventories: null,
+      machineInventories:                 null,
+      matchingMachineInventories:         null,
+      machineInventorySelectorKeyOptions: null,
       expressions
     };
   },
   methods: {
     set,
+    getUniqueLabels(arr) {
+      const uniqueLabels = [];
+
+      arr.forEach((item) => {
+        if (item.metadata?.labels && Object.keys(item.metadata?.labels).length) {
+          const objKeys = Object.keys(item.metadata?.labels);
+
+          objKeys.forEach((key) => {
+            if (!uniqueLabels.includes(key)) {
+              uniqueLabels.push(key);
+            }
+          });
+        }
+      });
+
+      return uniqueLabels;
+    },
     matchChanged(expressions) {
       const { matchLabels, matchExpressions } = simplify(expressions);
 
@@ -71,6 +95,7 @@ export default {
       :mode="mode"
       :value="expressions"
       :show-remove="false"
+      :keys-select-options="machineInventorySelectorKeyOptions"
       @input="matchChanged($event)"
     />
     <Banner v-if="matchingMachineInventories" :color="(matchingMachineInventories.isNone || matchingMachineInventories.isAll ? 'warning' : 'success')">
