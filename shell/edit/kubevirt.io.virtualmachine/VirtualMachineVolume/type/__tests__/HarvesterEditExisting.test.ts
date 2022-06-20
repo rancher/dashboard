@@ -47,7 +47,7 @@ describe('component: HarvesterEditExisting', () => {
     expect(wrapper.emitted('update')).toHaveLength(1);
   });
 
-  // TODO: Restore this test when the input is allowed to edit
+  // TODO: #6179: Restore this test when the input is allowed to edit
   it.skip.each([
     'size',
   ])('should emit an update on %p input and blur', (field) => {
