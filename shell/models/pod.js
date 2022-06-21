@@ -15,8 +15,7 @@ export const WORKLOAD_PRIORITY = {
 
 export default class Pod extends SteveModel {
   get _availableActions() {
-    const forceRemove = 
-      {
+    const forceRemove = {
       action:     'promptRemove',
       altAction:  'remove',
       label:      this.t('action.remove'),
@@ -25,7 +24,8 @@ export default class Pod extends SteveModel {
       enabled:    this.canDelete,
       bulkAction: 'promptRemove',
       weight:     -10, // Delete always goes last
-    }
+    };
+
     const out = [
       {
         action:     'openShell',
