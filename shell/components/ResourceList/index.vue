@@ -114,7 +114,11 @@ export default {
       :type-display="customTypeDisplay"
       :schema="schema"
       :resource="resource"
-    />
+    >
+      <template slot="extraActions">
+        <slot name="extraActions"></slot>
+      </template>
+    </Masthead>
 
     <div v-if="hasListComponent">
       <component

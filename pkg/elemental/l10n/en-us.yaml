@@ -27,7 +27,7 @@ typeLabel:
   elemental.cattle.io.managedosimage: |-
     {count, plural,
       one {OS Image Upgrade}
-      other {OS Images Upgrade}
+      other {OS Image Upgrades}
     }
   elemental.cattle.io.managedosversionchannel: |-
     {count, plural,
@@ -99,3 +99,5 @@ elemental:
           =1 {Matches 1 of {total, number} existing Machine Inventories: "{sample}"}
           other {Matches {matched, number} of {total, number} existing Machine Inventories, including "{sample}"}
         }
+  machineInventory:
+    import: YAML import
