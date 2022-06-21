@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
 
 export default {
