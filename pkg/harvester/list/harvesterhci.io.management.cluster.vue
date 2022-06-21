@@ -4,7 +4,7 @@ import TypeDescription from '@shell/components/TypeDescription';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { NAME as VIRTUAL } from '../config/harvester';
-import { CAPI, HCI, VIRTUAL_HARVESTER_PROVIDER, MANAGEMENT } from '@shell/config/types';
+import { CAPI, HCI, MANAGEMENT } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 
 export default {
@@ -57,10 +57,6 @@ export default {
 
       return clusters.filter((c) => {
         const cluster = manageClusters.find(cluster => cluster?.metadata?.name === c?.status?.clusterName);
-
-        if (cluster?.status?.provider && cluster?.status?.provider !== VIRTUAL_HARVESTER_PROVIDER) {
-          return false;
-        }
 
         return isHarvesterCluster(cluster);
       });
