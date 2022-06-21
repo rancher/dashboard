@@ -27,6 +27,13 @@ export default {
     SortableTable
   },
 
+  props: {
+    defaultNamespace: {
+      type:    String,
+      default: 'default'
+    },
+  },
+
   async fetch() {
     this.allNamespaces = await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } });
   },
@@ -34,7 +41,6 @@ export default {
   data() {
     return {
       currentYaml:      '',
-      defaultNamespace: 'default',
       allNamespaces:    null,
       errors:           null,
       rows:             null,
