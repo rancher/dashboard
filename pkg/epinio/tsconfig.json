@@ -15,7 +15,10 @@
     "preserveSymlinks": true,
     "types": [
       "node",
-      "webpack-env"
+      "webpack-env",
+      "@types/node",
+      "@types/jest",
+      "@nuxt/types"
     ],
     "lib": [
       "esnext",
@@ -42,8 +45,13 @@
       "@shell/models/*": [
         "../../shell/models/*"
       ],
+<<<<<<< HEAD
       "@components/*": [
         "../../pkg/rancher-components/*"
+=======
+      "@shell/mixins/*": [
+        "../../shell/mixins/*"
+>>>>>>> Fix epinio pkg build
       ],
       "@pkg/*": [
         "./*"
