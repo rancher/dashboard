@@ -23,28 +23,27 @@ export function init($plugin, store) {
     virtualType,
   } = $plugin.DSL(store, NAME);
 
-  const isSingleVirtualCluster = store.getters['isSingleVirtualCluster'];
+  const isSingleVirtualCluster = process.env.rancherEnv === 'harvester';
 
-  // TODO detect need to set single product before clusters are loaded
-  // if (isSingleVirtualCluster || !isSingleVirtualCluster) {
-  //   store.dispatch('setIsSingleProduct', {
-  //     logo:                require(`@shell/assets/images/providers/harvester.svg`),
-  //     productNameKey:      'product.harvester',
-  //     version:         store.getters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
-  //     afterLoginRoute: {
-  //       name:   'harvester-c-cluster',
-  //       params: { product: NAME },
-  //     },
-  //     logoRoute: {
-  //       name:   'harvester-c-cluster-resource',
-  //       params: {
-  //         product:  NAME,
-  //         resource: HCI.DASHBOARD,
-  //       }
-  //     },
-  //     supportRoute: { name: 'harvester-c-cluster-support' }
-  //   });
-  // }
+  if (isSingleVirtualCluster) {
+    store.dispatch('setIsSingleProduct', {
+      logo:                require(`@shell/assets/images/providers/harvester.svg`),
+      productNameKey:      'product.harvester',
+      version:         store.getters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
+      afterLoginRoute: {
+        name:   'harvester-c-cluster',
+        params: { product: NAME },
+      },
+      logoRoute: {
+        name:   'harvester-c-cluster-resource',
+        params: {
+          product:  NAME,
+          resource: HCI.DASHBOARD,
+        }
+      },
+      supportRoute: { name: 'harvester-c-cluster-support' }
+    });
+  }
 
   product({
     inStore:             'harvester',
