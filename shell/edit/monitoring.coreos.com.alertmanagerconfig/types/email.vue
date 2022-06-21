@@ -30,8 +30,7 @@ export default {
     return {
       view:                          _VIEW,
       initialAuthPasswordSecretName:  this.value?.authPassword?.name ? this.value.authPassword.name : '',
-      initialAuthPasswordSecretKey:  this.value.authPassword?.key ? this.value.authPassword.key : '',
-      none:                          '__[[NONE]]__',
+      initialAuthPasswordSecretKey:  this.value.authPassword?.key ? this.value.authPassword.key : ''
     };
   },
 
@@ -40,14 +39,10 @@ export default {
       const existingKey = this.value.authPassword?.key || '';
 
       if (this.value.authPassword) {
-        if (name === this.none) {
-          delete this.value.authPassword;
-        } else {
-          this.value.authPassword = {
-            key: existingKey,
-            name,
-          };
-        }
+        this.value.authPassword = {
+          key: existingKey,
+          name
+        };
       } else {
         this.value['authPassword'] = {
           key: '',
