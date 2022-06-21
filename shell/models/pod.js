@@ -1,4 +1,3 @@
-import { insertAt } from '@shell/utils/array';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -16,13 +15,17 @@ export const WORKLOAD_PRIORITY = {
 
 export default class Pod extends SteveModel {
   get _availableActions() {
-    const forceRemove = {
-      action:     'toggleForceRemoveModal',
+    const forceRemove = 
+      {
+      action:     'promptRemove',
       altAction:  'remove',
-      label:      this.t('node.actions.forceDelete'),
+      label:      this.t('action.remove'),
       icon:       'icon icon-trash',
-    };
-
+      bulkable:   true,
+      enabled:    this.canDelete,
+      bulkAction: 'promptRemove',
+      weight:     -10, // Delete always goes last
+    }
     const out = [
       {
         action:     'openShell',
@@ -39,7 +42,7 @@ export default class Pod extends SteveModel {
         total:      1,
       },
       { divider: true },
-      ...super._availableActions, 
+      ...super._availableActions,
       forceRemove
     ];
 
@@ -57,7 +60,7 @@ export default class Pod extends SteveModel {
     return containers[0]?.name;
   }
 
-  toggleForceRemoveModal(resources = this) {
+  promptRemove(resources = this) {
     this.$dispatch('promptModal', {
       resources,
       component: 'ForcePodRemoveDialog'

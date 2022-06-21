@@ -3747,6 +3747,7 @@ promptForceRemove:
   removeWarning: "There was an issue with deleting underlying infrastructure. If you proceed with this action, the Machine <b>{nameToMatch}</b> will be deleted from Rancher only. It's highly recommended to manually delete any referenced infrastructure."
   forceDelete: Force Delete
   confirmName: "Enter in the pool name below to confirm:"
+  podRemoveWarning: "Force deleting pods does not wait for confirmation that the pod's processes have been terminated. This may result in <strong>data corruption or inconsistencies</strong>"
 
 promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
