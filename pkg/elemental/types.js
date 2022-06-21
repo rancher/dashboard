@@ -3,6 +3,7 @@ export const ELEMENTAL_STORE = 'elemental';
 
 export const ELEMENTAL_PRODUCT_GROUP = 'elemental.cattle.io';
 export const ELEMENTAL_CLUSTER_PROVIDER = 'machineinventoryselectortemplate';
+export const ELEMENTAL_DEFAULT_NAMESPACE = 'fleet-default';
 
 export const ELEMENTAL_TYPES = {
   DASHBOARD:           'dashboard',
