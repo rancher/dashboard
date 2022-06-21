@@ -48,6 +48,9 @@
       "@components/*": [
         "../../pkg/rancher-components/*"
       ],
+      "@shell/mixins/*": [
+        "../../shell/mixins/*"
+      ],
       "@pkg/*": [
         "./*"
       ]
