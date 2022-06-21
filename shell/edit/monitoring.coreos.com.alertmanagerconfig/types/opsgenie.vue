@@ -85,8 +85,7 @@ export default {
       TYPES,
       view:                          _VIEW,
       initialApiKeySecretName:  this.value?.apiKey?.name ? this.value.apiKey.name : '',
-      initialApiKeySecretKey:  this.value?.apiKey?.key ? this.value.apiKey.key : '',
-      none:                    '__[[NONE]]__',
+      initialApiKeySecretKey:  this.value?.apiKey?.key ? this.value.apiKey.key : ''
     };
   },
 
@@ -127,14 +126,10 @@ export default {
       const existingKey = this.value.apiKey?.key || '';
 
       if (this.value.apiKey) {
-        if (name === this.none) {
-          delete this.value.apiKey;
-        } else {
-          this.value.apiKey = {
-            key: existingKey,
-            name,
-          };
-        }
+        this.value.apiKey = {
+          key: existingKey,
+          name
+        };
       } else {
         this.value['apiKey'] = {
           key: '',
