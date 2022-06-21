@@ -1,10 +1,11 @@
 <script>
-import { exceptionToErrorsArray } from '@shell/utils/error';
 import { alternateLabel } from '@shell/utils/platform';
 import AsyncButton from '@shell/components/AsyncButton';
+import { escapeHtml } from '@shell/utils/string';
 import { Banner } from '@components/Banner';
 import { Card } from '@components/Card';
 import Checkbox from '~/pkg/rancher-components/src/components/Form/Checkbox/Checkbox.vue';
+import { uniq } from '@shell/utils/array';
 
 export default {
   name: 'ForcePodRemoveDialog',
@@ -33,6 +34,10 @@ export default {
   },
 
   computed: {
+    names() {
+      return this.resources.map(obj => obj.metadata.name);
+    },
+
     machine() {
       return this.resources[0];
     },
@@ -46,12 +51,30 @@ export default {
     },
 
     type() {
-      return this.$store.getters['type-map/labelFor'](this.machine?.schema);
+      return this.$store.getters['type-map/labelFor'](this.machine?.schema, this.resources.length);
     },
 
-    machineName() {
-      return this.machine.nameDisplay.slice(0, 5);
+    plusMore() {
+      const remaining = this.resources.length - this.names.length;
+
+      return this.t('promptRemove.andOthers', { count: remaining });
     },
+
+    podNames() {
+      return this.names.reduce((res, name, i) => {
+        if (i >= 5) {
+          return res;
+        }
+        res += `<b>${ escapeHtml(name) }</b>`;
+        if (i === this.names.length - 1) {
+          res += this.plusMore;
+        } else {
+          res += i === this.resources.length - 2 ? ' and ' : ', ';
+        }
+
+        return res;
+      }, '');
+    }
   },
 
   methods: {
@@ -61,43 +84,95 @@ export default {
       this.$emit('close');
     },
 
-    async forceRemoveMachine(opt = {}) {
-      const machine = this.machine;
-
-      if ( !opt.url ) {
-        opt.url = machine.linkFor('self');
-      }
-
-      opt.method = 'delete';
-
-      opt.data = {
-        gracePeriodSeconds: 0,
-        force:              true
+    async forceRemoveMachine(machine) {
+      const opt = {
+        url:    machine.linkFor('self'),
+        method: 'delete',
+        data:   {
+          gracePeriodSeconds: 0,
+          force:              true
+        }
       };
 
-      const res = await this.$dispatch('request', { opt, type: machine.type } );
+      const res = await machine.$dispatch('request', { opt, type: machine.type } );
 
       if ( res?._status === 204 ) {
         // If there's no body, assume the resource was immediately deleted
         // and drop it from the store as if a remove event happened.
-        await this.$dispatch('ws.resource.remove', { data: machine });
+        return this.$dispatch('ws.resource.remove', { data: machine });
+      }
+
+      return res;
+    },
+
+    refreshSpoofedTypes(types) {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const promises = types.map(type => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
+
+      return Promise.all(promises);
+    },
+
+    remove(confirm) {
+      if (this.doneLocation) {
+        // doneLocation will recompute to undefined when delete request completes
+        this.cachedDoneLocation = { ...this.doneLocation };
+      }
+      const serialRemove = this.resources.some(resource => resource.removeSerially);
+
+      if (serialRemove) {
+        this.serialRemove(confirm);
+      } else {
+        this.parallelRemove(confirm);
       }
     },
 
-    async remove(confirm) {
+    removePod(machine) {
+      if (this.forceDelete) {
+        return this.forceRemoveMachine(machine);
+      } else {
+        return machine.remove();
+      }
+    },
+
+    async serialRemove(confirm) {
       try {
-        if (this.forceDelete) {
-          await this.forceRemoveMachine();
-        } else {
-          await this.machine.remove();
+        const spoofedTypes = this.getSpoofedTypes(this.resources);
+
+        for (const resource of this.resources) {
+          await this.removePod(resource);
         }
-        confirm(true);
-        this.close();
-      } catch (e) {
-        this.errors = exceptionToErrorsArray(e);
+
+        await this.refreshSpoofedTypes(spoofedTypes);
+
+        this.done();
+      } catch (err) {
+        this.error = err;
         confirm(false);
       }
-    }
+    },
+
+    getSpoofedTypes() {
+      const uniqueResourceTypes = uniq(this.resources.map(resource => resource.type));
+
+      return uniqueResourceTypes.filter(this.$store.getters['type-map/isSpoofed']);
+    },
+
+    async parallelRemove(confirm) {
+      try {
+        const spoofedTypes = this.getSpoofedTypes();
+
+        await Promise.all(this.resources.map(resource => this.removePod(resource)));
+        await this.refreshSpoofedTypes(spoofedTypes);
+        this.done();
+      } catch (err) {
+        this.errors = err;
+        confirm(false);
+      }
+    },
+
+    done() {
+      this.close();
+    },
   }
 };
 </script>
@@ -109,7 +184,7 @@ export default {
     </h4>
     <div slot="body" class="pl-10 pr-10">
       <div class="mb-10">
-        {{ t('promptRemove.attemptingToRemove', { type }) }} <span class="machine-name">{{ nameToMatch }}</span>
+        {{ t('promptRemove.attemptingToRemove', { type }) }} <span class="machine-name" v-html="podNames" />
       </div>
       <div class="mb-20">
         <Checkbox
@@ -119,14 +194,10 @@ export default {
       </div>
 
       <Banner color="warning" label-key="promptForceRemove.podRemoveWarning" />
-
-      <div v-if="!!errors.length" class="text-error mb-10 mt-20">
-        {{ errors }}
-      </div>
+      <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
       <div class="text-info mt-20">
         {{ protip }}
       </div>
-      <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
     </div>
     <template #actions>
       <button class="btn role-secondary mr-10" @click="close">
