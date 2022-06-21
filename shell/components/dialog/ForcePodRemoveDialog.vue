@@ -14,7 +14,6 @@ export default {
     AsyncButton,
     Banner,
     Card,
-    // CopyToClipboardText,
     Checkbox
   },
 
@@ -89,8 +88,8 @@ export default {
         url:    machine.linkFor('self'),
         method: 'delete',
         data:   {
-          gracePeriodSeconds: 0,
-          force:              true
+          gracePeriod: 0,
+          force:       true
         }
       };
 
