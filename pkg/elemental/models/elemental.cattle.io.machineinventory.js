@@ -1,6 +1,6 @@
 import ElementalResource from './elemental-resource';
 import { CAPI } from '@shell/config/types';
-import { ELEMENTAL_CLUSTER_PROVIDER } from '../types';
+import { ELEMENTAL_CLUSTER_PROVIDER, ELEMENTAL_DEFAULT_NAMESPACE } from '../types';
 
 export default class MachineInventory extends ElementalResource {
   constructor() {
@@ -10,24 +10,32 @@ export default class MachineInventory extends ElementalResource {
       this.metadata = {};
     }
 
-    // we want to default to namespace 'fleet-default' for creation scenario...
+    // we want to default to namespace XXX for creation scenario...
     if (!this.id) {
-      this.metadata.namespace = 'fleet-default';
+      this.metadata.namespace = ELEMENTAL_DEFAULT_NAMESPACE;
     }
   }
 
   get _availableActions() {
     const out = super._availableActions;
 
-    out.push({
-      action:     'createCluster',
-      bulkAction: 'createCluster',
-      label:      this.t('elemental.osimage.create.createCluster'),
-      enabled:    true,
-      bulkable:   true
-    });
+    if (this.canCreateCluster) {
+      out.push({
+        action:     'createCluster',
+        bulkAction: 'createCluster',
+        label:      this.t('elemental.osimage.create.createCluster'),
+        enabled:    true,
+        bulkable:   true
+      });
+    }
 
     return out;
+  }
+
+  get canCreateCluster() {
+    const schema = this.$rootGetters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+    return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
   }
 
   createCluster() {

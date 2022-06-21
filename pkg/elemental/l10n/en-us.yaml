@@ -9,6 +9,11 @@ typeLabel:
       one {Mach. Inv. Selec. Template}
       other {Mach. Inv. Selec. Templates}
     }
+  elemental.cattle.io.machineinventoryselector: |-
+    {count, plural,
+      one {Mach. Inv. Selector}
+      other {Mach. Inv. Selectors}
+    }
   elemental.cattle.io.machineinventory: |-
     {count, plural,
       one {Machine Inventory}
@@ -86,7 +91,7 @@ elemental:
         placeholder: Enter a name
   clusterGroup:
     selector:
-      label: Machine Inventory Selectors
+      label: Machine Inventory Selector Template
       matchesAll: Matches all {total, number} existing Machine Inventories
       matchesNone: Matches no existing Machine Inventories
       matchesSome: |-
