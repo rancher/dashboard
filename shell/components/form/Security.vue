@@ -62,12 +62,27 @@ export default {
       'WAKE_ALARM'];
 
     const {
-      capabilities = {}, runAsRoot = true, readOnlyRootFilesystem = false, privileged = false, allowPrivilegeEscalation = true, runAsUser
+      capabilities = {},
+      runAsRoot = true,
+      readOnlyRootFilesystem = false,
+      privileged = false,
+      allowPrivilegeEscalation = true,
+      runAsUser
     } = this.value;
-    const { add = [], drop = [] } = capabilities;
+    const {
+      add = [],
+      drop = []
+    } = capabilities;
 
     return {
-      privileged, allowPrivilegeEscalation, allCapabilities, runAsRoot, readOnlyRootFilesystem, add, drop, runAsUser
+      privileged,
+      allowPrivilegeEscalation,
+      allCapabilities,
+      runAsRoot,
+      readOnlyRootFilesystem,
+      add,
+      drop,
+      runAsUser
     };
   },
 
@@ -105,10 +120,13 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <div>
       <div class="row">
-        <div class="col span-6">
+        <div
+          data-testid="input-security-privileged"
+          class="col span-6"
+        >
           <RadioGroup
             v-model="privileged"
             name="privileged"
@@ -119,7 +137,11 @@ export default {
             @input="update"
           />
         </div>
-        <div v-if="!privileged" class="col span-6">
+        <div
+          v-if="!privileged"
+          data-testid="input-security-allowPrivilegeEscalation"
+          class="col span-6"
+        >
           <RadioGroup
             v-model="allowPrivilegeEscalation"
             name="allowPrivilegeEscalation"
@@ -137,7 +159,10 @@ export default {
 
     <div>
       <div class="row">
-        <div class="col span-6">
+        <div
+          data-testid="input-security-runasNonRoot"
+          class="col span-6"
+        >
           <RadioGroup
             name="runasNonRoot"
             :label="t('workload.container.security.runAsNonRoot.label')"
@@ -148,7 +173,10 @@ export default {
             @input="e=>{runAsRoot = !e; update()}"
           />
         </div>
-        <div class="col span-6">
+        <div
+          data-testid="input-security-readOnlyRootFilesystem"
+          class="col span-6"
+        >
           <RadioGroup
             v-model="readOnlyRootFilesystem"
             name="readOnlyRootFilesystem"
@@ -163,14 +191,25 @@ export default {
     </div>
     <div class="spacer"></div>
 
-    <div class="row mb-10">
+    <div
+      data-testid="input-security-runAsUser"
+      class="row mb-10"
+    >
       <div class="col span-6">
-        <LabeledInput v-model.number="runAsUser" :label="t('workload.container.security.runAsUser')" :mode="mode" />
+        <LabeledInput
+          v-model.number="runAsUser"
+          :label="t('workload.container.security.runAsUser')"
+          :mode="mode"
+          @input="update"
+        />
       </div>
     </div>
 
     <div class="row">
-      <div class="col span-6">
+      <div
+        data-testid="input-security-add"
+        class="col span-6"
+      >
         <LabeledSelect
           v-model="add"
           :taggable="true"
@@ -183,7 +222,10 @@ export default {
           @input="update"
         />
       </div>
-      <div class="col span-6">
+      <div
+        data-testid="input-security-drop"
+        class="col span-6"
+      >
         <LabeledSelect
           v-model="drop"
           :close-on-select="false"

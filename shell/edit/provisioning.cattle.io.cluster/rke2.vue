@@ -1022,7 +1022,7 @@ export default {
         // We don't allow the user to edit any of the fields in metadata from the UI so it's safe to override it with the
         // metadata defined by the latest backend value. This is primarily used to ensure the resourceVersion is up to date.
         delete clonedCurrentConfig.metadata;
-        machinePool.config = merge(machinePool.config, clonedLatestConfig);
+        machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
       }
     },
 
@@ -1567,7 +1567,7 @@ export default {
           @addTab="addMachinePool($event)"
           @removeTab="removeMachinePool($event)"
         >
-          <template v-for="obj in machinePools">
+          <template v-for="(obj, idx) in machinePools">
             <Tab v-if="!obj.remove" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
               <MachinePool
                 ref="pool"
@@ -1576,6 +1576,8 @@ export default {
                 :mode="mode"
                 :provider="provider"
                 :credential-id="credentialId"
+                :idx="idx"
+                :machine-pools="machinePools"
                 @error="e=>errors = e"
               />
             </Tab>

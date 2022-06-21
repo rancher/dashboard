@@ -101,22 +101,37 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <Loading mode="relative" :loading="loading" />
     <div class="row mb-20">
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.name')" :value="value.name" :mode="mode">
+      <div
+        class="col span-6"
+        data-testid="input-hev-name"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.name')"
+          :value="value.name"
+          :mode="mode"
+        >
           <LabeledInput
             v-model="value.name"
             :label="t('harvester.fields.name')"
             :mode="mode"
             required
+            @input="update"
           />
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.type')" :value="value.type" :mode="mode">
+      <div
+        class="col span-6"
+        data-testid="input-hev-type"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.type')"
+          :value="value.type"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
@@ -130,8 +145,15 @@ export default {
     </div>
 
     <div class="row mb-20">
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
+      <div
+        class="col span-6"
+        data-testid="input-hev-size"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.size')"
+          :value="value.size"
+          :mode="mode"
+        >
           <UnitInput
             v-model="value.size"
             :output-modifier="true"
@@ -141,11 +163,15 @@ export default {
             :required="validateRequired"
             :label="t('harvester.fields.size')"
             :disabled="isDisabled"
+            @input="update"
           />
         </InputOrDisplay>
       </div>
 
-      <div class="col span-3">
+      <div
+        data-testid="input-hev-bus"
+        class="col span-3"
+      >
         <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
           <LabeledSelect
             v-model="value.bus"

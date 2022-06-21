@@ -123,7 +123,7 @@ export default {
     <div class="row">
       <div class="col span-12">
         <Tabbed
-          v-if="!!currentNamespace"
+          v-if="!!currentNamespace && selectedNamespaceQuestions"
           ref="tabs"
           :side-tabs="true"
         >

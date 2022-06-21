@@ -2965,7 +2965,7 @@ monitoringRoute:
   groups:
     label: Group By
     addGroupByLabel: Labels to Group Alerts By
-    groupByTooltip: Add each key-value pair as a string in the format key:value. The special label ... will aggregate by all possible labels. If provided, the ... must be the only element in the list.
+    groupByTooltip: Add each label as a string in the format key:value. The special label ... will aggregate by all possible labels. If provided, the ... must be the only element in the list.
   info: This is the top-level Route used by Alertmanager as the default destination for any Alerts that do not match any other Routes. This Route must exist and cannot be deleted.
   interval:
     label: Group Interval
@@ -4273,7 +4273,7 @@ setup:
     skip: Skip
     tip: What URL should be used for this {vendor} installation? All the nodes in your clusters will need to be able to reach this.
   setPassword: The first order of business is to set a strong password for the default <code>{username}</code> user. We suggest using this random one generated just for you, but enter your own if you like.
-  telemetry: Allow collection of <a href="{docsBase}/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">anonymous statistics</a> to help us improve {vendor}.
+  telemetry: Allow collection of <a href="{docsBase}/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">anonymous statistics</a> to help us improve {name}.
   useManual: Set a specific password to use
   useRandom: Use a randomly generated password
   welcome: Welcome to {vendor}!
@@ -5117,6 +5117,7 @@ workload:
       sysctls: Sysctls
       sysctlsKey: Name
     standard: Standard Container
+    terminationState: "Last state: Terminated with {lsExitCode}: {lsDescription}, started: {lsStartedAt}, finished: {lsFinishedAt}"
     titles:
       container: Container
       command: Command
@@ -6675,6 +6676,12 @@ branding:
     uploadLight: Upload Light Logo
     uploadDark: Upload Dark Logo
     useCustom: Use a Custom Logo
+  favicon:
+    label: Favicon
+    tip: 'Upload an icon to replace the Rancher favicon in the browser tab. Max file size is 20KB'
+    preview: Favicon Preview
+    upload: Upload Favicon
+    useCustom: Use a Custom Favicon
   options:
     default: Default Rancher Theme
     suse: SUSE Theme
@@ -6700,7 +6707,7 @@ notifications:
   menuLabel: 'Custom Notifications'
   loginError:
     header: Login Failed Banner
-    showCheckboxLabel: Show custom login error 
+    showCheckboxLabel: Show custom login error
     messageLabel: Text to display
 resourceQuota:
   label: Resource Quotas

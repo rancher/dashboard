@@ -28,6 +28,7 @@ import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
+import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -48,7 +49,7 @@ export default {
     AzureWarning
   },
 
-  mixins: [PageHeaderActions, Brand],
+  mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
 
   data() {
     return {
@@ -623,6 +624,10 @@ export default {
       <div class="wm">
         <WindowManager />
       </div>
+      <main v-if="!clusterId">
+        <!-- Always ensure there's an outlet to cover 404 cases get directed to error page -->
+        <nuxt class="outlet" />
+      </main>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />

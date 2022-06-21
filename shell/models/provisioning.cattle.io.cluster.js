@@ -199,11 +199,8 @@ export default class ProvCluster extends SteveModel {
     return false;
   }
 
-  promptRemove(resources = this) {
-    this.$dispatch('promptModal', {
-      resources,
-      component: 'ConfirmNameToRemoveDialog'
-    });
+  get confirmRemove() {
+    return true;
   }
 
   get isImportedK3s() {

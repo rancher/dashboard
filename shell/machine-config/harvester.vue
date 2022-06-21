@@ -43,6 +43,16 @@ export default {
       type:    Boolean,
       default: false
     },
+
+    poolIndex: {
+      type:     Number,
+      required: true,
+    },
+
+    machinePools: {
+      type:    Array,
+      default: () => []
+    },
   },
 
   async fetch() {
@@ -204,6 +214,10 @@ export default {
         };
       });
     },
+
+    namespaceDisabled() {
+      return this.disabledEdit || this.poolIndex > 0;
+    },
   },
 
   watch: {
@@ -229,6 +243,17 @@ export default {
       this.$refs.userDataYamlEditor.refresh();
       this.value.userData = base64Encode(neu);
     },
+
+    machinePools: {
+      handler(pools) {
+        const vmNamespace = pools[0].config.vmNamespace;
+
+        if (this.poolIndex > 0 && this.value.vmNamespace !== vmNamespace) {
+          this.value.vmNamespace = vmNamespace;
+        }
+      },
+      deep: true,
+    }
   },
 
   methods: {
@@ -369,7 +394,7 @@ export default {
             :options="namespaceOptions"
             :searchable="true"
             :required="true"
-            :disabled="disabledEdit"
+            :disabled="namespaceDisabled"
             label-key="cluster.credential.harvester.namespace"
             :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
           />
@@ -380,7 +405,7 @@ export default {
             label-key="cluster.credential.harvester.namespace"
             :required="true"
             :mode="mode"
-            :disabled="disabledEdit"
+            :disabled="namespaceDisabled"
             :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
           />
         </div>

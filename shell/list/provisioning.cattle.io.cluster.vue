@@ -134,7 +134,7 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" :namespaced="false">
+    <ResourceTable :schema="schema" :rows="rows" :namespaced="false" :loading="$fetchState.pending">
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>

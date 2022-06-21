@@ -129,27 +129,6 @@ export default {
   },
 
   watch: {
-    'value.networkName': {
-      handler(neu) {
-        if (neu === MANAGEMENT_NETWORK) {
-          this.value.isPod = true;
-          this.value.macAddress = '';
-        } else {
-          this.value.isPod = false;
-        }
-
-        this.$set(this, 'isMasquerade', this.value.isPod);
-
-        if (this.value.isPod) {
-          this.value.type = 'masquerade';
-        } else {
-          this.value.type = 'bridge';
-        }
-
-        this.update();
-      }
-    },
-
     rows: {
       handler(neu) {
         const hasManagementNetwork = !!neu.some(N => N.isPod);
@@ -162,6 +141,27 @@ export default {
   },
 
   methods: {
+    /**
+     * Patch k8s value based on type of network
+     */
+    updateNetworkName(neu) {
+      if (neu === MANAGEMENT_NETWORK) {
+        this.value.isPod = true;
+        this.value.macAddress = '';
+      } else {
+        this.value.isPod = false;
+      }
+
+      this.$set(this, 'isMasquerade', this.value.isPod);
+
+      if (this.value.isPod) {
+        this.value.type = 'masquerade';
+      } else {
+        this.value.type = 'bridge';
+      }
+      this.update();
+    },
+
     update() {
       this.$emit('update');
     }
@@ -170,16 +170,37 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <div class="row mb-20">
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.name')" :value="value.name" :mode="mode">
-          <LabeledInput v-model="value.name" :label="t('harvester.fields.name')" required :mode="mode" :disabled="isDisabled" />
+      <div
+        data-testid="input-hen-name"
+        class="col span-6"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.name')"
+          :value="value.name"
+          :mode="mode"
+        >
+          <LabeledInput
+            v-model="value.name"
+            :label="t('harvester.fields.name')"
+            required
+            :mode="mode"
+            :disabled="isDisabled"
+            @input="update"
+          />
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.model')" :value="value.model" :mode="mode">
+      <div
+        data-testid="input-hen-model"
+        class="col span-6"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.model')"
+          :value="value.model"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.model"
             :label="t('harvester.fields.model')"
@@ -194,8 +215,15 @@ export default {
     </div>
 
     <div class="row" :class="{'mb-20': !isMasquerade}">
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.network')" :value="value.networkName" :mode="mode">
+      <div
+        data-testid="input-hen-networkName"
+        class="col span-6"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.network')"
+          :value="value.networkName"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.networkName"
             :label="t('harvester.fields.network')"
@@ -203,13 +231,20 @@ export default {
             :mode="mode"
             required
             :disabled="isDisabled"
-            @input="update"
+            @input="updateNetworkName"
           />
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.type')" :value="value.type" :mode="mode">
+      <div
+        data-testid="input-hen-type"
+        class="col span-6"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.type')"
+          :value="value.type"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
@@ -223,15 +258,23 @@ export default {
     </div>
 
     <div v-if="!isMasquerade" class="row">
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.macAddress')" :value="value.macAddress" :mode="mode">
+      <div
+        data-testid="input-hen-macAddress"
+        class="col span-6"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.macAddress')"
+          :value="value.macAddress"
+          :mode="mode"
+        >
           <LabeledInput
             v-model="value.macAddress"
             label-key="harvester.fields.macAddress"
             :mode="mode"
             :tooltip="t('harvester.virtualMachine.volume.macTip')"
+            @input="update"
           />
-        </inputordisplay>
+        </InputOrDisplay>
       </div>
     </div>
   </div>

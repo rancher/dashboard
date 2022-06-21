@@ -4149,7 +4149,7 @@ setup:
     skip: 跳过
     tip: 此 {vendor} 安装应使用什么 URL？集群中的所有节点都需要能访问该 URL。
   setPassword: 请为默认用户 <code>{username}</code>设置强密码。建议使用生成的随机密码。你也可以自行设置。
-  telemetry: 允许收集<a href="{docsBase}/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">匿名统计数据</a>，以帮我们改进 {vendor}。
+  telemetry: 允许收集<a href="{docsBase}/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">匿名统计数据</a>，以帮我们改进 {name}。
   useManual: 设置密码
   useRandom: 使用随机生成的密码
   welcome: 欢迎使用 {vendor}！
