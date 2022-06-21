@@ -195,13 +195,10 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-.tolerations{
-  width: 100%;
-}
 
 .rule, .toleration-headers{
   display: grid;
-  grid-template-columns: 20% 10% 20% 15% 20% 10%;
+  grid-template-columns: 20% 10% 20% 15% 20% 3%;
   grid-gap: $column-gutter;
   align-items: center;
 }

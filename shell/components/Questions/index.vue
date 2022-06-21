@@ -2,113 +2,15 @@
 import Jexl from 'jexl';
 import Tab from '@shell/components/Tabbed/Tab';
 import { get, set } from '@shell/utils/object';
-import { sortBy, camelCase } from 'lodash';
 import { _EDIT } from '@shell/config/query-params';
-import StringType from './String';
-import BooleanType from './Boolean';
-import EnumType from './Enum';
-import IntType from './Int';
-import FloatType from './Float';
-import ArrayType from './Array';
-import MapType from './QuestionMap';
-import ReferenceType from './Reference';
-import CloudCredentialType from './CloudCredential';
-
-export const knownTypes = {
-  string:          StringType,
-  hostname:        StringType, // @TODO
-  multiline:       StringType,
-  password:        StringType,
-  boolean:         BooleanType,
-  enum:            EnumType,
-  int:             IntType,
-  float:           FloatType,
-  questionMap:     MapType,
-  reference:       ReferenceType,
-  configmap:       ReferenceType,
-  secret:          ReferenceType,
-  storageclass:    ReferenceType,
-  pvc:             ReferenceType,
-  cloudcredential: CloudCredentialType,
-};
-
-export function componentForQuestion(q) {
-  const type = (q.type || '').toLowerCase();
-
-  if ( knownTypes[type] ) {
-    return type;
-  } else if ( type.startsWith('array[') ) { // This only really works for array[string|multiline], but close enough for now.
-    return ArrayType;
-  } else if ( type.startsWith('map[') ) { // Same, only works with map[string|multiline]
-    return MapType;
-  } else if ( type.startsWith('reference[') ) { // Same, only works with map[string|multiline]
-    return ReferenceType;
-  }
-
-  return 'string';
-}
-
-export function schemaToQuestions(fields) {
-  const keys = Object.keys(fields);
-  const out = [];
-
-  for ( const k of keys ) {
-    out.push({
-      variable: k,
-      label:    k,
-      ...fields[k],
-    });
-  }
-
-  return out;
-}
-
-function migrate(expr) {
-  let out;
-
-  if ( expr.includes('||') ) {
-    out = expr.split('||').map(x => migrate(x)).join(' || ');
-  } else if ( expr.includes('&&') ) {
-    out = expr.split('&&').map(x => migrate(x)).join(' && ');
-  } else {
-    const parts = expr.match(/^(.*)(!?=)(.*)$/);
-
-    if ( parts ) {
-      const key = parts[1].trim();
-      const op = parts[2].trim() === '!=' ? '!=' : '==';
-      const val = parts[3].trim();
-
-      if ( val === 'true' || val === 'false' || val === 'null' ) {
-        out = `${ key } ${ op } ${ val }`;
-      } else if ( val === '' ) {
-        // Existing charts expect `foo=` with `{foo: null}` to be true.
-        if ( op === '!=' ) {
-          out = `!!${ key }`;
-        } else {
-          out = `!${ key }`;
-        }
-        // out = `${ op === '!' ? '!' : '' }(${ key } == "" || ${ key } == null)`;
-      } else {
-        out = `${ key } ${ op } "${ val }"`;
-      }
-    } else {
-      try {
-        Jexl.compile(expr);
-
-        out = expr;
-      } catch (e) {
-        console.error('Error migrating expression:', expr); // eslint-disable-line no-console
-
-        out = 'true';
-      }
-    }
-  }
-
-  return out;
-}
+import Question from '@shell/components/Questions/Question';
+import isArray from 'lodash/isArray';
 
 export default {
-  components: { Tab, ...knownTypes },
+  components: {
+    Question,
+    Tab,
+  },
 
   props: {
     mode: {
@@ -167,9 +69,9 @@ export default {
       if ( this.source.questions?.questions ) {
         return this.source.questions.questions;
       } else if ( this.source.type === 'schema' && this.source.resourceFields ) {
-        return schemaToQuestions(this.source.resourceFields);
+        return this.schemaToQuestions(this.source.resourceFields);
       } else if ( typeof this.source === 'object' ) {
-        return schemaToQuestions(this.source);
+        return this.schemaToQuestions(this.source);
       } else {
         return [];
       }
@@ -271,12 +173,65 @@ export default {
   methods: {
     get,
     set,
-    componentForQuestion,
+
+    schemaToQuestions(fields) {
+      const keys = Object.keys(fields);
+      const out = [];
+
+      for ( const k of keys ) {
+        out.push({
+          variable: k,
+          label:    k,
+          ...fields[k],
+        });
+      }
+
+      return out;
+    },
 
     update(variable, $event) {
       set(this.value, variable, $event);
       if (this.emit) {
         this.$emit('updated');
+      }
+    },
+    refreshYamls() {
+      // When the codemirror component is on a non-default tab,
+      // it renders too small and its value is not visible. Therefore,
+      // we listen for the tab it is on to emit the 'active' event,
+      // then refresh the codemirror component so that its height is
+      // calculated properly.
+
+      const yamlFileComponents = this.$refs.yamlfile;
+
+      if (yamlFileComponents) {
+        try {
+          yamlFileComponents.forEach((element) => {
+            element.$refs.file.$refs.cm.refresh();
+          });
+        } catch (err) {
+          console.error(err);// eslint-disable-line no-console
+        }
+      }
+
+      const annotationComponents = this.$refs.annotations;
+
+      // For annotations, the value is shown in a codemirror
+      // so that if you load the value from a file, the formatting
+      // is preserved in the codemirror.
+
+      if (annotationComponents) {
+        try {
+          annotationComponents.forEach((element) => {
+            const yamlEditors = element.$refs.multilineKeyValue.$refs.file;
+
+            yamlEditors.forEach((yamlEditor) => {
+              yamlEditor.$refs.cm.refresh();
+            });
+          });
+        } catch (err) {
+          console.error(err);// eslint-disable-line no-console
+        }
       }
     },
     evalExpr(expr, values, question, allQuestions) {
@@ -390,7 +345,7 @@ export default {
       let expr = q.if;
 
       if ( expr === undefined && q.show_if !== undefined ) {
-        expr = migrate(q.show_if);
+        expr = this.migrate(q.show_if);
       }
 
       if ( expr ) {
@@ -421,6 +376,50 @@ export default {
       }
 
       return true;
+    },
+
+    migrate(expr) {
+      let out;
+
+      if ( expr.includes('||') ) {
+        out = expr.split('||').map(x => this.migrate(x)).join(' || ');
+      } else if ( expr.includes('&&') ) {
+        out = expr.split('&&').map(x => this.migrate(x)).join(' && ');
+      } else {
+        const parts = expr.match(/^(.*)(!?=)(.*)$/);
+
+        if ( parts ) {
+          const key = parts[1].trim();
+          const op = parts[2].trim() === '!=' ? '!=' : '==';
+          const val = parts[3].trim();
+
+          if ( val === 'true' || val === 'false' || val === 'null' ) {
+            out = `${ key } ${ op } ${ val }`;
+          } else if ( val === '' ) {
+            // Existing charts expect `foo=` with `{foo: null}` to be true.
+            if ( op === '!=' ) {
+              out = `!!${ key }`;
+            } else {
+              out = `!${ key }`;
+            }
+            // out = `${ op === '!' ? '!' : '' }(${ key } == "" || ${ key } == null)`;
+          } else {
+            out = `${ key } ${ op } "${ val }"`;
+          }
+        } else {
+          try {
+            Jexl.compile(expr);
+
+            out = expr;
+          } catch (e) {
+            console.error('Error migrating expression:', expr); // eslint-disable-line no-console
+
+            out = 'true';
+          }
+        }
+      }
+
+      return out;
     }
   },
 };
@@ -434,11 +433,12 @@ export default {
       :name="g.name"
       :label="g.name"
       :weight="g.weight"
+      @active="refreshYamls"
     >
       <div v-for="q in g.questions" :key="q.variable" class="row question">
         <div class="col span-12">
-          <component
-            :is="componentForQuestion(q)"
+          <Question
+            :ref="q.type"
             :in-store="inStore"
             :question="q"
             :target-namespace="targetNamespace"
@@ -461,12 +461,10 @@ export default {
       </h3>
       <div v-for="q in g.questions" :key="q.variable" class="row question">
         <div class="col span-12">
-          <component
-            :is="componentForQuestion(q)"
+          <Question
             :in-store="inStore"
             :question="q"
             :target-namespace="targetNamespace"
-            :mode="mode"
             :value="get(value, q.variable)"
             :disabled="disabled"
             :chart-name="chartName"

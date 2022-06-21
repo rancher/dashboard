@@ -108,6 +108,7 @@ export default {
         if (this.value?.affinity?.nodeAffinity) {
           delete this.value.affinity.nodeAffinity;
         }
+        this.$emit('selected-affinity', this.value);
         break;
       case 'affinity':
         delete this.value.nodeName;
@@ -117,6 +118,7 @@ export default {
         } else {
           Object.assign(this.value.affinity, { nodeAffinity });
         }
+        this.$emit('selected-affinity', this.value);
         break;
       default:
         delete this.value.nodeName;
@@ -124,6 +126,7 @@ export default {
         if (this.value?.affinity?.nodeAffinity) {
           delete this.value.affinity.nodeAffinity;
         }
+        this.$emit('selected-affinity', this.value);
       }
     },
     isEmpty

@@ -4,6 +4,10 @@ import { KEYMAP } from '@shell/store/prefs';
 export default {
   name:  'CodeMirror',
   props: {
+    extraPadding: {
+      type:     Boolean,
+      defalult: false
+    },
     value: {
       type:     String,
       required: true,
@@ -14,7 +18,7 @@ export default {
     }
   },
 
-  data() {
+  data(props) {
     return { loaded: false };
   },
 
@@ -97,7 +101,7 @@ export default {
 
 <template>
   <client-only placeholder=" Loading...">
-    <div class="code-mirror">
+    <div :class="['code-mirror', extraPadding ? 'extra-padding' : '']">
       <codemirror
         v-if="loaded"
         ref="cm"
@@ -115,12 +119,21 @@ export default {
 </template>
 
 <style lang="scss">
+  .extra-padding {
+
+    .vue-codemirror .CodeMirror {
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+  }
+
   .code-mirror {
     z-index: 0;
 
     .vue-codemirror .CodeMirror {
       height: initial;
-      background: none
+      background: none;
     }
   }
+
 </style>

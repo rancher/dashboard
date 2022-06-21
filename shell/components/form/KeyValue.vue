@@ -10,12 +10,14 @@ import Select from '@shell/components/form/Select';
 import FileSelector from '@shell/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
+import YamlEditor from '@shell/components/YamlEditor';
 
 export default {
   components: {
     Select,
     TextAreaAutoGrow,
-    FileSelector
+    FileSelector,
+    YamlEditor
   },
   props: {
     value: {
@@ -218,6 +220,10 @@ export default {
       type:    Boolean
     },
     parseLinesFromFile: {
+      default: false,
+      type:    Boolean
+    },
+    useCodeMirrorForValue: {
       default: false,
       type:    Boolean
     }
@@ -554,13 +560,20 @@ export default {
               {{ binaryTextSize(row.value) }}
             </div>
             <TextAreaAutoGrow
-              v-else-if="valueMultiline"
+              v-else-if="valueMultiline && !useCodeMirrorForValue"
               v-model="row[valueName]"
               :class="{'conceal': valueConcealed}"
               :mode="mode"
               :placeholder="valuePlaceholder"
               :min-height="40"
               :spellcheck="false"
+              @input="queueUpdate"
+            />
+            <YamlEditor
+              v-else-if="valueMultiline && useCodeMirrorForValue"
+              ref="file"
+              v-model="row[valueName]"
+              :extra-padding="true"
               @input="queueUpdate"
             />
             <input

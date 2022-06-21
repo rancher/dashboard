@@ -1257,6 +1257,11 @@ export default {
     },
 
     refreshYamls() {
+      // When the codemirror component is on a non-default tab,
+      // it renders too small and its value is not visible. Therefore,
+      // we listen for the tab it is on to emit the 'active' event,
+      // then refresh the codemirror component so that its height is
+      // calculated properly.
       const keys = Object.keys(this.$refs).filter(x => x.startsWith('yaml'));
 
       for ( const k of keys ) {

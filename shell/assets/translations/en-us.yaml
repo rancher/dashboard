@@ -5292,7 +5292,7 @@ workload:
       effectOptions:
         all: All
         noExecute: NoExecute
-        noSchedule: "NoSchedule,"
+        noSchedule: NoSchedule
         preferNoSchedule: PreferNoSchedule
       labelKey: Label Key
       operator: Operator
@@ -6858,3 +6858,10 @@ auth:
 vncConsole:
   error:
     message: Web VNC console connection is disconnected
+
+questions:
+  noPermission: You do not have access to list this type
+  noResources: 'Could not find resources of type {typeName} in the namespace {targetNamespace}'
+  namespacedResource: '{typeName} in namespace {targetNamespace}'
+  readFromFile: 'Read from {fileType} file'
+  noFormElement: 'Could not render a form input for {variable}. The value can still be configured in YAML.'

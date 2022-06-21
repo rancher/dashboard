@@ -25,6 +25,10 @@ export default {
         return Object.values(EDITOR_MODES).includes(value);
       }
     },
+    extraPadding: {
+      default: false,
+      type:    Boolean
+    },
 
     asObject: {
       type:    Boolean,
@@ -49,6 +53,11 @@ export default {
     hidePreviewButtons: {
       type:     Boolean,
       default:  false,
+    },
+
+    syntaxHighlighting: {
+      type:     String,
+      default:  'yaml'
     }
   },
 
@@ -91,7 +100,7 @@ export default {
       return {
         readOnly,
         gutters,
-        mode:            'yaml',
+        mode:            this.syntaxHighlighting,
         lint:            !readOnly,
         lineNumbers:     !readOnly,
         styleActiveLine: true,
@@ -216,6 +225,7 @@ export default {
       :class="{fill: true, scrolling: scrolling}"
       :value="curValue"
       :options="cmOptions"
+      :extra-padding="extraPadding"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
