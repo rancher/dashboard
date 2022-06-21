@@ -1,4 +1,4 @@
-import { createEpinioRoute } from '~/pkg/epinio/utils/custom-routing';
+import { createEpinioRoute } from '../utils/custom-routing';
 import EpinioResource from './epinio-resource';
 
 export default class EpinioMetaResource extends EpinioResource {

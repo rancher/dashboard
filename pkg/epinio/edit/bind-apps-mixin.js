@@ -1,5 +1,5 @@
 import { sortBy } from '@shell/utils/sort';
-import { EPINIO_TYPES } from '~/pkg/epinio/types';
+import { EPINIO_TYPES } from '../types';
 
 export default {
   name: 'EpinioBindAppsMixin',
