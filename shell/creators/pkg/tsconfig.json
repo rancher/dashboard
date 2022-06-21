@@ -15,7 +15,10 @@
     "preserveSymlinks": true,
     "types": [
       "node",
-      "webpack-env"
+      "webpack-env",
+      "@types/node",
+      "@types/jest",
+      "@nuxt/types"
     ],
     "lib": [
       "esnext",
@@ -32,7 +35,22 @@
       ],
       "@shell/store/*": [
         "../../node_modules/@rancher/shell/store/*"
-      ]
+      ],
+      "@shell/plugins/*": [
+        "../../node_modules/@rancher/shell/plugins/*"
+      ],
+      "@shell/utils/*": [
+        "../../node_modules/@rancher/shell/utils/*"
+      ],
+      "@shell/models/*": [
+        "../../node_modules/@rancher/shell/models/*"
+      ],
+      "@shell/mixins/*": [
+        "../../node_modules/@rancher/shell/mixins/*"
+      ],
+      "@pkg/*": [
+        "./*"
+      ],
     }
   },
   "include": [

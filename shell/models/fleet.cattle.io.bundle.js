@@ -1,9 +1,9 @@
 import { escapeHtml, ucFirst } from '@shell/utils/string';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import typeHelper from '@shell/utils/type-helpers';
-import { addObject, addObjects, findBy } from '~shell/utils/array';
-import { FLEET } from '~shell/config/types';
-import { convertSelectorObj, matching } from '~shell/utils/selector';
+import { addObject, addObjects, findBy } from '@shell/utils/array';
+import { FLEET } from '@shell/config/types';
+import { convertSelectorObj, matching } from '@shell/utils/selector';
 
 export default class FleetBundle extends SteveModel {
   get deploymentInfo() {

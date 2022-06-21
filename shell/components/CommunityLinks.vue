@@ -117,7 +117,7 @@ export default {
   }
 
   .qr-img {
-    background-image: url('~shell/assets/images/wechat-qr-code.jpg');
+    background-image: url('../assets/images/wechat-qr-code.jpg');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;

@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 import ResourceList from '@shell/components/ResourceList/index.vue';
 
 export default {

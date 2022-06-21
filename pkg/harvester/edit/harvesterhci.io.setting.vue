@@ -64,7 +64,7 @@ export default {
   created() {
     let customComponent = false;
 
-    const resource = this.$route.params.resource;
+    // const resource = this.$route.params.resource;
     const name = this.value.metadata.name;
     // const path = `${ resource }/${ name }`;
     const path = `setting/${ name }`;
