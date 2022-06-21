@@ -3,7 +3,7 @@ import BrandImage from '@shell/components/BrandImage';
 import TypeDescription from '@shell/components/TypeDescription';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { NAME as VIRTUAL } from '../config/harvester';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 import { CAPI, HCI, MANAGEMENT } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 
