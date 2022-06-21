@@ -1,7 +1,7 @@
 <script>
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import { mapGetters } from 'vuex';
-import { OFF } from '../models/harvester/kubevirt.io.virtualmachine';
+import { OFF } from '../models/kubevirt.io.virtualmachine';
 
 export default {
   name: 'VMConsoleBar',

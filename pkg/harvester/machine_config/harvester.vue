@@ -20,7 +20,7 @@ import { allHashSettled } from '@shell/utils/promise';
 import { podAffinity as podAffinityValidator } from '@shell/utils/validators/pod-affinity';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { isReady } from '../models/harvester/harvesterhci.io.virtualmachineimage';
+import { isReady } from '../models/harvesterhci.io.virtualmachineimage';
 
 export default {
   name: 'ConfigComponentHarvester',
