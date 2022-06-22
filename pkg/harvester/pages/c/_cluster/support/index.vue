@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
-import SupportBundle from '@shell/components/dialog/harvester/SupportBundle';
+import SupportBundle from '../../../../dialog/SupportBundle';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import { SCHEMA, HCI } from '@shell/config/types';
 
