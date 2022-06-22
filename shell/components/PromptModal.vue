@@ -32,7 +32,7 @@ export default {
       return this.modalData?.modalWidth || '600px';
     },
     component() {
-      // Looks for a dialog component by looking up @shell/components/dialog/${name}.
+      // Looks for a dialog component by looking up @shell/dialog/${name}.
       return importDialog(this.modalData?.component);
     },
     cssProps() {

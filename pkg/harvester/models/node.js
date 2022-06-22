@@ -171,7 +171,7 @@ export default class HciNode extends SteveModel {
   enableMaintenanceMode(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'harvester/MaintenanceDialog'
+      component: 'MaintenanceDialog'
     });
   }
 

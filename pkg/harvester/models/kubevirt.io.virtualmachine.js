@@ -257,7 +257,7 @@ export default class VirtVm extends SteveModel {
   backupVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'harvester/BackupModal'
+      component: 'BackupModal'
     });
   }
 
@@ -267,14 +267,14 @@ export default class VirtVm extends SteveModel {
     this.$dispatch('promptModal', {
       resources,
       diskName,
-      component: 'harvester/UnplugVolume'
+      component: 'UnplugVolume'
     });
   }
 
   restoreVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'harvester/RestoreDialog'
+      component: 'RestoreDialog'
     });
   }
 
@@ -317,14 +317,14 @@ export default class VirtVm extends SteveModel {
   migrateVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'harvester/MigrationDialog'
+      component: 'MigrationDialog'
     });
   }
 
   ejectCDROM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'harvester/EjectCDROMDialog'
+      component: 'EjectCDROMDialog'
     });
   }
 
@@ -335,14 +335,14 @@ export default class VirtVm extends SteveModel {
   createTemplate(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'harvester/CloneTemplate'
+      component: 'CloneTemplate'
     });
   }
 
   addHotplug(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'harvester/AddHotplugModal'
+      component: 'AddHotplugModal'
     });
   }
 
