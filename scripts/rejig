@@ -72,11 +72,11 @@ if [ "$1" == "-r" ]; then
   moveBack components
   moveBack assets
   moveBack chart
-  moveBack cloud_credential
+  moveBack cloud-credential
   moveBack detail
   moveBack edit
   moveBack list
-  moveBack machine_config
+  moveBack machine-config
   moveBack models
   moveBack promptRemove
   moveBack content
@@ -111,7 +111,7 @@ echo "Updating imports ..."
 
 declare -a contextFolders=(
   "utils" "plugins" "config" "mixins" "store" "pages" "components" "assets" "chart"
-  "cloud_credential" "content" "detail" "edit" "list" "machine_config" "models" "promptRemove")
+  "cloud-credential" "content" "detail" "edit" "list" "machine-config" "models" "promptRemove")
 
 for i in "${contextFolders[@]}"
   do
@@ -140,11 +140,11 @@ move ./components
 move ./assets
 
 move ./chart
-move ./cloud_credential
+move ./cloud-credential
 move ./detail
 move ./edit
 move ./list
-move ./machine_config
+move ./machine-config
 move ./models
 move ./promptRemove
 
