@@ -126,7 +126,7 @@ export const state = function() {
 
 export const getters = {
   credentialDrivers() {
-    const ctx = require.context('@shell/cloud_credential', true, /.*/);
+    const ctx = require.context('@shell/cloud-credential', true, /.*/);
 
     const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
 
@@ -159,7 +159,7 @@ export const getters = {
 
   machineDrivers() {
     // The subset of drivers supported by Vue components
-    const ctx = require.context('@shell/machine_config', true, /.*/);
+    const ctx = require.context('@shell/machine-config', true, /.*/);
 
     const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
 
@@ -173,7 +173,7 @@ export const getters = {
 
   schemaForDriver(state, getters, rootState, rootGetters) {
     return (name) => {
-      const id = `rke-machine_config.cattle.io.${ name }config`;
+      const id = `rke-machine-config.cattle.io.${ name }config`;
       const schema = rootGetters['management/schemaFor'](id);
 
       return schema;

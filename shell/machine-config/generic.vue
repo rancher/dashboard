@@ -34,7 +34,7 @@ export default {
 
     try {
       this.fields = this.$store.getters['plugins/fieldsForDriver'](this.provider);
-      const name = `rke-machine_config.cattle.io.${ this.provider }config`;
+      const name = `rke-machine-config.cattle.io.${ this.provider }config`;
 
       if ( !this.fields ) {
         throw new Error(`Machine Driver config schema not found for ${ name }`);
