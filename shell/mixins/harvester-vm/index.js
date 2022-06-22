@@ -800,6 +800,8 @@ export default {
         if (image) {
           out.spec.storageClassName = `longhorn-${ image.metadata.name }`;
           out.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: image.id };
+        } else if (this.resource === HCI.VM_VERSION) {
+          out.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: '' };
         }
 
         break;
