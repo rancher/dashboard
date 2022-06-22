@@ -10,8 +10,9 @@ import FileSelector from '@shell/components/form/FileSelector.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { sortBy } from '@shell/utils/sort';
 import { generateZip } from '@shell/utils/download';
+import Collapse from '@shell/components/Collapse.vue';
 
-import { APPLICATION_SOURCE_TYPE, EPINIO_TYPES } from '../../types';
+import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
 
 interface Archive{
@@ -34,6 +35,7 @@ interface BuilderImage {
 }
 
 interface Data {
+  open: boolean,
   archive: Archive,
   container: Container,
   gitUrl: GitUrl,
@@ -49,6 +51,12 @@ export interface EpinioAppSource {
   container: Container,
   gitUrl: GitUrl,
   builderImage: BuilderImage,
+  appChart: string,
+}
+
+interface FileWithRelativePath extends File {
+  // For some reason TS throws this as missing at transpile time .. so recreate it
+   readonly webkitRelativePath: string;
 }
 
 const DEFAULT_BUILD_PACK = 'paketobuildpacks/builder:full';
@@ -60,7 +68,8 @@ export default Vue.extend<Data, any, any, any>({
     FileSelector,
     LabeledInput,
     LabeledSelect,
-    RadioGroup
+    RadioGroup,
+    Collapse
   },
 
   props: {
@@ -80,6 +89,8 @@ export default Vue.extend<Data, any, any, any>({
 
   data() {
     return {
+      open: false,
+
       archive: {
         tarball:             this.source?.archive.tarball || '',
         fileName:            this.source?.archive.fileName || '',
@@ -96,6 +107,8 @@ export default Vue.extend<Data, any, any, any>({
         value:   this.source?.builderImage?.value || DEFAULT_BUILD_PACK,
         default: this.source?.builderImage?.default !== undefined ? this.source.builderImage.default : true,
       },
+
+      appChart: this.source?.appChart,
 
       types:        [{
         label: this.t('epinio.applications.steps.source.archive.label'),
@@ -116,6 +129,9 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   mounted() {
+    if (!this.appChart) {
+      Vue.set(this, 'appChart', this.appCharts[0].value);
+    }
     this.update();
   },
 
@@ -139,6 +155,9 @@ export default Vue.extend<Data, any, any, any>({
           Vue.set(this.gitUrl, 'url', parsed.origin.git.url);
           Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
         }
+        if (parsed.configuration) {
+          Vue.set(this, 'appChart', parsed.configuration.appchart);
+        }
 
         const appInfo: EpinioAppInfo = {
           meta: {
@@ -160,11 +179,12 @@ export default Vue.extend<Data, any, any, any>({
       }
     },
 
-    onFolderSelected(files: any[]) {
+    onFolderSelected(files: FileWithRelativePath | FileWithRelativePath[]) {
+      const safeFiles = Array.isArray(files) ? files : [files];
       let folderName: string = '';
 
       // Determine parent folder name
-      for (const f of files) {
+      for (const f of safeFiles) {
         const paths = f.webkitRelativePath.split('/');
 
         if (paths.length > 1) {
@@ -179,7 +199,7 @@ export default Vue.extend<Data, any, any, any>({
         }
       }
 
-      const filesToZip = files.reduce((res, f) => {
+      const filesToZip = safeFiles.reduce((res, f) => {
         let path = f.webkitRelativePath;
 
         if (folderName) {
@@ -211,7 +231,8 @@ export default Vue.extend<Data, any, any, any>({
         archive:      this.archive,
         container:    this.container,
         gitUrl:       this.gitUrl,
-        builderImage: this.builderImage
+        builderImage: this.builderImage,
+        appChart:     this.appChart
       });
     },
 
@@ -269,6 +290,13 @@ export default Vue.extend<Data, any, any, any>({
 
     namespaces() {
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
+    },
+
+    appCharts() {
+      return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.APP_CHARTS), 'name').map((ap: EpinioApplicationChartResource) => ({
+        value: ap.meta.name,
+        label: `${ ap.meta.name } (${ ap.short_description })`
+      }));
     },
 
     type() {
@@ -387,27 +415,42 @@ export default Vue.extend<Data, any, any, any>({
         />
       </div>
     </template>
-    <template v-if="showBuilderImage">
-      <div class="spacer">
-        <RadioGroup
-          name="defaultBuilderImage"
-          data-testid="epinio_app-source_builder-select"
-          :value="builderImage.default"
-          :labels="[t('epinio.applications.steps.source.archive.builderimage.default'), t('epinio.applications.steps.source.archive.builderimage.custom')]"
-          :options="[true, false]"
-          :label-key="'epinio.applications.steps.source.archive.builderimage.label'"
-          @input="onImageType"
-        />
-        <LabeledInput
-          v-model="builderImage.value"
-          data-testid="epinio_app-source_builder-value"
-          :disabled="builderImage.default"
-          :tooltip="t('epinio.applications.steps.source.archive.builderimage.tooltip')"
+    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30">
+      <template>
+        <LabeledSelect
+          v-model="appChart"
+          data-testid="epinio_app-source_appchart"
+          label="Application Chart"
+          :options="appCharts"
           :mode="mode"
+          :clearable="false"
+          :required="true"
+          :tooltip="t('typeDescription.appcharts')"
+          :reduce="(e) => e.value"
           @input="update"
         />
-      </div>
-    </template>
+        <template v-if="showBuilderImage">
+          <RadioGroup
+            class="mt-20"
+            name="defaultBuilderImage"
+            data-testid="epinio_app-source_builder-select"
+            :value="builderImage.default"
+            :labels="[t('epinio.applications.steps.source.archive.builderimage.default'), t('epinio.applications.steps.source.archive.builderimage.custom')]"
+            :options="[true, false]"
+            :label-key="'epinio.applications.steps.source.archive.builderimage.label'"
+            @input="onImageType"
+          />
+          <LabeledInput
+            v-model="builderImage.value"
+            data-testid="epinio_app-source_builder-value"
+            :disabled="builderImage.default"
+            :tooltip="t('epinio.applications.steps.source.archive.builderimage.tooltip')"
+            :mode="mode"
+            @input="update"
+          />
+        </template>
+      </template>
+    </Collapse>
   </div>
 </template>
 
@@ -422,6 +465,10 @@ export default Vue.extend<Data, any, any, any>({
       margin-top: 0 !important;
       margin-left: 5px;
     }
+  }
+
+  .collapse {
+    margin-left: -5px;
   }
 }
 .archive {

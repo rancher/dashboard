@@ -22,8 +22,11 @@ export default class EpinioNamespace extends EpinioMetaResource {
     const namespaces = await this.$dispatch('findAll', { type: this.type, opt: { force: true } });
 
     // Find new namespace
-    // return new namespace
     return namespaces.filter(n => n.name === this.name)?.[0];
+  }
+
+  save() {
+    return this.create();
   }
 
   get canClone() {

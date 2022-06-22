@@ -13,6 +13,8 @@ import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
 import { mapGetters } from 'vuex';
 
+export const EPINIO_SERVICE_PARAM = 'service';
+
 interface Data {
 }
 
@@ -22,7 +24,7 @@ export default Vue.extend<Data, any, any, any>({
     Loading,
     CruResource,
     LabeledSelect,
-    NameNsDescription
+    NameNsDescription,
   },
 
   mixins: [CreateEditView, EpinioBindAppsMixin],
@@ -48,7 +50,8 @@ export default Vue.extend<Data, any, any, any>({
       this.mixinFetch()
     ]);
 
-    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0].meta.name);
+    Vue.set(this.value, 'catalog_service', this.$route.query[EPINIO_SERVICE_PARAM]);
+    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0]?.meta.name);
   },
 
   data() {
@@ -68,12 +71,13 @@ export default Vue.extend<Data, any, any, any>({
       }
 
       const nameErrors = validateKubernetesName(this.value?.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+      const nsErrors = validateKubernetesName(this.value?.meta.namespace || '', '', this.$store.getters, undefined, []);
 
-      if (nameErrors.length > 0) {
-        return false;
+      if (nameErrors.length === 0 && nsErrors.length === 0) {
+        return !this.failedWaitingForDeploy;
       }
 
-      return !this.failedWaitingForDeploy;
+      return false;
     },
 
     namespaces() {
@@ -125,7 +129,7 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   watch: {
-    'value.namespace'() {
+    'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
     }
   }
@@ -134,20 +138,16 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="!value || !namespaces" />
-  <div v-else-if="!namespaces.length">
-    <Banner color="warning">
-      {{ t('epinio.warnings.noNamespace') }}
-    </Banner>
-  </div>
+  <Loading v-if="!value || $fetchState.pending" />
   <CruResource
-    v-else-if="value && namespaces.length > 0"
+    v-else-if="value"
     :can-yaml="false"
     :done-route="doneRoute"
     :mode="mode"
     :validation-passed="validationPassed"
     :resource="value"
     :errors="errors"
+    namespace-key="meta.namespace"
     @error="e=>errors = e"
     @finish="save"
   >
