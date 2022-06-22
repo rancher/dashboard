@@ -16,6 +16,7 @@ type RouteInstallHistory = {
 
 export class PluginRoutes {
   router: Router;
+  pluginRoutes: RouteConfig[] = [];
 
   replacedRoutes: RouteInstallHistory = {};
 
@@ -71,7 +72,10 @@ export class PluginRoutes {
   }
 
   public addRoutes(plugin: any, routes: RouteInfo[]) {
-    const appRoutes = this.router.options.routes || [];
+    const allRoutes = [
+      ...this.pluginRoutes,
+      ...(this.router.options.routes || [])
+    ];
     let replaced = 0;
 
     // Need to take into account if routes are being replaced
@@ -82,18 +86,18 @@ export class PluginRoutes {
       let existing: any;
 
       if (r.parent) {
-        const pExisting = appRoutes.findIndex((route: any) => route.name === r.parent) as any;
+        const pExisting = allRoutes.findIndex((route: any) => route.name === r.parent) as any;
         const path = `${ pExisting.path }${ r.route.path }`;
 
         // TODO: Validate
-        existing = appRoutes.findIndex((route: any) => route.path === path);
+        existing = allRoutes.findIndex((route: any) => route.path === path);
       } else {
         // no parent route
-        existing = appRoutes.findIndex((route: any) => route.name === r.route.name);
+        existing = allRoutes.findIndex((route: any) => route.name === r.route.name);
       }
 
       if (existing >= 0) {
-        const existingRoute = appRoutes[existing];
+        const existingRoute = allRoutes[existing];
 
         // Store the route so we can restore it on uninstall
         if (plugin && existingRoute?.name) {
@@ -107,14 +111,14 @@ export class PluginRoutes {
           });
         }
 
-        appRoutes.splice(existing, 1);
+        allRoutes.splice(existing, 1);
         replaced++;
       }
     });
 
     const newRouter: Router = replaced > 0 ? new Router({
       mode:   'history',
-      routes: appRoutes
+      routes: allRoutes
     }) : this.router;
 
     routes.forEach((r: any) => {
@@ -123,6 +127,7 @@ export class PluginRoutes {
       } else {
         newRouter.addRoute(r.route);
       }
+      this.pluginRoutes.push(r.route);
     });
 
     if (replaced > 0) {
