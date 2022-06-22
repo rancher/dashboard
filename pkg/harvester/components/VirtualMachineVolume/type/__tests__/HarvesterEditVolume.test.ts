@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import HarvesterEditVolume from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineVolume/type/volume.vue';
+import HarvesterEditVolume from '../volume.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 describe('component: HarvesterEditVolume', () => {

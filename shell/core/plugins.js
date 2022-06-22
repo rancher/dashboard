@@ -16,6 +16,7 @@ export default function({
 
   // Track which plugin loaded what, so we can unload stuff
   const plugins = {};
+
   const pluginRoutes = new PluginRoutes(app.router);
 
   inject('plugin', {

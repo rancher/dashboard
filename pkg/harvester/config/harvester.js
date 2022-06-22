@@ -41,7 +41,7 @@ export function init($plugin, store) {
           resource: HCI.DASHBOARD,
         }
       },
-      supportRoute: { name: 'harvester-c-cluster-support' }
+
     });
   }
 
@@ -57,7 +57,8 @@ export function init($plugin, store) {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
       [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management'
-    }
+    },
+    supportRoute: { name: 'harvester-c-cluster-support' }
   });
 
   basicType([HCI.DASHBOARD]);

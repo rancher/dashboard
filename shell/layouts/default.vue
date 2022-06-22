@@ -167,14 +167,13 @@ export default {
     },
 
     supportLink() {
-      const product = this.$store.getters['currentProduct'].name;
-      const singleProduct = this.$store.getters['isSingleProduct'];
+      const product = this.$store.getters['currentProduct'];
 
-      if (singleProduct?.supportRoute) {
-        return { ...singleProduct.supportRoute, params: { ...singleProduct.supportRoute.params, cluster: this.clusterId } };
+      if (product?.supportRoute) {
+        return { ...product.supportRoute, params: { ...product.supportRoute.params, cluster: this.clusterId } };
       }
 
-      return { name: `c-cluster-${ product }-support` };
+      return { name: `c-cluster-${ product?.name }-support` };
     },
 
   },

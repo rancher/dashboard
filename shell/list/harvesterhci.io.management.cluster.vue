@@ -101,7 +101,6 @@ export default {
     >
       <template #col:name="{row}">
         <td>
-          aaa
           <span>
             <n-link
               v-if="row.isReady"
@@ -109,6 +108,7 @@ export default {
                 name: `${VIRTUAL}-c-cluster`,
                 params: {
                   cluster: row.status.clusterName,
+                  product: VIRTUAL
                 }
               }"
             >
