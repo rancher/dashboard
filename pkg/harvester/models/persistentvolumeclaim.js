@@ -42,7 +42,7 @@ export default class HciPv extends SteveModel {
   exportImage(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'harvester/ExportImageDialog'
+      component: 'ExportImageDialog'
     });
   }
 

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const contextFolders = ['chart', 'cloud-credential', 'content', 'detail', 'edit', 'list', 'machine-config', 'models', 'promptRemove', 'l10n', 'windowComponents', 'formatters'];
+const contextFolders = ['chart', 'cloud_credential', 'content', 'detail', 'edit', 'list', 'machine_config', 'models', 'promptRemove', 'l10n', 'windowComponents', 'dialog'];
 const contextMap = contextFolders.reduce((map, obj) => {
   map[obj] = true;
 
@@ -49,6 +49,7 @@ function generateDynamicTypeImport(pkg, dir) {
   contextFolders.forEach((f) => {
     if (fs.existsSync(path.join(dir, f))) {
       let genImport = replaceAll(template, 'NAME', f);
+
       const importType = (f === 'models') ? 'require' : 'import';
       // Ensure i18n chunks are named with the request name (which will be the locale)
       const chunk = (f === 'l10n') ? '[request]' : f;
