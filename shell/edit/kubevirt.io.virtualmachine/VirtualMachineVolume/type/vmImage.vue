@@ -1,4 +1,5 @@
 <script>
+import { findBy } from '@shell/utils/array';
 import UnitInput from '@shell/components/form/UnitInput';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -106,6 +107,15 @@ export default {
         this.update();
       }
     },
+
+    'value.image'(neu) {
+      this.checkImageExists(neu);
+    },
+
+    imagesOption() {
+      this.checkImageExists(this.value.image);
+    },
+
     pvcsResource: {
       handler(pvc) {
         if (pvc?.spec?.resources?.requests?.storage && this.isVirtualType) {
@@ -150,6 +160,17 @@ export default {
     onOpen() {
       this.images = this.$store.getters['harvester/all'](HCI.IMAGE);
     },
+
+    checkImageExists(imageId) {
+      if (!!imageId && this.imagesOption.length > 0 && !findBy(this.imagesOption, 'value', imageId)) {
+        this.$store.dispatch('growl/error', {
+          title:   this.$store.getters['i18n/t']('harvester.vmTemplate.tips.notExistImage.title', { name: imageId }),
+          message: this.$store.getters['i18n/t']('harvester.vmTemplate.tips.notExistImage.message')
+        }, { root: true });
+
+        this.$set(this.value, 'image', '');
+      }
+    }
   }
 };
 </script>

@@ -5941,6 +5941,10 @@ harvester:
       basics: 基本信息
     nameNsDescription:
       name: 模板名称
+    tips:
+      notExistImage:
+        title: 镜像 {name} 不存在!
+        message: 请重新选择镜像
 
   upgradePage:
     upgradeApp: 升级软件

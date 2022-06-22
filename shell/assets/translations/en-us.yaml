@@ -5896,6 +5896,10 @@ harvester:
       basics: Basics
     nameNsDescription:
       name: Template Name
+    tips:
+      notExistImage:
+        title: Image {name} does not exist!
+        message: Please select a new Image.
 
   upgradePage:
     upgradeApp: Upgrade Software
