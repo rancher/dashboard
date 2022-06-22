@@ -238,7 +238,6 @@ export default async function({
   }
   // Load stuff
   await applyProducts(store, $plugin);
-
   // Setup a beforeEach hook once to keep track of the current product
   if ( !beforeEachSetup ) {
     beforeEachSetup = true;
