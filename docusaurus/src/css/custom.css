@@ -6,7 +6,7 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
+  --ifm-color-primary: #3D98D3;
   --ifm-color-primary-dark: #29784c;
   --ifm-color-primary-darker: #277148;
   --ifm-color-primary-darkest: #205d3b;
@@ -15,11 +15,13 @@
   --ifm-color-primary-lightest: #3cad6e;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-color-body: #141419;
+  --ifm-menu-color: #141419;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary: #3D98D3;
   --ifm-color-primary-dark: #21af90;
   --ifm-color-primary-darker: #1fa588;
   --ifm-color-primary-darkest: #1a8870;
@@ -27,4 +29,40 @@
   --ifm-color-primary-lighter: #32d8b4;
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-body: #ffffff;
+  --ifm-menu-color: #ffffff;
 }
+
+/* poppins */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: normal;
+  src: local(''),
+       url('../fonts/poppins/poppins-v15-latin-300.woff') format('woff'), /* Super Modern Browsers */
+       url('../fonts/poppins/poppins-v15-latin-300.woff2') format('woff2'), /* Modern Browsers */
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: normal;
+  src: local(''),
+       url('../fonts/lato/lato-v17-latin-regular.woff') format('woff'), /* Super Modern Browsers */
+       url('../fonts/lato/lato-v17-latin-regular.woff2') format('woff2'), /* Modern Browsers */
+}
+
+
+body {
+  font-family: 'Lato', sans-serif;
+  color: var( --ifm-color-body);
+}
+      
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: normal;
+}
+      
+
+
+
