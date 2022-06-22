@@ -254,7 +254,7 @@ Rancher includes a proxy that can be used to make requests to third-party domain
 
 Upstream Kubernetes manages nodes, as shown in Cluster Explorer. Rancher deals with machines, which control node provisioning, and they are available from Cluster Management.
 
-When you create a cluster, the cluster has a spec that contains machine pools. Each machine pool uses a machine config (`rke-machine_config`), which configures the size and role of the machine. Rancher sends the configuration to CAPI (Cluster API), which uses it to create the machines.
+When you create a cluster, the cluster has a spec that contains machine pools. Each machine pool uses a machine config (`rke-machine-config`), which configures the size and role of the machine. Rancher sends the configuration to CAPI (Cluster API), which uses it to create the machines.
 
 When provisioning RKE clusters, you could create node templates and define virtual machines in them. Then those definitions could be used when creating node pools. In contrast, RKE2 and K3s cluster provisioning uses CAPI as its standard for provisioning clusters, and CAPI requires that a machine template can only used once per node pool. For that reason, node templates cannot be shared across node pools the same way they used to be able to for RKE provisioning. The forms for provisioning new RKE2 and K3s clusters through Rancher don't introduce the concept of node templates. Instead they let you create new node pools for each new cluster.
 

@@ -101,6 +101,7 @@ export default {
     >
       <template #col:name="{row}">
         <td>
+          aaa
           <span>
             <n-link
               v-if="row.isReady"
