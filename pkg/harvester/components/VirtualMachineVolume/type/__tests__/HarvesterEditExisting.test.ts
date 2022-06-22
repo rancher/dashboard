@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import HarvesterEditExisting from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineVolume/type/existing.vue';
+import HarvesterEditExisting from '../existing.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 describe('component: HarvesterEditExisting', () => {

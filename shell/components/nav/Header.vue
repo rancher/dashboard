@@ -457,7 +457,6 @@ export default {
       </div>
 
       <div class="header-spacer"></div>
-
       <div
         v-if="showUserMenu"
         class="user user-menu"

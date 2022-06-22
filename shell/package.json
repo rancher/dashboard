@@ -1,6 +1,10 @@
 {
   "name": "@rancher/shell",
+<<<<<<< HEAD
   "version": "0.1.2",
+=======
+  "version": "0.6.36",
+>>>>>>> fix harvester manager->harvester routing
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
@@ -84,8 +88,8 @@
     "eslint-import-resolver-node": "0.3.4",
     "eslint-module-utils": "2.6.1",
     "eslint-plugin-cypress": "^2.11.3",
-    "eslint-plugin-jest": "^23.6.0",    
     "eslint-plugin-import": "2.23.4",
+    "eslint-plugin-jest": "^23.6.0",
     "eslint-plugin-n": "^15.2.0",
     "eslint-plugin-vue": "7.14.0",
     "event-target-shim": "^5.0.1",

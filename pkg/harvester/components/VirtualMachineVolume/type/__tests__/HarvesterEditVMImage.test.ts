@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import HarvesterEditVMImage from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineVolume/type/vmImage.vue';
+import HarvesterEditVMImage from '../vmImage.vue';
 import { _CREATE } from '@shell/config/query-params';
 
 describe('component: HarvesterEditVMImage', () => {
