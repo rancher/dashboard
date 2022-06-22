@@ -159,7 +159,7 @@ export default {
         tab.active = (tab.name === selected.name);
       }
 
-      this.$emit('changed', { tab: selected });
+      this.$emit('changed', { tab: selected, selectedName: selected.name });
       this.activeTabName = selected.name;
     },
 

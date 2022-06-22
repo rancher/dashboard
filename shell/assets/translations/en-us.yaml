@@ -5118,6 +5118,7 @@ workload:
     standard: Standard Container
     terminationState: "Last state: Terminated with {lsExitCode}: {lsDescription}, started: {lsStartedAt}, finished: {lsFinishedAt}"
     titles:
+      pods: Pods
       container: Container
       command: Command
       containers: Containers
