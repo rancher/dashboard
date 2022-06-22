@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import HarvesterEditNetwork from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork/base.vue';
+import HarvesterEditNetwork from '../base.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 describe('component: HarvesterEditNetwork', () => {

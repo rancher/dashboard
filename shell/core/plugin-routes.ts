@@ -129,7 +129,6 @@ export class PluginRoutes {
       }
       this.pluginRoutes.push(r.route);
     });
-
     if (replaced > 0) {
       // Typing is incorrect
       (this.router as any).matcher = (newRouter as any).matcher;
