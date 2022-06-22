@@ -90,8 +90,9 @@ export default class HciVmTemplateVersion extends SteveModel {
                 },
                 features: { acpi: { enabled: true } },
               },
-              hostname: '',
-              networks: [{
+              evictionStrategy: 'LiveMigrate',
+              hostname:         '',
+              networks:         [{
                 name: 'default',
                 pod:  {}
               }],
