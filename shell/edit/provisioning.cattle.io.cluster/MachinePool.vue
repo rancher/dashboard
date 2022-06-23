@@ -192,6 +192,7 @@ export default {
       :machine-pools="machinePools"
       @error="e=>errors = e"
     />
+    <Banner v-else-if="value.configMissing" color="error" label-key="cluster.machinePool.configNotFound" />
     <Banner v-else color="info" label-key="cluster.machinePool.noAccessBanner" />
 
     <AdvancedSection :mode="mode" class="advanced">
