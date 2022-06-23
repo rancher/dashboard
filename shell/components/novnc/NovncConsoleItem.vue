@@ -28,16 +28,16 @@ export default {
 
   methods: {
     keysDown(key, pos) {
-      this.addKeys(key, pos);
-      this.$emit('sendKeys', this.path);
+      this.addKeys({ key, pos });
+      this.$emit('sendKeys');
     },
 
-    addKeys(key, pos) {
-      this.path.splice(pos, this.path.length - pos, key);
+    addKeys({ key, pos }) {
+      this.$emit('update', { key, pos });
     },
 
     sendKeys() {
-      this.$emit('sendKeys', this.path);
+      this.$emit('sendKeys');
     },
 
     getOpenStatus(key, pos) {
@@ -56,10 +56,10 @@ export default {
         trigger="click"
         :container="false"
       >
-        <span :class="{ open: getOpenStatus(key, pos) }" class="p-10 hand" @click="addKeys(key, pos)">{{ item.label }}</span>
+        <span :class="{ open: getOpenStatus(key, pos) }" class="p-10 hand" @click="addKeys({ key, pos })">{{ item.label }}</span>
 
         <template slot="popover">
-          <novnc-console-item :items="item.keys" :path="path" :pos="pos+1" @sendKeys="sendKeys" />
+          <novnc-console-item :items="item.keys" :path="path" :pos="pos+1" @update="addKeys" @sendKeys="sendKeys" />
         </template>
       </v-popover>
 
@@ -68,7 +68,7 @@ export default {
   </ul>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .combination-keys__container {
     max-width: 60px;
 

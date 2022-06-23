@@ -1,7 +1,7 @@
 <script>
 import KeyTable from '@novnc/novnc/core/input/keysym';
-import NovncConsole from '@/shell/components/NovncConsole';
-import NovncConsoleItem from '@/shell/components/NovncConsoleItem';
+import NovncConsole from '@/shell/components/novnc/NovncConsole';
+import NovncConsoleItem from '@/shell/components/novnc/NovncConsoleItem';
 import { HCI } from '@/shell/config/types';
 
 const SHORT_KEYS = {
@@ -173,6 +173,10 @@ export default {
       this.$refs.novncConsole.disconnect();
     },
 
+    update({ key, pos }) {
+      this.keysRecord.splice(pos, this.keysRecord.length - pos, key);
+    },
+
     sendKeys() {
       this.keysRecord.forEach((key) => {
         this.$refs.novncConsole.sendKey(this.allKeys[key].value, key, true);
@@ -209,7 +213,7 @@ export default {
           </button>
 
           <template slot="popover">
-            <novnc-console-item :items="keymap" :path="keysRecord" :pos="0" @sendKeys="sendKeys" />
+            <novnc-console-item :items="keymap" :path="keysRecord" :pos="0" @update="update" @sendKeys="sendKeys" />
           </template>
         </v-popover>
 
@@ -225,15 +229,11 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .vm-console {
     height: 100%;
     display: grid;
     grid-template-rows: 30px auto;
-  }
-
-  .vm-console, .vm-console > DIV, .vm-console > DIV > DIV {
-    height: 100%;
   }
 
   .combination-keys {
