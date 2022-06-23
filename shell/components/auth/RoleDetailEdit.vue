@@ -397,7 +397,7 @@ export default {
           // If we are updating the resources defined in a rule,
           // the event will be an object with the
           // properties apiGroupValue and resourceName.
-          this.$set(rule, 'resources', [event.resourceName]);
+          this.$set(rule, 'resources', [event.resourceName.toLowerCase()]);
           // Automatically fill in the API group of the
           // selected resource.
           this.$set(rule, 'apiGroups', [event.apiGroupValue]);
