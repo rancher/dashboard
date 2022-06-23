@@ -1,6 +1,6 @@
 // BadgeState.stories.js
 
-import BadgeState from '../components/BadgeState.vue';
+import BadgeState from '@/pkg/rancher-components/src/components/BadgeState/BadgeState.vue';
 
 export default {
   component:   BadgeState,
