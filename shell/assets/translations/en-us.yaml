@@ -1447,6 +1447,13 @@ cluster:
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
 
+  detail:
+    provisioner: Provisioner
+    kubernetesVersion: Kubernetes Version
+    machineProvider: Machine Provider
+    machinePools: Machine Pools
+    machines: Machines
+
   machinePool:
     name:
       label: Pool Name
@@ -4024,7 +4031,7 @@ resourceTable:
     notInAWorkspace: Not in a Workspace
     workspace: "<span>Workspace:</span> {name}"
     notInANodePool: "Not in a Pool"
-    nodePool: "<span>Pool:</span> {name} ({count})"
+    nodePool: "<span>Pool:</span> {name}"
     node: "<span>Node:</span> {name}"
 
 resourceTabs:

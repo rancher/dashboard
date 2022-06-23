@@ -879,19 +879,21 @@ export const KUBE_NODE_OS = {
 };
 
 export const MACHINE_NODE_OS = {
-  name:      'operating-system',
-  labelKey:  'tableHeaders.operatingSystem',
-  value:     'operatingSystem',
-  sort:      ['operatingSystem'],
-  formatter: 'Capitalize'
+  name:        'operating-system',
+  labelKey:    'tableHeaders.operatingSystem',
+  value:       'operatingSystem',
+  sort:        ['operatingSystem'],
+  formatter:   'Capitalize',
+  dashIfEmpty: true,
 };
 
 export const MANAGEMENT_NODE_OS = {
-  name:      'operating-system',
-  labelKey:  'tableHeaders.operatingSystem',
-  value:     'status.internalNodeStatus.nodeInfo.operatingSystem',
-  sort:      ['status.internalNodeStatus.nodeInfo.operatingSystem'],
-  formatter: 'Capitalize'
+  name:        'operating-system',
+  labelKey:    'tableHeaders.operatingSystem',
+  value:       'status.internalNodeStatus.nodeInfo.operatingSystem',
+  sort:        ['status.internalNodeStatus.nodeInfo.operatingSystem'],
+  formatter:   'Capitalize',
+  dashIfEmpty: true,
 };
 
 // FLEET
@@ -917,5 +919,4 @@ export const IP_ADDRESS = {
   name:          'ipaddress',
   value:         'ipaddress',
   labelKey:      'tableHeaders.ipaddress',
-
 };
