@@ -7,6 +7,11 @@ import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/reso
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parseSi } from '@shell/utils/units';
 
+const ALLOW_SYSTEM_LABEL_KEYS = [
+  'topology.kubernetes.io/zone',
+  'topology.kubernetes.io/region',
+];
+
 export default class HciNode extends SteveModel {
   get _availableActions() {
     const cordon = {
@@ -57,9 +62,19 @@ export default class HciNode extends SteveModel {
   get filteredSystemLabels() {
     const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
 
-    return pickBy(this.labels, (value, key) => {
+    const labels = pickBy(this.labels, (value, key) => {
       return !reg.test(key);
     });
+
+    ALLOW_SYSTEM_LABEL_KEYS.map((key) => {
+      const value = this?.metadata?.labels?.[key];
+
+      if (value) {
+        labels[key] = value;
+      }
+    });
+
+    return labels;
   }
 
   get nameDisplay() {
