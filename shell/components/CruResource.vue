@@ -428,8 +428,8 @@ export default {
           class="resource-container cru__content cru__content-wizard"
         >
           <Wizard
-            :header-mode="mode"
             v-if="resource"
+            :header-mode="mode"
             ref="Wizard"
             :steps="steps"
             :errors="errors"
