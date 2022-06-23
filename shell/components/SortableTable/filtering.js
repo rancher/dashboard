@@ -29,6 +29,50 @@ export default {
     }),
     */
     filteredRows() {
+      console.log('FILTERING ROWS...', this.advancedFiltering, this.searchQuery);
+
+      if (!this.advancedFiltering) {
+        return this.handleFiltering();
+      } else {
+        return this.handleAdvancedFiltering();
+      }
+    },
+  },
+
+  methods: {
+    handleAdvancedFiltering() {
+      const out = (this.arrangedRows || []).slice();
+
+      if (this.searchQuery.length) {
+        const res = out.filter((row) => {
+          if (row.metadata) {
+            return this.searchQuery.every((f) => {
+              const type = f.propObj.split('__***__')[0];
+              const prop = f.propObj.split('__***__')[1];
+
+              if (type === 'header') {
+                return handleStringSearch([row.metadata[prop]], [f.value], row, true);
+                // return row.metadata[prop] === f.value;
+              }
+
+              return handleStringSearch([row.metadata.labels[prop]], [f.value], row, true);
+              // return row.metadata.labels[prop] === f.value;
+            });
+          }
+
+          return row;
+        });
+
+        console.log('ADV FILTER RESULTS', res);
+
+        return res;
+      }
+
+      // return arrangedRows array if we don't have anything to search for...
+      return out;
+    },
+
+    handleFiltering() {
       const searchText = (this.searchQuery || '').trim().toLowerCase();
       let out;
 
@@ -56,25 +100,35 @@ export default {
       const subFields = this.subFields;
       const subMatches = {};
 
+      console.log('searchFields', searchFields);
+      console.log('searchTokens', searchTokens);
+
       for ( let i = out.length - 1 ; i >= 0 ; i-- ) {
         const row = out[i];
         let hits = 0;
         let mainFound = true;
 
-        for ( let j = 0 ; j < searchTokens.length ; j++ ) {
-          let expect = true;
-          let token = searchTokens[j];
+        mainFound = handleStringSearch(searchFields, searchTokens, row);
 
-          if ( token.substr(0, 1) === '!' ) {
-            expect = false;
-            token = token.substr(1);
-          }
+        console.log('mainFound', mainFound);
+        // for ( let j = 0 ; j < searchTokens.length ; j++ ) {
+        //   let expect = true;
+        //   let token = searchTokens[j];
 
-          if ( token && matches(searchFields, token, row) !== expect ) {
-            mainFound = false;
-            break;
-          }
-        }
+        //   if ( token.substr(0, 1) === '!' ) {
+        //     expect = false;
+        //     token = token.substr(1);
+        //   }
+
+        //   console.log('token', token);
+        //   console.log('row', row);
+        //   console.log('matches(searchFields, token, row) ', matches(searchFields, token, row) );
+
+        //   if ( token && matches(searchFields, token, row) !== expect ) {
+        //     mainFound = false;
+        //     break;
+        //   }
+        // }
 
         if ( subFields && subSearch) {
           const subRows = row[subSearch] || [];
@@ -114,7 +168,7 @@ export default {
       this.previousResult = out;
 
       return out;
-    },
+    }
   },
 
   watch: {
@@ -150,8 +204,32 @@ function columnsToSearchField(columns) {
 
 const ipLike = /^[0-9a-f\.:]+$/i;
 
-function matches(fields, token, item) {
+function handleStringSearch(searchFields, searchTokens, row, fieldsAsVal = false) {
+  for ( let j = 0 ; j < searchTokens.length ; j++ ) {
+    let expect = true;
+    let token = searchTokens[j];
+
+    if ( token.substr(0, 1) === '!' ) {
+      expect = false;
+      token = token.substr(1);
+    }
+
+    console.log('token', token);
+    console.log('row', row);
+    console.log('matches(searchFields, token, row) ', matches(searchFields, token, row) );
+
+    if ( token && matches(searchFields, token, row, fieldsAsVal) !== expect ) {
+      return false;
+    }
+
+    return true;
+  }
+}
+
+function matches(fields, token, item, fieldsAsVal = false) {
+  console.log('MATCHES.....!:!:!:!:!:!:!', fields, token, item, fieldsAsVal);
   for ( let field of fields ) {
+    console.log('field', field);
     if ( !field ) {
       continue;
     }
@@ -159,8 +237,12 @@ function matches(fields, token, item) {
     let modifier;
     let val;
 
-    if (typeof field === 'function') {
+    if (fieldsAsVal) {
+      val = field;
+    } else if (typeof field === 'function') {
       val = field(item);
+
+      console.log('field val', val);
     } else {
       const idx = field.indexOf(':');
 
