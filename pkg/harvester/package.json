@@ -1,9 +1,11 @@
 {
   "name": "harvester",
-  "description": "harvester plugin",
-  "version": "0.1.0",
+  "description": "Cloud-Native Hyperconverged Infrastructure",
+  "version": "0.3.0",
   "private": false,
   "rancher": true,
+  "license": "Apache-2.0",
+  "author": "SUSE",
   "publishConfig": {
     "registry": "http://localhost:4873"
   },

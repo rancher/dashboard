@@ -117,18 +117,7 @@ export default {
         <template #col:name="{row}">
           <td>
             <span>
-              <n-link
-                v-if="row.isReady"
-                :to="{
-                  name: `${VIRTUAL}-c-cluster`,
-                  params: {
-                    cluster: row.status.clusterName,
-                    product: VIRTUAL
-                  }
-                }"
-              >
-                {{ row.nameDisplay }}
-              </n-link>
+              <a v-if="row.isReady" class="link" @click="row.goToCluster()">{{ row.nameDisplay }}</a>
               <span v-else>
                 {{ row.nameDisplay }}
               </span>
@@ -190,5 +179,9 @@ export default {
       max-width: 80%;
       text-align: center;
     }
+  }
+
+  .link {
+    cursor: pointer;
   }
 </style>
