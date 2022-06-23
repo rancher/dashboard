@@ -50,9 +50,13 @@ export default {
 
   methods: {
     setCA(ca) {
-      const encoded = btoa(ca);
+      try {
+        const encoded = btoa(ca);
 
-      this.$set(this.value, 'endpointCA', encoded);
+        this.$set(this.value, 'endpointCA', encoded);
+      } catch (e) {
+        console.warn(e);
+      }
     }
   },
 
