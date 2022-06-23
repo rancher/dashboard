@@ -429,8 +429,8 @@ export default {
         >
           <Wizard
             v-if="resource"
-            :header-mode="mode"
             ref="Wizard"
+            :header-mode="mode"
             :steps="steps"
             :errors="errors"
             :finish-mode="finishMode"
