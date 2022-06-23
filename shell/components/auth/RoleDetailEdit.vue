@@ -13,6 +13,7 @@ import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
 import { _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES } from '@shell/config/roles';
+import { saferDump } from '@shell/utils/create-yaml';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
@@ -490,6 +491,11 @@ export default {
 
       return res;
     },
+    generateYaml() {
+      const out = saferDump(this.value);
+
+      return out;
+    }
   }
 };
 </script>
@@ -504,6 +510,7 @@ export default {
     :resource="value"
     :errors="errors"
     :cancel-event="true"
+    :generate-yaml="generateYaml"
     @error="e=>errors = e"
     @finish="save"
     @cancel="cancel"
