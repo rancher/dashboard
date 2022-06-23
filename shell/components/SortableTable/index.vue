@@ -19,6 +19,7 @@ import grouping from './grouping';
 import actions from './actions';
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 // Its quicker to render if we directly supply the components for the formatters
 // rather than just the name of a global component - so create a map of the formatter comoponents
@@ -61,7 +62,7 @@ export const COLUMN_BREAKPOINTS = {
 export default {
   name:       'SortableTable',
   components: {
-    THead, Checkbox, AsyncButton, ActionDropdown
+    THead, Checkbox, AsyncButton, ActionDropdown, LabeledSelect
   },
   mixins: [
     filtering,
@@ -298,12 +299,18 @@ export default {
 
   data() {
     return {
-      currentPhase:        ASYNC_BUTTON_STATES.WAITING,
-      expanded:            {},
-      searchQuery:         '',
-      eventualSearchQuery: '',
-      actionOfInterest:    null,
-      loadingDelay:        false,
+      currentPhase:                ASYNC_BUTTON_STATES.WAITING,
+      expanded:                    {},
+      searchQuery:                 '',
+      eventualSearchQuery:         '',
+      actionOfInterest:            null,
+      loadingDelay:                false,
+      advancedFiltering:           true,
+      advancedFilteringVisibility: true,
+      advancedFilteringValues:     [],
+      advFilterValue:              null,
+      advFilterProp:               null,
+      column:                      null,
     };
   },
 
@@ -317,6 +324,9 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main.on('scroll', this._onScroll);
+
+    // check if user clicked outside the advanced filter box
+    document.addEventListener('click', this.onClickOutside);
   },
 
   beforeDestroy() {
@@ -329,6 +339,8 @@ export default {
     const $main = $('main');
 
     $main.off('scroll', this._onScroll);
+
+    document.removeEventListener('click', this.onClickOutside);
   },
 
   watch: {
@@ -388,6 +400,66 @@ export default {
 
     initalLoad() {
       return !this.loading && !this._didinit && this.rows?.length;
+    },
+
+    columnOptions() {
+      console.log('**** ALL TABLE ROWS *******', this.rows);
+      let opts = [];
+      const rowLabels = [];
+      const headerProps = [];
+
+      this.headers.forEach((prop) => {
+        if (prop.sort) {
+          const res = {
+            label: '',
+            value: ''
+          };
+
+          if (typeof prop.sort === 'string') {
+            if (prop.sort.includes(':')) {
+              res.label = prop.sort.split(':')[0] === 'creationTimestamp' ? 'age' : prop.sort.split(':')[0];
+              res.value = prop.sort.split(':')[0];
+            } else {
+              res.label = prop.sort;
+              res.value = prop.sort;
+            }
+          } else if (prop.sort.includes('stateSort')) {
+            res.label = 'state';
+            res.value = 'state';
+          } else if (prop.sort.includes('nameSort')) {
+            res.label = 'name';
+            res.value = 'name';
+          } else {
+            res.label = prop.sort[0];
+            res.value = prop.sort[0];
+          }
+
+          res.value = `header__***__${ res.value }`;
+
+          headerProps.push(res);
+        }
+      });
+
+      if (this.rows.length) {
+        this.rows.forEach((row) => {
+          if (row.metadata?.labels && Object.keys(row.metadata?.labels).length) {
+            Object.keys(row.metadata?.labels).forEach((label) => {
+              const res = {
+                label,
+                value: `label__***__${ label }`
+              };
+
+              if (!rowLabels.filter(row => row.label === label).length) {
+                rowLabels.push(res);
+              }
+            });
+          }
+        });
+      }
+
+      opts = headerProps.concat(rowLabels);
+
+      return opts;
     },
 
     fullColspan() {
@@ -816,7 +888,46 @@ export default {
         event,
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
-    }
+    },
+    toggleAdvancedFiltering() {
+      console.log('-------- TOGGLING ADVANCED FILTER -------');
+      this.advancedFilteringVisibility = !this.advancedFilteringVisibility;
+    },
+    addAdvancedFilter() {
+      console.log('-------- ADDING ADVANCED FILTER -------');
+
+      if (this.advFilterProp && this.advFilterValue) {
+        this.advancedFilteringValues.push({
+          propObj: this.advFilterProp,
+          value:   this.advFilterValue
+        });
+
+        this.eventualSearchQuery = this.advancedFilteringValues;
+
+        this.advancedFilteringVisibility = false;
+        this.advFilterProp = null;
+        this.advFilterValue = null;
+      }
+    },
+    colSelected(val) {
+      console.log('-------- COLUMN SELECTED -------', val);
+    },
+    clearAdvancedFilter(index) {
+      console.log('-------- CLEARING ADV. FILTER -------', index);
+      this.advancedFilteringValues.splice(index, 1);
+      this.eventualSearchQuery = this.advancedFilteringValues;
+    },
+    filterName(propObj) {
+      return propObj.split('__***__')[1];
+    },
+    onClickOutside(event) {
+      const advFilterBox = this.$refs['advanced-filter-group'];
+
+      if (!advFilterBox || advFilterBox.contains(event.target)) {
+        return;
+      }
+      this.advancedFilteringVisibility = false;
+    },
   }
 };
 </script>
@@ -891,10 +1002,41 @@ export default {
           />
         </div>
 
-        <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
+        <div v-if="search || advancedFiltering || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
           <slot name="header-right" />
+          <div v-if="advancedFiltering" ref="advanced-filter-group" class="advanced-filter-group">
+            <button class="btn role-primary" @click="toggleAdvancedFiltering">
+              Add Filter
+            </button>
+            <div v-show="advancedFilteringVisibility" class="advanced-filter-container">
+              <input
+                ref="advancedSearchQuery"
+                v-model="advFilterValue"
+                type="search"
+                class="advanced-search-box"
+                placeholder="Filter for..."
+              >
+              <div class="bottom-block">
+                <span>in</span>
+                <LabeledSelect
+                  v-model="advFilterProp"
+                  :clearable="true"
+                  :options="columnOptions"
+                  :disabled="false"
+                  :searchable="false"
+                  mode="edit"
+                  :multiple="false"
+                  placeholder="Select a column"
+                  @selecting="colSelected"
+                />
+                <button class="btn role-primary" @click="addAdvancedFilter">
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
           <input
-            v-if="search"
+            v-else-if="search"
             ref="searchQuery"
             v-model="eventualSearchQuery"
             type="search"
@@ -905,6 +1047,12 @@ export default {
         </div>
       </div>
     </div>
+    <ul class="advanced-filters-applied">
+      <li v-for="(filter, i) in advancedFilteringValues" :key="i">
+        <span>{{ `"${filter.value}" in ${filterName(filter.propObj)}` }}</span>
+        <span @click="clearAdvancedFilter(i)">X</span>
+      </li>
+    </ul>
     <table class="sortable-table" :class="classObject" width="100%">
       <THead
         v-if="showHeaders"
@@ -1140,6 +1288,56 @@ export default {
     </template>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.advanced-filter-group {
+  position: relative;
+  .advanced-filter-container {
+    position: absolute;
+    top: 38px;
+    right: 0;
+    width: 300px;
+    border: 1px solid var(--primary);
+    background-color: #FFF;
+    padding: 20px;
+
+    .bottom-block {
+      display: flex; align-items: center; margin-top: 20px;
+
+      span {
+        margin-right: 20px;
+      }
+
+      button {
+        margin-left: 20px;
+      }
+    }
+  }
+}
+
+.advanced-filters-applied {
+  display: flex;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    margin: 0 20px 20px 0;
+    padding: 5px 10px;
+    border: 1px solid #000;
+    border-radius: 5px;
+
+    span {
+      &:first-child {
+        margin-right: 10px;
+      }
+      &:last-child {
+        cursor: pointer;
+      }
+    }
+  }
+}
+</style>
 
 <style lang="scss" scoped>
   // Remove colors from multi-action buttons in the table
