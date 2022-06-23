@@ -59,7 +59,9 @@ export default {
       }
     ];
 
-    this.$set(this.value, 'parameters', this.value.parameters || {});
+    if (this.isCreate) {
+      this.$set(this.value, 'parameters', this.value.parameters || {});
+    }
     this.$set(this.value, 'provisioner', this.value.provisioner || PROVISIONER_OPTIONS[0].value);
     this.$set(this.value, 'allowVolumeExpansion', this.value.allowVolumeExpansion || allowVolumeExpansionOptions[1].value);
     this.$set(this.value, 'reclaimPolicy', this.value.reclaimPolicy || reclaimPolicyOptions[0].value);
