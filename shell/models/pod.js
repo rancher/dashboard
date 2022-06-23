@@ -60,13 +60,6 @@ export default class Pod extends SteveModel {
     return containers[0]?.name;
   }
 
-  promptRemove(resources = this) {
-    this.$dispatch('promptModal', {
-      resources,
-      component: 'ForcePodRemoveDialog'
-    });
-  }
-
   openShell(containerName = this.defaultContainerName) {
     this.$dispatch('wm/open', {
       id:        `${ this.id }-shell`,
