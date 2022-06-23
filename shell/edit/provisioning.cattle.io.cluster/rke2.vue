@@ -1552,6 +1552,7 @@ export default {
     :apply-hooks="applyHooks"
     :generate-yaml="generateYaml"
     class="rke2"
+    component-testid="rke2-custom-create"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
