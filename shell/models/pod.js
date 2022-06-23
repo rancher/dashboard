@@ -1,3 +1,4 @@
+import { insertAt } from '@shell/utils/array';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -15,36 +16,41 @@ export const WORKLOAD_PRIORITY = {
 
 export default class Pod extends SteveModel {
   get _availableActions() {
-    const forceRemove = {
-      action:     'promptRemove',
-      altAction:  'remove',
-      label:      this.t('action.remove'),
-      icon:       'icon icon-trash',
-      bulkable:   true,
-      enabled:    this.canDelete,
-      bulkAction: 'promptRemove',
-      weight:     -10, // Delete always goes last
-    };
+    const out = super._availableActions;
 
-    const out = [
-      {
-        action:     'openShell',
-        enabled:    !!this.links.view && this.isRunning,
-        icon:       'icon icon-fw icon-chevron-right',
-        label:      'Execute Shell',
-        total:      1,
-      },
-      {
-        action:     'openLogs',
-        enabled:    !!this.links.view,
-        icon:       'icon icon-fw icon-chevron-right',
-        label:      'View Logs',
-        total:      1,
-      },
-      { divider: true },
-      ...super._availableActions,
-      forceRemove
-    ];
+    // Add backwards, each one to the top
+    insertAt(out, 0, { divider: true });
+    insertAt(out, 0, this.openLogsMenuItem);
+    insertAt(out, 0, this.openShellMenuItem);
+
+    return out;
+  }
+
+  get openShellMenuItem() {
+    return {
+      action:     'openShell',
+      enabled:    !!this.links.view && this.isRunning,
+      icon:       'icon icon-fw icon-chevron-right',
+      label:      'Execute Shell',
+      total:      1,
+    };
+  }
+
+  get openLogsMenuItem() {
+    return {
+      action:     'openLogs',
+      enabled:    !!this.links.view,
+      icon:       'icon icon-fw icon-chevron-right',
+      label:      'View Logs',
+      total:      1,
+    };
+  }
+
+  get containerActions() {
+    const out = [];
+
+    insertAt(out, 0, this.openLogsMenuItem);
+    insertAt(out, 0, this.openShellMenuItem);
 
     return out;
   }
