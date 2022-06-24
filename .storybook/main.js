@@ -25,6 +25,7 @@ module.exports = {
     '../shell/assets'
   ],
 
+
   webpackFinal: async (config, { configType }) => {
     const baseFolder = path.resolve(__dirname, '..');
 
