@@ -21,6 +21,10 @@ export default {
       type:     Boolean,
       required: true
     },
+    tableColsOptions: {
+      type:    Array,
+      default: () => [],
+    },
     tableActions: {
       type:     Boolean,
       required: true,
@@ -67,6 +71,9 @@ export default {
     },
   },
 
+  data() {
+    return { tableColsOptionsVisibility: true };
+  },
   computed: {
     isAll: {
       get() {
@@ -80,7 +87,7 @@ export default {
 
     isIndeterminate() {
       return this.howMuchSelected === SOME;
-    }
+    },
   },
 
   methods: {
@@ -101,7 +108,24 @@ export default {
     isCurrent(col) {
       return col.name === this.sortBy;
     },
-  }
+
+    tableColsOptionsClick() {
+      console.log('-------- TOGGLING TABLE OPTIONS -------');
+      this.tableColsOptionsVisibility = !this.tableColsOptionsVisibility;
+    },
+    tableOptionsCheckbox(value, label) {
+      console.log('-------- TABLE OPTIONS CHECKBOX -------', label, value);
+      this.$emit('col-visibility-change', {
+        label,
+        value
+      });
+    },
+  },
+  watch: {
+    tableColsOptions(neu) {
+      console.log('-------- TABLE COLS OPTIONS WATCHER -------', neu);
+    }
+  },
 };
 </script>
 
@@ -137,11 +161,76 @@ export default {
       </th>
       <th v-if="rowActions" :width="rowActionsWidth">
       </th>
+      <th v-if="tableColsOptions.length">
+        <div class="table-options-group">
+          <button
+            aria-haspopup="true"
+            aria-expanded="false"
+            type="button"
+            class="btn btn-sm role-multi-action actions"
+            @click="tableColsOptionsClick"
+          >
+            <i class="icon icon-actions" />
+          </button>
+          <div
+            v-show="tableColsOptionsVisibility"
+            class="table-options-container"
+          >
+            <ul>
+              <li
+                v-for="(col, index) in tableColsOptions"
+                v-show="!col.ignoreAsTableOption"
+                :key="index"
+              >
+                <Checkbox
+                  v-model="col.visible"
+                  class="table-options-checkbox"
+                  @input="tableOptionsCheckbox($event, col.label)"
+                />
+                <span>{{ col.label }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        </div>
+      </th>
     </tr>
   </thead>
 </template>
 
 <style lang="scss" scoped>
+.table-options-group {
+  position: relative;
+  .table-options-container {
+    position: absolute;
+    top: 38px;
+    right: 0;
+    width: 300px;
+    border: 1px solid var(--primary);
+    background-color: #FFF;
+    padding: 20px;
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+
+      li {
+        flex: 1 1 120px;
+        margin: 0 0 10px 0;
+        padding: 0;
+
+        .table-options-checkbox {
+          display: inline-block;
+          margin-right: 10px;
+        }
+      }
+    }
+  }
+}
+
   .sortable > SPAN {
     cursor: pointer;
     user-select: none;

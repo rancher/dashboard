@@ -305,8 +305,9 @@ export default {
       eventualSearchQuery:         '',
       actionOfInterest:            null,
       loadingDelay:                false,
+      hasTableOptions:             true,
       advancedFiltering:           true,
-      advancedFilteringVisibility: true,
+      advancedFilteringVisibility: false,
       advancedFilteringValues:     [],
       advFilterSearchTerm:         null,
       advFilterSelectedProp:       DEFAULT_ADV_FILTER_COLS_VALUE,
@@ -421,12 +422,14 @@ export default {
           if (typeof prop.sort === 'string') {
             headerProps.push({
               label,
-              value: prop.sort.includes(':') ? prop.sort.split(':')[0] : prop.sort
+              value:   prop.sort.includes(':') ? prop.sort.split(':')[0] : prop.sort,
+              visible: true
             });
           } else {
             headerProps.push({
               label,
-              value: JSON.stringify(prop.sort)
+              value:   JSON.stringify(prop.sort),
+              visible: true
             });
           }
         }
@@ -439,7 +442,8 @@ export default {
             Object.keys(row.metadata?.labels).forEach((label) => {
               const res = {
                 label,
-                value: `metadata.labels.${ label }`
+                value:   `metadata.labels.${ label }`,
+                visible: false
               };
 
               if (!rowLabels.filter(row => row.label === label).length) {
@@ -454,8 +458,9 @@ export default {
 
       if (opts.length) {
         opts.unshift({
-          label: ADV_FILTER_ALL_COLS_LABEL,
-          value: ADV_FILTER_ALL_COLS_VALUE
+          label:               ADV_FILTER_ALL_COLS_LABEL,
+          value:               ADV_FILTER_ALL_COLS_VALUE,
+          ignoreAsTableOption: true
         });
       }
 
@@ -930,6 +935,17 @@ export default {
       }
       this.advancedFilteringVisibility = false;
     },
+
+    // cols visibility
+    changeColVisibility(colData) {
+      const index = this.columnOptions.findIndex(col => col.label === colData.label);
+
+      if (index !== -1) {
+        this.columnOptions[index].visible = colData.value;
+      }
+
+      console.log('-------- COL VISIBILITY CHANGE (Sortable) -------', colData, index, this.columnOptions[index]);
+    }
   }
 };
 </script>
@@ -1062,6 +1078,7 @@ export default {
         :label-for="labelFor"
         :columns="columns"
         :table-actions="tableActions"
+        :table-cols-options="columnOptions"
         :row-actions="rowActions"
         :sub-expand-column="subExpandColumn"
         :row-actions-width="rowActionsWidth"
@@ -1074,6 +1091,7 @@ export default {
         :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
+        @col-visibility-change="changeColVisibility"
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
