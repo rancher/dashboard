@@ -43,6 +43,7 @@ generic:
   overview: 概述
   plusMore: "+ {n} 更多"
   readFromFile: 从文件读取
+  readFromFolder: 从文件夹读取
   register: 注册
   remove: 移除
   resource: |-
@@ -100,7 +101,7 @@ nav:
   clusterTools: 集群工具
   kubeconfig:
     download: 下载 KubeConfig
-    copy: 复制 KubeConfig 到剪切板
+    copy: 将 KubeConfig 复制到剪切板
     options: KubeConfig 选项
   import: 导入 YAML
   home: 首页
@@ -169,7 +170,7 @@ nav:
     separator: 或者
 
 product:
-  apps: 应用 & 应用市场
+  apps: 应用
   auth: 用户 & 认证
   backup: Rancher 备份
   cis: CIS Benchmark
@@ -180,7 +181,7 @@ product:
   manager: 集群管理
   gatekeeper: OPA Gatekeeper
   istio: Istio
-  logging: 日志管理
+  logging: Logging
   settings: 全局设置
   clusterManagement: 集群管理
   monitoring: 监控
@@ -274,14 +275,18 @@ accountAndKeys:
     info:
       accessKey: 访问密钥
       secretKey: 密文密钥
-      bearerToken: 持有者 Token
+      bearerToken: 持有者令牌
       saveWarning: 请善保存以上的信息。这是你唯一查看该信息的机会。如果丢失这些信息，你需要创建一个新的 API 密钥。
       keyCreated: 已创建一个新的 API 密钥。
-      bearerTokenTip: "访问密钥和密文密钥 可以作为 HTTP Basic auth 的用户名和密码发送，以授权请求。你也可以将它们组合起来作为一个持有者 Token使用。"
+      bearerTokenTip: "访问密钥和密文密钥可以作为 HTTP Basic auth 的用户名和密码发送，从而授权请求。你也可以将它们组合起来作为一个持有者令牌使用。"
       ttlLimitedWarning: 系统配置导致该 API 密钥的到期时间缩短了。
 
 addClusterMemberDialog:
   title: 添加集群成员
+
+addonConfigConfirmation:
+  title: 附加配置重置
+  body: 修改 Kubernetes 版本会重置附加配置的值。请先检查这些值是否正确。
 
 addProjectMemberDialog:
   title: 添加项目成员
@@ -425,7 +430,7 @@ authConfig:
     groups: 用户组字段
     key:
       label: 私钥
-      placeholder: 粘贴私钥，以-----RSA PRIVATE KEY----- 开始。
+      placeholder: 粘贴私钥，一般以----BEGIN RSA PRIVATE KEY----开头
     keycloak: 配置 Keycloak 账号
     metadata:
       label: 元数据 XML
@@ -442,6 +447,17 @@ authConfig:
     graphEndpoint: 图端点
     tokenEndpoint: Token 端点
     authEndpoint: Auth 端点
+    reply:
+      info: '在开始设置之前，Azure AD 需要 Rancher Server 的白名单 URL。请确保在 Azure 门户的回复 URL 中设置了以下 URL。请注意，白名单 URL 可能需要 5 分钟才能生效。'
+      label: 回复 URL
+    updateEndpoint:
+      banner:
+        message: '必须更新 Azure AD 身份验证：它使用了 Azure Graph API，该 API 将于 2022 年底弃用。'
+        linkText: '在此处进行更新。'
+      modal:
+        title: 是否确认？此更新是不可逆的。
+        body: '<p><b>你可能需要更新你的 Azure AD 应用</b>。请确保 Azure AD 应用具有以下 Microsoft Graph 应用权限：User.Read.All、Group.Read.All</p>'
+      button: 更新端点
   oidc:
     oidc: 配置 OIDC 账号
     keycloakoidc: 配置 Keycloak OIDC 账号
@@ -462,7 +478,7 @@ authConfig:
       placeholder: 粘贴证书，以-----BEGIN CERTIFICATE----- 开始。
     key:
       label: 私钥
-      placeholder: 粘贴私钥，以-----RSA PRIVATE KEY----- 开始。
+      placeholder: 粘贴私钥，一般以----BEGIN RSA PRIVATE KEY----开头
   stateBanner:
     disabled: '{provider} 已禁用。'
     enabled: '{provider} 已启用。'
@@ -594,6 +610,10 @@ asyncButton:
     action: 轮换
     waiting: 正在轮换&hellip;
     success: 已轮换
+  run:
+    action: 运行
+    waiting: 正在运行&hellip;
+    success: 已完成
   snapshot:
     action: 立即创建快照
     waiting: 已启动快照&hellip;
@@ -918,7 +938,7 @@ cis:
   addTest: 添加测试 ID
   alertNeeded: |-
     必须在 CIS Chart values.yaml 中开启告警。
-    这要求<a tabindex="0" href="{link}"> {vendor} 的监控与告警应用</a>已经安装
+    这要求<a tabindex="0" href="{link}"> {vendor} 的 Monitoring 与 Alerting 应用</a>已经安装
     ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/monitoring-alerting/configuration/#alertmanager-configuration/'>已配置告警发送</a>。
   alertOnComplete: 扫描完成告警
   alertOnFailure: 扫描失败告警
@@ -1002,7 +1022,7 @@ cluster:
       note: '<b>重要</b>：在附加配置标签中配置 vSphere 云提供商和存储提供商选项。'
     harvester:
       label: Harvester
-  copyConfig: 将配置复制到剪贴板
+  copyConfig: 将 KubeConfig 复制到剪切板
   custom:
     nodeRole:
       label: 节点角色
@@ -1184,7 +1204,7 @@ cluster:
   kubernetesVersion:
     label: Kubernetes 版本
     experimental: 实验功能
-  toolsTip: 使用新集群工具来管理和安装监控、日志管理等工具。
+  toolsTip: 使用新集群工具来管理和安装 Monitoring、Logging 等工具。
   legacyWarning: 旧版功能开关已开启，但是不是所有旧版功能都在 Kubernetes 1.21+ 中支持。
   log:
     connecting: 正在连接
@@ -1411,6 +1431,7 @@ cluster:
       httpTokens: 为元数据使用 Token
       tagTitle: EC2 标签
   addOns:
+    dependencyBanner: 附加组件配置可能因 Kubernetes 版本而异。更改 Kubernetes 版本可能会重置以下值。
     additionalManifest:
       title: 其它清单文件
       tooltip: '集群启动时要应用的其它 Kubernetes 清单 YAML'
@@ -1485,6 +1506,7 @@ cluster:
       label: 自动替换
       toolTip: 如果大于 0，则在此期间无法访问的节点将被自动删除和替换。
       unit: "分钟"
+  managementTimeout: 集群变成可用。可能已创建了集群。建议在创建另一个集群之前检查集群页面。
   memberRoles:
     removeMessage: '注意：删除用户不会删除其项目权限。'
     addClusterMember:
@@ -1592,13 +1614,14 @@ cluster:
       label: Worker 节点
     controlPlaneConcurrency:
       label: Control Plane 并发
-      toolTip: "可以是固定的节点数（如1），也可以是百分比（如10%）"
+      toolTip: "可以是固定的节点数（如 1），也可以是百分比（如 10%）"
     workerConcurrency:
       label: Worker 并发
-      toolTip: "可以是固定的节点数（如1），也可以是百分比（如10%）"
+      toolTip: "可以是固定的节点数（如 1），也可以是百分比（如 10%）"
     drain:
       label: 清空节点
       toolTip: 清空操作预先移除每个节点上的 Pod，使得升级中的节点上没有运行的工作负载。不清空的升级速度更快，造成的混乱更少，但是 Pod 仍可能根据进行中的升级进行重启。
+    deleteEmptyDir: "默认情况下，使用 emptyDir 卷的 pod 会在升级时被删除。在 pod 生命周期中依赖于 emptyDir 持久卷的操作可能会受到影响。"
     address:
       tooltip: 创建集群后无法更改集群网络值。
       header: 寻址
@@ -1653,6 +1676,8 @@ cluster:
         =1 { 已为1个集群请求快照 }
         other {已为{count}个集群请求快照}
       }
+    groupLabel: 位置
+    failed: "{time} 后的快照已失败"
   tabs:
     ace: 授权端点
     addons: 附加配置
@@ -1678,6 +1703,8 @@ cluster:
   toggle:
     v1: RKE1
     v2: RKE2/K3s
+  validation:
+    iamInstanceProfileName: 如果选择了 Amazon 云提供商，则必须为每个机器池定义“IAM 实例配置文件名称”。
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -1687,7 +1714,7 @@ clusterIndexPage:
     ram: 内存
     used: 已使用
     reserved: 已预留
-  header: 集群仪表盘
+  header: 集群仪表板
   resourceGauge:
     totalResources: 资源总额
   sections:
@@ -1742,6 +1769,10 @@ containerResourceLimit:
   requestsMemory: 内存预留
 
 
+resource:
+  errors:
+    update: "更新 {name} 出错"
+
 cruResource:
   backToForm: 返回表单编辑
   backBody: 返回表单编辑不会保留对 YAML 做出的所有更改
@@ -1791,8 +1822,8 @@ etcdInfoBanner:
 
 fleet:
   dashboard:
-    pageTitle: 持续交付仪表盘
-    menuLabel: 仪表盘
+    pageTitle: 持续交付仪表板
+    menuLabel: 仪表板
     welcome: 欢迎使用 Fleet 持续交付
     gitOpsScale: 大规模 GitOps。
     learnMore: 了解更多。
@@ -1907,6 +1938,17 @@ fleet:
           =1 {与现有的{total, number}个集群中的1个集群"{sample}"匹配}
           other {现有{total, number}个集群，与其中的{matched, number}个匹配，包括"{sample}"}
         }
+  fdc:
+    loadingChart: 正在加载 Chart 数据...
+    renderingChart: 正在渲染 Chart...
+    id: ID
+    type: 类型
+    state: 状态
+    cluster: 集群
+    error: 错误
+    ready: 就绪
+    errors: 错误
+
 footer:
   docs: Rancher 官方文档
   download: 下载 CLI
@@ -1967,8 +2009,8 @@ glance:
   pods: Pod
   provider: 提供商
   version: Kubernetes 版本
-  monitoringDashboard: 监控仪表盘
-  installMonitoring: 安装监控
+  monitoringDashboard: 监控仪表板
+  installMonitoring: 安装 Monitoring
   v1MonitoringInstalled: 已安装 Monitoring V1
   clusterInfo: 集群信息
 
@@ -2134,7 +2176,7 @@ istio:
   links:
     kiali:
       label: Kiali
-      description: '服务网格中的可视化服务及其连接方式。要想让 Kiali 显示数据，你需要安装 Prometheus。如果你需要监控解决方案，请安装<a tabindex="0" href="{link}">{vendor} 监控</a>。'
+      description: '服务网格中的可视化服务及其连接方式。要想让 Kiali 显示数据，你需要安装 Prometheus。如果你需要监控解决方案，请安装 <a tabindex="0" href="{link}">{vendor} Monitoring</a>。'
     jaeger:
       label: Jaeger
       description: 监控并排除基于微服务的分布式系统的故障。
@@ -2296,7 +2338,7 @@ istio:
   kiali: 启用 Kiali
   pilot: 启用 Pilot
   policy: 启用 Policy
-  poweredBy: 由 <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a>提供支持
+  poweredBy: 由 <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a> 提供支持
   telemetry: 启用遥测
   titles:
     components: 组件
@@ -2328,14 +2370,15 @@ landing:
       {count, plural,
       =1 {核}
       other {核}}
-    cpuUsed: 已用CPU
+    cpuUsed: 已用 CPU
     memoryUsed: 已用内存
-  seeWhatsNew: 了解此版本的新功能和优化。
-  whatsNewLink: "2.6的新功能"
+  seeWhatsNew: 点击右侧链接，了解此版本的新功能和优化。
+  whatsNewLink: "2.6 的新功能"
   learnMore: 了解更多
   gettingStarted:
     title: 快速入门
     body: 查看快速入门指南。Cluster Manager 用户可以了解 Dashboard UI 的更多新功能。
+  support: 支持
   community:
     title: 社区支持
     docs: Rancher 官方文档
@@ -2344,7 +2387,8 @@ landing:
     title: 商业支持
     body: 了解商业支持
   landingPrefs:
-    title: 选择登录后显示的页面
+    title: 更改登录后显示的页面：
+    userPrefs: 偏好设置
     body: "登录后显示："
     options:
       homePage: 主页
@@ -2574,7 +2618,7 @@ logging:
 longhorn:
   overview:
     title: 概述
-    subtitle: "由<a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow noreferrer'>Longhorn</a>提供支持"
+    subtitle: "由 <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow noreferrer'>Longhorn</a> 提供支持"
     linkedList:
       longhorn:
         label: 'Longhorn'
@@ -2643,6 +2687,7 @@ members:
     custom:
       label: 自定义
       description: 为该用户自定义角色。
+  localClusterWarning: "注意：这是 Rancher 用来存储数据的集群。只有管​​理员才应该对该集群有写权限。能够写入此集群的用户可以授权自己访问由该安装管理的其他集群。"
 
 membershipEditor:
   label: 成员
@@ -2669,7 +2714,7 @@ monitoring:
       existing: 选择现有的配置密文
       info: |
         <span class="text-bold">创建默认配置</span>。在部署这个 Chart 时，将在<pre class='inline-block m-0'>cattle-monitoring-system</pre> 命名空间中创建一个包含 Alertmanager 配置的密文，名称为<pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>。默认情况下，在卸载或升级此 Chart 时，此密文均不会被修改。<br />
-        一旦你部署了这个 Chart，你需要通过 UI 编辑密文，以添加用于 Alertmanager 发送警报的自定义通知配置。<br /> <br />
+        部署这个 Chart 之后，你需要在 UI 中编辑密文，从而添加 Alertmanager 用于发送告警的自定义通知配置。<br /> <br />
         <span class="text-bold">选择一个现有的配置密文</span>：你必须指定一个存在于<pre class='inline-block m-0'>cattle-monitoring-system</pre>命名空间内的密文。如果命名空间不存在，你将无法选择现有的密钥。
       label: Alertmanager 密文
       new: 创建默认配置
@@ -2727,7 +2772,7 @@ monitoring:
         description: 已启用的告警
         label: Alertmanager
       grafana:
-        description: Metrics 仪表盘
+        description: Metrics 仪表板
         label: Grafana
       na: 资源不可用
       prometheusPromQl:
@@ -2735,12 +2780,12 @@ monitoring:
         label: Prometheus 图表
       prometheusRules:
         description: 配置规则
-        label: Prometheus 规则
+        label: PrometheusRules
       prometheusTargets:
         description: 配置目标
         label: Prometheus 目标
-    subtitle: '由<a href="https://github.com/coreos/prometheus-operator" target="_blank" rel="noopener noreferrer nofollow">Prometheus</a>提供支持'
-    title: 仪表盘
+    subtitle: '由 <a href="https://github.com/coreos/prometheus-operator" target="_blank" rel="noopener noreferrer nofollow">Prometheus</a> 提供支持'
+    title: 仪表板
   prometheus:
     config:
       adminApi: Admin API
@@ -2773,8 +2818,9 @@ monitoring:
     title: 配置 Prometheus
     warningInstalled: |
       警告：当前已部署 Prometheus Operator。目前不支持在一个集群上部署多个Prometheus Operators。在安装此 Chart 之前，请从该集群中移除所有其他的 Prometheus Operator。
-      如果你是从启用了监控功能的旧版 {vendor} 迁移过来的，请在安装此 Chart 之前完全禁用此集群的监控功能。
+      如果你是从启用了 Monitoring 功能的旧版 {vendor} 迁移过来的，请在安装此 Chart 之前完全禁用此集群的 Monitoring 功能。
   receiver:
+    addReceiver: 添加接收器
     fields:
       name: 名称
     tls:
@@ -2789,20 +2835,61 @@ monitoring:
         label: 密钥文件路径
         placeholder: 例如：./key-file.pfx
       secretsBanner: 部署 Monitoring Chart 时，必须在<<pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre>中引用以下文件路径。详情请查看<a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">官方文档</a>。
-
+  projectMonitoring:
+    detail:
+      error: "无法获取具有状态的仪表板值： "
+    list:
+      banner: 项目监控配置存储在 ProjectHelmChart 资源中
+      empty:
+        message: 还没有为任何项目配置监控
+        canCreate: 单击“创建”为项目添加监控
+        cannotCreate: 联系管理员添加项目监控
   route:
+    label: 路由
     fields:
       groupBy: 分组依据
       groupInterval: 组间隔
       groupWait: 组等待时长
-      receiver: 接收者
+      receiver: 接收器
       repeatInterval: 重复间隔
-  routesAndReceivers: 路由和接收器
+  routesAndReceivers: 路由和接收器（已弃用）
   monitors: 监控
+  projectMonitors: 项目监控
+  alertmanagerConfig:
+    description: 如果要配置用于项目告警和集群告警的路由和接收器，你可以在 AlertmanagerConfig 资源中进行配置。
+    empty: 还没有为任何可访问的命名空间配置告警。
+    getStarted: 单击“创建”开始配置告警。
+    receiverTooltip: 此路由会将告警发送到选定的接收器，该接收器必须在同一个 AlertmanagerConfig 中定义。
+    deprecationWarning: 路由和接收器资源已弃用。路由和接收器不能在此页面上作为单独的 Kubernetes 资源进行管理。它们应配置为 AlertmanagerConfig 资源中的 YAML 字段。
+    routeInfo: 此表单支持配置一个将流量定向到接收器的路由。通过在 YAML 中配置子路由，你可以将告警定向到更多接收器。
+    receiverFormNames:
+      create: 在 AlertmanagerConfig 中创建接收器
+      edit: 在 AlertmanagerConfig 中编辑接收器
+      editYaml: 编辑 AlertmanagerConfig
+      detail: AlertmanagerConfig 中的接收器
+    disabledReceiverButton: 创建 AlertmanagerConfig 后就可以使用接收器
+    email:
+      username: 认证用户名
+      password: 具有 Auth 密码的密文
+    slack:
+      apiUrl: 具有 Slack Webhook URL 的密文
+    pagerDuty:
+      routingKey: 具有路由密钥的密文
+      serviceKey: 具有 Service Key 的密文
+    opsgenie:
+      apiKey: 具有 API Key 的密文
+    webhook:
+      url: URL
+      urlSecret: URL 密文
+      urlSecretTooltip: 'urlSecret 优先于 url。你需要定义 urlSecret 或 url。'
+    auth:
+      bearerTokenSecret: 持有者令牌密文
+      basicAuthUsername: 具有基本认证用户名的密文
+      basicAuthPassword: 具有基本认证密码的密文
   installSteps:
     uninstallV1:
       stepTitle: 卸载 V1
-      stepSubtext: 卸载旧版监控
+      stepSubtext: 卸载旧版 Monitoring
       warning1: 已部署 Monitoring V1。你需要先卸载 Monitoring V1 才能安装 Monitoring V2。
       warning2: <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/" target='_blank' rel='noopener nofollow'>了解迁移到 Monitoring V2 的步骤</a>。
       promptDescription: <div class="mt-20 mb-20">你正在尝试卸载 Monitoring V1。请确保你已阅读迁移步骤。</div>
@@ -2813,7 +2900,8 @@ monitoring:
     general: 通用
     grafana: Grafana
     prometheus: Prometheus
-  v1Warning: '当前监控由 Cluster Manager 部署。如果你需要从启用了监控的旧版 {vendor} 迁移，请先从 Cluster Manager 关闭监控，再使用集群浏览器安装新版 {vendor} Monitoring Chart。'
+    projectMetrics: 项目指标
+  v1Warning: '当前 Monitoring 由 Cluster Manager 部署。如果你需要从启用了 Monitoring 的旧版 {vendor} 迁移，请先在 Cluster Manager 中禁用 Monitoring，然后再在 Cluster Explorer 中安装新版 {vendor} Monitoring Chart。'
   volume:
     modes:
       block: 块
@@ -2826,8 +2914,8 @@ monitoringReceiver:
     title: 自定义配置
     info: 此处提供的 YAML 将直接附加到 Alertmanager 配置密文的接收器中。
   email:
-    label: 电子邮箱
-    title: 电子邮箱配置
+    label: 电子邮件
+    title: 电子邮件配置
   opsgenie:
     label: Opsgenie
     title: Opsgenie 配置
@@ -2844,8 +2932,9 @@ monitoringReceiver:
     title: Webhook 配置
     urlTooltip: 对于一些 Webhook 而言，这是一个指向 DNS 服务的 URL
     modifyNamespace: 如果 <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> 的默认值改变了，请以 http://&lt;new_service_name&gt;.&lt;new_namespace&gt.svc.&lt;port&gt/&lt;path&gt 格式更新以下 URL。
-    banner: 如果你需要使用 Microsoft Teams 或短信，请先安装<pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> 。
+    banner: 要使用 Microsoft Teams 或短信，请先安装至少一个 <pre class="inline-block m-0 p-0 vertical-middle">rancher-alerting-drivers</pre> 实例。
     add:
+      selectWebhookType: 选择 Webhook 类型
       generic: 通用
       msTeams: Microsoft Teams
       alibabaCloudSms: 阿里巴巴短信
@@ -2857,31 +2946,59 @@ monitoringReceiver:
     none:
       label: 无
     bearerToken:
-      label: 持有者 Token
+      label: 持有者令牌
       placeholder: 例如：secret-token
     basicAuth:
       label: 基本认证
     bearerTokenFile:
-      label: 持有者 Token 文件
+      label: 持有者令牌文件
       placeholder: 例如：./user_token
+  tls:
+    ca: 具有 CA 的密文
+    cert: 具有客户证书的密文
+    key: 带有客户端密钥的密文
+    serverName: 服务器名称
+    serverNameTooltip: 用于验证目标的主机名。
   shared:
     proxyUrl:
       label: 代理 URL
       placeholder: 例如：http://my-proxy/
     sendResolved:
-      label: 发送已解决警报
+      label: 发送已解决告警
 
+alertmanagerConfigReceiver:
+  secretKeyId: 密钥 ID
+  name: 接收器名称
+  addButton: 添加接收器
+  receivers: 接收器
+  namespaceWarning: 找不到用于获取密文的命名空间，无法渲染密文选择器。
+  receiverTypes: "可以在表单中编辑以下接收器类型：Email、Slack、PagerDuty、Opsgenie 和 Webhook。如果是其他类型的接收器，则编辑 AlertmanagerConfig YAML。"
+  slack:
+    webhookUrl: Webhook URL
+    apiUrlTooltip: 包含 Slack webhook URL 的密文密钥。该密钥需要与 AlertmanagerConfig 对象位于同一命名空间中，并且可由 Prometheus Operator 访问。
 monitoringRoute:
   groups:
     label: 分组依据
-  info: 这是 Alertmanager 使用的最顶层路由，作为与其他任何路由不匹配的警报默认目的地。此路由必须存在，不能删除。
+    addGroupByLabel: 告警分组标签
+    groupByTooltip: 将每个标签添加为 key:value 格式的字符串。特殊标签 ... 会使用所有可能的标签聚合。如果指定了，则 ... 必须是列表中的唯一元素。
+  info: 这是 Alertmanager 使用的最顶层路由，如果告警不匹配路由，则使用这个路由作为默认目的位置。此路由必须存在，不能删除。
   interval:
     label: 组间隔
   matching:
     info: 根路由必须匹配所有内容，因此无法配置匹配。
     label: 匹配
+    addMatcher: 添加匹配器
+    matchType: 匹配类型
+    name: 名称
+    nameTooltip: 要匹配的标签
+    value: 值
+    valueTooltip: 要匹配的标签值
   receiver:
-    label: 接收者
+    type: 接收器类型
+    add: 添加接收器
+    label: 接收器
+    oneOrMoreLabel: 一个或多个接收器
+    addMatch: 添加匹配
   regex:
     label: 匹配正则表达式
   repeatInterval:
@@ -2911,7 +3028,7 @@ nameNsDescription:
 
 namespace:
   containerResourceLimit: 容器资源限制
-  resourceQuotas: 资源限额
+  resourceQuotas: 资源配额
   project:
     label: 项目
   resources: 资源
@@ -2920,6 +3037,10 @@ namespace:
   move: 移动
   total: 总计
   workloads: 工作负载
+  label: 命名空间
+  selectNamespace: 选择命名空间
+  createNamespace: 创建新的命名空间
+  selectOrCreate: 选择或创建命名空间
   resourceStates:
       success: '活动'
       info: '转换中'
@@ -3423,6 +3544,10 @@ persistentVolumeClaim:
     options:
       new: 使用存储类来配置新的持久卷
       existing: 使用现有的持久卷
+  expand:
+    label: 展开
+    notSupported: 存储类不支持卷扩展
+    notBound: 只能扩展绑定的 PVC
   volumeClaim:
     label: 卷声明
     storageClass: 存储类
@@ -3517,11 +3642,12 @@ probe:
     placeholder: 选择检查类型
 
 project:
+  membersEditOnly: 只能应用等于或低于当前用户的权限
   members:
     label: 成员
   containerDefaultResourceLimit: 容器默认资源限制
   vmDefaultResourceLimit: 虚拟机默认资源限制
-  resourceQuotas: 资源限额
+  resourceQuotas: 资源配额
   haveOneOwner: 至少有一名成员需要具有所有者角色。
   psp:
     default: 集群默认
@@ -3561,7 +3687,7 @@ projectMembers:
     workloadsManage: 管理工作负载
     configmapsView: 查看 ConfigMaps
     ingressView: 查看 Ingress
-    monitoringUiView: 查看监控
+    monitoringUiView: 查看 Monitoring
     projectcatalogsView: 查看项目应用商店
     projectroletemplatebindingsView: 查看项目成员
     secretsView: 查看密文
@@ -3575,6 +3701,7 @@ projectNamespaces:
   createProject: 创建项目
   label: 项目/命名空间
   noNamespaces: 没有定义的命名空间。
+  noProjectNoNamespaces: 所有命名空间都在一个项目中
 
 prometheusRule:
   alertingRules:
@@ -3593,7 +3720,7 @@ prometheusRule:
       summary:
         input: 概述注释值
         label: 概述
-    bannerText: '在触发告警时，注释和标签将被传递给配置的 Alertmanager，以允许它们构造通知信息并发送给配置的接收者。'
+    bannerText: '触发告警时，注释和标签将被传递给配置的 Alertmanager，从而允许它们构造通知信息并发送给接收器。'
     for:
       label: 告警触发等待时间
       placeholder: '60'
@@ -3844,7 +3971,9 @@ resourceDetail:
     created: 创建时间
     deleted: 已删除
     description: 描述
+    endpoints: 端点
     labels: 标签
+    namespaces: 命名空间
     ownerReferences: |-
       {count, plural,
       =1 {所有者}
@@ -3869,6 +3998,7 @@ resourceDetail:
     view: "{subtype} {name}"
   masthead:
     age: 存活时间
+    restartCount: Pod 重启
     defaultBannerMessage:
       error: 此资源当前处于错误状态，且没有可用的详细消息。
       transitioning: 此资源当前处于转换状态，且没有可用的详细消息。
@@ -3880,6 +4010,7 @@ resourceDetail:
     project: 项目
     detail: 详情
     config: 配置
+    graph: Graph
     yaml: YAML
     managedWarning: |-
       此 {type} 由 {hasName, select,
@@ -4032,6 +4163,13 @@ selectOrCreateAuthSecret:
   createBasic: 创建 HTTP 基本身份验证密文
   createS3: 创建与 S3 兼容的身份验证密文
 
+serviceAccount:
+  automount: 自动挂载服务账号令牌
+  imagePullSecrets: 镜像拉取密文
+  tabs:
+    serviceAccount:
+      label: 服务账号
+
 servicePorts:
   header:
     label: 端口规则
@@ -4122,7 +4260,7 @@ servicesPage:
       label: Headless
     loadBalancer:
       abbrv: LB
-      description: 使用云提供商的负载平衡向外部公开服务。
+      description: 使用云提供商的负载均衡器向外部公开服务。
       label: 负载均衡
     nodePort:
       abbrv: NP
@@ -4505,6 +4643,7 @@ tableHeaders:
   ingressDefaultBackend: 默认
   ingressTarget: 目标
   internalExternalIp: 外网 IP/内网 IP
+  ipaddress: IP 地址
   jobs: Job
   key: 键
   keys: 数据
@@ -4536,8 +4675,10 @@ tableHeaders:
   persistentVolumeClaim: 持久卷声明
   persistentVolumeSource: 源
   podImages: 镜像
+  podRestarts: 重启次数
   pods: Pod
   port: 端口
+  project: 项目
   protocol: 协议
   provider: 提供商
   publicPorts: 公共端口
@@ -4552,7 +4693,10 @@ tableHeaders:
     watch: 监视
   ready: 就绪
   reason: 原因
+  receivers: 接收器
+  receiverTypes: 接收器类型
   reclaimPolicy: 回收策略
+  registrationNamespace: 注册命名空间
   repo: 仓库
   repositories: 仓库
   repoName: 仓库名称
@@ -4565,6 +4709,7 @@ tableHeaders:
   restarts: 重启次数
   role: 角色
   roles: 角色
+  routes: 路由
   scale: 比例
   scope: 范围
   selector: 选择器
@@ -4741,6 +4886,7 @@ validation:
       apiKey: 需要设置“API 密钥”。
   invalidCron: 无效的 cron 调度
   k8s:
+    name: 必须由小写字母数字或“-”组成，并且开头和结尾必须是字母数字（例如“my-name”或“123-abc”）。
     identifier:
       emptyLabel: '“{key}” 不能有空键'
       emptyPrefix: '“{key}” 不能有空前缀'
@@ -5014,6 +5160,7 @@ workload:
       sysctls: Sysctls
       sysctlsKey: 名称
     standard: 标准容器
+    terminationState: "最后状态：以 {lsExitCode}: {lsDescription} 终止，以 {lsStartedAt} 开始，以 {lsFinishedAt} 结束"
     titles:
       container: 容器
       command: 命令
@@ -5480,7 +5627,7 @@ harvester:
       ruleFileTip: '文件后缀不支持。仅支持后缀为 .img，.iso，.qcow，.qcow2或.raw的镜像文件。'
 
   dashboard:
-    label: 仪表盘
+    label: 仪表板
     header: "Harvester 集群：{cluster}"
     hardwareResourceGauge:
       cpu: CPU
@@ -5503,7 +5650,7 @@ harvester:
     version: 版本
   host:
     label: 主机
-    inconsistentIP: "主机IP不一致, 当前IP: { currentIP }, 初始化IP: { initIP }"
+    inconsistentIP: "主机 IP 不一致，当前 IP：{currentIP}，初始 IP：{initIP}"
     promote:
       none: ' '
       running: 角色升级中
@@ -5611,7 +5758,7 @@ harvester:
       detachVolume:
         拔出卷
     restartTip: 重启虚拟机以使配置更改生效。
-    runStrategy: 虚拟机运行策略
+    runStrategy: 运行策略
     restartNow: 现在重启
     createSSHKey: 创建 SSH 密钥
     installAgent: 安装访客代理
@@ -5920,7 +6067,7 @@ harvester:
       label: Harvester Monitoring
       section:
         prometheus: Prometheus 配置
-        prometheusNodeExporter: Prometheus 节点资源采集配置
+        prometheusNodeExporter: Prometheus Node Exporter 配置
       tips:
         scrape: 每次采集数据的间隔时间
         evaluation: 每次评估规则的间隔时间
@@ -6065,7 +6212,8 @@ typeDescription:
   #       Should fit on one line.
   #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
-  chart: "除非另有说明，否则所有 Chart 都至少有一个可安装在具有 Linux 和 Windows 节点的集群上的版本。"
+  branding: "管理员可以修改 Rancher 产品名称、Logo 和配色方案来全局自定义 UI 界面。"
+  chart: "除非另有说明，否则所有 Chart 都至少有一个可以安装在具有 Linux 和 Windows 节点的集群上的版本。"
   cis.cattle.io.clusterscanbenchmark: Benchmark 版本是指使用 kube-bench 运行的 Benchmark 名称，以及该 Benchmark 的有效配置参数。
   cis.cattle.io.clusterscanprofile: 配置文件指定 CIS 扫描的配置，也就是要使用的 Benchmark 版本和该 Benchmark 中要跳过的特定测试。
   cis.cattle.io.clusterscan: 扫描是用来根据定义的配置文件，在集群上触发 CIS 扫描的。扫描完成后会创建一份报告。
@@ -6080,17 +6228,17 @@ typeDescription:
   monitoring.coreos.com.servicemonitor: Service Monitor 定义了 Prometheus 要抓取的服务组和端点。这是定义指标集合的最常见方法。
   monitoring.coreos.com.podmonitor: PodMonitor 定义了 Prometheus 要抓取指标的 Pod 组。更为常用的是 ServiceMonitor。然而，PodMonitor 让你在 ServiceMonitor 不起作用时，处理任何其他情况。
   monitoring.coreos.com.prometheusrule: PrometheusRule 定义了记录和/或告警规则。记录规则可以预先计算值并保存结果。告警规则允许你定义向 AlertManager 发送通知的条件。
-  monitoring.coreos.com.prometheus: Prometheus 服务器是一个 Prometheus deployment，其抓取的配置和规则由选定的 ServiceMonitor、PodMonitor 和 PrometheusRule 决定。它将其告警信息发送给所有选择的具有定制资源配置的 AlertManager。
-  monitoring.coreos.com.alertmanager: Alertmanager 是一个 deployment。其配置由同一命名空间中的密文指定，该密文决定了告警的接收者。
-  node: Kubernetes 节点资源展示了承载 Deployment 的虚拟机或物理机。请进入"集群管理"管理可用机器的生命周期。
-  catalog.cattle.io.clusterrepo: 'Chart 仓库是一个 Helm 仓库或 {vendor} 基于 git 的应用商店。它提供了集群中可用的 Chart 列表。'
-  catalog.cattle.io.clusterrepo.local: ' Chart 仓库是一个 Helm 仓库或 {vendor} 基于 git 的应用商店。它提供了集群中可用的 Chart 列表。集群模板是通过 Helm Chart 部署的。'
-  catalog.cattle.io.operation: 操作指最近应用于集群的 Helm 操作列表。
-  catalog.cattle.io.app: 已安装的应用是通过我们的 Chart 或 Helm CLI 安装的 Helm 3 Chart。
-  logging.banzaicloud.io.clusterflow: 集群日志将被收集并投递到选定的集群输出中。
-  logging.banzaicloud.io.clusteroutput: 集群输出定义了日志可以发送到哪些日志提供程序。只有部署在 Logging operator 所在的命名空间中时，集群输出才生效。
-  logging.banzaicloud.io.flow: 流定义了要收集和过滤的日志，以及日志的输出目标。流是一个命名空间资源。换言之，只有部署了该流的命名空间日志，才能被该流收集。
-  logging.banzaicloud.io.output: 输出定义了日志可以发送到哪些日志提供程序。输出需要与使用它的流位于相同的命名空间中。
+  monitoring.coreos.com.prometheus: Prometheus server 是一个 Prometheus deployment，其抓取的配置和规则由选定的 ServiceMonitor、PodMonitor 和 PrometheusRule 决定。它将其告警信息发送给所有选择的具有定制资源配置的 AlertManager。
+  monitoring.coreos.com.alertmanager: Alertmanager 是一个 deployment。其配置由同一命名空间中的密文指定，该密文决定了告警的接收器。
+  node: Kubernetes 节点资源展示了承载 Deployment 的虚拟机或物理机。请进入"集群管理"页面管理可用节点的生命周期。
+  catalog.cattle.io.clusterrepo: 'Chart 仓库是一个 Helm 仓库或 {vendor} 基于 Git 的应用商店。此处列出了集群中可用的 Chart。'
+  catalog.cattle.io.clusterrepo.local: ' Chart 仓库是一个 Helm 仓库或 {vendor} 基于 Git 的应用商店。此处列出了集群中可用的 Chart。集群模板是通过 Helm Chart 部署的。'
+  catalog.cattle.io.operation: 最近的操作指的是最近应用于集群的一系列 Helm 操作。
+  catalog.cattle.io.app: 已安装的应用指的是通过我们的 Chart 或 Helm CLI 安装的 Helm 3 Chart。
+  logging.banzaicloud.io.clusterflow: 集群日志将被收集并投递到选定的 ClusterOutput 中。
+  logging.banzaicloud.io.clusteroutput: ClusterOutput 定义了日志可以发送到哪些日志提供程序。只有部署在 Logging operator 所在的命名空间中时，ClusterOutput 才生效。
+  logging.banzaicloud.io.flow: Flow 定义了要收集和过滤的日志，以及日志的输出目标。Flow 是一个命名空间资源。换言之，只有部署了该 Flow 的命名空间日志才能被该 Flow 收集。
+  logging.banzaicloud.io.output: Output 定义了日志可以发送到哪些日志提供程序。Output 需要与使用它的 Flow 位于相同的命名空间中。
   group.principal: 为组分配全局角色的操作，仅适用于支持组的外部验证提供程序。本地授权不支持组。
 
 typeLabel:
@@ -6186,8 +6334,8 @@ typeLabel:
     }
   management.cattle.io.setting: |-
     {count, plural,
-      one { 高级设置 }
-      other { 高级设置 }
+      one { 设置 }
+      other { 设置 }
     }
   management.cattle.io.fleetworkspace: |-
     {count, plural,
@@ -6200,6 +6348,11 @@ typeLabel:
       one { Prometheus }
       other { Prometheus }
     }
+  helm.cattle.io.projecthelmchart: |-
+    {count, plural,
+      one { 项目监控 }
+      other { 项目监控 }
+    }
   monitoring.coreos.com.servicemonitor: |-
     {count, plural,
       one { ServiceMonitor }
@@ -6207,8 +6360,13 @@ typeLabel:
     }
   monitoring.coreos.com.alertmanager: |-
     {count, plural,
-      one { AlertManager }
-      other { AlertManager }
+      one { Alertmanager }
+      other { Alertmanager }
+    }
+  monitoring.coreos.com.alertmanagerconfig: |-
+    {count, plural,
+      one { AlertmanagerConfig }
+      other { AlertmanagerConfig }
     }
   monitoring.coreos.com.podmonitor: |-
     {count, plural,
@@ -6227,8 +6385,8 @@ typeLabel:
     }
   monitoring.coreos.com.receiver: |-
     {count, plural,
-      one { 接收者 }
-      other { 接收者 }
+      one { 接收器 }
+      other { 接收器 }
     }
   monitoring.coreos.com.route: |-
     {count, plural,
@@ -6302,8 +6460,8 @@ typeLabel:
     }
   k8s.cni.cncf.io.networkattachmentdefinition: |-
     {count, plural,
-      one { 网络 }
-      other { 网络 }
+      one { 网络附加定义 }
+      other { 网络附加定义 }
     }
   harvesterhci.io.networkattachmentdefinition: |-
     {count, plural,
@@ -6377,8 +6535,8 @@ typeLabel:
     }
   management.cattle.io.apiservice: |-
     {count, plural,
-      one { API服务 }
-      other { API服务 }
+      one { API 服务 }
+      other { API 服务 }
     }
   management.cattle.io.catalog: |-
     {count, plural,
@@ -6505,8 +6663,8 @@ registryConfig:
 ##############################
 
 advancedSettings:
-  label: 高级选项
-  subtext: 一般用户不需要修改高级选项设置。请谨慎操作，不正确的值会破坏 {appName} 的安装。从默认设置中定制的设置会被标记为"已修改"。
+  label: 设置
+  subtext: 一般用户不需要修改此处的设置。请谨慎操作，不正确的值会破坏 {appName} 的安装。与默认不同的设置会标记为 "Modified"。
   show: 显示
   hide: 隐藏
   none: 无
@@ -6532,7 +6690,7 @@ advancedSettings:
     'ui-dashboard-index': '{appName} UI 的 HTML 索引位置。'
     'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-index 和 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
     'ui-pl': '自有品牌公司名称。'
-    'ui-issues': "使用 URL 地址发送新的`提交问题`报告，而不是让用户发送到 GitHub Issue 页面。"
+    'ui-issues': "使用 URL 地址发送新的\"提交问题\"报告，而不是让用户发送到 GitHub Issue 页面。"
     'telemetry-opt': '遥测报告加入。'
     'auth-user-info-max-age-seconds': '在同步验证提供程序组成员之前，用户验证 Token 的最长存活时间。'
     'auth-user-info-resync-cron': '重新同步验证提供程序组成员的默认 cron 调度。'
@@ -6543,6 +6701,7 @@ advancedSettings:
     'kubeconfig-token-ttl-minutes': 'Kubeconfig Token 的自定义最大 TTL（单位：分钟）。'
     'rke-metadata-config': '配置 RKE 元数据刷新参数。'
     'ui-banners': '分类横幅用于在页眉、页脚或两者中显示自定义的固定横幅。'
+    'custom-notifications': 编辑自定义通知
     'ui-consent-banner': '横幅用于在登录期间，向用户展示自定义同意横幅。'
     'ui-default-landing': '用户登录后的默认页面。'
     'brand': 在'/assets/brand'中定义，用于替代主题的文件夹名称
@@ -6565,7 +6724,9 @@ advancedSettings:
     'harv-support-bundle-namespaces': 指定支持包要收集的其他命名空间中的资源。
     'harv-auto-disk-provision-paths': 指定 Harvester 将自动添加为虚拟机存储的磁盘（使用 glob 模式）。
     'harv-support-bundle-image': 支持捆绑镜像配置。前往 <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a> 查看更多版本。
+    'harv-release-download-url': 此设置用于配置<code>升级版本下载</code>的 URL 地址。Harvester 将从该 URL 托管的 (<code>$URL</code>/<code>$VERSION</code>/version.yaml) 文件中获取 ISO URL 和校验和值。
     'harvester-monitoring': 指定 Harvester 内置的 Prometheus 将使用的监控配置。
+    'hide-local-cluster': 隐藏 local 集群
   editHelp:
     'ui-banners': 此设置使用包含 3 个根参数的 JSON 对象，分别是<code>banner</code>、<code>showHeader</code>和<code>showFooter</code>。<code>banner</code> 是包含 <code>textColor</code>，<code>background</code>和<code>text</code>的对象，其中<code>textColor</code> 和 <code>background</code>的值可以是任何有效的 CSS 颜色值。
   enum:
@@ -6643,9 +6804,10 @@ banner:
   bannerFontSize:
     label: '字体大小'
   consent: 同意横幅
+  consentFootnote: "提示：使用 \n 进行换行"
 
 branding:
-  label: 公司品牌
+  label: 品牌
   directoryName: 品牌资产目录名称
   logos:
     label: Logo
@@ -6655,12 +6817,18 @@ branding:
     uploadLight: 上传浅色 Logo
     uploadDark: 上传深色 Logo
     useCustom: 使用自定义 Logo
+  favicon:
+    label: 网站图标
+    tip: '上传一个网站图标来替换浏览器选项卡中的 Rancher 图标。最大文件大小为 20KB'
+    preview: 网站图标预览
+    upload: 上传网站图标
+    useCustom: 使用自定义网站图标
   options:
     default: 默认 Rancher 主题
     suse: SUSE 主题
     custom: 自定义主题
   uiPL:
-    label: 自有品牌公司名称
+    label: 自有品牌
   uiIssues:
     label: 支持链接
     issuesUrl: 问题报告 URL
@@ -6675,9 +6843,15 @@ branding:
     tip: 使用自定义链接颜色替换整个 UI 中使用的链接颜色。
     useCustom: 使用自定义链接颜色
     example: 链接示例
-
+notifications:
+  header: 自定义通知
+  menuLabel: '自定义通知'
+  loginError:
+    header: 登录失败横幅
+    showCheckboxLabel: 显示自定义登录失败文本
+    messageLabel: 要显示的文本
 resourceQuota:
-  label: 资源限额
+  label: 资源配额
   headers:
     limit: 限制
     namespaceDefaultLimit: 命名空间默认限制
@@ -6715,6 +6889,12 @@ resourceQuota:
     unitlessPlaceholder: 例如：10
   add:
     label: 添加资源
+  tooltip:
+    reserved: '其他命名空间：'
+    namespace: '此命名空间：'
+    available: '可用：'
+    max: '总计：'
+
 
 
 ##############################
@@ -6735,13 +6915,17 @@ support:
     addLabel: "请输入有效的订阅 ID："
     removeTitle: 是否移除订阅 ID？
     removeBody: "注意：这不会影响你的订阅。"
+
   suse:
     title: "好消息--你已得到保障"
     editBrand: 自定义 UI 主题
     access:
       title: 获取支持
-      text: 登录 SUSE Customer Center 以获取订阅支持
+      text: 登录 SUSE Customer Center 获取订阅支持
       action: SUSE Customer Center
+      aws:
+        generateConfig: 生成支持配置
+        text: '登录 SUSE Customer Center 获取订阅支持。需要开启新的支持单？下载下面的支持配置文件。'
   promos:
     one:
       title: 24x7 支持
@@ -6762,11 +6946,11 @@ embedding:
 
 v1ClusterTools:
   monitoring:
-    label: 监控（旧版）
-    description: '旧版 V1 监控。自 Rancher 2.5.0 起，我们已弃用 Monitoring V1。了解<a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">迁移到 Monitoring V2 的步骤</a>。'
+    label: Monitoring（旧版）
+    description: '旧版 Monitoring V1。自 Rancher 2.5.0 起，我们已弃用 Monitoring V1。了解<a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">迁移到 Monitoring V2 的步骤</a>。'
   logging:
-    label: 日志管理（旧版）
-    description: '旧版日志管理 V1。自 Rancher 2.5.0 起，我们已弃用日志管理 V1。了解<a target="blank" href="{docsBase}/logging/migrating/">迁移到日志管理 V2 的步骤</a>。'
+    label: Logging（旧版）
+    description: '旧版 Logging V1。自 Rancher 2.5.0 起，我们已弃用 Logging V1。了解<a target="blank" href="{docsBase}/logging/migrating/">迁移到 Logging V2 的步骤</a>。'
   istio:
     label: Istio（旧版）
     description: '旧版 Istio V1。自 Rancher 2.5.0 起，我们已弃用 Istio V1.5。了解<a target="blank" href="{docsBase}/istio/#migrate-from-previous-istio-version">迁移到最新版本</a> 的更多信息。'
@@ -6781,7 +6965,7 @@ legacy:
   globalDnsEntries: 全局 DNS 条目
   globalDnsProviders: 全局 DNS 提供商
   istio: Istio
-  logging: 日志管理
+  logging: Logging
   notifiers: Notifiers
   monitoring: 监控
   pipelines: 流水线
@@ -7046,7 +7230,7 @@ charts:
     persistence.backingImage.dataSourceType:
       label: 存储类后备镜像数据源类型
       description: '为用于 Longhorn StorageClass 的后备镜像指定数据源类型。
-        如果后备镜像不存在，Longhorn 会使用此字段来创建后备惊喜。否则，Longhorn 会以此来验证所选的后备镜像。
+        如果后备镜像不存在，Longhorn 会使用此字段来创建后备镜像。否则，Longhorn 会以此来验证所选的后备镜像。
         警告：
           - 如果不指定后备镜像名称，设置这个选项是没有效的。
           - 如果后备镜像创建时的数据源类型是 \"upload\"，建议你使用 UI，而不是此处提及的 StorageClass。如果是上传，文件数据需要在对象创建后发送到 Longhorn 后端，手动进行此操作会非常复杂。'
