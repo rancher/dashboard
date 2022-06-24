@@ -11,7 +11,7 @@ import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
-import filtering from './filtering';
+import filtering, { DEFAULT_ADV_FILTER_COLS_VALUE, ADV_FILTER_ALL_COLS_VALUE, ADV_FILTER_ALL_COLS_LABEL } from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
@@ -309,8 +309,9 @@ export default {
       advancedFiltering:           true,
       advancedFilteringVisibility: true,
       advancedFilteringValues:     [],
-      advFilterValue:              null,
-      advFilterProp:               null,
+      advFilterSearchTerm:         null,
+      advFilterSelectedProp:       DEFAULT_ADV_FILTER_COLS_VALUE,
+      advFilterSelectedLabel:      ADV_FILTER_ALL_COLS_LABEL,
       column:                      null,
     };
   },
@@ -840,6 +841,8 @@ export default {
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
     },
+
+    // advanced filtering methods
     toggleAdvancedFiltering() {
       console.log('-------- TOGGLING ADVANCED FILTER -------');
       this.advancedFilteringVisibility = !this.advancedFilteringVisibility;
@@ -847,29 +850,29 @@ export default {
     addAdvancedFilter() {
       console.log('-------- ADDING ADVANCED FILTER -------');
 
-      if (this.advFilterProp && this.advFilterValue) {
+      if (this.advFilterSelectedProp && this.advFilterSearchTerm) {
         this.advancedFilteringValues.push({
-          propObj: this.advFilterProp,
-          value:   this.advFilterValue
+          prop:  this.advFilterSelectedProp,
+          value: this.advFilterSearchTerm,
+          label: this.advFilterSelectedLabel
         });
 
         this.eventualSearchQuery = this.advancedFilteringValues;
 
         this.advancedFilteringVisibility = false;
-        this.advFilterProp = null;
-        this.advFilterValue = null;
+        this.advFilterSelectedProp = DEFAULT_ADV_FILTER_COLS_VALUE;
+        this.advFilterSelectedLabel = ADV_FILTER_ALL_COLS_LABEL;
+        this.advFilterSearchTerm = null;
       }
     },
-    colSelected(val) {
-      console.log('-------- COLUMN SELECTED -------', val);
+    colSelected(col) {
+      console.log('-------- COLUMN SELECTED -------', col);
+      this.advFilterSelectedLabel = col.label;
     },
     clearAdvancedFilter(index) {
       console.log('-------- CLEARING ADV. FILTER -------', index);
       this.advancedFilteringValues.splice(index, 1);
       this.eventualSearchQuery = this.advancedFilteringValues;
-    },
-    filterName(propObj) {
-      return propObj.split('__***__')[1];
     },
     onClickOutside(event) {
       const advFilterBox = this.$refs['advanced-filter-group'];
@@ -963,7 +966,7 @@ export default {
             <div v-show="advancedFilteringVisibility" class="advanced-filter-container">
               <input
                 ref="advancedSearchQuery"
-                v-model="advFilterValue"
+                v-model="advFilterSearchTerm"
                 type="search"
                 class="advanced-search-box"
                 placeholder="Filter for..."
@@ -971,13 +974,14 @@ export default {
               <div class="bottom-block">
                 <span>in</span>
                 <LabeledSelect
-                  v-model="advFilterProp"
+                  v-model="advFilterSelectedProp"
                   :clearable="true"
                   :options="columnOptions"
                   :disabled="false"
                   :searchable="false"
                   mode="edit"
                   :multiple="false"
+                  :taggable="false"
                   placeholder="Select a column"
                   @selecting="colSelected"
                 />
@@ -1001,7 +1005,7 @@ export default {
     </div>
     <ul class="advanced-filters-applied">
       <li v-for="(filter, i) in advancedFilteringValues" :key="i">
-        <span>{{ `"${filter.value}" in ${filterName(filter.propObj)}` }}</span>
+        <span>{{ `"${filter.value}" in ${filter.label}` }}</span>
         <span @click="clearAdvancedFilter(i)">X</span>
       </li>
     </ul>
