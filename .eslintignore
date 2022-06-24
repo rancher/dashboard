@@ -18,3 +18,4 @@ shell/assets/fonts
 assets/fonts
 shell/pkg/import.js
 pkg/rancher-components/
+shell/rancher-components/
