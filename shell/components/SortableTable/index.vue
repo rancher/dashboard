@@ -306,8 +306,9 @@ export default {
       eventualSearchQuery:         '',
       actionOfInterest:            null,
       loadingDelay:                false,
+      hasTableOptions:             true,
       advancedFiltering:           true,
-      advancedFilteringVisibility: true,
+      advancedFilteringVisibility: false,
       advancedFilteringValues:     [],
       advFilterSearchTerm:         null,
       advFilterSelectedProp:       DEFAULT_ADV_FILTER_COLS_VALUE,
@@ -882,6 +883,17 @@ export default {
       }
       this.advancedFilteringVisibility = false;
     },
+
+    // cols visibility
+    changeColVisibility(colData) {
+      const index = this.columnOptions.findIndex(col => col.label === colData.label);
+
+      if (index !== -1) {
+        this.columnOptions[index].visible = colData.value;
+      }
+
+      console.log('-------- COL VISIBILITY CHANGE (Sortable) -------', colData, index, this.columnOptions[index]);
+    }
   }
 };
 </script>
@@ -1015,6 +1027,7 @@ export default {
         :label-for="labelFor"
         :columns="columns"
         :table-actions="tableActions"
+        :table-cols-options="columnOptions"
         :row-actions="rowActions"
         :sub-expand-column="subExpandColumn"
         :row-actions-width="rowActionsWidth"
@@ -1027,6 +1040,7 @@ export default {
         :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
+        @col-visibility-change="changeColVisibility"
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
