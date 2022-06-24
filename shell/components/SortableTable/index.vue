@@ -485,9 +485,19 @@ export default {
               formatted = value.join(', ');
             }
 
-            if (c.formatter && FORMATTERS[c.formatter]) {
-              component = FORMATTERS[c.formatter];
-              needRef = true;
+            if (c.formatter) {
+              if (FORMATTERS[c.formatter]) {
+                component = FORMATTERS[c.formatter];
+                needRef = true;
+              } else {
+                // Check if we have a formatter from a plugin
+                const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
+
+                if (pluginFormatter) {
+                  component = pluginFormatter;
+                  needRef = true;
+                }
+              }
             }
 
             rowData.columns.push({
