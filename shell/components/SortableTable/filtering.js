@@ -1,6 +1,10 @@
 import { get } from '@shell/utils/object';
 import { addObject, addObjects, isArray, removeAt } from '@shell/utils/array';
 
+export const DEFAULT_ADV_FILTER_COLS_VALUE = 'allcols';
+export const ADV_FILTER_ALL_COLS_VALUE = 'allcols';
+export const ADV_FILTER_ALL_COLS_LABEL = 'All Columns';
+
 export default {
   data() {
     return {
@@ -41,26 +45,37 @@ export default {
 
   methods: {
     handleAdvancedFiltering() {
+      this.subMatches = null;
       const out = (this.arrangedRows || []).slice();
 
       if (this.searchQuery.length) {
         const res = out.filter((row) => {
-          if (row.metadata) {
-            return this.searchQuery.every((f) => {
-              const type = f.propObj.split('__***__')[0];
-              const prop = f.propObj.split('__***__')[1];
+          return this.searchQuery.every((f) => {
+            console.log('filter applied', f);
 
-              if (type === 'header') {
-                return handleStringSearch([row.metadata[prop]], [f.value], row, true);
-                // return row.metadata[prop] === f.value;
+            if (f.prop === ADV_FILTER_ALL_COLS_VALUE) {
+              const allCols = this.columnOptions.slice(1);
+              let searchFields = [];
+
+              allCols.forEach((col) => {
+                if (col.value.includes('[') && col.value.includes(']')) {
+                  searchFields = searchFields.concat(JSON.parse(col.value));
+                } else {
+                  searchFields.push(col.value);
+                }
+              });
+
+              console.log('searchFields for allCols', searchFields);
+
+              return handleStringSearch(searchFields, [f.value], row);
+            } else {
+              if (f.prop.includes('[') && f.prop.includes(']')) {
+                return handleStringSearch(JSON.parse(f.prop), [f.value], row);
               }
 
-              return handleStringSearch([row.metadata.labels[prop]], [f.value], row, true);
-              // return row.metadata.labels[prop] === f.value;
-            });
-          }
-
-          return row;
+              return handleStringSearch([f.prop], [f.value], row);
+            }
+          });
         });
 
         console.log('ADV FILTER RESULTS', res);
@@ -109,7 +124,6 @@ export default {
         let mainFound = true;
 
         mainFound = handleStringSearch(searchFields, searchTokens, row);
-
         console.log('mainFound', mainFound);
         // for ( let j = 0 ; j < searchTokens.length ; j++ ) {
         //   let expect = true;
@@ -204,7 +218,7 @@ function columnsToSearchField(columns) {
 
 const ipLike = /^[0-9a-f\.:]+$/i;
 
-function handleStringSearch(searchFields, searchTokens, row, fieldsAsVal = false) {
+function handleStringSearch(searchFields, searchTokens, row) {
   for ( let j = 0 ; j < searchTokens.length ; j++ ) {
     let expect = true;
     let token = searchTokens[j];
@@ -214,11 +228,9 @@ function handleStringSearch(searchFields, searchTokens, row, fieldsAsVal = false
       token = token.substr(1);
     }
 
-    console.log('token', token);
-    console.log('row', row);
-    console.log('matches(searchFields, token, row) ', matches(searchFields, token, row) );
+    console.log('token, row, matches(searchFields, token, row) ', token, row, matches(searchFields, token, row) );
 
-    if ( token && matches(searchFields, token, row, fieldsAsVal) !== expect ) {
+    if ( token && matches(searchFields, token, row) !== expect ) {
       return false;
     }
 
@@ -226,10 +238,9 @@ function handleStringSearch(searchFields, searchTokens, row, fieldsAsVal = false
   }
 }
 
-function matches(fields, token, item, fieldsAsVal = false) {
-  console.log('MATCHES.....!:!:!:!:!:!:!', fields, token, item, fieldsAsVal);
+function matches(fields, token, item) {
+  console.log('MATCHES.....!:!:!:!:!:!:!', fields, token, item);
   for ( let field of fields ) {
-    console.log('field', field);
     if ( !field ) {
       continue;
     }
@@ -237,12 +248,8 @@ function matches(fields, token, item, fieldsAsVal = false) {
     let modifier;
     let val;
 
-    if (fieldsAsVal) {
-      val = field;
-    } else if (typeof field === 'function') {
+    if (typeof field === 'function') {
       val = field(item);
-
-      console.log('field val', val);
     } else {
       const idx = field.indexOf(':');
 

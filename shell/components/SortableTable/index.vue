@@ -9,7 +9,7 @@ import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
-import filtering from './filtering';
+import filtering, { DEFAULT_ADV_FILTER_COLS_VALUE, ADV_FILTER_ALL_COLS_VALUE, ADV_FILTER_ALL_COLS_LABEL } from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
@@ -294,8 +294,9 @@ export default {
       advancedFiltering:           true,
       advancedFilteringVisibility: true,
       advancedFilteringValues:     [],
-      advFilterValue:              null,
-      advFilterProp:               null,
+      advFilterSearchTerm:         null,
+      advFilterSelectedProp:       DEFAULT_ADV_FILTER_COLS_VALUE,
+      advFilterSelectedLabel:      ADV_FILTER_ALL_COLS_LABEL,
       column:                      null,
     };
   },
@@ -344,49 +345,41 @@ export default {
   computed: {
     columnOptions() {
       console.log('**** ALL TABLE ROWS *******', this.rows);
+      console.log('**** ALL TABLE HEADERS *******', this.headers);
       let opts = [];
       const rowLabels = [];
       const headerProps = [];
 
-      this.headers.forEach((prop) => {
+      // Filter out any columns that are too heavy to show for large page sizes
+      const filteredHeaders = this.headers.slice().filter(c => !c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage));
+
+      // add table cols from config (headers)
+      filteredHeaders.forEach((prop) => {
         if (prop.sort) {
-          const res = {
-            label: '',
-            value: ''
-          };
+          const label = prop.labelKey ? this.t(`${ prop.labelKey }`) : prop.label;
 
           if (typeof prop.sort === 'string') {
-            if (prop.sort.includes(':')) {
-              res.label = prop.sort.split(':')[0] === 'creationTimestamp' ? 'age' : prop.sort.split(':')[0];
-              res.value = prop.sort.split(':')[0];
-            } else {
-              res.label = prop.sort;
-              res.value = prop.sort;
-            }
-          } else if (prop.sort.includes('stateSort')) {
-            res.label = 'state';
-            res.value = 'state';
-          } else if (prop.sort.includes('nameSort')) {
-            res.label = 'name';
-            res.value = 'name';
+            headerProps.push({
+              label,
+              value: prop.sort.includes(':') ? prop.sort.split(':')[0] : prop.sort
+            });
           } else {
-            res.label = prop.sort[0];
-            res.value = prop.sort[0];
+            headerProps.push({
+              label,
+              value: JSON.stringify(prop.sort)
+            });
           }
-
-          res.value = `header__***__${ res.value }`;
-
-          headerProps.push(res);
         }
       });
 
+      // add labels as table cols
       if (this.rows.length) {
         this.rows.forEach((row) => {
           if (row.metadata?.labels && Object.keys(row.metadata?.labels).length) {
             Object.keys(row.metadata?.labels).forEach((label) => {
               const res = {
                 label,
-                value: `label__***__${ label }`
+                value: `metadata.labels.${ label }`
               };
 
               if (!rowLabels.filter(row => row.label === label).length) {
@@ -398,6 +391,13 @@ export default {
       }
 
       opts = headerProps.concat(rowLabels);
+
+      if (opts.length) {
+        opts.unshift({
+          label: ADV_FILTER_ALL_COLS_LABEL,
+          value: ADV_FILTER_ALL_COLS_VALUE
+        });
+      }
 
       return opts;
     },
@@ -807,6 +807,8 @@ export default {
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
     },
+
+    // advanced filtering methods
     toggleAdvancedFiltering() {
       console.log('-------- TOGGLING ADVANCED FILTER -------');
       this.advancedFilteringVisibility = !this.advancedFilteringVisibility;
@@ -814,29 +816,29 @@ export default {
     addAdvancedFilter() {
       console.log('-------- ADDING ADVANCED FILTER -------');
 
-      if (this.advFilterProp && this.advFilterValue) {
+      if (this.advFilterSelectedProp && this.advFilterSearchTerm) {
         this.advancedFilteringValues.push({
-          propObj: this.advFilterProp,
-          value:   this.advFilterValue
+          prop:  this.advFilterSelectedProp,
+          value: this.advFilterSearchTerm,
+          label: this.advFilterSelectedLabel
         });
 
         this.eventualSearchQuery = this.advancedFilteringValues;
 
         this.advancedFilteringVisibility = false;
-        this.advFilterProp = null;
-        this.advFilterValue = null;
+        this.advFilterSelectedProp = DEFAULT_ADV_FILTER_COLS_VALUE;
+        this.advFilterSelectedLabel = ADV_FILTER_ALL_COLS_LABEL;
+        this.advFilterSearchTerm = null;
       }
     },
-    colSelected(val) {
-      console.log('-------- COLUMN SELECTED -------', val);
+    colSelected(col) {
+      console.log('-------- COLUMN SELECTED -------', col);
+      this.advFilterSelectedLabel = col.label;
     },
     clearAdvancedFilter(index) {
       console.log('-------- CLEARING ADV. FILTER -------', index);
       this.advancedFilteringValues.splice(index, 1);
       this.eventualSearchQuery = this.advancedFilteringValues;
-    },
-    filterName(propObj) {
-      return propObj.split('__***__')[1];
     },
     onClickOutside(event) {
       const advFilterBox = this.$refs['advanced-filter-group'];
@@ -922,7 +924,7 @@ export default {
             <div v-show="advancedFilteringVisibility" class="advanced-filter-container">
               <input
                 ref="advancedSearchQuery"
-                v-model="advFilterValue"
+                v-model="advFilterSearchTerm"
                 type="search"
                 class="advanced-search-box"
                 placeholder="Filter for..."
@@ -930,13 +932,14 @@ export default {
               <div class="bottom-block">
                 <span>in</span>
                 <LabeledSelect
-                  v-model="advFilterProp"
+                  v-model="advFilterSelectedProp"
                   :clearable="true"
                   :options="columnOptions"
                   :disabled="false"
                   :searchable="false"
                   mode="edit"
                   :multiple="false"
+                  :taggable="false"
                   placeholder="Select a column"
                   @selecting="colSelected"
                 />
@@ -960,7 +963,7 @@ export default {
     </div>
     <ul class="advanced-filters-applied">
       <li v-for="(filter, i) in advancedFilteringValues" :key="i">
-        <span>{{ `"${filter.value}" in ${filterName(filter.propObj)}` }}</span>
+        <span>{{ `"${filter.value}" in ${filter.label}` }}</span>
         <span @click="clearAdvancedFilter(i)">X</span>
       </li>
     </ul>
