@@ -98,7 +98,7 @@
     "sass": "^1.38.2",
     "sass-loader": "10",
     "set-cookie-parser": "^2.4.0",
-    "shell-quote": "^1.7.2",
+    "shell-quote": "^1.7.3",
     "sinon": "^8.0.4",
     "ts-node": "^8.3.0",
     "url-parse": "^1.5.9",
