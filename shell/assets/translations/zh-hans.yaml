@@ -384,7 +384,8 @@ authConfig:
     groupSearchBase:
       label: 用户组搜索库
       placeholder: 'ou=groups,dc=mycompany,dc=com'
-    hostname: 主机名/IP
+    hostname:
+      label: 主机名/IP
     loginAttribute: 登录属性
     nameAttribute: 名称属性
     nestedGroupMembership:

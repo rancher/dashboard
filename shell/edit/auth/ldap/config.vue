@@ -84,7 +84,15 @@ export default {
     <template>
       <div class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model="hostname" required :mode="mode" :label="t('authConfig.ldap.hostname')" />
+          <LabeledInput
+            v-model="hostname"
+            required
+            :mode="mode"
+            :hoover-tooltip="true"
+            :tooltip="t('authConfig.ldap.hostname.hint')"
+            :label="t('authConfig.ldap.hostname.label')"
+            :placeholder="t('authConfig.ldap.hostname.placeholder')"
+          />
         </div>
         <div class="col span-4">
           <LabeledInput

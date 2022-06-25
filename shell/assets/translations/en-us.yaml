@@ -379,7 +379,10 @@ authConfig:
     groupSearchBase:
       label: Group Search Base
       placeholder: 'ou=groups,dc=mycompany,dc=com'
-    hostname: Hostname/IP
+    hostname:
+      label: Hostname/IP
+      placeholder: eg server1,server2
+      hint: Multiple servers can be specified as a comma separated list
     loginAttribute: Login Attribute
     nameAttribute: Name Attribute
     nestedGroupMembership:
