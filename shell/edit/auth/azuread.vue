@@ -10,6 +10,8 @@ import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import AuthConfig from '@shell/mixins/auth-config';
+import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
+import { get } from '@shell/utils/object';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
@@ -110,7 +112,7 @@ export default {
     },
 
     needsUpdate() {
-      return this.model?.graphEndpoint === OLD_ENDPOINTS.standard.graphEndpoint || this.model?.graphEndpoint === OLD_ENDPOINTS.china.graphEndpoint;
+      return get(this.value, `metadata.annotations."${ AZURE_MIGRATED }"`) !== true;
     },
 
     modalConfig() {

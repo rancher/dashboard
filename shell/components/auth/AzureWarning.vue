@@ -1,7 +1,8 @@
 <script>
 // This component will become redundant in 2023, see https://docs.microsoft.com/en-us/graph/migrate-azure-ad-graph-overview
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
-import { OLD_ENDPOINTS } from '@shell/edit/auth/azuread.vue';
+import { get } from '@shell/utils/object';
+import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
 
 export default {
   async fetch() {
@@ -27,7 +28,11 @@ export default {
 
   computed: {
     showWarning() {
-      return this.authConfig?.graphEndpoint === OLD_ENDPOINTS.standard.graphEndpoint || this.authConfig?.graphEndpoint === OLD_ENDPOINTS.china.graphEndpoint;
+      if (!this.authConfig) {
+        return false;
+      }
+
+      return get(this.authConfig, `annotations."${ AZURE_MIGRATED }"`) !== true && this.authConfig.enabled;
     },
 
   }
