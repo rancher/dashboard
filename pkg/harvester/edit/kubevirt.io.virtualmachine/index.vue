@@ -184,12 +184,22 @@ export default {
         delete cloneVersionVM.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES];
         delete cloneVersionVM.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS];
 
-        this.getInitConfig({ value: cloneVersionVM });
-        this.$set(this, 'hasCreateVolumes', []); // When using the template, all volume names need to be newly created
-
         const claimTemplate = this.getVolumeClaimTemplates(cloneVersionVM);
 
-        this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
+        const deleteDataSource = claimTemplate.map((volume) => {
+          if (volume?.spec?.dataSource) {
+            delete volume.spec.dataSource;
+          }
+
+          return volume;
+        });
+
+        cloneVersionVM.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(deleteDataSource);
+
+        this.getInitConfig({ value: cloneVersionVM });
+        this.$set(this, 'hasCreateVolumes', []); // When using the template, all volume names need to be newly created
+        // const claimTemplate = this.getVolumeClaimTemplates(cloneVersionVM);
+        // this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
       }
     },
 

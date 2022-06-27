@@ -18,6 +18,13 @@ harvester:
         tip: Please enter a template name!
         success: 'Template { templateName } created successfully.'
         failed: 'Failed generated template!'
+    deepCloneVM:
+      title: Clone vm
+      name: Name
+      message:
+        tip: Please enter a vm name!
+        success: 'VM { name } cloned successfully.'
+        failed: 'Failed clone vm!'
     exportImage:
       title: Export to Image
       name: Name
@@ -60,6 +67,8 @@ harvester:
     softreboot: Soft Reboot
     stop: Stop
     pause: Pause
+    deepClone: Clone
+    shallowClone: Clone Template
     unpause: Unpause
     ejectCDROM: Eject CDROM
     launchFormTemplate: Launch instance from template

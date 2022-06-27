@@ -343,6 +343,7 @@ export default {
           let volumeMode = '';
           let storageClassName = '';
           let hotpluggable = false;
+          let dataSource = null;
 
           const type = DISK?.cdrom ? CD_ROM : HARD_DISK;
 
@@ -372,6 +373,7 @@ export default {
               accessMode = dataVolumeSpecPVC?.accessModes?.[0];
               size = dataVolumeSpecPVC?.resources?.requests?.storage || '10Gi';
               storageClassName = dataVolumeSpecPVC?.storageClassName;
+              dataSource = dataVolumeSpecPVC?.dataSource;
             } else { // SOURCE_TYPE.ATTACH_VOLUME
               const allPVCs = this.$store.getters['harvester/all'](PVC);
               const pvcResource = allPVCs.find( O => O.id === `${ namespace }/${ volume?.persistentVolumeClaim?.claimName }`);
@@ -420,6 +422,7 @@ export default {
             storageClassName,
             hotpluggable,
             volumeStatus,
+            dataSource
           };
         });
       }
@@ -791,6 +794,10 @@ export default {
           volumeMode:  R.volumeMode
         }
       };
+
+      if (R.dataSource) {
+        out.spec.dataSource = R.dataSource;
+      }
 
       switch (R.source) {
       case SOURCE_TYPE.NEW:
