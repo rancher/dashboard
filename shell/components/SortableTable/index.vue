@@ -3,8 +3,8 @@ import day from 'dayjs';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
-import { Checkbox } from '@components/Form/Checkbox';
 import ActionDropdown from '@shell/components/ActionDropdown';
+import Row from './Row.vue';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
@@ -57,7 +57,7 @@ export const COLUMN_BREAKPOINTS = {
 export default {
   name:       'SortableTable',
   components: {
-    THead, Checkbox, ActionDropdown
+    THead, ActionDropdown, Row
   },
   mixins: [filtering, sorting, paging, grouping, selection, actions],
 
@@ -288,7 +288,7 @@ export default {
       expanded:            {},
       searchQuery:         '',
       eventualSearchQuery: '',
-      actionOfInterest:    null,
+      actionOfInterest:    '',
       loadingDelay:        false,
     };
   },
@@ -303,8 +303,9 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main.on('scroll', this._onScroll);
+    const columnRefs = this.getColumnRefs();
 
-    this.updateLiveAndDelayed();
+    this.updateLiveAndDelayed(columnRefs);
   },
 
   beforeDestroy() {
@@ -520,28 +521,34 @@ export default {
         clearTimeout(this._scrollTimer);
         clearTimeout(this._delayedColumnsTimer);
         this._scrollTimer = setTimeout(() => {
-          this.updateLiveColumns();
-          this.updateDelayedColumns();
+          const columnRefs = this.getColumnRefs();
+
+          this.updateLiveColumns(columnRefs);
+          this.updateDelayedColumns(columnRefs);
         }, 300);
       }
     },
 
-    updateLiveAndDelayed() {
+    updateLiveAndDelayed(columnRefs) {
       if (this.hasLiveColumns) {
-        this.updateLiveColumns();
+        this.updateLiveColumns(columnRefs);
       }
 
       if (this.hasDelayedColumns) {
-        this.updateDelayedColumns();
+        this.updateDelayedColumns(columnRefs);
       }
     },
 
-    updateDelayedColumns() {
-      if (!this.$refs.column || this.pagedRows.length === 0) {
+    updateDelayedColumns(columnRefs) {
+      if (this.pagedRows.length === 0) {
         return;
       }
 
-      const delayedColumns = this.$refs.column.filter(c => c.startDelayedLoading && !c.__delayedLoading);
+      if (!columnRefs || columnRefs.length === 0) {
+        return;
+      }
+      const delayedColumns = columnRefs.filter(c => c.startDelayedLoading && !c.__delayedLoading);
+
       // We add 100 pixels here - so we will render the delayed columns for a few extra rows below what is visible
       // This way if you scroll slowly, you won't see the columns being loaded
       const clientHeight = (window.innerHeight || document.documentElement.clientHeight) + 100;
@@ -568,13 +575,18 @@ export default {
       }
     },
 
-    updateLiveColumns() {
-      if (!this.$refs.column || !this.hasLiveColumns || this.pagedRows.length === 0) {
+    updateLiveColumns(columnRefs) {
+      if (!this.hasLiveColumns || this.pagedRows.length === 0) {
+        return;
+      }
+
+      if (!columnRefs || columnRefs.length === 0) {
         return;
       }
 
       const clientHeight = window.innerHeight || document.documentElement.clientHeight;
-      const liveColumns = this.$refs.column.filter(c => !!c.liveUpdate);
+      const liveColumns = columnRefs.filter(c => !!c.liveUpdate);
+
       const now = day();
       let next = Number.MAX_SAFE_INTEGER;
 
@@ -596,7 +608,7 @@ export default {
       }
 
       // Schedule again
-      this._liveColumnsTimer = setTimeout(() => this.updateLiveColumns(), next * 1000);
+      this._liveColumnsTimer = setTimeout(() => this.updateLiveColumns(columnRefs), next * 1000);
     },
 
     labelFor(col) {
@@ -665,6 +677,22 @@ export default {
       }
     },
 
+    getColumnRefs() {
+      let columnRefs = [];
+
+      const rowRefs = this.$refs.row;
+
+      if (rowRefs) {
+        rowRefs.forEach((rowRef) => {
+          const colRefs = rowRef.$refs.column;
+
+          columnRefs = columnRefs.concat(colRefs);
+        });
+      }
+
+      return columnRefs;
+    },
+
     nearestCheckbox() {
       const $cur = $(document.activeElement).closest('tr.main-row').find('.checkbox-custom');
 
@@ -719,22 +747,6 @@ export default {
 
       return hasInjectedSubRows || hasStateDescription;
     },
-
-    handleActionButtonClick(i, event) {
-      // Each row in the table gets its own ref with
-      // a number based on its index. If you are using
-      // an ActionMenu that doen't have a dependency on Vuex,
-      // these refs are useful because you can reuse the
-      // same ActionMenu component on a page with many different
-      // target elements in a list,
-      // so you can still avoid the performance problems that
-      // could result if the ActionMenu was in every row. The menu
-      // will open on whichever target element is clicked.
-      this.$emit('clickedActionButton', {
-        event,
-        targetElement: this.$refs[`actionButton${ i }`][0],
-      });
-    }
   }
 };
 </script>
@@ -883,101 +895,31 @@ export default {
         </slot>
         <template v-for="(row, i) in group.rows">
           <slot name="main-row" :row="row.row">
-            <slot :name="'main-row:' + (row.row.mainRowKey || i)" :full-colspan="fullColspan">
-              <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
-              because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
-              the value of :class changes. -->
-              <tr :key="row.key" class="main-row" :class="{ 'has-sub-row': row.showSubRow}" :data-node-id="row.key" :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest">
-                <td v-if="tableActions" class="row-check" align="middle">
-                  {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="row.key" :value="selectedRows.includes(row.row)" />
-                </td>
-                <td v-if="subExpandColumn" class="row-expand" align="middle">
-                  <i
-                    data-title="Toggle Expand"
-                    :class="{
-                      icon: true,
-                      'icon-chevron-right': !expanded[row.row[keyField]],
-                      'icon-chevron-down': !!expanded[row.row[keyField]]
-                    }"
-                    @click.stop="toggleExpand(row.row)"
-                  />
-                </td>
-                <template v-for="(col, j) in row.columns">
-                  <slot
-                    :name="'col:' + col.col.name"
-                    :row="row.row"
-                    :col="col.col"
-                    :dt="dt"
-                    :expanded="expanded"
-                    :rowKey="row.key"
-                  >
-                    <td
-                      :key="col.col.name"
-                      :data-title="col.col.label"
-                      :data-testid="`sortable-cell-${ i }-${ j }`"
-                      :align="col.col.align || 'left'"
-                      :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
-                      :width="col.col.width"
-                    >
-                      <slot :name="'cell:' + col.col.name" :row="row.row" :col="col.col" :value="col.value">
-                        <component
-                          :is="col.component"
-                          v-if="col.component && col.needRef"
-                          ref="column"
-                          :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                          :get-custom-detail-link="getCustomDetailLink"
-                        />
-                        <component
-                          :is="col.component"
-                          v-else-if="col.component"
-                          :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <component
-                          :is="col.col.formatter"
-                          v-else-if="col.col.formatter"
-                          :value="col.value"
-                          :row="row.row"
-                          :col="col.col"
-                          v-bind="col.col.formatterOpts"
-                          :row-key="row.key"
-                        />
-                        <template v-else-if="col.value !== ''">
-                          {{ col.formatted }}
-                        </template>
-                        <template v-else-if="col.col.dashIfEmpty">
-                          <span class="text-muted">&mdash;</span>
-                        </template>
-                      </slot>
-                    </td>
-                  </slot>
+            <slot
+              :name="'main-row:' + (row.row.mainRowKey || i)"
+              :full-colspan="fullColspan"
+            >
+              <Row
+                ref="row"
+                :key="i"
+                :row="row"
+                :row-actions="rowActions"
+                :table-actions="tableActions"
+                :selected-rows="selectedRows"
+                :action-of-interest="actionOfInterest"
+                :sub-expand-column="subExpandColumn"
+                :expanded="expanded"
+                :get-custom-detail-link="getCustomDetailLink"
+                :key-field="keyField"
+                :i="i"
+                :dt="dt"
+                v-bind="$attrs"
+                v-on="$listeners"
+              >
+                <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+                  <slot :name="slot" v-bind="scope" />
                 </template>
-                <td v-if="rowActions" align="middle">
-                  <slot
-                    name="row-actions"
-                    :row="row.row"
-                  >
-                    <button
-                      :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
-                      :ref="`actionButton${i}`"
-                      aria-haspopup="true"
-                      aria-expanded="false"
-                      type="button"
-                      class="btn btn-sm role-multi-action actions"
-                      @click="handleActionButtonClick(i, $event)"
-                    >
-                      <i class="icon icon-actions" />
-                    </button>
-                  </slot>
-                </td>
-              </tr>
+              </Row>
             </slot>
           </slot>
           <slot
@@ -994,9 +936,11 @@ export default {
               @mouseenter="onRowMouseEnter"
               @mouseleave="onRowMouseLeave"
             >
-              <td v-if="tableActions" class="row-check" align="middle">
-              </td>
-              <td :colspan="fullColspan - (tableActions ? 1: 0)" :class="{ 'text-error' : row.row.stateObj.error }">
+              <td v-if="tableActions" class="row-check" align="middle"></td>
+              <td
+                :colspan="fullColspan - (tableActions ? 1 : 0)"
+                :class="{ 'text-error': row.row.stateObj.error }"
+              >
                 {{ row.row.stateDescription }}
               </td>
             </tr>
