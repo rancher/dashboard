@@ -4219,6 +4219,8 @@ servicesPage:
       label: Cluster IP
       placeholder: e.g. 10.43.xxx.xxx
     label: IP Addresses
+    loadBalancer:
+      label: Load Balancer
     loadBalancerIp:
       label: Load Balancer IP
       placeholder: e.g. 192.0.xxx.xxx
