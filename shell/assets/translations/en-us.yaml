@@ -5725,9 +5725,17 @@ harvester:
       actionLabel: Detach
       detachVolume:
         Detach Volume
-    restartTip: Restart the virtual machine now to take effect of the configuration changes.
+    restartTip: |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } the virtual machine now to take effect of the configuration changes.
     runStrategy: Run Strategy
-    restartNow: Restart Now
+    restartNow:  |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } Now
     createSSHKey: Create a New...
     installAgent: Install guest agent
     enableUsb: Enable USB Tablet
