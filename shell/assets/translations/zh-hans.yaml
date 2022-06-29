@@ -5778,9 +5778,17 @@ harvester:
       actionLabel: 拔出
       detachVolume:
         拔出卷
-    restartTip: 重启虚拟机以使配置更改生效。
+    restartTip: |-
+      {restart, select,
+        true {重启}
+        other {启动}
+      }虚拟机以使配置更改生效。
     runStrategy: 运行策略
-    restartNow: 现在重启
+    restartNow: |-
+      {restart, select,
+        true {现在重启}
+        other {现在启动}
+      } 
     createSSHKey: 创建 SSH 密钥
     installAgent: 安装访客代理
     enableUsb: 启用 USB Tablet
