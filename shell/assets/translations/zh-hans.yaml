@@ -4340,6 +4340,7 @@ storageClass:
     volumeType:
       label: 卷类型
       gp2: GP2 - 通用 SSD
+      gp3: GP3 - 通用 SSD
       io1: IO1 - 预配置 IOPS SSD
       st1: ST1 - 吞吐量优化型 HDD
       sc1: SC1 - 冷存储 HDD

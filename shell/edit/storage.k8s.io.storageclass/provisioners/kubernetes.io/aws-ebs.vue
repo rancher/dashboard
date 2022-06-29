@@ -25,6 +25,10 @@ export default {
         value: 'gp2'
       },
       {
+        label: this.t('storageClass.aws-ebs.volumeType.gp3'),
+        value: 'gp3'
+      },
+      {
         label: this.t('storageClass.aws-ebs.volumeType.io1'),
         value: 'io1'
       },

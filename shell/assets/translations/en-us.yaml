@@ -4332,6 +4332,7 @@ storageClass:
     volumeType:
       label: Volume Type
       gp2: GP2 - General Purpose SSD
+      gp3: GP3 - General Purpose SSD
       io1: IO1 - Provisioned IOPS SSD
       st1: ST1 - Throughput-Optimized HDD
       sc1: SC1 - Cold-Storage HDD
