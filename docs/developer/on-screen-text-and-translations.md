@@ -73,3 +73,5 @@ account:
       label: Description
       placeholder: Optionally enter a description to help you identify this API Key
 ```
+
+If a translation is not included in the user's selected language, it will fall back to English. The only time the Rancher UI devs should modify a non-English translation is when a key is renamed.

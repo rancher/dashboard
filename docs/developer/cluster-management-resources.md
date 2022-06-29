@@ -1,6 +1,10 @@
 # Cluster Management Resources
 
-## Background/Context
+This page explains cluster provisioning architecture and implementation details that can give context for future work that needs to be done surrounding the UI for cluster provisioning.
+
+If you are not working on anything related to cluster provisioning, you probably don't need to read the content in this section.
+
+## Background/Context on V2 Cluster Provisioning
 
 One of Rancher's core strengths is its ability to install Kubernetes clusters. That capability was one of Rancher's main features since the product was created, and Rancher specialized in that feature during a time when there was no industry standard for how to provision Kubernetes clusters.
 
@@ -10,19 +14,35 @@ The power of CAPI is that it allows us to define many types of resources for Kub
 
 In the lead-up to Rancher v2.6.0, a great deal of work was done to create V2 cluster provisioning for RKE2 and K3s clusters in such a way that we integrated a new industry standard with our existing cluster provisioning technology that had been continuously improved over the years. In this new version of cluster provisioning, Rancher leverages CAPI resources including Clusters and MachineDeployments to define and manage the desired state of downstream RKE2 and K3s clusters.
 
+## CAPI Integration
+
 There is a key difference between the way that Rancher provisions machines and the way that CAPI users are typically expected to provision machines. Each infrastructure provider that is supported by CAPI creates their own provider project, which serves as the driver between CAPI and the infrastructure provider's APIs. For example, Amazon has this project https://github.com/kubernetes-sigs/cluster-api-provider-aws/tree/v1.4.1 to allow CAPI to manage Kubernetes clusters running in AWS. A typical CAPI user would create their desired manifests for infrastructure based on the documentation from that provider. Rancher takes a different approach, as it does not use those infrastructure providers. Instead, Rancher has created a provider for CAPI to provision clusters using Rancher Machine (https://github.com/rancher/machine). Rancher Machine was originally a Docker project for machine management. Rancher forked that project several years ago and has continued to maintain it since the original project was archived.
 
-The fact that Rancher uses a custom machine driver is one reason why it may be complicated to support node templates for K3s and RKE2. In CAPI, the closest equivalent to a node template (the feature that made it possible to reuse machine configs for RKE1 provisioning) is called a MachineTemplate, and those work very differently from node templates. Unlike node templates, CAPI MachineTemplates are immutable and cannot be reused across multiple clusters because there is an ownership relationship between the Cluster resource and the MachineTemplate that configures machines within it. This means that if multiple Clusters shared the same MachineTemplate, and one Cluster was deleted, the MachineTemplate would be deleted along with it, even if it was in use by another cluster. More details and follow-up on that feature request are here: https://github.com/rancher/dashboard/issues/5981
+There is a long-term plan to replace Rancher machine with the upstream CAPI infrastructure provider's drivers.
 
-### Nodes vs Machines
+The fact that Rancher uses a custom machine driver is one reason why it may be complicated to support node templates for K3s and RKE2.
 
-Because V2 cluster provisioning for K3s/RKE2 uses CAPI MachineDeployments to manage node pools and v1 cluster provisioning does not, the Cluster Management app will show management nodes and node pools for RKE1 clusters while showing CAPI Machines and MachineDeployments for K3s and RKE2 clusters. In Cluster Management, on the cluster detail page, the `showMachines` and `showNodes` values are used to determine whether to display CAPI machines or not (https://github.com/rancher/dashboard/blob/master/shell/detail/provisioning.cattle.io.cluster.vue#L224).
+## Node Templates (V1 provisioning) vs MachineTemplates (V2 provisioning)
 
-Cluster Explorer the native Kubernetes nodes for all cluster types. These are Kubernetes nodes as described in the official documentation (https://kubernetes.io/docs/concepts/architecture/nodes/), in the sense that each node defined in the cluster only tells Kubernetes what it needs to know in order to schedule Pods on it. These native Kubernetes nodes are shown in Cluster Explorer under **Cluster > Nodes.**
+In CAPI, the closest equivalent to a node template (the feature that made it possible to reuse machine configs for RKE1 provisioning) is called a MachineTemplate, and those work very differently from node templates:
+
+- Unlike node templates, CAPI MachineTemplates are immutable.
+- If a CAPI node pool is updated to use a newer MachineTemplate, it forces the entire node pool to reprovision, which could cause downtime for apps and services.
+- CAPI MachineTemplates cannot be reused across multiple clusters because there is an ownership relationship between the Cluster resource and the MachineTemplate that configures machines within it. This means that if multiple Clusters shared the same MachineTemplate, and one Cluster was deleted, the MachineTemplate would be deleted along with it, even if it was in use by another cluster. More details and follow-up on that feature request are here: https://github.com/rancher/dashboard/issues/5981
+
+## Nodes vs Machines
+
+Unlike V1 provisioning, V2 cluster provisioning uses CAPI's MachineDeployment Kubernetes resources to manage node pools.
+
+The Cluster Management app shows management nodes and node pools for RKE1 clusters while showing CAPI Machines and MachineDeployments for K3s and RKE2 clusters. In Cluster Management, on the cluster detail page, the `showMachines` and `showNodes` values are used to determine whether to display CAPI machines or not (https://github.com/rancher/dashboard/blob/master/shell/detail/provisioning.cattle.io.cluster.vue#L224).
+
+In Cluster Explorer, native Kubernetes nodes are displayed for all cluster types. These are Kubernetes nodes as described in the official documentation (https://kubernetes.io/docs/concepts/architecture/nodes/), in the sense that each node defined in the cluster only tells Kubernetes what it needs to know in order to schedule Pods on it. These native Kubernetes nodes are shown in Cluster Explorer under **Cluster > Nodes.**
 
 The nodes in Cluster Explorer are not to be confused with the machines that are shown in the Cluster Management app. In Cluster Management, if you go to a list of machines under **Advanced > Machines** in the side nav, you are not looking at nodes defined in the configuration of a single Kubernetes cluster. You are looking at a CAPI Machine resource that exists in the Rancher server's local cluster, which is also called the management cluster. These Machine resources declaratively specify the desired configuration of machines in the downstream clusters, including many hardware details that the downstream cluster is not aware of.
 
-To summarize, RKE1 clusters have nodes, nodePools and nodeTemplates. These are shown in the Cluster Management detail pages, which shows what is configured in the provisioning Cluster resource. RKE2 based clusters have Machines (https://cluster-api.sigs.k8s.io/user/concepts.html#machine) which are instances of MachineTemplates and have specific configuration for each infrastructure provider (Digital Ocean, Azure, etc). These infrastructure configuration details are shown in the Cluster Management detail pages for each cluster.
+To summarize, V1 provisioned clusters have nodes, nodePools and nodeTemplates. These are shown in the Cluster Management detail pages, which shows what is configured in the provisioning Cluster resource.
+
+In V2 cluster provisioning, clusters have Machines (https://cluster-api.sigs.k8s.io/user/concepts.html#machine) which are instances of MachineTemplates and have specific configuration for each infrastructure provider (Digital Ocean, Azure, etc). These infrastructure configuration details are shown in the Cluster Management detail pages for each cluster. In the Rancher UI, the resources used for configuring note templates, such as DigitaloceanConfigs, are hidden because every time they are edited, it forces all node pools using the config to reprovision, which could cause downtime to apps or services on the cluster.
 
 ## Cluster Resources
 

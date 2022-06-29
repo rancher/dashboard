@@ -63,6 +63,10 @@ You should be able to reach the older Ember UI by navigating to the Rancher API 
 - Docker - This should be a simple `docker stop` & `docker rm`
 - Kube Cluster -  Use `helm delete` as usual and then the `remove` command from [System Tools](https://rancher.com/docs/rancher/v2.6/en/system-tools/) client
 
+## UI Walkthrough
+
+An intro to the Rancher UI is [here.](./ui-walkthrough.md)
+
 ## Environment
 
 Developers are free to use the IDE and modern browser of their choosing. Here's some tips on some in particular

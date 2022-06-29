@@ -10,6 +10,10 @@ The following learning path is a suggested guide for which order to learn Ranche
 
 SUSE provides official training on Rancher and K3s. The courses are on the [SUSE community website.](https://community.suse.com/all-courses) However, because Rancher is built on top of Kubernetes and Kubernetes manages containers, it is ideal to have at least some familiarity with containers and Kubernetes before diving into Rancher.
 
+## UI Walkthrough
+
+An intro to the Rancher UI is [here.](./ui-walkthrough.md)
+
 # Learning path
 
 ## 1. Terminology
@@ -44,7 +48,7 @@ While it is possible to build a Kubernetes cluster on a single node managing a s
 
 Kubernetes is too complex to document it all here, but a good starting point would be to go through the tutorials in the official [Kubernetes documentation.](https://kubernetes.io/docs/tutorials/) Minikube and K3d are examples of tools that let you play with Kubernetes in a sandbox environment for development and testing purposes.
 
-### Top 5 Most Important Kubernetes Concepts
+### Top 6 Most Important Kubernetes Concepts
 
 1. **Pods:** Kubernetes doesn't directly manipulate containers. Instead, the fundamental Kubernetes resource is the [Pod,](https://kubernetes.io/docs/concepts/workloads/pods/) which encapsulates one or more containers (usually one). Everything in Kubernetes comes back around to Pods in the end, because Pods encapsulate containers, so Kubernetes can't manage containers without them.
 2. **Workloads:** Most people who use Kubernetes don't directly manipulate Pods. The three most important Kubernetes resources for indirectly manipulating Pods are called Deployments, StatefulSets, and Daemonsets. The term "workloads" is often used to describe apps and services running in Pods, no matter what Kubernetes resource is actually controlling those Pods. Information on all types of workloads can be found in the [Kubernetes documentation.](https://kubernetes.io/docs/concepts/workloads/) These workload management resources allow you to delegate management of the Pods so that you don't have to manually manipulate them yourself.
