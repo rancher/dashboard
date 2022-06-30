@@ -15,6 +15,8 @@ import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
+// Uncomment for table performance debugging
+// import tableDebug from './debug';
 
 // Its quicker to render if we directly supply the components for the formatters
 // rather than just the name of a global component - so create a map of the formatter comoponents
@@ -59,7 +61,16 @@ export default {
   components: {
     THead, Checkbox, ActionDropdown
   },
-  mixins: [filtering, sorting, paging, grouping, selection, actions],
+  mixins: [
+    filtering,
+    sorting,
+    paging,
+    grouping,
+    selection,
+    actions,
+    // For table performance debugging - uncomment and uncomment the corresponding import
+    // tableDebug,
+  ],
 
   props: {
     headers: {
