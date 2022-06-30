@@ -278,7 +278,7 @@ export const POD_RESTARTS = {
   delayLoading: true,
   value:        'restartCount',
   getValue:     row => row.restartCount,
-  search:    false,
+  search:       false,
 };
 
 export const ENDPOINTS = {
