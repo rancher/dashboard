@@ -114,7 +114,7 @@ export default {
           :options="volumeTypeOptions"
         />
         <UnitInput
-          v-if="value.parameters.type === 'io1'"
+          v-if="value.parameters.type === 'io1' || value.parameters.type === 'gp3'"
           v-model="iopsPerGB"
           class="mt-10"
           :label="t('storageClass.aws-ebs.volumeType.provisionedIops.label')"
