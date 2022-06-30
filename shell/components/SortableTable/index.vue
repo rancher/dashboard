@@ -326,7 +326,7 @@ export default {
   watch: {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
-    }, 100),
+    }, 200),
   },
 
   computed: {
