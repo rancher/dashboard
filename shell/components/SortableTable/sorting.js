@@ -40,7 +40,10 @@ export default {
         }
       }
 
-      const out = sortBy(this.rows, this.sortFields, this.descending);
+      // When sorting, we start with the text-filtered rows
+      // so that we don't have to sort rows that will
+      // get filtered out anyway.
+      const out = sortBy(this.filteredRows, this.sortFields, this.descending);
 
       if ( key ) {
         this.cacheKey = key;

@@ -38,7 +38,10 @@ export default {
         out = this.previousResult.slice();
       } else {
         this.previousResult = null;
-        out = (this.arrangedRows || []).slice();
+        // We filter the rows before they are sorted
+        // so that we don't have to sort rows that will
+        // get filtered out anyway.
+        out = (this.rows || []).slice();
       }
 
       this.previousFilter = searchText;
