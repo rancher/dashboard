@@ -42,7 +42,7 @@ function publish() {
   pushd ${FOLDER} > /dev/null
 
   # Fow now, copy the rancher components into the shell and ship them with it
-  if [ $NAME == 'shell' ]; then
+  if [ $NAME == 'Shell' ]; then
     echo "Adding Rancher Components"
     rm -rf ${SHELL_DIR}/rancher-components
     mkdir -p ${SHELL_DIR}/rancher-components
