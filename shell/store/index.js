@@ -60,24 +60,96 @@ export const plugins = [
 
 ];
 
+const getActiveNamespaces = (state, getters) => {
+  console.log('in getActiveNamespaces ', { state, getters });
+  const out = {};
+  const product = getters['currentProduct'];
+  const workspace = state.workspace;
+
+  if ( !product ) {
+    return out;
+  }
+
+  if ( product.showWorkspaceSwitcher ) {
+    return { [workspace]: true };
+  }
+
+  const inStore = product?.inStore;
+  const clusterId = getters['currentCluster']?.id;
+
+  if ( !clusterId || !inStore ) {
+    return out;
+  }
+
+  const namespaces = getters[`${ inStore }/all`](NAMESPACE);
+
+  console.log(`get active namespaces ran. all namespaces: `, { namespaces });
+  const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
+  const includeAll = getters.isAllNamespaces;
+  const includeSystem = filters.includes(ALL_SYSTEM);
+  const includeUser = filters.includes(ALL_USER);
+  const includeOrphans = filters.includes(ALL_ORPHANS);
+
+  // Special cases to pull in all the user, system, or orphaned namespaces
+  if ( includeAll || includeOrphans || includeSystem || includeUser ) {
+    for ( const ns of namespaces ) {
+      if (
+        includeAll ||
+        ( includeOrphans && !ns.projectId ) ||
+        ( includeUser && !ns.isSystem ) ||
+        ( includeSystem && ns.isSystem )
+      ) {
+        out[ns.id] = true;
+      }
+    }
+  }
+
+  // Individual requests for a specific project/namespace
+  if ( !includeAll ) {
+    for ( const filter of filters ) {
+      const [type, id] = filter.split('://', 2);
+
+      if ( !type ) {
+        continue;
+      }
+
+      if ( type === 'ns' ) {
+        out[id] = true;
+      } else if ( type === 'project' ) {
+        const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
+
+        if ( project ) {
+          for ( const ns of project.namespaces ) {
+            out[ns.id] = true;
+          }
+        }
+      }
+    }
+  }
+  console.log('filtered namespaces are: ', out);
+
+  return out;
+};
+
 export const state = () => {
   return {
-    managementReady:     false,
-    clusterReady:        false,
-    isMultiCluster:      false,
-    isRancher:           false,
-    namespaceFilters:    [],
-    allNamespaces:       null,
-    allWorkspaces:       null,
-    clusterId:           null,
-    productId:           null,
-    workspace:           null,
-    error:               null,
-    cameFromError:       false,
-    pageActions:         [],
-    serverVersion:       null,
-    systemNamespaces:    [],
-    isSingleProduct:     undefined,
+    managementReady:      false,
+    clusterReady:         false,
+    isMultiCluster:       false,
+    isRancher:            false,
+    namespaceFilters:     [],
+    activeNamespaceCache: {}, // Used to efficiently check if a resource should be displayed
+    allNamespaces:        null,
+    allWorkspaces:        null,
+    clusterId:            null,
+    productId:            null,
+    workspace:            null,
+    error:                null,
+    cameFromError:        false,
+    pageActions:          [],
+    serverVersion:        null,
+    systemNamespaces:     [],
+    isSingleProduct:      undefined,
   };
 };
 
@@ -253,73 +325,22 @@ export const getters = {
     return BOTH;
   },
 
-  namespaces(state, getters) {
+  activeNamespaceCache(state) {
+    // The activeNamespaceCache value is updated by the
+    // updateNamespaces mutation. We use this map to filter workloads
+    // as we don't want to recompute the active namespaces
+    // for each workload in a list.
     return () => {
-      const out = {};
-      const product = getters['currentProduct'];
-      const workspace = state.workspace;
-
-      if ( !product ) {
-        return out;
-      }
-
-      if ( product.showWorkspaceSwitcher ) {
-        return { [workspace]: true };
-      }
-
-      const inStore = product?.inStore;
-      const clusterId = getters['currentCluster']?.id;
-
-      if ( !clusterId || !inStore ) {
-        return out;
-      }
-
-      const namespaces = getters[`${ inStore }/all`](NAMESPACE);
-      const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
-      const includeAll = getters.isAllNamespaces;
-      const includeSystem = filters.includes(ALL_SYSTEM);
-      const includeUser = filters.includes(ALL_USER);
-      const includeOrphans = filters.includes(ALL_ORPHANS);
-
-      // Special cases to pull in all the user, system, or orphaned namespaces
-      if ( includeAll || includeOrphans || includeSystem || includeUser ) {
-        for ( const ns of namespaces ) {
-          if (
-            includeAll ||
-            ( includeOrphans && !ns.projectId ) ||
-            ( includeUser && !ns.isSystem ) ||
-            ( includeSystem && ns.isSystem )
-          ) {
-            out[ns.id] = true;
-          }
-        }
-      }
-
-      // Individual requests for a specific project/namespace
-      if ( !includeAll ) {
-        for ( const filter of filters ) {
-          const [type, id] = filter.split('://', 2);
-
-          if ( !type ) {
-            continue;
-          }
-
-          if ( type === 'ns' ) {
-            out[id] = true;
-          } else if ( type === 'project' ) {
-            const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
-
-            if ( project ) {
-              for ( const ns of project.namespaces ) {
-                out[ns.id] = true;
-              }
-            }
-          }
-        }
-      }
-
-      return out;
+      return state.activeNamespaceCache;
     };
+  },
+
+  namespaces(state, getters) {
+    // Call this getter if you want to recompute the active namespaces
+    // by looping over all namespaces in a cluster. Otherwise call activeNamespaceCache,
+    // which returns the same object but is only recomputed when the updateNamespaces
+    // mutation is called.
+    return () => getActiveNamespaces(state, getters);
   },
 
   defaultNamespace(state, getters, rootState, rootGetters) {
@@ -330,7 +351,7 @@ export const getters = {
     }
 
     const inStore = product.inStore;
-    const filteredMap = getters['namespaces']();
+    const filteredMap = getters['activeNamespaceCache']();
     const isAll = getters['isAllNamespaces'];
     const all = getters[`${ inStore }/all`](NAMESPACE).map(x => x.id);
     let out;
@@ -458,12 +479,18 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
-  updateNamespaces(state, { filters, all }) {
+  updateNamespaces(state, getters) {
+    const { filters, all } = getters;
+
     state.namespaceFilters = filters.filter(x => !!x);
 
     if ( all ) {
       state.allNamespaces = all;
     }
+
+    // Create map that can be used to efficiently check if a
+    // resource should be displayed
+    state.activeNamespaceCache = { 'test-performance': true }; // getActiveNamespaces(state, getters);
   },
 
   pageActions(state, pageActions) {
@@ -786,7 +813,8 @@ export const actions = {
 
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
-      all:     res.namespaces
+      all:     res.namespaces,
+      ...getters
     });
 
     commit('clusterReady', true);
@@ -804,7 +832,7 @@ export const actions = {
         [key]: ids
       }
     });
-    commit('updateNamespaces', { filters: ids });
+    commit('updateNamespaces', { filters: ids, ...getters });
   },
 
   async loadVirtual({
@@ -911,7 +939,8 @@ export const actions = {
 
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
-      all:     res.virtualNamespaces
+      all:     res.virtualNamespaces,
+      ...getters
     });
 
     commit('clusterReady', true);

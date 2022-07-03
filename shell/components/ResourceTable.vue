@@ -195,7 +195,7 @@ export default {
         return this.rows || [];
       }
 
-      const includedNamespaces = this.$store.getters['namespaces']();
+      const includedNamespaces = this.$store.getters['activeNamespaceCache']();
 
       // Shouldn't happen, but does for resources like management.cattle.io.preference
       if (!this.rows) {

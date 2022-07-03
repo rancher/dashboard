@@ -82,7 +82,7 @@ export default {
     },
 
     namespaces() {
-      return this.$store.getters['namespaces']();
+      return this.$store.getters['activeNamespaceCache']();
     },
 
     rancherCatalog() {
