@@ -181,7 +181,4 @@ export default {
     }
   }
 
-  .link {
-    cursor: pointer;
-  }
 </style>

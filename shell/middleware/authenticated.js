@@ -14,6 +14,7 @@ import { AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 import { BACK_TO } from '@shell/config/local-storage';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
+import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 
 const getPackageFromRoute = (route) => {
   if (!route?.meta) {
@@ -303,7 +304,26 @@ export default async function({
         oldIsExt: !!oldPkg
       });
     }
-    if (product === VIRTUAL || route.name === `${ VIRTUAL }-c-cluster` || route.name?.startsWith(`${ VIRTUAL }-c-cluster-`)) {
+
+    if (!route.matched?.length) {
+      // If there are no matching routes we could be trying to nav to a page belonging to a dynamic plugin which needs loading
+      await Promise.all([
+        ...always,
+        store.dispatch('loadCluster', {
+          id:     '',
+          oldPkg: oldPkgPlugin,
+          newPkg: newPkgPlugin,
+          oldProduct,
+        })
+      ]);
+
+      // If a plugin claims the route and is loaded correctly we'll get a route back
+      const newLocation = await dynamicPluginLoader.check({ route, store });
+
+      if (newLocation) {
+        redirect(newLocation);
+      }
+    } else if (product === VIRTUAL || route.name === `${ VIRTUAL }-c-cluster` || route.name?.startsWith(`${ VIRTUAL }-c-cluster-`)) {
       const res = [
         ...always,
         store.dispatch('loadVirtual', {

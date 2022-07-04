@@ -108,7 +108,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div v-if="currentCluster">
     <header class="header mb-0">
       <h1>
         <t

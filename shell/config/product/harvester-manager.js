@@ -3,6 +3,46 @@ import { HARVESTER, MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@shell/config/table-headers';
 import { allHash } from '@shell/utils/promise';
+import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
+
+dynamicPluginLoader.register({
+  load: async({ route, store }) => {
+    // Check that we've either got here either
+    // - directly (page refresh/load -> have path but no name)
+    // - via router name (have name but no path)
+    let clusterId;
+    const pathParts = route.path.split('/');
+
+    if (pathParts?.[1] === HARVESTER_NAME && pathParts?.[3] ) {
+      clusterId = pathParts?.[3];
+    } else {
+      const nameParts = route.name.split('-');
+
+      if (nameParts?.[0] === HARVESTER_NAME) {
+        clusterId = route.params?.cluster;
+      }
+    }
+
+    if (clusterId) {
+      // All is good, try to load the plugin via the harvester cluster's `loadClusterPlugin`
+      // We don't have this spoofed type just yet, so manually create required model via the mgmt cluster
+      const mgmtCluster = store.getters['management/byId']('management.cattle.io.cluster', clusterId);
+
+      if (mgmtCluster) {
+        const harvCluster = await store.dispatch('management/create', {
+          ...mgmtCluster,
+          type: HCI.CLUSTER
+        });
+
+        if (harvCluster) {
+          await harvCluster.loadClusterPlugin();
+
+          return route;
+        }
+      }
+    }
+  }
+});
 
 export const NAME = 'harvesterManager';
 
