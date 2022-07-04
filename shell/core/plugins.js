@@ -79,7 +79,11 @@ export default function({
 
         element.onerror = (e) => {
           element.parentElement.removeChild(element);
-          reject(e);
+          // Massage the error into something useful
+          const errorMessage = `Failed to load script from '${ e.target.src }'`;
+
+          console.error(errorMessage, e); // eslint-disable-line no-console
+          reject(new Error(errorMessage)); // Message on itThis is more useful where it's used
         };
 
         document.head.appendChild(element);
