@@ -1,10 +1,11 @@
 import merge from 'lodash/merge';
 
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, POD } from '@shell/config/types';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
 import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
+import { matches } from '~shell/utils/selector';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -203,6 +204,51 @@ export default {
     const all = getters.all(type);
 
     return all;
+  },
+
+  async buildPodSelectorCache(ctx, { workloads }) {
+    const cache = {};
+
+    // The intent is to loop over the list of all Pods
+    // in the cluster only once when rendering a list of workloads.
+    // The first time we loop over all Pods, we build this cache.
+    // From then on, for each workload in the list, we will
+    // use this cache to look up the Pods and Pod count in each
+    // workload.
+    const activeNamespaces = ctx.rootGetters['activeNamespaceCache']();
+
+    const pods = await ctx.dispatch('findAll', { type: POD });
+    const filteredPods = pods.filter((pod) => {
+      // The cache only needs to include Pods from the
+      // currently selected namespaces. The cache is updated
+      // when the active namespaces are updated.
+      return !!activeNamespaces[pod.metadata?.namespace];
+    });
+
+    filteredPods.forEach((pod) => {
+      const ownerReferences = pod.metadata.ownerReferences;
+
+      ownerReferences.forEach((reference) => {
+        if (reference.kind === 'ReplicaSet') {
+          const replicaSetName = reference.name;
+
+          // Assuming the ReplicaSet name is something like
+          // test-pod1-69db5f8bc4, the workload is probably test-pod1.
+          const workloadName = replicaSetName.split('-').slice(0, -1).join('-');
+
+          if (cache[workloadName]) {
+            const existingPods = cache[workloadName];
+
+            cache[workloadName] = [...existingPods, pod];
+          } else {
+            cache[workloadName] = [pod];
+          }
+        }
+      });
+    });
+    const { commit } = ctx;
+
+    commit('loadPodSelectorCache', cache);
   },
 
   async findMatching(ctx, { type, selector, opt }) {

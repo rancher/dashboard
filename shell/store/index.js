@@ -60,24 +60,92 @@ export const plugins = [
 
 ];
 
+const getActiveNamespaces = (state, getters) => {
+  const out = {};
+  const product = getters['currentProduct'];
+  const workspace = state.workspace;
+
+  if ( !product ) {
+    return out;
+  }
+
+  if ( product.showWorkspaceSwitcher ) {
+    return { [workspace]: true };
+  }
+
+  const inStore = product?.inStore;
+  const clusterId = getters['currentCluster']?.id;
+
+  if ( !clusterId || !inStore ) {
+    return out;
+  }
+
+  const namespaces = getters[`${ inStore }/all`](NAMESPACE);
+
+  const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
+  const includeAll = getters.isAllNamespaces;
+  const includeSystem = filters.includes(ALL_SYSTEM);
+  const includeUser = filters.includes(ALL_USER);
+  const includeOrphans = filters.includes(ALL_ORPHANS);
+
+  // Special cases to pull in all the user, system, or orphaned namespaces
+  if ( includeAll || includeOrphans || includeSystem || includeUser ) {
+    for ( const ns of namespaces ) {
+      if (
+        includeAll ||
+        ( includeOrphans && !ns.projectId ) ||
+        ( includeUser && !ns.isSystem ) ||
+        ( includeSystem && ns.isSystem )
+      ) {
+        out[ns.id] = true;
+      }
+    }
+  }
+
+  // Individual requests for a specific project/namespace
+  if ( !includeAll ) {
+    for ( const filter of filters ) {
+      const [type, id] = filter.split('://', 2);
+
+      if ( !type ) {
+        continue;
+      }
+
+      if ( type === 'ns' ) {
+        out[id] = true;
+      } else if ( type === 'project' ) {
+        const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
+
+        if ( project ) {
+          for ( const ns of project.namespaces ) {
+            out[ns.id] = true;
+          }
+        }
+      }
+    }
+  }
+
+  return out;
+};
+
 export const state = () => {
   return {
-    managementReady:     false,
-    clusterReady:        false,
-    isMultiCluster:      false,
-    isRancher:           false,
-    namespaceFilters:    [],
-    allNamespaces:       null,
-    allWorkspaces:       null,
-    clusterId:           null,
-    productId:           null,
-    workspace:           null,
-    error:               null,
-    cameFromError:       false,
-    pageActions:         [],
-    serverVersion:       null,
-    systemNamespaces:    [],
-    isSingleProduct:     undefined,
+    managementReady:      false,
+    clusterReady:         false,
+    isMultiCluster:       false,
+    isRancher:            false,
+    namespaceFilters:     [],
+    allNamespaces:        null,
+    allWorkspaces:        null,
+    clusterId:            null,
+    productId:            null,
+    workspace:            null,
+    error:                null,
+    cameFromError:        false,
+    pageActions:          [],
+    serverVersion:        null,
+    systemNamespaces:     [],
+    isSingleProduct:      undefined,
   };
 };
 

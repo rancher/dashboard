@@ -1,5 +1,4 @@
 <script>
-import { POD } from '@shell/config/types';
 export default {
   name:  'PodsUsage',
   props: {

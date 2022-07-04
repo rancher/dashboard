@@ -45,6 +45,14 @@ export default {
         const resource = await this.$store.dispatch('cluster/findAll', { type });
 
         resources = [resource];
+
+        if (type !== POD) {
+          // Build Pod selector cache so that when we look up which Pods
+          // are managed by a workload, we don't have to loop over all Pods
+          // in the cluster for each workload list item. We will just
+          // do it once.
+          this.$store.dispatch('cluster/buildPodSelectorCache', { workloads: resources[0] });
+        }
       }
     }
 
@@ -110,6 +118,7 @@ export default {
         }
       }
     }
+
   },
 
   typeDisplay() {

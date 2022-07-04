@@ -771,10 +771,17 @@ export default class Workload extends SteveModel {
     const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
 
     if (podRelationship) {
-      return this.$getters['matching'](POD, podRelationship.selector).filter(pod => pod?.metadata?.namespace === this.metadata.namespace);
-    } else {
-      return [];
+      const selector = podRelationship.selector;
+      const cachedMatchingPods = this.$rootGetters['cluster/podSelectorCache'](this.name);
+
+      if (cachedMatchingPods ) {
+        const inNamespace = cachedMatchingPods.filter(pod => pod?.metadata?.namespace === this.metadata.namespace);
+
+        return inNamespace;
+      }
     }
+
+    return [];
   }
 
   get podGauges() {
@@ -846,9 +853,18 @@ export default class Workload extends SteveModel {
   }
 
   async matchingPods() {
-    const all = await this.$dispatch('findAll', { type: POD });
     const selector = convertSelectorObj(this.spec.selector);
 
-    return matching(all, selector);
+    const matchingPods = this.$rootGetters['cluster/podSelectorCache'](this.name);
+
+    if (matchingPods) {
+      // Use cached Pods if available in Vuex.
+      return matchingPods;
+    } else {
+      // Otherwise load all Pods, which can be expensive.
+      const all = await this.$dispatch('findAll', { type: POD });
+
+      return matching(all, selector);
+    }
   }
 }

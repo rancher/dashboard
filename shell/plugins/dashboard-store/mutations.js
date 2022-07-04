@@ -29,6 +29,10 @@ function registerType(state, type) {
   return cache;
 }
 
+function loadPodSelectorCache(state, podSelectorCache) {
+  state.podSelectorCache = podSelectorCache;
+}
+
 function load(state, { data, ctx, existing }) {
   const { getters } = ctx;
   let type = normalizeType(data.type);
@@ -164,6 +168,7 @@ export function loadAll(state, { type, data, ctx }) {
 
 export default {
   registerType,
+  loadPodSelectorCache,
   load,
 
   applyConfig(state, config) {

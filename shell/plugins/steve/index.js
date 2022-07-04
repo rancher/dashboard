@@ -26,6 +26,7 @@ function SteveFactory(namespace, baseUrl) {
         deferredRequests: {},
         started:          [],
         inError:          {},
+        podSelectorCache: {}, // Used to efficiently check which Pods correspond to a workload
       };
     },
 
