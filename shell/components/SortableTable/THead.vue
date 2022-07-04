@@ -21,6 +21,10 @@ export default {
       type:     Boolean,
       required: true
     },
+    hasAdvancedFiltering: {
+      type:     Boolean,
+      required: false
+    },
     tableColsOptions: {
       type:    Array,
       default: () => [],
@@ -72,7 +76,7 @@ export default {
   },
 
   data() {
-    return { tableColsOptionsVisibility: true };
+    return { tableColsOptionsVisibility: false };
   },
   computed: {
     isAll: {
@@ -120,12 +124,7 @@ export default {
         value
       });
     },
-  },
-  watch: {
-    tableColsOptions(neu) {
-      console.log('-------- TABLE COLS OPTIONS WATCHER -------', neu);
-    }
-  },
+  }
 };
 </script>
 
@@ -143,6 +142,7 @@ export default {
       <th v-if="subExpandColumn" :width="expandWidth"></th>
       <th
         v-for="col in columns"
+        v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.isColVisible)"
         :key="col.name"
         :align="col.align || 'left'"
         :width="col.width"
@@ -159,9 +159,10 @@ export default {
         </span>
         <span v-else v-tooltip="col.tooltip">{{ labelFor(col) }}</span>
       </th>
-      <th v-if="rowActions" :width="rowActionsWidth">
-      </th>
-      <th v-if="tableColsOptions.length">
+      <th
+        v-if="rowActions && hasAdvancedFiltering && tableColsOptions.length"
+        :width="rowActionsWidth"
+      >
         <div class="table-options-group">
           <button
             aria-haspopup="true"
@@ -179,11 +180,11 @@ export default {
             <ul>
               <li
                 v-for="(col, index) in tableColsOptions"
-                v-show="!col.ignoreAsTableOption"
+                v-show="col.isTableOption"
                 :key="index"
               >
                 <Checkbox
-                  v-model="col.visible"
+                  v-model="col.isColVisible"
                   class="table-options-checkbox"
                   @input="tableOptionsCheckbox($event, col.label)"
                 />
@@ -192,7 +193,8 @@ export default {
             </ul>
           </div>
         </div>
-        </div>
+      </th>
+      <th v-else-if="rowActions" :width="rowActionsWidth">
       </th>
     </tr>
   </thead>
