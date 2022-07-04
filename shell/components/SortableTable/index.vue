@@ -9,7 +9,7 @@ import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
-import filtering, { DEFAULT_ADV_FILTER_COLS_VALUE, ADV_FILTER_ALL_COLS_VALUE, ADV_FILTER_ALL_COLS_LABEL } from './filtering';
+import filtering, { ADV_FILTER_ALL_COLS_VALUE, ADV_FILTER_ALL_COLS_LABEL } from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
@@ -44,6 +44,8 @@ export const COLUMN_BREAKPOINTS = {
    */
   DESKTOP: 'desktop'
 };
+
+const DEFAULT_ADV_FILTER_COLS_VALUE = ADV_FILTER_ALL_COLS_VALUE;
 
 // @TODO:
 // Fixed header/scrolling
@@ -291,8 +293,9 @@ export default {
       eventualSearchQuery:         '',
       actionOfInterest:            null,
       loadingDelay:                false,
-      hasTableOptions:             true,
-      advancedFiltering:           true,
+      hasAdvancedFiltering:        true,
+      columnOptions:               [],
+      colOptionsWatcher:           null,
       advancedFilteringVisibility: false,
       advancedFilteringValues:     [],
       advFilterSearchTerm:         null,
@@ -317,6 +320,15 @@ export default {
 
     // check if user clicked outside the advanced filter box
     document.addEventListener('click', this.onClickOutside);
+
+    // register watcher to watch rows for columnOptions
+    if (this.hasAdvancedFiltering) {
+      this.columnOptions = this.setColsOptions();
+
+      this.colOptionsWatcher = this.$watch('rows', function() {
+        this.columnOptions = this.setColsOptions();
+      });
+    }
   },
 
   beforeDestroy() {
@@ -331,6 +343,11 @@ export default {
     $main.off('scroll', this._onScroll);
 
     document.removeEventListener('click', this.onClickOutside);
+
+    // unregister register watcher for rows
+    if (this.hasAdvancedFiltering) {
+      this.colOptionsWatcher();
+    }
   },
 
   updated() {
@@ -344,67 +361,8 @@ export default {
   },
 
   computed: {
-    columnOptions() {
-      console.log('**** ALL TABLE ROWS *******', this.rows);
-      console.log('**** ALL TABLE HEADERS *******', this.headers);
-      let opts = [];
-      const rowLabels = [];
-      const headerProps = [];
-
-      // Filter out any columns that are too heavy to show for large page sizes
-      const filteredHeaders = this.headers.slice().filter(c => !c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage));
-
-      // add table cols from config (headers)
-      filteredHeaders.forEach((prop) => {
-        if (prop.sort) {
-          const label = prop.labelKey ? this.t(`${ prop.labelKey }`) : prop.label;
-
-          if (typeof prop.sort === 'string') {
-            headerProps.push({
-              label,
-              value:   prop.sort.includes(':') ? prop.sort.split(':')[0] : prop.sort,
-              visible: true
-            });
-          } else {
-            headerProps.push({
-              label,
-              value:   JSON.stringify(prop.sort),
-              visible: true
-            });
-          }
-        }
-      });
-
-      // add labels as table cols
-      if (this.rows.length) {
-        this.rows.forEach((row) => {
-          if (row.metadata?.labels && Object.keys(row.metadata?.labels).length) {
-            Object.keys(row.metadata?.labels).forEach((label) => {
-              const res = {
-                label,
-                value:   `metadata.labels.${ label }`,
-                visible: false
-              };
-
-              if (!rowLabels.filter(row => row.label === label).length) {
-                rowLabels.push(res);
-              }
-            });
-          }
-        });
-      }
-
-      opts = headerProps.concat(rowLabels);
-
-      if (opts.length) {
-        opts.unshift({
-          label:               ADV_FILTER_ALL_COLS_LABEL,
-          value:               ADV_FILTER_ALL_COLS_VALUE,
-          ignoreAsTableOption: true
-        });
-      }
-
-      return opts;
+    advFilterSelectOptions() {
+      return this.columnOptions.filter(c => c.isFilter);
     },
 
     fullColspan() {
@@ -473,6 +431,25 @@ export default {
           out.splice(out.indexOf(variable), 1, neu);
         }
       }
+
+      // handle cols visibility if there is advanced filtering
+      if (this.hasAdvancedFiltering) {
+        this.columnOptions.forEach((advCol) => {
+          if (advCol.isTableOption) {
+            const index = out.findIndex(col => col.name === advCol.name);
+
+            if (index !== -1) {
+              out[index].isColVisible = advCol.isColVisible;
+            } else {
+              out.push(advCol);
+            }
+          }
+        });
+      }
+
+      console.log('THIS HEADERS...', this.headers);
+      console.log('THIS COL OPTIONS...', this.columnOptions);
+      console.log('THIS COLUMN OUTPUT...', out);
 
       return out;
     },
@@ -814,6 +791,89 @@ export default {
     },
 
     // advanced filtering methods
+    setColsOptions() {
+      console.log('**** ALL TABLE ROWS *******', this.rows);
+      console.log('**** ALL TABLE HEADERS *******', this.headers);
+      let opts = [];
+      const rowLabels = [];
+      const headerProps = [];
+
+      // Filter out any columns that are too heavy to show for large page sizes
+      // also filter out non-searchable table-headers (this can due to performance, formatting, etc...)
+      const filteredHeaders = this.headers.slice().filter(c => (!c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage)));
+
+      console.log('**** FILTERED TABLE HEADERS ****', filteredHeaders);
+
+      // add table cols from config (headers)
+      filteredHeaders.forEach((prop) => {
+        if (prop.sort) {
+          const name = prop.name;
+          const label = prop.labelKey ? this.t(`${ prop.labelKey }`) : prop.label;
+          const isFilter = (!Object.keys(prop).includes('search') || prop.search);
+          const sort = prop.sort;
+
+          if (typeof prop.sort === 'string') {
+            headerProps.push({
+              name,
+              label,
+              value:         prop.sort.includes(':') ? prop.sort.split(':')[0] : prop.sort,
+              sort,
+              isFilter,
+              isTableOption: true,
+              isColVisible:    true
+            });
+          } else {
+            headerProps.push({
+              name,
+              label,
+              value:         JSON.stringify(prop.sort),
+              sort,
+              isFilter,
+              isTableOption: true,
+              isColVisible:    true
+            });
+          }
+        }
+      });
+
+      // add labels as table cols
+      if (this.rows.length) {
+        this.rows.forEach((row) => {
+          if (row.metadata?.labels && Object.keys(row.metadata?.labels).length) {
+            Object.keys(row.metadata?.labels).forEach((label) => {
+              const res = {
+                name:          label,
+                label,
+                value:         `metadata.labels.${ label }`,
+                sort:          `metadata.labels.${ label }`,
+                isFilter:      true,
+                isTableOption: true,
+                isColVisible:    false
+              };
+
+              if (!rowLabels.filter(row => row.label === label).length) {
+                rowLabels.push(res);
+              }
+            });
+          }
+        });
+      }
+
+      opts = headerProps.concat(rowLabels);
+
+      // add find on all cols option...
+      if (opts.length) {
+        opts.unshift({
+          name:          ADV_FILTER_ALL_COLS_LABEL,
+          label:         ADV_FILTER_ALL_COLS_LABEL,
+          value:         ADV_FILTER_ALL_COLS_VALUE,
+          isFilter:      true,
+          isTableOption: false
+        });
+      }
+
+      return opts;
+    },
     toggleAdvancedFiltering() {
       console.log('-------- TOGGLING ADVANCED FILTER -------');
       this.advancedFilteringVisibility = !this.advancedFilteringVisibility;
@@ -859,10 +919,10 @@ export default {
       const index = this.columnOptions.findIndex(col => col.label === colData.label);
 
       if (index !== -1) {
-        this.columnOptions[index].visible = colData.value;
+        this.columnOptions[index].isColVisible = colData.value;
       }
 
-      console.log('-------- COL VISIBILITY CHANGE (Sortable) -------', colData, index, this.columnOptions[index]);
+      console.log('-------- COL VISIBILITY CHANGE (Sortable) -------', this.columnOptions[index]);
     }
   }
 };
@@ -931,9 +991,9 @@ export default {
           <slot name="header-middle" />
         </div>
 
-        <div v-if="search || advancedFiltering || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
+        <div v-if="search || hasAdvancedFiltering || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
           <slot name="header-right" />
-          <div v-if="advancedFiltering" ref="advanced-filter-group" class="advanced-filter-group">
+          <div v-if="hasAdvancedFiltering" ref="advanced-filter-group" class="advanced-filter-group">
             <button class="btn role-primary" @click="toggleAdvancedFiltering">
               Add Filter
             </button>
@@ -950,7 +1010,7 @@ export default {
                 <LabeledSelect
                   v-model="advFilterSelectedProp"
                   :clearable="true"
-                  :options="columnOptions"
+                  :options="advFilterSelectOptions"
                   :disabled="false"
                   :searchable="false"
                   mode="edit"
@@ -988,6 +1048,7 @@ export default {
         v-if="showHeaders"
         :label-for="labelFor"
         :columns="columns"
+        :has-advanced-filtering="hasAdvancedFiltering"
         :table-actions="tableActions"
         :table-cols-options="columnOptions"
         :row-actions="rowActions"
@@ -1081,6 +1142,7 @@ export default {
                     :rowKey="row.key"
                   >
                     <td
+                      v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
                       :key="col.col.name"
                       :data-title="col.col.label"
                       :data-testid="`sortable-cell-${ i }-${ j }`"
@@ -1343,7 +1405,7 @@ $spacing: 10px;
   min-width: 400px;
   border-radius: 5px 5px 0 0;
   outline: 1px solid var(--border);
-  overflow: hidden;
+  // overflow: hidden;
   background: var(--sortable-table-bg);
   border-radius: 4px;
 

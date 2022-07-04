@@ -1,7 +1,6 @@
 import { get } from '@shell/utils/object';
 import { addObject, addObjects, isArray, removeAt } from '@shell/utils/array';
 
-export const DEFAULT_ADV_FILTER_COLS_VALUE = 'allcols';
 export const ADV_FILTER_ALL_COLS_VALUE = 'allcols';
 export const ADV_FILTER_ALL_COLS_LABEL = 'All Columns';
 
@@ -33,9 +32,10 @@ export default {
     }),
     */
     filteredRows() {
-      console.log('FILTERING ROWS...', this.advancedFiltering, this.searchQuery);
+      console.log('FILTERING ROWS...', this.hasAdvancedFiltering, this.searchQuery);
 
-      if (!this.advancedFiltering) {
+      // PROP hasAdvancedFiltering comes from SortableTable (careful changing data var there...)
+      if (!this.hasAdvancedFiltering) {
         return this.handleFiltering();
       } else {
         return this.handleAdvancedFiltering();
@@ -44,6 +44,7 @@ export default {
   },
 
   methods: {
+    // TODO: handle subSearch and subFields...
     handleAdvancedFiltering() {
       this.subMatches = null;
       const out = (this.arrangedRows || []).slice();
@@ -124,25 +125,6 @@ export default {
         let mainFound = true;
 
         mainFound = handleStringSearch(searchFields, searchTokens, row);
-        console.log('mainFound', mainFound);
-        // for ( let j = 0 ; j < searchTokens.length ; j++ ) {
-        //   let expect = true;
-        //   let token = searchTokens[j];
-
-        //   if ( token.substr(0, 1) === '!' ) {
-        //     expect = false;
-        //     token = token.substr(1);
-        //   }
-
-        //   console.log('token', token);
-        //   console.log('row', row);
-        //   console.log('matches(searchFields, token, row) ', matches(searchFields, token, row) );
-
-        //   if ( token && matches(searchFields, token, row) !== expect ) {
-        //     mainFound = false;
-        //     break;
-        //   }
-        // }
 
         if ( subFields && subSearch) {
           const subRows = row[subSearch] || [];
@@ -150,20 +132,7 @@ export default {
           for ( let k = subRows.length - 1 ; k >= 0 ; k-- ) {
             let subFound = true;
 
-            for ( let l = 0 ; l < searchTokens.length ; l++ ) {
-              let expect = true;
-              let token = searchTokens[l];
-
-              if ( token.substr(0, 1) === '!' ) {
-                expect = false;
-                token = token.substr(1);
-              }
-
-              if ( matches(subFields, token, subRows[k]) !== expect ) {
-                subFound = false;
-                break;
-              }
-            }
+            subFound = handleStringSearch(subFields, searchTokens, row);
 
             if ( subFound ) {
               hits++;
