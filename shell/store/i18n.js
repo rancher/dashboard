@@ -59,16 +59,17 @@ export const getters = {
     return out;
   },
 
-  t: state => (key, args) => {
-    if (state.selected === NONE ) {
+  t: state => (key, args, language) => {
+    if (state.selected === NONE && !language) {
       return `%${ key }%`;
     }
 
-    const cacheKey = `${ state.selected }/${ key }`;
+    const locale = language || state.selected;
+    const cacheKey = `${ locale }/${ key }`;
     let formatter = intlCache[cacheKey];
 
     if ( !formatter ) {
-      let msg = get(state.translations[state.selected], key);
+      let msg = get(state.translations[locale], key);
 
       if ( !msg ) {
         msg = get(state.translations[state.default], key);
@@ -85,7 +86,7 @@ export const getters = {
       }
 
       if ( msg?.includes('{')) {
-        formatter = new IntlMessageFormat(msg, state.selected);
+        formatter = new IntlMessageFormat(msg, locale);
       } else {
         formatter = msg;
       }
@@ -110,8 +111,9 @@ export const getters = {
     }
   },
 
-  exists: state => (key) => {
-    const cacheKey = `${ state.selected }/${ key }`;
+  exists: state => (key, language) => {
+    const locale = language || state.selected;
+    const cacheKey = `${ locale }/${ key }`;
 
     if ( intlCache[cacheKey] ) {
       return true;
@@ -119,8 +121,8 @@ export const getters = {
 
     let msg = get(state.translations[state.default], key);
 
-    if ( !msg && state.selected && state.selected !== NONE ) {
-      msg = get(state.translations[state.selected], key);
+    if ( !msg && locale && locale !== NONE ) {
+      msg = get(state.translations[locale], key);
     }
 
     if ( msg !== undefined ) {
