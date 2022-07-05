@@ -1,9 +1,10 @@
 <script>
 import { Checkbox } from '@components/Form/Checkbox';
 import { SOME, NONE } from './selection';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
-  components: { Checkbox },
+  components: { Checkbox, LabeledSelect },
   props:      {
     columns: {
       type:     Array,
@@ -16,6 +17,14 @@ export default {
     defaultSortBy: {
       type:    String,
       default: ''
+    },
+    group: {
+      type:    String,
+      default: ''
+    },
+    groupOptions: {
+      type:    Array,
+      default: () => []
     },
     descending: {
       type:     Boolean,
@@ -86,6 +95,18 @@ export default {
 
       set(value) {
         this.$emit('on-toggle-all', value);
+      }
+    },
+    hasAdvGrouping() {
+      return this.group?.length && this.groupOptions?.length;
+    },
+    advGroup: {
+      get() {
+        return this.group || this.advGroup;
+      },
+
+      set(val) {
+        this.$emit('group-value-change', val);
       }
     },
 
@@ -177,6 +198,26 @@ export default {
             v-show="tableColsOptionsVisibility"
             class="table-options-container"
           >
+            <div
+              v-if="hasAdvGrouping"
+              class="table-options-grouping"
+            >
+              <span class="table-options-col-subtitle">Group by:</span>
+              <LabeledSelect
+                v-model="advGroup"
+                class="table-options-grouping-select"
+                :clearable="true"
+                :options="groupOptions"
+                :disabled="false"
+                :searchable="false"
+                mode="edit"
+                :multiple="false"
+                :taggable="false"
+              />
+            </div>
+            <p class="table-options-col-subtitle mb-20">
+              Show:
+            </p>
             <ul>
               <li
                 v-for="(col, index) in tableColsOptions"
@@ -186,9 +227,9 @@ export default {
                 <Checkbox
                   v-model="col.isColVisible"
                   class="table-options-checkbox"
+                  :label="col.label"
                   @input="tableOptionsCheckbox($event, col.label)"
                 />
-                <span>{{ col.label }}</span>
               </li>
             </ul>
           </div>
@@ -201,37 +242,53 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.table-options-group {
-  position: relative;
-  .table-options-container {
-    position: absolute;
-    top: 38px;
-    right: 0;
-    width: 300px;
-    border: 1px solid var(--primary);
-    background-color: #FFF;
-    padding: 20px;
+  .table-options-group {
+    position: relative;
 
-    ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
+    .actions.role-multi-action {
+      background-color: transparent;
+      border: none;
+      font-size: 18px;
+      &:hover, &:focus {
+        background-color: var(--accent-btn);
+        box-shadow: none;
+      }
+    }
+    .table-options-container {
+      position: absolute;
+      top: 38px;
+      right: 0;
+      width: 320px;
+      border: 1px solid var(--primary);
+      background-color: #FFF;
+      padding: 20px;
 
-      li {
-        flex: 1 1 120px;
-        margin: 0 0 10px 0;
-        padding: 0;
+      .table-options-grouping {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
 
-        .table-options-checkbox {
-          display: inline-block;
+        span {
+          white-space: nowrap;
           margin-right: 10px;
+        }
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+
+        li {
+          flex: 1 1 136px;
+          margin: 0 0 10px 0;
+          padding: 0;
         }
       }
     }
   }
-}
 
   .sortable > SPAN {
     cursor: pointer;
@@ -308,5 +365,15 @@ export default {
     &.faded {
       opacity: .3;
     }
+  }
+</style>
+<style lang="scss">
+  .table-options-checkbox .checkbox-label {
+    color: var(--body-text);
+    text-overflow: ellipsis;
+    width: 100px;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
   }
 </style>
