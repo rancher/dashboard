@@ -1,6 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
+import Banner from '@components/Banner/Banner.vue';
 import { MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import ClusterPermissionsEditor from '@shell/components/form/Members/ClusterPermissionsEditor';
@@ -8,6 +9,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {
   components: {
+    Banner,
     ClusterPermissionsEditor,
     CruResource,
     Loading,

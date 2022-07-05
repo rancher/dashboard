@@ -38,7 +38,10 @@ export default Vue.extend<Data, any, any, any>({
   ],
 
   async fetch() {
-    await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
+    await Promise.all([
+      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE }),
+      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS }),
+    ]);
 
     this.originalModel = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.APP });
     // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
@@ -97,7 +100,14 @@ export default Vue.extend<Data, any, any, any>({
 
     updateSource(changes: EpinioAppSource) {
       this.source = {};
-      this.set(this.source, changes);
+      const { appChart, ...cleanChanges } = changes;
+
+      if (appChart) {
+        // app chart actuall belongs in config, so stick it in there
+        this.value.configuration = this.value.configuration || {};
+        this.set(this.value.configuration, { appchart: appChart });
+      }
+      this.set(this.source, cleanChanges);
     },
 
     updateManifestConfigurations(changes: string[]) {

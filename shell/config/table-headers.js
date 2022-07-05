@@ -270,9 +270,12 @@ export const POD_IMAGES = {
 };
 
 export const POD_RESTARTS = {
-  name:      'pod_restarts',
-  labelKey:  'tableHeaders.podRestarts',
-  value:     'restartCount'
+  name:         'pod_restarts',
+  labelKey:     'tableHeaders.podRestarts',
+  formatter:    'DelayedValue',
+  delayLoading: true,
+  value:        'restartCount',
+  getValue:     row => row.restartCount,
 };
 
 export const ENDPOINTS = {
@@ -415,6 +418,7 @@ export const TYPE = {
   name:     'type',
   labelKey: 'tableHeaders.type',
   value:    'typeDisplay',
+  getValue: row => row.typeDisplay,
   sort:     ['typeDisplay'],
   width:    100,
 };
@@ -637,6 +641,7 @@ export const WORKLOAD_HEALTH_SCALE = {
   name:         'workloadHealthScale',
   labelKey:     'tableHeaders.health',
   formatter:    'WorkloadHealthScale',
+  getValue:     () => undefined,
   width:        150,
   skipSelect:   true,
   delayLoading: true,
@@ -874,19 +879,21 @@ export const KUBE_NODE_OS = {
 };
 
 export const MACHINE_NODE_OS = {
-  name:      'operating-system',
-  labelKey:  'tableHeaders.operatingSystem',
-  value:     'operatingSystem',
-  sort:      ['operatingSystem'],
-  formatter: 'Capitalize'
+  name:        'operating-system',
+  labelKey:    'tableHeaders.operatingSystem',
+  value:       'operatingSystem',
+  sort:        ['operatingSystem'],
+  formatter:   'Capitalize',
+  dashIfEmpty: true,
 };
 
 export const MANAGEMENT_NODE_OS = {
-  name:      'operating-system',
-  labelKey:  'tableHeaders.operatingSystem',
-  value:     'status.internalNodeStatus.nodeInfo.operatingSystem',
-  sort:      ['status.internalNodeStatus.nodeInfo.operatingSystem'],
-  formatter: 'Capitalize'
+  name:        'operating-system',
+  labelKey:    'tableHeaders.operatingSystem',
+  value:       'status.internalNodeStatus.nodeInfo.operatingSystem',
+  sort:        ['status.internalNodeStatus.nodeInfo.operatingSystem'],
+  formatter:   'Capitalize',
+  dashIfEmpty: true,
 };
 
 // FLEET
@@ -912,5 +919,4 @@ export const IP_ADDRESS = {
   name:          'ipaddress',
   value:         'ipaddress',
   labelKey:      'tableHeaders.ipaddress',
-
 };

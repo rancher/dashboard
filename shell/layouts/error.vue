@@ -2,9 +2,10 @@
 import Brand from '@shell/mixins/brand';
 
 export default {
-  name:   'NuxtError',
+  name:       'NuxtError',
   mixins:     [Brand],
-  props:  {
+  middleware: ['unauthenticated'],
+  props:      {
     error: {
       type:    Object,
       default: null

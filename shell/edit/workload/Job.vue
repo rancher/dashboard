@@ -30,31 +30,67 @@ export default {
 
   data() {
     const {
-      failedJobsHistoryLimit, successfulJobsHistoryLimit, suspend = false, schedule,
+      failedJobsHistoryLimit,
+      successfulJobsHistoryLimit,
+      suspend = false,
+      schedule,
     } = this.value;
 
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      // Initialize both value specs if empty
       if (!this.value.jobTemplate) {
         this.$set(this.value, 'jobTemplate', { spec: {} });
       }
-      const { concurrencyPolicy = 'Allow', startingDeadlineSeconds } = this.value;
+      if (!this.value.jobTemplate.spec.template) {
+        this.$set(this.value.jobTemplate.spec, 'template', { spec: {} });
+      }
       const {
-        completions, parallelism, backoffLimit, activeDeadlineSeconds,
+        concurrencyPolicy = 'Allow',
+        startingDeadlineSeconds
+      } = this.value;
+      const {
+        completions,
+        parallelism,
+        backoffLimit,
+        activeDeadlineSeconds,
         template:{ spec: { terminationGracePeriodSeconds } }
-
       } = this.value.jobTemplate.spec;
 
       return {
-        completions, parallelism, backoffLimit, activeDeadlineSeconds, failedJobsHistoryLimit, successfulJobsHistoryLimit, suspend, schedule, concurrencyPolicy, startingDeadlineSeconds, terminationGracePeriodSeconds
+        completions,
+        parallelism,
+        backoffLimit,
+        activeDeadlineSeconds,
+        failedJobsHistoryLimit,
+        successfulJobsHistoryLimit,
+        suspend,
+        schedule,
+        concurrencyPolicy,
+        startingDeadlineSeconds,
+        terminationGracePeriodSeconds
       };
     } else {
+      if (!this.value.template) {
+        this.$set(this.value, 'template', { spec: {} });
+      }
       const {
-        completions, parallelism, backoffLimit, activeDeadlineSeconds,
+        completions,
+        parallelism,
+        backoffLimit,
+        activeDeadlineSeconds,
         template:{ spec: { terminationGracePeriodSeconds } }
       } = this.value;
 
       return {
-        completions, parallelism, backoffLimit, activeDeadlineSeconds, failedJobsHistoryLimit, successfulJobsHistoryLimit, suspend, schedule, terminationGracePeriodSeconds
+        completions,
+        parallelism,
+        backoffLimit,
+        activeDeadlineSeconds,
+        failedJobsHistoryLimit,
+        successfulJobsHistoryLimit,
+        suspend,
+        schedule,
+        terminationGracePeriodSeconds
       };
     }
   },
@@ -112,79 +148,116 @@ export default {
 </script>
 
 <template>
-  <form @input="update">
+  <form>
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-job-completions"
+        class="col span-6"
+      >
         <UnitInput
           v-model="completions"
           :mode="mode"
           :suffix="t('suffix.times', {count: completions})"
           label-key="workload.job.completions.label"
           tooltip-key="workload.job.completions.tip"
+          @input="update"
         />
       </div>
-      <div class="col span-6">
+      <div
+        data-testid="input-job-parallelism"
+        class="col span-6"
+      >
         <UnitInput
           v-model="parallelism"
           :mode="mode"
           :suffix="t('suffix.times', {count: parallelism})"
           label-key="workload.job.parallelism.label"
           tooltip-key="workload.job.parallelism.tip"
+          @input="update"
         />
       </div>
     </div>
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-job-backoffLimit"
+        class="col span-6"
+      >
         <UnitInput
           v-model="backoffLimit"
           :mode="mode"
           :suffix="t('suffix.times', {count: backoffLimit})"
           label-key="workload.job.backoffLimit.label"
           tooltip-key="workload.job.backoffLimit.tip"
+          @input="update"
         />
       </div>
-      <div class="col span-6">
+      <div
+        data-testid="input-job-activeDeadlineSeconds"
+        class="col span-6"
+      >
         <UnitInput
           v-model="activeDeadlineSeconds"
           :mode="mode"
           :suffix="t('suffix.seconds', {count: activeDeadlineSeconds})"
           label-key="workload.job.activeDeadlineSeconds.label"
           tooltip-key="workload.job.activeDeadlineSeconds.tip"
+          @input="update"
         />
       </div>
     </div>
 
     <template v-if="isCronJob">
       <div class="row  mb-20">
-        <div class="col span-6">
+        <div
+          data-testid="input-job-successful"
+          class="col span-6"
+        >
           <LabeledInput
             v-model.number="successfulJobsHistoryLimit"
             :mode="mode"
             label-key="workload.job.successfulJobsHistoryLimit.label"
             tooltip-key="workload.job.successfulJobsHistoryLimit.tip"
+            @input="update"
           />
         </div>
-        <div class="col span-6">
+        <div
+          data-testid="input-job-failed"
+          class="col span-6"
+        >
           <LabeledInput
             v-model.number="failedJobsHistoryLimit"
             :mode="mode"
             label-key="workload.job.failedJobsHistoryLimit.label"
             tooltip-key="workload.job.failedJobsHistoryLimit.tip"
+            @input="update"
           />
         </div>
       </div>
       <div class="row mb-20">
-        <div class="col span-6">
+        <div
+          data-testid="input-job-startingDeadlineSeconds"
+          class="col span-6"
+        >
           <UnitInput
             v-model="startingDeadlineSeconds"
             :mode="mode"
             :suffix="t('suffix.seconds', {count: startingDeadlineSeconds})"
             label-key="workload.job.startingDeadlineSeconds.label"
             tooltip-key="workload.job.startingDeadlineSeconds.tip"
+            @input="update"
           />
         </div>
-        <div class="col span-6">
-          <UnitInput v-model="terminationGracePeriodSeconds" :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'" :label="t('workload.upgrading.activeDeadlineSeconds.label')" :mode="mode">
+        <div
+          data-testid="input-job-termination"
+          class="col span-6"
+        >
+          <UnitInput
+            v-model="terminationGracePeriodSeconds"
+            :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'"
+            :label="t('workload.upgrading.activeDeadlineSeconds.label')"
+            :mode="mode"
+            @input="update"
+          >
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
@@ -195,7 +268,11 @@ export default {
         </div>
       </div>
       <div class="row">
-        <div class="col span-6">
+        <div
+          data-testid="input-job-concurrencyPolicy"
+
+          class="col span-6"
+        >
           <RadioGroup
             v-model="concurrencyPolicy"
             :mode="mode"
@@ -206,7 +283,10 @@ export default {
             @input="update"
           />
         </div>
-        <div class="col span-6">
+        <div
+          data-testid="input-job-suspend"
+          class="col span-6"
+        >
           <RadioGroup
             v-model="suspend"
             :mode="mode"
@@ -220,8 +300,16 @@ export default {
       </div>
     </template>
     <div v-else class="row">
-      <div class="col span-6">
-        <UnitInput v-model="terminationGracePeriodSeconds" :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'" :label="t('workload.upgrading.activeDeadlineSeconds.label')" :mode="mode">
+      <div
+        data-testid="input-job-termination"
+        class="col span-6"
+      >
+        <UnitInput
+          v-model="terminationGracePeriodSeconds"
+          :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'"
+          :label="t('workload.upgrading.activeDeadlineSeconds.label')"
+          :mode="mode"
+        >
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}

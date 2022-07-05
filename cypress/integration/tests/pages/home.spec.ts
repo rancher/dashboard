@@ -17,7 +17,7 @@ describe('Home Page', () => {
     burgerMenuPo.checkVisible();
   });
 
-  it('Displays changelog section', () => {
+  it.skip('Displays changelog section', () => {
     const homePage = new HomePagePo();
     const pageActionsPo = new PageActions();
 

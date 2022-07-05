@@ -132,7 +132,7 @@ export default {
     },
 
     onImageChange() {
-      const imageResource = this.$store.getters['harvester/all'](HCI.IMAGE).find( I => this.value.image === I.id);
+      const imageResource = this.$store.getters['harvester/all'](HCI.IMAGE)?.find( I => this.value.image === I.id);
 
       if (this.idx === 0) {
         if (/iso$/i.test(imageResource?.imageSuffix)) {
@@ -155,16 +155,32 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <div class="row mb-20">
-      <div class="col span-6">
+      <div
+        data-testid="input-hevi-name"
+        class="col span-6"
+      >
         <InputOrDisplay :name="t('harvester.fields.name')" :value="value.name" :mode="mode">
-          <LabeledInput v-model="value.name" :label="t('harvester.fields.name')" required :mode="mode" />
+          <LabeledInput
+            v-model="value.name"
+            :label="t('harvester.fields.name')"
+            required
+            :mode="mode"
+            @input="update"
+          />
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.type')" :value="value.type" :mode="mode">
+      <div
+        data-testid="input-hevi-type"
+        class="col span-6"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.type')"
+          :value="value.type"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.type"
             :label="t('harvester.fields.type')"
@@ -177,8 +193,15 @@ export default {
     </div>
 
     <div class="row mb-20">
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.image')" :value="imageName" :mode="mode">
+      <div
+        data-testid="input-hevi-image"
+        class="col span-6"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.image')"
+          :value="imageName"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.image"
             :disabled="idx === 0 && !isCreate && !value.newCreateId && isVirtualType"
@@ -191,8 +214,15 @@ export default {
         </InputOrDisplay>
       </div>
 
-      <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.fields.size')" :value="value.size" :mode="mode">
+      <div
+        data-testid="input-hevi-size"
+        class="col span-6"
+      >
+        <InputOrDisplay
+          :name="t('harvester.fields.size')"
+          :value="value.size"
+          :mode="mode"
+        >
           <UnitInput
             v-model="value.size"
             :output-modifier="true"
@@ -203,14 +233,22 @@ export default {
             :required="validateRequired"
             suffix="GiB"
             :disabled="isDisabled"
+            @input="update"
           />
         </InputOrDisplay>
       </div>
     </div>
 
     <div class="row mb-20">
-      <div class="col span-3">
-        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
+      <div
+        data-testid="input-hevi-bus"
+        class="col span-3"
+      >
+        <InputOrDisplay
+          :name="t('harvester.virtualMachine.volume.bus')"
+          :value="value.bus"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.bus"
             :label="t('harvester.virtualMachine.volume.bus')"

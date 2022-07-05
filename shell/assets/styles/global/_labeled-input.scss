@@ -101,7 +101,7 @@
       font-weight: normal;
       line-height: 1;
       text-align: center;
-      border-left: solid thin #{$secondary};
+      border-left: solid thin var(--input-border);
     }
   }
 

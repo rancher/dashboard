@@ -73,7 +73,7 @@ export default {
 </script>
 
 <template>
-  <div class="row" @input="change">
+  <div class="row">
     <div class="col span-6">
       <InputOrDisplay name="CPU" :value="cupDisplay" :mode="mode" class="mb-20">
         <UnitInput
@@ -86,6 +86,7 @@ export default {
           :disabled="disabled"
           :mode="mode"
           class="mb-20"
+          @input="change"
         />
       </InputOrDisplay>
     </div>
@@ -104,6 +105,7 @@ export default {
           :disabled="disabled"
           required
           class="mb-20"
+          @input="change"
         />
       </InputOrDisplay>
     </div>

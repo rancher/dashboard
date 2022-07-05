@@ -19,7 +19,7 @@ import { addParams } from '@shell/utils/url';
 import { base64Decode } from '@shell/utils/crypto';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
-
+import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
@@ -43,6 +43,7 @@ export default {
     CopyCode,
     CustomCommand,
     AsyncButton,
+    MachineSummaryGraph,
   },
 
   props: {
@@ -188,6 +189,19 @@ export default {
       return '';
     },
 
+    // Used to show summary graph for each node pool group in the machine pool table
+    poolSummaryInfo() {
+      const info = {};
+
+      this.value?.pools.forEach((p) => {
+        const group = `[${ p.type }: ${ p.id }]`;
+
+        info[group] = p;
+      });
+
+      return info;
+    },
+
     fakeMachines() {
       // When a deployment has no machines it's not shown.... so add a fake machine to it
       // This is a catch all scenario seen in older node pool world but not deployments
@@ -249,7 +263,8 @@ export default {
           sort:          'status.nodeRef.name',
           value:         'status.nodeRef.name',
           formatter:     'LinkDetail',
-          formatterOpts: { reference: 'kubeNodeDetailLocation' }
+          formatterOpts: { reference: 'kubeNodeDetailLocation' },
+          dashIfEmpty:   true,
         },
         IP_ADDRESS,
         MACHINE_NODE_OS,
@@ -267,7 +282,8 @@ export default {
           sort:          'kubeNodeName',
           value:         'kubeNodeName',
           formatter:     'LinkDetail',
-          formatterOpts: { reference: 'kubeNodeDetailLocation' }
+          formatterOpts: { reference: 'kubeNodeDetailLocation' },
+          dashIfEmpty:   true,
         },
         IP_ADDRESS,
         MANAGEMENT_NODE_OS,
@@ -564,7 +580,7 @@ export default {
           <template #group-by="{group}">
             <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
               <div v-trim-whitespace class="group-tab">
-                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.ref.scale}, true)">
+                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix}, true)">
                 </div>
                 <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
                 </div>
@@ -572,7 +588,8 @@ export default {
                   {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
                 </div>
               </div>
-              <div v-if="group.ref" class="right">
+              <div v-if="group.ref" class="right group-header-buttons">
+                <MachineSummaryGraph :row="poolSummaryInfo[group.ref]" :horizontal="true" class="mr-20" />
                 <template v-if="group.ref.hasLink('update')">
                   <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.quantity < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
                     <i class="icon icon-sm icon-minus" />
@@ -682,6 +699,10 @@ export default {
           margin-top: -20px;
       }
     }
+  }
+  .group-header-buttons {
+    align-items: center;
+    display: flex;
   }
 }
 

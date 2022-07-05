@@ -205,8 +205,8 @@ export default {
       name-key="spec.displayName"
       :normalize-name="false"
     />
-    <div class="row">
-      <div class="col span-12">
+    <div class="row mb-20">
+      <div class="col span-3">
         <LabeledSelect
           v-if="pspOptions"
           v-model="value.spec.podSecurityPolicyTemplateId"
@@ -270,18 +270,3 @@ export default {
     </Tabbed>
   </CruResource>
 </template>
-
-<style lang="scss" scoped>
-.project {
-  ::v-deep {
-    .tabs {
-      min-width: 250px;
-    }
-  }
-
-  .psp {
-    position: relative;
-    top: -20px;
-  }
-}
-</style>

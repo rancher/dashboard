@@ -15,16 +15,24 @@ export default class ProvCluster extends SteveModel {
   get details() {
     const out = [
       {
-        label:   'Provisioner',
+        label:   this.t('cluster.detail.provisioner'),
         content: this.provisionerDisplay || this.t('generic.none'),
       },
       {
-        label:   'Machine Provider',
+        label:   this.t('cluster.detail.machineProvider'),
         content: this.machineProvider ? this.machineProviderDisplay : null,
       },
       {
-        label:   'Kubernetes Version',
+        label:   this.t('cluster.detail.kubernetesVersion'),
         content: this.kubernetesVersion,
+      },
+      {
+        label:   this.t('cluster.detail.machinePools'),
+        content: this.pools.length,
+      },
+      {
+        label:   this.t('cluster.detail.machines'),
+        content: this.desired,
       },
     ].filter(x => !!x.content);
 
@@ -199,11 +207,8 @@ export default class ProvCluster extends SteveModel {
     return false;
   }
 
-  promptRemove(resources = this) {
-    this.$dispatch('promptModal', {
-      resources,
-      component: 'ConfirmNameToRemoveDialog'
-    });
+  get confirmRemove() {
+    return true;
   }
 
   get isImportedK3s() {

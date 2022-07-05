@@ -13,6 +13,7 @@ import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
 import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
+import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 
 const getPackageFromRoute = (route) => {
   if (!route?.meta) {
@@ -105,6 +106,11 @@ export default async function({
         load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
       }
     });
+
+    // Set the favicon - use custom one from store if set
+    if (!haveSetFavIcon()) {
+      setFavIcon(store);
+    }
 
     const res = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
     const plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);

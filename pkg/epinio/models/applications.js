@@ -1,5 +1,4 @@
 import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
-import { createEpinioRoute } from '../utils/custom-routing';
 import { formatSi } from '@shell/utils/units';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import EpinioMetaResource from './epinio-namespaced-resource';
@@ -39,18 +38,6 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     }
 
     return res;
-  }
-
-  get listLocation() {
-    return this.$rootGetters['type-map/optionsFor'](this.type).customRoute || createEpinioRoute(`c-cluster-applications`, { cluster: this.$rootGetters['clusterId'] });
-  }
-
-  get parentLocationOverride() {
-    return this.listLocation;
-  }
-
-  get doneRoute() {
-    return this.listLocation.name;
   }
 
   get state() {
@@ -152,14 +139,6 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return res;
   }
 
-  get nsLocation() {
-    return createEpinioRoute(`c-cluster-resource-id`, {
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  EPINIO_TYPES.NAMESPACE,
-      id:       this.meta.namespace
-    });
-  }
-
   get links() {
     return {
       update:        this.getUrl(),
@@ -225,10 +204,6 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return Object.keys(this.configuration?.environment || []).length;
   }
 
-  get configCount() {
-    return this.configuration?.configurations.length;
-  }
-
   get routeCount() {
     return this.configuration?.routes.length;
   }
@@ -257,30 +232,43 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     if (!this.origin) {
       return undefined;
     }
+    const appChart = {
+      label: 'App Chart',
+      value: this.configuration.appchart
+    };
+
     switch (this.origin.Kind) { // APPLICATION_MANIFEST_SOURCE_TYPE
     case APPLICATION_MANIFEST_SOURCE_TYPE.PATH:
-      return { label: 'File system', icon: 'icon-file' };
+      return {
+        label:   'File system',
+        icon:    'icon-file',
+        details: [
+          appChart
+        ]
+      };
     case APPLICATION_MANIFEST_SOURCE_TYPE.GIT:
       return {
         label:   'Git',
         icon:    'icon-file',
-        details: [{
-          label: 'Url',
-          value: this.origin.git.repository
-        }, {
-          label: 'Revision',
-          icon:  'icon-github',
-          value: this.origin.git.revision
-        }]
+        details: [
+          appChart, {
+            label: 'Url',
+            value: this.origin.git.repository
+          }, {
+            label: 'Revision',
+            icon:  'icon-github',
+            value: this.origin.git.revision
+          }]
       };
     case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:
       return {
         label:   'Container',
         icon:    'icon-docker',
-        details: [{
-          label: 'Image',
-          value: this.origin.Container || this.origin.container
-        }]
+        details: [
+          appChart, {
+            label: 'Image',
+            value: this.origin.Container || this.origin.container
+          }]
       };
     default:
       return undefined;
@@ -370,6 +358,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       data: {
         name:          this.meta.name,
         configuration: {
+          appchart:       this.configuration.appchart,
           instances:      this.configuration.instances,
           configurations: this.configuration.configurations,
           environment:    this.configuration.environment,

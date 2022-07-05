@@ -77,13 +77,24 @@ export default {
       isFollowing: true,
       timestamps:  this.$store.getters['prefs/get'](LOGS_TIME),
       wrap:        this.$store.getters['prefs/get'](LOGS_WRAP),
-      range:       this.$store.getters['prefs/get'](LOGS_RANGE),
       previous:    false,
       search:      '',
       backlog:     [],
       lines:       [],
       now:         new Date(),
     };
+  },
+
+  fetch() {
+    // See https://github.com/rancher/dashboard/issues/6122. At some point prior to 2.6.5 LOGS_RANGE has become polluted with something
+    // invalid. To avoid everyone having to manually remove invalid user preferences fix it automatically here
+    const originalRange = this.$store.getters['prefs/get'](LOGS_RANGE);
+
+    this.range = originalRange.value || originalRange;
+
+    if (originalRange !== this.range) { // Rancher was broken, so persist the fix
+      this.$store.dispatch('prefs/set', { key: LOGS_RANGE, value: this.range });
+    }
   },
 
   computed: {
@@ -138,6 +149,7 @@ export default {
         label: t('wm.containerLogs.range.all'),
         value: 'all'
       });
+      updateFound('all');
 
       if ( !found && current ) {
         out.push({

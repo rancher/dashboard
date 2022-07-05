@@ -56,17 +56,7 @@ export default {
       if ( this.page > 1 && from > last ) {
         this.setPage(this.totalPages);
       }
-    },
-
-    sortFields(old, neu) {
-      if ( old.join(',') === neu.join(',') ) {
-        // Nothing really changed
-
-      }
-
-      // Go back to the first page when sort changes
-      this.setPage(1);
-    },
+    }
   },
 
   methods: {

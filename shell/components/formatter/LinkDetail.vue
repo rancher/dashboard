@@ -11,6 +11,10 @@ export default {
       type:     Object,
       required: true
     },
+    col: {
+      type:     Object,
+      default:  () => {}
+    },
     reference: {
       type:    String,
       default: null,
@@ -31,7 +35,7 @@ export default {
       }
 
       return this.row?.detailLocation;
-    },
+    }
   }
 };
 </script>
@@ -41,6 +45,11 @@ export default {
     <n-link v-if="to" :to="to">
       {{ value }}
     </n-link>
-    <span v-else>{{ value }}</span>
+    <span v-else>
+      {{ value }}
+      <template v-if="!value && col.dashIfEmpty">
+        <span class="text-muted">&mdash;</span>
+      </template>
+    </span>
   </span>
 </template>

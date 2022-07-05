@@ -19,6 +19,11 @@ const PERF_DATA = {
   },
 };
 
+// Log a warning when performance data simulation is enabled
+if (!!process.env.perfTest && process.env.dev ) {
+  console.warn('Performance Testing data enabled', PERF_DATA); // eslint-disable-line no-console
+}
+
 const DEFAULTS = {
   count:     1, // One copy of each resource
   statusRow: 0, // Don't add any status rows (0 = None, 1 = All, N = 1 out of N)
