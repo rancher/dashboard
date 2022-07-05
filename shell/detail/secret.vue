@@ -14,7 +14,7 @@ const types = [
   TYPES.BASIC,
 ];
 const registryAddresses = [
-  'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
+  'DockerHub', 'Quay.io', 'Harbor', 'Artifactory', 'Custom'
 ];
 
 export default {

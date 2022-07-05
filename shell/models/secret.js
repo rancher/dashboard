@@ -342,6 +342,16 @@ export default class Secret extends SteveModel {
     };
   }
 
+  get setLabels() {
+    return (value) => {
+      if ( !value) {
+        set(this, 'metadata.labels', {});
+      } else {
+        set(this, 'metadata.labels', value);
+      }
+    };
+  }
+
   get doneRoute() {
     if ( this.$rootGetters['currentProduct'].name === MANAGER ) {
       return 'c-cluster-manager-secret';
