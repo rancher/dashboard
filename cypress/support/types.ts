@@ -1,1 +1,1 @@
-export type Matcher = '$' | '#' | '^' | '~' | '*' | '';
+export type Matcher = '$' | '^' | '~' | '*' | '';

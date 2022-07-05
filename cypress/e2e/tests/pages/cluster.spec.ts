@@ -1,85 +1,120 @@
 const clusterManagerPath = '/c/local/manager/provisioning.cattle.io.cluster';
+const clusterRequestBase = '/v1/provisioning.cattle.io.clusters/fleet-default';
 const timestamp = +new Date();
-const clusterName = `e2e-test-create-${ timestamp }`;
+const clusterNamePartial = `e2e-test-create`;
+const clusterName = `${ clusterNamePartial }-${ timestamp }`;
+const clusterNameImport = `${ clusterNamePartial }-${ timestamp }-import`;
 
 describe('Cluster', () => {
   beforeEach(() => {
     cy.login();
   });
 
-  it.only('can create new local RKE2 custom cluster', () => {
+  it('can create new local RKE2 custom cluster', () => {
     cy.visit(clusterManagerPath);
     cy.getId('cluster-manager-list-create').click();
     // toggle RKE2?
     cy.getId('cluster-manager-create-grid-2-0').click();
     cy.getId('name-ns-description-name').type(clusterName);
     cy.getId('rke2-custom-create-save').click();
+
     cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterName }#registration`);
   });
 
-  it('can import new cluster', () => {
+  it('can import new custom cluster', () => {
     cy.visit(clusterManagerPath);
-    cy.getId('cluster-manager-import').click();
-    // click Generic
-    // set name
-    // click create
-    // should display new cluster
+    cy.getId('cluster-manager-list-import').click();
+    cy.getId('cluster-manager-create-grid-1-0').click();
+    cy.getId('name-ns-description-name').type(clusterNameImport);
+    cy.getId('cluster-manager-import-save').click();
+
+    cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterNameImport }#registration`);
   });
 
-  it.only('can see cluster details', () => {
+  it('can see cluster details', () => {
     cy.visit(clusterManagerPath);
+    // Click action menu button for the cluster row within the table matching given name
     cy.contains(clusterName).parent().parent().parent()
-      .as('row')
       .within(() => cy.getId('-action-button', '$').click());
     cy.getId('action-menu-0-item').click();
+
     cy.contains(`Custom - ${ clusterName }`).should('exist');
   });
 
-  it('can explore the cluster', () => {
+  it('can explore the local cluster', () => {
+    const clusterName = 'local';
+
     cy.visit(clusterManagerPath);
-    cy.getId('cluster-manager-list-explore').click();
-    // should display Cluster Dashboard text
-  });
-
-  // it('can see cluster config', () => {
-  //   cy.visit(clusterManagerPath);
-  //   // find cluster row
-  //   // click action button cluster
-  //   // click Edit Config
-  //   // wait loading
-  //   // display Cluster Configuration
-  // });
-
-  it('can edit cluster config', () => {
-    cy.visit(clusterManagerPath);
-    // find cluster row
-    // click action button cluster
-    // click Edit Config
-    // wait loading
-    // display Cluster Configuration
-  });
-
-  it('can see cluster YAML', () => {
-    cy.visit(clusterManagerPath);
-    // find cluster row
-    // click action button cluster
-    // click Edit Config
-    // wait loading
-    // display Cluster YAML
-  });
-
-  // it('can edit cluster YAML', () => {
-  //   cy.visit(clusterManagerPath);
-  // });
-
-  it.only('can delete cluster', () => {
-    cy.visit(clusterManagerPath);
+    // Click explore button for the cluster row within the table matching given name
     cy.contains(clusterName).parent().parent().parent()
-      .as('row')
+      .within(() => cy.getId('cluster-manager-list-explore').click());
+
+    cy.url().should('include', `/c/${ clusterName }/explorer`);
+  });
+
+  it('can edit cluster config and see changes afterwards', () => {
+    cy.intercept('PUT', `${ clusterRequestBase }/${ clusterName }`).as('saveRequest');
+
+    cy.visit(clusterManagerPath);
+    // Click action menu button for the cluster row within the table matching given name
+    cy.contains(clusterName).parent().parent().parent()
+      .within(() => cy.getId('-action-button', '$').click());
+    cy.getId('action-menu-0-item').click();
+    cy.getId('name-ns-description-description').type(clusterName);
+    cy.getId('rke2-custom-create-save').click();
+
+    cy.wait('@saveRequest').then(() => {
+      cy.visit(`${ clusterManagerPath }/fleet-default/${ clusterName }?mode=edit#basic`);
+      cy.getId('name-ns-description-description').find('input').should('have.value', clusterName);
+    });
+  });
+
+  it('can view cluster YAML editor', () => {
+    cy.visit(clusterManagerPath);
+    // Click action menu button for the cluster row within the table matching given name
+    cy.contains(clusterName).parent().parent().parent()
+      .within(() => cy.getId('-action-button', '$').click());
+    cy.getId('action-menu-1-item').click();
+    cy.getId('yaml-editor-code-mirror').contains(clusterName);
+  });
+
+  it('can delete cluster', () => {
+    cy.intercept('DELETE', `${ clusterRequestBase }/${ clusterName }`).as('deleteRequest');
+
+    cy.visit(clusterManagerPath);
+    // Click action menu button for the cluster row within the table matching given name
+    cy.contains(clusterName).as('rowCell').parent().parent()
+      .parent()
       .within(() => cy.getId('-action-button', '$').click());
     cy.getId('action-menu-4-item').click();
     cy.getId('prompt-remove-input').type(clusterName);
     cy.getId('prompt-remove-confirm-button').click();
-    cy.contains(clusterName).should('not.exist');
+
+    cy.wait('@deleteRequest').then(() => {
+      cy.get('@rowCell').should('not.exist');
+    });
+  });
+
+  it('can delete multiple clusters', () => {
+    cy.intercept('DELETE', `${ clusterRequestBase }/${ clusterNameImport }`).as('deleteRequest');
+
+    cy.visit(clusterManagerPath);
+    // Get row from a given name
+    cy.contains(clusterNameImport).as('rowCell')
+      // Click checkbox for the cluster row within the table matching given name
+      .parent().parent()
+      .parent()
+      .within(() => cy.getId('-checkbox', '$').click({ multiple: true }));
+    // Single buttons are replaced with action menu on mobile
+    cy.getId('sortable-table-promptRemove').click({ force: true });
+    cy.get('@rowCell').then((row) => {
+      // In the markdown we have ALWAYS whitespace
+      cy.getId('prompt-remove-input').type(row.text().trim());
+    });
+    cy.getId('prompt-remove-confirm-button').click();
+
+    cy.wait('@deleteRequest').then(() => {
+      cy.get('@rowCell').should('not.exist');
+    });
   });
 });
