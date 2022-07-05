@@ -111,6 +111,16 @@ export default {
       type:    String,
       default: null
     },
+    group: {
+      // group value
+      type:    String,
+      default: () => ''
+    },
+    groupOptions: {
+      // available options for grouping
+      type:    Array,
+      default: () => []
+    },
     groupRef: {
       // Object to provide as the reference for rendering the grouping row
       type:    String,
@@ -425,6 +435,15 @@ export default {
       return this.columnOptions.filter(c => c.isFilter);
     },
 
+    advGroupOptions() {
+      return this.groupOptions.map((item) => {
+        return {
+          label: this.t(item.tooltipKey),
+          value: item.value
+        };
+      });
+    },
+
     fullColspan() {
       let span = 0;
 
@@ -510,6 +529,9 @@ export default {
       console.log('THIS HEADERS...', this.headers);
       console.log('THIS COL OPTIONS...', this.columnOptions);
       console.log('THIS COLUMN OUTPUT...', out);
+      console.log('this.groupBy', this.groupBy);
+      console.log('this.group', this.group);
+      console.log('this.groupOptions', this.groupOptions);
 
       return out;
     },
@@ -930,7 +952,7 @@ export default {
                 sort:          `metadata.labels.${ label }`,
                 isFilter:      true,
                 isTableOption: true,
-                isColVisible:    false
+                isColVisible:  false
               };
 
               if (!rowLabels.filter(row => row.label === label).length) {
@@ -962,12 +984,26 @@ export default {
     },
     addAdvancedFilter() {
       console.log('-------- ADDING ADVANCED FILTER -------');
+      const colors = ['success', 'info', 'warning', 'error'];
+      let nextColor = colors[0];
+
+      if (this.advancedFilteringValues.length) {
+        const currLastColor = this.advancedFilteringValues[this.advancedFilteringValues.length - 1].color;
+        const currLastColorIndex = colors.findIndex(c => c === currLastColor);
+
+        if (currLastColorIndex === colors.length - 1) {
+          nextColor = colors[0];
+        } else {
+          nextColor = colors[currLastColorIndex + 1];
+        }
+      }
 
       if (this.advFilterSelectedProp && this.advFilterSearchTerm) {
         this.advancedFilteringValues.push({
           prop:  this.advFilterSelectedProp,
           value: this.advFilterSearchTerm,
-          label: this.advFilterSelectedLabel
+          label: this.advFilterSelectedLabel,
+          color: nextColor
         });
 
         this.eventualSearchQuery = this.advancedFilteringValues;
@@ -1005,6 +1041,12 @@ export default {
       }
 
       console.log('-------- COL VISIBILITY CHANGE (Sortable) -------', this.columnOptions[index]);
+    },
+
+    // group value
+    handleGroupValueChange(val) {
+      console.log('EMMITED VAL', val);
+      this.$emit('group-value-change', val);
     }
   }
 };
@@ -1069,7 +1111,7 @@ export default {
             </template>
           </slot>
         </div>
-        <div v-if="isTooManyItemsToAutoUpdate || $slots['header-middle'] && $slots['header-middle'].length" class="middle">
+        <div v-if="isTooManyItemsToAutoUpdate || $slots['header-middle'] && $slots['header-middle'].length && !hasAdvancedFiltering" class="middle">
           <slot name="header-middle" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
@@ -1078,6 +1120,19 @@ export default {
             :current-phase="currentPhase"
             @click="debouncedRefreshTableData"
           />
+        </div>
+        <div v-else-if="hasAdvancedFiltering" class="middle">
+          <ul class="advanced-filters-applied">
+            <li
+              v-for="(filter, i) in advancedFilteringValues"
+              :key="i"
+              :class="filter.color"
+            >
+              <span class="label">{{ `"${filter.value}" in ${filter.label}` }}</span>
+              <span class="cross" @click="clearAdvancedFilter(i)">&#10005;</span>
+              <div class="bg"></div>
+            </li>
+          </ul>
         </div>
 
         <div v-if="search || hasAdvancedFiltering || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
@@ -1126,17 +1181,13 @@ export default {
         </div>
       </div>
     </div>
-    <ul class="advanced-filters-applied">
-      <li v-for="(filter, i) in advancedFilteringValues" :key="i">
-        <span>{{ `"${filter.value}" in ${filter.label}` }}</span>
-        <span @click="clearAdvancedFilter(i)">X</span>
-      </li>
-    </ul>
     <table class="sortable-table" :class="classObject" width="100%">
       <THead
         v-if="showHeaders"
         :label-for="labelFor"
         :columns="columns"
+        :group="group"
+        :group-options="advGroupOptions"
         :has-advanced-filtering="hasAdvancedFiltering"
         :table-actions="tableActions"
         :table-cols-options="columnOptions"
@@ -1153,6 +1204,7 @@ export default {
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
         @col-visibility-change="changeColVisibility"
+        @group-value-change="handleGroupValueChange"
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
@@ -1399,24 +1451,68 @@ export default {
 }
 
 .advanced-filters-applied {
-  display: flex;
-  margin: 10px 0;
+  display: inline-flex;
+  margin: 0;
   padding: 0;
   list-style: none;
+  max-width: 100%;
+  flex-wrap: wrap;
 
   li {
-    margin: 0 20px 20px 0;
-    padding: 5px 10px;
-    border: 1px solid #000;
-    border-radius: 5px;
+    margin: 0 20px 10px 0;
+    padding: 2px 5px;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    position: relative;
 
-    span {
-      &:first-child {
-        margin-right: 10px;
+    .bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+     opacity: 0.2;
+      z-index: -1;
+    }
+
+    &.success {
+      border-color: var(--success);
+
+      .bg {
+        background-color: var(--success);
       }
-      &:last-child {
-        cursor: pointer;
+    }
+    &.warning {
+      border-color: var(--warning);
+
+      .bg {
+        background-color: var(--warning);
       }
+    }
+    &.info {
+      border-color: var(--info);
+
+      .bg {
+        background-color: var(--info);
+      }
+    }
+    &.error {
+      border-color: var(--error);
+
+      .bg {
+        background-color: var(--error);
+      }
+    }
+
+    .label {
+      margin-right: 10px;
+      font-size: 11px;
+    }
+   .cross {
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
     }
   }
 }
@@ -1684,7 +1780,7 @@ $spacing: 10px;
   z-index: z-index('fixedTableHeader');
   background: transparent;
   display: grid;
-  grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
+  grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
   grid-column-gap: 10px;
 
   .bulk {
