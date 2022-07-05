@@ -356,7 +356,12 @@ export default {
 
     handleActionButtonClick(event) {
       this.$emit('clickedActionButton', event);
+    },
+
+    handleGroupValueChange(val) {
+      this._group = val;
     }
+
   }
 };
 </script>
@@ -369,6 +374,8 @@ export default {
     :rows="filteredRows"
     :loading="loading"
     :group-by="computedGroupBy"
+    :group="group"
+    :group-options="groupOptions"
     :search="search"
     :paging="true"
     :paging-params="pagingParams"
@@ -381,6 +388,7 @@ export default {
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
     @clickedActionButton="handleActionButtonClick"
+    @group-value-change="handleGroupValueChange"
     v-on="$listeners"
   >
     <template v-if="showGrouping" #header-middle>
