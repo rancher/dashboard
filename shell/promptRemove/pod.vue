@@ -68,27 +68,6 @@ export default {
   },
 
   methods: {
-    async forceRemovePod(resource) {
-      const opt = {
-        url:    resource.linkFor('self'),
-        method: 'delete',
-        data:   {
-          gracePeriod: 0,
-          force:       true
-        }
-      };
-
-      const res = await resource.$dispatch('request', { opt, type: resource.type } );
-
-      if ( res?._status === 204 ) {
-        // If there's no body, assume the resource was immediately deleted
-        // and drop it from the store as if a remove event happened.
-        return this.$dispatch('ws.resource.remove', { data: resource });
-      }
-
-      return res;
-    },
-
     async remove(confirm) {
       const parentComponent = this.$parent.$parent.$parent;
 
@@ -112,11 +91,14 @@ export default {
     },
 
     removePod(pod) {
-      if (this.forceDelete) {
-        return this.forceRemovePod(pod);
-      } else {
-        return pod.remove();
-      }
+      const opt = this.forceDelete ? {
+        data: {
+          gracePeriod: 0,
+          force:       true
+        }
+      } : undefined;
+
+      return pod.remove(opt);
     },
   }
 };
