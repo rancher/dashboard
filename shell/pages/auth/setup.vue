@@ -459,7 +459,7 @@ export default {
   }
 
   .landscape {
-    background-image: url('~shell/assets/images/pl/login-landscape.svg');
+    background-image: url('~@shell/assets/images/pl/login-landscape.svg');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;

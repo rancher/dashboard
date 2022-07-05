@@ -189,6 +189,8 @@ export default {
 
   methods: {
     displayName(provider) {
+      console.log('pppp', provider);
+
       return this.t(`model.authConfig.provider.${ provider }`);
     },
 

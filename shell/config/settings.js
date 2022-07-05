@@ -1,10 +1,7 @@
-// Settings
-import { MANAGEMENT } from './types';
-
 // Adapted from: https://github.com/rancher/ui/blob/08c379a9529f740666a704b52522a468986c3520/lib/shared/addon/utils/constants.js#L564
 
 // Setting IDs
-export const SETTING = {
+const SETTING = {
   VERSION_RANCHER:                  'server-version',
   VERSION_CLI:                      'cli-version',
   VERSION_MACHINE:                  'machine-version',
@@ -63,7 +60,7 @@ export const SETTING = {
 };
 
 // These are the settings that are allowed to be edited via the UI
-export const ALLOWED_SETTINGS = {
+const ALLOWED_SETTINGS = {
   [SETTING.CA_CERTS]:                       { kind: 'multiline', readOnly: true },
   // [SETTING.CLUSTER_DEFAULTS]:            { kind: 'json' },
   [SETTING.ENGINE_URL]:                     {},
@@ -98,7 +95,7 @@ export const ALLOWED_SETTINGS = {
 };
 
 // harvester Settings ID
-export const HCI_SETTING = {
+const HCI_SETTING = {
   BACKUP_TARGET:                    'backup-target',
   LOG_LEVEL:                        'log-level',
   SERVER_VERSION:                   'server-version',
@@ -124,7 +121,7 @@ export const HCI_SETTING = {
   RELEASE_DOWNLOAD_URL:             'release-download-url'
 };
 
-export const HCI_ALLOWED_SETTINGS = {
+const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.BACKUP_TARGET]: { kind: 'json', from: 'import' },
   [HCI_SETTING.LOG_LEVEL]:     {
     kind:    'enum',
@@ -159,7 +156,7 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.RELEASE_DOWNLOAD_URL]: { kind: 'url' },
 };
 
-export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
+const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
   [HCI_SETTING.UI_SOURCE]: {
     kind:    'enum',
     options: ['auto', 'external', 'bundled']
@@ -168,17 +165,17 @@ export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
   [HCI_SETTING.CLUSTER_REGISTRATION_URL]: { kind: 'url' },
 };
 
-export const fetchOrCreateSetting = async(store, id, val, save = true) => {
+async function fetchOrCreateSetting(store, id, val, save = true) {
   let setting;
 
   try {
-    setting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
+    setting = await store.dispatch('management/find', { type: 'management.cattle.io.setting', id });
   } catch {
-    const schema = store.getters['management/schemaFor'](MANAGEMENT.SETTING);
+    const schema = store.getters['management/schemaFor']('management.cattle.io.setting');
     const url = schema.linkFor('collection');
 
     setting = await store.dispatch('management/create', {
-      type: MANAGEMENT.SETTING, metadata: { name: id }, value: val, default: val || ''
+      type: 'management.cattle.io.setting', metadata: { name: id }, value: val, default: val || ''
     });
 
     if ( save ) {
@@ -187,9 +184,9 @@ export const fetchOrCreateSetting = async(store, id, val, save = true) => {
   }
 
   return setting;
-};
+}
 
-export const setSetting = async(store, id, val) => {
+async function setSetting(store, id, val) {
   const setting = await fetchOrCreateSetting(store, id, val, false);
 
   setting.value = val;
@@ -197,4 +194,15 @@ export const setSetting = async(store, id, val) => {
   await setting.save();
 
   return setting;
+}
+
+module.exports = {
+  SETTING,
+  ALLOWED_SETTINGS,
+  HCI_SETTING,
+  HCI_ALLOWED_SETTINGS,
+  HCI_SINGLE_CLUSTER_ALLOWED_SETTING,
+
+  fetchOrCreateSetting,
+  setSetting
 };

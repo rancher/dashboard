@@ -1,9 +1,9 @@
-import { SETTING } from './settings';
+const { SETTING } = require('./settings');
 
-export const ANY = 0;
-export const STANDARD = 1;
-export const CUSTOM = 2;
-export const DOCS_BASE = 'https://rancher.com/docs/rancher/v2.6/en';
+const ANY = 0;
+const STANDARD = 1;
+const CUSTOM = 2;
+const DOCS_BASE = 'https://rancher.com/docs/rancher/v2.6/en';
 
 const STANDARD_VENDOR = 'Rancher';
 const STANDARD_PRODUCT = 'Explorer';
@@ -14,57 +14,64 @@ let vendor = STANDARD_VENDOR;
 let product = STANDARD_PRODUCT;
 let brand = null;
 
-export function setMode(m) {
-  mode = m;
-}
+module.exports = {
+  ANY,
+  STANDARD,
+  CUSTOM,
+  DOCS_BASE,
 
-export function setVendor(v) {
-  vendor = v;
-}
+  setMode(m) {
+    mode = m;
+  },
 
-export function setProduct(p) {
-  product = p;
-}
+  setVendor(v) {
+    vendor = v;
+  },
 
-export function setBrand(b) {
-  brand = b;
-}
+  setProduct(p) {
+    product = p;
+  },
 
-// -------------------------------------
+  setBrand(b) {
+    brand = b;
+  },
 
-export function getMode() {
-  return mode;
-}
+  // -------------------------------------
 
-export function getBrand() {
-  return brand;
-}
+  getMode() {
+    return mode;
+  },
 
-export function isStandard() {
-  return mode === STANDARD;
-}
+  getBrand() {
+    return brand;
+  },
 
-export function matches(pl) {
-  if ( pl === ANY ) {
-    return true;
-  }
+  isStandard() {
+    return mode === STANDARD;
+  },
 
-  return pl === mode;
-}
-
-export function getVendor() {
-  if ( vendor === SETTING.PL_RANCHER_VALUE ) {
-    // Custom vendor override based on brand
-    if (brand && CUSTOM_VENDOR[brand]) {
-      return CUSTOM_VENDOR[brand];
+  matches(pl) {
+    if ( pl === ANY ) {
+      return true;
     }
 
-    return STANDARD_VENDOR;
+    return pl === mode;
+  },
+
+  getVendor() {
+    if ( vendor === SETTING.PL_RANCHER_VALUE ) {
+      // Custom vendor override based on brand
+      if (brand && CUSTOM_VENDOR[brand]) {
+        return CUSTOM_VENDOR[brand];
+      }
+
+      return STANDARD_VENDOR;
+    }
+
+    return vendor;
+  },
+
+  getProduct() {
+    return product;
   }
-
-  return vendor;
-}
-
-export function getProduct() {
-  return product;
-}
+};

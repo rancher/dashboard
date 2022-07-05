@@ -1,0 +1,421 @@
+const fs = require('fs');
+const path = require('path');
+const serveStatic = require('serve-static');
+const webpack = require('webpack');
+const { STANDARD } = require('./config/private-label');
+const { generateDynamicTypeImport } = require('./pkg/auto-import');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+const createProxyMiddleware = require('http-proxy-middleware');
+
+// ===============================================================================================
+// Nuxt configuration
+// ===============================================================================================
+
+// Expose a function that can be used by an app to provide a nuxt configuration for building an application
+// This takes the directory of the application as tehfirst argument so that we can derive folder locations
+// from it, rather than from the location of this file
+module.exports = function(dir, _appConfig) {
+  // Paths to the shell folder when it is included as a node dependency
+  let SHELL = 'node_modules/@rancher/shell';
+  let SHELL_ABS = path.join(dir, 'node_modules/@rancher/shell');
+  let COMPONENTS_DIR = path.join(SHELL_ABS, 'rancher-components');
+
+  // If we have a local folder named 'shell' then use that rather than the one in node_modules
+  // This will be the case in the main dashboard repository.
+  if (fs.existsSync(path.join(dir, 'shell'))) {
+    SHELL = './shell';
+    SHELL_ABS = path.join(dir, 'shell');
+    COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
+  }
+
+  // ===============================================================================================
+  // Functions for the UI Pluginas
+  // ===============================================================================================
+
+  const appConfig = _appConfig || {};
+  const excludes = appConfig.excludes || [];
+  const autoLoad = appConfig.autoLoad || [];
+
+  const serverMiddleware = [];
+  const autoLoadPackages = [];
+  const watcherIgnores = [
+    /.shell/,
+    /dist-pkg/
+  ];
+
+  autoLoad.forEach((pkg) => {
+    // Need the version number of each file
+    const pkgPackageFile = require(path.join(dir, 'pkg', pkg, 'package.json'));
+    const pkgRef = `${ pkg }-${ pkgPackageFile.version }`;
+
+    autoLoadPackages.push({
+      name:    `app-autoload-${ pkgRef }`,
+      content: `/pkg/${ pkgRef }/${ pkgRef }.umd.min.js`
+    });
+
+    // Anything auto-loaded should also be excluded
+    if (!excludes.includes(pkg)) {
+      excludes.push(pkg);
+    }
+  });
+
+  // Find any UI packages in node_modules
+  const NM = path.join(dir, 'node_modules');
+  const pkg = require(path.join(dir, 'package.json'));
+  const nmPackages = {};
+
+  if (pkg && pkg.dependencies) {
+    Object.keys(pkg.dependencies).forEach((pkg) => {
+      const f = require(path.join(NM, pkg, 'package.json'));
+
+      // The package.json must have the 'rancher' property to mark it as a UI package
+      if (f.rancher) {
+        const id = `${ f.name }-${ f.version }`;
+
+        nmPackages[id] = f.main;
+
+        // Add server middleware to serve up the files for this UI package
+        serverMiddleware.push({
+          path:    `/pkg/${ id }`,
+          handler: serveStatic(path.join(NM, pkg))
+        });
+      }
+    });
+  }
+
+  serverMiddleware.push({
+    path:    '/uiplugins-catalog',
+    handler: (req, res, next) => {
+      const p = req.url.split('?');
+
+      try {
+        const proxy = createProxyMiddleware({
+          target:      p[1],
+          pathRewrite: { '^.*': p[0] }
+        });
+
+        return proxy(req, res, next);
+      } catch (e) {
+        console.error(e); // eslint-disable-line no-console
+      }
+    }
+  });
+
+  function includePkg(name) {
+    if (name.startsWith('.') || name === 'node_modules') {
+      return false;
+    }
+
+    return !excludes || (excludes && !excludes.includes(name));
+  }
+
+  excludes.forEach((e) => {
+    watcherIgnores.push(new RegExp(`/pkg.${ e }`));
+  });
+
+  // For each package in the pkg folder that is being compiled into the application,
+  // Add in the code to automatically import the types from that package
+  // This imports models, edit, detail, list etc
+  // When built as a UI package, shell/pkg/vue.config.js does the same thing
+  const autoImportTypes = {};
+  const VirtualModulesPlugin = require('webpack-virtual-modules');
+  let reqs = '';
+  const pkgFolder = path.relative(dir, './pkg');
+
+  if (fs.existsSync(pkgFolder)) {
+    const items = fs.readdirSync(path.relative(dir, './pkg'));
+
+    // Ignore hidden folders
+    items.filter(name => !name.startsWith('.')).forEach((name) => {
+      const f = require(path.join(dir, 'pkg', name, 'package.json'));
+
+      // Package file must have rancher field to be a plugin
+      if (includePkg(name) && f.rancher) {
+        reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
+      }
+
+      // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
+      // if (!nmPackages[name]) {
+      //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
+      //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
+
+      //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
+      // }
+      autoImportTypes[`@rancher/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
+    });
+  }
+
+  Object.keys(nmPackages).forEach((m) => {
+    reqs += `$plugin.loadAsync('${ m }', '/pkg/${ m }/${ nmPackages[m] }');`;
+  });
+
+  // Generate a virtual module '@rancher/dyanmic.js` which imports all of the packages that should be built into the application
+  // This is imported in 'shell/extensions/extension-loader.js` which ensures the all code for plugins to be included is imported in the application
+  const virtualModules = new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
+  const autoImport = new webpack.NormalModuleReplacementPlugin(/^@rancher\/auto-import$/, (resource) => {
+    const ctx = resource.context.split('/');
+    const pkg = ctx[ctx.length - 1];
+
+    resource.request = `@rancher/auto-import/${ pkg }`;
+  });
+
+  // @pkg imports must be resolved to the package that it importing them - this allows a package to use @pkg as an alis
+  // to the root of that particular package
+  const pkgImport = new webpack.NormalModuleReplacementPlugin(/^@pkg/, (resource) => {
+    const ctx = resource.context.split('/');
+    // Find 'pkg' folder in the contxt
+    const index = ctx.findIndex(s => s === 'pkg');
+
+    if (index !== -1 && (index + 1) < ctx.length) {
+      const pkg = ctx[index + 1];
+      const p = path.resolve(dir, 'pkg', pkg, resource.request.substr(5));
+
+      resource.request = p;
+    }
+  });
+
+  // Serve up the dist-pkg folder under /pkg
+  serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
+  // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
+  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
+  // Add the standard dashboard server middleware after the middleware added to serve up UI packages
+  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
+
+  // ===============================================================================================
+  // Dashboard nuxt configuration
+  // ===============================================================================================
+
+  require('events').EventEmitter.defaultMaxListeners = 20;
+  require('dotenv').config();
+
+  const version = process.env.VERSION ||
+    process.env.DRONE_TAG ||
+    process.env.DRONE_VERSION ||
+    require('./package.json').version;
+
+  const dev = (process.env.NODE_ENV !== 'production');
+  const devPorts = dev || process.env.DEV_PORTS === 'true';
+  const pl = process.env.PL || STANDARD;
+  const commit = process.env.COMMIT || 'head';
+  const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
+
+  let api = process.env.API || 'http://localhost:8989';
+
+  if ( !api.startsWith('http') ) {
+    api = `https://${ api }`;
+  }
+
+  let routerBasePath = '/';
+  let resourceBase = '';
+  let outputDir = 'dist';
+
+  if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
+    routerBasePath = process.env.ROUTER_BASE;
+  }
+
+  if ( typeof process.env.RESOURCE_BASE !== 'undefined' ) {
+    resourceBase = process.env.RESOURCE_BASE;
+  }
+
+  if ( typeof process.env.OUTPUT_DIR !== 'undefined' ) {
+    outputDir = process.env.OUTPUT_DIR;
+  }
+
+  if ( resourceBase && !resourceBase.endsWith('/') ) {
+    resourceBase += '/';
+  }
+
+  console.log(`Build: ${ dev ? 'Development' : 'Production' }`); // eslint-disable-line no-console
+
+  if ( !dev ) {
+    console.log(`Version: ${ version } (${ commit })`); // eslint-disable-line no-console
+  }
+
+  if ( resourceBase ) {
+    console.log(`Resource Base URL: ${ resourceBase }`); // eslint-disable-line no-console
+  }
+
+  if ( routerBasePath !== '/' ) {
+    console.log(`Router Base Path: ${ routerBasePath }`); // eslint-disable-line no-console
+  }
+
+  if ( pl !== STANDARD ) {
+    console.log(`PL: ${ pl }`); // eslint-disable-line no-console
+  }
+  const rancherEnv = process.env.RANCHER_ENV || 'web';
+
+  console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
+
+  const config = {
+    // Vue server
+    devServer: {
+      https: (devPorts ? {
+        key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
+        cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
+      } : null),
+      port:      (devPorts ? 8005 : 80),
+      host:      '0.0.0.0',
+      proxy:  {
+        '/k8s':           proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+        '/pp':            proxyWsOpts(api), // For (epinio) standalone API
+        '/api':           proxyWsOpts(api), // Management k8s API
+        '/apis':          proxyWsOpts(api), // Management k8s API
+        '/v1':            proxyWsOpts(api), // Management Steve API
+        '/v3':            proxyWsOpts(api), // Rancher API
+        '/v3-public':     proxyOpts(api), // Rancher Unauthed API
+        '/api-ui':        proxyOpts(api), // Browser API UI
+        '/meta':          proxyMetaOpts(api), // Browser API UI
+        '/v1-*':          proxyOpts(api), // SAML, KDM, etc
+        // These are for Ember embedding
+        '/c/*/edit':      proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
+        '/k/':            proxyOpts('https://127.0.0.1:8000'),
+        '/g/':            proxyOpts('https://127.0.0.1:8000'),
+        '/n/':            proxyOpts('https://127.0.0.1:8000'),
+        '/p/':            proxyOpts('https://127.0.0.1:8000'),
+        '/assets':        proxyOpts('https://127.0.0.1:8000'),
+        '/translations':  proxyOpts('https://127.0.0.1:8000'),
+        '/engines-dist':  proxyOpts('https://127.0.0.1:8000'),
+        // Plugin dev
+        '/verdaccio/':    proxyOpts('http://127.0.0.1:4873/-'),
+      }
+    },
+
+    css:  {
+      loaderOptions: {
+        sass: {
+          // This is effectively added to the beginning of each style that's imported or included in a vue file. We may want to look into including these in app.scss
+          additionalData: `
+            @use 'sass:math';
+            @import "~shell/assets/styles/base/_variables.scss";
+            @import "~shell/assets/styles/base/_functions.scss";
+            @import "~shell/assets/styles/base/_mixins.scss";
+          `
+        }
+      }
+    },
+
+    pages: {
+      index: {
+        entry:    'nuxt/client.js',
+        template: 'shell/public/index.html'
+      }
+    },
+
+    configureWebpack(config) {
+      const root = path.join(__dirname, '..');
+
+      config.resolve.alias['@'] = SHELL_ABS;
+      config.resolve.alias['~'] = root;
+      config.resolve.alias['~assets'] = path.join(__dirname, 'assets');
+      config.resolve.alias['~shell'] = SHELL_ABS;
+      config.resolve.alias['@shell'] = SHELL_ABS;
+      config.resolve.alias['@pkg'] = path.join(dir, 'pkg');
+      config.resolve.alias['./node_modules'] = path.join(root, 'node_modules');
+      config.resolve.alias['process'] = path.join(__dirname, 'nuxt', 'process');
+      config.resolve.alias['@components'] = COMPONENTS_DIR;
+
+      config.resolve.modules.push(__dirname);
+
+      config.plugins.push(virtualModules);
+      config.plugins.push(autoImport);
+      config.plugins.push(pkgImport);
+      config.plugins.push(new webpack.DefinePlugin({ 'process.client': true }));
+      // The static assets need to be in the public folder in order to get served (primarily the favicon for now)
+      config.plugins.push(new CopyWebpackPlugin([{ from: path.join(SHELL_ABS, 'static'), to: 'public' }]));
+
+      config.resolve.extensions.push(...['.js', '.vue', '.ts', '.scss']);
+
+      // Add loader for yaml files - used for translations
+      config.module.rules.unshift({
+        test:    /assets\/.*\.ya?ml$/i,
+        loader:  'js-yaml-loader',
+        options: { name: '[path][name].[ext]' },
+      });
+
+      // Prevent warning in log with the md files in the content folder
+      config.module.rules.push({
+        test:    /\.md$/,
+        use:  [
+          {
+            loader:  'url-loader',
+            options: {
+              name:     '[path][name].[ext]',
+              limit:    1,
+              esModule: false
+            },
+          }
+        ]
+      });
+    },
+  };
+
+  return config;
+
+  // ===============================================================================================
+  // Functions for the request proxying used in dev
+  // ===============================================================================================
+
+  function proxyMetaOpts(target) {
+    return {
+      target,
+      followRedirects: true,
+      secure:          !dev,
+      onProxyReq,
+      onProxyReqWs,
+      onError,
+      onProxyRes,
+    };
+  }
+
+  function proxyOpts(target) {
+    return {
+      target,
+      secure: !devPorts,
+      onProxyReq,
+      onProxyReqWs,
+      onError,
+      onProxyRes
+    };
+  }
+
+  function onProxyRes(proxyRes, req, res) {
+    if (devPorts) {
+      proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
+    }
+  }
+
+  function proxyWsOpts(target) {
+    return {
+      ...proxyOpts(target),
+      ws:           true,
+      changeOrigin: true,
+    };
+  }
+
+  function onProxyReq(proxyReq, req) {
+    if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
+      proxyReq.setHeader('x-api-host', req.headers['host']);
+      proxyReq.setHeader('x-forwarded-proto', 'https');
+      // console.log(proxyReq.getHeaders());
+    }
+  }
+
+  function onProxyReqWs(proxyReq, req, socket, options, head) {
+    req.headers.origin = options.target.href;
+    proxyReq.setHeader('origin', options.target.href);
+    proxyReq.setHeader('x-api-host', req.headers['host']);
+    proxyReq.setHeader('x-forwarded-proto', 'https');
+    // console.log(proxyReq.getHeaders());
+
+    socket.on('error', (err) => {
+      console.error('Proxy WS Error:', err); // eslint-disable-line no-console
+    });
+  }
+
+  function onError(err, req, res) {
+    res.statusCode = 598;
+    console.error('Proxy Error:', err); // eslint-disable-line no-console
+    res.write(JSON.stringify(err));
+  }
+};

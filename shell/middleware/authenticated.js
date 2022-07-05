@@ -168,6 +168,7 @@ export default async function({
   }
 
   function notLoggedIn() {
+    console.log('redirecting here');
     store.commit('auth/hasAuth', true);
 
     if ( route.name === 'index' ) {

@@ -82,7 +82,7 @@ export default {
     margin: 0 -15px 10px -15px;
     padding: 0 15px 15px 15px;
     align-items: center;
-    display: flex
+    display: flex;
 
     & BUTTON {
       padding: 0;
