@@ -4,6 +4,7 @@ import { DSL } from '@shell/store/type-map';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@shell/config/table-headers';
 import { allHash } from '@shell/utils/promise';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
+import { BLANK_CLUSTER } from '~/shell/store';
 
 dynamicPluginLoader.register({
   load: async({ route, store }) => {
@@ -16,7 +17,7 @@ dynamicPluginLoader.register({
     if (pathParts?.[1] === HARVESTER_NAME && pathParts?.[3] ) {
       clusterId = pathParts?.[3];
     } else {
-      const nameParts = route.name.split('-');
+      const nameParts = route.name?.split('-');
 
       if (nameParts?.[0] === HARVESTER_NAME) {
         clusterId = route.params?.cluster;
@@ -25,12 +26,12 @@ dynamicPluginLoader.register({
 
     if (clusterId) {
       // All is good, try to load the plugin via the harvester cluster's `loadClusterPlugin`
-      // We don't have this spoofed type just yet, so manually create required model via the mgmt cluster
-      const mgmtCluster = store.getters['management/byId']('management.cattle.io.cluster', clusterId);
+      const provClusters = await store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+      const provCluster = provClusters.find(p => p.mgmt.id === clusterId);
 
-      if (mgmtCluster) {
+      if (provCluster) {
         const harvCluster = await store.dispatch('management/create', {
-          ...mgmtCluster,
+          ...provCluster,
           type: HCI.CLUSTER
         });
 
@@ -75,6 +76,14 @@ export function init(store) {
     removable:           false,
     showClusterSwitcher: false,
     weight:              100,
+    to:                   {
+      name:   'c-cluster-product-resource',
+      params: {
+        cluster:  BLANK_CLUSTER,
+        product:  NAME,
+        resource: HCI.CLUSTER
+      }
+    },
   });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });

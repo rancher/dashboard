@@ -309,19 +309,13 @@ export default async function({
       // If there are no matching routes we could be trying to nav to a page belonging to a dynamic plugin which needs loading
       await Promise.all([
         ...always,
-        store.dispatch('loadCluster', {
-          id:     '',
-          oldPkg: oldPkgPlugin,
-          newPkg: newPkgPlugin,
-          oldProduct,
-        })
       ]);
 
       // If a plugin claims the route and is loaded correctly we'll get a route back
       const newLocation = await dynamicPluginLoader.check({ route, store });
 
       if (newLocation) {
-        redirect(newLocation);
+        return redirect({ fullPath: newLocation.fullPath });
       }
     } else if (product === VIRTUAL || route.name === `${ VIRTUAL }-c-cluster` || route.name?.startsWith(`${ VIRTUAL }-c-cluster-`)) {
       const res = [

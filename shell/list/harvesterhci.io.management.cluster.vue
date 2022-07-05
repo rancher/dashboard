@@ -83,73 +83,71 @@ export default {
 </script>
 
 <template>
-  <div>
-    <Loading v-if="$fetchState.pending" />
-    <template v-else>
-      <Masthead
-        :schema="realSchema"
-        :resource="resource"
-        :is-creatable="false"
-        :type-display="typeDisplay"
-      >
-        <template #typeDescription>
-          <TypeDescription :resource="hResource" />
-        </template>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
+    <Masthead
+      :schema="realSchema"
+      :resource="resource"
+      :is-creatable="false"
+      :type-display="typeDisplay"
+    >
+      <template #typeDescription>
+        <TypeDescription :resource="hResource" />
+      </template>
 
-        <template v-if="canCreateCluster" slot="extraActions">
-          <n-link
-            :to="importLocation"
-            class="btn role-primary"
-          >
-            {{ t('cluster.importAction') }}
-          </n-link>
-        </template>
-      </Masthead>
+      <template v-if="canCreateCluster" slot="extraActions">
+        <n-link
+          :to="importLocation"
+          class="btn role-primary"
+        >
+          {{ t('cluster.importAction') }}
+        </n-link>
+      </template>
+    </Masthead>
 
-      <ResourceTable
-        v-if="rows && rows.length"
-        :schema="schema"
-        :rows="rows"
-        :sub-rows="true"
-        :is-creatable="true"
-        :namespaced="false"
-      >
-        <template #col:name="{row}">
-          <td>
-            <span>
-              <a v-if="row.isReady" class="link" @click="row.goToCluster()">{{ row.nameDisplay }}</a>
-              <span v-else>
-                {{ row.nameDisplay }}
-              </span>
+    <ResourceTable
+      v-if="rows && rows.length"
+      :schema="schema"
+      :rows="rows"
+      :sub-rows="true"
+      :is-creatable="true"
+      :namespaced="false"
+    >
+      <template #col:name="{row}">
+        <td>
+          <span>
+            <a v-if="row.isReady" class="link" @click="row.goToCluster()">{{ row.nameDisplay }}</a>
+            <span v-else>
+              {{ row.nameDisplay }}
             </span>
-          </td>
-        </template>
+          </span>
+        </td>
+      </template>
 
-        <template #cell:harvester="{row}">
-          <n-link
-            class="btn btn-sm role-primary"
-            :to="row.detailLocation"
-          >
-            {{ t('harvester.virtualizationManagement.manage') }}
-          </n-link>
-        </template>
-      </ResourceTable>
-      <div v-else>
-        <div class="no-clusters">
-          {{ t('harvester.manager.cluster.none') }}
-        </div>
-        <hr class="info-section" />
-        <div class="logo">
-          <BrandImage file-name="harvester.png" height="64" />
-        </div>
-        <div class="tagline">
-          <div>{{ t('harvester.manager.cluster.description') }}</div>
-        </div>
-        <div class="tagline sub-tagline">
-          <div v-html="t('harvester.manager.cluster.learnMore', {}, true)"></div>
-        </div>
+      <template #cell:harvester="{row}">
+        <n-link
+          class="btn btn-sm role-primary"
+          :to="row.detailLocation"
+        >
+          {{ t('harvester.virtualizationManagement.manage') }}
+        </n-link>
+      </template>
+    </ResourceTable>
+    <div v-else>
+      <div class="no-clusters">
+        {{ t('harvester.manager.cluster.none') }}
       </div>
-    </template>
+      <hr class="info-section" />
+      <div class="logo">
+        <BrandImage file-name="harvester.png" height="64" />
+      </div>
+      <div class="tagline">
+        <div>{{ t('harvester.manager.cluster.description') }}</div>
+      </div>
+      <div class="tagline sub-tagline">
+        <div v-html="t('harvester.manager.cluster.learnMore', {}, true)"></div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -179,6 +177,10 @@ export default {
       max-width: 80%;
       text-align: center;
     }
+  }
+
+ .link {
+    cursor: pointer;
   }
 
 </style>
