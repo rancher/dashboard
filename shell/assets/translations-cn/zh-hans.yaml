@@ -5132,6 +5132,7 @@ wm:
 
 workload:
   container:
+    tags: Tags
     command:
       addEnvVar: 添加变量
       args: 参数

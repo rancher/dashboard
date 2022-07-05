@@ -9,6 +9,7 @@ import {
   PVC,
   SERVICE_ACCOUNT,
   CAPI,
+  POD,
 } from '@shell/config/types';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -39,11 +40,13 @@ import Storage from '@shell/edit/workload/storage';
 import Labels from '@shell/components/form/Labels';
 import { RadioGroup } from '@components/Form/Radio';
 import { UI_MANAGED } from '@shell/config/labels-annotations';
-import { removeObject } from '@shell/utils/array';
+import { removeObject, uniq } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
+import LabeledInputSugget from '@shell/components/form/LabeledInputSugget';
+import debounce from 'lodash/debounce';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -98,6 +101,7 @@ export default {
     Upgrading,
     VolumeClaimTemplate,
     WorkloadPorts,
+    LabeledInputSugget,
   },
 
   mixins: [CreateEditView],
@@ -132,6 +136,7 @@ export default {
       pvcs:       PVC,
       sas:        SERVICE_ACCOUNT,
       secrets:    SECRET,
+      pods:       POD,
     };
 
     // Only fetch types if the user can see them
@@ -154,6 +159,10 @@ export default {
     this.allServices = hash.services || [];
     this.pvcs = hash.pvcs || [];
     this.sas = hash.sas || [];
+
+    this.allPods = hash.pods || [];
+    this.$store.dispatch('harbor/fetchHarborVersion');
+    this.$store.dispatch('harbor/loadHarborServerUrl');
   },
 
   data() {
@@ -568,7 +577,47 @@ export default {
       return out;
     },
 
-    ...mapGetters({ t: 'i18n/t' }),
+    harborImagsChoices() {
+      const images = this.harbor?.harborImages?.urls || [];
+      let inUse = [];
+      let suggestions = [];
+
+      this.allPods.forEach((pod) => {
+        inUse = inUse.concat(pod.spec?.containers || []);
+      });
+      inUse = inUse.map(obj => (obj.image || ''))
+        .filter(str => !str.includes('sha256:') && !str.startsWith('rancher/'))
+        .sort();
+      inUse = uniq(inUse);
+      if (inUse.length > 0) {
+        suggestions = suggestions.concat(
+          [
+            { kind: 'group', label: 'Used by other containers' },
+            ...inUse,
+          ]
+        );
+      }
+      if (images.length > 0) {
+        suggestions = suggestions.concat(
+          [
+            { kind: 'group', label: 'Images in harbor image repositories' },
+            ...images,
+          ]
+        );
+      }
+
+      return suggestions;
+    },
+    suggestions() {
+      return [
+        ...this.harborImagsChoices
+      ];
+    },
+    harborImageTagsChoices() {
+      return (this.harbor?.harborImageTags || []).map(h => h.name);
+    },
+
+    ...mapGetters({ t: 'i18n/t', harbor: 'harbor/all' }),
   },
 
   watch: {
@@ -614,6 +663,29 @@ export default {
 
       Object.assign(existing, neu);
     },
+
+    'container.imageTag'(neu) {
+      const tag = this.container.imageTag;
+
+      if (tag) {
+        const image = this.container.image;
+        const harborRepo = this.harbor?.harborRepo || '';
+        let repo = image;
+
+        if (repo.startsWith(`${ harborRepo }/`)) {
+          repo = repo.replace(`${ harborRepo }/`, '');
+        }
+        const index = repo.indexOf(':');
+
+        this.$set(this.container, 'image', index > -1 ? `${ image.substr(0, image.lastIndexOf(':')) }:${ tag }` : `${ image }:${ tag }`);
+      }
+    },
+
+    harborImageTagsChoices() {
+      if (this.harbor.imageTag) {
+        this.container.imageTag = this.harbor.imageTag;
+      }
+    }
   },
 
   created() {
@@ -1053,5 +1125,9 @@ export default {
 
       //
     },
+
+    onSearchImages: debounce(function(str) {
+      this.$store.dispatch('harbor/loadImagesInHarbor', str);
+    }, 500, { leading: false }),
   },
 };

@@ -126,12 +126,16 @@ export default {
                 <h3>{{ t('workload.container.titles.image') }}</h3>
                 <div class="row mb-20">
                   <div class="col span-6">
-                    <LabeledInput
+                    <LabeledInputSugget
                       v-model.trim="container.image"
                       :mode="mode"
-                      :label="t('workload.container.image')"
+                      :text-label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
+                      text-required
+                      :searchable="true"
+                      :options="suggestions"
                       :rules="fvGetAndReportPathRules('image')"
+                      @onSearch="onSearchImages"
                     />
                   </div>
                   <div class="col span-6">
@@ -139,6 +143,17 @@ export default {
                       v-model="container.imagePullPolicy"
                       :label="t('workload.container.imagePullPolicy')"
                       :options="pullPolicyOptions"
+                      :mode="mode"
+                    />
+                  </div>
+                </div>
+                <div v-show="container.image && harborImageTagsChoices && harborImageTagsChoices.length > 0" class="row mb-20">
+                  <div class="col span-6">
+                    <LabeledSelect
+                      v-model="container.imageTag"
+                      :label="t('workload.container.tags')"
+                      :options="harborImageTagsChoices"
+                      :searchable="true"
                       :mode="mode"
                     />
                   </div>
@@ -206,7 +221,14 @@ export default {
             </Tab>
             <Tab :label="t('workload.container.titles.upgrading')" name="upgrading" :weight="tabWeightMap['upgrading']">
               <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
-              <Upgrading v-else v-model="spec" :mode="mode" :type="type" :no-pod-spec="true" />
+              <Upgrading
+                v-else
+                v-model="spec"
+                :mode="mode"
+                :type="type"
+                :no-pod-spec="true"
+                :enabled-vlansubnet="enabledVlansubnet"
+              />
             </Tab>
           </Tabbed>
         </Tab>

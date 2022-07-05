@@ -5099,6 +5099,7 @@ wm:
 
 workload:
   container:
+    tags: Tags
     command:
       addEnvVar: Add Variable
       args: Arguments
