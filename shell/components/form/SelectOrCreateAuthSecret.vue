@@ -211,7 +211,7 @@ export default {
           return true;
         }).map((x) => {
           return {
-            label: `${ x.metadata.name } (${ x.subTypeDisplay })`,
+            label: `${ x.metadata.name } (${ x.subTypeDisplay }: ${ x.dataPreview })`,
             group: x.metadata.namespace,
             value: x.id,
           };

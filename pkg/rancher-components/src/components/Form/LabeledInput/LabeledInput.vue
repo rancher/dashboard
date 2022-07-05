@@ -231,17 +231,20 @@ export default (
 
 <template>
   <div
-    class="labeled-input"
     :class="{
+      'labeled-input': true,
       focused,
       [mode]: true,
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
+      'has-tooltip': hasTooltip,
+      'compact-input': isCompact,
+      hideArrows
     }"
   >
     <slot name="label">
-      <label>
+      <label v-if="hasLabel">
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
 
@@ -302,7 +305,28 @@ export default (
     <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
   </div>
 </template>
+<style scoped lang="scss">
+.labeled-input.view {
+  input {
+    text-overflow: ellipsis;
+  }
+}
 
+.hideArrows {
+  /* Hide arrows on number input when it overlaps with the unit */
+  /* Chrome, Safari, Edge, Opera */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+}
+</style>
 <style>
 .validation-message {
   padding: 5px;
