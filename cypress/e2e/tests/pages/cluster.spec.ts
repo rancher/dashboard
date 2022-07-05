@@ -1,6 +1,6 @@
 const clusterManagerPath = '/c/local/manager/provisioning.cattle.io.cluster';
 const timestamp = +new Date();
-const createName = `e2e-test-create-${ timestamp }`;
+const clusterName = `e2e-test-create-${ timestamp }`;
 
 describe('Cluster', () => {
   beforeEach(() => {
@@ -12,9 +12,9 @@ describe('Cluster', () => {
     cy.getId('cluster-manager-list-create').click();
     // toggle RKE2?
     cy.getId('cluster-manager-create-grid-2-0').click();
-    cy.getId('name-ns-description-name').type(createName);
+    cy.getId('name-ns-description-name').type(clusterName);
     cy.getId('rke2-custom-create-save').click();
-    cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ createName }#registration`);
+    cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterName }#registration`);
   });
 
   it('can import new cluster', () => {
@@ -28,12 +28,11 @@ describe('Cluster', () => {
 
   it.only('can see cluster details', () => {
     cy.visit(clusterManagerPath);
-    cy.contains(createName).parent().parent().parent()
-      .parent()
-      .getId('-action-button', '$')
-      .click();
+    cy.contains(clusterName).parent().parent().parent()
+      .as('row')
+      .within(() => cy.getId('-action-button', '$').click());
     cy.getId('action-menu-0-item').click();
-    cy.contains(`Custom - ${ createName }`).should('exist');
+    cy.contains(`Custom - ${ clusterName }`).should('exist');
   });
 
   it('can explore the cluster', () => {
@@ -73,11 +72,14 @@ describe('Cluster', () => {
   //   cy.visit(clusterManagerPath);
   // });
 
-  it('can delete cluster', () => {
+  it.only('can delete cluster', () => {
     cy.visit(clusterManagerPath);
-    cy.getId('sortable-table-1-action-button').click();
-    cy.getId('action-menu-4-action-item').click();
-    // wait loading
-    // cluster should not exist
+    cy.contains(clusterName).parent().parent().parent()
+      .as('row')
+      .within(() => cy.getId('-action-button', '$').click());
+    cy.getId('action-menu-4-item').click();
+    cy.getId('prompt-remove-input').type(clusterName);
+    cy.getId('prompt-remove-confirm-button').click();
+    cy.contains(clusterName).should('not.exist');
   });
 });
