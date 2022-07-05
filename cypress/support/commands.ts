@@ -1,4 +1,5 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
+import { Matcher } from '~/cypress/support/types';
 
 /**
  * Login local authentication, including first login and bootstrap if not cached
@@ -52,8 +53,8 @@ Cypress.Commands.add('byLabel', (label) => {
 /**
  * Wrap the cy.get() command to simplify the selector declaration of the data-testid
  */
-Cypress.Commands.add('getId', (id: string) => {
-  return cy.get(`[data-testid="${ id }"]`);
+Cypress.Commands.add('getId', (id: string, matcher?: Matcher = '') => {
+  return cy.get(`[data-testid${ matcher }="${ id }"]`);
 });
 
 /**
