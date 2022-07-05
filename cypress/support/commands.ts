@@ -51,6 +51,13 @@ Cypress.Commands.add('byLabel', (label) => {
 });
 
 /**
+ * Wrap the cy.find() command to simplify the selector declaration of the data-testid
+ */
+Cypress.Commands.add('findId', (id: string, matcher?: Matcher = '') => {
+  return cy.find(`[data-testid${ matcher }="${ id }"]`);
+});
+
+/**
  * Wrap the cy.get() command to simplify the selector declaration of the data-testid
  */
 Cypress.Commands.add('getId', (id: string, matcher?: Matcher = '') => {

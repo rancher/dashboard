@@ -8,6 +8,7 @@ declare global {
     interface Chainable {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
       byLabel(label: string,): Chainable<Element>;
+      findId(id: string, matcher?: Matcher): Chainable<Element>;
       getId(id: string, matcher?: Matcher): Chainable<Element>;
       // eslint-disable-next-line no-undef
       userPreferences(preferences?: Partial<UserPreferences>): Chainable<null>;
