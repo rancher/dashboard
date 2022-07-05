@@ -15,6 +15,8 @@ const _SSH = '_ssh';
 const _S3 = '_S3';
 
 export default {
+  name: 'SelectOrCreateAuthSecret',
+
   components: {
     Loading,
     LabeledInput,
@@ -25,6 +27,11 @@ export default {
     mode: {
       type:    String,
       default: _EDIT,
+    },
+
+    preSelect: {
+      type:    () => {},
+      default: null,
     },
 
     value: {
@@ -131,7 +138,12 @@ export default {
       this.allCloudCreds = [];
     }
 
-    let selected = _NONE;
+    let selected = this.preSelect?.selected || _NONE;
+
+    if ( !this.value ) {
+      this.publicKey = this.preSelect?.publicKey || '';
+      this.privateKey = this.preSelect?.privateKey || '';
+    }
 
     if ( this.value ) {
       if ( typeof this.value === 'object' ) {
@@ -313,7 +325,9 @@ export default {
   },
 
   watch: {
-    selected: 'update',
+    selected:   'update',
+    publicKey:  'updateKeyVal',
+    privateKey: 'updateKeyVal',
 
     namespace(ns) {
       if ( ns && !this.selected.startsWith(`${ ns }/`) ) {
@@ -333,8 +347,21 @@ export default {
   },
 
   methods: {
+    updateKeyVal() {
+      if ( this.selected === _NONE ) {
+        this.privateKey = '';
+        this.publicKey = '';
+      }
+
+      this.$emit('inputauthval', {
+        selected:   this.selected,
+        privateKey: this.privateKey,
+        publicKey:  this.publicKey
+      });
+    },
+
     update() {
-      if ( !this.selected || [_SSH, _BASIC, _S3, _NONE].includes(this.selected) ) {
+      if ( (!this.selected || [_SSH, _BASIC, _S3, _NONE].includes(this.selected))) {
         this.$emit('input', null);
       } else if ( this.selected.includes(':') ) {
         // Cloud creds
@@ -353,6 +380,8 @@ export default {
           this.$emit('input', out);
         }
       }
+
+      this.updateKeyVal();
     },
 
     async doCreate() {

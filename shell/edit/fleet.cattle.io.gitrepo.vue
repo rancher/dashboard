@@ -89,15 +89,15 @@ export default {
       allClusters:      [],
       allClusterGroups: [],
       allWorkspaces:    [],
-
-      stepRepoInfo: {
-        name:           'stepRepoInfo',
-        title:          this.t('fleet.gitRepo.add.steps.repoInfo.title'),
-        label:          this.t('fleet.gitRepo.add.steps.repoInfo.label'),
-        subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
-        descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
-        ready:          false,
-        weight:         30
+      tempCachedValues: {},
+      stepRepoInfo:     {
+        name:             'stepRepoInfo',
+        title:            this.t('fleet.gitRepo.add.steps.repoInfo.title'),
+        label:            this.t('fleet.gitRepo.add.steps.repoInfo.label'),
+        subtext:          this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
+        descriptionKey:   'fleet.gitRepo.add.steps.repoInfo.description',
+        ready:            false,
+        weight:           30
       },
       stepTargetInfo: {
         name:           'stepTargetInfo',
@@ -270,7 +270,19 @@ export default {
       }
     },
 
+    updateCachedAuthVal(val, key) {
+      this.tempCachedValues[key] = {
+        ...this.tempCachedValues[key],
+        ...val
+      };
+    },
+
     updateAuth(val, key) {
+      this.tempCachedValues[key] = {
+        ...this.tempCachedValues[key],
+        selected: val,
+      };
+
       const spec = this.value.spec;
 
       if ( val ) {
@@ -447,9 +459,11 @@ export default {
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
         in-store="management"
+        :pre-select="tempCachedValues.clientSecretName"
         generate-name="gitrepo-auth-"
         label-key="fleet.gitRepo.auth.git"
         @input="updateAuth($event, 'clientSecretName')"
+        @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />
 
       <SelectOrCreateAuthSecret
@@ -460,7 +474,9 @@ export default {
         generate-name="helmrepo-auth-"
         label-key="fleet.gitRepo.auth.helm"
         hook-name="registerHelmAuthSecret"
+        :pre-select="tempCachedValues.helmSecretName"
         @input="updateAuth($event, 'helmSecretName')"
+        @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />
 
       <template v-if="isTls">
