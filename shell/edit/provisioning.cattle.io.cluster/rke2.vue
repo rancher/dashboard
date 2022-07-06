@@ -16,7 +16,7 @@ import {
   DEFAULT_WORKSPACE,
   SECRET
 } from '@shell/config/types';
-import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '@pkg/elemental/types';
+import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '@shell/config/elemental-types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
 import { findBy, removeObject, clear } from '@shell/utils/array';
