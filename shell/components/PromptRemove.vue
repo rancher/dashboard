@@ -209,15 +209,33 @@ export default {
       this.$store.commit('action-menu/togglePromptRemove');
     },
 
-    remove(btnCB) {
+    async remove(btnCB) {
       if (this.doneLocation) {
         // doneLocation will recompute to undefined when delete request completes
         this.cachedDoneLocation = { ...this.doneLocation };
       }
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
-        this.$refs.customPrompt.remove(btnCB);
+        let handled = this.$refs.customPrompt.remove(btnCB);
 
-        return;
+        // If the response is a promise, then wait for the promise
+        if (handled && handled.then) {
+          try {
+            handled = await handled;
+          } catch (err) {
+            this.error = err;
+            btnCB(false);
+
+            return;
+          }
+        }
+
+        // If the remove function for the custom dialog handled the request, it can return true or not return anything
+        // if it returned false, then it wants us to continue with the deletion logic below - this is useful
+        // where the custom dialog needs to delete additional resources - it handles those and retrurns false to get us
+        // to delete the main resource
+        if (handled === undefined || handled) {
+          return;
+        }
       }
       const serialRemove = this.toRemove.some(resource => resource.removeSerially);
 
@@ -296,7 +314,7 @@ export default {
   <modal
     class="remove-modal"
     name="promptRemove"
-    :width="350"
+    :width="400"
     height="auto"
     styles="max-height: 100vh;"
     @closed="close"
@@ -351,6 +369,7 @@ export default {
         <button class="btn role-secondary" @click="close">
           {{ t('generic.cancel') }}
         </button>
+        <div class="spacer"></div>
         <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="deleteDisabled" @click="remove" />
       </template>
     </Card>
@@ -379,9 +398,13 @@ export default {
     .actions {
       text-align: right;
     }
+
     .card-actions {
       display: flex;
-      justify-content: center;
+
+      .spacer {
+        flex: 1;
+      }
     }
   }
 </style>

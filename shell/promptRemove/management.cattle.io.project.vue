@@ -74,21 +74,15 @@ export default {
   },
   methods: {
     resourceNames,
-    remove(btnCB) {
+    remove() {
+      // Delete all of thre namespaces and return false - this tells the prompt remove dialog to continue and delete the project
       if (this.deleteProjectNamespaces) {
         for (const resource of this.filteredNamespaces) {
           resource.remove();
         }
       }
-      Promise.all(this.toRemove.map(resource => resource.remove()))
-        .then(() => {
-          this.$attrs.close();
-        })
-        .catch((err) => {
-          this.$emit('errors', err);
-          btnCB(false);
-        })
-      ;
+
+      return false;
     },
   },
 };
@@ -100,7 +94,7 @@ export default {
       <div class="mb-10">
         {{ t('promptRemove.attemptingToRemove', { type }) }} <span class="display-name">{{ displayName }}</span>
       </div>
-      <div v-if="filteredNamespaces.length > 0" class="mt-20">
+      <div v-if="filteredNamespaces.length > 0" class="mt-20 remove-project-dialog">
         <Checkbox v-model="deleteProjectNamespaces" :label="t('promptRemove.deleteAssociatedNamespaces')" />
         <div class="mt-10 ml-20">
           <span v-html="resourceNames(names, plusMore, t)"></span>
@@ -111,7 +105,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.display-name {
-  font-weight: bold;
+.remove-project-dialog {
+
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 5px;
+
+  .display-name {
+    font-weight: bold;
+  }
 }
 </style>

@@ -3783,7 +3783,7 @@ promptRemove:
   attemptingToRemove: "You are attempting to delete the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
-  deleteAssociatedNamespaces: "Remove project owned namespaces:"
+  deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
