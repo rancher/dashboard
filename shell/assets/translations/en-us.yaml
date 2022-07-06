@@ -5799,7 +5799,7 @@ harvester:
       affinity:
         anyNode: 'Run VM on any available node'
         schedulingRules: 'Run VM on node(s) matching scheduling rules'
-        specificNode: Run VM on specific node(s) - (Live migration is not supported)
+        specificNode: Run VM on specific node - (Live migration is not supported)
     accessCredentials:
       resetPwd:
         label: Add Basic Auth
@@ -5927,6 +5927,9 @@ harvester:
       notExistImage:
         title: Image {name} does not exist!
         message: Please select a new Image.
+      notExistNode:
+        title: Node {name} does not exist!
+        message: Please select a new Node.
 
   upgradePage:
     upgradeApp: Upgrade Software

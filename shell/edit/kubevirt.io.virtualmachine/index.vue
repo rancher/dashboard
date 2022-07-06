@@ -279,6 +279,8 @@ export default {
 
       const cloneValue = clone(this.value);
 
+      cloneValue.spec.template.spec.nodeSelector = this.spec.template.spec.nodeSelector;
+
       for (let i = 1; i <= this.count; i++) {
         this.$set(this.value, 'spec', cloneValue.spec);
         this.$set(this, 'spec', cloneValue.spec);
