@@ -276,6 +276,7 @@ export const POD_RESTARTS = {
   delayLoading: true,
   value:        'restartCount',
   getValue:     row => row.restartCount,
+  search:       false,
 };
 
 export const ENDPOINTS = {
@@ -645,6 +646,7 @@ export const WORKLOAD_HEALTH_SCALE = {
   width:        150,
   skipSelect:   true,
   delayLoading: true,
+  search:       false,
 };
 
 export const FLEET_SUMMARY = {

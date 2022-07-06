@@ -52,10 +52,9 @@ export default {
       if (this.searchQuery.length) {
         const res = out.filter((row) => {
           return this.searchQuery.every((f) => {
-            console.log('filter applied', f);
-
             if (f.prop === ADV_FILTER_ALL_COLS_VALUE) {
-              const allCols = this.columnOptions.slice(1);
+              // advFilterSelectOptions comes from SortableTable component
+              const allCols = this.advFilterSelectOptions.slice(1);
               let searchFields = [];
 
               allCols.forEach((col) => {
@@ -65,8 +64,6 @@ export default {
                   searchFields.push(col.value);
                 }
               });
-
-              console.log('searchFields for allCols', searchFields);
 
               return handleStringSearch(searchFields, [f.value], row);
             } else {
@@ -115,9 +112,6 @@ export default {
       const subSearch = this.subSearch;
       const subFields = this.subFields;
       const subMatches = {};
-
-      console.log('searchFields', searchFields);
-      console.log('searchTokens', searchTokens);
 
       for ( let i = out.length - 1 ; i >= 0 ; i-- ) {
         const row = out[i];
@@ -197,8 +191,6 @@ function handleStringSearch(searchFields, searchTokens, row) {
       token = token.substr(1);
     }
 
-    console.log('token, row, matches(searchFields, token, row) ', token, row, matches(searchFields, token, row) );
-
     if ( token && matches(searchFields, token, row) !== expect ) {
       return false;
     }
@@ -208,7 +200,6 @@ function handleStringSearch(searchFields, searchTokens, row) {
 }
 
 function matches(fields, token, item) {
-  console.log('MATCHES.....!:!:!:!:!:!:!', fields, token, item);
   for ( let field of fields ) {
     if ( !field ) {
       continue;

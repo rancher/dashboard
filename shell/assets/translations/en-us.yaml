@@ -4307,6 +4307,14 @@ sortableTable:
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
+  in: in
+  addFilter: Add Filter
+  resetFilters: Reset
+  add: Add
+  tableHeader:
+    noFilter: This column cannot be filtered by
+    groupBy: Group by
+    show: Show
 
 storageClass:
   actions:
