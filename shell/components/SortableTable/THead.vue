@@ -1,6 +1,7 @@
 <script>
 import { Checkbox } from '@components/Form/Checkbox';
 import { SOME, NONE } from './selection';
+import { AUTO, CENTER, fitOnScreen } from '@shell/utils/position';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
@@ -85,7 +86,10 @@ export default {
   },
 
   data() {
-    return { tableColsOptionsVisibility: false };
+    return {
+      tableColsOptionsVisibility: false,
+      tableColsMenuPosition:      null
+    };
   },
   computed: {
     isAll: {
@@ -134,18 +138,50 @@ export default {
       return col.name === this.sortBy;
     },
 
-    tableColsOptionsClick() {
-      console.log('-------- TOGGLING TABLE OPTIONS -------');
+    tableColsOptionsClick(ev) {
+      // set menu position
+      const menu = document.querySelector('.table-options-container');
+      const elem = document.querySelector('.table-options-btn');
+
+      if (!this.tableColsMenuPosition) {
+        this.tableColsMenuPosition = fitOnScreen(menu, ev || elem, {
+          overlapX:  true,
+          fudgeX:    26,
+          fudgeY:    -22,
+          positionX: CENTER,
+          positionY: AUTO,
+        });
+      }
+
+      // toggle visibility
       this.tableColsOptionsVisibility = !this.tableColsOptionsVisibility;
     },
+
+    onClickOutside(event) {
+      const tableOpts = this.$refs['table-options'];
+
+      if (!tableOpts || tableOpts.contains(event.target)) {
+        return;
+      }
+      this.tableColsOptionsVisibility = false;
+    },
+
     tableOptionsCheckbox(value, label) {
-      console.log('-------- TABLE OPTIONS CHECKBOX -------', label, value);
       this.$emit('col-visibility-change', {
         label,
         value
       });
     },
-  }
+  },
+  mounted() {
+    // check if user clicked outside the table options menu
+    document.addEventListener('click', this.onClickOutside);
+  },
+
+  beforeDestroy() {
+    document.removeEventListener('click', this.onClickOutside);
+  },
+
 };
 </script>
 
@@ -170,26 +206,36 @@ export default {
         :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
         @click.prevent="changeSort($event, col)"
       >
-        <span v-if="col.sort" v-tooltip="col.tooltip">
-          <span v-html="labelFor(col)" />
-          <span class="icon-stack">
-            <i class="icon icon-sort icon-stack-1x faded" />
-            <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
-            <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
+        <div class="table-header-container">
+          <span v-if="col.sort" v-tooltip="col.tooltip">
+            <span v-html="labelFor(col)" />
+            <span class="icon-stack">
+              <i class="icon icon-sort icon-stack-1x faded" />
+              <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
+              <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
+            </span>
           </span>
-        </span>
-        <span v-else v-tooltip="col.tooltip">{{ labelFor(col) }}</span>
+          <span v-else v-tooltip="col.tooltip">{{ labelFor(col) }}</span>
+          <i
+            v-show="hasAdvancedFiltering && !col.isFilter"
+            v-tooltip="t('sortableTable.tableHeader.noFilter')"
+            class="icon icon-info not-filter-icon"
+          />
+        </div>
       </th>
       <th
         v-if="rowActions && hasAdvancedFiltering && tableColsOptions.length"
         :width="rowActionsWidth"
       >
-        <div class="table-options-group">
+        <div
+          ref="table-options"
+          class="table-options-group"
+        >
           <button
             aria-haspopup="true"
             aria-expanded="false"
             type="button"
-            class="btn btn-sm role-multi-action actions"
+            class="btn btn-sm role-multi-action table-options-btn"
             @click="tableColsOptionsClick"
           >
             <i class="icon icon-actions" />
@@ -197,12 +243,13 @@ export default {
           <div
             v-show="tableColsOptionsVisibility"
             class="table-options-container"
+            :style="tableColsMenuPosition"
           >
             <div
               v-if="hasAdvGrouping"
               class="table-options-grouping"
             >
-              <span class="table-options-col-subtitle">Group by:</span>
+              <span class="table-options-col-subtitle">{{ t('sortableTable.tableHeader.groupBy') }}:</span>
               <LabeledSelect
                 v-model="advGroup"
                 class="table-options-grouping-select"
@@ -216,7 +263,7 @@ export default {
               />
             </div>
             <p class="table-options-col-subtitle mb-20">
-              Show:
+              {{ t('sortableTable.tableHeader.show') }}:
             </p>
             <ul>
               <li
@@ -243,9 +290,8 @@ export default {
 
 <style lang="scss" scoped>
   .table-options-group {
-    position: relative;
 
-    .actions.role-multi-action {
+    .table-options-btn.role-multi-action {
       background-color: transparent;
       border: none;
       font-size: 18px;
@@ -255,9 +301,6 @@ export default {
       }
     }
     .table-options-container {
-      position: absolute;
-      top: 38px;
-      right: 0;
       width: 320px;
       border: 1px solid var(--primary);
       background-color: #FFF;
@@ -318,6 +361,17 @@ export default {
     font-weight: normal;
     border: 0;
     color: var(--body-text);
+
+    .table-header-container {
+      display: flex;
+      align-items: center;
+
+      .not-filter-icon {
+        margin-left: 10px;
+        font-size: 16px;
+        color: var(--primary);
+      }
+    }
 
     &:first-child {
       padding-left: 10px;

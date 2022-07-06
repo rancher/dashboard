@@ -511,7 +511,7 @@ export default {
         }
       }
 
-      // handle cols visibility if there is advanced filtering
+      // handle cols visibility and filtering if there is advanced filtering
       if (this.hasAdvancedFiltering) {
         this.columnOptions.forEach((advCol) => {
           if (advCol.isTableOption) {
@@ -519,6 +519,7 @@ export default {
 
             if (index !== -1) {
               out[index].isColVisible = advCol.isColVisible;
+              out[index].isFilter = advCol.isFilter;
             } else {
               out.push(advCol);
             }
@@ -526,12 +527,7 @@ export default {
         });
       }
 
-      console.log('THIS HEADERS...', this.headers);
-      console.log('THIS COL OPTIONS...', this.columnOptions);
       console.log('THIS COLUMN OUTPUT...', out);
-      console.log('this.groupBy', this.groupBy);
-      console.log('this.group', this.group);
-      console.log('this.groupOptions', this.groupOptions);
 
       return out;
     },
@@ -903,19 +899,18 @@ export default {
       const headerProps = [];
 
       // Filter out any columns that are too heavy to show for large page sizes
-      // also filter out non-searchable table-headers (this can due to performance, formatting, etc...)
       const filteredHeaders = this.headers.slice().filter(c => (!c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage)));
 
       console.log('**** FILTERED TABLE HEADERS ****', filteredHeaders);
 
       // add table cols from config (headers)
       filteredHeaders.forEach((prop) => {
-        if (prop.sort) {
-          const name = prop.name;
-          const label = prop.labelKey ? this.t(`${ prop.labelKey }`) : prop.label;
-          const isFilter = (!Object.keys(prop).includes('search') || prop.search);
-          const sort = prop.sort;
+        const name = prop.name;
+        const label = prop.labelKey ? this.t(`${ prop.labelKey }`) : prop.label;
+        const isFilter = !!((!Object.keys(prop).includes('search') || prop.search));
+        const sort = prop.sort || null;
 
+        if (prop.sort) {
           if (typeof prop.sort === 'string') {
             headerProps.push({
               name,
@@ -924,7 +919,7 @@ export default {
               sort,
               isFilter,
               isTableOption: true,
-              isColVisible:    true
+              isColVisible:  true
             });
           } else {
             headerProps.push({
@@ -934,9 +929,19 @@ export default {
               sort,
               isFilter,
               isTableOption: true,
-              isColVisible:    true
+              isColVisible:  true
             });
           }
+        } else {
+          headerProps.push({
+            name,
+            label,
+            value:         null,
+            sort,
+            isFilter,
+            isTableOption: true,
+            isColVisible:  true
+          });
         }
       });
 
@@ -1013,6 +1018,15 @@ export default {
         this.advFilterSelectedLabel = ADV_FILTER_ALL_COLS_LABEL;
         this.advFilterSearchTerm = null;
       }
+    },
+    clearAllAdvancedFilters() {
+      this.advancedFilteringValues = [];
+      this.eventualSearchQuery = this.advancedFilteringValues;
+
+      this.advancedFilteringVisibility = false;
+      this.advFilterSelectedProp = DEFAULT_ADV_FILTER_COLS_VALUE;
+      this.advFilterSelectedLabel = ADV_FILTER_ALL_COLS_LABEL;
+      this.advFilterSearchTerm = null;
     },
     colSelected(col) {
       console.log('-------- COLUMN SELECTED -------', col);
@@ -1128,7 +1142,7 @@ export default {
               :key="i"
               :class="filter.color"
             >
-              <span class="label">{{ `"${filter.value}" in ${filter.label}` }}</span>
+              <span class="label">{{ `"${filter.value}" ${ t('sortableTable.in') } ${filter.label}` }}</span>
               <span class="cross" @click="clearAdvancedFilter(i)">&#10005;</span>
               <div class="bg"></div>
             </li>
@@ -1139,7 +1153,7 @@ export default {
           <slot name="header-right" />
           <div v-if="hasAdvancedFiltering" ref="advanced-filter-group" class="advanced-filter-group">
             <button class="btn role-primary" @click="toggleAdvancedFiltering">
-              Add Filter
+              {{ t('sortableTable.addFilter') }}
             </button>
             <div v-show="advancedFilteringVisibility" class="advanced-filter-container">
               <input
@@ -1149,10 +1163,11 @@ export default {
                 class="advanced-search-box"
                 placeholder="Filter for..."
               >
-              <div class="bottom-block">
-                <span>in</span>
+              <div class="middle-block">
+                <span>{{ t('sortableTable.in') }}</span>
                 <LabeledSelect
                   v-model="advFilterSelectedProp"
+                  class="filter-select"
                   :clearable="true"
                   :options="advFilterSelectOptions"
                   :disabled="false"
@@ -1163,8 +1178,20 @@ export default {
                   placeholder="Select a column"
                   @selecting="colSelected"
                 />
-                <button class="btn role-primary" @click="addAdvancedFilter">
-                  Add
+              </div>
+              <div class="bottom-block">
+                <button
+                  class="btn role-secondary"
+                  :disabled="!advancedFilteringValues.length"
+                  @click="clearAllAdvancedFilters"
+                >
+                  {{ t('sortableTable.resetFilters') }}
+                </button>
+                <button
+                  class="btn role-primary"
+                  @click="addAdvancedFilter"
+                >
+                  {{ t('sortableTable.add') }}
                 </button>
               </div>
             </div>
@@ -1240,19 +1267,19 @@ export default {
           </tr>
         </slot>
       </tbody>
-      <tbody v-for="group in displayRows" v-else :key="group.key" :class="{ group: groupBy }">
-        <slot v-if="groupBy" name="group-row" :group="group" :fullColspan="fullColspan">
+      <tbody v-for="groupedRows in displayRows" v-else :key="groupedRows.key" :class="{ group: groupBy }">
+        <slot v-if="groupBy" name="group-row" :group="groupedRows" :fullColspan="fullColspan">
           <tr class="group-row">
             <td :colspan="fullColspan">
-              <slot name="group-by" :group="group.grp">
+              <slot name="group-by" :group="groupedRows.grp">
                 <div v-trim-whitespace class="group-tab">
-                  {{ group.ref }}
+                  {{ groupedRows.ref }}
                 </div>
               </slot>
             </td>
           </tr>
         </slot>
-        <template v-for="(row, i) in group.rows">
+        <template v-for="(row, i) in groupedRows.rows">
           <slot name="main-row" :row="row.row">
             <slot :name="'main-row:' + (row.row.mainRowKey || i)" :full-colspan="fullColspan">
               <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
@@ -1435,9 +1462,12 @@ export default {
     border: 1px solid var(--primary);
     background-color: #FFF;
     padding: 20px;
+    z-index: 2;
 
-    .bottom-block {
-      display: flex; align-items: center; margin-top: 20px;
+    .middle-block {
+      display: flex;
+      align-items: center;
+      margin-top: 20px;
 
       span {
         margin-right: 20px;
@@ -1446,6 +1476,13 @@ export default {
       button {
         margin-left: 20px;
       }
+    }
+
+    .bottom-block {
+      display: flex;
+      align-items: center;
+      margin-top: 40px;
+      justify-content: space-between;
     }
   }
 }
@@ -1457,6 +1494,7 @@ export default {
   list-style: none;
   max-width: 100%;
   flex-wrap: wrap;
+  justify-content: flex-end;
 
   li {
     margin: 0 20px 10px 0;
@@ -1585,12 +1623,16 @@ $separator: 20;
 $remove: 100;
 $spacing: 10px;
 
+.filter-select .vs__selected-options .vs__selected {
+  text-align: left;
+}
+
 .sortable-table {
   border-collapse: collapse;
   min-width: 400px;
   border-radius: 5px 5px 0 0;
   outline: 1px solid var(--border);
-  // overflow: hidden;
+  overflow: hidden;
   background: var(--sortable-table-bg);
   border-radius: 4px;
 
@@ -1785,7 +1827,6 @@ $spacing: 10px;
 
   .bulk {
     grid-area: bulk;
-    margin-top: 1px;
 
     $gap: 10px;
 
