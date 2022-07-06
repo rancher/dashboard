@@ -1,6 +1,7 @@
 import ElementalResource from './elemental-resource';
 import { CAPI } from '@shell/config/types';
-import { ELEMENTAL_CLUSTER_PROVIDER, ELEMENTAL_DEFAULT_NAMESPACE } from '../types';
+import { ELEMENTAL_DEFAULT_NAMESPACE } from '../types';
+import { ELEMENTAL_CLUSTER_PROVIDER } from '@shell/config/elemental-types';
 
 export default class MachineInventory extends ElementalResource {
   constructor() {

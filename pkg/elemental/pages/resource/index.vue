@@ -2,7 +2,8 @@
 import { mapGetters } from 'vuex';
 import ResourceList from '@shell/components/ResourceList/index.vue';
 import Import from '@shell/components/Import';
-import { ELEMENTAL_SCHEMA_IDS, ELEMENTAL_DEFAULT_NAMESPACE } from '../../types';
+import { ELEMENTAL_DEFAULT_NAMESPACE } from '../../types';
+import { ELEMENTAL_SCHEMA_IDS } from '@shell/config/elemental-types';
 
 export default {
   name:       'ListElementalResource',

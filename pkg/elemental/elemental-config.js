@@ -1,4 +1,5 @@
-import { ELEMENTAL_SCHEMA_IDS, ELEMENTAL_PRODUCT_GROUP, ELEMENTAL_TYPES } from './types';
+import { ELEMENTAL_PRODUCT_GROUP, ELEMENTAL_TYPES } from './types';
+import { ELEMENTAL_SCHEMA_IDS } from '@shell/config/elemental-types';
 import { createElementalRoute, rootElementalRoute } from './utils/custom-routing';
 
 export function init($plugin, store) {

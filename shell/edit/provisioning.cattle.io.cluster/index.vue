@@ -20,7 +20,7 @@ import { allHash } from '@shell/utils/promise';
 import { BLANK_CLUSTER } from '@shell/store';
 import Rke2Config from './rke2';
 import Import from './import';
-import { ELEMENTAL_CLUSTER_PROVIDER } from '@pkg/elemental/types';
+import { ELEMENTAL_CLUSTER_PROVIDER } from '@shell/config/elemental-types';
 
 const SORT_GROUPS = {
   template:  1,

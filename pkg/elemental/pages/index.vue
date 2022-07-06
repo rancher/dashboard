@@ -1,5 +1,5 @@
 <script>
-import { ELEMENTAL_SCHEMA_IDS, ELEMENTAL_CLUSTER_PROVIDER } from '../types';
+import { ELEMENTAL_SCHEMA_IDS, ELEMENTAL_CLUSTER_PROVIDER } from '@shell/config/elemental-types';
 import { allHash } from '@shell/utils/promise';
 import { createElementalRoute } from '../utils/custom-routing';
 import { filterForElementalClusters } from '../utils/elemental-utils';

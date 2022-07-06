@@ -1,4 +1,4 @@
-import { KIND } from '../types';
+import { KIND } from '@shell/config/elemental-types';
 
 export function filterForElementalClusters(clusters) {
   return clusters.filter(cluster => cluster.spec?.rkeConfig?.machinePools?.length &&
