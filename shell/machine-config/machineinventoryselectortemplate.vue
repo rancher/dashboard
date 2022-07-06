@@ -2,7 +2,7 @@
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { Banner } from '@components/Banner';
-import { ELEMENTAL_SCHEMA_IDS } from '@pkg/elemental/types';
+import { ELEMENTAL_SCHEMA_IDS } from '@shell/config/elemental-types';
 import { set } from '@shell/utils/object';
 import { convert, matching, simplify } from '@shell/utils/selector';
 import throttle from 'lodash/throttle';
