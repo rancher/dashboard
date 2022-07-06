@@ -35,9 +35,7 @@ export default {
     };
   },
 
-  computed: {
-    dev: mapPref(DEV)
-  },
+  computed: { dev: mapPref(DEV) },
 
   methods: {
     toggleTheme() {
