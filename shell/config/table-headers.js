@@ -278,7 +278,7 @@ export const POD_RESTARTS = {
   delayLoading: true,
   value:        'restartCount',
   getValue:     row => row.restartCount,
-  // This column is expensive to compute, so don't make it searchable 
+  // This column is expensive to compute, so don't make it searchable
   search:       false,
 };
 
@@ -649,7 +649,7 @@ export const WORKLOAD_HEALTH_SCALE = {
   width:        150,
   skipSelect:   true,
   delayLoading: true,
-  // This column is expensive to compute, so don't make it searchable 
+  // This column is expensive to compute, so don't make it searchable
   search:       false,
 };
 
