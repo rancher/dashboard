@@ -115,7 +115,3 @@ export default {
     </div>
   </CruResource>
 </template>
-
-<style lang="scss" scoped>
-
-</style>

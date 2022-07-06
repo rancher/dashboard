@@ -78,6 +78,9 @@ elemental:
         label: OS Image
         placeholder: Enter an OS image name
   machineRegistration:
+    edit:
+      imageSetup: Setting up an OS image
+      imageInstructionsDownload: Download the instructions and machine registration file
     create:
       registrationToken: Registration Token
       registrationURL: 

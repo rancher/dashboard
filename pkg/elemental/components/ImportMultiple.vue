@@ -102,6 +102,7 @@ export default {
           const errorMsg = `${ errors.length } out of ${ response.length } YAML files could not be applied successfully.`;
 
           this.errors = exceptionToErrorsArray(errorMsg);
+          btnCb(false);
         }
 
         this.rows = rows;

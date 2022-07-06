@@ -171,8 +171,8 @@ export default {
       class="row mb-40"
     >
       <div class="col span-12">
-        <h3>Setting up an OS image</h3>
-        <p>Download the instructions and machine registration file <AsyncButton class="ml-10" mode="download" @click="downloadZip" /></p>
+        <h3>{{ t('elemental.machineRegistration.edit.imageSetup') }}</h3>
+        <p>{{ t('elemental.machineRegistration.edit.imageInstructionsDownload') }} <AsyncButton class="ml-10" mode="download" @click="downloadZip" /></p>
       </div>
     </div>
     <div

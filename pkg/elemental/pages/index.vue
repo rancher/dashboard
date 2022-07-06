@@ -48,10 +48,12 @@ export default {
         }
       };
 
-      [ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
+      [
+        ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
         ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
         this.ELEMENTAL_CLUSTERS,
-        ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES].forEach((type) => {
+        ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES
+      ].forEach((type) => {
         const obj = {
           count:    this.resourcesData[type]?.length || 0,
           title:    this.t(`typeLabel."${ type }"`, { count: 2 }),

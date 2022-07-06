@@ -108,7 +108,3 @@ export default {
     </Banner>
   </div>
 </template>
-
-<style lang="scss" scoped>
-
-</style>
