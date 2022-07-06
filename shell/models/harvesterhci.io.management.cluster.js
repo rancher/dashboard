@@ -40,9 +40,8 @@ export default class HciCluster extends ProvCluster {
 
     // Version
     if (!this.cachedHarvesterClusterVersion) {
-      // TODO: RC NOTE - This version needs to match the harvester package.json version
-      // const versionUrl = `/k8s/clusters/${ clusterId }/apis/management.cattle.io/v3/settings/server-version`; // v2.6.3-harvester1
-      const versionUrl = `k8s/clusters/${ clusterId }/v1/harvester/harvesterhci.io.settings/server-version`; // master-08af3d7c-head
+      // TODO: RC remove // const versionUrl = `/k8s/clusters/${ clusterId }/apis/management.cattle.io/v3/settings/server-version`; // For example - v2.6.3-harvester1
+      const versionUrl = `/k8s/clusters/${ clusterId }/v1/harvester/harvesterhci.io.settings/server-version`; // For example - master-08af3d7c-head
       const res = await this.$dispatch('request', { url: versionUrl });
 
       this.cachedHarvesterClusterVersion = res.value;
@@ -52,17 +51,18 @@ export default class HciCluster extends ProvCluster {
     const plugin = 'harvester';
     const packageName = `${ plugin }-${ this.cachedHarvesterClusterVersion }`;
 
-    // Dashboard URL
-    const namespace = 'cattle-system';
-    const serviceName = 'rancher';
+    // Harvester's Dashboard URL
+    const namespace = 'harvester-system'; // TODO: RC Q Harv - Will this always be the case?
+    const serviceName = 'harvester'; // TODO: RC Q Harv - Will this always be the case?
+
     // TODO: RC NOTE this only works for embedded... to ui-dashboard-index
     // harvester settings - ui-index, ui-source (`bundled` `auto`, `external`)
     // dashboard settings - ui-dashboard-index, ui-offline-preferred ('false', 'dynamic', 'true')
-    const dashboardUrl = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }/${ SERVICE }s/http:${ serviceName }:80/proxy/dashboard`;
+    const dashboardUrl = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }/${ SERVICE }s/https:${ serviceName }:8443/proxy/dashboard`;
 
     // Package URL
     const fileName = `${ packageName }.umd.min.js`;
-    const pkgUrl = `${ dashboardUrl }/${ fileName }`;
+    const pkgUrl = `${ dashboardUrl }/${ packageName }/${ fileName }`;
 
     return {
       pkgUrl,
@@ -71,12 +71,14 @@ export default class HciCluster extends ProvCluster {
   }
 
   async loadClusterPlugin() {
-    const res = await this._pkgDetails();
+    const { pkgUrl, packageName } = await this._pkgDetails();
+
+    console.warn('Harvester package details: ', packageName, pkgUrl);
 
     // TODO: RC
-    console.warn('Harvester package details: ', res.packageName, res.pkgUrl);
-    const pkgUrl = 'http://127.0.0.1:4500/harvester-0.3.0/harvester-0.3.0.umd.min.js';
-    const packageName = 'harvester-0.3.0';
+    // console.warn('Harvester package details: ', res.packageName, res.pkgUrl);
+    // const pkgUrl = 'http://127.0.0.1:4500/harvester-0.3.0/harvester-0.4.0.umd.min.js';
+    // const packageName = 'harvester-0.4.0';
 
     // TODO: RC NOTE Dashboard upgrade brings in these changes. What happens to existing harvester clusters that won't have pkg, will they be upgraded at same time?
     // TODO: RC NOTE How to include the built harvester in the dashboard build
@@ -85,8 +87,24 @@ export default class HciCluster extends ProvCluster {
     const loadedPkgs = Object.keys(this.$rootState.$plugin.getPlugins());
 
     if (!loadedPkgs.includes(packageName)) {
+      console.info('Attempting to load harvester plugin', packageName, pkgUrl);
+
       return await this.$rootState.$plugin.loadAsync(packageName, pkgUrl);
     }
+  }
+
+  async standaloneUrl() {
+    // TODO: RC - How to get url? Always have ingress? This isn't really going to work...
+    const clusterId = this.mgmt.id;
+    const ingressUrl = `/k8s/clusters/${ clusterId }/v1/networking.k8s.io.ingresses/cattle-system/rancher`;
+    const res = await this.$dispatch('request', { url: ingressUrl });
+    const link = res?.spec?.rules?.[0].host;
+
+    if (!link) {
+      throw new Error('Unable to find host within ingress rule');
+    }
+
+    return `https://${ link }`;
   }
 
   goToCluster() {
@@ -97,18 +115,29 @@ export default class HciCluster extends ProvCluster {
           params: {
             cluster:  this.status.clusterName,
             product:  VIRTUAL,
-            resource: 'harvesterhci.io.dashboard' // Avoid blips of components on screen
+            resource: 'harvesterhci.io.dashboard' // Go directly to dashboard to avoid blip of components on screen
           }
         });
       })
       .catch((err) => {
         const message = typeof error === 'object' ? JSON.stringify(err) : err;
 
-        this.$dispatch('growl/error', {
-          title:   this.t('harvesterManager.plugins.loadError'),
-          message,
-          timeout: 5000
-        }, { root: true });
+        console.error('Failed to loading harvester package: ', message);
+
+        this.standaloneUrl()
+          .then((url) => {
+            window.open(url, '_blank');
+          }).catch((err) => {
+            const urlMessage = typeof error === 'object' ? JSON.stringify(err) : err;
+
+            console.error('Failed to determine standalone harvester url: ', urlMessage);
+
+            this.$dispatch('growl/error', {
+              title:   this.t('harvesterManager.plugins.loadError'),
+              message,
+              timeout: 5000
+            }, { root: true });
+          });
       });
   }
 }

@@ -4,7 +4,7 @@ import { DSL } from '@shell/store/type-map';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@shell/config/table-headers';
 import { allHash } from '@shell/utils/promise';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
-import { BLANK_CLUSTER } from '~/shell/store';
+import { BLANK_CLUSTER } from '@shell/store';
 
 dynamicPluginLoader.register({
   load: async({ route, store }) => {
@@ -36,9 +36,23 @@ dynamicPluginLoader.register({
         });
 
         if (harvCluster) {
+          // TODO: RC do we need to handle this use case? when is the user nav'ing to an emebbed harvester page?
+
+          // try {
           await harvCluster.loadClusterPlugin();
 
           return route;
+          // } catch (err) {
+          //   // TODO: RC do we need to handle this use case? when is the user nav'ing to an emebbed harvester page?
+          //   const message = typeof error === 'object' ? JSON.stringify(err) : err;
+
+          //   console.error('Failed to loading harvester package: ', message);
+          //   // https://localhost:8005/harvester/c/c-m-h6gkksqj/kubevirt.io.virtualmachine
+
+          //   const url = harvCluster.standaloneUrl();
+
+          //   return { fullpath: url };
+          // }
         }
       }
     }
