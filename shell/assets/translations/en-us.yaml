@@ -3560,6 +3560,7 @@ prefs:
     emacs: 'Emacs'
     vim: 'Vim'
   advanced: Advanced
+  advancedTooltip: Enables 'View in API' option and keyboard shortcut to toggle light or dark theme (shift+t)
   dev:
     label: Enable Developer Tools & Features
   hideDesc:

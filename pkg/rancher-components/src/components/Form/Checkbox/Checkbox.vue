@@ -237,9 +237,10 @@ $fontColor: var(--input-label);
   flex-direction: column;
   &-description {
     color: $fontColor;
-    font-size: 11px;
-    margin-left: 20px;
+    font-size: 14px;
+    margin-left: 19px;
     margin-top: 5px;
+    opacity: 0.8;
   }
 }
 
