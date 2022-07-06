@@ -21,9 +21,6 @@ const elementalFactory = (): CoreStoreSpecifics => {
 };
 const config: CoreStoreConfig = { namespace: ELEMENTAL_STORE };
 
-/**
- * `epiniomgmt` store contains resources that aren't epinio instance specific, for example the list of epinio instances
- */
 export default {
   specifics: elementalFactory(),
   config
