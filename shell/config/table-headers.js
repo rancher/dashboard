@@ -151,6 +151,7 @@ export const NODE = {
   name:          'node',
   labelKey:      'tableHeaders.node',
   value:         'spec.nodeName',
+  getValue:      row => row.spec?.nodeName,
   sort:          'spec.nodeName',
   formatter:     'LinkName',
   formatterOpts: { type: NODE_TYPE },
@@ -161,6 +162,7 @@ export const NODE_NAME = {
   labelKey:  'tableHeaders.nodeName',
   sort:      'name',
   value:     'name',
+  getValue:  row => row.name,
   formatter: 'LinkDetail',
 };
 
@@ -265,7 +267,7 @@ export const POD_IMAGES = {
   value:     'imageNames',
   getValue:  row => row.imageNames,
   sort:      'imageNames',
-  search:    'imageNames',
+  // search:    'imageNames',
   formatter: 'PodImages'
 };
 
@@ -276,6 +278,8 @@ export const POD_RESTARTS = {
   delayLoading: true,
   value:        'restartCount',
   getValue:     row => row.restartCount,
+  // This column is expensive to compute, so don't make it searchable
+  search:       false,
 };
 
 export const ENDPOINTS = {
@@ -645,6 +649,8 @@ export const WORKLOAD_HEALTH_SCALE = {
   width:        150,
   skipSelect:   true,
   delayLoading: true,
+  // This column is expensive to compute, so don't make it searchable
+  search:       false,
 };
 
 export const FLEET_SUMMARY = {
