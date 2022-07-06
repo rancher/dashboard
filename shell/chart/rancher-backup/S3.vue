@@ -55,6 +55,7 @@ export default {
 
         this.$set(this.value, 'endpointCA', encoded);
       } catch (e) {
+        // eslint-disable-next-line no-console
         console.warn(e);
       }
     }
