@@ -9,7 +9,7 @@ import actions from './actions';
 const elementalFactory = (): CoreStoreSpecifics => {
   return {
     state() {
-      return { someElementalState: true };
+      return { createClusterElements: [] };
     },
 
     getters: { ...getters },

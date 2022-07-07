@@ -29,6 +29,25 @@ export default {
       };
     }
 
+    // TODO: this should only run if Elemental is installed... maybe prevent the display of Elemental type in cluster create selection screen if
+    // helm chart is not installed
+    const prePopulatedClusterElements = this.$store.getters['elemental/createClusterElements'];
+
+    // pre-populate the selectors if we come from the create cluster action on machine inventories list
+    if (prePopulatedClusterElements.length) {
+      this.value.spec.template.spec.selector.matchExpressions.push({
+        key:      'create-cluster-selector',
+        operator: 'In',
+        values:   [prePopulatedClusterElements[0].metadata.labels['create-cluster-selector']],
+      });
+
+      this.value.spec.template.spec.selector.matchLabels = {};
+      this.value.spec.template.spec.selector.matchLabels['create-cluster-selector'] = prePopulatedClusterElements[0].metadata.labels['create-cluster-selector'];
+
+      // cleanup so that it doesn't get reused inadvertedly
+      this.$store.dispatch('elemental/updateCreateClusterElements', []);
+    }
+
     const expressions = convert(
       this.value.spec.template.spec.selector.matchLabels || {},
       this.value.spec.template.spec.selector.matchExpressions || []
