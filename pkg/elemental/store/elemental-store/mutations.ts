@@ -1,6 +1,6 @@
 export default {
-  someElementalStateChanged(state: any, someVal: any) {
-    state.someElementalState = someVal;
+  updateCreateClusterElements(state: any, val: any) {
+    state.createClusterElements = val;
   },
 
 };
