@@ -36,7 +36,7 @@ export default {
       }
 
       return (
-        get(this.authConfig, `annotations."${ AZURE_MIGRATED }"`) !== true &&
+        get(this.authConfig, `annotations."${ AZURE_MIGRATED }"`) !== 'true' &&
         this.authConfig.enabled
       );
     }
