@@ -629,10 +629,11 @@ export default {
       <div class="wm">
         <WindowManager />
       </div>
-      <main v-if="!clusterId">
-        <!-- Always ensure there's an outlet to cover 404 cases get directed to error page -->
-        <nuxt class="outlet" />
-      </main>
+      <!-- TODO: RC  this causes errors when page is displayed before cluster is ready-->
+      <!-- <main v-if="!validRoute">-->
+      <!-- Always ensure there's an outlet to cover 404 cases get directed to error page -->
+      <!--<nuxt class="outlet" />
+      </main> -->
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />

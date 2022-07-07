@@ -36,23 +36,17 @@ dynamicPluginLoader.register({
         });
 
         if (harvCluster) {
-          // TODO: RC do we need to handle this use case? when is the user nav'ing to an emebbed harvester page?
+          try {
+            await harvCluster.loadClusterPlugin();
 
-          // try {
-          await harvCluster.loadClusterPlugin();
+            return route;
+          } catch (err) {
+            // If we've failed to load the harvester plugin nav to the harvester cluster list (probably got here from a bookmarked
+            // harvester instance that hasn't been updated to serve a plugin)
+            console.error('Failed to load harvester package: ', typeof error === 'object' ? JSON.stringify(err) : err);
 
-          return route;
-          // } catch (err) {
-          //   // TODO: RC do we need to handle this use case? when is the user nav'ing to an emebbed harvester page?
-          //   const message = typeof error === 'object' ? JSON.stringify(err) : err;
-
-          //   console.error('Failed to loading harvester package: ', message);
-          //   // https://localhost:8005/harvester/c/c-m-h6gkksqj/kubevirt.io.virtualmachine
-
-          //   const url = harvCluster.standaloneUrl();
-
-          //   return { fullpath: url };
-          // }
+            return harvesterClustersLocation;
+          }
         }
       }
     }
@@ -73,6 +67,15 @@ const MACHINE_POOLS = {
   width:     100,
 };
 
+const harvesterClustersLocation = {
+  name:   'c-cluster-product-resource',
+  params: {
+    cluster:  BLANK_CLUSTER,
+    product:  NAME,
+    resource: HCI.CLUSTER
+  }
+};
+
 export function init(store) {
   const {
     product,
@@ -90,14 +93,7 @@ export function init(store) {
     removable:           false,
     showClusterSwitcher: false,
     weight:              100,
-    to:                   {
-      name:   'c-cluster-product-resource',
-      params: {
-        cluster:  BLANK_CLUSTER,
-        product:  NAME,
-        resource: HCI.CLUSTER
-      }
-    },
+    to:                  harvesterClustersLocation,
   });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });

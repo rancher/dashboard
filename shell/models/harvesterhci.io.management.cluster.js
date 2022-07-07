@@ -41,7 +41,7 @@ export default class HciCluster extends ProvCluster {
     // Version
     if (!this.cachedHarvesterClusterVersion) {
       // TODO: RC remove // const versionUrl = `/k8s/clusters/${ clusterId }/apis/management.cattle.io/v3/settings/server-version`; // For example - v2.6.3-harvester1
-      const versionUrl = `/k8s/clusters/${ clusterId }/v1/harvester/harvesterhci.io.settings/server-version`; // For example - master-08af3d7c-head
+      const versionUrl = `/k8s/clusters/${ clusterId }/v1/harvester/harvesterhci.io.settings/server-version`; // For example - master-08af3d7c-head TODO: RC
       const res = await this.$dispatch('request', { url: versionUrl });
 
       this.cachedHarvesterClusterVersion = res.value;
@@ -76,9 +76,8 @@ export default class HciCluster extends ProvCluster {
     console.warn('Harvester package details: ', packageName, pkgUrl);
 
     // TODO: RC
-    // console.warn('Harvester package details: ', res.packageName, res.pkgUrl);
-    // const pkgUrl = 'http://127.0.0.1:4500/harvester-0.3.0/harvester-0.4.0.umd.min.js';
-    // const packageName = 'harvester-0.4.0';
+    // const pkgUrl = 'http://127.0.0.1:4500/harvester-0.5.0/harvester-0.5.0.umd.min.js';
+    // const packageName = 'harvester-0.5.0';
 
     // TODO: RC NOTE Dashboard upgrade brings in these changes. What happens to existing harvester clusters that won't have pkg, will they be upgraded at same time?
     // TODO: RC NOTE How to include the built harvester in the dashboard build
@@ -94,7 +93,7 @@ export default class HciCluster extends ProvCluster {
   }
 
   async standaloneUrl() {
-    // TODO: RC - How to get url? Always have ingress? This isn't really going to work...
+    // TODO: RC - NOTE - Q harv How to get url? Always have ingress? This isn't really going to work...
     const clusterId = this.mgmt.id;
     const ingressUrl = `/k8s/clusters/${ clusterId }/v1/networking.k8s.io.ingresses/cattle-system/rancher`;
     const res = await this.$dispatch('request', { url: ingressUrl });
@@ -122,8 +121,9 @@ export default class HciCluster extends ProvCluster {
       .catch((err) => {
         const message = typeof error === 'object' ? JSON.stringify(err) : err;
 
-        console.error('Failed to loading harvester package: ', message);
+        console.error('Failed to load harvester package: ', message);
 
+        // We cannot load a plugin for this harvester instance, fall back on opening their standalone UI in a different tab
         this.standaloneUrl()
           .then((url) => {
             window.open(url, '_blank');

@@ -315,7 +315,11 @@ export default async function({
       const newLocation = await dynamicPluginLoader.check({ route, store });
 
       if (newLocation) {
-        return redirect({ fullPath: newLocation.fullPath });
+        // Note - don't use redirect (different behaviour between
+        // 1) use dashboard to nav to page & refresh browser
+        // 2) refresh browser
+        // 3) enter url directly in browser
+        return store.app.router.push(newLocation);
       }
     } else if (product === VIRTUAL || route.name === `${ VIRTUAL }-c-cluster` || route.name?.startsWith(`${ VIRTUAL }-c-cluster-`)) {
       const res = [
