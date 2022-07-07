@@ -1,5 +1,5 @@
 <script>
-import HarvesterIpAddress from '../../../components/formatter/HarvesterIpAddress';
+import HarvesterIpAddress from '@shell/components/formatter/HarvesterIpAddress';
 import VMConsoleBar from '../../../components/VMConsoleBar';
 import LabelValue from '@shell/components/LabelValue';
 import InputOrDisplay from '@shell/components/InputOrDisplay';
@@ -34,8 +34,8 @@ export default {
     },
     mode: {
       type:     String,
-      required: true,
-    },
+      required: true
+    }
   },
 
   computed: {
@@ -46,7 +46,8 @@ export default {
         return UNDEFINED;
       }
 
-      return `${ date.getMonth() + 1 }/${ date.getDate() }/${ date.getUTCFullYear() }`;
+      return `${ date.getMonth() +
+        1 }/${ date.getDate() }/${ date.getUTCFullYear() }`;
     },
 
     node() {
@@ -54,13 +55,16 @@ export default {
     },
 
     hostname() {
-      return this.resource?.spec?.hostname || this.resource?.status?.guestOSInfo?.hostname;
+      return (
+        this.resource?.spec?.hostname ||
+        this.resource?.status?.guestOSInfo?.hostname
+      );
     },
 
     imageName() {
       const imageList = this.$store.getters['harvester/all'](HCI.IMAGE) || [];
 
-      const image = imageList.find( (I) => {
+      const image = imageList.find((I) => {
         return this.value.rootImageId === I.id;
       });
 
@@ -68,21 +72,25 @@ export default {
     },
 
     disks() {
-      const disks = this.value?.spec?.template?.spec?.domain?.devices?.disks || [];
+      const disks =
+        this.value?.spec?.template?.spec?.domain?.devices?.disks || [];
 
-      return disks.filter((disk) => {
-        return !!disk.bootOrder;
-      }).sort((a, b) => {
-        if (a.bootOrder < b.bootOrder) {
-          return -1;
-        }
+      return disks
+        .filter((disk) => {
+          return !!disk.bootOrder;
+        })
+        .sort((a, b) => {
+          if (a.bootOrder < b.bootOrder) {
+            return -1;
+          }
 
-        return 1;
-      });
+          return 1;
+        });
     },
 
     cdroms() {
-      const disks = this.value?.spec?.template?.spec?.domain?.devices?.disks || [];
+      const disks =
+        this.value?.spec?.template?.spec?.domain?.devices?.disks || [];
 
       return disks.filter((disk) => {
         return !!disk.cdrom;
@@ -92,7 +100,9 @@ export default {
     flavor() {
       const domain = this.value?.spec?.template?.spec?.domain;
 
-      return `${ domain.cpu?.cores } vCPU , ${ domain.resources?.limits?.memory } ${ this.t('harvester.virtualMachine.input.memory') }`;
+      return `${ domain.cpu?.cores } vCPU , ${
+        domain.resources?.limits?.memory
+      } ${ this.t('harvester.virtualMachine.input.memory') }`;
     },
 
     kernelRelease() {
@@ -108,7 +118,9 @@ export default {
     },
 
     machineType() {
-      return this.value?.spec?.template?.spec?.domain?.machine?.type || undefined;
+      return (
+        this.value?.spec?.template?.spec?.domain?.machine?.type || undefined
+      );
     }
   },
 
@@ -131,11 +143,15 @@ export default {
   <div class="overview-basics">
     <div class="row">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.name')" :value="value.nameDisplay">
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.name')"
+          :value="value.nameDisplay"
+        >
           <template #value>
             <div class="smart-row">
               <div class="console">
-                {{ value.nameDisplay }} <VMConsoleBar :resource="value" class="consoleBut" />
+                {{ value.nameDisplay }}
+                <VMConsoleBar :resource="value" class="consoleBut" />
               </div>
             </div>
           </template>
@@ -149,26 +165,35 @@ export default {
 
     <div class="row">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.hostname')" :value="hostname">
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.hostname')"
+          :value="hostname"
+        >
           <template #value>
             <div v-if="!isDown">
-              {{ hostname || t("harvester.virtualMachine.detail.GuestAgentNotInstalled") }}
+              {{
+                hostname ||
+                  t('harvester.virtualMachine.detail.GuestAgentNotInstalled')
+              }}
             </div>
             <div v-else>
-              {{ t("harvester.virtualMachine.detail.details.down") }}
+              {{ t('harvester.virtualMachine.detail.details.down') }}
             </div>
           </template>
         </LabelValue>
       </div>
 
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.node')" :value="node">
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.node')"
+          :value="node"
+        >
           <template #value>
             <div v-if="!isDown">
               {{ node }}
             </div>
             <div v-else>
-              {{ t("harvester.virtualMachine.detail.details.down") }}
+              {{ t('harvester.virtualMachine.detail.details.down') }}
             </div>
           </template>
         </LabelValue>
@@ -177,7 +202,9 @@ export default {
 
     <div class="row">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.ipAddress')">
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.ipAddress')"
+        >
           <template #value>
             <HarvesterIpAddress v-model="value.id" :row="value" />
           </template>
@@ -185,7 +212,10 @@ export default {
       </div>
 
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.created')" :value="creationTimestamp" />
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.created')"
+          :value="creationTimestamp"
+        />
       </div>
     </div>
 
@@ -195,27 +225,37 @@ export default {
 
     <div class="row">
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.virtualMachine.detail.details.bootOrder')" :value="disks" :mode="mode">
+        <InputOrDisplay
+          :name="t('harvester.virtualMachine.detail.details.bootOrder')"
+          :value="disks"
+          :mode="mode"
+        >
           <template #value>
             <ul>
-              <li v-for="(disk) in disks" :key="disk.bootOrder">
-                {{ disk.bootOrder }}. {{ disk.name }} ({{ getDeviceType(disk) }})
+              <li v-for="disk in disks" :key="disk.bootOrder">
+                {{ disk.bootOrder }}. {{ disk.name }} ({{
+                  getDeviceType(disk)
+                }})
               </li>
             </ul>
           </template>
         </InputOrDisplay>
       </div>
       <div class="col span-6">
-        <InputOrDisplay :name="t('harvester.virtualMachine.detail.details.CDROMs')" :value="cdroms" :mode="mode">
+        <InputOrDisplay
+          :name="t('harvester.virtualMachine.detail.details.CDROMs')"
+          :value="cdroms"
+          :mode="mode"
+        >
           <template #value>
             <div>
               <ul v-if="cdroms.length > 0">
-                <li v-for="(rom) in cdroms" :key="rom.name">
+                <li v-for="rom in cdroms" :key="rom.name">
                   {{ rom.name }}
                 </li>
               </ul>
               <span v-else>
-                {{ t("harvester.virtualMachine.detail.notAvailable") }}
+                {{ t('harvester.virtualMachine.detail.notAvailable') }}
               </span>
             </div>
           </template>
@@ -224,56 +264,74 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.operatingSystem')" :value="operatingSystem || t('harvester.virtualMachine.detail.GuestAgentNotInstalled')" />
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.operatingSystem')"
+          :value="
+            operatingSystem ||
+              t('harvester.virtualMachine.detail.GuestAgentNotInstalled')
+          "
+        />
       </div>
-      <LabelValue :name="t('harvester.virtualMachine.detail.details.flavor')" :value="flavor" />
+      <LabelValue
+        :name="t('harvester.virtualMachine.detail.details.flavor')"
+        :value="flavor"
+      />
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.kernelRelease')" :value="kernelRelease || t('harvester.virtualMachine.detail.GuestAgentNotInstalled')" />
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.kernelRelease')"
+          :value="
+            kernelRelease ||
+              t('harvester.virtualMachine.detail.GuestAgentNotInstalled')
+          "
+        />
       </div>
 
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.input.MachineType')" :value="machineType" />
+        <LabelValue
+          :name="t('harvester.virtualMachine.input.MachineType')"
+          :value="machineType"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  .consoleBut {
-    position: relative;
-    top: -20px;
-    left: 38px;
+.consoleBut {
+  position: relative;
+  top: -20px;
+  left: 38px;
+}
+
+.overview-basics {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: auto;
+  grid-row-gap: 15px;
+
+  .badge-state {
+    padding: 2px 5px;
+    font-size: 12px;
+    margin-right: 3px;
   }
 
-  .overview-basics {
-    display: grid;
-    grid-template-columns: 100%;
-    grid-template-rows: auto;
-    grid-row-gap: 15px;
+  .smart-row {
+    display: flex;
+    flex-direction: row;
 
-    .badge-state {
-      padding: 2px 5px;
-      font-size: 12px;
-      margin-right: 3px;
-    }
-
-    .smart-row {
+    .console {
       display: flex;
-      flex-direction: row;
-
-      .console {
-        display: flex;
-      }
-    }
-
-    &__name {
-      flex: 1;
-    }
-
-    &__ssh-key {
-      min-width: 150px;
     }
   }
+
+  &__name {
+    flex: 1;
+  }
+
+  &__ssh-key {
+    min-width: 150px;
+  }
+}
 </style>

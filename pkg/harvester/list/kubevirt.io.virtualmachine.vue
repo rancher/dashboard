@@ -2,7 +2,7 @@
 import ConsoleBar from '../components/VMConsoleBar';
 import ResourceTable from '@shell/components/ResourceTable';
 import LinkDetail from '@shell/components/formatter/LinkDetail';
-import HarvesterVmState from '../components/formatter/HarvesterVmState';
+import HarvesterVmState from '@shell/components/formatter/HarvesterVmState';
 
 import { STATE, AGE, NAME, NAMESPACE } from '@shell/config/table-headers';
 import { HCI, NODE, POD } from '@shell/config/types';
@@ -23,15 +23,15 @@ export default {
   props: {
     schema: {
       type:     Object,
-      required: true,
-    },
+      required: true
+    }
   },
 
   async fetch() {
     const _hash = {
-      vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
-      pod:               this.$store.dispatch('harvester/findAll', { type: POD }),
-      restore:           this.$store.dispatch('harvester/findAll', { type: HCI.RESTORE }),
+      vms:     this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      pod:     this.$store.dispatch('harvester/findAll', { type: POD }),
+      restore: this.$store.dispatch('harvester/findAll', { type: HCI.RESTORE })
     };
 
     if (this.$store.getters['harvester/schemaFor'](NODE)) {
@@ -69,7 +69,7 @@ export default {
         STATE,
         {
           ...NAME,
-          width: 300,
+          width: 300
         },
         NAMESPACE,
         {
@@ -78,7 +78,7 @@ export default {
           sort:        ['spec.template.spec.domain.cpu.cores'],
           value:       'spec.template.spec.domain.cpu.cores',
           align:       'center',
-          dashIfEmpty: true,
+          dashIfEmpty: true
         },
         {
           name:          'Memory',
@@ -89,10 +89,14 @@ export default {
           formatter:     'Si',
           formatterOpts: {
             opts: {
-              increment: 1024, addSuffix: true, maxExponent: 3, minExponent: 3, suffix: 'i',
+              increment:   1024,
+              addSuffix:   true,
+              maxExponent: 3,
+              minExponent: 3,
+              suffix:      'i'
             },
             needParseSi: true
-          },
+          }
         },
         {
           name:      'ip',
@@ -111,13 +115,15 @@ export default {
         },
         {
           ...AGE,
-          sort: 'metadata.creationTimestamp:desc',
+          sort: 'metadata.creationTimestamp:desc'
         }
       ];
     },
 
     rows() {
-      const matchVMIs = this.allVMIs.filter(VMI => !this.allVMs.find(VM => VM.id === VMI.id));
+      const matchVMIs = this.allVMIs.filter(
+        VMI => !this.allVMs.find(VM => VM.id === VMI.id)
+      );
 
       return [...this.allVMs, ...matchVMIs];
     }
@@ -148,13 +154,22 @@ export default {
     >
       <template slot="cell:state" slot-scope="scope" class="state-col">
         <div class="state">
-          <HarvesterVmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetworks" :all-cluster-network="allClusterNetworks" />
+          <HarvesterVmState
+            class="vmstate"
+            :row="scope.row"
+            :all-node-network="allNodeNetworks"
+            :all-cluster-network="allClusterNetworks"
+          />
         </div>
       </template>
 
       <template slot="cell:name" slot-scope="scope">
         <div class="name-console">
-          <LinkDetail v-if="scope.row.type !== HCI.VMI" v-model="scope.row.metadata.name" :row="scope.row" />
+          <LinkDetail
+            v-if="scope.row.type !== HCI.VMI"
+            v-model="scope.row.metadata.name"
+            :row="scope.row"
+          />
           <span v-else>
             {{ scope.row.metadata.name }}
           </span>
@@ -182,11 +197,11 @@ export default {
 
   span {
     line-height: 26px;
-    width:160px;
-    overflow:hidden;
+    width: 160px;
+    overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    -o-text-overflow:ellipsis;
+    -o-text-overflow: ellipsis;
   }
 
 }

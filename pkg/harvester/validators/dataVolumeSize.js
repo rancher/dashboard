@@ -1,6 +1,6 @@
 import { formatSi, parseSi } from '@shell/utils/units';
 
-export function dataVolumeSize(storage, getters, errors, validatorArgs) {
+export default function dataVolumeSize(storage, getters, errors, validatorArgs) {
   const t = getters['i18n/t'];
 
   if (!storage || storage === '') {

@@ -6,16 +6,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-<<<<<<< HEAD
-
-import Volume from '../components/VirtualMachineVolume';
-import Network from '../components/VirtualMachineNetwork';
-import CpuMemory from '../components/VirtualMachineCpuMemory';
-import CloudConfig from '../components/VirtualMachineCloudConfig';
-import SSHKey from '../components/VirtualMachineSSHKey';
-=======
 import UnitInput from '@shell/components/form/UnitInput';
->>>>>>> Revert "remove nested edit views"
 import NodeScheduling from '@shell/components/form/NodeScheduling';
 import Reserved from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineReserved';
 
