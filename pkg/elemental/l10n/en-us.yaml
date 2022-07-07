@@ -66,7 +66,6 @@ elemental:
   osimage:
     create:
       configuration: Configuration
-      createCluster: Create Elemental Cluster
       spec: Spec
       name:
         label: Name
@@ -103,4 +102,5 @@ elemental:
           other {Matches {matched, number} of {total, number} existing Machine Inventories, including "{sample}"}
         }
   machineInventory:
+    createCluster: Create Elemental Cluster
     import: YAML import

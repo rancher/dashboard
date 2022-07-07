@@ -2,6 +2,7 @@ import ElementalResource from './elemental-resource';
 import { CAPI } from '@shell/config/types';
 import { ELEMENTAL_DEFAULT_NAMESPACE } from '../types';
 import { ELEMENTAL_CLUSTER_PROVIDER, ELEMENTAL_SCHEMA_IDS } from '@shell/config/elemental-types';
+import { randomStr } from '@shell/utils/string';
 
 export default class MachineInventory extends ElementalResource {
   constructor() {
@@ -24,7 +25,7 @@ export default class MachineInventory extends ElementalResource {
       out.push({
         action:     'createCluster',
         bulkAction: 'createCluster',
-        label:      this.t('elemental.osimage.create.createCluster'),
+        label:      this.t('elemental.machineInventory.createCluster'),
         enabled:    true,
         bulkable:   true
       });
@@ -39,14 +40,33 @@ export default class MachineInventory extends ElementalResource {
     return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
   }
 
-  createCluster() {
-    this.currentRouter().push({
-      name:   'c-cluster-product-resource-create',
-      params: {
-        resource: CAPI.RANCHER_CLUSTER,
-        product:  'manager',
-      },
-      query: { type: ELEMENTAL_CLUSTER_PROVIDER }
+  createCluster(createClusterElements) {
+    const skippedElements = [];
+    const promises = [];
+    const randomId = randomStr(24);
+
+    createClusterElements.forEach((item) => {
+      item.setLabel('create-cluster-selector', randomId);
+      promises.push(item.save());
+    });
+
+    Promise.all(promises).then((res) => {
+      const allElements = skippedElements.concat(res);
+
+      console.log('allElements with update', allElements);
+      this.$dispatch('elemental/updateCreateClusterElements', allElements, { root: true });
+
+      this.currentRouter().push({
+        name:   'c-cluster-product-resource-create',
+        params: {
+          resource: CAPI.RANCHER_CLUSTER,
+          product:  'manager',
+        },
+        query: { type: ELEMENTAL_CLUSTER_PROVIDER }
+      });
+    }, (err) => {
+      // TODO: handle error....
+      console.log('err', err);
     });
   }
 

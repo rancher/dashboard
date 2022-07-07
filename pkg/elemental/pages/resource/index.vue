@@ -17,7 +17,7 @@ export default {
   data() {
     return { ELEMENTAL_DEFAULT_NAMESPACE };
   },
-  computed:   {
+  computed: {
     ...mapGetters(['currentCluster']),
     isMachineInv() {
       return this.$route.params.resource === ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES;
@@ -26,7 +26,7 @@ export default {
       return !!this.currentCluster?.actions?.apply;
     },
   },
-  methods:    {
+  methods: {
     openImport() {
       this.$modal.show('importMachineInvModal');
     },
