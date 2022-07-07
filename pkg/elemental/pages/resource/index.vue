@@ -8,6 +8,12 @@ import { ELEMENTAL_SCHEMA_IDS } from '@shell/config/elemental-types';
 export default {
   name:       'ListElementalResource',
   components: { ResourceList, Import },
+  async fetch() {
+    // needed to populate cluster name col on machine inventories list
+    if (this.isMachineInv) {
+      await this.$store.dispatch(`management/findAll`, { type: ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR });
+    }
+  },
   data() {
     return { ELEMENTAL_DEFAULT_NAMESPACE };
   },

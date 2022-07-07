@@ -1,10 +1,11 @@
 import { ELEMENTAL_PRODUCT_GROUP, ELEMENTAL_TYPES } from './types';
 import { ELEMENTAL_SCHEMA_IDS } from '@shell/config/elemental-types';
 import { createElementalRoute, rootElementalRoute } from './utils/custom-routing';
+import { STATE, NAME as NAME_COL, AGE, NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
 
 export function init($plugin, store) {
   const {
-    product, virtualType, basicType, configureType, weightType
+    product, virtualType, basicType, configureType, weightType, headers
   } = $plugin.DSL(store, $plugin.name);
 
   // app in sidebar
@@ -47,6 +48,20 @@ export function init($plugin, store) {
     customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES })
   });
 
+  headers(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, [
+    STATE,
+    NAME_COL,
+    {
+      name:          'Cluster',
+      labelKey:      'tableHeaders.cluster',
+      value:         'clusterName',
+      getValue:      row => row.clusterName,
+      sort:          ['clusterName']
+    },
+    NAMESPACE_COL,
+    AGE
+  ]);
+
   weightType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, 7, true);
   configureType(ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES, {
     isCreatable: true,
@@ -57,7 +72,6 @@ export function init($plugin, store) {
   });
 
   // advanced tab
-
   weightType(ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR, 10, true);
   configureType(ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR, {
     isCreatable: true,
@@ -97,7 +111,6 @@ export function init($plugin, store) {
     ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
     ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
     ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES,
-
   ]);
 
   basicType([
