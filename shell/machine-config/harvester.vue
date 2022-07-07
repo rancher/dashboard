@@ -11,19 +11,28 @@ import { Banner } from '@components/Banner';
 import { get } from '@shell/utils/object';
 import { mapGetters } from 'vuex';
 import {
-  HCI, NAMESPACE, MANAGEMENT, CONFIG_MAP, NORMAN
+  HCI,
+  NAMESPACE,
+  MANAGEMENT,
+  CONFIG_MAP,
+  NORMAN
 } from '@shell/config/types';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { allHashSettled } from '@shell/utils/promise';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { isReady } from '../models/harvesterhci.io.virtualmachineimage';
+import { isReady } from '../../pkg/harvester/models/harvesterhci.io.virtualmachineimage';
 
 export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-    Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor
+    Loading,
+    LabeledSelect,
+    LabeledInput,
+    UnitInput,
+    Banner,
+    YamlEditor
   },
 
   mixins: [CreateEditView],
@@ -31,12 +40,12 @@ export default {
   props: {
     credentialId: {
       type:     String,
-      required: true,
+      required: true
     },
 
     uuid: {
       type:     String,
-      required: true,
+      required: true
     },
 
     disabled: {
@@ -46,47 +55,55 @@ export default {
 
     poolIndex: {
       type:     Number,
-      required: true,
+      required: true
     },
 
     machinePools: {
       type:    Array,
       default: () => []
-    },
+    }
   },
 
   async fetch() {
     this.errors = [];
 
     try {
-      this.credential = await this.$store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: this.credentialId });
+      this.credential = await this.$store.dispatch('rancher/find', {
+        type: NORMAN.CLOUD_CREDENTIAL,
+        id:   this.credentialId
+      });
       const clusterId = get(this.credential, 'decodedData.clusterId');
 
       const url = `/k8s/clusters/${ clusterId }/v1`;
 
-      const isImportCluster = this.credential.decodedData.clusterType === 'imported';
+      const isImportCluster =
+        this.credential.decodedData.clusterType === 'imported';
 
       this.isImportCluster = isImportCluster;
 
       if (clusterId && isImportCluster) {
         const res = await allHashSettled({
-          namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
-          images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
-          configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
-          networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
+          namespaces: this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
+          images:     this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
+          configMaps: this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
+          networks:   this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` })
         });
 
-        for ( const key of Object.keys(res) ) {
+        for (const key of Object.keys(res)) {
           const obj = res[key];
 
-          if ( obj.status === 'rejected' ) {
+          if (obj.status === 'rejected') {
             this.errors.push(stringify(obj.reason));
             continue;
           }
         }
 
-        if (this.errors.length > 0) { // If an error is reported in the request data, see if it is due to a cluster error
-          const cluster = await this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: clusterId });
+        if (this.errors.length > 0) {
+          // If an error is reported in the request data, see if it is due to a cluster error
+          const cluster = await this.$store.dispatch('management/find', {
+            type: MANAGEMENT.CLUSTER,
+            id:   clusterId
+          });
 
           if (cluster.stateDescription && !cluster.isReady) {
             this.errors = [cluster.stateDescription];
@@ -97,7 +114,8 @@ export default {
         const networkDataOptions = [];
 
         (res.configMaps.value?.data || []).map((O) => {
-          const cloudTemplate = O.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
+          const cloudTemplate =
+            O.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT];
 
           if (cloudTemplate === 'user') {
             userDataOptions.push({
@@ -118,7 +136,7 @@ export default {
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
 
-        this.networkOptions = (res.networks.value?.data || []).map( (O) => {
+        this.networkOptions = (res.networks.value?.data || []).map((O) => {
           let value;
           let label;
 
@@ -138,7 +156,10 @@ export default {
         });
 
         (res.namespaces.value?.data || []).forEach(async(namespace) => {
-          const proxyNamespace = await this.$store.dispatch('cluster/create', namespace);
+          const proxyNamespace = await this.$store.dispatch(
+            'cluster/create',
+            namespace
+          );
 
           if (!proxyNamespace.isSystem) {
             const value = namespace.metadata.name;
@@ -202,26 +223,28 @@ export default {
     },
 
     imageOptions() {
-      return (this.images || []).filter( (O) => {
-        return !O.spec.url.endsWith('.iso') && isReady.call(O);
-      }).map( (O) => {
-        const value = O.id;
-        const label = `${ O.spec.displayName } (${ value })`;
+      return (this.images || [])
+        .filter((O) => {
+          return !O.spec.url.endsWith('.iso') && isReady.call(O);
+        })
+        .map((O) => {
+          const value = O.id;
+          const label = `${ O.spec.displayName } (${ value })`;
 
-        return {
-          label,
-          value
-        };
-      });
+          return {
+            label,
+            value
+          };
+        });
     },
 
     namespaceDisabled() {
       return this.disabledEdit || this.poolIndex > 0;
-    },
+    }
   },
 
   watch: {
-    'credentialId'() {
+    credentialId() {
       if (!this.isEdit) {
         this.imageOptions = [];
         this.networkOptions = [];
@@ -252,7 +275,7 @@ export default {
           this.value.vmNamespace = vmNamespace;
         }
       },
-      deep: true,
+      deep: true
     }
   },
 
@@ -263,43 +286,57 @@ export default {
       const errors = [];
 
       if (!this.value.cpuCount) {
-        const message = this.validatorRequiredField(this.t('cluster.credential.harvester.cpu'));
+        const message = this.validatorRequiredField(
+          this.t('cluster.credential.harvester.cpu')
+        );
 
         errors.push(message);
       }
 
       if (!this.value.vmNamespace) {
-        const message = this.validatorRequiredField(this.t('cluster.credential.harvester.namespace'));
+        const message = this.validatorRequiredField(
+          this.t('cluster.credential.harvester.namespace')
+        );
 
         errors.push(message);
       }
 
       if (!this.value.memorySize) {
-        const message = this.validatorRequiredField(this.t('cluster.credential.harvester.memory'));
+        const message = this.validatorRequiredField(
+          this.t('cluster.credential.harvester.memory')
+        );
 
         errors.push(message);
       }
 
       if (!this.value.diskSize) {
-        const message = this.validatorRequiredField(this.t('cluster.credential.harvester.disk'));
+        const message = this.validatorRequiredField(
+          this.t('cluster.credential.harvester.disk')
+        );
 
         errors.push(message);
       }
 
       if (!this.value.imageName) {
-        const message = this.validatorRequiredField(this.t('cluster.credential.harvester.image'));
+        const message = this.validatorRequiredField(
+          this.t('cluster.credential.harvester.image')
+        );
 
         errors.push(message);
       }
 
       if (!this.value.sshUser) {
-        const message = this.validatorRequiredField(this.t('cluster.credential.harvester.sshUser'));
+        const message = this.validatorRequiredField(
+          this.t('cluster.credential.harvester.sshUser')
+        );
 
         errors.push(message);
       }
 
       if (!this.value.networkName) {
-        const message = this.validatorRequiredField(this.t('cluster.credential.harvester.network'));
+        const message = this.validatorRequiredField(
+          this.t('cluster.credential.harvester.network')
+        );
 
         errors.push(message);
       }
@@ -333,7 +370,7 @@ export default {
         this.errors = exceptionToErrorsArray(e);
       }
     }
-  },
+  }
 };
 </script>
 
@@ -396,7 +433,9 @@ export default {
             :required="true"
             :disabled="namespaceDisabled"
             label-key="cluster.credential.harvester.namespace"
-            :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
+            :placeholder="
+              t('cluster.harvester.machinePool.namespace.placeholder')
+            "
           />
 
           <LabeledInput
@@ -406,7 +445,9 @@ export default {
             :required="true"
             :mode="mode"
             :disabled="namespaceDisabled"
-            :placeholder="t('cluster.harvester.machinePool.namespace.placeholder')"
+            :placeholder="
+              t('cluster.harvester.machinePool.namespace.placeholder')
+            "
           />
         </div>
       </div>
@@ -433,7 +474,9 @@ export default {
             :required="true"
             :disabled="disabledEdit"
             label-key="cluster.credential.harvester.network"
-            :placeholder="t('cluster.harvester.machinePool.network.placeholder')"
+            :placeholder="
+              t('cluster.harvester.machinePool.network.placeholder')
+            "
           />
         </div>
       </div>
@@ -470,14 +513,16 @@ export default {
             :required="true"
             :mode="mode"
             :disabled="disabled"
-            :placeholder="t('cluster.harvester.machinePool.sshUser.placeholder')"
+            :placeholder="
+              t('cluster.harvester.machinePool.sshUser.placeholder')
+            "
             tooltip-key="cluster.harvester.machinePool.sshUser.toolTip"
           />
         </div>
       </div>
 
-      <portal :to="'advanced-'+uuid">
-        <h3>{{ t("cluster.credential.harvester.userData.title") }}</h3>
+      <portal :to="'advanced-' + uuid">
+        <h3>{{ t('cluster.credential.harvester.userData.title') }}</h3>
         <div>
           <LabeledSelect
             v-if="isImportCluster && isCreate"
@@ -500,7 +545,7 @@ export default {
           />
         </div>
 
-        <h3>{{ t("cluster.credential.harvester.networkData.title") }}</h3>
+        <h3>{{ t('cluster.credential.harvester.networkData.title') }}</h3>
         <div>
           <LabeledSelect
             v-if="isImportCluster && isCreate"
@@ -525,29 +570,23 @@ export default {
       </portal>
     </div>
     <div v-if="errors.length">
-      <div
-        v-for="(err, idx) in errors"
-        :key="idx"
-      >
-        <Banner
-          color="error"
-          :label="stringify(err.Message || err)"
-        />
+      <div v-for="(err, idx) in errors" :key="idx">
+        <Banner color="error" :label="stringify(err.Message || err)" />
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  $yaml-height: 200px;
+$yaml-height: 200px;
 
-  ::v-deep .yaml-editor{
-    flex: 1;
+::v-deep .yaml-editor {
+  flex: 1;
+  min-height: $yaml-height;
+  & .code-mirror .CodeMirror {
+    position: initial;
+    height: auto;
     min-height: $yaml-height;
-    & .code-mirror .CodeMirror {
-      position: initial;
-      height: auto;
-      min-height: $yaml-height;
-    }
   }
+}
 </style>
