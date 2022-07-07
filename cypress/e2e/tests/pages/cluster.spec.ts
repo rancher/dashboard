@@ -1,5 +1,6 @@
-const clusterManagerPath = '/c/local/manager/provisioning.cattle.io.cluster';
-const clusterRequestBase = '/v1/provisioning.cattle.io.clusters/fleet-default';
+const { baseUrl } = Cypress.config();
+const clusterManagerPath = `${ baseUrl }/c/local/manager/provisioning.cattle.io.cluster`;
+const clusterRequestBase = `${ baseUrl }/v1/provisioning.cattle.io.clusters/fleet-default`;
 const timestamp = +new Date();
 const clusterNamePartial = `e2e-test-create`;
 const clusterName = `${ clusterNamePartial }-${ timestamp }`;
