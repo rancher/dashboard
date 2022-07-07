@@ -13,15 +13,12 @@ import { Banner } from '@components/Banner';
 import { get } from '@shell/utils/object';
 import { mapGetters } from 'vuex';
 import {
-<<<<<<< HEAD:pkg/harvester/machine-config/harvester.vue
-  HCI, NAMESPACE, MANAGEMENT, CONFIG_MAP, NORMAN, NODE
-=======
   HCI,
   NAMESPACE,
   MANAGEMENT,
   CONFIG_MAP,
-  NORMAN
->>>>>>> move harvester-manager files out of harvester pkg:shell/machine-config/harvester.vue
+  NORMAN,
+  NODE
 } from '@shell/config/types';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { allHashSettled } from '@shell/utils/promise';
@@ -34,16 +31,7 @@ export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-<<<<<<< HEAD:pkg/harvester/machine-config/harvester.vue
     Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity
-=======
-    Loading,
-    LabeledSelect,
-    LabeledInput,
-    UnitInput,
-    Banner,
-    YamlEditor
->>>>>>> move harvester-manager files out of harvester pkg:shell/machine-config/harvester.vue
   },
 
   mixins: [CreateEditView],
@@ -94,17 +82,10 @@ export default {
 
       if (clusterId && isImportCluster) {
         const res = await allHashSettled({
-<<<<<<< HEAD:pkg/harvester/machine-config/harvester.vue
           namespaces:   this.$store.dispatch('harvester/findAll', { type: NAMESPACE, opt: { url: `${ url }/${ NAMESPACE }s` } }),
           images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
           configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
           networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
-=======
-          namespaces: this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
-          images:     this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
-          configMaps: this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
-          networks:   this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` })
->>>>>>> move harvester-manager files out of harvester pkg:shell/machine-config/harvester.vue
         });
 
         for (const key of Object.keys(res)) {
@@ -153,12 +134,7 @@ export default {
         this.userDataOptions = userDataOptions;
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
-<<<<<<< HEAD:pkg/harvester/machine-config/harvester.vue
         this.networkOptions = (res.networks.value?.data || []).map( (O) => {
-=======
-
-        this.networkOptions = (res.networks.value?.data || []).map((O) => {
->>>>>>> move harvester-manager files out of harvester pkg:shell/machine-config/harvester.vue
           let value;
           let label;
 
@@ -177,18 +153,8 @@ export default {
           };
         });
 
-<<<<<<< HEAD:pkg/harvester/machine-config/harvester.vue
         (res.namespaces.value || []).forEach((namespace) => {
           if (!namespace.isSystem) {
-=======
-        (res.namespaces.value?.data || []).forEach(async(namespace) => {
-          const proxyNamespace = await this.$store.dispatch(
-            'cluster/create',
-            namespace
-          );
-
-          if (!proxyNamespace.isSystem) {
->>>>>>> move harvester-manager files out of harvester pkg:shell/machine-config/harvester.vue
             const value = namespace.metadata.name;
             const label = namespace.metadata.name;
 
@@ -598,7 +564,6 @@ export default {
         </div>
       </div>
 
-<<<<<<< HEAD:pkg/harvester/machine-config/harvester.vue
       <portal :to="'advanced-'+uuid">
         <h3 class="mt-20">
           {{ t("workload.container.titles.nodeScheduling") }}
@@ -623,10 +588,6 @@ export default {
         <h3 class="mt-20">
           {{ t("cluster.credential.harvester.userData.title") }}
         </h3>
-=======
-      <portal :to="'advanced-' + uuid">
-        <h3>{{ t('cluster.credential.harvester.userData.title') }}</h3>
->>>>>>> move harvester-manager files out of harvester pkg:shell/machine-config/harvester.vue
         <div>
           <LabeledSelect
             v-if="isImportCluster && isCreate"

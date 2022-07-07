@@ -1,14 +1,17 @@
 <script>
 import compact from 'lodash/compact';
-// import { OFF } from '../../../pkg/harvester/models/harvester/kubevirt.io.virtualmachine';
+import { OFF } from '../../models/harvester/kubevirt.io.virtualmachine';
 import { get } from '@shell/utils/object';
 import { isIpv4 } from '@shell/utils/string';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { HCI } from '@shell/config/types';
 import { MANAGEMENT_NETWORK } from '@shell/mixins/harvester-vm';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
+<<<<<<< HEAD:shell/components/formatter/HarvesterIpAddress.vue
 // TODO decide where to put harvester-specific config in shell
 const OFF = 'Off';
+=======
+>>>>>>> parent of e83583594... remove nested edit views:pkg/harvester/components/formatter/HarvesterIpAddress.vue
 
 export default {
   components: { CopyToClipboard },
