@@ -1,12 +1,16 @@
 <script>
 // This component will become redundant in 2023, see https://docs.microsoft.com/en-us/graph/migrate-azure-ad-graph-overview
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
-import { OLD_ENDPOINTS } from '@shell/edit/auth/azuread.vue';
+import { get } from '@shell/utils/object';
+import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
 
 export default {
   async fetch() {
     // Check for access to steve authConfigs because everyone can load the norman auth config schema
-    if (this.$store.getters['isRancher'] && this.$store.getters['management/schemaFor'](MANAGEMENT.AUTH_CONFIG)) {
+    if (
+      this.$store.getters['isRancher'] &&
+      this.$store.getters['management/schemaFor'](MANAGEMENT.AUTH_CONFIG)
+    ) {
       this.authConfig = await this.$store.dispatch('rancher/find', {
         type: NORMAN.AUTH_CONFIG,
         id:   'azuread',
@@ -27,9 +31,15 @@ export default {
 
   computed: {
     showWarning() {
-      return this.authConfig?.graphEndpoint === OLD_ENDPOINTS.standard.graphEndpoint || this.authConfig?.graphEndpoint === OLD_ENDPOINTS.china.graphEndpoint;
-    },
+      if (!this.authConfig) {
+        return false;
+      }
 
+      return (
+        get(this.authConfig, `annotations."${ AZURE_MIGRATED }"`) !== true &&
+        this.authConfig.enabled
+      );
+    }
   }
 };
 </script>
@@ -37,7 +47,8 @@ export default {
 <template>
   <div v-if="showWarning" id="azure-warn" class="banner">
     <p>
-      {{ t("authConfig.azuread.updateEndpoint.banner.message") }} <n-link :to="authConfigRoute">
+      {{ t('authConfig.azuread.updateEndpoint.banner.message') }}
+      <n-link :to="authConfigRoute">
         {{ t('authConfig.azuread.updateEndpoint.banner.linkText') }}
       </n-link>
     </p>
@@ -46,13 +57,13 @@ export default {
 
 <style lang="scss" scoped>
 #azure-warn {
-    background-color: var(--warning);
-    color: var(--warning-text);
-    line-height: 2em;
-    width: 100%;
+  background-color: var(--warning);
+  color: var(--warning-text);
+  line-height: 2em;
+  width: 100%;
 
-    >p{
-        text-align: center;
-    }
+  > p {
+    text-align: center;
+  }
 }
 </style>
