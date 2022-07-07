@@ -1,7 +1,7 @@
 import ElementalResource from './elemental-resource';
 import { CAPI } from '@shell/config/types';
 import { ELEMENTAL_DEFAULT_NAMESPACE } from '../types';
-import { ELEMENTAL_CLUSTER_PROVIDER } from '@shell/config/elemental-types';
+import { ELEMENTAL_CLUSTER_PROVIDER, ELEMENTAL_SCHEMA_IDS } from '@shell/config/elemental-types';
 
 export default class MachineInventory extends ElementalResource {
   constructor() {
@@ -48,5 +48,19 @@ export default class MachineInventory extends ElementalResource {
       },
       query: { type: ELEMENTAL_CLUSTER_PROVIDER }
     });
+  }
+
+  get clusterName() {
+    if (this.metadata.ownerReferences && this.metadata.ownerReferences.length) {
+      const invSelectorName = this.metadata.ownerReferences[0].name;
+
+      const machineInvSelector = this.$getters['all'](ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR).find(item => item.metadata.name === invSelectorName);
+
+      if (machineInvSelector && machineInvSelector.metadata?.labels && machineInvSelector.metadata?.labels['rke.cattle.io/cluster-name']) {
+        return machineInvSelector.metadata?.labels['rke.cattle.io/cluster-name'];
+      }
+    }
+
+    return '---';
   }
 }
