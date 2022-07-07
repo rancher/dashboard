@@ -7,17 +7,19 @@ import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 
 export default {
-  name: 'HotUnplugModal',
+  name: 'HarvesterHotUnplugModal',
 
   components: {
-    AsyncButton, Card, Banner
+    AsyncButton,
+    Card,
+    Banner
   },
 
   props: {
     resources: {
       type:     Array,
       required: true
-    },
+    }
   },
 
   data() {
@@ -46,10 +48,14 @@ export default {
         const res = await this.actionResource.doAction('removeVolume', { diskName: this.diskName });
 
         if (res._status === 200 || res._status === 204) {
-          this.$store.dispatch('growl/success', {
-            title:   this.t('harvester.notification.title.succeed'),
-            message: this.t('harvester.modal.hotunplug.success', { name: this.diskName })
-          }, { root: true });
+          this.$store.dispatch(
+            'growl/success',
+            {
+              title:   this.t('harvester.notification.title.succeed'),
+              message: this.t('harvester.modal.hotunplug.success', { name: this.diskName })
+            },
+            { root: true }
+          );
 
           this.close();
           buttonCb(true);
@@ -66,14 +72,18 @@ export default {
         this.$set(this, 'errors', message);
         buttonCb(false);
       }
-    },
+    }
   }
 };
 </script>
 
 <template>
   <Card ref="modal" name="modal" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('harvester.virtualMachine.unplug.title', { name: diskName})" />
+    <h4
+      slot="title"
+      class="text-default-text"
+      v-html="t('harvester.virtualMachine.unplug.title', { name: diskName })"
+    />
 
     <div slot="actions" class="actions">
       <div class="buttons">

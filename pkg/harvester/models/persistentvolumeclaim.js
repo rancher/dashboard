@@ -2,7 +2,10 @@ import Vue from 'vue';
 import { _CLONE } from '@shell/config/query-params';
 import pick from 'lodash/pick';
 import { HCI } from '@shell/config/types';
-import { HCI as HCI_ANNOTATIONS, DESCRIPTION } from '@shell/config/labels-annotations';
+import {
+  HCI as HCI_ANNOTATIONS,
+  DESCRIPTION
+} from '@shell/config/labels-annotations';
 import { findBy } from '@shell/utils/array';
 import { get, clone } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -11,7 +14,8 @@ import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 export default class HciPv extends SteveModel {
   applyDefaults(_, realMode) {
     const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
-    const storage = realMode === _CLONE ? this.spec.resources.requests.storage : null;
+    const storage =
+      realMode === _CLONE ? this.spec.resources.requests.storage : null;
 
     Vue.set(this, 'spec', {
       accessModes,
@@ -24,16 +28,16 @@ export default class HciPv extends SteveModel {
   get availableActions() {
     return [
       {
-        action:     'exportImage',
-        enabled:    this.hasAction('export'),
-        icon:       'icon icon-copy',
-        label:      this.t('harvester.action.exportImage'),
+        action:  'exportImage',
+        enabled: this.hasAction('export'),
+        icon:    'icon icon-copy',
+        label:   this.t('harvester.action.exportImage')
       },
       {
-        action:     'cancelExpand',
-        enabled:    this.hasAction('cancelExpand'),
-        icon:       'icon icon-backup',
-        label:      this.t('harvester.action.cancelExpand'),
+        action:  'cancelExpand',
+        enabled: this.hasAction('cancelExpand'),
+        icon:    'icon icon-backup',
+        label:   this.t('harvester.action.cancelExpand')
       },
       ...super._availableActions
     ];
@@ -42,7 +46,7 @@ export default class HciPv extends SteveModel {
   exportImage(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'ExportImageDialog'
+      component: 'HarvesterExportImageDialog'
     });
   }
 
@@ -97,7 +101,10 @@ export default class HciPv extends SteveModel {
   }
 
   get stateDescription() {
-    return this.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] || super.stateDescription;
+    return (
+      this.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] ||
+      super.stateDescription
+    );
   }
 
   get detailLocation() {
@@ -133,7 +140,8 @@ export default class HciPv extends SteveModel {
 
   get attachVM() {
     const allVMs = this.$rootGetters['harvester/all'](HCI.VM);
-    const ownedBy = get(this, `metadata.annotations."${ HCI_ANNOTATIONS.OWNED_BY }"`) || '';
+    const ownedBy =
+      get(this, `metadata.annotations."${ HCI_ANNOTATIONS.OWNED_BY }"`) || '';
 
     if (!ownedBy) {
       return null;
@@ -141,7 +149,7 @@ export default class HciPv extends SteveModel {
 
     const ownedId = JSON.parse(ownedBy)[0]?.refs?.[0];
 
-    return allVMs.find( D => D.id === ownedId);
+    return allVMs.find(D => D.id === ownedId);
   }
 
   get isAvailable() {
@@ -157,7 +165,7 @@ export default class HciPv extends SteveModel {
   get isSystemResource() {
     const systemNamespaces = this.$rootGetters['systemNamespaces'];
 
-    if ( systemNamespaces.includes(this.metadata?.namespace) ) {
+    if (systemNamespaces.includes(this.metadata?.namespace)) {
       return true;
     }
 

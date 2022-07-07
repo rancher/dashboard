@@ -8,13 +8,16 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
-  name: 'CloneTemplateModal',
+  name: 'HarvesterCloneTemplateModal',
 
   components: {
-    AsyncButton, Banner, Card, LabeledInput
+    AsyncButton,
+    Banner,
+    Card,
+    LabeledInput
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -34,7 +37,7 @@ export default {
 
     actionResource() {
       return this.resources[0];
-    },
+    }
   },
 
   methods: {
@@ -46,13 +49,25 @@ export default {
 
     async saveRestore(buttonCb) {
       try {
-        const res = await this.actionResource.doAction('createTemplate', { name: this.templateName, description: this.description }, {}, false);
+        const res = await this.actionResource.doAction(
+          'createTemplate',
+          { name: this.templateName, description: this.description },
+          {},
+          false
+        );
 
         if (res._status === 200 || res._status === 204) {
-          this.$store.dispatch('growl/success', {
-            title:   this.t('harvester.notification.title.succeed'),
-            message: this.t('harvester.modal.createTemplate.message.success', { templateName: this.templateName })
-          }, { root: true });
+          this.$store.dispatch(
+            'growl/success',
+            {
+              title:   this.t('harvester.notification.title.succeed'),
+              message: this.t(
+                'harvester.modal.createTemplate.message.success',
+                { templateName: this.templateName }
+              )
+            },
+            { root: true }
+          );
 
           this.close();
           buttonCb(true);
@@ -70,7 +85,7 @@ export default {
         buttonCb(false);
       }
     }
-  },
+  }
 };
 </script>
 

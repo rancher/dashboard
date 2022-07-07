@@ -1,10 +1,6 @@
 {
   "name": "@rancher/shell",
-<<<<<<< HEAD
   "version": "0.1.2",
-=======
-  "version": "0.6.36",
->>>>>>> fix harvester manager->harvester routing
   "description": "Rancher Dashboard Shell",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
