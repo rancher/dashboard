@@ -9,7 +9,7 @@ const state = function() {
     bundlePending:    false,
     showBundleModal:  false,
     bundlePercentage: 0,
-    uploadingImages:  [],
+    uploadingImages:  []
   };
 };
 
@@ -38,7 +38,7 @@ const mutations = {
     const filtered = state.uploadingImages.filter(l => l !== value);
 
     Vue.set(state, 'uploadingImages', filtered);
-  },
+  }
 };
 
 const getters = {
@@ -60,7 +60,7 @@ const getters = {
 
   uploadingImages(state) {
     return state.uploadingImages;
-  },
+  }
 };
 
 const actions = {
@@ -70,7 +70,11 @@ const actions = {
     const parse = Parse(window.history.href);
 
     const id = state.latestBundleId;
-    let bundleCrd = await dispatch('harvester/find', { type: HCI.SUPPORT_BUNDLE, id }, { root: true });
+    let bundleCrd = await dispatch(
+      'harvester/find',
+      { type: HCI.SUPPORT_BUNDLE, id },
+      { root: true }
+    );
     const t = rootGetters['i18n/t'];
 
     let count = 0;
@@ -78,12 +82,17 @@ const actions = {
     await commit('setBundlePending', true);
     const timer = setInterval(async() => {
       count = count + 1;
-      if (count % 3 === 0) { // ws mayby disconnect
-        bundleCrd = await dispatch('harvester/find', {
-          type: HCI.SUPPORT_BUNDLE,
-          id,
-          opt:  { force: true }
-        }, { root: true });
+      if (count % 3 === 0) {
+        // ws mayby disconnect
+        bundleCrd = await dispatch(
+          'harvester/find',
+          {
+            type: HCI.SUPPORT_BUNDLE,
+            id,
+            opt:  { force: true }
+          },
+          { root: true }
+        );
       }
 
       if (bundleCrd.bundleState !== 'ready') {
@@ -95,7 +104,11 @@ const actions = {
         if (bundleCrd?.bundleMessage) {
           const err = bundleCrd?.bundleMessage;
 
-          dispatch('growl/fromError', { title: t('harvester.notification.title.error'), err }, { root: true });
+          dispatch(
+            'growl/fromError',
+            { title: t('harvester.notification.title.error'), err },
+            { root: true }
+          );
           clearInterval(timer);
           commit('setBundlePending', false);
           commit('toggleBundleModal', false);
@@ -134,7 +147,7 @@ const harvesterFactory = () => {
 
     mutations: { ...mutations },
 
-    actions: { ...actions },
+    actions: { ...actions }
   };
 };
 const config = {
@@ -142,10 +155,6 @@ const config = {
   isClusterStore: false
 };
 
-/**
- * `epinio` store is like a `cluster` store...
- * .. it contains epinio instance specific resources that should be setup/reset when navigating to/away from an epinio instances
- */
 export default {
   specifics: harvesterFactory(),
   config

@@ -2,6 +2,7 @@
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import { mapGetters } from 'vuex';
 import { OFF } from '../models/kubevirt.io.virtualmachine';
+import { PRODUCT_NAME } from '../types';
 
 export default {
   name: 'VMConsoleBar',
@@ -15,7 +16,7 @@ export default {
       default:  () => {
         return {};
       }
-    },
+    }
   },
 
   computed: {
@@ -26,13 +27,16 @@ export default {
     },
 
     options() {
-      return [{
-        label:  this.t('harvester.virtualMachine.console.novnc'),
-        value:  'vnc',
-      }, {
-        label:  this.t('harvester.virtualMachine.console.serial'),
-        value:  'serial',
-      }];
+      return [
+        {
+          label: this.t('harvester.virtualMachine.console.novnc'),
+          value: 'vnc'
+        },
+        {
+          label: this.t('harvester.virtualMachine.console.serial'),
+          value: 'serial'
+        }
+      ];
     }
   },
 
@@ -52,9 +56,13 @@ export default {
       const prefix = window.location.pathname.replace(this.$route.path, '');
       const params = this.$route?.params;
 
-      const url = `https://${ host }${ prefix }/harvester/c/${ params.cluster }/console/${ uid }/${ type }`;
+      const url = `https://${ host }${ prefix }/${ PRODUCT_NAME }/c/${ params.cluster }/console/${ uid }/${ type }`;
 
-      window.open(url, '_blank', 'toolbars=0,width=900,height=700,left=0,top=0,noreferrer');
+      window.open(
+        url,
+        '_blank',
+        'toolbars=0,width=900,height=700,left=0,top=0,noreferrer'
+      );
     },
 
     isEmpty(o) {

@@ -60,7 +60,7 @@
     "../../shell/types/*.d.ts",
     "../../shell/core/*.ts",
     "../../shell/config/**/*.js"
-  ],
+, "config/harvester-table-headers.js"  ],
   "exclude": [
     "node_modules"
   ]

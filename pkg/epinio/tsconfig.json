@@ -45,13 +45,8 @@
       "@shell/models/*": [
         "../../shell/models/*"
       ],
-<<<<<<< HEAD
       "@components/*": [
         "../../pkg/rancher-components/*"
-=======
-      "@shell/mixins/*": [
-        "../../shell/mixins/*"
->>>>>>> Fix epinio pkg build
       ],
       "@pkg/*": [
         "./*"

@@ -1,20 +1,19 @@
 <script>
-import { NAME } from '../../../config/harvester';
+import { PRODUCT_NAME } from '../../../types';
 import { HCI } from '@shell/config/types';
 
 export default {
-  middleware({ redirect, route } ) {
+  middleware({ redirect, route }) {
     return redirect({
       name:   'harvester-c-cluster-resource',
       params: {
         ...route.params,
-        product:  NAME,
-        resource: HCI.DASHBOARD,
+        product:  PRODUCT_NAME,
+        resource: HCI.DASHBOARD
       }
     });
   }
 };
-
 </script>
 
 <template>

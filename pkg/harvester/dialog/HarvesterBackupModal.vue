@@ -7,13 +7,16 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
-  name: 'BackupModal',
+  name: 'HarvesterBackupModal',
 
   components: {
-    AsyncButton, Card, LabeledInput, Banner
+    AsyncButton,
+    Card,
+    LabeledInput,
+    Banner
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -32,7 +35,7 @@ export default {
 
     actionResource() {
       return this.resources[0];
-    },
+    }
   },
 
   methods: {
@@ -44,13 +47,22 @@ export default {
     async save(buttonCb) {
       if (this.actionResource) {
         try {
-          const res = await this.actionResource.doAction('backup', { name: this.backUpName }, {}, false);
+          const res = await this.actionResource.doAction(
+            'backup',
+            { name: this.backUpName },
+            {},
+            false
+          );
 
           if (res._status === 200 || res._status === 204) {
-            this.$store.dispatch('growl/success', {
-              title:   this.t('harvester.notification.title.succeed'),
-              message: this.t('harvester.modal.backup.success', { backUpName: this.backUpName })
-            }, { root: true });
+            this.$store.dispatch(
+              'growl/success',
+              {
+                title:   this.t('harvester.notification.title.succeed'),
+                message: this.t('harvester.modal.backup.success', { backUpName: this.backUpName })
+              },
+              { root: true }
+            );
 
             this.close();
 
@@ -69,21 +81,21 @@ export default {
           buttonCb(false);
         }
       }
-    },
+    }
   }
 };
 </script>
 
 <template>
   <Card :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('harvester.modal.backup.addBackup')" />
+    <h4
+      slot="title"
+      class="text-default-text"
+      v-html="t('harvester.modal.backup.addBackup')"
+    />
 
     <template #body>
-      <LabeledInput
-        v-model="backUpName"
-        :label="t('generic.name')"
-        required
-      />
+      <LabeledInput v-model="backUpName" :label="t('generic.name')" required />
     </template>
 
     <div slot="actions" class="actions">
@@ -92,11 +104,7 @@ export default {
           {{ t('generic.cancel') }}
         </button>
 
-        <AsyncButton
-          mode="create"
-          :disabled="!backUpName"
-          @click="save"
-        />
+        <AsyncButton mode="create" :disabled="!backUpName" @click="save" />
       </div>
 
       <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />

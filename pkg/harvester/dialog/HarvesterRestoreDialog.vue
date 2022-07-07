@@ -12,10 +12,13 @@ import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
-  name: 'RestoreModal',
+  name: 'HarvesterRestoreModal',
 
   components: {
-    AsyncButton, Banner, Card, LabeledSelect
+    AsyncButton,
+    Banner,
+    Card,
+    LabeledSelect
   },
 
   async fetch() {
@@ -24,7 +27,7 @@ export default {
     this.backups = hash.backups;
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -47,17 +50,17 @@ export default {
     },
 
     backupOption() {
-      const attachBackup = this.backups.filter( (B) => {
+      const attachBackup = this.backups.filter((B) => {
         return B.attachVM === this.actionResource?.metadata?.name;
       });
 
-      return attachBackup.map( (O) => {
+      return attachBackup.map((O) => {
         return {
           value: O.metadata.name,
           label: O.metadata.name
         };
       });
-    },
+    }
   },
 
   methods: {
@@ -71,20 +74,31 @@ export default {
       const name = `restore-${ this.backupName }-${ randomStr(5).toLowerCase() }`;
 
       if (!this.backupName) {
-        this.$set(this, 'errors', [this.t('harvester.modal.restore.message.backup')]);
+        this.$set(this, 'errors', [
+          this.t('harvester.modal.restore.message.backup')
+        ]);
         buttonCb(false);
 
         return;
       }
 
       try {
-        const res = await this.actionResource.doAction('restore', { backupName: this.backupName, name }, {}, false);
+        const res = await this.actionResource.doAction(
+          'restore',
+          { backupName: this.backupName, name },
+          {},
+          false
+        );
 
         if (res._status === 200 || res._status === 204) {
-          this.$store.dispatch('growl/success', {
-            title:   this.t('harvester.notification.title.succeed'),
-            message: this.t('harvester.modal.restore.success', { name: this.backupName })
-          }, { root: true });
+          this.$store.dispatch(
+            'growl/success',
+            {
+              title:   this.t('harvester.notification.title.succeed'),
+              message: this.t('harvester.modal.restore.success', { name: this.backupName })
+            },
+            { root: true }
+          );
 
           this.close();
           buttonCb(true);
@@ -102,7 +116,7 @@ export default {
         buttonCb(false);
       }
     }
-  },
+  }
 };
 </script>
 

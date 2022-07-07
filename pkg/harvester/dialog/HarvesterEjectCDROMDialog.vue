@@ -8,13 +8,16 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {
-  name: 'EjectCDROMModal',
+  name: 'HarvesterEjectCDROMModal',
 
   components: {
-    AsyncButton, Card, Checkbox, Banner
+    AsyncButton,
+    Card,
+    Checkbox,
+    Banner
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -38,8 +41,8 @@ export default {
 
     return {
       allDisk,
-      errors:     [],
-      diskNames:  []
+      errors:    [],
+      diskNames: []
     };
   },
 
@@ -52,7 +55,7 @@ export default {
 
     isDeleteDisabled() {
       return this.diskNames.length === 0;
-    },
+    }
   },
 
   methods: {
@@ -78,7 +81,7 @@ export default {
       this.backupName = '';
       this.errors = [];
       this.$emit('close');
-    },
+    }
   },
 
   watch: {
