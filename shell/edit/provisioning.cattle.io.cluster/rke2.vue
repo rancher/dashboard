@@ -946,16 +946,9 @@ export default {
             } catch (e) {
               // Some users can't see the config, that's ok. we will display a banner for a 404
               if (e?.status === 404) {
-                configMissing = true;
-
-                // To be reactivated once we have figured out
-                // if a cluster can recover from a "lost" config (it should only be for elemental clusters)
-                // config = await this.$store.dispatch('management/createPopulated', {
-                //   type:     this.machineConfigSchema.id,
-                //   metadata: { namespace: DEFAULT_WORKSPACE }
-                // });
-
-                // config.applyDefaults(id, this.machinePools);
+                if (this.isElementalCluster) {
+                  configMissing = true;
+                }
               }
             }
           }
@@ -1077,7 +1070,6 @@ export default {
 
         const prefix = `${ this.value.metadata.name }-${ entry.pool.name }`.substr(0, 50).toLowerCase();
 
-        // add || entry.configMissing to enable the add of a new config in a 404 for configs... to be confirmed
         if ( entry.create ) {
           if ( !entry.config.metadata?.name ) {
             entry.config.metadata.generateName = `nc-${ prefix }-`;
