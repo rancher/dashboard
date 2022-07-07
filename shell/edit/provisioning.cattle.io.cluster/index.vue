@@ -465,6 +465,7 @@ export default {
           >
             <ToggleSwitch
               v-model="provisioner"
+              data-testid="cluster-manager-create-rke-switch"
               class="rke-switch"
               off-value="rke1"
               :off-label="t('cluster.toggle.v1')"

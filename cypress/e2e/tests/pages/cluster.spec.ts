@@ -14,7 +14,7 @@ describe('Cluster', () => {
   it('can create new local RKE2 custom cluster', () => {
     cy.visit(clusterManagerPath);
     cy.getId('cluster-manager-list-create').click();
-    // toggle RKE2?
+    cy.getId('cluster-manager-create-rke-switch').click();
     cy.getId('cluster-manager-create-grid-2-0').click();
     cy.getId('name-ns-description-name').type(clusterName);
     cy.getId('rke2-custom-create-save').click();
