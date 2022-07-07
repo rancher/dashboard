@@ -4095,6 +4095,7 @@ secret:
   serviceAcct:
     ca: CA Certificate
     token: Token
+  customType: Custom Type
   type: Type
   types:
     'opaque': 'Opaque'
@@ -4126,6 +4127,8 @@ secret:
     's3': 'S3'
   relatedWorkloads: Related Workloads
   typeDescriptions:
+    custom:
+      description: Create a Secret with a custom type
     'kubernetes.io/basic-auth':
       description: 'Authentication with a username and password'
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#basic-authentication-secret
