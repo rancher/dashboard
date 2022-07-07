@@ -113,7 +113,7 @@ export default {
 
     needsUpdate() {
       return (
-        get(this.value, `metadata.annotations."${ AZURE_MIGRATED }"`) !== true
+        get(this.value, `metadata.annotations."${ AZURE_MIGRATED }"`) !== 'true'
       );
     },
 
