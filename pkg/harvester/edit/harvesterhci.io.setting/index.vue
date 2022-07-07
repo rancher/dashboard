@@ -7,7 +7,11 @@ import { TextAreaAutoGrow } from '@components/Form/TextArea';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
 
-import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, HCI_SETTING } from '@shell/config/settings';
+import {
+  HCI_ALLOWED_SETTINGS,
+  HCI_SINGLE_CLUSTER_ALLOWED_SETTING,
+  HCI_SETTING
+} from '@shell/config/settings';
 
 export default {
   components: {
@@ -22,18 +26,21 @@ export default {
 
   data() {
     const t = this.$store.getters['i18n/t'];
-    const setting = HCI_ALLOWED_SETTINGS[this.value.id] || HCI_SINGLE_CLUSTER_ALLOWED_SETTING[this.value.id];
+    const setting =
+      HCI_ALLOWED_SETTINGS[this.value.id] ||
+      HCI_SINGLE_CLUSTER_ALLOWED_SETTING[this.value.id];
 
     let enumOptions = [];
 
-    if (setting.kind === 'enum' ) {
+    if (setting.kind === 'enum') {
       enumOptions = setting.options.map(id => ({
         label: `advancedSettings.enum.harv-${ this.value.id }.${ id }`,
-        value: id,
+        value: id
       }));
     }
 
-    const canReset = setting.canReset || (!!this.value.default || this.value.canReset);
+    const canReset =
+      setting.canReset || !!this.value.default || this.value.canReset;
 
     if (this.value.value === undefined) {
       this.$set(this.value, 'value', null);
@@ -45,20 +52,20 @@ export default {
 
     return {
       setting,
-      description:          isHarvester ? t(`advancedSettings.descriptions.harv-${ this.value.id }`) : t(`advancedSettings.descriptions.${ this.value.id }`),
-      editHelp:             t(`advancedSettings.editHelp.${ this.value.id }`),
+      description:        isHarvester ? t(`advancedSettings.descriptions.harv-${ this.value.id }`) : t(`advancedSettings.descriptions.${ this.value.id }`),
+      editHelp:           t(`advancedSettings.editHelp.${ this.value.id }`),
       enumOptions,
       canReset,
-      errors:               [],
-      hasCustomComponent:   false,
-      customComponent:      null
+      errors:             [],
+      hasCustomComponent: false,
+      customComponent:    null
     };
   },
 
   computed: {
     doneLocationOverride() {
       return this.value.doneOverride;
-    },
+    }
   },
 
   created() {
@@ -66,13 +73,14 @@ export default {
 
     // const resource = this.$route.params.resource;
     const name = this.value.metadata.name;
-    // const path = `${ resource }/${ name }`;
-    const path = `setting/${ name }`;
+    const path = `${ resource }/${ name }`;
 
-    const hasCustomComponent = this.$store.getters['type-map/hasComponent'](path);
+    const hasCustomComponent = this.$store.getters['type-map/hasComponent'](
+      path
+    );
 
-    if ( hasCustomComponent ) {
-      customComponent = this.$store.getters['type-map/importEdit'](path);
+    if (hasCustomComponent) {
+      customComponent = this.$store.getters['type-map/importComponent'](path);
     }
     this.hasCustomComponent = hasCustomComponent;
     this.customComponent = customComponent;
@@ -104,8 +112,24 @@ export default {
       }
 
       if (this.value.id === HCI_SETTING.RANCHER_MONITORING) {
-        this.$set(this.value.spec.values.prometheus, 'prometheusSpec', Object.assign(this.value.spec.values.prometheus.prometheusSpec, this.value.defaultValue.prometheus, {}));
-        this.$set(this.value.spec.values, 'prometheus-node-exporter', Object.assign(this.value.spec.values['prometheus-node-exporter'], this.value.defaultValue['prometheus-node-exporter'], {}));
+        this.$set(
+          this.value.spec.values.prometheus,
+          'prometheusSpec',
+          Object.assign(
+            this.value.spec.values.prometheus.prometheusSpec,
+            this.value.defaultValue.prometheus,
+            {}
+          )
+        );
+        this.$set(
+          this.value.spec.values,
+          'prometheus-node-exporter',
+          Object.assign(
+            this.value.spec.values['prometheus-node-exporter'],
+            this.value.defaultValue['prometheus-node-exporter'],
+            {}
+          )
+        );
       } else if (this.value.id === HCI_SETTING.VLAN) {
         this.value.enable = false;
         if (this.value.config) {
@@ -114,7 +138,7 @@ export default {
       } else {
         this.value.value = this.value.default || '';
       }
-    },
+    }
   }
 };
 </script>
@@ -128,7 +152,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
-    @error="e=>errors = e"
+    @error="e => (errors = e)"
     @finish="saveSettings"
     @cancel="done"
   >
@@ -138,7 +162,12 @@ export default {
 
     <div class="edit-change mt-20">
       <h5 v-t="'advancedSettings.edit.changeSetting'" />
-      <button :disabled="!canReset" type="button" class="btn role-primary" @click="useDefault">
+      <button
+        :disabled="!canReset"
+        type="button"
+        class="btn role-primary"
+        @click="useDefault"
+      >
         {{ t('advancedSettings.edit.useDefault') }}
       </button>
     </div>
@@ -166,15 +195,15 @@ export default {
         <RadioGroup
           v-model="value.value"
           name="settings_value"
-          :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
+          :labels="[
+            t('advancedSettings.edit.trueOption'),
+            t('advancedSettings.edit.falseOption')
+          ]"
           :options="['true', 'false']"
         />
       </div>
       <div v-else-if="setting.kind === 'multiline' || setting.kind === 'json'">
-        <TextAreaAutoGrow
-          v-model="value.value"
-          :min-height="254"
-        />
+        <TextAreaAutoGrow v-model="value.value" :min-height="254" />
       </div>
       <div v-else>
         <LabeledInput
@@ -187,16 +216,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .edit-change {
-    align-items: center;
-    display: flex;
+.edit-change {
+  align-items: center;
+  display: flex;
 
-    > h5 {
-      flex: 1;
-    }
+  > h5 {
+    flex: 1;
   }
+}
 
-  ::v-deep .edit-help code {
-    padding: 1px 5px;
-  }
+::v-deep .edit-help code {
+  padding: 1px 5px;
+}
 </style>
