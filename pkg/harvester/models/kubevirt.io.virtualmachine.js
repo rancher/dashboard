@@ -11,7 +11,8 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 
 export const OFF = 'Off';
 
-const VMI_WAITING_MESSAGE = 'The virtual machine is waiting for resources to become available.';
+const VMI_WAITING_MESSAGE =
+  'The virtual machine is waiting for resources to become available.';
 const VM_ERROR = 'VM error';
 const STOPPING = 'Stopping';
 const WAITING = 'Waiting';
@@ -19,7 +20,8 @@ const NOT_READY = 'Not Ready';
 const AGENT_CONNECTED = 'AgentConnected';
 
 const PAUSED = 'Paused';
-const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';
+const PAUSED_VM_MODAL_MESSAGE =
+  'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';
 
 const POD_STATUS_NOT_SCHEDULABLE = 'POD_NOT_SCHEDULABLE';
 const POD_STATUS_CONTAINER_FAILING = 'POD_CONTAINER_FAILING';
@@ -35,7 +37,7 @@ const POD_STATUS_ALL_ERROR = [
   POD_STATUS_CONTAINER_FAILING,
   POD_STATUS_FAILED,
   POD_STATUS_CRASHLOOP_BACKOFF,
-  POD_STATUS_UNKNOWN,
+  POD_STATUS_UNKNOWN
 ];
 
 const POD_STATUS_COMPLETED = 'POD_STATUS_COMPLETED';
@@ -45,19 +47,19 @@ const POD_STATUS_RUNNING = 'POD_STATUS_RUNNING';
 const POD_STATUS_ALL_READY = [
   POD_STATUS_RUNNING,
   POD_STATUS_COMPLETED,
-  POD_STATUS_SUCCEEDED,
+  POD_STATUS_SUCCEEDED
 ];
 
 const RunStrategy = {
   Always:         'Always',
   RerunOnFailure: 'RerunOnFailure',
   Halted:         'Halted',
-  Manual:         'Manual',
+  Manual:         'Manual'
 };
 
 const StateChangeRequest = {
   Start: 'Start',
-  Stop:  'Stop',
+  Stop:  'Stop'
 };
 
 const STARTING_MESSAGE =
@@ -70,7 +72,7 @@ const VMIPhase = {
   Running:    'Running',
   Succeeded:  'Succeeded',
   Failed:     'Failed',
-  Unknown:    'Unknown',
+  Unknown:    'Unknown'
 };
 
 const IgnoreMessages = ['pod has unbound immediate PersistentVolumeClaims'];
@@ -81,92 +83,92 @@ export default class VirtVm extends SteveModel {
 
     return [
       {
-        action:     'stopVM',
-        enabled:    !!this.actions?.stop,
-        icon:       'icon icon-close',
-        label:      this.t('harvester.action.stop'),
-        bulkable:   true,
+        action:   'stopVM',
+        enabled:  !!this.actions?.stop,
+        icon:     'icon icon-close',
+        label:    this.t('harvester.action.stop'),
+        bulkable: true
       },
       {
-        action:     'pauseVM',
-        enabled:    !!this.actions?.pause,
-        icon:       'icon icon-pause',
-        label:      this.t('harvester.action.pause'),
+        action:  'pauseVM',
+        enabled: !!this.actions?.pause,
+        icon:    'icon icon-pause',
+        label:   this.t('harvester.action.pause')
       },
       {
-        action:     'unpauseVM',
-        enabled:    !!this.actions?.unpause,
-        icon:       'icon icon-spinner',
-        label:      this.t('harvester.action.unpause'),
+        action:  'unpauseVM',
+        enabled: !!this.actions?.unpause,
+        icon:    'icon icon-spinner',
+        label:   this.t('harvester.action.unpause')
       },
       {
-        action:     'restartVM',
-        enabled:    !!this.actions?.restart,
-        icon:       'icon icon-refresh',
-        label:      this.t('harvester.action.restart'),
-        bulkable:   true,
+        action:   'restartVM',
+        enabled:  !!this.actions?.restart,
+        icon:     'icon icon-refresh',
+        label:    this.t('harvester.action.restart'),
+        bulkable: true
       },
       {
-        action:     'softrebootVM',
-        enabled:    !!this.actions?.softreboot,
-        icon:       'icon icon-refresh',
-        label:      this.t('harvester.action.softreboot'),
+        action:  'softrebootVM',
+        enabled: !!this.actions?.softreboot,
+        icon:    'icon icon-refresh',
+        label:   this.t('harvester.action.softreboot')
       },
       {
-        action:     'startVM',
-        enabled:    !!this.actions?.start,
-        icon:       'icon icon-play',
-        label:      this.t('harvester.action.start'),
-        bulkable:   true,
+        action:   'startVM',
+        enabled:  !!this.actions?.start,
+        icon:     'icon icon-play',
+        label:    this.t('harvester.action.start'),
+        bulkable: true
       },
       {
-        action:     'backupVM',
-        enabled:    !!this.actions?.backup,
-        icon:       'icon icon-backup',
-        label:      this.t('harvester.action.backup'),
+        action:  'backupVM',
+        enabled: !!this.actions?.backup,
+        icon:    'icon icon-backup',
+        label:   this.t('harvester.action.backup')
       },
       {
-        action:     'restoreVM',
-        enabled:    !!this.actions?.restore,
-        icon:       'icon icon-backup-restore',
-        label:      this.t('harvester.action.restore'),
+        action:  'restoreVM',
+        enabled: !!this.actions?.restore,
+        icon:    'icon icon-backup-restore',
+        label:   this.t('harvester.action.restore')
       },
       {
-        action:     'ejectCDROM',
-        enabled:    !!this.actions?.ejectCdRom,
-        icon:       'icon icon-delete',
-        label:      this.t('harvester.action.ejectCDROM'),
+        action:  'ejectCDROM',
+        enabled: !!this.actions?.ejectCdRom,
+        icon:    'icon icon-delete',
+        label:   this.t('harvester.action.ejectCDROM')
       },
       {
-        action:     'migrateVM',
-        enabled:    !!this.actions?.migrate,
-        icon:       'icon icon-copy',
-        label:      this.t('harvester.action.migrate'),
+        action:  'migrateVM',
+        enabled: !!this.actions?.migrate,
+        icon:    'icon icon-copy',
+        label:   this.t('harvester.action.migrate')
       },
       {
-        action:     'abortMigrationVM',
-        enabled:    !!this.actions?.abortMigration,
-        icon:       'icon icon-close',
-        label:      this.t('harvester.action.abortMigration'),
+        action:  'abortMigrationVM',
+        enabled: !!this.actions?.abortMigration,
+        icon:    'icon icon-close',
+        label:   this.t('harvester.action.abortMigration')
       },
       {
-        action:     'addHotplug',
-        enabled:    !!this.actions?.addVolume,
-        icon:       'icon icon-plus',
-        label:      this.t('harvester.action.addHotplug'),
+        action:  'addHotplug',
+        enabled: !!this.actions?.addVolume,
+        icon:    'icon icon-plus',
+        label:   this.t('harvester.action.addHotplug')
       },
       {
-        action:     'createTemplate',
-        enabled:    !!this.actions?.createTemplate,
-        icon:       'icon icon-copy',
-        label:      this.t('harvester.action.createTemplate'),
+        action:  'createTemplate',
+        enabled: !!this.actions?.createTemplate,
+        icon:    'icon icon-copy',
+        label:   this.t('harvester.action.createTemplate')
       },
       {
-        action:     'openLogs',
-        enabled:    !!this.links.view,
-        icon:       'icon icon-fw icon-chevron-right',
-        label:      this.t('harvester.action.viewlogs'),
-        total:      1,
+        action:  'openLogs',
+        enabled: !!this.links.view,
+        icon:    'icon icon-fw icon-chevron-right',
+        label:   this.t('harvester.action.viewlogs'),
+        total:   1
       },
       ...out
     ];
@@ -175,7 +177,7 @@ export default class VirtVm extends SteveModel {
   applyDefaults(resources = this, realMode) {
     const spec = {
       runStrategy: 'RerunOnFailure',
-      template:             {
+      template:    {
         metadata: { annotations: {} },
         spec:     {
           domain: {
@@ -186,17 +188,21 @@ export default class VirtVm extends SteveModel {
               threads: 1
             },
             devices: {
-              inputs: [{
-                bus:  'usb',
-                name: 'tablet',
-                type: 'tablet'
-              }],
-              interfaces: [{
-                masquerade: {},
-                model:      'virtio',
-                name:       'default'
-              }],
-              disks: [],
+              inputs: [
+                {
+                  bus:  'usb',
+                  name: 'tablet',
+                  type: 'tablet'
+                }
+              ],
+              interfaces: [
+                {
+                  masquerade: {},
+                  model:      'virtio',
+                  name:       'default'
+                }
+              ],
+              disks: []
             },
             resources: {
               limits: {
@@ -204,14 +210,16 @@ export default class VirtVm extends SteveModel {
                 cpu:    ''
               }
             },
-            features: { acpi: { enabled: true } },
+            features: { acpi: { enabled: true } }
           },
           evictionStrategy: 'LiveMigrate',
           hostname:         '',
-          networks:         [{
-            name: 'default',
-            pod:  {}
-          }],
+          networks:         [
+            {
+              name: 'default',
+              pod:  {}
+            }
+          ],
           volumes: []
         }
       }
@@ -245,19 +253,23 @@ export default class VirtVm extends SteveModel {
   }
 
   openLogs() {
-    this.$dispatch('wm/open', {
-      id:        `${ this.id }-logs`,
-      label:     this.nameDisplay,
-      icon:      'file',
-      component: 'ContainerLogs',
-      attrs:     { pod: this.podResource }
-    }, { root: true });
+    this.$dispatch(
+      'wm/open',
+      {
+        id:        `${ this.id }-logs`,
+        label:     this.nameDisplay,
+        icon:      'file',
+        component: 'ContainerLogs',
+        attrs:     { pod: this.podResource }
+      },
+      { root: true }
+    );
   }
 
   backupVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'BackupModal'
+      component: 'HarvesterBackupModal'
     });
   }
 
@@ -267,14 +279,14 @@ export default class VirtVm extends SteveModel {
     this.$dispatch('promptModal', {
       resources,
       diskName,
-      component: 'UnplugVolume'
+      component: 'HarvesterUnplugVolume'
     });
   }
 
   restoreVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'RestoreDialog'
+      component: 'HarvesterRestoreDialog'
     });
   }
 
@@ -317,14 +329,14 @@ export default class VirtVm extends SteveModel {
   migrateVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'MigrationDialog'
+      component: 'HarvesterMigrationDialog'
     });
   }
 
   ejectCDROM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'EjectCDROMDialog'
+      component: 'HarvesterEjectCDROMDialog'
     });
   }
 
@@ -335,14 +347,14 @@ export default class VirtVm extends SteveModel {
   createTemplate(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'CloneTemplate'
+      component: 'HarvesterCloneTemplate'
     });
   }
 
   addHotplug(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'AddHotplugModal'
+      component: 'HarvesterAddHotplugModal'
     });
   }
 
@@ -384,7 +396,12 @@ export default class VirtVm extends SteveModel {
       case RunStrategy.Always:
         return true;
       case RunStrategy.RerunOnFailure:
-        if (this.status?.printableStatus === 'ErrorUnschedulable' && conditions.find(C => C.message && C.message.includes(IgnoreMessages))) {
+        if (
+          this.status?.printableStatus === 'ErrorUnschedulable' &&
+            conditions.find(
+              C => C.message && C.message.includes(IgnoreMessages)
+            )
+        ) {
           return true;
         }
 
@@ -392,7 +409,9 @@ export default class VirtVm extends SteveModel {
       case RunStrategy.Manual:
       default:
         changeRequests = new Set(
-          (this.status?.stateChangeRequests || []).map(chRequest => chRequest?.action),
+          (this.status?.stateChangeRequests || []).map(
+            chRequest => chRequest?.action
+          )
         );
 
         if (changeRequests.has(StateChangeRequest.Stop)) {
@@ -402,8 +421,10 @@ export default class VirtVm extends SteveModel {
           return true;
         }
 
-        if (changeRequests.size === 0 ) {
-          return ['Starting', 'Running'].includes(this.status?.printableStatus);
+        if (changeRequests.size === 0) {
+          return ['Starting', 'Running'].includes(
+            this.status?.printableStatus
+          );
         }
 
         return this.isVMCreated; // if there is no change request we can assume created is representing running (current and expected)
@@ -417,8 +438,11 @@ export default class VirtVm extends SteveModel {
     const vmiResource = this.$rootGetters['harvester/byId'](HCI.VMI, this.id);
     const podList = this.$rootGetters['harvester/all'](POD);
 
-    return podList.find( (P) => {
-      return vmiResource?.metadata?.name && vmiResource?.metadata?.name === P.metadata?.ownerReferences?.[0].name;
+    return podList.find((P) => {
+      return (
+        vmiResource?.metadata?.name &&
+        vmiResource?.metadata?.name === P.metadata?.ownerReferences?.[0].name
+      );
     });
   }
 
@@ -439,7 +463,7 @@ export default class VirtVm extends SteveModel {
     if (vmFailureCond) {
       return {
         status:          VM_ERROR,
-        detailedMessage: vmFailureCond.message,
+        detailedMessage: vmFailureCond.message
       };
     }
 
@@ -462,7 +486,6 @@ export default class VirtVm extends SteveModel {
 
     if ((this.vmi || this.isVMCreated) && this.podResource) {
       // const podStatus = this.podResource.getPodStatus;
-
       // if (POD_STATUS_ALL_ERROR.includes(podStatus?.status)) {
       //   return {
       //     ...podStatus,
@@ -490,7 +513,10 @@ export default class VirtVm extends SteveModel {
     const conditions = get(this.vmi, 'status.conditions');
     const VMIReadyCondition = findBy(conditions, 'type', 'Ready');
 
-    if (VMIReadyCondition?.status === 'False' && this.vmi?.status?.phase === VMIPhase.Running) {
+    if (
+      VMIReadyCondition?.status === 'False' &&
+      this.vmi?.status?.phase === VMIPhase.Running
+    ) {
       return { status: NOT_READY };
     }
 
@@ -517,13 +543,15 @@ export default class VirtVm extends SteveModel {
             status:          'Starting',
             message:         STARTING_MESSAGE,
             detailedMessage: podStatus?.message,
-            pod:             this.podResource,
+            pod:             this.podResource
           };
         }
       }
 
       return {
-        status: 'Starting', message: STARTING_MESSAGE, pod: this.podResource
+        status:  'Starting',
+        message: STARTING_MESSAGE,
+        pod:     this.podResource
       };
     }
 
@@ -531,17 +559,22 @@ export default class VirtVm extends SteveModel {
   }
 
   get otherState() {
-    const state = (this.vmi && [VMIPhase.Scheduling, VMIPhase.Scheduled].includes(this.vmi?.status?.phase) && {
+    const state = (this.vmi &&
+      [VMIPhase.Scheduling, VMIPhase.Scheduled].includes(
+        this.vmi?.status?.phase
+      ) && {
       status:  'Starting',
-      message: STARTING_MESSAGE,
+      message: STARTING_MESSAGE
     }) ||
-    (this.vmi && this.vmi.status?.phase === VMIPhase.Pending && {
-      status:  'VMI_WAITING',
-      message: VMI_WAITING_MESSAGE,
-    }) ||
-    (this.vmi && this.vmi?.status?.phase === VMIPhase.Failed && { status: 'VMI_ERROR' }) ||
-    ((this.isVMExpectedRunning && !this.isVMCreated) && { status: 'Pending' }) ||
-    { status: 'UNKNOWN' };
+      (this.vmi &&
+        this.vmi.status?.phase === VMIPhase.Pending && {
+        status:  'VMI_WAITING',
+        message: VMI_WAITING_MESSAGE
+      }) ||
+      (this.vmi &&
+        this.vmi?.status?.phase === VMIPhase.Failed && { status: 'VMI_ERROR' }) ||
+      (this.isVMExpectedRunning &&
+        !this.isVMCreated && { status: 'Pending' }) || { status: 'UNKNOWN' };
 
     return state;
   }
@@ -556,7 +589,10 @@ export default class VirtVm extends SteveModel {
 
   restoreState(vmResource = this, id) {
     if (!id) {
-      id = `${ this.metadata.namespace }/${ get(vmResource, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) }`;
+      id = `${ this.metadata.namespace }/${ get(
+        vmResource,
+        `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`
+      ) }`;
     }
     const allRestore = this.$rootGetters['harvester/all'](HCI.RESTORE);
 
@@ -578,7 +614,10 @@ export default class VirtVm extends SteveModel {
       return 'Terminating';
     }
 
-    if (!!this?.vmi?.migrationState && this.vmi.migrationState.status !== 'Failed') {
+    if (
+      !!this?.vmi?.migrationState &&
+      this.vmi.migrationState.status !== 'Failed'
+    ) {
       return this.vmi.migrationState.status;
     }
 
@@ -604,7 +643,7 @@ export default class VirtVm extends SteveModel {
     if (vmFailureCond) {
       return {
         status:  VM_ERROR,
-        message: vmFailureCond.message,
+        message: vmFailureCond.message
       };
     }
 
@@ -622,7 +661,7 @@ export default class VirtVm extends SteveModel {
         return {
           ...podStatus,
           status: 'LAUNCHER_POD_ERROR',
-          pod:    this.podResource,
+          pod:    this.podResource
         };
       }
     }
@@ -631,7 +670,10 @@ export default class VirtVm extends SteveModel {
   }
 
   get migrationMessage() {
-    if (!!this?.vmi?.migrationState && this.vmi.migrationState.status === 'Failed') {
+    if (
+      !!this?.vmi?.migrationState &&
+      this.vmi.migrationState.status === 'Failed'
+    ) {
       return {
         ...this.actualState,
         message: this.t('harvester.modal.migration.failedMessage')
@@ -680,9 +722,7 @@ export default class VirtVm extends SteveModel {
           }
         });
       }
-    } catch (err) {
-
-    }
+    } catch (err) {}
 
     return out;
   }
@@ -705,7 +745,13 @@ export default class VirtVm extends SteveModel {
 
       if (status === VM_ERROR) {
         errorCount += 1;
-      } else if (status === 'Stopping' || status === 'Waiting' || status === 'Pending' || status === 'Starting' || status === 'Terminating') {
+      } else if (
+        status === 'Stopping' ||
+        status === 'Waiting' ||
+        status === 'Pending' ||
+        status === 'Starting' ||
+        status === 'Terminating'
+      ) {
         warningCount += 1;
       }
     });
@@ -720,7 +766,9 @@ export default class VirtVm extends SteveModel {
     let out = [];
 
     try {
-      out = JSON.parse(this.metadata?.annotations?.[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
+      out = JSON.parse(
+        this.metadata?.annotations?.[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]
+      );
     } catch (e) {}
 
     return out;
@@ -729,9 +777,11 @@ export default class VirtVm extends SteveModel {
   get persistentVolumeClaimName() {
     const volumes = this.spec.template.spec.volumes || [];
 
-    return volumes.map((O) => {
-      return O?.persistentVolumeClaim?.claimName;
-    }).filter( name => !!name);
+    return volumes
+      .map((O) => {
+        return O?.persistentVolumeClaim?.claimName;
+      })
+      .filter(name => !!name);
   }
 
   get rootImageId() {
@@ -746,14 +796,18 @@ export default class VirtVm extends SteveModel {
     });
 
     if (!isNoExistingVolume) {
-      const existingVolume = pvcs.find(P => P.id === `${ this.metadata.namespace }/${ firstVolumeName }`);
+      const existingVolume = pvcs.find(
+        P => P.id === `${ this.metadata.namespace }/${ firstVolumeName }`
+      );
 
       if (existingVolume) {
-        return existingVolume?.metadata?.annotations?.['harvesterhci.io/imageId'];
+        return existingVolume?.metadata?.annotations?.[
+          'harvesterhci.io/imageId'
+        ];
       }
     }
 
-    this.volumeClaimTemplates.find( (volume) => {
+    this.volumeClaimTemplates.find((volume) => {
       imageId = volume?.metadata?.annotations?.['harvesterhci.io/imageId'];
 
       return !!imageId;
@@ -763,7 +817,9 @@ export default class VirtVm extends SteveModel {
   }
 
   get restoreName() {
-    return get(this, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) || '';
+    return (
+      get(this, `metadata.annotations."${ HCI_ANNOTATIONS.RESTORE_NAME }"`) || ''
+    );
   }
 
   get customValidationRules() {
@@ -781,24 +837,24 @@ export default class VirtVm extends SteveModel {
         path:           'spec.template.spec.domain.cpu.cores',
         min:            1,
         required:       true,
-        translationKey: 'harvester.fields.cpu',
+        translationKey: 'harvester.fields.cpu'
       },
       {
         nullable:       false,
         path:           'spec.template.spec.domain.resources.limits.memory',
         required:       true,
-        translationKey: 'harvester.fields.memory',
+        translationKey: 'harvester.fields.memory'
       },
       {
-        nullable:       false,
-        path:           'spec.template.spec',
-        validators:     ['vmNetworks'],
+        nullable:   false,
+        path:       'spec.template.spec',
+        validators: ['vmNetworks']
       },
       {
-        nullable:       false,
-        path:           'spec',
-        validators:     [`vmDisks`],
-      },
+        nullable:   false,
+        path:       'spec',
+        validators: [`vmDisks`]
+      }
     ];
 
     return rules;
@@ -806,13 +862,14 @@ export default class VirtVm extends SteveModel {
 
   get attachNetwork() {
     const networks = this.spec?.template?.spec?.networks || [];
-    const hasMultus = networks.find( N => N.multus);
+    const hasMultus = networks.find(N => N.multus);
 
     return !!hasMultus;
   }
 
   get memorySort() {
-    const memory = this?.spec?.template?.spec?.domain?.resources?.requests?.memory || 0;
+    const memory =
+      this?.spec?.template?.spec?.domain?.resources?.requests?.memory || 0;
 
     const formatSize = parseSi(memory);
 
@@ -820,17 +877,25 @@ export default class VirtVm extends SteveModel {
   }
 
   get ingoreVMMessage() {
-    const ignoreConditions = [{
-      name:    'unavailable',
-      error:   false,
-      vmState: this.actualState === PAUSED
-    }];
+    const ignoreConditions = [
+      {
+        name:    'unavailable',
+        error:   false,
+        vmState: this.actualState === PAUSED
+      }
+    ];
 
     const state = this.metadata?.state;
 
-    return ignoreConditions.find(condition => condition.name === state?.name && condition.error === state?.error && condition.vmState) ||
-    IgnoreMessages.find(M => super.stateDescription?.includes(M)) ||
-    this.isOff;
+    return (
+      ignoreConditions.find(
+        condition => condition.name === state?.name &&
+          condition.error === state?.error &&
+          condition.vmState
+      ) ||
+      IgnoreMessages.find(M => super.stateDescription?.includes(M)) ||
+      this.isOff
+    );
   }
 
   get stateDescription() {
@@ -838,7 +903,10 @@ export default class VirtVm extends SteveModel {
   }
 
   get displayMemory() {
-    return this.spec.template.spec.domain.resources?.limits?.memory || this.spec.template.spec.domain.resources?.requests?.memory;
+    return (
+      this.spec.template.spec.domain.resources?.limits?.memory ||
+      this.spec.template.spec.domain.resources?.requests?.memory
+    );
   }
 
   get isQemuInstalled() {

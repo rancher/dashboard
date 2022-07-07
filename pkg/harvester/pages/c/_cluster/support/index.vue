@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
-import SupportBundle from '../../../../dialog/SupportBundle';
+import HarvesterSupportBundle from '../../../../dialog/HarvesterSupportBundle';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import { SCHEMA, HCI } from '@shell/config/types';
 
@@ -13,7 +13,7 @@ export default {
     BannerGraphic,
     IndentedPanel,
     CommunityLinks,
-    SupportBundle,
+    HarvesterSupportBundle
   },
 
   data() {
@@ -22,8 +22,9 @@ export default {
         'footer.docs':   'https://docs.harvesterhci.io/latest/',
         'footer.forums': 'https://forums.rancher.com/c/harvester/',
         'footer.slack':  'https://slack.rancher.io',
-        'footer.issue':  'https://github.com/harvester/harvester/issues/new/choose',
-      },
+        'footer.issue':
+          'https://github.com/harvester/harvester/issues/new/choose'
+      }
     };
   },
 
@@ -37,15 +38,18 @@ export default {
     showSupportBundle() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
-      return !!this.$store.getters[`${ inStore }/byId`](SCHEMA, HCI.SUPPORT_BUNDLE);
-    },
+      return !!this.$store.getters[`${ inStore }/byId`](
+        SCHEMA,
+        HCI.SUPPORT_BUNDLE
+      );
+    }
   },
 
   methods: {
     open() {
       this.$store.commit('harvester-common/toggleBundleModal', true);
-    },
-  },
+    }
+  }
 };
 </script>
 
@@ -64,7 +68,11 @@ export default {
               <p class="pb-10">
                 {{ t('harvester.modal.bundle.titleDescription') }}
               </p>
-              <button class="btn role-secondary btn-sm" type="button" @click="open">
+              <button
+                class="btn role-secondary btn-sm"
+                type="button"
+                @click="open"
+              >
                 {{ t('harvester.modal.bundle.title') }}
               </button>
             </div>
@@ -88,15 +96,11 @@ export default {
           </div>
         </div>
         <div class="community">
-          <CommunityLinks
-            :link-options="options"
-          />
+          <CommunityLinks :link-options="options" />
         </div>
       </div>
     </IndentedPanel>
-    <SupportBundle
-      v-if="showSupportBundle"
-    />
+    <HarvesterSupportBundle v-if="showSupportBundle" />
   </div>
 </template>
 

@@ -3,7 +3,10 @@ import { HCI, LONGHORN, POD, NODE } from '@shell/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { clone } from '@shell/utils/object';
 import findLast from 'lodash/findLast';
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import {
+  colorForState,
+  stateDisplay
+} from '@shell/plugins/dashboard-store/resource-class';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parseSi } from '@shell/utils/units';
 
@@ -15,35 +18,35 @@ const ALLOW_SYSTEM_LABEL_KEYS = [
 export default class HciNode extends SteveModel {
   get _availableActions() {
     const cordon = {
-      action:     'cordon',
-      enabled:    this.hasAction('cordon') && !this.isCordoned,
-      icon:       'icon icon-fw icon-pause',
-      label:      this.t('harvester.action.cordon'),
-      total:      1,
+      action:  'cordon',
+      enabled: this.hasAction('cordon') && !this.isCordoned,
+      icon:    'icon icon-fw icon-pause',
+      label:   this.t('harvester.action.cordon'),
+      total:   1
     };
 
     const uncordon = {
-      action:     'uncordon',
-      enabled:    this.hasAction('uncordon'),
-      icon:       'icon icon-fw icon-play',
-      label:      this.t('harvester.action.uncordon'),
-      total:      1,
+      action:  'uncordon',
+      enabled: this.hasAction('uncordon'),
+      icon:    'icon icon-fw icon-play',
+      label:   this.t('harvester.action.uncordon'),
+      total:   1
     };
 
     const enableMaintenance = {
-      action:     'enableMaintenanceMode',
-      enabled:    this.hasAction('enableMaintenanceMode'),
-      icon:       'icon icon-fw icon-unlock',
-      label:      this.t('harvester.action.enableMaintenance'),
-      total:      1
+      action:  'enableMaintenanceMode',
+      enabled: this.hasAction('enableMaintenanceMode'),
+      icon:    'icon icon-fw icon-unlock',
+      label:   this.t('harvester.action.enableMaintenance'),
+      total:   1
     };
 
     const disableMaintenance = {
-      action:     'disableMaintenanceMode',
-      enabled:    this.hasAction('disableMaintenanceMode'),
-      icon:       'icon icon-fw icon-lock',
-      label:      this.t('harvester.action.disableMaintenance'),
-      total:      1
+      action:  'disableMaintenanceMode',
+      enabled: this.hasAction('disableMaintenanceMode'),
+      icon:    'icon icon-fw icon-lock',
+      label:   this.t('harvester.action.disableMaintenance'),
+      total:   1
     };
 
     return [
@@ -78,7 +81,10 @@ export default class HciNode extends SteveModel {
   }
 
   get nameDisplay() {
-    return this.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CUSTOM_NAME] || this.name;
+    return (
+      this.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CUSTOM_NAME] ||
+      this.name
+    );
   }
 
   get stateDisplay() {
@@ -90,7 +96,7 @@ export default class HciNode extends SteveModel {
       return 'Maintenance';
     }
 
-    if (this.isCordoned ) {
+    if (this.isCordoned) {
       return 'Cordoned';
     }
 
@@ -98,7 +104,11 @@ export default class HciNode extends SteveModel {
   }
 
   get stateBackground() {
-    return colorForState(this.stateDisplay, this.stateObj?.error, this.stateObj?.transitioning).replace('text-', 'bg-');
+    return colorForState(
+      this.stateDisplay,
+      this.stateObj?.error,
+      this.stateObj?.transitioning
+    ).replace('text-', 'bg-');
   }
 
   get stateDescription() {
@@ -153,11 +163,16 @@ export default class HciNode extends SteveModel {
   get internalIp() {
     const addresses = this.status?.addresses || [];
 
-    return findLast(addresses, address => address.type === 'InternalIP')?.address;
+    return findLast(addresses, address => address.type === 'InternalIP')
+      ?.address;
   }
 
   get isMaster() {
-    return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_MASTER] !== undefined || this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_CONTROL_PLANE] !== undefined;
+    return (
+      this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_MASTER] !== undefined ||
+      this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_CONTROL_PLANE] !==
+        undefined
+    );
   }
 
   cordon() {
@@ -171,7 +186,7 @@ export default class HciNode extends SteveModel {
   enableMaintenanceMode(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'MaintenanceDialog'
+      component: 'HarvesterMaintenanceDialog'
     });
   }
 
@@ -180,13 +195,20 @@ export default class HciNode extends SteveModel {
   }
 
   get isUnSchedulable() {
-    return this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_SCHEDULABLE] === 'false' || this.spec.unschedulable;
+    return (
+      this.metadata?.labels?.[HCI_ANNOTATIONS.NODE_SCHEDULABLE] === 'false' ||
+      this.spec.unschedulable
+    );
   }
 
   get isMigratable() {
     const states = ['in-progress', 'unavailable'];
 
-    return !this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] && !this.isUnSchedulable && !states.includes(this.state);
+    return (
+      !this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] &&
+      !this.isUnSchedulable &&
+      !states.includes(this.state)
+    );
   }
 
   get isCordoned() {
@@ -194,16 +216,25 @@ export default class HciNode extends SteveModel {
   }
 
   get isEnteringMaintenance() {
-    return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'running';
+    return (
+      this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] ===
+      'running'
+    );
   }
 
   get isMaintenance() {
-    return this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] === 'completed';
+    return (
+      this.metadata?.annotations?.[HCI_ANNOTATIONS.MAINTENANCE_STATUS] ===
+      'completed'
+    );
   }
 
   get longhornDisks() {
     const inStore = this.$rootGetters['currentProduct'].inStore;
-    const longhornNode = this.$rootGetters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.id }`);
+    const longhornNode = this.$rootGetters[`${ inStore }/byId`](
+      LONGHORN.NODES,
+      `longhorn-system/${ this.id }`
+    );
     const diskStatus = longhornNode?.status?.diskStatus || {};
     const diskSpec = longhornNode?.spec?.disks || {};
 
@@ -217,7 +248,7 @@ export default class HciNode extends SteveModel {
         storageMaximum:        diskStatus[key]?.storageMaximum,
         storageScheduled:      diskStatus[key]?.storageScheduled,
         readyCondiction:       diskStatus[key]?.conditions?.Ready || {},
-        schedulableCondiction: diskStatus[key]?.conditions?.Schedulable || {},
+        schedulableCondiction: diskStatus[key]?.conditions?.Schedulable || {}
       };
     });
 
@@ -228,7 +259,9 @@ export default class HciNode extends SteveModel {
     const inStore = this.$rootGetters['currentProduct'].inStore;
     const pods = this.$rootGetters[`${ inStore }/all`](POD) || [];
 
-    return pods.filter(p => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing');
+    return pods.filter(
+      p => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing'
+    );
   }
 
   get cpuReserved() {
