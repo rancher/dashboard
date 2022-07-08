@@ -4933,6 +4933,7 @@ validation:
     route:
       match: At least one Match or Match Regex must be selected
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
+  tab: "One or more fields in this tab contain a form validation error"
 
 wizard:
   previous: Previous

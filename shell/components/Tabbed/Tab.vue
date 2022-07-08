@@ -32,6 +32,10 @@ export default {
       type:    Boolean,
       default: null
     },
+    error: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {

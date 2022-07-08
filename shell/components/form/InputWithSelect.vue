@@ -75,6 +75,14 @@ export default {
       type:    String,
       default: '',
     },
+    textRules: {
+      default: () => [],
+      type:    Array,
+    },
+    selectRules: {
+      default: () => [],
+      type:    Array,
+    }
 
   },
 
@@ -129,6 +137,7 @@ export default {
       :option-label="optionLabel"
       :placement="$attrs.placement ? $attrs.placement : null"
       :v-bind="$attrs"
+      :rules="selectRules"
       @input="change"
     />
     <Select
@@ -158,6 +167,7 @@ export default {
       :disabled="disabled || textDisabled"
       :required="textRequired"
       :mode="mode"
+      :rules="textRules"
       v-bind="$attrs"
     >
       <template #label>

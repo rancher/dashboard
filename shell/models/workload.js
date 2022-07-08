@@ -272,6 +272,7 @@ export default class Workload extends SteveModel {
         required:       true,
         type:           'string',
         validators:     ['cronSchedule'],
+        translationKey: 'workload.cronSchedule'
       });
     }
 
