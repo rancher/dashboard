@@ -40,7 +40,7 @@ In Cluster Explorer, native Kubernetes nodes are displayed for all cluster types
 
 The nodes in Cluster Explorer are not to be confused with the machines that are shown in the Cluster Management app. In Cluster Management, if you go to a list of machines under **Advanced > Machines** in the side nav, you are not looking at nodes defined in the configuration of a single Kubernetes cluster. You are looking at a CAPI Machine resource that exists in the Rancher server's local cluster, which is also called the management cluster. These Machine resources declaratively specify the desired configuration of machines in the downstream clusters, including many hardware details that the downstream cluster is not aware of.
 
-To summarize, V1 provisioned clusters have nodes, nodePools and nodeTemplates. These are shown in the Cluster Management detail pages, which shows what is configured in the provisioning Cluster resource.
+To summarize, V1 provisioned clusters have nodes, nodePools, and nodeTemplates. These are shown in the Cluster Management detail pages, which show what is configured in the provisioning Cluster resource.
 
 In V2 cluster provisioning, clusters have Machines (https://cluster-api.sigs.k8s.io/user/concepts.html#machine) which are instances of MachineTemplates and have specific configuration for each infrastructure provider (Digital Ocean, Azure, etc). These infrastructure configuration details are shown in the Cluster Management detail pages for each cluster. In the Rancher UI, the resources used for configuring note templates, such as DigitaloceanConfigs, are hidden because every time they are edited, it forces all node pools using the config to reprovision, which could cause downtime to apps or services on the cluster.
 
