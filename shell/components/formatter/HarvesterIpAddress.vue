@@ -21,14 +21,11 @@ export default {
   },
 
   computed: {
+    // Return VM instance IP and VM annotation IP
     ips() {
-      return [...this.vmiIp, ...this.networkAnnotationIP].filter(IP => !!IP.ip).sort((a, b) => {
-        if (a.ip < b.ip) {
-          return -1;
-        }
-
-        return 1;
-      });
+      return [...this.vmiIp, ...this.networkAnnotationIP]
+        .filter(Boolean)
+        .sort((a, b) => a.ip < b.ip ? -1 : 1);
     },
 
     networkAnnotationIP() {
@@ -38,15 +35,14 @@ export default {
 
       const annotationIp = get(this.row, `metadata.annotations."${ HCI_ANNOTATIONS.NETWORK_IPS }"`) || '[]';
 
+      // Obtain IP from VM annotation, remove the CIDR suffix number if CIDR Exist
       try {
         const out = JSON.parse(annotationIp);
 
-        return out.map( (O) => {
-          return {
-            ip:   O.replace(/\/[\d\D]*/, ''),
-            name: ''
-          };
-        });
+        return out.map( ip => ({
+          ip:   ip.replace(/\/[\d\D]*/, ''),
+          name: ''
+        }));
       } catch (e) {
         return [];
       }
@@ -56,13 +52,13 @@ export default {
       const vmiResources = this.$store.getters['harvester/all'](HCI.VMI);
       const resource = vmiResources.find(VMI => VMI.id === this.value) || null;
       const networksName = this.row.networksName || [];
-      const vmiNetworks = resource?.spec?.networks;
+      const vmiNetworks = resource?.spec?.networks || [];
 
-      return (resource?.status?.interfaces || []).filter((O) => {
-        return isIpv4(O.ipAddress) && networksName.includes(O.name);
-      }).map((O) => {
+      return (resource?.status?.interfaces || []).filter((intf) => {
+        return isIpv4(intf.ipAddress) && networksName.includes(intf.name);
+      }).map((intf) => {
         let name;
-        const network = vmiNetworks.find(N => N.name === O.name);
+        const network = vmiNetworks.find(network => network.name === intf.name);
 
         if (network && network.multus) {
           name = network.multus.networkName;
@@ -71,7 +67,7 @@ export default {
         }
 
         return {
-          ip: O.ipAddress,
+          ip: intf.ipAddress,
           name
         };
       });

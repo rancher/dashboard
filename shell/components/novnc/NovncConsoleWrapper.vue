@@ -177,6 +177,7 @@ export default {
       this.keysRecord.splice(pos, this.keysRecord.length - pos, key);
     },
 
+    // Send function key, e.g. ALT + F
     sendKeys() {
       this.keysRecord.forEach((key) => {
         this.$refs.novncConsole.sendKey(this.allKeys[key].value, key, true);

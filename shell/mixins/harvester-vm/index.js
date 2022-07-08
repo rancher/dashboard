@@ -704,6 +704,11 @@ export default {
       return `#cloud-config\n${ out }`;
     },
 
+    /**
+     * Generate user data yaml which is decide by the "Install guest agent",
+     * "OS type", "SSH Keys" and user input.
+     * @param config
+     */
     getUserData(config) {
       try {
         if (!this.userScript) {
@@ -723,12 +728,13 @@ export default {
         const userDataYaml = userDataDoc.toString();
 
         if (userDataYaml === '{}\n') {
+          // Harvester YAML configuration that is used by the created virtual machine.
           return `#cloud-config`;
         }
 
         return userDataYaml;
       } catch (e) {
-        console.error('Error: Unable to parse yamldocment', e); // eslint-disable-line no-console
+        console.error('Error: Unable to parse yaml document', e); // eslint-disable-line no-console
 
         return this.userScript;
       }
@@ -849,34 +855,33 @@ export default {
 
     mergeSSHAuthorizedKeys(yaml) {
       try {
-        const userDataDoc = YAML.parseDocument(yaml);
-        const sshAuthorizedKeysSeq = userDataDoc.get('ssh_authorized_keys');
-        let sshAuthorizedKeys = sshAuthorizedKeysSeq?.toJSON() || [];
+        const sshAuthorizedKeys = YAML.parseDocument(yaml)
+          .get('ssh_authorized_keys')
+          ?.toJSON() || [];
 
-        if (sshAuthorizedKeys.length > 0) {
-          const sshList = new Set([...this.getSSHListValue(this.sshKey), ...sshAuthorizedKeys]);
+        const sshList = this.getSSHListValue(this.sshKey);
 
-          sshAuthorizedKeys = [...sshList];
-        } else {
-          sshAuthorizedKeys = this.getSSHListValue(this.sshKey);
-        }
-
-        return sshAuthorizedKeys;
+        return sshAuthorizedKeys.length ? [...new Set([...sshList, ...sshAuthorizedKeys])] : sshList;
       } catch (e) {
         return [];
       }
     },
 
-    deleteYamlDocProp(doc, prop) {
+    /**
+     * @param paths A Object path, e.g. 'a.b.c' => ['a', 'b', 'c']. Refer to https://eemeli.org/yaml/#scalar-values
+     * @returns
+     */
+    deleteYamlDocProp(doc, paths) {
       try {
         const item = doc.getIn([])?.items[0];
         const key = item?.key;
-        const commentBefore = key?.commentBefore;
+        const hasCloudConfigComment = !!key?.commentBefore?.includes('cloud-config');
+        const isMatchProp = key.source === paths[paths.length - 1];
 
-        if (key && commentBefore?.includes('cloud-config') && key.source === prop[prop.length - 1]) {
+        if (key && hasCloudConfigComment && isMatchProp) {
           // Comments are mounted on the next node and we should not delete the node containing cloud-config
         } else {
-          doc.deleteIn(prop);
+          doc.deleteIn(paths);
         }
       } catch (e) {}
     },
