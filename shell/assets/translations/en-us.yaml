@@ -5865,6 +5865,7 @@ harvester:
         down: No events in the past hour
       console:
         down: This Virtual Machine is down. Please start it to access its console.
+        shortKeys: Shortcut Keys
 
   volume:
     label: Volumes
@@ -5903,6 +5904,10 @@ harvester:
       basics: Basics
     nameNsDescription:
       name: Template Name
+    tips:
+      notExistImage:
+        title: Image {name} does not exist!
+        message: Please select a new Image.
 
   upgradePage:
     upgradeApp: Upgrade Software

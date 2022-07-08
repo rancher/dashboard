@@ -127,7 +127,10 @@ export default {
       const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       return this.namespaces.filter((namespace) => {
-        return isVirtualCluster && isVirtualProduct ? (!namespace.isSystem && !namespace.isObscure) : !namespace.isObscure;
+        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
+        const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
+
+        return isVirtualCluster && isVirtualProduct ? (!systemNS && !namespace.isObscure) : !namespace.isObscure;
       });
     },
 
