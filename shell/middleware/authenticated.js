@@ -60,7 +60,7 @@ function setProduct(store, to) {
 }
 
 export default async function({
-  route, app, store, redirect, $cookies, req, isDev, from, $plugin
+  route, app, store, redirect, $cookies, req, isDev, from, $plugin, next
 }) {
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
@@ -314,12 +314,10 @@ export default async function({
       // If a plugin claims the route and is loaded correctly we'll get a route back
       const newLocation = await dynamicPluginLoader.check({ route, store });
 
-      if (newLocation) {
-        // Note - don't use redirect (different behaviour between
-        // 1) use dashboard to nav to page & refresh browser
-        // 2) refresh browser
-        // 3) enter url directly in browser
-        return store.app.router.push(newLocation);
+      // If we have a new location, double check that it's actually valid
+      if (newLocation && store.app.router.resolve(newLocation).route.matched.length) {
+        // Note - don't use `redirect` or `store.app.route` (breaks feature by failing to run middleware in default layout)
+        return next(newLocation);
       }
     } else if (product === VIRTUAL || route.name === `${ VIRTUAL }-c-cluster` || route.name?.startsWith(`${ VIRTUAL }-c-cluster-`)) {
       const res = [

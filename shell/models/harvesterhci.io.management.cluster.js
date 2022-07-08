@@ -79,7 +79,6 @@ export default class HciCluster extends ProvCluster {
     // const pkgUrl = 'http://127.0.0.1:4500/harvester-0.5.0/harvester-0.5.0.umd.min.js';
     // const packageName = 'harvester-0.5.0';
 
-    // TODO: RC NOTE Dashboard upgrade brings in these changes. What happens to existing harvester clusters that won't have pkg, will they be upgraded at same time?
     // TODO: RC NOTE How to include the built harvester in the dashboard build
 
     // Avoid loading the plugin if it's already loaded

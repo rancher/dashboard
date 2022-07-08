@@ -1,4 +1,5 @@
 import Steve from '@shell/plugins/steve';
+import Vue from 'vue';
 import {
   COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_HARVESTER_PROVIDER, HCI, DEFAULT_WORKSPACE
 } from '@shell/config/types';
@@ -64,6 +65,7 @@ export const state = () => {
   return {
     managementReady:     false,
     clusterReady:        false,
+    clusterChanging:    false,
     isMultiCluster:      false,
     isRancher:           false,
     namespaceFilters:    [],
@@ -84,6 +86,10 @@ export const state = () => {
 export const getters = {
   clusterReady(state) {
     return state.clusterReady === true;
+  },
+
+  clusterChanging(state) {
+    return state.clusterChanging === true;
   },
 
   isMultiCluster(state) {
@@ -444,6 +450,10 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
+  clusterChanging(state, ready) {
+    state.clusterChanging = ready;
+  },
+
   updateNamespaces(state, { filters, all }) {
     state.namespaceFilters = filters.filter(x => !!x);
 
@@ -668,6 +678,8 @@ export const actions = {
       }
     }
 
+    console.warn('store/index', '30');
+
     if ( id ) {
       // Remember the current cluster
       dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
@@ -775,7 +787,10 @@ export const actions = {
       all:     res.namespaces
     });
 
+    console.warn('store/index', '100');
+    // setTimeout(() => {
     commit('clusterReady', true);
+    // }, 100);
 
     console.log('Done loading cluster.'); // eslint-disable-line no-console
   },
