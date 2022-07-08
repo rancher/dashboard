@@ -134,6 +134,26 @@ componentTestid: {
 >
 ```
 
+### Debugging
+
+To summarize what [defined in the documentation](https://docs.cypress.io/guides/guides/debugging), the following modalities of debugging are provided:
+
+- `debugger` flag
+- `.debug()` as chained command
+- `cy.pause()` for analyzing the state of the test
+- Inspect commands in the Cypress dashboard to view the logs
+- `.then(console.log)` to append the log to the resolved promise
+
+### Cypress Dashboard
+
+E2E tests can be displayed in Cypress dashboard by adding the key `"projectId": "YOUR_PROJECT_ID_HERE"` to the `cypress.json` file and run the script by passing the parameters
+
+```bash
+yarn cy:run  --record --key YOUR_RECORD_KEY_HERE
+```
+
+These values are provided when you create a new project within Cypress dashboard or within `Project settings`.
+
 ## Unit tests
 
 The dashboard is configured to run unit tests with Jest in combination of vue-test-utils, for Vue scoped cases.
