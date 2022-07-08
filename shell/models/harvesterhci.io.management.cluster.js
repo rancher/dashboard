@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { DEFAULT_WORKSPACE, SERVICE } from '@shell/config/types';
-import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME, HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 
 export default class HciCluster extends ProvCluster {
   get availableActions() {
@@ -48,14 +48,13 @@ export default class HciCluster extends ProvCluster {
     }
 
     // Package Name
-    const plugin = 'harvester';
-    const packageName = `${ plugin }-${ this.cachedHarvesterClusterVersion }`;
+    const packageName = `${ HARVESTER_NAME }-${ this.cachedHarvesterClusterVersion }`;
 
     // Harvester's Dashboard URL
     const namespace = 'harvester-system'; // TODO: RC Q Harv - Will this always be the case?
     const serviceName = 'harvester'; // TODO: RC Q Harv - Will this always be the case?
 
-    // TODO: RC NOTE this only works for embedded... to ui-dashboard-index
+    // TODO: RC NOTE this only works for embedded... no ui-dashboard-index
     // harvester settings - ui-index, ui-source (`bundled` `auto`, `external`)
     // dashboard settings - ui-dashboard-index, ui-offline-preferred ('false', 'dynamic', 'true')
     const dashboardUrl = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }/${ SERVICE }s/https:${ serviceName }:8443/proxy/dashboard`;
@@ -84,8 +83,9 @@ export default class HciCluster extends ProvCluster {
     // Avoid loading the plugin if it's already loaded
     const loadedPkgs = Object.keys(this.$rootState.$plugin.getPlugins());
 
-    if (!loadedPkgs.includes(packageName)) {
-      console.info('Attempting to load harvester plugin', packageName, pkgUrl);
+    // Skip loading if we've previously grabbed it or it's built in
+    if (!loadedPkgs.find(pkg => pkg === packageName || pkg === HARVESTER_NAME)) {
+      console.info('Attempting to load harvester plugin', packageName, pkgUrl); // eslint-disable-line no-console
 
       return await this.$rootState.$plugin.loadAsync(packageName, pkgUrl);
     }
@@ -120,7 +120,7 @@ export default class HciCluster extends ProvCluster {
       .catch((err) => {
         const message = typeof error === 'object' ? JSON.stringify(err) : err;
 
-        console.error('Failed to load harvester package: ', message);
+        console.error('Failed to load harvester package: ', message); // eslint-disable-line no-console
 
         // We cannot load a plugin for this harvester instance, fall back on opening their standalone UI in a different tab
         this.standaloneUrl()
@@ -129,7 +129,7 @@ export default class HciCluster extends ProvCluster {
           }).catch((err) => {
             const urlMessage = typeof error === 'object' ? JSON.stringify(err) : err;
 
-            console.error('Failed to determine standalone harvester url: ', urlMessage);
+            console.error('Failed to determine standalone harvester url: ', urlMessage); // eslint-disable-line no-console
 
             this.$dispatch('growl/error', {
               title:   this.t('harvesterManager.plugins.loadError'),

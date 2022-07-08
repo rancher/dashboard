@@ -24,8 +24,8 @@ dynamicPluginLoader.register({
       }
     }
 
+    // If we have a cluster id, try to load the plugin via the harvester cluster's `loadClusterPlugin`
     if (clusterId) {
-      // All is good, try to load the plugin via the harvester cluster's `loadClusterPlugin`
       const provClusters = await store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
       const provCluster = provClusters.find(p => p.mgmt.id === clusterId);
 
@@ -43,7 +43,7 @@ dynamicPluginLoader.register({
           } catch (err) {
             // If we've failed to load the harvester plugin nav to the harvester cluster list (probably got here from a bookmarked
             // harvester instance that hasn't been updated to serve a plugin)
-            console.error('Failed to load harvester package: ', typeof error === 'object' ? JSON.stringify(err) : err);
+            console.error('Failed to load harvester package: ', typeof error === 'object' ? JSON.stringify(err) : err); // eslint-disable-line no-console
 
             return harvesterClustersLocation;
           }
