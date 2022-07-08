@@ -66,4 +66,9 @@ export default class EtcdBackup extends NormanModel {
 
     return trans || error ? fileMessage || ucFirst(message) : '';
   }
+
+  get backupLocation() {
+    return this.metadata?.annotations?.['etcdsnapshot.rke.io/storage'];
+  }
+ 
 }
