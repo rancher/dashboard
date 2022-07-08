@@ -42,7 +42,7 @@ The nodes in Cluster Explorer are not to be confused with the machines that are 
 
 To summarize, V1 provisioned clusters have nodes, nodePools, and nodeTemplates. These are shown in the Cluster Management detail pages, which show what is configured in the provisioning Cluster resource.
 
-In V2 cluster provisioning, clusters have Machines (https://cluster-api.sigs.k8s.io/user/concepts.html#machine) which are instances of MachineTemplates and have specific configuration for each infrastructure provider (Digital Ocean, Azure, etc). These infrastructure configuration details are shown in the Cluster Management detail pages for each cluster. In the Rancher UI, the resources used for configuring note templates, such as DigitaloceanConfigs, are hidden because every time they are edited, it forces all node pools using the config to reprovision, which could cause downtime to apps or services on the cluster.
+In V2 cluster provisioning, clusters have Machines (https://cluster-api.sigs.k8s.io/user/concepts.html#machine) which are instances of MachineTemplates and have a specific configuration for each infrastructure provider (Digital Ocean, Azure, etc). These infrastructure configuration details are shown in the Cluster Management detail pages for each cluster. In the Rancher UI, the resources used for configuring note templates, such as DigitaloceanConfigs, are hidden because every time they are edited, it forces all node pools using the config to reprovision, which could cause downtime to apps or services on the cluster.
 
 ## Cluster Resources
 
