@@ -52,7 +52,7 @@ There are three Kubernetes resources in the local Rancher server Kubernetes clus
 
 Rancher maintains a list of management clusters to maintain a consistent API for tracking all kinds of Kubernetes clusters, including imported clusters. There is one management Cluster resource for every downstream cluster managed by Rancher. It is also the Steve API's representation of Norman/v1 clusters.
 
-In the UI, the management Cluster resource is used in Cluster Explorer. like the provisioning and capi cluster resources. It’s used to show info on kubernetes version, cloud provider, node OSs, and resource usage. No, you can’t edit them, they’re available to users who can work within clusters but can’t necessarily provision clusters. rke1 and rke2 clusters both have management clusters; it’s like, a shared interface between all types of clusters so we can have a consistent experience within cluster explorer
+In the UI, the management Cluster resource is used in Cluster Explorer. like the provisioning and CAPI cluster resources. It’s used to show info on Kubernetes version, cloud provider, node OSs, and resource usage. No, you can’t edit them, they’re available to users who can work within clusters but can’t necessarily provision clusters. RKE1 and RKE2 clusters both have management clusters; it’s like, a shared interface between all types of clusters so we can have a consistent experience within Cluster Explorer
 			* v1
 
 The kubectl command to get the management Cluster resources is:
