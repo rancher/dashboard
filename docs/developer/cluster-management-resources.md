@@ -55,7 +55,7 @@ Rancher maintains a list of management clusters to maintain a consistent API for
 In the UI, the management Cluster resource is used in Cluster Explorer. like the provisioning and CAPI cluster resources. It’s used to show info on Kubernetes version, cloud provider, node OSs, and resource usage. No, you can’t edit them, they’re available to users who can work within clusters but can’t necessarily provision clusters. RKE1 and RKE2 clusters both have management clusters; it’s like, a shared interface between all types of clusters so we can have a consistent experience within Cluster Explorer
 			* v1
 
-The kubectl command to get the management Cluster resources is:
+The `kubectl` command to get the management Cluster resources is:
 
 ```
 kubectl get clusters.management
