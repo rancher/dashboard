@@ -1676,6 +1676,9 @@ cluster:
       }
     groupLabel: Location
     failed: "Snapshot from {time} failed"
+    rke1:
+      local: local
+      s3: s3
   tabs:
     ace: Authorized Endpoint
     addons: Add-On Config
