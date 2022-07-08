@@ -55,7 +55,7 @@ So if you are ever looking for something in Cluster Explorer and you don't see i
 
 A project is a group of namespaces. Projects are a Rancher-created feature that did not have an equivalent in upstream Kubernetes at the time Rancher introduced them. Newer Kubernetes versions have a feature called "hierarchical namespaces" which provide the same concept of a group of namespaces, and projects may be re-implemented to take advantage of hierarchical namespaces in a later Rancher version.
 
-The purpose of a project is mainly to make it easier for admins to give users permission to access to an entire group of namespaces at once. They are also used for multi-tenancy clusters, in which admins want to fence off a group of namespaces for users who will never have access to the entire cluster. Sometimes they are used for organizational purposes.
+The purpose of a project is mainly to make it easier for admins to give users permission to access an entire group of namespaces at once. They are also used for multi-tenancy clusters, in which admins want to fence off a group of namespaces for users who will never have access to the entire cluster. Sometimes they are used for organizational purposes.
 
 ## 3. Cluster Provisioning
 
