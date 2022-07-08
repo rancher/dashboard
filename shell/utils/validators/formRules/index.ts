@@ -48,11 +48,11 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   const endHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(-1) === '-' ? t(`validation.dns.${ label }.endHyphen`, { key: displayKey }) : undefined;
 
   const dnsChars: Validator = (val: string) => {
-    const matchedChars = val?.match(/[^${ 'A-Za-z0-9-' }]/g);
+    const matchedChars = val?.match(/[^${'A-Za-z0-9-'}]/g);
 
     if (matchedChars) {
       return t('validation.chars', {
-        key: displayKey, count: matchedChars.length, chars: matchedChars.join(' ')
+        key: displayKey, count: matchedChars.length, chars: matchedChars.map(char => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
       });
     }
 
@@ -223,7 +223,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
     if (targetPort || targetPort === '0') {
       if (!targetPortIsInt) {
-        const ianaServiceNameErrors = dnsLabelIanaServiceName(val.toString());
+        const ianaServiceNameErrors = dnsLabelIanaServiceName(typeof val === 'string' ? targetPort : targetPort.toString());
 
         if (ianaServiceNameErrors) {
           return ianaServiceNameErrors;
