@@ -1,0 +1,52 @@
+{
+  "apiVersion": "policies.kubewarden.io/v1alpha2",
+  "kind": "",
+  "metadata": {
+    "name": "user-group-psp"
+  },
+  "spec": {
+    "policyServer": "default",
+    "module": "ghcr.io/kubewarden/policies/user-group-psp:v0.2.0",
+    "rules": [
+      {
+        "apiGroups": [],
+        "apiVersions": [],
+        "resources": [],
+        "operations": []
+      }
+    ],
+    "mutating": false,
+    "settings": {
+      "run_as_user": {
+        "rule": "",
+        "overwrite": false,
+        "ranges": [
+          {
+            "min": 0,
+            "max": 0
+          }
+        ]
+      },
+      "run_as_group": {
+        "rule": "",
+        "overwrite": false,
+        "ranges": [
+          {
+            "min": 0,
+            "max": 0
+          }
+        ]
+      },
+      "supplemental_groups": {
+        "rule": "",
+        "overwrite": false,
+        "ranges": [
+          {
+            "min": 0,
+            "max": 0
+          }
+        ]
+      }
+    }
+  }
+}

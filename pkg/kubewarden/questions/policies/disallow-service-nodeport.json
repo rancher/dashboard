@@ -1,0 +1,20 @@
+{
+  "apiVersion": "policies.kubewarden.io/v1alpha2",
+  "kind": "",
+  "metadata": {
+    "name": "disallow-service-nodeport"
+  },
+  "spec": {
+    "policyServer": "default",
+    "module": "ghcr.io/kubewarden/policies/disallow-service-nodeport:v0.1.2",
+    "rules": [
+      {
+        "apiGroups": [],
+        "apiVersions": [],
+        "resources": [],
+        "operations": []
+      }
+    ],
+    "mutating": false
+  }
+}

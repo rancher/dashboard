@@ -1,0 +1,24 @@
+{
+  "apiVersion": "policies.kubewarden.io/v1alpha2",
+  "kind": "",
+  "metadata": {
+    "name": "sysctl-psp"
+  },
+  "spec": {
+    "policyServer": "default",
+    "module": "ghcr.io/kubewarden/policies/sysctl-psp:v0.1.7",
+    "rules": [
+      {
+        "apiGroups": [],
+        "apiVersions": [],
+        "resources": [],
+        "operations": []
+      }
+    ],
+    "mutating": false,
+    "settings": {
+      "forbiddenSysctls": [""],
+      "allowedUnsafeSysctls": [""]
+    }
+  }
+}

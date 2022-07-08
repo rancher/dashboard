@@ -1,0 +1,32 @@
+[
+  {
+    "default": [],
+    "description": "Provides a list of capabilities that are allowed to be added to a container",
+    "tooltip": "Specified as the capability name in ALL_CAPS. (e.g. `CHOWN`, `KILL`)",
+    "group": "Settings",
+    "label": "Allowed capabilities",
+    "required": false,
+    "type": "array[",
+    "variable": "allowed_capabilities"
+  },
+  {
+    "default": [],
+    "description": "The capabilities which must be dropped from containers.",
+    "tooltip": "Specified as the capability name in ALL_CAPS. (e.g. `NET_ADMIN`)",
+    "group": "Settings",
+    "label": "Required drop capabilities",
+    "required": false,
+    "type": "array[",
+    "variable": "required_drop_capabilities"
+  },
+  {
+    "default": [],
+    "description": "The capabilities which are added to containers by default, in addition to the runtime defaults.",
+    "tooltip": "Specified as the capability name in ALL_CAPS. (e.g. `CHOWN`)",
+    "group": "Settings",
+    "label": "Default add capabilities",
+    "required": false,
+    "type": "array[",
+    "variable": "default_add_capabilities"
+  }
+]

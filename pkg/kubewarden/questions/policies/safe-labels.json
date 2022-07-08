@@ -1,0 +1,25 @@
+{
+  "apiVersion": "policies.kubewarden.io/v1alpha2",
+  "kind": "",
+  "metadata": {
+    "name": "safe-labels"
+  },
+  "spec": {
+    "policyServer": "default",
+    "module": "ghcr.io/kubewarden/policies/safe-labels:v0.1.7",
+    "rules": [
+      {
+        "apiGroups": [],
+        "apiVersions": [],
+        "resources": [],
+        "operations": []
+      }
+    ],
+    "mutating": false,
+    "settings": {
+      "denied_labels": [""],
+      "mandatory_labels": [""],
+      "constrained_labels": [{}]
+    }
+  }
+}

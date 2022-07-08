@@ -1,0 +1,45 @@
+[
+  {
+    "default": "RunAsAny",
+    "tooltip": "Set which fsGroup is allowed in the pod security context.",
+    "description": "This policy works by defining what `fsGroup` is allowed in the pod security context. `MustRunAs` and `MayRunAs` contain a list of ranges that define valid ranges for the `fsGroup` value. `RunAsAny` always accepts the request.",
+    "group": "Settings",
+    "label": "Service Type",
+    "options": [
+      "MustRunAs",
+      "MayRunAs",
+      "RunAsAny"
+    ],
+    "required": false,
+    "type": "enum",
+    "variable": "rule"
+  },
+  {
+    "default": [],
+    "tooltip": "Valid user ID (UID) ranges for the fsGroup.",
+    "group": "Settings",
+    "label": "User ID Ranges",
+    "show_if": "rule=MustRunAs||rule=MayRunAs",
+    "target": false,
+    "type": "map",
+    "variable": "ranges",
+    "subquestions": [
+      {
+        "default": 1000,
+        "tooltip": "Minimum UID range for fsgroup.",
+        "group": "Settings",
+        "label": "min",
+        "type": "int",
+        "variable": "ranges.min"
+      },
+      {
+        "default": 2000,
+        "tooltip": "Maximum UID range for fsgroup.",
+        "group": "Settings",
+        "label": "max",
+        "type": "int",
+        "variable": "ranges.max"
+      }
+    ]
+  }
+]

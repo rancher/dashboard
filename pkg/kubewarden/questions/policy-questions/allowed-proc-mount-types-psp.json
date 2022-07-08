@@ -1,0 +1,12 @@
+[
+  {
+    "default": true,
+    "description": "This policy works by defining what proc mount types are allowed in containers. They can be empty (defaulted by Kubernetes), `Default` or `Unmasked`. This policy protects against pods that contain at least one container with the `Unmasked` proc mount type, that can potentially expose host information to the container.",
+    "tooltip": "Allows the containers, init containers, or ephemeral containers within a pod to set `.spec.securityContext.procMount` to Unmasked. Otherwise, the pod or the ephemeral request subresource request will be rejected.",
+    "group": "Settings",
+    "label": "Allow unmasked proc mount type",
+    "required": false,
+    "type": "boolean",
+    "variable": "allow_unmasked_proc_mount_type"
+  }
+]

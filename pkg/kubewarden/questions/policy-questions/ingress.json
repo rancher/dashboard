@@ -1,0 +1,30 @@
+[
+  {
+    "default": false,
+    "description": "This policy allows you to restrict ingress resources.",
+    "tooltip": "Whether the spec for ingress resources has to include a TLS attribute that includes all hosts defined in the .spec.rules attribute of the ingress resource.",
+    "group": "Settings",
+    "label": "Require TLS",
+    "required": false,
+    "type": "boolean",
+    "variable": "requireTLS"
+  },
+  {
+    "default": [],
+    "description": "A list of allowed ports inside `.spec.rules.paths.backend.service.port`. If this array contains at least one port, any other port will be rejected.",
+    "group": "Settings",
+    "label": "Allow ports",
+    "required": false,
+    "type": "array[",
+    "variable": "allowPorts"
+  },
+  {
+    "default": [],
+    "description": "A list of denied ports inside `.spec.rules.paths.backend.service.port`. If any port matches a port on this array, the ingress resource will be rejected, otherwise it will be accepted.",
+    "group": "Settings",
+    "label": "Deny ports",
+    "required": false,
+    "type": "array[",
+    "variable": "denyPorts"
+  }
+]

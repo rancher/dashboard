@@ -1,0 +1,29 @@
+{
+  "apiVersion": "policies.kubewarden.io/v1alpha2",
+  "kind": "",
+  "metadata": {
+    "name": "allowed-fsgroups-psp"
+  },
+  "spec": {
+    "policyServer": "default",
+    "module": "ghcr.io/kubewarden/policies/allowed-fsgroups-psp:v0.1.4",
+    "rules": [
+      {
+        "apiGroups": [],
+        "apiVersions": [],
+        "resources": [],
+        "operations": []
+      }
+    ],
+    "mutating": false,
+    "settings": {
+      "rule": "",
+      "ranges": [
+        {
+          "min": 1000,
+          "max": 2000
+        }
+      ]
+    }
+  }
+}

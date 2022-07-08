@@ -1,0 +1,12 @@
+[
+  {
+    "default": [],
+    "description": "This policy works by defining a whitelist of allowed AppArmor profiles. Pods are then inspected at creation and update time, to ensure only approved profiles are used. When no AppArmor profile is defined, Kubernetes will leave the final choice to the underlying container runtime. This will result in using the default AppArmor profile provided by Container Runtime. Because of that, the default behaviour of this policy is to accept workloads that do not have an AppArmor profile specified.",
+    "tooltip": "Provide a list of allowed AppArmor profiles",
+    "group": "Settings",
+    "label": "Allowed profiles",
+    "required": false,
+    "type": "array[",
+    "variable": "allowed_profiles"
+  }
+]

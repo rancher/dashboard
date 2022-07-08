@@ -1,0 +1,77 @@
+[
+  {
+    "default": null,
+    "description": "This policy is a replacement for the Kubernetes Pod Security Policy that controls the usage of SELinux in the pod security context and on containers, init containers and ephemeral containers. This policy will inspect the `.spec.securityContext.seLinuxOptions` of the pod  if the container has no specific `.spec.securityContext.seLinuxOptions`. In other words, the `seLinuxOptions` of the container, init container and ephemeral containers take precendence over the pod `seLinuxOptions`, if any.",
+    "group": "Settings",
+    "required": false,
+    "target": false,
+    "type": "map",
+    "variable": "description"
+  },
+  {
+    "default": "MustRunAs",
+    "tooltip": "Defines what seLinuxOptions can be set at the pod level and at the container level.",
+    "group": "Settings",
+    "label": "SE Linux Options",
+    "options": [
+      "MustRunAs",
+      "RunAsAny"
+    ],
+    "required": false,
+    "type": "enum",
+    "variable": "rule"
+  },
+  {
+    "default": [],
+    "description": "Contains the desired value for the `seLinuxOptions` parameter. If the pod does not contain a `.securityContext`, or a `.securityContext.seLinuxOptions`, then this policy acts as mutating and defaults the `seLinuxOptions` attribute to the one provided in the configuration. In all cases, pod containers, init container and ephemeral containers `.seLinuxOptions` are checked for compatibility if they override the Pod Security Context `seLinuxOptions` value.",
+    "group": "Settings",
+    "label": "Must run as",
+    "show_if": "rule=MustRunAs",
+    "target": false,
+    "type": "map",
+    "variable": "MustRunAs",
+    "subquestions": [
+      {
+        "default": "",
+        "group": "Settings",
+        "label": "User",
+        "show_if": "rule=MustRunAs",
+        "type": "string",
+        "variable": "MustRunAs.user"
+      },
+      {
+        "default": "",
+        "group": "Settings",
+        "label": "Role",
+        "show_if": "rule=MustRunAs",
+        "type": "string",
+        "variable": "MustRunAs.role"
+      },
+      {
+        "default": "",
+        "group": "Settings",
+        "label": "Type",
+        "show_if": "rule=MustRunAs",
+        "type": "string",
+        "variable": "MustRunAs.type"
+      },
+      {
+        "default": 0,
+        "group": "Settings",
+        "label": "Level",
+        "show_if": "rule=MustRunAs",
+        "type": "int",
+        "variable": "MustRunAs.level"
+      }
+    ]
+  },
+  {
+    "default": false,
+    "tooltip": "Always accepts the request.",
+    "group": "Settings",
+    "show_if": "rule=RunAsAny",
+    "title": "Run as any",
+    "type": "boolean",
+    "variable": "RunAsAny"
+  }
+]

@@ -1,0 +1,199 @@
+[
+  {
+    "default": null,
+    "description": "This policy is a replacement for the Kubernetes Pod Security Policy that controls containers user and groups.",
+    "group": "Settings",
+    "required": false,
+    "targeted": false,
+    "type": "map",
+    "variable": "description"
+  },
+  {
+    "default": [],
+    "description": "Controls which user ID the containers are run with.",
+    "group": "Settings",
+    "label": "Run as user",
+    "target": false,
+    "type": "map",
+    "variable": "run_as_user",
+    "subquestions": [
+      {
+        "default": "",
+        "tooltip": "Defines the strategy used by the policy to enforce users and groups used in containers.",
+        "group": "Settings",
+        "label": "Rule",
+        "options": [
+          "MustRunAs",
+          "MustRunAsNonRoot",
+          "RunAsAny"
+        ],
+        "type": "enum",
+        "variable": "run_as_user.rule"
+      },
+      {
+        "default": false,
+        "group": "Settings",
+        "label": "Overwrite",
+        "show_if": "run_as_user.rule=MustRunAs||run_as_user.rule=MustRunAsNonRoot",
+        "title": "Overwrite",
+        "tooltip": "The overwrite attribute can be set only with the MustRunAs rule. This flag configures the policy to mutate the runAsUser or runAsGroup despite of the value present in the request - even if the value is a valid one. The default value of this attribute is false.",
+        "type": "boolean",
+        "variable": "run_as_user.overwrite"
+      },
+      {
+        "default": [],
+        "description": "Ranges is a list of JSON objects with two attributes: min and max. Each range object define the user/group ID range used by the rule.",
+        "group": "Settings",
+        "label": "Ranges",
+        "show_if": "run_as_user.rule=MustRunAs||run_as_user.rule=MustRunAsNonRoot",
+        "target": false,
+        "type": "map",
+        "variable": "run_as_user.ranges",
+        "subquestions": [
+          {
+            "default": 0,
+            "group": "Settings",
+            "label": "min",
+            "show_if": "run_as_user.rule=MustRunAs||run_as_user.rule=MustRunAsNonRoot",
+            "tooltip": "Minimum UID or GID",
+            "type": "int",
+            "variable": "run_as_user.ranges.min"
+          },
+          {
+            "default": 0,
+            "group": "Settings",
+            "label": "max",
+            "show_if": "run_as_user.rule=MustRunAs||run_as_user.rule=MustRunAsNonRoot",
+            "tooltip": "Maxium UID or GID",
+            "type": "int",
+            "variable": "run_as_user.ranges.max"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "default": [],
+    "description": "Controls which primary group ID the containers are run with.",
+    "group": "Settings",
+    "label": "Run as group",
+    "target": false,
+    "type": "map",
+    "variable": "run_as_group",
+    "subquestions": [
+      {
+        "default": "",
+        "tooltip": "Defines the strategy used by the policy to enforce users and groups used in containers.",
+        "group": "Settings",
+        "label": "Rule",
+        "options": [
+          "MustRunAs",
+          "MustRunAsNonRoot",
+          "RunAsAny"
+        ],
+        "type": "enum",
+        "variable": "run_as_group.rule"
+      },
+      {
+        "default": false,
+        "group": "Settings",
+        "label": "Overwrite",
+        "show_if": "run_as_group.rule=MustRunAs||run_as_group.rule=MustRunAsNonRoot",
+        "type": "boolean",
+        "variable": "run_as_group.overwrite"
+      },
+      {
+        "default": [],
+        "description": "Ranges is a list of JSON objects with two attributes: min and max. Each range object define the user/group ID range used by the rule.",
+        "group": "Settings",
+        "label": "Ranges",
+        "show_if": "run_as_group.rule=MustRunAs||run_as_group.rule=MustRunAsNonRoot",
+        "target": false,
+        "type": "map",
+        "variable": "run_as_group.ranges",
+        "subquestions": [
+          {
+            "default": 0,
+            "group": "Settings",
+            "label": "min",
+            "show_if": "run_as_group.rule=MustRunAs||run_as_group.rule=MustRunAsNonRoot",
+            "tooltip": "Minimum UID or GID",
+            "type": "int",
+            "variable": "run_as_group.ranges.min"
+          },
+          {
+            "default": 0,
+            "group": "Settings",
+            "label": "max",
+            "show_if": "run_as_group.rule=MustRunAs||run_as_group.rule=MustRunAsNonRoot",
+            "tooltip": "Maxium UID or GID",
+            "type": "int",
+            "variable": "run_as_group.ranges.max"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "default": [],
+    "description": "Controls which group IDs containers add.",
+    "group": "Settings",
+    "label": "Supplemental groups",
+    "target": false,
+    "type": "map",
+    "variable": "supplemental_groups",
+    "subquestions": [
+      {
+        "default": "",
+        "tooltip": "Defines the strategy used by the policy to enforce users and groups used in containers.",
+        "group": "Settings",
+        "label": "Rule",
+        "options": [
+          "MustRunAs",
+          "MustRunAsNonRoot",
+          "RunAsAny"
+        ],
+        "type": "enum",
+        "variable": "supplemental_groups.rule"
+      },
+      {
+        "default": false,
+        "group": "Settings",
+        "label": "Overwrite",
+        "show_if": "supplemental_groups.rule=MustRunAs||supplemental_groups.rule=MustRunAsNonRoot",
+        "type": "boolean",
+        "variable": "supplemental_groups.overwrite"
+      },
+      {
+        "default": [],
+        "description": "Ranges is a list of JSON objects with two attributes: min and max. Each range object define the user/group ID range used by the rule.",
+        "group": "Settings",
+        "label": "Ranges",
+        "show_if": "supplemental_groups.rule=MustRunAs||supplemental_groups.rule=MustRunAsNonRoot",
+        "target": false,
+        "type": "map",
+        "variable": "supplemental_groups.ranges",
+        "subquestions": [
+          {
+            "default": 0,
+            "group": "Settings",
+            "label": "min",
+            "show_if": "supplemental_groups.rule=MustRunAs||supplemental_groups.rule=MustRunAsNonRoot",
+            "tooltip": "Minimum UID or GID",
+            "type": "int",
+            "variable": "supplemental_groups.ranges.min"
+          },
+          {
+            "default": 0,
+            "group": "Settings",
+            "label": "max",
+            "show_if": "supplemental_groups.rule=MustRunAs||supplemental_groups.rule=MustRunAsNonRoot",
+            "tooltip": "Maxium UID or GID",
+            "type": "int",
+            "variable": "supplemental_groups.ranges.max"
+          }
+        ]
+      }
+    ]
+  }
+]

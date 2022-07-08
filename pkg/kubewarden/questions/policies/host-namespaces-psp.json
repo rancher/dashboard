@@ -1,0 +1,31 @@
+{
+  "apiVersion": "policies.kubewarden.io/v1alpha2",
+  "kind": "",
+  "metadata": {
+    "name": "host-namespaces-psp"
+  },
+  "spec": {
+    "policyServer": "default",
+    "module": "ghcr.io/kubewarden/policies/host-namespaces-psp:v0.1.2",
+    "rules": [
+      {
+        "apiGroups": [],
+        "apiVersions": [],
+        "resources": [],
+        "operations": []
+      }
+    ],
+    "mutating": false,
+    "settings": {
+      "allow_host_ipc": false,
+      "allow_host_network": false,
+      "allow_host_pid": false,
+      "allow_host_ports": [
+        {
+          "min": 0,
+          "max": 0
+        }
+      ]
+    }
+  }
+}

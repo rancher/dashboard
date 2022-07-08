@@ -1,0 +1,65 @@
+[
+  {
+    "default": null,
+    "description": "This policy works by defining what host namespaces can be used by a Pod. `allow_host_ipc`, `allow_host_network` and `allow_host_pid` are `false` by default. `allow_host_ports` is an empty list by default. This means that by default host IPC, network, pid and all host ports are disabled when this policy is loaded with no configuration.",
+    "group": "Settings",
+    "required": false,
+    "targeted": false,
+    "type": "map",
+    "variable": "description"
+  },
+  {
+    "default": false,
+    "tooltip": "Allows the pod to set .spec.HostIPC to true.",
+    "group": "Settings",
+    "label": "Allow host IPC",
+    "required": false,
+    "type": "boolean",
+    "variable": "allow_host_ipc"
+  },
+  {
+    "default": false,
+    "tooltip": "Allows the pod to set .spec.HostNetwork to true.",
+    "group": "Settings",
+    "label": "Allow host network",
+    "required": false,
+    "type": "boolean",
+    "variable": "allow_host_network"
+  },
+  {
+    "default": false,
+    "tooltip": "Allows the pod to set .spec.HostPID to true.",
+    "group": "Settings",
+    "label": "Allow host PID",
+    "required": false,
+    "type": "boolean",
+    "variable": "allow_host_pid"
+  },
+  {
+    "default": [],
+    "description": "A range of ports to allow, an example would allow host ports `80`, `443` and the range `8000-9000`.",
+    "group": "Settings",
+    "label": "Allow host ports",
+    "target": false,
+    "type": "map",
+    "variable": "allow_host_ports",
+    "subquestions": [
+      {
+        "default": 0,
+        "tooltip": "",
+        "group": "Settings",
+        "label": "min",
+        "type": "int",
+        "variable": "allow_host_ports.min"
+      },
+      {
+        "default": 0,
+        "tooltip": "",
+        "group": "Settings",
+        "label": "max",
+        "type": "int",
+        "variable": "allow_host_ports.max"
+      }
+    ]
+  }
+]

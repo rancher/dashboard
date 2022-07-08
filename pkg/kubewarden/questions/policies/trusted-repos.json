@@ -1,0 +1,33 @@
+{
+  "apiVersion": "policies.kubewarden.io/v1alpha2",
+  "kind": "",
+  "metadata": {
+    "name": "trusted-repos"
+  },
+  "spec": {
+    "policyServer": "default",
+    "module": "ghcr.io/kubewarden/policies/trusted-repos:v0.1.7",
+    "rules": [
+      {
+        "apiGroups": [],
+        "apiVersions": [],
+        "resources": [],
+        "operations": []
+      }
+    ],
+    "mutating": false,
+    "settings": {
+      "registries": {
+        "allow": [""],
+        "reject": [""]
+      },
+      "tags": {
+        "reject": [""]
+      },
+      "images": {
+        "allow": [""],
+        "reject": [""]
+      }
+    }
+  }
+}

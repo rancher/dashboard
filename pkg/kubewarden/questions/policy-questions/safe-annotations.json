@@ -1,0 +1,29 @@
+[
+  {
+    "default": null,
+    "description": "This policy validates the annotations of generic Kubernetes objects. It rejects all the resources that use one or more annotations on the deny list. It also allows you to put constraints on specific annotations. The constraints are expressed as regular expression.",
+    "group": "Settings",
+    "required": false,
+    "target": false,
+    "type": "map",
+    "variable": "description"
+  },
+  {
+    "default": [],
+    "tooltip": "A list of annotations that cannot be used",
+    "group": "Settings",
+    "label": "Denied annotations",
+    "required": false,
+    "type": "array[",
+    "variable": "denied_annotations"
+  },
+  {
+    "default": [],
+    "tooltip": "Annotations that are validated with user-defined RegExp",
+    "group": "Settings",
+    "label": "Constrained annotations",
+    "target": true,
+    "type": "map[",
+    "variable": "constrained_annotations"
+  }
+]

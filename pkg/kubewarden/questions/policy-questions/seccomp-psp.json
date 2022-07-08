@@ -1,0 +1,38 @@
+[
+  {
+    "default": null,
+    "description": "This policy provides a replacement for the Pod Security Policy that deals with seccomp profiles. Prior to Kubernetes 1.19, seccomp profiles could be defined only via Pod annotations. Starting from Kubernetes 1.19 the seccomp profiles can be managed via the securityContext field of Pods and Containers. Note: the seccomp annotations are deprecated and will be dropped starting from Kubernetes 1.25.",
+    "group": "Settings",
+    "required": false,
+    "target": false,
+    "type": "map",
+    "variable": "description"
+  },
+  {
+    "default": [],
+    "tooltip": "Define the accecpted profile values for the annotations container.seccomp.security.alpha.kubernetes.io/<container> and seccomp.security.alpha.kubernetes.io/pod.",
+    "group": "Settings",
+    "label": "Allowed profiles",
+    "required": false,
+    "type": "array[",
+    "variable": "allowed_profiles"
+  },
+  {
+    "default": [],
+    "tooltip": "Define the allowed values to be set in the seccomp type in the security context of a container or of the Pod.",
+    "group": "Settings",
+    "label": "Profile types",
+    "required": false,
+    "type": "array[",
+    "variable": "profile_types"
+  },
+  {
+    "default": [],
+    "tooltip": "Define the allowed localhost profiles. This is used only when the 'Localhost' type is allowed inside of the security context.",
+    "group": "Settings",
+    "label": "Localhost profiles",
+    "required": false,
+    "type": "array[",
+    "variable": "localhost_profiles"
+  }
+]

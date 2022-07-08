@@ -1,0 +1,12 @@
+[
+  {
+    "default": true,
+    "description": "This policy works by inspecting the containers and init containers of a Pod. If any of these containers have `allowPrivilegeEscalation` enabled, the Pod will be rejected.",
+    "tooltip": "Used to default to disallow, while still permitting pods to request allowPrivilegeEscalation explicitly.",
+    "group": "Settings",
+    "label": "Allow privilege escalation",
+    "required": false,
+    "type": "boolean",
+    "variable": "default_allow_privilege_escalation"
+  }
+]
