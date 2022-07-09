@@ -62,8 +62,8 @@ export default {
     return {
       VOLUME_TYPE,
       InterfaceOption,
-      loading:         false,
-      images:          [],
+      loading: false,
+      images:  [],
     };
   },
 
