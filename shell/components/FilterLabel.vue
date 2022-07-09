@@ -154,11 +154,11 @@ export default {
               <template v-slot:column-headers>
                 <div class="box">
                   <div class="key">
-                    Key
+                    {{ t('generic.key') }}
                     <span class="required">*</span>
                   </div>
                   <div class="value">
-                    value
+                    {{ t('generic.value') }}
                   </div>
                   <div />
                 </div>
@@ -204,7 +204,7 @@ export default {
                   <button
                     type="button"
                     class="btn role-tertiary add"
-                    data-testid="add-item"
+                    data-testid="remove-all-item"
                     @click="removeAll()"
                   >
                     {{ t('generic.clearAll') }}

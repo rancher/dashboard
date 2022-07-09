@@ -35,49 +35,12 @@ export default {
     uploadingImages() {
       return this.$store.getters['harvester-common/uploadingImages'] || [];
     },
-
-    optionLabels() {
-      const labels = this.rows.map((row) => {
-        return Object.keys(row.labels);
-      });
-
-      return Array.from(new Set(labels.flat()));
-    },
   },
 
   methods: {
-    update() {
-      const map = {};
-
-      this.searchLabels.map((v) => {
-        map[`${ v.key }`] = v.value;
-      });
-    },
-
-    calcValueOptions(key) {
-      const valueOptions = [];
-
-      this.rows.map((row) => {
-        const isExistValue = valueOptions.find(value => value.label === row.labels[key]);
-
-        if (Object.keys(row.labels).includes(key) && key && row.labels[key] && !isExistValue) {
-          valueOptions.push({
-            value: row.labels[key],
-            label: row.labels[key]
-          });
-        }
-      });
-
-      return valueOptions;
-    },
-
     changeRows(filterRows, searchLabels) {
       this.$set(this, 'filterRows', filterRows);
       this.$set(this, 'searchLabels', searchLabels);
-    },
-
-    removeAll() {
-      this.$set(this, 'searchLabels', []);
     },
 
     sortGenerationFn() {
