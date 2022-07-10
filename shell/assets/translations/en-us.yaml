@@ -5162,6 +5162,15 @@ workload:
       upgrading: Scaling and Upgrade Policy
   cronSchedule: Schedule
   detail:
+    services: Services
+    ingresses: Ingresses
+    cannotViewServices: Could not list Services due to lack of permission.
+    cannotFindServices: Could not find any Services that select Pods from this workload.
+    serviceListCaption: "The following Services select Pods from this workload:"
+    cannotViewIngresses: Could not list Ingresses due to lack of permission.
+    cannotFindIngresses: Could not find any Ingresses that forward traffic to Services that select Pods in this workload.
+    ingressListCaption: "The following Ingresses forward traffic to Services that select Pods from this workload:"
+    cannotViewIngressesBecauseCannotViewServices: Could not find relevant relevant Ingresses due to lack of permission to view Services.
     pods:
       title: Pods
   detailTop:
