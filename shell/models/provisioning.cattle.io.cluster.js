@@ -61,11 +61,6 @@ export default class ProvCluster extends SteveModel {
   }
 
   get _availableActions() {
-    // No actions for Harvester clusters
-    if (this.isHarvester) {
-      return [];
-    }
-
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
 
