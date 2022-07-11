@@ -33,7 +33,6 @@ export default {
       const out = {};
 
       for ( const x of hooks ) {
-        console.debug('Applying hook', x.name); // eslint-disable-line no-console
         out[x.name] = await x.fn.apply(x.fnContext || this, args);
       }
 

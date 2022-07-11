@@ -1,7 +1,7 @@
 <script>
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
-import { FLEET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
+import { FLEET, SECRET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
@@ -19,7 +19,8 @@ import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { _CREATE } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
-import { CAPI } from '@shell/config/labels-annotations';
+import { CAPI, CATALOG } from '@shell/config/labels-annotations';
+import { SECRET_TYPES } from '~/shell/config/secret';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -258,6 +259,8 @@ export default {
 
   created() {
     this.registerBeforeHook(this.cleanTLS, 'cleanTLS');
+    this.registerBeforeHook(this.doCreateHelmAuthSecret, `registerHelmAuthSecret${new Date().getTime()}`, 99);
+
   },
 
   methods: {
@@ -270,19 +273,12 @@ export default {
       }
     },
 
-    updateCachedAuthVal(val, key) {
-      this.tempCachedValues[key] = {
-        ...this.tempCachedValues[key],
-        ...val
-      };
+    updateCachedAuthVal(val, key) { 
+      this.tempCachedValues[key] = typeof val === 'string' ? {selected: val} : {...val}
+
     },
 
     updateAuth(val, key) {
-      this.tempCachedValues[key] = {
-        ...this.tempCachedValues[key],
-        selected: val,
-      };
-
       const spec = this.value.spec;
 
       if ( val ) {
@@ -290,6 +286,8 @@ export default {
       } else {
         delete spec[key];
       }
+
+      this.updateCachedAuthVal(val, key)
     },
 
     updateTargets() {
@@ -356,6 +354,77 @@ export default {
       }
 
       this.stepOneReady();
+    },
+
+    async doCreateHelmAuthSecret() {
+      if(this.tempCachedValues.clientSecretName) {
+        const secret = await this.doCreate('clientSecretName', this.tempCachedValues.clientSecretName);
+        if(secret) {
+          this.updateAuth(secret.id, 'clientSecretName')
+        }
+      }
+
+      if(this.tempCachedValues.helmSecretName) {
+        const secret = await this.doCreate('helmSecretName', this.tempCachedValues.helmSecretName);
+        if(secret) {
+         this.updateAuth(secret.id, 'helmSecretName')
+        }
+      }
+    },
+
+    async doCreate(name, credentials) {
+      const { selected, publicKey, privateKey } = credentials
+
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(selected) ) {
+        return;
+      }
+
+      let secret;
+
+      if ( selected === AUTH_TYPE._S3 ) {
+        secret = await this.$store.dispatch(`rancher/create`, {
+          type:               NORMAN.CLOUD_CREDENTIAL,
+          s3credentialConfig: {
+            accessKey: publicKey,
+            secretKey: privateKey,
+          },
+        });
+      } else {
+        secret = await this.$store.dispatch(`${ CATALOG._MANAGEMENT }/create`, {
+          type:     SECRET,
+          metadata: {
+            namespace:    this.value.metadata.namespace,
+            generateName: 'auth-'
+          },
+        });
+
+        let type, publicField, privateField;
+
+        switch ( selected ) {
+        case AUTH_TYPE._SSH:
+          type = SECRET_TYPES.SSH;
+          publicField = 'ssh-publickey';
+          privateField = 'ssh-privatekey';
+          break;
+        case AUTH_TYPE._BASIC:
+          type = SECRET_TYPES.BASIC;
+          publicField = 'username';
+          privateField = 'password';
+          break;
+        default:
+          throw new Error('Unknown type');
+        }
+
+        secret._type = type;
+        secret.data = {
+          [publicField]:  base64Encode(publicKey),
+          [privateField]: base64Encode(privateKey),
+        };
+      }
+
+      await secret.save();
+
+      return secret;
     },
 
     updateTlsMode(event) {
@@ -458,6 +527,7 @@ export default {
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
+        :delegateCreateToParent="true"
         in-store="management"
         :pre-select="tempCachedValues.clientSecretName"
         generate-name="gitrepo-auth-"
@@ -470,10 +540,10 @@ export default {
         :value="value.spec.helmSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
+        :delegateCreateToParent="true"
         in-store="management"
         generate-name="helmrepo-auth-"
         label-key="fleet.gitRepo.auth.helm"
-        hook-name="registerHelmAuthSecret"
         :pre-select="tempCachedValues.helmSecretName"
         @input="updateAuth($event, 'helmSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"

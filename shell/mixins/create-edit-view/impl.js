@@ -133,7 +133,7 @@ export default {
 
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
-
+      
         // Remove the labels map if it's empty
         if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
           delete this.value.metadata.labels;
