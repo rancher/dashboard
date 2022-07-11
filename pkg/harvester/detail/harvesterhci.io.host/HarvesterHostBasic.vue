@@ -4,9 +4,9 @@ import { Banner } from '@components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { LONGHORN, METRIC, HCI } from '@shell/config/types';
-import HarvesterCPUUsed from '@shell/components/formatter/HarvesterCPUUsed';
-import HarvesterMemoryUsed from '@shell/components/formatter/HarvesterMemoryUsed';
-import HarvesterStorageUsed from '@shell/components/formatter/HarvesterStorageUsed';
+import HarvesterCPUUsed from '../../components/formatter/HarvesterCPUUsed';
+import HarvesterMemoryUsed from '../../components/formatter/HarvesterMemoryUsed';
+import HarvesterStorageUsed from '../../components/formatter/HarvesterStorageUsed';
 
 const COMPLETE = 'complete';
 const NONE = 'none';
@@ -21,13 +21,13 @@ export default {
     Banner,
     HarvesterCPUUsed,
     HarvesterMemoryUsed,
-    HarvesterStorageUsed
+    HarvesterStorageUsed,
   },
 
   props: {
     value: {
       type:     Object,
-      required: true
+      required: true,
     },
 
     metrics: {
@@ -55,25 +55,18 @@ export default {
 
   computed: {
     customName() {
-      return this.value.metadata?.annotations?.[
-        HCI_ANNOTATIONS.HOST_CUSTOM_NAME
-      ];
+      return this.value.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CUSTOM_NAME];
     },
 
     consoleUrl() {
-      const consoleUrl = this.value.metadata?.annotations?.[
-        HCI_ANNOTATIONS.HOST_CONSOLE_URL
-      ];
+      const consoleUrl = this.value.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CONSOLE_URL];
       let value = consoleUrl;
 
       if (!consoleUrl) {
         return '';
       }
 
-      if (
-        !consoleUrl.startsWith('http://') &&
-        !consoleUrl.startsWith('https://')
-      ) {
+      if (!consoleUrl.startsWith('http://') && !consoleUrl.startsWith('https://')) {
         value = `http://${ consoleUrl }`;
       }
 
@@ -125,10 +118,7 @@ export default {
 
     storageUsage() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const longhornNode = this.$store.getters[`${ inStore }/byId`](
-        LONGHORN.NODES,
-        `longhorn-system/${ this.value.id }`
-      );
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
       let out = 0;
 
       const diskStatus = longhornNode?.status?.diskStatus || {};
@@ -144,10 +134,7 @@ export default {
 
     storageTotal() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const longhornNode = this.$store.getters[`${ inStore }/byId`](
-        LONGHORN.NODES,
-        `longhorn-system/${ this.value.id }`
-      );
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
       let out = 0;
 
       const diskStatus = longhornNode?.status?.diskStatus || {};
@@ -186,15 +173,8 @@ export default {
     },
 
     nodeRoleState() {
-      const isExistRoleStatus =
-        this.value.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_MASTER] !==
-          undefined ||
-        this.value.metadata?.labels?.[
-          HCI_ANNOTATIONS.NODE_ROLE_CONTROL_PLANE
-        ] !== undefined;
-      const promoteStatus =
-        this.value.metadata?.annotations?.[HCI_ANNOTATIONS.PROMOTE_STATUS] ||
-        NONE;
+      const isExistRoleStatus = this.value.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_MASTER] !== undefined || this.value.metadata?.labels?.[HCI_ANNOTATIONS.NODE_ROLE_CONTROL_PLANE] !== undefined;
+      const promoteStatus = this.value.metadata?.annotations?.[HCI_ANNOTATIONS.PROMOTE_STATUS] || NONE;
 
       if (!isExistRoleStatus && promoteStatus === COMPLETE) {
         return PROMOTE_RESTART;
@@ -247,7 +227,7 @@ export default {
       };
 
       return formatSi(value, formatOptions);
-    }
+    },
   }
 };
 </script>
@@ -257,25 +237,16 @@ export default {
     <h3>{{ t('harvester.host.tabs.overview') }}</h3>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue
-          :name="t('harvester.host.detail.customName')"
-          :value="customName"
-        />
+        <LabelValue :name="t('harvester.host.detail.customName')" :value="customName" />
       </div>
       <div class="col span-6">
-        <LabelValue
-          :name="t('harvester.host.detail.hostIP')"
-          :value="value.internalIp"
-        />
+        <LabelValue :name="t('harvester.host.detail.hostIP')" :value="value.internalIp" />
       </div>
     </div>
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue
-          :name="t('harvester.host.detail.os')"
-          :value="value.status.nodeInfo.osImage"
-        />
+        <LabelValue :name="t('harvester.host.detail.os')" :value="value.status.nodeInfo.osImage" />
       </div>
       <div class="col span-6">
         <div class="role">
@@ -293,28 +264,17 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue
-          :name="t('harvester.host.detail.create')"
-          :value="value.metadata.creationTimestamp"
-        />
+        <LabelValue :name="t('harvester.host.detail.create')" :value="value.metadata.creationTimestamp" />
       </div>
       <div class="col span-6">
-        <LabelValue
-          :name="t('harvester.host.detail.update')"
-          :value="lastUpdateTime"
-        />
+        <LabelValue :name="t('harvester.host.detail.update')" :value="lastUpdateTime" />
       </div>
     </div>
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue
-          :name="t('harvester.host.detail.consoleUrl')"
-          :value="consoleUrl.value"
-        >
-          <a slot="value" :href="consoleUrl.value" target="_blank">{{
-            consoleUrl.display
-          }}</a>
+        <LabelValue :name="t('harvester.host.detail.consoleUrl')" :value="consoleUrl.value">
+          <a slot="value" :href="consoleUrl.value" target="_blank">{{ consoleUrl.display }}</a>
         </LabelValue>
       </div>
     </div>
@@ -327,10 +287,7 @@ export default {
       </Banner>
       <div class="row mb-20">
         <div class="col span-6">
-          <LabelValue
-            :name="t('harvester.host.detail.networkType')"
-            :value="networkType"
-          />
+          <LabelValue :name="t('harvester.host.detail.networkType')" :value="networkType" />
         </div>
 
         <div class="col span-6">
@@ -386,24 +343,15 @@ export default {
     <h3>{{ t('harvester.host.detail.more') }}</h3>
     <div class="row mb-20">
       <div class="col span-4">
-        <LabelValue
-          :name="t('harvester.host.detail.uuid')"
-          :value="value.status.nodeInfo.systemUUID"
-        />
+        <LabelValue :name="t('harvester.host.detail.uuid')" :value="value.status.nodeInfo.systemUUID" />
       </div>
 
       <div class="col span-4">
-        <LabelValue
-          :name="t('harvester.host.detail.kernel')"
-          :value="value.status.nodeInfo.kernelVersion"
-        />
+        <LabelValue :name="t('harvester.host.detail.kernel')" :value="value.status.nodeInfo.kernelVersion" />
       </div>
 
       <div class="col span-4">
-        <LabelValue
-          :name="t('harvester.host.detail.containerRuntime')"
-          :value="value.status.nodeInfo.containerRuntimeVersion"
-        />
+        <LabelValue :name="t('harvester.host.detail.containerRuntime')" :value="value.status.nodeInfo.containerRuntimeVersion" />
       </div>
     </div>
   </div>

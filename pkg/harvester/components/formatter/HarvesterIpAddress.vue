@@ -1,5 +1,6 @@
 <script>
 import compact from 'lodash/compact';
+import { OFF } from '../../models/harvester/kubevirt.io.virtualmachine';
 import { get } from '@shell/utils/object';
 import { isIpv4 } from '@shell/utils/string';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -13,12 +14,16 @@ export default {
   components: { CopyToClipboard },
   props:      {
     value: {
-      type:    String,
+      type:     String,
       default: ''
     },
     row: {
       type:     Object,
       required: true
+    },
+    col: {
+      type:     Object,
+      default: () => {}
     }
   },
 
@@ -31,16 +36,11 @@ export default {
     },
 
     networkAnnotationIP() {
-      if (this.row.actualState !== 'Running') {
-        // TODO: Running
+      if (this.row.actualState !== 'Running') { // TODO: Running
         return [];
       }
 
-      const annotationIp =
-        get(
-          this.row,
-          `metadata.annotations."${ HCI_ANNOTATIONS.NETWORK_IPS }"`
-        ) || '[]';
+      const annotationIp = get(this.row, `metadata.annotations."${ HCI_ANNOTATIONS.NETWORK_IPS }"`) || '[]';
 
       // Obtain IP from VM annotation, remove the CIDR suffix number if CIDR Exist
       try {
@@ -82,8 +82,8 @@ export default {
 
     showIP() {
       return this.row.stateDisplay !== OFF;
-    }
-  }
+    },
+  },
 };
 </script>
 

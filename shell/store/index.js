@@ -454,25 +454,6 @@ export const getters = {
     if (state.isSingleProduct !== undefined) {
       return state.isSingleProduct;
     }
-    // TODO not this
-    if (rootGetters.isSingleVirtualCluster) {
-      // return {
-      //   logo:            require('~shell/assets/images/providers/harvester.svg'),
-      //   productNameKey:  'product.harvester',
-      //   version:         rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
-      //   afterLoginRoute: {
-      //     name:   'c-cluster-product',
-      //     params: { product: VIRTUAL },
-      //   },
-      //   logoRoute: {
-      //     name:   'c-cluster-product-resource',
-      //     params: {
-      //       product:  VIRTUAL,
-      //       resource: HCI.DASHBOARD,
-      //     }
-      //   },
-      // };
-    }
 
     return false;
   },
