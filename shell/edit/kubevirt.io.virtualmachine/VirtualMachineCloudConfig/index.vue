@@ -209,6 +209,7 @@ export default {
         ref="networkTemplate"
         v-model="networkScript"
         type="network"
+        :view-code="viewCode"
         :mode="mode"
         :config-id="configNetworkId"
         :options="optionNetwork"
