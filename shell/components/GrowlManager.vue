@@ -112,6 +112,11 @@ export default {
 
     @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
       width: 350px;
+
+      // extra padding on the right so that the close X doesn't overlap the text
+      .growl-text {
+        padding-right: 30px !important;
+      }
     }
   }
 

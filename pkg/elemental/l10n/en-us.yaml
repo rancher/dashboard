@@ -104,3 +104,4 @@ elemental:
   machineInventory:
     createCluster: Create Elemental Cluster
     import: YAML import
+    updateForCreateClusterError: Error updating machine inventories with label for creating a cluster

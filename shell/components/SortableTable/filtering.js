@@ -32,8 +32,6 @@ export default {
     }),
     */
     filteredRows() {
-      console.log('FILTERING ROWS...', this.hasAdvancedFiltering, this.searchQuery);
-
       // PROP hasAdvancedFiltering comes from SortableTable (careful changing data var there...)
       if (!this.hasAdvancedFiltering) {
         return this.handleFiltering();
@@ -44,7 +42,7 @@ export default {
   },
 
   methods: {
-    // TODO: handle subSearch and subFields...
+    // TODO: handle subSearch and subFields, if needed... not entirely sure...
     handleAdvancedFiltering() {
       this.subMatches = null;
       const out = (this.arrangedRows || []).slice();
@@ -75,8 +73,6 @@ export default {
             }
           });
         });
-
-        console.log('ADV FILTER RESULTS', res);
 
         return res;
       }
