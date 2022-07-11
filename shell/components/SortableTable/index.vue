@@ -117,6 +117,13 @@ export default {
       default: null
     },
 
+    groups: {
+      // Set of groups to show - by default groups are generated from the rows, but in some cases
+      // you want to ensure that specific groups are always shown even when there are no rows in that group
+      type:    Array,
+      default: null
+    },
+
     defaultSortBy: {
       // Default field to sort by if none is specified
       // uses name on headers
@@ -468,9 +475,10 @@ export default {
       this.groupedRows.forEach((grp) => {
         const group = {
           grp,
-          key:  grp.key,
-          ref:  grp.ref,
-          rows: [],
+          key:          grp.key,
+          ref:          grp.ref,
+          emptyMessage: grp.emptyMessage,
+          rows:         [],
         };
 
         rows.push(group);
@@ -1023,6 +1031,11 @@ export default {
             </tr>
           </slot>
         </template>
+        <tr v-if="!group.rows.length && group.emptyMessage" class="main-row">
+          <td :colspan="fullColspan">
+            {{ group.emptyMessage }}
+          </td>
+        </tr>
       </tbody>
     </table>
     <div v-if="showPaging" class="paging">

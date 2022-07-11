@@ -28,9 +28,31 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
 import { get } from '@shell/utils/object';
+import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
+
+/**
+ * Machine Deployment has a reference to the 'template' used to create that deployment
+ * For an empty machine pool, we (obviously) don't get any machine deployments for that pool.
+ *
+ * This class allows us to fake a machine deployment - when created, we set additional properties (_cluster etc)
+ * and use these in the getters.
+ **/
+class EmptyCapiMachineDeployment extends CapiMachineDeployment {
+  get inClusterSpec() {
+    return this._clusterSpec;
+  }
+
+  get cluster() {
+    return this._cluster;
+  }
+
+  get template() {
+    return this._template;
+  }
+}
 
 export default {
   components: {
@@ -122,6 +144,7 @@ export default {
     this.haveNodes = !!fetchTwoRes.allNodes;
     this.allNodePools = fetchTwoRes.allNodePools || [];
     this.haveNodePools = !!fetchTwoRes.allNodePools;
+    this.machineTemplates = fetchTwoRes.mdtt || [];
   },
 
   created() {
@@ -160,7 +183,9 @@ export default {
       logSocket: null,
       logs:      [],
 
-      showWindowsWarning: false
+      showWindowsWarning: false,
+
+      providers: {},
     };
   },
 
@@ -202,6 +227,40 @@ export default {
       return info;
     },
 
+    machineGroups() {
+      const groups = [];
+
+      this.value.spec?.rkeConfig?.machinePools.forEach((p) => {
+        const pool = new EmptyCapiMachineDeployment(
+          {
+            metadata: {
+              name:      `${ this.value.nameDisplay }-${ p.name }`,
+              namespace: this.value.namespace,
+            },
+            spec: {}
+          },
+          {
+            getters:     this.$store.getters,
+            rootGetters: this.$root.$store.getters,
+          }
+        );
+
+        const templateNamePrefix = `${ pool.metadata.name }-`;
+
+        pool._clusterSpec = p;
+        pool._cluster = this.value;
+        pool._template = this.machineTemplates.find(t => t.metadata.name.startsWith(templateNamePrefix));
+
+        groups.push({
+          key:          `${ this.value.namespace }/${ pool.name }`,
+          ref:          pool,
+          emptyMessage: this.t('cluster.machinePool.empty')
+        });
+      });
+
+      return groups;
+    },
+
     fakeMachines() {
       // When a deployment has no machines it's not shown.... so add a fake machine to it
       // This is a catch all scenario seen in older node pool world but not deployments
@@ -214,16 +273,19 @@ export default {
       }));
     },
 
+    // RKE2 Machines
     machines() {
       return [...this.value.machines, ...this.fakeMachines];
     },
 
+    // RKE1 Nodes
     nodes() {
       const nodes = this.allNodes.filter(x => x.mgmtClusterId === this.value.mgmtClusterId);
 
       return [...nodes, ...this.fakeNodes];
     },
 
+    // RKE1 only
     fakeNodes() {
       // When a pool has no nodes it's not shown.... so add a fake node to it
       const emptyNodePools = this.allNodePools.filter(x => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
@@ -525,6 +587,7 @@ export default {
           :groupable="false"
           :group-by="value.isCustom ? null : 'poolId'"
           group-ref="pool"
+          :groups="machineGroups"
           :group-sort="['pool.nameDisplay']"
         >
           <template #main-row:isFake="{fullColspan}">
