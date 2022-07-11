@@ -10,7 +10,7 @@ import LabelValue from '@shell/components/LabelValue';
 import Select from '@shell/components/form/Select';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { OS } from '../mixins/harvester-vm';
-import { VM_IMAGE_FILE_FORMAT } from '../validators/imageUrl';
+import { VM_IMAGE_FILE_FORMAT } from '@shell/utils/validators/vm-image';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
@@ -30,7 +30,7 @@ export default {
     LabeledInput,
     NameNsDescription,
     RadioGroup,
-    LabelValue
+    LabelValue,
   },
 
   mixins: [CreateEditView],
@@ -38,12 +38,12 @@ export default {
   props: {
     value: {
       type:     Object,
-      required: true
-    }
+      required: true,
+    },
   },
 
   data() {
-    if (!this.value.spec) {
+    if ( !this.value.spec ) {
       this.$set(this.value, 'spec', { sourceType: DOWNLOAD });
     }
 
@@ -52,12 +52,12 @@ export default {
     }
 
     return {
-      url:      this.value.spec.url,
-      files:    [],
-      resource: '',
-      headers:  {},
-      fileUrl:  '',
-      file:     ''
+      url:         this.value.spec.url,
+      files:       [],
+      resource:    '',
+      headers:     {},
+      fileUrl:     '',
+      file:        '',
     };
   },
 
@@ -67,9 +67,7 @@ export default {
     },
 
     imageName() {
-      return (
-        this.value?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_NAME] || '-'
-      );
+      return this.value?.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_NAME] || '-';
     },
 
     isCreateEdit() {
@@ -85,10 +83,7 @@ export default {
     'value.spec.url'(neu) {
       const url = neu.trim();
       const suffixName = url.split('/').pop();
-      const fileSuffix = suffixName
-        .split('.')
-        .pop()
-        .toLowerCase();
+      const fileSuffix = suffixName.split('.').pop().toLowerCase();
 
       this.value.spec.url = url;
       if (VM_IMAGE_FILE_FORMAT.includes(fileSuffix)) {
@@ -106,7 +101,7 @@ export default {
         if (!this.value.spec.displayName) {
           this.$refs.nd.changeNameAndNamespace({
             text:     suffixName,
-            selected: this.value.metadata.namespace
+            selected: this.value.metadata.namespace,
           });
         }
       }
@@ -130,7 +125,7 @@ export default {
       if (this.$refs?.file?.value) {
         this.$refs.file.value = null;
       }
-    }
+    },
   },
 
   methods: {
@@ -143,8 +138,7 @@ export default {
 
           const file = this.file;
 
-          this.value.metadata.annotations[HCI_ANNOTATIONS.IMAGE_NAME] =
-            file?.name;
+          this.value.metadata.annotations[HCI_ANNOTATIONS.IMAGE_NAME] = file?.name;
 
           const res = await this.value.save();
 
@@ -169,7 +163,7 @@ export default {
       if (!this.value.spec.displayName) {
         this.$refs.nd.changeNameAndNamespace({
           text:     file?.name,
-          selected: this.value.metadata.namespace
+          selected: this.value.metadata.namespace,
         });
       }
     },
@@ -181,10 +175,7 @@ export default {
     },
 
     internalAnnotations(option) {
-      const optionKeys = [
-        HCI_ANNOTATIONS.OS_TYPE,
-        HCI_ANNOTATIONS.IMAGE_SUFFIX
-      ];
+      const optionKeys = [HCI_ANNOTATIONS.OS_TYPE, HCI_ANNOTATIONS.IMAGE_SUFFIX];
 
       return optionKeys.find(O => O === option.key);
     },
@@ -193,16 +184,13 @@ export default {
       if (keyName === HCI_ANNOTATIONS.OS_TYPE) {
         return OS;
       } else if (keyName === HCI_ANNOTATIONS.IMAGE_SUFFIX) {
-        return [
-          {
-            label: 'ISO',
-            value: 'iso'
-          },
-          {
-            label: 'raw/qcow2',
-            value: rawORqcow2
-          }
-        ];
+        return [{
+          label: 'ISO',
+          value: 'iso'
+        }, {
+          label: 'raw/qcow2',
+          value: rawORqcow2
+        }];
       }
 
       return [];
@@ -217,16 +205,16 @@ export default {
         return;
       }
 
-      return OS.find((os) => {
+      return OS.find( (os) => {
         if (os.match) {
-          return os.match.find(matchValue => url.toLowerCase().includes(matchValue)
-          ) ? os.value : false;
+          return os.match.find(matchValue => url.toLowerCase().includes(matchValue)) ? os.value : false;
         } else {
           return url.toLowerCase().includes(os.value.toLowerCase()) ? os.value : false;
         }
       });
     }
-  }
+  },
+
 };
 </script>
 
@@ -249,20 +237,18 @@ export default {
     />
 
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab
-        name="basic"
-        :label="t('harvester.image.tabs.basics')"
-        :weight="3"
-        class="bordered-table"
-      >
+      <Tab name="basic" :label="t('harvester.image.tabs.basics')" :weight="3" class="bordered-table">
         <RadioGroup
           v-if="isCreate"
           v-model="value.spec.sourceType"
           name="model"
-          :options="['download', 'upload']"
+          :options="[
+            'download',
+            'upload',
+          ]"
           :labels="[
             t('harvester.image.sourceType.download'),
-            t('harvester.image.sourceType.upload')
+            t('harvester.image.sourceType.upload'),
           ]"
           :mode="mode"
         />
@@ -308,13 +294,19 @@ export default {
                 />
               </button>
 
-              <div v-if="uploadFileName" class="fileName mt-5">
+              <div
+                v-if="uploadFileName"
+                class="fileName mt-5"
+              >
                 <span class="icon icon-file" />
                 {{ uploadFileName }}
               </div>
             </div>
           </div>
-          <div v-else class="col span-12">
+          <div
+            v-else
+            class="col span-12"
+          >
             <LabelValue
               :name="t('harvester.image.fileName')"
               :value="imageName"
@@ -323,12 +315,7 @@ export default {
         </div>
       </Tab>
 
-      <Tab
-        name="labels"
-        :label="t('labels.labels.title')"
-        :weight="2"
-        class="bordered-table"
-      >
+      <Tab name="labels" :label="t('labels.labels.title')" :weight="2" class="bordered-table">
         <KeyValue
           key="labels"
           ref="labels"

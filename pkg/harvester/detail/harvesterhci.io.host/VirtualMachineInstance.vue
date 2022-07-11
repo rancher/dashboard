@@ -2,7 +2,7 @@
 import { STATE, AGE, NAME } from '@shell/config/table-headers';
 import SortableTable from '@shell/components/SortableTable';
 import Loading from '@shell/components/Loading';
-import HarvesterVmState from '@shell/components/formatter/HarvesterVmState';
+import HarvesterVmState from '../../components/formatter/HarvesterVmState';
 import { allHash } from '@shell/utils/promise';
 import { HCI } from '@shell/config/types';
 import { HOSTNAME } from '@shell/config/labels-annotations';
@@ -13,22 +13,22 @@ export default {
   components: {
     SortableTable,
     Loading,
-    HarvesterVmState
+    HarvesterVmState,
   },
 
   props: {
     node: {
       type:     Object,
-      required: true
-    }
+      required: true,
+    },
   },
 
   async fetch() {
     const hash = await allHash({
-      vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
-      vmis:              this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
-      allNodeNetwork:    this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
-      allClusterNetwork: this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK })
+      vms:                 this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      vmis:                this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
+      allNodeNetwork:      this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
+      allClusterNetwork:   this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK }),
     });
     const instanceMap = {};
 
@@ -43,10 +43,7 @@ export default {
     this.allNodeNetwork = hash.allNodeNetwork;
     this.allClusterNetwork = hash.allClusterNetwork;
     this.rows = hash.vms.filter((row) => {
-      return (
-        instanceMap[row.metadata?.uid]?.status?.nodeName ===
-        this.node?.metadata?.labels?.[HOSTNAME]
-      );
+      return instanceMap[row.metadata?.uid]?.status?.nodeName === this.node?.metadata?.labels?.[HOSTNAME];
     });
   },
 
@@ -64,20 +61,20 @@ export default {
         STATE,
         NAME,
         {
-          name:     'vmCPU',
-          labelKey: 'tableHeaders.cpu',
-          sort:     'vmCPU',
-          search:   false,
-          value:    'spec.template.spec.domain.cpu.cores',
-          width:    120
+          name:      'vmCPU',
+          labelKey:  'tableHeaders.cpu',
+          sort:      'vmCPU',
+          search:    false,
+          value:     'spec.template.spec.domain.cpu.cores',
+          width:     120
         },
         {
-          name:     'vmRAM',
-          labelKey: 'glance.memory',
-          sort:     'vmRAM',
-          search:   false,
-          value:    'spec.template.spec.domain.resources.limits.memory',
-          width:    120
+          name:      'vmRAM',
+          labelKey:  'glance.memory',
+          sort:      'vmRAM',
+          search:    false,
+          value:     'spec.template.spec.domain.resources.limits.memory',
+          width:     120
         },
         {
           name:      'ip',
@@ -88,10 +85,10 @@ export default {
         },
         {
           ...AGE,
-          sort: 'metadata.creationTimestamp:desc'
+          sort: 'metadata.creationTimestamp:desc',
         }
       ];
-    }
+    },
   },
 
   methods: {}
@@ -112,15 +109,10 @@ export default {
       >
         <template slot="cell:state" slot-scope="scope" class="state-col">
           <div class="state">
-            <HarvesterVmState
-              class="vmstate"
-              :row="scope.row"
-              :all-node-network="allNodeNetwork"
-              :all-cluster-network="allClusterNetwork"
-            />
+            <HarvesterVmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetwork" :all-cluster-network="allClusterNetwork" />
           </div>
         </template>
-      </SortableTable>
+      </Sortabletable>
     </div>
   </div>
 </template>
