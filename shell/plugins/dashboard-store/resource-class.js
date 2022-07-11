@@ -1369,23 +1369,21 @@ export default class Resource {
 
     const dispatch = this.$dispatch('request', { opt, type: this.type });
 
-    return !alertOnError
-      ? dispatch
-      : dispatch.catch((e) => {
-        const title = this.t('resource.errors.update', { name: this.name });
+    return !alertOnError ? dispatch : dispatch.catch((e) => {
+      const title = this.t('resource.errors.update', { name: this.name });
 
-        console.error(title, e); // eslint-disable-line no-console
+      console.error(title, e); // eslint-disable-line no-console
 
-        this.$dispatch(
-          'growl/error',
-          {
-            title,
-            message: e?.message,
-            timeout: 5000
-          },
-          { root: true }
-        );
-      });
+      this.$dispatch(
+        'growl/error',
+        {
+          title,
+          message: e?.message,
+          timeout: 5000
+        },
+        { root: true }
+      );
+    });
   }
 
   save() {
