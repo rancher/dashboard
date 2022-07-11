@@ -48,7 +48,7 @@ export default Vue.extend<Data, any, any, any>({
   async fetch() {
     await this.mixinFetch();
 
-    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0].metadata.name);
+    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0]?.metadata.name);
     this.selectedApps = [...this.initialValue.configuration?.boundapps || []];
   },
 
@@ -105,8 +105,9 @@ export default Vue.extend<Data, any, any, any>({
 
     updateValidation() {
       const nameErrors = validateKubernetesName(this.value?.meta.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+      const nsErrors = validateKubernetesName(this.value?.meta.namespace || '', '', this.$store.getters, undefined, []);
 
-      if (nameErrors.length === 0) {
+      if (nameErrors.length === 0 && nsErrors.length === 0) {
         const dataValues = Object.entries(this.value?.data || {});
 
         if (!!dataValues.length) {
@@ -124,6 +125,7 @@ export default Vue.extend<Data, any, any, any>({
   watch: {
     'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
+      this.updateValidation(); // For when a user is supplying their own ns
     },
 
     'value.meta.name'() {
@@ -142,14 +144,9 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="!value || !namespaces" />
-  <div v-else-if="!namespaces.length">
-    <Banner color="warning">
-      {{ t('epinio.warnings.noNamespace') }}
-    </Banner>
-  </div>
+  <Loading v-if="!value || $fetchState.pending" />
   <CruResource
-    v-else-if="value && namespaces.length > 0"
+    v-else-if="value"
     :min-height="'7em'"
     :mode="mode"
     :done-route="doneRoute"
@@ -157,10 +154,14 @@ export default Vue.extend<Data, any, any, any>({
     :can-yaml="false"
     :errors="errors"
     :validation-passed="validationPassed"
+    namespace-key="meta.namespace"
     @error="(e) => (errors = e)"
     @finish="save"
     @cancel="done"
   >
+    <Banner v-if="value.isServiceRelated" color="info">
+      {{ t('epinio.configurations.tableHeaders.service.tooltip') }}
+    </Banner>
     <NameNsDescription
       name-key="name"
       namespace-key="namespace"
