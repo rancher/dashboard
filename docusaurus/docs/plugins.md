@@ -1,7 +1,3 @@
----
-slug: /
----
-
 # Plugins
 
 During the transition to the new folder structured in 2.6.5 required by the plugin work ...
