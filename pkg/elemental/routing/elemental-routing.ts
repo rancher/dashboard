@@ -1,5 +1,5 @@
 import { RouteConfig } from 'vue-router';
-import { ELEMENTAL_PRODUCT_NAME } from '../types';
+import { ELEMENTAL_PRODUCT_NAME } from '@shell/config/elemental-types';
 import Dashboard from '../pages/index.vue';
 import ListElementalResource from '../pages/resource/index.vue';
 import CreateElementalResource from '../pages/resource/create.vue';

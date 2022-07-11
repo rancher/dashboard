@@ -3,6 +3,7 @@ import { CAPI } from '@shell/config/types';
 import { ELEMENTAL_DEFAULT_NAMESPACE } from '../types';
 import { ELEMENTAL_CLUSTER_PROVIDER, ELEMENTAL_SCHEMA_IDS } from '@shell/config/elemental-types';
 import { randomStr } from '@shell/utils/string';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default class MachineInventory extends ElementalResource {
   constructor() {
@@ -40,10 +41,11 @@ export default class MachineInventory extends ElementalResource {
     return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
   }
 
-  createCluster(createClusterElements) {
-    const skippedElements = [];
+  createCluster(elems) {
     const promises = [];
     const randomId = randomStr(24);
+
+    const createClusterElements = elems && elems.length ? elems : [this];
 
     createClusterElements.forEach((item) => {
       item.setLabel('create-cluster-selector', randomId);
@@ -51,10 +53,7 @@ export default class MachineInventory extends ElementalResource {
     });
 
     Promise.all(promises).then((res) => {
-      const allElements = skippedElements.concat(res);
-
-      console.log('allElements with update', allElements);
-      this.$dispatch('elemental/updateCreateClusterElements', allElements, { root: true });
+      this.$dispatch('elemental/updateCreateClusterElements', res, { root: true });
 
       this.currentRouter().push({
         name:   'c-cluster-product-resource-create',
@@ -65,8 +64,12 @@ export default class MachineInventory extends ElementalResource {
         query: { type: ELEMENTAL_CLUSTER_PROVIDER }
       });
     }, (err) => {
-      // TODO: handle error....
-      console.log('err', err);
+      const errors = exceptionToErrorsArray(err);
+
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('elemental.machineInventory.updateForCreateClusterError'),
+        err:   errors[0]
+      }, { root: true });
     });
   }
 
