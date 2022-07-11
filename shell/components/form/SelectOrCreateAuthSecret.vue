@@ -9,7 +9,6 @@ import { base64Encode } from '@shell/utils/crypto';
 import { addObjects, insertAt } from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
 
-
 export default {
   name: 'SelectOrCreateAuthSecret',
 
@@ -115,11 +114,11 @@ export default {
      * So when user click through to final step and submit the form
      * This component get recreated therefore register `doCreate` as a hook each time
      * Also, the parent step component is not aware that credential is created
-     * 
+     *
      * This property is implement to prevent this issue and delegate it to parent component.
      */
     delegateCreateToParent: {
-      type: Boolean,
+      type:    Boolean,
       default: false
     }
   },
@@ -349,11 +348,9 @@ export default {
     if (this.registerBeforeHook) {
       const hookName = this.appendUniqueIdToHook ? this.hookName + this.uniqueId : this.hookName;
 
-      if(!this.delegateCreateToParent) {
+      if (!this.delegateCreateToParent) {
         this.registerBeforeHook(this.doCreate, hookName, this.hookPriority);
       }
-     // this.registerBeforeHook(this.update, 'updateAuth' + this.uniqueId, this.hookPriority);
-
     } else {
       throw new Error('Before Hook is missing');
     }

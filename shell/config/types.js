@@ -300,8 +300,8 @@ export const ADDRESSES = {
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
 export const AUTH_TYPE = {
-  _NONE  : '_none',
-  _BASIC : '_basic',
-  _SSH   : '_ssh',
-  _S3    : '_S3'
-}
+  _NONE:  '_none',
+  _BASIC: '_basic',
+  _SSH:   '_ssh',
+  _S3:    '_S3'
+};

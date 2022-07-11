@@ -1,7 +1,9 @@
 <script>
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
-import { FLEET, SECRET, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
+import {
+  AUTH_TYPE, FLEET, NORMAN, SECRET, VIRTUAL_HARVESTER_PROVIDER
+} from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
@@ -259,8 +261,7 @@ export default {
 
   created() {
     this.registerBeforeHook(this.cleanTLS, 'cleanTLS');
-    this.registerBeforeHook(this.doCreateHelmAuthSecret, `registerHelmAuthSecret${new Date().getTime()}`, 99);
-
+    this.registerBeforeHook(this.doCreateSecrets, `registerAuthSecrets${ new Date().getTime() }`, 99);
   },
 
   methods: {
@@ -273,9 +274,8 @@ export default {
       }
     },
 
-    updateCachedAuthVal(val, key) { 
-      this.tempCachedValues[key] = typeof val === 'string' ? {selected: val} : {...val}
-
+    updateCachedAuthVal(val, key) {
+      this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
     },
 
     updateAuth(val, key) {
@@ -287,7 +287,7 @@ export default {
         delete spec[key];
       }
 
-      this.updateCachedAuthVal(val, key)
+      this.updateCachedAuthVal(val, key);
     },
 
     updateTargets() {
@@ -356,24 +356,18 @@ export default {
       this.stepOneReady();
     },
 
-    async doCreateHelmAuthSecret() {
-      if(this.tempCachedValues.clientSecretName) {
-        const secret = await this.doCreate('clientSecretName', this.tempCachedValues.clientSecretName);
-        if(secret) {
-          this.updateAuth(secret.id, 'clientSecretName')
-        }
+    async doCreateSecrets() {
+      if (this.tempCachedValues.clientSecretName) {
+        await this.doCreate('clientSecretName', this.tempCachedValues.clientSecretName);
       }
 
-      if(this.tempCachedValues.helmSecretName) {
-        const secret = await this.doCreate('helmSecretName', this.tempCachedValues.helmSecretName);
-        if(secret) {
-         this.updateAuth(secret.id, 'helmSecretName')
-        }
+      if (this.tempCachedValues.helmSecretName) {
+        await this.doCreate('helmSecretName', this.tempCachedValues.helmSecretName);
       }
     },
 
     async doCreate(name, credentials) {
-      const { selected, publicKey, privateKey } = credentials
+      const { selected, publicKey, privateKey } = credentials;
 
       if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(selected) ) {
         return;
@@ -423,6 +417,10 @@ export default {
       }
 
       await secret.save();
+
+      await this.$nextTick(() => {
+        this.updateAuth(secret.id, name);
+      });
 
       return secret;
     },
@@ -527,7 +525,7 @@ export default {
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
-        :delegateCreateToParent="true"
+        :delegate-create-to-parent="true"
         in-store="management"
         :pre-select="tempCachedValues.clientSecretName"
         generate-name="gitrepo-auth-"
@@ -540,7 +538,7 @@ export default {
         :value="value.spec.helmSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
-        :delegateCreateToParent="true"
+        :delegate-create-to-parent="true"
         in-store="management"
         generate-name="helmrepo-auth-"
         label-key="fleet.gitRepo.auth.helm"
