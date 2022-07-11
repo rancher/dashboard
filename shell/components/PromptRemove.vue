@@ -90,6 +90,11 @@ export default {
       if (this.toRemove.length > 1) {
         return null;
       }
+
+      if (this.toRemove[0].doneLocationRemove) {
+        return this.toRemove[0].doneLocationRemove;
+      }
+
       const currentRoute = this.toRemove[0].currentRoute();
       const out = {};
       const params = { ...currentRoute.params };
@@ -214,6 +219,7 @@ export default {
         // doneLocation will recompute to undefined when delete request completes
         this.cachedDoneLocation = { ...this.doneLocation };
       }
+
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
         let handled = this.$refs.customPrompt.remove(btnCB);
 
