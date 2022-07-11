@@ -36,6 +36,8 @@ export default {
   },
 
   async fetch() {
+    const currentClusterId = this.$store.getters['clusterId'];
+
     this.relatedPolicies = await this.value.allRelatedPolicies();
 
     if ( this.monitoringStatus.installed ) {
@@ -43,7 +45,7 @@ export default {
         this.metricsProxy = await this.value.grafanaProxy();
 
         if ( this.metricsProxy ) {
-          this.metricsService = await dashboardExists(this.$store, this.currentCluster?.id, this.metricsProxy);
+          this.metricsService = await dashboardExists(this.$store, currentClusterId, this.metricsProxy);
         }
       } catch (e) {
         console.error(`Error fetching Grafana service: ${ e }`); // eslint-disable-line no-console

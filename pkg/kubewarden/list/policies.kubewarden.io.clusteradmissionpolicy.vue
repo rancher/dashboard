@@ -101,7 +101,7 @@ export default {
         const { filteredResource, filteredAction, filteredRows } = this;
 
         // when user selects `All` for operations, use this.filteredResource to match rows instead
-        if (option === 'operations' && select === '') {
+        if ( option === 'operations' && select === '' ) {
           option = 'resources';
           select = filteredResource;
         }
@@ -115,11 +115,11 @@ export default {
         const selectedOption = options[option].find(opt => opt === select);
         const filteredOption = filteredRows?.find(obj => obj === row);
 
-        if (resourceType && actionTypes && selectedOption && !filteredOption) {
+        if ( resourceType && actionTypes && selectedOption && !filteredOption ) {
           out.push(row);
         }
 
-        if (!selectedOption && filteredOption) {
+        if ( !selectedOption && filteredOption ) {
           const index = out.indexOf(row);
 
           out.slice(index);

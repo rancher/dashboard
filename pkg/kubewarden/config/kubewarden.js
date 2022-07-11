@@ -43,6 +43,7 @@ export function init($plugin, store) {
   product({
     ifHaveGroup:         KUBEWARDEN_PRODUCT_GROUP,
     inStore:             'cluster',
+    inExplorer:          true,
     icon:                'kubewarden',
     removeable:          false,
     showNamespaceFilter: true,

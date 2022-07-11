@@ -6,7 +6,7 @@ import { allHash } from '@shell/utils/promise';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { RadioGroup } from '@components/Form/Radio/RadioGroup';
+import { RadioGroup } from '@components/Form/Radio';
 
 export default {
   props: {

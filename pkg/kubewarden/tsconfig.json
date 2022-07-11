@@ -33,6 +33,15 @@
       "@shell/store/*": [
         "../../node_modules/@rancher/shell/store/*"
       ],
+      "@shell/plugins/*": [
+        "../../node_modules/@rancher/shell/plugins/*"
+      ],
+      "@shell/utils/*": [
+        "../../node_modules/@rancher/shell/utils/*"
+      ],
+      "@shell/models/*": [
+        "../../node_modules/@rancher/shell/models/*"
+      ],
       "@components/*": [
         "../../pkg/rancher-components/*"
       ]
