@@ -926,3 +926,9 @@ export const IP_ADDRESS = {
   value:         'ipaddress',
   labelKey:      'tableHeaders.ipaddress',
 };
+
+export const CLUSTER_NODE_IPS = {
+  name:          'ipaddress',
+  value:         'ipaddress',
+  labelKey:      'tableHeaders.clusterIPList',
+};
