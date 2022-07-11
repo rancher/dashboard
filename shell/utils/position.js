@@ -92,9 +92,9 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt, useDefaults) {
     };
   }
 
-  // console.log('screen', screen);
-  // console.log('trigger', trigger);
-  // console.log('content', content);
+  // debug.log('screen', screen);
+  // debug.log('trigger', trigger);
+  // debug.log('content', content);
 
   const style = { position: 'absolute' };
 
@@ -107,7 +107,7 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt, useDefaults) {
     bottom: (overlapY ? trigger.top : trigger.bottom ),
   };
 
-  // console.log('origin', originFor);
+  // debug.log('origin', originFor);
 
   const gapIf = {
     left:   screen.right - content.width - originFor.left,
@@ -118,7 +118,7 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt, useDefaults) {
     bottom: screen.bottom - content.height - originFor.top,
   };
 
-  // console.log('gapIf', gapIf);
+  // debug.log('gapIf', gapIf);
 
   if ( positionX === CENTER && gapIf.center < 0) {
     positionX = AUTO;
@@ -169,7 +169,7 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt, useDefaults) {
     break;
   }
 
-  // console.log(positionX, positionY, style);
+  // debug.log(positionX, positionY, style);
 
   return style;
 }

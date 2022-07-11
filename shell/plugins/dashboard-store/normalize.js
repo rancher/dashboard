@@ -29,9 +29,9 @@ export function handleConflict(initialValueJSON, value, liveValue, rootGetters, 
   const userChange = changeset(orig, user);
   const actualConflicts = changesetConflicts(bgChange, userChange);
 
-  console.log('Background Change', bgChange); // eslint-disable-line no-console
-  console.log('User Change', userChange); // eslint-disable-line no-console
-  console.log('Conflicts', actualConflicts); // eslint-disable-line no-console
+  debug.log('Background Change', bgChange); // eslint-disable-line no-console
+  debug.log('User Change', userChange); // eslint-disable-line no-console
+  debug.log('Conflicts', actualConflicts); // eslint-disable-line no-console
 
   value.metadata.resourceVersion = liveValue.metadata.resourceVersion;
   applyChangeset(value, bgChange);

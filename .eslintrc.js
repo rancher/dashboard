@@ -4,7 +4,9 @@ module.exports = {
     browser: true,
     node:    true
   },
-  globals: { NodeJS: true, Timer: true },
+  globals: {
+    NodeJS: true, Timer: true, debug: 'readonly'
+  },
   plugins: ['jest'],
   extends: [
     'standard',

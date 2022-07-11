@@ -27,7 +27,7 @@ export class PluginRoutes {
     const spaces = Array(indent).join(' ');
 
     r.forEach((s: any) => {
-      console.log(`${ spaces }${ s.name } -> ${ s.path }`); // eslint-disable-line no-console
+      debug.log(`${ spaces }${ s.name } -> ${ s.path }`); // eslint-disable-line no-console
       this.logRoutes(s.children || [], indent + 2);
     });
   }

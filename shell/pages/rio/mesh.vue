@@ -143,7 +143,7 @@ export default {
     },
 
     displayNodes() {
-      console.log('get displayNodes'); // eslint-disable-line no-console
+      debug.log('get displayNodes'); // eslint-disable-line no-console
       const namespaces = this.namespaces;
 
       const out = this.nodes.filter((x) => {
@@ -154,7 +154,7 @@ export default {
     },
 
     displayEdges() {
-      console.log('get displayEdges'); // eslint-disable-line no-console
+      debug.log('get displayEdges'); // eslint-disable-line no-console
       const namespaces = this.namespaces;
 
       const out = this.edges.filter((x) => {
@@ -171,28 +171,28 @@ export default {
   watch: {
     // Nodes isn't watched, but gets updated at the same time...
     nodes() {
-      console.log('nodes updated'); // eslint-disable-line no-console
+      debug.log('nodes updated'); // eslint-disable-line no-console
       this.updateGraph();
       this.renderGraph();
     },
 
     namespaces() {
-      console.log('namespaces updated'); // eslint-disable-line no-console
+      debug.log('namespaces updated'); // eslint-disable-line no-console
       this.updateGraph();
       this.renderGraph();
     },
 
     edges() {
-      console.log('edges updated'); // eslint-disable-line no-console
+      debug.log('edges updated'); // eslint-disable-line no-console
       this.updateGraph();
       this.renderGraph();
     },
   },
 
   async mounted() {
-    console.log('Mounted'); // eslint-disable-line no-console
+    debug.log('Mounted'); // eslint-disable-line no-console
     this.timer = setInterval(() => {
-      console.log('Timer'); // eslint-disable-line no-console
+      debug.log('Timer'); // eslint-disable-line no-console
       this.refreshData();
     }, INTERVAL);
 
@@ -209,12 +209,12 @@ export default {
 
   methods: {
     async refreshData() {
-      console.log('Refreshing...'); // eslint-disable-line no-console
+      debug.log('Refreshing...'); // eslint-disable-line no-console
       const neu = await loadData(this.$store);
 
       this.nodes = neu.nodes;
       this.edges = neu.edges;
-      console.log('Refreshed'); // eslint-disable-line no-console
+      debug.log('Refreshed'); // eslint-disable-line no-console
     },
 
     async initGraph() {
@@ -281,7 +281,7 @@ export default {
 
     updateGraph() {
       // @TODO diff nodes/edges, remove unexpected and add missing ones
-      console.log('Updating...'); // eslint-disable-line no-console
+      debug.log('Updating...'); // eslint-disable-line no-console
 
       const e = escapeHtml;
       const g = this.graph;
@@ -366,7 +366,7 @@ export default {
     },
 
     renderGraph() {
-      console.log('Rendering...'); // eslint-disable-line no-console
+      debug.log('Rendering...'); // eslint-disable-line no-console
 
       const d3 = this.d3;
       const svg = this.d3.select(this.$refs.mesh);
@@ -388,7 +388,7 @@ export default {
       const dX = (width / 2) - ((graphWidth * scale) / 2);
       const dY = (height / 2) - ((graphHeight * scale) / 2);
 
-      console.log('render'); // eslint-disable-line no-console
+      debug.log('render'); // eslint-disable-line no-console
       if ( this.lastZoom ) {
         svg.call(zoom.transform, d3.zoomIdentity.translate(this.lastZoom.x, this.lastZoom.y).scale(this.lastZoom.k));
       } else {
@@ -401,7 +401,7 @@ export default {
     clicked(event) {
       const path = $(event.target).closest('.edgePath');
 
-      console.log(path); // eslint-disable-line no-console
+      debug.log(path); // eslint-disable-line no-console
     }
   },
 };

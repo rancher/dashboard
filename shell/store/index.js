@@ -498,11 +498,11 @@ export const mutations = {
   setError(state, { error: obj, locationError }) {
     const err = new ApiError(obj);
 
-    console.log('Loading error', err); // eslint-disable-line no-console
-    console.log('(actual error)', obj); // eslint-disable-line no-console
+    debug.log('Loading error', err); // eslint-disable-line no-console
+    debug.log('(actual error)', obj); // eslint-disable-line no-console
     // Location of error, with description and stack trace
-    console.log('Loading error location', locationError); // eslint-disable-line no-console
-    console.log('Loading original error', obj); // eslint-disable-line no-console
+    debug.log('Loading error location', locationError); // eslint-disable-line no-console
+    debug.log('Loading original error', obj); // eslint-disable-line no-console
 
     state.error = err;
     state.cameFromError = true;
@@ -534,7 +534,7 @@ export const actions = {
       return;
     }
 
-    console.log('Loading management...'); // eslint-disable-line no-console
+    debug.log('Loading management...'); // eslint-disable-line no-console
 
     try {
       await dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: 'principals' } });
@@ -623,7 +623,7 @@ export const actions = {
       });
     }
 
-    console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
+    debug.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
 
   async loadCluster({
@@ -698,7 +698,7 @@ export const actions = {
       return;
     }
 
-    console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
+    debug.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
     // If we've entered a new store ensure everything has loaded correctly
     if (newPkgClusterStore) {
@@ -707,7 +707,7 @@ export const actions = {
       await dispatch(`${ newPkgClusterStore }/loadCluster`, { id });
 
       commit('clusterReady', true);
-      console.log('Done loading pkg cluster:', newPkgClusterStore); // eslint-disable-line no-console
+      debug.log('Done loading pkg cluster:', newPkgClusterStore); // eslint-disable-line no-console
 
       // Everything below here is rancher/kube cluster specific
       return;
@@ -791,7 +791,7 @@ export const actions = {
 
     commit('clusterReady', true);
 
-    console.log('Done loading cluster.'); // eslint-disable-line no-console
+    debug.log('Done loading cluster.'); // eslint-disable-line no-console
   },
 
   switchNamespaces({ commit, dispatch, getters }, { ids, key }) {
@@ -845,7 +845,7 @@ export const actions = {
       commit('clusterId', id);
     }
 
-    console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
+    debug.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
     // This is a workaround for a timing issue where the mgmt cluster schema may not be available
     // Try and wait until the schema exists before proceeding
@@ -932,7 +932,7 @@ export const actions = {
 
     commit('clusterReady', true);
 
-    console.log('Done loading virtual cluster.'); // eslint-disable-line no-console
+    debug.log('Done loading virtual cluster.'); // eslint-disable-line no-console
   },
 
   async cleanNamespaces({ getters, dispatch }) {

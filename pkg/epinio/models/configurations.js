@@ -54,7 +54,7 @@ export default class EpinioConfigurationModel extends EpinioNamespacedResource {
   // ------------------------------------------------------------------
 
   trace(text, ...args) {
-    console.log(`### Config: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
+    debug.log(`### Config: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args);// eslint-disable-line no-console
   }
 
   async create() {

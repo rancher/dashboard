@@ -173,7 +173,7 @@ export const getters = {
     let theme = getters['get'](THEME);
     const pcs = getters['get'](PREFERS_SCHEME);
 
-    // console.log('Get Theme', theme, pcs);
+    // debug.log('Get Theme', theme, pcs);
 
     // Ember UI uses this prefix
     if ( theme.startsWith('ui-') ) {
@@ -328,7 +328,7 @@ export const actions = {
       setTimeout(() => {
         dispatch('loadTheme');
       }, nextHalfHour);
-      // console.log('Update theme in', nextHalfHour, 'ms');
+      // debug.log('Update theme in', nextHalfHour, 'ms');
 
       if ( watchDark.matches ) {
         changed('dark');
@@ -358,7 +358,7 @@ export const actions = {
     }
 
     function changed(value) {
-      // console.log('Prefers Theme:', value);
+      // debug.log('Prefers Theme:', value);
       dispatch('set', { key: PREFERS_SCHEME, value });
     }
 

@@ -51,7 +51,7 @@ export default class EpinioResource extends Resource {
     try {
       const res = await this.$dispatch('request', { opt, type: this.type });
 
-      console.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
+      debug.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
       this.$dispatch('remove', this);
     } catch (e) {
       throw epinioExceptionToErrorsArray(e);

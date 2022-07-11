@@ -52,7 +52,7 @@ export default {
 
         waiting.push(later);
 
-        // console.log('Deferred request for', key, waiting.length);
+        // debug.log('Deferred request for', key, waiting.length);
 
         return later.promise;
       } else {
@@ -63,7 +63,7 @@ export default {
     }
 
     if ( opt.stream && state.allowStreaming && state.config.supportsStream && streamingSupported() ) {
-      // console.log('Using Streaming for', opt.url);
+      // debug.log('Using Streaming for', opt.url);
 
       return streamJson(opt.url, opt, opt.onData).then(() => {
         return { finishDeferred: finishDeferred.bind(null, key, 'resolve') };
@@ -71,7 +71,7 @@ export default {
         return onError(err);
       });
     } else {
-      // console.log('NOT Using Streaming for', opt.url);
+      // debug.log('NOT Using Streaming for', opt.url);
     }
 
     let paginatedResult;
@@ -128,7 +128,7 @@ export default {
     function finishDeferred(key, action = 'resolve', res) {
       const waiting = state.deferredRequests[key] || [];
 
-      // console.log('Resolving deferred for', key, waiting.length);
+      // debug.log('Resolving deferred for', key, waiting.length);
 
       while ( waiting.length ) {
         waiting.pop()[action](res);

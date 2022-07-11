@@ -31,7 +31,7 @@ const DEFAULTS = {
 };
 
 export function perfLoadAll(type, data) {
-  // console.log(`${ type }`);
+  // debug.log(`${ type }`);
   if (data.length === 0) {
     return data;
   }

@@ -264,14 +264,14 @@ export default {
       function resourceValidator(resource) {
         const resourcesRequiredForLogin = ['*', 'preferences', 'settings', 'features'];
 
-        // console.log(`resourceValidator status: `, resourcesRequiredForLogin.includes(resource), resource);
+        // debug.log(`resourceValidator status: `, resourcesRequiredForLogin.includes(resource), resource);
         return resourcesRequiredForLogin.includes(resource);
       }
 
       function apiGroupValidator(apiGroup) {
         const apiGroupsRequiredForLogin = ['*', 'management.cattle.io'];
 
-        // console.log(`apiGroupsRequiredForLogin status: `, apiGroupsRequiredForLogin.includes(apiGroup), apiGroup);
+        // debug.log(`apiGroupsRequiredForLogin status: `, apiGroupsRequiredForLogin.includes(apiGroup), apiGroup);
         return apiGroupsRequiredForLogin.includes(apiGroup);
       }
 
@@ -280,11 +280,11 @@ export default {
         const verbsRequiredForLogin = ['*', ...restrictedTarget];
 
         if (isArray(verbs) && verbs.length > 1) {
-          // console.log(`verbsRequiredForLogin status 1: `, restrictedTarget.every(rt => verbs.includes(rt)), verbs);
+          // debug.log(`verbsRequiredForLogin status 1: `, restrictedTarget.every(rt => verbs.includes(rt)), verbs);
           return restrictedTarget.every(rt => verbs.includes(rt));
         }
 
-        // console.log(`verbsRequiredForLogin status 2: `, verbsRequiredForLogin.includes(verbs[0]), verbsRequiredForLogin, verbs);
+        // debug.log(`verbsRequiredForLogin status 2: `, verbsRequiredForLogin.includes(verbs[0]), verbsRequiredForLogin, verbs);
         return verbsRequiredForLogin.includes(verbs[0]);
       }
     },

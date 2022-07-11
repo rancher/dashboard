@@ -78,7 +78,7 @@ export default class Socket extends EventTarget {
     const id = sockId++;
     const url = addParam(this.url, 'sockId', id);
 
-    console.log(`Socket connecting (id=${ id }, url=${ `${ url.replace(/\?.*/, '') }...` })`); // eslint-disable-line no-console
+    debug.log(`Socket connecting (id=${ id }, url=${ `${ url.replace(/\?.*/, '') }...` })`); // eslint-disable-line no-console
 
     let socket;
 
@@ -253,7 +253,7 @@ export default class Socket extends EventTarget {
   }
 
   _closed() {
-    console.log(`Socket ${ this.closingId } closed`); // eslint-disable-line no-console
+    debug.log(`Socket ${ this.closingId } closed`); // eslint-disable-line no-console
 
     this.closingId = 0;
     this.socket = null;
@@ -310,6 +310,6 @@ export default class Socket extends EventTarget {
 
     args.push(`(state=${ this.state }, id=${ this.socket ? this.socket.sockId : 0 })`);
 
-    console.log(args.join(' ')); // eslint-disable-line no-console
+    debug.log(args.join(' ')); // eslint-disable-line no-console
   }
 }

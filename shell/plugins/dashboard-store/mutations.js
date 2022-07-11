@@ -70,20 +70,20 @@ function load(state, { data, ctx, existing }) {
     entry = replace(existing, data);
     addObject(cache.list, entry);
     cache.map.set(id, entry);
-    // console.log('### Mutation added from existing proxy', type, id);
+    // debug.log('### Mutation added from existing proxy', type, id);
   } else {
     entry = cache.map.get(id);
 
     if ( entry ) {
       // There's already an entry in the store, update it
       replace(entry, data);
-      // console.log('### Mutation Updated', type, id);
+      // debug.log('### Mutation Updated', type, id);
     } else {
       // There's no entry, make a new proxy
       entry = classify(ctx, data);
       addObject(cache.list, entry);
       cache.map.set(id, entry);
-      // console.log('### Mutation', type, id);
+      // debug.log('### Mutation', type, id);
 
       // If there is a limit to the number of resources we can store for this type then
       // remove the first one to keep the list size to that limit
@@ -123,7 +123,7 @@ export function forgetType(state, type) {
 
 export function resetStore(state, commit) {
   // eslint-disable-next-line no-console
-  console.log('Reset store: ', state.config.namespace);
+  debug.log('Reset store: ', state.config.namespace);
 
   for ( const type of Object.keys(state.types) ) {
     commit(`${ state.config.namespace }/forgetType`, type);
@@ -175,7 +175,7 @@ export default {
   },
 
   loadMulti(state, { data, ctx }) {
-    // console.log('### Mutation loadMulti', data?.length);
+    // debug.log('### Mutation loadMulti', data?.length);
     for ( const entry of data ) {
       load(state, { data: entry, ctx });
     }

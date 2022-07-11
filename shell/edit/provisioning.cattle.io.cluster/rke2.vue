@@ -376,7 +376,7 @@ export default {
       }
 
       // eslint-disable-next-line no-console
-      console.log(`Global: ${ global }, Kubelet Only: ${ kubeletOnly }, Other: ${ other }`);
+      debug.log(`Global: ${ global }, Kubelet Only: ${ kubeletOnly }, Other: ${ other }`);
 
       return ( global > 1 || other > 0 );
     },

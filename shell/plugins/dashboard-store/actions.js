@@ -107,7 +107,7 @@ export default {
 
     const typeOptions = rootGetters['type-map/optionsFor'](type);
 
-    console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
+    debug.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
@@ -211,7 +211,7 @@ export default {
     } = ctx;
 
     opt = opt || {};
-    console.log(`Find Matching: [${ ctx.state.config.namespace }] ${ type }`, selector); // eslint-disable-line no-console
+    debug.log(`Find Matching: [${ ctx.state.config.namespace }] ${ type }`, selector); // eslint-disable-line no-console
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -269,7 +269,7 @@ export default {
 
     type = normalizeType(type);
 
-    console.log(`Find: [${ ctx.state.config.namespace }] ${ type } ${ id }`); // eslint-disable-line no-console
+    debug.log(`Find: [${ ctx.state.config.namespace }] ${ type } ${ id }`); // eslint-disable-line no-console
     let out;
 
     if ( opt.force !== true ) {

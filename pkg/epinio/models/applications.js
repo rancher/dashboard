@@ -343,7 +343,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
   // Change/handle changes of the app
 
   trace(text, ...args) {
-    console.log(`### Application: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args.length ? args : '');// eslint-disable-line no-console
+    debug.log(`### Application: ${ text }`, `${ this.meta.namespace }/${ this.meta.name }`, args.length ? args : '');// eslint-disable-line no-console
   }
 
   async create() {

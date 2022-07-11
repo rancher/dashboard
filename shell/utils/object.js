@@ -67,7 +67,7 @@ export function get(obj, path) {
         wrap:        false,
       });
     } catch (e) {
-      console.log('JSON Path error', e, path, obj); // eslint-disable-line no-console
+      debug.log('JSON Path error', e, path, obj); // eslint-disable-line no-console
 
       return '(JSON Path err)';
     }

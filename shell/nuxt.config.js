@@ -566,6 +566,7 @@ export default function(dir, _appConfig) {
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
       path.join(NUXT_SHELL, 'plugins/replaceall'),
       path.join(NUXT_SHELL, 'plugins/back-button'),
+      path.join(NUXT_SHELL, 'plugins/logging'),
       { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
     ],

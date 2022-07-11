@@ -277,6 +277,8 @@ export default {
             addType(id, 'rke2', false);
           });
 
+          debug.log('machineTypes', machineTypes);
+
           addType('custom', 'custom2', false);
         }
       }

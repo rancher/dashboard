@@ -49,7 +49,7 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
     return;
   }
 
-  // console.log(`${ label } Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
+  // debug.log(`${ label } Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
 
   if ( load ) {
     state.queue.push({

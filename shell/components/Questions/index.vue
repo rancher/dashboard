@@ -283,7 +283,7 @@ export default {
       try {
         const out = Jexl.evalSync(expr, values);
 
-        // console.log('Eval', expr, '=> ', out);
+        // debug.log('Eval', expr, '=> ', out);
 
         // If the variable contains a hyphen, check if it evaluates to true
         // according to the evaluation logic used in the old UI.

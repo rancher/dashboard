@@ -8,23 +8,23 @@
 export default {
   watch: {
     sortFields(neu, old) {
-      console.log('sortFields changed ------------------------------------------------');
-      console.log(neu);
-      console.log(old);
+      debug.log('sortFields changed ------------------------------------------------');
+      debug.log(neu);
+      debug.log(old);
     },
 
     descending(neu, old) {
-      console.log('descending changed ------------------------------------------------');
-      console.log(neu);
-      console.log(old);
+      debug.log('descending changed ------------------------------------------------');
+      debug.log(neu);
+      debug.log(old);
     },
 
     rows(neu, old) {
-      console.log('rows changed ------------------------------------------------');
-      console.log(neu.length);
-      console.log(old.length);
+      debug.log('rows changed ------------------------------------------------');
+      debug.log(neu.length);
+      debug.log(old.length);
 
-      // console.log('Checking rows');
+      // debug.log('Checking rows');
 
       // let diff = 0;
 
@@ -33,84 +33,84 @@ export default {
       //   const b = JSON.stringify(old[i]);
 
       //   if (a !== b) {
-      //     console.log('rows differ ' + i);
+      //     debug.log('rows differ ' + i);
       //     diff++;
       //   }
       // }
 
-      // console.log(diff + ' rows changed');
+      // debug.log(diff + ' rows changed');
     },
 
     pagingDisplay(neu, old) {
-      console.log('pagingDisplay changed ------------------------------------------------');
-      console.log(neu.length);
-      console.log(old.length);
+      debug.log('pagingDisplay changed ------------------------------------------------');
+      debug.log(neu.length);
+      debug.log(old.length);
     },
 
     totalPages(neu, old) {
-      console.log('totalPages changed ------------------------------------------------');
-      console.log(neu.length);
-      console.log(old.length);
+      debug.log('totalPages changed ------------------------------------------------');
+      debug.log(neu.length);
+      debug.log(old.length);
     },
 
     pagedRows(neu, old) {
-      console.log('pagedRows changed ------------------------------------------------');
-      console.log(neu.length);
-      console.log(old.length);
+      debug.log('pagedRows changed ------------------------------------------------');
+      debug.log(neu.length);
+      debug.log(old.length);
     },
 
     arrangedRows(neu, old) {
-      console.log('arrangedRows changed ------------------------------------------------');
-      console.log(neu.length);
-      console.log(old.length);
+      debug.log('arrangedRows changed ------------------------------------------------');
+      debug.log(neu.length);
+      debug.log(old.length);
     },
 
     searchFields(neu, old) {
-      console.log('searchFields changed ------------------------------------------------');
-      console.log(neu.length);
-      console.log(old.length);
+      debug.log('searchFields changed ------------------------------------------------');
+      debug.log(neu.length);
+      debug.log(old.length);
     },
 
     filteredRows(neu, old) {
-      console.log('filteredRows changed ------------------------------------------------');
-      console.log(neu.length);
-      console.log(old.length);
+      debug.log('filteredRows changed ------------------------------------------------');
+      debug.log(neu.length);
+      debug.log(old.length);
     },
 
     groupedRows(neu, old) {
-      console.log('groupedRows changed ------------------------------------------------');
-      console.log(neu.length);
-      console.log(old.length);
+      debug.log('groupedRows changed ------------------------------------------------');
+      debug.log(neu.length);
+      debug.log(old.length);
     },
 
     headers(neu, old) {
-      console.log('headers changed ------------------------------------------------');
-      console.log(neu);
-      console.log(old);
+      debug.log('headers changed ------------------------------------------------');
+      debug.log(neu);
+      debug.log(old);
     },
 
     displayRows(neu, old) {
-      console.log('displayRows changed ------------------------------------------------');
-      console.log(neu);
-      console.log(old);
+      debug.log('displayRows changed ------------------------------------------------');
+      debug.log(neu);
+      debug.log(old);
     },
 
     groupBy(neu, old) {
-      console.log('groupBy changed ------------------------------------------------');
-      console.log(neu);
-      console.log(old);
+      debug.log('groupBy changed ------------------------------------------------');
+      debug.log(neu);
+      debug.log(old);
     },
 
     groupSort(neu, old) {
-      console.log('groupSort changed ------------------------------------------------');
-      console.log(neu);
-      console.log(old);
+      debug.log('groupSort changed ------------------------------------------------');
+      debug.log(neu);
+      debug.log(old);
     },
 
     columns(neu, old) {
-      console.log('columns changed ------------------------------------------------');
-      console.log(neu);
-      console.log(old);
+      debug.log('columns changed ------------------------------------------------');
+      debug.log(neu);
+      debug.log(old);
     },
   }
 };
