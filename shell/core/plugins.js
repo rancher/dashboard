@@ -45,48 +45,69 @@ export default function({
         element.type = 'text/javascript';
         element.async = true;
 
-        element.onload = () => {
-          element.parentElement.removeChild(element);
+        // id is `<product>-<version>`.
+        const oldPlugin = Object.values(plugins).find(p => id.startsWith(p.name));
 
-          if (!window[id]) {
-            return reject(new Error('Could not load plugin code'));
-          }
+        let removed = Promise.resolve();
 
-          // Update the timestamp that new plugins were loaded - may be needed
-          // to update caches when new plugins are loaded
-          _lastLoaded = new Date().getTime();
-
-          // TODO: Error if we are loading a plugin already loaded?
-          // name is the name of the plugin, including the version number
-          const plugin = new Plugin(id);
-
-          plugins[id] = plugin;
-
-          // Initialize the plugin
-          window[id].default(plugin, this.internal());
-
+        if (oldPlugin) {
           // Uninstall existing plugin if there is one
-          this.removePlugin(plugin.name);
+          removed = this.removePlugin(oldPlugin.name).then(() => {
+            delete window[oldPlugin.id];
 
-          // Load all of the types etc from the plugin
-          this.applyPlugin(plugin);
+            delete plugins[oldPlugin.id]; // TODO: RC diff with return store.dispatch('uiplugins/removePlugin');
+          });
+        }
 
-          // Add the plugin to the store
-          store.dispatch('uiplugins/addPlugin', plugin);
+        removed.then(() => {
+          element.onload = () => {
+            element.parentElement.removeChild(element);
 
-          resolve();
-        };
+            if (!window[id]) {
+              return reject(new Error('Could not load plugin code'));
+            }
 
-        element.onerror = (e) => {
-          element.parentElement.removeChild(element);
-          // Massage the error into something useful
-          const errorMessage = `Failed to load script from '${ e.target.src }'`;
+            // Update the timestamp that new plugins were loaded - may be needed
+            // to update caches when new plugins are loaded
+            _lastLoaded = new Date().getTime();
+
+            // TODO: Error if we are loading a plugin already loaded?
+            // name is the name of the plugin, including the version number
+            const plugin = new Plugin(id);
+
+            plugins[id] = plugin;
+
+            // Initialize the plugin
+            window[id].default(plugin, this.internal());
+
+            // Uninstall existing plugin if there is one
+            this.removePlugin(plugin.name); // Removing this causes the plugin to not load on refresh
+
+            // Load all of the types etc from the plugin
+            this.applyPlugin(plugin);
+
+            // Add the plugin to the store
+            store.dispatch('uiplugins/addPlugin', plugin);
+
+            resolve();
+          };
+
+          element.onerror = (e) => {
+            element.parentElement.removeChild(element);
+            // Massage the error into something useful
+            const errorMessage = `Failed to load script from '${ e.target.src }'`;
+
+            console.error(errorMessage, e); // eslint-disable-line no-console
+            reject(new Error(errorMessage)); // This is more useful where it's used
+          };
+
+          document.head.appendChild(element);
+        }).catch((e) => {
+          const errorMessage = `Failed to unload old plugin${ oldPlugin?.id }`;
 
           console.error(errorMessage, e); // eslint-disable-line no-console
-          reject(new Error(errorMessage)); // Message on itThis is more useful where it's used
-        };
-
-        document.head.appendChild(element);
+          reject(new Error(errorMessage)); // This is more useful where it's used
+        });
       });
     },
 
@@ -120,15 +141,17 @@ export default function({
     },
 
     // Remove the plugin
-    removePlugin(name) {
+    async removePlugin(name) {
       const plugin = Object.values(plugins).find(p => p.name === name);
 
       if (!plugin) {
         return;
       }
 
+      const promises = [];
+
       plugin.productNames.forEach((product) => {
-        store.dispatch('type-map/removeProduct', { product, plugin });
+        promises.push(store.dispatch('type-map/removeProduct', { product, plugin }));
       });
 
       // Remove all of the types
@@ -144,13 +167,13 @@ export default function({
 
       // Remove locales
       plugin.locales.forEach((localeObj) => {
-        store.dispatch('i18n/removeLocale', localeObj);
+        promises.push(store.dispatch('i18n/removeLocale', localeObj));
       });
 
       if (plugin.types.models) {
         // Ask the Steve stores to forget any data it has for models that we are removing
-        this.removeTypeFromStore(store, 'rancher', Object.keys(plugin.types.models));
-        this.removeTypeFromStore(store, 'management', Object.keys(plugin.types.models));
+        promises.push(...this.removeTypeFromStore(store, 'rancher', Object.keys(plugin.types.models)));
+        promises.push(...this.removeTypeFromStore(store, 'management', Object.keys(plugin.types.models)));
       }
 
       // Uninstall routes
@@ -160,7 +183,7 @@ export default function({
       plugin.uninstallHooks.forEach(fn => fn(plugin, this.internal()));
 
       // Remove the plugin itself
-      store.dispatch('uiplugins/removePlugin', name);
+      promises.push( store.dispatch('uiplugins/removePlugin', name));
 
       // Unregister vuex stores
       plugin.stores.forEach(pStore => pStore.unregister(store));
@@ -170,14 +193,14 @@ export default function({
         delete validators[key];
       });
 
+      await Promise.all(promises);
+
       // Update last load since we removed a plugin
       _lastLoaded = new Date().getTime();
     },
 
     removeTypeFromStore(store, storeName, types) {
-      (types || []).forEach((type) => {
-        store.commit(`${ storeName }/forgetType`, type);
-      });
+      return (types || []).map(type => store.commit(`${ storeName }/forgetType`, type));
     },
 
     // Apply the plugin based on its metadata

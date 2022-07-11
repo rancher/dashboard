@@ -54,7 +54,7 @@ export class PluginRoutes {
 
             break;
           } else {
-            // Need to updare the previous item so that when it is removed, it restores the correct route
+            // Need to update the previous item so that when it is removed, it restores the correct route
             const previous = info[index - 1];
 
             previous.route = savedRoute.route;
@@ -66,6 +66,19 @@ export class PluginRoutes {
       }
     });
 
+    // Remove routes from pluginRoutes, update matcher (to avoid dupes when re-adding plugin routes)
+    const orig = this.pluginRoutes.length;
+
+    this.pluginRoutes = this.pluginRoutes.filter(pR => !plugin.routes.find((r: any) => pR === r.route));
+    const replaced = orig !== this.pluginRoutes.length;
+    const allRoutes = [
+      ...this.pluginRoutes,
+      ...(this.router.options.routes || [])
+    ];
+
+    this.updateMatcher(replaced, [], allRoutes);
+
+    // Restore appropriate routes
     if (restore.length > 0) {
       this.addRoutes(null, restore);
     }
@@ -116,12 +129,21 @@ export class PluginRoutes {
       }
     });
 
-    const newRouter: Router = replaced > 0 ? new Router({
+    this.updateMatcher(replaced > 0, routes, allRoutes);
+
+    // If we replaced any routes, then we should reload on uninstall
+    if (plugin) {
+      plugin.reloadOnUninstall = replaced > 0;
+    }
+  }
+
+  private updateMatcher(updates: boolean, newRoutes: RouteInfo[], allRoutes: RouteConfig[]) {
+    const newRouter: Router = updates ? new Router({
       mode:   'history',
       routes: allRoutes
     }) : this.router;
 
-    routes.forEach((r: any) => {
+    newRoutes.forEach((r: any) => {
       if (r.parent) {
         newRouter.addRoute(r.parent, r.route);
       } else {
@@ -129,14 +151,10 @@ export class PluginRoutes {
       }
       this.pluginRoutes.push(r.route);
     });
-    if (replaced > 0) {
+
+    if (updates) {
       // Typing is incorrect
       (this.router as any).matcher = (newRouter as any).matcher;
-    }
-
-    // If we replaced any routes, then we should reload on uninstall
-    if (plugin) {
-      plugin.reloadOnUninstall = replaced > 0;
     }
   }
 }

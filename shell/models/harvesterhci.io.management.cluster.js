@@ -42,6 +42,7 @@ export default class HciCluster extends ProvCluster {
     // Version
     if (!this.cachedHarvesterClusterVersion) {
       // TODO: RC remove // const versionUrl = `/k8s/clusters/${ clusterId }/apis/management.cattle.io/v3/settings/server-version`; // For example - v2.6.3-harvester1
+      // TODO: RC check if ui-source auto/external. get version from url if applicable
       const versionUrl = `/k8s/clusters/${ clusterId }/v1/harvester/harvesterhci.io.settings/server-version`; // For example - master-08af3d7c-head TODO: RC
       const res = await this.$dispatch('request', { url: versionUrl });
 
@@ -52,10 +53,10 @@ export default class HciCluster extends ProvCluster {
     const packageName = `${ HARVESTER_NAME }-${ this.cachedHarvesterClusterVersion }`;
 
     // Harvester's Dashboard URL
-    const namespace = 'harvester-system'; // TODO: RC Q Harv - Will this always be the case?
-    const serviceName = 'harvester'; // TODO: RC Q Harv - Will this always be the case?
+    const namespace = 'harvester-system';
+    const serviceName = 'harvester';
 
-    // TODO: RC NOTE this only works for embedded... no ui-dashboard-index
+    // TODO: RC check if ui-source auto/external. Change appropriately
     // harvester settings - ui-index, ui-source (`bundled` `auto`, `external`)
     // dashboard settings - ui-dashboard-index, ui-offline-preferred ('false', 'dynamic', 'true')
     const dashboardUrl = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }/${ SERVICE }s/https:${ serviceName }:8443/proxy/dashboard`;
@@ -79,21 +80,20 @@ export default class HciCluster extends ProvCluster {
     // const pkgUrl = 'http://127.0.0.1:4500/harvester-0.5.0/harvester-0.5.0.umd.min.js';
     // const packageName = 'harvester-0.5.0';
 
-    // TODO: RC NOTE How to include the built harvester in the dashboard build
-
     // Avoid loading the plugin if it's already loaded
     const loadedPkgs = Object.keys(this.$rootState.$plugin.getPlugins());
 
-    // Skip loading if we've previously grabbed it or it's built in
-    if (!loadedPkgs.find(pkg => pkg === packageName || pkg === HARVESTER_NAME)) {
-      console.info('Attempting to load harvester plugin', packageName, pkgUrl); // eslint-disable-line no-console
-
-      return await this.$rootState.$plugin.loadAsync(packageName, pkgUrl);
+    // Skip loading if it's built in or we've previously grabbed it
+    if (loadedPkgs.find(pkg => pkg === HARVESTER_NAME) || !!this.$rootState.$plugin.getPlugins()[packageName]) {
+      return;
     }
+
+    console.info('Attempting to load harvester plugin', packageName, pkgUrl); // eslint-disable-line no-console
+
+    return await this.$rootState.$plugin.loadAsync(packageName, pkgUrl);
   }
 
   async standaloneUrl() {
-    // TODO: RC - NOTE - Q harv How to get url? Always have ingress? This isn't really going to work...
     const clusterId = this.mgmt.id;
     const ingressUrl = `/k8s/clusters/${ clusterId }/v1/networking.k8s.io.ingresses/cattle-system/rancher`;
     const res = await this.$dispatch('request', { url: ingressUrl });
