@@ -41,7 +41,10 @@ export default {
         values:   [prePopulatedClusterElements[0].metadata.labels['create-cluster-selector']],
       });
 
-      this.value.spec.template.spec.selector.matchLabels = {};
+      if (!this.value.spec?.template?.spec?.selector?.matchLabels) {
+        this.value.spec.template.spec.selector.matchLabels = {};
+      }
+
       this.value.spec.template.spec.selector.matchLabels['create-cluster-selector'] = prePopulatedClusterElements[0].metadata.labels['create-cluster-selector'];
 
       // cleanup so that it doesn't get reused inadvertedly

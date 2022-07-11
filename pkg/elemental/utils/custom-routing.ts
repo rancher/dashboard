@@ -1,5 +1,5 @@
 import { LOCAL } from '@shell/config/query-params';
-import { ELEMENTAL_PRODUCT_NAME } from '../types';
+import { ELEMENTAL_PRODUCT_NAME } from '@shell/config/elemental-types';
 
 export const rootElementalRoute = () => ({
   name:    `${ ELEMENTAL_PRODUCT_NAME }-c-cluster`,

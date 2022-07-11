@@ -527,8 +527,6 @@ export default {
         });
       }
 
-      console.log('THIS COLUMN OUTPUT...', out);
-
       return out;
     },
 
@@ -892,8 +890,6 @@ export default {
 
     // advanced filtering methods
     setColsOptions() {
-      console.log('**** ALL TABLE ROWS *******', this.rows);
-      console.log('**** ALL TABLE HEADERS *******', this.headers);
       let opts = [];
       const rowLabels = [];
       const headerProps = [];
@@ -901,48 +897,38 @@ export default {
       // Filter out any columns that are too heavy to show for large page sizes
       const filteredHeaders = this.headers.slice().filter(c => (!c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage)));
 
-      console.log('**** FILTERED TABLE HEADERS ****', filteredHeaders);
-
       // add table cols from config (headers)
       filteredHeaders.forEach((prop) => {
         const name = prop.name;
         const label = prop.labelKey ? this.t(`${ prop.labelKey }`) : prop.label;
         const isFilter = !!((!Object.keys(prop).includes('search') || prop.search));
-        const sort = prop.sort || null;
+        let sortVal = prop.sort;
+        let value = null;
 
-        if (prop.sort) {
+        if (prop.sort && prop.valueProp) {
           if (typeof prop.sort === 'string') {
-            headerProps.push({
-              name,
-              label,
-              value:         prop.sort.includes(':') ? prop.sort.split(':')[0] : prop.sort,
-              sort,
-              isFilter,
-              isTableOption: true,
-              isColVisible:  true
-            });
-          } else {
-            headerProps.push({
-              name,
-              label,
-              value:         JSON.stringify(prop.sort),
-              sort,
-              isFilter,
-              isTableOption: true,
-              isColVisible:  true
-            });
+            sortVal = prop.sort.includes(':') ? [prop.sort.split(':')[0]] : [prop.sort];
           }
+
+          if (!sortVal.includes(prop.valueProp)) {
+            value = JSON.stringify(sortVal.concat([prop.valueProp]));
+          } else {
+            value = JSON.stringify([prop.valueProp]);
+          }
+        } else if (prop.valueProp) {
+          value = JSON.stringify([prop.valueProp]);
         } else {
-          headerProps.push({
-            name,
-            label,
-            value:         null,
-            sort,
-            isFilter,
-            isTableOption: true,
-            isColVisible:  true
-          });
+          value = null;
         }
+
+        headerProps.push({
+          name,
+          label,
+          value,
+          isFilter,
+          isTableOption: true,
+          isColVisible:  true
+        });
       });
 
       // add labels as table cols
@@ -954,7 +940,6 @@ export default {
                 name:          label,
                 label,
                 value:         `metadata.labels.${ label }`,
-                sort:          `metadata.labels.${ label }`,
                 isFilter:      true,
                 isTableOption: true,
                 isColVisible:  false
@@ -984,11 +969,9 @@ export default {
       return opts;
     },
     toggleAdvancedFiltering() {
-      console.log('-------- TOGGLING ADVANCED FILTER -------');
       this.advancedFilteringVisibility = !this.advancedFilteringVisibility;
     },
     addAdvancedFilter() {
-      console.log('-------- ADDING ADVANCED FILTER -------');
       const colors = ['success', 'info', 'warning', 'error'];
       let nextColor = colors[0];
 
@@ -1029,11 +1012,9 @@ export default {
       this.advFilterSearchTerm = null;
     },
     colSelected(col) {
-      console.log('-------- COLUMN SELECTED -------', col);
       this.advFilterSelectedLabel = col.label;
     },
     clearAdvancedFilter(index) {
-      console.log('-------- CLEARING ADV. FILTER -------', index);
       this.advancedFilteringValues.splice(index, 1);
       this.eventualSearchQuery = this.advancedFilteringValues;
     },
@@ -1053,13 +1034,10 @@ export default {
       if (index !== -1) {
         this.columnOptions[index].isColVisible = colData.value;
       }
-
-      console.log('-------- COL VISIBILITY CHANGE (Sortable) -------', this.columnOptions[index]);
     },
 
     // group value
     handleGroupValueChange(val) {
-      console.log('EMMITED VAL', val);
       this.$emit('group-value-change', val);
     }
   }

@@ -1,3 +1,4 @@
+export const ELEMENTAL_PRODUCT_NAME = 'elemental';
 export const ELEMENTAL_CLUSTER_PROVIDER = 'machineinventoryselectortemplate';
 
 export const ELEMENTAL_SCHEMA_IDS = {
