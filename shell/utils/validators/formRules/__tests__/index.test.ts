@@ -496,7 +496,7 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
-  it('"servicePort" : returns correct message when targetPort port is not an integer', () => {
+  it('"servicePort" : returns correct message when targetPort port is not an integer but is a valid dnsLabelIanaServiceName', () => {
     const testValue = {
       name:       'portName',
       nodePort:   '8081',
@@ -505,8 +505,21 @@ describe('formRules', () => {
       idx:        0
     };
     const formRuleResult = formRules.servicePort(testValue);
+
+    expect(formRuleResult).toBeUndefined();
+  });
+
+  it('"servicePort" : returns correct message when targetPort port is not an integer but is not a valid dnsLabelIanaServiceName', () => {
+    const testValue = {
+      name:       'portName',
+      nodePort:   '8081',
+      port:       '8082',
+      targetPort: 'te st',
+      idx:        0
+    };
+    const formRuleResult = formRules.servicePort(testValue);
     const expectedResult = JSON.stringify({
-      message: 'validation.chars', key: 'testDisplayKey', count: 2, chars: '[ ]'
+      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: 'Space'
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
@@ -583,7 +596,7 @@ describe('formRules', () => {
     const testValue = 'www.host*name.com';
     const formRuleResult = formRules.externalName(testValue);
     const expectedResult = JSON.stringify({
-      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: '*'
+      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: '"*"'
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
@@ -737,7 +750,7 @@ describe('formRules', () => {
       message: 'validation.chars',
       key:     'testDisplayKey',
       count:   1,
-      chars:   '*'
+      chars:   '"*"'
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
@@ -843,7 +856,17 @@ describe('formRules', () => {
     const testValue = 'www.host*name.com';
     const formRuleResult = formRules.hostname(testValue);
     const expectedResult = JSON.stringify({
-      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: '*'
+      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: '"*"'
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"hostName" : returns expected message when value contains a space character', () => {
+    const testValue = 'www.host name.com';
+    const formRuleResult = formRules.hostname(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: 'Space'
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
