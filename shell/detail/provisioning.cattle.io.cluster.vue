@@ -368,7 +368,11 @@ export default {
         return !this.value.mgmt?.isReady;
       }
 
-      if ( this.value.isCustom || this.value.isAKS || this.value.isEKS ) {
+      if ( this.value.isCustom ) {
+        return true;
+      }
+
+      if ( ( this.value.isAKS || this.value.isEKS ) && !this.isClusterReady ) {
         return true;
       }
 
