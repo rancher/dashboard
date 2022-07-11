@@ -22,6 +22,7 @@ export class Plugin implements IPlugin {
 
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
+  public _validators: { [key: string]: Function } = {};
 
   // Is this a built-in plugin (bundled with the application)
   public builtin = false;
@@ -41,6 +42,14 @@ export class Plugin implements IPlugin {
   set metadata(value) {
     this._metadata = value;
     this.name = this._metadata.name || this.id;
+  }
+
+  get validators() {
+    return this._validators;
+  }
+
+  set validators(vals:{ [key: string]: Function }) {
+    this._validators = vals;
   }
 
   // Track which products the plugin creates

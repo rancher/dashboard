@@ -11,14 +11,10 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
-  name: 'HarvesterHotplugModal',
+  name: 'HotplugModal',
 
   components: {
-    AsyncButton,
-    Card,
-    LabeledInput,
-    LabeledSelect,
-    Banner
+    AsyncButton, Card, LabeledInput, LabeledSelect, Banner
   },
 
   props: {
@@ -37,7 +33,7 @@ export default {
       diskName:   '',
       volumeName: '',
       errors:     [],
-      allPVCs:    []
+      allPVCs:    [],
     };
   },
 
@@ -45,11 +41,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     PVCs() {
-      return (
-        this.allPVCs.filter(
-          P => this.actionResource.metadata.namespace === P.metadata.namespace
-        ) || []
-      );
+      return this.allPVCs.filter(P => this.actionResource.metadata.namespace === P.metadata.namespace) || [];
     },
 
     actionResource() {
@@ -58,21 +50,23 @@ export default {
 
     volumeOption() {
       return sortBy(
-        this.PVCs.filter((pvc) => {
-          if (!!pvc.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID]) {
-            return false;
-          }
+        this.PVCs
+          .filter( (pvc) => {
+            if (!!pvc.metadata?.annotations?.[HCI_ANNOTATIONS.IMAGE_ID]) {
+              return false;
+            }
 
-          return !pvc.attachVM;
-        }).map((pvc) => {
-          return {
-            label: pvc.metadata.name,
-            value: pvc.metadata.name
-          };
-        }),
+            return !pvc.attachVM;
+          })
+          .map((pvc) => {
+            return {
+              label: pvc.metadata.name,
+              value: pvc.metadata.name
+            };
+          }),
         'label'
       );
-    }
+    },
   },
 
   methods: {
@@ -85,25 +79,13 @@ export default {
     async save(buttonCb) {
       if (this.actionResource) {
         try {
-          const res = await this.actionResource.doAction(
-            'addVolume',
-            { volumeSourceName: this.volumeName, diskName: this.diskName },
-            {},
-            false
-          );
+          const res = await this.actionResource.doAction('addVolume', { volumeSourceName: this.volumeName, diskName: this.diskName }, {}, false);
 
           if (res._status === 200 || res._status === 204) {
-            this.$store.dispatch(
-              'growl/success',
-              {
-                title:   this.t('harvester.notification.title.succeed'),
-                message: this.t('harvester.modal.hotplug.success', {
-                  diskName: this.diskName,
-                  vm:       this.actionResource.nameDisplay
-                })
-              },
-              { root: true }
-            );
+            this.$store.dispatch('growl/success', {
+              title:   this.t('harvester.notification.title.succeed'),
+              message: this.t('harvester.modal.hotplug.success', { diskName: this.diskName, vm: this.actionResource.nameDisplay })
+            }, { root: true });
 
             this.close();
             buttonCb(true);
@@ -121,21 +103,21 @@ export default {
           buttonCb(false);
         }
       }
-    }
+    },
   }
 };
 </script>
 
 <template>
   <Card ref="modal" name="modal" :show-highlight-border="false">
-    <h4
-      slot="title"
-      class="text-default-text"
-      v-html="t('harvester.modal.hotplug.title')"
-    />
+    <h4 slot="title" class="text-default-text" v-html="t('harvester.modal.hotplug.title')" />
 
     <template #body>
-      <LabeledInput v-model="diskName" :label="t('generic.name')" required />
+      <LabeledInput
+        v-model="diskName"
+        :label="t('generic.name')"
+        required
+      />
 
       <LabeledSelect
         v-model="volumeName"

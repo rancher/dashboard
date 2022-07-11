@@ -798,7 +798,13 @@ export const getters = {
 
   allTypes(state, getters, rootState, rootGetters) {
     return (product, mode = ALL) => {
-      const module = findBy(state.products, 'name', product).inStore;
+      let module;
+
+      try {
+        module = findBy(state.products, 'name', product).inStore;
+      } catch {
+        debugger;
+      }
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
       const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
       const isDev = rootGetters['prefs/get'](DEV);
