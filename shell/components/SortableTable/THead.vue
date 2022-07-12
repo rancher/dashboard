@@ -270,8 +270,10 @@ export default {
                 v-for="(col, index) in tableColsOptions"
                 v-show="col.isTableOption"
                 :key="index"
+                :class="{ 'visible': !col.preventColToggle }"
               >
                 <Checkbox
+                  v-show="!col.preventColToggle"
                   v-model="col.isColVisible"
                   class="table-options-checkbox"
                   :label="col.label"
@@ -326,8 +328,12 @@ export default {
 
         li {
           flex: 1 1 136px;
-          margin: 0 0 10px 0;
+          margin: 0;
           padding: 0;
+
+          &.visible {
+            margin: 0 0 10px 0;
+          }
         }
       }
     }

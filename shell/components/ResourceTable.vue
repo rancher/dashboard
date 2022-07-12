@@ -122,6 +122,18 @@ export default {
       type:    Boolean,
       default: false
     },
+    hasAdvancedFiltering: {
+      type:    Boolean,
+      default: false
+    },
+    advFilterHideLabelsAsCols: {
+      type:    Boolean,
+      default: false
+    },
+    advFilterPreventFilteringLabels: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -385,6 +397,9 @@ export default {
     :overflow-x="overflowX"
     :overflow-y="overflowY"
     :get-custom-detail-link="getCustomDetailLink"
+    :has-advanced-filtering="hasAdvancedFiltering"
+    :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
+    :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
     @clickedActionButton="handleActionButtonClick"

@@ -307,7 +307,21 @@ export default {
     componentTestid: {
       type:    String,
       default: 'sortable-table'
-    }
+    },
+    hasAdvancedFiltering: {
+      type:    Boolean,
+      default: false
+    },
+
+    advFilterHideLabelsAsCols: {
+      type:    Boolean,
+      default: false
+    },
+
+    advFilterPreventFilteringLabels: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -318,7 +332,6 @@ export default {
       eventualSearchQuery:         '',
       actionOfInterest:            null,
       loadingDelay:                false,
-      hasAdvancedFiltering:        true,
       columnOptions:               [],
       colOptionsWatcher:           null,
       advancedFilteringVisibility: false,
@@ -442,7 +455,7 @@ export default {
       return !!(!this.loading && !this._didinit && this.rows?.length);
     },
     advFilterSelectOptions() {
-      return this.columnOptions.filter(c => c.isFilter);
+      return this.columnOptions.filter(c => c.isFilter && !c.preventFiltering);
     },
 
     advGroupOptions() {
@@ -947,12 +960,15 @@ export default {
           if (row.metadata?.labels && Object.keys(row.metadata?.labels).length) {
             Object.keys(row.metadata?.labels).forEach((label) => {
               const res = {
-                name:          label,
+                name:             label,
                 label,
-                value:         `metadata.labels.${ label }`,
-                isFilter:      true,
-                isTableOption: true,
-                isColVisible:  false
+                value:            `metadata.labels.${ label }`,
+                isFilter:         true,
+                isTableOption:    true,
+                isColVisible:     false,
+                isLabel:          true,
+                preventFiltering: this.advFilterPreventFilteringLabels,
+                preventColToggle: this.advFilterHideLabelsAsCols
               };
 
               if (!rowLabels.filter(row => row.label === label).length) {
@@ -1058,7 +1074,11 @@ export default {
   <div ref="container">
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
-      <div v-if="showHeaderRow" class="fixed-header-actions" :class="{button: !!$slots['header-button']}">
+      <div
+        v-if="showHeaderRow"
+        class="fixed-header-actions"
+        :class="{button: !!$slots['header-button'], 'advanced-filtering': hasAdvancedFiltering}"
+      >
         <div :class="bulkActionsClass" class="bulk">
           <slot name="header-left">
             <template v-if="tableActions">
@@ -1205,6 +1225,7 @@ export default {
         :group="group"
         :group-options="advGroupOptions"
         :has-advanced-filtering="hasAdvancedFiltering"
+        :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
         :table-actions="tableActions"
         :table-cols-options="columnOptions"
         :row-actions="rowActions"
@@ -1825,8 +1846,12 @@ $spacing: 10px;
   z-index: z-index('fixedTableHeader');
   background: transparent;
   display: grid;
-  grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
+  grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
   grid-column-gap: 10px;
+
+  &.advanced-filtering {
+    grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
+  }
 
   .bulk {
     grid-area: bulk;
