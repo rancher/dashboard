@@ -1587,8 +1587,15 @@ export default class Resource {
           if (!isEmpty(validatorName) && validatorExists) {
             CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
           } else if (!isEmpty(validatorName) && !validatorExists) {
-            // eslint-disable-next-line
-            console.warn(this.t('validation.custom.missing', { validatorName }));
+            // Check if validator is imported from plugin
+            const pluginValidator = this.$rootState.$plugin?.getValidator(validatorName);
+
+            if (pluginValidator) {
+              pluginValidator(pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
+            } else {
+              // eslint-disable-next-line
+              console.warn(this.t('validation.custom.missing', { validatorName }));
+            }
           }
         });
       });
@@ -1683,80 +1690,7 @@ export default class Resource {
       errors.push(...fieldErrors);
     }
 
-    let { customValidationRules } = this;
-
-    if (!isEmpty(customValidationRules)) {
-      if (isFunction(customValidationRules)) {
-        customValidationRules = customValidationRules();
-      }
-
-      customValidationRules.forEach((rule) => {
-        const {
-          path,
-          requiredIf: requiredIfPath,
-          validators = [],
-          type: fieldType,
-        } = rule;
-        let pathValue = get(data, path);
-
-        const parsedRules = compact((validators || []));
-        let displayKey = path;
-
-        if (rule.translationKey && this.$rootGetters['i18n/exists'](rule.translationKey)) {
-          displayKey = this.t(rule.translationKey);
-        }
-
-        if (isString(pathValue)) {
-          pathValue = pathValue.trim();
-        }
-        if (requiredIfPath) {
-          const reqIfVal = get(data, requiredIfPath);
-
-          if (!isEmpty(reqIfVal) && (isEmpty(pathValue) && pathValue !== 0)) {
-            errors.push(this.t('validation.required', { key: displayKey }));
-          }
-        }
-
-        validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
-        validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
-
-        if ( !isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
-          // DNS types should be lowercase
-          const tolower = (pathValue || '').toLowerCase();
-
-          if ( tolower !== pathValue ) {
-            pathValue = tolower;
-
-            Vue.set(data, path, pathValue);
-          }
-
-          errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));
-        }
-
-        parsedRules.forEach((validator) => {
-          const validatorAndArgs = validator.split(':');
-          const validatorName = validatorAndArgs.slice(0, 1);
-          const validatorArgs = validatorAndArgs.slice(1) || null;
-          const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
-
-          if (!isEmpty(validatorName) && validatorExists) {
-            CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
-          } else if (!isEmpty(validatorName) && !validatorExists) {
-            // Check if validator is imported from plugin
-            const pluginValidator = this.$rootState.$plugin?.getValidator(validatorName);
-
-            if (pluginValidator) {
-              pluginValidator(pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
-            } else {
-            // eslint-disable-next-line
-              console.warn(this.t('validation.custom.missing', { validatorName }));
-            }
-          }
-        });
-      });
-    }
-
-    return uniq(errors);
+    return uniq([...errors, ...this.customValidationErrors(data)]);
   }
 
   get ownersByType() {
