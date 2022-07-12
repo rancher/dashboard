@@ -253,6 +253,12 @@ export const getters = {
     return BOTH;
   },
 
+  activeNamespaceFilters(state) {
+    return () => {
+      return state.namespaceFilters;
+    };
+  },
+
   namespaces(state, getters) {
     return () => {
       const out = {};

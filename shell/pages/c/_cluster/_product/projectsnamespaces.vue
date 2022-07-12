@@ -79,7 +79,7 @@ export default {
       return this.projects.filter(project => project.spec.clusterName === clusterId);
     },
     projectsWithoutNamespaces() {
-      return this.clusterProjects.filter((project) => {
+      return this.activeProjects.filter((project) => {
         return !this.projectIdsWithNamespaces.find(item => project?.id?.endsWith(`/${ item }`));
       });
     },
@@ -115,18 +115,37 @@ export default {
       };
     },
     groupPreference: mapPref(GROUP_RESOURCES),
+    activeProjects() {
+      const namespaceFilters = this.$store.getters['activeNamespaceFilters']();
+      const activeProjects = this.getActiveProjects(namespaceFilters);
+
+      // Filter out projects that are not selected in the top nav.
+      return this.clusterProjects.filter((projectData) => {
+        const projectId = projectData.id.split('/')[1];
+
+        return !!activeProjects[projectId];
+      });
+    },
+    activeNamespaces() {
+      // Apply namespace filters from the top nav.
+      const activeNamespaces = this.$store.getters['namespaces']();
+
+      return this.namespaces.filter((namespaceData) => {
+        return !!activeNamespaces[namespaceData.metadata.name];
+      });
+    },
     filteredRows() {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
       if (this.$store.getters['prefs/get'](DEV)) {
-        return this.namespaces;
+        return this.activeNamespaces;
       }
 
       const isVirtualCluster = this.$store.getters['isVirtualCluster'];
       const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
-      return this.namespaces.filter((namespace) => {
+      return this.activeNamespaces.filter((namespace) => {
         const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
         const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
 
@@ -135,10 +154,30 @@ export default {
     },
 
     showMockNotInProjectGroup() {
-      return !this.rows.some(row => !row.project);
+      const someNamespacesAreNotInProject = !this.rows.some(row => !row.project);
+
+      // Hide the "Not in a Project" group if the user is filtering
+      // for specific namespaces or projects.
+      const usingSpecificFilter = this.userIsFilteringForSpecificNamespaceOrProject();
+
+      return !usingSpecificFilter && someNamespacesAreNotInProject;
     }
   },
   methods: {
+    userIsFilteringForSpecificNamespaceOrProject() {
+      const activeFilters = this.$store.getters['namespaceFilters'];
+
+      for (let i = 0; i < activeFilters.length; i++) {
+        const filter = activeFilters[i];
+        const filterType = filter.split('://')[0];
+
+        if (filterType === 'ns' || filterType === 'project') {
+          return true;
+        }
+      }
+
+      return false;
+    },
     slotName(project) {
       return `main-row:${ project.id }`;
     },
@@ -195,6 +234,20 @@ export default {
       const base = defaultTableSortGenerationFn(this.schema, this.$store);
 
       return base + (this.showMockNotInProjectGroup ? '-mock' : '');
+    },
+
+    getActiveProjects(activeFilters) {
+      const activeProjects = {};
+
+      for (const filter of activeFilters) {
+        const [type, id] = filter.split('://', 2);
+
+        if (type === 'project') {
+          activeProjects[id] = true;
+        }
+      }
+
+      return activeProjects;
     },
   }
 };
