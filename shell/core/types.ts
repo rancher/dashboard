@@ -57,6 +57,11 @@ export interface IPlugin {
   metadata: PackageMetadata;
 
   /**
+   * Validators used in the same manner as shell/utils/custom-validators
+   */
+  validators: {[key: string]: Function};
+
+  /**
    * Add a module contains localisations for a specific locale
    */
   addL10n(locale: string, fn: Function): void;
