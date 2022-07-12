@@ -2,7 +2,7 @@
 import ConsoleBar from '../components/VMConsoleBar';
 import ResourceTable from '@shell/components/ResourceTable';
 import LinkDetail from '@shell/components/formatter/LinkDetail';
-import HarvesterVmState from '../components/formatter/HarvesterVmState';
+import HarvesterVmState from '..//formatters/HarvesterVmState';
 
 import { STATE, AGE, NAME, NAMESPACE } from '@shell/config/table-headers';
 import { HCI, NODE, POD } from '@shell/config/types';
@@ -189,10 +189,7 @@ export default {
     -o-text-overflow:ellipsis;
   }
 
-<<<<<<< HEAD
-=======
   display: flex;
-  justify-content: space-around
->>>>>>> fix conflict
+  justify-content: space-around;
 }
 </style>
