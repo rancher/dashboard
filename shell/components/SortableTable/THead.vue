@@ -206,9 +206,17 @@ export default {
         :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
         @click.prevent="changeSort($event, col)"
       >
-        <div class="table-header-container">
+        <div
+          class="table-header-container"
+          :class="{ 'not-filterable': hasAdvancedFiltering && !col.isFilter }"
+        >
           <span v-if="col.sort" v-tooltip="col.tooltip">
             <span v-html="labelFor(col)" />
+            <i
+              v-show="hasAdvancedFiltering && !col.isFilter"
+              v-tooltip="t('sortableTable.tableHeader.noFilter')"
+              class="icon icon-info not-filter-icon"
+            />
             <span class="icon-stack">
               <i class="icon icon-sort icon-stack-1x faded" />
               <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
@@ -216,11 +224,6 @@ export default {
             </span>
           </span>
           <span v-else v-tooltip="col.tooltip">{{ labelFor(col) }}</span>
-          <i
-            v-show="hasAdvancedFiltering && !col.isFilter"
-            v-tooltip="t('sortableTable.tableHeader.noFilter')"
-            class="icon icon-info not-filter-icon"
-          />
         </div>
       </th>
       <th
@@ -372,10 +375,18 @@ export default {
       display: flex;
       align-items: center;
 
+      &.not-filterable {
+        margin-top: -2px;
+
+        .icon-stack {
+          margin-top: -2px;
+        }
+      }
+
       .not-filter-icon {
-        margin-left: 10px;
         font-size: 16px;
         color: var(--primary);
+        vertical-align: super;
       }
     }
 

@@ -45,7 +45,16 @@ export function init($plugin, store) {
     isEditable:  true,
     isRemovable: true,
     canYaml:     true,
-    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES })
+    customRoute: createElementalRoute('resource', { resource: ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES }),
+    listGroups:  [
+      {
+        icon:       'icon-cluster',
+        value:      'clusterName',
+        field:      'groupByCluster',
+        hideColumn: 'clusterName',
+        tooltipKey: 'resourceTable.groupBy.cluster'
+      }
+    ]
   });
 
   headers(ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES, [
@@ -110,10 +119,10 @@ export function init($plugin, store) {
     ELEMENTAL_TYPES.DASHBOARD,
     ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
     ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
-    ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES,
   ]);
 
   basicType([
+    ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES,
     ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR,
     ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES,
     ELEMENTAL_SCHEMA_IDS.MANAGED_OS_VERSIONS,
