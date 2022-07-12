@@ -188,7 +188,7 @@ export default {
 <template>
   <CruResource
     class="project"
-    :done-route="'c-cluster-product-projectsnamespaces'"
+    :done-route="value.listLocation"
     :errors="fvUnreportedValidationErrors"
     :mode="mode"
     :resource="value"
