@@ -13,7 +13,20 @@ export default {
     ResourceLoadingIndicator
   },
   mixins: [ResourceFetch],
-
+  props:  {
+    hasAdvancedFiltering: {
+      type:    Boolean,
+      default: false
+    },
+    advFilterHideLabelsAsCols: {
+      type:    Boolean,
+      default: false
+    },
+    advFilterPreventFilteringLabels: {
+      type:    Boolean,
+      default: false
+    },
+  },
   async fetch() {
     const store = this.$store;
     const resource = this.resource;
@@ -162,6 +175,9 @@ export default {
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"
+      :has-advanced-filtering="hasAdvancedFiltering"
+      :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
+      :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
     />
   </div>
 </template>

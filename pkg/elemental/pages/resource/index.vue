@@ -25,6 +25,9 @@ export default {
     importEnabled() {
       return !!this.currentCluster?.actions?.apply;
     },
+    advancedFilteringEnabled() {
+      return !!this.isMachineInv;
+    }
   },
   methods: {
     openImport() {
@@ -39,7 +42,7 @@ export default {
 </script>
 
 <template>
-  <ResourceList>
+  <ResourceList :has-advanced-filtering="advancedFilteringEnabled">
     <template
       v-if="isMachineInv"
       slot="extraActions"
