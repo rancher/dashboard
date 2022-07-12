@@ -231,40 +231,20 @@ export default class HciNode extends SteveModel {
     return pods.filter(p => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing');
   }
 
+  get reserved() {
+    try {
+      return JSON.parse(this.metadata.annotations[HCI_ANNOTATIONS.HOST_REQUEST] || '{}');
+    } catch {
+      return {};
+    }
+  }
+
   get cpuReserved() {
-    const out = this.pods.reduce((sum, pod) => {
-      const containers = pod?.spec?.containers || [];
-
-      const containerCpuReserved = containers.reduce((sum, c) => {
-        sum += parseSi(c?.resources?.requests?.cpu || '0m');
-
-        return sum;
-      }, 0);
-
-      sum += containerCpuReserved;
-
-      return sum;
-    }, 0);
-
-    return out;
+    return parseSi(this.reserved.cpu || '0');
   }
 
   get memoryReserved() {
-    const out = this.pods.reduce((sum, pod) => {
-      const containers = pod?.spec?.containers || [];
-
-      const containerMemoryReserved = containers.reduce((sum, c) => {
-        sum += parseSi(c?.resources?.requests?.memory || '0m', { increment: 1024 });
-
-        return sum;
-      }, 0);
-
-      sum += containerMemoryReserved;
-
-      return sum;
-    }, 0);
-
-    return out;
+    return parseSi(this.reserved.memory || '0');
   }
 
   get canDelete() {
