@@ -12,6 +12,7 @@ export default function({
   redirect
 }, inject) {
   const dynamic = {};
+  const validators = {};
   let _lastLoaded = 0;
 
   // Track which plugin loaded what, so we can unload stuff
@@ -160,6 +161,11 @@ export default function({
       // Unregister vuex stores
       plugin.stores.forEach(pStore => pStore.unregister(store));
 
+      // Remove validators
+      Object.keys(plugin.validators).forEach((key) => {
+        delete validators[key];
+      });
+
       // Update last load since we removed a plugin
       _lastLoaded = new Date().getTime();
     },
@@ -201,6 +207,11 @@ export default function({
 
       // Routes
       pluginRoutes.addRoutes(plugin, plugin.routes);
+
+      // Validators
+      Object.keys(plugin.validators).forEach((key) => {
+        validators[key] = plugin.validators[key];
+      });
     },
 
     /**
@@ -251,6 +262,10 @@ export default function({
 
     getDynamic(typeName, name) {
       return dynamic[typeName]?.[name];
+    },
+
+    getValidator(name) {
+      return validators[name];
     },
 
     // Timestamp that a UI package was last loaded
