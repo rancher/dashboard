@@ -21,6 +21,20 @@ export default {
     ResourceTable
   },
 
+  props: {
+    // Cluster tole template binding create route - defaults to the explorer route
+    createLocationOverride: {
+      type:    Object,
+      default: () => {
+        return {
+          name:   'c-cluster-product-resource-create',
+          params: { resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }
+
+        };
+      }
+    }
+  },
+
   async fetch() {
     const clusterRoleTemplateBindingSchema = this.$store.getters[
       `rancher/schemaFor`
@@ -52,10 +66,10 @@ export default {
       ),
       headers:        [STATE, PRINCIPAL, ROLE, AGE],
       createLocation: {
-        name:   'c-cluster-product-resource-create',
+        ...this.createLocationOverride,
         params: {
-          product:  this.$store.getters['currentProduct'].name,
-          resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING
+          ...this.createLocationOverride.params,
+          cluster: this.$store.getters['currentCluster'].id
         }
       },
       resource:                    MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,

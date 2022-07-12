@@ -125,7 +125,7 @@ export function init($plugin, store) {
     namespaced: false,
     name:       VIRTUAL_TYPES.CLUSTER_MEMBERS,
     weight:     100,
-    route:      { name: `${ PRODUCT_NAME }-c-cluster-members` },
+    route:      { name: 'harvester-c-cluster-members' },
     exact:      true,
     ifHaveType: {
       type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
