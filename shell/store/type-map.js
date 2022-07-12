@@ -179,6 +179,7 @@ export function DSL(store, product, module = 'type-map') {
         name:                product,
         weight:              1,
         inStore:             'cluster',
+        inExplorer:          false,
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
