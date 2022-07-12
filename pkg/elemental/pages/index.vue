@@ -52,7 +52,8 @@ export default {
         ELEMENTAL_SCHEMA_IDS.MACHINE_REGISTRATIONS,
         ELEMENTAL_SCHEMA_IDS.MACHINE_INVENTORIES,
         this.ELEMENTAL_CLUSTERS,
-        ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES
+        // hide for now, until it's more mature and we know how to integrate it with the whole flow...
+        // ELEMENTAL_SCHEMA_IDS.MANAGED_OS_IMAGES
       ].forEach((type) => {
         const obj = {
           count:    this.resourcesData[type]?.length || 0,
