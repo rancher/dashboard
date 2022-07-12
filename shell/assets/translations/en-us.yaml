@@ -6599,9 +6599,10 @@ advancedSettings:
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
     'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
-    'auth-token-max-ttl-minutes': 'Custom max TTL (in minutes) on an auth token.'
-    'kubeconfig-generate-token': 'Automatically generate kubeconfig tokens for users.'
-    'kubeconfig-token-ttl-minutes': 'Custom max TTL (in minutes) on a kubeconfig token.'
+    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all authentication tokens. When set to 0, the token never expires.'
+    'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
+    'kubeconfig-token-ttl-minutes': 'TTL used for tokens generated via the CLI. Deprecated: This setting will be removed, and kubeconfig-default-ttl-minutes will be used for all kubeconfig tokens.'
+    'kubeconfig-default-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'custom-notifications': Edit custom notifications
