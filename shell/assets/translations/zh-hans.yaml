@@ -1804,6 +1804,11 @@ clusterIndexPage:
     ram: 内存
     used: 已使用
     reserved: 已预留
+    units:
+      cores: |-
+        {count, plural,
+        =1 {核}
+        other {核}}
   header: 集群仪表板
   resourceGauge:
     totalResources: 资源总额
