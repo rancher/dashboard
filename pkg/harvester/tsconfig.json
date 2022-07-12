@@ -48,6 +48,9 @@
       "@shell/mixins/*": [
         "../../shell/mixins/*"
       ],
+      "@shell/pages/*": [
+        "../../shell/pages/*"
+      ],
       "@pkg/*": [
         "./*"
       ]

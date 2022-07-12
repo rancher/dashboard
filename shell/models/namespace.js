@@ -9,6 +9,7 @@ import { escapeHtml } from '@shell/utils/string';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import Vue from 'vue';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace
@@ -166,6 +167,10 @@ export default class Namespace extends SteveModel {
   get listLocation() {
     if (this.$rootGetters['isSingleProduct']) {
       return { name: 'c-cluster-product-resource' };
+    }
+
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      return { name: `${ HARVESTER }-c-cluster-projectsnamespaces` };
     }
 
     return { name: this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-namespaces' };

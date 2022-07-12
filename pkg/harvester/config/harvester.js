@@ -201,7 +201,7 @@ export function init($plugin, store) {
     namespaced: true,
     name:       'projects-namespaces',
     weight:     98,
-    route:      { name: 'c-cluster-product-projectsnamespaces' },
+    route:      { name: `${ PRODUCT_NAME }-c-cluster-projectsnamespaces` },
     exact:      true
   });
 
