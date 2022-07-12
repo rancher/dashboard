@@ -46,6 +46,7 @@ export const EVENT = 'event';
 export const ENDPOINTS = 'endpoints';
 export const HPA = 'autoscaling.horizontalpodautoscaler';
 export const INGRESS = 'networking.k8s.io.ingress';
+export const INGRESS_CLASS = 'networking.k8s.io.ingressclass';
 export const NAMESPACE = 'namespace';
 export const NODE = 'node';
 export const NETWORK_POLICY = 'networking.k8s.io.networkpolicy';

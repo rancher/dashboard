@@ -3,6 +3,7 @@ import { allHash } from '@shell/utils/promise';
 import { SECRET, SERVICE } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Rules from '@shell/edit/networking.k8s.io.ingress/Rules';
+import IngressClass from '@shell/edit/networking.k8s.io.ingress/IngressClass';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
@@ -10,6 +11,7 @@ import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 export default {
   name:       'CRUIngress',
   components: {
+    IngressClass,
     ResourceTabs,
     Rules,
     Tab
@@ -58,8 +60,11 @@ export default {
 </script>
 <template>
   <ResourceTabs v-model="value" mode="view" class="mt-20">
-    <Tab label="Rules" name="rules" :weight="1">
+    <Tab :label="t('ingress.rules.title')" name="rules" :weight="1">
       <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" :certificates="certificates" />
+    </Tab>
+    <Tab :label="t('ingress.ingressClass.label')" name="ingress.class" :weigth="0">
+      <IngressClass v-model="value" :mode="mode" />
     </Tab>
   </ResourceTabs>
 </template>
