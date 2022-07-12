@@ -4250,8 +4250,10 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
     node: Group by Node
+    cluster: Group by Cluster
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
+    notInACluster: Not in a Cluster
     namespace: "<span>Namespace:</span> {name}"
     notInAMachinePool: "Not In A Deployment"
     machinePool: "<span>Pool:</span> {name}"

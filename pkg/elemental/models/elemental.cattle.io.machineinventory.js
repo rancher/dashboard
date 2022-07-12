@@ -2,7 +2,7 @@ import ElementalResource from './elemental-resource';
 import { CAPI } from '@shell/config/types';
 import { ELEMENTAL_DEFAULT_NAMESPACE } from '../types';
 import { ELEMENTAL_CLUSTER_PROVIDER, ELEMENTAL_SCHEMA_IDS } from '@shell/config/elemental-types';
-import { randomStr } from '@shell/utils/string';
+import { randomStr, escapeHtml } from '@shell/utils/string';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default class MachineInventory extends ElementalResource {
@@ -84,6 +84,16 @@ export default class MachineInventory extends ElementalResource {
       }
     }
 
-    return '---';
+    return null;
+  }
+
+  get groupByCluster() {
+    const name = this.clusterName;
+
+    if (name) {
+      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
+    } else {
+      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInACluster');
+    }
   }
 }
