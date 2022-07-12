@@ -3,7 +3,6 @@ import jsyaml from 'js-yaml';
 import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import isEmpty from 'lodash/isEmpty';
-import { mapGetters } from 'vuex';
 import { NAMESPACE_SELECTOR } from '../../plugins/kubewarden/policy-class';
 import ChartMixin from '@shell/mixins/chart';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -107,8 +106,6 @@ export default ({
   },
 
   computed: {
-    ...mapGetters({ t: 'i18n/t' }),
-
     isCreate() {
       return this.realMode === _CREATE;
     },

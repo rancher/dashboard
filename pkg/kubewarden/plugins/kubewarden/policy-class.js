@@ -303,6 +303,24 @@ export default class KubewardenModel extends SteveModel {
     };
   }
 
+  haveComponent(name) {
+    try {
+      require.resolve(`../../chart/${ name }`);
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  importComponent(name) {
+    if ( !name ) {
+      throw new Error('Name required');
+    }
+
+    return () => import(/* webpackChunkName: "chart" */ `../../chart/${ name }`);
+  }
+
   traceTableRows(traces) {
     const traceArray = [];
 

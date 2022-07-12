@@ -392,7 +392,7 @@ export const getters = {
           return out;
         }
 
-        // This works for most things... if you don't like it, put in a type1Label translation for above.
+        // This works for most things... if you don't like it, put in a typeLabel translation for above.
         return pluralize(out);
       });
     };

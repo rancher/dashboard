@@ -110,8 +110,8 @@ export default {
     },
 
     async loadValuesComponent() {
-      if ( this.$store.getters['catalog/haveComponent']('kubewarden/admission') ) {
-        this.valuesComponent = this.$store.getters['catalog/importComponent']('kubewarden/admission');
+      if ( this.value.haveComponent('kubewarden/admission') ) {
+        this.valuesComponent = this.value.importComponent('kubewarden/admission');
         await this.valuesComponent();
 
         this.showValuesComponent = true;

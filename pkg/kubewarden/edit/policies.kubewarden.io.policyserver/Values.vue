@@ -49,8 +49,8 @@ export default {
 
   methods: {
     async loadValuesComponent() {
-      if ( this.$store.getters['catalog/haveComponent']('kubewarden/policy-server') ) {
-        this.valuesComponent = this.$store.getters['catalog/importComponent']('kubewarden/policy-server');
+      if ( this.value.haveComponent('kubewarden/policy-server') ) {
+        this.valuesComponent = this.value.importComponent('kubewarden/policy-server');
         await this.valuesComponent();
 
         this.showValuesComponent = true;

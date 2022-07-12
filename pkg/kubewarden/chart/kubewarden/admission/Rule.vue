@@ -168,14 +168,14 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-12">
-        <h4>{{ t('kubewarden.policyConfig.mode.title') }}</h4>
+        <h4>{{ t('kubewarden.policyConfig.resources.title') }}</h4>
         <LabeledSelect
           v-model="value.resources"
-          :label="t('kubewarden.policyConfig.mode.label')"
+          :label="t('kubewarden.policyConfig.resources.label')"
           :mode="mode"
           :multiple="true"
           :options="resourceOptions || []"
-          :tooltip="t('kubewarden.policyConfig.mode.tooltip')"
+          :tooltip="t('kubewarden.policyConfig.resources.tooltip')"
         />
       </div>
     </div>

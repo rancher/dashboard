@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { KUBEWARDEN } from '../../types';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -43,8 +42,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ t: 'i18n/t' }),
-
     isCreate() {
       return this.realMode === _CREATE;
     }

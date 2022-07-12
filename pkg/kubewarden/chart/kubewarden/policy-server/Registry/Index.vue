@@ -60,7 +60,7 @@ export default {
 
     <template>
       <h3 class="mb-20">
-        {{ t('kubewarden.policyServerConfig.registry.title') }}
+        {{ t('kubewarden.policyServerConfig.insecureSources.title') }}
       </h3>
       <div class="row">
         <div class="col span-6">
@@ -68,8 +68,8 @@ export default {
             v-model="insecureSources"
             :mode="mode"
             :add-allowed="true"
-            :add-label="t('kubewarden.policyServerConfig.registry.addLabel')"
-            :value-placeholder="t('kubewarden.policyServerConfig.registry.placeholder')"
+            :add-label="t('kubewarden.policyServerConfig.insecureSources.addLabel')"
+            :value-placeholder="t('kubewarden.policyServerConfig.insecureSources.placeholder')"
           />
         </div>
       </div>
