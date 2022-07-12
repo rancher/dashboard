@@ -1742,34 +1742,15 @@ export default class Resource {
           if (!isEmpty(validatorName) && validatorExists) {
             CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
           } else if (!isEmpty(validatorName) && !validatorExists) {
-            // Check if validator imported from plugin
-            // TODO this doesn't work
-            const pluginValidator = this.$rootState.$plugin?.getDynamic(
-              'validators',
-              validatorName
-            );
+            // Check if validator is imported from plugin
+            const pluginValidator = this.$rootState.$plugin?.getValidator(validatorName);
 
             if (pluginValidator) {
-              pluginValidator().then((mystery) => {
-                // eslint-disable-next-line no-unused-expressions
-                console.log('***************');
-                console.dir(mystery);
-              });
-
-              const huh = pluginValidator.default;
-
-              debugger;
-              pluginValidator(
-                pathValue,
-                this.$rootGetters,
-                errors,
-                validatorArgs,
-                displayKey,
-                data
-              );
-            }
+              pluginValidator(pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
+            } else {
             // eslint-disable-next-line
-            console.warn(this.t('validation.custom.missing', { validatorName }));
+              console.warn(this.t('validation.custom.missing', { validatorName }));
+            }
           }
         });
       });
