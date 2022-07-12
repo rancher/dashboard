@@ -379,7 +379,10 @@ authConfig:
     groupSearchBase:
       label: Group Search Base
       placeholder: 'ou=groups,dc=mycompany,dc=com'
-    hostname: Hostname/IP
+    hostname:
+      label: Hostname/IP
+      placeholder: eg server1,server2
+      hint: Multiple servers can be specified as a comma separated list
     loginAttribute: Login Attribute
     nameAttribute: Name Attribute
     nestedGroupMembership:
@@ -446,13 +449,13 @@ authConfig:
       info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
       label: Reply URL
     updateEndpoint:
+      button: Update Endpoint
       banner:
         message: 'Azure AD Authentication must be updated: it is using the Azure Graph API, which will be deprecated at the end of 2022.'
         linkText: 'Update it here.'
       modal:
         title: Are you sure? This update is irreversible.
-        body: '<p><b>You may need to update your Azure AD app</b>. Please ensure the Azure AD app has the following application permissions for Microsoft Graph: User.Read.All, Group.Read.All</p>'
-      button: Update Endpoint
+        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the following application permissions for Microsoft Graph: User.Read.All, Group.Read.All<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
     oidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
@@ -683,7 +686,9 @@ backupRestoreOperator:
     bucketName: Bucket Name
     credentialSecretName: Credential Secret
     endpoint: Endpoint
-    endpointCA: Endpoint CA
+    endpointCA:
+      label: Endpoint CA
+      prompt: Endpoint CA must be Base64 encoded
     folder: Folder
     insecureTLSSkipVerify: Skip TLS Verifications
     region: Region
@@ -1673,6 +1678,9 @@ cluster:
       }
     groupLabel: Location
     failed: "Snapshot from {time} failed"
+    rke1:
+      local: local
+      s3: s3
   tabs:
     ace: Authorized Endpoint
     addons: Add-On Config
@@ -3596,6 +3604,7 @@ prefs:
     emacs: 'Emacs'
     vim: 'Vim'
   advanced: Advanced
+  advancedTooltip: Enables 'View in API' option and keyboard shortcut to toggle light or dark theme (shift+t)
   dev:
     label: Enable Developer Tools & Features
   hideDesc:
@@ -3766,6 +3775,7 @@ promptForceRemove:
   removeWarning: "There was an issue with deleting underlying infrastructure. If you proceed with this action, the Machine <b>{nameToMatch}</b> will be deleted from Rancher only. It's highly recommended to manually delete any referenced infrastructure."
   forceDelete: Force Delete
   confirmName: "Enter in the pool name below to confirm:"
+  podRemoveWarning: "Force deleting pods does not wait for confirmation that the pod's processes have been terminated. This may result in <strong>data corruption or inconsistencies</strong>"
 
 promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
@@ -4941,6 +4951,7 @@ validation:
     route:
       match: At least one Match or Match Regex must be selected
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
+  tab: "One or more fields in this tab contain a form validation error"
 
 wizard:
   previous: Previous
@@ -5873,6 +5884,7 @@ harvester:
         down: No events in the past hour
       console:
         down: This Virtual Machine is down. Please start it to access its console.
+        shortKeys: Shortcut Keys
 
   volume:
     label: Volumes
@@ -5911,6 +5923,10 @@ harvester:
       basics: Basics
     nameNsDescription:
       name: Template Name
+    tips:
+      notExistImage:
+        title: Image {name} does not exist!
+        message: Please select a new Image.
 
   upgradePage:
     upgradeApp: Upgrade Software

@@ -397,7 +397,7 @@ export default {
     },
 
     snapshotsGroupBy() {
-      return `$['metadata']['annotations']['etcdsnapshot.rke.io/storage']`;
+      return 'backupLocation';
     }
   },
 

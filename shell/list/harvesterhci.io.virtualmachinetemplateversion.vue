@@ -87,10 +87,6 @@ export default {
 
     templateResource(group) {
       return group?.rows?.[0].template;
-    },
-
-    isDefaultVersion(row) {
-      return row.defaultVersion === row?.status?.version;
     }
   },
 };
@@ -131,7 +127,7 @@ export default {
     </template>
 
     <template #col:defaultVersion="{row}">
-      <td v-if="isDefaultVersion(row)">
+      <td v-if="row.isDefaultVersion">
         <i class="icon icon-lg icon-checkmark" />
       </td>
       <td v-else></td>

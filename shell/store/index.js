@@ -892,6 +892,22 @@ export const actions = {
       isRancher = true;
     }
 
+    if (id !== 'local' && getters['harvester/schemaFor'](MANAGEMENT.SETTING)) { // multi-cluster
+      const settings = await dispatch('harvester/findAll', {
+        type: MANAGEMENT.SETTING,
+        id:   SETTING.SYSTEM_NAMESPACES,
+        opt:  { url: `${ virtualBase }/${ MANAGEMENT.SETTING }s/`, force: true }
+      });
+
+      const systemNamespaces = settings?.find(x => x.id === SETTING.SYSTEM_NAMESPACES);
+
+      if (systemNamespaces) {
+        const namespace = (systemNamespaces.value || systemNamespaces.default)?.split(',');
+
+        commit('setSystemNamespaces', namespace);
+      }
+    }
+
     const hash = {
       projects:          isRancher && dispatch('management/findAll', projectArgs),
       virtualCount:      dispatch('harvester/findAll', { type: COUNT }),

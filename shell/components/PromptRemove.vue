@@ -11,6 +11,8 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { CATALOG } from '@shell/config/types';
 
 export default {
+  name: 'PromptRemove',
+
   components: {
     Card, Checkbox, AsyncButton
   },

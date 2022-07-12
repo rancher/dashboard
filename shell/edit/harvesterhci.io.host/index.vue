@@ -1,5 +1,4 @@
 <script>
-import pickBy from 'lodash/pickBy';
 import { mapGetters } from 'vuex';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -16,7 +15,6 @@ import { HCI, LONGHORN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { formatSi } from '@shell/utils/units';
 import { findBy } from '@shell/utils/array';
-import { matchesSomeRegex } from '@shell/utils/string';
 import { clone } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import KeyValue from '@shell/components/form/KeyValue';
@@ -109,6 +107,7 @@ export default {
       newDisks:             [],
       blockDevice:          [],
       blockDeviceOpts:      [],
+      filteredLabels:       clone(this.value.filteredSystemLabels),
     };
   },
   computed: {
@@ -190,7 +189,6 @@ export default {
 
       return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.BLOCK_DEVICE);
     },
-
   },
   watch: {
     customName(neu) {
@@ -207,6 +205,10 @@ export default {
   },
 
   created() {
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(this.willSave, 'willSave');
+    }
+
     if (this.registerAfterHook) {
       this.registerAfterHook(this.saveHostNetwork);
       this.registerAfterHook(this.saveDisk);
@@ -298,20 +300,10 @@ export default {
       scope.remove();
     },
 
-    updateHostLabels(val) {
-      const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
-      const all = this.value.metadata.labels || {};
-      const wasFiltered = pickBy(all, (value, key) => {
-        return reg.test(key);
-      });
-      const wasIgnored = pickBy(all, (value, key) => {
-        return matchesSomeRegex(key, this.value.labelsToIgnoreRegexes);
-      });
-
-      this.$set(this.value.metadata, 'labels', {
-        ...wasIgnored, ...wasFiltered, ...val
-      });
+    updateHostLabels(labels) {
+      this.filteredLabels = labels;
     },
+
     selectable(opt) {
       if ( opt.disabled) {
         return false;
@@ -378,6 +370,23 @@ export default {
 
     ddButtonAction() {
       this.blockDeviceOpts = this.getBlockDeviceOpts();
+    },
+
+    willSave() {
+      const filteredLabels = this.filteredLabels || {};
+
+      this.value.metadata.labels = {
+        ...this.value.metadata.labels,
+        ...filteredLabels,
+      };
+
+      const originLabels = this.value.filteredSystemLabels;
+
+      Object.keys(originLabels).map((key) => {
+        if (!filteredLabels[key]) {
+          delete this.value.metadata.labels[key];
+        }
+      });
     },
   },
 };
@@ -495,7 +504,7 @@ export default {
       <Tab name="labels" label-key="harvester.host.tabs.labels">
         <KeyValue
           key="labels"
-          :value="value.filteredSystemLabels"
+          :value="filteredLabels"
           :add-label="t('labels.addLabel')"
           :mode="mode"
           :title="t('labels.labels.title')"

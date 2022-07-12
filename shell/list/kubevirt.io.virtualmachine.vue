@@ -176,6 +176,10 @@ export default {
 }
 
 .name-console {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
   span {
     line-height: 26px;
     width:160px;
@@ -185,7 +189,5 @@ export default {
     -o-text-overflow:ellipsis;
   }
 
-  display: flex;
-  justify-content: space-around
 }
 </style>

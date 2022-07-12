@@ -87,7 +87,7 @@
     "jsrsasign": "^10.2.0",
     "jszip": "^3.7.0",
     "lodash": "^4.17.21",
-    "marked": "^2.0.0",
+    "marked": "^4.0.10",
     "nuxt": "2.15.8",
     "papaparse": "^5.3.0",
     "portal-vue": "^2.1.5",
@@ -117,7 +117,8 @@
     "xterm-addon-fit": "^0.4.0",
     "xterm-addon-search": "^0.7.0",
     "xterm-addon-web-links": "^0.4.0",
-    "xterm-addon-webgl": "^0.9.0"
+    "xterm-addon-webgl": "^0.9.0",
+    "yaml": "^2.0.0"
   },
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.14.5",
@@ -157,7 +158,6 @@
     "eslint-import-resolver-node": "0.3.4",
     "eslint-module-utils": "2.6.1",
     "eslint-plugin-cypress": "^2.12.1",
-    "eslint-plugin-jest": "^23.6.0",
     "eslint-plugin-import": "2.23.4",
     "eslint-plugin-jest": "^23.6.0",
     "eslint-plugin-node": "^11.1.0",
