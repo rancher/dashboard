@@ -1,8 +1,14 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { azureEnvironments } from '@shell/machine-config/azure';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+
+const azureEnvironments = [
+  { value: 'AzurePublicCloud' },
+  { value: 'AzureGermanCloud' },
+  { value: 'AzureChinaCloud' },
+  { value: 'AzureUSGovernmentCloud' },
+];
 
 export default {
   components: { LabeledInput, LabeledSelect },
@@ -37,6 +43,7 @@ export default {
         clientId,
         clientSecret,
         subscriptionId,
+        environment,
       } = this.value.decodedData;
 
       try {
@@ -47,6 +54,7 @@ export default {
             clientId,
             clientSecret,
             subscriptionId,
+            environment,
           },
           redirectUnauthorized: false,
         });
