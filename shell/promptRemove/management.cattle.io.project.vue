@@ -77,12 +77,8 @@ export default {
     remove() {
       // Delete all of thre namespaces and return false - this tells the prompt remove dialog to continue and delete the project
       if (this.deleteProjectNamespaces) {
-        for (const resource of this.filteredNamespaces) {
-          resource.remove();
-        }
+        return Promise.all(this.filteredNamespaces.map(n => n.remove())).then(() => false);
       }
-
-      return false;
     },
   },
 };
