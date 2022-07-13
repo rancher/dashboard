@@ -11,6 +11,7 @@ import {
 import { parseSi } from '@shell/utils/units';
 import HarvesterResource from '../harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
+import { findBy } from '@shell/utils/array';
 
 const ALLOW_SYSTEM_LABEL_KEYS = [
   'topology.kubernetes.io/zone',
@@ -255,6 +256,10 @@ export default class HciNode extends HarvesterResource {
     const diskSpec = longhornNode?.spec?.disks || {};
 
     const longhornDisks = Object.keys(diskStatus).map((key) => {
+      const conditions = diskStatus[key]?.conditions || [];
+      const readyCondition = findBy(conditions, 'type', 'Ready') || {};
+      const schedulableCondition = findBy(conditions, 'type', 'Schedulable') || {};
+
       return {
         ...diskSpec[key],
         ...diskStatus[key],
@@ -263,8 +268,8 @@ export default class HciNode extends HarvesterResource {
         storageAvailable:      diskStatus[key]?.storageAvailable,
         storageMaximum:        diskStatus[key]?.storageMaximum,
         storageScheduled:      diskStatus[key]?.storageScheduled,
-        readyCondiction:       diskStatus[key]?.conditions?.Ready || {},
-        schedulableCondiction: diskStatus[key]?.conditions?.Schedulable || {}
+        readyCondition,
+        schedulableCondition,
       };
     });
 
