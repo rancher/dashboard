@@ -315,7 +315,9 @@ export default async function({
       const newLocation = await dynamicPluginLoader.check({ route, store });
 
       // If we have a new location, double check that it's actually valid
-      if (newLocation && store.app.router.resolve(newLocation).route.matched.length) {
+      const resolvedRoute = newLocation ? store.app.router.resolve(newLocation) : null;
+
+      if (resolvedRoute?.route.matched.length) {
         // Note - don't use `redirect` or `store.app.route` (breaks feature by failing to run middleware in default layout)
         return next(newLocation);
       }
