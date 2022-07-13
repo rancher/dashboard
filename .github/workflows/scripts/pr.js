@@ -130,7 +130,7 @@ async function processClosedAction() {
         console.log('Processing Issue #' + i + ' - ' + iss.title);
 
         // If the issue is a tech debt issue or says dev will validate then don't move it to 'To Test'
-        if (hasLabel(i, TECH_DEBT_LABEL) || hasLabel(i, DEV_VALIDATE_LABEL) {
+        if(hasLabel(i, TECH_DEBT_LABEL) || hasLabel(i, DEV_VALIDATE_LABEL)) {
             console.log('  Issue is tech debt/dev validate - ignoring');
         } else {
             console.log('  Updating labels to move issue to Test');
