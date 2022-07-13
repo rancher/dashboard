@@ -278,10 +278,8 @@ export default {
 
       this.secretType = type;
 
-      if (this.mode === _CREATE) {
-        if (type === 'custom') {
-          this.$set(this.value, '_type', '');
-        }
+      if (this.mode === _CREATE && type === 'custom') {
+        this.$set(this.value, '_type', '');
       }
     },
 
