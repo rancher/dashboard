@@ -26,7 +26,7 @@ import {
   validateLength,
   validateBoolean
 } from '@shell/utils/validators';
-import formRulesGenerator from '@/shell/utils/validators/formRules/index';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
 
 import { NORMAN_NAME } from '@shell/config/labels-annotations';
 import {
