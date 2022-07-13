@@ -18,7 +18,7 @@
     "publish-shell": "./shell/scripts/publish-shell.sh",
     "clean": "./scripts/clean",
     "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .js,.ts,.vue .",
-    "lint-l10n": "./node_modules/.bin/yamllint shell/assets/translations",
+    "lint-l10n": "./node_modules/.bin/yamllint ./shell/assets/translations",
     "test": "jest --watch",
     "test:ci": "jest --collectCoverage",
     "nuxt": "./node_modules/.bin/nuxt",
