@@ -1,5 +1,5 @@
 <script>
-import { colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState, stateDisplay, stateSort, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import SortableTable from '@shell/components/SortableTable';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -39,6 +39,8 @@ export default {
             state = perEntry.state;
           } else if ( tooMany ) {
             state = 'Unknown';
+          } else {
+            state = STATES_ENUM.READY;
           }
 
           const color = colorForState(state).replace('text-', 'bg-');
