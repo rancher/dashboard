@@ -1,5 +1,5 @@
-import { RBAC } from '@/shell/config/types';
-import { HCI } from '@/shell/config/labels-annotations';
+import { RBAC } from '@shell/config/types';
+import { HCI } from '@shell/config/labels-annotations';
 import isEmpty from 'lodash/isEmpty';
 import has from 'lodash/has';
 // import uniq from 'lodash/uniq';
