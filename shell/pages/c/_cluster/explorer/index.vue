@@ -297,8 +297,13 @@ export default {
     hasMetricsTabs() {
       return this.showClusterMetrics || this.showK8sMetrics || this.showEtcdMetrics;
     },
+
     hasBadge() {
       return !!this.currentCluster?.badge;
+    },
+
+    hasDescription() {
+      return !!this.currentCluster?.spec?.description;
     }
   },
 
@@ -345,7 +350,7 @@ export default {
           <t k="clusterIndexPage.header" />
         </h1>
         <div>
-          <span v-if="currentCluster.spec.description">{{ currentCluster.spec.description }}</span>
+          <span v-if="hasDescription">{{ currentCluster.spec.description }}</span>
         </div>
       </div>
     </header>
