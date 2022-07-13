@@ -137,7 +137,7 @@ export default class KubewardenModel extends SteveModel {
 
   get componentForBadge() {
     if ( this.detailPageHeaderBadgeOverride ) {
-      return require(`../../components/formatter/PolicyStatus.vue`).default;
+      return require(`../../formatters/PolicyStatus.vue`).default;
     }
 
     return null;

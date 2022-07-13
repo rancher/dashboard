@@ -1,5 +1,5 @@
 <script>
-import { colorForStatus, stateSort } from '../../plugins/kubewarden/policy-class';
+import { colorForStatus, stateSort } from '../plugins/kubewarden/policy-class';
 import { sortBy } from '@shell/utils/sort';
 
 import ProgressBarMulti from '@shell/components/ProgressBarMulti';

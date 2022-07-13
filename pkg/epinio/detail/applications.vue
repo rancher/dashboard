@@ -7,7 +7,7 @@ import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import PlusMinus from '@shell/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
-import ApplicationCard from '@/shell/components/cards/ApplicationCard.vue';
+import ApplicationCard from '@shell/components/cards/ApplicationCard.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 

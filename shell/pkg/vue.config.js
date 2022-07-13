@@ -32,6 +32,7 @@ module.exports = function(dir) {
     configureWebpack: (config) => {
       // Alias updates
       config.resolve.alias['@shell'] = path.join(dir, '.shell');
+      config.resolve.alias['@components'] = path.join(dir, '.shell/rancher-components');
       config.resolve.alias['~shell'] = path.join(dir, '.shell');
       config.resolve.alias['./node_modules'] = path.join(maindir, 'node_modules');
       config.resolve.alias['@pkg'] = dir;

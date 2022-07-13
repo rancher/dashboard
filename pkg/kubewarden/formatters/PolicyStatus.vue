@@ -1,5 +1,5 @@
 <script>
-import { colorForStatus } from '../../plugins/kubewarden/policy-class';
+import { colorForStatus } from '../plugins/kubewarden/policy-class';
 
 import { BadgeState } from '@components/BadgeState';
 
