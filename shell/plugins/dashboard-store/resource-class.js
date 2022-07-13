@@ -24,7 +24,7 @@ import {
   validateDnsLikeTypes,
   validateLength,
 } from '@shell/utils/validators';
-import formRulesGenerator from '@shell/utils/validators/formRules';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import jsyaml from 'js-yaml';
 import compact from 'lodash/compact';
 import forIn from 'lodash/forIn';

@@ -1,6 +1,10 @@
 <script>
 import { Banner } from '@components/Banner';
+<<<<<<< HEAD
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+=======
+import { Checkbox } from '@components/Form/Checkbox';
+>>>>>>> import path fixes
 import { mapGetters, mapState } from 'vuex';
 import { isEmpty } from 'lodash';
 

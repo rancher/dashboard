@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import formRulesGenerator from '@shell/utils/validators/formRules';
+=======
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
+>>>>>>> import path fixes
 
 const mockT = (key: string, args: any) => {
   return JSON.stringify({
