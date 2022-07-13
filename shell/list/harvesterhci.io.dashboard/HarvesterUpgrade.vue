@@ -5,12 +5,13 @@ import { allHash } from '@shell/utils/promise';
 import ModalWithCard from '@shell/components/ModalWithCard';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Banner } from '@components/Banner';
+import UpgradeInfo from './UpgradeInfo';
 
 export default {
   name: 'HarvesterUpgrade',
 
   components: {
-    ModalWithCard, LabeledSelect, Banner
+    ModalWithCard, LabeledSelect, Banner, UpgradeInfo
   },
 
   async fetch() {
@@ -121,18 +122,18 @@ export default {
       </button>
     </header>
 
-    <ModalWithCard ref="deleteTip" name="deleteTip" :width="500">
+    <ModalWithCard ref="deleteTip" name="deleteTip" :width="850">
       <template #title>
         <t k="harvester.upgradePage.upgradeApp" />
       </template>
 
       <template #content>
-        <div class="currentVersion">
+        <UpgradeInfo :version="version" />
+
+        <div class="currentVersion mb-15">
           <span> <t k="harvester.upgradePage.currentVersion" /> </span>
           <span class="version">{{ currentVersion }}</span>
         </div>
-
-        <p class="bordered-section"></p>
 
         <div v-if="selectMode">
           <LabeledSelect
@@ -151,10 +152,10 @@ export default {
 
       <template #footer>
         <div class="footer">
-          <button class="btn role-secondary btn-sm mr-20" @click.prevent="cancel">
+          <button class="btn role-secondary mr-20" @click.prevent="cancel">
             <t k="generic.close" />
           </button>
-          <button class="btn role-tertiary bg-primary btn-sm mr-20" @click.prevent="handleUpgrade">
+          <button class="btn role-tertiary bg-primary" @click.prevent="handleUpgrade">
             <t k="harvester.upgradePage.upgrade" />
           </button>
         </div>

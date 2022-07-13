@@ -229,6 +229,7 @@ export default {
             :label="t('harvester.fields.image')"
             :options="imagesOption"
             :mode="mode"
+            :searchable="true"
             :required="validateRequired"
             @input="onImageChange"
           />

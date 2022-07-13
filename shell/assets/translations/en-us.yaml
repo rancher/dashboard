@@ -5992,6 +5992,11 @@ harvester:
       fail:  Fail
       ongoing: on-going
     dismissMessage: Dismiss it
+    upgradeInfo:
+      warning: WARNING
+      doc: Before you upgrade to the newer Harvester version, you must perform the required <a href="https://docs.harvesterhci.io/v1.0/upgrade/automatic/" target="_blank"> pre-upgrade checks </a>for your cluster. Complete only those tasks that apply to your environment.
+      tip: Failure to perform these checks may result in a failed upgrade or hitting known issues that require a manual workaround fix.
+      moreNotes: For more details about the release notes, please visit - 
 
   backup:
     label: Backups
