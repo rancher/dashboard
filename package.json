@@ -44,7 +44,10 @@
     "build-storybook": "yarn run install-storybook && build-storybook",
     "install-storybook": "./scripts/storybook-install",
     "remove-storybook": "./scripts/storybook-install -d",
-    "remove-storybook-deps": "./scripts/storybook-install -r"
+    "remove-storybook-deps": "./scripts/storybook-install -r",
+    "install-docusaurus": "cd docusaurus/ && yarn install",
+    "build-docusaurus": "cd docusaurus/ && yarn build",
+    "docusaurus": "cd docusaurus/ && yarn start"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.1.0",
