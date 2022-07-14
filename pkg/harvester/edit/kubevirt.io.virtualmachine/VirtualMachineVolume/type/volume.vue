@@ -7,7 +7,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 import { PVC } from '@shell/config/types';
 import { formatSi, parseSi } from '@shell/utils/units';
-import { VOLUME_TYPE, InterfaceOption } from '@shell/config/harvester-map';
+import { VOLUME_TYPE, InterfaceOption } from '../../../../config/harvester-map';
 
 export default {
   name:       'HarvesterEditVolume',

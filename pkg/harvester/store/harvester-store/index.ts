@@ -4,7 +4,7 @@ import getters from './getters';
 import mutations from './mutations';
 import actions from './actions';
 
-import { PRODUCT_NAME } from '../../types';
+import { PRODUCT_NAME } from '../../config/harvester';
 
 const harvesterFactory = (): CoreStoreSpecifics => {
   return {

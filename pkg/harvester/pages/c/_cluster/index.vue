@@ -1,5 +1,5 @@
 <script>
-import { PRODUCT_NAME } from '../../../types';
+import { PRODUCT_NAME } from '../../../config/harvester';
 import { HCI } from '@shell/config/types';
 
 export default {

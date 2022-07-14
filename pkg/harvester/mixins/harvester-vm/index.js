@@ -11,12 +11,12 @@ import { allHash } from '@shell/utils/promise';
 import { randomStr } from '@shell/utils/string';
 import { base64Decode } from '@shell/utils/crypto';
 import { formatSi, parseSi } from '@shell/utils/units';
-import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '@shell/config/harvester-map';
+import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '../../config/harvester-map';
 import { _CLONE } from '@shell/config/query-params';
 import {
   PVC, HCI, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP, NETWORK_ATTACHMENT
 } from '@shell/config/types';
-import { HCI_SETTING } from '@shell/config/settings';
+import { HCI_SETTING } from '../../config/settings';
 import { HCI as HCI_ANNOTATIONS, HOSTNAME } from '@shell/config/labels-annotations';
 import impl, { QGA_JSON, USB_TABLET } from './impl';
 

@@ -329,7 +329,6 @@ export default {
       const currentType = this.$route.params.resource || '';
       let namespaces = null;
 
-      // TODO fix for harvester?
       if ( !this.$store.getters['isAllNamespaces'] ) {
         namespaces = Object.keys(this.namespaces);
       }

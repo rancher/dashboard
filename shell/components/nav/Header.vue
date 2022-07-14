@@ -2,7 +2,6 @@
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { NORMAN, STEVE } from '@shell/config/types';
-import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 import { ucFirst } from '@shell/utils/string';
 import { isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
@@ -51,7 +50,6 @@ export default {
       kubeConfigCopying: false,
       searchShortcut,
       shellShortcut,
-      VIRTUAL,
       LOGGED_OUT,
     };
   },

@@ -24,7 +24,7 @@ import AccessCredentials from './VirtualMachineAccessCredentials';
 import { clear } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
 import { HCI } from '@shell/config/types';
-import { RunStrategys } from '@shell/config/harvester-map';
+import { RunStrategys } from '../../config/harvester-map';
 import { saferDump } from '@shell/utils/create-yaml';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';

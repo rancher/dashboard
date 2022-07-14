@@ -10,7 +10,7 @@ import { get } from '@shell/utils/object';
 import { HCI } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { saferDump } from '@shell/utils/create-yaml';
-import { InterfaceOption } from '@shell/config/harvester-map';
+import { InterfaceOption } from '../config/harvester-map';
 import { _CREATE } from '@shell/config/query-params';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
