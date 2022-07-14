@@ -71,7 +71,10 @@ export default {
 
     return {
       allSelectorTerms,
-      defaultWeight: 1
+      defaultWeight: 1,
+      // rules in MatchExpressions.vue can not catch changes what happens on parent component
+      // we need re-render it via key changing
+      rerenderNums:  0
     };
   },
   computed: {
@@ -104,6 +107,7 @@ export default {
       return getUniqueLabelKeys(this.nodes);
     }
   },
+
   created() {
     this.queueUpdate = debounce(this.update, 500);
   },
@@ -132,6 +136,11 @@ export default {
       });
 
       Object.assign(this.value.affinity, { podAffinity, podAntiAffinity });
+    },
+
+    remove() {
+      this.rerenderNums += 1;
+      this.queueUpdate();
     },
 
     addSelector() {
@@ -190,6 +199,7 @@ export default {
         :default-add-value="{ matchExpressions: [] }"
         :mode="mode"
         :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+        @remove="remove"
       >
         <template #default="props">
           <div class="row mt-20 mb-20">
@@ -235,6 +245,7 @@ export default {
             />
           </div>
           <MatchExpressions
+            :key="rerenderNums"
             :mode="mode"
             class=" col span-12 mt-20"
             :type="pod"
