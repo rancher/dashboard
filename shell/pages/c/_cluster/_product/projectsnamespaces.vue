@@ -76,7 +76,13 @@ export default {
     clusterProjects() {
       const clusterId = this.$store.getters['currentCluster'].id;
 
-      return this.projects.filter(project => project.spec.clusterName === clusterId);
+      // Get the list of projects from the store so that the list
+      // is updated if a new project is created or removed.
+      const projectsInAllClusters = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      const clustersInProjects = projectsInAllClusters.filter(project => project.spec.clusterName === clusterId);
+
+      return clustersInProjects;
     },
     projectsWithoutNamespaces() {
       return this.activeProjects.filter((project) => {
@@ -117,13 +123,19 @@ export default {
     groupPreference: mapPref(GROUP_RESOURCES),
     activeProjects() {
       const namespaceFilters = this.$store.getters['activeNamespaceFilters']();
-      const activeProjects = this.getActiveProjects(namespaceFilters);
+      const activeProjectFilters = this.getActiveProjects(namespaceFilters);
+
+      // If the user is not filtering by any projects, return
+      // all projects in the cluster.
+      if (Object.keys(activeProjectFilters).length === 0) {
+        return this.clusterProjects;
+      }
 
       // Filter out projects that are not selected in the top nav.
       return this.clusterProjects.filter((projectData) => {
         const projectId = projectData.id.split('/')[1];
 
-        return !!activeProjects[projectId];
+        return !!activeProjectFilters[projectId];
       });
     },
     activeNamespaces() {
