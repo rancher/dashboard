@@ -2661,6 +2661,9 @@ login:
   remember:
     label: Remember Username
 
+managementNode:
+  customName: Custom Name
+
 members:
   clusterMembers: Cluster Members
   createActionLabel: Add
