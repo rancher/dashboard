@@ -27,6 +27,11 @@ export default Vue.extend({
       type:    Boolean,
       default: true
     }
+  },
+  computed: {
+    iconClass() {
+      return this.status === 'error' ? 'icon-warning' : 'icon-info';
+    }
   }
 });
 </script>
@@ -34,10 +39,10 @@ export default Vue.extend({
 <template>
   <div ref="container" class="labeled-tooltip" :class="{[status]: true, hoverable: hover}">
     <template v-if="hover">
-      <i v-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value" :class="{'hover':!value}" class="icon icon-info status-icon" />
+      <i v-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value" :class="{'hover':!value, [iconClass]: true}" class="icon status-icon" />
     </template>
     <template v-else>
-      <i :class="{'hover':!value}" class="icon icon-info status-icon" />
+      <i :class="{'hover':!value}" class="icon status-icon" />
       <div v-if="value" class="tooltip" x-placement="bottom">
         <div class="tooltip-arrow" />
         <div class="tooltip-inner">
@@ -61,12 +66,11 @@ export default Vue.extend({
     }
 
      .status-icon {
-         position:  absolute;
-         right: 30px;
-         top: $input-padding-lg;
-         font-size: 20px;
-         z-index: z-index(hoverOverContent);
-
+        position:  absolute;
+        right: 30px;
+        top: $input-padding-lg;
+        font-size: 20px;
+        z-index: z-index(hoverOverContent);
      }
 
     .tooltip {
@@ -105,6 +109,11 @@ export default Vue.extend({
 
     &.error {
         @include tooltipColors(var(--error));
+
+        .status-icon {
+          top: 7px;
+          right: 5px;
+        }
     }
 
     &.warning {

@@ -122,6 +122,12 @@ export default (
       return !!this.tooltip || !!this.tooltipKey;
     },
 
+    tooltipValue(): string | undefined {
+      if (this.hasTooltip) {
+        return this.tooltipKey ? this.t(this.tooltipKey) : this.tooltip
+      }
+    },
+
     /**
      * Determines if the Labeled Input makes use of the suffix slot.
      */
@@ -231,21 +237,24 @@ export default (
 
 <template>
   <div
-    class="labeled-input"
     :class="{
+      'labeled-input': true,
       focused,
       [mode]: true,
       disabled: isDisabled,
       [status]: status,
       suffix: hasSuffix,
+      'has-tooltip': hasTooltip,
+      'compact-input': isCompact,
+      hideArrows
     }"
   >
     <slot name="label">
-      <label>
+      <label v-if="hasLabel">
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
 
-        <span v-if="required" class="required">*</span>
+        <span v-if="requiredField" class="required">*</span>
       </label>
     </slot>
 
@@ -287,22 +296,42 @@ export default (
 
     <slot name="suffix" />
     <LabeledTooltip
-      v-if="tooltipKey && !focused"
+      v-if="hasTooltip && !focused"
       :hover="hoverTooltip"
-      :value="t(tooltipKey)"
+      :value="tooltipValue"
       :status="status"
     />
     <LabeledTooltip
-      v-else-if="tooltip && !focused"
+      v-if="!!validationMessage"
       :hover="hoverTooltip"
-      :value="tooltip"
-      :status="status"
+      :value="validationMessage"
     />
     <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
     <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
   </div>
 </template>
+<style scoped lang="scss">
+.labeled-input.view {
+  input {
+    text-overflow: ellipsis;
+  }
+}
 
+.hideArrows {
+  /* Hide arrows on number input when it overlaps with the unit */
+  /* Chrome, Safari, Edge, Opera */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+}
+</style>
 <style>
 .validation-message {
   padding: 5px;

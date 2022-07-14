@@ -103,3 +103,6 @@ dist-pkg
 
 # Others
 .todo
+
+# Plugins - temporary
+shell/rancher-components

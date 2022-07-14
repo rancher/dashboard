@@ -223,7 +223,7 @@ export default {
               // Use unique key for resource list in the Select dropdown
               optionKey: apiGroupValue.concat(resourceName),
               value:     {
-                resourceName,
+                resourceName: resourceName.toLowerCase(),
                 apiGroupValue
               }
             });
@@ -240,7 +240,7 @@ export default {
                 label:     `${ resourceName } ${ deprecatedLabel }`,
                 optionKey: apiGroupValue.concat(resourceName),
                 value:     {
-                  resourceName,
+                  resourceName: resourceName.toLowerCase(),
                   apiGroupValue
                 }
               });

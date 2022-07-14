@@ -6,7 +6,7 @@ import { base64Encode } from '@shell/utils/crypto';
 import { NAMESPACE_FILTERS } from '@shell/store/prefs';
 import { createNamespaceFilterKeyWithId } from '@shell/utils/namespace-filter';
 import { parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
-// import https from 'https';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 
 const createId = (schema: any, resource: any) => {
   const name = resource.meta?.name || resource.name;
@@ -180,6 +180,13 @@ export default {
         attributes:        { namespaced: true }
       }, {
         product:           EPINIO_PRODUCT_NAME,
+        id:                EPINIO_TYPES.APP_CHARTS,
+        type:              'schema',
+        links:             { collection: '/api/v1/appcharts' },
+        collectionMethods: ['get'],
+        resourceFields:    { },
+      }, {
+        product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.NAMESPACE,
         type:              'schema',
         links:             { collection: '/api/v1/namespaces' },
@@ -264,5 +271,13 @@ export default {
     commit('singleProductCNSI', cnsi);
 
     return cnsi;
+  },
+
+  createNamespace(ctx: any, obj: { name : string }) {
+    // Note - created model save --> create
+    return classify(ctx, {
+      type:     EPINIO_TYPES.NAMESPACE,
+      meta: { name: obj.name }
+    });
   }
 };

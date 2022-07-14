@@ -374,12 +374,12 @@ export const getters = {
   // ----------------------------------------------------------------------------
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
   labelFor(state, getters, rootState, rootGetters) {
-    return (schema, count = 1) => {
+    return (schema, count = 1, language = null) => {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
         const key = `typeLabel."${ schema.id.toLowerCase() }"`;
 
-        if ( rootGetters['i18n/exists'](key) ) {
-          return rootGetters['i18n/t'](key, { count }).trim();
+        if ( rootGetters['i18n/exists'](key, language) ) {
+          return rootGetters['i18n/t'](key, { count }, language).trim();
         }
 
         const out = schema?.attributes?.kind || schema.id || '?';
@@ -539,6 +539,10 @@ export const getters = {
       // get added before children
       const keys = Object.keys(allTypes).sort((a, b) => a.length - b.length);
 
+      // Set these for later
+      const currentLocal = rootGetters['i18n/current']();
+      const defaultLocal = rootGetters['i18n/default']();
+
       for ( const type of keys ) {
         const typeObj = allTypes[type];
 
@@ -580,7 +584,7 @@ export const getters = {
           }
         }
 
-        const labelDisplay = highlightLabel(label, icon);
+        const labelDisplay = highlightLabel(label, icon, typeObj.count, typeObj.schema);
 
         if ( !labelDisplay ) {
           // Search happens in highlight and returns null if not found
@@ -687,11 +691,22 @@ export const getters = {
         return group;
       }
 
-      function highlightLabel(original, icon) {
+      function highlightLabel(original, icon, count, schema) {
         let label = escapeHtml(original);
 
         if ( searchRegex ) {
-          const match = label.match(searchRegex);
+          let match = label.match(searchRegex);
+
+          if (!match) {
+            if ( currentLocal !== defaultLocal && schema ) {
+              const defaultLabel = getters.labelFor(schema, count, defaultLocal);
+
+              if (defaultLabel && defaultLabel !== label ) {
+                label += ` (${ defaultLabel })`;
+                match = label.match(searchRegex);
+              }
+            }
+          }
 
           if ( match ) {
             label = `${ escapeHtml(match[1]) }<span class="highlight">${ escapeHtml(match[2]) }</span>${ escapeHtml(match[3]) }`;

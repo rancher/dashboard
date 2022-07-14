@@ -90,8 +90,9 @@ export default class HciVmTemplateVersion extends SteveModel {
                 },
                 features: { acpi: { enabled: true } },
               },
-              hostname: '',
-              networks: [{
+              evictionStrategy: 'LiveMigrate',
+              hostname:         '',
+              networks:         [{
                 name: 'default',
                 pod:  {}
               }],
@@ -103,6 +104,10 @@ export default class HciVmTemplateVersion extends SteveModel {
     };
 
     Vue.set(this, 'spec', spec);
+  }
+
+  get canDelete() {
+    return this.hasLink('remove') && this.$rootGetters['type-map/optionsFor'](this.type).isRemovable && !this.isDefaultVersion;
   }
 
   get template() {
@@ -183,6 +188,10 @@ export default class HciVmTemplateVersion extends SteveModel {
     const template = templates.find(T => this.templateId === T.id);
 
     return template?.status?.defaultVersion;
+  }
+
+  get isDefaultVersion() {
+    return this.defaultVersion === this?.status?.version;
   }
 
   get customValidationRules() {

@@ -44,14 +44,14 @@ export default {
 
     return {
       model:         this.value,
-      hostname:      this.value.servers[0],
+      hostname:      this.value.servers.join(','),
       serverSetting: null,
     };
   },
 
   watch: {
     hostname(neu, old) {
-      this.value.servers[0] = neu;
+      this.value.servers = neu.split(',');
     },
     'model.starttls'(neu) {
       if (neu) {
@@ -84,7 +84,15 @@ export default {
     <template>
       <div class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model="hostname" required :mode="mode" :label="t('authConfig.ldap.hostname')" />
+          <LabeledInput
+            v-model="hostname"
+            required
+            :mode="mode"
+            :hoover-tooltip="true"
+            :tooltip="t('authConfig.ldap.hostname.hint')"
+            :label="t('authConfig.ldap.hostname.label')"
+            :placeholder="t('authConfig.ldap.hostname.placeholder')"
+          />
         </div>
         <div class="col span-4">
           <LabeledInput

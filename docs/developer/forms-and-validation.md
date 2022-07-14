@@ -49,17 +49,83 @@ If a form element was repeated for every row in a table, it would make the UI sl
 
 In order to improve the user experience in the future, we are moving toward individual field validation errors that appear as soon as the user types or selects incorrect input. Where possible, you should add pre-submit form validation to input components such as LabeledInput and LabeledSelect. Ideally, the button to submit the form should be disabled by default until the entire form is valid, and no errors should appear next to inputs that haven’t been touched.
 
-This section will be expanded with more information on pre-submit form validation.
+## Field Validation
 
-## Custom Form Validators 
+Live validation for fields is the primary method for providing feedback to the user that a value they've entered is invalid. In most cases, the preferred feedback is a simple error message next to the field. To this end, the LabeledInput and LabeledSelect components accept a "rules" parameter which allows the developer to pass in an array of functions capable of generating the validation messages appropriate to the field.
+
+Existing validation functions can be found at `shell/utils/validators/formRules` in the dashboard codebase but it is possible to create custom functions to accomplish the same purpose if need be. A form rule validator must meet the following criteria in order to be useful for this purpose:
+
+1. The function must accept a single parameter which will be the value of the field to be validated. Such as: `const truthy = val => !val ? 'Value should be truthy' : undefined;`
+2. If the validation is passed, the function returns `undefined`.
+3. If the validation fails, the function returns a string to be rendered by the field component as an error.
+
+In addition to the "rules" parameter existing on the LabeledInput and LabeledSelect form components, an additional component called Error (found at `shell/components/form/Error`) exists which can also accept a value and rules. This allows the developer to display an error message which may not be tied to a specific field or tied to a field that is somehow incapable of displaying its own validation message.
+
+Should a field displaying a validation message be hidden from the user due to form navigation elements like a non-active tab, the developer should still take care to communicate that a validation error exists. To that end, the `Tab` component accepts a simple parameter called "Error" which is simply a boolean value. When true, the "Error" parameter on the `Tab` component will display an error icon provided the tab is not currently active (if the tab is active, the field in question should provide feedback to the user).
+
+## Form Validation
+
+While individual fields are typically responsible for displaying their own validation messages, the form itself should also contain logic to disable the save button should validation errors exist, display errors not bound to a specific field, and/or display errors returned by the API. This is mostly accomplished via a mixin called `form-validation` (found at `shell/mixins/form-validation.js`). Eventually, this mixin will be embedded into the existing `CreateEditView` mixin already used by every form but is currently separate to facilitate a safer implementation of the new Form Validation logic.
+
+To use the `form-validation` mixin, import the mixin and include it in `mixins` in the component like any other mixin. Once included, ensure the following:
+1. Set the "validation-passed" property on the `CruResource` component to "fvFormIsValid" (computed property provided by the mixin). This conditionally disables the "save" button on the form.
+2. Set the "errors" property on the `CruResource` component to "fvUnreportedValidationErrors" (computed property provided by the mixin) or some other value that aggregates errors not otherwise shown in the form as a fallback means of displaying error state to the user.
+
+The `form-validation` mixin itself includes most of the information a developer will need to use it in comments in the file itself but a high-level summary would cover the following points:
+
+1. The specific rules to be validated by the form should be located in a data property for the component named `fvFormRuleSets` which is an array of objects defining the specific rulesets for specific paths in the forms value to validate. The specific properties of the objects required by this array are defined in the mixin file itself as comments.
+2. Additional rules to be validated by the form are also pulled directly from the resource model's `modelValidationRules` property which converts the model's customValidationRules into a format useable by the `form-validation` mixin. The combined `fvFormRuleSets` and the `modelValidationRules` can be viewed in a single array under the computed property `rulesets` provided by the mixin.
+3. In order to avoid duplication of validator definitions, it is recommended to pull the function array for a field's "rules" property directly from the components `fvFormRuleSets`. The `form-validation` mixin provides two helper methods for this named `fvGetPathRules` and `fvGetAndReportPathRules`, the specifics as to which one to use and when are defined in the comments in the mixin file itself.
+
+A very simple form implementing form validation might look like this:
+```javascript
+<script>
+import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import CruResource from '@shell/components/CruResource';
+import LabeledInput from '@shell/components/form/LabeledInput';
+
+export default {
+  components: {
+    CruResource, LabeledInput
+  },
+
+  mixins: [CreateEditView, FormValidation],
+  data() {
+    return {
+      fvFormRuleSets: [{ path: 'value', rules: ['required'] }],
+    };
+  },
+};
+</script>
+<template>
+  <CruResource
+    :errors="fvUnreportedValidationErrors"
+    :resource="value"
+    :validation-passed="fvFormIsValid"
+  >
+    <LabeledInput
+      v-model="value.name"
+      label="Name"
+      :rules="fvGetAndReportPathRules('name')"
+    />
+  </CruResource>
+</template>
+```
+
+*It is highly recommended to read through the comments in the `form-validation` mixin to understand its various properties and their suggested use-cases.
+
+## Custom Model Validators 
 
 Adding custom validation logic to forms and models requires changes to three different parts of Dashboard:
 
-1. Create a new validation function to `utils/validators`
-2. Export the new validation function `utils/custom-validators.js`
+1. Create a new validation function to `utils/validators` (legacy)
+2. Export the new validation function `utils/custom-validators.js` (legacy)
 3. Add `customValidationRules` prop to appropriate model under `models`
 
-### 1. Create a new validation function
+### 1. Create a new model validation function (legacy)
+
+*Most (if not all) of these types of validation functions have been replaced by the newer simpler versions designed for field and form validation. This section of the docs remains until the legacy code may be completely removed safely.
 
 Custom validators are stored under `utils/validators`. Validation functions should define positional parameters of `value, getters, errors, validatorArgs` with an optional fifth `displayKey` parameter: 
 
@@ -86,6 +152,8 @@ export function exampleValidator(value, getters, errors, validatorArgs, displayK
 ```
 
 ### 2. Export new validation function
+
+*Most (if not all) of these types of validation functions have been replaced by the newer simpler versions designed for field and form validation. This section of the docs remains until the legacy code may be completely removed safely.
 
 In order to make a custom validator available for usage in forms and component, it will need to exposed by importing the new validator function into `utils/custom-validators.js`:
 
@@ -118,7 +186,7 @@ customValidationRules() {
   return [
     {
       path: 'value',
-      validators: [`exampleValidator`]
+      validators: [`exampleValidator`] // the validator listed here should correspond the validation function located in `shell/utils/validators/formRules`
     }
   ]
 }

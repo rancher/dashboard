@@ -53,7 +53,7 @@ export default {
 
   data() {
     if (this.mode === _EDIT) {
-      this.value = this.value.cleanForNew();
+      this.value.cleanForNew();
     }
 
     const templateId = this.value.templateId || this.$route.query.templateId;

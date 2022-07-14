@@ -14,10 +14,9 @@ function isTlsHost(spec, host) {
   return tlsHosts(spec).includes(host);
 }
 
-export function ingressFullPath(resource, rule) {
+export function ingressFullPath(resource, rule, path = {}) {
   const spec = resource.spec;
   const hostValue = rule.host || '';
-  const path = rule?.http?.paths || [];
   const pathValue = path.path || '';
   let protocol = '';
 
@@ -73,7 +72,7 @@ export default class Ingress extends SteveModel {
 
   createPathForListPage(workloads, rule, path, certificates) {
     const serviceName = get(path?.backend, this.serviceNamePath);
-    const fullPath = this.fullPath(rule);
+    const fullPath = this.fullPath(rule, path);
 
     return {
       // isUrl thinks urls which contain '*' are valid so I'm adding an additional check for '*'
@@ -88,8 +87,8 @@ export default class Ingress extends SteveModel {
     };
   }
 
-  fullPath(rule) {
-    return ingressFullPath(this, rule);
+  fullPath(rule, path) {
+    return ingressFullPath(this, rule, path);
   }
 
   certLink(cert, certificates = []) {

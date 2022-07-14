@@ -224,7 +224,7 @@ export default class VirtVm extends SteveModel {
   }
 
   cleanForNew() {
-    this.cleanForNew();
+    this.$dispatch(`cleanForNew`, this);
 
     this.spec.template.spec.hostname = '';
     const interfaces = this.spec.template.spec.domain.devices?.interfaces || [];
