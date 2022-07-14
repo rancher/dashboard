@@ -18,9 +18,12 @@ if [ "$1" == "-s" ]; then
 fi
 
 if [ $SKIP_SETUP == "false" ]; then
+  set +e
   which verdaccio > /dev/null
+  RET=$?
+  set -e
 
-  if [ $? -ne 0 ]; then
+  if [ $RET -ne 0 ]; then
     echo "Verdaccio not installed"
 
     npm install -g verdaccio

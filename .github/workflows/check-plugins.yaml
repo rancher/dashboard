@@ -15,10 +15,6 @@ jobs:
       with:
         node-version: '14.x'
     - name: Validate Plugin build system
-      run: |
-         ls -al
-         cat ./shell/scripts/test-plugins-build.sh
-         chmod +x ./shell/scripts/test-plugins-build.sh
-         ./shell/scripts/test-plugins-build.sh
+      run: ./shell/scripts/test-plugins-build.sh
       shell: bash
 
