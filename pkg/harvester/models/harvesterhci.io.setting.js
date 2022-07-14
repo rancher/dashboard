@@ -1,7 +1,7 @@
 import { findBy } from '@shell/utils/array';
 import { HCI } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { HCI_ALLOWED_SETTINGS, HCI_SETTING } from '@shell/config/settings';
+import { HCI_ALLOWED_SETTINGS, HCI_SETTING } from '../config/settings';
 
 export default class HciSetting extends SteveModel {
   get _availableActions() {

@@ -1,5 +1,5 @@
 import { RouteConfig } from 'vue-router';
-import { PRODUCT_NAME } from '../types';
+import { PRODUCT_NAME } from '../config/harvester';
 
 import ListHarvester from '../pages/c/_cluster/index.vue';
 import HarvesterSupport from '../pages/c/_cluster/support/index.vue';

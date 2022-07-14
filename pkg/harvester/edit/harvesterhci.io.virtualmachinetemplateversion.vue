@@ -18,7 +18,7 @@ import SSHKey from './kubevirt.io.virtualmachine/VirtualMachineSSHKey';
 
 import { HCI } from '@shell/config/types';
 import { randomStr } from '@shell/utils/string';
-import { RunStrategys } from '@shell/config/harvester-map';
+import { RunStrategys } from '../config/harvester-map';
 import { _CONFIG, _EDIT, _VIEW } from '@shell/config/query-params';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 

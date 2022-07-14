@@ -1,5 +1,5 @@
 <script>
-import HarvesterIpAddress from '../../..//formatters/HarvesterIpAddress';
+import HarvesterIpAddress from '../../../formatters/HarvesterIpAddress';
 import VMConsoleBar from '../../../components/VMConsoleBar';
 import LabelValue from '@shell/components/LabelValue';
 import InputOrDisplay from '@shell/components/InputOrDisplay';

@@ -11,24 +11,8 @@ import { ucFirst } from '@shell/utils/string';
 import { stateDisplay, colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { _CLONE } from '@shell/config/query-params';
+import { isReady } from '@shell/machine-config/harvester';
 
-export function isReady() {
-  function getStatusConditionOfType(type, defaultValue = []) {
-    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
-
-    return conditions.find( cond => cond.type === type);
-  }
-
-  const initialized = getStatusConditionOfType.call(this, 'Initialized');
-  const imported = getStatusConditionOfType.call(this, 'Imported');
-  const isCompleted = this.status?.progress === 100;
-
-  if ([initialized?.status, imported?.status].includes('False')) {
-    return false;
-  } else {
-    return isCompleted && true;
-  }
-}
 export default class HciVmImage extends SteveModel {
   get availableActions() {
     let out = super._availableActions;

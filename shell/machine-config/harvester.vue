@@ -25,7 +25,24 @@ import { allHashSettled } from '@shell/utils/promise';
 import { podAffinity as podAffinityValidator } from '@shell/utils/validators/pod-affinity';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { isReady } from '../../pkg/harvester/models/harvesterhci.io.virtualmachineimage';
+
+export function isReady() {
+  function getStatusConditionOfType(type, defaultValue = []) {
+    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
+
+    return conditions.find( cond => cond.type === type);
+  }
+
+  const initialized = getStatusConditionOfType.call(this, 'Initialized');
+  const imported = getStatusConditionOfType.call(this, 'Imported');
+  const isCompleted = this.status?.progress === 100;
+
+  if ([initialized?.status, imported?.status].includes('False')) {
+    return false;
+  } else {
+    return isCompleted && true;
+  }
+}
 
 export default {
   name: 'ConfigComponentHarvester',

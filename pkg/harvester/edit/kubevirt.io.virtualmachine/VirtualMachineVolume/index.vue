@@ -12,7 +12,7 @@ import { PVC, HCI } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { randomStr } from '@shell/utils/string';
-import { SOURCE_TYPE } from '@shell/config/harvester-map';
+import { SOURCE_TYPE } from '../../../config/harvester-map';
 import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 
 export default {

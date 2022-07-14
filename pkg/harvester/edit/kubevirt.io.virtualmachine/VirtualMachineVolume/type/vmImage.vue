@@ -6,7 +6,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import InputOrDisplay from '@shell/components/InputOrDisplay';
 import { HCI, PVC } from '@shell/config/types';
 import { formatSi, parseSi } from '@shell/utils/units';
-import { VOLUME_TYPE, InterfaceOption } from '@shell/config/harvester-map';
+import { VOLUME_TYPE, InterfaceOption } from '../../../../config/harvester-map';
 
 export default {
   name: 'HarvesterEditVMImage',

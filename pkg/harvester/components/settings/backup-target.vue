@@ -1,6 +1,6 @@
 <script>
 import Tip from '@shell/components/Tip';
-import { HCI_SETTING } from '@shell/config/settings';
+import { HCI_SETTING } from '../../config/settings';
 import Password from '@shell/components/form/Password';
 import MessageLink from '@shell/components/MessageLink';
 import CreateEditView from '@shell/mixins/create-edit-view';
