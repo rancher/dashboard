@@ -1,6 +1,6 @@
 # Development Environment
 
-This is part of the developer [getting started guide](../../../README.md).
+This is part of the developer [getting started guide](https://github.com/rancher/dashboard/blob/master/README.md).
 
 ## Stack
 
@@ -81,7 +81,7 @@ Developers are free to use the IDE and modern browser of their choosing. Here's 
 
 ### Running the Dashboard
 
-See the [Running For Development](../../../README.md#running-for-development) section on how to bring up the Dashboard locally
+See the [Running For Development](https://github.com/rancher/dashboard/blob/master/README.md#running-for-development) section on how to bring up the Dashboard locally
 
 > Troubleshooting: Multiple `Could not freeze errors` in `yarn dev` terminal
 >
