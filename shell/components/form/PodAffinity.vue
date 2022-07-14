@@ -136,6 +136,7 @@ export default {
       });
 
       Object.assign(this.value.affinity, { podAffinity, podAntiAffinity });
+      this.$emit('update', this.value);
     },
 
     remove() {
