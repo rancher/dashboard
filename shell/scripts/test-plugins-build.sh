@@ -29,7 +29,9 @@ if [ $SKIP_SETUP == "false" ]; then
     npm install -g verdaccio
   fi
 
+  set +e
   RUNNING=$(ps -A | grep Verdaccio -c)
+  set -e
 
   if [ $RUNNING -eq 0 ]; then
     verdaccio > verdaccio.log &
