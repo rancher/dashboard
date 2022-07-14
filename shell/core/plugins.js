@@ -51,11 +51,12 @@ export default function({
         let removed = Promise.resolve();
 
         if (oldPlugin) {
-          // Uninstall existing plugin if there is one
+          // Uninstall existing plugin if there is one. This ensures that last loaded plugin is not always used
+          // (nav harv1-->harv2-->harv1 and harv2 would be shown)
           removed = this.removePlugin(oldPlugin.name).then(() => {
             delete window[oldPlugin.id];
 
-            delete plugins[oldPlugin.id]; // TODO: RC diff with return store.dispatch('uiplugins/removePlugin');
+            delete plugins[oldPlugin.id];
           });
         }
 

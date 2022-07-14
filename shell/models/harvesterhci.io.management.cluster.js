@@ -39,31 +39,31 @@ export default class HciCluster extends ProvCluster {
   async _pkgDetails() {
     const clusterId = this.mgmt.id;
 
-    // Version
+    // Fetch the version of the pkg to fetch
     if (!this.cachedHarvesterClusterVersion) {
-      // TODO: RC remove // const versionUrl = `/k8s/clusters/${ clusterId }/apis/management.cattle.io/v3/settings/server-version`; // For example - v2.6.3-harvester1
-      // TODO: RC check if ui-source auto/external. get version from url if applicable
-      const versionUrl = `/k8s/clusters/${ clusterId }/v1/harvester/harvesterhci.io.settings/server-version`; // For example - master-08af3d7c-head TODO: RC
+      // Note - The version MUST match the version in the pkg's package.json (and filename)
+      const versionUrl = `/k8s/clusters/${ clusterId }/v1/harvester/harvesterhci.io.settings/server-version`;
       const res = await this.$dispatch('request', { url: versionUrl });
 
       this.cachedHarvesterClusterVersion = res.value;
     }
 
-    // Package Name
+    // Work out the package Name
     const packageName = `${ HARVESTER_NAME }-${ this.cachedHarvesterClusterVersion }`;
 
-    // Harvester's Dashboard URL
+    // Work out the dashboard url (which contains the harvester pkg)
     const namespace = 'harvester-system';
     const serviceName = 'harvester';
-
-    // TODO: RC check if ui-source auto/external. Change appropriately
-    // harvester settings - ui-index, ui-source (`bundled` `auto`, `external`)
-    // dashboard settings - ui-dashboard-index, ui-offline-preferred ('false', 'dynamic', 'true')
+    // Note - We can always fetch this from the embedded version.
+    // Standalone Context - The harv pkg will be built in, so this code is never hit
+    // Rancher Context - We will always go out to the harvester package bundled with the cluster
+    // So we can ignore the ui-index and ui-source (`bundled` `auto`, `external`) settings
+    // TODO: RC cluster members user do not have access to the harvester-system namespace. Seeking input from harv team
     const dashboardUrl = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }/${ SERVICE }s/https:${ serviceName }:8443/proxy/dashboard`;
 
-    // Package URL
+    // Use all of above to create the filename and full url of hte package
     const fileName = `${ packageName }.umd.min.js`;
-    const pkgUrl = `${ dashboardUrl }/${ packageName }/${ fileName }`;
+    const pkgUrl = `${ dashboardUrl }/${ packageName }/${ fileName }doesnotexist`;
 
     return {
       pkgUrl,
@@ -76,9 +76,9 @@ export default class HciCluster extends ProvCluster {
 
     console.warn('Harvester package details: ', packageName, pkgUrl);
 
-    // TODO: RC
-    // const pkgUrl = 'http://127.0.0.1:4500/harvester-0.5.0/harvester-0.5.0.umd.min.js';
-    // const packageName = 'harvester-0.5.0';
+    // TODO: RC Remove
+    // const packageName = 'harvester-0.6.0';
+    // const pkgUrl = `http://127.0.0.1:4500/${ packageName }/${ packageName }.umd.min.js`;
 
     // Avoid loading the plugin if it's already loaded
     const loadedPkgs = Object.keys(this.$rootState.$plugin.getPlugins());
@@ -94,6 +94,8 @@ export default class HciCluster extends ProvCluster {
   }
 
   async standaloneUrl() {
+    // TODO: RC This will not always work, ingress isn't to be expected
+    // Should use the VIP_IP instead, not sure if this is available. Similar issue to finding the dashboard url above
     const clusterId = this.mgmt.id;
     const ingressUrl = `/k8s/clusters/${ clusterId }/v1/networking.k8s.io.ingresses/cattle-system/rancher`;
     const res = await this.$dispatch('request', { url: ingressUrl });
