@@ -415,6 +415,9 @@ export const actions = {
         icon:    'error',
         url
       }, { root: true });
+    } else {
+      // if the error is not a disconnect error, the socket never worked: log whether the current browser is safari
+      console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
     }
   },
 
