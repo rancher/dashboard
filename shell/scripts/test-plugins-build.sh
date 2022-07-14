@@ -2,17 +2,7 @@
 
 set -e
 
-start=`date +%s`
-
-function cleanup {
-  end=`date +%s`
-  runtime=$( echo "$end - $start" | bc -l )
-
-  echo "==================================="
-  echo "Time taken ${runtime} seconds"
-}
-
-trap cleanup EXIT
+echo "Checking plugin build"
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
@@ -22,7 +12,6 @@ echo ${SCRIPT_DIR}
 
 SKIP_SETUP="false"
 SKIP_STANDALONE="false"
-SKIP_STANDALONE="true"
 
 if [ "$1" == "-s" ]; then
   SKIP_SETUP="true"
