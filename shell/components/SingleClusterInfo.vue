@@ -87,7 +87,7 @@ export default {
 <template>
   <div v-if="clusterDetail">
     <div class="single-cluster-header">
-      <ClusterProviderIcon class="rancher-icon" width="32" />
+      <ClusterProviderIcon :cluster="clusterDetail" class="rancher-icon" width="32" />
       <h1>{{ t('glance.clusterInfo') }}</h1>
     </div>
 

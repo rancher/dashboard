@@ -861,7 +861,7 @@ export const actions = {
       return;
     }
 
-    if ( state.clusterId && state.clusterId === id && oldProduct === VIRTUAL) {
+    if ( state.clusterId && state.clusterId === id && (oldProduct === VIRTUAL || !oldProduct)) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
     }
@@ -873,7 +873,6 @@ export const actions = {
 
     if ( state.clusterId && id ) {
       commit('clusterReady', false);
-
       await dispatch('harvester/unsubscribe');
       commit('harvester/reset');
 
@@ -890,7 +889,7 @@ export const actions = {
       commit('clusterId', id);
     }
 
-    console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
+    console.log(`Loading ${ isMultiCluster ? 'ECM ' : 'harvester' }cluster...`); // eslint-disable-line no-console
 
     // This is a workaround for a timing issue where the mgmt cluster schema may not be available
     // Try and wait until the schema exists before proceeding

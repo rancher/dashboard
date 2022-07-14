@@ -24,10 +24,6 @@ const config: CoreStoreConfig = {
   isClusterStore: true
 };
 
-/**
- * `epinio` store is like a `cluster` store...
- * .. it contains epinio instance specific resources that should be setup/reset when navigating to/away from an epinio instances
- */
 export default {
   specifics: harvesterFactory(),
   config
