@@ -4,6 +4,8 @@ import { STATE, NAME, AGE, FLEET_SUMMARY } from '@shell/config/table-headers';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
 
 export default {
+  name: 'FleetClusters',
+
   components: { ResourceTable },
 
   props: {

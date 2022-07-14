@@ -1,4 +1,4 @@
-import { AGE, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
+import { AGE, CLUSTER_NODE_IPS, NAME as NAME_COL, STATE } from '@shell/config/table-headers';
 import {
   CAPI,
   CATALOG,
@@ -157,6 +157,7 @@ export function init(store) {
       formatter: 'ClusterProvider',
     },
     MACHINE_SUMMARY,
+    CLUSTER_NODE_IPS,
     AGE,
     {
       name:  'explorer',

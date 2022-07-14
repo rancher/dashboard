@@ -4622,6 +4622,7 @@ tableHeaders:
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
   clusters: Clusters
+  clusterIPList: Node IPs
   clustersReady: Clusters Ready
   clusterGroups: Cluster Groups
   commit: Commit
