@@ -38,7 +38,7 @@ export default {
           if ( perEntry ) {
             state = perEntry.state;
           } else if ( tooMany ) {
-            state = 'Unknown';
+            state = STATES_ENUM.UNKNOWN;
           } else {
             state = STATES_ENUM.READY;
           }
