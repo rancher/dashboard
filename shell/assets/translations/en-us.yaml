@@ -2356,6 +2356,7 @@ labels:
   addAnnotation: Add Annotation
   labels:
     title: Labels
+    fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
   annotations:
     title: Annotations
 
