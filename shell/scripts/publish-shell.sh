@@ -41,16 +41,19 @@ function publish() {
   echo "Publishing ${NAME} from ${FOLDER}"
   pushd ${FOLDER} > /dev/null
 
-  # Fow now, copy the rancher components into the shell and ship them with it
+  # For now, copy the rancher components into the shell and ship them with it
   if [ $NAME == 'Shell' ]; then
     echo "Adding Rancher Components"
     rm -rf ${SHELL_DIR}/rancher-components
-    mkdir -p ${SHELL_DIR}/rancher-components
-    cp -R ${BASE_DIR}/pkg/rancher-components/src/components/ ${SHELL_DIR}/rancher-components
+    cp -R ${BASE_DIR}/pkg/rancher-components/src/components ${SHELL_DIR}/rancher-components/
   fi
 
   yarn publish . --new-version ${PKG_VERSION} ${PUBLISH_ARGS}
   RET=$?
+
+  # Remove the rancher-components folder if we created it
+  rm -rf ${SHELL_DIR}/rancher-components
+
   popd > /dev/null
 
   if [ $RET -ne 0 ]; then

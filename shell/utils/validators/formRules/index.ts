@@ -1,10 +1,11 @@
-import { RBAC } from '@/shell/config/types';
-import { HCI } from '@/shell/config/labels-annotations';
+import { RBAC } from '@shell/config/types';
+import { HCI } from '@shell/config/labels-annotations';
 import isEmpty from 'lodash/isEmpty';
 import has from 'lodash/has';
 // import uniq from 'lodash/uniq';
 import cronstrue from 'cronstrue';
 
+// import uniq from 'lodash/uniq';
 export type Validator = (val: any, arg?: any) => undefined | string;
 
 export type ValidatorFactory = (arg1: any, arg2?: any) => Validator

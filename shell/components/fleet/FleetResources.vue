@@ -3,7 +3,7 @@ import { colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard
 import SortableTable from '@shell/components/SortableTable';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { randomStr } from '~shell/utils/string';
+import { randomStr } from '@shell/utils/string';
 
 export default {
   name: 'FleetResources',

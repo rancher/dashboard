@@ -2,10 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import serveStatic from 'serve-static';
 import webpack from 'webpack';
+
 import { STANDARD } from './config/private-label';
+import { generateDynamicTypeImport } from './pkg/auto-import';
 import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
-import { generateDynamicTypeImport } from './pkg/auto-import';
 
 const createProxyMiddleware = require('http-proxy-middleware');
 
