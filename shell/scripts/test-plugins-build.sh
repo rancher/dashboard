@@ -97,6 +97,10 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   rm -rf ${DIR}
 fi
 
+pushd $BASE_DIR
+pwd
+ls
+
 # Now try a plugin within the dashboard codebase
 echo "Validating in-tree package"
 
