@@ -58,7 +58,7 @@ export default {
 
 </script>
 <template>
-  <span>
+  <span class="cluster-link">
     <n-link v-if="to" :to="to">
       {{ value }}
     </n-link>
@@ -72,9 +72,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .cluster-link {
+    display: flex;
+    align-items: center;
+  }
   .conditions-alert-icon {
     color: var(--error);
-    padding-left: 2px;
+    margin-left: 4px;
   }
   ::v-deep {
     .labeled-tooltip, .status-icon {

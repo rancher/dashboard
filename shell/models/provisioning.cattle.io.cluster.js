@@ -1,6 +1,4 @@
-import {
-  ADDRESSES, CAPI, MANAGEMENT, NORMAN, SNAPSHOT
-} from '@shell/config/types';
+import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
@@ -640,12 +638,6 @@ export default class ProvCluster extends SteveModel {
 
   get canClone() {
     return false;
-  }
-
-  get ipaddress() {
-    return this.nodes.map((node) => {
-      return node.status.internalNodeStatus?.addresses?.find(({ type }) => type === ADDRESSES.INTERNAL_IP)?.address || '';
-    });
   }
 
   async remove(opt = {}) {
