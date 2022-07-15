@@ -113,18 +113,11 @@ export default class MgmtNode extends HybridModel {
   }
 
   get provisioningCluster() {
-    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find(c => c.name === this.namespace);
+    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find(c => c.mgmtClusterId === this.mgmtClusterId);
   }
 
   get doneOverride() {
-    return {
-      name:   'c-cluster-product-resource-namespace-id',
-      params: {
-        resource:  CAPI.RANCHER_CLUSTER,
-        namespace: this.provisioningCluster?.namespace,
-        id:        this.namespace
-      }
-    };
+    return this.provisioningCluster?.detailLocation;
   }
 
   get canClone() {

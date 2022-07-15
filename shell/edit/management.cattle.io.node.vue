@@ -35,20 +35,21 @@ export default {
 
         saveCb(true);
 
-        // navigate back to the area we came from
-        this.$router.go(-1);
+        this.done();
       } catch (error) {
         this.errors.push(error);
         saveCb(false);
       }
     },
-    overrideCancel() {
-      this.$router.go(-1);
-    },
   },
   mounted() {
     this.name = this.value.spec.displayName;
-  }
+  },
+  computed: {
+    doneLocationOverride() {
+      return this.value.doneOverride;
+    },
+  },
 };
 </script>
 
@@ -59,9 +60,7 @@ export default {
     :resource="value"
     :mode="mode"
     :errors="errors"
-    :cancel-event="true"
     @finish="save"
-    @cancel="overrideCancel"
   >
     <LabeledInput
       v-model="name"
