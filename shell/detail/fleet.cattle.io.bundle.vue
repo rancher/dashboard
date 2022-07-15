@@ -110,7 +110,7 @@ export default {
   }
 
   span {
-    background-color: var(--success);
+    background-color: var(--darker);
     color: var(--default);
     padding: 5px 10px;
     border-radius: 15px;
