@@ -11,7 +11,7 @@ import ViewHarvesterResource from '../pages/c/_cluster/_resource/_id.vue';
 import ViewHarvesterNsResource from '../pages/c/_cluster/_resource/_namespace/_id.vue';
 import HarvesterAirgapUpdgrade from '../pages/c/_cluster/airgapupgrade/index.vue';
 import HarvesterMembers from '../pages/c/_cluster/members/index.vue';
-import ProjectNamespaces from '@shell/pages/c/_cluster/_product/projectsnamespaces.vue';
+import ProjectNamespaces from '@shell/components/ExplorerProjectsNamespaces';
 
 const routes: RouteConfig[] = [
   {

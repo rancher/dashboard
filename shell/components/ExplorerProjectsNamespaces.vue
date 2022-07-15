@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import ResourceTable from '@shell/components/ResourceTable';
 import { STATE, AGE, NAME } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
@@ -12,7 +13,7 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-man
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 
 export default {
-  name:       'ListNamespace',
+  name:       'ListProjectNamespace',
   components: {
     Loading, Masthead, MoveModal, ResourceTable
   },
@@ -48,6 +49,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
     },
@@ -74,7 +76,7 @@ export default {
       return uniq(ids);
     },
     clusterProjects() {
-      const clusterId = this.$store.getters['currentCluster'].id;
+      const clusterId = this.currentCluster.id;
 
       // Get the list of projects from the store so that the list
       // is updated if a new project is created or removed.
@@ -266,7 +268,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending || !currentCluster" />
   <div v-else class="project-namespaces">
     <Masthead
       :schema="projectSchema"
