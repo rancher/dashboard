@@ -27,7 +27,7 @@ module.exports = {
   collectCoverage:     false,
   collectCoverageFrom: [
     '<rootDir>/shell/components/**/*.vue',
-    "<rootDir>/shell/utils/**/*",
+    '<rootDir>/shell/utils/**/*',
     // '<rootDir>/pages/*.vue',
     // '!<rootDir>/components/RancherProviderIcon.vue',
   ],
