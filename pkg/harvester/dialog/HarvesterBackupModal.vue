@@ -58,7 +58,7 @@ export default {
             this.$store.dispatch(
               'growl/success',
               {
-                title:   this.t('harvester.notification.title.succeed'),
+                title:   this.t('generic.notification.title.succeed'),
                 message: this.t('harvester.modal.backup.success', { backUpName: this.backUpName })
               },
               { root: true }

@@ -106,7 +106,7 @@ const actions = {
 
           dispatch(
             'growl/fromError',
-            { title: t('harvester.notification.title.error'), err },
+            { title: t('generic.notification.title.error'), err },
             { root: true }
           );
           clearInterval(timer);
