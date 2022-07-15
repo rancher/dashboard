@@ -89,7 +89,7 @@ export default class MgmtNode extends HybridModel {
   }
 
   get canUpdate() {
-    return this.norman?.hasLink('update');
+    return this.hasLink('update') && this.norman?.hasLink('update');
   }
 
   remove() {
