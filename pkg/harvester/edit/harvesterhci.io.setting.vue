@@ -45,7 +45,7 @@ export default {
 
     // Get all the custom volume types from the file names of this folder
     const customSettingComponents = require
-      .context('../components/settings', false, /^.*\.vue$/)
+      .context('@/pkg/harvester/components/settings', false, /^.*\.vue$/)
       .keys()
       .map(path => path.replace(/(\.\/)|(.vue)/g, ''));
 
@@ -74,7 +74,7 @@ export default {
 
     if ( hasCustomComponent ) {
       try {
-        customComponent = require(`../components/settings/${ this.value.id }.vue`).default;
+        customComponent = require(`@/pkg/harvester/components/settings/${ this.value.id }.vue`).default;
       } catch {}
     }
     this.hasCustomComponent = hasCustomComponent;
