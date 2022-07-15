@@ -133,10 +133,8 @@ export default {
         </n-link>
       </template>
     </Masthead>
+
     <ResourceTable :schema="schema" :rows="rows" :namespaced="false" :loading="$fetchState.pending">
-      <template #cell:ipaddress="{row}">
-        <span v-for="(ip,i) in row.ipaddress" :key="i">{{ ip }}</br></span>
-      </template>
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
