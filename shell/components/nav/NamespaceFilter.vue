@@ -4,7 +4,6 @@ import { NAMESPACE_FILTERS } from '@shell/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@shell/utils/array';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import {
   NAMESPACE_FILTER_SPECIAL as SPECIAL,
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
@@ -29,7 +28,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster', 'isMultiVirtualCluster', 'currentProduct']),
+    ...mapGetters(['currentProduct']),
 
     hasFilter() {
       return this.filter.length > 0;
@@ -97,7 +96,7 @@ export default {
         });
       }
 
-      if (!this.isVirtualCluster) {
+      if (!this.currentProduct?.hideSystemResources) {
         out = [
           {
             id:    ALL,
@@ -134,20 +133,21 @@ export default {
         this.$store.getters[`${ inStore }/all`](NAMESPACE),
         ['nameDisplay']
       ).filter( (N) => {
-        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
+        const needFilter = !N.isSystem && !N.isFleetManaged;
 
-        const needFilter = !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace;
-        const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
-
-        return this.isVirtualCluster && isVirtualProduct ? needFilter : true;
+        return this.currentProduct?.hideSystemResources ? needFilter : true;
       });
 
-      if (this.$store.getters['isRancher'] || this.isMultiVirtualCluster) {
+      // isRancher = mgmt schemas are loaded and there's a project schema
+      if (this.$store.getters['isRancher']) {
         const cluster = this.$store.getters['currentCluster'];
         let projects = this.$store.getters['management/all'](
           MANAGEMENT.PROJECT
         );
 
+        projects = projects.filter((p) => {
+          return this.currentProduct?.hideSystemResources ? !p.isSystem && p.spec.clusterName === cluster.id : p.spec.clusterName === cluster.id;
+        });
         projects = sortBy(filterBy(projects, 'spec.clusterName', cluster.id), [
           'nameDisplay',
         ]);

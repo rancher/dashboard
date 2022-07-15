@@ -41,6 +41,7 @@
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 //   category,                -- Group to show the product in for the nav hamburger menu
 //   typeStoreMap,            -- An object mapping types to the store that should be used to retrieve information about the type
+//   hideSystemResources      -- Hide resources in namespaces where namespace.isSystem === true, or a namespace managed by fleet (per its annotation) and hide those namespaces from ns/project list and nsfilter (default false)
 // })
 //
 // externalLink(stringOrFn)  The product has an external page (function gets context object

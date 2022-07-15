@@ -195,7 +195,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
+    ...mapGetters(['currentProduct']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -211,13 +211,11 @@ export default {
       const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
 
       const filtered = namespaces.filter( this.namespaceFilter || ((namespace) => {
-        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
-
-        if (this.isVirtualCluster) {
-          // For virtual clusters, filter out the namespace
+        if (this.currentProduct?.hideSystemResources) {
+          // Filter out the namespace
           // if it is a system namespace or if it is managed by
           // Fleet.
-          return !namespace.isSystem && !namespace.isFleetManaged && !isSettingSystemNamespace;
+          return !namespace.isSystem && !namespace.isFleetManaged;
         }
 
         // By default, include the namespace in the dropdown.

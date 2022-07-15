@@ -413,12 +413,6 @@ export const getters = {
     return false;
   },
 
-  isMultiVirtualCluster(state, getters, rootState, rootGetters) {
-    const localCluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, 'local');
-
-    return getters.isMultiCluster && localCluster?.status?.provider !== VIRTUAL_HARVESTER_PROVIDER;
-  },
-
   isVirtualCluster(state, getters) {
     const cluster = getters['currentCluster'];
 
@@ -795,6 +789,7 @@ export const actions = {
   }, { id, oldProduct }) {
     const isMultiCluster = getters['isMultiCluster'];
 
+    // TODO when is this ever true?
     if (isMultiCluster && id === 'local') {
       return;
     }

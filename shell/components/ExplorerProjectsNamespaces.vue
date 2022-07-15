@@ -9,7 +9,6 @@ import { PROJECT_ID } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 
 export default {
@@ -49,7 +48,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentCluster']),
+    ...mapGetters(['currentCluster', 'currentProduct']),
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
     },
@@ -156,14 +155,10 @@ export default {
         return this.activeNamespaces;
       }
 
-      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-      const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
-
       return this.activeNamespaces.filter((namespace) => {
-        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
-        const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
+        const systemNS = namespace.isSystem || namespace.isFleetManaged;
 
-        return isVirtualCluster && isVirtualProduct ? (!systemNS && !namespace.isObscure) : !namespace.isObscure;
+        return this.currentProduct?.hideSystemResources ? !systemNS : true;
       });
     },
 

@@ -67,6 +67,7 @@ export function init($plugin, store) {
     hideKubeConfig:      true,
     showClusterSwitcher: true,
     hideCopyConfig:      true,
+    hideSystemResources: true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
