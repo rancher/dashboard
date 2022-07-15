@@ -511,7 +511,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending || !currentCluster" />
   <section v-else>
     <HarvesterUpgrade />
 
