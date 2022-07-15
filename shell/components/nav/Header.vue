@@ -16,6 +16,7 @@ import HarvesterUpgrade from './HarvesterUpgrade.vue';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
+import { PRODUCT_NAME as VIRTUAL } from '@/shell/config/product/harvester-manager';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -150,6 +151,10 @@ export default {
         }
       };
     },
+
+    virtual() {
+      return VIRTUAL;
+    }
   },
 
   watch: {
@@ -327,7 +332,7 @@ export default {
     <div class="spacer"></div>
 
     <div class="rd-header-right">
-      <HarvesterUpgrade v-if="isVirtualCluster && currentProduct.name === VIRTUAL" />
+      <HarvesterUpgrade v-if="isVirtualCluster && currentProduct.name === virtual" />
       <div
         v-if="(currentCluster || currentProduct.customNamespaceFilter) && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
         class="top"
