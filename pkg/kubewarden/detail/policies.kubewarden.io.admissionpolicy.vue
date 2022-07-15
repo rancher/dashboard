@@ -115,7 +115,14 @@ export default {
       <Tab v-if="traces" name="policy-tracing" label="Tracing" :weight="98">
         <TraceTable
           :rows="tracesRows"
-        />
+        >
+          <template #traceBanner>
+            <Banner v-if="!traces" color="warning">
+              <span v-if="!jaegerService" v-html="t('kubewarden.tracing.noJaeger', {}, true)" />
+              <span v-else>{{ t('kubewarden.tracing.noTraces') }}</span>
+            </Banner>
+          </template>
+        </TraceTable>
       </Tab>
     </ResourceTabs>
   </div>

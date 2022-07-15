@@ -53,13 +53,15 @@ export default {
       }
     }
 
+    this.jaegerService = await this.value.jaegerService();
     this.traces = await this.value.jaegerProxies();
   },
 
   data() {
     return {
       RELATED_HEADERS,
-      jaegerProxies:     null,
+      jaegerService:   null,
+      jaegerProxies:   null,
       metricsProxy:    null,
       metricsService:  null,
       relatedPolicies: null,
@@ -138,11 +140,18 @@ export default {
           />
         </template>
       </Tab>
-      <Tab v-if="traces" name="policy-tracing" label="Tracing" :weight="97">
+      <Tab name="policy-tracing" label="Tracing" :weight="97">
         <template>
           <TraceTable
             :rows="tracesRows"
-          />
+          >
+            <template #traceBanner>
+              <Banner v-if="!traces" color="warning">
+                <span v-if="!jaegerService" v-html="t('kubewarden.tracing.noJaeger', {}, true)" />
+                <span>{{ t('kubewarden.tracing.noRelatedTraces') }}</span>
+              </Banner>
+            </template>
+          </TraceTable>
         </template>
       </Tab>
     </ResourceTabs>

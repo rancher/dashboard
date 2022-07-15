@@ -15,6 +15,10 @@ kubewarden:
     description: A generic template for using your own policy.
   utils:
     resetFilter: Reset Filter
+  tracing:
+    noJaeger: No Jaeger service is installed, please follow the steps <a href="https://github.com/kubewarden/ui/wiki/Tracing" target="_blank" rel="noopener noreferrer nofollow">listed here</a> to setup tracing for your policies.
+    noRelatedTraces: No tracing data exists for the related policies.
+    noTraces: No tracing data exists for this policy. 
   policyConfig:
     serverSelect:
       label: Policy Server

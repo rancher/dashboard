@@ -4,7 +4,6 @@ import { KUBEWARDEN } from '../types';
 import { isEmpty } from '@shell/utils/object';
 
 import { BadgeState } from '@components/BadgeState';
-import { Banner } from '@components/Banner';
 import SortableTable from '@shell/components/SortableTable';
 
 export default {
@@ -15,9 +14,7 @@ export default {
     }
   },
 
-  components: {
-    BadgeState, Banner, SortableTable
-  },
+  components: { BadgeState, SortableTable },
 
   data() {
     return {
@@ -38,10 +35,6 @@ export default {
 
     isPolicyServer() {
       return this.$route.params.resource === KUBEWARDEN.POLICY_SERVER;
-    },
-
-    noRows() {
-      return isEmpty(this.rows);
     },
 
     rowsPerPage() {
@@ -79,13 +72,10 @@ export default {
 
 <template>
   <div>
-    <Banner v-if="noRows" color="warning">
-      <span v-if="isPolicyServer">No tracing data exists for the related policies.</span>
-      <span v-else>No tracing data exists for this policy.</span>
-    </Banner>
+    <slot name="traceBanner"></slot>
 
     <SortableTable
-      v-else
+      v-if="rows"
       :rows="rows"
       :headers="TRACE_HEADERS"
       :group-by="groupField"

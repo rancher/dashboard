@@ -6,6 +6,7 @@ import { monitoringStatus } from '@shell/utils/monitoring';
 import { dashboardExists } from '@shell/utils/grafana';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
+import { Banner } from '@components/Banner';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
@@ -17,7 +18,7 @@ export default {
   name: 'ClusterAdmissionPolicy',
 
   components: {
-    DashboardMetrics, Loading, ResourceTabs, Tab, TraceTable
+    Banner, DashboardMetrics, Loading, ResourceTabs, Tab, TraceTable
   },
 
   mixins: [CreateEditView],
@@ -56,7 +57,8 @@ export default {
       }
     }
 
-    this.traces = await this.value.jaegerProxy();
+    this.jaegerService = await this.value.jaegerService();
+    this.traces = await this.value.jaegerProxy() || [];
 
     if ( this.traces.length > 1 ) {
       this.traces = flatMap(this.traces);
@@ -65,6 +67,7 @@ export default {
 
   data() {
     return {
+      jaegerService:  null,
       metricsProxy:   null,
       metricsService: null,
       monitorTraces:  null,
@@ -79,6 +82,14 @@ export default {
 
     dashboardVars() {
       return { policy_name: `clusterwide-${ this.value?.id }` };
+    },
+
+    emptyTraces() {
+      if ( this.traces ) {
+        return !this.traces.find(t => t.data.length);
+      }
+
+      return true;
     },
 
     hasMetricsTabs() {
@@ -114,10 +125,17 @@ export default {
           />
         </template>
       </Tab>
-      <Tab v-if="traces" name="policy-tracing" label="Tracing" :weight="98">
+      <Tab name="policy-tracing" label="Tracing" :weight="98">
         <TraceTable
           :rows="tracesRows"
-        />
+        >
+          <template #traceBanner>
+            <Banner v-if="emptyTraces" color="warning">
+              <span v-if="!jaegerService" v-html="t('kubewarden.tracing.noJaeger', {}, true)" />
+              <span v-else>{{ t('kubewarden.tracing.noTraces') }}</span>
+            </Banner>
+          </template>
+        </TraceTable>
       </Tab>
     </ResourceTabs>
   </div>
