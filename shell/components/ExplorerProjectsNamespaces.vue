@@ -49,7 +49,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentCluster']),
+    ...mapGetters(['currentCluster', 'currentProduct']),
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
     },
@@ -180,22 +180,11 @@ export default {
         return this.activeNamespaces;
       }
 
-      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-
       return this.activeNamespaces.filter((namespace) => {
         const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
-
         const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
 
-        // For Harvester, filter out system namespaces AND obscure namespaces.
-        if (isVirtualCluster) {
-          return !systemNS && !namespace.isObscure;
-        }
-
-        // Otherwise only filter out obscure namespaces, such as namespaces
-        // that Rancher uses to manage RBAC for projects, which should not be
-        // edited or deleted by Rancher users.
-        return !namespace.isObscure;
+        return this.currentProduct?.hideSystemResources ? !systemNS : true;
       });
     },
 

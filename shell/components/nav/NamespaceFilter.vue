@@ -28,7 +28,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster', 'isMultiVirtualCluster', 'currentProduct']),
+    ...mapGetters(['currentProduct']),
 
     hasFilter() {
       return this.filter.length > 0;
@@ -96,7 +96,7 @@ export default {
         });
       }
 
-      if (!this.isVirtualCluster) {
+      if (!this.currentProduct?.hideSystemResources) {
         out = [
           {
             id:    ALL,
@@ -136,12 +136,16 @@ export default {
 
       namespaces = this.filterNamespaces(namespaces);
 
-      if (this.$store.getters['isRancher'] || this.isMultiVirtualCluster) {
+      // isRancher = mgmt schemas are loaded and there's a project schema
+      if (this.$store.getters['isRancher']) {
         const cluster = this.$store.getters['currentCluster'];
         let projects = this.$store.getters['management/all'](
           MANAGEMENT.PROJECT
         );
 
+        projects = projects.filter((p) => {
+          return this.currentProduct?.hideSystemResources ? !p.isSystem && p.spec.clusterName === cluster.id : p.spec.clusterName === cluster.id;
+        });
         projects = sortBy(filterBy(projects, 'spec.clusterName', cluster.id), [
           'nameDisplay',
         ]);

@@ -17,14 +17,12 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
+    ...mapGetters(['currentProduct']),
 
     filterRow() {
-      if (this.isVirtualCluster) {
+      if (this.currentProduct.hideSystemResources) {
         return this.rows.filter( (N) => {
-          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
-
-          return !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace;
+          return !N.isSystem && !N.isFleetManaged;
         });
       } else {
         return this.rows;
