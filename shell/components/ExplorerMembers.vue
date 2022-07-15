@@ -6,6 +6,7 @@ import Masthead from '@shell/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@shell/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
 import Banner from '@components/Banner/Banner.vue';
+import { mapGetters } from 'vuex/types/helpers';
 
 /**
  * Explorer members page.
@@ -79,6 +80,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings.filter(
         b => b.clusterName === this.$store.getters['currentCluster'].id
@@ -95,7 +97,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending || !currentCluster" />
   <div v-else>
     <Masthead
       :schema="schema"
