@@ -104,6 +104,8 @@ ls
 # Now try a plugin within the dashboard codebase
 echo "Validating in-tree package"
 
+yarn install
+
 rm -rf ./pkg/test-pkg
 yarn create @rancher/pkg test-pkg -t
 cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
