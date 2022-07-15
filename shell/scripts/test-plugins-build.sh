@@ -41,8 +41,14 @@ if [ $SKIP_SETUP == "false" ]; then
 
     sleep 10
 
-    echo "Configuring Verdaccio usr"
-    curl -XPUT -H "Content-type: application/json" -d '{ "name": "admin", "password": "admin" }' 'http://localhost:4873/-/user/admin'
+    echo "Configuring Verdaccio user"
+    curl -XPUT -H "Content-type: application/json" -d '{ "name": "admin", "password": "admin" }' 'http://localhost:4873/-/user/admin' > login.json
+    TOKEN=$(jq -r .token login.json)
+    rm login.json
+    cat > ~/.npmrc << EOF
+//127.0.0.1:4873/:_authToken="$TOKEN"
+//localhost:4873/:_authToken="$TOKEN"
+EOF
   else
     echo "Verdaccio is already running"
   fi

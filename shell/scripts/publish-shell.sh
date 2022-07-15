@@ -42,7 +42,7 @@ function publish() {
   pushd ${FOLDER} > /dev/null
 
   # For now, copy the rancher components into the shell and ship them with it
-  if [ $NAME == 'Shell' ]; then
+  if [ "$NAME" == "Shell" ]; then
     echo "Adding Rancher Components"
     rm -rf ${SHELL_DIR}/rancher-components
     cp -R ${BASE_DIR}/pkg/rancher-components/src/components ${SHELL_DIR}/rancher-components/
@@ -58,6 +58,7 @@ function publish() {
 
   if [ $RET -ne 0 ]; then
     echo "Error publishing package ${NAME}"
+    exit $RET
   fi
 }
 
