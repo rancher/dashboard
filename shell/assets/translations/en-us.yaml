@@ -1856,6 +1856,7 @@ fleet:
       other {# tokens are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
       }
   bundles:
+    resources: Resources
     harvester: |-
       {count, plural,
       =1 {1 bundle is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
@@ -2356,6 +2357,7 @@ labels:
   addAnnotation: Add Annotation
   labels:
     title: Labels
+    fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
   annotations:
     title: Annotations
 
@@ -4095,6 +4097,7 @@ secret:
   serviceAcct:
     ca: CA Certificate
     token: Token
+  customType: Custom Type
   type: Type
   types:
     'opaque': 'Opaque'
@@ -4126,6 +4129,8 @@ secret:
     's3': 'S3'
   relatedWorkloads: Related Workloads
   typeDescriptions:
+    custom:
+      description: Create a Secret with a custom type
     'kubernetes.io/basic-auth':
       description: 'Authentication with a username and password'
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#basic-authentication-secret
@@ -6599,9 +6604,10 @@ advancedSettings:
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
     'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
-    'auth-token-max-ttl-minutes': 'Custom max TTL (in minutes) on an auth token.'
-    'kubeconfig-generate-token': 'Automatically generate kubeconfig tokens for users.'
-    'kubeconfig-token-ttl-minutes': 'Custom max TTL (in minutes) on a kubeconfig token.'
+    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all authentication tokens. When set to 0, the token never expires.'
+    'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
+    'kubeconfig-token-ttl-minutes': 'TTL used for tokens generated via the CLI. Deprecated: This setting will be removed, and kubeconfig-default-ttl-minutes will be used for all kubeconfig tokens.'
+    'kubeconfig-default-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'custom-notifications': Edit custom notifications

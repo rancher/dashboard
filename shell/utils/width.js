@@ -23,9 +23,13 @@ export function setWidth(el, val) {
  * @returns Number representing the width for the provided element
  */
 export function getWidth(el) {
-  if (!el.length) {
+  if (!el || !el.length) {
     return;
   }
 
-  return parseFloat(getComputedStyle(el).width.replace('px', ''));
+  if (el.length) {
+    return parseFloat(getComputedStyle(el[0]).width.replace('px', ''));
+  } else {
+    return parseFloat(getComputedStyle(el).width.replace('px', ''));
+  }
 }
