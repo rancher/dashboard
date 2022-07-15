@@ -112,7 +112,7 @@ export default class VirtVmInstance extends SteveModel {
   get getVMIApiPath() {
     const clusterId = this.$rootGetters['clusterId'];
 
-    if (this.$rootGetters['isMultiVirtualCluster']) {
+    if (this.$rootGetters['isMultiCluster']) {
       const prefix = `/k8s/clusters/${ clusterId }`;
 
       return `${ prefix }/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/vnc`;
@@ -131,7 +131,7 @@ export default class VirtVmInstance extends SteveModel {
   get getSerialConsolePath() {
     const clusterId = this.$rootGetters['clusterId'];
 
-    if (this.$rootGetters['isMultiVirtualCluster']) {
+    if (this.$rootGetters['isMultiCluster']) {
       const prefix = `/k8s/clusters/${ clusterId }`;
 
       return `${ prefix }/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/console`;

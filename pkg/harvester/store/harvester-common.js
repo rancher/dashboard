@@ -124,7 +124,7 @@ const actions = {
           commit('setBundlePercentage', 0);
         }, 600);
 
-        if (rootGetters['isMultiVirtualCluster']) {
+        if (rootGetters['isMultiCluster']) {
           const clusterId = rootGetters['clusterId'];
           const prefix = `/k8s/clusters/${ clusterId }`;
 

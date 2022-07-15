@@ -458,13 +458,6 @@ export const getters = {
     return false;
   },
 
-  isSingleVirtualCluster(state, getters, rootState, rootGetters) {
-    const clusterId = getters.defaultClusterId;
-    const cluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, clusterId);
-
-    return !getters.isMultiCluster && cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
-  },
-
   isMultiVirtualCluster(state, getters, rootState, rootGetters) {
     const localCluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, 'local');
 
@@ -889,7 +882,7 @@ export const actions = {
       commit('clusterId', id);
     }
 
-    console.log(`Loading ${ isMultiCluster ? 'ECM ' : 'harvester' }cluster...`); // eslint-disable-line no-console
+    console.log(`Loading ${ isMultiCluster ? 'ECM (harvester) ' : 'harvester' }cluster...`); // eslint-disable-line no-console
 
     // This is a workaround for a timing issue where the mgmt cluster schema may not be available
     // Try and wait until the schema exists before proceeding
