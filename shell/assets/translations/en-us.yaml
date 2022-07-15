@@ -1404,7 +1404,7 @@ cluster:
         title: Security Group
         vpcId: '(select a VPC/Subnet first)'
         mode:
-          default: 'Standard: Automatically create and use a "{defaultGroup}"; security group'
+          default: 'Standard: Automatically create and use a "{defaultGroup}" security group'
           custom: 'Choose one or more existing security groups:'
       volumeType:
         label: EBS Root Volume Type
