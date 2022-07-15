@@ -8,7 +8,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
   title: 'Rancher DevKit',
   tagline: 'Rancher development kit',
-  url: 'https://rancher.github.io',
+  url: 'https://bisht-richa.github.io',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -17,7 +17,7 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'rancher', // Usually your GitHub org/user name.
+  organizationName: 'bisht-richa', // Usually your GitHub org/user name.
   projectName: 'dashboard', // Usually your repo name.
 
 
