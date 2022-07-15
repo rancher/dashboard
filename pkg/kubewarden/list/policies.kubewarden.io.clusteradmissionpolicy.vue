@@ -1,12 +1,15 @@
 <script>
+import flattenDeep from 'lodash/flattenDeep';
+import { sortBy } from '@shell/utils/sort';
+
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ResourceTable from '@shell/components/ResourceTable';
-import Select from '@shell/components/form/Select';
 
 export default {
   components: {
-    Banner, Loading, ResourceTable, Select
+    Banner, LabeledSelect, Loading, ResourceTable
   },
 
   props: {
@@ -23,58 +26,32 @@ export default {
 
   async fetch() {
     this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
+
+    if ( this.rows ) {
+      const flatRules = this.rows.flatMap((row) => {
+        return flattenDeep(row.spec.rules);
+      });
+
+      const resources = flatRules.flatMap(r => r.resources);
+      const operations = flatRules.flatMap(r => r.operations);
+
+      if ( resources ) {
+        this.resources = [...new Set(resources)];
+      }
+
+      if ( operations ) {
+        this.operations = [...new Set(operations)];
+      }
+    }
   },
 
   data() {
-    const policyResources = [
-      {
-        label: 'All',
-        value: ''
-      },
-      {
-        label: '*',
-        value: '*'
-      },
-      {
-        label: 'Pods',
-        value: 'pods'
-      },
-      {
-        label: 'Services',
-        value: 'services'
-      },
-      {
-        label: 'Ingress',
-        value: 'ingresses'
-      }
-    ];
-
-    const policyActions = [
-      {
-        label: 'All',
-        value: ''
-      },
-      {
-        label: 'CREATE',
-        value: 'CREATE'
-      },
-      {
-        label: 'UPDATE',
-        value: 'UPDATE'
-      },
-      {
-        label: 'DELETE',
-        value: 'DELETE'
-      }
-    ];
-
     return {
       rows:              null,
-      filteredRows:      null,
-      filteredResource:  '',
-      filteredAction:    '',
-      policyResources,
-      policyActions,
+      resources:         null,
+      operations:        null,
+      filteredResource:  null,
+      filteredOperation: null
     };
   },
 
@@ -83,12 +60,26 @@ export default {
       return this.$store.getters['type-map/headersFor'](this.schema);
     },
 
-    showRows() {
-      if ( this.filteredResource === '' && this.filteredAction === '' ) {
-        return this.rows;
-      }
+    filteredRows() {
+      const rows = ( this.rows || [] );
 
-      return this.filteredRows;
+      const out = rows.filter((row) => {
+        const flatRules = flattenDeep(row.spec.rules);
+        const flatResources = flatRules.flatMap(r => r.resources);
+        const flatOperations = flatRules.flatMap(r => r.operations);
+
+        if ( this.filteredResource && !flatResources.includes(this.filteredResource) ) {
+          return false;
+        }
+
+        if ( this.filteredOperation && !flatOperations.includes(this.filteredOperation) ) {
+          return false;
+        }
+
+        return true;
+      });
+
+      return sortBy(out, 'id');
     }
   },
 
@@ -98,7 +89,7 @@ export default {
 
       this.rows.map((row) => {
         let { option, select } = neu;
-        const { filteredResource, filteredAction, filteredRows } = this;
+        const { filteredResource, filteredOperation, filteredRows } = this;
 
         // when user selects `All` for operations, use this.filteredResource to match rows instead
         if ( option === 'operations' && select === '' ) {
@@ -110,7 +101,7 @@ export default {
         const options = rules.find(rule => rule[option]);
 
         const resourceType = filteredResource ? options['resources'].find(opt => opt === filteredResource) : 'All';
-        const actionTypes = filteredAction ? options['operations'].find(opt => opt === filteredAction) : 'All';
+        const actionTypes = filteredOperation ? options['operations'].find(opt => opt === filteredOperation) : 'All';
 
         const selectedOption = options[option].find(opt => opt === select);
         const filteredOption = filteredRows?.find(obj => obj === row);
@@ -132,6 +123,11 @@ export default {
     hasNamespaceSelector(row) {
       return row.namespaceSelector;
     },
+
+    resetFilter() {
+      this.$set(this, 'filteredResource', null);
+      this.$set(this, 'filteredOperation', null);
+    },
   }
 };
 </script>
@@ -146,46 +142,43 @@ export default {
     />
 
     <div class="row mb-20">
-      <div class="span-3 mr-10">
-        <span>Resources</span>
-        <Select
+      <div class="col span-3">
+        <LabeledSelect
           v-model="filteredResource"
-          :clearable="false"
-          :searchable="false"
-          :options="policyResources"
-          placement="bottom"
-          label="label"
+          :options="resources"
+          label="Resources"
           style="min-width: 200px;"
-          :reduce="opt => opt.value"
-          @option:selected="filterSelection({ option: 'resources', select: filteredResource })"
         >
           <template #option="opt">
             {{ opt.label }}
           </template>
-        </Select>
+        </LabeledSelect>
       </div>
 
-      <div class="span-3">
-        <span>Actions</span>
-        <Select
-          v-model="filteredAction"
-          :clearable="false"
-          :searchable="false"
-          :options="policyActions"
-          placement="bottom"
-          label="label"
+      <div class="col span-3">
+        <LabeledSelect
+          v-model="filteredOperation"
+          :options="operations"
+          label="Operations"
           style="min-width: 200px;"
-          :reduce="opt => opt.value"
-          @option:selected="filterSelection({ option: 'operations', select: filteredAction })"
         >
           <template #option="opt">
             {{ opt.label }}
           </template>
-        </Select>
+        </LabeledSelect>
       </div>
+
+      <button
+        ref="btn"
+        class="btn, btn-sm, role-primary"
+        type="button"
+        @click="resetFilter"
+      >
+        {{ t('kubewarden.utils.resetFilter') }}
+      </button>
     </div>
 
-    <ResourceTable :schema="schema" :rows="showRows" :headers="headers">
+    <ResourceTable :schema="schema" :rows="filteredRows" :headers="headers">
       <template #col:mode="{ row }">
         <td>
           <span class="policy__mode">

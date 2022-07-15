@@ -68,7 +68,7 @@ export default {
 <template>
   <div>
     <div class="row mt-10">
-      <div class="col span-12">
+      <div class="col span-6">
         <NameNsDescription
           :mode="mode"
           :value="value"

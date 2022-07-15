@@ -54,7 +54,7 @@ kubewarden:
       tooltip: This is the container image the policy server.
     replicas: Replicas
     registry:
-      description: The PolicyServer allows you to pull policies from OCI registries and HTTP servers, by default HTTPS is enforced with host TLS verification. You can interact with registries using untrusted certificates or even without TLS by using the `insecureSources` setting. This approach is highly discouraged in environments closer to production.
+      description: The PolicyServer allows you to pull policies from OCI registries and HTTP servers, by default HTTPS is enforced with host TLS verification. You can interact with registries using untrusted certificates or even without TLS by using the `insecureSources` setting. This approach is highly discouraged in environments closer to production. More information on configuring custom certificate authorities can be found <a href="https://docs.kubewarden.io/operator-manual/policy-servers/custom-cas" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     insecureSources:
       title: Insecure Sources
       addLabel: Add Insecure Source
@@ -71,7 +71,7 @@ kubewarden:
         file: Read Certificate from File
     verification:
       label: Verification Config
-      tooltip: Name of VerificationConfig configmap in the same namespace, containing Sigstore verification configuration. The configuration must be under a key named verification-config in the Configmap.
+      description: This is the name of a VerificationConfig configmap within the same namespace, containing a Sigstore verification configuration. The configuration must be under a key named verification-config in the Configmap. More information can be found <a href="https://docs.kubewarden.io/operator-manual/verification-config" target="_blank" rel="noopener noreferrer nofollow">here</a>.
   policyCharts:
     allow-privilege-escalation-psp:
       name: Allow Privilege Escalation PSP

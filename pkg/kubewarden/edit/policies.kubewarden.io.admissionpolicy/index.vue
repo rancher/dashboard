@@ -4,8 +4,8 @@ import ChartMixin from '@shell/mixins/chart';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
 import CruResource from '@shell/components/CruResource';
-import Config from '../policies.kubewarden.io/Config';
-import Create from '../policies.kubewarden.io/Create';
+import Config from '../../components/policies/Config';
+import Create from '../../components/policies/Create';
 
 export default {
   name: 'AdmissionPolicy',

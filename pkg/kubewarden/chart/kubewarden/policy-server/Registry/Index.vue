@@ -54,7 +54,7 @@ export default {
       <Banner
         class="type-banner mb-20 mt-0"
         color="info"
-        :label="t('kubewarden.policyServerConfig.registry.description')"
+        v-html="t('kubewarden.policyServerConfig.registry.description', {}, true)"
       />
     </div>
 

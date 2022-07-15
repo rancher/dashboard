@@ -147,6 +147,8 @@ export default {
     </div>
 
     <div class="grid">
+      <slot name="customSubtype"></slot>
+
       <div
         v-for="subtype in filteredSubtypes"
         :key="subtype.id"
@@ -167,8 +169,6 @@ export default {
           </div>
         </div>
       </div>
-
-      <slot name="customSubtype"></slot>
     </div>
   </form>
 </template>
