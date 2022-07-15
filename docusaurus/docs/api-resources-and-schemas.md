@@ -8,7 +8,7 @@ Norman is older and mainly used by the [Ember UI](https://github.com/rancher/ui)
 
 ## Steve
 
-Steve is newer, and the primary one used here.  It works in the opposite direction, starting with a completely unopinionated view of every resource available in a cluster, and then adding custom logic only where needed.  Every type and every namespace are directly addressable.  This still adds some critical functionality over directly talking to the k8s API, such as:
+Steve is newer, and the primary API used here.  It works in the opposite direction, starting with a completely unopinionated view of every resource available in a cluster, and then adding custom logic only where needed.  Every type and every namespace are directly addressable.  This still adds some critical functionality over directly talking to the k8s API, such as:
 
 - It's presented following our [api-spec](https://github.com/rancher/api-spec), so the same client libraries work for any of our APIs, including the in-browser generic [api-ui](https://github.com/rancher/api-ui).
 - "Watches" to find out when a resource changes are aggregated into a single websocket which keeps track of what's connected and can resume the stream, rather than many independent calls to the native k8s implementation
@@ -16,6 +16,10 @@ Steve is newer, and the primary one used here.  It works in the opposite directi
 - Schemas and links on each resource efficiently identify what permissions the user making the request has, so that actions in the UI can be hidden or disabled if not allowed for the current user instead of letting them try and having the server reject it.
 - Normalizing the different and sometimes inconsistent state/status/conditions data from resources into a single logical view of the world the UI can present.
 - RPC-style actions to do more complicated workflows on the server side when appropriate
+
+A key concept in Steve is that although the UI makes imperative calls to the Steve API, Steve is designed to capture all operations in Kubernetes resources. That means the only way to perform any operation with the Steve API is by requesting it to create or manipulate YAML files.
+
+This is in contrast to the Norman API, which had a concept of 'actions' - imperative API calls that would perform an operation. For example, while Norman had defined an action to perform encryption key rotation, the only way to achieve the same result in Steve would be to update the provisioning cluster Kubernetes resource.
 
 ## Endpoints
 

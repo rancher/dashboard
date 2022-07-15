@@ -7,6 +7,8 @@ const IN_REVIEW_LABEL = '[zube]: Review';
 const IN_TEST_LABEL = '[zube]: To Test';
 const DONE_LABEL = '[zube]: Done';
 const BACKEND_BLOCKED_LABEL = '[zube]: Backend Blocked';
+const TECH_DEBT_LABEL = 'kind/tech-debt';
+const DEV_VALIDATE_LABEL = 'status/dev-validate';
 
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
@@ -116,7 +118,7 @@ async function processClosedAction() {
         if (!issueMap[k]) {
             console.log(`  Issue #${k} will be ignored as another open PR also states that it fixes this issue`);
         }
-    })
+    });
 
     // GitHub will do the closing, so we expect each issue to already be closed
     // We will fetch each issue in turn, expecting it to be closed
@@ -126,33 +128,35 @@ async function processClosedAction() {
         const iss = await request.fetch(detail);
         console.log('')
         console.log('Processing Issue #' + i + ' - ' + iss.title);
-        console.log('  Updating labels to move issue to Test');
 
-        // console.log(JSON.stringify(iss, null, 2));
-
-        // The Zube Integration will label the issue with the Done label
-        // Since it runs via a webhook, it should have done that well before our GitHub action
-        // is scheduled and has run, but we will check it has the label and wait if not
-        await waitForLabel(iss, DONE_LABEL);
-
-        // Wait
-        await new Promise(r => setTimeout(r, 5000));
-
-
-        // Wait
-        await new Promise(r => setTimeout(r, 5000));
-        // Re-open the issue if it is closed
-        if (iss.state === 'closed') {
-            console.log('  Re-opening issue');
-            await request.patch(detail, { state: 'open' });
+        // If the issue is a tech debt issue or says dev will validate then don't move it to 'To Test'
+        if(hasLabel(i, TECH_DEBT_LABEL) || hasLabel(i, DEV_VALIDATE_LABEL)) {
+            console.log('  Issue is tech debt/dev validate - ignoring');
         } else {
-            console.log('  Expecting issue to be closed, but it is not');
-        }
+            console.log('  Updating labels to move issue to Test');
 
-        // The Zube Integration will label the issue as To Triage now that is has been re-opened
-        // Wait for that and then we can move it to test
-        await waitForLabel(iss, TRIAGE_LABEL);
-        await resetZubeLabels(iss, IN_TEST_LABEL);
+            // console.log(JSON.stringify(iss, null, 2));
+
+            // The Zube Integration will label the issue with the Done label
+            // Since it runs via a webhook, it should have done that well before our GitHub action
+            // is scheduled and has run, but we will check it has the label and wait if not
+            await waitForLabel(iss, DONE_LABEL);
+
+            // Wait
+            await new Promise(r => setTimeout(r, 10000));
+            // Re-open the issue if it is closed
+            if (iss.state === 'closed') {
+                console.log('  Re-opening issue');
+                await request.patch(detail, { state: 'open' });
+            } else {
+                console.log('  Expecting issue to be closed, but it is not');
+            }
+
+            // The Zube Integration will label the issue as To Triage now that is has been re-opened
+            // Wait for that and then we can move it to test
+            await waitForLabel(iss, TRIAGE_LABEL);
+            await resetZubeLabels(iss, IN_TEST_LABEL);
+        }
 
         console.log('');
     });

@@ -14,6 +14,17 @@ export default {
       default: false
     }
   },
+
+  computed: {
+    ready() {
+      // Ensure we never show more ready machines than desired
+      // If w can address in backedn, we could revert this in the future
+      const ready = this.row?.ready || 0;
+      const desired = this.row?.desired || 0;
+
+      return ready > desired ? desired : ready;
+    }
+  },
 };
 </script>
 
@@ -42,8 +53,8 @@ export default {
 
     <div class="content" :class="{ horizontal }">
       <ProgressBarMulti v-if="row.stateParts" :values="row.stateParts" class="progress-bar" />
-      <span v-if="row.desired === row.ready" class="count">{{ row.ready }}</span>
-      <span v-else class="count">{{ row.ready }} of {{ row.desired }}</span>
+      <span v-if="row.desired === ready" class="count">{{ ready }}</span>
+      <span v-else class="count">{{ ready }} of {{ row.desired }}</span>
     </div>
   </v-popover>
 </template>
