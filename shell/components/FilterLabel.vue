@@ -38,16 +38,6 @@ export default {
   },
 
   methods: {
-    update() {
-      const map = {};
-
-      this.searchLabels.map((v) => {
-        map[`${ v.key }`] = v.value;
-      });
-
-      this.filterRows();
-    },
-
     calcValueOptions(key) {
       const valueOptions = [];
 
@@ -124,8 +114,8 @@ export default {
 
 <template>
   <div class="filter">
-    <template v-for="label in searchLabels">
-      <span v-if="label.key" :key="label.key" class="banner-item bg-warning">
+    <template v-for="(label, index) in searchLabels">
+      <span v-if="label.key" :key="`${label.key}${index}`" class="banner-item bg-warning">
         {{ label.key }}{{ label.value ? "=" : '' }}{{ label.value }}<i class="icon icon-close" @click="remove(label)" />
       </span>
     </template>
@@ -149,7 +139,8 @@ export default {
               v-model="searchLabels"
               :show-header="true"
               :default-add-value="defaultAddValue"
-              @input="update"
+              :initial-empty-row="true"
+              @input="filterRows"
             >
               <template v-slot:column-headers>
                 <div class="box">
@@ -172,7 +163,7 @@ export default {
                     :append-to-body="false"
                     :searchable="true"
                     :options="optionLabels"
-                    @input="update"
+                    @input="filterRows"
                   />
                 </div>
                 <div class="value">
@@ -184,9 +175,9 @@ export default {
                     :append-to-body="false"
                     :searchable="true"
                     :options="calcValueOptions(scope.row.value.key)"
-                    @input="update"
+                    @input="filterRows"
                   />
-                  <input v-else v-model="scope.row.value.value" class="input-sm" type="search" @input="update" />
+                  <input v-else v-model="scope.row.value.value" class="input-sm" type="search" @input="filterRows" />
                 </div>
               </template>
 
@@ -226,12 +217,12 @@ export default {
   .banner-item {
     display: inline-block;
     font-size: 16px;
-    cursor: pointer;
     margin-right: 10px;
     padding: 6px;
     border-radius: 2px;
 
     i {
+      cursor: pointer;
       vertical-align: middle;
     }
   }
