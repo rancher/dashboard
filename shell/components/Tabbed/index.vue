@@ -233,7 +233,7 @@ export default {
           @click.prevent="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
-          <i v-if="hasIcon(tab)" v-tooltip="t('validation.tab')" class="conditions-alert-icon icon-warning icon-lg" />
+          <i v-if="hasIcon(tab)" v-tooltip="t('validation.tab')" class="conditions-alert-icon icon-error icon-lg" />
         </a>
       </li>
       <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
@@ -307,7 +307,7 @@ export default {
 
       .conditions-alert-icon {
         color: var(--error);
-        padding-left: 10px;
+        padding-left: 4px;
       }
 
       &:last-child {
