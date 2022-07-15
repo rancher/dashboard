@@ -92,13 +92,14 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   yarn build-pkg test-pkg
 
   echo "Cleaning temporary dir"
-  rm -rf *
   popd > /dev/null
 
-  rm -f ${DIR}
+  rm -rf ${DIR}
 fi
 
 # Now try a plugin within the dashboard codebase
+echo "Validating in-tree package"
+
 rm -rf ./pkg/test-pkg
 yarn create @rancher/pkg test-pkg -t
 cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
