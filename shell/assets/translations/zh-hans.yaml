@@ -7,6 +7,7 @@ generic:
   back: 返回
   cancel: 取消
   clear: 清除
+  clearAll: 清除全部
   close: 关闭
   comingSoon: 即将上线
   copy: 复制
@@ -5611,6 +5612,7 @@ harvester:
     virtualName: 虚拟机名称
     promiscuous: Promiscuous
     ipv4Address: IPv4 地址
+    filterLabels: 标签过滤
   generic:
     close: 关闭
     open: 打开
@@ -5778,9 +5780,17 @@ harvester:
       actionLabel: 拔出
       detachVolume:
         拔出卷
-    restartTip: 重启虚拟机以使配置更改生效。
+    restartTip: |-
+      {restart, select,
+        true {重启}
+        other {启动}
+      }虚拟机以使配置更改生效。
     runStrategy: 运行策略
-    restartNow: 现在重启
+    restartNow: |-
+      {restart, select,
+        true {现在重启}
+        other {现在启动}
+      } 
     createSSHKey: 创建 SSH 密钥
     installAgent: 安装访客代理
     enableUsb: 启用 USB Tablet

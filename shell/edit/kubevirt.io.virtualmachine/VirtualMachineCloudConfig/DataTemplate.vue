@@ -118,6 +118,7 @@ export default {
       v-model="id"
       class="mb-20"
       :options="options"
+      :disabled="viewCode"
       :label-key="`harvester.virtualMachine.cloudConfig.${type}.label`"
     />
 

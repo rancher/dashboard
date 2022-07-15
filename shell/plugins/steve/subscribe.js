@@ -5,9 +5,13 @@ import Socket, {
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
   //  EVENT_FRAME_TIMEOUT,
-  EVENT_CONNECT_ERROR
+  EVENT_CONNECT_ERROR,
+  EVENT_DISCONNECT_ERROR
 } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import day from 'dayjs';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { escapeHtml } from '@shell/utils/string';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -108,7 +112,6 @@ export const actions = {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);
 
       commit('setSocket', socket);
-
       socket.addEventListener(EVENT_CONNECTED, (e) => {
         dispatch('opened', e);
       });
@@ -118,7 +121,11 @@ export const actions = {
       });
 
       socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
-        dispatch('error', e.detail);
+        dispatch('error', e );
+      });
+
+      socket.addEventListener(EVENT_DISCONNECT_ERROR, (e) => {
+        dispatch('error', e );
       });
 
       socket.addEventListener(EVENT_MESSAGE, (e) => {
@@ -338,7 +345,7 @@ export const actions = {
   },
 
   async opened({
-    commit, dispatch, state, getters
+    commit, dispatch, state, getters, rootGetters
   }, event) {
     state.debugSocket && console.info(`WebSocket Opened [${ getters.storeName }]`); // eslint-disable-line no-console
 
@@ -364,6 +371,12 @@ export const actions = {
 
     if ( socket.hasReconnected ) {
       await dispatch('reconnectWatches');
+      // Check for disconnect notifications and clear them
+      const growlErr = rootGetters['growl/find']({ key: 'url', val: this.$socket.url });
+
+      if (growlErr) {
+        dispatch('growl/remove', growlErr.id, { root: true });
+      }
     }
 
     // Try resending any frames that were attempted to be sent while the socket was down, once.
@@ -381,10 +394,31 @@ export const actions = {
     state.queueTimer = null;
   },
 
-  error({ getters, state }, event) {
-    console.error(`WebSocket Error [${ getters.storeName }]`, event); // eslint-disable-line no-console
+  error({
+    getters, state, dispatch, rootGetters
+  }, e) {
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
+    if (e.type === EVENT_DISCONNECT_ERROR) {
+      const dateFormat = escapeHtml( rootGetters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( rootGetters['prefs/get'](TIME_FORMAT));
+      let time = e?.srcElement?.disconnectedAt || Date.now();
+
+      time = `${ day(time).format(`${ dateFormat } ${ timeFormat }`) }`;
+      const url = e?.srcElement?.url;
+
+      const t = rootGetters['i18n/t'];
+
+      dispatch('growl/error', {
+        title:   t('growl.disconnected.title'),
+        message: t('growl.disconnected.message', { url, time }, { raw: true }),
+        icon:    'error',
+        url
+      }, { root: true });
+    } else {
+      // if the error is not a disconnect error, the socket never worked: log whether the current browser is safari
+      console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
+    }
   },
 
   send({ state, commit }, obj) {

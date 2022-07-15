@@ -204,7 +204,7 @@ export default {
     imageOptions() {
       return (this.images || []).filter( (O) => {
         return !O.spec.url.endsWith('.iso') && isReady.call(O);
-      }).map( (O) => {
+      }).sort((a, b) => a.metadata.creationTimestamp > b.metadata.creationTimestamp ? -1 : 1).map( (O) => {
         const value = O.id;
         const label = `${ O.spec.displayName } (${ value })`;
 
@@ -418,6 +418,7 @@ export default {
             :mode="mode"
             :options="imageOptions"
             :required="true"
+            :searchable="true"
             :disabled="disabledEdit"
             label-key="cluster.credential.harvester.image"
             :placeholder="t('cluster.harvester.machinePool.image.placeholder')"
