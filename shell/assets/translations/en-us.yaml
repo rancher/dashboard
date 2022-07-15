@@ -1856,6 +1856,7 @@ fleet:
       other {# tokens are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
       }
   bundles:
+    resources: Resources
     harvester: |-
       {count, plural,
       =1 {1 bundle is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
