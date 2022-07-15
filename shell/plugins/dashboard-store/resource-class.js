@@ -1,5 +1,14 @@
 import { NORMAN_NAME } from '@shell/config/labels-annotations';
-import { _CLONE, _CONFIG, _EDIT, _UNFLAG, _VIEW, _YAML, AS, MODE } from '@shell/config/query-params';
+import {
+  _CLONE,
+  _CONFIG,
+  _EDIT,
+  _UNFLAG,
+  _VIEW,
+  _YAML,
+  AS,
+  MODE
+} from '@shell/config/query-params';
 import { DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
