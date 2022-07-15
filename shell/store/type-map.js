@@ -167,7 +167,6 @@ export const IF_HAVE = {
   NO_PROJECT:               'no-project',
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
-  HARVESTER_SINGLE_CLUSTER: 'harv-multi-cluster',
   NEUVECTOR_NAMESPACE:      'neuvector-namespace',
 };
 
@@ -1738,9 +1737,6 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.MULTI_CLUSTER: {
     return getters.isMultiCluster;
-  }
-  case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
-    return getters.isSingleVirtualCluster;
   }
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
     return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);

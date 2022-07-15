@@ -38,30 +38,29 @@ export function init($plugin, store) {
     virtualType
   } = $plugin.DSL(store, PRODUCT_NAME);
 
-  const isSingleVirtualCluster = process.env.rancherEnv === 'harvester';
+  const isSingleVirtualCluster = process.env.rancherEnv === PRODUCT_NAME;
 
   if (isSingleVirtualCluster) {
+    const home = {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: {
+        product:  PRODUCT_NAME,
+        resource: HCI.DASHBOARD
+      }
+    };
+
     store.dispatch('setIsSingleProduct', {
       logo:           require(`@shell/assets/images/providers/harvester.svg`),
       productNameKey: 'product.harvester',
-      version:        store.getters['harvester/byId'](HCI.SETTING, 'server-version')
+      version:        store.getters[`${ PRODUCT_NAME }/byId`](HCI.SETTING, 'server-version')
         ?.value,
-      afterLoginRoute: {
-        name:   `${ PRODUCT_NAME }-c-cluster`,
-        params: { product: PRODUCT_NAME }
-      },
-      logoRoute: {
-        name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-        params: {
-          product:  PRODUCT_NAME,
-          resource: HCI.DASHBOARD
-        }
-      }
+      afterLoginRoute: home,
+      logoRoute:       home
     });
   }
 
   product({
-    inStore:             'harvester',
+    inStore:             PRODUCT_NAME,
     removable:           false,
     showNamespaceFilter: true,
     hideKubeShell:       true,
@@ -209,20 +208,21 @@ export function init($plugin, store) {
   });
 
   // singleVirtualCluster
-  headers(NAMESPACE, [STATE, NAME_UNLINKED, AGE]);
-  basicType([NAMESPACE]);
-  virtualType({
-    ifHave:     IF_HAVE.HARVESTER_SINGLE_CLUSTER,
-    labelKey:   'harvester.namespace.label',
-    name:       NAMESPACE,
-    namespaced: true,
-    weight:     89,
-    route:      {
-      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-      params: { resource: NAMESPACE }
-    },
-    exact: false
-  });
+  if (isSingleVirtualCluster) {
+    headers(NAMESPACE, [STATE, NAME_UNLINKED, AGE]);
+    basicType([NAMESPACE]);
+    virtualType({
+      labelKey:   'harvester.namespace.label',
+      name:       NAMESPACE,
+      namespaced: true,
+      weight:     89,
+      route:      {
+        name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+        params: { resource: NAMESPACE }
+      },
+      exact: false
+    });
+  }
 
   basicType(
     [

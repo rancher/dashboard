@@ -207,7 +207,7 @@ export default {
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :description="t('prefs.advancedTooltip', {}, raw=true)" :label="t('prefs.dev.label', {}, true)" />
         <br>
-        <Checkbox v-if="!isSingleVirtualCluster" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
+        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
       </div>
     </div>
 
