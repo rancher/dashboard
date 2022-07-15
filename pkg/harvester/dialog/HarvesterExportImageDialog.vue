@@ -75,7 +75,7 @@ export default {
 
         if (res._status === 200 || res._status === 204) {
           this.$store.dispatch('growl/success', {
-            title:   this.t('harvester.notification.title.succeed'),
+            title:   this.t('generic.notification.title.succeed'),
             message: this.t('harvester.modal.exportImage.message.success', { name: this.name })
           }, { root: true });
 

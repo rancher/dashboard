@@ -60,7 +60,7 @@ export default {
           this.$store.dispatch(
             'growl/success',
             {
-              title:   this.t('harvester.notification.title.succeed'),
+              title:   this.t('generic.notification.title.succeed'),
               message: this.t(
                 'harvester.modal.createTemplate.message.success',
                 { templateName: this.templateName }

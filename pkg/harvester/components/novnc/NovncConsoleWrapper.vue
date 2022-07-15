@@ -1,7 +1,7 @@
 <script>
 import KeyTable from '@novnc/novnc/core/input/keysym';
-import NovncConsole from '@shell/components/novnc/NovncConsole';
-import NovncConsoleItem from '@shell/components/novnc/NovncConsoleItem';
+import NovncConsole from './NovncConsole';
+import NovncConsoleItem from './NovncConsoleItem';
 import { HCI } from '@shell/config/types';
 
 const SHORT_KEYS = {

@@ -284,7 +284,7 @@ export default {
         }));
 
         this.$store.dispatch('growl/success', {
-          title:   this.t('harvester.notification.title.succeed'),
+          title:   this.t('generic.notification.title.succeed'),
           message: this.t('harvester.host.disk.notification.success', { name: this.value.metadata?.name || '' }),
         }, { root: true });
       } catch (err) {

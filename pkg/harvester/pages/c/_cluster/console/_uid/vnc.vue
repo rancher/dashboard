@@ -1,6 +1,6 @@
 <script>
 import { HCI } from '@shell/config/types';
-import NovncConsoleWrapper from '@shell/components/novnc/NovncConsoleWrapper';
+import NovncConsoleWrapper from '../../../../../components/novnc/NovncConsoleWrapper.vue';
 import Loading from '@shell/components/Loading';
 
 export default {

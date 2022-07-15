@@ -51,7 +51,7 @@ export default {
           this.$store.dispatch(
             'growl/success',
             {
-              title:   this.t('harvester.notification.title.succeed'),
+              title:   this.t('generic.notification.title.succeed'),
               message: this.t('harvester.modal.hotunplug.success', { name: this.diskName })
             },
             { root: true }
