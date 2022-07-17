@@ -128,6 +128,9 @@ export default {
       targetAdvancedErrors: null,
 
       matchingClusters: null,
+
+      addRepositorySteps: [ this.stepRepoInfo, this.stepTargetInfo]
+        .sort((a, b) => (b.weight || 0) - (a.weight || 0))
     };
   },
 
@@ -136,16 +139,6 @@ export default {
 
     _SPECIFY() {
       return _SPECIFY;
-    },
-
-    addRepositorySteps() {
-      const steps =
-      [
-        this.stepRepoInfo,
-        this.stepTargetInfo
-      ];
-
-      return steps.sort((a, b) => (b.weight || 0) - (a.weight || 0));
     },
 
     isLocal() {

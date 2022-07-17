@@ -1904,7 +1904,7 @@ fleet:
           label: Target Details
           title: Specify which target to synchronise this repository to
           subtext: 'Define target details'
-          description: You can configure which clusters ill be used as the target of synchronisation with the resources in the repository.
+          description: You can configure which clusters will be used as the target of synchronisation with the resources in the repository.
     ref:
       label: Watch
       branch: A Branch
