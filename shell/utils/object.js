@@ -146,16 +146,12 @@ export function cleanUp(obj) {
     const val = obj[key];
 
     if ( Array.isArray(val) ) {
-      obj[key] = compact(val.map((each) => {
-        if (each) {
-          const cleaned = cleanUp(each);
-
-          if (!isEmpty(cleaned)) {
-            return cleaned;
-          }
+      obj[key] = val.map((each) => {
+        if (each !== null && each !== undefined) {
+          return cleanUp(each);
         }
-      }));
-      if (compact(obj[key]).length === 0) {
+      });
+      if (obj[key].length === 0) {
         delete obj[key];
       }
     } else if (typeof val === 'undefined' || val === null) {

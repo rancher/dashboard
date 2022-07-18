@@ -85,7 +85,8 @@ export default class Project extends HybridModel {
     const norman = await this.norman;
 
     await norman.remove(...arguments);
-    this.$dispatch('management/remove', this, { root: true });
+    await this.$dispatch('management/remove', this, { root: true });
+    await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
   }
 
   get norman() {

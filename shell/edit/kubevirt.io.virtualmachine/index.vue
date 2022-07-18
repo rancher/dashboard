@@ -145,7 +145,15 @@ export default {
 
     isQemuInstalled() {
       return this.value.isQemuInstalled;
-    }
+    },
+
+    hasRestartAction() {
+      return this.value.hasAction('restart');
+    },
+
+    hasStartAction() {
+      return this.value.hasAction('start');
+    },
   },
 
   watch: {
@@ -271,6 +279,8 @@ export default {
 
       const cloneValue = clone(this.value);
 
+      cloneValue.spec.template.spec.nodeSelector = this.spec.template.spec.nodeSelector;
+
       for (let i = 1; i <= this.count; i++) {
         this.$set(this.value, 'spec', cloneValue.spec);
         this.$set(this, 'spec', cloneValue.spec);
@@ -307,7 +317,7 @@ export default {
     },
 
     restartVM() {
-      if ( this.mode === 'edit' && (this.value.hasAction('restart') || this.value.hasAction('start'))) {
+      if ( this.mode === 'edit') {
         const cloneDeepNewVM = clone(this.value);
 
         delete cloneDeepNewVM?.metadata;
@@ -317,7 +327,13 @@ export default {
         const newVM = JSON.parse(JSON.stringify(cloneDeepNewVM));
 
         if (!isEqual(oldVM, newVM) && this.isRestartImmediately) {
-          this.value.doActionGrowl('restart', {});
+          if (this.value.hasAction('restart')) {
+            this.value.doActionGrowl('restart', {});
+          }
+
+          if (this.value.hasAction('start')) {
+            this.value.doActionGrowl('start', {});
+          }
         }
       }
     },
@@ -593,15 +609,15 @@ export default {
       </Tabbed>
 
       <div class="mt-20">
-        <span v-if="isEdit" class="restart">
+        <span v-if="isEdit && (hasRestartAction || hasStartAction)" class="restart">
           <Banner color="warning" class="banner-right">
-            {{ t('harvester.virtualMachine.restartTip') }}
+            {{ t('harvester.virtualMachine.restartTip', { restart: hasRestartAction }) }}
 
             <Checkbox
               v-model="isRestartImmediately"
               class="check ml-20"
               type="checkbox"
-              label-key="harvester.virtualMachine.restartNow"
+              :label="t('harvester.virtualMachine.restartNow', { restart: hasRestartAction })"
             />
           </Banner>
         </span>
