@@ -191,6 +191,14 @@ export default class ProvCluster extends SteveModel {
     return super.canEditYaml;
   }
 
+  get isAKS() {
+    return this.provisioner === 'AKS';
+  }
+
+  get isEKS() {
+    return this.provisioner === 'EKS';
+  }
+
   get isImported() {
     return this.provisioner === 'imported';
   }

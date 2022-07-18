@@ -71,9 +71,10 @@ export default {
       fetchOne.snapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
-    if (this.value.isImported || this.value.isCustom) {
+    if ( this.value.isImported || this.value.isCustom || this.value.isAKS || this.value.isEKS ) {
       fetchOne.clusterToken = this.value.getOrCreateToken();
     }
+
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
       fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
@@ -371,6 +372,10 @@ export default {
         return true;
       }
 
+      if ( ( this.value.isAKS || this.value.isEKS ) && !this.isClusterReady ) {
+        return true;
+      }
+
       return false;
     },
 
@@ -624,6 +629,7 @@ export default {
       </Tab>
 
       <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
+        <Banner color="warning" :label="t('cluster.import.warningBanner')" />
         <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
