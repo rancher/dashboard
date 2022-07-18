@@ -3,11 +3,13 @@ import { HCI, NODE } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import PercentageBar from '@shell/components/PercentageBar';
-import ProgressBarList from '@shell/components/HarvesterUpgradeProgressBarList';
+import ProgressBarList from './HarvesterUpgradeProgressBarList';
 import BadgeStateFormatter from '@shell/components/formatter/BadgeStateFormatter';
+import { PRODUCT_NAME as HARVESTER } from '../config/harvester';
+import { mapGetters } from 'vuex';
 
 export default {
-  name:       'HarvesterUpgrade',
+  name:       'HarvesterUpgradeHeader',
   components: {
     PercentageBar, ProgressBarList, BadgeStateFormatter
   },
@@ -31,6 +33,12 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentProduct', 'isVirtualCluster']),
+
+    enabled() {
+      return this.isVirtualCluster && this.currentProduct.name === HARVESTER;
+    },
+
     latestResource() {
       return this.$store.getters['harvester/all'](HCI.UPGRADE).find( U => U.isLatestUpgrade);
     },
@@ -95,7 +103,7 @@ export default {
 };
 </script>
 <template>
-  <div v-if="isShow" class="upgrade">
+  <div v-if="enabled && isShow" class="upgrade">
     <v-popover
       v-tooltip="{
         placement: 'bottom-left',

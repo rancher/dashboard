@@ -12,11 +12,9 @@ import ClusterBadge from '@shell/components/ClusterBadge';
 import { LOGGED_OUT } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
-import HarvesterUpgrade from './HarvesterUpgrade.vue';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
-import { PRODUCT_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -31,7 +29,6 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
-    HarvesterUpgrade
   },
 
   props: {
@@ -52,12 +49,13 @@ export default {
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
+      navHeaderRight:         null
     };
   },
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isVirtualCluster']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -152,9 +150,6 @@ export default {
       };
     },
 
-    virtual() {
-      return VIRTUAL;
-    }
   },
 
   watch: {
@@ -171,6 +166,8 @@ export default {
     window.addEventListener('resize', this.debouncedLayoutHeader);
 
     this.$nextTick(() => this.layoutHeader(null, true));
+
+    this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
   },
 
   beforeDestroy() {
@@ -332,7 +329,8 @@ export default {
     <div class="spacer"></div>
 
     <div class="rd-header-right">
-      <HarvesterUpgrade v-if="isVirtualCluster && currentProduct.name === virtual" />
+      <component :is="navHeaderRight" />
+
       <div
         v-if="(currentCluster || (currentProduct && currentProduct.customNamespaceFilter)) && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
         class="top"
