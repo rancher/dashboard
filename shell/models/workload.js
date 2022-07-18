@@ -1,5 +1,4 @@
 import { findBy, insertAt } from '@shell/utils/array';
-import { matches } from '@shell/utils/selector';
 import {
   TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS, CATTLE_PUBLIC_ENDPOINTS
 } from '@shell/config/labels-annotations';
