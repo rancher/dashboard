@@ -1,4 +1,5 @@
 import { findBy, insertAt } from '@shell/utils/array';
+import { matches } from '@shell/utils/selector';
 import {
   TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS, CATTLE_PUBLIC_ENDPOINTS
 } from '@shell/config/labels-annotations';
@@ -771,7 +772,11 @@ export default class Workload extends SteveModel {
     const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
 
     if (podRelationship) {
-      return this.$getters['matching'](POD, podRelationship.selector).filter(pod => pod?.metadata?.namespace === this.metadata.namespace);
+      const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
+
+      return pods.filter((obj) => {
+        return matches(obj, podRelationship.selector);
+      });
     } else {
       return [];
     }

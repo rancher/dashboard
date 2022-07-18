@@ -29,7 +29,7 @@ function registerType(state, type) {
   return cache;
 }
 
-function load(state, { data, ctx, existing }) {
+export function load(state, { data, ctx, existing }) {
   const { getters } = ctx;
   let type = normalizeType(data.type);
   const keyField = getters.keyFieldForType(type);
@@ -103,6 +103,8 @@ function load(state, { data, ctx, existing }) {
       cache.map.set(id, entry);
     }
   }
+
+  return entry;
 }
 
 export function forgetType(state, type) {
@@ -127,6 +129,29 @@ export function resetStore(state, commit) {
 
   for ( const type of Object.keys(state.types) ) {
     commit(`${ state.config.namespace }/forgetType`, type);
+  }
+}
+
+export function remove(state, obj, getters) {
+  let type = normalizeType(obj.type);
+  const keyField = getters[`${ state.config.namespace }/keyFieldForType`](type);
+  const id = obj[keyField];
+
+  let entry = state.types[type];
+
+  if ( entry ) {
+    removeObject(entry.list, obj);
+    entry.map.delete(id);
+  }
+
+  if ( obj.baseType ) {
+    type = normalizeType(obj.baseType);
+    entry = state.types[type];
+
+    if ( entry ) {
+      removeObject(entry.list, obj);
+      entry.map.delete(id);
+    }
   }
 }
 
@@ -160,6 +185,8 @@ export function loadAll(state, { type, data, ctx }) {
   }
 
   cache.haveAll = true;
+
+  return proxies;
 }
 
 export default {
@@ -232,26 +259,7 @@ export default {
   },
 
   remove(state, obj) {
-    let type = normalizeType(obj.type);
-    const keyField = this.getters[`${ state.config.namespace }/keyFieldForType`](type);
-    const id = obj[keyField];
-
-    let entry = state.types[type];
-
-    if ( entry ) {
-      removeObject(entry.list, obj);
-      entry.map.delete(id);
-    }
-
-    if ( obj.baseType ) {
-      type = normalizeType(obj.baseType);
-      entry = state.types[type];
-
-      if ( entry ) {
-        removeObject(entry.list, obj);
-        entry.map.delete(id);
-      }
-    }
+    remove(state, obj, this.getters);
   },
 
   reset(state) {

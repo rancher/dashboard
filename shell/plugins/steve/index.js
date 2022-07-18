@@ -26,6 +26,7 @@ function SteveFactory(namespace, baseUrl) {
         deferredRequests: {},
         started:          [],
         inError:          {},
+        podsByNamespace:  {}, // Cache of pods by namespace
       };
     },
 
