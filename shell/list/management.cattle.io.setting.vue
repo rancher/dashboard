@@ -12,7 +12,6 @@ export default {
   async fetch() {
     const isDev = this.$store.getters['prefs/get'](DEV);
     const rows = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
-
     const t = this.$store.getters['i18n/t'];
     // Map settings from array to object keyed by id
     const settingsMap = rows.reduce((res, s) => {
