@@ -7,6 +7,7 @@ generic:
   back: 返回
   cancel: 取消
   clear: 清除
+  clearAll: 清除全部
   close: 关闭
   comingSoon: 即将上线
   copy: 复制
@@ -386,6 +387,8 @@ authConfig:
       placeholder: 'ou=groups,dc=mycompany,dc=com'
     hostname:
       label: 主机名/IP
+      placeholder: 例如：server1,server2
+      hint: 可以使用逗号分隔列表来指定多个服务器
     loginAttribute: 登录属性
     nameAttribute: 名称属性
     nestedGroupMembership:
@@ -452,13 +455,13 @@ authConfig:
       info: '在开始设置之前，Azure AD 需要 Rancher Server 的白名单 URL。请确保在 Azure 门户的回复 URL 中设置了以下 URL。请注意，白名单 URL 可能需要 5 分钟才能生效。'
       label: 回复 URL
     updateEndpoint:
+      button: 更新端点
       banner:
         message: '必须更新 Azure AD 身份验证：它使用了 Azure Graph API，该 API 将于 2022 年底弃用。'
         linkText: '在此处进行更新。'
       modal:
         title: 是否确认？此更新是不可逆的。
-        body: '<p><b>你可能需要更新你的 Azure AD 应用</b>。请确保 Azure AD 应用具有以下 Microsoft Graph 应用权限：User.Read.All、Group.Read.All</p>'
-      button: 更新端点
+        body: '<p><b>你可能需要进行额外的更改</b>。请确保 Azure AD 应用对 Microsoft Graph 具有以下应用权限：User.Read.All、Group.Read.All<br> 如果在 Rancher 中配置 Azure AD 身份验证时自定义了端点，这些端点将不会自动更新。</p>'
   oidc:
     oidc: 配置 OIDC 账号
     keycloakoidc: 配置 Keycloak OIDC 账号
@@ -689,7 +692,9 @@ backupRestoreOperator:
     bucketName: 存储桶名称
     credentialSecretName: 凭证密文
     endpoint: 端点
-    endpointCA: 端点 CA
+    endpointCA:
+      label: 端点 CA
+      prompt: 端点 CA 必须是 Base64 编码的
     folder: 文件夹
     insecureTLSSkipVerify: 跳过 TLS 验证
     region: 区域
@@ -1039,8 +1044,8 @@ cluster:
         label: 添加标签
     registrationCommand:
       label: 注册命令
-      linuxDetail: 在每台要注册的 Linux 机器上运行此命令。
-      windowsDetail: 在每台要注册的 Windows 机器中的 PowerShell 上运行此命令。Windows 节点只能充当 worker。
+      linuxDetail: 在每台要注册的 Linux 主机上运行此命令。
+      windowsDetail: 在每台要注册的 Windows 主机中的 PowerShell 上运行此命令。Windows 节点只能充当 worker。
       windowsNotReady: 在用于添加 Windows worker 的注册命令显示之前，集群必须已启动并运行 Linux ETCD，Control Plane，以及 worker 节点。
       windowsWarning: 工作负载 Pod（包括由 Rancher Chart 部署的 Pod）将默认调度到 Linux 和 Windows 节点上。编辑 Chart 中的 NodeSelector 以将它们放置到兼容的节点上。
       insecure: "不安全：如果你的服务器具有自签名证书，选择此项以跳过 TLS 验证。"
@@ -1215,7 +1220,7 @@ cluster:
     placeholder: 独特的集群名称
   machineConfig:
     banner:
-      updateInfo: 创建一个池用来更新机器配置
+      updateInfo: 创建一个池用来更新主机配置
     aws:
       sizeLabel: |-
         {apiName}: {cpu, plural,
@@ -1440,15 +1445,15 @@ cluster:
     argInfo:
       title: 补充 Kubelet 参数
       machineSelector:
-        label: 添加机器选择器
+        label: 添加主机选择器
         listLabel: 添加参数
         bannerLabel: '注意：优先匹配最后一个的选择器，并且只使用它的参数。匹配到的其他选择器的参数不会合并。'
-        title: '标签匹配的机器：'
+        title: '标签匹配的主机：'
         subTitle: '使用 Kubelet 参数：'
         titleAlt:  |-
           {count, plural,
-            =1 { 所有机器均使用 Kubelet 参数： }
-            other { 任何机器均使用 Kubelet 参数： }
+            =1 { 所有主机均使用 Kubelet 参数： }
+            other { 任何主机均使用 Kubelet 参数： }
           }
         kubeControllerManagerTitle: 补充的 Controller Manager 参数
         kubeApiServerTitle: 补充的 API server 参数
@@ -1459,6 +1464,13 @@ cluster:
     warning: '此集群包含此表单不完全支持的 machineSelectorConfig。使用 YAML 编辑器管理完整配置。'
     os: '你正在将 {newOS} worker 节点添加到具有一个或多个 {existingOS} worker 节点的集群。你可能需要升级或删除某些已安装的应用。'
     rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">文档</a>。'
+
+  detail:
+    provisioner: 提供商
+    kubernetesVersion: Kubernetes 版本
+    machineProvider: 主机提供商
+    machinePools: 主机池
+    machines: 主机
 
   machinePool:
     name:
@@ -1495,7 +1507,7 @@ cluster:
             other {}
           }
     quantity:
-      label: 机器数量
+      label: 主机数量
     drain:
       header: 清空
       label: 删除前清空
@@ -1679,6 +1691,9 @@ cluster:
       }
     groupLabel: 位置
     failed: "{time} 后的快照已失败"
+    rke1:
+      local: 本地
+      s3: s3
   tabs:
     ace: 授权端点
     addons: 附加配置
@@ -1689,8 +1704,8 @@ cluster:
     etcd: ETCD
     log: 配置日志
     networking: 网络
-    machinePools: 机器池
-    machines: 机器
+    machinePools: 主机池
+    machines: 主机
     memberRoles: 成员角色
     registry: 镜像仓库
     upgrade: 升级策略
@@ -1705,12 +1720,12 @@ cluster:
     v1: RKE1
     v2: RKE2/K3s
   validation:
-    iamInstanceProfileName: 如果选择了 Amazon 云提供商，则必须为每个机器池定义“IAM 实例配置文件名称”。
+    iamInstanceProfileName: 如果选择了 Amazon 云提供商，则必须为每个主机池定义“IAM 实例配置文件名称”。
 
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{total} {units} {suffix} 中的 {useful}"
-    cores: 核心
+    cores: CPU
     pods: Pod
     ram: 内存
     used: 已使用
@@ -3218,7 +3233,7 @@ node:
           kernelVersion: 内核版本
           kubeProxyVersion: kube-proxy 版本
           kubeletVersion: Kubelet 版本
-          machineID: 机器 ID
+          machineID: 主机 ID
           operatingSystem: 操作系统
           osImage: 镜像
           systemUUID: 系统 UUID
@@ -3593,6 +3608,7 @@ prefs:
     emacs: 'Emacs'
     vim: 'Vim'
   advanced: 高级选项
+  advancedTooltip: 启用“在 API 中查看”选项并使用键盘快捷键来切换浅色或深色主题 (shift+t)
   dev:
     label: 启用开发工具
   hideDesc:
@@ -3760,13 +3776,14 @@ prometheusRule:
 
 promptForceRemove:
   modalTitle: 是否确认？
-  removeWarning: "删除底层基础设施时出现问题。如果你继续执行此操作，机器<b>{nameToMatch}</b>将从 Rancher 中删除。强烈建议手动删除所有引用的基础设施。"
+  removeWarning: "删除底层基础设施时出现问题。如果你继续执行此操作，主机<b>{nameToMatch}</b>将从 Rancher 中删除。强烈建议手动删除所有引用的基础设施。"
   forceDelete: 强制删除
   confirmName: "在下面输入池名称以确认："
+  podRemoveWarning: "强制删除不会等待到 Pod 的进程已确认终止。这可能会导致<strong>数据损坏或不一致</strong>。"
 
 promptScaleMachineDown:
   attemptingToRemove: "你正在尝试删除 {count} {type}"
-  retainedMachine1: Control Plane 和 Etcd 角色要求至少一台机器。
+  retainedMachine1: Control Plane 和 Etcd 角色要求至少一台主机。
   retainedMachine2: <b>{ name }</b> 会保留
 
 promptRemove:
@@ -4040,7 +4057,7 @@ resourceTable:
     notInAWorkspace: 不在工作空间内
     workspace: "<span>工作空间</span> {name}"
     notInANodePool: "不在节点池中"
-    nodePool: "<span>节点池：</span> {name} ({count})"
+    nodePool: "<span>节点池：</span> {name}"
     node: "<span>节点：</span> {name}"
 
 resourceTabs:
@@ -4228,6 +4245,8 @@ servicesPage:
       label: 集群 IP
       placeholder: 例如：10.43.xxx.xxx
     label: IP 地址
+    loadBalancer:
+      label: 负载均衡
     loadBalancerIp:
       label: 负载均衡 IP
       placeholder: 例如：192.0.xxx.xxx
@@ -4652,7 +4671,7 @@ tableHeaders:
   lastUpdated: 最后更新时间
   lastSeen: 最后出现
   loggingOutputProviders: 提供商
-  machines: 机器
+  machines: 主机
   machineNodeName: 节点
   manual: 手动
   matches: 匹配
@@ -4965,6 +4984,7 @@ validation:
     route:
       match: 必须选择至少一个匹配或匹配正则表达式。
       interval: '"{key}" 必须是以数字后跟单位（如 1h, 2m, 30s）的格式。'
+  tab: "此选项卡中的一个或多个字段包含表单验证错误"
 
 wizard:
   previous: 上一步
@@ -5592,6 +5612,7 @@ harvester:
     virtualName: 虚拟机名称
     promiscuous: Promiscuous
     ipv4Address: IPv4 地址
+    filterLabels: 标签过滤
   generic:
     close: 关闭
     open: 打开
@@ -5759,9 +5780,17 @@ harvester:
       actionLabel: 拔出
       detachVolume:
         拔出卷
-    restartTip: 重启虚拟机以使配置更改生效。
+    restartTip: |-
+      {restart, select,
+        true {重启}
+        other {启动}
+      }虚拟机以使配置更改生效。
     runStrategy: 运行策略
-    restartNow: 现在重启
+    restartNow: |-
+      {restart, select,
+        true {现在重启}
+        other {现在启动}
+      } 
     createSSHKey: 创建 SSH 密钥
     installAgent: 安装访客代理
     enableUsb: 启用 USB Tablet
@@ -5837,7 +5866,7 @@ harvester:
       image: 镜像
       sshKey: SSH 密钥
       sshKeyValue: SSH 密钥
-      MachineType: 机器类型
+      MachineType: 主机类型
       username: 用户名
       password: 密码
       reservedMemory: 预留内存
@@ -5945,8 +5974,8 @@ harvester:
       name: 模板名称
     tips:
       notExistImage:
-        title: 镜像 {name} 不存在!
-        message: 请重新选择镜像
+        title: 镜像 {name} 不存在。
+        message: 请选择一个新的镜像。
 
   upgradePage:
     upgradeApp: 升级软件

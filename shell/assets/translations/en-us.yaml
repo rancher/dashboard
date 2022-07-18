@@ -7,6 +7,7 @@ generic:
   back: Back
   cancel: Cancel
   clear: Clear
+  clearAll: Clear All
   close: Close
   comingSoon: Coming Soon
   copy: Copy
@@ -1404,7 +1405,7 @@ cluster:
         title: Security Group
         vpcId: '(select a VPC/Subnet first)'
         mode:
-          default: 'Standard: Automatically create and use a "{defaultGroup}"; security group'
+          default: 'Standard: Automatically create and use a "{defaultGroup}" security group'
           custom: 'Choose one or more existing security groups:'
       volumeType:
         label: EBS Root Volume Type
@@ -1856,6 +1857,7 @@ fleet:
       other {# tokens are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
       }
   bundles:
+    resources: Resources
     harvester: |-
       {count, plural,
       =1 {1 bundle is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
@@ -2039,6 +2041,12 @@ graphOptions:
   summary: Summary
   refresh: Refresh
   range: Range
+
+growl:
+  clearAll: Clear All Notifications
+  disconnected: 
+    message: "The connection to {url} closed unexpectedly {time}. Retrying..."
+    title: Websocket Disconnected 
 
 hpa:
   detail:
@@ -2356,6 +2364,7 @@ labels:
   addAnnotation: Add Annotation
   labels:
     title: Labels
+    fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
   annotations:
     title: Annotations
 
@@ -2660,6 +2669,9 @@ login:
   remember:
     label: Remember Username
 
+managementNode:
+  customName: Custom Name
+
 members:
   clusterMembers: Cluster Members
   createActionLabel: Add
@@ -2687,7 +2699,7 @@ members:
     custom:
       label: Custom
       description: Choose individual roles for this user.
-  localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store.  Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any other cluster managed by this installation."
+  localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store. Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any part of this installation."
 
 membershipEditor:
   label: Members
@@ -4095,6 +4107,7 @@ secret:
   serviceAcct:
     ca: CA Certificate
     token: Token
+  customType: Custom Type
   type: Type
   types:
     'opaque': 'Opaque'
@@ -4126,6 +4139,8 @@ secret:
     's3': 'S3'
   relatedWorkloads: Related Workloads
   typeDescriptions:
+    custom:
+      description: Create a Secret with a custom type
     'kubernetes.io/basic-auth':
       description: 'Authentication with a username and password'
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#basic-authentication-secret
@@ -5164,6 +5179,15 @@ workload:
       upgrading: Scaling and Upgrade Policy
   cronSchedule: Schedule
   detail:
+    services: Services
+    ingresses: Ingresses
+    cannotViewServices: Could not list Services due to lack of permission.
+    cannotFindServices: Could not find any Services that select Pods from this workload.
+    serviceListCaption: "The following Services select Pods from this workload:"
+    cannotViewIngresses: Could not list Ingresses due to lack of permission.
+    cannotFindIngresses: Could not find any Ingresses that forward traffic to Services that select Pods in this workload.
+    ingressListCaption: "The following Ingresses forward traffic to Services that select Pods from this workload:"
+    cannotViewIngressesBecauseCannotViewServices: Could not find relevant relevant Ingresses due to lack of permission to view Services.
     pods:
       title: Pods
   detailTop:
@@ -5568,6 +5592,7 @@ harvester:
     virtualName: Virtual machine name
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
+    filterLabels: Filter Labels
   generic:
     close: Close
     open: Open
@@ -5727,9 +5752,17 @@ harvester:
       actionLabel: Detach
       detachVolume:
         Detach Volume
-    restartTip: Restart the virtual machine now to take effect of the configuration changes.
+    restartTip: |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } the virtual machine now to take effect of the configuration changes.
     runStrategy: Run Strategy
-    restartNow: Restart Now
+    restartNow:  |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } Now
     createSSHKey: Create a New...
     installAgent: Install guest agent
     enableUsb: Enable USB Tablet
@@ -5787,7 +5820,7 @@ harvester:
       affinity:
         anyNode: 'Run VM on any available node'
         schedulingRules: 'Run VM on node(s) matching scheduling rules'
-        specificNode: Run VM on specific node(s) - (Live migration is not supported)
+        specificNode: Run VM on specific node - (Live migration is not supported)
     accessCredentials:
       resetPwd:
         label: Add Basic Auth
@@ -5915,6 +5948,9 @@ harvester:
       notExistImage:
         title: Image {name} does not exist!
         message: Please select a new Image.
+      notExistNode:
+        title: Node {name} does not exist!
+        message: Please select a new Node.
 
   upgradePage:
     upgradeApp: Upgrade Software
@@ -6591,9 +6627,10 @@ advancedSettings:
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
     'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
-    'auth-token-max-ttl-minutes': 'Custom max TTL (in minutes) on an auth token.'
-    'kubeconfig-generate-token': 'Automatically generate kubeconfig tokens for users.'
-    'kubeconfig-token-ttl-minutes': 'Custom max TTL (in minutes) on a kubeconfig token.'
+    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all authentication tokens. When set to 0, the token never expires.'
+    'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
+    'kubeconfig-token-ttl-minutes': 'TTL used for tokens generated via the CLI. Deprecated: This setting will be removed, and kubeconfig-default-ttl-minutes will be used for all kubeconfig tokens.'
+    'kubeconfig-default-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'custom-notifications': Edit custom notifications

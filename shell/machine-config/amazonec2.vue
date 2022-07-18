@@ -212,8 +212,11 @@ export default {
       const subnetsByVpc = {};
 
       for ( const obj of this.vpcInfo.Vpcs ) {
+        const name = obj.Tags.find(t => t.Key === 'Name')?.Value;
+
         vpcs.push({
-          label:     `${ obj.VpcId } (${ obj.CidrBlock })`,
+          label:     name || obj.VpcId,
+          subLabel:  name ? obj.VpcId : obj.CidrBlock,
           isDefault: obj.IsDefault || false,
           kind:      'vpc',
           value:     obj.VpcId,
@@ -234,8 +237,11 @@ export default {
           subnetsByVpc[obj.VpcId] = entry;
         }
 
+        const name = obj.Tags.find(t => t.Key === 'Name')?.Value;
+
         entry.push({
-          label:     `${ obj.SubnetId } (${ obj.CidrBlock } - ${ obj.AvailableIpAddressCount } available)`,
+          label:     name || obj.SubnetId,
+          subLabel:  name ? obj.SubnetId : obj.CidrBlock,
           kind:      'subnet',
           isDefault: obj.DefaultForAz || false,
           value:     obj.SubnetId,
@@ -471,12 +477,9 @@ export default {
               @input="updateNetwork($event)"
             >
               <template v-slot:option="opt">
-                <template v-if="opt.kind === 'vpc'">
-                  <b>{{ opt.label }}</b>
-                </template>
-                <template v-else>
-                  <span class="pl-10">{{ opt.label }}</span>
-                </template>
+                <div :class="{'vpc': opt.kind === 'vpc', 'vpc-subnet': opt.kind !== 'vpc'}">
+                  <span class="vpc-name">{{ opt.label }}</span><span class="vpc-info">{{ opt.subLabel }}</span>
+                </div>
               </template>
             </LabeledSelect>
           </div>
@@ -662,3 +665,24 @@ export default {
     </template>
   </div>
 </template>
+<style scoped lang="scss">
+  .vpc, .vpc-subnet {
+    display: flex;
+    line-height: 30px;
+
+    .vpc-name {
+      font-weight: bold;
+      flex: 1;
+    }
+
+    .vpc-info {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+  }
+
+  .vpc-subnet .vpc-name {
+    font-weight: normal;
+    padding-left: 15px;
+  }
+</style>

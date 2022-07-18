@@ -1,16 +1,14 @@
 <script>
 import { FLEET } from '@shell/config/types';
 import FleetBundleResources from '@shell/components/fleet/FleetBundleResources.vue';
-import Tabbed from '@shell/components/Tabbed';
-import Tab from '@shell/components/Tabbed/Tab';
+import SortableTable from '@shell/components/SortableTable';
 
 export default {
   name: 'FleetBundleDetail',
 
   components: {
-    Tabbed,
-    Tab,
     FleetBundleResources,
+    SortableTable,
   },
   props:      {
     value: {
@@ -27,30 +25,53 @@ export default {
     const { namespace, labels } = this.value.metadata;
     const repoName = `${ namespace }/${ labels['fleet.cattle.io/repo-name'] }`;
 
-    this.repo = await this.$store.dispatch('management/find', { type: FLEET.GIT_REPO, id: repoName });
+    if (this.hasRepoLabel) {
+      this.repo = await this.$store.dispatch('management/find', { type: FLEET.GIT_REPO, id: repoName });
+    }
   },
 
   computed: {
-
-    bundleResources() {
-      const bundleResourceIds = this.bundleResourceIds;
-
-      return this.repo?.status?.resources.filter((resource) => {
-        return bundleResourceIds.includes(resource.name);
-      });
+    hasRepoLabel() {
+      return !!(this.value?.metadata?.labels && this.value?.metadata?.labels['fleet.cattle.io/repo-name']);
     },
+    bundleResources() {
+      if (this.hasRepoLabel) {
+        const bundleResourceIds = this.bundleResourceIds;
 
+        return this.repo?.status?.resources.filter((resource) => {
+          return bundleResourceIds.includes(resource.name);
+        });
+      } else if (this.value?.spec?.resources?.length) {
+        return this.value?.spec?.resources.map((item) => {
+          return {
+            content: item.content,
+            name:    item.name.includes('.') ? item.name.split('.')[0] : item.name
+          };
+        });
+      }
+
+      return [];
+    },
+    resourceHeaders() {
+      return [
+        {
+          name:      'name',
+          value:     'name',
+          sort:      ['name'],
+          labelKey:  'tableHeaders.name',
+        },
+      ];
+    },
+    resourceCount() {
+      return (this.bundleResources && this.bundleResources.length) || this.value?.spec?.resources?.length;
+    },
     bundleResourceIds() {
       if (this.value.status?.resourceKey) {
         return this.value?.status?.resourceKey.map(item => item.name);
       }
 
       return [];
-    },
-
-    repoSchema() {
-      return this.$store.getters['management/schemaFor'](FLEET.GIT_REPO);
-    },
+    }
   }
 };
 
@@ -58,10 +79,41 @@ export default {
 
 <template>
   <div>
-    <Tabbed>
-      <Tab label="Resources" name="resources" :weight="30">
-        <FleetBundleResources :value="bundleResources" />
-      </Tab>
-    </Tabbed>
+    <div class="bundle-title mt-20 mb-20">
+      <h2>{{ t('fleet.bundles.resources') }}</h2>
+      <span>{{ resourceCount }}</span>
+    </div>
+    <FleetBundleResources
+      v-if="hasRepoLabel"
+      :value="bundleResources"
+    />
+    <SortableTable
+      v-else
+      :rows="bundleResources"
+      :headers="resourceHeaders"
+      :table-actions="false"
+      :row-actions="false"
+      key-field="tableKey"
+      default-sort-by="state"
+      :paged="true"
+    />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.bundle-title {
+  display: flex;
+  align-items: center;
+
+  h2 {
+    margin: 0 10px 0 0;
+  }
+
+  span {
+    background-color: var(--darker);
+    color: var(--default);
+    padding: 5px 10px;
+    border-radius: 15px;
+  }
+}
+</style>

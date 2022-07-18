@@ -1,5 +1,17 @@
 # Performance
 
+## Upstream Documentation
+
+The Kubernetes documentation has useful information on efficiently detecting changes: https://kubernetes.io/docs/reference/using-api/api-concepts/#efficient-detection-of-changes 
+
+## Scale Testing Tools
+
+For performance testing with many clusters or many nodes, the tool that the backend devs use for performance testing is https://github.com/rancher/rancher2-scaling.
+
+For quickly deploying a lot of resources on the same cluster, the QA team is considering this tool called `clusterloader2`: https://github.com/kubernetes/perf-tests/tree/master/clusterloader2
+
+For simulating a larger cluster than what the hardware actually provides, you can use K3d to simlate more space. With K3d it is possible to deploy more resources as you can simulate three times the CPU and memory that is actually available.
+
 ## Flame Graph
 
 To inspect performance in the Rancher UI, open the Chrome developer tools and click the **Performance** tab. From there, you can see a flame chart to see what tasks take the most time. You can record performance, analyze local time vs. network time, and analyze whether some network calls can be made serially or in parallel.
@@ -20,9 +32,7 @@ In `plugins/dashboard-store/actions.js`, if there are multiple requests for the 
 
 # Pagination
 
-Pagination doesn't help performance. Getting pages from etcd is slower than getting all the data at once because when you request paginated data from etcd, it gets all of the data and then throws away the data you didn't ask for. So requesting multiple pages is slower than requesting everything in one page.
-
-The UI renders pages for display purposes only.
+The UI renders pages for display purposes only. The Kubernetes API supports pagination (https://kubernetes.io/docs/reference/using-api/api-concepts/#retrieving-large-results-sets-in-chunks), but the Rancher UI doesn't use that feature because it supports text-based sorting and filtering on the client side that is not supported on the server side.
 
 ## Streaming
 

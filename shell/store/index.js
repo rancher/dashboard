@@ -253,6 +253,12 @@ export const getters = {
     return BOTH;
   },
 
+  activeNamespaceFilters(state) {
+    return () => {
+      return state.namespaceFilters;
+    };
+  },
+
   namespaces(state, getters) {
     return () => {
       const out = {};
@@ -629,7 +635,7 @@ export const actions = {
   async loadCluster({
     state, commit, dispatch, getters
   }, {
-    id, oldProduct, oldPkg, newPkg
+    id, product, oldProduct, oldPkg, newPkg
   }) {
     const sameCluster = state.clusterId && state.clusterId === id;
     const samePackage = oldPkg?.name === newPkg?.name;
@@ -654,9 +660,13 @@ export const actions = {
       s => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
 
+    const productConfig = state['type-map']?.products?.find(p => p.name === product);
+    const forgetCurrentCluster = ((state.clusterId && id) || !samePackage) && !productConfig?.inExplorer;
+
     // Should we leave/forget the current cluster? Only if we're going from an existing cluster to a new cluster, or the package has changed
     // (latter catches cases like nav from explorer cluster A to epinio cluster A)
-    if ( (state.clusterId && id) || !samePackage) {
+    // AND if the product not scoped to the explorer - a case for products that only exist within the explorer (i.e. Kubewarden)
+    if ( forgetCurrentCluster ) {
       // Clear the old cluster state out if switching to a new one.
       // If there is not an id then stay connected to the old one behind the scenes,
       // so that the nav and header stay the same when going to things like prefs

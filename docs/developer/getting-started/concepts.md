@@ -10,6 +10,10 @@ The following learning path is a suggested guide for which order to learn Ranche
 
 SUSE provides official training on Rancher and K3s. The courses are on the [SUSE community website.](https://community.suse.com/all-courses) However, because Rancher is built on top of Kubernetes and Kubernetes manages containers, it is ideal to have at least some familiarity with containers and Kubernetes before diving into Rancher.
 
+## UI Walkthrough
+
+An intro to the Rancher UI is [here.](./ui-walkthrough.md)
+
 # Learning path
 
 ## 1. Terminology
@@ -44,13 +48,18 @@ While it is possible to build a Kubernetes cluster on a single node managing a s
 
 Kubernetes is too complex to document it all here, but a good starting point would be to go through the tutorials in the official [Kubernetes documentation.](https://kubernetes.io/docs/tutorials/) Minikube and K3d are examples of tools that let you play with Kubernetes in a sandbox environment for development and testing purposes.
 
-### Top 5 Most Important Kubernetes Concepts
+### Top 6 Most Important Kubernetes Concepts
 
 1. **Pods:** Kubernetes doesn't directly manipulate containers. Instead, the fundamental Kubernetes resource is the [Pod,](https://kubernetes.io/docs/concepts/workloads/pods/) which encapsulates one or more containers (usually one). Everything in Kubernetes comes back around to Pods in the end, because Pods encapsulate containers, so Kubernetes can't manage containers without them.
 2. **Workloads:** Most people who use Kubernetes don't directly manipulate Pods. The three most important Kubernetes resources for indirectly manipulating Pods are called Deployments, StatefulSets, and Daemonsets. The term "workloads" is often used to describe apps and services running in Pods, no matter what Kubernetes resource is actually controlling those Pods. Information on all types of workloads can be found in the [Kubernetes documentation.](https://kubernetes.io/docs/concepts/workloads/) These workload management resources allow you to delegate management of the Pods so that you don't have to manually manipulate them yourself.
 3. **YAML config files:** Every aspect of a Kubernetes cluster can be specified declaratively in YAML configuration files. Each YAML file ends in `.yml` or `.yaml` and consists of key-value pairs, in which the order of the keys doesn't matter but the indentation does. These declarative config files are important because they allow Kubernetes admins and operators to easily see how something in Kubernetes is configured and to look at past versions of config files to see how it has changed in the past.
 4. **Kubernetes API:** Every Kubernetes cluster has a Kubernetes API server. When you manipulate a Kubernetes cluster using the `kubectl` command line tool, that tool calls the Kubernetes API. When Rancher manages Kubernetes clusters, it calls the Kubernetes API server of each individual cluster that it manages.
 5. **etcd:** All data about the Kubernetes cluster is stored in a database called `etcd`. When you back up a Kubernetes cluster, you are backing up `etcd`. When you restore a Kubernetes cluster, you restore `etcd`. When you call the Kubernetes API server with `kubectl`, the server gives you the data you want from `etcd`. If `etcd` is corrupted, the Kubernetes cluster needs to be restored from backup. In a Kubernetes cluster, the best practice is to assign three nodes in the cluster with the `etcd` role, which means the distributed `etcd` database will run on those three nodes. (It needs an odd number of nodes so that if there is an inconsistency in the database, it can be resolved with a majority vote.)
+6. **Networking:** For newcomers to Kubernetes, one of the most challenging aspects to understand is Kubernetes networking. Although it is complex, it is essential to understand networking so that you can understand how data flows through a cluster. The following resources are helpful for getting a more intuitive understanding of how workloads, Ingresses and different types of Services work together:
+
+- https://stackoverflow.com/questions/45079988/ingress-vs-load-balancer
+- https://www.ibm.com/docs/en/cloud-private/3.2.0?topic=networking-kubernetes-service-types
+- https://medium.com/google-cloud/kubernetes-nodeport-vs-loadbalancer-vs-ingress-when-should-i-use-what-922f010849e0
 
 ## 5. Rancher
 
