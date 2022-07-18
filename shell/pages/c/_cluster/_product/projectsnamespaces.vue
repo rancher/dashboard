@@ -125,9 +125,9 @@ export default {
       const namespaceFilters = this.$store.getters['activeNamespaceFilters']();
       const activeProjectFilters = this.getActiveProjects(namespaceFilters);
 
-      // If the user is not filtering by any projects, return
+      // If the user is not filtering by any projects or namespaces, return
       // all projects in the cluster.
-      if (Object.keys(activeProjectFilters).length === 0) {
+      if (!this.userIsFilteringForSpecificNamespaceOrProject()) {
         return this.clusterProjects;
       }
 
