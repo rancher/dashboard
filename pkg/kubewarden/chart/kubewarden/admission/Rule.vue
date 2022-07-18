@@ -91,10 +91,20 @@ export default {
     resourceOptions() {
       if ( this.value?.apiGroups?.length > 0 ) {
         const schemas = this.value.apiGroups.map((g) => {
-          return this.schemaForGroup(g);
-        });
+          /*
+            If 'core' is selected we want to show all of the available resources
+            Comparable to `kubectl api-resources -o wide`
+          */
+          if ( g === 'core' ) {
+            return this.schemas;
+          }
 
-        return schemas?.flatMap(schema => schema?.map(s => s?.attributes?.resource));
+          return this.schemaForGroup(g);
+        })[0];
+
+        const filtered = schemas?.filter(s => s.attributes?.resource);
+
+        return filtered.map(f => f.attributes.resource);
       }
 
       return null;
@@ -104,10 +114,8 @@ export default {
   methods: {
     schemaForGroup(group) {
       if ( !!group ) {
-        const name = this.$store.getters[`${ this.inStore }/schemaName`]({ type: group });
-
         return this.schemas?.filter((s) => {
-          return s._group === name;
+          return s._group === group;
         });
       }
 
@@ -118,66 +126,65 @@ export default {
 </script>
 
 <template>
-  <div v-if="value" class="mt-40">
-    <div class="row mb-20">
-      <div class="col span-12">
-        <h4>{{ t('kubewarden.policyConfig.apiGroups.title') }}</h4>
-        <LabeledSelect
-          v-model="value.apiGroups"
-          :label="t('kubewarden.policyConfig.apiGroups.label')"
-          :mode="mode"
-          :multiple="true"
-          :options="apiGroupOptions"
-        />
-      </div>
+  <div v-if="value" class="rules-row mt-40 mb-20">
+    <div class="">
+      <LabeledSelect
+        v-model="value.apiGroups"
+        :label="t('kubewarden.policyConfig.apiGroups.label')"
+        :mode="mode"
+        :multiple="true"
+        :options="apiGroupOptions || []"
+      />
     </div>
 
-    <div class="row mb-20">
-      <div class="col span-12">
-        <h4>{{ t('kubewarden.policyConfig.apiVersions.title') }}</h4>
-        <LabeledSelect
-          v-model="value.apiVersions"
-          :clearable="true"
-          :searchable="false"
-          :mode="mode"
-          :multiple="true"
-          :options="apiVersionOptions || []"
-          placement="bottom"
-          :label="t('kubewarden.policyConfig.apiVersions.label')"
-        >
-          <template #options="opt">
-            <span>{{ opt }}</span>
-          </template>
-        </LabeledSelect>
-      </div>
+    <div class="">
+      <LabeledSelect
+        v-model="value.apiVersions"
+        :clearable="true"
+        :searchable="false"
+        :mode="mode"
+        :multiple="true"
+        :options="apiVersionOptions || []"
+        placement="bottom"
+        :label="t('kubewarden.policyConfig.apiVersions.label')"
+      >
+        <template #options="opt">
+          <span>{{ opt }}</span>
+        </template>
+      </LabeledSelect>
     </div>
 
-    <div class="row mb-20">
-      <div class="col span-12">
-        <h4>{{ t('kubewarden.policyConfig.operations.title') }}</h4>
-        <LabeledSelect
-          v-model="value.operations"
-          :label="t('kubewarden.policyConfig.operations.label')"
-          :mode="mode"
-          :multiple="true"
-          :options="operationOptions || []"
-          :tooltip="t('kubewarden.policyConfig.operations.tooltip')"
-        />
-      </div>
+    <div class="">
+      <LabeledSelect
+        v-model="value.operations"
+        :label="t('kubewarden.policyConfig.operations.label')"
+        :mode="mode"
+        :multiple="true"
+        :options="operationOptions || []"
+        :tooltip="t('kubewarden.policyConfig.operations.tooltip')"
+      />
     </div>
 
-    <div class="row mb-20">
-      <div class="col span-12">
-        <h4>{{ t('kubewarden.policyConfig.resources.title') }}</h4>
-        <LabeledSelect
-          v-model="value.resources"
-          :label="t('kubewarden.policyConfig.resources.label')"
-          :mode="mode"
-          :multiple="true"
-          :options="resourceOptions || []"
-          :tooltip="t('kubewarden.policyConfig.resources.tooltip')"
-        />
-      </div>
+    <div class="">
+      <LabeledSelect
+        v-model="value.resources"
+        :label="t('kubewarden.policyConfig.resources.label')"
+        :mode="mode"
+        :multiple="true"
+        :options="resourceOptions || []"
+        :tooltip="t('kubewarden.policyConfig.resources.tooltip')"
+      />
     </div>
+
+    <slot name="removeRule" class="" />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.rules-row{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  grid-column-gap: $column-gutter;
+  align-items: center;
+}
+</style>

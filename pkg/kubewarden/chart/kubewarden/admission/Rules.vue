@@ -4,9 +4,6 @@ import { removeAt } from '@shell/utils/array';
 
 import Rule from './Rule';
 
-import Tab from '@shell/components/Tabbed/Tab';
-import Tabbed from '@shell/components/Tabbed';
-
 export default {
   name: 'Rules',
 
@@ -22,9 +19,7 @@ export default {
     }
   },
 
-  components: {
-    Rule, Tab, Tabbed
-  },
+  components: { Rule },
 
   async fetch() {
     this.apiGroups = await this.$store.dispatch('cluster/findAll', { type: 'apigroup' });
@@ -55,40 +50,30 @@ export default {
 
     removeRule(index) {
       removeAt(this.rules, index);
-    },
-
-    ruleLabel(rule, index) {
-      return rule?.apiGroups?.[0] || index;
     }
   }
 };
 </script>
 
 <template>
-  <div class="row mb-40">
-    <div class="col span-12">
-      <Tabbed
-        :side-tabs="true"
-        :show-tabs-add-remove="!isView"
-        @addTab="addRule"
-        @removeTab="removeRule"
+  <div>
+    <div v-for="(rule, index) in rules" :key="'filtered-rule-' + index">
+      <Rule
+        ref="lastRule"
+        v-model="rules[index]"
+        :mode="mode"
+        :api-groups="apiGroups"
       >
-        <Tab
-          v-for="(rule, index) in rules"
-          :key="'filtered-rule-' + index"
-          :name="'rule-' + index"
-          :label="`Rule - ${ ruleLabel(rule, index) }`"
-          :show-header="false"
-          class="container-group"
-        >
-          <Rule
-            ref="lastRule"
-            v-model="rules[index]"
-            :mode="mode"
-            :api-groups="apiGroups"
-          />
-        </Tab>
-      </Tabbed>
+        <template v-if="!isView" #removeRule>
+          <button type="button" class="btn role-link" @click="removeRule(index)">
+            {{ t('kubewarden.policyConfig.rules.remove') }}
+          </button>
+        </template>
+      </Rule>
     </div>
+
+    <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addRule">
+      {{ t('kubewarden.policyConfig.rules.add') }}
+    </button>
   </div>
 </template>

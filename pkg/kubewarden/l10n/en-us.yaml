@@ -35,18 +35,17 @@ kubewarden:
     ignoreRancherNamespaces:
       label: Ignore Rancher Namespaces
       tooltip: Certain policies will break core services of Rancher, this will add a default list of namespaces to ignore.
+    rules:
+      add: Add Rule Set
+      remove: Remove Rule Set
     apiGroups:
-      title: API Groups
       label: API Group
     apiVersions:
-      title: API Versions
       label: API Version
     operations:
-      title: Operations
       label: Operation type
       tooltip: The type of operation to be validated.
     resources:
-      title: Resources
       label: Resource type
       tooltip: The targeted resources for the policy. Needs to be a resource that is supported by the policy, this is determined in the `metadata.yml` of the selected policy.
   policyServerConfig:
