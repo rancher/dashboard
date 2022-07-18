@@ -11,7 +11,7 @@ export function init($plugin, store) {
   // app in sidebar
   product({
     ifHaveGroup:         ELEMENTAL_PRODUCT_GROUP,
-    icon:                'gear',
+    icon:                'os-management',
     inStore:             'management',
     removable:           false,
     showClusterSwitcher: false,

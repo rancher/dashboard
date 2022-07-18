@@ -186,6 +186,7 @@ product:
   harvesterManager: Virtualization Management
   harvester: Harvester
   rancher: Rancher
+  elemental: OS Management
 
 suffix:
   percent: "%"
