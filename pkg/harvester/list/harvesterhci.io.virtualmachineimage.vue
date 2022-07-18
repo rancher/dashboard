@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { Banner } from '@components/Banner';
-import FilterLabel from '@shell/components/FilterLabel';
+import FilterLabel from '../components/FilterLabel';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 
 export default {

@@ -16,7 +16,7 @@ import HarvesterUpgrade from './HarvesterUpgrade.vue';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
-import { PRODUCT_NAME as VIRTUAL } from '@/shell/config/product/harvester-manager';
+import { PRODUCT_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
