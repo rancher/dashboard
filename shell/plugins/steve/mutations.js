@@ -1,7 +1,14 @@
 import { addObject, removeObject } from '@shell/utils/array';
-import { forgetType, resetStore, loadAll, load, remove } from '@shell/plugins/dashboard-store/mutations';
+import {
+  forgetType,
+  resetStore,
+  loadAll,
+  load,
+  remove
+} from '@shell/plugins/dashboard-store/mutations';
 import { keyForSubscribe } from '@shell/plugins/steve/subscribe';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
+import Vue from 'vue';
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];
@@ -9,7 +16,7 @@ function registerNamespace(state, namespace) {
   if (!cache) {
     cache = {
       list: [],
-      map: new Map()
+      map:  new Map()
     };
 
     Vue.set(state.podsByNamespace, namespace, cache);
@@ -30,9 +37,10 @@ export default {
     });
 
     // If we loaded a set of pods, then update the posdByNamespace cache
-    if (type == 'pod' && proxies?.length) {
+    if (type === 'pod' && proxies?.length) {
       proxies.forEach((entry) => {
         const cache = registerNamespace(state, entry.namespace);
+
         addObject(cache.list, entry);
         cache.map.set(entry.id, entry);
       });

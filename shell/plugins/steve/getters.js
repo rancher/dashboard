@@ -104,7 +104,7 @@ export default {
   },
 
   // Return all the pods for a given namespace
-  podsByNamespace: (state) => (namespace) => {
+  podsByNamespace: state => (namespace) => {
     const map = state.podsByNamespace[namespace];
 
     return map?.list || [];
