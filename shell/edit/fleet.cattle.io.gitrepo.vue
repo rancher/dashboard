@@ -88,46 +88,50 @@ export default {
       targetMode = `group://${ targetClusterGroup }`;
     }
 
-    return {
-      allClusters:      [],
-      allClusterGroups: [],
-      allWorkspaces:    [],
-      tempCachedValues: {},
-      stepRepoInfo:     {
-        name:             'stepRepoInfo',
-        title:            this.t('fleet.gitRepo.add.steps.repoInfo.title'),
-        label:            this.t('fleet.gitRepo.add.steps.repoInfo.label'),
-        subtext:          this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
-        descriptionKey:   'fleet.gitRepo.add.steps.repoInfo.description',
-        ready:            false,
-        weight:           30
-      },
-      stepTargetInfo: {
-        name:           'stepTargetInfo',
-        title:          this.t('fleet.gitRepo.add.steps.targetInfo.title'),
-        label:          this.t('fleet.gitRepo.add.steps.targetInfo.label'),
-        subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
-        descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
-        ready:          true,
-        weight:         30
-      },
-      username:   null,
-      password:   null,
-      publicKey:  null,
-      privateKey: null,
-      tlsMode:    null,
-      caBundle:   null,
+    const stepRepoInfo = {
+      name:             'stepRepoInfo',
+      title:            this.t('fleet.gitRepo.add.steps.repoInfo.title'),
+      label:            this.t('fleet.gitRepo.add.steps.repoInfo.label'),
+      subtext:          this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
+      descriptionKey:   'fleet.gitRepo.add.steps.repoInfo.description',
+      ready:            false,
+      weight:           30
+    };
 
+    const stepTargetInfo = {
+      name:           'stepTargetInfo',
+      title:          this.t('fleet.gitRepo.add.steps.targetInfo.title'),
+      label:          this.t('fleet.gitRepo.add.steps.targetInfo.label'),
+      subtext:        this.t('fleet.gitRepo.add.steps.targetInfo.subtext'),
+      descriptionKey: 'fleet.gitRepo.steps.add.targetInfo.description',
+      ready:          true,
+      weight:         30
+    };
+
+    const addRepositorySteps = [stepRepoInfo, stepTargetInfo].sort((a, b) => (b.weight || 0) - (a.weight || 0));
+
+    return {
+      allClusters:          [],
+      allClusterGroups:     [],
+      allWorkspaces:        [],
+      tempCachedValues:     {},
+      username:             null,
+      password:             null,
+      publicKey:            null,
+      privateKey:           null,
+      tlsMode:              null,
+      caBundle:             null,
+      targetAdvancedErrors: null,
+      matchingClusters:     null,
       ref,
       refValue,
-
       targetMode,
       targetCluster,
       targetClusterGroup,
       targetAdvanced,
-      targetAdvancedErrors: null,
-
-      matchingClusters: null,
+      stepRepoInfo,
+      stepTargetInfo,
+      addRepositorySteps,
     };
   },
 
@@ -136,16 +140,6 @@ export default {
 
     _SPECIFY() {
       return _SPECIFY;
-    },
-
-    addRepositorySteps() {
-      const steps =
-      [
-        this.stepRepoInfo,
-        this.stepTargetInfo
-      ];
-
-      return steps.sort((a, b) => (b.weight || 0) - (a.weight || 0));
     },
 
     isLocal() {

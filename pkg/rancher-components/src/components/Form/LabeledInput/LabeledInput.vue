@@ -178,10 +178,6 @@ export default (
 
       return null;
     },
-
-    isDisabled(): boolean {
-      return (this.disabled || this.isView);
-    }
   },
 
   methods: {
