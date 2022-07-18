@@ -9,7 +9,7 @@ const config = {
   title: 'Rancher DevKit',
   tagline: 'Rancher development kit',
   url: 'https://bisht-richa.github.io',
-  baseUrl: '/',
+  baseUrl: '/dashboard/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
@@ -19,6 +19,7 @@ const config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'bisht-richa', // Usually your GitHub org/user name.
   projectName: 'dashboard', // Usually your repo name.
+  deploymentBranch: 'gh-pages',
 
 
   // Even if you don't use internalization, you can use this field to set useful
