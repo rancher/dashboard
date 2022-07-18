@@ -274,12 +274,13 @@ export const POD_IMAGES = {
 export const POD_RESTARTS = {
   name:         'pod_restarts',
   labelKey:     'tableHeaders.podRestarts',
-  formatter:    'DelayedValue',
+  formatter:    'LivePodRestarts',
   delayLoading: true,
   value:        'restartCount',
   getValue:     row => row.restartCount,
   // This column is expensive to compute, so don't make it searchable
   search:       false,
+  liveUpdates:  true
 };
 
 export const ENDPOINTS = {
@@ -658,6 +659,7 @@ export const WORKLOAD_HEALTH_SCALE = {
   delayLoading: true,
   // This column is expensive to compute, so don't make it searchable
   search:       false,
+  liveUpdates:  true,
 };
 
 export const FLEET_SUMMARY = {

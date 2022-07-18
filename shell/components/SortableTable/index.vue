@@ -330,14 +330,28 @@ export default {
     $main.off('scroll', this._onScroll);
   },
 
-  updated() {
-    this.updateLiveAndDelayed();
-  },
+  // updated() {
+  //   this.updateLiveAndDelayed();
+  // },
 
   watch: {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
     }, 200),
+
+    page(neu, old) {
+      if (neu !== old) {
+        this.updateLiveAndDelayed();
+      }
+    },
+
+    pagedRows() {
+      // Ensure we update live and delayed columns on first load
+      if (!this.loading && !this._didinit && this.rows?.length) {
+        this._didinit = true;
+        this.updateLiveAndDelayed();
+      }
+    }
   },
 
   computed: {
@@ -558,6 +572,8 @@ export default {
     },
 
     updateDelayedColumns() {
+      clearTimeout(this._delayedColumnsTimer);
+
       if (!this.$refs.column || this.pagedRows.length === 0) {
         return;
       }
@@ -590,6 +606,8 @@ export default {
     },
 
     updateLiveColumns() {
+      clearTimeout(this._liveColumnsTimer);
+
       if (!this.$refs.column || !this.hasLiveColumns || this.pagedRows.length === 0) {
         return;
       }
