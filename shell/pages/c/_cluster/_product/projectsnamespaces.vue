@@ -150,19 +150,9 @@ export default {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
-      if (this.$store.getters['prefs/get'](DEV)) {
-        return this.activeNamespaces;
-      }
-
-      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-      const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
-
-      return this.activeNamespaces.filter((namespace) => {
-        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
-        const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
-
-        return isVirtualCluster && isVirtualProduct ? (!systemNS && !namespace.isObscure) : !namespace.isObscure;
-      });
+      // These rows are not filtered in order to stay consistent
+      // with the namespaces available in the top nav of Cluster Explorer.
+      return this.activeNamespaces;
     },
 
     showMockNotInProjectGroup() {
