@@ -6,6 +6,7 @@ import difference from 'lodash/difference';
 
 import { sortBy } from '@shell/utils/sort';
 import { set } from '@shell/utils/object';
+
 import { allHash } from '@shell/utils/promise';
 import { randomStr } from '@shell/utils/string';
 import { base64Decode } from '@shell/utils/crypto';
@@ -516,7 +517,7 @@ export default {
       }
 
       if (!disks.find( D => D.name === 'cloudinitdisk')) {
-        if (this.networkScript || this.userScript || this.sshKey.length > 0) {
+        if (!this.isWindows) {
           disks.push({
             name: 'cloudinitdisk',
             disk: { bus: 'virtio' }
@@ -711,10 +712,8 @@ export default {
      */
     getUserData(config) {
       try {
-        if (!this.userScript) {
-          return undefined;
-        }
-        let userDataDoc = YAML.parseDocument(this.userScript);
+        // https://github.com/eemeli/yaml/issues/136
+        let userDataDoc = this.userScript ? YAML.parseDocument(this.userScript) : YAML.parseDocument({});
 
         const allSSHAuthorizedKeys = this.mergeSSHAuthorizedKeys(this.userScript);
 
@@ -728,8 +727,8 @@ export default {
         const userDataYaml = userDataDoc.toString();
 
         if (userDataYaml === '{}\n') {
-          // Harvester YAML configuration that is used by the created virtual machine.
-          return `#cloud-config`;
+          // When the YAML parsed value is '{}\n', it means that the userData is empty, then undefined is returned.
+          return undefined;
         }
 
         return userDataYaml;
@@ -1012,7 +1011,7 @@ export default {
     },
 
     async saveSecret(vm) {
-      if (!vm?.spec || !this.secretName) {
+      if (!vm?.spec || !this.secretName || this.isWindows) {
         return true;
       }
 
@@ -1034,13 +1033,8 @@ export default {
 
       try {
         if (secret) {
-          if (userData) {
-            secret.setData('userdata', userData);
-          }
-
-          if (this.networkScript) {
-            secret.setData('networkdata', this.networkScript);
-          }
+          secret.setData('userdata', userData);
+          secret.setData('networkdata', this.networkScript);
 
           await secret.save();
         }

@@ -7,6 +7,7 @@ generic:
   back: Back
   cancel: Cancel
   clear: Clear
+  clearAll: Clear All
   close: Close
   comingSoon: Coming Soon
   copy: Copy
@@ -1404,7 +1405,7 @@ cluster:
         title: Security Group
         vpcId: '(select a VPC/Subnet first)'
         mode:
-          default: 'Standard: Automatically create and use a "{defaultGroup}"; security group'
+          default: 'Standard: Automatically create and use a "{defaultGroup}" security group'
           custom: 'Choose one or more existing security groups:'
       volumeType:
         label: EBS Root Volume Type
@@ -2041,6 +2042,12 @@ graphOptions:
   refresh: Refresh
   range: Range
 
+growl:
+  clearAll: Clear All Notifications
+  disconnected: 
+    message: "The connection to {url} closed unexpectedly {time}. Retrying..."
+    title: Websocket Disconnected 
+
 hpa:
   detail:
     currentMetrics:
@@ -2661,6 +2668,9 @@ login:
   useNonLocal: Use a non-local user
   remember:
     label: Remember Username
+
+managementNode:
+  customName: Custom Name
 
 members:
   clusterMembers: Cluster Members
@@ -5581,6 +5591,7 @@ harvester:
     virtualName: Virtual machine name
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
+    filterLabels: Filter Labels
   generic:
     close: Close
     open: Open
@@ -5740,9 +5751,17 @@ harvester:
       actionLabel: Detach
       detachVolume:
         Detach Volume
-    restartTip: Restart the virtual machine now to take effect of the configuration changes.
+    restartTip: |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } the virtual machine now to take effect of the configuration changes.
     runStrategy: Run Strategy
-    restartNow: Restart Now
+    restartNow:  |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } Now
     createSSHKey: Create a New...
     installAgent: Install guest agent
     enableUsb: Enable USB Tablet
@@ -5800,7 +5819,7 @@ harvester:
       affinity:
         anyNode: 'Run VM on any available node'
         schedulingRules: 'Run VM on node(s) matching scheduling rules'
-        specificNode: Run VM on specific node(s) - (Live migration is not supported)
+        specificNode: Run VM on specific node - (Live migration is not supported)
     accessCredentials:
       resetPwd:
         label: Add Basic Auth
@@ -5928,6 +5947,9 @@ harvester:
       notExistImage:
         title: Image {name} does not exist!
         message: Please select a new Image.
+      notExistNode:
+        title: Node {name} does not exist!
+        message: Please select a new Node.
 
   upgradePage:
     upgradeApp: Upgrade Software

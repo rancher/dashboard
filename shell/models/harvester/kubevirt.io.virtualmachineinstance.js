@@ -106,7 +106,7 @@ export default class VirtVmInstance extends SteveModel {
   get isTerminated() {
     const conditions = this?.status?.conditions || [];
 
-    return conditions.filter(cond => cond.type === 'Ready')?.status === 'False';
+    return conditions.find(cond => cond.type === 'Ready')?.status === 'False';
   }
 
   get getVMIApiPath() {

@@ -1,6 +1,8 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { Banner } from '@components/Banner';
+import FilterLabel from '@shell/components/FilterLabel';
+import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 
 export default {
   name: 'ListHarvesterImage',
@@ -8,6 +10,7 @@ export default {
   components: {
     ResourceTable,
     Banner,
+    FilterLabel
   },
 
   props:      {
@@ -21,11 +24,36 @@ export default {
     },
   },
 
+  data() {
+    return {
+      searchLabels: [],
+      filterRows:   []
+    };
+  },
+
   computed: {
     uploadingImages() {
       return this.$store.getters['harvester-common/uploadingImages'] || [];
     },
   },
+
+  methods: {
+    changeRows(filterRows, searchLabels) {
+      this.$set(this, 'filterRows', filterRows);
+      this.$set(this, 'searchLabels', searchLabels);
+    },
+
+    sortGenerationFn() {
+      let base = defaultTableSortGenerationFn(this.schema, this.$store);
+
+      this.searchLabels.map((label) => {
+        base += label.key;
+        base += label.value;
+      });
+
+      return base;
+    },
+  }
 };
 </script>
 
@@ -38,10 +66,15 @@ export default {
     />
     <ResourceTable
       v-bind="$attrs"
-      :rows="rows"
+      :rows="filterRows"
       :schema="schema"
+      :sort-generation-fn="sortGenerationFn"
       key-field="_key"
       v-on="$listeners"
-    />
+    >
+      <template #more-header-middle>
+        <FilterLabel ref="filterLabel" :rows="rows" @changeRows="changeRows" />
+      </template>
+    </ResourceTable>
   </div>
 </template>

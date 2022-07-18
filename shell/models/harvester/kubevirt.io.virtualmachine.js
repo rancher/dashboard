@@ -498,7 +498,7 @@ export default class VirtVm extends SteveModel {
   }
 
   get isBeingStopped() {
-    if (this && !this.isVMExpectedRunning && this.isVMCreated && this.vmi?.isTerminated) {
+    if (this && !this.isVMExpectedRunning && this.isVMCreated && this.vmi?.status?.phase !== VMIPhase.Succeeded) {
       return { status: STOPPING };
     }
 
