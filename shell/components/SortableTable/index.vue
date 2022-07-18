@@ -301,6 +301,7 @@ export default {
       eventualSearchQuery: '',
       actionOfInterest:    null,
       loadingDelay:        false,
+      tableHeaders:        this.headers || [],      
     };
   },
 
@@ -338,6 +339,19 @@ export default {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
     }, 200),
+
+    // Workaround for headers changing, when they haven't really
+    // Caused by resource.change messages for the schema which results in table headers being updated, when they have not changed
+    // We just check the names are the same - we don't allow definitoons to be changed during table display
+    headers(neu) {
+      const neuNames = neu.map(o => o.name).join(',');
+      const oldNames = this.tableHeaders.map(o => o.name).join(',');
+
+      // Only update headers if we think they actually changed - otherwise a bunch of stuff recomputes which affects performance
+      if (neuNames !== oldNames) {
+        this.tableHeaders = neu;
+      }
+    },    
   },
 
   computed: {
@@ -382,6 +396,10 @@ export default {
     },
 
     columns() {
+      if (!this.tableHeaders) {
+        return [];
+      }
+
       // Filter out any columns that are too heavy to show for large page sizes
       const out = this.headers.slice().filter(c => !c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage));
 

@@ -52,7 +52,7 @@ export default {
       let selected = this.selectedRows;
 
       // Nothing is selected
-      if ( !this.selectedRows.length ) {
+      if ( !this.selectedRows?.length ) {
         // and there are no rows
         if ( !allRows ) {
           return [];
