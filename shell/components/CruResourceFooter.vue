@@ -74,7 +74,7 @@ export default {
     <slot name="footer-prefix" />
     <slot name="cancel">
       <button
-        v-if="isView || showCancel"
+        v-if="!isView && showCancel"
         id="cru-cancel"
         type="button"
         class="btn role-secondary"
