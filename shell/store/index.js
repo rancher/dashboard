@@ -405,7 +405,7 @@ export const getters = {
     return '/';
   },
 
-  isSingleProduct(state, rootGetters) {
+  isSingleProduct(state) {
     if (state.isSingleProduct !== undefined) {
       return state.isSingleProduct;
     }
