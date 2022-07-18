@@ -1,6 +1,6 @@
 {
   "name": "elemental",
-  "description": "Elemental plugin",
+  "description": "OS Management plugin",
   "version": "0.1.0",
   "private": false,
   "rancher": true,
