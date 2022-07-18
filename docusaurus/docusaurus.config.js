@@ -6,27 +6,26 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Rancher DevKit',
-  tagline: 'Rancher development kit',
-  url: 'https://bisht-richa.github.io',
-  baseUrl: '/dashboard/',
-  onBrokenLinks: 'throw',
+  title:                 'Rancher DevKit',
+  tagline:               'Rancher development kit',
+  url:                   'https://bisht-richa.github.io',
+  baseUrl:               '/dashboard/',
+  onBrokenLinks:         'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.ico',
-  trailingSlash: false,
+  favicon:               'img/favicon.ico',
+  trailingSlash:         false,
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'bisht-richa', // Usually your GitHub org/user name.
-  projectName: 'dashboard', // Usually your repo name.
-
+  projectName:      'dashboard', // Usually your repo name.
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
   // to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    locales:       ['en'],
   },
 
   presets: [
@@ -35,16 +34,14 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          routeBasePath: '/',
-          sidebarPath: require.resolve('./sidebars.js'),
+          routeBasePath:      '/',
+          sidebarPath:        require.resolve('./sidebars.js'),
           showLastUpdateTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
         },
-        blog: false,
-        theme: {
-          customCss: require.resolve('./src/css/custom.css'),
-        },
+        blog:  false,
+        theme: {customCss: require.resolve('./src/css/custom.css'),},
       }),
     ],
   ],
@@ -59,20 +56,20 @@ const config = {
         },
         items: [
           {
-            type: 'doc',
-            docId: 'introduction',
+            type:     'doc',
+            docId:    'introduction',
             position: 'left',
-            label: 'DevKit',
+            label:    'DevKit',
           },
         ],
       },
       footer: {
-        style: 'dark',
-        links: [],
-        copyright: `Copyright © ${new Date().getFullYear()} Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
+        style:     'dark',
+        links:     [],
+        copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
       },
       prism: {
-        theme: lightCodeTheme,
+        theme:     lightCodeTheme,
         darkTheme: darkCodeTheme,
       },
     }),
