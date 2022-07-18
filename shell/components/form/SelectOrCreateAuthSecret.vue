@@ -479,28 +479,28 @@ export default {
           </template>
         </LabeledSelect>
       </div>
-      <template v-if="selected === AUTH_TYPE._SSH">
+      <template v-if="selected === _SSH">
         <div :class="moreCols">
-          <LabeledInput v-model="publicKey" type="multiline" label-key="selectOrCreateAuthSecret.ssh.publicKey" />
+          <LabeledInput v-model="publicKey" :mode="mode" type="multiline" label-key="selectOrCreateAuthSecret.ssh.publicKey" />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="privateKey" type="multiline" label-key="selectOrCreateAuthSecret.ssh.privateKey" />
-        </div>
-      </template>
-      <template v-else-if="selected === AUTH_TYPE._BASIC">
-        <div :class="moreCols">
-          <LabeledInput v-model="publicKey" label-key="selectOrCreateAuthSecret.basic.username" />
-        </div>
-        <div :class="moreCols">
-          <LabeledInput v-model="privateKey" type="password" label-key="selectOrCreateAuthSecret.basic.password" />
+          <LabeledInput v-model="privateKey" :mode="mode" type="multiline" label-key="selectOrCreateAuthSecret.ssh.privateKey" />
         </div>
       </template>
-      <template v-else-if="selected === AUTH_TYPE._S3">
+      <template v-else-if="selected === _BASIC">
         <div :class="moreCols">
-          <LabeledInput v-model="publicKey" label-key="selectOrCreateAuthSecret.s3.accessKey" />
+          <LabeledInput v-model="publicKey" :mode="mode" label-key="selectOrCreateAuthSecret.basic.username" />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="privateKey" type="password" label-key="selectOrCreateAuthSecret.s3.secretKey" />
+          <LabeledInput v-model="privateKey" :mode="mode" type="password" label-key="selectOrCreateAuthSecret.basic.password" />
+        </div>
+      </template>
+      <template v-else-if="selected === _S3">
+        <div :class="moreCols">
+          <LabeledInput v-model="publicKey" :mode="mode" label-key="selectOrCreateAuthSecret.s3.accessKey" />
+        </div>
+        <div :class="moreCols">
+          <LabeledInput v-model="privateKey" :mode="mode" type="password" label-key="selectOrCreateAuthSecret.s3.secretKey" />
         </div>
       </template>
     </div>

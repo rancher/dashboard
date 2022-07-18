@@ -176,6 +176,10 @@ export default {
       return !(schema?.resourceMethods?.includes('blocked-PUT'));
     },
 
+    showYaml() {
+      return this.canYaml && (this._selectedSubtype || !this.subtypes.length) && this.canEditYaml && this.mode !== _VIEW;
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -452,7 +456,7 @@ export default {
                   </template>
                   <div class="controls-steps">
                     <button
-                      v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
+                      v-if="showYaml"
                       type="button"
                       class="btn role-secondary"
                       @click="showPreviewYaml"
@@ -466,7 +470,7 @@ export default {
                     </template>
                     <template v-if="activeStepIndex === visibleSteps.length-1" name="finish">
                       <AsyncButton
-                        v-if="!showSubtypeSelection"
+                        v-if="!showSubtypeSelection && !isView"
                         ref="save"
                         :disabled="!activeStep.ready"
                         :mode="finishButtonMode || mode"
@@ -510,7 +514,7 @@ export default {
             <template #default>
               <div v-if="!isView">
                 <button
-                  v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
+                  v-if="showYaml"
                   type="button"
                   class="btn role-secondary"
                   @click="showPreviewYaml"

@@ -1785,6 +1785,7 @@ cruResource:
   reviewForm: "Keep editing YAML"
   reviewYaml: "Keep editing YAML"
   previewYaml: Edit as YAML
+  showYaml: View as YAML
 
 detailText:
   collapse: Hide
@@ -4958,8 +4959,9 @@ wizard:
   finish: Finish
   next: Next
   step: "Step {number}"
-  edit: 'Edit'
-  create: 'Create'
+  edit: Edit
+  create: Create
+  view: View
 wm:
   connection:
     connected: Connected

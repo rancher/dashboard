@@ -128,9 +128,6 @@ export default {
       targetAdvancedErrors: null,
 
       matchingClusters: null,
-
-      addRepositorySteps: [ this.stepRepoInfo, this.stepTargetInfo]
-        .sort((a, b) => (b.weight || 0) - (a.weight || 0))
     };
   },
 
@@ -139,6 +136,16 @@ export default {
 
     _SPECIFY() {
       return _SPECIFY;
+    },
+
+    addRepositorySteps() {
+      const steps =
+      [
+        this.stepRepoInfo,
+        this.stepTargetInfo
+      ];
+
+      return steps.sort((a, b) => (b.weight || 0) - (a.weight || 0));
     },
 
     isLocal() {
@@ -521,6 +528,7 @@ export default {
         :delegate-create-to-parent="true"
         in-store="management"
         :pre-select="tempCachedValues.clientSecretName"
+        :mode="mode"
         generate-name="gitrepo-auth-"
         label-key="fleet.gitRepo.auth.git"
         @input="updateAuth($event, 'clientSecretName')"
@@ -533,6 +541,7 @@ export default {
         :namespace="value.metadata.namespace"
         :delegate-create-to-parent="true"
         in-store="management"
+        :mode="mode"
         generate-name="helmrepo-auth-"
         label-key="fleet.gitRepo.auth.helm"
         :pre-select="tempCachedValues.helmSecretName"
@@ -555,6 +564,7 @@ export default {
           <div v-if="tlsMode === _SPECIFY" class="col span-6">
             <LabeledInput
               v-model="caBundle"
+              :mode="mode"
               type="multiline"
               label-key="fleet.gitRepo.caBundle.label"
               placeholder-key="fleet.gitRepo.caBundle.placeholder"
@@ -617,6 +627,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model="value.spec.serviceAccount"
+            :mode="mode"
             label-key="fleet.gitRepo.serviceAccount.label"
             placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
           />
@@ -624,6 +635,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model="value.spec.targetNamespace"
+            :mode="mode"
             label-key="fleet.gitRepo.targetNamespace.label"
             placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
             label="Target Namespace"
