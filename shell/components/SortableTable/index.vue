@@ -301,7 +301,7 @@ export default {
       eventualSearchQuery: '',
       actionOfInterest:    null,
       loadingDelay:        false,
-      tableHeaders:        this.headers || [],      
+      tableHeaders:        this.headers || [],
     };
   },
 
@@ -351,7 +351,7 @@ export default {
       if (neuNames !== oldNames) {
         this.tableHeaders = neu;
       }
-    },    
+    },
   },
 
   computed: {
