@@ -5,7 +5,7 @@ slug: /
 
 ## Welcome to Rancher DevKit
 
-Introduction content for Rancher  Development Kit.
+The Rancher DevKit is all you need to develop Rancher applications. Rancher DevKit helps developers to write clean, understandable, and maintainable code.
 
 
 ### Rancher Storybook
