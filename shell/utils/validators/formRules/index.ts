@@ -39,13 +39,19 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key: displayKey }) : undefined;
 
-  const endDot = (label: any) => (val: string) => val?.slice(-1) === '.' ? t(`validation.dns.${ label }.endDot`, { key: displayKey }) : undefined;
+  const endDot = (label: string): Validator => (val: string) => val?.slice(-1) === '.' ? t(`validation.dns.${ label }.endDot`, { key: displayKey }) : undefined;
 
   const startNumber: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1)?.match(/[0-9]/) ? t(`validation.dns.${ label }.startNumber`, { key: displayKey }) : undefined;
 
   const startHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '-' ? t(`validation.dns.${ label }.startHyphen`, { key: displayKey }) : undefined;
 
   const endHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(-1) === '-' ? t(`validation.dns.${ label }.endHyphen`, { key: displayKey }) : undefined;
+
+  const requiredInt: Validator = (val: string) => isNaN(parseInt(val, 10)) ? t('validation.number.requiredInt', { key: displayKey }) : undefined;
+
+  const portNumber: Validator = (val: string) => parseInt(val, 10) < 1 || parseInt(val, 10) > 65535 ? t('validation.number.between', {
+    key: displayKey, min: '1', max: '65535'
+  }) : undefined;
 
   const dnsChars: Validator = (val: string) => {
     const matchedChars = val?.match(/[^${'A-Za-z0-9-'}]/g);
@@ -69,9 +75,12 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
   const dnsTooLong: ValidatorFactory = (label: string, length = 63): Validator => (val = '') => val.length > length ? t(`validation.dns.${ label }.tooLongLabel`, { key: displayKey, max: length }) : undefined;
 
+  // eslint-disable-next-line no-unused-vars
   const hostnameEmpty: Validator = (val = '') => val.length === 0 ? t('validation.dns.hostname.empty', { key: displayKey }) : undefined;
 
   const hostnameTooLong: Validator = (val = '') => val.length > 253 ? t('validation.dns.hostname.tooLong', { key: displayKey, max: 253 }) : undefined;
+
+  const absolutePath: Validator = (val = '') => val[0] !== '/' && val.length > 0 ? t('validation.path', { key: displayKey }) : undefined;
 
   const required: Validator = (val: any) => !val && val !== false ? t('validation.required', { key: displayKey }) : undefined;
 
@@ -147,33 +156,35 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   };
 
   const hostname: Validator = (val: string) => {
-    const validators = [
-      startDot('hostname'),
-      hostnameEmpty,
-      hostnameTooLong
-    ];
+    if (val) {
+      const validators = [
+        startDot('hostname'),
+        hostnameTooLong,
+        endDot('hostname')
+      ];
 
-    const hostNameMessage = runValidators(val, validators);
+      const hostNameMessage = runValidators(val, validators);
 
-    if (hostNameMessage) {
-      return hostNameMessage;
-    }
+      if (hostNameMessage) {
+        return hostNameMessage;
+      }
 
-    const labels = val.split('.');
-    const labelValidators = [
-      dnsChars,
-      startHyphen('hostname'),
-      endHyphen('hostname'),
-      dnsDoubleDash,
-      dnsEmpty('hostname'),
-      dnsTooLong('hostname')
-    ];
+      const labels = val.split('.');
+      const labelValidators = [
+        dnsChars,
+        startHyphen('hostname'),
+        endHyphen('hostname'),
+        dnsDoubleDash,
+        dnsEmpty('hostname'),
+        dnsTooLong('hostname')
+      ];
 
-    for ( let i = 0; i < labels.length; i++ ) {
-      const labelMessage = runValidators(labels[i], labelValidators);
+      for ( let i = 0; i < labels.length; i++ ) {
+        const labelMessage = runValidators(labels[i], labelValidators);
 
-      if (labelMessage) {
-        return labelMessage;
+        if (labelMessage) {
+          return labelMessage;
+        }
       }
     }
   };
@@ -387,6 +398,8 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   return {
     noUpperCase,
     required,
+    requiredInt,
+    portNumber,
     cronSchedule,
     isHttps,
     interval,
@@ -408,6 +421,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
     dnsLabelRestricted,
     hostname,
     testRule,
-    subDomain
+    subDomain,
+    absolutePath
   };
 }

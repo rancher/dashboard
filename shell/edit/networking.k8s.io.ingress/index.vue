@@ -3,9 +3,11 @@ import { allHash } from '@shell/utils/promise';
 import { SECRET, SERVICE, INGRESS_CLASS } from '@shell/config/types';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
+import Error from '@shell/components/form/Error';
 import Tabbed from '@shell/components/Tabbed';
 import { get, set } from '@shell/utils/object';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
@@ -25,9 +27,10 @@ export default {
     NameNsDescription,
     Rules,
     Tab,
-    Tabbed
+    Tabbed,
+    Error
   },
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
   props:  {
     value: {
       type:    Object,
@@ -53,10 +56,78 @@ export default {
   },
   data() {
     return {
-      allSecrets: [], allServices: [], allIngressClasses: []
+      allSecrets:        [],
+      allServices:       [],
+      allIngressClasses: [],
+      fvFormRuleSets:    [
+        {
+          path: 'metadata.name', rules: ['required', 'hostname'], translationKey: 'nameNsDescription.name.label'
+        },
+        {
+          path: 'spec.rules.host', rules: ['hostname'], translationKey: 'ingress.rules.requestHost.label'
+        },
+        {
+          path: 'spec.rules.http.paths.path', rules: ['absolutePath'], translationKey: 'ingress.rules.path.label'
+        },
+        {
+          path: 'spec.rules.http.paths.backend.service.port.number', rules: ['required'], translationKey: 'ingress.rules.port.label'
+        },
+        {
+          path: 'spec.rules.http.paths.backend.service.name', rules: ['required'], translationKey: 'ingress.rules.target.label'
+        },
+        { path: 'spec', rules: ['backEndOrRules'] },
+        {
+          path: 'spec.defaultBackend.service.name', rules: ['required'], translationKey: 'ingress.defaultBackend.targetService.label'
+        },
+        {
+          path: 'spec.defaultBackend.service.port.number', rules: ['required', 'requiredInt', 'portNumber'], translationKey: 'ingress.defaultBackend.port.label'
+        }
+      ],
+      fvReportedValidationPaths: ['spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.name']
     };
   },
   computed: {
+    fvExtraRules() {
+      const backEndOrRules = (spec) => {
+        const { rules = [], defaultBackend } = spec;
+
+        const validRules = rules.length > 0;
+        const validDefaultBackend = !!defaultBackend?.service;
+
+        if (!validRules && !validDefaultBackend) {
+          return this.t('ingress.rulesOrBackendSpecified');
+        }
+      };
+
+      return { backEndOrRules };
+    },
+    tabErrors() {
+      return {
+        rules:          this.fvGetPathErrors(['spec.rules.host', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.backend.service.name'])?.length > 0,
+        defaultBackend: this.fvGetPathErrors(['spec.defaultBackend.service.name', 'spec.defaultBackend.service.port.number'])?.length > 0
+      };
+    },
+    rulesPathRules() {
+      return {
+        requestHost: this.fvGetAndReportPathRules('spec.rules.host'),
+        path:        this.fvGetAndReportPathRules('spec.rules.http.paths.path'),
+        port:        this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.port.number'),
+        target:      this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.name')
+      };
+    },
+    defaultBackendPathRules() {
+      const rulesExist = (this.value?.spec?.rules || []).length > 0;
+      const defaultBackendExist = !!this.value?.spec?.defaultBackend?.service;
+
+      if (!rulesExist || defaultBackendExist) {
+        return {
+          name: this.fvGetAndReportPathRules('spec.defaultBackend.service.name'),
+          port: this.fvGetAndReportPathRules('spec.defaultBackend.service.port.number'),
+        };
+      }
+
+      return { name: [], port: [] };
+    },
     serviceTargets() {
       return this.filterByCurrentResourceNamespace(this.allServices)
         .map(service => ({
@@ -121,8 +192,8 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
-    :validation-passed="true"
-    :errors="errors"
+    :validation-passed="fvFormIsValid"
+    :errors="fvUnreportedValidationErrors"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
@@ -130,16 +201,17 @@ export default {
     <NameNsDescription
       v-if="!isView"
       :value="value"
+      :rules="{name: fvGetAndReportPathRules('metadata.name'), namespace: fvGetAndReportPathRules('metadata.namespace'), description: []}"
       :mode="mode"
       :register-before-hook="registerBeforeHook"
     />
-
+    <Error :value="value.spec" :rules="fvGetAndReportPathRules('spec')" as-banner />
     <Tabbed :side-tabs="true">
-      <Tab :label="firstTabLabel" name="rules" :weight="4">
-        <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" :certificates="certificates" />
+      <Tab :label="firstTabLabel" name="rules" :weight="4" :error="tabErrors.rules">
+        <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" :certificates="certificates" :rules="rulesPathRules" />
       </Tab>
-      <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="3">
-        <DefaultBackend v-model="value" :service-targets="serviceTargets" :mode="mode" />
+      <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="3" :error="tabErrors.defaultBackend">
+        <DefaultBackend v-model="value" :service-targets="serviceTargets" :mode="mode" :rules="defaultBackendPathRules" />
       </Tab>
       <Tab v-if="!isView" :label="t('ingress.certificates.label')" name="certificates" :weight="2">
         <Certificates v-model="value" :mode="mode" :certificates="certificates" />
