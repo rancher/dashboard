@@ -1,12 +1,14 @@
 <script>
 import Header from '@/components/nav/Header';
 import Footer from '@/components/nav/Footer';
+import AzureWarning from '@/components/auth/AzureWarning';
 
 export default {
 
   components: {
     Header,
     Footer,
+    AzureWarning
   },
 
   middleware: ['authenticated'],
@@ -25,19 +27,28 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <Header />
+    <AzureWarning />
 
-    <main>
-      <nuxt class="outlet" />
-      <Footer />
-    </main>
+    <div class="dashboard-content">
+      <Header />
+
+      <main>
+        <nuxt class="outlet" />
+        <Footer />
+      </main>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
   .dashboard-root {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
+  }
+  .dashboard-content {
+    display: grid;
+    flex-grow: 1;
 
     grid-template-areas:
       "header"

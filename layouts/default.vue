@@ -15,7 +15,7 @@ import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isEqual from 'lodash/isEqual';
-
+import AzureWarning from '@/components/auth/AzureWarning';
 export default {
 
   components: {
@@ -26,14 +26,15 @@ export default {
     Footer,
     ActionMenu,
     Group,
-    WindowManager
+    WindowManager,
+    AzureWarning
   },
+
+  middleware: ['authenticated'],
 
   data() {
     return { groups: [] };
   },
-
-  middleware: ['authenticated'],
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
@@ -233,52 +234,64 @@ export default {
 </script>
 
 <template>
-  <div v-if="managementReady" class="dashboard-root">
-    <Header />
+  <div class="dashboard-root">
+    <AzureWarning />
 
-    <nav v-if="clusterReady">
-      <Jump v-if="showJump" class="m-10" />
-      <div v-else class="mb-20" />
-      <template v-for="(g, idx) in groups">
-        <Group
-          :key="idx"
-          id-prefix=""
-          class="package"
-          :expanded="expanded"
-          :group="g"
-          :can-collapse="!g.isRoot"
-          :show-header="!g.isRoot"
-        >
-          <template #header>
-            <h6>{{ g.label }}</h6>
-          </template>
-        </Group>
-      </template>
-    </nav>
+    <div v-if="managementReady" class="dashboard-content">
+      <Header />
 
-    <main v-if="clusterReady">
-      <nuxt class="outlet" />
-      <Footer />
+      <nav v-if="clusterReady">
+        <Jump v-if="showJump" class="m-10" />
+        <div v-else class="mb-20" />
+        <template v-for="(g, idx) in groups">
+          <Group
+            :key="idx"
+            id-prefix=""
+            class="package"
+            :expanded="expanded"
+            :group="g"
+            :can-collapse="!g.isRoot"
+            :show-header="!g.isRoot"
+          >
+            <template #header>
+              <h6>{{ g.label }}</h6>
+            </template>
+          </Group>
+        </template>
+      </nav>
 
-      <ActionMenu />
-      <PromptRemove />
-      <AssignTo />
-      <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
-      <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
-      <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
-      <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
-    </main>
+      <main v-if="clusterReady">
+        <nuxt class="outlet" />
+        <Footer />
 
-    <div class="wm">
-      <WindowManager />
+        <ActionMenu />
+        <PromptRemove />
+        <AssignTo />
+        <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
+        <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
+        <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
+        <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
+      </main>
+
+      <div class="wm">
+        <WindowManager />
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss">
-  .dashboard-root {
-    display: grid;
+  .dashboard-root{
+    display: flex;
+    flex-direction: column;
     height: 100vh;
+  }
+  .dashboard-content {
+    display: grid;
+    position: relative;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0px;
 
     grid-template-areas:
       "header  header"
