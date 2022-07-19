@@ -1,6 +1,6 @@
 <script>
 import { allHash } from '@shell/utils/promise';
-import { SECRET, SERVICE } from '@shell/config/types';
+import { SECRET, SERVICE, INGRESS_CLASS } from '@shell/config/types';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -12,10 +12,12 @@ import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import DefaultBackend from './DefaultBackend';
 import Certificates from './Certificates';
 import Rules from './Rules';
+import IngressClass from './IngressClass';
 
 export default {
   name:       'CRUIngress',
   components: {
+    IngressClass,
     Certificates,
     CruResource,
     DefaultBackend,
@@ -40,15 +42,19 @@ export default {
   },
   async fetch() {
     const hash = await allHash({
-      secrets:  this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      services: this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      ingressClasses: this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }),
     });
 
     this.allServices = hash.services;
     this.allSecrets = hash.secrets;
+    this.allIngressClasses = hash.ingressClasses;
   },
   data() {
-    return { allSecrets: [], allServices: [] };
+    return {
+      allSecrets: [], allServices: [], allIngressClasses: []
+    };
   },
   computed: {
     serviceTargets() {
@@ -68,6 +74,12 @@ export default {
 
         return id.slice(id.indexOf('/') + 1);
       });
+    },
+    ingressClasses() {
+      return this.allIngressClasses.map(ingressClass => ({
+        label: ingressClass.metadata.name,
+        value: ingressClass.metadata.name,
+      }));
     },
   },
   created() {
@@ -123,14 +135,17 @@ export default {
     />
 
     <Tabbed :side-tabs="true">
-      <Tab :label="firstTabLabel" name="rules" :weight="3">
+      <Tab :label="firstTabLabel" name="rules" :weight="4">
         <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" :certificates="certificates" />
       </Tab>
-      <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="2">
+      <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="3">
         <DefaultBackend v-model="value" :service-targets="serviceTargets" :mode="mode" />
       </Tab>
-      <Tab v-if="!isView" :label="t('ingress.certificates.label')" name="certificates" :weight="1">
+      <Tab v-if="!isView" :label="t('ingress.certificates.label')" name="certificates" :weight="2">
         <Certificates v-model="value" :mode="mode" :certificates="certificates" />
+      </Tab>
+      <Tab :label="t('ingress.ingressClass.label')" name="ingress-class" :weight="1">
+        <IngressClass v-model="value" :mode="mode" :ingress-classes="ingressClasses" />
       </Tab>
       <Tab
         v-if="!isView"

@@ -2161,6 +2161,8 @@ ingress:
       label: Target Service
       doesntExist: The selected service does not exist
     warning: "Warning: Default backend is used globally for the entire cluster."
+  ingressClass:
+    label: Ingress Class
   rules:
     addPath: Add Path
     addRule: Add Rule
@@ -4674,6 +4676,7 @@ tableHeaders:
   id: ID
   image: Image
   imageSize: Size
+  ingressClass: Ingress Class
   ingressDefaultBackend: Default
   ingressTarget: Target
   internalExternalIp: External/Internal IP

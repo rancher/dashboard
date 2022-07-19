@@ -536,6 +536,13 @@ export const API_GROUP = {
   sort:     ['apiGroups']
 };
 
+export const INGRESS_CLASS = {
+  name:      'ingressClassName',
+  labelKey:  'tableHeaders.ingressClass',
+  value:     `$['spec']['ingressClassName']`,
+  sort:      `$['spec']['ingressClassName']`,
+};
+
 export const INGRESS_DEFAULT_BACKEND = {
   name:      'ingressDefaultBackend',
   labelKey:  'tableHeaders.ingressDefaultBackend',
