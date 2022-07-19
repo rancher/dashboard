@@ -75,6 +75,8 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
   const required: Validator = (val: any) => !val && val !== false ? t('validation.required', { key: displayKey }) : undefined;
 
+  const noUpperCase: Validator = (val = '') => val.toLowerCase() !== val ? t('validation.noUpperCase', { key: displayKey }) : undefined;
+
   const cronSchedule: Validator = (val: string) => {
     try {
       cronstrue.toString(val);
@@ -371,6 +373,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   };
 
   return {
+    noUpperCase,
     required,
     cronSchedule,
     isHttps,
