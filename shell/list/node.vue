@@ -54,8 +54,8 @@ export default {
     }
 
     if (this.canViewPods) {
-      // Used for running pods metrics
-      hash.pods = this.$store.dispatch('cluster/findAll', { type: POD });
+      // Used for running pods metrics - we don't need to block on this to show the list of nodes
+      this.$store.dispatch('cluster/findAll', { type: POD });
     }
 
     const res = await allHash(hash);

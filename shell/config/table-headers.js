@@ -214,7 +214,7 @@ export const PODS = {
   labelKey:  'tableHeaders.pods',
   sort:      'podConsumed',
   search:    false,
-  value:     'podConsumedUsage',
+  value:     row => row.podConsumedUsage,
   formatter: 'PercentageBar',
   width:     120,
 };
