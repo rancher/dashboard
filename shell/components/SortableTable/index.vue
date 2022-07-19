@@ -345,9 +345,9 @@ export default {
       }
     },
 
-    pagedRows() {
-      // Ensure we update live and delayed columns on first load
-      if (!this.loading && !this._didinit && this.rows?.length) {
+    // Ensure we update live and delayed columns on first load
+    initalLoad(neu, old) {
+      if (neu && !old) {
         this._didinit = true;
         this.updateLiveAndDelayed();
       }
@@ -355,6 +355,10 @@ export default {
   },
 
   computed: {
+    initalLoad() {
+      return !this.loading && !this._didinit && this.rows?.length;
+    },
+
     fullColspan() {
       let span = 0;
 
