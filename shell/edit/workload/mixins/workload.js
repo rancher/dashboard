@@ -209,7 +209,7 @@ export default {
       isInitContainer,
       container,
       containerChange:   0,
-      tabChange:   0,
+      tabChange:         0,
       podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
       savePvcHookName:   'savePvcHook',
       tabWeightMap:      TAB_WEIGHT_MAP,
@@ -239,7 +239,6 @@ export default {
     },
 
     isDeployment() {
-      console.log(this.type, WORKLOAD_TYPES.DEPLOYMENT)
       return this.type === WORKLOAD_TYPES.DEPLOYMENT;
     },
 
@@ -541,8 +540,8 @@ export default {
   },
 
   methods: {
-    addContainer() {
-      this.selectContainer({ name: 'Add Container', __add: true })
+    addContainerBtn() {
+      this.selectContainer({ name: 'Add Container', __add: true });
     },
     nameDisplayFor(type) {
       const schema = this.$store.getters['cluster/schemaFor'](type);
@@ -779,7 +778,6 @@ export default {
     },
 
     selectContainer(container) {
-      console.log(container)
       if (container.__add) {
         this.addContainer();
 
@@ -791,7 +789,6 @@ export default {
         }
       });
       container.__active = true;
-      console.log(container)
       this.container = container;
       this.isInitContainer = !!container._init;
       this.containerChange++;
@@ -811,7 +808,7 @@ export default {
       const container = {
         imagePullPolicy: 'Always',
         name:            `container-${ nameNumber }`,
-        active: true
+        active:          true
       };
 
       this.podTemplateSpec.containers.push(container);
