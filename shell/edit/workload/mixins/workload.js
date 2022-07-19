@@ -541,6 +541,9 @@ export default {
   },
 
   methods: {
+    addContainer() {
+      this.selectContainer({ name: 'Add Container', __add: true })
+    },
     nameDisplayFor(type) {
       const schema = this.$store.getters['cluster/schemaFor'](type);
 

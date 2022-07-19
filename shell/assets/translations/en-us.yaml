@@ -5118,6 +5118,7 @@ workload:
       protocol: Protocol
       listeningPort: Listening Port
     removeContainer: Remove Container
+    addContainer: Add Container
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs

@@ -83,14 +83,14 @@ export default {
             required
           />
         </div>
-        <div v-if="containerOptions.length > 1" class="col span-3">
-          <LabeledSelect :value="container" option-label="name" :label="t('workload.container.titles.container')" :options="containerOptions" @input="selectContainer" />
-          <div class="delete-container-button">
-            <button v-if="allContainers.length > 1 && !isView" type="button" class="btn-sm role-link" @click="removeContainer(container)">
+      </div>
+      <div class="row mb-10 tab-external-controls">
+            <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addContainer">
+              {{ t('workload.container.addContainer') }}
+            </button>
+             <button v-if="allContainers.length > 1 && !isView" type="button" class="btn-sm role-link" @click="removeContainer(container)">
               {{ t('workload.container.removeContainer') }}
             </button>
-          </div>
-        </div>
       </div>
       <Tabbed @changed="changed">
         <Tab v-for="(tab, i) in allContainers" :key="i" :label="tab.label || t(`workload.container.titles.${tab.name}`)" :name="tab.name" :weight="tab.weight">
@@ -320,5 +320,10 @@ export default {
 
 .next-dropdown {
   display: inline-block;
+}
+
+.tab-external-controls {
+  display: flex;
+  justify-content: right;
 }
 </style>
