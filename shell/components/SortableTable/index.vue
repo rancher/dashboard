@@ -314,8 +314,6 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main.on('scroll', this._onScroll);
-
-    this.updateLiveAndDelayed();
   },
 
   beforeDestroy() {
@@ -329,10 +327,6 @@ export default {
 
     $main.off('scroll', this._onScroll);
   },
-
-  // updated() {
-  //   this.updateLiveAndDelayed();
-  // },
 
   watch: {
     eventualSearchQuery: debounce(function(q) {
@@ -349,7 +343,7 @@ export default {
     initalLoad(neu, old) {
       if (neu && !old) {
         this._didinit = true;
-        this.updateLiveAndDelayed();
+        this.$nextTick(() => this.updateLiveAndDelayed());
       }
     }
   },
