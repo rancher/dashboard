@@ -35,6 +35,11 @@ export default {
       type:    Array,
       default: () => []
     },
+
+    hasNodesAndNs: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   data() {
@@ -49,6 +54,7 @@ export default {
       out._anti = false;
       if (term.podAffinityTerm) {
         Object.assign(out, term.podAffinityTerm);
+        out._namespaces = (term.podAffinityTerm.namespaces || []).toString();
         delete out.podAffinityTerm;
       }
 
@@ -61,6 +67,7 @@ export default {
       out._anti = true;
       if (term.podAffinityTerm) {
         Object.assign(out, term.podAffinityTerm);
+        out._namespaces = (term.podAffinityTerm.namespaces || []).toString();
         delete out.podAffinityTerm;
       }
 
@@ -173,14 +180,18 @@ export default {
     changeNamespaceMode(term, idx) {
       if (term.namespaces) {
         term.namespaces = null;
+        term._namespaces = null;
       } else {
         this.$set(term, 'namespaces', []);
+        this.$set(term, '_namespaces', '');
       }
       this.$set(this.allSelectorTerms, idx, term);
+      this.queueUpdate();
     },
 
     updateNamespaces(term, namespaces) {
       this.$set(term, 'namespaces', namespaces);
+      this.queueUpdate();
     },
 
     isEmpty,
@@ -237,12 +248,22 @@ export default {
           <div class="spacer"></div>
           <div v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')" class="row mb-20">
             <LabeledSelect
+              v-if="hasNodesAndNs"
               v-model="props.row.value.namespaces"
               :mode="mode"
               :multiple="true"
               :taggable="true"
               :options="allNamespaces"
               :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+            />
+            <LabeledInput
+              v-else
+              v-model="props.row.value._namespaces"
+              :mode="mode"
+              :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+              :placeholder="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+              :tooltip="t('cluster.credential.harvester.affinity.namespaces.tooltip')"
+              @input="updateNamespaces(props.row.value, props.row.value._namespaces.split(','))"
             />
           </div>
           <MatchExpressions
@@ -258,6 +279,7 @@ export default {
           <div class="row">
             <div class="col span-12">
               <LabeledSelect
+                v-if="hasNodesAndNs"
                 v-model="props.row.value.topologyKey"
                 :taggable="true"
                 :searchable="true"
@@ -268,6 +290,15 @@ export default {
                 :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
                 :options="existingNodeLabels"
                 :disabled="mode==='view'"
+                @input="update"
+              />
+              <LabeledInput
+                v-else
+                v-model="props.row.value.topologyKey"
+                :mode="mode"
+                :label="t('workload.scheduling.affinity.topologyKey.label')"
+                :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+                required
                 @input="update"
               />
             </div>

@@ -1154,6 +1154,9 @@ cluster:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
       cluster: Cluster
+      affinity:
+        namespaces:
+          tooltip: e.g. default,system,base
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
