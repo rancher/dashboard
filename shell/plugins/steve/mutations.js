@@ -52,6 +52,15 @@ export default {
         cache.map.set(entry.id, entry);
       });
     }
+
+    // Notify the web worker of the initial load of schemas
+    if (type === 'schema') {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.loadSchema(proxies);
+      }
+    }
   },
 
   forgetType(state, type) {
