@@ -4921,6 +4921,7 @@ validation:
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
   port: A port must be a number between 1 and 65535.
   prometheusRule:
+    noEdit: This Prometheus Rule may not be edited due to invalid characters in name.
     groups:
       required: At least one rule group is required.
       singleAlert: A rule may contain alert rules or recording rules but not both.
