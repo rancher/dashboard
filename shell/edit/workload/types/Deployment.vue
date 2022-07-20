@@ -77,99 +77,107 @@ export default {
           />
         </div>
       </div>
-      <div class="row mb-10 tab-external-controls">
-        <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addContainerBtn">
-          {{ t('workload.container.addContainer') }}
-        </button>
-        <button v-if="allContainers.length > 1 && !isView" type="button" class="btn-sm role-link" @click="removeContainer(container)">
-          {{ t('workload.container.removeContainer') }}
-        </button>
-      </div>
-      <Tabbed @changed="changed">
-        <Tab v-for="(tab, i) in allContainers" :key="i" :label="tab.label || t(`workload.container.titles.${tab.name}`)" :name="tab.name" :weight="tab.weight">
-          <div>
-            <div :style="{'align-items':'center'}" class="row mb-20">
-              <div class="col span-6">
-                <LabeledInput v-model="container.name" :mode="mode" :label="t('workload.container.containerName')" />
+      <Tabbed>
+        <Tab label="Containers" name="containers">
+          <Tabbed :side-tabs="true" @changed="changed">
+            <Tab v-for="(tab, i) in allContainers" :key="i" :label="tab.name" :name="tab.name" :weight="tab.weight">
+              <template #tab-header-right class="tab-content-controls">
+                <button v-if="allContainers.length > 1 && !isView" type="button" class="btn-sm role-link" @click="removeContainer(tab)">
+                  {{ t('workload.container.removeContainer') }}
+                </button>
+              </template>
+              <div>
+                <div :style="{'align-items':'center'}" class="row mb-20">
+                  <div class="col span-6">
+                    <LabeledInput v-model="container.name" :mode="mode" :label="t('workload.container.containerName')" />
+                  </div>
+                  <div class="col span-6">
+                    <RadioGroup
+                      :mode="mode"
+                      :value="isInitContainer"
+                      name="initContainer"
+                      :options="[true, false]"
+                      :labels="[t('workload.container.init'), t('workload.container.standard')]"
+                      @input="updateInitContainer"
+                    />
+                  </div>
+                </div>
+                <h3>{{ t('workload.container.titles.image') }}</h3>
+                <div class="row mb-20">
+                  <div class="col span-6">
+                    <LabeledInput
+                      v-model.trim="container.image"
+                      :mode="mode"
+                      :label="t('workload.container.image')"
+                      :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
+                      required
+                    />
+                  </div>
+                  <div class="col span-6">
+                    <LabeledSelect
+                      v-model="container.imagePullPolicy"
+                      :label="t('workload.container.imagePullPolicy')"
+                      :options="pullPolicyOptions"
+                      :mode="mode"
+                    />
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col span-6">
+                    <LabeledSelect
+                      v-model="imagePullSecrets"
+                      :label="t('workload.container.imagePullSecrets')"
+                      :multiple="true"
+                      :taggable="true"
+                      :options="namespacedSecrets"
+                      :mode="mode"
+                      option-label="metadata.name"
+                      :reduce="service=>service.metadata.name"
+                    />
+                  </div>
+                </div>
               </div>
-              <div class="col span-6">
-                <RadioGroup
-                  :mode="mode"
-                  :value="isInitContainer"
-                  name="initContainer"
-                  :options="[true, false]"
-                  :labels="[t('workload.container.init'), t('workload.container.standard')]"
-                  @input="updateInitContainer"
-                />
+              <div class="spacer"></div>
+              <div>
+                <h3>{{ t('workload.container.titles.ports') }}</h3>
+                <div class="row">
+                  <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
+                </div>
               </div>
-            </div>
-            <h3>{{ t('workload.container.titles.image') }}</h3>
-            <div class="row mb-20">
-              <div class="col span-6">
-                <LabeledInput
-                  v-model.trim="container.image"
-                  :mode="mode"
-                  :label="t('workload.container.image')"
-                  :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
-                  required
-                />
+              <div class="spacer"></div>
+              <div>
+                <h3>{{ t('workload.container.titles.command') }}</h3>
+                <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
               </div>
-              <div class="col span-6">
-                <LabeledSelect
-                  v-model="container.imagePullPolicy"
-                  :label="t('workload.container.imagePullPolicy')"
-                  :options="pullPolicyOptions"
-                  :mode="mode"
-                />
+              <ServiceNameSelect
+                :value="podTemplateSpec.serviceAccountName"
+                :mode="mode"
+                :select-label="t('workload.serviceAccountName.label')"
+                :select-placeholder="t('workload.serviceAccountName.label')"
+                :options="namespacedServiceNames"
+                option-label="metadata.name"
+                @input="updateServiceAccount"
+              />
+              <div class="spacer"></div>
+              <div>
+                <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
+                <LifecycleHooks v-model="container.lifecycle" :mode="mode" />
               </div>
-            </div>
-            <div class="row">
-              <div class="col span-6">
-                <LabeledSelect
-                  v-model="imagePullSecrets"
-                  :label="t('workload.container.imagePullSecrets')"
-                  :multiple="true"
-                  :taggable="true"
-                  :options="namespacedSecrets"
-                  :mode="mode"
-                  option-label="metadata.name"
-                  :reduce="service=>service.metadata.name"
-                />
+            </Tab>
+            <template #tab-row-extras>
+              <div class="side-tablist-controls">
+                <button v-if="!isView" type="button" class="btn-sm role-link" @click="addContainerBtn">
+                  {{ t('workload.container.addContainer') }}
+                </button>
               </div>
-            </div>
-          </div>
-          <div class="spacer"></div>
-          <div>
-            <h3>{{ t('workload.container.titles.ports') }}</h3>
-            <div class="row">
-              <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
-            </div>
-          </div>
-          <div class="spacer"></div>
-          <div>
-            <h3>{{ t('workload.container.titles.command') }}</h3>
-            <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
-          </div>
-          <ServiceNameSelect
-            :value="podTemplateSpec.serviceAccountName"
-            :mode="mode"
-            :select-label="t('workload.serviceAccountName.label')"
-            :select-placeholder="t('workload.serviceAccountName.label')"
-            :options="namespacedServiceNames"
-            option-label="metadata.name"
-            @input="updateServiceAccount"
-          />
-          <div class="spacer"></div>
-          <div>
-            <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
-            <LifecycleHooks v-model="container.lifecycle" :mode="mode" />
-          </div>
+            </template>
+          </Tabbed>
         </Tab>
         <Tab :label="'Deployments'" :name="'deployments'" :weight="99">
           <Labels v-model="value" :mode="mode" />
         </Tab>
         <Tab :label="'Pods'" :name="'pods'" :weight="99">
-          <Tabbed :key="containerChange" :side-tabs="true">
+          <Tabbed :side-tabs="true">
             <Tab :label="t('workload.storage.title')" name="storage" :weight="tabWeightMap['storage']">
               <Storage
                 v-model="podTemplateSpec"
@@ -312,5 +320,15 @@ export default {
 .tab-external-controls {
   display: flex;
   justify-content: right;
+}
+
+.tab-content-controls {
+  display: flex;
+  justify-content: right;
+}
+
+.side-tablist-controls {
+  border-top: 1px solid var(--border);
+  padding: 15px;
 }
 </style>
