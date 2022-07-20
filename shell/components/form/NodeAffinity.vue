@@ -54,7 +54,7 @@ export default {
         defaultWeight:             1,
         // rules in MatchExpressions.vue can not catch changes what happens on parent component
         // we need re-render it via key changing
-        rerenderNums:              0
+        rerenderNums:              randomStr(4)
       };
     }
   },
@@ -107,7 +107,7 @@ export default {
     },
 
     remove() {
-      this.rerenderNums += 1;
+      this.rerenderNums = randomStr(4);
       this.queueUpdate();
     },
 
