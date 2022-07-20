@@ -300,12 +300,12 @@ export default {
           <div class="right">
             <n-link
               v-if="isNamespaceCreatable"
-              class="create-namespace btn btn-sm role-secondary"
+              class="create-namespace btn btn-sm role-secondary mr-5"
               :to="createNamespaceLocation(group.group)"
             >
               {{ t('projectNamespaces.createNamespace') }}
             </n-link>
-            <button type="button" class="project-action btn btn-sm role-multi-action actions mr-5" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
+            <button type="button" class="project-action btn btn-sm role-multi-action actions mr-10" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
               <i class="icon icon-actions" />
             </button>
           </div>

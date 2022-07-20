@@ -4,12 +4,14 @@
 generic:
   add: Add
   all: All
+  and: ' and '
   back: Back
   cancel: Cancel
   clear: Clear
   clearAll: Clear All
   close: Close
   comingSoon: Coming Soon
+  comma: ', '
   copy: Copy
   create: Create
   created: Created
@@ -3809,6 +3811,7 @@ promptRemove:
   attemptingToRemove: "You are attempting to delete the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
+  deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
