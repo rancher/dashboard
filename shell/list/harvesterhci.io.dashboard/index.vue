@@ -172,7 +172,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentCluster', 'isVirtualCluster']),
+    ...mapGetters(['currentCluster']),
 
     accessibleResources() {
       const inStore = this.$store.getters['currentProduct'].inStore;

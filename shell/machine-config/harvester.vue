@@ -229,8 +229,8 @@ export default {
           };
         });
       },
-      set() {
-        this.images = [];
+      set(neu) {
+        this.images = neu;
       }
     },
 
