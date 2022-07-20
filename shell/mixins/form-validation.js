@@ -1,5 +1,5 @@
-import { getAllValues } from '@/shell/utils/object';
-import formRulesGenerator from '@/shell/utils/validators/formRules/index';
+import { getAllValues } from '@shell/utils/object';
+import formRulesGenerator from '@shell/utils/validators/formRules';
 
 export default {
   data() {
