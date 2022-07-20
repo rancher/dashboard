@@ -22,7 +22,7 @@ import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthS
 import { _CREATE } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { CAPI, CATALOG } from '@shell/config/labels-annotations';
-import { SECRET_TYPES } from '~/shell/config/secret';
+import { SECRET_TYPES } from '@shell/config/secret';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';

@@ -4,7 +4,7 @@ import Loading from '@shell/components/Loading';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
-import { SECRET_TYPES } from '~/shell/config/secret';
+import { SECRET_TYPES } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
 import { addObjects, insertAt } from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
