@@ -1199,6 +1199,9 @@ cluster:
   kubernetesVersion:
     label: Kubernetes Version
     experimental: experimental
+    deprecated: deprecated
+    deprecatedPatches: Show deprecated Kubernetes patch versions
+    deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
   toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
   log:
