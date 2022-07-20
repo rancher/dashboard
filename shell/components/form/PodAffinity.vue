@@ -190,7 +190,9 @@ export default {
     },
 
     updateNamespaces(term, namespaces) {
-      this.$set(term, 'namespaces', namespaces);
+      const nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
+
+      this.$set(term, 'namespaces', nsArray);
       this.queueUpdate();
     },
 
@@ -261,9 +263,8 @@ export default {
               v-model="props.row.value._namespaces"
               :mode="mode"
               :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
-              :placeholder="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
-              :tooltip="t('cluster.credential.harvester.affinity.namespaces.tooltip')"
-              @input="updateNamespaces(props.row.value, props.row.value._namespaces.split(','))"
+              :placeholder="t('cluster.credential.harvester.affinity.namespaces.placeholder')"
+              @input="updateNamespaces(props.row.value, props.row.value._namespaces)"
             />
           </div>
           <MatchExpressions

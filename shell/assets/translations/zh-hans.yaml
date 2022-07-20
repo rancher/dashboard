@@ -1168,7 +1168,7 @@ cluster:
       cluster: 集群
       affinity:
         namespaces:
-          tooltip: 例如：default,system,base
+          placeholder: 例如：default,system,base
   description:
     label: 集群描述
     placeholder: 输入可以描述该集群的文本
