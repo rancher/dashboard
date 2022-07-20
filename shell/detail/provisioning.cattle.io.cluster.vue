@@ -230,7 +230,7 @@ export default {
       // When we scale up, the quantity will change to N+1 - so from 0 to 1, the quantity changes,
       // but it takes tiem for the machine to appear, so the pool is empty, but if we just go off on a non-zero quqntity
       // then the pool would be hidden - so we find empty pool by checking the machines
-      const emptyPools = this.value.spec.rkeConfig.machinePools.filter((mp) => {
+      const emptyPools = (this.value.spec.rkeConfig?.machinePools || []).filter((mp) => {
         const machinePrefix = `${ this.value.name }-${ mp.name }`;
         const machines = this.value.machines.filter((machine) => {
           return machine.spec?.infrastructureRef?.name.startsWith(machinePrefix);
@@ -241,9 +241,10 @@ export default {
 
       // When a deployment has no machines it's not shown.... so add a fake machine to it
       // This is a catch all scenario seen in older node pool world but not deployments
-      return emptyPools.map((mp) => {
+      return emptyPools.map((mp, i) => {
         const pool = new EmptyCapiMachineDeployment(
           {
+            id:       i,
             metadata: {
               name:      `${ this.value.nameDisplay }-${ mp.name }`,
               namespace: this.value.namespace,
