@@ -4856,6 +4856,7 @@ user:
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
 validation:
+  noUpperCase: 'Alphanumeric characters in "{key}" must be lowercase'
   arrayLength:
     between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
     exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'
