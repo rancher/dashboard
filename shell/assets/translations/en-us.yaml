@@ -4891,6 +4891,8 @@ validation:
       tooLong: '"{key}" cannot be longer than {max} characters'
       tooLongLabel: '"{key}" cannot contain a section longer than {max} characters'
     label:
+      endDot: '"{key}" cannot end with a dot'
+      startDot: '"{key}" cannot start with a dot'
       emptyLabel: '"{key}" cannot be empty'
       endHyphen: '"{key}" cannot end with a hyphen'
       startHyphen: '"{key}" cannot start with a hyphen'
