@@ -1,8 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-
+import FormValidation from '@shell/mixins/form-validation';
 import { removeAt } from '@shell/utils/array';
-
 import { Banner } from '@components/Banner';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -10,7 +9,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
 import isString from 'lodash/isString';
 import isEmpty from 'lodash/isEmpty';
 import GroupRules from './GroupRules';
@@ -28,7 +27,7 @@ export default {
     UnitInput,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   props: {
     value: {
@@ -42,10 +41,21 @@ export default {
     },
   },
 
+  data() {
+    return { fvFormRuleSets: [{ path: 'metadata.name', rules: ['dnsLabel'] }] };
+  },
+
   computed: {
     filteredGroups() {
       return this.value?.spec?.groups || [];
     },
+    errorMessages() {
+      if (this.mode === _VIEW && (this.value?.metadata?.name || '').includes('.')) {
+        return [this.t('validation.prometheusRule.noEdit')];
+      }
+
+      return this.fvUnreportedValidationErrors;
+    }
   },
 
   mounted() {
@@ -111,10 +121,10 @@ export default {
 <template>
   <CruResource
     :done-route="doneRoute"
-    :errors="errors"
+    :errors="errorMessages"
     :mode="mode"
     :resource="value"
-    :validation-passed="true"
+    :validation-passed="fvFormIsValid"
     @error="(e) => (errors = e)"
     @finish="save"
   >
@@ -124,6 +134,7 @@ export default {
           v-if="!isView"
           :value="value"
           :mode="mode"
+          :rules="{ name: fvGetAndReportPathRules('metadata.name'), namespace: [], description: [] }"
           @change="name = value.metadata.name"
         />
       </div>
