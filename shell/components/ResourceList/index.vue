@@ -2,6 +2,9 @@
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
+import { COUNT } from '@shell/config/types';
+
+const TOO_MANY_ITEMS_TO_AUTO_UPDATE = 0;
 
 export default {
   components: {
@@ -11,14 +14,36 @@ export default {
   },
 
   async fetch() {
+    console.log('************* RESOURCE LIST LOAD !!!! *************', this.resource);
     const store = this.$store;
     const resource = this.resource;
 
-    let hasFetch = false;
-
     const inStore = store.getters['currentStore'](resource);
 
+    this.inStore = inStore;
+
     const schema = store.getters[`${ inStore }/schemaFor`](resource);
+
+    if ( this.$store.getters[`${ inStore }/haveAll`](COUNT) ) {
+      const counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
+
+      console.log('counts data', counts);
+
+      if (counts[`${ resource }`]) {
+        this.resourceCount = counts[`${ resource }`].summary?.count;
+        console.info('here!!!', counts[`${ resource }`].summary?.count);
+      }
+    }
+
+    console.log('*** resourceCount ***', this.resourceCount);
+
+    if (this.resourceCount >= TOO_MANY_ITEMS_TO_AUTO_UPDATE) {
+      this.watch = false;
+      this.tooManyItemsToAutoUpdate = true;
+
+      console.log('*** tooManyItemsToAutoUpdate ***', this.tooManyItemsToAutoUpdate);
+      console.log('*** watch ***', this.watch);
+    }
 
     if ( this.hasListComponent ) {
       // If you provide your own list then call its asyncData
@@ -31,18 +56,23 @@ export default {
 
       // If your list page has a fetch then it's responsible for populating rows itself
       if ( component?.fetch ) {
-        hasFetch = true;
+        this.hasFetch = true;
       }
     }
 
-    if ( !hasFetch ) {
+    console.error('*** hasFetch ***', this.hasFetch);
+
+    if ( !this.hasFetch ) {
       if ( !schema ) {
         store.dispatch('loadingError', `Type ${ resource } not found`);
 
         return;
       }
 
-      this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource });
+      this.rows = await store.dispatch(`${ inStore }/findAll`, {
+        type: resource,
+        opt:  { watch: this.watch }
+      });
     }
   },
 
@@ -60,16 +90,22 @@ export default {
 
     const existingData = getters[`${ inStore }/all`](resource) || [];
 
+    console.error('*** hasListComponent ***', hasListComponent);
+
     return {
       schema,
       hasListComponent,
       hasData:      existingData.length > 0,
       showMasthead: showMasthead === undefined ? true : showMasthead,
       resource,
+      hasFetch:     false,
 
       // Provided by fetch later
-      rows:              [],
-      customTypeDisplay: null,
+      rows:                     [],
+      customTypeDisplay:        null,
+      watch:                    true,
+      tooManyItemsToAutoUpdate: false,
+      inStore:                  null,
     };
   },
 
@@ -90,6 +126,20 @@ export default {
     loading() {
       return this.hasData ? false : this.$fetchState.pending;
     }
+  },
+
+  methods: {
+    async handleRefreshData() {
+      console.log('event received on default resource list!');
+
+      if (!this.hasListComponent && !this.hasFetch) {
+        console.error(`*** dispatching new request for ${ this.resource } on default resource list`);
+        this.rows = await this.$store.dispatch(`${ this.inStore }/findAll`, {
+          type: this.resource,
+          opt:  { watch: false, force: true }
+        });
+      }
+    },
   },
 
   created() {
@@ -129,6 +179,8 @@ export default {
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"
+      :too-many-items-to-auto-update="tooManyItemsToAutoUpdate"
+      @refresh-table-data="handleRefreshData"
     />
   </div>
 </template>

@@ -15,10 +15,18 @@ export default {
   },
 
   async fetch() {
+    // let watch = true;
+
+    // if (this.$parent && Object.keys(this.$parent).includes('watch')) {
+    //   watch = this.$parent.watch;
+    // }
+
+    // console.log('prov cluster this.$parent on fetch', JSON.stringify(this.$parent.watch, null, 2));
+    console.log('prov cluster watch on fetch', this.watch);
     const hash = {
       normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
       mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER, opt: { watch: this.watch } }),
     };
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
@@ -48,11 +56,23 @@ export default {
   },
 
   data() {
+    let tooManyItemsToAutoUpdate = false;
+    let watch = true;
+
+    if (this.$parent && Object.keys(this.$parent).includes('tooManyItemsToAutoUpdate')) {
+      tooManyItemsToAutoUpdate = this.$parent.tooManyItemsToAutoUpdate;
+    }
+    if (this.$parent && Object.keys(this.$parent).includes('watch')) {
+      watch = this.$parent.watch;
+    }
+
     return {
       resource:        CAPI.RANCHER_CLUSTER,
       schema:          this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       mgmtClusters:    [],
       rancherClusters: [],
+      tooManyItemsToAutoUpdate,
+      watch
     };
   },
 
@@ -109,6 +129,12 @@ export default {
     harvesterEnabled: mapFeature(HARVESTER_FEATURE),
   },
 
+  methods: {
+    async handleRefreshData() {
+      this.rancherClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER, opt: { watch: this.watch, force: true } });
+    },
+  },
+
   mounted() {
     window.c = this;
   },
@@ -134,7 +160,14 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" :namespaced="false" :loading="$fetchState.pending">
+    <ResourceTable
+      :schema="schema"
+      :rows="rows"
+      :namespaced="false"
+      :loading="$fetchState.pending"
+      :too-many-items-to-auto-update="tooManyItemsToAutoUpdate"
+      @refresh-table-data="handleRefreshData"
+    >
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>

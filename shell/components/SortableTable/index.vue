@@ -291,7 +291,12 @@ export default {
     getCustomDetailLink: {
       type:    Function,
       default: null
-    }
+    },
+
+    tooManyItemsToAutoUpdate: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -741,6 +746,10 @@ export default {
       return hasInjectedSubRows || hasStateDescription;
     },
 
+    refreshTableData() {
+      this.$emit('refresh-table-data');
+    },
+
     handleActionButtonClick(i, event) {
       // Each row in the table gets its own ref with
       // a number based on its index. If you are using
@@ -819,8 +828,17 @@ export default {
             </template>
           </slot>
         </div>
-        <div v-if="$slots['header-middle'] && $slots['header-middle'].length" class="middle">
+        <div v-if="tooManyItemsToAutoUpdate || $slots['header-middle'] && $slots['header-middle'].length" class="middle">
           <slot name="header-middle" />
+          <button
+            v-if="tooManyItemsToAutoUpdate"
+            v-tooltip="'click here to refresh table data'"
+            type="button"
+            class="btn role-primary refresh-btn"
+            @click="refreshTableData"
+          >
+            <i class="icon icon-backup" />
+          </button>
         </div>
 
         <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">

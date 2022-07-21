@@ -109,7 +109,11 @@ export default {
     getCustomDetailLink: {
       type:    Function,
       default: null
-    }
+    },
+    tooManyItemsToAutoUpdate: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -354,6 +358,7 @@ export default {
   <SortableTable
     ref="table"
     v-bind="$attrs"
+    :too-many-items-to-auto-update="tooManyItemsToAutoUpdate"
     :headers="_headers"
     :rows="filteredRows"
     :loading="loading"

@@ -52,7 +52,21 @@ export default {
   },
 
   data() {
-    return { resources: [] };
+    let tooManyItemsToAutoUpdate = false;
+    let watch = true;
+
+    if (this.$parent && Object.keys(this.$parent).includes('tooManyItemsToAutoUpdate')) {
+      tooManyItemsToAutoUpdate = this.$parent.tooManyItemsToAutoUpdate;
+    }
+    if (this.$parent && Object.keys(this.$parent).includes('watch')) {
+      watch = this.$parent.watch;
+    }
+
+    return {
+      resources: [],
+      tooManyItemsToAutoUpdate,
+      watch
+    };
   },
 
   computed: {
@@ -109,7 +123,10 @@ export default {
           this.$store.dispatch('cluster/findAll', { type: POD });
         }
       }
-    }
+    },
+    handleRefreshData() {
+      console.log('event received on workload!');
+    },
   },
 
   typeDisplay() {
@@ -126,5 +143,12 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="rows" :overflow-y="true" />
+  <ResourceTable
+    :loading="$fetchState.pending"
+    :schema="schema"
+    :rows="rows"
+    :overflow-y="true"
+    :too-many-items-to-auto-update="tooManyItemsToAutoUpdate"
+    @refresh-table-data="handleRefreshData"
+  />
 </template>
