@@ -3,8 +3,12 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
 import { COUNT } from '@shell/config/types';
-
-const TOO_MANY_ITEMS_TO_AUTO_UPDATE = 0;
+import {
+  MANUAL_DATA_REFRESH,
+  MANUAL_DATA_THRESHOLD,
+  DEFAULT_MANUAL_DATA_REFRESH,
+  DEFAULT_MANUAL_DATA_THRESHOLD,
+} from '@shell/store/prefs';
 
 export default {
   components: {
@@ -15,6 +19,8 @@ export default {
 
   async fetch() {
     console.log('************* RESOURCE LIST LOAD !!!! *************', this.resource);
+    const manualDataRefresh = this.$store.getters['prefs/get'](MANUAL_DATA_REFRESH) || DEFAULT_MANUAL_DATA_REFRESH;
+    const manualDataThreshold = this.$store.getters['prefs/get'](MANUAL_DATA_THRESHOLD) || DEFAULT_MANUAL_DATA_THRESHOLD;
     const store = this.$store;
     const resource = this.resource;
 
@@ -36,8 +42,10 @@ export default {
     }
 
     console.log('*** resourceCount ***', this.resourceCount);
+    console.log('*** manualDataRefresh ***', manualDataRefresh);
+    console.log('*** manualDataThreshold ***', manualDataThreshold);
 
-    if (this.resourceCount >= TOO_MANY_ITEMS_TO_AUTO_UPDATE) {
+    if (manualDataRefresh && this.resourceCount >= manualDataThreshold) {
       this.watch = false;
       this.tooManyItemsToAutoUpdate = true;
 
@@ -132,7 +140,7 @@ export default {
     async handleRefreshData() {
       console.log('event received on default resource list!');
 
-      if (!this.hasListComponent && !this.hasFetch) {
+      if (!this.hasFetch) {
         console.error(`*** dispatching new request for ${ this.resource } on default resource list`);
         this.rows = await this.$store.dispatch(`${ this.inStore }/findAll`, {
           type: this.resource,

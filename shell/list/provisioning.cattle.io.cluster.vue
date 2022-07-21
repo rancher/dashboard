@@ -15,14 +15,6 @@ export default {
   },
 
   async fetch() {
-    // let watch = true;
-
-    // if (this.$parent && Object.keys(this.$parent).includes('watch')) {
-    //   watch = this.$parent.watch;
-    // }
-
-    // console.log('prov cluster this.$parent on fetch', JSON.stringify(this.$parent.watch, null, 2));
-    console.log('prov cluster watch on fetch', this.watch);
     const hash = {
       normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
       mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
