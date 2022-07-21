@@ -6,6 +6,7 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 
 import {
   CAPI,
@@ -101,7 +102,7 @@ export default {
     YamlEditor,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   props: {
     mode: {
@@ -308,7 +309,10 @@ export default {
       userChartValues:             {},
       userChartValuesTemp:         {},
       addonsRev:                   0,
-      clusterIsAlreadyCreated:     !!this.value.id
+      clusterIsAlreadyCreated:     !!this.value.id,
+      fvFormRuleSets:              [{
+        path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
+      }]
     };
   },
 
@@ -1538,7 +1542,7 @@ export default {
     v-else
     ref="cruresource"
     :mode="mode"
-    :validation-passed="validationPassed()"
+    :validation-passed="validationPassed() && fvFormIsValid"
     :resource="value"
     :errors="errors"
     :cancel-event="true"
@@ -1549,7 +1553,7 @@ export default {
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
-    @error="e=>errors = e"
+    @error="fvUnreportedValidationErrors"
   >
     <Banner
       v-if="isEdit"
@@ -1576,6 +1580,7 @@ export default {
         name-placeholder="cluster.name.placeholder"
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
+        :rules="{name:fvGetAndReportPathRules('metadata.name')}"
       />
 
       <Banner v-if="appsOSWarning" color="error">

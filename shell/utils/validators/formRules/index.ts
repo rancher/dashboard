@@ -39,8 +39,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key: displayKey }) : undefined;
 
-  // this one should technically be used for restricted hostnames but it doesn't look like the existing code will ever call validateHostName with restricted set to true.
-  // const endDot = label => val => val?.slice(-1) === '.' ? t(`validation.dns.${ label }.endDot`, { key: displayKey }) : undefined;
+  const endDot = (label: any) => (val: string) => val?.slice(-1) === '.' ? t(`validation.dns.${ label }.endDot`, { key: displayKey }) : undefined;
 
   const startNumber: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1)?.match(/[0-9]/) ? t(`validation.dns.${ label }.startNumber`, { key: displayKey }) : undefined;
 
@@ -373,6 +372,18 @@ export default function(t: (key: string, options?: any) => string, opt: {display
     }
   };
 
+  const subDomain: Validator = (val) => {
+    const matchedChars = val?.match(/[^a-z0-9.-]/g);
+
+    if (matchedChars) {
+      return t('validation.chars', {
+        key: displayKey, count: matchedChars.length, chars: matchedChars.map((char: string) => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
+      });
+    }
+
+    return runValidators(val, [startHyphen('label'), endHyphen('label'), startDot('label'), endDot('label'), required]);
+  };
+
   return {
     noUpperCase,
     required,
@@ -396,6 +407,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
     dnsLabelIanaServiceName,
     dnsLabelRestricted,
     hostname,
-    testRule
+    testRule,
+    subDomain
   };
 }
