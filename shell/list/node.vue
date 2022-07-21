@@ -70,6 +70,13 @@ export default {
     };
   },
 
+  beforeDestroy() {
+    // Stop watching pods, nodes and node metrics
+    this.$store.dispatch('cluster/forgetType', POD);
+    this.$store.dispatch('cluster/forgetType', NODE);
+    this.$store.dispatch('cluster/forgetType', METRIC.NODE);
+  },
+
   computed: {
     hasWindowsNodes() {
       return (this.kubeNodes || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
