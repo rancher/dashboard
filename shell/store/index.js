@@ -493,7 +493,7 @@ export const mutations = {
 
     // Create map that can be used to efficiently check if a
     // resource should be displayed
-    state.activeNamespaceCache = { 'test-performance': true }; // getActiveNamespaces(state, getters);
+    state.activeNamespaceCache = getActiveNamespaces(state, getters);
   },
 
   pageActions(state, pageActions) {
