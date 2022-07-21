@@ -66,7 +66,7 @@ export default class RoleTemplate extends SteveModel {
       }
     });
 
-    if ( editActions ) {
+    if ( editActions.length > 0 ) {
       editActions.forEach((a) => {
         a.enabled = !this.builtin;
       });

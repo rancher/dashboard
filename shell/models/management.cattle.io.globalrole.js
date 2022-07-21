@@ -24,7 +24,7 @@ export default class GlobalRole extends SteveModel {
       }
     });
 
-    if ( editActions ) {
+    if ( editActions.length > 0 ) {
       editActions.forEach((a) => {
         a.enabled = !this.builtin;
       });
