@@ -1,4 +1,5 @@
 import { addObject, removeObject } from '@shell/utils/array';
+import { NAMESPACE, POD } from '@shell/config/types';
 import {
   forgetType,
   resetStore,
@@ -36,8 +37,14 @@ export default {
       type, data, ctx
     });
 
-    // If we loaded a set of pods, then update the posdByNamespace cache
-    if (type === 'pod' && proxies?.length) {
+    // If we loaded a set of pods, then update the podsByNamespace cache
+    if (type === POD) {
+      // Clear the entire cache - this is a fresh load
+      Object.keys(state.podsByNamespace).forEach((ns) => {
+        delete state.podsByNamespace[ns];
+      });
+
+      // Go through all of the pods and populate cache by namespace
       proxies.forEach((entry) => {
         const cache = registerNamespace(state, entry.namespace);
 
@@ -65,7 +72,7 @@ export default {
     for (const entry of data) {
       const resource = load(state, { data: entry, ctx });
 
-      if (resource.type === 'pod' && resource.metadata) {
+      if (resource.type === POD && resource.metadata) {
         const cache = registerNamespace(state, resource.namespace);
 
         addObject(cache.list, resource);
@@ -77,12 +84,15 @@ export default {
   remove(state, obj) {
     remove(state, obj, this.getters);
 
-    if (obj && obj.type === 'pod') {
+    if (obj && obj.type === POD) {
       const cache = state.podsByNamespace[obj.namespace];
 
-      removeObject(cache.list, obj);
-      cache.map.delete(obj.id);
-    } else if (obj && obj.type === 'namespace') {
+      // Extra defensive check that the cache exists for the namespace being removed
+      if (cache) {
+        removeObject(cache.list, obj);
+        cache.map.delete(obj.id);
+      }
+    } else if (obj && obj.type === NAMESPACE) {
       // Namespace deleted
       delete state.podsByNamespace[obj.namespace];
     }
