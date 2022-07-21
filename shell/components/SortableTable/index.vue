@@ -335,7 +335,7 @@ export default {
 
     page(neu, old) {
       if (neu !== old) {
-        this.updateLiveAndDelayed();
+        this.$nextTick(() => this.updateLiveAndDelayed());
       }
     },
 
