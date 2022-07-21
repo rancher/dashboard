@@ -166,7 +166,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="resource-list-master-class">
     <Masthead
       v-if="showMasthead"
       :type-display="customTypeDisplay"
@@ -174,7 +174,7 @@ export default {
       :resource="resource"
     />
 
-    <div v-if="hasListComponent">
+    <div v-if="hasListComponent" class="has-list-component-container">
       <component
         :is="listComponent"
         v-bind="$data"

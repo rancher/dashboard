@@ -747,7 +747,8 @@ export default {
     },
 
     refreshTableData() {
-      this.$emit('refresh-table-data');
+      console.log('button clicked for refresh data!');
+      this.$emit('refresh-data');
     },
 
     handleActionButtonClick(i, event) {

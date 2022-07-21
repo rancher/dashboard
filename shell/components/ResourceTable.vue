@@ -347,6 +347,11 @@ export default {
       return defaultTableSortGenerationFn(this.schema, this.$store);
     },
 
+    handleRefreshData() {
+      console.log('event received on resource table!');
+      this.$emit('refresh-table-data');
+    },
+
     handleActionButtonClick(event) {
       this.$emit('clickedActionButton', event);
     }
@@ -374,6 +379,7 @@ export default {
     :get-custom-detail-link="getCustomDetailLink"
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
+    @refresh-data="handleRefreshData"
     @clickedActionButton="handleActionButtonClick"
     v-on="$listeners"
   >

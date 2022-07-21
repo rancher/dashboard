@@ -52,6 +52,16 @@ export default {
     }
   },
 
+  data() {
+    let tooManyItemsToAutoUpdate = false;
+
+    if (this.$parent && Object.keys(this.$parent).includes('tooManyItemsToAutoUpdate')) {
+      tooManyItemsToAutoUpdate = this.$parent.tooManyItemsToAutoUpdate;
+    }
+
+    return { tooManyItemsToAutoUpdate };
+  },
+
   methods: {
     hideTypeDescription() {
       const neu = this.hideDescriptions.slice();
@@ -60,6 +70,9 @@ export default {
 
       this.hideDescriptions = neu;
     },
+    handleRefreshData() {
+      this.$parent.handleRefreshData();
+    }
   }
 };
 </script>
@@ -85,6 +98,8 @@ export default {
     <ResourceTable
       :schema="schema"
       :rows="rows"
+      :too-many-items-to-auto-update="tooManyItemsToAutoUpdate"
+      @refresh-table-data="handleRefreshData"
     />
   </div>
 </template>

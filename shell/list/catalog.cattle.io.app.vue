@@ -21,18 +21,43 @@ export default {
   async fetch() {
     await this.$store.dispatch('catalog/load');
 
-    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
+    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource, opt: { watch: this.watch } });
   },
 
   data() {
-    return { rows: null };
+    let tooManyItemsToAutoUpdate = false;
+    let watch = true;
+
+    if (this.$parent && Object.keys(this.$parent).includes('tooManyItemsToAutoUpdate')) {
+      tooManyItemsToAutoUpdate = this.$parent.tooManyItemsToAutoUpdate;
+    }
+    if (this.$parent && Object.keys(this.$parent).includes('watch')) {
+      watch = this.$parent.watch;
+    }
+
+    return {
+      rows: null, tooManyItemsToAutoUpdate, watch
+    };
+  },
+
+  methods: {
+    async handleRefreshData() {
+      this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource, opt: { watch: this.watch, force: true } });
+    },
   },
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else class="apps" :schema="schema" :rows="rows">
+  <ResourceTable
+    v-else
+    class="apps"
+    :schema="schema"
+    :rows="rows"
+    :too-many-items-to-auto-update="tooManyItemsToAutoUpdate"
+    @refresh-table-data="handleRefreshData"
+  >
     <template #cell:upgrade="{row}">
       <span v-if="row.upgradeAvailable" class="badge-state bg-warning hand" @click="row.goToUpgrade(row.upgradeAvailable)">
         {{ row.upgradeAvailable }}
