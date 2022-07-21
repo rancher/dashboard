@@ -8,8 +8,8 @@ import { PROJECT_ID } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
+import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 
 export default {
   name:       'ListNamespace',
@@ -125,6 +125,12 @@ export default {
       const namespaceFilters = this.$store.getters['activeNamespaceFilters']();
       const activeProjectFilters = this.getActiveProjects(namespaceFilters);
 
+      if (namespaceFilters.includes(NAMESPACE_FILTER_ALL_ORPHANS) && Object.keys(activeProjectFilters).length === 0) {
+        // If the user wants to only see namespaces that are not
+        // in a project, don't show any projects.
+        return [];
+      }
+
       // If the user is not filtering by any projects or namespaces, return
       // all projects in the cluster.
       if (!this.userIsFilteringForSpecificNamespaceOrProject()) {
@@ -150,9 +156,21 @@ export default {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
-      // These rows are not filtered in order to stay consistent
-      // with the namespaces available in the top nav of Cluster Explorer.
-      return this.activeNamespaces;
+      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
+
+      if (!isVirtualCluster || this.$store.getters['prefs/get'](DEV)) {
+        return this.activeNamespaces;
+      }
+
+      // Filter out system namespaces for virtual clusters, e.g. Harvester.
+      // Otherwise the unfiltered list should be the same as the list
+      // of namespaces available in the top nav of Cluster Explorer.
+      return this.activeNamespaces.filter((namespace) => {
+        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
+        const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
+
+        return !systemNS && !namespace.isObscure;
+      });
     },
 
     showMockNotInProjectGroup() {
