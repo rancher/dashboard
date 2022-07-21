@@ -906,6 +906,19 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  it('"absolutePath" : return expected message when path doesn\'t begin with a "/"', () => {
+    const formRuleResult = formRules.absolutePath('absolute_path');
+    const expectedResult = JSON.stringify({ message: 'validation.path', key: 'testDisplayKey' });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"absolutePath" : returns undefined when path begins with a "/"', () => {
+    const formRuleResult = formRules.absolutePath('/absolute_path');
+
+    expect(formRuleResult).toBeUndefined();
+  });
+
   it('"testRule" : always returns the expected string', () => {
     const formRuleResult = formRules.testRule('');
     const expectedResult = 'This is an error returned by the testRule validator';

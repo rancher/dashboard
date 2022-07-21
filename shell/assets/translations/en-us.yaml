@@ -2165,9 +2165,12 @@ ingress:
     port:
       label: Port
       placeholder: e.g. 80 or http
+      notInt: Port must be an integer
+      required: Port is required
     targetService:
       label: Target Service
       doesntExist: The selected service does not exist
+      required: Target Service is required
     warning: "Warning: Default backend is used globally for the entire cluster."
   ingressClass:
     label: Ingress Class
@@ -2200,6 +2203,7 @@ ingress:
     defaultCertificate: default
   target:
     default: Default
+  rulesOrBackendSpecified: Either Default Backend or Rules must be specified
 
 internalExternalIP:
   none: None
@@ -4917,6 +4921,7 @@ validation:
   noSchema: No schema found to validate
   noType: No type to validate
   number:
+    requiredInt: '"{key}" must be integer'
     between: '"{key}" should be between {min} and {max}'
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'
@@ -4932,6 +4937,7 @@ validation:
       valueMustBeEmpty: Rule [{index}] of {group} {rules} - value must be empty if operator is 'Exists' or 'DoesNotExist'
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
   port: A port must be a number between 1 and 65535.
+  path: '"{key}" must be an absolute path'
   prometheusRule:
     noEdit: This Prometheus Rule may not be edited due to invalid characters in name.
     groups:
