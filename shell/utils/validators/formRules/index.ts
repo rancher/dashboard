@@ -10,12 +10,27 @@ export type Validator = (val: any, arg?: any) => undefined | string;
 
 export type ValidatorFactory = (arg1: any, arg2?: any) => Validator
 
-type Port = {
+type ServicePort = {
   name?: string,
-  nodePort?: string,
-  port?: string,
-  targetPort?: string,
+  nodePort?: string | number,
+  port?: string | number,
+  targetPort?: string | number,
   idx: number
+}
+
+class Port {
+  empty: boolean;
+  int: number;
+  string: string;
+  isNumber: boolean;
+  isInt: boolean;
+  constructor(port: number | string | undefined) {
+    this.string = String(port);
+    this.int = parseInt(this.string, 10);
+    this.empty = (!port && this.int !== 0);
+    this.isNumber = !isNaN(this.int) && !this.string.includes('e'); // leaving out the exponent edge case to keep the logic simple and because port numbers aren't that big...
+    this.isInt = this.isNumber && !this.string.includes('.');
+  }
 }
 
 const httpsKeys = [
@@ -205,43 +220,48 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
   const clusterName: ValidatorFactory = (isRke2: boolean): Validator => (val: string | undefined) => isRke2 && (val || '')?.match(/^(c-.{5}|local)$/i) ? t('validation.cluster.name') : undefined;
 
-  const servicePort = (val: Port) => {
+  const servicePort = (val: ServicePort) => {
     const {
       name,
-      nodePort,
-      port: pPort,
-      targetPort,
       idx
     } = val;
 
-    const nodePortIsInt = nodePort ? !isNaN(parseInt(nodePort, 10)) : false;
-    const pPortIsInt = pPort ? !isNaN(parseInt(pPort, 10)) : false;
-    const targetPortIsInt = targetPort || targetPort === '0' ? !isNaN(parseInt(targetPort, 10)) : false;
+    const nodePort = new Port(val.nodePort);
+    const listeningPort = new Port(val.port);
+    const targetPort = new Port(val.targetPort);
 
     if (isEmpty(name)) {
       return t('validation.service.ports.name.required', { position: idx + 1 });
     }
 
-    if (nodePort && !nodePortIsInt) {
-      return t('validation.service.ports.nodePort.requiredInt', { position: idx + 1 });
+    if (!nodePort.empty) {
+      if (!nodePort.isInt) {
+        return t('validation.service.ports.nodePort.requiredInt', { position: idx + 1 });
+      } else if (nodePort.int < 1 || nodePort.int > 65535) {
+        return t('validation.service.ports.nodePort.between', { position: idx + 1 });
+      }
     }
 
-    if (pPort) {
-      if (!pPortIsInt) {
+    if (!listeningPort.empty) {
+      if (!listeningPort.isInt) {
         return t('validation.service.ports.port.requiredInt', { position: idx + 1 });
+      } else if (listeningPort.int < 1 || listeningPort.int > 65535) {
+        return t('validation.service.ports.port.between', { position: idx + 1 });
+      } else if (listeningPort.string?.includes('.')) {
+        return listeningPort;
       }
     } else {
       return t('validation.service.ports.port.required', { position: idx + 1 });
     }
 
-    if (targetPort || targetPort === '0') {
-      if (!targetPortIsInt) {
-        const ianaServiceNameErrors = dnsLabelIanaServiceName(typeof val === 'string' ? targetPort : targetPort.toString());
+    if (!targetPort.empty) {
+      if (!targetPort.isInt) {
+        const ianaServiceNameErrors = dnsLabelIanaServiceName(targetPort.string);
 
         if (ianaServiceNameErrors) {
           return ianaServiceNameErrors;
         }
-      } else if (parseInt(targetPort, 10) < 1 || parseInt(targetPort, 10) > 65535) {
+      } else if (targetPort.int < 1 || targetPort.int > 65535) {
         return t('validation.service.ports.targetPort.between', { position: idx + 1 });
       }
     } else {
