@@ -51,7 +51,7 @@ export default class HciPv extends SteveModel {
   }
 
   cleanForNew() {
-    this.cleanForNew();
+    this.$dispatch(`cleanForNew`, this);
 
     delete this.metadata.finalizers;
     const keys = [HCI_ANNOTATIONS.IMAGE_ID, DESCRIPTION];

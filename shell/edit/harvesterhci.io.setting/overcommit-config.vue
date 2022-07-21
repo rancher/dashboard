@@ -50,7 +50,7 @@ export default {
 </script>
 
 <template>
-  <div class="row" @input="update">
+  <div class="row">
     <div class="col span-12">
       <template>
         <UnitInput
@@ -62,6 +62,7 @@ export default {
           required
           :mode="mode"
           class="mb-20"
+          @input="update"
         />
 
         <UnitInput
@@ -73,6 +74,7 @@ export default {
           required
           :mode="mode"
           class="mb-20"
+          @input="update"
         />
 
         <UnitInput
@@ -84,6 +86,7 @@ export default {
           required
           :mode="mode"
           class="mb-20"
+          @input="update"
         />
       </template>
     </div>

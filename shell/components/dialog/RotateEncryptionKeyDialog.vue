@@ -59,7 +59,7 @@ export default {
 
   methods: {
     close(buttonDone) {
-      if (buttonDone) {
+      if (buttonDone && typeof buttonDone === 'function') {
         buttonDone(true);
       }
       this.$emit('close');

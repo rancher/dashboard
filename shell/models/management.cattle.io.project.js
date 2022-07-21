@@ -74,7 +74,7 @@ export default class Project extends HybridModel {
 
     const newValue = await norman.save({ replace: forceReplaceOnReq });
 
-    newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
+    await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
 
     await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
 
@@ -85,7 +85,8 @@ export default class Project extends HybridModel {
     const norman = await this.norman;
 
     await norman.remove(...arguments);
-    this.$dispatch('management/remove', this, { root: true });
+    await this.$dispatch('management/remove', this, { root: true });
+    await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
   }
 
   get norman() {
@@ -148,5 +149,9 @@ export default class Project extends HybridModel {
 
   get canEditYaml() {
     return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : super.canUpdate;
+  }
+
+  get confirmRemove() {
+    return true;
   }
 }

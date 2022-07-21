@@ -325,6 +325,7 @@ export default async function({
           id:     clusterId,
           oldPkg: oldPkgPlugin,
           newPkg: newPkgPlugin,
+          product,
           oldProduct,
         })]);
 

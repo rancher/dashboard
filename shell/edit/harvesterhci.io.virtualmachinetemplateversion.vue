@@ -13,6 +13,7 @@ import Network from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineNetwor
 import CpuMemory from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
 import CloudConfig from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import SSHKey from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineSSHKey';
+import NodeScheduling from '@shell/components/form/NodeScheduling';
 
 import { HCI } from '@shell/config/types';
 import { randomStr } from '@shell/utils/string';
@@ -39,7 +40,8 @@ export default {
     CloudConfig,
     LabeledSelect,
     UnitInput,
-    NameNsDescription
+    NameNsDescription,
+    NodeScheduling,
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -53,7 +55,7 @@ export default {
 
   data() {
     if (this.mode === _EDIT) {
-      this.value = this.value.cleanForNew();
+      this.value.cleanForNew();
     }
 
     const templateId = this.value.templateId || this.$route.query.templateId;
@@ -243,7 +245,19 @@ export default {
         <Network v-model="networkRows" :mode="mode" />
       </Tab>
 
-      <Tab name="advanced" :label="t('harvester.tab.advanced')" :weight="-3">
+      <Tab
+        name="nodeScheduling"
+        :label="t('workload.container.titles.nodeScheduling')"
+        :weight="-89"
+      >
+        <NodeScheduling
+          :mode="mode"
+          :value="spec.template.spec"
+          :nodes="nodesIdOptions"
+        />
+      </Tab>
+
+      <Tab name="advanced" :label="t('harvester.tab.advanced')" :weight="-99">
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledSelect

@@ -1,10 +1,12 @@
+import YAML from 'yaml';
 import jsyaml from 'js-yaml';
 import isEqual from 'lodash/isEqual';
 import isEmpty from 'lodash/isEmpty';
 import difference from 'lodash/difference';
 
 import { sortBy } from '@shell/utils/sort';
-import { clone, set } from '@shell/utils/object';
+import { set } from '@shell/utils/object';
+
 import { allHash } from '@shell/utils/promise';
 import { randomStr } from '@shell/utils/string';
 import { base64Decode } from '@shell/utils/crypto';
@@ -131,7 +133,7 @@ export default {
       accessCredentials:  [],
       efiEnabled:         false,
       secureBoot:         false,
-      userDataTemplateId: ''
+      userDataTemplateId: '',
     };
   },
 
@@ -515,7 +517,7 @@ export default {
       }
 
       if (!disks.find( D => D.name === 'cloudinitdisk')) {
-        if (this.networkScript || this.userScript || this.sshKey.length > 0) {
+        if (!this.isWindows) {
           disks.push({
             name: 'cloudinitdisk',
             disk: { bus: 'virtio' }
@@ -697,44 +699,43 @@ export default {
 
     getInitUserData(config) {
       const _QGA_JSON = this.getMatchQGA(config.osType);
+
       const out = jsyaml.dump(_QGA_JSON);
 
-      return out.startsWith('#cloud-config') ? out : `#cloud-config\n${ out }`;
+      return `#cloud-config\n${ out }`;
     },
 
+    /**
+     * Generate user data yaml which is decide by the "Install guest agent",
+     * "OS type", "SSH Keys" and user input.
+     * @param config
+     */
     getUserData(config) {
-      const { returnType = 'string' } = config;
+      try {
+        // https://github.com/eemeli/yaml/issues/136
+        let userDataDoc = this.userScript ? YAML.parseDocument(this.userScript) : YAML.parseDocument({});
 
-      let userDataJson = this.convertToJson(this.userScript) || {};
+        const allSSHAuthorizedKeys = this.mergeSSHAuthorizedKeys(this.userScript);
 
-      const sshAuthorizedKeys = userDataJson?.ssh_authorized_keys || [];
+        if (allSSHAuthorizedKeys.length > 0) {
+          userDataDoc.setIn(['ssh_authorized_keys'], allSSHAuthorizedKeys);
+        } else if (YAML.isCollection(userDataDoc.getIn('ssh_authorized_keys'))) {
+          userDataDoc.deleteIn(['ssh_authorized_keys']);
+        }
 
-      if (userDataJson && sshAuthorizedKeys) {
-        const sshList = new Set([...this.getSSHListValue(this.sshKey), ...sshAuthorizedKeys]);
+        userDataDoc = config.installAgent ? this.mergeQGA({ userDataDoc, ...config }) : this.deleteQGA({ userDataDoc, ...config });
+        const userDataYaml = userDataDoc.toString();
 
-        userDataJson.ssh_authorized_keys = [...sshList];
-      } else {
-        userDataJson.ssh_authorized_keys = this.getSSHListValue(this.sshKey);
-      }
-
-      if (userDataJson.ssh_authorized_keys && userDataJson.ssh_authorized_keys.length === 0) {
-        delete userDataJson.ssh_authorized_keys;
-      }
-
-      userDataJson = config.installAgent ? this.mergeQGA({ userDataJson: clone(userDataJson), ...config }) : this.deleteQGA({ userDataJson, ...config });
-
-      if (returnType === 'string') {
-        const out = jsyaml.dump(userDataJson);
-
-        const outValue = out.replace(/[\r\n]/g, '').replace(/\ +/g, '');
-
-        if (outValue === "''") {
+        if (userDataYaml === '{}\n') {
+          // When the YAML parsed value is '{}\n', it means that the userData is empty, then undefined is returned.
           return undefined;
         }
 
-        return `#cloud-config\n${ out }`;
-      } else {
-        return userDataJson;
+        return userDataYaml;
+      } catch (e) {
+        console.error('Error: Unable to parse yaml document', e); // eslint-disable-line no-console
+
+        return this.userScript;
       }
     },
 
@@ -800,6 +801,8 @@ export default {
         if (image) {
           out.spec.storageClassName = `longhorn-${ image.metadata.name }`;
           out.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: image.id };
+        } else if (this.resource === HCI.VM_VERSION) {
+          out.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: '' };
         }
 
         break;
@@ -821,20 +824,6 @@ export default {
 
       if (R.macAddress) {
         _interface.macAddress = R.macAddress;
-      }
-
-      // TODO: delete
-      if (R.ports && R.type === 'masquerade') {
-        const ports = [];
-
-        for (const item of R.ports) {
-          ports.push({
-            ...item,
-            port: parseInt(item.port)
-          });
-        }
-
-        _interface.ports = ports;
       }
 
       _interface.model = R.model;
@@ -863,24 +852,62 @@ export default {
       this.networkScript = value;
     },
 
-    mergeQGA(config) {
-      const { userDataJson, osType } = config;
-      const _QGA_JSON = this.getMatchQGA(osType);
+    mergeSSHAuthorizedKeys(yaml) {
+      try {
+        const sshAuthorizedKeys = YAML.parseDocument(yaml)
+          .get('ssh_authorized_keys')
+          ?.toJSON() || [];
 
-      userDataJson.package_update = true;
-      if (Array.isArray(userDataJson.packages)) {
-        if (!userDataJson.packages.includes('qemu-guest-agent')) {
-          userDataJson.packages.push('qemu-guest-agent');
+        const sshList = this.getSSHListValue(this.sshKey);
+
+        return sshAuthorizedKeys.length ? [...new Set([...sshList, ...sshAuthorizedKeys])] : sshList;
+      } catch (e) {
+        return [];
+      }
+    },
+
+    /**
+     * @param paths A Object path, e.g. 'a.b.c' => ['a', 'b', 'c']. Refer to https://eemeli.org/yaml/#scalar-values
+     * @returns
+     */
+    deleteYamlDocProp(doc, paths) {
+      try {
+        const item = doc.getIn([])?.items[0];
+        const key = item?.key;
+        const hasCloudConfigComment = !!key?.commentBefore?.includes('cloud-config');
+        const isMatchProp = key.source === paths[paths.length - 1];
+
+        if (key && hasCloudConfigComment && isMatchProp) {
+          // Comments are mounted on the next node and we should not delete the node containing cloud-config
+        } else {
+          doc.deleteIn(paths);
+        }
+      } catch (e) {}
+    },
+
+    mergeQGA(config) {
+      const { osType, userDataDoc } = config;
+      const _QGA_JSON = this.getMatchQGA(osType);
+      const userDataYAML = userDataDoc.toString();
+      const userDataJSON = YAML.parse(userDataYAML);
+      let packages = userDataJSON?.packages || [];
+      let runcmd = userDataJSON?.runcmd || [];
+
+      userDataDoc.setIn(['package_update'], true);
+
+      if (Array.isArray(packages)) {
+        if (!packages.includes('qemu-guest-agent')) {
+          packages.push('qemu-guest-agent');
         }
       } else {
-        userDataJson.packages = QGA_JSON.packages;
+        packages = QGA_JSON.packages;
       }
 
-      if (Array.isArray(userDataJson.runcmd)) {
+      if (Array.isArray(runcmd)) {
         let findIndex = -1;
-        const hasSameRuncmd = userDataJson.runcmd.find( S => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
+        const hasSameRuncmd = runcmd.find( S => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
 
-        const hasSimilarRuncmd = userDataJson.runcmd.find( (S, index) => {
+        const hasSimilarRuncmd = runcmd.find( (S, index) => {
           if (Array.isArray(S) && S.join('-') === this.getSimilarRuncmd(osType).join('-')) {
             findIndex = index;
 
@@ -891,61 +918,78 @@ export default {
         });
 
         if (hasSimilarRuncmd) {
-          userDataJson.runcmd[findIndex] = _QGA_JSON.runcmd[0];
+          runcmd[findIndex] = _QGA_JSON.runcmd[0];
         } else if (!hasSameRuncmd) {
-          userDataJson.runcmd.push(_QGA_JSON.runcmd[0]);
+          runcmd.push(_QGA_JSON.runcmd[0]);
         }
       } else {
-        userDataJson.runcmd = _QGA_JSON.runcmd;
+        runcmd = _QGA_JSON.runcmd;
       }
 
-      return userDataJson;
+      if (packages.length > 0) {
+        userDataDoc.setIn(['packages'], packages);
+      } else {
+        userDataDoc.setIn(['packages'], []); // It needs to be set empty first, as it is possible that cloud-init comments are mounted on this node
+        this.deleteYamlDocProp(userDataDoc, ['packages']);
+        this.deleteYamlDocProp(userDataDoc, ['package_update']);
+      }
+
+      if (runcmd.length > 0) {
+        userDataDoc.setIn(['runcmd'], runcmd);
+      } else {
+        this.deleteYamlDocProp(userDataDoc, ['runcmd']);
+      }
+
+      return userDataDoc;
     },
 
     deleteQGA(config) {
-      const { userDataJson, osType, deletePackage = false } = config;
+      const { osType, userDataDoc, deletePackage = false } = config;
 
       const userDataTemplateValue = this.$store.getters['harvester/byId'](CONFIG_MAP, this.userDataTemplateId)?.data?.cloudInit || '';
 
-      if (Array.isArray(userDataJson.packages) && deletePackage) {
+      const userDataYAML = userDataDoc.toString();
+      const userDataJSON = YAML.parse(userDataYAML);
+      const packages = userDataJSON?.packages || [];
+      const runcmd = userDataJSON?.runcmd || [];
+
+      if (Array.isArray(packages) && deletePackage) {
         const templateHasQGAPackage = this.convertToJson(userDataTemplateValue);
 
-        for (let i = 0; i < userDataJson.packages.length; i++) {
-          if (userDataJson.packages[i] === 'qemu-guest-agent') {
+        for (let i = 0; i < packages.length; i++) {
+          if (packages[i] === 'qemu-guest-agent') {
             if (!(Array.isArray(templateHasQGAPackage?.packages) && templateHasQGAPackage.packages.includes('qemu-guest-agent'))) {
-              userDataJson.packages.splice(i, 1);
+              packages.splice(i, 1);
             }
           }
         }
-
-        if (userDataJson.packages?.length === 0) {
-          delete userDataJson.packages;
-        }
       }
 
-      if (Array.isArray(userDataJson.runcmd)) {
+      if (Array.isArray(runcmd)) {
         const _QGA_JSON = this.getMatchQGA(osType);
 
-        for (let i = 0; i < userDataJson.runcmd.length; i++) {
-          if (Array.isArray(userDataJson.runcmd[i]) && userDataJson.runcmd[i].join('-') === _QGA_JSON.runcmd[0].join('-')) {
-            userDataJson.runcmd.splice(i, 1);
+        for (let i = 0; i < runcmd.length; i++) {
+          if (Array.isArray(runcmd[i]) && runcmd[i].join('-') === _QGA_JSON.runcmd[0].join('-')) {
+            runcmd.splice(i, 1);
           }
         }
-
-        if (userDataJson.runcmd.length === 0) {
-          delete userDataJson.runcmd;
-        }
       }
 
-      if (!userDataJson.packages) {
-        delete userDataJson.package_update;
+      if (packages.length > 0) {
+        userDataDoc.setIn(['packages'], packages);
+      } else {
+        userDataDoc.setIn(['packages'], []);
+        this.deleteYamlDocProp(userDataDoc, ['packages']);
+        this.deleteYamlDocProp(userDataDoc, ['package_update']);
       }
 
-      if (!Object.keys(userDataJson).length > 0) {
-        return '';
+      if (runcmd.length > 0) {
+        userDataDoc.setIn(['runcmd'], runcmd);
+      } else {
+        this.deleteYamlDocProp(userDataDoc, ['runcmd']);
       }
 
-      return userDataJson;
+      return userDataDoc;
     },
 
     generateSecretName(name) {
@@ -967,7 +1011,7 @@ export default {
     },
 
     async saveSecret(vm) {
-      if (!vm?.spec || !this.secretName) {
+      if (!vm?.spec || !this.secretName || this.isWindows) {
         return true;
       }
 
@@ -989,13 +1033,8 @@ export default {
 
       try {
         if (secret) {
-          if (userData) {
-            secret.setData('userdata', userData);
-          }
-
-          if (this.networkScript) {
-            secret.setData('networkdata', this.networkScript);
-          }
+          secret.setData('userdata', userData);
+          secret.setData('networkdata', this.networkScript);
 
           await secret.save();
         }
@@ -1282,8 +1321,7 @@ export default {
         }
         this.deleteAgent = true;
         this.deletePackage = false;
-      },
-      immediate: true
+      }
     },
 
     osType(neu) {

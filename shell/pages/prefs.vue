@@ -203,14 +203,19 @@ export default {
 
     <hr />
     <div class="row">
-      <div class="col span-8">
+      <div class="col prefs-advanced">
+        <h4 v-t="'prefs.advanced'" />
+        <Checkbox v-model="dev" :description="t('prefs.advancedTooltip', {}, raw=true)" :label="t('prefs.dev.label', {}, true)" />
+        <br>
+        <Checkbox v-if="!isSingleVirtualCluster" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
+      </div>
+    </div>
+
+    <hr />
+    <div class="row">
+      <div class="col span-12">
         <h4 v-t="'prefs.keymap.label'" />
         <ButtonGroup v-model="keymap" :options="keymapOptions" />
-      </div>
-      <div class="col span-4">
-        <h4 v-t="'prefs.advanced'" />
-        <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
-        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
       </div>
     </div>
 

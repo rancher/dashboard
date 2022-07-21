@@ -61,11 +61,6 @@ export default class ProvCluster extends SteveModel {
   }
 
   get _availableActions() {
-    // No actions for Harvester clusters
-    if (this.isHarvester) {
-      return [];
-    }
-
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
 
@@ -191,6 +186,14 @@ export default class ProvCluster extends SteveModel {
     return super.canEditYaml;
   }
 
+  get isAKS() {
+    return this.provisioner === 'AKS';
+  }
+
+  get isEKS() {
+    return this.provisioner === 'EKS';
+  }
+
   get isImported() {
     return this.provisioner === 'imported';
   }
@@ -245,6 +248,10 @@ export default class ProvCluster extends SteveModel {
     const out = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
 
     return out;
+  }
+
+  get isReady() {
+    return !!this.mgmt?.isReady;
   }
 
   waitForProvisioner(timeout, interval) {

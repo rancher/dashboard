@@ -7,6 +7,11 @@ import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/reso
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { parseSi } from '@shell/utils/units';
 
+const ALLOW_SYSTEM_LABEL_KEYS = [
+  'topology.kubernetes.io/zone',
+  'topology.kubernetes.io/region',
+];
+
 export default class HciNode extends SteveModel {
   get _availableActions() {
     const cordon = {
@@ -57,9 +62,19 @@ export default class HciNode extends SteveModel {
   get filteredSystemLabels() {
     const reg = /(k3s|kubernetes|kubevirt|harvesterhci|k3os)+\.io/;
 
-    return pickBy(this.labels, (value, key) => {
+    const labels = pickBy(this.labels, (value, key) => {
       return !reg.test(key);
     });
+
+    ALLOW_SYSTEM_LABEL_KEYS.map((key) => {
+      const value = this?.metadata?.labels?.[key];
+
+      if (value) {
+        labels[key] = value;
+      }
+    });
+
+    return labels;
   }
 
   get nameDisplay() {
@@ -72,7 +87,7 @@ export default class HciNode extends SteveModel {
     }
 
     if (this.isMaintenance) {
-      return 'Maintenance mode';
+      return 'Maintenance';
     }
 
     if (this.isCordoned ) {
@@ -216,40 +231,20 @@ export default class HciNode extends SteveModel {
     return pods.filter(p => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing');
   }
 
+  get reserved() {
+    try {
+      return JSON.parse(this.metadata.annotations[HCI_ANNOTATIONS.HOST_REQUEST] || '{}');
+    } catch {
+      return {};
+    }
+  }
+
   get cpuReserved() {
-    const out = this.pods.reduce((sum, pod) => {
-      const containers = pod?.spec?.containers || [];
-
-      const containerCpuReserved = containers.reduce((sum, c) => {
-        sum += parseSi(c?.resources?.requests?.cpu || '0m');
-
-        return sum;
-      }, 0);
-
-      sum += containerCpuReserved;
-
-      return sum;
-    }, 0);
-
-    return out;
+    return parseSi(this.reserved.cpu || '0');
   }
 
   get memoryReserved() {
-    const out = this.pods.reduce((sum, pod) => {
-      const containers = pod?.spec?.containers || [];
-
-      const containerMemoryReserved = containers.reduce((sum, c) => {
-        sum += parseSi(c?.resources?.requests?.memory || '0m', { increment: 1024 });
-
-        return sum;
-      }, 0);
-
-      sum += containerMemoryReserved;
-
-      return sum;
-    }, 0);
-
-    return out;
+    return parseSi(this.reserved.memory || '0');
   }
 
   get canDelete() {

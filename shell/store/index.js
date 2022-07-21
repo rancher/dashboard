@@ -61,7 +61,6 @@ export const plugins = [
 ];
 
 const getActiveNamespaces = (state, getters) => {
-  console.log('in getActiveNamespaces ', { state, getters });
   const out = {};
   const product = getters['currentProduct'];
   const workspace = state.workspace;
@@ -83,7 +82,6 @@ const getActiveNamespaces = (state, getters) => {
 
   const namespaces = getters[`${ inStore }/all`](NAMESPACE);
 
-  console.log(`get active namespaces ran. all namespaces: `, { namespaces });
   const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
   const includeAll = getters.isAllNamespaces;
   const includeSystem = filters.includes(ALL_SYSTEM);
@@ -126,7 +124,6 @@ const getActiveNamespaces = (state, getters) => {
       }
     }
   }
-  console.log('filtered namespaces are: ', out);
 
   return out;
 };
@@ -332,6 +329,12 @@ export const getters = {
     // for each workload in a list.
     return () => {
       return state.activeNamespaceCache;
+    };
+  },
+
+  activeNamespaceFilters(state) {
+    return () => {
+      return state.namespaceFilters;
     };
   },
 
@@ -656,7 +659,7 @@ export const actions = {
   async loadCluster({
     state, commit, dispatch, getters
   }, {
-    id, oldProduct, oldPkg, newPkg
+    id, product, oldProduct, oldPkg, newPkg
   }) {
     const sameCluster = state.clusterId && state.clusterId === id;
     const samePackage = oldPkg?.name === newPkg?.name;
@@ -681,9 +684,13 @@ export const actions = {
       s => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
 
+    const productConfig = state['type-map']?.products?.find(p => p.name === product);
+    const forgetCurrentCluster = ((state.clusterId && id) || !samePackage) && !productConfig?.inExplorer;
+
     // Should we leave/forget the current cluster? Only if we're going from an existing cluster to a new cluster, or the package has changed
     // (latter catches cases like nav from explorer cluster A to epinio cluster A)
-    if ( (state.clusterId && id) || !samePackage) {
+    // AND if the product not scoped to the explorer - a case for products that only exist within the explorer (i.e. Kubewarden)
+    if ( forgetCurrentCluster ) {
       // Clear the old cluster state out if switching to a new one.
       // If there is not an id then stay connected to the old one behind the scenes,
       // so that the nav and header stay the same when going to things like prefs
@@ -918,6 +925,22 @@ export const actions = {
 
     if (getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
       isRancher = true;
+    }
+
+    if (id !== 'local' && getters['harvester/schemaFor'](MANAGEMENT.SETTING)) { // multi-cluster
+      const settings = await dispatch('harvester/findAll', {
+        type: MANAGEMENT.SETTING,
+        id:   SETTING.SYSTEM_NAMESPACES,
+        opt:  { url: `${ virtualBase }/${ MANAGEMENT.SETTING }s/`, force: true }
+      });
+
+      const systemNamespaces = settings?.find(x => x.id === SETTING.SYSTEM_NAMESPACES);
+
+      if (systemNamespaces) {
+        const namespace = (systemNamespaces.value || systemNamespaces.default)?.split(',');
+
+        commit('setSystemNamespaces', namespace);
+      }
     }
 
     const hash = {

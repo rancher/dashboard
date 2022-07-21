@@ -37,4 +37,8 @@ export default class Rke1EtcdBackup extends NormanModel {
   get nameDisplay() {
     return this.name;
   }
+
+  get backupLocation() {
+    return !!this.backupConfig.s3BackupConfig ? this.t('cluster.snapshot.rke1.s3') : this.t('cluster.snapshot.rke1.local');
+  }
 }

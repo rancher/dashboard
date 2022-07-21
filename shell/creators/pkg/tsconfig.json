@@ -32,7 +32,7 @@
       ],
       "@shell/store/*": [
         "../../node_modules/@rancher/shell/store/*"
-      ],
+      ]
     }
   },
   "include": [

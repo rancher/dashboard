@@ -1,12 +1,12 @@
 <script>
-import Select from '@/shell/components/form/Select.vue';
-import KeyValue from '@/shell/components/form/KeyValue.vue';
-import Taints from '@/shell/components/form/Taints.vue';
-import Tolerations from '@/shell/components/form/Tolerations.vue';
-import Upgrading from '@/shell/edit/workload/Upgrading.vue';
-import Security from '@/shell/components/form/Security.vue';
-import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
-import LabeledSelect from '@/shell/components/form/LabeledSelect.vue';
+import Select from '@shell/components/form/Select.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
+import Taints from '@shell/components/form/Taints.vue';
+import Tolerations from '@shell/components/form/Tolerations.vue';
+import Upgrading from '@shell/edit/workload/Upgrading.vue';
+import Security from '@shell/components/form/Security.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 export default {
   components: {

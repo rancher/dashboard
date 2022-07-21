@@ -10,6 +10,12 @@ export const state = function() {
   };
 };
 
+export const getters = {
+  find: state => ({ key, val }) => {
+    return findBy(state.stack, key, val);
+  }
+};
+
 export const mutations = {
   add(state, data) {
     state.stack.push({

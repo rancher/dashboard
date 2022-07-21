@@ -36,6 +36,25 @@ export function set(obj, path, value) {
   return obj;
 }
 
+export function getAllValues(obj, path) {
+  const keysInOrder = path.split('.');
+  let currentValue = [obj];
+
+  keysInOrder.forEach((currentKey) => {
+    currentValue = currentValue.map((indexValue) => {
+      if (Array.isArray(indexValue)) {
+        return indexValue.map(arr => arr[currentKey]).flat();
+      } else if (indexValue) {
+        return indexValue[currentKey];
+      } else {
+        return null;
+      }
+    }).flat();
+  });
+
+  return currentValue.filter(val => val !== null);
+}
+
 export function get(obj, path) {
   if ( !path) {
     throw new Error('Cannot translate an empty input. The t function requires a string.');
@@ -127,16 +146,12 @@ export function cleanUp(obj) {
     const val = obj[key];
 
     if ( Array.isArray(val) ) {
-      obj[key] = compact(val.map((each) => {
-        if (each) {
-          const cleaned = cleanUp(each);
-
-          if (!isEmpty(cleaned)) {
-            return cleaned;
-          }
+      obj[key] = val.map((each) => {
+        if (each !== null && each !== undefined) {
+          return cleanUp(each);
         }
-      }));
-      if (compact(obj[key]).length === 0) {
+      });
+      if (obj[key].length === 0) {
         delete obj[key];
       }
     } else if (typeof val === 'undefined' || val === null) {

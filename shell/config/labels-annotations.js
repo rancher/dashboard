@@ -12,6 +12,7 @@ export const TARGET_WORKLOADS = 'field.cattle.io/targetWorkloadIds';
 export const UI_MANAGED = 'management.cattle.io/ui-managed';
 export const CREATOR_ID = 'field.cattle.io/creatorId';
 export const RESOURCE_QUOTA = 'field.cattle.io/resourceQuota';
+export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
@@ -165,7 +166,8 @@ export const HCI = {
   DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
   VM_VOLUME_STATUS:             'harvesterhci.io/volume-status',
   IMAGE_SUFFIX:                 'harvesterhci.io/image-type',
-  OS_TYPE:                      'harvesterhci.io/os-type'
+  OS_TYPE:                      'harvesterhci.io/os-type',
+  HOST_REQUEST:                 'management.cattle.io/pod-requests',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
