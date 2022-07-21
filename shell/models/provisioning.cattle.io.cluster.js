@@ -195,6 +195,8 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImported() {
+    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
+    // in which this.provisioner is `k3s`.
     return this.provisioner === 'imported';
   }
 
@@ -215,6 +217,8 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImportedK3s() {
+    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
+    // in which this.provisioner is `k3s`.
     return this.isImported && this.mgmt?.status?.provider === 'k3s';
   }
 
