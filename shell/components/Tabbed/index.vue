@@ -162,7 +162,7 @@ export default {
         tab.active = (tab.name === selected.name);
       }
 
-      this.$emit('changed', { tab: selected });
+      this.$emit('changed', { tab: selected, selectedName: selected.name });
       this.activeTabName = selected.name;
     },
 
@@ -258,171 +258,176 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .tabs {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
+.tabs {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
 
-    &.horizontal {
+  &.horizontal {
+    border: solid thin var(--border);
+    border-bottom: 0;
+    display: flex;
+    flex-direction: row;
+
+    + .tab-container {
       border: solid thin var(--border);
-      border-bottom: 0;
-      display: flex;
-      flex-direction: row;
-
-      + .tab-container {
-        border: solid thin var(--border);
-      }
-
-      .tab.active {
-        border-bottom: solid 2px var(--primary);
-      }
     }
 
-    &:focus {
-     outline:none;
-
-      & .tab.active a span {
-        text-decoration: underline;
-      }
-    }
-
-    .tab {
-      position: relative;
-      float: left;
-      padding: 0 8px 0 0;
-      cursor: pointer;
-
-      A {
-        display: flex;
-        align-items: center;
-        padding: 10px 15px;
-
-        &:hover {
-          text-decoration: none;
-          span {
-            text-decoration: underline;
-          }
-        }
-      }
-
-      .conditions-alert-icon {
-        color: var(--error);
-        padding-left: 4px;
-      }
-
-      &:last-child {
-        padding-right: 0;
-      }
-
-      &.active {
-        > A {
-          color: var(--primary);
-          text-decoration: none;
-        }
-      }
-
-      &.error {
-          & A>i {
-            color: var(--error);
-          }
-        }
+    .tab.active {
+      border-bottom: solid 2px var(--primary);
     }
   }
+
+  &:focus {
+    outline: none;
+
+    & .tab.active a span {
+      text-decoration: underline;
+    }
+  }
+
+  .tab {
+    position: relative;
+    float: left;
+    padding: 0 8px 0 0;
+    cursor: pointer;
+
+    A {
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
+
+      &:hover {
+        text-decoration: none;
+        span {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .conditions-alert-icon {
+      color: var(--error);
+      padding-left: 4px;
+    }
+
+    &:last-child {
+      padding-right: 0;
+    }
+
+    &.active {
+      > A {
+        color: var(--primary);
+        text-decoration: none;
+      }
+    }
+
+    &.error {
+      & A > i {
+        color: var(--error);
+      }
+    }
+  }
+}
+
+.tab-container {
+  padding: 20px;
+
+  &.no-content {
+    padding: 0 0 3px 0;
+  }
+}
+
+.side-tabs {
+  display: flex;
+  box-shadow: 0 0 20px var(--shadow);
+  border-radius: calc(var(--border-radius) * 2);
+  background-color: var(--tabbed-sidebar-bg);
 
   .tab-container {
     padding: 20px;
-
-    &.no-content {
-      padding: 0 0 3px 0;
-    }
   }
 
-  .side-tabs {
+  // Tabbed component within a tabbed component
+  .tab-container & {
+    margin: -20px;
+    box-shadow: unset;
+  }
+
+  & .tabs {
+    width: $sideways-tabs-width;
+    min-width: $sideways-tabs-width;
     display: flex;
-    box-shadow: 0 0 20px var(--shadow);
-    border-radius: calc(var(--border-radius) * 2);
-    background-color: var(--tabbed-sidebar-bg);
+    flex: 1 0;
+    flex-direction: column;
 
-    .tab-container {
-      padding: 20px;
-    }
+    // &.vertical {
+    //   .tab.active {
+    //     background-color: var(--tabbed-container-bg);
+    //   }
+    // }
 
-    & .tabs {
-      width: $sideways-tabs-width;
-      min-width: $sideways-tabs-width;
-      display: flex;
-      flex: 1 0;
-      flex-direction: column;
+    & .tab {
+      width: 100%;
+      border-left: solid 5px transparent;
 
-      // &.vertical {
-      //   .tab.active {
-      //     background-color: var(--tabbed-container-bg);
-      //   }
-      // }
+      &.toggle A {
+        color: var(--primary);
+      }
 
-      & .tab {
-        width: 100%;
-        border-left: solid 5px transparent;
+      A {
+        color: var(--primary);
+      }
 
-        &.toggle A {
-          color: var(--primary);
-        }
+      &.active {
+        background-color: var(--body-bg);
+        border-left: solid 5px var(--primary);
 
-        A {
-          color: var(--primary);
-        }
-
-        &.active {
-          background-color: var(--body-bg);
-          border-left: solid 5px var(--primary);
-
-          & A{
-            color: var(--input-label);
-          }
-        }
-
-        &.disabled {
-          background-color: var(--disabled-bg);
-
-          & A {
-            color: var(--disabled-text);
-            text-decoration: none;
-          }
+        & A {
+          color: var(--input-label);
         }
       }
-      .tab-list-footer {
-        list-style: none;
-        padding: 0;
-        margin-top: auto;
 
-        li {
+      &.disabled {
+        background-color: var(--disabled-bg);
+
+        & A {
+          color: var(--disabled-text);
+          text-decoration: none;
+        }
+      }
+    }
+    .tab-list-footer {
+      list-style: none;
+      padding: 0;
+      margin-top: auto;
+
+      li {
+        display: flex;
+        flex: 1;
+
+        .btn {
+          flex: 1 1;
           display: flex;
-          flex: 1;
+          justify-content: center;
+        }
 
-          .btn {
-            flex: 1 1;
-            display: flex;
-            justify-content: center;
-          }
-
-          button:first-of-type {
-            border-top: solid 1px var(--border);
-            border-right: solid 1px var(--border);
-            border-top-right-radius: 0;
-          }
-          button:last-of-type {
-            border-top: solid 1px var(--border);
-            border-top-left-radius: 0;
-          }
-
+        button:first-of-type {
+          border-top: solid 1px var(--border);
+          border-right: solid 1px var(--border);
+          border-top-right-radius: 0;
+        }
+        button:last-of-type {
+          border-top: solid 1px var(--border);
+          border-top-left-radius: 0;
         }
       }
-    }
-
-    & .tab-container{
-      width: calc(100% - #{$sideways-tabs-width});
-      flex-grow: 1;
-      background-color: var(--body-bg);
     }
   }
+
+  & .tab-container {
+    width: calc(100% - #{$sideways-tabs-width});
+    flex-grow: 1;
+    background-color: var(--body-bg);
+  }
+}
 </style>
