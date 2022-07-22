@@ -1184,7 +1184,9 @@ export default {
 
       this.applyChartValues(this.value.spec.rkeConfig);
 
-      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && this.isCreate) {
+      const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
+
+      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
         const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
         const res = await this.$store.dispatch('management/request', {
