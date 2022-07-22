@@ -234,7 +234,6 @@ export default {
         <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="tabWeightMap['labels']">
           <Labels v-model="value" :mode="mode" />
           <div class="spacer"></div>
-
           <div>
             <h3>{{ t('workload.container.titles.podLabels') }}</h3>
             <div class="row mb-20">

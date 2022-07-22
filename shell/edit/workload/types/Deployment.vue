@@ -3,7 +3,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 
 export default {
-  name:       'WorkloadGeneric',
+  name:       'WorkloadDeployments',
   mixins:     [CreateEditView, WorkLoadMixin],
 
   data() {
@@ -137,11 +137,16 @@ export default {
                   </div>
                 </div>
               </div>
-              <div class="spacer"></div>
-              <div>
-                <h3>{{ t('workload.container.titles.ports') }}</h3>
-                <div class="row">
-                  <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
+              <div class="spacer" />
+              <div class="healthcheck">
+                <h2>{{ t('workload.container.titles.healthCheck') }} </h2>
+                <HealthCheck v-model="healthCheck" :mode="mode" />
+                <div class="spacer" />
+                <div>
+                  <h3>{{ t('workload.container.titles.ports') }}</h3>
+                  <div class="row">
+                    <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
+                  </div>
                 </div>
               </div>
               <div class="spacer"></div>
@@ -233,9 +238,6 @@ export default {
               <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
               <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
             </Tab>
-            <!-- <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck" :weight="tabWeightMap['healthCheck']">
-              <HealthCheck v-model="healthCheck" :mode="mode" />
-            </Tab> -->
             <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
               <Security v-model="container.securityContext" :mode="mode" />
               <div class="spacer"></div>
@@ -255,9 +257,6 @@ export default {
               <VolumeClaimTemplate v-model="spec" :mode="mode" />
             </Tab>
             <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="tabWeightMap['labels']">
-              <Labels v-model="value" :mode="mode" />
-              <div class="spacer"></div>
-
               <div>
                 <h3>{{ t('workload.container.titles.podLabels') }}</h3>
                 <div class="row mb-20">
