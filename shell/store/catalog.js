@@ -262,7 +262,7 @@ export const getters = {
 
   importComponent(state, getters) {
     return (name) => {
-      return importChart(name);
+      return getters['type-map/importChart'](name);
     };
   },
 

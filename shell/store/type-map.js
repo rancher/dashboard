@@ -129,7 +129,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail
+  importList, importChart, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveChart, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail
 
 } from '@shell/utils/dynamic-importer';
 
@@ -360,6 +360,7 @@ export const state = function() {
       groupLabel:       {},
       ignore:           {},
       list:             {},
+      chart:            {},
       detail:           {},
       edit:             {},
       componentFor:     {},
@@ -1055,6 +1056,14 @@ export const getters = {
     };
   },
 
+  hasCustomChart(state, getters, rootState) {
+    return (rawType) => {
+      const key = getters.componentFor(rawType);
+
+      return hasCustom(state, rootState, 'chart', key, key => resolveChart(key));
+    };
+  },
+
   hasCustomDetail(state, getters, rootState) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
@@ -1127,6 +1136,12 @@ export const getters = {
   importList(state, getters, rootState) {
     return (rawType) => {
       return loadExtension(rootState, 'list', getters.componentFor(rawType), importList);
+    };
+  },
+
+  importChart(state, getters, rootState) {
+    return (rawType) => {
+      return loadExtension(rootState, 'chart', getters.componentFor(rawType), importChart);
     };
   },
 
