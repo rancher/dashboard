@@ -2,6 +2,33 @@
 title: What's New in 2.6
 ---
 
+
+## New in 2.6.7
+
+### Amazon Billing in the Marketplace
+
+- Allow Rancher to tie into Amazon's interface to show billing usage.
+
+### Ability to configure Azure AD with MSAL
+
+- [need description]
+
+### Kubernetes 1.24
+
+- Kubernetes 1.24 is now available as a supported Kubernetes version option when provisioning RKE1 clusters as well as upgrading imported RKE2/k3s clusters.
+
+### RKE2 Encryption Key Rotation
+
+- [need description]
+
+
+## New in 2.6.6
+
+### Bug fix for a performance problem
+
+- Addresses a traffic spike from downstream clusters
+
+
 ## New in 2.6.5
 
 ### NeuVector Integration
