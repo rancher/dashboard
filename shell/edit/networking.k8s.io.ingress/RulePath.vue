@@ -23,6 +23,14 @@ export default {
     ingress: {
       type:     Object,
       required: true
+    },
+    rules: {
+      default: () => ({
+        path:        [],
+        port:        [],
+        target:      []
+      }),
+      type: Object,
     }
   },
   data() {
@@ -52,14 +60,14 @@ export default {
       return service?.ports || [];
     },
     serviceTargetStatus() {
-      const serviceName = this.serviceName.label || this.serviceName;
+      const serviceName = this.serviceName?.label || this.serviceName;
       const isValueAnOption = !serviceName || this.serviceTargets.find(target => serviceName === target.value);
 
       return isValueAnOption ? null : 'warning';
     },
     serviceTargetTooltip() {
       return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
-    }
+    },
   },
   created() {
     this.queueUpdate = debounce(this.update, 500);
@@ -70,7 +78,7 @@ export default {
       const servicePort = Number.parseInt(this.servicePort) || this.servicePort;
       const serviceName = this.serviceName.label || this.serviceName;
       const out = {
-        backend: {}, path: this.path, pathType: this.pathType
+        id: this.value.id, backend: {}, path: this.path, pathType: this.pathType
       };
 
       set(out.backend, this.ingress.servicePortPath, servicePort);
@@ -85,6 +93,10 @@ export default {
     },
     focus() {
       this.$refs.first.focus();
+    },
+    remove(ev) {
+      ev.preventDefault();
+      this.$emit('remove');
     }
   }
 };
@@ -100,6 +112,7 @@ export default {
         :select-value="value.pathType"
         :text-value="value.path"
         :searchable="false"
+        :text-rules="rules.path"
         @input="queueUpdatePathTypeAndPath"
       />
     </div>
@@ -124,7 +137,9 @@ export default {
       <LabeledInput
         v-if="portOptions.length === 0"
         v-model="servicePort"
+        class="fullHeightInput"
         :placeholder="t('ingress.rules.port.placeholder')"
+        :rules="rules.port"
         @input="queueUpdate"
       />
       <Select
@@ -132,15 +147,24 @@ export default {
         v-model="servicePort"
         :options="portOptions"
         :placeholder="t('ingress.rules.port.placeholder')"
+        :rules="rules.port"
         @input="queueUpdate"
       />
     </div>
-    <button class="btn btn-sm role-link col" @click="$emit('remove')">
+    <button class="btn btn-sm role-link col" @click="remove">
       {{ t('ingress.rules.removePath') }}
     </button>
   </div>
 </template>
 <style lang="scss" scoped>
+.labeled-input ::v-deep, ::v-deep .labeled-input {
+  padding: 0 !important;
+  height: 100%;
+  input.no-label {
+    height: calc($input-height - 2px);
+    padding: 10px;
+  }
+}
 .rule-path ::v-deep {
   .col {
     height: $input-height;

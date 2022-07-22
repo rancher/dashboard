@@ -1,37 +1,38 @@
-import compact from 'lodash/compact';
-import isEmpty from 'lodash/isEmpty';
-import isFunction from 'lodash/isFunction';
-import isString from 'lodash/isString';
-import jsyaml from 'js-yaml';
-import forIn from 'lodash/forIn';
-import uniq from 'lodash/uniq';
-import Vue from 'vue';
-
+import { NORMAN_NAME } from '@shell/config/labels-annotations';
+import {
+  _CLONE,
+  _CONFIG,
+  _EDIT,
+  _UNFLAG,
+  _VIEW,
+  _YAML,
+  AS,
+  MODE
+} from '@shell/config/query-params';
+import { DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
 import { downloadFile, generateZip } from '@shell/utils/download';
-import { eachLimit } from '@shell/utils/promise';
 import { clone, get } from '@shell/utils/object';
-import { DEV } from '@shell/store/prefs';
+import { eachLimit } from '@shell/utils/promise';
 import { sortableNumericSuffix } from '@shell/utils/sort';
-import {
-  coerceStringTypeToScalarType,
-  escapeHtml,
-  ucFirst
-} from '@shell/utils/string';
+import { coerceStringTypeToScalarType, escapeHtml, ucFirst } from '@shell/utils/string';
 import {
   displayKeyFor,
+  validateBoolean,
   validateChars,
   validateDnsLikeTypes,
   validateLength,
-  validateBoolean
 } from '@shell/utils/validators';
-import formRulesGenerator from '@/shell/utils/validators/formRules/index';
-
-import { NORMAN_NAME } from '@shell/config/labels-annotations';
-import {
-  AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
-} from '@shell/config/query-params';
+import formRulesGenerator from '@shell/utils/validators/formRules';
+import jsyaml from 'js-yaml';
+import compact from 'lodash/compact';
+import forIn from 'lodash/forIn';
+import isEmpty from 'lodash/isEmpty';
+import isFunction from 'lodash/isFunction';
+import isString from 'lodash/isString';
+import uniq from 'lodash/uniq';
+import Vue from 'vue';
 
 import { normalizeType } from './normalize';
 

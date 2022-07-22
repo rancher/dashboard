@@ -4,12 +4,14 @@
 generic:
   add: Add
   all: All
+  and: ' and '
   back: Back
   cancel: Cancel
   clear: Clear
   clearAll: Clear All
   close: Close
   comingSoon: Coming Soon
+  comma: ', '
   copy: Copy
   create: Create
   created: Created
@@ -1154,6 +1156,9 @@ cluster:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
       cluster: Cluster
+      affinity:
+        namespaces:
+          placeholder: e.g. default,system,base
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
@@ -1190,6 +1195,7 @@ cluster:
         toolTip: SSH user to login with the selected OS image.
   haveOneOwner: There must be at least one member with the Owner role.
   import:
+    warningBanner: 'You should not import a cluster which has already been connected to another instance of Rancher as it will lead to data corruption.'
     commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into {vendor}:'
     commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your {vendor} installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
     clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
@@ -1198,6 +1204,9 @@ cluster:
   kubernetesVersion:
     label: Kubernetes Version
     experimental: experimental
+    deprecated: deprecated
+    deprecatedPatches: Show deprecated Kubernetes patch versions
+    deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
   toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
   log:
@@ -1786,6 +1795,7 @@ cruResource:
   reviewForm: "Keep editing YAML"
   reviewYaml: "Keep editing YAML"
   previewYaml: Edit as YAML
+  showYaml: View as YAML
 
 detailText:
   collapse: Hide
@@ -1895,6 +1905,18 @@ fleet:
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
       addRepo: Add Repository
       noRepos: No repositories have been added
+    add: 
+      steps: 
+        repoInfo: 
+          label: Repository Details
+          title: Specify the Git Repository to add to fleet
+          subtext: 'Define repository details'
+          description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
+        targetInfo: 
+          label: Target Details
+          title: Specify which target to synchronise this repository to
+          subtext: 'Define target details'
+          description: You can configure which clusters will be used as the target of synchronisation with the resources in the repository.
     ref:
       label: Watch
       branch: A Branch
@@ -2143,10 +2165,15 @@ ingress:
     port:
       label: Port
       placeholder: e.g. 80 or http
+      notInt: Port must be an integer
+      required: Port is required
     targetService:
       label: Target Service
       doesntExist: The selected service does not exist
+      required: Target Service is required
     warning: "Warning: Default backend is used globally for the entire cluster."
+  ingressClass:
+    label: Ingress Class
   rules:
     addPath: Add Path
     addRule: Add Rule
@@ -2176,6 +2203,7 @@ ingress:
     defaultCertificate: default
   target:
     default: Default
+  rulesOrBackendSpecified: Either Default Backend or Rules must be specified
 
 internalExternalIP:
   none: None
@@ -3793,6 +3821,7 @@ promptRemove:
   attemptingToRemove: "You are attempting to delete the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
+  deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
@@ -4660,6 +4689,7 @@ tableHeaders:
   id: ID
   image: Image
   imageSize: Size
+  ingressClass: Ingress Class
   ingressDefaultBackend: Default
   ingressTarget: Target
   internalExternalIp: External/Internal IP
@@ -4836,6 +4866,7 @@ user:
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
 validation:
+  noUpperCase: 'Alphanumeric characters in "{key}" must be lowercase'
   arrayLength:
     between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
     exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'
@@ -4864,6 +4895,8 @@ validation:
       tooLong: '"{key}" cannot be longer than {max} characters'
       tooLongLabel: '"{key}" cannot contain a section longer than {max} characters'
     label:
+      endDot: '"{key}" cannot end with a dot'
+      startDot: '"{key}" cannot start with a dot'
       emptyLabel: '"{key}" cannot be empty'
       endHyphen: '"{key}" cannot end with a hyphen'
       startHyphen: '"{key}" cannot start with a hyphen'
@@ -4888,6 +4921,7 @@ validation:
   noSchema: No schema found to validate
   noType: No type to validate
   number:
+    requiredInt: '"{key}" must be integer'
     between: '"{key}" should be between {min} and {max}'
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'
@@ -4903,7 +4937,9 @@ validation:
       valueMustBeEmpty: Rule [{index}] of {group} {rules} - value must be empty if operator is 'Exists' or 'DoesNotExist'
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
   port: A port must be a number between 1 and 65535.
+  path: '"{key}" must be an absolute path'
   prometheusRule:
+    noEdit: This Prometheus Rule may not be edited due to invalid characters in name.
     groups:
       required: At least one rule group is required.
       singleAlert: A rule may contain alert rules or recording rules but not both.
@@ -4932,9 +4968,11 @@ validation:
         required: 'Port Rule [{position}] - Name is required.'
       nodePort:
         requiredInt: 'Port Rule [{position}] - Node Port must be integer values if included.'
+        between: 'Port Rule [{position}] - Node Port must be between 1 and 65535'
       port:
         required: 'Port Rule [{position}] - Port is required.'
         requiredInt: 'Port Rule [{position}] - Port must be integer values if included.'
+        between: 'Port Rule [{position}] - Port must be between 1 and 65535'
       targetPort:
         between: 'Port Rule [{position}] - Target Port must be between 1 and 65535'
         iana: 'Port Rule [{position}] - Target Port must be an IANA Service Name or Integer'
@@ -4961,7 +4999,9 @@ wizard:
   finish: Finish
   next: Next
   step: "Step {number}"
-
+  edit: Edit
+  create: Create
+  view: View
 wm:
   connection:
     connected: Connected
@@ -5978,6 +6018,11 @@ harvester:
       fail:  Fail
       ongoing: on-going
     dismissMessage: Dismiss it
+    upgradeInfo:
+      warning: WARNING
+      doc: Before you upgrade to the newer Harvester version, you must perform the required <a href="https://docs.harvesterhci.io/v1.0/upgrade/automatic/" target="_blank"> pre-upgrade checks </a>for your cluster. Complete only those tasks that apply to your environment.
+      tip: Failure to perform these checks may result in a failed upgrade or hitting known issues that require a manual workaround fix.
+      moreNotes: For more details about the release notes, please visit - 
 
   backup:
     label: Backups

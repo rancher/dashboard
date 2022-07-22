@@ -214,7 +214,7 @@ export const PODS = {
   labelKey:  'tableHeaders.pods',
   sort:      'podConsumed',
   search:    false,
-  value:     'podConsumedUsage',
+  value:     row => row.podConsumedUsage,
   formatter: 'PercentageBar',
   width:     120,
 };
@@ -534,6 +534,13 @@ export const API_GROUP = {
   labelKey: 'tableHeaders.apiGroup',
   value:    'apiGroups',
   sort:     ['apiGroups']
+};
+
+export const INGRESS_CLASS = {
+  name:      'ingressClassName',
+  labelKey:  'tableHeaders.ingressClass',
+  value:     `$['spec']['ingressClassName']`,
+  sort:      `$['spec']['ingressClassName']`,
 };
 
 export const INGRESS_DEFAULT_BACKEND = {

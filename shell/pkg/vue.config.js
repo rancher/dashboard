@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
@@ -8,6 +9,11 @@ module.exports = function(dir) {
   const maindir = path.resolve(dir, '..', '..');
   // The shell code must be sym-linked into the .shell folder
   const SHELL = path.join(dir, '.shell');
+  let COMPONENTS_DIR = path.join(SHELL, 'rancher-components');
+
+  if (fs.existsSync(path.join(maindir, 'shell'))) {
+    COMPONENTS_DIR = path.join(maindir, 'pkg', 'rancher-components', 'src', 'components');
+  }
 
   return {
     css: {
@@ -33,6 +39,8 @@ module.exports = function(dir) {
       // Alias updates
       config.resolve.alias['@shell'] = path.join(dir, '.shell');
       config.resolve.alias['~shell'] = path.join(dir, '.shell');
+      // This should be udpated once we move to rancher-components as a dependency
+      config.resolve.alias['@components'] = COMPONENTS_DIR;
       config.resolve.alias['./node_modules'] = path.join(maindir, 'node_modules');
       config.resolve.alias['@pkg'] = dir;
       config.resolve.alias['~pkg'] = dir;

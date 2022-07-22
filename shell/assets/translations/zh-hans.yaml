@@ -1166,6 +1166,9 @@ cluster:
         label: KubeconfigContent
       placeholder: '命名空间/名称'
       cluster: 集群
+      affinity:
+        namespaces:
+          placeholder: 例如：default,system,base
   description:
     label: 集群描述
     placeholder: 输入可以描述该集群的文本

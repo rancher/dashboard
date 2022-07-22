@@ -239,7 +239,7 @@ export default class CapiMachine extends SteveModel {
   }
 
   get isRunning() {
-    return this.status.phase === 'Running';
+    return this.status?.phase === 'Running';
   }
 
   get ipaddress() {

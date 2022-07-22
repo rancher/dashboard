@@ -150,4 +150,8 @@ export default class Project extends HybridModel {
   get canEditYaml() {
     return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : super.canUpdate;
   }
+
+  get confirmRemove() {
+    return true;
+  }
 }

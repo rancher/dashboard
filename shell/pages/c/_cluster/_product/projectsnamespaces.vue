@@ -8,8 +8,8 @@ import { PROJECT_ID } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
+import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 
 export default {
   name:       'ListNamespace',
@@ -125,9 +125,15 @@ export default {
       const namespaceFilters = this.$store.getters['activeNamespaceFilters']();
       const activeProjectFilters = this.getActiveProjects(namespaceFilters);
 
-      // If the user is not filtering by any projects, return
+      if (namespaceFilters.includes(NAMESPACE_FILTER_ALL_ORPHANS) && Object.keys(activeProjectFilters).length === 0) {
+        // If the user wants to only see namespaces that are not
+        // in a project, don't show any projects.
+        return [];
+      }
+
+      // If the user is not filtering by any projects or namespaces, return
       // all projects in the cluster.
-      if (Object.keys(activeProjectFilters).length === 0) {
+      if (!this.userIsFilteringForSpecificNamespaceOrProject()) {
         return this.clusterProjects;
       }
 
@@ -150,18 +156,20 @@ export default {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
-      if (this.$store.getters['prefs/get'](DEV)) {
+      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
+
+      if (!isVirtualCluster || this.$store.getters['prefs/get'](DEV)) {
         return this.activeNamespaces;
       }
 
-      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-      const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
-
+      // Filter out system namespaces for virtual clusters, e.g. Harvester.
+      // Otherwise the unfiltered list should be the same as the list
+      // of namespaces available in the top nav of Cluster Explorer.
       return this.activeNamespaces.filter((namespace) => {
         const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
         const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
 
-        return isVirtualCluster && isVirtualProduct ? (!systemNS && !namespace.isObscure) : !namespace.isObscure;
+        return !systemNS && !namespace.isObscure;
       });
     },
 
@@ -300,12 +308,12 @@ export default {
           <div class="right">
             <n-link
               v-if="isNamespaceCreatable"
-              class="create-namespace btn btn-sm role-secondary"
+              class="create-namespace btn btn-sm role-secondary mr-5"
               :to="createNamespaceLocation(group.group)"
             >
               {{ t('projectNamespaces.createNamespace') }}
             </n-link>
-            <button type="button" class="project-action btn btn-sm role-multi-action actions mr-5" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
+            <button type="button" class="project-action btn btn-sm role-multi-action actions mr-10" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
               <i class="icon icon-actions" />
             </button>
           </div>

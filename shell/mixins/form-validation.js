@@ -1,5 +1,5 @@
-import { getAllValues } from '@/shell/utils/object';
-import formRulesGenerator from '@/shell/utils/validators/formRules/index';
+import { getAllValues } from '@shell/utils/object';
+import formRulesGenerator from '@shell/utils/validators/formRules';
 
 export default {
   data() {
@@ -68,13 +68,21 @@ export default {
     },
   },
   computed: {
+    // fvExtraRules allows you to create rules that might be specific to a form inside of that form component and pass them into the mixin's logic. fvExtraRules needs to return an object with a validation rule function in each key.
+    // This is a computed property as returning functions in the data props is not considered a best practice
+    fvExtraRules() {
+      return {};
+    },
     // rulesets is a combination of the rules defined in the fvFormRuleSets array and the modelValidationRules in the model. Theoretically, a form could just use the rulesets defined in the model however in practice this can be limiting
     fvRulesets() {
       const nullValidator = () => undefined;
 
       return [
         ...this.fvFormRuleSets.map((ruleset) => {
-          const formRules = formRulesGenerator(this.$store.getters['i18n/t'], { displayKey: ruleset?.translationKey ? this.$store.getters['i18n/t'](ruleset.translationKey) : 'Value' });
+          const formRules = {
+            ...formRulesGenerator(this.$store.getters['i18n/t'], { displayKey: ruleset?.translationKey ? this.$store.getters['i18n/t'](ruleset.translationKey) : 'Value' }),
+            ...this.fvExtraRules
+          };
 
           return {
             ...ruleset,
