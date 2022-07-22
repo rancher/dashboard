@@ -3631,6 +3631,11 @@ prefs:
     sublime: 'Normal human'
     emacs: 'Emacs'
     vim: 'Vim'
+  manualRefresh:
+    title: Manual refresh of data
+    checkboxLabel: Enable manual refresh of data for lists
+    checkboxDesc: This will only act on list views with item count above a certain threshold
+    inputLabel: Max number of items to enable
   advanced: Advanced
   advancedTooltip: Enables 'View in API' option and keyboard shortcut to toggle light or dark theme (shift+t). This setting also reveals namespaces that are managed by Rancher and are not meant to be manually edited or deleted.
   dev:

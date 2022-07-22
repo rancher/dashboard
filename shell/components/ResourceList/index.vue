@@ -2,6 +2,7 @@
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
+import ManualRefresh from '@shell/mixins/manual-refresh';
 
 export default {
   components: {
@@ -9,6 +10,7 @@ export default {
     ResourceTable,
     Masthead
   },
+  mixins: [ManualRefresh],
 
   async fetch() {
     const store = this.$store;
@@ -42,7 +44,11 @@ export default {
         return;
       }
 
-      this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource });
+      const watch = this.gatherManualRefreshData('rows');
+
+      console.log('*** resource list watch value ***', watch);
+
+      this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource, opt: { watch } });
     }
   },
 
