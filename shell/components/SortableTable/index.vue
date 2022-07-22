@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
@@ -340,7 +341,12 @@ export default {
     }, 200),
   },
 
+  created() {
+    this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
+  },
+
   computed: {
+    ...mapGetters({ isTooManyItemsToAutoUpdate: 'manual-refresh/isTooManyItemsToAutoUpdate' }),
     fullColspan() {
       let span = 0;
 
@@ -531,7 +537,9 @@ export default {
   },
 
   methods: {
-
+    refreshTableData() {
+      this.$store.dispatch('manual-refresh/doManualRefresh');
+    },
     get,
     dasherize,
 
@@ -819,8 +827,17 @@ export default {
             </template>
           </slot>
         </div>
-        <div v-if="$slots['header-middle'] && $slots['header-middle'].length" class="middle">
+        <div v-if="isTooManyItemsToAutoUpdate || $slots['header-middle'] && $slots['header-middle'].length" class="middle">
           <slot name="header-middle" />
+          <button
+            v-if="isTooManyItemsToAutoUpdate"
+            v-tooltip="'click here to refresh table data'"
+            type="button"
+            class="btn role-primary refresh-btn"
+            @click="debouncedRefreshTableData"
+          >
+            <i class="icon icon-backup" />
+          </button>
         </div>
 
         <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">

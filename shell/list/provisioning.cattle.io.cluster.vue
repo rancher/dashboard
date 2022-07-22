@@ -8,17 +8,23 @@ import { MODE, _IMPORT } from '@shell/config/query-params';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import ManualRefresh from '@shell/mixins/manual-refresh';
 
 export default {
   components: {
     Banner, ResourceTable, Masthead
   },
+  mixins: [ManualRefresh],
 
   async fetch() {
+    const watch = this.gatherManualRefreshData('rancherClusters');
+
+    console.log('*** prov cluster watch value ***', watch);
+
     const hash = {
       normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
       mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER, opt: { watch } }),
     };
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {

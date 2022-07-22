@@ -5,6 +5,9 @@ import { SETTING } from '@shell/config/settings';
 
 const definitions = {};
 
+export const DEFAULT_MANUAL_DATA_REFRESH = true;
+export const DEFAULT_MANUAL_DATA_THRESHOLD = 1;
+
 export const create = function(name, def, opt = {}) {
   const parseJSON = opt.parseJSON === true;
   const asCookie = opt.asCookie === true;
@@ -60,6 +63,8 @@ export const PREFERS_SCHEME = create('pcs', '', { asCookie, asUserPreference: fa
 export const LOCALE = create('locale', 'en-us', { asCookie });
 export const KEYMAP = create('keymap', 'sublime', { options: ['sublime', 'emacs', 'vim'] });
 export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100], parseJSON });
+export const MANUAL_DATA_REFRESH = create('manual-data', DEFAULT_MANUAL_DATA_REFRESH, { parseJSON });
+export const MANUAL_DATA_THRESHOLD = create('manual-data-threshold', DEFAULT_MANUAL_DATA_THRESHOLD, { parseJSON });
 export const LOGS_WRAP = create('logs-wrap', true, { parseJSON });
 export const LOGS_TIME = create('logs-time', true, { parseJSON });
 export const LOGS_RANGE = create('logs-range', '30 minutes', { parseJSON });
