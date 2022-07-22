@@ -79,6 +79,9 @@ export default {
       if (this.deleteProjectNamespaces) {
         return Promise.all(this.filteredNamespaces.map(n => n.remove())).then(() => false);
       }
+
+      // Return false so that the main promptRemoval will continue to remove the project
+      return false;
     },
   },
 };
