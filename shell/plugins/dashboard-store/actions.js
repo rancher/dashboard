@@ -397,6 +397,8 @@ export default {
       // detect the stop message from the backend over the web socket
       commit('setWatchStopped', obj);
       dispatch('watch', obj); // Ask the backend to stop watching the type
+      // Make sure anything in the pending queue for the type is removed, since we've now removed the type
+      commit('clearFromQueue', type);
     }
 
     commit('forgetType', type);
