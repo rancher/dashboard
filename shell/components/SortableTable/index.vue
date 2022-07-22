@@ -309,6 +309,10 @@ export default {
     };
   },
 
+  created() {
+    this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
+  },
+
   mounted() {
     this._loadingDelayTimer = setTimeout(() => {
       this.loadingDelay = true;
@@ -836,7 +840,7 @@ export default {
             v-tooltip="'click here to refresh table data'"
             type="button"
             class="btn role-primary refresh-btn"
-            @click="refreshTableData"
+            @click="debouncedRefreshTableData"
           >
             <i class="icon icon-backup" />
           </button>
