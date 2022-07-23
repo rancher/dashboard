@@ -3632,7 +3632,7 @@ prefs:
     emacs: 'Emacs'
     vim: 'Vim'
   advanced: Advanced
-  advancedTooltip: Enables 'View in API' option and keyboard shortcut to toggle light or dark theme (shift+t)
+  advancedTooltip: Enables 'View in API' option and keyboard shortcut to toggle light or dark theme (shift+t). This setting also reveals namespaces that are managed by Rancher and are not meant to be manually edited or deleted.
   dev:
     label: Enable Developer Tools & Features
   hideDesc:
