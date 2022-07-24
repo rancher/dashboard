@@ -99,6 +99,9 @@ epinio:
       basics:
         label: Details
         subtext: Basic info about your app
+      commits:
+        label: Commits
+        subtext: List of commits based on your git repo
       source:
         label: Source
         subtext: Provide the source
@@ -140,6 +143,33 @@ epinio:
             label: Branch
             inputLabel: Branch
             tooltip: Branch to deploy
+        github:
+          label: Github
+          username:
+            label: Username
+            inputLabel: Username
+            tooltip: Username of the Git Repository
+          branch:
+            label: Branch
+            inputLabel: Branch
+            tooltip: Branch to deploy
+          repo:
+            label: Repository
+            inputLabel: Repository
+            tooltip: Branch to deploy from
+          commits:
+            label: Commits
+            tooltip: Commits to deploy from
+          commit:
+            label: Commit
+            inputLabel: Commit
+          commitMessage:
+            label: Commit Message
+          errors:
+            noRepos: No repos were found for the given username
+          details:
+            label: Details
+            tooltip: Details of the commit to be deploy
       configurations:
         label: Bindings
         subtext: Bind to Application

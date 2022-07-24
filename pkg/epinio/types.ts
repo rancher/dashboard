@@ -38,6 +38,7 @@ export const APPLICATION_SOURCE_TYPE = {
   ARCHIVE:       'archive',
   FOLDER:        'folder',
   GIT_URL:       'git_url',
+  GIT_HUB:       'git_hub',
 };
 
 export const APPLICATION_ACTION_STATE = {
