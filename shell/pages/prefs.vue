@@ -7,32 +7,26 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import { Checkbox } from '@components/Form/Checkbox';
 import LandingPagePreference from '@shell/components/LandingPagePreference';
 import {
-  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT,
-  ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE, MENU_MAX_CLUSTERS,
-  MANUAL_DATA_REFRESH, MANUAL_DATA_THRESHOLD
+  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE, MENU_MAX_CLUSTERS
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
   layout:     'plain',
   components: {
-    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LabeledInput
+    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference
   },
   mixins:     [BackRoute],
   computed:   {
-    keymap:              mapPref(KEYMAP),
-    dev:                 mapPref(DEV),
-    dateFormat:          mapPref(DATE_FORMAT),
-    timeFormat:          mapPref(TIME_FORMAT),
-    perPage:             mapPref(ROWS_PER_PAGE),
-    manualDataRefresh:   mapPref(MANUAL_DATA_REFRESH),
-    manualDataThreshold: mapPref(MANUAL_DATA_THRESHOLD),
-    hideDesc:            mapPref(HIDE_DESC),
-    showPreRelease:      mapPref(SHOW_PRE_RELEASE),
-    menuMaxClusters:     mapPref(MENU_MAX_CLUSTERS),
+    keymap:          mapPref(KEYMAP),
+    dev:             mapPref(DEV),
+    dateFormat:      mapPref(DATE_FORMAT),
+    timeFormat:      mapPref(TIME_FORMAT),
+    perPage:         mapPref(ROWS_PER_PAGE),
+    hideDesc:        mapPref(HIDE_DESC),
+    showPreRelease:  mapPref(SHOW_PRE_RELEASE),
+    menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
 
     ...mapGetters(['isSingleProduct']),
 
@@ -143,10 +137,6 @@ export default {
         this.hideDesc = val;
       }
     },
-
-    manualRefreshInputMode() {
-      return this.manualDataRefresh ? _EDIT : _VIEW;
-    }
   },
 };
 </script>
@@ -211,35 +201,13 @@ export default {
       </div>
     </div>
 
-    <!-- Enable manual refresh list views -->
-    <hr />
-    <div class="row mt-10 mb-10">
-      <div class="col">
-        <h4 v-t="'prefs.manualRefresh.title'" />
-        <Checkbox
-          v-model="manualDataRefresh"
-          :description="t('prefs.manualRefresh.checkboxDesc', {}, raw=true)"
-          :label="t('prefs.manualRefresh.checkboxLabel', {}, true)"
-          class="mb-20"
-        />
-        <br>
-        <LabeledInput
-          v-model.number="manualDataThreshold"
-          :mode="manualRefreshInputMode"
-          :label="t('prefs.manualRefresh.inputLabel')"
-          type="number"
-          min="0"
-        />
-      </div>
-    </div>
-
     <hr />
     <div class="row">
       <div class="col prefs-advanced">
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :description="t('prefs.advancedTooltip', {}, raw=true)" :label="t('prefs.dev.label', {}, true)" />
         <br>
-        <Checkbox v-if="!isSingleVirtualCluster" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
+        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
       </div>
     </div>
 

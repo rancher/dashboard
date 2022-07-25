@@ -1,15 +1,22 @@
 import { mapGetters } from 'vuex';
-import { COUNT } from '@shell/config/types';
-import {
-  MANUAL_DATA_REFRESH,
-  MANUAL_DATA_THRESHOLD,
-  DEFAULT_MANUAL_DATA_REFRESH,
-  DEFAULT_MANUAL_DATA_THRESHOLD,
-} from '@shell/store/prefs';
+import { COUNT, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 export default {
   data() {
+    const perfSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORNMANCE);
+    let perfConfig = {};
+
+    if (perfSetting && perfSetting.value) {
+      try {
+        perfConfig = JSON.parse(perfSetting.value);
+      } catch (e) {
+        console.warn('ui-performance setting contains invalid data'); // eslint-disable-line no-console
+      }
+    }
+
     return {
+      perfConfig,
       init:    false,
       dataKey: null
     };
@@ -28,8 +35,8 @@ export default {
     gatherManualRefreshData(dataKey) {
       this.init = true;
 
-      const manualDataRefresh = this.$store.getters['prefs/get'](MANUAL_DATA_REFRESH) || DEFAULT_MANUAL_DATA_REFRESH;
-      const manualDataThreshold = this.$store.getters['prefs/get'](MANUAL_DATA_THRESHOLD) || DEFAULT_MANUAL_DATA_THRESHOLD;
+      const manualDataRefresh = this.perfConfig?.manualRefresh.enabled;
+      const manualDataThreshold = parseInt(this.perfConfig?.manualRefresh?.threshold || '0', 10);
       const resourceName = this.resource;
       const inStore = this.$store.getters['currentStore'](resourceName);
       let resourceCount = 0;
