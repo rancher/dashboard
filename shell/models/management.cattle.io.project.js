@@ -86,6 +86,8 @@ export default class Project extends HybridModel {
         // so there is a chance of a resource conflict error. If that happens,
         // retry the action.
         await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
+      } else {
+        throw err;
       }
     }
 
