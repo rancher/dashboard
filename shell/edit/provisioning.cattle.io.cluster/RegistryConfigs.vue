@@ -92,6 +92,19 @@ export default {
 
       set(this.value, 'spec.rkeConfig.registries.configs', configs);
     },
+
+    wrapRegisterBeforeHook(fn, ...args) {
+      async function wrapFn(...params) {
+        const result = await fn(...params);
+
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(result);
+          }, 50);
+        });
+      }
+      this.clusterRegisterBeforeHook(wrapFn, ...args);
+    }
   }
 };
 </script>
@@ -116,7 +129,7 @@ export default {
 
             <SelectOrCreateAuthSecret
               v-model="row.value.authConfigSecretName"
-              :register-before-hook="clusterRegisterBeforeHook"
+              :register-before-hook="wrapRegisterBeforeHook"
               :append-unique-id-to-hook="true"
               in-store="management"
               :allow-ssh="false"
