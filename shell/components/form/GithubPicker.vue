@@ -4,7 +4,7 @@ import RadioButton from '@components/Form/Radio/RadioButton';
 import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
 import some from 'lodash/some';
 
 export default {
@@ -44,7 +44,12 @@ export default {
       loadingFiles:       true,
       loadingCommits:     true,
 
-      hasError:       false,
+      hasError: {
+        username: false,
+        repo:     false,
+        branch:   false,
+        commits:  false,
+      },
       showSelections: false,
       oldUsername:    null,
 
@@ -72,11 +77,12 @@ export default {
         if (this.selectedUsername.length) {
           const res = await this.$store.dispatch('github/fetchRecentRepos', { username: this.selectedUsername });
 
-          if (res.message) {
-            this.hasError = res.message;
+          if (res?.message) {
+            this.hasError.repo = true;
+          } else {
+            this.repos = res;
+            this.hasError.repo = false;
           }
-
-          this.repos = res;
 
           // Reset selections once username changes
           if (this.oldUsername !== this.selectedUsername) {
@@ -167,46 +173,51 @@ export default {
       return null;
     },
     async searchForResult(query) {
-      try {
-        if (!this.selectedRepo && query.length) {
-          // Check if the result is already in the fetched list.
-          const resultInCurrentState = some(this.repos, { name: query } );
+      if (!this.selectedBranch && query.length) {
+        await this.searchRepo(query);
+      } else {
+        await this.searchBranch(query);
+      }
+    },
+    async searchRepo(query) {
+      if (!this.selectedRepo && query.length) {
+        // Check if the result is already in the fetched list.
+        const resultInCurrentState = some(this.repos, { name: query });
 
-          if (resultInCurrentState) {
-            return;
-          }
-
+        if (resultInCurrentState) {
+        } else {
           // Search for specific repo under the username
           const res = await this.$store.dispatch('github/search', { repo: query, username: this.selectedUsername });
 
           if (res.message) {
-            this.hasError = res.message;
+            this.hasError.repo = true;
+          } else {
+            this.repos = res;
+            this.hasError.repo = false;
           }
-
-          this.repos = res;
-        } else if (this.selectedRepo && !this.selectedBranch) {
-          // Search for a specific branch under the repo
-          const res = await this.$store.dispatch('github/search', {
-            repo:     this.selectedRepo,
-            branch:   query,
-            username: this.selectedUsername,
-          });
-
-          if (res.message) {
-            this.hasError = res.message;
-            this.branches = [];
-          }
-          this.branches = res;
-        } else {
-          this.fetchRepos();
         }
-      } finally {
-        this.loadingBranches = false;
+      }
+    },
+    async searchBranch(query) {
+      const res = await this.$store.dispatch('github/search', {
+        repo:     this.selectedRepo,
+        branch:   query,
+        username: this.selectedUsername,
+      });
+
+      if (res.message) {
+        this.hasError.branch = true;
+      } else {
+        this.branches = res;
+        this.hasError.branch = false;
       }
     },
     onSearch: debounce(function(q) {
       this.searchForResult(q);
     }, 1000),
+    status(value) {
+      return !value ? null : 'error';
+    },
   },
 };
 </script>
@@ -215,12 +226,6 @@ export default {
   <div class="picker">
     <div class="row">
       <div class="spacer archive">
-        <!-- <h3>{{ t('epinio.applications.steps.source.github.username.label') }}</h3> -->
-
-        <template v-if="hasError">
-          <!-- // TODO: Move to some kind of Alert Component -->
-          Query returned: {{ t('epinio.applications.steps.source.github.errors.noRepos') }}
-        </template>
         <template>
           <div class="spacer archive">
             <LabeledInput
@@ -230,12 +235,13 @@ export default {
               :label="t('epinio.applications.steps.source.github.username.inputLabel')"
               :required="true"
               :delay="500"
+              :status="status(hasError.repo)"
               @input="fetchRepos"
             />
           </div>
           <div class="spacer archive">
             <LabeledSelect
-              v-if="repos.length && !hasError"
+              v-if="repos.length"
               v-model="selectedRepo"
               :required="true"
               :label="t('epinio.applications.steps.source.github.repo.inputLabel')"
@@ -243,6 +249,7 @@ export default {
               :clearable="true"
               :searchable="true"
               :reduce="(e) => e"
+              :status="status(hasError.repo)"
               @search="onSearch"
               @input="fetchBranches"
             />
@@ -258,6 +265,7 @@ export default {
               :clearable="false"
               :reduce="(e) => e"
               :searchable="true"
+              :status="status(hasError.branch)"
               @search="onSearch"
               @input="fetchCommits"
             />
@@ -278,6 +286,13 @@ export default {
             >
               <template #cell:index="{row}">
                 <RadioButton :value="selectedCommit.sha" :val="row.commitId" @input="final($event, row.commitId)" />
+              </template>
+
+              <template #cell:author="{row}">
+                <div class="sortable-table-avatar">
+                  <img :src="row.author.avatar_url" alt="" />
+                  {{ row.author.login }}
+                </div>
               </template>
             </SortableTable>
 
@@ -328,6 +343,18 @@ export default {
   img {
     height: 30px;
     margin-right: 1rem;
+  }
+
+  .sortable-table-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    img {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--border-radius);
+    }
   }
 
   .resumed {

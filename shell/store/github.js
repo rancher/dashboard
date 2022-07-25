@@ -3,8 +3,11 @@ export const GITHUB_BASE_API = 'https://api.github.com';
 
 export const state = function() {
   return {
-    repos:  [],
-    scopes: []
+    repos:    [],
+    commits:  [],
+    branches: [],
+    scopes:   [],
+    errors:   null,
   };
 };
 
@@ -14,10 +17,10 @@ export const FetchGithubAPI = async(endpoint) => {
     const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
 
     if (!response.ok) {
-      throw await response.json();
+      return await response.json();
     }
 
-    return response.json();
+    return await response.json();
   } catch (error) {
     if (error.response) {
       return error.response;
@@ -27,7 +30,7 @@ export const FetchGithubAPI = async(endpoint) => {
 
 export const actions = {
   // eslint-disable-next-line no-empty-pattern
-  async apiList({}, {
+  async apiList({ }, {
     username, endpoint, repo, branch
   }) {
     switch (endpoint) {
@@ -57,24 +60,30 @@ export const actions = {
     return await FetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=100&direction=desc`);
   },
 
-  async fetchRecentRepos({ dispatch }, { username } = {}) {
+  async fetchRecentRepos({ commit, dispatch }, { username } = {}) {
     const res = await dispatch('apiList', { username });
+
+    // commit('setRepos', res);
 
     return res;
   },
 
-  async fetchBranches({ dispatch }, { repo, username }) {
+  async fetchBranches({ commit, dispatch }, { repo, username }) {
     const res = await dispatch('apiList', {
       username, endpoint: 'branches', repo
     });
 
+    commit('setBranches', res);
+
     return res;
   },
 
-  async fetchCommits({ dispatch }, { repo, username, branch }) {
+  async fetchCommits({ commit, dispatch }, { repo, username, branch }) {
     const res = await dispatch('apiList', {
       username, endpoint: 'commits', repo, branch
     });
+
+    commit('setCommits', res);
 
     return res;
   },
@@ -85,4 +94,20 @@ export const actions = {
 
     return res;
   },
+};
+
+export const mutations = {
+  setScopes(state, scopes) {
+    state.scopes = scopes;
+  },
+
+  setRepos(state, repos) {
+    state.repos = repos;
+  },
+  setBranches(state, branches) {
+    state.branches = branches;
+  },
+  setCommits(state, commits) {
+    state.commits = commits;
+  }
 };
