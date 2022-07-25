@@ -163,7 +163,7 @@ export default {
       this.selectedCommit = this.commits.filter(ele => ele.sha === commitId)[0];
 
       if (this.selectedUsername && this.selectedRepo && this.selectedCommit) {
-        const url = `${ this.selectedUsername }/${ this.selectedRepo }/commit/${ commitId }`;
+        const url = `${ this.selectedUsername }/${ this.selectedRepo }`;
 
         this.$emit('generateUrl', url, this.selectedUsername, this.selectedCommit);
         this.$emit('valid', true);

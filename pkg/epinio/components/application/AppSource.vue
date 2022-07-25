@@ -273,9 +273,9 @@ export default Vue.extend<Data, any, any, any>({
       this.update();
     },
     githubUrL(url: string, username: string, commit: string) {
-      if (url && username) {
+      if (url.length && username.length) {
         this.github.url = url;
-        this.gitUrl.commit = commit;
+        this.github.commit = commit;
 
         this.update();
         this.$emit('valid', true);
