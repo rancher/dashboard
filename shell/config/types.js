@@ -306,9 +306,3 @@ export const AUTH_TYPE = {
   _SSH:   '_ssh',
   _S3:    '_S3'
 };
-
-export const WORKLOAD_TABS = {
-  DEPLOYMENT: 'Deployment', // Singular
-  POD:        'Pod', // Singular
-  CONTAINERS: 'Containers' // Plural
-};

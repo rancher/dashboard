@@ -5506,7 +5506,11 @@ workload:
       label: Termination Grace Period
       tip: The duration the pod needs to terminate successfully.
     title: Upgrading
-
+  tabs: 
+    labels: 
+      deployment: Deployment
+      pod: Pod
+      containers: Containers
 harvester:
   modal:
     backup:
