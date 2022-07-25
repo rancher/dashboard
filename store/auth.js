@@ -142,6 +142,7 @@ export const actions = {
       addObjects(scopes, opt.scopes);
     }
 
+    // this call to removeParam incidentally properly encodes the url and removes duplicate query params, the latter of which cause an error with azure ad
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
 
     const params = {

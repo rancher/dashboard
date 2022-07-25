@@ -9,6 +9,7 @@ export const CONTAINER_DEFAULT_RESOURCE_LIMIT = 'field.cattle.io/containerDefaul
 export const CATTLE_PUBLIC_ENDPOINTS = 'field.cattle.io/publicEndpoints';
 export const TARGET_WORKLOADS = 'field.cattle.io/targetWorkloadIds';
 export const UI_MANAGED = 'management.cattle.io/ui-managed';
+export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
