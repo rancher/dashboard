@@ -101,5 +101,13 @@ export default {
     const typeSuperClass = Object.getPrototypeOf(Object.getPrototypeOf(existing))?.constructor;
 
     return typeSuperClass === HybridModel ? cleanHybridResources(data) : data;
-  }
+  },
+
+  // Return all the pods for a given namespace
+  podsByNamespace: state => (namespace) => {
+    const map = state.podsByNamespace[namespace];
+
+    return map?.list || [];
+  },
+
 };

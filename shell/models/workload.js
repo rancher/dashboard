@@ -7,7 +7,7 @@ import { clone, get, set } from '@shell/utils/object';
 import day from 'dayjs';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
-import { convertSelectorObj, matching } from '@shell/utils/selector';
+import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/components/DetailTop';
 
 export default class Workload extends SteveModel {
@@ -771,7 +771,11 @@ export default class Workload extends SteveModel {
     const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
 
     if (podRelationship) {
-      return this.$getters['matching'](POD, podRelationship.selector).filter(pod => pod?.metadata?.namespace === this.metadata.namespace);
+      const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
+
+      return pods.filter((obj) => {
+        return matches(obj, podRelationship.selector);
+      });
     } else {
       return [];
     }
