@@ -231,7 +231,7 @@ export default {
         />
       </div>
     </div>
-    <div v-if="isStatefulSet&& !noDeploymentSpec" class="row mb-20">
+    <div v-if="isStatefulSet && !noDeploymentSpec" class="row mb-20">
       <div class="col span-6" data-testid="input-policy-pod">
         <RadioGroup
           v-model="podManagementPolicy"

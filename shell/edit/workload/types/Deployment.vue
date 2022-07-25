@@ -1,13 +1,17 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
+import { WORKLOAD_TABS } from '@shell/config/types';
 
 export default {
   name:       'WorkloadDeployments',
   mixins:     [CreateEditView, WorkLoadMixin],
 
   data() {
-    return { selectedName: null };
+    return {
+      selectedName:  null,
+      TABLABELS:     WORKLOAD_TABS
+    };
   },
   methods: {
     changed(tab) {
@@ -78,7 +82,7 @@ export default {
         </div>
       </div>
       <Tabbed class="deployment-tabs">
-        <Tab label="Containers" name="containers">
+        <Tab :label="TABLABELS.CONTAINERS" name="containers">
           <Tabbed :side-tabs="true" @changed="changed">
             <Tab v-for="(tab, i) in allContainers" :key="i" :label="tab.name" :name="tab.name" :weight="tab.weight">
               <template #tab-header-right class="tab-content-controls">
@@ -191,7 +195,7 @@ export default {
             </template>
           </Tabbed>
         </Tab>
-        <Tab :label="'Deployment'" :name="'deployments'" :weight="99">
+        <Tab :label="TABLABELS.DEPLOYMENT" :name="'deployments'" :weight="99">
           <Tabbed :side-tabs="true">
             <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="tabWeightMap['labels']">
               <Labels v-model="value" :mode="mode" />
@@ -202,7 +206,7 @@ export default {
             </Tab>
           </Tabbed>
         </Tab>
-        <Tab :label="'Pod'" :name="'pods'" :weight="99">
+        <Tab :label="TABLABELS.POD" :name="'pods'" :weight="99">
           <Tabbed :side-tabs="true">
             <Tab :label="t('workload.storage.title')" name="storage" :weight="tabWeightMap['storage']">
               <Storage
