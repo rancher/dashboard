@@ -6756,6 +6756,7 @@ performance:
       all resources in one request. This applies to the main Kubernetes resources retrieved by the UI.
   manualRefresh:
     title: Manual refresh of data
+    buttonTooltip: Click here to refresh list data
     description: |-
       When loading lists of resources with large amounts of data, the watchers running on the UI to make those elements reactive to auto-updates
       may make the system more susceptible to performance issues. If enabled, the list data will not auto-update but instead the user can manually
