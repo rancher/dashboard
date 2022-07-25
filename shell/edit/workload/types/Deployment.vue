@@ -77,8 +77,8 @@ export default {
           />
         </div>
       </div>
-      <Tabbed>
-        <Tab label="Containers" name="containers">
+      <Tabbed class="deployment-tabs">
+        <Tab :label="t('workload.tabs.labels.containers')" name="containers">
           <Tabbed :side-tabs="true" @changed="changed">
             <Tab v-for="(tab, i) in allContainers" :key="i" :label="tab.name" :name="tab.name" :weight="tab.weight">
               <template #tab-header-right class="tab-content-controls">
@@ -137,19 +137,32 @@ export default {
                   </div>
                 </div>
               </div>
-              <div class="spacer" />
-              <div class="healthcheck">
+              <div v-if="!isInitContainer" class="healthcheck">
+                <div class="spacer" />
                 <h2>{{ t('workload.container.titles.healthCheck') }} </h2>
                 <HealthCheck v-model="healthCheck" :mode="mode" />
-                <div class="spacer" />
-                <div>
-                  <h3>{{ t('workload.container.titles.ports') }}</h3>
-                  <div class="row">
-                    <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
-                  </div>
+              </div>
+              <div class="spacer" />
+              <div>
+                <h3>{{ t('workload.container.titles.ports') }}</h3>
+                <div class="row">
+                  <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
                 </div>
               </div>
-              <div class="spacer"></div>
+              <div class="spacer" />
+              <!-- Resources and Limitations -->
+              <div>
+                <h2 class="mb-10">
+                  <t k="workload.scheduling.titles.limits" />
+                </h2>
+                <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
+              </div>
+              <div class="spacer" />
+              <div>
+                <h2>{{ t('workload.container.titles.securityContext') }} </h2>
+                <Security v-model="container.securityContext" :mode="mode" />
+              </div>
+              <div class="spacer" />
               <div>
                 <h3>{{ t('workload.container.titles.command') }}</h3>
                 <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
@@ -163,7 +176,7 @@ export default {
                 option-label="metadata.name"
                 @input="updateServiceAccount"
               />
-              <div class="spacer"></div>
+              <div class="spacer" />
               <div>
                 <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
                 <LifecycleHooks v-model="container.lifecycle" :mode="mode" />
@@ -178,10 +191,18 @@ export default {
             </template>
           </Tabbed>
         </Tab>
-        <Tab :label="'Deployments'" :name="'deployments'" :weight="99">
-          <Labels v-model="value" :mode="mode" />
+        <Tab :label="t('workload.tabs.labels.deployment')" :name="'deployment'" :weight="99">
+          <Tabbed :side-tabs="true">
+            <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="tabWeightMap['labels']">
+              <Labels v-model="value" :mode="mode" />
+            </Tab>
+            <Tab :label="t('workload.container.titles.upgrading')" name="upgrading" :weight="tabWeightMap['upgrading']">
+              <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
+              <Upgrading v-else v-model="spec" :mode="mode" :type="type" :no-pod-spec="true" />
+            </Tab>
+          </Tabbed>
         </Tab>
-        <Tab :label="'Pods'" :name="'pods'" :weight="99">
+        <Tab :label="t('workload.tabs.labels.pod')" :name="'pod'" :weight="99">
           <Tabbed :side-tabs="true">
             <Tab :label="t('workload.storage.title')" name="storage" :weight="tabWeightMap['storage']">
               <Storage
@@ -197,12 +218,7 @@ export default {
               />
             </Tab>
             <Tab :label="t('workload.container.titles.resources')" name="resources" :weight="tabWeightMap['resources']">
-              <h3 class="mb-10">
-                <t k="workload.scheduling.titles.limits" />
-              </h3>
-              <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
               <template>
-                <div class="spacer"></div>
                 <div>
                   <h3 class="mb-10">
                     <t k="workload.scheduling.titles.tolerations" />
@@ -213,7 +229,7 @@ export default {
                 </div>
 
                 <div>
-                  <div class="spacer"></div>
+                  <div class="spacer" />
                   <h3 class="mb-10">
                     <t k="workload.scheduling.titles.priority" />
                   </h3>
@@ -236,11 +252,9 @@ export default {
             </Tab>
             <Tab :label="t('workload.container.titles.upgrading')" name="upgrading" :weight="tabWeightMap['upgrading']">
               <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
-              <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
+              <Upgrading v-else v-model="spec" :mode="mode" :type="type" :no-deployment-spec="true" />
             </Tab>
             <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
-              <Security v-model="container.securityContext" :mode="mode" />
-              <div class="spacer"></div>
               <div>
                 <h3>{{ t('workload.container.security.podFsGroup') }}</h3>
                 <div class="row">
@@ -269,7 +283,7 @@ export default {
                     :protip="false"
                   />
                 </div>
-                <div class="spacer"></div>
+                <div class="spacer" />
                 <h3>{{ t('workload.container.titles.podAnnotations') }}</h3>
                 <div class="row">
                   <KeyValue
@@ -329,5 +343,24 @@ export default {
 .side-tablist-controls {
   border-top: 1px solid var(--border);
   padding: 15px;
+
+  .role-link {
+    &:focus {
+      background: none;
+      box-shadow: none;
+    }
+
+    &:hover {
+      border: none;
+    }
+  }
+
+}
+
+.deployment-tabs {
+  > .tabs.horizontal {
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
 }
 </style>
