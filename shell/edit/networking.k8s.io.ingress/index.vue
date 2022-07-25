@@ -81,7 +81,8 @@ export default {
         },
         {
           path: 'spec.defaultBackend.service.port.number', rules: ['required', 'requiredInt', 'portNumber'], translationKey: 'ingress.defaultBackend.port.label'
-        }
+        },
+        { path: 'spec.tls.hosts', rules: ['required', 'hostname'] }
       ],
       fvReportedValidationPaths: ['spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.name']
     };
@@ -112,7 +113,8 @@ export default {
         requestHost: this.fvGetAndReportPathRules('spec.rules.host'),
         path:        this.fvGetAndReportPathRules('spec.rules.http.paths.path'),
         port:        this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.port.number'),
-        target:      this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.name')
+        target:      this.fvGetAndReportPathRules('spec.rules.http.paths.backend.service.name'),
+
       };
     },
     defaultBackendPathRules() {
@@ -214,7 +216,7 @@ export default {
         <DefaultBackend v-model="value" :service-targets="serviceTargets" :mode="mode" :rules="defaultBackendPathRules" />
       </Tab>
       <Tab v-if="!isView" :label="t('ingress.certificates.label')" name="certificates" :weight="2">
-        <Certificates v-model="value" :mode="mode" :certificates="certificates" />
+        <Certificates v-model="value" :mode="mode" :certificates="certificates" :rules="{host: fvGetAndReportPathRules('spec.tls.hosts')}" />
       </Tab>
       <Tab :label="t('ingress.ingressClass.label')" name="ingress-class" :weight="1">
         <IngressClass v-model="value" :mode="mode" :ingress-classes="ingressClasses" />
