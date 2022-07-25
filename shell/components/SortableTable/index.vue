@@ -871,12 +871,15 @@ export default {
           <slot name="header-middle" />
           <button
             v-if="isTooManyItemsToAutoUpdate"
-            v-tooltip="'click here to refresh table data'"
+            v-tooltip="t('performance.manualRefresh.buttonTooltip')"
             type="button"
             class="btn role-primary refresh-btn"
             @click="debouncedRefreshTableData"
           >
-            <i class="icon icon-backup" />
+            <i
+              class="icon icon-backup"
+              :class="{ 'animate': isManualDataLoading }"
+            />
           </button>
         </div>
 
@@ -1342,36 +1345,36 @@ $spacing: 10px;
   }
 }
 
- .for-inputs{
-   & TABLE.sortable-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: $spacing;
+.for-inputs{
+  & TABLE.sortable-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: $spacing;
 
-    >TBODY>TR>TD, >THEAD>TR>TH {
-      padding-right: $spacing;
-      padding-bottom: $spacing;
+  >TBODY>TR>TD, >THEAD>TR>TH {
+    padding-right: $spacing;
+    padding-bottom: $spacing;
 
-      &:last-of-type {
-        padding-right: 0;
-      }
-    }
-
-    >TBODY>TR:first-of-type>TD {
-      padding-top: $spacing;
-    }
-
-    >TBODY>TR:last-of-type>TD {
-      padding-bottom: 0;
+    &:last-of-type {
+      padding-right: 0;
     }
   }
 
-    &.edit, &.create, &.clone {
-     TABLE.sortable-table>THEAD>TR>TH {
-      border-color: transparent;
-      }
+  >TBODY>TR:first-of-type>TD {
+    padding-top: $spacing;
+  }
+
+  >TBODY>TR:last-of-type>TD {
+    padding-bottom: 0;
+  }
+}
+
+  &.edit, &.create, &.clone {
+    TABLE.sortable-table>THEAD>TR>TH {
+    border-color: transparent;
     }
   }
+}
 
 .sortable-table-header {
   position: relative;
@@ -1441,6 +1444,22 @@ $spacing: 10px;
   .middle {
     grid-area: middle;
     white-space: nowrap;
+
+    .icon.icon-backup.animate {
+      animation-name: spin;
+      animation-duration: 1000ms;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+
+    @keyframes spin {
+      from {
+        transform:rotate(0deg);
+      }
+      to {
+        transform:rotate(360deg);
+      }
+    }
   }
 
   .search {
