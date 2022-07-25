@@ -75,6 +75,52 @@ export default {
     return all;
   },
 
+  async loadFullData(ctx, { type, opt }) {
+    const {
+      getters, commit, dispatch, rootGetters
+    } = ctx;
+
+    opt = opt || {};
+    type = getters.normalizeType(type);
+
+    const typeOptions = rootGetters['type-map/optionsFor'](type);
+
+    console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
+    opt = opt || {};
+    opt.url = getters.urlFor(type, null, opt);
+    opt.depaginate = typeOptions?.depaginate;
+    opt.url += `?limit=${ opt.incremental }`;
+
+    if (opt.pageUrl) {
+      opt.url = opt.pageUrl;
+    }
+
+    try {
+      const res = await dispatch('request', { opt, type });
+
+      commit('loadAdd', {
+        ctx,
+        type,
+        data: res.data,
+      });
+
+      if (res.pagination?.next) {
+        dispatch('loadFullData', {
+          type,
+          opt: {
+            ...opt,
+            pageUrl: res.pagination?.next
+          }
+        });
+      } else {
+        // We have everything!
+        commit('setHaveAll', { type });
+      }
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  },
+
   async findAll(ctx, { type, opt }) {
     const {
       getters, commit, dispatch, rootGetters
@@ -86,6 +132,8 @@ export default {
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
+
+    const savedOpt = { ...opt };
 
     if ( opt.force !== true && getters['haveAll'](type) ) {
       return getters.all(type);
@@ -112,6 +160,15 @@ export default {
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
     opt.depaginate = typeOptions?.depaginate;
+
+    let skipHaveAll = false;
+
+    if (opt.incremental) {
+      opt.url = `${ opt.url }?limit=100`;
+      skipHaveAll = true;
+
+      dispatch('loadFullData', { type, opt: savedOpt });
+    }
 
     let streamStarted = false;
     let out;
@@ -187,7 +244,8 @@ export default {
         commit('loadAll', {
           ctx,
           type,
-          data: out.data
+          data: out.data,
+          skipHaveAll
         });
       }
     }

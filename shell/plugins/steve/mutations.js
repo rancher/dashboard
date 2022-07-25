@@ -27,14 +27,19 @@ function registerNamespace(state, namespace) {
 }
 
 export default {
-  loadAll(state, { type, data, ctx }) {
+  loadAll(state, {
+    type,
+    data,
+    ctx,
+    skipHaveAll
+  }) {
     // Performance testing in dev and when env var is set
     if (process.env.dev && !!process.env.perfTest) {
       data = perfLoadAll(type, data);
     }
 
     const proxies = loadAll(state, {
-      type, data, ctx
+      type, data, ctx, skipHaveAll
     });
 
     // If we loaded a set of pods, then update the podsByNamespace cache

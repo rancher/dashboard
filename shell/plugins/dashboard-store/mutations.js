@@ -155,7 +155,12 @@ export function remove(state, obj, getters) {
   }
 }
 
-export function loadAll(state, { type, data, ctx }) {
+export function loadAll(state, {
+  type,
+  data,
+  ctx,
+  skipHaveAll
+}) {
   const { getters } = ctx;
 
   if (!data) {
@@ -184,7 +189,10 @@ export function loadAll(state, { type, data, ctx }) {
     cache.map.set(proxies[i][keyField], proxies[i]);
   }
 
-  cache.haveAll = true;
+  // Allow requester to skip setting that everything has loaded
+  if (!skipHaveAll) {
+    cache.haveAll = true;
+  }
 
   return proxies;
 }
@@ -243,6 +251,22 @@ export default {
     });
   },
 
+  loadAdd(state, { type, data: allLatest, ctx }) {
+    const { getters } = ctx;
+    // const allLatest = await dispatch('findAll', { type, opt: { force: true, load, _NONE } });
+    // const allExisting = getters.all({type});
+    const keyField = getters.keyFieldForType(type);
+    // const cache = state.types[type];
+
+    allLatest.forEach((entry) => {
+      const existing = state.types[type].map.get(entry[keyField]);
+
+      load(state, {
+        data: entry, ctx, existing
+      });
+    });
+  },
+
   forgetAll(state, { type }) {
     const cache = registerType(state, type);
 
@@ -255,6 +279,12 @@ export default {
     const cache = registerType(state, type);
 
     cache.generation++;
+    cache.haveAll = true;
+  },
+
+  setHaveAll(state, { type }) {
+    const cache = registerType(state, type);
+
     cache.haveAll = true;
   },
 

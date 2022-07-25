@@ -2,13 +2,19 @@
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
+import ResourceLoadingIndicator from './ResourceLoadingIndicator';
+import { COUNT } from '@shell/config/types';
+import PageFetchMixin from '@shell/mixins/paged-fetch';
 
 export default {
   components: {
     Loading,
     ResourceTable,
-    Masthead
+    Masthead,
+    ResourceLoadingIndicator
   },
+
+  mixins: [PageFetchMixin],
 
   async fetch() {
     const store = this.$store;
@@ -42,7 +48,7 @@ export default {
         return;
       }
 
-      this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource });
+      this.rows = await this.$fetchType(resource);
     }
   },
 
@@ -61,6 +67,7 @@ export default {
     const existingData = getters[`${ inStore }/all`](resource) || [];
 
     return {
+      inStore,
       schema,
       hasListComponent,
       hasData:      existingData.length > 0,
@@ -89,6 +96,30 @@ export default {
 
     loading() {
       return this.hasData ? false : this.$fetchState.pending;
+    },
+
+    haveAll() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/haveAll`](this.resource);
+    },
+
+    total() {
+      const clusterCounts = this.$store.getters[`cluster/all`](COUNT);
+
+      return clusterCounts?.[0]?.counts?.[this.resource]?.summary?.count;
+    },
+
+    count() {
+      const existingData = this.$store.getters[`${ this.inStore }/all`](this.resource) || [];
+
+      return (existingData || []).length;
+    },
+
+    width() {
+      const progress = Math.ceil(100 * (this.count / this.total));
+
+      return `${ progress }%`;
     }
   },
 
@@ -114,7 +145,11 @@ export default {
       :type-display="customTypeDisplay"
       :schema="schema"
       :resource="resource"
-    />
+    >
+      <template v-slot:header>
+        <ResourceLoadingIndicator v-if="count && !haveAll" :resource="resource" />
+      </template>
+    </Masthead>
 
     <div v-if="hasListComponent">
       <component

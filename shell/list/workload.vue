@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
+import PageFetchMixin from '@shell/mixins/paged-fetch';
 
 const schema = {
   id:         'workload',
@@ -15,6 +16,7 @@ const schema = {
 export default {
   name:       'ListWorkload',
   components: { ResourceTable },
+  mixins:     [PageFetchMixin],
 
   async fetch() {
     try {
@@ -36,13 +38,13 @@ export default {
           return null;
         }
 
-        return this.$store.dispatch('cluster/findAll', { type });
+        return this.$fetchType(type);
       }));
     } else {
       const type = this.$route.params.resource;
 
       if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$store.dispatch('cluster/findAll', { type });
+        const resource = await this.$fetchType(type);
 
         resources = [resource];
       }
