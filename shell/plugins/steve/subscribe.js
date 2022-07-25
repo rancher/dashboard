@@ -1,5 +1,6 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
+import { COUNT, SCHEMA } from '@shell/config/types';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
@@ -106,7 +107,7 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
       });
     }
 
-    if ( type === 'schema' ) {
+    if ( type === SCHEMA ) {
       // Clear the current records in the store when a type disappears
       state.queue.push({
         action: 'commit',
@@ -567,7 +568,7 @@ export const actions = {
     const type = data.type;
 
     // Debounce count changes so we send at most 1 every 5 seconds
-    if (type === 'count') {
+    if (type === COUNT) {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
@@ -580,7 +581,7 @@ export const actions = {
 
     // Web worker can process schemas to check that they are actually changing and
     // only load updates if the schema did actually change
-    if (type === 'schema') {
+    if (type === SCHEMA) {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
@@ -615,7 +616,7 @@ export const actions = {
     const data = msg.data;
     const type = data.type;
 
-    if (type === 'schema') {
+    if (type === SCHEMA) {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {

@@ -1,4 +1,5 @@
 import * as Comlink from 'comlink';
+import { SCHEMA } from '@shell/config/types';
 
 const COUNTS_FLUSH_TIMEOUT = 5000;
 const SCHEMA_FLUSH_TIMEOUT = 2500;
@@ -44,7 +45,7 @@ function flush() {
 
       const msg = {
         data:          schema,
-        resoourceType: 'schema',
+        resourceType:  SCHEMA,
         type:          'resource.change'
       };
 
@@ -87,7 +88,7 @@ const fns = {
 
     if (!state.countTimer) {
       state.countTimer = setTimeout(() => {
-        const last = state.counts[state.counts.length - 1];
+        const last = state.counts.pop();
 
         state.counts = [];
         state.countTimer = null;

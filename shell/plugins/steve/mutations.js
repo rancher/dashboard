@@ -1,5 +1,5 @@
 import { addObject, removeObject } from '@shell/utils/array';
-import { NAMESPACE, POD } from '@shell/config/types';
+import { NAMESPACE, POD, SCHEMA } from '@shell/config/types';
 import {
   forgetType,
   resetStore,
@@ -54,7 +54,7 @@ export default {
     }
 
     // Notify the web worker of the initial load of schemas
-    if (type === 'schema') {
+    if (type === SCHEMA) {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
