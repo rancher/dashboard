@@ -34,8 +34,7 @@ function hashObj(obj) {
 }
 
 function flush() {
-  state.queue.forEach((item) => {
-    const schema = item.schema;
+  state.queue.forEach((schema) => {
     const hash = hashObj(schema);
     const existing = state.schemas[schema.id];
 
@@ -108,10 +107,8 @@ const fns = {
   // Called when schema is updated
   updateSchema(schema) {
     // console.log('SCHEMA UPDATED >>>>>>>>>>>>>>>>>>>> ' + schema.id);
-    state.queue.push({
-      load: false,
-      schema
-    });
+    // Add the schema to the queue to be checked to see if the schema really changed
+    state.queue.push(schema);
   },
 
   // Remove the cached schema
