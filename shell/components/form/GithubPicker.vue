@@ -5,6 +5,7 @@ import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import some from 'lodash/some';
 
 export default {
   components: {
@@ -45,6 +46,7 @@ export default {
 
       hasError:       false,
       showSelections: false,
+      oldUsername:    null,
 
       repos:    [],
       branches: [],
@@ -68,9 +70,6 @@ export default {
     async fetchRepos() {
       try {
         if (this.selectedUsername.length) {
-          if (this.selectedCommit) {
-            this.selectedCommit = false;
-          }
           const res = await this.$store.dispatch('github/fetchRecentRepos', { username: this.selectedUsername });
 
           if (res.message) {
@@ -78,6 +77,13 @@ export default {
           }
 
           this.repos = res;
+
+          // Reset selections once username changes
+          if (this.oldUsername !== this.selectedUsername) {
+            this.oldUsername = this.selectedUsername;
+
+            return this.reset();
+          }
         }
       } finally {
         this.loadingRecentRepos = false;
@@ -160,17 +166,30 @@ export default {
 
       return null;
     },
-    async searchForResult(query, type = 'repos') {
+    async searchForResult(query) {
       try {
         if (!this.selectedRepo && query.length) {
+          // Check if the result is already in the fetched list.
+          const resultInCurrentState = some(this.repos, { name: query } );
+
+          if (resultInCurrentState) {
+            return;
+          }
+
+          // Search for specific repo under the username
           const res = await this.$store.dispatch('github/search', { repo: query, username: this.selectedUsername });
 
-          this.selectedCommit = null;
-          this.selectedBranch = null;
+          if (res.message) {
+            this.hasError = res.message;
+          }
+
           this.repos = res;
-        } if (this.selectedRepo && !this.selectedBranch) {
+        } else if (this.selectedRepo && !this.selectedBranch) {
+          // Search for a specific branch under the repo
           const res = await this.$store.dispatch('github/search', {
-            repo: this.selectedRepo, branch: query, username: this.selectedUsername
+            repo:     this.selectedRepo,
+            branch:   query,
+            username: this.selectedUsername,
           });
 
           if (res.message) {
@@ -179,7 +198,7 @@ export default {
           }
           this.branches = res;
         } else {
-          await this.fetchRepos();
+          this.fetchRepos();
         }
       } finally {
         this.loadingBranches = false;

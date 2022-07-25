@@ -1,5 +1,3 @@
-
-import { DEMO_BRANCHES, DEMO_REPOS, DEMO_COMMITS } from '@/demo';
 export const EXTENDED_SCOPES = ['repo'];
 export const GITHUB_BASE_API = 'https://api.github.com';
 
@@ -15,9 +13,15 @@ export const FetchGithubAPI = async(endpoint) => {
   try {
     const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
 
+    if (!response.ok) {
+      throw await response.json();
+    }
+
     return response.json();
   } catch (error) {
-    return error;
+    if (error.response) {
+      return error.response;
+    }
   }
 };
 
@@ -28,12 +32,10 @@ export const actions = {
   }) {
     switch (endpoint) {
     case 'branches': {
-      // return await FetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=100&direction=desc`);
-      return DEMO_BRANCHES.slice(0, 2);
+      return await FetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=100&direction=desc`);
     }
     case 'commits': {
-      // return await FetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
-      return DEMO_COMMITS;
+      return await FetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
     }
     case 'search': {
       // Fetch for branches
@@ -46,15 +48,13 @@ export const actions = {
       // Fetch for repos
       const response = await FetchGithubAPI(`search/repositories?q=repo:${ username }/${ repo }`);
 
-      return response.items;
-
-      // return [{ name: 'SEARCH RSULT' }];
-      // return DEMO_COMMITS;
+      if (response) {
+        return response.items;
+      }
     }
     }
 
-    // return await FetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=100&direction=desc`);
-    return await DEMO_REPOS;
+    return await FetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=100&direction=desc`);
   },
 
   async fetchRecentRepos({ dispatch }, { username } = {}) {
