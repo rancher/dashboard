@@ -146,7 +146,7 @@ export default {
     },
     activeNamespaces() {
       // Apply namespace filters from the top nav.
-      const activeNamespaces = this.$store.getters['namespaces']();
+      const activeNamespaces = this.$store.getters['activeNamespaceCache']();
 
       return this.namespaces.filter((namespaceData) => {
         return !!activeNamespaces[namespaceData.metadata.name];
@@ -156,20 +156,29 @@ export default {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
-      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-
-      if (!isVirtualCluster || this.$store.getters['prefs/get'](DEV)) {
+      if (this.$store.getters['prefs/get'](DEV)) {
+        // If developer tools are turned on in the user preferences,
+        // return all namespaces including system namespaces and RBAC
+        // management namespaces.
         return this.activeNamespaces;
       }
 
-      // Filter out system namespaces for virtual clusters, e.g. Harvester.
-      // Otherwise the unfiltered list should be the same as the list
-      // of namespaces available in the top nav of Cluster Explorer.
+      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
+
       return this.activeNamespaces.filter((namespace) => {
         const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
+
         const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
 
-        return !systemNS && !namespace.isObscure;
+        // For Harvester, filter out system namespaces AND obscure namespaces.
+        if (isVirtualCluster) {
+          return !systemNS && !namespace.isObscure;
+        }
+
+        // Otherwise only filter out obscure namespaces, such as namespaces
+        // that Rancher uses to manage RBAC for projects, which should not be
+        // edited or deleted by Rancher users.
+        return !namespace.isObscure;
       });
     },
 
