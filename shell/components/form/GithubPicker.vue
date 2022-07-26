@@ -98,6 +98,7 @@ export default {
 
     async fetchBranches(val) {
       this.loadingBranches = true;
+      this.selectedCommit = false;
 
       try {
         const res = await this.$store.dispatch('github/fetchBranches', { repo: this.selectedRepo, username: this.selectedUsername });
@@ -109,6 +110,8 @@ export default {
     },
     async fetchCommits() {
       this.loadingCommits = true;
+      this.showSelections = false;
+
       try {
         const res = await this.$store.dispatch('github/fetchCommits', {
           repo:     this.selectedRepo,
@@ -271,7 +274,7 @@ export default {
             />
           </div>
           <!-- Deals with Commits, display & allow to pick from it  -->
-          <div v-if="selectedBranch" class="spacer archive">
+          <div v-if="selectedBranch && commits.length" class="spacer archive">
             <p>{{ t('epinio.applications.steps.source.github.commits.tooltip') }}</p>
             <SortableTable
               :rows="prepareArray(commits, true)"

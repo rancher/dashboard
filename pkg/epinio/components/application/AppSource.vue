@@ -447,10 +447,7 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
-      <GithubPicker
-        @generateUrl="githubUrL"
-      >
-      </GithubPicker>
+      <GithubPicker @generateUrl="githubUrL" />
     </template>
     <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30">
       <template>

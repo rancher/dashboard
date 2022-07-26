@@ -11,7 +11,6 @@ export const state = function() {
   };
 };
 
-// TODO: Move to Axios or already implemented fetch method (?)
 export const FetchGithubAPI = async(endpoint) => {
   try {
     const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
