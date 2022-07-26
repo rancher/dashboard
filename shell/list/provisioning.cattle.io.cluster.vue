@@ -19,8 +19,6 @@ export default {
   async fetch() {
     const watch = this.gatherManualRefreshData('rancherClusters');
 
-    console.log('*** prov cluster watch value ***', watch);
-
     const hash = {
       normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
       mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
