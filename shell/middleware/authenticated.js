@@ -15,6 +15,7 @@ import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
+import { allHash } from '@shell/utils/promise';
 
 const getPackageFromRoute = (route) => {
   if (!route?.meta) {
@@ -189,7 +190,20 @@ export default async function({
   }
 
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
-    await store.dispatch('auth/getUser');
+    const hash = { userMe: store.dispatch('auth/getUser') };
+    const fromHeader = store.getters['auth/fromHeader'];
+
+    const fromHeaderNone = fromHeader === 'none' ;
+    const fromHeaderFalse = fromHeader === 'false';
+    const fromHeaderTrue = fromHeader === 'true';
+    const fromHeaderOther = !fromHeaderNone && !fromHeaderFalse && !fromHeaderTrue;
+
+    if (fromHeaderTrue || fromHeaderOther) {
+      hash.principalMe = findMe(store);
+    }
+
+    const res = await allHash(hash);
+
     const v3User = store.getters['auth/v3User'] || {};
 
     if (v3User?.mustChangePassword) {
@@ -197,20 +211,19 @@ export default async function({
     }
 
     // In newer versions the API calls return the auth state instead of having to make a new call all the time.
-    const fromHeader = store.getters['auth/fromHeader'];
 
-    if ( fromHeader === 'none' ) {
+    if ( fromHeaderNone ) {
       noAuth();
-    } else if ( fromHeader === 'true' ) {
-      const me = await findMe(store);
+    } else if ( fromHeaderTrue ) {
+      const me = res.principalMe;
 
       isLoggedIn(me);
-    } else if ( fromHeader === 'false' ) {
+    } else if ( fromHeaderFalse ) {
       notLoggedIn();
-    } else {
+    } else if (fromHeaderOther) {
       // Older versions look at principals and see what happens
       try {
-        const me = await findMe(store);
+        const me = res.principalMe;
 
         isLoggedIn(me);
       } catch (e) {
@@ -382,6 +395,7 @@ export default async function({
 }
 
 async function findMe(store) {
+  // First thing we do in loadManagement is fetch principals anyway.... so don't ?me=true here
   const principals = await store.dispatch('rancher/findAll', {
     type: NORMAN.PRINCIPAL,
     opt:  {
