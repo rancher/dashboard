@@ -18,7 +18,7 @@ type ServicePort = {
   idx: number
 }
 
-class Port {
+export class Port {
   empty: boolean;
   int: number;
   string: string;
