@@ -63,7 +63,6 @@ const sidebars = {
       items: ['testing/stress-test', 'testing/e2e-testing'],
     },
   ],
-
 };
 
 module.exports = sidebars;

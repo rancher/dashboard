@@ -1,4 +1,8 @@
-### Customizing how Kubernetes Resources are Presented
+---
+sidebar_label: Customizing Kubernetes Resources
+---
+
+# Customizing how Kubernetes Resources are Presented
 
 These are where you do most of the daily work of customizing of how a particular k8s resource is presented.
 

@@ -26,3 +26,13 @@ This command starts a local development server and opens up a browser window. Mo
 ```
 $ yarn build
 
+### Adding new documents
+
+> Note: We are using `sidebars.js` file to generated custome sidebar.
+
+1. Create a Markdown file, greeting.md, and place it under the docs directory.
+
+2. Add file name in `sidebars.js`.
+
+
+

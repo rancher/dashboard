@@ -50,6 +50,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
+        title: "DevKit",
         logo: {
           alt: 'Rancher Logo',
           src: 'img/rancher-logo.svg',
@@ -62,7 +63,7 @@ const config = {
             label:    'Docs',
           },
           {
-            href: 'https://github.com/facebook/docusaurus',
+            href: 'https://rancher.github.io/storybook/',
             position: 'right',
             'aria-label': 'Component Library',
             'label': 'Component Library',
