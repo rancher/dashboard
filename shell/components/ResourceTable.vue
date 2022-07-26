@@ -7,6 +7,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
 import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -126,6 +127,8 @@ export default {
 
   computed: {
     ...mapGetters(['isVirtualCluster']),
+    ...mapGetters(['workspace']),
+    ...mapGetters(['productId']),
     isNamespaced() {
       if ( this.namespaced !== null ) {
         return this.namespaced;
@@ -190,12 +193,24 @@ export default {
       const isAll = this.$store.getters['isAllNamespaces'];
       const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
+      console.log('*** filtered triggered ***', this.isNamespaced, isAll);
+
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
       if ( (!this.isNamespaced || isAll) && !isVirtualProduct) {
         return this.rows || [];
       }
 
-      const includedNamespaces = this.$store.getters['activeNamespaceCache']();
+      let includedNamespaces = this.$store.getters['activeNamespaceCache']();
+
+      if (this.productId === FLEET_NAME) {
+        const workspaceSelected = {};
+
+        workspaceSelected[this.workspace] = true;
+
+        includedNamespaces = Object.assign({}, workspaceSelected);
+      }
+
+      console.log('*** includedNamespaces ***', includedNamespaces);
 
       // Shouldn't happen, but does for resources like management.cattle.io.preference
       if (!this.rows) {
