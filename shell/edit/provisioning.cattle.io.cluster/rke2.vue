@@ -13,7 +13,8 @@ import {
   MANAGEMENT,
   NORMAN,
   SCHEMA,
-  DEFAULT_WORKSPACE
+  DEFAULT_WORKSPACE,
+  SECRET
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -62,6 +63,7 @@ import RegistryConfigs from './RegistryConfigs';
 import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
+import { base64Encode } from '~/shell/utils/crypto';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -1187,6 +1189,7 @@ export default {
       const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
 
       if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
+        // Create a secret to reference kubeconfig
         const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
         const res = await this.$store.dispatch('management/request', {
@@ -1199,12 +1202,23 @@ export default {
           },
         });
 
-        set(this.agentConfig, 'cloud-provider-config', res.data);
+        const kubeconfig = res.data;
+        const configSecret = await this.createKubeconfigSecret(kubeconfig);
+
+        set(this.agentConfig, 'cloud-provider-config', `//secret:fleet-default:${ configSecret?.metadata?.name }`);
         set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.clusterName`, this.value.metadata.name);
         set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, '/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
       }
 
       await this.save(btnCb);
+    },
+
+    async createKubeconfigSecret(kubeconfig = '') {
+      const secret = await this.$store.dispatch('management/create', {
+        type: SECRET, metadata: { namespace: 'fleet-default', generateName: 'harvesterconfig' }, data: { credential: base64Encode(kubeconfig) }
+      });
+
+      return secret.save({ url: '/v1/secrets', method: 'POST' });
     },
 
     cancel() {
