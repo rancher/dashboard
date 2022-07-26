@@ -6,7 +6,7 @@ const clusterNamePartial = `e2e-test-create`;
 const clusterName = `${ clusterNamePartial }-${ timestamp }`;
 const clusterNameImport = `${ clusterNamePartial }-${ timestamp }-import`;
 
-describe('Cluster', () => {
+describe('Cluster Manager', () => {
   beforeEach(() => {
     cy.login();
   });
