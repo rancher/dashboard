@@ -28,7 +28,9 @@ function getReferencedIssues(body) {
 }
 
 function hasLabel(issue, label) {
-    return !!(issue.labels.find(l =>l.name.toLowerCase() === label.toLowerCase()));
+    const labels = issue.labels || [];
+
+    return !!(labels.find(l =>l.name.toLowerCase() === label.toLowerCase()));
 }
 
 function removeZubeLabels(labels) {
@@ -115,7 +117,7 @@ async function processClosedAction() {
     console.log('');
 
     Object.keys(issueMap).forEach(k => {
-        if (!issueMap[k]) {
+        if (k && !issueMap[k]) {
             console.log(`  Issue #${k} will be ignored as another open PR also states that it fixes this issue`);
         }
     });
@@ -134,6 +136,11 @@ async function processClosedAction() {
             console.log('  Issue is tech debt/dev validate - ignoring');
         } else {
             console.log('  Updating labels to move issue to Test');
+
+        // Output labels
+        const labels = iss.labels || [];
+
+        console.log(labels.join(', '));
 
             // console.log(JSON.stringify(iss, null, 2));
 
