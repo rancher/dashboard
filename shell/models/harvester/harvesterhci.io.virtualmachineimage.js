@@ -10,7 +10,7 @@ import { formatSi } from '@shell/utils/units';
 import { ucFirst } from '@shell/utils/string';
 import { stateDisplay, colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { _CLONE } from '@shell/config/query-params';
+import { _CLONE, _EDIT } from '@shell/config/query-params';
 
 export function isReady() {
   function getStatusConditionOfType(type, defaultValue = []) {
@@ -240,22 +240,24 @@ export default class HciVmImage extends SteveModel {
       out.push(fileRequired);
     }
 
-    return [
-      {
-        nullable:       false,
-        path:           'spec.displayName',
-        required:       true,
-        minLength:      1,
-        maxLength:      63,
-        translationKey: 'generic.name'
-      },
-      {
-        nullable:       false,
-        path:           'spec.displayName',
-        required:       true,
-        translationKey: 'generic.name'
-      },
-      ...out
-    ];
+    const validateName = {
+      nullable:       false,
+      path:           'spec.displayName',
+      required:       true,
+      minLength:      1,
+      maxLength:      63,
+      translationKey: 'generic.name',
+    };
+
+    const route = this.currentRoute();
+
+    const mode = route.query?.mode;
+
+    if (mode !== _EDIT) { // compatible with the already created image
+      validateName.validators = ['displayName'];
+    }
+    out.push(validateName);
+
+    return out;
   }
 }
