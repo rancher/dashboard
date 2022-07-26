@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
+import ManualRefresh from '@shell/mixins/manual-refresh';
 
 const schema = {
   id:         'workload',
@@ -15,6 +16,7 @@ const schema = {
 export default {
   name:       'ListWorkload',
   components: { ResourceTable },
+  mixins:     [ManualRefresh],
 
   async fetch() {
     try {
@@ -30,19 +32,28 @@ export default {
     this.loadHeathResources();
 
     if ( this.allTypes ) {
-      resources = await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => {
-      // You may not have RBAC to see some of the types
-        if ( !this.$store.getters['cluster/schemaFor'](type) ) {
-          return null;
-        }
+      const allowedResources = [];
 
-        return this.$store.dispatch('cluster/findAll', { type });
+      Object.values(WORKLOAD_TYPES).forEach((type) => {
+        // You may not have RBAC to see some of the types
+        if (this.$store.getters['cluster/schemaFor'](type) ) {
+          allowedResources.push(type);
+        }
+      });
+
+      const watch = this.gatherManualRefreshData('resources', true, allowedResources);
+
+      resources = await Promise.all(allowedResources.map((type) => {
+        return this.$store.dispatch('cluster/findAll', { type, opt: { watch } });
       }));
     } else {
       const type = this.$route.params.resource;
 
+      this.resource = type;
+      const watch = this.gatherManualRefreshData('resources', true);
+
       if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$store.dispatch('cluster/findAll', { type });
+        const resource = await this.$store.dispatch('cluster/findAll', { type, opt: { watch } });
 
         resources = [resource];
       }
@@ -57,6 +68,10 @@ export default {
 
   computed: {
     allTypes() {
+      // console.log('this.$route.params.resource', this.$route.params.resource);
+      // console.log('schema', schema);
+      // console.log('schema.id', schema.id);
+
       return this.$route.params.resource === schema.id;
     },
 
