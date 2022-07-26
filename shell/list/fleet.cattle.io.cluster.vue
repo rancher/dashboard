@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import FleetClusters from '@shell/components/fleet/FleetClusters';
 import { FLEET, MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
@@ -33,7 +32,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['workspace']),
     allClusters() {
       const out = this.allFleet.slice();
 
@@ -52,16 +50,12 @@ export default {
       return out;
     },
 
+    rows() {
+      return this.fleetClusters.filter(c => !isHarvesterCluster(c));
+    },
+
     fleetClusters() {
       return this.allClusters.filter(c => c.type === FLEET.CLUSTER);
-    },
-
-    workspaceClusters() {
-      return this.fleetClusters.filter(c => c.metadata?.namespace === this.workspace);
-    },
-
-    rows() {
-      return this.workspaceClusters.filter(c => !isHarvesterCluster(c));
     },
 
     hiddenHarvesterCount() {
