@@ -9,7 +9,7 @@ const config = {
   title:                 'Rancher DevKit',
   tagline:               'Rancher development kit',
   url:                   'https://bisht-richa.github.io',
-  baseUrl:               '/dashboard/',
+  baseUrl:               '/',
   onBrokenLinks:         'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon:               'img/favicon.ico',
@@ -57,15 +57,30 @@ const config = {
         items: [
           {
             type:     'doc',
-            docId:    'introduction',
-            position: 'left',
-            label:    'DevKit',
+            docId:    'getting-started/concepts',
+            position: 'right',
+            label:    'Docs',
+          },
+          {
+            href: 'https://github.com/facebook/docusaurus',
+            position: 'right',
+            'aria-label': 'Component Library',
+            'label': 'Component Library',
           },
         ],
       },
       footer: {
         style:     'dark',
-        links:     [],
+        links:     [
+          {
+            label: 'Stack',
+            href: 'https://slack.rancher.io/',
+          },
+          {
+            label: 'Github',
+            href: 'https://github.com/rancher/',
+          },
+        ],
         copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
       },
       prism: {
