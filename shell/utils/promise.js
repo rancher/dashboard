@@ -93,3 +93,13 @@ export function deferred(name) {
 
   return out;
 }
+
+export function setPromiseResult(promise, that, key, label) {
+  promise
+    .then((res) => {
+      that[key] = res;
+    })
+    .catch((e) => {
+      console.warn('Failed to: ', label, e); // eslint-disable-line no-console
+    });
+}

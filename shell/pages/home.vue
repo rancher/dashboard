@@ -21,7 +21,7 @@ import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { BLANK_CLUSTER } from '@shell/store';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
-import { allHash } from '@shell/utils/promise';
+import { setPromiseResult } from '@shell/utils/promise';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 
@@ -41,17 +41,9 @@ export default {
 
   mixins: [PageHeaderActions],
 
-  async fetch() {
-    const requests = {
-      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-      clusters:        this.$store.dispatch('management/findAll', {
-        type: MANAGEMENT.CLUSTER,
-        opt:  { url: MANAGEMENT.CLUSTER }
-      })
-    };
-    const hash = await allHash(requests);
-
-    this.clusters = hash.rancherClusters;
+  fetch() {
+    setPromiseResult(this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }), this, 'provClusters', 'Failed to load prov clusters');
+    setPromiseResult(this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }), this, 'mgmtClusters', 'Failed to load mgmt clusters');
   },
 
   data() {
@@ -70,7 +62,7 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(),
+      HIDE_HOME_PAGE_CARDS, mgmtClusters: null, provClusters: null, fullVersion, pageActions, vendor: getVendor(),
     };
   },
 
@@ -196,7 +188,7 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId']),
 
     kubeClusters() {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.clusters), this.$store);
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || []), this.$store);
     }
   },
 
@@ -324,13 +316,20 @@ export default {
 
           <div class="row panel">
             <div v-if="mcm" class="col span-12">
-              <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="kubeClusters" :headers="clusterHeaders">
+              <SortableTable
+                :table-actions="false"
+                :row-actions="false"
+                key-field="id"
+                :rows="kubeClusters"
+                :headers="clusterHeaders"
+                :loading="!kubeClusters"
+              >
                 <template #header-left>
                   <div class="row table-heading">
                     <h2 class="mb-0">
                       {{ t('landing.clusters.title') }}
                     </h2>
-                    <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
+                    <BadgeState v-if="kubeClusters" :label="kubeClusters.length.toString()" color="role-tertiary ml-20 mr-20" />
                   </div>
                 </template>
                 <template v-if="canCreateCluster" #header-middle>
