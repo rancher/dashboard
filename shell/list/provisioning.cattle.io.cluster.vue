@@ -144,7 +144,7 @@ export default {
         <span v-if="row.mgmt && row.mgmt.isHarvester"></span>
         <n-link
           v-else-if="row.mgmt && row.mgmt.isReady"
-          data-testid="cluster-manager-list-explore-harvester"
+          data-testid="cluster-manager-list-explore-management"
           class="btn btn-sm role-secondary"
           :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"
         >

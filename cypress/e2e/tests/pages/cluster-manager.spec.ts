@@ -48,7 +48,7 @@ describe('Cluster Manager', () => {
     cy.visit(clusterManagerPath);
     // Click explore button for the cluster row within the table matching given name
     cy.contains(clusterName).parent().parent().parent()
-      .within(() => cy.getId('cluster-manager-list-explore').click());
+      .within(() => cy.getId('cluster-manager-list-explore-management').click());
 
     cy.url().should('include', `/c/${ clusterName }/explorer`);
   });
