@@ -3,6 +3,7 @@ export const state = function() {
     refreshData: {
       resourceName:               null,
       inStore:                    null,
+      multipleResources:          null,
       isTooManyItemsToAutoUpdate: false,
     },
     requestData:         null,
@@ -40,6 +41,8 @@ export const actions = {
       type: state.refreshData.resourceName,
       opt:  { watch: false, force: true }
     }, { root: true });
+
+    data[0].someStuff = 'blabla';
 
     commit('updateIsManualDataLoading', false);
     commit('updateRequestData', data);
