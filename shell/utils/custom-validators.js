@@ -10,7 +10,7 @@ import { roleTemplateRules } from '@shell/utils/validators/role-template';
 import { clusterName } from '@shell/utils/validators/cluster-name';
 import { isHttps, backupTarget } from '@shell/utils/validators/setting';
 
-import { imageUrl, fileRequired } from '@shell/utils/validators/vm-image';
+import { imageUrl, fileRequired, displayName } from '@shell/utils/validators/vm-image';
 
 import { vmNetworks, vmDisks } from '@shell/utils/validators/vm';
 import { dataVolumeSize } from '@shell/utils/validators/vm-datavolumes';
@@ -42,4 +42,5 @@ export default {
   vmNetworks,
   vmDisks,
   fileRequired,
+  displayName
 };
