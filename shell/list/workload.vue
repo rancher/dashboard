@@ -37,20 +37,23 @@ export default {
       Object.values(WORKLOAD_TYPES).forEach((type) => {
         // You may not have RBAC to see some of the types
         if (this.$store.getters['cluster/schemaFor'](type) ) {
-          allowedResources.push(type);
+          allowedResources.push({
+            resourceName: type,
+            inStore:      'cluster',
+          });
         }
       });
 
-      const watch = this.gatherManualRefreshData('resources', true, allowedResources);
+      const watch = this.gatherManualRefreshData('resources', allowedResources, true);
 
-      resources = await Promise.all(allowedResources.map((type) => {
-        return this.$store.dispatch('cluster/findAll', { type, opt: { watch } });
+      resources = await Promise.all(allowedResources.map((res) => {
+        return this.$store.dispatch('cluster/findAll', { type: res.resourceName, opt: { watch } });
       }));
     } else {
       const type = this.$route.params.resource;
 
       this.resource = type;
-      const watch = this.gatherManualRefreshData('resources', true);
+      const watch = this.gatherManualRefreshData('resources', undefined, true);
 
       if ( this.$store.getters['cluster/schemaFor'](type) ) {
         const resource = await this.$store.dispatch('cluster/findAll', { type, opt: { watch } });
@@ -68,10 +71,6 @@ export default {
 
   computed: {
     allTypes() {
-      // console.log('this.$route.params.resource', this.$route.params.resource);
-      // console.log('schema', schema);
-      // console.log('schema.id', schema.id);
-
       return this.$route.params.resource === schema.id;
     },
 
