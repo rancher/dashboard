@@ -79,7 +79,11 @@ const config = {
           },
           {
             label: 'Github',
+<<<<<<< HEAD
             href:  'https://github.com/rancher/',
+=======
+            href: 'https://github.com/rancher/',
+>>>>>>> 9347f3854 (Modifed sidebar, docusaurus.config and custom css)
           },
         ],
         copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
