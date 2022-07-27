@@ -28,6 +28,24 @@ export default {
     },
   },
 
+  data(props) {
+    const defaultAlert = {
+      alert:  '',
+      expr:   '',
+      for:    '0s',
+      labels: {
+        severity:  'none',
+        namespace: 'default'
+      },
+    };
+
+    if (!this.value.rules) {
+      this.value['rules'] = [defaultAlert];
+    }
+
+    return { defaultAlert };
+  },
+
   computed: {
     recordingRules() {
       const { value: rules } = this;
@@ -76,12 +94,7 @@ export default {
         value.push({ record: '', expr: '' });
         break;
       case 'alert':
-        value.push({
-          alert:  '',
-          expr:   '',
-          for:    '0s',
-          labels: { severity: 'none' },
-        });
+        value.push(this.defaultAlert);
         break;
       default:
         break;
