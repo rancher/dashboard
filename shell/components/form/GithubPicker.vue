@@ -166,9 +166,9 @@ export default {
       this.selectedCommit = this.commits.filter(ele => ele.sha === commitId)[0];
 
       if (this.selectedUsername && this.selectedRepo && this.selectedCommit) {
-        const url = `${ this.selectedUsername }/${ this.selectedRepo }`;
+        const url = `https://github.com/${ this.selectedUsername }/${ this.selectedRepo }`;
 
-        this.$emit('generateUrl', url, this.selectedUsername, this.selectedCommit);
+        this.$emit('generateUrl', url, this.selectedUsername, this.selectedCommit.sha);
         this.$emit('valid', true);
         this.showSelections = true;
       }
@@ -221,7 +221,7 @@ export default {
     status(value) {
       return !value ? null : 'error';
     },
-  },
+  }
 };
 </script>
 

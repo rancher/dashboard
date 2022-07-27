@@ -373,12 +373,12 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     });
   }
 
-  async gitFetch(url, branch) {
+  async gitFetch(url, branch, commit) {
     this.trace('Downloading and storing git repo');
     const formData = new FormData();
 
     formData.append('giturl', url);
-    formData.append('gitrev', branch);
+    formData.append('gitrev', commit ?? branch );
 
     const res = await this.followLink('importGit', {
       method:  'post',
