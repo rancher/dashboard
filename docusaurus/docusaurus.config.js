@@ -50,7 +50,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: "DevKit",
+        title: 'DevKit',
         logo: {
           alt: 'Rancher Logo',
           src: 'img/rancher-logo.svg',
@@ -79,7 +79,7 @@ const config = {
           },
           {
             label: 'Github',
-            href: 'https://github.com/rancher/',
+            href:  'https://github.com/rancher/',
           },
         ],
         copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
