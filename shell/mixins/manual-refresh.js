@@ -31,17 +31,18 @@ export default {
     requestData(neu) {
       // this is where the data assignment will trigger the update of the list view...
       if (this.init && neu) {
-        console.log('*** MIXIN ::: data update is triggered!!!! ***', neu);
+        // console.log('*** MIXIN ::: data update is triggered!!!! ***', neu);
 
-        if (this.isDataGrouped) {
-          const data = neu.map(item => item.value);
+        // if (this.isDataGrouped) {
+        //   const data = neu.map(item => item.value);
 
-          this[`${ this.dataKey }`] = data;
-        } else {
-          neu.forEach((res) => {
-            this[`${ res.dataKey }`] = res.value;
-          });
-        }
+        //   this[`${ this.dataKey }`] = data;
+        // } else {
+        //   neu.forEach((res) => {
+        //     this[`${ res.dataKey }`] = res.value;
+        //   });
+        // }
+        this.$fetch();
       }
     }
   },
