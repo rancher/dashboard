@@ -307,6 +307,7 @@ export default async function({
     }
 
     if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
+      setProduct(store, route);
       const res = [
         ...always,
         store.dispatch('loadVirtual', {
