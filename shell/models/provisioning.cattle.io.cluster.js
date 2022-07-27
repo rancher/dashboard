@@ -61,11 +61,6 @@ export default class ProvCluster extends SteveModel {
   }
 
   get _availableActions() {
-    // No actions for Harvester clusters
-    if (this.isHarvester) {
-      return [];
-    }
-
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
 
@@ -191,7 +186,17 @@ export default class ProvCluster extends SteveModel {
     return super.canEditYaml;
   }
 
+  get isAKS() {
+    return this.provisioner === 'AKS';
+  }
+
+  get isEKS() {
+    return this.provisioner === 'EKS';
+  }
+
   get isImported() {
+    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
+    // in which this.provisioner is `k3s`.
     return this.provisioner === 'imported';
   }
 
@@ -212,6 +217,8 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImportedK3s() {
+    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
+    // in which this.provisioner is `k3s`.
     return this.isImported && this.mgmt?.status?.provider === 'k3s';
   }
 

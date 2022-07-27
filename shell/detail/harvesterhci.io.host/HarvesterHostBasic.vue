@@ -208,6 +208,12 @@ export default {
 
       return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.NODE_NETWORK);
     },
+
+    hasLonghornSchema() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return !!this.$store.getters[`${ inStore }/schemaFor`](LONGHORN.NODES);
+    },
   },
 
   methods: {
@@ -294,21 +300,36 @@ export default {
       <hr class="divider" />
       <h3>{{ t('harvester.host.tabs.monitor') }}</h3>
       <div class="row mb-20">
-        <div class="col span-4">
+        <div
+          class="col"
+          :class="{
+            'span-4': hasLonghornSchema,
+            'span-6': !hasLonghornSchema,
+          }"
+        >
           <HarvesterCPUUsed
             :row="value"
             :resource-name="t('node.detail.glance.consumptionGauge.cpu')"
             :show-used="true"
           />
         </div>
-        <div class="col span-4">
+        <div
+          class="col"
+          :class="{
+            'span-4': hasLonghornSchema,
+            'span-6': !hasLonghornSchema,
+          }"
+        >
           <HarvesterMemoryUsed
             :row="value"
             :resource-name="t('node.detail.glance.consumptionGauge.memory')"
             :show-used="true"
           />
         </div>
-        <div class="col span-4">
+        <div
+          v-if="hasLonghornSchema"
+          class="col span-4"
+        >
           <HarvesterStorageUsed
             :row="value"
             :resource-name="t('harvester.host.detail.storage')"

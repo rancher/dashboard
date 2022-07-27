@@ -158,7 +158,7 @@ export default {
       @input="change"
     />
     <LabeledInput
-      v-if="textLabel"
+      v-if="textLabel || textRules.length > 0"
       ref="text"
       v-model="string"
       class="input-string col span-8"

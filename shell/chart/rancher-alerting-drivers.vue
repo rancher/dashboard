@@ -11,12 +11,26 @@ export default {
         return {};
       }
     }
+  },
+  computed: {
+    mustSelectOne() {
+      if (!this.value.prom2teams.enabled && !this.value.sachet.enabled) {
+        return 'error';
+      }
+
+      return 'info';
+    }
+  },
+  mounted() {
+    if (this.mustSelectOne === 'error') {
+      this.value.sachet.enabled = true;
+    }
   }
 };
 </script>
 <template>
   <div>
-    <Banner color="info">
+    <Banner :color="mustSelectOne">
       {{ t('rancherAlertingDrivers.selectOne') }}
     </Banner>
     <div class="row">

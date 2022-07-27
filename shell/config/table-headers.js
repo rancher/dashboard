@@ -214,7 +214,7 @@ export const PODS = {
   labelKey:  'tableHeaders.pods',
   sort:      'podConsumed',
   search:    false,
-  value:     'podConsumedUsage',
+  value:     row => row.podConsumedUsage,
   formatter: 'PercentageBar',
   width:     120,
 };
@@ -274,12 +274,13 @@ export const POD_IMAGES = {
 export const POD_RESTARTS = {
   name:         'pod_restarts',
   labelKey:     'tableHeaders.podRestarts',
-  formatter:    'DelayedValue',
+  formatter:    'LivePodRestarts',
   delayLoading: true,
   value:        'restartCount',
   getValue:     row => row.restartCount,
   // This column is expensive to compute, so don't make it searchable
   search:       false,
+  liveUpdates:  true
 };
 
 export const ENDPOINTS = {
@@ -536,6 +537,13 @@ export const API_GROUP = {
   sort:     ['apiGroups']
 };
 
+export const INGRESS_CLASS = {
+  name:      'ingressClassName',
+  labelKey:  'tableHeaders.ingressClass',
+  value:     `$['spec']['ingressClassName']`,
+  sort:      `$['spec']['ingressClassName']`,
+};
+
 export const INGRESS_DEFAULT_BACKEND = {
   name:      'ingressDefaultBackend',
   labelKey:  'tableHeaders.ingressDefaultBackend',
@@ -651,6 +659,7 @@ export const WORKLOAD_HEALTH_SCALE = {
   delayLoading: true,
   // This column is expensive to compute, so don't make it searchable
   search:       false,
+  liveUpdates:  true,
 };
 
 export const FLEET_SUMMARY = {

@@ -6,6 +6,7 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 
 import {
   CAPI,
@@ -101,7 +102,7 @@ export default {
     YamlEditor,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   props: {
     mode: {
@@ -286,28 +287,32 @@ export default {
     }
 
     return {
-      loadedOnce:              false,
-      lastIdx:                 0,
-      allPSPs:                 null,
-      nodeComponent:           null,
-      credentialId:            null,
-      credential:              null,
-      machinePools:            null,
-      rke2Versions:            null,
-      k3sVersions:             null,
-      defaultRke2:             '',
-      defaultK3s:              '',
-      s3Backup:                false,
-      versionInfo:             {},
-      membershipUpdate:        {},
-      systemRegistry:          null,
-      registryHost:            null,
-      registryMode:            null,
-      registrySecret:          null,
-      userChartValues:         {},
-      userChartValuesTemp:     {},
-      addonsRev:               0,
-      clusterIsAlreadyCreated: !!this.value.id
+      loadedOnce:                  false,
+      lastIdx:                     0,
+      allPSPs:                     null,
+      nodeComponent:               null,
+      credentialId:                null,
+      credential:                  null,
+      machinePools:                null,
+      rke2Versions:                null,
+      k3sVersions:                 null,
+      defaultRke2:                 '',
+      defaultK3s:                  '',
+      s3Backup:                    false,
+      versionInfo:                 {},
+      membershipUpdate:            {},
+      showDeprecatedPatchVersions: false,
+      systemRegistry:              null,
+      registryHost:                null,
+      registryMode:                null,
+      registrySecret:              null,
+      userChartValues:             {},
+      userChartValuesTemp:         {},
+      addonsRev:                   0,
+      clusterIsAlreadyCreated:     !!this.value.id,
+      fvFormRuleSets:              [{
+        path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
+      }]
     };
   },
 
@@ -385,10 +390,20 @@ export default {
       const cur = this.liveValue?.spec?.kubernetesVersion || '';
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
-      const rke2 = this.filterAndMap(this.rke2Versions, (existingRke2 ? cur : null), cur, this.defaultRke2);
-      const k3s = this.filterAndMap(this.k3sVersions, (existingK3s ? cur : null), cur, this.defaultK3s);
-      const showRke2 = rke2.length && !existingK3s;
-      const showK3s = k3s.length && !existingRke2;
+
+      let allValidRke2Versions = this.getAllOptionsAfterMinVersion(this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
+      let allValidK3sVersions = this.getAllOptionsAfterMinVersion(this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
+
+      if (!this.showDeprecatedPatchVersions) {
+        // Normally, we only want to show the most recent patch version
+        // for each Kubernetes minor version. However, if the user
+        // opts in to showing deprecated versions, we don't filter them.
+        allValidRke2Versions = this.filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
+        allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
+      }
+
+      const showRke2 = allValidRke2Versions.length && !existingK3s;
+      const showK3s = allValidK3sVersions.length && !existingRke2;
       const out = [];
 
       if ( showRke2 ) {
@@ -396,7 +411,7 @@ export default {
           out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
         }
 
-        out.push(...rke2);
+        out.push(...allValidRke2Versions);
       }
 
       if ( showK3s ) {
@@ -408,7 +423,7 @@ export default {
           });
         }
 
-        out.push(...k3s);
+        out.push(...allValidK3sVersions);
       }
 
       if ( cur ) {
@@ -745,7 +760,7 @@ export default {
       const first = all[0]?.value;
       const preferred = all.find(x => x.value === this.defaultRke2)?.value;
 
-      const rke2 = this.filterAndMap(this.rke2Versions, null);
+      const rke2 = this.getAllOptionsAfterMinVersion(this.rke2Versions, null);
       const showRke2 = rke2.length;
       let out;
 
@@ -1169,7 +1184,9 @@ export default {
 
       this.applyChartValues(this.value.spec.rkeConfig);
 
-      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && this.isCreate) {
+      const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
+
+      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
         const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
         const res = await this.$store.dispatch('management/request', {
@@ -1407,7 +1424,7 @@ export default {
       }
     },
 
-    filterAndMap(versions, minVersion, currentVersion, defaultVersion) {
+    getAllOptionsAfterMinVersion(versions, minVersion, defaultVersion) {
       const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
         let disabled = false;
         let experimental = false;
@@ -1430,11 +1447,49 @@ export default {
           disabled,
         };
       });
-
       const sorted = sortBy(out, 'sort:desc');
+
+      const mostRecentPatchVersions = this.getMostRecentPatchVersions(sorted);
+
+      const sortedWithDeprecatedLabel = sorted.map((optionData) => {
+        const majorMinor = `${ semver.major(optionData.value) }.${ semver.minor(optionData.value) }`;
+
+        if (mostRecentPatchVersions[majorMinor] === optionData.value) {
+          return optionData;
+        }
+
+        return {
+          ...optionData,
+          label: `${ optionData.label } (${ this.t('cluster.kubernetesVersion.deprecated') })`
+        };
+      });
+
+      return sortedWithDeprecatedLabel;
+    },
+
+    getMostRecentPatchVersions(sortedVersions) {
+      // Get the most recent patch version for each Kubernetes minor version.
       const versionMap = {};
 
-      return sorted.filter((version) => {
+      sortedVersions.forEach((version) => {
+        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
+
+        if (!versionMap[majorMinor]) {
+          // Because we start with a sorted list of versions, we know the
+          // highest patch version is first in the list, so we only keep the
+          // first of each minor version in the list.
+          versionMap[majorMinor] = version.value;
+        }
+      });
+
+      return versionMap;
+    },
+
+    filterOutDeprecatedPatchVersions(allVersions, currentVersion) {
+      // Get the most recent patch version for each Kubernetes minor version.
+      const mostRecentPatchVersions = this.getMostRecentPatchVersions(allVersions);
+
+      const filteredVersions = allVersions.filter((version) => {
         // Always show pre-releases
         if (semver.prerelease(version.value)) {
           return true;
@@ -1443,14 +1498,14 @@ export default {
         const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
 
         // Always show current version, else show if we haven't shown anything for this major.minor version yet
-        if (version === currentVersion || !versionMap[majorMinor]) {
-          versionMap[majorMinor] = true;
-
+        if (version === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
           return true;
         }
 
         return false;
       });
+
+      return filteredVersions;
     },
 
     generateYaml() {
@@ -1489,7 +1544,7 @@ export default {
     v-else
     ref="cruresource"
     :mode="mode"
-    :validation-passed="validationPassed()"
+    :validation-passed="validationPassed() && fvFormIsValid"
     :resource="value"
     :errors="errors"
     :cancel-event="true"
@@ -1500,7 +1555,7 @@ export default {
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"
-    @error="e=>errors = e"
+    @error="fvUnreportedValidationErrors"
   >
     <Banner
       v-if="isEdit"
@@ -1527,6 +1582,7 @@ export default {
         name-placeholder="cluster.name.placeholder"
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
+        :rules="{name:fvGetAndReportPathRules('metadata.name')}"
       />
 
       <Banner v-if="appsOSWarning" color="error">
@@ -1601,6 +1657,12 @@ export default {
                 :mode="mode"
                 :options="versionOptions"
                 label-key="cluster.kubernetesVersion.label"
+              />
+              <Checkbox
+                v-model="showDeprecatedPatchVersions"
+                :label="t('cluster.kubernetesVersion.deprecatedPatches')"
+                :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
+                class="patch-version"
               />
               <div v-if="showK3sTechPreviewWarning" class="k3s-tech-preview-info">
                 {{ t('cluster.k3s.techPreview') }}
@@ -2093,5 +2155,8 @@ export default {
   .k3s-tech-preview-info {
     color: var(--error);
     padding-top: 10px;
+  }
+  .patch-version {
+    margin-top: 5px;
   }
 </style>

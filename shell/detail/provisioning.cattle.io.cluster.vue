@@ -28,9 +28,31 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
 import { get } from '@shell/utils/object';
+import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
+
+/**
+ * Machine Deployment has a reference to the 'template' used to create that deployment
+ * For an empty machine pool, we (obviously) don't get any machine deployments for that pool.
+ *
+ * This class allows us to fake a machine deployment - when created, we set additional properties (_cluster etc)
+ * and use these in the getters.
+ **/
+class EmptyCapiMachineDeployment extends CapiMachineDeployment {
+  get inClusterSpec() {
+    return this._clusterSpec;
+  }
+
+  get cluster() {
+    return this._cluster;
+  }
+
+  get template() {
+    return this._template;
+  }
+}
 
 export default {
   components: {
@@ -71,9 +93,10 @@ export default {
       fetchOne.snapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
-    if (this.value.isImported || this.value.isCustom) {
+    if ( this.value.isImported || this.value.isCustom || this.value.isAKS || this.value.isEKS ) {
       fetchOne.clusterToken = this.value.getOrCreateToken();
     }
+
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
       fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
@@ -122,6 +145,7 @@ export default {
     this.haveNodes = !!fetchTwoRes.allNodes;
     this.allNodePools = fetchTwoRes.allNodePools || [];
     this.haveNodePools = !!fetchTwoRes.allNodePools;
+    this.machineTemplates = fetchTwoRes.mdtt || [];
   },
 
   created() {
@@ -203,15 +227,49 @@ export default {
     },
 
     fakeMachines() {
+      // When we scale up, the quantity will change to N+1 - so from 0 to 1, the quantity changes,
+      // but it takes tiem for the machine to appear, so the pool is empty, but if we just go off on a non-zero quqntity
+      // then the pool would be hidden - so we find empty pool by checking the machines
+      const emptyPools = (this.value.spec.rkeConfig?.machinePools || []).filter((mp) => {
+        const machinePrefix = `${ this.value.name }-${ mp.name }`;
+        const machines = this.value.machines.filter((machine) => {
+          return machine.spec?.infrastructureRef?.name.startsWith(machinePrefix);
+        });
+
+        return machines.length === 0;
+      });
+
       // When a deployment has no machines it's not shown.... so add a fake machine to it
       // This is a catch all scenario seen in older node pool world but not deployments
-      const emptyDeployments = this.allMachineDeployments.filter(x => x.spec.clusterName === this.value.metadata.name && x.spec.replicas === 0);
+      return emptyPools.map((mp, i) => {
+        const pool = new EmptyCapiMachineDeployment(
+          {
+            id:       i,
+            metadata: {
+              name:      `${ this.value.nameDisplay }-${ mp.name }`,
+              namespace: this.value.namespace,
+            },
+            spec: {}
+          },
+          {
+            getters:     this.$store.getters,
+            rootGetters: this.$root.$store.getters,
+          }
+        );
 
-      return emptyDeployments.map(d => ({
-        poolId:       d.id,
-        mainRowKey: 'isFake',
-        pool:       d,
-      }));
+        const templateNamePrefix = `${ pool.metadata.name }-`;
+
+        // All of these properties are needed to ensure the pool displays correctly and that we can scale up and down
+        pool._template = this.machineTemplates.find(t => t.metadata.name.startsWith(templateNamePrefix));
+        pool._cluster = this.value;
+        pool._clusterSpec = mp;
+
+        return {
+          poolId:     pool.id,
+          mainRowKey: 'isFake',
+          pool,
+        };
+      });
     },
 
     machines() {
@@ -368,6 +426,10 @@ export default {
       }
 
       if ( this.value.isCustom ) {
+        return true;
+      }
+
+      if ( ( this.value.isAKS || this.value.isEKS ) && !this.isClusterReady ) {
         return true;
       }
 
@@ -624,6 +686,7 @@ export default {
       </Tab>
 
       <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
+        <Banner color="warning" :label="t('cluster.import.warningBanner')" />
         <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />

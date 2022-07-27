@@ -1,10 +1,12 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
+import Banner from '@components/Banner/Banner.vue';
 
 type Rule = (v?: string) => undefined | string;
 
 export default Vue.extend<any, any, any, any>({
-  props: {
+  components: { Banner },
+  props:      {
     value: {
       default: null,
       type:    [String, Object, Number, Array]
@@ -12,6 +14,10 @@ export default Vue.extend<any, any, any, any>({
     rules: {
       default:   () => [],
       type:       Array as PropType<Rule[]>,
+    },
+    asBanner: {
+      default: false,
+      type:    Boolean
     }
   },
   data() {
@@ -39,5 +45,6 @@ export default Vue.extend<any, any, any, any>({
 });
 </script>
 <template>
-  <span class="text-error" data-testid="error-span">{{ validationMessage }}</span>
+  <Banner v-if="!!asBanner && !!validationMessage" color="error" :label="validationMessage" />
+  <span v-else-if="!!validationMessage" class="text-error" data-testid="error-span">{{ validationMessage }}</span>
 </template>

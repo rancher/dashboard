@@ -12,6 +12,7 @@ import {
   STATE,
 } from '@shell/config/table-headers';
 import {
+  EVENT,
   NAMESPACE,
   INGRESS,
   MANAGEMENT,
@@ -123,6 +124,13 @@ export default {
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts
     };
+  },
+
+  beforeDestroy() {
+    // Remove the data and stop watching events and nodes
+    // Events in particular can lead to change messages having to be processed when we are no longer interested in events
+    this.$store.dispatch('cluster/forgetType', EVENT);
+    this.$store.dispatch('cluster/forgetType', NODE);
   },
 
   computed: {

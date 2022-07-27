@@ -3,6 +3,7 @@
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
 SHELL_DIR=$BASE_DIR/shell/
+EXIT_CODE=0
 
 # Use shell folder in node modules when we have @rancher/shell installed as a node module
 # rather than the use-case of the mono-repo with the shell folder at the top-level
@@ -42,6 +43,7 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
   fi
 
   ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${NAME} --target lib ${FILE} --dest ${PKG_DIST} --formats umd-min --filename ${NAME}
+  EXIT_CODE=$?
   cp -f ./package.json ${PKG_DIST}/package.json
   node ${SCRIPT_DIR}/pkgfile.js ${PKG_DIST}/package.json
   rm -rf ${PKG_DIST}/*.bak
@@ -49,3 +51,5 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
 
   popd  
 fi
+
+exit $EXIT_CODE

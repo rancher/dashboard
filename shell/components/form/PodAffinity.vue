@@ -35,6 +35,11 @@ export default {
       type:    Array,
       default: () => []
     },
+
+    hasNodesAndNs: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   data() {
@@ -49,6 +54,7 @@ export default {
       out._anti = false;
       if (term.podAffinityTerm) {
         Object.assign(out, term.podAffinityTerm);
+        out._namespaces = (term.podAffinityTerm.namespaces || []).toString();
         delete out.podAffinityTerm;
       }
 
@@ -61,6 +67,7 @@ export default {
       out._anti = true;
       if (term.podAffinityTerm) {
         Object.assign(out, term.podAffinityTerm);
+        out._namespaces = (term.podAffinityTerm.namespaces || []).toString();
         delete out.podAffinityTerm;
       }
 
@@ -71,7 +78,10 @@ export default {
 
     return {
       allSelectorTerms,
-      defaultWeight: 1
+      defaultWeight: 1,
+      // rules in MatchExpressions.vue can not catch changes what happens on parent component
+      // we need re-render it via key changing
+      rerenderNums:  randomStr(4)
     };
   },
   computed: {
@@ -104,6 +114,7 @@ export default {
       return getUniqueLabelKeys(this.nodes);
     }
   },
+
   created() {
     this.queueUpdate = debounce(this.update, 500);
   },
@@ -132,6 +143,12 @@ export default {
       });
 
       Object.assign(this.value.affinity, { podAffinity, podAntiAffinity });
+      this.$emit('update', this.value);
+    },
+
+    remove() {
+      this.rerenderNums = randomStr(4);
+      this.queueUpdate();
     },
 
     addSelector() {
@@ -163,14 +180,20 @@ export default {
     changeNamespaceMode(term, idx) {
       if (term.namespaces) {
         term.namespaces = null;
+        term._namespaces = null;
       } else {
         this.$set(term, 'namespaces', []);
+        this.$set(term, '_namespaces', '');
       }
       this.$set(this.allSelectorTerms, idx, term);
+      this.queueUpdate();
     },
 
     updateNamespaces(term, namespaces) {
-      this.$set(term, 'namespaces', namespaces);
+      const nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
+
+      this.$set(term, 'namespaces', nsArray);
+      this.queueUpdate();
     },
 
     isEmpty,
@@ -190,6 +213,7 @@ export default {
         :default-add-value="{ matchExpressions: [] }"
         :mode="mode"
         :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+        @remove="remove"
       >
         <template #default="props">
           <div class="row mt-20 mb-20">
@@ -226,6 +250,7 @@ export default {
           <div class="spacer"></div>
           <div v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')" class="row mb-20">
             <LabeledSelect
+              v-if="hasNodesAndNs"
               v-model="props.row.value.namespaces"
               :mode="mode"
               :multiple="true"
@@ -233,8 +258,17 @@ export default {
               :options="allNamespaces"
               :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
             />
+            <LabeledInput
+              v-else
+              v-model="props.row.value._namespaces"
+              :mode="mode"
+              :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+              :placeholder="t('cluster.credential.harvester.affinity.namespaces.placeholder')"
+              @input="updateNamespaces(props.row.value, props.row.value._namespaces)"
+            />
           </div>
           <MatchExpressions
+            :key="rerenderNums"
             :mode="mode"
             class=" col span-12 mt-20"
             :type="pod"
@@ -246,6 +280,7 @@ export default {
           <div class="row">
             <div class="col span-12">
               <LabeledSelect
+                v-if="hasNodesAndNs"
                 v-model="props.row.value.topologyKey"
                 :taggable="true"
                 :searchable="true"
@@ -256,6 +291,15 @@ export default {
                 :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
                 :options="existingNodeLabels"
                 :disabled="mode==='view'"
+                @input="update"
+              />
+              <LabeledInput
+                v-else
+                v-model="props.row.value.topologyKey"
+                :mode="mode"
+                :label="t('workload.scheduling.affinity.topologyKey.label')"
+                :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+                required
                 @input="update"
               />
             </div>

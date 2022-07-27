@@ -314,8 +314,6 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main.on('scroll', this._onScroll);
-
-    this.updateLiveAndDelayed();
   },
 
   beforeDestroy() {
@@ -330,17 +328,31 @@ export default {
     $main.off('scroll', this._onScroll);
   },
 
-  updated() {
-    this.updateLiveAndDelayed();
-  },
-
   watch: {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
     }, 200),
+
+    page(neu, old) {
+      if (neu !== old) {
+        this.$nextTick(() => this.updateLiveAndDelayed());
+      }
+    },
+
+    // Ensure we update live and delayed columns on first load
+    initalLoad(neu, old) {
+      if (neu && !old) {
+        this._didinit = true;
+        this.$nextTick(() => this.updateLiveAndDelayed());
+      }
+    }
   },
 
   computed: {
+    initalLoad() {
+      return !this.loading && !this._didinit && this.rows?.length;
+    },
+
     fullColspan() {
       let span = 0;
 
@@ -558,6 +570,8 @@ export default {
     },
 
     updateDelayedColumns() {
+      clearTimeout(this._delayedColumnsTimer);
+
       if (!this.$refs.column || this.pagedRows.length === 0) {
         return;
       }
@@ -590,6 +604,8 @@ export default {
     },
 
     updateLiveColumns() {
+      clearTimeout(this._liveColumnsTimer);
+
       if (!this.$refs.column || !this.hasLiveColumns || this.pagedRows.length === 0) {
         return;
       }

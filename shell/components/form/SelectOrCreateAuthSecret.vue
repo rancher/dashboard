@@ -3,18 +3,15 @@ import { _EDIT } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { NORMAN, SECRET } from '@shell/config/types';
+import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
 import { addObjects, insertAt } from '@shell/utils/array';
 import { sortBy } from '@shell/utils/sort';
 
-const _NONE = '_none';
-const _BASIC = '_basic';
-const _SSH = '_ssh';
-const _S3 = '_S3';
-
 export default {
+  name: 'SelectOrCreateAuthSecret',
+
   components: {
     Loading,
     LabeledInput,
@@ -25,6 +22,11 @@ export default {
     mode: {
       type:    String,
       default: _EDIT,
+    },
+
+    preSelect: {
+      type:    Object,
+      default: null,
     },
 
     value: {
@@ -106,6 +108,19 @@ export default {
       type:    Boolean,
       default: false,
     },
+
+    /**
+     * This component is used in MultiStep Priocess
+     * So when user click through to final step and submit the form
+     * This component get recreated therefore register `doCreate` as a hook each time
+     * Also, the parent step component is not aware that credential is created
+     *
+     * This property is implement to prevent this issue and delegate it to parent component.
+     */
+    delegateCreateToParent: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -131,7 +146,12 @@ export default {
       this.allCloudCreds = [];
     }
 
-    let selected = _NONE;
+    let selected = this.preSelect?.selected || AUTH_TYPE._NONE;
+
+    if ( !this.value ) {
+      this.publicKey = this.preSelect?.publicKey || '';
+      this.privateKey = this.preSelect?.privateKey || '';
+    }
 
     if ( this.value ) {
       if ( typeof this.value === 'object' ) {
@@ -164,15 +184,15 @@ export default {
 
   computed: {
     _SSH() {
-      return _SSH;
+      return AUTH_TYPE._SSH;
     },
 
     _BASIC() {
-      return _BASIC;
+      return AUTH_TYPE._BASIC;
     },
 
     _S3() {
-      return _S3;
+      return AUTH_TYPE._S3;
     },
 
     options() {
@@ -263,28 +283,28 @@ export default {
       if ( this.allowSsh ) {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createSsh'),
-          value: _SSH,
+          value: AUTH_TYPE._SSH,
         });
       }
 
       if ( this.allowS3 ) {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createS3'),
-          value: _S3,
+          value: AUTH_TYPE._S3,
         });
       }
 
       if ( this.allowBasic ) {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createBasic'),
-          value: _BASIC,
+          value: AUTH_TYPE._BASIC,
         });
       }
 
       if ( this.allowNone ) {
         out.unshift({
           label: this.t('generic.none'),
-          value: _NONE,
+          value: AUTH_TYPE._NONE,
         });
       }
 
@@ -296,7 +316,7 @@ export default {
         return '';
       }
 
-      if ( this.selected === _SSH || this.selected === _BASIC || this.selected === _S3 ) {
+      if ( this.selected === AUTH_TYPE._SSH || this.selected === AUTH_TYPE._BASIC || this.selected === AUTH_TYPE._S3 ) {
         return 'col span-4';
       }
 
@@ -313,11 +333,13 @@ export default {
   },
 
   watch: {
-    selected: 'update',
+    selected:   'update',
+    publicKey:  'updateKeyVal',
+    privateKey: 'updateKeyVal',
 
     namespace(ns) {
       if ( ns && !this.selected.startsWith(`${ ns }/`) ) {
-        this.selected = _NONE;
+        this.selected = AUTH_TYPE._NONE;
       }
     }
   },
@@ -326,15 +348,30 @@ export default {
     if (this.registerBeforeHook) {
       const hookName = this.appendUniqueIdToHook ? this.hookName + this.uniqueId : this.hookName;
 
-      this.registerBeforeHook(this.doCreate, hookName, this.hookPriority);
+      if (!this.delegateCreateToParent) {
+        this.registerBeforeHook(this.doCreate, hookName, this.hookPriority);
+      }
     } else {
       throw new Error('Before Hook is missing');
     }
   },
 
   methods: {
+    updateKeyVal() {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(this.selected)) {
+        this.privateKey = '';
+        this.publicKey = '';
+      }
+
+      this.$emit('inputauthval', {
+        selected:   this.selected,
+        privateKey: this.privateKey,
+        publicKey:  this.publicKey
+      });
+    },
+
     update() {
-      if ( !this.selected || [_SSH, _BASIC, _S3, _NONE].includes(this.selected) ) {
+      if ( (!this.selected || [AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3, AUTH_TYPE._NONE].includes(this.selected))) {
         this.$emit('input', null);
       } else if ( this.selected.includes(':') ) {
         // Cloud creds
@@ -353,16 +390,18 @@ export default {
           this.$emit('input', out);
         }
       }
+
+      this.updateKeyVal();
     },
 
     async doCreate() {
-      if ( ![_SSH, _BASIC, _S3].includes(this.selected) ) {
+      if ( ![AUTH_TYPE._SSH, AUTH_TYPE._BASIC, AUTH_TYPE._S3].includes(this.selected) || this.delegateCreateToParent ) {
         return;
       }
 
       let secret;
 
-      if ( this.selected === _S3 ) {
+      if ( this.selected === AUTH_TYPE._S3 ) {
         secret = await this.$store.dispatch(`rancher/create`, {
           type:               NORMAN.CLOUD_CREDENTIAL,
           s3credentialConfig: {
@@ -382,12 +421,12 @@ export default {
         let type, publicField, privateField;
 
         switch ( this.selected ) {
-        case _SSH:
+        case AUTH_TYPE._SSH:
           type = SECRET_TYPES.SSH;
           publicField = 'ssh-publickey';
           privateField = 'ssh-privatekey';
           break;
-        case _BASIC:
+        case AUTH_TYPE._BASIC:
           type = SECRET_TYPES.BASIC;
           publicField = 'username';
           privateField = 'password';
@@ -442,26 +481,26 @@ export default {
       </div>
       <template v-if="selected === _SSH">
         <div :class="moreCols">
-          <LabeledInput v-model="publicKey" type="multiline" label-key="selectOrCreateAuthSecret.ssh.publicKey" />
+          <LabeledInput v-model="publicKey" :mode="mode" type="multiline" label-key="selectOrCreateAuthSecret.ssh.publicKey" />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="privateKey" type="multiline" label-key="selectOrCreateAuthSecret.ssh.privateKey" />
+          <LabeledInput v-model="privateKey" :mode="mode" type="multiline" label-key="selectOrCreateAuthSecret.ssh.privateKey" />
         </div>
       </template>
       <template v-else-if="selected === _BASIC">
         <div :class="moreCols">
-          <LabeledInput v-model="publicKey" label-key="selectOrCreateAuthSecret.basic.username" />
+          <LabeledInput v-model="publicKey" :mode="mode" label-key="selectOrCreateAuthSecret.basic.username" />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="privateKey" type="password" label-key="selectOrCreateAuthSecret.basic.password" />
+          <LabeledInput v-model="privateKey" :mode="mode" type="password" label-key="selectOrCreateAuthSecret.basic.password" />
         </div>
       </template>
       <template v-else-if="selected === _S3">
         <div :class="moreCols">
-          <LabeledInput v-model="publicKey" label-key="selectOrCreateAuthSecret.s3.accessKey" />
+          <LabeledInput v-model="publicKey" :mode="mode" label-key="selectOrCreateAuthSecret.s3.accessKey" />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="privateKey" type="password" label-key="selectOrCreateAuthSecret.s3.secretKey" />
+          <LabeledInput v-model="privateKey" :mode="mode" type="password" label-key="selectOrCreateAuthSecret.s3.secretKey" />
         </div>
       </template>
     </div>

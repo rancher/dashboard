@@ -1,6 +1,7 @@
 <script>
 import CruResource from '@shell/components/CruResource';
 import createEditView from '@shell/mixins/create-edit-view';
+import formValidation from '@shell/mixins/form-validation';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -28,7 +29,7 @@ export default {
     Loading,
     S3,
   },
-  mixins: [createEditView],
+  mixins: [createEditView, formValidation],
 
   props: {
     value: {
@@ -81,7 +82,17 @@ export default {
     }
 
     return {
-      allSecrets: [], resourceSet: null, s3, storageSource, useEncryption, apps: [], setSchedule, name: this.value?.metadata?.name,
+      allSecrets:     [],
+      resourceSet:    null,
+      s3,
+      storageSource,
+      useEncryption,
+      apps:           [],
+      setSchedule,
+      name:           this.value?.metadata?.name,
+      fvFormRuleSets: [{
+        path: 'metadata.name', rules: ['dnsLabel', 'noUpperCase'], translationKey: 'nameNsDescription.name.label'
+      }]
     };
   },
 
@@ -127,7 +138,7 @@ export default {
     },
 
     validated() {
-      return !!this.name && (!this.useEncryption || !!this.value?.spec?.encryptionConfigSecretName);
+      return !!this.name && (!this.useEncryption || !!this.value?.spec?.encryptionConfigSecretName) && this.fvFormIsValid;
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -167,9 +178,16 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <CruResource :validation-passed="validated" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
+    <CruResource
+      :validation-passed="validated"
+      :done-route="doneRoute"
+      :resource="value"
+      :mode="mode"
+      :errors="fvUnreportedValidationErrors"
+      @finish="save"
+    >
       <template>
-        <NameNsDescription :mode="mode" :value="value" :namespaced="false" @change="name=value.metadata.name" />
+        <NameNsDescription :mode="mode" :value="value" :namespaced="false" :rules="{name: fvGetAndReportPathRules('metadata.name')}" @change="name=value.metadata.name" />
         <template v-if="!!resourceSet">
           <div class="bordered-section">
             <RadioGroup

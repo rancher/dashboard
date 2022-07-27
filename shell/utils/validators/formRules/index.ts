@@ -1,20 +1,36 @@
-import { RBAC } from '@/shell/config/types';
-import { HCI } from '@/shell/config/labels-annotations';
+import { RBAC } from '@shell/config/types';
+import { HCI } from '@shell/config/labels-annotations';
 import isEmpty from 'lodash/isEmpty';
 import has from 'lodash/has';
 // import uniq from 'lodash/uniq';
 import cronstrue from 'cronstrue';
 
+// import uniq from 'lodash/uniq';
 export type Validator = (val: any, arg?: any) => undefined | string;
 
 export type ValidatorFactory = (arg1: any, arg2?: any) => Validator
 
-type Port = {
+type ServicePort = {
   name?: string,
-  nodePort?: string,
-  port?: string,
-  targetPort?: string,
+  nodePort?: string | number,
+  port?: string | number,
+  targetPort?: string | number,
   idx: number
+}
+
+export class Port {
+  empty: boolean;
+  int: number;
+  string: string;
+  isNumber: boolean;
+  isInt: boolean;
+  constructor(port: number | string | undefined) {
+    this.string = String(port);
+    this.int = parseInt(this.string, 10);
+    this.empty = (!port && this.int !== 0);
+    this.isNumber = !isNaN(this.int) && !this.string.includes('e'); // leaving out the exponent edge case to keep the logic simple and because port numbers aren't that big...
+    this.isInt = this.isNumber && !this.string.includes('.');
+  }
 }
 
 const httpsKeys = [
@@ -38,14 +54,19 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key: displayKey }) : undefined;
 
-  // this one should technically be used for restricted hostnames but it doesn't look like the existing code will ever call validateHostName with restricted set to true.
-  // const endDot = label => val => val?.slice(-1) === '.' ? t(`validation.dns.${ label }.endDot`, { key: displayKey }) : undefined;
+  const endDot = (label: string): Validator => (val: string) => val?.slice(-1) === '.' ? t(`validation.dns.${ label }.endDot`, { key: displayKey }) : undefined;
 
   const startNumber: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1)?.match(/[0-9]/) ? t(`validation.dns.${ label }.startNumber`, { key: displayKey }) : undefined;
 
   const startHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '-' ? t(`validation.dns.${ label }.startHyphen`, { key: displayKey }) : undefined;
 
   const endHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(-1) === '-' ? t(`validation.dns.${ label }.endHyphen`, { key: displayKey }) : undefined;
+
+  const requiredInt: Validator = (val: string) => isNaN(parseInt(val, 10)) ? t('validation.number.requiredInt', { key: displayKey }) : undefined;
+
+  const portNumber: Validator = (val: string) => parseInt(val, 10) < 1 || parseInt(val, 10) > 65535 ? t('validation.number.between', {
+    key: displayKey, min: '1', max: '65535'
+  }) : undefined;
 
   const dnsChars: Validator = (val: string) => {
     const matchedChars = val?.match(/[^${'A-Za-z0-9-'}]/g);
@@ -69,11 +90,16 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
   const dnsTooLong: ValidatorFactory = (label: string, length = 63): Validator => (val = '') => val.length > length ? t(`validation.dns.${ label }.tooLongLabel`, { key: displayKey, max: length }) : undefined;
 
+  // eslint-disable-next-line no-unused-vars
   const hostnameEmpty: Validator = (val = '') => val.length === 0 ? t('validation.dns.hostname.empty', { key: displayKey }) : undefined;
 
   const hostnameTooLong: Validator = (val = '') => val.length > 253 ? t('validation.dns.hostname.tooLong', { key: displayKey, max: 253 }) : undefined;
 
+  const absolutePath: Validator = (val = '') => val[0] !== '/' && val.length > 0 ? t('validation.path', { key: displayKey }) : undefined;
+
   const required: Validator = (val: any) => !val && val !== false ? t('validation.required', { key: displayKey }) : undefined;
+
+  const noUpperCase: Validator = (val = '') => val.toLowerCase() !== val ? t('validation.noUpperCase', { key: displayKey }) : undefined;
 
   const cronSchedule: Validator = (val: string) => {
     try {
@@ -145,33 +171,35 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   };
 
   const hostname: Validator = (val: string) => {
-    const validators = [
-      startDot('hostname'),
-      hostnameEmpty,
-      hostnameTooLong
-    ];
+    if (val) {
+      const validators = [
+        startDot('hostname'),
+        hostnameTooLong,
+        endDot('hostname')
+      ];
 
-    const hostNameMessage = runValidators(val, validators);
+      const hostNameMessage = runValidators(val, validators);
 
-    if (hostNameMessage) {
-      return hostNameMessage;
-    }
+      if (hostNameMessage) {
+        return hostNameMessage;
+      }
 
-    const labels = val.split('.');
-    const labelValidators = [
-      dnsChars,
-      startHyphen('hostname'),
-      endHyphen('hostname'),
-      dnsDoubleDash,
-      dnsEmpty('hostname'),
-      dnsTooLong('hostname')
-    ];
+      const labels = val.split('.');
+      const labelValidators = [
+        dnsChars,
+        startHyphen('hostname'),
+        endHyphen('hostname'),
+        dnsDoubleDash,
+        dnsEmpty('hostname'),
+        dnsTooLong('hostname')
+      ];
 
-    for ( let i = 0; i < labels.length; i++ ) {
-      const labelMessage = runValidators(labels[i], labelValidators);
+      for ( let i = 0; i < labels.length; i++ ) {
+        const labelMessage = runValidators(labels[i], labelValidators);
 
-      if (labelMessage) {
-        return labelMessage;
+        if (labelMessage) {
+          return labelMessage;
+        }
       }
     }
   };
@@ -192,43 +220,48 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
   const clusterName: ValidatorFactory = (isRke2: boolean): Validator => (val: string | undefined) => isRke2 && (val || '')?.match(/^(c-.{5}|local)$/i) ? t('validation.cluster.name') : undefined;
 
-  const servicePort = (val: Port) => {
+  const servicePort = (val: ServicePort) => {
     const {
       name,
-      nodePort,
-      port: pPort,
-      targetPort,
       idx
     } = val;
 
-    const nodePortIsInt = nodePort ? !isNaN(parseInt(nodePort, 10)) : false;
-    const pPortIsInt = pPort ? !isNaN(parseInt(pPort, 10)) : false;
-    const targetPortIsInt = targetPort || targetPort === '0' ? !isNaN(parseInt(targetPort, 10)) : false;
+    const nodePort = new Port(val.nodePort);
+    const listeningPort = new Port(val.port);
+    const targetPort = new Port(val.targetPort);
 
     if (isEmpty(name)) {
       return t('validation.service.ports.name.required', { position: idx + 1 });
     }
 
-    if (nodePort && !nodePortIsInt) {
-      return t('validation.service.ports.nodePort.requiredInt', { position: idx + 1 });
+    if (!nodePort.empty) {
+      if (!nodePort.isInt) {
+        return t('validation.service.ports.nodePort.requiredInt', { position: idx + 1 });
+      } else if (nodePort.int < 1 || nodePort.int > 65535) {
+        return t('validation.service.ports.nodePort.between', { position: idx + 1 });
+      }
     }
 
-    if (pPort) {
-      if (!pPortIsInt) {
+    if (!listeningPort.empty) {
+      if (!listeningPort.isInt) {
         return t('validation.service.ports.port.requiredInt', { position: idx + 1 });
+      } else if (listeningPort.int < 1 || listeningPort.int > 65535) {
+        return t('validation.service.ports.port.between', { position: idx + 1 });
+      } else if (listeningPort.string?.includes('.')) {
+        return listeningPort;
       }
     } else {
       return t('validation.service.ports.port.required', { position: idx + 1 });
     }
 
-    if (targetPort || targetPort === '0') {
-      if (!targetPortIsInt) {
-        const ianaServiceNameErrors = dnsLabelIanaServiceName(typeof val === 'string' ? targetPort : targetPort.toString());
+    if (!targetPort.empty) {
+      if (!targetPort.isInt) {
+        const ianaServiceNameErrors = dnsLabelIanaServiceName(targetPort.string);
 
         if (ianaServiceNameErrors) {
           return ianaServiceNameErrors;
         }
-      } else if (parseInt(targetPort, 10) < 1 || parseInt(targetPort, 10) > 65535) {
+      } else if (targetPort.int < 1 || targetPort.int > 65535) {
         return t('validation.service.ports.targetPort.between', { position: idx + 1 });
       }
     } else {
@@ -370,8 +403,23 @@ export default function(t: (key: string, options?: any) => string, opt: {display
     }
   };
 
+  const subDomain: Validator = (val) => {
+    const matchedChars = val?.match(/[^a-z0-9.-]/g);
+
+    if (matchedChars) {
+      return t('validation.chars', {
+        key: displayKey, count: matchedChars.length, chars: matchedChars.map((char: string) => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
+      });
+    }
+
+    return runValidators(val, [startHyphen('label'), endHyphen('label'), startDot('label'), endDot('label'), required]);
+  };
+
   return {
+    noUpperCase,
     required,
+    requiredInt,
+    portNumber,
     cronSchedule,
     isHttps,
     interval,
@@ -392,6 +440,8 @@ export default function(t: (key: string, options?: any) => string, opt: {display
     dnsLabelIanaServiceName,
     dnsLabelRestricted,
     hostname,
-    testRule
+    testRule,
+    subDomain,
+    absolutePath
   };
 }

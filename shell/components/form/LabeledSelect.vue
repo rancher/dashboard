@@ -302,7 +302,7 @@ export default {
       :status="status"
     />
     <LabeledTooltip
-      v-else-if="!!validationMessage"
+      v-if="!!validationMessage"
       :hover="hoverTooltip"
       :value="validationMessage"
     />

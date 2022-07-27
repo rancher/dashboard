@@ -383,6 +383,27 @@ export default {
     return classify(ctx, resource.toJSON(), true);
   },
 
+  // Forget a type in the store
+  // Remove all entries for that type and stop watching it
+  forgetType({ commit, getters, dispatch }, type) {
+    const obj = {
+      type,
+      stop: true, // Stops the watch on a type
+    };
+
+    if (getters['schemaFor'](type) && getters['watchStarted'](obj)) {
+      // Set that we don't want to watch this type
+      // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
+      // detect the stop message from the backend over the web socket
+      commit('setWatchStopped', obj);
+      dispatch('watch', obj); // Ask the backend to stop watching the type
+      // Make sure anything in the pending queue for the type is removed, since we've now removed the type
+      commit('clearFromQueue', type);
+    }
+
+    commit('forgetType', type);
+  },
+
   promptRemove({ commit, state }, resources ) {
     commit('action-menu/togglePromptRemove', resources, { root: true });
   },

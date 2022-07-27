@@ -27,7 +27,7 @@ export default {
       const setting = settingsMap[id];
 
       if ( !setting ) {
-        return;
+        continue;
       }
 
       const readonly = !!ALLOWED_SETTINGS[id].readOnly;

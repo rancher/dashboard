@@ -44,6 +44,8 @@ export default {
 
     if (this.$store.getters['harvester/schemaFor'](LONGHORN.NODES)) {
       _hash.longhornNodes = this.$store.dispatch('harvester/findAll', { type: LONGHORN.NODES });
+    } else {
+      this.hasLonghornSchema = false;
     }
 
     if (this.$store.getters['harvester/schemaFor'](HCI.BLOCK_DEVICE)) {
@@ -57,8 +59,9 @@ export default {
 
   data() {
     return {
-      rows:            [],
-      hasMetricSchema: true
+      rows:              [],
+      hasMetricSchema:   true,
+      hasLonghornSchema: true,
     };
   },
 
@@ -86,12 +89,13 @@ export default {
       ];
 
       if (this.hasMetricSchema) {
+        const width = this.hasLonghornSchema ? '230' : '345';
         const metricCol = [
           {
             name:          'cpu',
             labelKey:      'node.detail.glance.consumptionGauge.cpu',
             value:         'id',
-            width:         '230',
+            width,
             formatter:     'HarvesterCPUUsed',
             formatterOpts: { showUsed: true },
           },
@@ -99,21 +103,26 @@ export default {
             name:          'memory',
             labelKey:      'node.detail.glance.consumptionGauge.memory',
             value:         'id',
-            width:         '230',
+            width,
             formatter:     'HarvesterMemoryUsed',
             formatterOpts: { showUsed: true },
           },
-          {
-            name:          'storage',
-            labelKey:      'tableHeaders.storage',
-            value:         'id',
-            width:         '230',
-            formatter:     'HarvesterStorageUsed',
-            formatterOpts: { showReserved: true },
-          }
         ];
 
         out.splice(-1, 0, ...metricCol);
+      }
+
+      if (this.hasLonghornSchema) {
+        const storageHeader = {
+          name:          'storage',
+          labelKey:      'tableHeaders.storage',
+          value:         'id',
+          width:         '230',
+          formatter:     'HarvesterStorageUsed',
+          formatterOpts: { showReserved: true },
+        };
+
+        out.splice(-1, 0, storageHeader);
       }
 
       out.push(AGE);

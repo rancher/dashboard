@@ -12,7 +12,7 @@ describe('component: Error', () => {
 
     const element = wrapper.find('[data-testid="error-span"]');
 
-    expect(element.text()).toBe('');
+    expect(element.exists()).toStrictEqual(false);
   });
   it('should not display any error text if provided test returns undefined', () => {
     const value = 'testValue';
@@ -22,7 +22,7 @@ describe('component: Error', () => {
 
     const element = wrapper.find('[data-testid="error-span"]');
 
-    expect(element.text()).toBe('');
+    expect(element.exists()).toStrictEqual(false);
   });
   it('should properly pass the component value property to test function', () => {
     const value = 'testValue';
