@@ -24,7 +24,7 @@ export default {
     };
   },
 
-  computed: { ...mapGetters({ requestData: 'manual-refresh/refreshFlag' }) },
+  computed: { ...mapGetters({ refreshFlag: 'manual-refresh/refreshFlag' }) },
   watch:    {
     refreshFlag(neu) {
       // this is where the data assignment will trigger the update of the list view...
