@@ -65,8 +65,8 @@ const config = {
           {
             href: 'https://rancher.github.io/storybook/',
             position: 'right',
-            'aria-label': 'Component Library',
-            'label': 'Component Library',
+            'aria-label': 'Component & Style guideline',
+            'label': 'Components & Design kit',
           },
         ],
       },

@@ -14,7 +14,7 @@ const FeatureList = [
     ),
   },
   {
-    title: 'Component Library',
+    title: 'Components & Design kit',
     Svg: require('@site/static/img/storybook.svg').default,
     description: (
       <>
