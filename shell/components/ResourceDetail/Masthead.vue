@@ -384,7 +384,7 @@ export default {
             </nuxt-link>
             <span v-else>{{ parent.displayName }}:</span>
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
-            <t v-else :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="displayName" />
+            <t v-else :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="displayName" :escapehtml="false" />
             <BadgeState v-if="!isCreate && parent.showState" class="masthead-state" :value="value" />
           </h1>
         </div>
