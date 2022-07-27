@@ -20,8 +20,6 @@ export default {
       perfConfig,
       init:              false,
       counts:            {},
-      dataKey:           null,
-      isDataGrouped:     false,
       multipleResources: []
     };
   },
@@ -31,17 +29,6 @@ export default {
     requestData(neu) {
       // this is where the data assignment will trigger the update of the list view...
       if (this.init && neu) {
-        // console.log('*** MIXIN ::: data update is triggered!!!! ***', neu);
-
-        // if (this.isDataGrouped) {
-        //   const data = neu.map(item => item.value);
-
-        //   this[`${ this.dataKey }`] = data;
-        // } else {
-        //   neu.forEach((res) => {
-        //     this[`${ res.dataKey }`] = res.value;
-        //   });
-        // }
         this.$fetch();
       }
     }
@@ -56,7 +43,7 @@ export default {
 
       return resourceCount || 0;
     },
-    gatherManualRefreshData(dataKey, multipleResources = [], isDataGrouped) {
+    gatherManualRefreshData(multipleResources = []) {
       // flag to prevent a first data update being triggered from the requestData watcher
       this.init = true;
 
@@ -65,31 +52,21 @@ export default {
       const manualDataThreshold = parseInt(this.perfConfig?.manualRefresh?.threshold || '0', 10);
 
       // other vars
+      this.multipleResources = multipleResources;
       const resourceName = this.resource;
       const inStore = this.$store.getters['currentStore'](resourceName);
       let resourceCount = 0;
       let watch = true;
       let isTooManyItemsToAutoUpdate = false;
 
-      this.multipleResources = multipleResources;
-      this.dataKey = dataKey;
-
-      // for the special case of workload where this.resources = array with array of data
-      this.isDataGrouped = isDataGrouped;
-
       console.log('************* MIXIN ::: MANUAL REFRESH LOAD !!!! *************', resourceName);
-      console.log('*** MIXIN ::: dataKey ***', dataKey);
-      console.log('*** MIXIN ::: resourceCount ***', resourceCount);
-      console.log('*** MIXIN ::: isDataGrouped ***', isDataGrouped);
-      console.log('*** MIXIN ::: multipleResources ***', multipleResources);
-
       // get resource counts
       if ( this.$store.getters[`${ inStore }/haveAll`](COUNT) ) {
         this.counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
 
         if (this.multipleResources.length) {
           this.multipleResources.forEach((item) => {
-            resourceCount = resourceCount + this.getCountForResource(item.resourceName);
+            resourceCount = resourceCount + this.getCountForResource(item);
           });
         } else {
           resourceCount = this.getCountForResource(resourceName);
@@ -109,23 +86,7 @@ export default {
       console.log('*** MIXIN ::: isTooManyItemsToAutoUpdate ***', isTooManyItemsToAutoUpdate);
       console.log('*** MIXIN ::: watch ***', watch);
 
-      if (!multipleResources.length) {
-        // update the manual fetch store with the data needed to perform the request when we click on refresh
-        this.$store.dispatch('manual-refresh/updateRefreshData', {
-          refreshData: [{
-            resourceName,
-            inStore,
-            dataKey,
-          }],
-          isTooManyItemsToAutoUpdate
-        });
-      } else {
-        // special case for workloads and equivalent list views
-        this.$store.dispatch('manual-refresh/updateRefreshData', {
-          refreshData: multipleResources,
-          isTooManyItemsToAutoUpdate,
-        });
-      }
+      this.$store.dispatch('manual-refresh/updateIsTooManyItems', isTooManyItemsToAutoUpdate);
 
       return watch;
     },
