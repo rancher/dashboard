@@ -58,7 +58,8 @@ export default {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
-        worker.loadSchema(proxies);
+        // Store raw json objects, not the proxies
+        worker.loadSchema(data);
       }
     }
   },

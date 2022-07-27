@@ -38,7 +38,7 @@ function flush() {
     const hash = hashObj(schema);
     const existing = state.schemas[schema.id];
 
-    if (existing && existing !== hash) {
+    if (!existing || (existing && existing !== hash)) {
       // console.log(`${ schema.id } CHANGED  ${ hash } > ${ existing }`);
       state.schemas[schema.id] = hash;
 
@@ -100,6 +100,11 @@ const fns = {
   // Called to load schema
   loadSchema(schemas) {
     schemas.forEach((schema) => {
+      // These properties are added to the object, but aren't on the raw object, so remove them
+      // otherwise our comparison will show changes when there aren't any
+      delete schema._id;
+      delete schema._group;
+      
       state.schemas[schema.id] = hashObj(schema);
     });
   },
