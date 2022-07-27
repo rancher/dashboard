@@ -91,8 +91,6 @@ export default class Project extends HybridModel {
       }
     }
 
-    await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
-
     return newValue;
   }
 
