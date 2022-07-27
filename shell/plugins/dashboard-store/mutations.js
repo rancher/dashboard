@@ -134,24 +134,26 @@ export function resetStore(state, commit) {
 }
 
 export function remove(state, obj, getters) {
-  let type = normalizeType(obj.type);
-  const keyField = getters[`${ state.config.namespace }/keyFieldForType`](type);
-  const id = obj[keyField];
+  if (obj) {
+    let type = normalizeType(obj.type);
+    const keyField = getters[`${ state.config.namespace }/keyFieldForType`](type);
+    const id = obj[keyField];
 
-  let entry = state.types[type];
-
-  if ( entry ) {
-    removeObject(entry.list, obj);
-    entry.map.delete(id);
-  }
-
-  if ( obj.baseType ) {
-    type = normalizeType(obj.baseType);
-    entry = state.types[type];
+    let entry = state.types[type];
 
     if ( entry ) {
       removeObject(entry.list, obj);
       entry.map.delete(id);
+    }
+
+    if ( obj.baseType ) {
+      type = normalizeType(obj.baseType);
+      entry = state.types[type];
+
+      if ( entry ) {
+        removeObject(entry.list, obj);
+        entry.map.delete(id);
+      }
     }
   }
 }
@@ -289,7 +291,9 @@ export default {
   },
 
   remove(state, obj) {
-    remove(state, obj, this.getters);
+    if (obj) {
+      remove(state, obj, this.getters);
+    }
   },
 
   reset(state) {
