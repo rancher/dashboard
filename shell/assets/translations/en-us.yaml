@@ -5973,7 +5973,6 @@ harvester:
     fileName: File Name
     uploadFile: Upload File
     source: Source
-    displayNameValidate: Please input a valid Name.
     sourceType:
       download: URL
       upload: File

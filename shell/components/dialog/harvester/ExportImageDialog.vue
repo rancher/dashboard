@@ -9,7 +9,6 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { NAMESPACE } from '@shell/config/types';
-import { displayName } from '@shell/utils/validators/vm-image';
 
 export default {
   name: 'HarvesterExportImageDialog',
@@ -72,14 +71,6 @@ export default {
 
     async save(buttonCb) {
       try {
-        const error = displayName(this.name, this.$store.getters, []);
-
-        if (error.length > 0) {
-          this.$set(this, 'errors', error);
-          buttonCb(false);
-
-          return;
-        }
         const res = await this.actionResource.doAction('export', { displayName: this.name, namespace: this.namespace });
 
         if (res._status === 200 || res._status === 204) {

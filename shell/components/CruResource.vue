@@ -344,6 +344,7 @@ export default {
     <form
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
+      @submit.prevent
     >
       <div
         v-if="hasErrors"

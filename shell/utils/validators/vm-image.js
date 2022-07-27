@@ -30,15 +30,3 @@ export function fileRequired(annotations = {}, getters, errors, validatorArgs, t
 
   return errors;
 }
-
-export function displayName(displayName, getters, errors, validatorArgs) {
-  const t = getters['i18n/t'];
-  // https://kubernetes.io/docs/concepts/overview/working-with-objects/names/
-  const regex = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/;
-
-  if (!regex.test(displayName)) {
-    errors.push(t('harvester.image.displayNameValidate'));
-  }
-
-  return errors;
-}

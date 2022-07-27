@@ -159,7 +159,6 @@ export default {
           :localized-label="true"
           :mode="mode"
           :options="enumOptions"
-          @keydown.native.enter.prevent="()=>{}"
         />
       </div>
       <div v-else-if="setting.kind === 'boolean'">
@@ -180,7 +179,6 @@ export default {
         <LabeledInput
           v-model="value.value"
           :label="t('advancedSettings.edit.value')"
-          @keydown.native.enter.prevent="()=>{}"
         />
       </div>
     </div>
