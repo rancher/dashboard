@@ -346,10 +346,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters({
-      isTooManyItemsToAutoUpdate: 'manual-refresh/isTooManyItemsToAutoUpdate',
-      isManualDataLoading:        'manual-refresh/isManualDataLoading'
-    }),
+    ...mapGetters({ isTooManyItemsToAutoUpdate: 'manual-refresh/isTooManyItemsToAutoUpdate' }),
     fullColspan() {
       let span = 0;
 
