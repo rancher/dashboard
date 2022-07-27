@@ -51,7 +51,8 @@ export const CAPI = {
   FORCE_MACHINE_REMOVE: 'provisioning.cattle.io/force-machine-remove',
   MACHINE_NAME:         'cluster.x-k8s.io/machine',
   DELETE_MACHINE:       'cluster.x-k8s.io/delete-machine',
-  PROVIDER:             'provider.cattle.io'
+  PROVIDER:             'provider.cattle.io',
+  SECRET_AUTH:          'v2prov-secret-authorized-for-cluster'
 };
 
 export const CATALOG = {
