@@ -128,25 +128,43 @@ const getActiveNamespaces = (state, getters) => {
   return out;
 };
 
+const getInactiveNamespaces = (state, getters) => {
+  const inactiveNamespaces = {};
+  const product = getters['currentProduct'];
+  const inStore = product?.inStore;
+  const namespaces = getters[`${ inStore }/all`](NAMESPACE);
+
+  namespaces.forEach((namespaceClass) => {
+    const namespace = namespaceClass.metadata?.name || '';
+
+    if (!state.activeNamespaceCache[namespace]) {
+      inactiveNamespaces[namespace] = true;
+    }
+  });
+
+  return inactiveNamespaces;
+};
+
 export const state = () => {
   return {
-    managementReady:      false,
-    clusterReady:         false,
-    isMultiCluster:       false,
-    isRancher:            false,
-    namespaceFilters:     [],
-    activeNamespaceCache: {}, // Used to efficiently check if a resource should be displayed
-    allNamespaces:        null,
-    allWorkspaces:        null,
-    clusterId:            null,
-    productId:            null,
-    workspace:            null,
-    error:                null,
-    cameFromError:        false,
-    pageActions:          [],
-    serverVersion:        null,
-    systemNamespaces:     [],
-    isSingleProduct:      undefined,
+    managementReady:        false,
+    clusterReady:           false,
+    isMultiCluster:         false,
+    isRancher:              false,
+    namespaceFilters:       [],
+    activeNamespaceCache:   {}, // Used to efficiently check if a resource should be displayed
+    inactiveNamespaceCache: {}, // Used to get namespaces to exclude from API calls
+    allNamespaces:          null,
+    allWorkspaces:          null,
+    clusterId:              null,
+    productId:              null,
+    workspace:              null,
+    error:                  null,
+    cameFromError:          false,
+    pageActions:            [],
+    serverVersion:          null,
+    systemNamespaces:       [],
+    isSingleProduct:        undefined,
   };
 };
 
@@ -332,6 +350,18 @@ export const getters = {
     };
   },
 
+  inactiveNamespaceCache(state) {
+    // The inactiveNamespaceCache is intended to be the exact
+    // inverse of the activeNamespaceCache. It is a workaround for the fact
+    // that we can't query the Kubernetes API to get resources from
+    // a subset of namespaces in a single API call, however, we CAN
+    // exclude namespaces with a single API call by using resource
+    // field selectors. So by querying the Kubernetes
+    return () => {
+      return state.inactiveNamespaceCache;
+    };
+  },
+
   activeNamespaceFilters(state) {
     return () => {
       return state.namespaceFilters;
@@ -494,6 +524,10 @@ export const mutations = {
     // Create map that can be used to efficiently check if a
     // resource should be displayed
     state.activeNamespaceCache = getActiveNamespaces(state, getters);
+
+    // Create map that can be used to exclude namespaces from
+    // API calls
+    state.inactiveNamespaceCache = getInactiveNamespaces(state, getters);
   },
 
   pageActions(state, pageActions) {
@@ -832,6 +866,8 @@ export const actions = {
   switchNamespaces({ commit, dispatch, getters }, { ids, key }) {
     const filters = getters['prefs/get'](NAMESPACE_FILTERS);
 
+    commit('updateNamespaces', { filters: ids, ...getters });
+
     dispatch('prefs/set', {
       key:   NAMESPACE_FILTERS,
       value: {
@@ -839,7 +875,6 @@ export const actions = {
         [key]: ids
       }
     });
-    commit('updateNamespaces', { filters: ids, ...getters });
   },
 
   async loadVirtual({

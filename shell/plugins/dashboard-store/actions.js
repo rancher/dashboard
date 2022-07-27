@@ -5,6 +5,7 @@ import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
 import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
+import { get } from '@shell/utils/object';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -137,6 +138,28 @@ export default {
         streamCollection = data;
       }
     };
+
+    try {
+      // If the user has filtered out namespaces in the top nav of Cluster Explorer,
+      // exclude them in the API call so that we don't have to filter them
+      // on the client side.
+      const namespacesToExclude = Object.keys(rootGetters['inactiveNamespaceCache']());
+
+      const schema = getters['schemaFor'](type);
+      let isNamespaced = false;
+
+      if (schema) {
+        isNamespaced = !!get( schema, 'attributes.namespaced');
+      }
+
+      if (isNamespaced && namespacesToExclude.length > 0) {
+        const fieldSelectors = namespacesToExclude.map((ns) => {
+          return `metadata.namespace!=${ ns }`;
+        }).join(',');
+
+        opt.params = { fieldSelector: fieldSelectors };
+      }
+    } catch {}
 
     try {
       const res = await dispatch('request', { opt, type });

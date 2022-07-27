@@ -16,10 +16,6 @@ export default {
 
     let hasFetch = false;
 
-    const inStore = store.getters['currentStore'](resource);
-
-    const schema = store.getters[`${ inStore }/schemaFor`](resource);
-
     if ( this.hasListComponent ) {
       // If you provide your own list then call its asyncData
       const importer = store.getters['type-map/importList'](resource);
@@ -36,13 +32,7 @@ export default {
     }
 
     if ( !hasFetch ) {
-      if ( !schema ) {
-        store.dispatch('loadingError', `Type ${ resource } not found`);
-
-        return;
-      }
-
-      this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource });
+      this.rows = await this.getResources();
     }
   },
 
@@ -89,7 +79,11 @@ export default {
 
     loading() {
       return this.hasData ? false : this.$fetchState.pending;
-    }
+    },
+
+    activeNamespaceFilters() {
+      return this.$store.getters['activeNamespaceFilters']();
+    },
   },
 
   created() {
@@ -103,6 +97,29 @@ export default {
     }
 
     this.listComponent = listComponent;
+  },
+
+  methods: {
+    async getResources(force = false) {
+      const store = this.$store;
+      const resource = this.resource;
+      const inStore = store.getters['currentStore'](resource);
+      const schema = store.getters[`${ inStore }/schemaFor`](resource);
+
+      if ( !schema ) {
+        store.dispatch('loadingError', `Type ${ resource } not found`);
+
+        return [];
+      }
+
+      return await store.dispatch(`${ inStore }/findAll`, { type: resource, opt: { force } });
+    }
+  },
+
+  watch: {
+    'activeNamespaceFilters'() {
+      this.getResources(true);
+    },
   },
 };
 </script>

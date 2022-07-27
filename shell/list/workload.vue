@@ -25,30 +25,9 @@ export default {
       }
     } catch {}
 
-    let resources;
-
     this.loadHeathResources();
 
-    if ( this.allTypes ) {
-      resources = await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => {
-      // You may not have RBAC to see some of the types
-        if ( !this.$store.getters['cluster/schemaFor'](type) ) {
-          return null;
-        }
-
-        return this.$store.dispatch('cluster/findAll', { type });
-      }));
-    } else {
-      const type = this.$route.params.resource;
-
-      if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$store.dispatch('cluster/findAll', { type });
-
-        resources = [resource];
-      }
-    }
-
-    this.resources = resources;
+    this.resources = await this.getWorkloads();
   },
 
   data() {
@@ -56,6 +35,9 @@ export default {
   },
 
   computed: {
+    activeNamespaceFilters() {
+      return this.$store.getters['activeNamespaceFilters']();
+    },
     allTypes() {
       return this.$route.params.resource === schema.id;
     },
@@ -89,7 +71,33 @@ export default {
     },
   },
 
+  watch: {
+    'activeNamespaceFilters'() {
+      this.getWorkloads(true);
+    },
+  },
+
   methods: {
+    async getWorkloads(force = false) {
+      if ( this.allTypes ) {
+        return await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => {
+          // You may not have RBAC to see some of the types
+          if ( !this.$store.getters['cluster/schemaFor'](type) ) {
+            return null;
+          }
+
+          return this.$store.dispatch('cluster/findAll', { type, opt: { force } });
+        }));
+      } else {
+        const type = this.$route.params.resource;
+
+        if ( this.$store.getters['cluster/schemaFor'](type) ) {
+          const resource = await this.$store.dispatch('cluster/findAll', { type, opt: { force } });
+
+          return [resource];
+        }
+      }
+    },
     loadHeathResources() {
       // Fetch these in the background to populate workload health
       if ( this.allTypes ) {
