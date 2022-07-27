@@ -54,6 +54,8 @@ import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
 import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import { SETTING } from '@shell/config/settings';
+import { base64Encode } from '@shell/utils/crypto';
+import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -63,7 +65,6 @@ import RegistryConfigs from './RegistryConfigs';
 import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
-import { base64Encode } from '~/shell/utils/crypto';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -312,9 +313,6 @@ export default {
       userChartValuesTemp:         {},
       addonsRev:                   0,
       clusterIsAlreadyCreated:     !!this.value.id,
-      // this is used to store the harvester cluster kubeconfig when using an 'imported' harvester cloud cred
-      // made in saveOverride and given an ownerref in afterSaveHook
-      harvesterKubeconfigSecret:       null,
       fvFormRuleSets:              [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }]
@@ -1206,10 +1204,9 @@ export default {
 
         const kubeconfig = res.data;
 
-        this.harvesterKubeconfigSecret = await this.createKubeconfigSecret(kubeconfig);
-        this.registerAfterHook(this.updateKubeconfigSecret, 'update-harvester-secret');
+        const harvesterKubeconfigSecret = await this.createKubeconfigSecret(kubeconfig);
 
-        set(this.agentConfig, 'cloud-provider-config', `secret://fleet-default:${ this.harvesterKubeconfigSecret?.metadata?.name }`);
+        set(this.agentConfig, 'cloud-provider-config', `secret://fleet-default:${ harvesterKubeconfigSecret?.metadata?.name }`);
         set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.clusterName`, this.value.metadata.name);
         set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, '/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
       }
@@ -1218,32 +1215,16 @@ export default {
     },
     // create a secret to reference the harvester cluster kubeconfig in rkeConfig
     async createKubeconfigSecret(kubeconfig = '') {
+      const clusterName = this.value.metadata.name;
       const secret = await this.$store.dispatch('management/create', {
-        type: SECRET, metadata: { namespace: 'fleet-default', generateName: 'harvesterconfig' }, data: { credential: base64Encode(kubeconfig) }
+        type:     SECRET,
+        metadata: {
+          namespace: 'fleet-default', generateName: 'harvesterconfig', annotations: { [CAPI_ANNOTATIONS.SECRET_AUTH]: clusterName }
+        },
+        data: { credential: base64Encode(kubeconfig) }
       });
 
       return secret.save({ url: '/v1/secrets', method: 'POST' });
-    },
-    // add ownerRef to harvester secret to ensure clean up when the cluster deleted
-    async updateKubeconfigSecret() {
-      if (!this.harvesterKubeconfigSecret) {
-        return;
-      }
-
-      const ownerRef = {
-        apiVersion: this.value.apiVersion,
-        controller: true,
-        kind:       this.value.kind,
-        name:       this.value.metadata.name,
-        uid:        this.value.metadata.uid
-      };
-
-      if (!this.harvesterKubeconfigSecret.metadata?.ownerReferences) {
-        this.$set(this.harvesterKubeconfigSecret.metadata, 'ownerReferences', []);
-      }
-      this.harvesterKubeconfigSecret.metadata.ownerReferences.push(ownerRef);
-
-      return await this.harvesterKubeconfigSecret.save();
     },
 
     cancel() {
