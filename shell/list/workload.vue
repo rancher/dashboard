@@ -37,26 +37,32 @@ export default {
       Object.values(WORKLOAD_TYPES).forEach((type) => {
         // You may not have RBAC to see some of the types
         if (this.$store.getters['cluster/schemaFor'](type) ) {
-          allowedResources.push({
-            resourceName: type,
-            inStore:      'cluster',
-          });
+          allowedResources.push(type);
         }
       });
 
-      const watch = this.gatherManualRefreshData('resources', allowedResources, true);
+      if (!this.manualRefreshInit) {
+        this.watch = this.gatherManualRefreshData(allowedResources);
+        this.manualRefreshInit = true;
+        this.force = true;
+      }
 
-      resources = await Promise.all(allowedResources.map((res) => {
-        return this.$store.dispatch('cluster/findAll', { type: res.resourceName, opt: { watch } });
+      resources = await Promise.all(allowedResources.map((allowed) => {
+        return this.$store.dispatch('cluster/findAll', { type: allowed, opt: { watch: this.watch, force: this.force } });
       }));
     } else {
       const type = this.$route.params.resource;
 
       this.resource = type;
-      const watch = this.gatherManualRefreshData('resources', undefined, true);
+
+      if (!this.manualRefreshInit) {
+        this.watch = this.gatherManualRefreshData();
+        this.manualRefreshInit = true;
+        this.force = true;
+      }
 
       if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$store.dispatch('cluster/findAll', { type, opt: { watch } });
+        const resource = await this.$store.dispatch('cluster/findAll', { type, opt: { watch: this.watch, force: this.force } });
 
         resources = [resource];
       }

@@ -18,7 +18,7 @@ export default {
 
   async fetch() {
     if (!this.manualRefreshInit) {
-      this.watch = this.gatherManualRefreshData('rancherClusters');
+      this.watch = this.gatherManualRefreshData();
       this.manualRefreshInit = true;
       this.force = true;
     }

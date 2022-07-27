@@ -841,7 +841,7 @@ export default {
           >
             <i
               class="icon icon-backup"
-              :class="{ 'animate': isManualDataLoading }"
+              :class="{ 'animate': loading }"
             />
           </button>
         </div>

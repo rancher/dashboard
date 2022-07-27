@@ -44,11 +44,14 @@ export default {
         return;
       }
 
-      const watch = this.gatherManualRefreshData('rows');
+      if (!this.manualRefreshInit) {
+        this.watch = this.gatherManualRefreshData();
+        this.manualRefreshInit = true;
+        this.force = true;
+      }
+      console.log('*** resource list watch value ***', this.watch);
 
-      console.log('*** resource list watch value ***', watch);
-
-      this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource, opt: { watch } });
+      this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource, opt: { watch: this.watch, force: this.force } });
     }
   },
 
@@ -69,9 +72,12 @@ export default {
     return {
       schema,
       hasListComponent,
-      hasData:      existingData.length > 0,
-      showMasthead: showMasthead === undefined ? true : showMasthead,
+      hasData:           existingData.length > 0,
+      showMasthead:      showMasthead === undefined ? true : showMasthead,
       resource,
+      manualRefreshInit: false,
+      watch:             false,
+      force:             false,
 
       // Provided by fetch later
       rows:              [],
