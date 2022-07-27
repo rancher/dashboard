@@ -9,14 +9,18 @@ export default {
   name: 'ResourceLoadingIndicator',
 
   props: {
-    resource: {
-      type:     String,
+    resources: {
+      type:     Array,
       required: true,
     },
     indeterminate: {
       type:    Boolean,
       default: false,
     },
+    rows: {
+      type:     Array,
+      default:  undefined,
+    }
   },
 
   data() {
@@ -26,20 +30,43 @@ export default {
   },
 
   computed: {
-    haveAll() {
-      return this.$store.getters[`${ this.inStore }/haveAll`](this.resource);
+    // Count of rows - either from the data provided or from the rows for the first resource
+    rowsCount() {
+      if (this.rows) {
+        return this.rows.length;
+      }
+
+      if (this.resources.length > 0) {
+        const existingData = this.$store.getters[`${ this.inStore }/all`](this.resources[0]) || [];
+
+        return (existingData || []).length;
+      }
+
+      return 0;
     },
 
+    haveAll() {
+      return this.resources.reduce((acc, r) => {
+        return acc && this.$store.getters[`${ this.inStore }/haveAll`](r);
+      }, true);
+    },
+
+    // Total of all counts of all resources for all of the resources being loaded
     total() {
       const clusterCounts = this.$store.getters[`${ this.inStore }/all`](COUNT);
 
-      return clusterCounts?.[0]?.counts?.[this.resource]?.summary?.count;
+      return this.resources.reduce((acc, r) => {
+        const count = clusterCounts?.[0]?.counts?.[r]?.summary?.count || 0;
+
+        return acc + count;
+      }, 0);
     },
 
+    // Total count of all of the resources for all of the resources being loaded
     count() {
-      const existingData = this.$store.getters[`${ this.inStore }/all`](this.resource) || [];
-
-      return (existingData || []).length;
+      return this.resources.reduce((acc, r) => {
+        return acc + (this.$store.getters[`${ this.inStore }/all`](r) || []).length;
+      }, 0);
     },
 
     width() {
@@ -56,12 +83,12 @@ export default {
     <div class="inner">
       <div class="resource-loader">
         <div class="rl-bg">
-          <i class="icon icon-spinner icon-spin" /><span>Loading {{ count }}<span v-if="!indeterminate"> / {{ total }}</span></span>
+          <i class="icon icon-spinner icon-spin" /><span>Loading <span v-if="!indeterminate">{{ count }} / {{ total }}</span></span>
         </div>
       </div>
       <div class="resource-loader" :style="{width}">
         <div class="rl-fg">
-          <i class="icon icon-spinner icon-spin" /><span>Loading {{ count }}<span v-if="!indeterminate"> / {{ total }}</span></span>
+          <i class="icon icon-spinner icon-spin" /><span>Loading <span v-if="!indeterminate">{{ count }} / {{ total }}</span></span>
         </div>
       </div>
     </div>

@@ -3,7 +3,6 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
-import { COUNT } from '@shell/config/types';
 import PageFetchMixin from '@shell/mixins/paged-fetch';
 
 export default {
@@ -38,6 +37,13 @@ export default {
       // If your list page has a fetch then it's responsible for populating rows itself
       if ( component?.fetch ) {
         hasFetch = true;
+      }
+
+      if (component?.$loadingResources) {
+        const { loadResources, loadIndeterminate } = component?.$loadingResources(this.$route, resource);
+
+        this.loadResources = loadResources;
+        this.loadIndeterminate = loadIndeterminate;
       }
     }
 
@@ -77,6 +83,9 @@ export default {
       // Provided by fetch later
       rows:              [],
       customTypeDisplay: null,
+      wantLoadIndicator: false,
+      loadResources:     [resource],
+      loadIndeterminate: false,
     };
   },
 
@@ -97,30 +106,6 @@ export default {
     loading() {
       return this.hasData ? false : this.$fetchState.pending;
     },
-
-    haveAll() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-
-      return this.$store.getters[`${ inStore }/haveAll`](this.resource);
-    },
-
-    total() {
-      const clusterCounts = this.$store.getters[`cluster/all`](COUNT);
-
-      return clusterCounts?.[0]?.counts?.[this.resource]?.summary?.count;
-    },
-
-    count() {
-      const existingData = this.$store.getters[`${ this.inStore }/all`](this.resource) || [];
-
-      return (existingData || []).length;
-    },
-
-    width() {
-      const progress = Math.ceil(100 * (this.count / this.total));
-
-      return `${ progress }%`;
-    }
   },
 
   created() {
@@ -147,7 +132,10 @@ export default {
       :resource="resource"
     >
       <template v-slot:header>
-        <ResourceLoadingIndicator v-if="count && !haveAll" :resource="resource" />
+        <ResourceLoadingIndicator
+          :resources="loadResources"
+          :indeterminate="loadIndeterminate"
+        />
       </template>
     </Masthead>
 

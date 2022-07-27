@@ -91,6 +91,16 @@ export default {
     },
   },
 
+  // All of the resources that we will load that we need for the loading indicator
+  $loadingResources(route) {
+    const allTypes = route.params.resource === schema.id;
+
+    return {
+      loadResources:     allTypes ? Object.values(WORKLOAD_TYPES) : [route.params.resource],
+      loadIndeterminate: allTypes,
+    };
+  },
+
   methods: {
     loadHeathResources() {
       // Fetch these in the background to populate workload health
@@ -128,5 +138,10 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="rows" :overflow-y="true" />
+  <ResourceTable
+    :loading="$fetchState.pending"
+    :schema="schema"
+    :rows="rows"
+    :overflow-y="true"
+  />
 </template>

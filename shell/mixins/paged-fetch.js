@@ -27,28 +27,38 @@ export default {
     $fetchType(type) {
       const inStore = this.$store.getters['currentStore'](COUNT);
 
-      let incremental = 0;
-
-      if (this.perfConfig?.incrementalLoading?.enabled) {
-        const config = this.$getTypeFetchMetadata(type);
-
-        const threshold = parseInt(this.perfConfig?.incrementalLoading?.threshold || '0', 10);
-
-        if (threshold > 0 && config.total > threshold) {
-          incremental = Math.ceil(config.total / PAGES);
-        }
-      }
+      const { incremental } = this.$getTypeFetchMetadata(type);
 
       return this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { incremental } });
     },
 
     $getTypeFetchMetadata(type) {
-      const inStore = this.$store.getters['currentStore'](COUNT);
-      const clusterCounts = this.$store.getters[`${ inStore }/all`](COUNT)?.[0]?.counts;
-      const summary = clusterCounts?.[type]?.summary || {};
-      // const total = summary.count || 0;
+      if (this.perfConfig?.incrementalLoading?.enabled) {
+        const inStore = this.$store.getters['currentStore'](COUNT);
+        const clusterCounts = this.$store.getters[`${ inStore }/all`](COUNT)?.[0]?.counts;
+        const summary = clusterCounts?.[type]?.summary || {};
+        const threshold = parseInt(this.perfConfig?.incrementalLoading?.threshold || '0', 10);
+        const total = summary.count || 0;
+        let incremental = 0;
 
-      return { total: summary.count || 0 };
+        if (threshold > 0 && total > threshold) {
+          incremental = Math.ceil(total / PAGES);
+        }
+
+        return {
+          enabled: true,
+          total,
+          incremental,
+          threshold,
+        };
+      }
+
+      return {
+        enabled:     false,
+        incremental: 0,
+        total:       0,
+        threshold:   0
+      };
     }
   },
 };
