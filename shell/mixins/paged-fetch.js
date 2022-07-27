@@ -20,14 +20,23 @@ export default {
     return { fetchedResourceType: [], perfConfig };
   },
 
+  beforeDestroy() {
+    const inStore = this.$store.getters['currentStore'](COUNT);
+
+    this.fetchedResourceType.forEach((type) => {
+      this.$store.dispatch(`${ inStore }/incrementLoadCounter`, type);
+    });
+  },
+
   methods: {
     /**
      * Fetch all resources for a given type, taking into consideraton the incremental loading configuration
      */
     $fetchType(type) {
       const inStore = this.$store.getters['currentStore'](COUNT);
-
       const { incremental } = this.$getTypeFetchMetadata(type);
+
+      this.fetchedResourceType.push(type);
 
       return this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { incremental } });
     },

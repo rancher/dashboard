@@ -282,6 +282,15 @@ export default {
 
   isClusterStore: (state) => {
     return state.config.isClusterStore;
-  }
+  },
 
+  loadCounter: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+
+    if (!!state.types[type]) {
+      return state.types[type].loadCounter;
+    }
+
+    return 0;
+  }
 };

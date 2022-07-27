@@ -84,8 +84,8 @@ export default {
     type = getters.normalizeType(type);
 
     const typeOptions = rootGetters['type-map/optionsFor'](type);
+    const loadCount = getters['loadCounter'](type);
 
-    console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
     opt.depaginate = typeOptions?.depaginate;
@@ -97,6 +97,14 @@ export default {
 
     try {
       const res = await dispatch('request', { opt, type });
+
+      const newLoadCount = getters['loadCounter'](type);
+
+      // Load count changed, so we changed page or started a new load
+      // after this page load was started, so don't continue with incremental load
+      if (loadCount !== newLoadCount) {
+        return;
+      }
 
       commit('loadAdd', {
         ctx,
@@ -164,6 +172,8 @@ export default {
     let skipHaveAll = false;
 
     if (opt.incremental) {
+      commit('incrementLoadCounter', type);
+
       opt.url = `${ opt.url }?limit=100`;
       skipHaveAll = true;
 
@@ -522,5 +532,9 @@ export default {
       console.warn(`Schema for ${ type } still unavailable... loading schemas again...`); // eslint-disable-line no-console
       await dispatch('loadSchemas', true);
     }
+  },
+
+  incrementLoadCounter({ commit }, resource) {
+    commit('incrementLoadCounter', resource);
   }
 };

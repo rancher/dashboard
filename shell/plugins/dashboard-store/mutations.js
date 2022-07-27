@@ -14,6 +14,7 @@ function registerType(state, type) {
       haveSelector: {},
       revision:     0, // The highest known resourceVersion from the server for this type
       generation:   0, // Updated every time something is loaded for this type
+      loadCounter:  0, // Used to cancel incremental loads if the page changes during load
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -297,4 +298,12 @@ export default {
   },
 
   forgetType,
+
+  incrementLoadCounter(state, type) {
+    const typeData = state.types[type];
+
+    if (typeData) {
+      typeData.loadCounter++;
+    }
+  }
 };
