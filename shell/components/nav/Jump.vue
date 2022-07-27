@@ -37,7 +37,7 @@ export default {
       let namespaces = null;
 
       if ( !isAllNamespaces ) {
-        namespaces = Object.keys(this.$store.getters['activeNamespaceCache']());
+        namespaces = Object.keys(this.$store.getters['activeNamespaceCache']);
       }
 
       const allTypes = this.$store.getters['type-map/allTypes'](product) || {};

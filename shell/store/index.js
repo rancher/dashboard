@@ -327,15 +327,11 @@ export const getters = {
     // updateNamespaces mutation. We use this map to filter workloads
     // as we don't want to recompute the active namespaces
     // for each workload in a list.
-    return () => {
-      return state.activeNamespaceCache;
-    };
+    return state.activeNamespaceCache;
   },
 
   activeNamespaceFilters(state) {
-    return () => {
-      return state.namespaceFilters;
-    };
+    return state.namespaceFilters;
   },
 
   namespaces(state, getters) {
@@ -354,7 +350,7 @@ export const getters = {
     }
 
     const inStore = product.inStore;
-    const filteredMap = getters['activeNamespaceCache']();
+    const filteredMap = getters['activeNamespaceCache'];
     const isAll = getters['isAllNamespaces'];
     const all = getters[`${ inStore }/all`](NAMESPACE).map(x => x.id);
     let out;
@@ -500,7 +496,7 @@ export const mutations = {
     state.pageActions = pageActions;
   },
 
-  updateWorkspace(state, { value, all }) {
+  updateWorkspace(state, { value, all, getters }) {
     if ( all ) {
       state.allWorkspaces = all;
 
@@ -515,6 +511,8 @@ export const mutations = {
     }
 
     state.workspace = value;
+
+    state.activeNamespaceCache = getActiveNamespaces(state, getters);
   },
 
   clusterId(state, neu) {
@@ -650,6 +648,7 @@ export const actions = {
       commit('updateWorkspace', {
         value: getters['prefs/get'](WORKSPACE),
         all:   res.workspaces,
+        getters
       });
     }
 
