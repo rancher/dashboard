@@ -8,6 +8,7 @@ declare global {
       login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
       byLabel(label: string,): Chainable<Element>;
       getId(id: string,): Chainable<Element>;
+      userPreferences(preferences?: Partial<UserPreferences>): Chainable<null>;
     }
   }
 }
