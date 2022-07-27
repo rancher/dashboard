@@ -49,7 +49,6 @@ export default {
         this.manualRefreshInit = true;
         this.force = true;
       }
-      console.log('*** resource list watch value ***', this.watch);
 
       this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource, opt: { watch: this.watch, force: this.force } });
     }

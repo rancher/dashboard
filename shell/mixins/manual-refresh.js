@@ -24,11 +24,12 @@ export default {
     };
   },
 
-  computed: { ...mapGetters({ requestData: 'manual-refresh/requestData' }) },
+  computed: { ...mapGetters({ requestData: 'manual-refresh/refreshFlag' }) },
   watch:    {
-    requestData(neu) {
+    refreshFlag(neu) {
       // this is where the data assignment will trigger the update of the list view...
       if (this.init && neu) {
+        console.log('*** MIXIN ::: data update triggered ***', neu);
         this.$fetch();
       }
     }
@@ -86,6 +87,7 @@ export default {
       console.log('*** MIXIN ::: isTooManyItemsToAutoUpdate ***', isTooManyItemsToAutoUpdate);
       console.log('*** MIXIN ::: watch ***', watch);
 
+      // pass on the flag that controls the appearance of the manual refresh button on the sortable table
       this.$store.dispatch('manual-refresh/updateIsTooManyItems', isTooManyItemsToAutoUpdate);
 
       return watch;
@@ -93,6 +95,7 @@ export default {
   },
 
   beforeDestroy() {
+    // clear up the store to make sure we aren't storing anything that might interfere with the next rendered list view
     this.$store.dispatch('manual-refresh/clearData');
   },
 
