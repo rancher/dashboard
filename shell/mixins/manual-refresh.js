@@ -49,7 +49,7 @@ export default {
       this.init = true;
 
       // settings config
-      const manualDataRefresh = this.perfConfig?.manualRefresh.enabled;
+      const manualDataRefresh = this.perfConfig?.manualRefresh?.enabled;
       const manualDataThreshold = parseInt(this.perfConfig?.manualRefresh?.threshold || '0', 10);
 
       // other vars
