@@ -1,10 +1,11 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 
 export default {
   name:       'WorkloadGeneric',
-  mixins: [CreateEditView, WorkLoadMixin],
+  mixins: [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
 };
 </script>
 
@@ -12,11 +13,11 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <form v-else class="filled-height">
     <CruResource
-      :validation-passed="true"
+      :validation-passed="fvFormIsValid"
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
-      :errors="errors"
+      :errors="fvUnreportedValidationErrors"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
@@ -28,6 +29,7 @@ export default {
       <NameNsDescription
         :value="value"
         :mode="mode"
+        :rules="{name: fvGetAndReportPathRules('metadata.name'), namespace: fvGetAndReportPathRules('metadata.namespace'), description: []}"
         @change="name=value.metadata.name"
       />
       <div v-if="isCronJob || isReplicable || isStatefulSet || containerOptions.length > 1" class="row mb-20">
@@ -35,9 +37,9 @@ export default {
           <LabeledInput
             v-model="spec.schedule"
             type="cron"
-            required
             :mode="mode"
             :label="t('workload.cronSchedule')"
+            :rules="fvGetAndReportPathRules('spec.schedule')"
             placeholder="0 * * * *"
           />
         </div>
@@ -73,7 +75,7 @@ export default {
       </div>
 
       <Tabbed :key="containerChange" :side-tabs="true">
-        <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']">
+        <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']" :error="tabErrors.general">
           <div>
             <div :style="{'align-items':'center'}" class="row mb-20">
               <div class="col span-6">
@@ -98,7 +100,7 @@ export default {
                   :mode="mode"
                   :label="t('workload.container.image')"
                   :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
-                  required
+                  :rules="fvGetAndReportPathRules('image')"
                 />
               </div>
               <div class="col span-6">
