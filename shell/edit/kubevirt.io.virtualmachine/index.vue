@@ -278,12 +278,11 @@ export default {
       }
 
       const cloneValue = clone(this.value);
-
-      cloneValue.spec.template.spec.nodeSelector = this.spec.template.spec.nodeSelector;
+      const cloneSpec = clone(this.spec);
 
       for (let i = 1; i <= this.count; i++) {
         this.$set(this.value, 'spec', cloneValue.spec);
-        this.$set(this, 'spec', cloneValue.spec);
+        this.$set(this, 'spec', cloneSpec);
         const suffix = i < 10 ? `0${ i }` : i;
 
         this.value.cleanForNew();
