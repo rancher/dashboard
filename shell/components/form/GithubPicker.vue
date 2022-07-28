@@ -75,6 +75,8 @@ export default {
     async fetchRepos() {
       try {
         if (this.selectedUsername.length) {
+          this.selectedRepo = null;
+
           const res = await this.$store.dispatch('github/fetchRecentRepos', { username: this.selectedUsername });
 
           if (res?.message) {
@@ -96,8 +98,9 @@ export default {
       }
     },
 
-    async fetchBranches(val) {
+    async fetchBranches() {
       this.loadingBranches = true;
+      this.selectedBranch = null;
       this.selectedCommit = false;
 
       try {
@@ -111,6 +114,7 @@ export default {
     async fetchCommits() {
       this.loadingCommits = true;
       this.showSelections = false;
+      this.selectedCommit = false;
 
       try {
         const res = await this.$store.dispatch('github/fetchCommits', {
@@ -176,28 +180,38 @@ export default {
       return null;
     },
     async searchForResult(query) {
-      if (!this.selectedBranch && query.length) {
+      if (!query.length) {
+        return;
+      }
+
+      if (!this.selectedBranch) {
         await this.searchRepo(query);
       } else {
         await this.searchBranch(query);
       }
     },
     async searchRepo(query) {
-      if (!this.selectedRepo && query.length) {
+      if (query.length) {
         // Check if the result is already in the fetched list.
         const resultInCurrentState = some(this.repos, { name: query });
 
-        if (resultInCurrentState) {
-        } else {
+        if (!resultInCurrentState) {
           // Search for specific repo under the username
           const res = await this.$store.dispatch('github/search', { repo: query, username: this.selectedUsername });
 
           if (res.message) {
             this.hasError.repo = true;
           } else {
-            this.repos = res;
+            if (res.length >= 1) {
+              this.repos = res;
+            } else {
+              return this.repos;
+            }
+
             this.hasError.repo = false;
           }
+        } else {
+          return resultInCurrentState;
         }
       }
     },

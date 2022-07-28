@@ -169,7 +169,7 @@ epinio:
             noRepos: No repos were found for the given username
           details:
             label: Details
-            tooltip: Details of the commit to be deploy
+            tooltip: Deployment details
       configurations:
         label: Bindings
         subtext: Bind to Application

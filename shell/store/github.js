@@ -40,7 +40,7 @@ export const actions = {
       return await FetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
     }
     case 'search': {
-      // Fetch for branches
+      // Fetch for a specific branches
       if (username && repo && branch) {
         const response = await FetchGithubAPI(`repos/${ username }/${ repo }/branches/${ branch }`);
 
@@ -62,7 +62,7 @@ export const actions = {
   async fetchRecentRepos({ commit, dispatch }, { username } = {}) {
     const res = await dispatch('apiList', { username });
 
-    // commit('setRepos', res);
+    commit('setRepos', res);
 
     return res;
   },
