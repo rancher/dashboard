@@ -104,14 +104,13 @@ const fns = {
       // otherwise our comparison will show changes when there aren't any
       delete schema._id;
       delete schema._group;
-      
+
       state.schemas[schema.id] = hashObj(schema);
     });
   },
 
   // Called when schema is updated
   updateSchema(schema) {
-    // console.log('SCHEMA UPDATED >>>>>>>>>>>>>>>>>>>> ' + schema.id);
     // Add the schema to the queue to be checked to see if the schema really changed
     state.queue.push(schema);
   },
