@@ -11,6 +11,11 @@ import Auth from '../auth';
 
 export const MS_TEAMS_URL = 'http://rancher-alerting-drivers-prom2teams.cattle-monitoring-system.svc:8089/v2/connector';
 export const ALIBABA_CLOUD_SMS_URL = 'http://rancher-alerting-drivers-sachet.cattle-monitoring-system.svc:9876/alert';
+export const WEBHOOK_TYPES = {
+  ALIBABA_CLOUD_SMS: 'alibaba-cloud-sms',
+  GENERIC:           'generic',
+  MS_TEAMS:          'ms-teams'
+};
 
 export default {
   components: {
@@ -50,24 +55,34 @@ export default {
       webhookOptons:        [
         {
           label: this.t('monitoringReceiver.webhook.add.generic'),
-          value: 'generic'
+          value: WEBHOOK_TYPES.GENERIC
         },
         {
           label: this.t('monitoringReceiver.webhook.add.msTeams'),
-          value: 'ms-teams'
+          value: WEBHOOK_TYPES.MS_TEAMS
         },
         {
           label: this.t('monitoringReceiver.webhook.add.alibabaCloudSms'),
-          value: 'alibaba-cloud-sms'
+          value: WEBHOOK_TYPES.ALIBABA_CLOUD_SMS
         }
       ],
       msTeamsUrl:          MS_TEAMS_URL,
       alibabaCloudSmsUrl:  ALIBABA_CLOUD_SMS_URL,
-      selectedWebhookType: 'generic',
+      selectedWebhookType: this.getTypeFromUrl(this.value.url),
       none:                '__[[NONE]]__',
     };
   },
   methods: {
+    getTypeFromUrl(url) {
+      switch (url) {
+      case MS_TEAMS_URL:
+        return WEBHOOK_TYPES.MS_TEAMS;
+      case ALIBABA_CLOUD_SMS_URL:
+        return WEBHOOK_TYPES.ALIBABA_CLOUD_SMS;
+      default:
+        return WEBHOOK_TYPES.GENERIC;
+      }
+    },
     updateUrlSecretName(name) {
       const existingKey = this.value.urlSecret?.key || '';
 
@@ -106,12 +121,15 @@ export default {
       switch (event) {
       case ('ms-teams'):
         this.value.url = this.msTeamsUrl;
+        this.selectedWebhookType = WEBHOOK_TYPES.MS_TEAMS;
         break;
       case ('alibaba-cloud-sms'):
         this.value.url = this.alibabaCloudSmsUrl;
+        this.selectedWebhookType = WEBHOOK_TYPES.ALIBABA_CLOUD_SMS;
         break;
       default:
         this.value.url = '';
+        this.selectedWebhookType = WEBHOOK_TYPES.GENERIC;
       }
     },
     updateWebhookUrl(val) {
