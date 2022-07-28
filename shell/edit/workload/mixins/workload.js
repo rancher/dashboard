@@ -42,6 +42,7 @@ import { UI_MANAGED } from '@shell/config/labels-annotations';
 import { removeObject } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
+import formRulesGenerator from '@shell/utils/validators/formRules';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -213,10 +214,18 @@ export default {
       podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
       savePvcHookName:   'savePvcHook',
       tabWeightMap:      TAB_WEIGHT_MAP,
+      fvFormRuleSets:      [{
+        path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
+      }],
+      fvReportedValidationPaths: ['spec']
     };
   },
 
   computed: {
+    tabErrors() {
+      return { general: this.fvGetPathErrors(['image'])?.length > 0 };
+    },
+
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -321,7 +330,13 @@ export default {
 
           return each;
         }),
-      ];
+      ].map((container) => {
+        const containerImageRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).containerImage;
+
+        container.error = containerImageRule(container);
+
+        return container;
+      });
     },
 
     flatResources: {
