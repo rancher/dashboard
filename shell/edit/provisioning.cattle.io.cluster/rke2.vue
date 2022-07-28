@@ -1219,7 +1219,7 @@ export default {
       const secret = await this.$store.dispatch('management/create', {
         type:     SECRET,
         metadata: {
-          namespace: 'fleet-default', generateName: 'harvesterconfig', annotations: { [CAPI_ANNOTATIONS.SECRET_AUTH]: clusterName }
+          namespace: 'fleet-default', generateName: 'harvesterconfig', annotations: { [CAPI_ANNOTATIONS.SECRET_AUTH]: clusterName, [CAPI_ANNOTATIONS.SECRET_WILL_DELETE]: 'true' }
         },
         data: { credential: base64Encode(kubeconfig) }
       });
