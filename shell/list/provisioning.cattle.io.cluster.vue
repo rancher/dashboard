@@ -8,45 +8,37 @@ import { MODE, _IMPORT } from '@shell/config/query-params';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import ManualRefresh from '@shell/mixins/manual-refresh';
 
 export default {
   components: {
     Banner, ResourceTable, Masthead
   },
-  mixins: [ManualRefresh],
 
   async fetch() {
-    if (!this.manualRefreshInit) {
-      this.watch = this.gatherManualRefreshData();
-      this.manualRefreshInit = true;
-      this.force = true;
-    }
-
     const hash = {
-      normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER, opt: { watch: this.watch, force: this.force } }),
-      mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { watch: this.watch, force: this.force } }),
-      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER, opt: { watch: this.watch, force: this.force } }),
+      normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
+      mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
     };
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-      hash.etcdSnapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT, opt: { watch: this.watch, force: this.force } });
+      hash.etcdSnapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-      hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE, opt: { watch: this.watch, force: this.force } });
+      hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-      hash.mgmtPools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL, opt: { watch: this.watch, force: this.force } });
+      hash.mgmtPools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-      hash.mgmtTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE, opt: { watch: this.watch, force: this.force } });
+      hash.mgmtTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
     }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-      hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT, opt: { watch: this.watch, force: this.force } });
+      hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
     }
 
     const res = await allHash(hash);
@@ -57,13 +49,10 @@ export default {
 
   data() {
     return {
-      resource:          CAPI.RANCHER_CLUSTER,
-      schema:            this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      mgmtClusters:      [],
-      rancherClusters:   [],
-      manualRefreshInit: false,
-      force:             false,
-      watch:             false
+      resource:        CAPI.RANCHER_CLUSTER,
+      schema:          this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      mgmtClusters:    [],
+      rancherClusters: [],
     };
   },
 

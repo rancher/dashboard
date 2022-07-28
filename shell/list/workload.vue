@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
-import ManualRefresh from '@shell/mixins/manual-refresh';
+import ManualRefresh from '@shell/mixins/resource-fetch';
 
 const schema = {
   id:         'workload',
@@ -41,28 +41,14 @@ export default {
         }
       });
 
-      if (!this.manualRefreshInit) {
-        this.watch = this.gatherManualRefreshData(allowedResources);
-        this.manualRefreshInit = true;
-        this.force = true;
-      }
-
       resources = await Promise.all(allowedResources.map((allowed) => {
-        return this.$store.dispatch('cluster/findAll', { type: allowed, opt: { watch: this.watch, force: this.force } });
+        return this.$fetchType(allowed, allowedResources);
       }));
     } else {
       const type = this.$route.params.resource;
 
-      this.resource = type;
-
-      if (!this.manualRefreshInit) {
-        this.watch = this.gatherManualRefreshData();
-        this.manualRefreshInit = true;
-        this.force = true;
-      }
-
       if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$store.dispatch('cluster/findAll', { type, opt: { watch: this.watch, force: this.force } });
+        const resource = await this.$fetchType(type);
 
         resources = [resource];
       }
@@ -107,6 +93,16 @@ export default {
 
       return out;
     },
+  },
+
+  // All of the resources that we will load that we need for the loading indicator
+  $loadingResources(route) {
+    const allTypes = route.params.resource === schema.id;
+
+    return {
+      loadResources:     allTypes ? Object.values(WORKLOAD_TYPES) : [route.params.resource],
+      loadIndeterminate: allTypes,
+    };
   },
 
   methods: {

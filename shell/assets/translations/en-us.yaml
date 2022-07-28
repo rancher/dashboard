@@ -6760,15 +6760,17 @@ performance:
       fetches the remaining resources by making additional requests for a page until all resources are retrieved. When enabled, resources will
       appear more quickly, but it may take slightly longer to load the entire set of resources, compared to the default behavior of loading
       all resources in one request. This applies to the main Kubernetes resources retrieved by the UI.
+    checkboxLabel: Enable incremental loading
+    inputLabel: Resource Threshold
   manualRefresh:
-    title: Manual refresh of data
+    label: Manual refresh of data
+    setting: This will only act on list views with item count above a certain threshold
     buttonTooltip: Click here to refresh list data
     description: |-
       When loading lists of resources with large amounts of data, the watchers running on the UI to make those elements reactive to auto-updates
       may make the system more susceptible to performance issues. If enabled, the list data will not auto-update but instead the user can manually
       trigger a refresh by pressing a button on the list view.
     checkboxLabel: Enable manual refresh of data for lists
-    checkboxDesc: This will only act on list views with item count above a certain threshold
     inputLabel: Items Threshold
 
 banner:

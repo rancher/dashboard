@@ -376,7 +376,7 @@ export default {
       return !this.loading && !this._didinit && this.rows?.length;
     },
 
-    ...mapGetters({ isTooManyItemsToAutoUpdate: 'manual-refresh/isTooManyItemsToAutoUpdate' }),
+    ...mapGetters({ isTooManyItemsToAutoUpdate: 'resource-fetch/isTooManyItemsToAutoUpdate' }),
     fullColspan() {
       let span = 0;
 
@@ -568,7 +568,7 @@ export default {
 
   methods: {
     refreshTableData() {
-      this.$store.dispatch('manual-refresh/doManualRefresh');
+      this.$store.dispatch('resource-fetch/doManualRefresh');
     },
     get,
     dasherize,
@@ -874,6 +874,7 @@ export default {
             v-tooltip="t('performance.manualRefresh.buttonTooltip')"
             type="button"
             class="btn role-primary refresh-btn"
+            :disabled="loading"
             @click="debouncedRefreshTableData"
           >
             <i

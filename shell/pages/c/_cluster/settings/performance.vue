@@ -99,32 +99,46 @@ export default {
         <div class="mt-40">
           <h2>{{ t('performance.incrementalLoad.label') }}</h2>
           <p>{{ t('performance.incrementalLoad.description') }}</p>
-          <Checkbox v-model="value.incrementalLoading.enabled" label="Enable incremental loading" :primary="true" />
+          <Checkbox
+            v-model="value.incrementalLoading.enabled"
+            :label="t('performance.incrementalLoad.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.incrementalLoading.enabled }">
               {{ t('performance.incrementalLoad.setting') }}
             </p>
-            <LabeledInput v-model="value.incrementalLoading.threshold" label="Resource Threshold" :disabled="!value.incrementalLoading.enabled" class="input" />
+            <LabeledInput
+              v-model="value.incrementalLoading.threshold"
+              :label="t('performance.incrementalLoad.inputLabel')"
+              :disabled="!value.incrementalLoading.enabled"
+              class="input"
+            />
           </div>
         </div>
         <!-- Enable manual refresh list views -->
         <div class="mt-40">
-          <h2 v-t="'performance.manualRefresh.title'" />
+          <h2 v-t="'performance.manualRefresh.label'" />
           <p>{{ t('performance.manualRefresh.description') }}</p>
           <Checkbox
             v-model="value.manualRefresh.enabled"
-            :description="t('performance.manualRefresh.checkboxDesc', {}, raw=true)"
             :label="t('performance.manualRefresh.checkboxLabel', {}, true)"
-            class="mb-20"
+            class="mt-10 mb-20"
+            :primary="true"
           />
-          <br>
-          <LabeledInput
-            v-model.number="value.manualRefresh.threshold"
-            :disabled="!value.manualRefresh.enabled"
-            :label="t('performance.manualRefresh.inputLabel')"
-            type="number"
-            min="0"
-          />
+          <div class="ml-20">
+            <p :class="{ 'text-muted': !value.manualRefresh.enabled }">
+              {{ t('performance.manualRefresh.setting', {}, raw=true) }}
+            </p>
+            <LabeledInput
+              v-model.number="value.manualRefresh.threshold"
+              :disabled="!value.manualRefresh.enabled"
+              :label="t('performance.manualRefresh.inputLabel')"
+              type="number"
+              min="0"
+            />
+          </div>
         </div>
       </div>
     </div>

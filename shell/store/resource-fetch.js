@@ -28,7 +28,7 @@ export const actions = {
     commit('updateIsTooManyItems', data);
   },
   doManualRefresh({ commit, dispatch, state }) {
-    // simple change to trigger request on the manual-refresh mixin....
+    // simple change to trigger request on the resource-fetch mixin....
     const finalData = new Date().getTime();
 
     commit('updateRefreshFlag', finalData);

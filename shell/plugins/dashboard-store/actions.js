@@ -171,6 +171,13 @@ export default {
       opt.url = `${ opt.url }?limit=100`;
       skipHaveAll = true;
 
+      // since we are forcing a request, clear the haveAll
+      // needed for the resource-fetch mixin, otherwise the incremental indicator
+      // won't pop-up again when manual refreshing
+      if (opt.force) {
+        commit('forgetType', type);
+      }
+
       dispatch('loadDataPage', { type, opt: pageFetchOpts });
     }
 
