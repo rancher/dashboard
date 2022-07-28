@@ -59,6 +59,7 @@ Cypress.Commands.add('getId', (id: string) => {
 /**
  * Override user preferences to default values, allowing to pass custom preferences for a deterministic scenario
  */
+// eslint-disable-next-line no-undef
 Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> = {}) => {
   return cy.intercept('/v1/userpreferences', (req) => {
     req.reply({
