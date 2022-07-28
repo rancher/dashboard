@@ -77,6 +77,49 @@ export default {
 
   loadSchemas,
 
+  // Load a page of data for a given type
+  // Used for incremental loading when enabled
+  async loadDataPage(ctx, { type, opt }) {
+    const { getters, commit, dispatch } = ctx;
+
+    type = getters.normalizeType(type);
+
+    const loadCount = getters['loadCounter'](type);
+
+    try {
+      const res = await dispatch('request', { opt, type });
+
+      const newLoadCount = getters['loadCounter'](type);
+
+      // Load count changed, so we changed page or started a new load
+      // after this page load was started, so don't continue with incremental load
+      if (loadCount !== newLoadCount) {
+        return;
+      }
+
+      commit('loadAdd', {
+        ctx,
+        type,
+        data: res.data,
+      });
+
+      if (res.pagination?.next) {
+        dispatch('loadDataPage', {
+          type,
+          opt: {
+            ...opt,
+            url: res.pagination?.next
+          }
+        });
+      } else {
+        // We have everything!
+        commit('setHaveAll', { type });
+      }
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  },
+
   async findAll(ctx, { type, opt }) {
     const {
       getters, commit, dispatch, rootGetters
@@ -114,6 +157,22 @@ export default {
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
     opt.depaginate = typeOptions?.depaginate;
+
+    let skipHaveAll = false;
+
+    if (opt.incremental) {
+      commit('incrementLoadCounter', type);
+
+      const pageFetchOpts = {
+        ...opt,
+        url: `${ opt.url }?limit=${ opt.incremental }`
+      };
+
+      opt.url = `${ opt.url }?limit=100`;
+      skipHaveAll = true;
+
+      dispatch('loadDataPage', { type, opt: pageFetchOpts });
+    }
 
     let streamStarted = false;
     let out;
@@ -189,7 +248,8 @@ export default {
         commit('loadAll', {
           ctx,
           type,
-          data: out.data
+          data: out.data,
+          skipHaveAll
         });
       }
     }
@@ -466,5 +526,9 @@ export default {
       console.warn(`Schema for ${ type } still unavailable... loading schemas again...`); // eslint-disable-line no-console
       await dispatch('loadSchemas', true);
     }
+  },
+
+  incrementLoadCounter({ commit }, resource) {
+    commit('incrementLoadCounter', resource);
   }
 };
