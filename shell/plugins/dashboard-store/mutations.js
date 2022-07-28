@@ -252,12 +252,11 @@ export default {
     });
   },
 
+  // Add a set of resources to the store for a given type
+  // Don't mark the 'haveAll' field - this is used for incremental loading
   loadAdd(state, { type, data: allLatest, ctx }) {
     const { getters } = ctx;
-    // const allLatest = await dispatch('findAll', { type, opt: { force: true, load, _NONE } });
-    // const allExisting = getters.all({type});
     const keyField = getters.keyFieldForType(type);
-    // const cache = state.types[type];
 
     allLatest.forEach((entry) => {
       const existing = state.types[type].map.get(entry[keyField]);

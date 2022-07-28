@@ -75,25 +75,14 @@ export default {
     return all;
   },
 
-  async loadFullData(ctx, { type, opt }) {
-    const {
-      getters, commit, dispatch, rootGetters
-    } = ctx;
+  // Load a page of data for a given type
+  // Used for incremental loading when enabled
+  async loadDataPage(ctx, { type, opt }) {
+    const { getters, commit, dispatch } = ctx;
 
-    opt = opt || {};
     type = getters.normalizeType(type);
 
-    const typeOptions = rootGetters['type-map/optionsFor'](type);
     const loadCount = getters['loadCounter'](type);
-
-    opt = opt || {};
-    opt.url = getters.urlFor(type, null, opt);
-    opt.depaginate = typeOptions?.depaginate;
-    opt.url += `?limit=${ opt.incremental }`;
-
-    if (opt.pageUrl) {
-      opt.url = opt.pageUrl;
-    }
 
     try {
       const res = await dispatch('request', { opt, type });
@@ -113,11 +102,11 @@ export default {
       });
 
       if (res.pagination?.next) {
-        dispatch('loadFullData', {
+        dispatch('loadDataPage', {
           type,
           opt: {
             ...opt,
-            pageUrl: res.pagination?.next
+            url: res.pagination?.next
           }
         });
       } else {
@@ -140,8 +129,6 @@ export default {
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
-
-    const savedOpt = { ...opt };
 
     if ( opt.force !== true && getters['haveAll'](type) ) {
       return getters.all(type);
@@ -174,10 +161,15 @@ export default {
     if (opt.incremental) {
       commit('incrementLoadCounter', type);
 
+      const pageFetchOpts = {
+        ...opt,
+        url: `${ opt.url }?limit=${ opt.incremental }`
+      };
+
       opt.url = `${ opt.url }?limit=100`;
       skipHaveAll = true;
 
-      dispatch('loadFullData', { type, opt: savedOpt });
+      dispatch('loadDataPage', { type, opt: pageFetchOpts });
     }
 
     let streamStarted = false;

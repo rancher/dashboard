@@ -39,6 +39,8 @@ export default {
         hasFetch = true;
       }
 
+      // If the custom component supports it, ask it what resources it loads, so we can
+      // use the incremental loading indicator when enabled
       if (component?.$loadingResources) {
         const { loadResources, loadIndeterminate } = component?.$loadingResources(this.$route, resource);
 
@@ -83,7 +85,6 @@ export default {
       // Provided by fetch later
       rows:              [],
       customTypeDisplay: null,
-      wantLoadIndicator: false,
       loadResources:     [resource],
       loadIndeterminate: false,
     };

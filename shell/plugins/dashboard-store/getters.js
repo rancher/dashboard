@@ -284,6 +284,9 @@ export default {
     return state.config.isClusterStore;
   },
 
+  // Increment the load counter for a resource type
+  // This is used for incremental loading do detect when a page changes occur of the a reload happend
+  // While a previous incremental loading operation is still in progress
   loadCounter: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 

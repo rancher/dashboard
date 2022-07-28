@@ -6757,8 +6757,8 @@ performance:
     setting: You can configure a threshold, below which, the default behvaiour will apply and above which, incremental loading will be used.
     description: |-
       When loading lists of resources, incremental loading initially fetches a small set of resources and then incrementally
-      fetches the remaining resources by making addtional questes for a page until all resources are retrieved. When enabled, resources will
-      appear more quickly, but it may take slightly longer to load the entire set of resources, compared to the default behaviour of loading
+      fetches the remaining resources by making additional requests for a page until all resources are retrieved. When enabled, resources will
+      appear more quickly, but it may take slightly longer to load the entire set of resources, compared to the default behavior of loading
       all resources in one request. This applies to the main Kubernetes resources retrieved by the UI.
 
 banner:

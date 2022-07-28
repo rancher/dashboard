@@ -45,6 +45,7 @@ export default {
       return 0;
     },
 
+    // Have we loaded all resources for the types that are needed
     haveAll() {
       return this.resources.reduce((acc, r) => {
         return acc && this.$store.getters[`${ this.inStore }/haveAll`](r);
@@ -69,6 +70,7 @@ export default {
       }, 0);
     },
 
+    // Width style to enable the progress bar style presentation
     width() {
       const progress = Math.ceil(100 * (this.count / this.total));
 
@@ -108,7 +110,7 @@ export default {
       top: 0;
 
       background-color: var(--link);
-      color: #fff;
+      color: var(--link-text);
       overflow: hidden;
       white-space: nowrap;
     }
