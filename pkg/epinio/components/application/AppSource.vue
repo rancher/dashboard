@@ -17,8 +17,7 @@ import { EpinioAppInfo } from './AppInfo.vue';
 
 interface Archive{
   tarball: string,
-  fileName: string,
-  fileType: 'zip' | 'tar' | 'tgz'| 'tbz' | 'txz',
+  fileName: string
 }
 
 interface Container {
