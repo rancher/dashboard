@@ -42,7 +42,7 @@ export default {
     stickyProps() {
       const isSticky = !!this.modalData?.modalSticky;
 
-      return !isSticky ? '' : ';display: flex; flex-direction: column;';
+      return !isSticky ? '' : 'display: flex; flex-direction: column; ';
     }
   },
 
