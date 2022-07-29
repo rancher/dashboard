@@ -13,11 +13,21 @@ export default {
   },
 
   async fetch() {
-    await allHash({
-      images:   this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }),
-      upgrades: this.$store.dispatch('harvester/findAll', { type: HCI.UPGRADE }),
-      nodes:    this.$store.dispatch('harvester/findAll', { type: NODE })
-    });
+    const hash = {};
+
+    if (this.$store.getters['harvester/schemaFor'](HCI.IMAGE)) {
+      hash.images = this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE });
+    }
+
+    if (this.$store.getters['harvester/schemaFor'](HCI.UPGRADE)) {
+      hash.upgrades = this.$store.dispatch('harvester/findAll', { type: HCI.UPGRADE });
+    }
+
+    if (this.$store.getters['harvester/schemaFor'](NODE)) {
+      hash.nodes = this.$store.dispatch('harvester/findAll', { type: NODE });
+    }
+
+    await allHash(hash);
   },
 
   computed: {
