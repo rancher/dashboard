@@ -7,7 +7,7 @@ title: What's New in 2.6
 
 ### Amazon Billing in the Marketplace
 
-- Now you can purchase support for Rancher through the AWS Marketplace 
+- Now you can purchase support for Rancher through the AWS Marketplace. 
 
 ### Ability to configure Azure AD with MSAL
 
@@ -24,9 +24,7 @@ title: What's New in 2.6
 
 ## New in 2.6.6
 
-### Bug fix for a performance problem
-
-- This addresses an issue spotted with traffic spikes from downstream clusters.
+- 2.6.6 was released to account for a major performance issue. The issue occurred when Rancher was attempting to control large volumes of traffic from downstream clusters. This mechanism was not handling disconnects properly and would result in indefinite locks but this is now fixed in this version.
 
 
 ## New in 2.6.5
