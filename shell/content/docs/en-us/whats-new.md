@@ -19,7 +19,7 @@ title: What's New in 2.6
 
 ### RKE2 Encryption Key Rotation
 
-- [need description]
+- RKE2 encrypts secret data at rest by default. You can now rotate the key used for this encryption for Rancher-provisioned RKE2 clusters with supported k8s versions.
 
 
 ## New in 2.6.6
