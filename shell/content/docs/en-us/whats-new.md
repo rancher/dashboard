@@ -11,11 +11,11 @@ title: What's New in 2.6
 
 ### Ability to configure Azure AD with MSAL
 
-- [need description]
+- Microsoft has deprecated the Azure AD Graph API that Rancher had been using for authentication via Azure AD. A configuration update is necessary to make sure users can still use Rancher with Azure AD. For more details see: https://rancher.com/docs/rancher/v2.6/en/admin-settings/authentication/azure-ad/#migrating-from-azure-ad-graph-api-to-microsoft-graph-api
 
 ### Kubernetes 1.24
 
-- Kubernetes 1.24 is now supported Kubernetes version for running Rancher as well for provisioned and imported RKE1/RKE2/k3s clusters.
+- Kubernetes 1.24 is now a supported Kubernetes version for running Rancher as well for provisioned and imported RKE1/RKE2/k3s clusters.
 
 ### RKE2 Encryption Key Rotation
 
@@ -26,7 +26,7 @@ title: What's New in 2.6
 
 ### Bug fix for a performance problem
 
-- Addresses a traffic spike from downstream clusters
+- This addresses an issue spotted with traffic spikes from downstream clusters.
 
 
 ## New in 2.6.5
