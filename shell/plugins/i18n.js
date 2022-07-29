@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { escapeHtml } from '../utils/string';
 
-function stringFor(store, key, args, raw = false) {
+function stringFor(store, key, args, raw = false, escapehtml = true) {
   const translation = store.getters['i18n/t'](key, args);
 
   let out;
@@ -19,8 +19,10 @@ function stringFor(store, key, args, raw = false) {
 
   if ( raw ) {
     return out;
-  } else {
+  } else if (escapehtml) {
     return escapeHtml(out);
+  } else {
+    return out;
   }
 }
 
@@ -81,10 +83,14 @@ Vue.component('t', {
       type:    [String, Object],
       default: 'span'
     },
+    escapehtml: {
+      type:    Boolean,
+      default: true,
+    }
   },
 
   render(h) {
-    const msg = stringFor(this.$store, this.k, this.$attrs, this.raw);
+    const msg = stringFor(this.$store, this.k, this.$attrs, this.raw, this.escapehtml);
 
     if ( this.raw ) {
       return h(
