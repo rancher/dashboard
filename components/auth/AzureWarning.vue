@@ -35,7 +35,7 @@ export default {
       const endpoint = this.authConfig?.graphEndpoint;
 
       return (
-        get(this.authConfig, `annotations."${ AZURE_MIGRATED }"`) !== 'true' &&
+        get(this.authConfig, `_annotations."${ AZURE_MIGRATED }"`) !== 'true' &&
         this.authConfig.enabled
       );
     }
