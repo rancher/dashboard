@@ -1,6 +1,6 @@
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store/index';
-
 import {
+  createWorker,
   mutations as subscribeMutations,
   actions as subscribeActions,
   getters as subscribeGetters
@@ -65,7 +65,10 @@ export default (config) => {
   }
 
   return coreStore(
-    SteveFactory(config),
+    SteveFactory(config.namespace, config.baseUrl),
     config,
+    (store, ctx) => {
+      createWorker(store, ctx);
+    }
   );
 };
