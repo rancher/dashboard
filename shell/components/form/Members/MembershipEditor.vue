@@ -48,6 +48,11 @@ export default {
       type:     Function,
       default:  null,
     },
+
+    modalSticky: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   async fetch() {
@@ -132,7 +137,11 @@ export default {
 
   methods: {
     addMember() {
-      this.$store.dispatch('cluster/promptModal', { component: this.addMemberDialogName, resources: [this.onAddMember] });
+      this.$store.dispatch('cluster/promptModal', {
+        component:   this.addMemberDialogName,
+        resources:   [this.onAddMember],
+        modalSticky: this.modalSticky
+      });
     },
 
     onAddMember(bindings) {
