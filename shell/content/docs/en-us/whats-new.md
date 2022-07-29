@@ -7,7 +7,7 @@ title: What's New in 2.6
 
 ### Amazon Billing in the Marketplace
 
-- Now you can purchase support for Rancher through the AWS marketplace 
+- Now you can purchase support for Rancher through the AWS Marketplace 
 
 ### Ability to configure Azure AD with MSAL
 
