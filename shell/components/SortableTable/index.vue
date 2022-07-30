@@ -333,6 +333,18 @@ export default {
       this.searchQuery = q;
     }, 200),
 
+    groupBy(neu, old) {
+      if (neu !== old) {
+        this.$nextTick(() => this.updateLiveAndDelayed());
+      }
+    },
+
+    namespaces(neu, old) {
+      if (neu !== old) {
+        this.$nextTick(() => this.updateLiveAndDelayed());
+      }
+    },
+
     page(neu, old) {
       if (neu !== old) {
         this.$nextTick(() => this.updateLiveAndDelayed());
@@ -349,6 +361,10 @@ export default {
   },
 
   computed: {
+    namespaces() {
+      return this.$store.getters['activeNamespaceCache']();
+    },
+    
     initalLoad() {
       return !this.loading && !this._didinit && this.rows?.length;
     },
