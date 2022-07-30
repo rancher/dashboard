@@ -79,11 +79,15 @@ const appServer = server.listen(PORT);
 console.log('Running Dashboard web server on port ' + PORT);
 
 // Just proxy web sockets for v1 and v3 endpoints
-appServer.on('upgrade', function(a, b, c, d) {
-  if (a.url.startsWith('/v1')) {
-    return proxies['/v1'].upgrade(a, b, c, d);
+appServer.on('upgrade', function(req, socket, head) {
+  if (req.url.startsWith('/v1')) {
+    return proxies['/v1'].upgrade(req, socket, head);
+  } else if (req.url.startsWith('/v3')) {
+    return proxies['/v3'].upgrade(req, socket, head);
+  } else if (req.url.startsWith('/k8s/')) {
+    return proxies['/k8s'].upgrade(req, socket, head);
   } else {
-    return proxies['/v3'].upgrade(a, b, c, d);
+    console.log('Unknown Web socket upgrade request for ' + req.url);
   }
 });
 
