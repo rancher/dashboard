@@ -681,6 +681,9 @@ export default function(dir, _appConfig) {
     proxyReq.setHeader('x-forwarded-proto', 'https');
     // console.log(proxyReq.getHeaders());
 
+    console.log('onProxy');
+    console.log(proxyReq.getHeaders());
+
     socket.on('error', (err) => {
       console.error('Proxy WS Error:', err); // eslint-disable-line no-console
     });
