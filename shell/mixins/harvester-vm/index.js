@@ -1250,7 +1250,13 @@ export default {
           }
         });
       }
-    }
+    },
+
+    updateReserved(value = {}) {
+      const { memory } = value;
+
+      this.$set(this, 'reservedMemory', memory);
+    },
   },
 
   watch: {

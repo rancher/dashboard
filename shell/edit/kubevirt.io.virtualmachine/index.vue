@@ -10,13 +10,13 @@ import CruResource from '@shell/components/CruResource';
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import UnitInput from '@shell/components/form/UnitInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
 import SSHKey from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineSSHKey';
 import Volume from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import CpuMemory from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
+import Reserved from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineReserved';
 import CloudConfig from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import NodeScheduling from '@shell/components/form/NodeScheduling';
 import AccessCredentials from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineAccessCredentials';
@@ -45,7 +45,6 @@ export default {
     CruResource,
     LabeledInput,
     LabeledSelect,
-    UnitInput,
     NameNsDescription,
     Volume,
     SSHKey,
@@ -54,6 +53,7 @@ export default {
     CloudConfig,
     NodeScheduling,
     AccessCredentials,
+    Reserved,
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -544,17 +544,11 @@ export default {
               </div>
             </div>
 
-            <div class="col span-6">
-              <UnitInput
-                v-model="reservedMemory"
-                v-int-number
-                :label="t('harvester.virtualMachine.input.reservedMemory')"
-                :mode="mode"
-                :input-exponent="2"
-                :increment="1024"
-                :output-modifier="true"
-              />
-            </div>
+            <Reserved
+              :reserved-memory="reservedMemory"
+              :mode="mode"
+              @updateReserved="updateReserved"
+            />
           </div>
 
           <CloudConfig
