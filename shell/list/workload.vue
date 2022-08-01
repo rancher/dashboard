@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
-import ManualRefresh from '@shell/mixins/resource-fetch';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 const schema = {
   id:         'workload',
@@ -16,7 +16,7 @@ const schema = {
 export default {
   name:       'ListWorkload',
   components: { ResourceTable },
-  mixins:     [ManualRefresh],
+  mixins:     [ResourceFetch],
 
   async fetch() {
     try {
@@ -96,11 +96,20 @@ export default {
   },
 
   // All of the resources that we will load that we need for the loading indicator
-  $loadingResources(route) {
+  $loadingResources(route, store) {
     const allTypes = route.params.resource === schema.id;
 
+    const allowedResources = [];
+
+    Object.values(WORKLOAD_TYPES).forEach((type) => {
+      // You may not have RBAC to see some of the types
+      if (store.getters['cluster/schemaFor'](type) ) {
+        allowedResources.push(type);
+      }
+    });
+
     return {
-      loadResources:     allTypes ? Object.values(WORKLOAD_TYPES) : [route.params.resource],
+      loadResources:     allTypes ? allowedResources : [route.params.resource],
       loadIndeterminate: allTypes,
     };
   },

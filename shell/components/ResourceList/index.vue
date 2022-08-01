@@ -3,7 +3,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
-import ManualRefresh from '@shell/mixins/resource-fetch';
+import ResourceFetch, { TYPES_RESTRICTED } from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
@@ -12,7 +12,7 @@ export default {
     Masthead,
     ResourceLoadingIndicator
   },
-  mixins: [ManualRefresh],
+  mixins: [ResourceFetch],
 
   async fetch() {
     const store = this.$store;
@@ -41,7 +41,7 @@ export default {
       // If the custom component supports it, ask it what resources it loads, so we can
       // use the incremental loading indicator when enabled
       if (component?.$loadingResources) {
-        const { loadResources, loadIndeterminate } = component?.$loadingResources(this.$route, resource);
+        const { loadResources, loadIndeterminate } = component?.$loadingResources(this.$route, this.$store);
 
         this.loadResources = loadResources;
         this.loadIndeterminate = loadIndeterminate;
@@ -55,7 +55,11 @@ export default {
         return;
       }
 
-      this.rows = await this.$fetchType(resource);
+      if (TYPES_RESTRICTED.includes(resource)) {
+        this.rows = await this.$fetchType(resource);
+      } else {
+        this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource });
+      }
     }
   },
 

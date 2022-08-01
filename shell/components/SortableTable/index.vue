@@ -5,6 +5,7 @@ import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
+import AsyncButton from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
@@ -60,7 +61,7 @@ export const COLUMN_BREAKPOINTS = {
 export default {
   name:       'SortableTable',
   components: {
-    THead, Checkbox, ActionDropdown
+    THead, Checkbox, AsyncButton, ActionDropdown
   },
   mixins: [
     filtering,
@@ -297,6 +298,9 @@ export default {
 
   data() {
     return {
+      asyncBtnWaiting:     'waiting',
+      asyncBtnAction:      'action',
+      currentPhase:        'waiting',
       expanded:            {},
       searchQuery:         '',
       eventualSearchQuery: '',
@@ -360,6 +364,11 @@ export default {
         this._didinit = true;
         this.$nextTick(() => this.updateLiveAndDelayed());
       }
+    },
+
+    isManualRefreshLoading(neu) {
+      this.currentPhase = neu ? this.asyncBtnWaiting : this.asyncBtnAction;
+      this.$nextTick(() => this.updateLiveAndDelayed());
     }
   },
 
@@ -372,6 +381,7 @@ export default {
       return this.$store.getters['activeNamespaceCache'];
     },
 
+    ...mapGetters({ isManualRefreshLoading: 'resource-fetch/manualRefreshIsLoading' }),
     initalLoad() {
       return !this.loading && !this._didinit && this.rows?.length;
     },
@@ -869,19 +879,13 @@ export default {
         </div>
         <div v-if="isTooManyItemsToAutoUpdate || $slots['header-middle'] && $slots['header-middle'].length" class="middle">
           <slot name="header-middle" />
-          <button
+          <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
             v-tooltip="t('performance.manualRefresh.buttonTooltip')"
-            type="button"
-            class="btn role-primary refresh-btn"
-            :disabled="loading"
+            mode="refresh"
+            :current-phase="currentPhase"
             @click="debouncedRefreshTableData"
-          >
-            <i
-              class="icon icon-backup"
-              :class="{ 'animate': loading }"
-            />
-          </button>
+          />
         </div>
 
         <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">

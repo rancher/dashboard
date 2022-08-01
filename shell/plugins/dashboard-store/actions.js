@@ -112,10 +112,17 @@ export default {
           }
         });
       } else {
-        // We have everything!
+      // We have everything!
+        if (opt.hasManualRefresh) {
+          dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+        }
         commit('setHaveAll', { type });
       }
     } catch (e) {
+      if (opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+      }
+
       return Promise.reject(e);
     }
   },
@@ -133,6 +140,18 @@ export default {
     }
 
     if ( opt.force !== true && getters['haveAll'](type) ) {
+      const args = {
+        type,
+        revision:  '',
+        namespace: opt.watchNamespace
+      };
+
+      // if we are coming from a resource that wasn't watched
+      // but for which we have results already, just return the results but start watching it
+      if (opt.watch !== false && !getters.watchStarted(args)) {
+        dispatch('watch', args);
+      }
+
       return getters.all(type);
     }
 
@@ -160,14 +179,24 @@ export default {
 
     let skipHaveAll = false;
 
+    // if it's incremental loading, we do two parallel requests
+    // on for a limit of 100, to quickly show data
+    // another one with 1st page of the subset of the resource we are fetching
+    // the default is 4 pages, but it can be changed on mixin/resource-fetch.js
     if (opt.incremental) {
       commit('incrementLoadCounter', type);
+
+      if (opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
+      }
 
       const pageFetchOpts = {
         ...opt,
         url: `${ opt.url }?limit=${ opt.incremental }`
       };
 
+      // this is where we "hijack" the limit for the dispatch('request') some lines below
+      // and therefore have 2 initial requests in parallel
       opt.url = `${ opt.url }?limit=100`;
       skipHaveAll = true;
 
@@ -178,7 +207,7 @@ export default {
         commit('forgetType', type);
       }
 
-      dispatch('loadDataPage', { type, opt: pageFetchOpts });
+      await dispatch('loadDataPage', { type, opt: pageFetchOpts });
     }
 
     let streamStarted = false;
@@ -207,7 +236,15 @@ export default {
     };
 
     try {
+      if (!opt.incremental && opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
+      }
+
       const res = await dispatch('request', { opt, type });
+
+      if (!opt.incremental && opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+      }
 
       if ( streamStarted ) {
         // Flush any remaining entries left over that didn't get loaded by onData
@@ -224,6 +261,10 @@ export default {
         out = res;
       }
     } catch (e) {
+      if (!opt.incremental && opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+      }
+
       return Promise.reject(e);
     }
 

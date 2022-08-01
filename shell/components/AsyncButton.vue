@@ -88,11 +88,21 @@ export default Vue.extend({
     size: {
       type:    String,
       default: '',
+    },
+
+    currentPhase: {
+      type:    String,
+      default: ACTION,
     }
   },
 
   data(): { phase: string, timer?: NodeJS.Timeout} {
-    return { phase: ACTION };
+    return { phase: this.currentPhase };
+  },
+  watch: {
+    currentPhase(neu) {
+      this.phase = neu;
+    }
   },
 
   computed: {

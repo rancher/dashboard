@@ -85,12 +85,12 @@ export default {
     <div class="inner">
       <div class="resource-loader">
         <div class="rl-bg">
-          <i class="icon icon-spinner icon-spin" /><span>Loading <span v-if="!indeterminate">{{ count }} / {{ total }}</span></span>
+          <i class="icon icon-spinner icon-spin" /><span>{{ t( 'resourceLoadingIndicator.loading' ) }} <span v-if="!indeterminate">{{ count }} / {{ total }}</span></span>
         </div>
       </div>
       <div class="resource-loader" :style="{width}">
         <div class="rl-fg">
-          <i class="icon icon-spinner icon-spin" /><span>Loading <span v-if="!indeterminate">{{ count }} / {{ total }}</span></span>
+          <i class="icon icon-spinner icon-spin" /><span>{{ t( 'resourceLoadingIndicator.loading' ) }} <span v-if="!indeterminate">{{ count }} / {{ total }}</span></span>
         </div>
       </div>
     </div>

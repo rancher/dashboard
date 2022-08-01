@@ -14,7 +14,7 @@ const DEFAULT_PERF_SETTING = {
   },
   manualRefresh: {
     enabled:   false,
-    threshold: 1,
+    threshold: 2500,
   }
 };
 
@@ -33,9 +33,10 @@ export default {
     } catch (e) {
       this.uiPerfSetting = await this.$store.dispatch('management/create', { type: MANAGEMENT.SETTING }, { root: true });
       // Setting does not exist - create a new one
-      this.uiPerfSetting.value = JSON.parse(JSON.stringify(DEFAULT_PERF_SETTING));
+      this.uiPerfSetting.value = JSON.stringify(DEFAULT_PERF_SETTING);
       this.uiPerfSetting.metadata = { name: SETTING.UI_PERFORNMANCE };
     }
+
     const sValue = this.uiPerfSetting?.value || JSON.stringify(DEFAULT_PERF_SETTING);
 
     this.value = JSON.parse(sValue);
@@ -55,25 +56,12 @@ export default {
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
   },
-  watch: {
-    uiBannerSetting(neu) {
-      if (neu?.value && neu.value !== '') {
-        try {
-          const parsedBanner = JSON.parse(neu.value);
-
-          this.bannerVal = this.checkOrUpdateLegacyUIBannerSetting(parsedBanner);
-        } catch {}
-      }
-    }
-  },
   methods: {
     async save(btnCB) {
       this.uiPerfSetting.value = JSON.stringify(this.value);
       this.errors = [];
       try {
-        await Promise.all([
-          this.uiPerfSetting.save()
-        ]);
+        await this.uiPerfSetting.save();
         btnCB(true);
       } catch (err) {
         this.errors.push(err);
@@ -99,6 +87,10 @@ export default {
         <div class="mt-40">
           <h2>{{ t('performance.incrementalLoad.label') }}</h2>
           <p>{{ t('performance.incrementalLoad.description') }}</p>
+          <p>
+            <span class="underline">{{ t('performance.incrementalLoad.applyText') }}</span>
+            <span>{{ t('performance.incrementalLoad.applyList') }}</span>
+          </p>
           <Checkbox
             v-model="value.incrementalLoading.enabled"
             :label="t('performance.incrementalLoad.checkboxLabel')"
@@ -114,6 +106,8 @@ export default {
               :label="t('performance.incrementalLoad.inputLabel')"
               :disabled="!value.incrementalLoading.enabled"
               class="input"
+              type="number"
+              min="0"
             />
           </div>
         </div>
@@ -121,20 +115,25 @@ export default {
         <div class="mt-40">
           <h2 v-t="'performance.manualRefresh.label'" />
           <p>{{ t('performance.manualRefresh.description') }}</p>
+          <p>
+            <span class="underline">{{ t('performance.incrementalLoad.applyText') }}</span>
+            <span>{{ t('performance.incrementalLoad.applyList') }}</span>
+          </p>
           <Checkbox
             v-model="value.manualRefresh.enabled"
-            :label="t('performance.manualRefresh.checkboxLabel', {}, true)"
+            :label="t('performance.manualRefresh.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.manualRefresh.enabled }">
-              {{ t('performance.manualRefresh.setting', {}, raw=true) }}
+              {{ t('performance.manualRefresh.setting') }}
             </p>
             <LabeledInput
               v-model.number="value.manualRefresh.threshold"
-              :disabled="!value.manualRefresh.enabled"
               :label="t('performance.manualRefresh.inputLabel')"
+              :disabled="!value.manualRefresh.enabled"
+              class="input"
               type="number"
               min="0"
             />
@@ -164,6 +163,10 @@ export default {
     P {
       line-height: 1.25;
       margin-bottom: 10px;
+    }
+
+    .underline {
+      text-decoration: underline;
     }
   }
   .input {

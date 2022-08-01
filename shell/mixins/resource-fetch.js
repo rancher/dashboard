@@ -1,9 +1,25 @@
 import { mapGetters } from 'vuex';
-import { COUNT, MANAGEMENT } from '@shell/config/types';
+import {
+  COUNT, MANAGEMENT, POD, WORKLOAD_TYPES, WORKLOAD, SECRET
+} from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
+
+// restrict advanced features of manual refresh and incremental loading to these resource types
+export const TYPES_RESTRICTED = [
+  SECRET,
+  POD,
+  WORKLOAD_TYPES.DEPLOYMENT,
+  WORKLOAD_TYPES.CRON_JOB,
+  WORKLOAD_TYPES.DAEMON_SET,
+  WORKLOAD_TYPES.JOB,
+  WORKLOAD_TYPES.STATEFUL_SET,
+  WORKLOAD_TYPES.REPLICA_SET,
+  WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+  WORKLOAD
+];
 
 export default {
   data() {
@@ -25,6 +41,7 @@ export default {
       counts:                     {},
       multipleResources:          [],
       // manual refresh vars
+      hasManualRefresh:            false,
       watch:                      true,
       isTooManyItemsToAutoUpdate: false,
       force:                      false,
@@ -34,14 +51,17 @@ export default {
     };
   },
   beforeDestroy() {
-    // clear up the store to make sure we aren't storing anything that might interfere with the next rendered list view
-    this.$store.dispatch('resource-fetch/clearData');
+    // make sure this only runs once, for the initialized instance
+    if (this.init) {
+      // clear up the store to make sure we aren't storing anything that might interfere with the next rendered list view
+      this.$store.dispatch('resource-fetch/clearData');
 
-    const inStore = this.$store.getters['currentStore'](COUNT);
+      const inStore = this.$store.getters['currentStore'](COUNT);
 
-    this.fetchedResourceType.forEach((type) => {
-      this.$store.dispatch(`${ inStore }/incrementLoadCounter`, type);
-    });
+      this.fetchedResourceType.forEach((type) => {
+        this.$store.dispatch(`${ inStore }/incrementLoadCounter`, type);
+      });
+    }
   },
 
   computed: { ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }) },
@@ -64,6 +84,10 @@ export default {
         if (!this.watch) {
           this.force = true;
         }
+
+        if (this.isTooManyItemsToAutoUpdate) {
+          this.hasManualRefresh = true;
+        }
       }
 
       if (!this.fetchedResourceType.includes(type)) {
@@ -73,9 +97,10 @@ export default {
       return this.$store.dispatch(`${ inStore }/findAll`, {
         type,
         opt: {
-          incremental: this.incremental,
-          watch:       this.watch,
-          force:       this.force
+          incremental:      this.incremental,
+          watch:            this.watch,
+          force:            this.force,
+          hasManualRefresh: this.hasManualRefresh
         }
       });
     },
