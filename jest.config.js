@@ -27,7 +27,7 @@ module.exports = {
   collectCoverage:     false,
   collectCoverageFrom: [
     '<rootDir>/shell/**/*.{vue,ts,js}',
-    '<rootDir>/pkg/rancher-components/src/**/*.{vue,ts,js}',
+    '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
     // '!<rootDir>/components/RancherProviderIcon.vue',
   ],
   modulePathIgnorePatterns: ['<rootDir>/cypress/'],
