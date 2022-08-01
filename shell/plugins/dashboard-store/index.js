@@ -29,7 +29,7 @@ export const coreStoreState = (namespace, baseUrl, isClusterStore) => ({
   types: {},
 });
 
-export default (vuexModule, config, init) => {
+export default (vuexModule, config) => {
   const namespace = config.namespace || '';
 
   return function(store) {
@@ -60,10 +60,6 @@ export default (vuexModule, config, init) => {
         return obj[key];
       }
     });
-
-    if (init) {
-      init(store, ctx);
-    }
 
     // Turn all the objects in the store from the server into proxies
     const state = fromServer?.state?.[namespace];
