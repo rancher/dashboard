@@ -34,46 +34,48 @@ export async function handleSpoofedRequest(rootGetters, schemaStore, opt, produc
   }
 }
 
+export async function loadSchemas(ctx, watch = true) {
+  const {
+    getters, dispatch, commit, rootGetters
+  } = ctx;
+  const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
+  const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
+
+  if (Array.isArray(res.data)) {
+    res.data = res.data.concat(spoofedTypes);
+  } else if (Array.isArray(res)) {
+    res.data = res.concat(spoofedTypes);
+  }
+
+  res.data.forEach((schema) => {
+    schema._id = normalizeType(schema.id);
+    schema._group = normalizeType(schema.attributes?.group);
+  });
+
+  commit('loadAll', {
+    ctx,
+    type: SCHEMA,
+    data: res.data
+  });
+
+  if ( watch !== false ) {
+    dispatch('watch', {
+      type:     SCHEMA,
+      revision: res.revision
+    });
+  }
+
+  const all = getters.all(SCHEMA);
+
+  return all;
+}
+
 export default {
   request() {
     throw new Error('Not Implemented');
   },
 
-  async loadSchemas(ctx, watch = true) {
-    const {
-      getters, dispatch, commit, rootGetters
-    } = ctx;
-    const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
-    const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
-
-    if (Array.isArray(res.data)) {
-      res.data = res.data.concat(spoofedTypes);
-    } else if (Array.isArray(res)) {
-      res.data = res.concat(spoofedTypes);
-    }
-
-    res.data.forEach((schema) => {
-      schema._id = normalizeType(schema.id);
-      schema._group = normalizeType(schema.attributes?.group);
-    });
-
-    commit('loadAll', {
-      ctx,
-      type: SCHEMA,
-      data: res.data
-    });
-
-    if ( watch !== false ) {
-      dispatch('watch', {
-        type:     SCHEMA,
-        revision: res.revision
-      });
-    }
-
-    const all = getters.all(SCHEMA);
-
-    return all;
-  },
+  loadSchemas,
 
   async findAll(ctx, { type, opt }) {
     const {
