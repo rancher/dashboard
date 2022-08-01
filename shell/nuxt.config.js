@@ -453,6 +453,13 @@ export default function(dir, _appConfig) {
           },
         });
 
+        // Ensure there is a fallback for browsers that don't support web workers
+        config.module.rules.unshift({
+          test:    /web-worker.[a-z-]+.js/i,
+          loader:  'worker-loader',
+          options: { inline: 'fallback' },
+        });
+
         // Prevent warning in log with the md files in the content folder
         config.module.rules.push({
           test:    /\.md$/,

@@ -15,7 +15,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 
 // eslint-disable-next-line
-import Worker from 'worker-loader!./worker'
+import Worker from './web-worker.steve-sub-worker.js'
 import * as Comlink from 'comlink';
 
 export const NO_WATCH = 'NO_WATCH';
