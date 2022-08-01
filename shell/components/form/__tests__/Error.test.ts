@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import Error from '@shell/components/form/Error.vue';
 
 type Rule = (val?: string) => undefined | string;
@@ -47,10 +47,10 @@ describe('component: Error', () => {
     const value = 'testValue';
     const rules: Rule[] = [() => 'testError1', () => 'testError2'];
 
-    const wrapper = mount(Error, { propsData: { value, rules } });
+    const wrapper:any = shallowMount(Error, { propsData: { value, rules } });
 
-    const element = wrapper.find('[data-testid="error-span"]');
+    const validationMessage = wrapper.vm.validationMessage;
 
-    expect(element.text()).toBe('testError1, testError2');
+    expect(validationMessage).toBe('testError1, testError2');
   });
 });
