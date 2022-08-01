@@ -11,6 +11,7 @@ import { sortBy } from '@shell/utils/sort';
 import debounce from 'lodash/debounce';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { getUniqueLabelKeys } from '@shell/utils/array';
+import { NAME as HARVESTER } from '@shell/config/product/harvester';
 
 export default {
   components: {
@@ -36,10 +37,20 @@ export default {
       default: () => []
     },
 
-    hasNodesAndNs: {
+    overrideStore: {
+      type:    String,
+      default: ''
+    },
+
+    hasNodes: {
       type:    Boolean,
       default: true
-    }
+    },
+
+    hasNamespaces: {
+      type:    Boolean,
+      default: true
+    },
   },
 
   data() {
@@ -98,8 +109,13 @@ export default {
     },
 
     allNamespaces() {
-      const inStore = this.$store.getters['currentStore'](NAMESPACE);
-      const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
+      const inStore = this.overrideStore || this.$store.getters['currentStore'](NAMESPACE);
+      let choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
+
+      if (this.overrideStore === HARVESTER) {
+        choices = choices.filter(item => !item.isSystem);
+      }
+
       const out = sortBy(choices.map((obj) => {
         return {
           label: obj.nameDisplay,
@@ -190,7 +206,12 @@ export default {
     },
 
     updateNamespaces(term, namespaces) {
-      const nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
+      let nsArray = namespaces;
+
+      // namespaces would be String if there is no namespace
+      if (!this.hasNamespaces) {
+        nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
+      }
 
       this.$set(term, 'namespaces', nsArray);
       this.queueUpdate();
@@ -250,13 +271,14 @@ export default {
           <div class="spacer"></div>
           <div v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')" class="row mb-20">
             <LabeledSelect
-              v-if="hasNodesAndNs"
+              v-if="hasNamespaces"
               v-model="props.row.value.namespaces"
               :mode="mode"
               :multiple="true"
               :taggable="true"
               :options="allNamespaces"
               :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+              @input="updateNamespaces(props.row.value, props.row.value.namespaces)"
             />
             <LabeledInput
               v-else
@@ -280,7 +302,7 @@ export default {
           <div class="row">
             <div class="col span-12">
               <LabeledSelect
-                v-if="hasNodesAndNs"
+                v-if="hasNodes"
                 v-model="props.row.value.topologyKey"
                 :taggable="true"
                 :searchable="true"
