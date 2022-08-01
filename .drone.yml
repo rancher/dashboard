@@ -5,7 +5,6 @@ name: test
 trigger:
   event:
   - push
-  - pull_request
   - tag
 
 platform:
