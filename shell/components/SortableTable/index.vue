@@ -362,9 +362,9 @@ export default {
 
   computed: {
     namespaces() {
-      return this.$store.getters['activeNamespaceCache']();
+      return this.$store.getters['activeNamespaceCache'];
     },
-    
+
     initalLoad() {
       return !this.loading && !this._didinit && this.rows?.length;
     },
