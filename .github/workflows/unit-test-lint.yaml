@@ -20,6 +20,12 @@ jobs:
       - name: Run tests
         run: yarn test:ci
 
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: run_${{github.run_number}}_id_${{github.run_id}}_coverage
+          path: coverage
+
   lint:
     runs-on: ubuntu-latest
     steps:
