@@ -23,7 +23,7 @@ let PORT = process.env.PORT || '5443';
 PORT = parseInt(PORT, 10);
 
 if (isNaN(PORT)) {
-  console.log('Invalid port');
+  console.log('Invalid port'); // eslint-disable-line no-console
   process.exit(1);
 }
 
@@ -70,7 +70,7 @@ app.use(express.static(dist));
 const server = https.createServer(options, app);
 const appServer = server.listen(PORT);
 
-console.log(`Running Dashboard web server on port ${ PORT }`);
+console.log(`Running Dashboard web server on port ${ PORT }`); // eslint-disable-line no-console
 
 // Just proxy web sockets for v1 and v3 endpoints
 appServer.on('upgrade', (req, socket, head) => {
@@ -81,7 +81,7 @@ appServer.on('upgrade', (req, socket, head) => {
   } else if (req.url.startsWith('/k8s/')) {
     return proxies['/k8s'].upgrade(req, socket, head);
   } else {
-    console.log(`Unknown Web socket upgrade request for ${ req.url }`);
+    console.log(`Unknown Web socket upgrade request for ${ req.url }`); // eslint-disable-line no-console
   }
 });
 
