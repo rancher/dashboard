@@ -12,12 +12,6 @@ const options = {
   cert: fs.readFileSync(path.resolve(base, 'cert/server.crt'))
 };
 
-const mimeTypes = {
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.html': 'text/html'
-};
-
 let api = process.env.API || 'http://localhost:8989';
 
 if ( !api.startsWith('http') ) {
@@ -26,10 +20,10 @@ if ( !api.startsWith('http') ) {
 
 let PORT = process.env.PORT || '5443';
 
-PORT = parseInt(PORT, 10)
+PORT = parseInt(PORT, 10);
 
 if (isNaN(PORT)) {
-  console.log('Invalid port')
+  console.log('Invalid port');
   process.exit(1);
 }
 
@@ -76,10 +70,10 @@ app.use(express.static(dist));
 const server = https.createServer(options, app);
 const appServer = server.listen(PORT);
 
-console.log('Running Dashboard web server on port ' + PORT);
+console.log(`Running Dashboard web server on port ${ PORT }`);
 
 // Just proxy web sockets for v1 and v3 endpoints
-appServer.on('upgrade', function(req, socket, head) {
+appServer.on('upgrade', (req, socket, head) => {
   if (req.url.startsWith('/v1')) {
     return proxies['/v1'].upgrade(req, socket, head);
   } else if (req.url.startsWith('/v3')) {
@@ -87,7 +81,7 @@ appServer.on('upgrade', function(req, socket, head) {
   } else if (req.url.startsWith('/k8s/')) {
     return proxies['/k8s'].upgrade(req, socket, head);
   } else {
-    console.log('Unknown Web socket upgrade request for ' + req.url);
+    console.log(`Unknown Web socket upgrade request for ${ req.url }`);
   }
 });
 
@@ -100,8 +94,8 @@ function proxyMetaOpts(target) {
     target,
     followRedirects: true,
     secure:          !dev,
-    ws:           false,
-    changeOrigin: true,    
+    ws:              false,
+    changeOrigin:    true,
     onProxyReq,
     onProxyReqWs,
     onError,
@@ -112,9 +106,9 @@ function proxyMetaOpts(target) {
 function proxyOpts(target) {
   return {
     target,
-    secure: !devPorts,
+    secure:       !devPorts,
     ws:           false,
-    changeOrigin: true,    
+    changeOrigin: true,
     onProxyReq,
     onProxyReqWs,
     onError,
@@ -147,7 +141,7 @@ function onProxyReq(proxyReq, req) {
 
 function onProxyReqWs(proxyReq, req, socket, options, head) {
   req.headers.origin = options.target.href;
-  proxyReq.setHeader('origin', options.target.href + '/');
+  proxyReq.setHeader('origin', `${ options.target.href }/`);
   proxyReq.setHeader('x-api-host', req.headers['host']);
   proxyReq.setHeader('x-forwarded-proto', 'https');
 

@@ -31,7 +31,7 @@ fi
 
 rm -rf ui
 mkdir -p ui
-cp -R ${DIR}/dist/ ./ui/
+cp -R ${DIR}/dist/* ./ui
 
 EXE=$(which node)
 
