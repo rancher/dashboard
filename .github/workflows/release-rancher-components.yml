@@ -30,3 +30,14 @@ jobs:
 
     - name: Unit Test
       run: yarn test:ci ./pkg/rancher-components
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+        persist-credentials: false
+    - name: Publish to npm
+      run: npm publish --dry-run
