@@ -10,10 +10,11 @@ import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
-import { AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
+import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
+import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 
 const getPackageFromRoute = (route) => {
   if (!route?.meta) {
@@ -27,7 +28,7 @@ const getPackageFromRoute = (route) => {
 
 let beforeEachSetup = false;
 
-function setProduct(store, to) {
+function getProduct(to) {
   let product = to.params?.product;
 
   if ( !product ) {
@@ -37,6 +38,12 @@ function setProduct(store, to) {
       product = match[1];
     }
   }
+
+  return product;
+}
+
+function setProduct(store, to) {
+  let product = getProduct(to);
 
   if ( !product ) {
     product = EXPLORER;
@@ -245,6 +252,7 @@ export default async function({
     beforeEachSetup = true;
 
     store.app.router.beforeEach((to, from, next) => {
+      // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
       setProduct(store, to);
       next();
     });
@@ -266,10 +274,10 @@ export default async function({
     let clusterId = get(route, 'params.cluster');
 
     const pkg = getPackageFromRoute(route);
-    const product = route?.params?.product;
+    const product = getProduct(route);
 
     const oldPkg = getPackageFromRoute(from);
-    const oldProduct = from?.params?.product;
+    const oldProduct = getProduct(from);
 
     // Leave an old pkg where we weren't before?
     const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find(p => p.name === oldPkg) : null;
@@ -306,7 +314,19 @@ export default async function({
       });
     }
 
+    // Ensure that the activeNamespaceCache is updated given the change of context either from or to a place where it uses workspaces
+    // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
+    if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
+      // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
+      setProduct(store, route);
+      store.commit('updateWorkspace', {
+        value:   store.getters['prefs/get'](WORKSPACE),
+        getters: store.getters
+      });
+    }
+
     if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
+      setProduct(store, route);
       const res = [
         ...always,
         store.dispatch('loadVirtual', {

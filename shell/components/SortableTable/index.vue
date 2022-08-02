@@ -333,10 +333,24 @@ export default {
       this.searchQuery = q;
     }, 200),
 
+    descending(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    sortFields(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    groupBy(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    namespaces(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
     page(neu, old) {
-      if (neu !== old) {
-        this.$nextTick(() => this.updateLiveAndDelayed());
-      }
+      this.watcherUpdateLiveAndDelayed(neu, old);
     },
 
     // Ensure we update live and delayed columns on first load
@@ -349,6 +363,10 @@ export default {
   },
 
   computed: {
+    namespaces() {
+      return this.$store.getters['activeNamespaceCache'];
+    },
+
     initalLoad() {
       return !this.loading && !this._didinit && this.rows?.length;
     },
@@ -556,6 +574,12 @@ export default {
           this.updateLiveColumns();
           this.updateDelayedColumns();
         }, 300);
+      }
+    },
+
+    watcherUpdateLiveAndDelayed(neu, old) {
+      if (neu !== old) {
+        this.$nextTick(() => this.updateLiveAndDelayed());
       }
     },
 

@@ -122,7 +122,7 @@ export default {
     },
     groupPreference: mapPref(GROUP_RESOURCES),
     activeProjects() {
-      const namespaceFilters = this.$store.getters['activeNamespaceFilters']();
+      const namespaceFilters = this.$store.getters['activeNamespaceFilters'];
       const activeProjectFilters = this.getActiveProjects(namespaceFilters);
 
       if (namespaceFilters.includes(NAMESPACE_FILTER_ALL_ORPHANS) && Object.keys(activeProjectFilters).length === 0) {
@@ -146,7 +146,7 @@ export default {
     },
     activeNamespaces() {
       // Apply namespace filters from the top nav.
-      const activeNamespaces = this.$store.getters['activeNamespaceCache']();
+      const activeNamespaces = this.$store.getters['activeNamespaceCache'];
 
       return this.namespaces.filter((namespaceData) => {
         return !!activeNamespaces[namespaceData.metadata.name];

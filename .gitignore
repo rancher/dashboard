@@ -106,3 +106,7 @@ dist-pkg
 
 # Plugins - temporary
 shell/rancher-components
+
+# standalone script
+scripts/standalone/ui
+scripts/standalone/cert

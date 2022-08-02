@@ -1,0 +1,62 @@
+name: Unit test and lint
+on:
+  - push
+  - pull_request
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+      
+      - name: Install packages
+        run: yarn install
+      
+      - name: Run tests
+        run: yarn test:ci
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: run_${{github.run_number}}_id_${{github.run_id}}_coverage
+          path: coverage/**/*
+
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+      
+      - name: Install packages
+        run: yarn install
+      
+      - name: Run i18n linters
+        run: yarn lint-l10n
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+      
+      - name: Install packages
+        run: yarn install
+      
+      - name: Run linters
+        run: yarn lint

@@ -1,10 +1,11 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 
 export default {
   name:       'WorkloadDeployments',
-  mixins:     [CreateEditView, WorkLoadMixin],
+  mixins:     [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
 
   data() {
     return { selectedName: null };
@@ -26,11 +27,11 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <form v-else class="filled-height">
     <CruResource
-      :validation-passed="true"
+      :validation-passed="fvFormIsValid"
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
-      :errors="errors"
+      :errors="fvUnreportedValidationErrors"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
@@ -39,9 +40,11 @@ export default {
       @select-type="selectType"
       @error="e=>errors = e"
     >
+      <!-- <pre>{{ JSON.stringify(allContainers, null, 2) }}</pre> -->
       <NameNsDescription
         :value="value"
         :mode="mode"
+        :rules="{name: fvGetAndReportPathRules('metadata.name'), namespace: fvGetAndReportPathRules('metadata.namespace'), description: []}"
         @change="name=value.metadata.name"
       />
       <div v-if="isCronJob || isReplicable || isStatefulSet || containerOptions.length > 1" class="row mb-20">
@@ -52,6 +55,7 @@ export default {
             required
             :mode="mode"
             :label="t('workload.cronSchedule')"
+            :rules="fvGetAndReportPathRules('spec.schedule')"
             placeholder="0 * * * *"
           />
         </div>
@@ -78,9 +82,16 @@ export default {
         </div>
       </div>
       <Tabbed class="deployment-tabs">
-        <Tab :label="t('workload.tabs.labels.containers')" name="containers">
+        <Tab :label="t('workload.tabs.labels.containers')" name="containers" :error="tabErrors.general">
           <Tabbed :side-tabs="true" @changed="changed">
-            <Tab v-for="(tab, i) in allContainers" :key="i" :label="tab.name" :name="tab.name" :weight="tab.weight">
+            <Tab
+              v-for="(tab, i) in allContainers"
+              :key="i"
+              :label="tab.name"
+              :name="tab.name"
+              :weight="tab.weight"
+              :error="!!tab.error"
+            >
               <template #tab-header-right class="tab-content-controls">
                 <button v-if="allContainers.length > 1 && !isView" type="button" class="btn-sm role-link" @click="removeContainer(tab)">
                   {{ t('workload.container.removeContainer') }}
@@ -110,7 +121,7 @@ export default {
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
-                      required
+                      :rules="fvGetAndReportPathRules('image')"
                     />
                   </div>
                   <div class="col span-6">
