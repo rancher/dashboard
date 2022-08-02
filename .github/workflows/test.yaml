@@ -15,6 +15,8 @@ env:
   CATTLE_BOOTSTRAP_PASSWORD: password
   TEST_BASE_URL: https://127.0.0.1:8005
   API: https://127.0.0.1
+  TEST_PROJECT_ID: rancher-dashboard
+  CYPRESS_API_URL: http://139.59.134.103:1234/
 jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
