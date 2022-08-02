@@ -237,6 +237,8 @@ about:
     title: Image Lists
   downloadCLI:
     title: CLI Downloads
+  diagnostic:
+    title: Diagnostic
 
 accountAndKeys:
   title: Account and API Keys
