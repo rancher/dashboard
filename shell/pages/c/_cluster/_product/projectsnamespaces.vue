@@ -146,7 +146,7 @@ export default {
     },
     activeNamespaces() {
       // Apply namespace filters from the top nav.
-      const activeNamespaces = this.$store.getters['activeNamespaceCache'];
+      const activeNamespaces = this.$store.getters['namespaces']();
 
       return this.namespaces.filter((namespaceData) => {
         return !!activeNamespaces[namespaceData.metadata.name];

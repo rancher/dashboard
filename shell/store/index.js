@@ -124,6 +124,9 @@ const getActiveNamespaces = (state, getters) => {
       }
     }
   }
+  // Create map that can be used to efficiently check if a
+  // resource should be displayed
+  state.activeNamespaceCache = out;
 
   return out;
 };
