@@ -207,7 +207,7 @@ export default {
         commit('forgetType', type);
       }
 
-      await dispatch('loadDataPage', { type, opt: pageFetchOpts });
+      dispatch('loadDataPage', { type, opt: pageFetchOpts });
     }
 
     let streamStarted = false;
