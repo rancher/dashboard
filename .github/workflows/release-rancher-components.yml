@@ -39,5 +39,9 @@ jobs:
       with:
         fetch-depth: 1
         persist-credentials: false
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16.x'
+        registry-url: 'https://registry.npmjs.org'
     - name: Publish to npm
       run: yarn publish:lib
