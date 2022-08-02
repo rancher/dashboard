@@ -15,7 +15,6 @@ import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
-import { allHash } from '@shell/utils/promise';
 
 const getPackageFromRoute = (route) => {
   if (!route?.meta) {
@@ -190,19 +189,8 @@ export default async function({
   }
 
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
-    const hash = { userMe: store.dispatch('auth/getUser') };
-    const fromHeader = store.getters['auth/fromHeader'];
-
-    const fromHeaderNone = fromHeader === 'none' ;
-    const fromHeaderFalse = fromHeader === 'false';
-    const fromHeaderTrue = fromHeader === 'true';
-    const fromHeaderOther = !fromHeaderNone && !fromHeaderFalse && !fromHeaderTrue;
-
-    if (fromHeaderTrue || fromHeaderOther) {
-      hash.principalMe = findMe(store);
-    }
-
-    const res = await allHash(hash);
+    // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
+    await store.dispatch('auth/getUser');
 
     const v3User = store.getters['auth/v3User'] || {};
 
@@ -211,19 +199,20 @@ export default async function({
     }
 
     // In newer versions the API calls return the auth state instead of having to make a new call all the time.
+    const fromHeader = store.getters['auth/fromHeader'];
 
-    if ( fromHeaderNone ) {
+    if ( fromHeader === 'none' ) {
       noAuth();
-    } else if ( fromHeaderTrue ) {
-      const me = res.principalMe;
+    } else if ( fromHeader === 'true' ) {
+      const me = await findMe(store);
 
       isLoggedIn(me);
-    } else if ( fromHeaderFalse ) {
+    } else if ( fromHeader === 'false' ) {
       notLoggedIn();
-    } else if (fromHeaderOther) {
+    } else {
       // Older versions look at principals and see what happens
       try {
-        const me = res.principalMe;
+        const me = await findMe(store);
 
         isLoggedIn(me);
       } catch (e) {
