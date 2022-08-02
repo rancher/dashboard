@@ -377,16 +377,16 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ isTooManyItemsToAutoUpdate: 'resource-fetch/isTooManyItemsToAutoUpdate' }),
+    ...mapGetters({ isManualRefreshLoading: 'resource-fetch/manualRefreshIsLoading' }),
     namespaces() {
       return this.$store.getters['activeNamespaceCache'];
     },
 
-    ...mapGetters({ isManualRefreshLoading: 'resource-fetch/manualRefreshIsLoading' }),
     initalLoad() {
       return !this.loading && !this._didinit && this.rows?.length;
     },
 
-    ...mapGetters({ isTooManyItemsToAutoUpdate: 'resource-fetch/isTooManyItemsToAutoUpdate' }),
     fullColspan() {
       let span = 0;
 
