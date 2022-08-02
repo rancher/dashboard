@@ -2,8 +2,8 @@ name: Build and Release Rancher Components
 
 on:
   push:
-    branches:
-      - release/components/*
+    tags:
+        - 'components-v*'
 
 jobs:
   build:
