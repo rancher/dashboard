@@ -242,10 +242,6 @@ export default {
 
       const res = await dispatch('request', { opt, type });
 
-      if (!opt.incremental && opt.hasManualRefresh) {
-        dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
-      }
-
       if ( streamStarted ) {
         // Flush any remaining entries left over that didn't get loaded by onData
         if ( queue.length ) {
@@ -269,6 +265,10 @@ export default {
     }
 
     if ( load === _NONE ) {
+      if (!opt.incremental && opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+      }
+
       return out;
     } else if ( out.data ) {
       if ( load === _MULTI ) {
@@ -311,6 +311,10 @@ export default {
     }
 
     const all = getters.all(type);
+
+    if (!opt.incremental && opt.hasManualRefresh) {
+      dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+    }
 
     return all;
   },
