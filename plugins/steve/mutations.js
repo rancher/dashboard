@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { SCHEMA } from '@/config/types';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
-import { proxyFor } from './resource-proxy';
+import { proxyFor, remapSpecialKeys } from './resource-proxy';
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -67,6 +67,8 @@ function load(state, { data, ctx, existing }) {
 
     if ( entry ) {
       // There's already an entry in the store, update it
+      // remap norman keys that are overridden by resource-instance properties
+      remapSpecialKeys(data);
       replace(entry, data);
       // console.log('### Mutation Updated', type, id);
     } else {
