@@ -2,10 +2,12 @@
 import Vue from 'vue';
 import typeHelper from '@shell/utils/type-helpers';
 
-const ACTION = 'action';
-const WAITING = 'waiting';
-const SUCCESS = 'success';
-const ERROR = 'error';
+export const ASYNC_BUTTON_STATES = {
+  ACTION:  'action',
+  WAITING: 'waiting',
+  SUCCESS: 'success',
+  ERROR:   'error',
+};
 
 const TEXT = 'text';
 const TOOLTIP = 'tooltip';
@@ -92,13 +94,14 @@ export default Vue.extend({
 
     currentPhase: {
       type:    String,
-      default: ACTION,
+      default: ASYNC_BUTTON_STATES.ACTION,
     }
   },
 
   data(): { phase: string, timer?: NodeJS.Timeout} {
     return { phase: this.currentPhase };
   },
+
   watch: {
     currentPhase(neu) {
       this.phase = neu;
@@ -168,11 +171,11 @@ export default Vue.extend({
     },
 
     isSpinning(): boolean {
-      return this.phase === WAITING;
+      return this.phase === ASYNC_BUTTON_STATES.WAITING;
     },
 
     isDisabled(): boolean {
-      return this.disabled || this.phase === WAITING;
+      return this.disabled || this.phase === ASYNC_BUTTON_STATES.WAITING;
     },
 
     tooltip(): { content: string, hideOnTargetClick: boolean} | null {
@@ -202,7 +205,7 @@ export default Vue.extend({
         clearTimeout(this.timer);
       }
 
-      this.phase = WAITING;
+      this.phase = ASYNC_BUTTON_STATES.WAITING;
 
       const cb: AsyncButtonCallback = (success) => {
         this.done(success);
@@ -213,9 +216,9 @@ export default Vue.extend({
 
     done(success: boolean | 'cancelled') {
       if (success === 'cancelled') {
-        this.phase = ACTION;
+        this.phase = ASYNC_BUTTON_STATES.ACTION;
       } else {
-        this.phase = (success ? SUCCESS : ERROR );
+        this.phase = (success ? ASYNC_BUTTON_STATES.SUCCESS : ASYNC_BUTTON_STATES.ERROR );
         this.timer = setTimeout(() => {
           this.timerDone();
         }, this.delay );
@@ -223,8 +226,8 @@ export default Vue.extend({
     },
 
     timerDone() {
-      if ( this.phase === SUCCESS || this.phase === ERROR ) {
-        this.phase = ACTION;
+      if ( this.phase === ASYNC_BUTTON_STATES.SUCCESS || this.phase === ASYNC_BUTTON_STATES.ERROR ) {
+        this.phase = ASYNC_BUTTON_STATES.ACTION;
       }
     },
 

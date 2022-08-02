@@ -17,6 +17,7 @@ import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
+import { ASYNC_BUTTON_STATES } from '~/shell/components/AsyncButton.vue';
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
 
@@ -298,9 +299,7 @@ export default {
 
   data() {
     return {
-      asyncBtnWaiting:     'waiting',
-      asyncBtnAction:      'action',
-      currentPhase:        'waiting',
+      currentPhase:        ASYNC_BUTTON_STATES.WAITING,
       expanded:            {},
       searchQuery:         '',
       eventualSearchQuery: '',
@@ -367,7 +366,7 @@ export default {
     },
 
     isManualRefreshLoading(neu, old) {
-      this.currentPhase = neu ? this.asyncBtnWaiting : this.asyncBtnAction;
+      this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
 
       // setTimeout is needed so that this is pushed further back on the JS computing queue
       // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
