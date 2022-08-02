@@ -40,4 +40,4 @@ jobs:
         fetch-depth: 1
         persist-credentials: false
     - name: Publish to npm
-      run: npm publish --dry-run
+      run: yarn publish:lib
