@@ -212,7 +212,7 @@ export default {
       const subnetsByVpc = {};
 
       for ( const obj of this.vpcInfo.Vpcs ) {
-        const name = obj.Tags.find(t => t.Key === 'Name')?.Value;
+        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find(t => t.Key === 'Name')?.Value : null;
 
         vpcs.push({
           label:     name || obj.VpcId,
@@ -237,7 +237,7 @@ export default {
           subnetsByVpc[obj.VpcId] = entry;
         }
 
-        const name = obj.Tags.find(t => t.Key === 'Name')?.Value;
+        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find(t => t.Key === 'Name')?.Value : null;
 
         entry.push({
           label:     name || obj.SubnetId,
@@ -474,6 +474,7 @@ export default {
               :disabled="disabled"
               :placeholder="t('cluster.machineConfig.amazonEc2.selectedNetwork.placeholder')"
               :label="t('cluster.machineConfig.amazonEc2.selectedNetwork.label')"
+              option-key="value"
               @input="updateNetwork($event)"
             >
               <template v-slot:option="opt">
