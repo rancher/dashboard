@@ -82,7 +82,16 @@ export default {
       initSettings.push(s);
     });
 
-    this.initSettings = initSettings;
+    this.initSettings = initSettings.sort((a, b) => {
+      if (a.id < b.id) {
+        return -1;
+      }
+      if (a.id > b.id) {
+        return 1;
+      }
+
+      return 0;
+    });
   },
 
   data() {
