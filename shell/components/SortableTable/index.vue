@@ -17,7 +17,7 @@ import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
-import { ASYNC_BUTTON_STATES } from '~/shell/components/AsyncButton.vue';
+import { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
 
