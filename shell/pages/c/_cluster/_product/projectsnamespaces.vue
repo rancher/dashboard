@@ -48,6 +48,7 @@ export default {
   },
 
   computed: {
+
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
     },
@@ -121,9 +122,24 @@ export default {
       };
     },
     groupPreference: mapPref(GROUP_RESOURCES),
+    activeNamespaceFilters() {
+      return this.$store.getters['activeNamespaceFilters'];
+    },
+    activeProjectFilters() {
+      const activeProjects = {};
+
+      for (const filter of this.activeNamespaceFilters) {
+        const [type, id] = filter.split('://', 2);
+
+        if (type === 'project') {
+          activeProjects[id] = true;
+        }
+      }
+
+      return activeProjects;
+    },
     activeProjects() {
       const namespaceFilters = this.$store.getters['activeNamespaceFilters'];
-      const activeProjectFilters = this.getActiveProjects(namespaceFilters);
 
       if (namespaceFilters.includes(NAMESPACE_FILTER_ALL_ORPHANS) && Object.keys(activeProjectFilters).length === 0) {
         // If the user wants to only see namespaces that are not
@@ -141,7 +157,7 @@ export default {
       return this.clusterProjects.filter((projectData) => {
         const projectId = projectData.id.split('/')[1];
 
-        return !!activeProjectFilters[projectId];
+        return !!this.activeProjectFilters[projectId];
       });
     },
     activeNamespaces() {
@@ -265,19 +281,6 @@ export default {
       return base + (this.showMockNotInProjectGroup ? '-mock' : '');
     },
 
-    getActiveProjects(activeFilters) {
-      const activeProjects = {};
-
-      for (const filter of activeFilters) {
-        const [type, id] = filter.split('://', 2);
-
-        if (type === 'project') {
-          activeProjects[id] = true;
-        }
-      }
-
-      return activeProjects;
-    },
   }
 };
 </script>
