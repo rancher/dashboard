@@ -4,7 +4,7 @@ import {
   SETUP, TIMED_OUT, UPGRADED, _FLAGGED, _UNFLAG
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
@@ -320,7 +320,7 @@ export default async function({
       // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
       setProduct(store, route);
       store.commit('updateWorkspace', {
-        value:   store.getters['prefs/get'](WORKSPACE),
+        value:   store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
         getters: store.getters
       });
     }
