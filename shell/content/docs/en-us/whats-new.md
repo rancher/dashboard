@@ -7,11 +7,11 @@ title: What's New in 2.6
 
 ### Amazon Billing in the Marketplace
 
-- Now you can purchase support for Rancher through the AWS Marketplace. 
+- You can now purchase support for Rancher directly through the AWS Marketplace: https://rancher.com/docs/rancher/v2.6/en/installation/cloud-marketplace/aws/
 
 ### Ability to configure Azure AD with MSAL
 
-- Microsoft has deprecated the Azure AD Graph API that Rancher had been using for authentication via Azure AD. A configuration update is necessary to make sure users can still use Rancher with Azure AD. For more details see: https://rancher.com/docs/rancher/v2.6/en/admin-settings/authentication/azure-ad/#migrating-from-azure-ad-graph-api-to-microsoft-graph-api
+- Microsoft has deprecated the Azure AD Graph API that Rancher had been using for authentication via Azure AD. A configuration update is necessary to make sure users can still use Rancher with Azure AD. For more details, see: https://rancher.com/docs/rancher/v2.6/en/admin-settings/authentication/azure-ad/#migrating-from-azure-ad-graph-api-to-microsoft-graph-api
 
 ### Kubernetes 1.24
 
