@@ -11,7 +11,6 @@ import { sortBy } from '@shell/utils/sort';
 import debounce from 'lodash/debounce';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { getUniqueLabelKeys } from '@shell/utils/array';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
 
 export default {
   components: {
@@ -37,19 +36,9 @@ export default {
       default: () => []
     },
 
-    overrideStore: {
-      type:    String,
-      default: ''
-    },
-
-    hasNodes: {
-      type:    Boolean,
-      default: true
-    },
-
-    hasNamespaces: {
-      type:    Boolean,
-      default: true
+    namespaces: {
+      type:    Array,
+      default: () => []
     },
   },
 
@@ -109,13 +98,8 @@ export default {
     },
 
     allNamespaces() {
-      const inStore = this.overrideStore || this.$store.getters['currentStore'](NAMESPACE);
-      let choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
-
-      if (this.overrideStore === HARVESTER) {
-        choices = choices.filter(item => !item.isSystem);
-      }
-
+      const inStore = this.$store.getters['currentStore'](NAMESPACE);
+      const choices = this.namespaces || this.$store.getters[`${ inStore }/all`](NAMESPACE);
       const out = sortBy(choices.map((obj) => {
         return {
           label: obj.nameDisplay,
@@ -128,7 +112,15 @@ export default {
 
     existingNodeLabels() {
       return getUniqueLabelKeys(this.nodes);
-    }
+    },
+
+    hasNodes() {
+      return this.nodes.length;
+    },
+
+    hasNamespaces() {
+      return this.allNamespaces.length;
+    },
   },
 
   created() {

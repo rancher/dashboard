@@ -73,7 +73,7 @@ export default {
 
       if (clusterId && isImportCluster) {
         const res = await allHashSettled({
-          namespaces:  this.$store.dispatch('harvester/findAll', { type: NAMESPACE, opt: { url: `${ url }/${ NAMESPACE }s` } }),
+          namespaces:   this.$store.dispatch('harvester/findAll', { type: NAMESPACE, opt: { url: `${ url }/${ NAMESPACE }s` } }),
           images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
           configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
           networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
@@ -144,6 +144,7 @@ export default {
             const value = namespace.metadata.name;
             const label = namespace.metadata.name;
 
+            this.namespaces.push(namespace);
             this.namespaceOptions.push({
               label,
               value
@@ -200,6 +201,7 @@ export default {
       userData,
       networkData,
       images:             [],
+      namespaces:         [],
       namespaceOptions:   [],
       networkOptions:     [],
       userDataOptions:    [],
@@ -245,6 +247,7 @@ export default {
       if (!this.isEdit) {
         this.imageOptions = [];
         this.networkOptions = [];
+        this.namespaces = [];
         this.namespaceOptions = [];
         this.vmAffinity = { affinity: {} };
         this.value.imageName = '';
@@ -542,9 +545,7 @@ export default {
           :mode="mode"
           :value="vmAffinity"
           :nodes="allNodeObjects"
-          :has-nodes="allNodeObjects.length > 0"
-          :has-namespaces="isImportCluster"
-          override-store="harvester"
+          :namespaces="namespaces"
           @update="updateScheduling"
         />
 
