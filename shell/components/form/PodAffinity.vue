@@ -38,7 +38,7 @@ export default {
 
     namespaces: {
       type:    Array,
-      default: () => []
+      default: null
     },
   },
 
