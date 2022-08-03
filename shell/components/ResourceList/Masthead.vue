@@ -146,6 +146,7 @@ export default {
       <h1 class="m-0">
         {{ _typeDisplay }} <Favorite v-if="isExplorer" :resource="favoriteResource || resource" />
       </h1>
+      <slot name="header"></slot>
     </div>
     <div class="actions-container">
       <slot name="actions">
@@ -174,3 +175,13 @@ export default {
     </div>
   </header>
 </template>
+
+<style lang="scss" scoped>
+  .title {
+    align-items: center;
+    display: flex;
+    h1 {
+      margin: 0;
+    }
+  }
+</style>

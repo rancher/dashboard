@@ -77,6 +77,56 @@ export default {
 
   loadSchemas,
 
+  // Load a page of data for a given type
+  // Used for incremental loading when enabled
+  async loadDataPage(ctx, { type, opt }) {
+    const { getters, commit, dispatch } = ctx;
+
+    type = getters.normalizeType(type);
+
+    const loadCount = getters['loadCounter'](type);
+
+    try {
+      const res = await dispatch('request', { opt, type });
+
+      const newLoadCount = getters['loadCounter'](type);
+
+      // Load count changed, so we changed page or started a new load
+      // after this page load was started, so don't continue with incremental load
+      if (loadCount !== newLoadCount) {
+        return;
+      }
+
+      commit('loadAdd', {
+        ctx,
+        type,
+        data: res.data,
+      });
+
+      if (res.pagination?.next) {
+        dispatch('loadDataPage', {
+          type,
+          opt: {
+            ...opt,
+            url: res.pagination?.next
+          }
+        });
+      } else {
+      // We have everything!
+        if (opt.hasManualRefresh) {
+          dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+        }
+        commit('setHaveAll', { type });
+      }
+    } catch (e) {
+      if (opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+      }
+
+      return Promise.reject(e);
+    }
+  },
+
   async findAll(ctx, { type, opt }) {
     const {
       getters, commit, dispatch, rootGetters
@@ -90,6 +140,18 @@ export default {
     }
 
     if ( opt.force !== true && getters['haveAll'](type) ) {
+      const args = {
+        type,
+        revision:  '',
+        namespace: opt.watchNamespace
+      };
+
+      // if we are coming from a resource that wasn't watched
+      // but for which we have results already, just return the results but start watching it
+      if (opt.watch !== false && !getters.watchStarted(args)) {
+        dispatch('watch', args);
+      }
+
       return getters.all(type);
     }
 
@@ -114,6 +176,39 @@ export default {
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
     opt.depaginate = typeOptions?.depaginate;
+
+    let skipHaveAll = false;
+
+    // if it's incremental loading, we do two parallel requests
+    // on for a limit of 100, to quickly show data
+    // another one with 1st page of the subset of the resource we are fetching
+    // the default is 4 pages, but it can be changed on mixin/resource-fetch.js
+    if (opt.incremental) {
+      commit('incrementLoadCounter', type);
+
+      if (opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
+      }
+
+      const pageFetchOpts = {
+        ...opt,
+        url: `${ opt.url }?limit=${ opt.incremental }`
+      };
+
+      // this is where we "hijack" the limit for the dispatch('request') some lines below
+      // and therefore have 2 initial requests in parallel
+      opt.url = `${ opt.url }?limit=100`;
+      skipHaveAll = true;
+
+      // since we are forcing a request, clear the haveAll
+      // needed for the resource-fetch mixin, otherwise the incremental indicator
+      // won't pop-up again when manual refreshing
+      if (opt.force) {
+        commit('forgetType', type);
+      }
+
+      dispatch('loadDataPage', { type, opt: pageFetchOpts });
+    }
 
     let streamStarted = false;
     let out;
@@ -141,6 +236,10 @@ export default {
     };
 
     try {
+      if (!opt.incremental && opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
+      }
+
       const res = await dispatch('request', { opt, type });
 
       if ( streamStarted ) {
@@ -158,10 +257,18 @@ export default {
         out = res;
       }
     } catch (e) {
+      if (!opt.incremental && opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+      }
+
       return Promise.reject(e);
     }
 
     if ( load === _NONE ) {
+      if (!opt.incremental && opt.hasManualRefresh) {
+        dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+      }
+
       return out;
     } else if ( out.data ) {
       if ( load === _MULTI ) {
@@ -189,7 +296,8 @@ export default {
         commit('loadAll', {
           ctx,
           type,
-          data: out.data
+          data: out.data,
+          skipHaveAll
         });
       }
     }
@@ -203,6 +311,10 @@ export default {
     }
 
     const all = getters.all(type);
+
+    if (!opt.incremental && opt.hasManualRefresh) {
+      dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
+    }
 
     return all;
   },
@@ -466,5 +578,9 @@ export default {
       console.warn(`Schema for ${ type } still unavailable... loading schemas again...`); // eslint-disable-line no-console
       await dispatch('loadSchemas', true);
     }
+  },
+
+  incrementLoadCounter({ commit }, resource) {
+    commit('incrementLoadCounter', resource);
   }
 };
