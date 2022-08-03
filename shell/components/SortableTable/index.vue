@@ -5,7 +5,7 @@ import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
-import AsyncButton from '@shell/components/AsyncButton';
+import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
@@ -17,7 +17,6 @@ import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
-import { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
 
