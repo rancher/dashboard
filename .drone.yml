@@ -319,7 +319,7 @@ steps:
     token:
       from_secret: google_auth_key
 
----
+# ---
 
 # kind: pipeline
 # name: fossa
