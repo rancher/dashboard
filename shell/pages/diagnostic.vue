@@ -3,19 +3,63 @@
 import BackLink from '@shell/components/BackLink';
 import BackRoute from '@shell/mixins/back-link';
 import { COUNT } from '@shell/config/types';
-// import { getVendor } from '@shell/config/private-label';
-// import { downloadFile } from '@shell/utils/download';
+import AsyncButton from '@shell/components/AsyncButton';
+import { downloadFile } from '@shell/utils/download';
 
 export default {
   layout:     'plain',
-  components: { BackLink },
+  components: { BackLink, AsyncButton },
   mixins:     [BackRoute],
   async fetch() {
     this.counts = await this.$store.dispatch('management/findAll', { type: COUNT });
   },
+
   data() {
+    const systemInformation = {
+      os: {
+        label: 'OS',
+        value: window?.navigator.platform
+      },
+      browserCodeName: {
+        label: 'Browser code name',
+        value: window?.navigator.appCodeName
+      },
+      browserName: {
+        label: 'Browser name',
+        value: window?.navigator.appName
+      },
+      browserVersion: {
+        label: 'Browser version',
+        value: window?.navigator.appVersion
+      },
+      browserUserAgent: {
+        label: 'Browser user agent',
+        value: window?.navigator.userAgent
+      },
+      browserLanguage: {
+        label: 'Browser language',
+        value: window?.navigator.language
+      },
+      deviceMemory: {
+        label: 'Device memory',
+        value: window?.navigator.deviceMemory
+      },
+      memJsHeapLimit: {
+        label: 'Memory JS Heap Size limit',
+        value: window?.performance.memory.jsHeapSizeLimit
+      },
+      memTotalJsHeapSize: {
+        label: 'Memory Total JS Heap Size',
+        value: window?.performance.memory.totalJSHeapSize
+      },
+      memUsedJsHeapSize: {
+        label: 'Memory Used JS Heap Size',
+        value: window?.performance.memory.usedJSHeapSize
+      },
+    };
+
     return {
-      windowObj:  window,
+      systemInformation,
       counts:     null,
       latestLogs: console.logs // eslint-disable-line no-console
     };
@@ -30,7 +74,19 @@ export default {
       const randomize = Math.random() * 10000;
 
       return `key_${ randomize }_${ data }`;
-    }
+    },
+    downloadData(btnCb) {
+      const date = new Date().toISOString().split('.')[0];
+      const fileName = `diagnostic-data-${ date }`;
+      const data = {
+        systemInformation: this.systemInformation,
+        logs:              this.latestLogs
+      };
+
+      downloadFile(fileName, JSON.stringify(data), 'application/json')
+        .then(() => btnCb(true))
+        .catch(() => btnCb(false));
+    },
   },
 };
 </script>
@@ -38,10 +94,13 @@ export default {
 <template>
   <div>
     <BackLink :link="backLink" />
-    <h1
-      v-t="'about.diagnostic.title'"
-      class="mt-20 mb-40"
-    />
+    <div class="title-block">
+      <h1
+        v-t="'about.diagnostic.title'"
+        class="mt-20 mb-40"
+      />
+      <AsyncButton mode="download" @click="downloadData" />
+    </div>
     <div class="mb-40">
       <h2 class="mb-20">
         System information
@@ -54,45 +113,9 @@ export default {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>OS</td>
-            <td>{{ windowObj.navigator.platform }}</td>
-          </tr>
-          <tr>
-            <td>Browser code name</td>
-            <td>{{ windowObj.navigator.appCodeName }}</td>
-          </tr>
-          <tr>
-            <td>Browser name</td>
-            <td>{{ windowObj.navigator.appName }}</td>
-          </tr>
-          <tr>
-            <td>Browser version</td>
-            <td>{{ windowObj.navigator.appVersion }}</td>
-          </tr>
-          <tr>
-            <td>Browser user agent</td>
-            <td>{{ windowObj.navigator.userAgent }}</td>
-          </tr>
-          <tr>
-            <td>Browser language</td>
-            <td>{{ windowObj.navigator.language }}</td>
-          </tr>
-          <tr>
-            <td>Device memory</td>
-            <td>{{ windowObj.navigator.deviceMemory }}</td>
-          </tr>
-          <tr>
-            <td>Memory JS Heap Size limit</td>
-            <td>{{ windowObj.performance.memory.jsHeapSizeLimit }}</td>
-          </tr>
-          <tr>
-            <td>Memory Total JS Heap Size</td>
-            <td>{{ windowObj.performance.memory.totalJSHeapSize }}</td>
-          </tr>
-          <tr>
-            <td>Memory Used JS Heap Size</td>
-            <td>{{ windowObj.performance.memory.usedJSHeapSize }}</td>
+          <tr v-for="(item, objKey) in systemInformation" :key="objKey">
+            <td>{{ item.label }}</td>
+            <td>{{ item.value }}</td>
           </tr>
         </tbody>
       </table>
@@ -116,6 +139,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.title-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  button {
+    height: 30px;
+  }
+}
+
 table {
   border-collapse: collapse;
   overflow: hidden;
