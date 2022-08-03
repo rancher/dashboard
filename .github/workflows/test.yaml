@@ -1,8 +1,9 @@
-name: E2E test
+name: Tests
 on:
   pull_request:
       branches:
         - master
+        - 'release-*'
   workflow_dispatch:
     environment:
       description: 'Environment to run tests against'
@@ -15,7 +16,7 @@ env:
   TEST_BASE_URL: https://127.0.0.1:8005
   API: https://127.0.0.1
 jobs:
-  test:
+  e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     steps:
@@ -51,9 +52,59 @@ jobs:
       #     name: run_${{github.run_number}}_id_${{github.run_id}}_videos
       #     path: cypress/videos
 
-  skip-e2e:
-    if: "contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+  unit-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Skipping e2e tests
-        run: echo "Skipping E2E tests for this PR as a label ci/skip-e2e was found"
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+      
+      - name: Install packages
+        run: yarn install
+      
+      - name: Run tests
+        run: yarn test:ci
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: run_${{github.run_number}}_id_${{github.run_id}}_coverage
+          path: coverage/**/*
+
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+      
+      - name: Install packages
+        run: yarn install
+      
+      - name: Run i18n linters
+        run: yarn lint-l10n
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+      
+      - name: Install packages
+        run: yarn install
+      
+      - name: Run linters
+        run: yarn lint
