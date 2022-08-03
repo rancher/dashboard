@@ -78,7 +78,7 @@ export default {
       const inStore = this.$store.getters['currentStore'](COUNT);
 
       if (!this.init) {
-        this.__gatherResourceFetchData(type, multipleResources = []);
+        this.__gatherResourceFetchData(type, multipleResources);
 
         // make sure after init that, if we have a manual refresh, we always set the force = true
         if (!this.watch) {
