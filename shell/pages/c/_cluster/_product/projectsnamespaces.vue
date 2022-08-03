@@ -141,7 +141,7 @@ export default {
     activeProjects() {
       const namespaceFilters = this.$store.getters['activeNamespaceFilters'];
 
-      if (namespaceFilters.includes(NAMESPACE_FILTER_ALL_ORPHANS) && Object.keys(activeProjectFilters).length === 0) {
+      if (namespaceFilters.includes(NAMESPACE_FILTER_ALL_ORPHANS) && Object.keys(this.activeProjectFilters).length === 0) {
         // If the user wants to only see namespaces that are not
         // in a project, don't show any projects.
         return [];
