@@ -55,7 +55,7 @@ export default {
     return {
       groups:         [],
       gettingGroups:  false,
-      wantNavSync:    false
+      wantNavSync:    false,
     };
   },
 
@@ -68,10 +68,6 @@ export default {
     ...mapGetters('type-map', ['activeProducts']),
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
-
-    namespaces() {
-      return this.$store.getters['activeNamespaceCache'];
-    },
 
     dev:            mapPref(DEV),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
@@ -222,13 +218,6 @@ export default {
       }
     },
 
-    namespaces(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
     clusterReady(a, b) {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
@@ -331,7 +320,9 @@ export default {
       let namespaces = null;
 
       if ( !this.$store.getters['isAllNamespaces'] ) {
-        namespaces = Object.keys(this.namespaces);
+        const namespacesObject = this.$store.getters['namespaces']();
+
+        namespaces = Object.keys(namespacesObject);
       }
 
       // Always show cluster-level types, regardless of the namespace filter
