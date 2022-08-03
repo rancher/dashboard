@@ -128,12 +128,6 @@ const getActiveNamespaces = (state, getters) => {
   // resource should be displayed
   state.activeNamespaceCache = out;
 
-  return out;
-};
-
-const updateActiveNamespaceCache = (state, getters) => {
-  state.activeNamespaceCache = getActiveNamespaces(state, getters);
-
   // This is going to run a lot, so keep it optimised
   let cacheKey = '';
 
@@ -141,6 +135,8 @@ const updateActiveNamespaceCache = (state, getters) => {
     cacheKey += key + state.activeNamespaceCache[key];
   }
   state.activeNamespaceCacheKey = cacheKey;
+
+  return out;
 };
 
 export const state = () => {
@@ -509,7 +505,7 @@ export const mutations = {
 
     // Create map that can be used to efficiently check if a
     // resource should be displayed
-    updateActiveNamespaceCache(state, getters);
+    getActiveNamespaces(state, getters);
   },
 
   pageActions(state, pageActions) {
@@ -532,7 +528,7 @@ export const mutations = {
 
     state.workspace = value;
 
-    updateActiveNamespaceCache(state, getters);
+    getActiveNamespaces(state, getters);
   },
 
   clusterId(state, neu) {
