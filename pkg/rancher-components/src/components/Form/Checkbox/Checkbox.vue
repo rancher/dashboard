@@ -102,7 +102,15 @@ export default Vue.extend({
     description: {
       type:    String,
       default: null
-    }
+    },
+
+    /**
+     * Primary checkbox displays label so that it stands out more
+     */
+    primary: {
+      type:    Boolean,
+      default: false
+    },    
   },
 
   computed: {
@@ -215,6 +223,7 @@ export default Vue.extend({
       <span
         v-if="$slots.label || label || labelKey || tooltipKey || tooltip"
         class="checkbox-label"
+        :class="{ 'checkbox-primary': primary }"
       >
         <slot name="label">
           <t v-if="labelKey" :k="labelKey" :raw="true" />
@@ -262,6 +271,11 @@ $fontColor: var(--input-label);
     color: var(--input-label);
     display: inline-flex;
     margin: 0px 10px 0px 5px;
+
+    &.checkbox-primary {
+      color: inherit;
+      font-weight: 600;
+    }
   }
 
   .checkbox-info {

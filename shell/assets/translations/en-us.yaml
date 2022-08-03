@@ -4064,6 +4064,8 @@ resourceList:
     create: Create
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
+resourceLoadingIndicator:
+  loading: Loading
 
 resourceTable:
   groupBy:
@@ -6745,6 +6747,36 @@ featureFlags:
   restart:
     title: Waiting for Restart
     wait: This may take a few moments
+
+performance:
+  label: UI Performance Settings
+  settingName: Performance
+  description: |-
+    Performance settings allow the behavior of the UI to be configured when dealing with many resources in a cluster
+  banner: These settings are experimental and may be removed or updated in future versions
+  incrementalLoad:
+    label: Incremental loading
+    setting: You can configure a threshold, below which, the default behavior will apply and above which, incremental loading will be used.
+    description: |-
+      When loading lists of resources, incremental loading initially fetches a small set of resources and then incrementally
+      fetches the remaining resources by making additional requests for a page until all resources are retrieved. When enabled, resources will
+      appear more quickly, but it may take slightly longer to load the entire set of resources, compared to the default behavior of loading
+      all resources in one request. 
+    checkboxLabel: Enable incremental loading
+    inputLabel: Resource Threshold
+    applyText: "This only applies to the following lists of resources:"
+    applyList: Pods, Deployments, Cron Jobs, Daemon Sets, Jobs, Stateful Sets,
+      Replica Sets, Replication Controllers, Workloads and Secrets.
+  manualRefresh:
+    label: Manual refresh of data
+    setting: You can configure a threshold, below which, the default behavior will apply and above which, manual refresh will be enabled.
+    buttonTooltip: Refresh list
+    description: |-
+      When loading lists of resources with large amounts of data, the watchers running on the UI to make those elements reactive to auto-updates
+      may make the system more susceptible to performance issues. If enabled, the list data will not auto-update but instead the user can manually
+      trigger a refresh by pressing a button on the list view.
+    checkboxLabel: Enable manual refresh of data for lists
+    inputLabel: Resource Threshold
 
 banner:
   label: Fixed Banners
