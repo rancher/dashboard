@@ -153,6 +153,13 @@ export default {
 
       return displayVersion;
     },
+    singleProductAbout() {
+      return this.isSingleProduct.aboutPage;
+    },
+
+    isEpinio() {
+      return this.isSingleProduct.productNameKey === 'epinio.label';
+    },
 
     showProductFooter() {
       if (this.isVirtualProduct) {
@@ -613,6 +620,13 @@ export default {
         </div>
         <div v-else class="version text-muted">
           {{ displayVersion }}
+          <nuxt-link
+            v-if="isEpinio"
+            :to="singleProductAbout"
+            class="pull-right"
+          >
+            {{ t('epinio.about.getBinaries') }}
+          </nuxt-link>
         </div>
       </nav>
       <main v-if="clusterReady">
