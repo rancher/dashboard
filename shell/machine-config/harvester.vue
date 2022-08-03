@@ -73,8 +73,7 @@ export default {
 
       if (clusterId && isImportCluster) {
         const res = await allHashSettled({
-          nodes:        this.$store.dispatch('cluster/request', { url: `${ url }/${ NODE }s` }),
-          namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
+          namespaces:   this.$store.dispatch('harvester/findAll', { type: NAMESPACE, opt: { url: `${ url }/${ NAMESPACE }s` } }),
           images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
           configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
           networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
@@ -121,9 +120,6 @@ export default {
         this.userDataOptions = userDataOptions;
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
-        this.allNodeObjects = res.nodes.value?.data || [];
-        this.allNodes = this.allNodeObjects.map(node => node.id);
-
         this.networkOptions = (res.networks.value?.data || []).map( (O) => {
           let value;
           let label;
@@ -143,19 +139,26 @@ export default {
           };
         });
 
-        (res.namespaces.value?.data || []).forEach(async(namespace) => {
-          const proxyNamespace = await this.$store.dispatch('cluster/create', namespace);
-
-          if (!proxyNamespace.isSystem) {
+        (res.namespaces.value || []).forEach((namespace) => {
+          if (!namespace.isSystem) {
             const value = namespace.metadata.name;
             const label = namespace.metadata.name;
 
+            this.namespaces.push(namespace);
             this.namespaceOptions.push({
               label,
               value
             });
           }
         });
+
+        try {
+          const { data: nodes } = await this.$store.dispatch('cluster/request', { url: `${ url }/${ NODE }s` });
+
+          this.allNodeObjects = nodes;
+        } catch (err) {
+          this.allNodeObjects = [];
+        }
       }
 
       if (isEmpty(this.value.cpuCount)) {
@@ -198,11 +201,11 @@ export default {
       userData,
       networkData,
       images:             [],
+      namespaces:         [],
       namespaceOptions:   [],
       networkOptions:     [],
       userDataOptions:    [],
       networkDataOptions: [],
-      allNodes:           [],
       allNodeObjects:     [],
       cpuCount:           ''
     };
@@ -244,6 +247,7 @@ export default {
       if (!this.isEdit) {
         this.imageOptions = [];
         this.networkOptions = [];
+        this.namespaces = [];
         this.namespaceOptions = [];
         this.vmAffinity = { affinity: {} };
         this.value.imageName = '';
@@ -537,7 +541,13 @@ export default {
         <h3 class="mt-20">
           {{ t("workload.container.titles.podScheduling") }}
         </h3>
-        <PodAffinity :mode="mode" :value="vmAffinity" :nodes="allNodeObjects" :has-nodes-and-ns="isImportCluster" @update="updateScheduling" />
+        <PodAffinity
+          :mode="mode"
+          :value="vmAffinity"
+          :nodes="allNodeObjects"
+          :namespaces="namespaces"
+          @update="updateScheduling"
+        />
 
         <h3 class="mt-20">
           {{ t("cluster.credential.harvester.userData.title") }}
