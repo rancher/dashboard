@@ -70,13 +70,19 @@ const getActiveNamespaces = (state, getters) => {
   }
 
   if ( product.showWorkspaceSwitcher ) {
-    return { [workspace]: true };
+    const fleetOut = { [workspace]: true };
+
+    updateActiveNamespaceCache(state, fleetOut);
+
+    return fleetOut;
   }
 
   const inStore = product?.inStore;
   const clusterId = getters['currentCluster']?.id;
 
   if ( !clusterId || !inStore ) {
+    updateActiveNamespaceCache(state, out);
+
     return out;
   }
 
@@ -126,7 +132,13 @@ const getActiveNamespaces = (state, getters) => {
   }
   // Create map that can be used to efficiently check if a
   // resource should be displayed
-  state.activeNamespaceCache = out;
+  updateActiveNamespaceCache(state, out);
+
+  return out;
+};
+
+const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
+  state.activeNamespaceCache = activeNamespaceCache;
 
   // This is going to run a lot, so keep it optimised
   let cacheKey = '';
@@ -135,8 +147,6 @@ const getActiveNamespaces = (state, getters) => {
     cacheKey += key + state.activeNamespaceCache[key];
   }
   state.activeNamespaceCacheKey = cacheKey;
-
-  return out;
 };
 
 export const state = () => {
