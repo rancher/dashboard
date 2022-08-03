@@ -17,6 +17,7 @@ env:
   API: https://127.0.0.1
   TEST_PROJECT_ID: rancher-dashboard
   CYPRESS_API_URL: http://139.59.134.103:1234/
+  TEST_RUN_ID: ${{github.event.pull_request.title}}_${{github.run_number}}_id_${{github.run_id}}
 jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
