@@ -36,7 +36,7 @@
     "generate": "./node_modules/.bin/nuxt generate",
     "dev-debug": "node --inspect ./node_modules/.bin/nuxt",
     "cy:open": "cypress open",
-    "cy:run": "cypress run",
+    "cy:run": "cypress run --browser chrome",
     "cy:run:sorry": "./scripts/e2e",
     "e2e:pre-dev": "yarn docker:local:stop && yarn docker:local:start && NODE_ENV=dev yarn build",
     "e2e:dev": "START_SERVER_AND_TEST_INSECURE=1 server-test start:dev https-get://localhost:8005 cy:run:sorry",
