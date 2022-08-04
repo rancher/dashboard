@@ -16,6 +16,9 @@ For the cypress test runner to consume the UI, you should specify the environmen
   - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` password (do not pick `admin`)
 - `TEST_BASE_URL` // URL used by Cypress to run the tests, default `https://localhost:8005`
 - `TEST_SKIP_SETUP` // Avoid to execute bootstrap setup tests for already initialized Rancher instances
+- Dashboard
+  - `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
+  - `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
 
 ### Development with watch/dev
 
@@ -27,6 +30,30 @@ While writing the tests, you can simply run Rancher dashboard and then open the 
 The Cypress dashboard will contain the options and the list of test suites. These will automatically re-run if they are altered (hot reloading).
 
 For further information, consult [official documentation](https://docs.cypress.io/guides/guides/command-line#cypress-open).
+
+### E2E Dashboard 
+
+#### Self-hosted: Sorry Cypress
+
+Link to the dashboard: http://139.59.134.103:8080/
+
+E2E tests can be added and displayed in a dashboard by defining the project ID with the env var `TEST_PROJECT_ID`, then run the script:
+
+```bash
+yarn cy:run:sorry
+```
+
+#### Cypress Dashboard
+
+E2E tests can be displayed in Cypress dashboard by defining the project ID with the env var `TEST_PROJECT_ID`, then run the script by passing the parameters
+
+```bash
+yarn cy:run --record --key YOUR_RECORD_KEY_HERE
+```
+
+These values are provided when you create a new project within Cypress dashboard or within `Project settings`.
+
+It's also possible to run a workflow in GitHub Actions E2E test using these values to record on personal dashboards.
 
 ### Local and CI/prod run
 
