@@ -174,6 +174,10 @@ export default class Socket extends EventTarget {
     }
   }
 
+  isConnected() {
+    return this.state === STATE_CONNECTED;
+  }
+
   setAutoReconnect(autoReconnect) {
     this.autoReconnect = autoReconnect;
   }

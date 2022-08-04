@@ -2,10 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import serveStatic from 'serve-static';
 import webpack from 'webpack';
+
 import { STANDARD } from './config/private-label';
+import { generateDynamicTypeImport } from './pkg/auto-import';
 import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
-import { generateDynamicTypeImport } from './pkg/auto-import';
 
 const createProxyMiddleware = require('http-proxy-middleware');
 
@@ -450,6 +451,13 @@ export default function(dir, _appConfig) {
             header:         true,
             skipEmptyLines: true
           },
+        });
+
+        // Ensure there is a fallback for browsers that don't support web workers
+        config.module.rules.unshift({
+          test:    /web-worker.[a-z-]+.js/i,
+          loader:  'worker-loader',
+          options: { inline: 'fallback' },
         });
 
         // Prevent warning in log with the md files in the content folder

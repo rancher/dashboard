@@ -20,7 +20,7 @@ export const SETTING = {
   AUTH_TOKEN_MAX_TTL_MINUTES:           'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:            'kubeconfig-generate-token',
   KUBECONFIG_TOKEN_TTL_MINUTES:         'kubeconfig-token-ttl-minutes',
-  KUBECONFIG_DEFAULT_TTL_MINUTES:       'kubeconfig-default-ttl-minutes',
+  KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES:       'kubeconfig-default-token-ttl-minutes',
   ENGINE_URL:                           'engine-install-url',
   ENGINE_ISO_URL:                       'engine-iso-url',
   FIRST_LOGIN:                          'first-login',
@@ -51,6 +51,7 @@ export const SETTING = {
   LINK_COLOR:                           'ui-link-color',
   COMMUNITY_LINKS:                      'ui-community-links',
   FAVICON:                              'ui-favicon',
+  UI_PERFORNMANCE:                      'ui-performance',
   /**
    * Allow the backend to force a light/dark theme. Used in non-rancher world and results in the theme used
    * both pre and post log in. If not present defaults to the usual process
@@ -73,7 +74,7 @@ export const ALLOWED_SETTINGS = {
   [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:           {},
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:            { kind: 'boolean' },
   [SETTING.KUBECONFIG_TOKEN_TTL_MINUTES]:         {},
-  [SETTING.KUBECONFIG_DEFAULT_TTL_MINUTES]: {},
+  [SETTING.KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES]: { kind: 'integer' },
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },

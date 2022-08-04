@@ -151,6 +151,39 @@ export default {
     report(e) {
       alert(e);
     }
+  },
+  computed: {
+    requiredField() {
+      // using "any" for a type on "rule" here is dirty but the use of the optional chaining operator makes it safe for what we're doing here.
+      return (this.required || this.rules.some(rule => rule?.name === 'required'));
+    },
+    validationMessage() {
+      // we want to grab the required rule passed in if we can but if it's not there then we can just grab it from the formRulesGenerator
+      const requiredRule = this.rules.find(rule => rule?.name === 'required');
+      const ruleMessages = [];
+      const value = this?.value;
+
+      if (requiredRule && this.blurred && !this.focused) {
+        const message = requiredRule(value);
+
+        if (!!message) {
+          return message;
+        }
+      }
+
+      for (const rule of this.rules) {
+        const message = rule(value);
+
+        if (!!message && rule.name !== 'required') { // we're catching 'required' above so we can ignore it here
+          ruleMessages.push(message);
+        }
+      }
+      if (ruleMessages.length > 0 && (this.blurred || this.focused)) {
+        return ruleMessages.join(', ');
+      } else {
+        return undefined;
+      }
+    }
   }
 };
 </script>
@@ -212,6 +245,11 @@ export default {
       :value="tooltip"
       :status="status"
     />
+    <LabeledTooltip
+      v-if="!!validationMessage"
+      :hover="hoverTooltip"
+      :value="validationMessage"
+    />
   </div>
 </template>
 
@@ -223,6 +261,11 @@ export default {
       .vs__actions {
         visibility: hidden;
       }
+    }
+
+    ::v-deep .labeled-tooltip.error .status-icon {
+      top: 7px;
+      right: 2px;
     }
 
     ::v-deep .vs__selected-options {

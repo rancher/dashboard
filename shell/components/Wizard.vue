@@ -19,6 +19,8 @@ Wizard will emit these events:
 */
 
 export default {
+  name: 'Wizard',
+
   components: {
     AsyncButton,
     Banner,
@@ -258,7 +260,7 @@ export default {
       <div class="header">
         <div class="title">
           <div v-if="showBanner" class="top choice-banner">
-            <slot name="bannerTitle">
+            <slot v-if="!!bannerImage || !!bannerTitle" name="bannerTitle">
               <div v-show="initialTitle || activeStepIndex > 0" class="title">
                 <!-- Logo -->
                 <slot name="bannerTitleImage">
@@ -277,13 +279,12 @@ export default {
             </slot>
             <!-- Step number with subtext -->
             <div v-if="activeStep && showSteps" class="subtitle">
-              <h2>{{ t(`asyncButton.${headerMode || finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
+              <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
               <slot name="bannerSubtext">
                 <span v-if="activeStep.subtext !== null" class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
               </slot>
             </div>
           </div>
-          </slot>
           <div class="step-sequence">
             <ul
               v-if="showSteps"
@@ -319,15 +320,30 @@ export default {
           </div>
         </div>
       </div>
-      <div class="step-container">
+      <slot
+        class="step-container"
+        name="stepContainer"
+        :activeStep="activeStep"
+      >
         <template v-for="step in steps">
           <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
             <slot :step="step" :name="step.name" />
           </div>
         </template>
-      </div>
-
-      <div class="controls-container">
+      </slot>
+      <slot
+        name="controlsContainer"
+        :showPrevious="showPrevious"
+        :next="next"
+        :back="back"
+        :canNext="canNext"
+        :activeStepIndex="activeStepIndex"
+        :visibleSteps="visibleSteps"
+        :errorStrings="errorStrings"
+        :finish="finish"
+        :cancel="cancel"
+        :activeStep="activeStep"
+      >
         <div v-for="(err,idx) in errorStrings" :key="idx">
           <Banner color="error" :label="err" :closable="true" @close="errors.splice(idx, 1)" />
         </div>
@@ -337,10 +353,9 @@ export default {
               <t k="generic.cancel" />
             </button>
           </slot>
-
           <div class="controls-steps">
             <slot v-if="showPrevious" name="back" :back="back">
-              <button :disabled="!canPrevious" type="button" class="btn role-secondary" @click="back()">
+              <button :disabled="!canPrevious || (!editFirstStep && activeStepIndex===1)" type="button" class="btn role-secondary" @click="back()">
                 <t k="wizard.previous" />
               </button>
             </slot>
@@ -358,7 +373,7 @@ export default {
             </slot>
           </div>
         </div>
-      </div>
+      </slot>
     </div>
   </div>
 </template>
@@ -380,10 +395,9 @@ $spacer: 10px;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
- $minHeight: 75px;
+ $minHeight: 60px;
   & > .title {
     flex: 1;
-    min-height: 75px;
     min-height: $minHeight;
     display: flex;
   }
@@ -426,10 +440,19 @@ $spacer: 10px;
           width: 40px;
           overflow: visible;
           padding-top: 15px;
+
+          .cru__content & {
+            padding-top: 0;
+
+          }
           & > span {
             padding-bottom: 5px;
             margin-bottom: 5px;
             white-space: nowrap;
+
+            .cru__content & {
+              padding-bottom: 3px;
+            }
           }
         }
 
@@ -457,6 +480,10 @@ $spacer: 10px;
         border-top: 1px solid var(--border);
         position: relative;
         top: 28px;
+
+        .cru__content & {
+          top: 13px;
+        }
       }
     }
   }
@@ -466,6 +493,7 @@ $spacer: 10px;
     flex-basis: 40%;
     display: flex;
     align-items: center;
+    margin-bottom: $spacer;
 
     &.selected{
       background-color: var(--accent-btn);
@@ -539,8 +567,14 @@ $spacer: 10px;
   }
 }
 
-.controls-container {
   .controls-row {
+
+    // Overrides outlet padding
+    margin-left: -$space-m;
+    margin-right: -$space-m;
+    margin-bottom: -$space-m;
+    padding: $space-s $space-m;
+
     display: flex;
     justify-content: space-between;
     padding-top: $spacer;
@@ -553,6 +587,11 @@ $spacer: 10px;
         margin-left: $spacer;
       }
     }
+  }
+
+.wizard {
+  .header {
+    margin-bottom: 2*$spacer;
   }
 }
 

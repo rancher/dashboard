@@ -192,4 +192,17 @@ export default class Ingress extends SteveModel {
   get hasDefaultBackend() {
     return !isEmpty(this.spec[this.defaultBackendPath]);
   }
+
+  get details() {
+    const out = this._details;
+
+    if (this.spec?.ingressClassName) {
+      out.push({
+        label:   this.t('ingress.ingressClass.label'),
+        content: this.spec.ingressClassName,
+      });
+    }
+
+    return out;
+  }
 }

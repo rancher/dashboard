@@ -8,8 +8,8 @@ import { PROJECT_ID } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
+import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 
 export default {
   name:       'ListNamespace',
@@ -48,6 +48,7 @@ export default {
   },
 
   computed: {
+
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
     },
@@ -121,13 +122,34 @@ export default {
       };
     },
     groupPreference: mapPref(GROUP_RESOURCES),
-    activeProjects() {
-      const namespaceFilters = this.$store.getters['activeNamespaceFilters']();
-      const activeProjectFilters = this.getActiveProjects(namespaceFilters);
+    activeNamespaceFilters() {
+      return this.$store.getters['activeNamespaceFilters'];
+    },
+    activeProjectFilters() {
+      const activeProjects = {};
 
-      // If the user is not filtering by any projects, return
+      for (const filter of this.activeNamespaceFilters) {
+        const [type, id] = filter.split('://', 2);
+
+        if (type === 'project') {
+          activeProjects[id] = true;
+        }
+      }
+
+      return activeProjects;
+    },
+    activeProjects() {
+      const namespaceFilters = this.$store.getters['activeNamespaceFilters'];
+
+      if (namespaceFilters.includes(NAMESPACE_FILTER_ALL_ORPHANS) && Object.keys(this.activeProjectFilters).length === 0) {
+        // If the user wants to only see namespaces that are not
+        // in a project, don't show any projects.
+        return [];
+      }
+
+      // If the user is not filtering by any projects or namespaces, return
       // all projects in the cluster.
-      if (Object.keys(activeProjectFilters).length === 0) {
+      if (!this.userIsFilteringForSpecificNamespaceOrProject()) {
         return this.clusterProjects;
       }
 
@@ -135,7 +157,7 @@ export default {
       return this.clusterProjects.filter((projectData) => {
         const projectId = projectData.id.split('/')[1];
 
-        return !!activeProjectFilters[projectId];
+        return !!this.activeProjectFilters[projectId];
       });
     },
     activeNamespaces() {
@@ -151,17 +173,28 @@ export default {
     },
     rows() {
       if (this.$store.getters['prefs/get'](DEV)) {
+        // If developer tools are turned on in the user preferences,
+        // return all namespaces including system namespaces and RBAC
+        // management namespaces.
         return this.activeNamespaces;
       }
 
       const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-      const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       return this.activeNamespaces.filter((namespace) => {
         const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
+
         const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
 
-        return isVirtualCluster && isVirtualProduct ? (!systemNS && !namespace.isObscure) : !namespace.isObscure;
+        // For Harvester, filter out system namespaces AND obscure namespaces.
+        if (isVirtualCluster) {
+          return !systemNS && !namespace.isObscure;
+        }
+
+        // Otherwise only filter out obscure namespaces, such as namespaces
+        // that Rancher uses to manage RBAC for projects, which should not be
+        // edited or deleted by Rancher users.
+        return !namespace.isObscure;
       });
     },
 
@@ -248,19 +281,6 @@ export default {
       return base + (this.showMockNotInProjectGroup ? '-mock' : '');
     },
 
-    getActiveProjects(activeFilters) {
-      const activeProjects = {};
-
-      for (const filter of activeFilters) {
-        const [type, id] = filter.split('://', 2);
-
-        if (type === 'project') {
-          activeProjects[id] = true;
-        }
-      }
-
-      return activeProjects;
-    },
   }
 };
 </script>
@@ -300,12 +320,12 @@ export default {
           <div class="right">
             <n-link
               v-if="isNamespaceCreatable"
-              class="create-namespace btn btn-sm role-secondary"
+              class="create-namespace btn btn-sm role-secondary mr-5"
               :to="createNamespaceLocation(group.group)"
             >
               {{ t('projectNamespaces.createNamespace') }}
             </n-link>
-            <button type="button" class="project-action btn btn-sm role-multi-action actions mr-5" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
+            <button type="button" class="project-action btn btn-sm role-multi-action actions mr-10" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
               <i class="icon icon-actions" />
             </button>
           </div>

@@ -1,9 +1,11 @@
 <script>
+import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
+import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
@@ -59,7 +61,7 @@ export const COLUMN_BREAKPOINTS = {
 export default {
   name:       'SortableTable',
   components: {
-    THead, Checkbox, ActionDropdown
+    THead, Checkbox, AsyncButton, ActionDropdown
   },
   mixins: [
     filtering,
@@ -296,6 +298,7 @@ export default {
 
   data() {
     return {
+      currentPhase:        ASYNC_BUTTON_STATES.WAITING,
       expanded:            {},
       searchQuery:         '',
       eventualSearchQuery: '',
@@ -314,8 +317,6 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main.on('scroll', this._onScroll);
-
-    this.updateLiveAndDelayed();
   },
 
   beforeDestroy() {
@@ -330,17 +331,65 @@ export default {
     $main.off('scroll', this._onScroll);
   },
 
-  updated() {
-    this.updateLiveAndDelayed();
-  },
-
   watch: {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
     }, 200),
+
+    descending(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    sortFields(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    groupBy(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    namespaces(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    page(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    // Ensure we update live and delayed columns on first load
+    initalLoad(neu, old) {
+      if (neu && !old) {
+        this._didinit = true;
+        this.$nextTick(() => this.updateLiveAndDelayed());
+      }
+    },
+
+    isManualRefreshLoading(neu, old) {
+      this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+      // setTimeout is needed so that this is pushed further back on the JS computing queue
+      // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
+      setTimeout(() => {
+        this.watcherUpdateLiveAndDelayed(neu, old);
+      }, 500);
+    }
+  },
+
+  created() {
+    this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
   },
 
   computed: {
+    ...mapGetters({ isTooManyItemsToAutoUpdate: 'resource-fetch/isTooManyItemsToAutoUpdate' }),
+    ...mapGetters({ isManualRefreshLoading: 'resource-fetch/manualRefreshIsLoading' }),
+    namespaces() {
+      return this.$store.getters['activeNamespaceCache'];
+    },
+
+    initalLoad() {
+      return !this.loading && !this._didinit && this.rows?.length;
+    },
+
     fullColspan() {
       let span = 0;
 
@@ -531,7 +580,9 @@ export default {
   },
 
   methods: {
-
+    refreshTableData() {
+      this.$store.dispatch('resource-fetch/doManualRefresh');
+    },
     get,
     dasherize,
 
@@ -547,6 +598,12 @@ export default {
       }
     },
 
+    watcherUpdateLiveAndDelayed(neu, old) {
+      if (neu !== old) {
+        this.$nextTick(() => this.updateLiveAndDelayed());
+      }
+    },
+
     updateLiveAndDelayed() {
       if (this.hasLiveColumns) {
         this.updateLiveColumns();
@@ -558,6 +615,8 @@ export default {
     },
 
     updateDelayedColumns() {
+      clearTimeout(this._delayedColumnsTimer);
+
       if (!this.$refs.column || this.pagedRows.length === 0) {
         return;
       }
@@ -590,6 +649,8 @@ export default {
     },
 
     updateLiveColumns() {
+      clearTimeout(this._liveColumnsTimer);
+
       if (!this.$refs.column || !this.hasLiveColumns || this.pagedRows.length === 0) {
         return;
       }
@@ -819,8 +880,15 @@ export default {
             </template>
           </slot>
         </div>
-        <div v-if="$slots['header-middle'] && $slots['header-middle'].length" class="middle">
+        <div v-if="isTooManyItemsToAutoUpdate || $slots['header-middle'] && $slots['header-middle'].length" class="middle">
           <slot name="header-middle" />
+          <AsyncButton
+            v-if="isTooManyItemsToAutoUpdate"
+            v-tooltip="t('performance.manualRefresh.buttonTooltip')"
+            mode="refresh"
+            :current-phase="currentPhase"
+            @click="debouncedRefreshTableData"
+          />
         </div>
 
         <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
@@ -1285,36 +1353,36 @@ $spacing: 10px;
   }
 }
 
- .for-inputs{
-   & TABLE.sortable-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: $spacing;
+.for-inputs{
+  & TABLE.sortable-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: $spacing;
 
-    >TBODY>TR>TD, >THEAD>TR>TH {
-      padding-right: $spacing;
-      padding-bottom: $spacing;
+  >TBODY>TR>TD, >THEAD>TR>TH {
+    padding-right: $spacing;
+    padding-bottom: $spacing;
 
-      &:last-of-type {
-        padding-right: 0;
-      }
-    }
-
-    >TBODY>TR:first-of-type>TD {
-      padding-top: $spacing;
-    }
-
-    >TBODY>TR:last-of-type>TD {
-      padding-bottom: 0;
+    &:last-of-type {
+      padding-right: 0;
     }
   }
 
-    &.edit, &.create, &.clone {
-     TABLE.sortable-table>THEAD>TR>TH {
-      border-color: transparent;
-      }
+  >TBODY>TR:first-of-type>TD {
+    padding-top: $spacing;
+  }
+
+  >TBODY>TR:last-of-type>TD {
+    padding-bottom: 0;
+  }
+}
+
+  &.edit, &.create, &.clone {
+    TABLE.sortable-table>THEAD>TR>TH {
+    border-color: transparent;
     }
   }
+}
 
 .sortable-table-header {
   position: relative;
@@ -1384,6 +1452,22 @@ $spacing: 10px;
   .middle {
     grid-area: middle;
     white-space: nowrap;
+
+    .icon.icon-backup.animate {
+      animation-name: spin;
+      animation-duration: 1000ms;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+
+    @keyframes spin {
+      from {
+        transform:rotate(0deg);
+      }
+      to {
+        transform:rotate(360deg);
+      }
+    }
   }
 
   .search {

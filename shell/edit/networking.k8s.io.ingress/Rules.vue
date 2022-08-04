@@ -32,6 +32,16 @@ export default {
       type:    Array,
       default: () => []
     },
+
+    rules: {
+      default: () => ({
+        requestHost:   [],
+        path:        [],
+        port:        [],
+        target:      []
+      }),
+      type: Object,
+    }
   },
 
   async fetch() {
@@ -126,6 +136,7 @@ export default {
           v-model="props.row.value"
           :service-targets="serviceTargets"
           :ingress="value"
+          :rules="rules"
         />
       </template>
     </ArrayListGrouped>

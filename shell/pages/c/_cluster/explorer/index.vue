@@ -12,6 +12,8 @@ import {
   STATE,
 } from '@shell/config/table-headers';
 import {
+  ENDPOINTS,
+  EVENT,
   NAMESPACE,
   INGRESS,
   MANAGEMENT,
@@ -121,8 +123,17 @@ export default {
       K8S_METRICS_SUMMARY_URL,
       ETCD_METRICS_DETAIL_URL,
       ETCD_METRICS_SUMMARY_URL,
-      clusterCounts
+      clusterCounts,
+      selectedTab:         'cluster-events',
     };
+  },
+
+  beforeDestroy() {
+    // Remove the data and stop watching events and nodes
+    // Events in particular can lead to change messages having to be processed when we are no longer interested in events
+    this.$store.dispatch('cluster/forgetType', EVENT);
+    this.$store.dispatch('cluster/forgetType', NODE);
+    this.$store.dispatch('cluster/forgetType', ENDPOINTS); // Used by AlertTable to get alerts when v2 monitoring is installed
   },
 
   computed: {
@@ -337,6 +348,11 @@ export default {
       this.nodeMetrics = await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
     },
     findBy,
+
+    // Events/Alerts tab changed
+    tabChange(neu) {
+      this.selectedTab = neu?.selectedName;
+    }
   },
 };
 </script>
@@ -420,12 +436,12 @@ export default {
     </div>
 
     <div class="mt-30">
-      <Tabbed>
+      <Tabbed @changed="tabChange">
         <Tab name="cluster-events" :label="t('clusterIndexPage.sections.events.label')" :weight="2">
           <EventsTable />
         </Tab>
         <Tab v-if="hasMonitoring" name="cluster-alerts" :label="t('clusterIndexPage.sections.alerts.label')" :weight="1">
-          <AlertTable />
+          <AlertTable v-if="selectedTab === 'cluster-alerts'" />
         </Tab>
       </Tabbed>
     </div>

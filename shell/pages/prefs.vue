@@ -205,9 +205,12 @@ export default {
     <div class="row">
       <div class="col prefs-advanced">
         <h4 v-t="'prefs.advanced'" />
-        <Checkbox v-model="dev" :description="t('prefs.advancedTooltip', {}, raw=true)" :label="t('prefs.dev.label', {}, true)" />
+        <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
+        <p class="wrap-text">
+          {{ t('prefs.advancedTooltip', {}, raw=true) }}
+        </p>
         <br>
-        <Checkbox v-if="!isSingleVirtualCluster" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
+        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
       </div>
     </div>
 
@@ -234,5 +237,10 @@ export default {
 <style lang="scss" scoped>
   hr {
     margin: 20px 0;
+  }
+  .wrap-text {
+    overflow-wrap: break-word;
+    max-width: 80vw;
+    color: var(--input-label);
   }
 </style>

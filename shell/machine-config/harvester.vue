@@ -1,5 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
+import NodeAffinity from '@shell/components/form/NodeAffinity';
+import PodAffinity from '@shell/components/form/PodAffinity';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -11,10 +13,11 @@ import { Banner } from '@components/Banner';
 import { get } from '@shell/utils/object';
 import { mapGetters } from 'vuex';
 import {
-  HCI, NAMESPACE, MANAGEMENT, CONFIG_MAP, NORMAN
+  HCI, NAMESPACE, MANAGEMENT, CONFIG_MAP, NORMAN, NODE
 } from '@shell/config/types';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { allHashSettled } from '@shell/utils/promise';
+import { podAffinity as podAffinityValidator } from '@shell/utils/validators/pod-affinity';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isReady } from '@shell/models/harvester/harvesterhci.io.virtualmachineimage';
@@ -23,7 +26,7 @@ export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-    Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor
+    Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity
   },
 
   mixins: [CreateEditView],
@@ -70,7 +73,7 @@ export default {
 
       if (clusterId && isImportCluster) {
         const res = await allHashSettled({
-          namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
+          namespaces:   this.$store.dispatch('harvester/findAll', { type: NAMESPACE, opt: { url: `${ url }/${ NAMESPACE }s` } }),
           images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
           configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
           networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
@@ -117,7 +120,6 @@ export default {
         this.userDataOptions = userDataOptions;
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
-
         this.networkOptions = (res.networks.value?.data || []).map( (O) => {
           let value;
           let label;
@@ -137,19 +139,26 @@ export default {
           };
         });
 
-        (res.namespaces.value?.data || []).forEach(async(namespace) => {
-          const proxyNamespace = await this.$store.dispatch('cluster/create', namespace);
-
-          if (!proxyNamespace.isSystem) {
+        (res.namespaces.value || []).forEach((namespace) => {
+          if (!namespace.isSystem) {
             const value = namespace.metadata.name;
             const label = namespace.metadata.name;
 
+            this.namespaces.push(namespace);
             this.namespaceOptions.push({
               label,
               value
             });
           }
         });
+
+        try {
+          const { data: nodes } = await this.$store.dispatch('cluster/request', { url: `${ url }/${ NODE }s` });
+
+          this.allNodeObjects = nodes;
+        } catch (err) {
+          this.allNodeObjects = [];
+        }
       }
 
       if (isEmpty(this.value.cpuCount)) {
@@ -169,8 +178,13 @@ export default {
   },
 
   data() {
+    let vmAffinity = { affinity: {} };
     let userData = '';
     let networkData = '';
+
+    if (this.value.vmAffinity) {
+      vmAffinity = { affinity: JSON.parse(base64Decode(this.value.vmAffinity)) };
+    }
 
     if (this.value.userData) {
       userData = base64Decode(this.value.userData);
@@ -183,13 +197,16 @@ export default {
     return {
       credential:         null,
       isImportCluster:    false,
+      vmAffinity,
       userData,
       networkData,
       images:             [],
+      namespaces:         [],
       namespaceOptions:   [],
       networkOptions:     [],
       userDataOptions:    [],
       networkDataOptions: [],
+      allNodeObjects:     [],
       cpuCount:           ''
     };
   },
@@ -201,18 +218,23 @@ export default {
       return this.disabled || !!(this.isEdit && this.value.id);
     },
 
-    imageOptions() {
-      return (this.images || []).filter( (O) => {
-        return !O.spec.url.endsWith('.iso') && isReady.call(O);
-      }).sort((a, b) => a.metadata.creationTimestamp > b.metadata.creationTimestamp ? -1 : 1).map( (O) => {
-        const value = O.id;
-        const label = `${ O.spec.displayName } (${ value })`;
+    imageOptions: {
+      get() {
+        return (this.images || []).filter( (O) => {
+          return !O.spec.url.endsWith('.iso') && isReady.call(O);
+        }).sort((a, b) => a.metadata.creationTimestamp > b.metadata.creationTimestamp ? -1 : 1).map( (O) => {
+          const value = O.id;
+          const label = `${ O.spec.displayName } (${ value })`;
 
-        return {
-          label,
-          value
-        };
-      });
+          return {
+            label,
+            value
+          };
+        });
+      },
+      set(neu) {
+        this.images = neu;
+      }
     },
 
     namespaceDisabled() {
@@ -225,10 +247,13 @@ export default {
       if (!this.isEdit) {
         this.imageOptions = [];
         this.networkOptions = [];
+        this.namespaces = [];
         this.namespaceOptions = [];
+        this.vmAffinity = { affinity: {} };
         this.value.imageName = '';
         this.value.networkName = '';
         this.value.vmNamespace = '';
+        this.value.vmAffinity = '';
       }
 
       this.$fetch();
@@ -304,6 +329,8 @@ export default {
         errors.push(message);
       }
 
+      podAffinityValidator(this.vmAffinity.affinity, this.$store.getters, errors);
+
       return { errors };
     },
 
@@ -332,6 +359,30 @@ export default {
       } catch (e) {
         this.errors = exceptionToErrorsArray(e);
       }
+    },
+
+    updateScheduling(neu) {
+      const { affinity } = neu;
+
+      if (!affinity.nodeAffinity && !affinity.podAffinity && !affinity.podAntiAffinity) {
+        this.value.vmAffinity = '';
+        this.vmAffinity = { affinity: {} };
+
+        return;
+      }
+
+      this.value.vmAffinity = base64Encode(JSON.stringify(affinity));
+      this.vmAffinity = neu;
+    },
+
+    updateNodeScheduling(nodeAffinity) {
+      if (!this.vmAffinity.affinity) {
+        Object.assign(this.vmAffinity, { affinity: { nodeAffinity } });
+      } else {
+        Object.assign(this.vmAffinity.affinity, { nodeAffinity });
+      }
+
+      this.updateScheduling(this.vmAffinity);
     }
   },
 };
@@ -478,7 +529,29 @@ export default {
       </div>
 
       <portal :to="'advanced-'+uuid">
-        <h3>{{ t("cluster.credential.harvester.userData.title") }}</h3>
+        <h3 class="mt-20">
+          {{ t("workload.container.titles.nodeScheduling") }}
+        </h3>
+        <NodeAffinity
+          :mode="mode"
+          :value="vmAffinity.affinity.nodeAffinity"
+          @input="updateNodeScheduling"
+        />
+
+        <h3 class="mt-20">
+          {{ t("workload.container.titles.podScheduling") }}
+        </h3>
+        <PodAffinity
+          :mode="mode"
+          :value="vmAffinity"
+          :nodes="allNodeObjects"
+          :namespaces="namespaces"
+          @update="updateScheduling"
+        />
+
+        <h3 class="mt-20">
+          {{ t("cluster.credential.harvester.userData.title") }}
+        </h3>
         <div>
           <LabeledSelect
             v-if="isImportCluster && isCreate"

@@ -23,6 +23,13 @@ export default {
     mode: {
       type:    String,
       default: _EDIT
+    },
+    rules: {
+      default: () => ({
+        name: [],
+        port: []
+      }),
+      type: Object,
     }
   },
   data() {
@@ -71,6 +78,11 @@ export default {
       this.$emit('input', this.value);
     }
   },
+  watch: {
+    serviceName() { // fixes an issue wherein selecting a target service visually clears out the port but the previous value remains
+      this.update();
+    }
+  }
 };
 </script>
 <template>
@@ -87,6 +99,7 @@ export default {
           option-label="label"
           :status="serviceTargetStatus"
           :tooltip="serviceTargetTooltip"
+          :rules="rules.name"
           @input="update(); servicePort = ''"
         />
       </div>
@@ -97,6 +110,7 @@ export default {
           :mode="mode"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
+          :rules="rules.port"
           @input="update"
         />
         <LabeledSelect
@@ -106,6 +120,7 @@ export default {
           :options="portOptions"
           :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
+          :rules="rules.port"
           @input="update"
         />
       </div>

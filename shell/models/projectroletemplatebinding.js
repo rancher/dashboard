@@ -7,11 +7,11 @@ export default class PRTB extends NormanModel {
   }
 
   get roleDisplay() {
-    return this.roleTemplate.nameDisplay;
+    return this.roleTemplate?.nameDisplay;
   }
 
   get roleDescription() {
-    return this.roleTemplate.description;
+    return this.roleTemplate?.description;
   }
 
   get roleTemplate() {
