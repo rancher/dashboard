@@ -81,17 +81,17 @@ export default {
           />
         </div>
       </div>
-      <Tabbed class="deployment-tabs">
-        <Tab :label="t('workload.tabs.labels.containers')" name="containers" :error="tabErrors.general">
-          <Tabbed :side-tabs="true" @changed="changed">
-            <Tab
-              v-for="(tab, i) in allContainers"
-              :key="i"
-              :label="tab.name"
-              :name="tab.name"
-              :weight="tab.weight"
-              :error="!!tab.error"
-            >
+      <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" @changed="changed">
+        <Tab
+            v-for="(tab, i) in allContainers"
+            :key="i"
+            :label="tab.name"
+            :name="tab.name"
+            :weight="tab.weight"
+            :error="!!tab.error"
+          >
+          <Tabbed :side-tabs="true">
+            <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']" :error="tabErrors.general">
               <template #tab-header-right class="tab-content-controls">
                 <button v-if="allContainers.length > 1 && !isView" type="button" class="btn-sm role-link" @click="removeContainer(tab)">
                   {{ t('workload.container.removeContainer') }}
@@ -134,25 +134,21 @@ export default {
                   </div>
                 </div>
                 <div class="row">
-                  <div class="col span-6">
-                    <LabeledSelect
-                      v-model="imagePullSecrets"
-                      :label="t('workload.container.imagePullSecrets')"
-                      :multiple="true"
-                      :taggable="true"
-                      :options="namespacedSecrets"
-                      :mode="mode"
-                      option-label="metadata.name"
-                      :reduce="service=>service.metadata.name"
-                    />
-                  </div>
+                <div class="col span-6">
+                  <LabeledSelect
+                    v-model="imagePullSecrets"
+                    :label="t('workload.container.imagePullSecrets')"
+                    :multiple="true"
+                    :taggable="true"
+                    :options="namespacedSecrets"
+                    :mode="mode"
+                    option-label="metadata.name"
+                    :reduce="service=>service.metadata.name"
+                  />
                 </div>
               </div>
-              <div v-if="!isInitContainer" class="healthcheck">
-                <div class="spacer" />
-                <h2>{{ t('workload.container.titles.healthCheck') }} </h2>
-                <HealthCheck v-model="healthCheck" :mode="mode" />
               </div>
+
               <div class="spacer" />
               <div>
                 <h3>{{ t('workload.container.titles.ports') }}</h3>
@@ -160,20 +156,7 @@ export default {
                   <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
                 </div>
               </div>
-              <div class="spacer" />
-              <!-- Resources and Limitations -->
-              <div>
-                <h2 class="mb-10">
-                  <t k="workload.scheduling.titles.limits" />
-                </h2>
-                <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
-              </div>
-              <div class="spacer" />
-              <div>
-                <h2>{{ t('workload.container.titles.securityContext') }} </h2>
-                <Security v-model="container.securityContext" :mode="mode" />
-              </div>
-              <div class="spacer" />
+              <div class="spacer" />ß
               <div>
                 <h3>{{ t('workload.container.titles.command') }}</h3>
                 <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
@@ -193,15 +176,20 @@ export default {
                 <LifecycleHooks v-model="container.lifecycle" :mode="mode" />
               </div>
             </Tab>
-            <template #tab-row-extras>
-              <div class="side-tablist-controls">
-                <button v-if="!isView" type="button" class="btn-sm role-link" @click="addContainerBtn">
-                  {{ t('workload.container.addContainer') }}
-                </button>
-              </div>
-            </template>
+            <Tab :label="t('workload.container.titles.resources')" name="resources" :weight="tabWeightMap['resources']">
+              <!-- Resources and Limitations -->
+              <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
+            </Tab>
+
+            <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck" :weight="tabWeightMap['healthCheck']">
+              <HealthCheck v-model="healthCheck" :mode="mode" />
+            </Tab>
+            <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
+                <Security v-model="container.securityContext" :mode="mode" />
+            </Tab>
           </Tabbed>
         </Tab>
+
         <Tab :label="t('workload.tabs.labels.deployment')" :name="'deployment'" :weight="99">
           <Tabbed :side-tabs="true">
             <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="tabWeightMap['labels']">
@@ -310,6 +298,13 @@ export default {
             </Tab>
           </Tabbed>
         </Tab>
+        <template #tab-row-extras>
+          <li class="tablist-controls">
+            <button v-if="!isView" type="button" class="btn-sm role-link" @click="addContainerBtn">
+              <i class="icon icon-plus icon-lg" /> {{ t('workload.container.addContainer') }}
+            </button>
+          </li>
+        </template>
       </Tabbed>
     </CruResource>
   </form>
@@ -351,11 +346,12 @@ export default {
   justify-content: right;
 }
 
-.side-tablist-controls {
-  border-top: 1px solid var(--border);
-  padding: 15px;
-
+.tablist-controls {
   .role-link {
+    padding: 10px 15px;
+    min-height: unset;
+    line-height: unset;
+
     &:focus {
       background: none;
       box-shadow: none;
