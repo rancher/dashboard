@@ -1,4 +1,4 @@
-name: Build and Release Rancher Components
+name: Build and Publish Rancher Components
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
 
     - name: Install
-      run: yarn
+      run: yarn install --frozen-lockfile
 
     - name: Lint
       run: yarn lint:lib
