@@ -115,10 +115,6 @@ export default {
       white-space: nowrap;
     }
 
-    .resource-loader:first-child {
-      background-color: var(--border);
-    }
-
     .resource-loader {
       padding: 1px 10px;
       width: max-content;
