@@ -142,6 +142,7 @@ harvester:
     network: Networks
     advanced: Advanced Options
     accessCredentials: Access Credentials
+    pciDevices: PCI Devices
   fields:
     version: Version
     name: Name
@@ -162,6 +163,19 @@ harvester:
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
     filterLabels: Filter Labels
+  pci:
+    available: Available Devices
+    compatibleNodes: Compatible Nodes
+    impossibleSelection: 'There are no hosts with all of the selected devices.'
+    howToUseDevice: 'Use the table below to enable PCI passthrough on each device you want to use in this VM.'
+    showCompatibility: Show device compatibility matrix
+    hideCompatibility: Hide device compatibility matrix
+    claimError: Error enabling passthrough on {name}
+    unclaimError: Error disabling passthrough on {name}
+    cantUnclaim: You cannot disable passthrough on a device claimed by another user.
+    enableGroup: Enable Group
+    disableGroup: Disable Group
+    labelRequired: "This rule should not be manually altered: it ensures that the PCI devices selected for this virtual machine are available on the VM's host."
   generic:
     close: Close
     open: Open
@@ -947,4 +961,10 @@ typeLabel:
     {count, plural,
       one { Storage Class }
       other { Storage Classes }
+    }
+
+  devices.harvesterhci.io.pcidevice: |-
+    {count, plural,
+      one { PCI Device }
+      other { PCI Devices }
     }

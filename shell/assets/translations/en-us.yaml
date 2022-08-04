@@ -23,6 +23,7 @@ generic:
   id: ID
   ignored: Ignored
   invalidCron: Invalid cron schedule
+  inProgress: In Progress
   imagePullPolicy:
     always: Always
     ifNotPresent: IfNotPresent
@@ -4123,6 +4124,7 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
     node: Group by Node
+    device: Group by Device
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"

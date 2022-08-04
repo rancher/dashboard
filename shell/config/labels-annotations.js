@@ -171,6 +171,7 @@ export const HCI = {
   OS_TYPE:                      'harvesterhci.io/os-type',
   HOST_REQUEST:                 'management.cattle.io/pod-requests',
   STORAGE_CLASS:                'harvesterhci.io/storageClassName',
+  PCI_DEVICE:                   'pcidevices.harvesterhci.io',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
