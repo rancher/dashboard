@@ -75,11 +75,31 @@ export default {
   mixins: [metricPoller],
 
   fetch() {
-    setPromiseResult(fetchClusterResources(this.$store, NODE), this, 'nodes', `Load ${ NODE }`);
+    setPromiseResult(
+      fetchClusterResources(this.$store, NODE),
+      this,
+      'nodes',
+      `Load ${ NODE }`
+    );
 
-    setPromiseResult(allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]), this, 'showClusterMetrics', `Determine cluster metrics`);
-    setPromiseResult(allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]), this, 'showK8sMetrics', `Determine k8s metrics`);
-    setPromiseResult(allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]), this, 'showEtcdMetrics', `Determine etcd metrics`);
+    setPromiseResult(
+      allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
+      this,
+      'showClusterMetrics',
+      `Determine cluster metrics`
+    );
+    setPromiseResult(
+      allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
+      this,
+      'showK8sMetrics',
+      `Determine k8s metrics`
+    );
+    setPromiseResult(
+      allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
+      this,
+      'showEtcdMetrics',
+      `Determine etcd metrics`
+    );
 
     if (this.currentCluster.isLocal) {
       setPromiseResult(this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE }), this, 'mgmtNodes', `Load ${ MANAGEMENT.NODE }`);
@@ -116,7 +136,7 @@ export default {
   },
 
   beforeDestroy() {
-    // Remove the data and stop watching events and nodes
+    // Remove the data and stop watching resources that were fetched in this page
     // Events in particular can lead to change messages having to be processed when we are no longer interested in events
     this.$store.dispatch('cluster/forgetType', EVENT);
     this.$store.dispatch('cluster/forgetType', NODE);
