@@ -31,7 +31,9 @@ export const HCI = {
   FLOW:               'harvesterhci.io.logging.flow',
   OUTPUT:             'harvesterhci.io.logging.output',
   STORAGE:            'harvesterhci.io.storage',
-  KSTUNED:            'node.harvesterhci.io.ksmtuned'
+  KSTUNED:            'node.harvesterhci.io.ksmtuned',
+  PCI_DEVICE:         'devices.harvesterhci.io.pcidevice',
+  PCI_CLAIM:          'devices.harvesterhci.io.pcideviceclaim',
 };
 
 export const VOLUME_SNAPSHOT = 'snapshot.storage.k8s.io.volumesnapshot';

@@ -35,4 +35,6 @@ export const HCI = {
   IMAGE_SUFFIX:                 'harvesterhci.io/image-type',
   OS_TYPE:                      'harvesterhci.io/os-type',
   HOST_REQUEST:                 'management.cattle.io/pod-requests',
+  STORAGE_CLASS:                'harvesterhci.io/storageClassName',
+  PCI_DEVICE:                   'pcidevices.harvesterhci.io',
 };

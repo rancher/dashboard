@@ -202,7 +202,7 @@ export default {
       <div
         :data-testid="`input-match-expression-key-${index}`"
       >
-        <div v-if="isView">
+        <div v-if="isView || row._forced">
           {{ row.key }}
         </div>
         <input
@@ -221,7 +221,7 @@ export default {
       <div
         :data-testid="`input-match-expression-operator-${index}`"
       >
-        <div v-if="isView">
+        <div v-if="isView || row._forced">
           {{ row.operator }}
         </div>
         <Select
@@ -246,7 +246,7 @@ export default {
         v-else
         :data-testid="`input-match-expression-values-${index}`"
       >
-        <div v-if="isView">
+        <div v-if="isView || row._forced">
           {{ row.values }}
         </div>
         <input
@@ -259,7 +259,7 @@ export default {
       </div>
       <div class="remove-container">
         <button
-          v-if="!isView"
+          v-if="!isView && !row._forced"
           type="button"
           class="btn role-link"
           :style="{padding:'0px'}"
@@ -269,6 +269,7 @@ export default {
         >
           <t k="generic.remove" />
         </button>
+        <i v-else-if="row._forced" v-tooltip="row._forced" class="icon icon-warning icon-lg text-warning" />
       </div>
     </div>
     <div
