@@ -21,7 +21,6 @@ import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { BLANK_CLUSTER } from '@shell/store';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
-import { setPromiseResult } from '@shell/utils/promise';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 
@@ -42,18 +41,8 @@ export default {
   mixins: [PageHeaderActions],
 
   fetch() {
-    setPromiseResult(
-      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-      this,
-      'provClusters',
-      'Load prov clusters'
-    );
-    setPromiseResult(
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      this,
-      'mgmtClusters',
-      'Load mgmt clusters'
-    );
+    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
   },
 
   data() {
@@ -72,7 +61,7 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, mgmtClusters: null, provClusters: null, fullVersion, pageActions, vendor: getVendor(),
+      HIDE_HOME_PAGE_CARDS, fullVersion, pageActions, vendor: getVendor(),
     };
   },
 
@@ -80,6 +69,10 @@ export default {
     ...mapState(['managementReady']),
     ...mapGetters(['currentCluster']),
     mcm: mapFeature(MULTI_CLUSTER),
+
+    provClusters() {
+      return this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
+    },
 
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
