@@ -1,68 +1,139 @@
 <script>
-// import Loading from '@shell/components/Loading';
-import BackLink from '@shell/components/BackLink';
-import BackRoute from '@shell/mixins/back-link';
-import { COUNT } from '@shell/config/types';
+import { CAPI } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
 import { downloadFile } from '@shell/utils/download';
+import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { sortBy } from '@shell/utils/sort';
+import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
   layout:     'plain',
-  components: { BackLink, AsyncButton },
-  mixins:     [BackRoute],
+  components: { AsyncButton, Checkbox },
   async fetch() {
-    this.counts = await this.$store.dispatch('management/findAll', { type: COUNT });
+    const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+    const readyClusters = provClusters.filter(c => c.mgmt?.isReady);
+    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters), this.$store);
+    const finalCounts = [];
+    const promises = [];
+    let topTenForResponseTime = [];
+
+    clusterForCounts.forEach((cluster, i) => {
+      finalCounts.push({
+        id:             cluster.id,
+        capiId:         cluster.mgmt?.id,
+        counts:         null,
+        isTableVisible: i === 0
+      });
+      promises.push(this.$store.dispatch('management/request', { url: `/k8s/clusters/${ cluster.mgmt?.id }/v1/counts` }));
+    });
+
+    const countsPerCluster = await Promise.all(promises);
+
+    countsPerCluster.forEach((clusterCount, index) => {
+      const counts = clusterCount.data?.[0]?.counts;
+
+      if (counts) {
+        const sanitizedCount = [];
+
+        Object.keys(counts).forEach((key) => {
+          sanitizedCount[key] = counts[key].summary?.count;
+          sanitizedCount.push({
+            resource: key,
+            count:    counts[key].summary?.count || 0,
+          });
+        });
+
+        const sortedCount = sortBy(sanitizedCount, 'count:desc');
+
+        topTenForResponseTime = topTenForResponseTime.concat(sortedCount);
+        topTenForResponseTime = sortBy(topTenForResponseTime, 'count:desc');
+
+        topTenForResponseTime.forEach((item, i) => {
+          topTenForResponseTime[i].id = finalCounts[index].id;
+          topTenForResponseTime[i].capiId = finalCounts[index].capiId;
+        });
+
+        finalCounts[index].counts = sortedCount;
+      }
+    });
+
+    topTenForResponseTime = topTenForResponseTime.splice(0, 10);
+
+    this.topTenForResponseTime = topTenForResponseTime;
+    this.finalCounts = finalCounts;
   },
 
   data() {
     const systemInformation = {
-      os: {
-        label: 'OS',
-        value: window?.navigator.platform
-      },
-      browserCodeName: {
-        label: 'Browser code name',
-        value: window?.navigator.appCodeName
-      },
-      browserName: {
-        label: 'Browser name',
-        value: window?.navigator.appName
-      },
-      browserVersion: {
-        label: 'Browser version',
-        value: window?.navigator.appVersion
-      },
       browserUserAgent: {
-        label: 'Browser user agent',
-        value: window?.navigator.userAgent
+        label: this.t('about.diagnostic.systemInformation.browserUserAgent'),
+        value: window?.navigator?.userAgent
       },
       browserLanguage: {
-        label: 'Browser language',
-        value: window?.navigator.language
+        label: this.t('about.diagnostic.systemInformation.browserLanguage'),
+        value: window?.navigator?.language
       },
-      deviceMemory: {
-        label: 'Device memory',
-        value: window?.navigator.deviceMemory
+      cookieEnabled: {
+        label: this.t('about.diagnostic.systemInformation.cookieEnabled'),
+        value: window?.navigator?.cookieEnabled
       },
-      memJsHeapLimit: {
-        label: 'Memory JS Heap Size limit',
-        value: window?.performance.memory.jsHeapSizeLimit
-      },
-      memTotalJsHeapSize: {
-        label: 'Memory Total JS Heap Size',
-        value: window?.performance.memory.totalJSHeapSize
-      },
-      memUsedJsHeapSize: {
-        label: 'Memory Used JS Heap Size',
-        value: window?.performance.memory.usedJSHeapSize
+      hardwareConcurrency: {
+        label: this.t('about.diagnostic.systemInformation.hardwareConcurrency'),
+        value: window?.navigator?.hardwareConcurrency
       },
     };
 
+    if (window?.navigator?.userAgentData?.platform) {
+      systemInformation.os = {
+        label: this.t('about.diagnostic.systemInformation.os'),
+        value: window?.navigator?.userAgentData?.platform
+      };
+    }
+
+    if (window?.navigator?.deviceMemory) {
+      systemInformation.deviceMemory = {
+        label: this.t('about.diagnostic.systemInformation.deviceMemory'),
+        value: window?.navigator?.deviceMemory
+      };
+    }
+
+    if (window?.performance?.memory?.jsHeapSizeLimit) {
+      systemInformation.memJsHeapLimit = {
+        label: this.t('about.diagnostic.systemInformation.memJsHeapLimit'),
+        value: window?.performance?.memory?.jsHeapSizeLimit
+      };
+    }
+
+    if (window?.performance?.memory?.totalJSHeapSize) {
+      systemInformation.memTotalJsHeapSize = {
+        label: this.t('about.diagnostic.systemInformation.memTotalJsHeapSize'),
+        value: window?.performance?.memory?.totalJSHeapSize
+      };
+    }
+
+    if (window?.performance?.memory?.usedJSHeapSize) {
+      systemInformation.memUsedJsHeapSize = {
+        label: this.t('about.diagnostic.systemInformation.memUsedJsHeapSize'),
+        value: window?.performance?.memory?.usedJSHeapSize
+      };
+    }
+
+    // scroll logs container to the bottom
+    this.scrollLogsToBottom();
+
     return {
       systemInformation,
-      counts:     null,
-      latestLogs: console.logs // eslint-disable-line no-console
+      topTenForResponseTime: null,
+      finalCounts:           null,
+      includeResponseTimes:  true,
+      storeMapping:          this.$store?._modules?.root?.state,
+      latestLogs:            console.logs // eslint-disable-line no-console
     };
+  },
+  watch: {
+    latestLogs() {
+      this.scrollLogsToBottom();
+    }
   },
   computed: {
     name() {
@@ -70,40 +141,120 @@ export default {
     }
   },
   methods: {
+    scrollLogsToBottom() {
+      this.$nextTick(() => {
+        const logsContainer = document.querySelector('.logs-container');
+
+        logsContainer.scrollTop = logsContainer.scrollHeight;
+      });
+    },
     generateKey(data) {
       const randomize = Math.random() * 10000;
 
       return `key_${ randomize }_${ data }`;
     },
-    downloadData(btnCb) {
+    async downloadData(btnCb) {
       const date = new Date().toISOString().split('.')[0];
       const fileName = `diagnostic-data-${ date }`;
       const data = {
         systemInformation: this.systemInformation,
-        logs:              this.latestLogs
+        logs:              this.latestLogs,
+        storeMapping:      this.parseStoreData(this.storeMapping),
+        resourceCounts:    this.finalCounts
       };
+
+      if (this.includeResponseTimes) {
+        const responseTimes = await this.gatherResponseTimes();
+
+        data.responseTimes = responseTimes;
+      }
 
       downloadFile(fileName, JSON.stringify(data), 'application/json')
         .then(() => btnCb(true))
         .catch(() => btnCb(false));
     },
+    toggleTable(area) {
+      const itemIndex = this.finalCounts.findIndex(item => item.id === area);
+
+      this.finalCounts[itemIndex].isTableVisible = !this.finalCounts[itemIndex].isTableVisible;
+    },
+    async gatherResponseTimes() {
+      return await Promise.all(this.topTenForResponseTime.map((item) => {
+        const t = Date.now();
+
+        return this.$store.dispatch('management/request', { url: `/k8s/clusters/${ item.capiId }/v1/${ item.resource }` })
+          .then(() => ({
+            outcome: 'success', item, durationMs: Date.now() - t
+          }))
+          .catch(() => ({
+            outcome: 'error', item, durationMs: Date.now() - t
+          }));
+      })).then((responseTimes) => {
+        return responseTimes;
+      });
+    },
+    parseStoreData(storeData) {
+      // clear potencial sensitive data
+      const disallowedDataKeys = [
+        'aws',
+        'digitalocean',
+        'linode',
+      ];
+
+      const clearListsKeys = [
+        'management',
+        'rancher',
+        'cluster',
+        'harvester',
+        'epinio',
+        'elemental',
+      ];
+
+      disallowedDataKeys.forEach((key) => {
+        if (storeData[key]) {
+          delete storeData[key];
+        }
+      });
+
+      clearListsKeys.forEach((key) => {
+        if (storeData[key] && storeData[key].types && Object.keys(storeData[key].types).length) {
+          Object.keys(storeData[key].types).forEach((k) => {
+            if (storeData[key].types[k]?.list) {
+              storeData[key].types[k].count = storeData[key].types[k]?.list.length;
+              delete storeData[key].types[k]?.list;
+            }
+          });
+        }
+      });
+
+      return storeData;
+    }
   },
 };
 </script>
 
 <template>
   <div>
-    <BackLink :link="backLink" />
-    <div class="title-block">
+    <div class="title-block mt-20 mb-40">
       <h1
         v-t="'about.diagnostic.title'"
         class="mt-20 mb-40"
       />
-      <AsyncButton mode="download" @click="downloadData" />
+      <div>
+        <Checkbox
+          v-model="includeResponseTimes"
+          v-tooltip.left="t('about.diagnostic.checkboxTooltip')"
+          :label="t('about.diagnostic.checkboxLabel')"
+        />
+        <AsyncButton
+          mode="diagnostic"
+          @click="downloadData"
+        />
+      </div>
     </div>
     <div class="mb-40">
       <h2 class="mb-20">
-        System information
+        {{ t('about.diagnostic.systemInformation.subtitle') }}
       </h2>
       <table>
         <thead>
@@ -122,7 +273,7 @@ export default {
     </div>
     <div class="mb-40">
       <h2 class="mb-20">
-        Latest logs
+        {{ t('about.diagnostic.logs.subtitle') }}
       </h2>
       <ul class="logs-container">
         <li
@@ -131,9 +282,45 @@ export default {
           :class="logEntry.type"
         >
           <span class="log-entry-type">{{ logEntry.type }}: </span>
-          <span v-for="(arg, i) in logEntry.data" :key="i">{{ arg }}</span>
+          <span
+            v-for="(arg, i) in logEntry.data"
+            :key="i"
+          >{{ arg }}</span>
         </li>
       </ul>
+    </div>
+    <div class="mb-40">
+      <h2 class="mb-20">
+        {{ t('about.diagnostic.resourceCounts.subtitle') }}
+      </h2>
+      <div class="resources-count-container">
+        <table
+          v-for="cluster in finalCounts"
+          :key="cluster.id"
+          class="full-width"
+        >
+          <thead @click="toggleTable(cluster.id)">
+            <th colspan="2">
+              <div>
+                <span>{{ cluster.id }}</span>
+                <i
+                  class="icon"
+                  :class="{
+                    'icon-chevron-down': !cluster.isTableVisible,
+                    'icon-chevron-up': cluster.isTableVisible
+                  }"
+                ></i>
+              </div>
+            </th>
+          </thead>
+          <tbody v-show="cluster.isTableVisible">
+            <tr v-for="item in cluster.counts" :key="item.resource">
+              <td>{{ item.resource }}</td>
+              <td>{{ item.count }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -144,8 +331,13 @@ export default {
   justify-content: space-between;
   align-items: center;
 
-  button {
-    height: 30px;
+  h1 {
+    margin: 0 !important;
+  }
+
+  div {
+    display: flex;
+    align-items: center;
   }
 }
 
@@ -153,6 +345,21 @@ table {
   border-collapse: collapse;
   overflow: hidden;
   border-radius: var(--border-radius);
+
+  &.full-width {
+    border-radius: 0 !important;
+    min-width: 60%;
+
+    thead {
+      cursor: pointer;
+
+      th div {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+      }
+    }
+  }
 
   tr > td:first-of-type {
     width: 20%;
@@ -218,6 +425,14 @@ table {
 
     .log-entry-type {
       font-weight: bold;
+    }
+  }
+}
+
+.resources-count-container {
+  table:nth-child(even) {
+    th {
+      background-color: rgb(239, 239, 239);
     }
   }
 }

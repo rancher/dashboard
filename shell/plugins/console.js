@@ -13,8 +13,7 @@ export default (context) => {
     console[type] = function() {
       const dataLogged = {
         type,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString(),
+        dateTimeUtc: new Date().toUTCString(),
         timestamp: Date.now(),
         data: Array.from(arguments)
       }
