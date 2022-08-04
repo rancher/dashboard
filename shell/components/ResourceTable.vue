@@ -199,7 +199,8 @@ export default {
       const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( (!this.isNamespaced || isAll) && !isVirtualProduct) {
+      // If this is a harvester list, 'all' must still be filtered
+      if ( !this.isNamespaced || (isAll && !isVirtualProduct)) {
         return this.rows || [];
       }
 
