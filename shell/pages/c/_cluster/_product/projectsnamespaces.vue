@@ -10,6 +10,7 @@ import { mapPref, GROUP_RESOURCES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
+import { mapGetters } from 'vuex';
 
 export default {
   name:       'ListNamespace',
@@ -48,6 +49,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
 
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
@@ -199,6 +201,10 @@ export default {
     },
 
     showMockNotInProjectGroup() {
+      if (!this.currentCluster.canUpdate) {
+        return false;
+      }
+
       const someNamespacesAreNotInProject = !this.rows.some(row => !row.project);
 
       // Hide the "Not in a Project" group if the user is filtering
