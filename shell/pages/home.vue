@@ -42,8 +42,18 @@ export default {
   mixins: [PageHeaderActions],
 
   fetch() {
-    setPromiseResult(this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }), this, 'provClusters', 'Failed to load prov clusters');
-    setPromiseResult(this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }), this, 'mgmtClusters', 'Failed to load mgmt clusters');
+    setPromiseResult(
+      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      this,
+      'provClusters',
+      'Load prov clusters'
+    );
+    setPromiseResult(
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      this,
+      'mgmtClusters',
+      'Load mgmt clusters'
+    );
   },
 
   data() {

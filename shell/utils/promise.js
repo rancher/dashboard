@@ -94,10 +94,20 @@ export function deferred(name) {
   return out;
 }
 
-export function setPromiseResult(promise, that, key, label) {
+/**
+ * Apply the result of a promise to a given object's property
+ *
+ * This is a non-blocking method
+ *
+ * @param promise Promise to fetch result for
+ * @param obj Object to set result of promise to
+ * @param key Property in object to set result to
+ * @param label Description of what promise is trying to  do
+ */
+export function setPromiseResult(promise, obj, key, label) {
   promise
     .then((res) => {
-      that[key] = res;
+      obj[key] = res;
     })
     .catch((e) => {
       console.warn('Failed to: ', label, e); // eslint-disable-line no-console
