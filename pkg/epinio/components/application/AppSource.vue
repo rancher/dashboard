@@ -94,7 +94,6 @@ export default Vue.extend<Data, any, any, any>({
       archive: {
         tarball:             this.source?.archive.tarball || '',
         fileName:            this.source?.archive.fileName || '',
-        fileType:            this.source?.archive.fileType || '',
       },
 
       container: { url: this.source?.container.url },
