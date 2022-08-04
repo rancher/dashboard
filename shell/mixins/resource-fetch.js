@@ -24,7 +24,7 @@ export const TYPES_RESTRICTED = [
 export default {
   data() {
     // fetching the settings related to manual refresh from global settings
-    const perfSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORNMANCE);
+    const perfSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
     let perfConfig = {};
 
     if (perfSetting && perfSetting.value) {
