@@ -28,7 +28,6 @@ export default {
 <template>
   <div>
     <Loading v-if="$fetchState.pending" />
-    <WorkloadDeployment v-else-if="isDeployment" :mode="mode" :value="value" />
-    <WorkloadGeneric v-else :mode="mode" :value="value" />
+    <WorkloadDeployment :mode="mode" :value="value" />
   </div>
 </template>

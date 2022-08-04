@@ -79,7 +79,8 @@ export const WORKLOAD_TYPES = {
   JOB:                    'batch.job',
   STATEFUL_SET:           'apps.statefulset',
   REPLICA_SET:            'apps.replicaset',
-  REPLICATION_CONTROLLER: 'replicationcontroller'
+  REPLICATION_CONTROLLER: 'replicationcontroller',
+  POD:                    'pod'
 };
 
 const {
