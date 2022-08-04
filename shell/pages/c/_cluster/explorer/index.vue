@@ -75,12 +75,7 @@ export default {
   mixins: [metricPoller],
 
   fetch() {
-    setPromiseResult(
-      fetchClusterResources(this.$store, NODE),
-      this,
-      'nodes',
-      `Load ${ NODE }`
-    );
+    fetchClusterResources(this.$store, NODE);
 
     setPromiseResult(
       allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
@@ -102,7 +97,7 @@ export default {
     );
 
     if (this.currentCluster.isLocal) {
-      setPromiseResult(this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE }), this, 'mgmtNodes', `Load ${ MANAGEMENT.NODE }`);
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
     }
   },
 
@@ -119,8 +114,6 @@ export default {
       constraints:         [],
       events:              [],
       nodeMetrics:         [],
-      nodes:               [],
-      mgmtNodes:          [],
       showClusterMetrics: false,
       showK8sMetrics:     false,
       showEtcdMetrics:    false,
@@ -148,6 +141,14 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
+
+    nodes() {
+      return this.$store.getters['cluster/all'](NODE);
+    },
+
+    mgmtNodes() {
+      return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+    },
 
     hideClusterToolsTip: mapPref(CLUSTER_TOOLS_TIP),
 
