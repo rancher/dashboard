@@ -69,6 +69,10 @@ export default {
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
+    namespaces() {
+      return this.$store.getters['activeNamespaceCache'];
+    },
+
     dev:            mapPref(DEV),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
 
@@ -212,6 +216,13 @@ export default {
     },
 
     namespaceMode(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
+    },
+
+    namespaces(a, b) {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
