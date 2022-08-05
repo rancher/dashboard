@@ -189,7 +189,9 @@ export default async function({
   }
 
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
+    // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
     await store.dispatch('auth/getUser');
+
     const v3User = store.getters['auth/v3User'] || {};
 
     if (v3User?.mustChangePassword) {
@@ -382,6 +384,7 @@ export default async function({
 }
 
 async function findMe(store) {
+  // First thing we do in loadManagement is fetch principals anyway.... so don't ?me=true here
   const principals = await store.dispatch('rancher/findAll', {
     type: NORMAN.PRINCIPAL,
     opt:  {
