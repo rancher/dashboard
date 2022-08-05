@@ -33,6 +33,7 @@ declare global {
 
       /**
        * Override user preferences to default values, allowing to pass custom preferences for a deterministic scenario
+       * Leave empty for reset to default values
        */
       // eslint-disable-next-line no-undef
       userPreferences(preferences?: Partial<UserPreferences>): Chainable<null>;

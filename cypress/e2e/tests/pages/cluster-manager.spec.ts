@@ -12,6 +12,7 @@ describe('Cluster Manager', () => {
   });
 
   it('can create new local RKE2 custom cluster', () => {
+    cy.userPreferences();
     cy.visit(clusterManagerPath);
     cy.getId('cluster-manager-list-create').click();
     cy.getId('cluster-manager-create-rke-switch').click();
