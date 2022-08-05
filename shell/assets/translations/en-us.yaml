@@ -238,9 +238,9 @@ about:
   downloadCLI:
     title: CLI Downloads
   diagnostic:
-    title: Diagnostic
-    checkboxTooltip: Get the response times when fetching data from the server for the top 10 highest count resources when downloading the diagnostic data. It may take a while
-    checkboxLabel: Include response times
+    title: Diagnostics
+    checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources of each cluster. These may take a while to complete
+    checkboxLabel: Make additional requests
     systemInformation: 
       subtitle: System Information
       os: OS
@@ -255,7 +255,7 @@ about:
     logs: 
       subtitle: Latest Logs
     resourceCounts: 
-      subtitle: Resource Counts Per Cluster
+      subtitle: Resource Counts
 
 accountAndKeys:
   title: Account and API Keys

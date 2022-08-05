@@ -1,7 +1,7 @@
-/* eslint-disable */
+/* eslint-disable no-console */
 export default (context) => {
   const logTypes = ['log', 'error', 'info', 'warn'];
-  const MAX_LOGS_STORED = 200;
+  const MAX_LOGS_STORED = 400;
 
   console.logLog = console.log.bind(console);
   console.errorLog = console.error.bind(console);
@@ -14,12 +14,12 @@ export default (context) => {
       const dataLogged = {
         type,
         dateTimeUtc: new Date().toUTCString(),
-        timestamp: Date.now(),
-        data: Array.from(arguments)
-      }
+        timestamp:   Date.now(),
+        data:        Array.from(arguments)
+      };
 
       if (console.logs.length >= MAX_LOGS_STORED) {
-        console.logs.shift()
+        console.logs.shift();
       }
 
       console.logs.push(dataLogged);

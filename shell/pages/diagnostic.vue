@@ -47,6 +47,7 @@ export default {
 
         topTenForResponseTime = topTenForResponseTime.concat(sortedCount);
         topTenForResponseTime = sortBy(topTenForResponseTime, 'count:desc');
+        topTenForResponseTime = topTenForResponseTime.splice(0, 10);
 
         topTenForResponseTime.forEach((item, i) => {
           topTenForResponseTime[i].id = finalCounts[index].id;
@@ -56,8 +57,6 @@ export default {
         finalCounts[index].counts = sortedCount;
       }
     });
-
-    topTenForResponseTime = topTenForResponseTime.splice(0, 10);
 
     this.topTenForResponseTime = topTenForResponseTime;
     this.finalCounts = finalCounts;
@@ -154,8 +153,9 @@ export default {
       return `key_${ randomize }_${ data }`;
     },
     async downloadData(btnCb) {
-      const date = new Date().toISOString().split('.')[0];
-      const fileName = `diagnostic-data-${ date }`;
+      const date = new Date().toLocaleDateString();
+      const time = new Date().toLocaleTimeString();
+      const fileName = `rancher-diagnostic-data-${ date }-${ time }`;
       const data = {
         systemInformation: this.systemInformation,
         logs:              this.latestLogs,
@@ -281,7 +281,7 @@ export default {
           :key="generateKey(logEntry.timestamp)"
           :class="logEntry.type"
         >
-          <span class="log-entry-type">{{ logEntry.type }}: </span>
+          <span class="log-entry-type">{{ logEntry.type }} :: </span>
           <span
             v-for="(arg, i) in logEntry.data"
             :key="i"
@@ -391,18 +391,21 @@ table {
   list-style: none;
   margin: 0;
   padding: 0;
-  background-color: #FFF;
-  border: 1px solid #000;
+  border: 1px solid var(--body-text);;
   height: 300px;
   overflow-x: hidden;
   overflow-y: auto;
 
   li {
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
+    font-family: $mono-font;
+    font-size: 12px;
     margin: 0;
     padding: 10px 20px;
     border-bottom: 1px solid #ccc;
+
+    &.log {
+      color: var(--body-text);
+    }
 
     &.warn {
       background-color: LightGoldenRodYellow;
@@ -433,6 +436,7 @@ table {
   table:nth-child(even) {
     th {
       background-color: rgb(239, 239, 239);
+      color: #000;
     }
   }
 }
