@@ -200,8 +200,12 @@ export default {
       });
     },
 
+    canSeeProjectlessNamespaces() {
+      return this.currentCluster.canUpdate;
+    },
+
     showMockNotInProjectGroup() {
-      if (!this.currentCluster.canUpdate) {
+      if (!this.canSeeProjectlessNamespaces) {
         return false;
       }
 
@@ -212,6 +216,10 @@ export default {
       const usingSpecificFilter = this.userIsFilteringForSpecificNamespaceOrProject();
 
       return !usingSpecificFilter && someNamespacesAreNotInProject;
+    },
+
+    notInProjectKey() {
+      return this.$store.getters['i18n/t']('resourceTable.groupLabel.notInAProject');
     }
   },
   methods: {
@@ -325,7 +333,7 @@ export default {
           </div>
           <div class="right">
             <n-link
-              v-if="isNamespaceCreatable"
+              v-if="isNamespaceCreatable && (canSeeProjectlessNamespaces || group.group.key !== notInProjectKey)"
               class="create-namespace btn btn-sm role-secondary mr-5"
               :to="createNamespaceLocation(group.group)"
             >
