@@ -155,7 +155,7 @@ export default {
     async downloadData(btnCb) {
       const date = new Date().toLocaleDateString();
       const time = new Date().toLocaleTimeString();
-      const fileName = `rancher-diagnostic-data-${ date }-${ time }`;
+      const fileName = `rancher-diagnostic-data-${ date }-${ time.replaceAll(':', '_') }.json`;
       const data = {
         systemInformation: this.systemInformation,
         logs:              this.latestLogs,
@@ -391,7 +391,8 @@ table {
   list-style: none;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--body-text);;
+  background-color: #FFF;
+  border: 1px solid var(--body-text);
   height: 300px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -404,7 +405,7 @@ table {
     border-bottom: 1px solid #ccc;
 
     &.log {
-      color: var(--body-text);
+      color: #000;
     }
 
     &.warn {

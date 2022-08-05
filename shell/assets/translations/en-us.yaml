@@ -239,7 +239,7 @@ about:
     title: CLI Downloads
   diagnostic:
     title: Diagnostics
-    checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources of each cluster. These may take a while to complete
+    checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
     checkboxLabel: Make additional requests
     systemInformation: 
       subtitle: System Information
