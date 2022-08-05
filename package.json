@@ -47,7 +47,7 @@
     "install-storybook": "./scripts/storybook-install",
     "remove-storybook": "./scripts/storybook-install -d",
     "remove-storybook-deps": "./scripts/storybook-install -r",
-    "publish:lib": "cd pkg/rancher-components && npm publish --dry-run"
+    "publish:lib": "cd pkg/rancher-components && npm publish"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.1.0",
