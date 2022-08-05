@@ -237,6 +237,25 @@ about:
     title: Image Lists
   downloadCLI:
     title: CLI Downloads
+  diagnostic:
+    title: Diagnostics
+    checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
+    checkboxLabel: Make additional requests
+    systemInformation: 
+      subtitle: System Information
+      os: OS
+      browserUserAgent: Browser User Agent
+      browserLanguage: Browser Language
+      cookieEnabled: Cookies Enabled 
+      deviceMemory: Device Memory 
+      hardwareConcurrency: Hardware Concurrency 
+      memJsHeapLimit: Memory JS Heap Size limit 
+      memTotalJsHeapSize: Memory Total JS Heap Size 
+      memUsedJsHeapSize: Memory Used JS Heap Size 
+    logs: 
+      subtitle: Latest Logs
+    resourceCounts: 
+      subtitle: Resource Counts
 
 accountAndKeys:
   title: Account and API Keys
@@ -545,6 +564,10 @@ asyncButton:
     action:  Deactivate
     waiting: Deactivating&hellip;
     success: Deactivated
+  diagnostic:
+    action: Download Data
+    success: Saving
+    waiting: Downloading&hellip;
   done:
     action: Done
     success: Saved

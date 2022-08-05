@@ -570,6 +570,7 @@ export default function(dir, _appConfig) {
       path.join(NUXT_SHELL, 'plugins/trim-whitespace'),
       { src: path.join(NUXT_SHELL, 'plugins/extend-router') },
       { src: path.join(NUXT_SHELL, 'plugins/lookup'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/console'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/int-number'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
       path.join(NUXT_SHELL, 'plugins/replaceall'),
