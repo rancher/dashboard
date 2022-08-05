@@ -349,7 +349,7 @@ export default Vue.extend<Data, any, any, any>({
             :label="t('epinio.applications.steps.source.archive.file.button')"
             :mode="mode"
             :raw-data="true"
-            :accept="'.zip, .tar, .tgz, .tbz, .txz'"
+            :accept="'.zip, .tar, .gz, .bz2, .xz'"
             @selected="onFileSelected"
           />
         </div>
