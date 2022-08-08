@@ -58,6 +58,10 @@ export default {
     rawData: {
       type:    Boolean,
       default:    false
+    },
+    accept: {
+      type:    String,
+      default:    '*'
     }
   },
 
@@ -145,6 +149,7 @@ export default {
       class="hide"
       :multiple="multiple"
       :webkitdirectory="directory"
+      :accept="accept"
       @change="fileChange"
     />
   </button>

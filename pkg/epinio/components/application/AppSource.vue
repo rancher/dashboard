@@ -17,7 +17,7 @@ import { EpinioAppInfo } from './AppInfo.vue';
 
 interface Archive{
   tarball: string,
-  fileName: string,
+  fileName: string
 }
 
 interface Container {
@@ -349,6 +349,7 @@ export default Vue.extend<Data, any, any, any>({
             :label="t('epinio.applications.steps.source.archive.file.button')"
             :mode="mode"
             :raw-data="true"
+            :accept="'.zip, .tar, .gz, .bz2, .xz'"
             @selected="onFileSelected"
           />
         </div>
