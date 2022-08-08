@@ -15,7 +15,7 @@ title: What's New in 2.6
 
 ### Kubernetes 1.24
 
-- Kubernetes 1.24 is now a supported Kubernetes version for running Rancher as well for provisioned and imported RKE1/RKE2/k3s clusters.
+- Kubernetes 1.24 is now a supported Kubernetes version for running Rancher as well as for provisioned and imported RKE1/RKE2/k3s clusters.
 
 ### RKE2 Encryption Key Rotation
 
