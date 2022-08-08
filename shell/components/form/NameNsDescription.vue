@@ -250,14 +250,15 @@ export default {
         out.push({
           label: this.t('namespace.createNamespace'),
           value: ''
+        }, {
+          label:    'divider',
+          disabled: true,
+          kind:     'divider'
         });
       }
-      out.push({
-        label:    'divider',
-        disabled: true,
-        kind:     'divider'
-      },
-      ...sortedByLabel);
+      out.push(
+        ...sortedByLabel
+      );
 
       return out;
     },
