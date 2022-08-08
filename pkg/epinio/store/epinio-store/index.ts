@@ -4,7 +4,7 @@ import getters from './getters';
 import mutations from './mutations';
 import actions from './actions';
 
-import { actions as subscribeActions } from './subscribe-shims';
+import { actions as subscribeActions, getters as subscribeGetters } from './subscribe-shims';
 
 import { EPINIO_PRODUCT_NAME } from '../../types';
 
@@ -14,7 +14,10 @@ const epinioFactory = (): CoreStoreSpecifics => {
       return { };
     },
 
-    getters: { ...getters },
+    getters: {
+      ...getters,
+      ...subscribeGetters
+    },
 
     mutations: { ...mutations },
 
