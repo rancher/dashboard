@@ -16,12 +16,14 @@ export default {
   },
   methods: {
     async startDelayedLoading() {
-      if (this.row?.isReady) {
-        const req = await this.$store.dispatch('management/request', { url: `/k8s/clusters/${ this.row?.id }/v1/counts` });
+      const id = this.row?.mgmt?.id;
+
+      if (this.row?.isReady && id) {
+        const req = await this.$store.dispatch('management/request', { url: `/k8s/clusters/${ id }/v1/counts` });
 
         this.loading = false;
         const usedPods = req.data?.[0]?.counts[POD]?.summary?.count || 0;
-        const totalPods = this.row?.status?.allocatable?.pods;
+        const totalPods = this.row?.mgmt?.status?.allocatable?.pods;
 
         if (totalPods) {
           this.podsUsage = `${ usedPods }/${ totalPods }`;

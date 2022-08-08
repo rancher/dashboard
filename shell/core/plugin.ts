@@ -164,6 +164,16 @@ export class Plugin implements IPlugin {
   }
 
   public register(type: string, name: string, fn: Function) {
+    const nparts = name.split('/');
+
+    // Support components in a sub-folder - component_name/index.vue (and ignore other componnets in that folder)
+    if (nparts.length === 2) {
+      if (nparts[1] !== 'index') {
+        return;
+      }
+      name = nparts[0];
+    }
+
     // Accumulate l10n resources rather than replace
     if (type === 'l10n') {
       if (!this.l10n[name]) {

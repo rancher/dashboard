@@ -72,11 +72,24 @@ export default class Project extends HybridModel {
   async save(forceReplaceOnReq) {
     const norman = await this.norman;
 
+    // PUT requests to Norman have trouble with nested objects due to the
+    // merging strategy performed on the backend. Whenever a field is
+    // removed, the resource should be replaced instead of merged,
+    // and the PUT request should have a query param _replace=true.
     const newValue = await norman.save({ replace: forceReplaceOnReq });
 
-    newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
-
-    await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
+    try {
+      await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
+    } catch (err) {
+      if (err.status === 409) {
+        // The backend updates each new project soon after it is created,
+        // so there is a chance of a resource conflict error. If that happens,
+        // retry the action.
+        await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
+      } else {
+        throw err;
+      }
+    }
 
     return newValue;
   }
@@ -85,7 +98,7 @@ export default class Project extends HybridModel {
     const norman = await this.norman;
 
     await norman.remove(...arguments);
-    this.$dispatch('management/remove', this, { root: true });
+    await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
   }
 
   get norman() {
@@ -148,5 +161,9 @@ export default class Project extends HybridModel {
 
   get canEditYaml() {
     return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : super.canUpdate;
+  }
+
+  get confirmRemove() {
+    return true;
   }
 }

@@ -15,13 +15,18 @@ import {
 } from '@shell/config/query-params';
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
+import Wizard from '@shell/components/Wizard';
 
 export default {
+
+  name: 'CruResource',
+
   components: {
     AsyncButton,
     Banner,
     CruResourceFooter,
     ResourceYaml,
+    Wizard
   },
 
   props: {
@@ -92,6 +97,16 @@ export default {
       type:    Function,
       default: null,
     },
+    steps: {
+      type:     Array,
+      default: () => []
+    },
+
+    // The set of labels to display for the finish AsyncButton
+    finishMode: {
+      type:    String,
+      default: 'finish'
+    },
 
     // Used to prevent cancel and create buttons from moving
     // as form validation errors appear and disappear.
@@ -134,6 +149,12 @@ export default {
 
   computed: {
     canSave() {
+      const { validationPassed, showAsForm, steps } = this;
+
+      if (showAsForm && steps?.length) {
+        return validationPassed && this.steps.every(step => step.ready);
+      }
+
       // Don't apply validation rules if the form is not shown.
       if (!this.showAsForm) {
         return true;
@@ -153,6 +174,10 @@ export default {
       const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource.type);
 
       return !(schema?.resourceMethods?.includes('blocked-PUT'));
+    },
+
+    showYaml() {
+      return this.canYaml && (this._selectedSubtype || !this.subtypes.length) && this.canEditYaml && this.mode !== _VIEW;
     },
 
     isView() {
@@ -190,7 +215,7 @@ export default {
      */
     hasErrors() {
       return this.errors?.length && Array.isArray(this.errors);
-    }
+    },
   },
 
   created() {
@@ -315,9 +340,11 @@ export default {
 
 <template>
   <section class="cru">
+    <slot name="noticeBanner" />
     <form
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
+      @submit.prevent
     >
       <div
         v-if="hasErrors"
@@ -392,8 +419,79 @@ export default {
           </div>
         </slot>
       </div>
-
-      <template v-if="showAsForm">
+      <!------ MULTI STEP PROCESS ------>
+      <template v-if="showAsForm && steps.length">
+        <div
+          v-if="_selectedSubtype || !subtypes.length"
+          class="resource-container cru__content cru__content-wizard"
+        >
+          <Wizard
+            v-if="resource"
+            ref="Wizard"
+            :header-mode="mode"
+            :steps="steps"
+            :errors="errors"
+            :finish-mode="finishMode"
+            class="wizard"
+            @error="e=>errors = e"
+          >
+            <template #stepContainer="{activeStep}" class="step-container">
+              <template v-for="step in steps">
+                <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
+                  <slot :step="step" :name="step.name" />
+                </div>
+              </template>
+            </template>
+            <template #controlsContainer="{showPrevious, next, back, activeStep, canNext, activeStepIndex, visibleSteps}">
+              <template name="form-footer">
+                <CruResourceFooter
+                  class="cru__footer"
+                  :mode="mode"
+                  :is-form="showAsForm"
+                  :show-cancel="showCancel"
+                  @cancel-confirmed="confirmCancel"
+                >
+                  <!-- Pass down templates provided by the caller -->
+                  <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+                    <slot :name="slot" v-bind="scope" />
+                  </template>
+                  <div class="controls-steps">
+                    <button
+                      v-if="showYaml"
+                      type="button"
+                      class="btn role-secondary"
+                      @click="showPreviewYaml"
+                    >
+                      <t k="cruResource.previewYaml" />
+                    </button>
+                    <template v-if="showPrevious" name="back">
+                      <button type="button" class="btn role-secondary" @click="back()">
+                        <t k="wizard.previous" />
+                      </button>
+                    </template>
+                    <template v-if="activeStepIndex === visibleSteps.length-1" name="finish">
+                      <AsyncButton
+                        v-if="!showSubtypeSelection && !isView"
+                        ref="save"
+                        :disabled="!activeStep.ready"
+                        :mode="finishButtonMode || mode"
+                        @click="$emit('finish', $event)"
+                      />
+                    </template>
+                    <template v-else name="next">
+                      <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
+                        <t k="wizard.next" />
+                      </button>
+                    </template>
+                  </div>
+                </CruResourceFooter>
+              </template>
+            </template>
+          </Wizard>
+        </div>
+      </template>
+      <!------ SINGLE PROCESS ------>
+      <template v-else-if="showAsForm">
         <div
           v-if="_selectedSubtype || !subtypes.length"
           class="resource-container cru__content"
@@ -417,7 +515,7 @@ export default {
             <template #default>
               <div v-if="!isView">
                 <button
-                  v-if="canYaml && (_selectedSubtype || !subtypes.length) && canEditYaml"
+                  v-if="showYaml"
                   type="button"
                   class="btn role-secondary"
                   @click="showPreviewYaml"
@@ -436,7 +534,7 @@ export default {
           </CruResourceFooter>
         </slot>
       </template>
-
+      <!------ YAML ------>
       <section
         v-else
         class="cru-resource-yaml-container resource-container cru__content"
@@ -586,6 +684,9 @@ form.create-resource-container .cru {
 
   &__content {
     flex-grow: 1;
+    &-wizard {
+      display: flex;
+    }
   }
 
   &__footer {

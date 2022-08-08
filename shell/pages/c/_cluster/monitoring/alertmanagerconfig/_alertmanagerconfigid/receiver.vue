@@ -134,7 +134,7 @@ export default {
       case this.create:
         return this.t('monitoring.alertmanagerConfig.receiverFormNames.create');
       case this.edit:
-        if (this.currentView === this.yaml) {
+        if (this.currentView === this.yaml || this.$route.query.as === this.yaml) {
           // When you edit as YAML, you edit the whole AlertmanagerConfig
           // at once, so the header is just "Edit AlertmanagerConfig"
           return this.t('monitoring.alertmanagerConfig.receiverFormNames.editYaml');

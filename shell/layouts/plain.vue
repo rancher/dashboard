@@ -1,4 +1,5 @@
 <script>
+import { mapPref, DEV } from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import Header from '@shell/components/nav/Header';
 import PromptRemove from '@shell/components/PromptRemove';
@@ -9,6 +10,7 @@ import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
+import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 
 export default {
 
@@ -26,7 +28,7 @@ export default {
 
   middleware: ['authenticated'],
 
-  mixins: [Brand],
+  mixins: [Brand, BrowserTabVisibility],
 
   data() {
     return {
@@ -35,6 +37,13 @@ export default {
     };
   },
 
+  computed: { dev: mapPref(DEV) },
+
+  methods: {
+    toggleTheme() {
+      this.$store.dispatch('prefs/toggleTheme');
+    }
+  }
 };
 </script>
 
@@ -53,6 +62,7 @@ export default {
         <ActionMenu />
         <PromptRemove />
         <AssignTo />
+        <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
       </main>
     </div>
 

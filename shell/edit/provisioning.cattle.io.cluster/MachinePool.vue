@@ -50,6 +50,16 @@ export default {
       type:     String,
       required: true,
     },
+
+    idx: {
+      type:     Number,
+      required: true,
+    },
+
+    machinePools: {
+      type:    Array,
+      default: () => []
+    },
   },
 
   data() {
@@ -177,6 +187,8 @@ export default {
       :value="value.config"
       :provider="provider"
       :credential-id="credentialId"
+      :pool-index="idx"
+      :machine-pools="machinePools"
       @error="e=>errors = e"
     />
     <Banner v-else color="info" label="You do not have access to see this machine pool's configuration." />

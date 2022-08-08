@@ -307,7 +307,7 @@ export default {
               @selected="updateLogo($event, 'uiFavicon')"
             />
           </div>
-          <SimpleBox v-if="uiFavicon" class="theme-light">
+          <SimpleBox v-if="uiFavicon">
             <label class="text-muted">{{ t('branding.favicon.preview') }}</label>
             <img class="logo-preview" :src="uiFavicon" />
           </SimpleBox>

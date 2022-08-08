@@ -1,4 +1,4 @@
-import { LoginPagePo } from '@/cypress/integration/po/pages/login-page.po';
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
 /**
  * Login local authentication, including first login and bootstrap if not cached
@@ -54,4 +54,34 @@ Cypress.Commands.add('byLabel', (label) => {
  */
 Cypress.Commands.add('getId', (id: string) => {
   return cy.get(`[data-testid="${ id }"]`);
+});
+
+/**
+ * Override user preferences to default values, allowing to pass custom preferences for a deterministic scenario
+ */
+// eslint-disable-next-line no-undef
+Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> = {}) => {
+  return cy.intercept('/v1/userpreferences', (req) => {
+    req.reply({
+      statusCode: 201,
+      body:       {
+        data:    [{
+          data: {
+            'after-login-route': '\"home\"',
+            cluster:             'local',
+            'group-by':          'none',
+            'home-page-cards':   '',
+            'last-namespace':    'default',
+            'last-visited':      '',
+            'ns-by-cluster':     '',
+            provisioner:         '',
+            'read-whatsnew':     '',
+            'seen-whatsnew':     '2.x.x',
+            theme:               '',
+            ...preferences,
+          },
+        }]
+      },
+    });
+  });
 });

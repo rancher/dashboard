@@ -1,16 +1,55 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
+import { COUNT, SCHEMA } from '@shell/config/types';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
   //  EVENT_FRAME_TIMEOUT,
-  EVENT_CONNECT_ERROR
+  EVENT_CONNECT_ERROR,
+  EVENT_DISCONNECT_ERROR
 } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import day from 'dayjs';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { escapeHtml } from '@shell/utils/string';
+
+// eslint-disable-next-line
+import Worker from './web-worker.steve-sub-worker.js'
+import * as Comlink from 'comlink';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
+
+// minimum length of time a disconnect notification is shown
+const MINIMUM_TIME_NOTIFIED = 3000;
+
+// minimum time a socket must be disconnected for before sending a growl
+const MINIMUM_TIME_DISCONNECTED = 10000;
+
+// We only create a worker for the cluster store
+export function createWorker(store, ctx) {
+  const { getters } = ctx;
+  const storeName = getters.storeName;
+
+  store.$workers = store.$workers || {};
+
+  if (storeName !== 'cluster') {
+    return;
+  }
+
+  function callback(resource) {
+    queueChange(ctx, resource, true, 'Change');
+  }
+
+  if (!store.$workers[storeName]) {
+    const worker = Comlink.wrap(new Worker());
+
+    store.$workers[storeName] = worker;
+
+    worker.initWorker(storeName, Comlink.proxy(callback));
+  }
+}
 
 export function keyForSubscribe({
   resourceType, type, namespace, id, selector
@@ -68,7 +107,7 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
       });
     }
 
-    if ( type === 'schema' ) {
+    if ( type === SCHEMA ) {
       // Clear the current records in the store when a type disappears
       state.queue.push({
         action: 'commit',
@@ -108,7 +147,6 @@ export const actions = {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);
 
       commit('setSocket', socket);
-
       socket.addEventListener(EVENT_CONNECTED, (e) => {
         dispatch('opened', e);
       });
@@ -118,7 +156,11 @@ export const actions = {
       });
 
       socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
-        dispatch('error', e.detail);
+        dispatch('error', e );
+      });
+
+      socket.addEventListener(EVENT_DISCONNECT_ERROR, (e) => {
+        dispatch('error', e );
       });
 
       socket.addEventListener(EVENT_MESSAGE, (e) => {
@@ -137,10 +179,22 @@ export const actions = {
     socket.connect(get(opt, 'metadata'));
   },
 
-  unsubscribe({ state, commit }) {
+  unsubscribe({ state, commit, getters }) {
     const socket = state.socket;
+    const worker = (this.$workers || {})[getters.storeName];
 
     commit('setWantSocket', false);
+
+    if (worker) {
+      try {
+        worker.destroyWorker();
+        worker[Comlink.releaseProxy]();
+      } catch (e) {
+        console.error(e); // eslint-disable-line no-console
+      }
+
+      delete this.$workers[getters.storeName];
+    }
 
     if ( socket ) {
       return socket.disconnect();
@@ -338,7 +392,7 @@ export const actions = {
   },
 
   async opened({
-    commit, dispatch, state, getters
+    commit, dispatch, state, getters, rootGetters
   }, event) {
     state.debugSocket && console.info(`WebSocket Opened [${ getters.storeName }]`); // eslint-disable-line no-console
 
@@ -364,6 +418,21 @@ export const actions = {
 
     if ( socket.hasReconnected ) {
       await dispatch('reconnectWatches');
+      // Check for disconnect notifications and clear them
+      const growlErr = rootGetters['growl/find']({ key: 'url', val: this.$socket.url });
+
+      if (growlErr) {
+        const now = Date.now();
+
+        // even if the socket reconnected, keep the error growl for at least a few seconds to ensure its readable
+        if (now >= growlErr.earliestClose) {
+          dispatch('growl/remove', growlErr.id, { root: true });
+        } else {
+          setTimeout(() => {
+            dispatch('growl/remove', growlErr.id, { root: true });
+          }, growlErr.earliestClose - now);
+        }
+      }
     }
 
     // Try resending any frames that were attempted to be sent while the socket was down, once.
@@ -381,10 +450,38 @@ export const actions = {
     state.queueTimer = null;
   },
 
-  error({ getters, state }, event) {
-    console.error(`WebSocket Error [${ getters.storeName }]`, event); // eslint-disable-line no-console
+  error({
+    getters, state, dispatch, rootGetters
+  }, e) {
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
+    if (e.type === EVENT_DISCONNECT_ERROR) {
+      // do not send a growl notification unless the socket stays disconnected for more than MINIMUM_TIME_DISCONNECTED
+      setTimeout(() => {
+        if (state.socket.isConnected()) {
+          return;
+        }
+        const dateFormat = escapeHtml( rootGetters['prefs/get'](DATE_FORMAT));
+        const timeFormat = escapeHtml( rootGetters['prefs/get'](TIME_FORMAT));
+        const time = e?.srcElement?.disconnectedAt || Date.now();
+
+        const timeFormatted = `${ day(time).format(`${ dateFormat } ${ timeFormat }`) }`;
+        const url = e?.srcElement?.url;
+
+        const t = rootGetters['i18n/t'];
+
+        dispatch('growl/error', {
+          title:         t('growl.disconnected.title'),
+          message:       t('growl.disconnected.message', { url, time: timeFormatted }, { raw: true }),
+          icon:          'error',
+          earliestClose: time + MINIMUM_TIME_NOTIFIED + MINIMUM_TIME_DISCONNECTED,
+          url
+        }, { root: true });
+      }, MINIMUM_TIME_DISCONNECTED);
+    } else {
+      // if the error is not a disconnect error, the socket never worked: log whether the current browser is safari
+      console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
+    }
   },
 
   send({ state, commit }, obj) {
@@ -467,10 +564,36 @@ export const actions = {
   },
 
   'ws.resource.change'(ctx, msg) {
-    queueChange(ctx, msg, true, 'Change');
-
     const data = msg.data;
     const type = data.type;
+
+    // Debounce count changes so we send at most 1 every 5 seconds
+    if (type === COUNT) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.countsUpdate(msg);
+
+        // No further processing - let the web worker debounce the counts
+        return;
+      }
+    }
+
+    // Web worker can process schemas to check that they are actually changing and
+    // only load updates if the schema did actually change
+    if (type === SCHEMA) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.updateSchema(data);
+
+        // No further processing - let the web worker check the schema updates
+        return;
+      }
+    }
+
+    queueChange(ctx, msg, true, 'Change');
+
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
     if (typeOption?.alias?.length > 0) {
@@ -490,10 +613,19 @@ export const actions = {
   },
 
   'ws.resource.remove'(ctx, msg) {
-    queueChange(ctx, msg, false, 'Remove');
-
     const data = msg.data;
     const type = data.type;
+
+    if (type === SCHEMA) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.removeSchema(data.id);
+      }
+    }
+
+    queueChange(ctx, msg, false, 'Remove');
+
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
     if (typeOption?.alias?.length > 0) {

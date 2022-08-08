@@ -1,16 +1,10 @@
-import { mount, createLocalVue } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
-import VModal from 'vue-js-modal';
-
-const localVue = createLocalVue();
-
-localVue.use(VModal);
 
 describe('component: CruResource', () => {
   it('should hide Cancel button', () => {
     const wrapper = mount(CruResource, {
-      localVue,
       propsData: {
         canYaml:  false,
         mode:     _EDIT,
@@ -39,7 +33,6 @@ describe('component: CruResource', () => {
   it('should display errors', () => {
     const errors = ['mistake!', 'BiG MiStAke11'];
     const wrapper = mount(CruResource, {
-      localVue,
       propsData: {
         canYaml:  false,
         mode:     _EDIT,

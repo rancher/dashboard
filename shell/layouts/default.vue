@@ -28,6 +28,7 @@ import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
+import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -48,13 +49,13 @@ export default {
     AzureWarning
   },
 
-  mixins: [PageHeaderActions, Brand],
+  mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
 
   data() {
     return {
       groups:         [],
       gettingGroups:  false,
-      wantNavSync:    false
+      wantNavSync:    false,
     };
   },
 
@@ -69,7 +70,7 @@ export default {
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
     namespaces() {
-      return this.$store.getters['namespaces']();
+      return this.$store.getters['activeNamespaceCache'];
     },
 
     dev:            mapPref(DEV),
@@ -170,6 +171,10 @@ export default {
 
       return { name: `c-cluster-${ product }-support` };
     },
+
+    unmatchedRoute() {
+      return !this.$route?.matched?.length;
+    }
 
   },
 
@@ -326,7 +331,9 @@ export default {
       let namespaces = null;
 
       if ( !this.$store.getters['isAllNamespaces'] ) {
-        namespaces = Object.keys(this.namespaces);
+        const namespacesObject = this.$store.getters['namespaces']();
+
+        namespaces = Object.keys(namespacesObject);
       }
 
       // Always show cluster-level types, regardless of the namespace filter
@@ -535,8 +542,8 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
-    <AwsComplianceBanner />
-    <AzureWarning />
+    <AwsComplianceBanner v-if="managementReady" />
+    <AzureWarning v-if="managementReady" />
     <div v-if="managementReady" class="dashboard-content">
       <Header />
       <nav v-if="clusterReady" class="side-nav">
@@ -619,6 +626,10 @@ export default {
         <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
         <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
         <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
+      </main>
+      <!-- Ensure there's an outlet to show the error (404) page -->
+      <main v-else-if="unmatchedRoute">
+        <nuxt class="outlet" />
       </main>
       <div class="wm">
         <WindowManager />

@@ -37,6 +37,7 @@
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
 //   ifHaveVerb,              -- In combination with ifHaveTYpe, show it only if the type also has this collectionMethod
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
+//   inExplorer,              -- Determines if the product is to be scoped to the explorer
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 //   category,                -- Group to show the product in for the nav hamburger menu
 //   typeStoreMap,            -- An object mapping types to the store that should be used to retrieve information about the type
@@ -179,6 +180,7 @@ export function DSL(store, product, module = 'type-map') {
         name:                product,
         weight:              1,
         inStore:             'cluster',
+        inExplorer:          false,
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
@@ -374,12 +376,12 @@ export const getters = {
   // ----------------------------------------------------------------------------
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
   labelFor(state, getters, rootState, rootGetters) {
-    return (schema, count = 1) => {
+    return (schema, count = 1, language = null) => {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
         const key = `typeLabel."${ schema.id.toLowerCase() }"`;
 
-        if ( rootGetters['i18n/exists'](key) ) {
-          return rootGetters['i18n/t'](key, { count }).trim();
+        if ( rootGetters['i18n/exists'](key, language) ) {
+          return rootGetters['i18n/t'](key, { count }, language).trim();
         }
 
         const out = schema?.attributes?.kind || schema.id || '?';
@@ -539,6 +541,10 @@ export const getters = {
       // get added before children
       const keys = Object.keys(allTypes).sort((a, b) => a.length - b.length);
 
+      // Set these for later
+      const currentLocal = rootGetters['i18n/current']();
+      const defaultLocal = rootGetters['i18n/default']();
+
       for ( const type of keys ) {
         const typeObj = allTypes[type];
 
@@ -580,7 +586,7 @@ export const getters = {
           }
         }
 
-        const labelDisplay = highlightLabel(label, icon);
+        const labelDisplay = highlightLabel(label, icon, typeObj.count, typeObj.schema);
 
         if ( !labelDisplay ) {
           // Search happens in highlight and returns null if not found
@@ -687,11 +693,22 @@ export const getters = {
         return group;
       }
 
-      function highlightLabel(original, icon) {
+      function highlightLabel(original, icon, count, schema) {
         let label = escapeHtml(original);
 
         if ( searchRegex ) {
-          const match = label.match(searchRegex);
+          let match = label.match(searchRegex);
+
+          if (!match) {
+            if ( currentLocal !== defaultLocal && schema ) {
+              const defaultLabel = getters.labelFor(schema, count, defaultLocal);
+
+              if (defaultLabel && defaultLabel !== label ) {
+                label += ` (${ defaultLabel })`;
+                match = label.match(searchRegex);
+              }
+            }
+          }
 
           if ( match ) {
             label = `${ escapeHtml(match[1]) }<span class="highlight">${ escapeHtml(match[2]) }</span>${ escapeHtml(match[3]) }`;

@@ -96,7 +96,7 @@ export default {
     </div>
     <div v-if="stack.length > 1" class="text-right mr-10 mt-10">
       <button type="button" class="btn btn-sm role-primary" @click="closeAll">
-        Clear All Notifications
+        {{ t('growl.clearAll') }}
       </button>
     </div>
   </div>
@@ -142,6 +142,8 @@ export default {
     .growl-text {
       flex-basis: 90%;
       padding: 10px 10px 10px 0;
+      word-break: break-word;
+      white-space: normal;
 
       > div {
         font-size: 16px;

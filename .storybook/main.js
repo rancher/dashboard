@@ -16,13 +16,18 @@ module.exports = {
     "storybook-dark-mode"
   ],
 
+  staticDirs: [
+    'public',
+    '../shell/assets'
+  ],
+
   webpackFinal: async (config, { configType }) => {
     const baseFolder = path.resolve(__dirname, '..');
 
     const sassLoader = {
       loader: 'sass-loader',
       options: {
-        prependData: `@use "sass:math"; @import '~shell/assets/styles/app.scss'; @import '~stories/global.scss'; `,
+        additionalData: `@use "sass:math"; @import '~shell/assets/styles/app.scss'; @import '~stories/global.scss'; `,
         sassOptions: {
           importer: (url, prev, done) => {
             if (url.indexOf('~/') === 0) {
@@ -76,6 +81,8 @@ module.exports = {
     // Root path
     config.resolve.alias['~'] = baseFolder;
     config.resolve.alias['@'] = baseFolder;
+    config.resolve.alias['@shell'] = path.join(baseFolder, 'shell');
+    config.resolve.alias['@components'] = path.join(baseFolder, 'pkg', 'rancher-components', 'src', 'components');
 
     // Cheat for importing ~shell/assets
     config.resolve.modules.push(baseFolder);

@@ -5,6 +5,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Rules from '@shell/edit/networking.k8s.io.ingress/Rules';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
+import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 
 export default {
   name:       'CRUIngress',
@@ -38,6 +39,13 @@ export default {
     firstTabLabel() {
       return this.isView ? this.t('ingress.rulesAndCertificates.title') : this.t('ingress.rules.title');
     },
+    certificates() {
+      return this.filterByCurrentResourceNamespace(this.allSecrets.filter(secret => secret._type === TYPES.TLS)).map((secret) => {
+        const { id } = secret;
+
+        return id.slice(id.indexOf('/') + 1);
+      });
+    },
   },
   methods: {
     filterByCurrentResourceNamespace(resources) {
@@ -50,8 +58,8 @@ export default {
 </script>
 <template>
   <ResourceTabs v-model="value" mode="view" class="mt-20">
-    <Tab label="Rules" name="rules" :weight="1">
-      <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" />
+    <Tab :label="t('ingress.rules.title')" name="rules" :weight="1">
+      <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" :certificates="certificates" />
     </Tab>
   </ResourceTabs>
 </template>
