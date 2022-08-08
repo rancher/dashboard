@@ -3,6 +3,7 @@ import { formatSi } from '@shell/utils/units';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import EpinioMetaResource from './epinio-namespaced-resource';
 import { downloadFile } from '@shell/utils/download';
+import { createEpinioRoute } from '../utils/custom-routing';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -337,6 +338,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
    */
   get routes() {
     return this.configuration?.routes || [];
+  }
+
+  get doneLocationRemove() {
+    return createEpinioRoute(`c-cluster-applications`, {}) ;
   }
 
   // ------------------------------------------------------------------
