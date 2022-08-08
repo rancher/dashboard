@@ -104,6 +104,10 @@ export default {
       type:    Array,
       default: null,
     },
+    createNamespaceOverride: {
+      type:    Boolean,
+      default: false,
+    },
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -246,7 +250,7 @@ export default {
 
       const out = [];
 
-      if (this.canCreateNamespace) {
+      if (this.createNamespaceOverride || this.canCreateNamespace) {
         out.push({
           label: this.t('namespace.createNamespace'),
           value: ''
