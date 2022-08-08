@@ -2,9 +2,13 @@
 import { MANAGEMENT } from '@shell/config/types';
 import { getVersionInfo } from '@shell/utils/version';
 import { getVendor } from '@shell/config/private-label';
+import BackLink from '@shell/components/BackLink';
+import BackRoute from '@shell/mixins/back-link';
 
 export default {
-  layout: 'plain',
+  layout:     'plain',
+  components: { BackLink },
+  mixins:     [BackRoute],
   async fetch() {
     this.settings = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
     this.version = getVersionInfo(this.$store);
@@ -48,6 +52,7 @@ export default {
 <template>
   <div class="about">
     <template>
+      <BackLink :link="backLink" />
       <h1 v-t="'about.title'">
         {{ appName }}
       </h1>
