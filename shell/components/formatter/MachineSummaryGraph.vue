@@ -9,22 +9,33 @@ export default {
       type:     Object,
       required: true
     },
+    horizontal: {
+      type:    Boolean,
+      default: false
+    }
+  },
+
+  computed: {
+    ready() {
+      // Ensure we never show more ready machines than desired
+      // If w can address in backedn, we could revert this in the future
+      const ready = this.row?.ready || 0;
+      const desired = this.row?.desired || 0;
+
+      return ready > desired ? desired : ready;
+    }
   },
 };
 </script>
 
 <template>
   <v-popover
-    class="text-center hand"
+    class="text-center hand machine-summary-graph"
     placement="top"
     :open-group="row.id"
     trigger="click"
     offset="1"
   >
-    <ProgressBarMulti v-if="row.stateParts" :values="row.stateParts" class="mb-5" />
-    <span v-if="row.desired === row.ready">{{ row.ready }}</span>
-    <span v-else>{{ row.ready }} of {{ row.desired }}</span>
-
     <template #popover>
       <table class="fixed">
         <tbody>
@@ -39,5 +50,40 @@ export default {
         </tbody>
       </table>
     </template>
+
+    <div class="content" :class="{ horizontal }">
+      <ProgressBarMulti v-if="row.stateParts" :values="row.stateParts" class="progress-bar" />
+      <span v-if="row.desired === ready" class="count">{{ ready }}</span>
+      <span v-else class="count">{{ ready }} of {{ row.desired }}</span>
+    </div>
   </v-popover>
 </template>
+
+<style lang="scss" scoped>
+  .machine-summary-graph {
+    display: flex;
+    align-items: center;
+
+    .content {
+      .progress-bar {
+        margin-bottom: 5px;
+      }
+
+      &.horizontal {
+        // When horizontal, put the number before the graph
+        align-items: center;
+        direction: rtl;
+        display: flex;
+
+        > * {
+          direction: ltr;
+        }
+
+        .progress-bar {
+          margin-bottom: 0;
+          margin-left: 10px;
+        }
+      }
+    }
+  }
+</style>

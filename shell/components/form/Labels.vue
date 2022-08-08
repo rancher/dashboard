@@ -28,6 +28,16 @@ export default {
     defaultSectionClass: {
       type:    String,
       default: '',
+    },
+
+    labelTitleTooltip: {
+      type:    String,
+      default: '',
+    },
+
+    annotationTitleTooltip: {
+      type:    String,
+      default: '',
     }
   },
 
@@ -51,6 +61,7 @@ export default {
         :add-label="t('labels.addLabel')"
         :mode="mode"
         :title="t('labels.labels.title')"
+        :title-protip="labelTitleTooltip"
         :read-allowed="false"
         :value-can-be-empty="true"
         @input="value.setLabels($event)"
@@ -64,6 +75,7 @@ export default {
         :add-label="t('labels.addAnnotation')"
         :mode="mode"
         :title="t('labels.annotations.title')"
+        :title-protip="annotationTitleTooltip"
         :read-allowed="false"
         :value-can-be-empty="true"
         @input="value.setAnnotations($event)"

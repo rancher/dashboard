@@ -1,6 +1,6 @@
 import https from 'https';
 import { addParam, parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
-import { handleSpoofedRequest } from '@shell/plugins/dashboard-store/actions';
+import { handleSpoofedRequest, loadSchemas } from '@shell/plugins/dashboard-store/actions';
 import { set } from '@shell/utils/object';
 import { deferred } from '@shell/utils/promise';
 import { streamJson, streamingSupported } from '@shell/utils/stream';
@@ -9,6 +9,12 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 
 export default {
+
+  // Need to override this, so that thhe 'this' context is correct (this class not the base class)
+  async loadSchemas(ctx, watch = true) {
+    return await loadSchemas(ctx, watch);
+  },
+
   async request({ state, dispatch, rootGetters }, pOpt ) {
     const opt = pOpt.opt || pOpt;
 

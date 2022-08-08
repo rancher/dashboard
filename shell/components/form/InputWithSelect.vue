@@ -75,6 +75,14 @@ export default {
       type:    String,
       default: '',
     },
+    textRules: {
+      default: () => [],
+      type:    Array,
+    },
+    selectRules: {
+      default: () => [],
+      type:    Array,
+    }
 
   },
 
@@ -129,6 +137,7 @@ export default {
       :option-label="optionLabel"
       :placement="$attrs.placement ? $attrs.placement : null"
       :v-bind="$attrs"
+      :rules="selectRules"
       @input="change"
     />
     <Select
@@ -149,7 +158,7 @@ export default {
       @input="change"
     />
     <LabeledInput
-      v-if="textLabel"
+      v-if="textLabel || textRules.length > 0"
       ref="text"
       v-model="string"
       class="input-string col span-8"
@@ -158,6 +167,7 @@ export default {
       :disabled="disabled || textDisabled"
       :required="textRequired"
       :mode="mode"
+      :rules="textRules"
       v-bind="$attrs"
     >
       <template #label>

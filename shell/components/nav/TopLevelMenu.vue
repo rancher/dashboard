@@ -113,7 +113,7 @@ export default {
     },
 
     showNone() {
-      return this.dev;
+      return !!process.env.dev && this.dev;
     },
 
     multiClusterApps() {

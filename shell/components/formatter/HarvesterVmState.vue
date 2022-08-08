@@ -51,7 +51,7 @@ export default {
     warningMessage() {
       const out = [];
 
-      if (this.networkImpassability) {
+      if (this.networkImpassability && this.allClusterNetwork.length) {
         out.push(this.t('harvester.network.message.vlanInactive', { name: this.row.realAttachNodeName }));
       }
 

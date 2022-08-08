@@ -1,6 +1,6 @@
 <script>
 import { HCI } from '@shell/config/types';
-import NovncConsoleWrapper from '@shell/components/NovncConsoleWrapper';
+import NovncConsoleWrapper from '@shell/components/novnc/NovncConsoleWrapper';
 import Loading from '@shell/components/Loading';
 
 export default {
@@ -44,3 +44,9 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <NovncConsoleWrapper v-else ref="console" v-model="vmi" class="novnc-wrapper" />
 </template>
+
+<style>
+HTML, BODY, MAIN, #__nuxt, #__layout, #app, .vm-console, .vm-console > DIV, .vm-console > DIV > DIV {
+  height: 100%;
+}
+</style>

@@ -11,6 +11,7 @@ Fixes #
 
 ### Areas or cases that should be tested
 <!-- Areas that should be tested can include Airgap checks, Rancher upgrades, K8s upgrade, etc. -->
+<!-- Which browser did you use for local testing? The reviewer should test with a different browser. -->
 <!-- Add missing steps or rewrite them if have been missed or to complement existing information. This should define a clear way to reproduce it and not an approximation. -->
 
 ### Areas which could experience regressions

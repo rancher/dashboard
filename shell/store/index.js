@@ -60,24 +60,120 @@ export const plugins = [
 
 ];
 
+const getActiveNamespaces = (state, getters) => {
+  const out = {};
+  const product = getters['currentProduct'];
+  const workspace = state.workspace;
+
+  if ( !product ) {
+    return out;
+  }
+
+  if ( product.showWorkspaceSwitcher ) {
+    const fleetOut = { [workspace]: true };
+
+    updateActiveNamespaceCache(state, fleetOut);
+
+    return fleetOut;
+  }
+
+  const inStore = product?.inStore;
+  const clusterId = getters['currentCluster']?.id;
+
+  if ( !clusterId || !inStore ) {
+    updateActiveNamespaceCache(state, out);
+
+    return out;
+  }
+
+  const namespaces = getters[`${ inStore }/all`](NAMESPACE);
+
+  const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
+  const includeAll = getters.isAllNamespaces;
+  const includeSystem = filters.includes(ALL_SYSTEM);
+  const includeUser = filters.includes(ALL_USER);
+  const includeOrphans = filters.includes(ALL_ORPHANS);
+
+  // Special cases to pull in all the user, system, or orphaned namespaces
+  if ( includeAll || includeOrphans || includeSystem || includeUser ) {
+    for ( const ns of namespaces ) {
+      if (
+        includeAll ||
+        ( includeOrphans && !ns.projectId ) ||
+        ( includeUser && !ns.isSystem ) ||
+        ( includeSystem && ns.isSystem )
+      ) {
+        out[ns.id] = true;
+      }
+    }
+  }
+
+  // Individual requests for a specific project/namespace
+  if ( !includeAll ) {
+    for ( const filter of filters ) {
+      const [type, id] = filter.split('://', 2);
+
+      if ( !type ) {
+        continue;
+      }
+
+      if ( type === 'ns' ) {
+        out[id] = true;
+      } else if ( type === 'project' ) {
+        const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
+
+        if ( project ) {
+          for ( const ns of project.namespaces ) {
+            out[ns.id] = true;
+          }
+        }
+      }
+    }
+  }
+  // Create map that can be used to efficiently check if a
+  // resource should be displayed
+  updateActiveNamespaceCache(state, out);
+
+  return out;
+};
+
+const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
+  // This is going to run a lot, so keep it optimised
+  let cacheKey = '';
+
+  for (const key in activeNamespaceCache) {
+    // I though array.join would be faster than string concatenation, but in places like this where the array must first be constructed it's
+    // slower.
+    cacheKey += key + activeNamespaceCache[key];
+  }
+
+  // Only update `activeNamespaceCache` if there have been changes. This reduces a lot of churn
+  if (state.activeNamespaceCacheKey !== cacheKey) {
+    state.activeNamespaceCacheKey = cacheKey;
+    state.activeNamespaceCache = activeNamespaceCache;
+  }
+};
+
 export const state = () => {
   return {
-    managementReady:     false,
-    clusterReady:        false,
-    isMultiCluster:      false,
-    isRancher:           false,
-    namespaceFilters:    [],
-    allNamespaces:       null,
-    allWorkspaces:       null,
-    clusterId:           null,
-    productId:           null,
-    workspace:           null,
-    error:               null,
-    cameFromError:       false,
-    pageActions:         [],
-    serverVersion:       null,
-    systemNamespaces:    [],
-    isSingleProduct:     undefined,
+    managementReady:         false,
+    clusterReady:            false,
+    isMultiCluster:          false,
+    isRancher:               false,
+    namespaceFilters:        [],
+    activeNamespaceCache:    {}, // Used to efficiently check if a resource should be displayed
+    activeNamespaceCacheKey: '', // Fingerprint of activeNamespaceCache
+    allNamespaces:           null,
+    allWorkspaces:           null,
+    clusterId:               null,
+    productId:               null,
+    workspace:               null,
+    error:                   null,
+    cameFromError:           false,
+    pageActions:             [],
+    serverVersion:           null,
+    systemNamespaces:        [],
+    isSingleProduct:         undefined,
   };
 };
 
@@ -253,73 +349,28 @@ export const getters = {
     return BOTH;
   },
 
+  activeNamespaceCache(state) {
+    // The activeNamespaceCache value is updated by the
+    // updateNamespaces mutation. We use this map to filter workloads
+    // as we don't want to recompute the active namespaces
+    // for each workload in a list.
+    return state.activeNamespaceCache;
+  },
+
+  activeNamespaceCacheKey(state) {
+    return state.activeNamespaceCacheKey;
+  },
+
+  activeNamespaceFilters(state) {
+    return state.namespaceFilters;
+  },
+
   namespaces(state, getters) {
-    return () => {
-      const out = {};
-      const product = getters['currentProduct'];
-      const workspace = state.workspace;
-
-      if ( !product ) {
-        return out;
-      }
-
-      if ( product.showWorkspaceSwitcher ) {
-        return { [workspace]: true };
-      }
-
-      const inStore = product?.inStore;
-      const clusterId = getters['currentCluster']?.id;
-
-      if ( !clusterId || !inStore ) {
-        return out;
-      }
-
-      const namespaces = getters[`${ inStore }/all`](NAMESPACE);
-      const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
-      const includeAll = getters.isAllNamespaces;
-      const includeSystem = filters.includes(ALL_SYSTEM);
-      const includeUser = filters.includes(ALL_USER);
-      const includeOrphans = filters.includes(ALL_ORPHANS);
-
-      // Special cases to pull in all the user, system, or orphaned namespaces
-      if ( includeAll || includeOrphans || includeSystem || includeUser ) {
-        for ( const ns of namespaces ) {
-          if (
-            includeAll ||
-            ( includeOrphans && !ns.projectId ) ||
-            ( includeUser && !ns.isSystem ) ||
-            ( includeSystem && ns.isSystem )
-          ) {
-            out[ns.id] = true;
-          }
-        }
-      }
-
-      // Individual requests for a specific project/namespace
-      if ( !includeAll ) {
-        for ( const filter of filters ) {
-          const [type, id] = filter.split('://', 2);
-
-          if ( !type ) {
-            continue;
-          }
-
-          if ( type === 'ns' ) {
-            out[id] = true;
-          } else if ( type === 'project' ) {
-            const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
-
-            if ( project ) {
-              for ( const ns of project.namespaces ) {
-                out[ns.id] = true;
-              }
-            }
-          }
-        }
-      }
-
-      return out;
-    };
+    // Call this getter if you want to recompute the active namespaces
+    // by looping over all namespaces in a cluster. Otherwise call activeNamespaceCache,
+    // which returns the same object but is only recomputed when the updateNamespaces
+    // mutation is called.
+    return () => getActiveNamespaces(state, getters);
   },
 
   defaultNamespace(state, getters, rootState, rootGetters) {
@@ -330,7 +381,7 @@ export const getters = {
     }
 
     const inStore = product.inStore;
-    const filteredMap = getters['namespaces']();
+    const filteredMap = getters['activeNamespaceCache'];
     const isAll = getters['isAllNamespaces'];
     const all = getters[`${ inStore }/all`](NAMESPACE).map(x => x.id);
     let out;
@@ -458,19 +509,25 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
-  updateNamespaces(state, { filters, all }) {
+  updateNamespaces(state, getters) {
+    const { filters, all } = getters;
+
     state.namespaceFilters = filters.filter(x => !!x);
 
     if ( all ) {
       state.allNamespaces = all;
     }
+
+    // Create map that can be used to efficiently check if a
+    // resource should be displayed
+    getActiveNamespaces(state, getters);
   },
 
   pageActions(state, pageActions) {
     state.pageActions = pageActions;
   },
 
-  updateWorkspace(state, { value, all }) {
+  updateWorkspace(state, { value, all, getters }) {
     if ( all ) {
       state.allWorkspaces = all;
 
@@ -485,6 +542,8 @@ export const mutations = {
     }
 
     state.workspace = value;
+
+    getActiveNamespaces(state, getters);
   },
 
   clusterId(state, neu) {
@@ -620,6 +679,7 @@ export const actions = {
       commit('updateWorkspace', {
         value: getters['prefs/get'](WORKSPACE),
         all:   res.workspaces,
+        getters
       });
     }
 
@@ -629,7 +689,7 @@ export const actions = {
   async loadCluster({
     state, commit, dispatch, getters
   }, {
-    id, oldProduct, oldPkg, newPkg
+    id, product, oldProduct, oldPkg, newPkg
   }) {
     const sameCluster = state.clusterId && state.clusterId === id;
     const samePackage = oldPkg?.name === newPkg?.name;
@@ -654,9 +714,13 @@ export const actions = {
       s => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
 
+    const productConfig = state['type-map']?.products?.find(p => p.name === product);
+    const forgetCurrentCluster = ((state.clusterId && id) || !samePackage) && !productConfig?.inExplorer;
+
     // Should we leave/forget the current cluster? Only if we're going from an existing cluster to a new cluster, or the package has changed
     // (latter catches cases like nav from explorer cluster A to epinio cluster A)
-    if ( (state.clusterId && id) || !samePackage) {
+    // AND if the product not scoped to the explorer - a case for products that only exist within the explorer (i.e. Kubewarden)
+    if ( forgetCurrentCluster ) {
       // Clear the old cluster state out if switching to a new one.
       // If there is not an id then stay connected to the old one behind the scenes,
       // so that the nav and header stay the same when going to things like prefs
@@ -786,7 +850,8 @@ export const actions = {
 
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
-      all:     res.namespaces
+      all:     res.namespaces,
+      ...getters
     });
 
     commit('clusterReady', true);
@@ -804,7 +869,7 @@ export const actions = {
         [key]: ids
       }
     });
-    commit('updateNamespaces', { filters: ids });
+    commit('updateNamespaces', { filters: ids, ...getters });
   },
 
   async loadVirtual({
@@ -892,6 +957,22 @@ export const actions = {
       isRancher = true;
     }
 
+    if (id !== 'local' && getters['harvester/schemaFor'](MANAGEMENT.SETTING)) { // multi-cluster
+      const settings = await dispatch('harvester/findAll', {
+        type: MANAGEMENT.SETTING,
+        id:   SETTING.SYSTEM_NAMESPACES,
+        opt:  { url: `${ virtualBase }/${ MANAGEMENT.SETTING }s/`, force: true }
+      });
+
+      const systemNamespaces = settings?.find(x => x.id === SETTING.SYSTEM_NAMESPACES);
+
+      if (systemNamespaces) {
+        const namespace = (systemNamespaces.value || systemNamespaces.default)?.split(',');
+
+        commit('setSystemNamespaces', namespace);
+      }
+    }
+
     const hash = {
       projects:          isRancher && dispatch('management/findAll', projectArgs),
       virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
@@ -911,7 +992,8 @@ export const actions = {
 
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
-      all:     res.virtualNamespaces
+      all:     res.virtualNamespaces,
+      ...getters
     });
 
     commit('clusterReady', true);

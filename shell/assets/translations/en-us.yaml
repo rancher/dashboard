@@ -4,11 +4,14 @@
 generic:
   add: Add
   all: All
+  and: ' and '
   back: Back
   cancel: Cancel
   clear: Clear
+  clearAll: Clear All
   close: Close
   comingSoon: Coming Soon
+  comma: ', '
   copy: Copy
   create: Create
   created: Created
@@ -234,6 +237,25 @@ about:
     title: Image Lists
   downloadCLI:
     title: CLI Downloads
+  diagnostic:
+    title: Diagnostics
+    checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
+    checkboxLabel: Make additional requests
+    systemInformation: 
+      subtitle: System Information
+      os: OS
+      browserUserAgent: Browser User Agent
+      browserLanguage: Browser Language
+      cookieEnabled: Cookies Enabled 
+      deviceMemory: Device Memory 
+      hardwareConcurrency: Hardware Concurrency 
+      memJsHeapLimit: Memory JS Heap Size limit 
+      memTotalJsHeapSize: Memory Total JS Heap Size 
+      memUsedJsHeapSize: Memory Used JS Heap Size 
+    logs: 
+      subtitle: Latest Logs
+    resourceCounts: 
+      subtitle: Resource Counts
 
 accountAndKeys:
   title: Account and API Keys
@@ -379,7 +401,10 @@ authConfig:
     groupSearchBase:
       label: Group Search Base
       placeholder: 'ou=groups,dc=mycompany,dc=com'
-    hostname: Hostname/IP
+    hostname:
+      label: Hostname/IP
+      placeholder: eg server1,server2
+      hint: Multiple servers can be specified as a comma separated list
     loginAttribute: Login Attribute
     nameAttribute: Name Attribute
     nestedGroupMembership:
@@ -446,13 +471,13 @@ authConfig:
       info: 'Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that it may take up to 5 minutes for the whitelisted URL to propagate.'
       label: Reply URL
     updateEndpoint:
+      button: Update Endpoint
       banner:
         message: 'Azure AD Authentication must be updated: it is using the Azure Graph API, which will be deprecated at the end of 2022.'
         linkText: 'Update it here.'
       modal:
         title: Are you sure? This update is irreversible.
-        body: '<p><b>You may need to update your Azure AD app</b>. Please ensure the Azure AD app has the following application permissions for Microsoft Graph: User.Read.All, Group.Read.All</p>'
-      button: Update Endpoint
+        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the following application permissions for Microsoft Graph: User.Read.All, Group.Read.All<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
     oidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
@@ -539,6 +564,10 @@ asyncButton:
     action:  Deactivate
     waiting: Deactivating&hellip;
     success: Deactivated
+  diagnostic:
+    action: Download Data
+    success: Saving
+    waiting: Downloading&hellip;
   done:
     action: Done
     success: Saved
@@ -683,7 +712,9 @@ backupRestoreOperator:
     bucketName: Bucket Name
     credentialSecretName: Credential Secret
     endpoint: Endpoint
-    endpointCA: Endpoint CA
+    endpointCA:
+      label: Endpoint CA
+      prompt: Endpoint CA must be Base64 encoded
     folder: Folder
     insecureTLSSkipVerify: Skip TLS Verifications
     region: Region
@@ -1148,6 +1179,9 @@ cluster:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
       cluster: Cluster
+      affinity:
+        namespaces:
+          placeholder: e.g. default,system,base
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
@@ -1184,6 +1218,7 @@ cluster:
         toolTip: SSH user to login with the selected OS image.
   haveOneOwner: There must be at least one member with the Owner role.
   import:
+    warningBanner: 'You should not import a cluster which has already been connected to another instance of Rancher as it will lead to data corruption.'
     commandInstructions: 'Run the <code>kubectl</code> command below on an existing Kubernetes cluster running a supported Kubernetes version to import it into {vendor}:'
     commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your {vendor} installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
     clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
@@ -1192,6 +1227,9 @@ cluster:
   kubernetesVersion:
     label: Kubernetes Version
     experimental: experimental
+    deprecated: deprecated
+    deprecatedPatches: Show deprecated Kubernetes patch versions
+    deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
   toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
   log:
@@ -1399,7 +1437,7 @@ cluster:
         title: Security Group
         vpcId: '(select a VPC/Subnet first)'
         mode:
-          default: 'Standard: Automatically create and use a "{defaultGroup}"; security group'
+          default: 'Standard: Automatically create and use a "{defaultGroup}" security group'
           custom: 'Choose one or more existing security groups:'
       volumeType:
         label: EBS Root Volume Type
@@ -1446,6 +1484,13 @@ cluster:
     warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
+
+  detail:
+    provisioner: Provisioner
+    kubernetesVersion: Kubernetes Version
+    machineProvider: Machine Provider
+    machinePools: Machine Pools
+    machines: Machines
 
   machinePool:
     name:
@@ -1666,6 +1711,9 @@ cluster:
       }
     groupLabel: Location
     failed: "Snapshot from {time} failed"
+    rke1:
+      local: local
+      s3: s3
   tabs:
     ace: Authorized Endpoint
     addons: Add-On Config
@@ -1770,6 +1818,7 @@ cruResource:
   reviewForm: "Keep editing YAML"
   reviewYaml: "Keep editing YAML"
   previewYaml: Edit as YAML
+  showYaml: View as YAML
 
 detailText:
   collapse: Hide
@@ -1841,6 +1890,7 @@ fleet:
       other {# tokens are hidden as they belong to Harvester clusters that can not be used with Continuous Delivery}
       }
   bundles:
+    resources: Resources
     harvester: |-
       {count, plural,
       =1 {1 bundle is hidden as it belongs to a Harvester cluster that can not be used with Continuous Delivery}
@@ -1878,6 +1928,18 @@ fleet:
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
       addRepo: Add Repository
       noRepos: No repositories have been added
+    add: 
+      steps: 
+        repoInfo: 
+          label: Repository Details
+          title: Specify the Git Repository to add to fleet
+          subtext: 'Define repository details'
+          description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
+        targetInfo: 
+          label: Target Details
+          title: Specify which target to synchronise this repository to
+          subtext: 'Define target details'
+          description: You can configure which clusters will be used as the target of synchronisation with the resources in the repository.
     ref:
       label: Watch
       branch: A Branch
@@ -2025,6 +2087,12 @@ graphOptions:
   refresh: Refresh
   range: Range
 
+growl:
+  clearAll: Clear All Notifications
+  disconnected: 
+    message: "The connection to {url} closed unexpectedly {time}. Retrying..."
+    title: Websocket Disconnected 
+
 hpa:
   detail:
     currentMetrics:
@@ -2120,10 +2188,15 @@ ingress:
     port:
       label: Port
       placeholder: e.g. 80 or http
+      notInt: Port must be an integer
+      required: Port is required
     targetService:
       label: Target Service
       doesntExist: The selected service does not exist
+      required: Target Service is required
     warning: "Warning: Default backend is used globally for the entire cluster."
+  ingressClass:
+    label: Ingress Class
   rules:
     addPath: Add Path
     addRule: Add Rule
@@ -2153,6 +2226,7 @@ ingress:
     defaultCertificate: default
   target:
     default: Default
+  rulesOrBackendSpecified: Either Default Backend or Rules must be specified
 
 internalExternalIP:
   none: None
@@ -2341,6 +2415,7 @@ labels:
   addAnnotation: Add Annotation
   labels:
     title: Labels
+    fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
   annotations:
     title: Annotations
 
@@ -2645,6 +2720,9 @@ login:
   remember:
     label: Remember Username
 
+managementNode:
+  customName: Custom Name
+
 members:
   clusterMembers: Cluster Members
   createActionLabel: Add
@@ -2672,7 +2750,7 @@ members:
     custom:
       label: Custom
       description: Choose individual roles for this user.
-  localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store.  Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any other cluster managed by this installation."
+  localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store. Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any part of this installation."
 
 membershipEditor:
   label: Members
@@ -3577,6 +3655,7 @@ prefs:
     emacs: 'Emacs'
     vim: 'Vim'
   advanced: Advanced
+  advancedTooltip: Enables 'View in API' option and keyboard shortcut to toggle light or dark theme (shift+t). This setting also reveals namespaces that are managed by Rancher and are not meant to be manually edited or deleted.
   dev:
     label: Enable Developer Tools & Features
   hideDesc:
@@ -3747,6 +3826,7 @@ promptForceRemove:
   removeWarning: "There was an issue with deleting underlying infrastructure. If you proceed with this action, the Machine <b>{nameToMatch}</b> will be deleted from Rancher only. It's highly recommended to manually delete any referenced infrastructure."
   forceDelete: Force Delete
   confirmName: "Enter in the pool name below to confirm:"
+  podRemoveWarning: "Force deleting pods does not wait for confirmation that the pod's processes have been terminated. This may result in <strong>data corruption or inconsistencies</strong>"
 
 promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
@@ -3764,6 +3844,8 @@ promptRemove:
   attemptingToRemove: "You are attempting to delete the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
+  deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
+  willDeleteAssociatedNamespaces: "This will also delete all namespaces in the project: "
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
@@ -4006,6 +4088,8 @@ resourceList:
     create: Create
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
+resourceLoadingIndicator:
+  loading: Loading
 
 resourceTable:
   groupBy:
@@ -4024,7 +4108,7 @@ resourceTable:
     notInAWorkspace: Not in a Workspace
     workspace: "<span>Workspace:</span> {name}"
     notInANodePool: "Not in a Pool"
-    nodePool: "<span>Pool:</span> {name} ({count})"
+    nodePool: "<span>Pool:</span> {name}"
     node: "<span>Node:</span> {name}"
 
 resourceTabs:
@@ -4078,6 +4162,7 @@ secret:
   serviceAcct:
     ca: CA Certificate
     token: Token
+  customType: Custom Type
   type: Type
   types:
     'opaque': 'Opaque'
@@ -4109,6 +4194,8 @@ secret:
     's3': 'S3'
   relatedWorkloads: Related Workloads
   typeDescriptions:
+    custom:
+      description: Create a Secret with a custom type
     'kubernetes.io/basic-auth':
       description: 'Authentication with a username and password'
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#basic-authentication-secret
@@ -4212,6 +4299,8 @@ servicesPage:
       label: Cluster IP
       placeholder: e.g. 10.43.xxx.xxx
     label: IP Addresses
+    loadBalancer:
+      label: Load Balancer
     loadBalancerIp:
       label: Load Balancer IP
       placeholder: e.g. 192.0.xxx.xxx
@@ -4325,6 +4414,7 @@ storageClass:
     volumeType:
       label: Volume Type
       gp2: GP2 - General Purpose SSD
+      gp3: GP3 - General Purpose SSD
       io1: IO1 - Provisioned IOPS SSD
       st1: ST1 - Throughput-Optimized HDD
       sc1: SC1 - Cold-Storage HDD
@@ -4625,6 +4715,7 @@ tableHeaders:
   id: ID
   image: Image
   imageSize: Size
+  ingressClass: Ingress Class
   ingressDefaultBackend: Default
   ingressTarget: Target
   internalExternalIp: External/Internal IP
@@ -4801,6 +4892,7 @@ user:
   list:
     errorRefreshingGroupMemberships: Error refreshing group memberships
 validation:
+  noUpperCase: 'Alphanumeric characters in "{key}" must be lowercase'
   arrayLength:
     between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
     exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'
@@ -4829,6 +4921,8 @@ validation:
       tooLong: '"{key}" cannot be longer than {max} characters'
       tooLongLabel: '"{key}" cannot contain a section longer than {max} characters'
     label:
+      endDot: '"{key}" cannot end with a dot'
+      startDot: '"{key}" cannot start with a dot'
       emptyLabel: '"{key}" cannot be empty'
       endHyphen: '"{key}" cannot end with a hyphen'
       startHyphen: '"{key}" cannot start with a hyphen'
@@ -4853,6 +4947,7 @@ validation:
   noSchema: No schema found to validate
   noType: No type to validate
   number:
+    requiredInt: '"{key}" must be integer'
     between: '"{key}" should be between {min} and {max}'
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'
@@ -4868,7 +4963,9 @@ validation:
       valueMustBeEmpty: Rule [{index}] of {group} {rules} - value must be empty if operator is 'Exists' or 'DoesNotExist'
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
   port: A port must be a number between 1 and 65535.
+  path: '"{key}" must be an absolute path'
   prometheusRule:
+    noEdit: This Prometheus Rule may not be edited due to invalid characters in name.
     groups:
       required: At least one rule group is required.
       singleAlert: A rule may contain alert rules or recording rules but not both.
@@ -4897,9 +4994,11 @@ validation:
         required: 'Port Rule [{position}] - Name is required.'
       nodePort:
         requiredInt: 'Port Rule [{position}] - Node Port must be integer values if included.'
+        between: 'Port Rule [{position}] - Node Port must be between 1 and 65535'
       port:
         required: 'Port Rule [{position}] - Port is required.'
         requiredInt: 'Port Rule [{position}] - Port must be integer values if included.'
+        between: 'Port Rule [{position}] - Port must be between 1 and 65535'
       targetPort:
         between: 'Port Rule [{position}] - Target Port must be between 1 and 65535'
         iana: 'Port Rule [{position}] - Target Port must be an IANA Service Name or Integer'
@@ -4919,13 +5018,16 @@ validation:
     route:
       match: At least one Match or Match Regex must be selected
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
+  tab: "One or more fields in this tab contain a form validation error"
 
 wizard:
   previous: Previous
   finish: Finish
   next: Next
   step: "Step {number}"
-
+  edit: Edit
+  create: Create
+  view: View
 wm:
   connection:
     connected: Connected
@@ -5007,7 +5109,7 @@ workload:
       livenessProbe: Liveness Check
       livenessTip: Containers will be restarted when this check is failing.  Not recommended for most uses.
       noHealthCheck: "There is not a Readiness Check, Liveness Check or Startup Check configured."
-      readinessProbe: Readiness Check
+      readinessProbe: Readiness Checks
       readinessTip: Containers will be removed from service endpoints when this check is failing.  Recommended.
       startupProbe: Startup Check
       startupTip: Containers will wait until this check succeeds before attempting other health checks.
@@ -5082,6 +5184,7 @@ workload:
       protocol: Protocol
       listeningPort: Listening Port
     removeContainer: Remove Container
+    addContainer: Add Container
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
@@ -5118,6 +5221,7 @@ workload:
     standard: Standard Container
     terminationState: "Last state: Terminated with {lsExitCode}: {lsDescription}, started: {lsStartedAt}, finished: {lsFinishedAt}"
     titles:
+      pods: Pods
       container: Container
       command: Command
       containers: Containers
@@ -5142,6 +5246,15 @@ workload:
       upgrading: Scaling and Upgrade Policy
   cronSchedule: Schedule
   detail:
+    services: Services
+    ingresses: Ingresses
+    cannotViewServices: Could not list Services due to lack of permission.
+    cannotFindServices: Could not find any Services that select Pods from this workload.
+    serviceListCaption: "The following Services select Pods from this workload:"
+    cannotViewIngresses: Could not list Ingresses due to lack of permission.
+    cannotFindIngresses: Could not find any Ingresses that forward traffic to Services that select Pods in this workload.
+    ingressListCaption: "The following Ingresses forward traffic to Services that select Pods from this workload:"
+    cannotViewIngressesBecauseCannotViewServices: Could not find relevant relevant Ingresses due to lack of permission to view Services.
     pods:
       title: Pods
   detailTop:
@@ -5419,7 +5532,11 @@ workload:
       label: Termination Grace Period
       tip: The duration the pod needs to terminate successfully.
     title: Upgrading
-
+  tabs: 
+    labels: 
+      deployment: Deployment
+      pod: Pod
+      containers: Containers
 harvester:
   modal:
     backup:
@@ -5546,6 +5663,7 @@ harvester:
     virtualName: Virtual machine name
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
+    filterLabels: Filter Labels
   generic:
     close: Close
     open: Open
@@ -5705,9 +5823,17 @@ harvester:
       actionLabel: Detach
       detachVolume:
         Detach Volume
-    restartTip: Restart the virtual machine now to take effect of the configuration changes.
+    restartTip: |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } the virtual machine now to take effect of the configuration changes.
     runStrategy: Run Strategy
-    restartNow: Restart Now
+    restartNow:  |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } Now
     createSSHKey: Create a New...
     installAgent: Install guest agent
     enableUsb: Enable USB Tablet
@@ -5765,7 +5891,7 @@ harvester:
       affinity:
         anyNode: 'Run VM on any available node'
         schedulingRules: 'Run VM on node(s) matching scheduling rules'
-        specificNode: Run VM on specific node(s) - (Live migration is not supported)
+        specificNode: Run VM on specific node - (Live migration is not supported)
     accessCredentials:
       resetPwd:
         label: Add Basic Auth
@@ -5850,6 +5976,7 @@ harvester:
         down: No events in the past hour
       console:
         down: This Virtual Machine is down. Please start it to access its console.
+        shortKeys: Shortcut Keys
 
   volume:
     label: Volumes
@@ -5888,6 +6015,13 @@ harvester:
       basics: Basics
     nameNsDescription:
       name: Template Name
+    tips:
+      notExistImage:
+        title: Image {name} does not exist!
+        message: Please select a new Image.
+      notExistNode:
+        title: Node {name} does not exist!
+        message: Please select a new Node.
 
   upgradePage:
     upgradeApp: Upgrade Software
@@ -5914,6 +6048,11 @@ harvester:
       fail:  Fail
       ongoing: on-going
     dismissMessage: Dismiss it
+    upgradeInfo:
+      warning: WARNING
+      doc: Before you upgrade to the newer Harvester version, you must perform the required <a href="https://docs.harvesterhci.io/v1.0/upgrade/automatic/" target="_blank"> pre-upgrade checks </a>for your cluster. Complete only those tasks that apply to your environment.
+      tip: Failure to perform these checks may result in a failed upgrade or hitting known issues that require a manual workaround fix.
+      moreNotes: For more details about the release notes, please visit - 
 
   backup:
     label: Backups
@@ -6564,9 +6703,10 @@ advancedSettings:
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
     'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
     'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
-    'auth-token-max-ttl-minutes': 'Custom max TTL (in minutes) on an auth token.'
-    'kubeconfig-generate-token': 'Automatically generate kubeconfig tokens for users.'
-    'kubeconfig-token-ttl-minutes': 'Custom max TTL (in minutes) on a kubeconfig token.'
+    'auth-token-max-ttl-minutes': 'Max TTL (in minutes) for all authentication tokens. When set to 0, the token never expires.'
+    'kubeconfig-generate-token': 'Automatically generate tokens for users when a kubeconfig is requested.'
+    'kubeconfig-token-ttl-minutes': 'TTL used for tokens generated via the CLI. Deprecated: This setting will be removed, and kubeconfig-default-token-ttl-minutes will be used for all kubeconfig tokens.'
+    'kubeconfig-default-token-ttl-minutes': 'TTL (in minutes) applied on all kubeconfig tokens. When set to 0, the token never expires.'
     'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'custom-notifications': Edit custom notifications
@@ -6631,6 +6771,28 @@ featureFlags:
   restart:
     title: Waiting for Restart
     wait: This may take a few moments
+
+performance:
+  label: UI Performance Settings
+  settingName: Performance
+  description: |-
+    Performance settings allow the behavior of the UI to be configured when dealing with many resources in a cluster. These settings only apply to the following resources: Pods, Deployments, Cron Jobs, Daemon Sets, Jobs, Stateful Sets, Replica Sets, Replication Controllers, Workloads and Secrets.
+  banner: These settings are experimental and may be removed or updated in future versions
+  incrementalLoad:
+    label: Incremental Loading
+    setting: You can configure the threshold above which incremental loading will be used.
+    description: |-
+      When enabled, resources will appear more quickly, but it may take slightly longer to load the entire set of resources.
+    checkboxLabel: Enable incremental loading
+    inputLabel: Resource Threshold
+  manualRefresh:
+    label: Manual Refresh
+    setting: You can configure a threshold above which manual refresh will be enabled.
+    buttonTooltip: Refresh list
+    description: |-
+      When enabled list data will not auto-update but instead the user must manually trigger a list-view refresh.
+    checkboxLabel: Enable manual refresh of data for lists
+    inputLabel: Resource Threshold
 
 banner:
   label: Fixed Banners

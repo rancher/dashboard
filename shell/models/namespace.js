@@ -12,7 +12,15 @@ import Vue from 'vue';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace
-  'p-', // project namespace
+
+  // Project namespace. When a user creates a project, Rancher creates
+  // namespaces in the local cluster with the 'p-' prefix which are
+  // used to manage RBAC for the project. If these namespaces are deleted,
+  // role bindings can be lost and Rancher may need to be restored from
+  // backup. Therefore we hide these namespaces unless the developer setting
+  // is turned on from the user preferences.
+  'p-',
+
   'user-', // user namespace
   'local', // local namespace
 ];

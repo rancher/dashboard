@@ -203,14 +203,22 @@ export default {
 
     <hr />
     <div class="row">
-      <div class="col span-8">
-        <h4 v-t="'prefs.keymap.label'" />
-        <ButtonGroup v-model="keymap" :options="keymapOptions" />
-      </div>
-      <div class="col span-4">
+      <div class="col prefs-advanced">
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
-        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
+        <p class="wrap-text">
+          {{ t('prefs.advancedTooltip', {}, raw=true) }}
+        </p>
+        <br>
+        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
+      </div>
+    </div>
+
+    <hr />
+    <div class="row">
+      <div class="col span-12">
+        <h4 v-t="'prefs.keymap.label'" />
+        <ButtonGroup v-model="keymap" :options="keymapOptions" />
       </div>
     </div>
 
@@ -229,5 +237,10 @@ export default {
 <style lang="scss" scoped>
   hr {
     margin: 20px 0;
+  }
+  .wrap-text {
+    overflow-wrap: break-word;
+    max-width: 80vw;
+    color: var(--input-label);
   }
 </style>

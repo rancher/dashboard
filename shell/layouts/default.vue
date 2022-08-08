@@ -55,7 +55,7 @@ export default {
     return {
       groups:         [],
       gettingGroups:  false,
-      wantNavSync:    false
+      wantNavSync:    false,
     };
   },
 
@@ -70,7 +70,7 @@ export default {
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
     namespaces() {
-      return this.$store.getters['namespaces']();
+      return this.$store.getters['activeNamespaceCache'];
     },
 
     dev:            mapPref(DEV),
@@ -171,6 +171,10 @@ export default {
 
       return { name: `c-cluster-${ product }-support` };
     },
+
+    unmatchedRoute() {
+      return !this.$route?.matched?.length;
+    }
 
   },
 
@@ -327,7 +331,9 @@ export default {
       let namespaces = null;
 
       if ( !this.$store.getters['isAllNamespaces'] ) {
-        namespaces = Object.keys(this.namespaces);
+        const namespacesObject = this.$store.getters['namespaces']();
+
+        namespaces = Object.keys(namespacesObject);
       }
 
       // Always show cluster-level types, regardless of the namespace filter
@@ -536,8 +542,8 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
-    <AwsComplianceBanner />
-    <AzureWarning />
+    <AwsComplianceBanner v-if="managementReady" />
+    <AzureWarning v-if="managementReady" />
     <div v-if="managementReady" class="dashboard-content">
       <Header />
       <nav v-if="clusterReady" class="side-nav">
@@ -621,13 +627,13 @@ export default {
         <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
         <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
       </main>
+      <!-- Ensure there's an outlet to show the error (404) page -->
+      <main v-else-if="unmatchedRoute">
+        <nuxt class="outlet" />
+      </main>
       <div class="wm">
         <WindowManager />
       </div>
-      <main v-if="!clusterId">
-        <!-- Always ensure there's an outlet to cover 404 cases get directed to error page -->
-        <nuxt class="outlet" />
-      </main>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />

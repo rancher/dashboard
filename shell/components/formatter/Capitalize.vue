@@ -4,6 +4,10 @@ export default {
     value: {
       type:    String,
       default: ''
+    },
+    col: {
+      type:    Object,
+      default: () => {}
     }
   },
   computed: {
@@ -17,5 +21,8 @@ export default {
 <template>
   <span>
     {{ capitalized }}
+    <template v-if="!capitalized && col.dashIfEmpty">
+      <span class="text-muted">&mdash;</span>
+    </template>
   </span>
 </template>

@@ -76,7 +76,7 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-rotate" :show-highlight-border="false">
+  <Card class="prompt-rotate" :show-highlight-border="false" :sticky="true">
     <h4 slot="title" class="text-default-text" v-html="t('addProjectMemberDialog.title')" />
 
     <div slot="body" class="pl-10 pr-10">

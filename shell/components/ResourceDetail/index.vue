@@ -402,10 +402,10 @@ export default {
       @set-subtype="setSubtype"
     />
 
-    <button v-if="isView" v-shortkey.once="['d']" class="hide" @shortkey="keyAction('goToDetail')" />
-    <button v-if="isView" v-shortkey.once="['c']" class="hide" @shortkey="keyAction('goToViewConfig')" />
-    <button v-if="isView" v-shortkey.once="['y']" class="hide" @shortkey="keyAction('goToViewYaml')" />
-    <button v-if="isView" v-shortkey.once="['e']" class="hide" @shortkey="keyAction('goToEdit')" />
+    <button v-if="isView" v-shortkey.once="['shift','d']" class="hide" @shortkey="keyAction('goToDetail')" />
+    <button v-if="isView" v-shortkey.once="['shift','c']" class="hide" @shortkey="keyAction('goToViewConfig')" />
+    <button v-if="isView" v-shortkey.once="['shift','y']" class="hide" @shortkey="keyAction('goToViewYaml')" />
+    <button v-if="isView" v-shortkey.once="['shift','e']" class="hide" @shortkey="keyAction('goToEdit')" />
   </div>
 </template>
 

@@ -3,7 +3,7 @@ import Vue from 'vue';
 import ProgressBarMulti from '@shell/components/ProgressBarMulti';
 import PlusMinus from '@shell/components/form/PlusMinus';
 import { SCALABLE_WORKLOAD_TYPES } from '~shell/config/types';
-import { ucFirst } from '~shell/utils/string';
+import { ucFirst } from '@shell/utils/string';
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 
@@ -33,7 +33,8 @@ export default {
     return {
       disabled: false,
       expanded: false,
-      loading:  true
+      loading:  true,
+      cParts:   [],
     };
   },
 
@@ -47,18 +48,28 @@ export default {
     },
 
     parts() {
-      return Object.entries(this.row.jobGauges || this.row.podGauges || [])
+      return this.cParts;
+    },
+  },
+
+  methods:  {
+    liveUpdate() {
+      if (this.loading) {
+        return 5;
+      }
+
+      this.cParts = Object.entries(this.row.jobGauges || this.row.podGauges || [])
         .map(([name, value]) => ({
           color: `bg-${ value.color }`,
           value: value.count || 0,
           label: ucFirst(name)
         })).filter(x => x.value > 0);
-    },
-  },
 
-  methods:  {
+      return 5;
+    },
     startDelayedLoading() {
       this.loading = false;
+      this.liveUpdate();
     },
 
     onClickOutside(event) {

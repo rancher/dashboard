@@ -4,7 +4,7 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 export default {
   props: {
     value: {
-      type:     String,
+      type:     null,
       required: true
     },
 
@@ -42,7 +42,7 @@ export default {
 </script>
 
 <template>
-  <span>
+  <span v-if="value">
     <nuxt-link :to="url">
       {{ value }}
     </nuxt-link>

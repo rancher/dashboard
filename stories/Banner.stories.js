@@ -1,4 +1,4 @@
-import Banner from '../components/Banner.vue';
+import Banner from '@/pkg/rancher-components/src/components/Banner/Banner.vue';
 
 export default {
   component: Banner,

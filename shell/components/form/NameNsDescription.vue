@@ -140,6 +140,14 @@ export default {
     horizontal: {
       type:    Boolean,
       default: true,
+    },
+    rules: {
+      default: () => ({
+        namespace:   [],
+        name:        [],
+        description: []
+      }),
+      type: Object,
     }
   },
 
@@ -178,16 +186,20 @@ export default {
       description = metadata?.annotations?.[DESCRIPTION];
     }
 
+    const inStore = this.$store.getters['currentStore']();
+    const nsSchema = this.$store.getters[`${ inStore }/schemaFor`](NAMESPACE);
+
     return {
       namespace,
       name,
       description,
-      createNamespace: false
+      createNamespace: false,
+      nsSchema
     };
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
+    ...mapGetters(['isVirtualCluster', 'currentCluster']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -232,18 +244,22 @@ export default {
         });
       }
 
-      return [
-        {
+      const out = [];
+
+      if (this.canCreateNamespace) {
+        out.push({
           label: this.t('namespace.createNamespace'),
           value: ''
-        },
-        {
-          label:    'divider',
-          disabled: true,
-          kind:     'divider'
-        },
-        ...sortedByLabel
-      ];
+        });
+      }
+      out.push({
+        label:    'divider',
+        disabled: true,
+        kind:     'divider'
+      },
+      ...sortedByLabel);
+
+      return out;
     },
 
     isView() {
@@ -262,6 +278,11 @@ export default {
 
       return `span-${ span }`;
     },
+
+    canCreateNamespace() {
+      // Check if user can push to namespaces... and as the ns is outside of a project restrict to admins and cluster owners
+      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster.canUpdate;
+    }
   },
 
   watch: {
@@ -324,7 +345,7 @@ export default {
     },
 
     selectNamespace(e) {
-      if (e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
+      if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
         this.$parent.$emit('createNamespace', true);
         Vue.nextTick(() => this.$refs.namespace.focus());
@@ -349,6 +370,7 @@ export default {
         :mode="mode"
         :min-height="30"
         :required="nameRequired"
+        :rules="rules.namespace"
       />
       <button
         aria="Cancel create"
@@ -359,7 +381,7 @@ export default {
       >
         <i
           v-tooltip="t('generic.cancel')"
-          class="icon icon-lg icon-close "
+          class="icon icon-lg icon-close align-value"
         />
       </button>
     </div>
@@ -375,6 +397,7 @@ export default {
         :multiple="false"
         :label="t('namespace.label')"
         :placeholder="t('namespace.selectOrCreate')"
+        :rules="rules.namespace"
         required
         @selecting="selectNamespace"
       />
@@ -391,6 +414,7 @@ export default {
         :mode="mode"
         :min-height="30"
         :required="nameRequired"
+        :rules="rules.name"
       />
     </div>
 
@@ -403,6 +427,7 @@ export default {
         :label="t(descriptionLabel)"
         :placeholder="t(descriptionPlaceholder)"
         :min-height="30"
+        :rules="rules.description"
       />
     </div>
 
@@ -428,6 +453,10 @@ button {
   margin-right: 7px;
 
   cursor: pointer;
+
+  .align-value {
+    padding-top: 7px;
+  }
 }
 
 .row {

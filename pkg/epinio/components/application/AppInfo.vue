@@ -5,10 +5,11 @@ import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
-import Banner from '@components/Banner/Banner.vue';
+import Loading from '@shell/components/Loading.vue';
 
 import { EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
+import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
 
 export interface EpinioAppInfo {
   meta: {
@@ -24,7 +25,7 @@ export interface EpinioAppInfo {
 
 interface Data {
   errors: string[],
-  values: EpinioAppInfo
+  values?: EpinioAppInfo
 }
 
 // Data, Methods, Computed, Props
@@ -35,7 +36,7 @@ export default Vue.extend<Data, any, any, any>({
     NameNsDescription,
     LabeledInput,
     KeyValue,
-    Banner
+    Loading
   },
 
   props: {
@@ -52,17 +53,7 @@ export default Vue.extend<Data, any, any, any>({
   data() {
     return {
       errors:        [],
-      values: {
-        meta: {
-          name:      this.application.meta?.name,
-          namespace: this.application.meta?.namespace
-        },
-        configuration: {
-          instances:   this.application.configuration?.instances || 1,
-          environment: this.application.configuration?.environment || {},
-          routes:      this.application.configuration?.routes || [],
-        },
-      }
+      values: undefined
     };
   },
 
@@ -70,7 +61,7 @@ export default Vue.extend<Data, any, any, any>({
     this.values = {
       meta: {
         name:      this.application.meta?.name,
-        namespace: this.application.meta?.namespace
+        namespace: this.application.meta?.namespace || this.namespaces[0]?.metadata.name
       },
       configuration: {
         instances:   this.application.configuration?.instances || 1,
@@ -105,8 +96,13 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     valid() {
+      if (!this.values) {
+        return false;
+      }
       const validName = !!this.values.meta?.name;
-      const validNamespace = !!this.values.meta?.namespace;
+
+      const nsErrors = validateKubernetesName(this.values.meta?.namespace || '', '', this.$store.getters, undefined, []);
+      const validNamespace = nsErrors.length === 0;
       const validInstances = typeof this.values.configuration?.instances !== 'string' && this.values.configuration?.instances >= 0;
 
       return validName && validNamespace && validInstances;
@@ -127,11 +123,7 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <div v-if="!namespaces.length">
-    <Banner color="warning">
-      {{ t('epinio.warnings.noNamespace') }}
-    </Banner>
-  </div>
+  <Loading v-if="!values" />
   <div v-else>
     <div class="col">
       <NameNsDescription
@@ -143,6 +135,7 @@ export default Vue.extend<Data, any, any, any>({
         :value="values.meta"
         :mode="mode"
         @change="update"
+        @createNamespace="ns => values.meta.namespace = ns"
       />
     </div>
     <div class="col span-6">
