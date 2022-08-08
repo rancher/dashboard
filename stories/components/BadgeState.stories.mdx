@@ -5,6 +5,15 @@ import BadgeState from '@/pkg/rancher-components/src/components/BadgeState/Badge
 <Meta 
   title="Components/BadgeState" 
   component={BadgeState}
+  argTypes={{
+    color: {
+      description: 'Overwritten description',
+      control: {
+        type:    'select',
+        options: ['bg-info', 'bg-warning', 'bg-error']
+      },
+    },
+  }}
 />
 
 export const Template = (args, { argTypes }) => ({
@@ -30,8 +39,7 @@ Badges are used to highlight important changes of state in an element, mark them
 
 Different contextual variations of the badge can be used to communicate the different states of an element or the content: Blue for information, yellow for warning and red for errors.
 
-<Canvas columns={2}>
-  Info
+<Canvas>
   <Story
     name="Info"
     args={{
@@ -40,7 +48,6 @@ Different contextual variations of the badge can be used to communicate the diff
     }}>
     {Template.bind({})}
   </Story>
-  Warning
   <Story
     name="Warning"
     args={{
@@ -49,7 +56,6 @@ Different contextual variations of the badge can be used to communicate the diff
     }}>
     {Template.bind({})}
   </Story>
-  Error
   <Story
     name="Error"
     args={{

@@ -68,6 +68,7 @@ export default {
           label="Labeled Input"
           :mode="mode"
           :tooltip="tooltip"
+          status="success"
         />
       </div>
       <div class="col span-4">

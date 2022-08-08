@@ -36,9 +36,24 @@ Primary banner are triggered by system events. They appear as a fixed, full-widt
   <Story
     name="Primary"
     args={{
-      label:    'Your account has been successfully migrated to the new user interface.',
+      label:    'Please update system with new patch',
       closable: true,
       color:    'primary',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Success
+Success alerts should be used when an action was performed successfully.
+
+<Canvas>
+  <Story
+    name="Success"
+    args={{
+      label:    'Your account has been successfully migrated to the new user interface.',
+      closable: true,
+      color:    'success',
     }}>
     {Template.bind({})}
   </Story>

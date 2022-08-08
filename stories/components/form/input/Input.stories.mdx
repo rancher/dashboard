@@ -1,7 +1,6 @@
 import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
 
 import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
-import UnitInput from '@/shell/components/form/UnitInput.vue';
 
 export const TemplateLabeledInput = (args, { argTypes }) => ({
   components: { LabeledInput },
@@ -9,13 +8,10 @@ export const TemplateLabeledInput = (args, { argTypes }) => ({
   template:   '<LabeledInput v-bind="$props" />',
 })
 
-export const TemplateUnitInput = (args, { argTypes }) => ({
-  components: { UnitInput },
-  props:      Object.keys(argTypes),
-  template:   '<UnitInput v-bind="$props" />',
-})
 
-<Meta title="Components/Form/Input" />
+<Meta title="Components/Form/Input"
+  component={LabeledInput}
+/>
 
 # Text input
 Input elements with type ‘text’ allow users to enter any combination of letters, numbers, or symbols. A text box only allows for a single line of input.
@@ -36,7 +32,61 @@ Input elements with type ‘text’ allow users to enter any combination of lett
     args={{
       label: 'Name',
       type: 'text',
-      value: 'Simon'
+      value: 'Simon',
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+</Canvas>
+
+### Different status of Labeled Input
+
+<Canvas isColumn>
+Info
+  <Story
+    Info
+    name='Labeled Input Info'
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon',
+      status: 'info',
+      tooltipKey: 'Info message'
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+  Success
+  <Story
+    name='Labeled Input Success'
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon',
+      status: 'success',
+      tooltipKey: 'Success message'
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+  Warning
+  <Story
+    name='Labeled Input Warning'
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon',
+      status: 'warning',
+       tooltipKey: 'Warning message'
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+  Error
+  <Story
+    name='Labeled Input Error'
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon',
+      status: 'error',
+      tooltipKey: 'Error message'
     }}>
     {TemplateLabeledInput.bind({})}
   </Story>
@@ -55,53 +105,3 @@ Input elements with type ‘text’ allow users to enter any combination of lett
 
 ### Props table
 <ArgsTable of={LabeledInput} />
-
-# Unit Input
-
-<br/>
-
-
-#### Unit Input control
-
-<Canvas isColumn>
-  <Story
-    name="UnitInput"
-    args={{
-      label: 'UnitInput',
-      type: 'text',
-      value: '123',
-      suffix: 'Seconds'
-    }}>
-    {TemplateUnitInput.bind({})}
-  </Story>
-</Canvas>
-
-
-#### UnitInput control with tooltip
-<Canvas isColumn>
-   <Story
-    name="UnitInput Tooltip"
-    args={{
-      label: 'UnitInputTooltip',
-      type: 'text',
-      value: '123',
-      suffix: 'Seconds',
-      tooltip: 'Tooltip for suffix'
-    }}>
-    {TemplateUnitInput.bind({})}
-  </Story>
-</Canvas>
-
-<br/>
-
-### Import
-
-<Source
-  language='js'
-  code={`
-     import UnitInput from '@/shell/components/form/UnitInput.vue';
-  `}
-/>
-
-### Props table
-<ArgsTable of={UnitInput} />
