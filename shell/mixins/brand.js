@@ -6,9 +6,12 @@ import { createCssVars } from '@shell/utils/color';
 
 export default {
   async fetch() {
-    if ( this.$store.getters['management/canList'](CATALOG.APP) ) {
-      this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
-    }
+    // For the login page, the schemas won't be loaded - we don't need the apps in this case
+    try {
+      if (this.$store.getters['management/canList'](CATALOG.APP)) {
+        this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
+      }
+    } catch (e) {}
   },
 
   data() {
@@ -50,7 +53,7 @@ export default {
     },
 
     cspAdapter() {
-      return findBy(this.apps, 'metadata.name', 'csp-adapter' );
+      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
     }
   },
 

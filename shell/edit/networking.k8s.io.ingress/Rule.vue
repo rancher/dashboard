@@ -19,6 +19,15 @@ export default {
     ingress: {
       type:     Object,
       required: true
+    },
+    rules: {
+      default: () => ({
+        requestHost:   [],
+        path:        [],
+        port:        [],
+        target:      []
+      }),
+      type: Object,
     }
   },
   data() {
@@ -41,10 +50,30 @@ export default {
       } else {
         delete out.host;
       }
-      this.$emit('input', out);
+
+      this.$nextTick(() => {
+        if ((this.paths?.length === 1 && this.pathObjectIsEmpty(this.paths[0])) || this.paths?.length === 0) {
+          delete out.http;
+        }
+        this.$emit('input', out);
+      });
+    },
+    pathObjectIsEmpty(pathObject) {
+      const servicePort = Number.parseInt(pathObject.servicePort) || pathObject.servicePort;
+      const serviceName = pathObject.serviceName;
+      const path = pathObject.path;
+      const pathType = pathObject.pathType;
+
+      if (!servicePort && !serviceName && !path && pathType === 'Prefix') {
+        return true;
+      }
+
+      return false;
     },
     addPath(ev) {
-      ev.preventDefault();
+      if (ev) {
+        ev.preventDefault();
+      }
       this.paths = [...this.paths, { id: random32(1) }];
       this.$nextTick(() => {
         if (this.$refs.paths && this.$refs.paths.length > 0) {
@@ -52,6 +81,7 @@ export default {
 
           path.focus();
         }
+        this.update();
       });
     },
     removePath(idx) {
@@ -59,12 +89,16 @@ export default {
 
       neu.splice(idx, 1);
       this.paths = neu;
+      this.update();
     },
     removeRule() {
       this.$emit('remove');
     },
     focus() {
       this.$refs.host.focus();
+    },
+    makePathKey(i) {
+      return JSON.stringify(this.paths[i]);
     }
   },
 };
@@ -79,10 +113,11 @@ export default {
           v-model="host"
           :label="t('ingress.rules.requestHost.label')"
           :placeholder="t('ingress.rules.requestHost.placeholder')"
+          :rules="rules.requestHost"
           @input="update"
         />
       </div>
-      <div id="host" class="col span-5"></div>
+      <div id="spacer" class="col span-5"></div>
     </div>
     <div class="rule-path-headings row">
       <div class="col" :class="{'span-6': ingress.showPathType, 'span-4': !ingress.showPathType}">
@@ -96,15 +131,16 @@ export default {
       </div>
       <div class="col" />
     </div>
-    <template v-for="(_, i) in paths">
+    <template v-for="(path, i) in paths">
       <RulePath
         ref="paths"
-        :key="i"
+        :key="path.id"
         v-model="paths[i]"
         class="row mb-10"
         :rule-mode="ruleMode"
         :service-targets="serviceTargets"
         :ingress="ingress"
+        :rules="{path: rules.path, port: rules.port, target: rules.target}"
         @remove="(e) => removePath(i)"
         @input="update"
       />

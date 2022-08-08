@@ -3,6 +3,7 @@ import CruResource from '@shell/components/CruResource';
 import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import UpgradeInfo from '@shell/list/harvesterhci.io.dashboard/UpgradeInfo';
 
 import { HCI } from '@shell/config/types';
 import { exceptionToErrorsArray } from '@shell/utils/error';
@@ -19,7 +20,7 @@ const UPLOAD = 'upload';
 export default {
   name:       'HarvesterAirgapUpgrade',
   components: {
-    CruResource, LabeledSelect, LabeledInput, RadioGroup
+    CruResource, LabeledSelect, LabeledInput, RadioGroup, UpgradeInfo
   },
 
   async fetch() {
@@ -216,7 +217,7 @@ export default {
     >
       <RadioGroup
         v-model="imageSource"
-        class="mb-20 image-group"
+        class="image-group"
         name="image"
         :options="[
           IMAGE_METHOD.NEW,
@@ -227,6 +228,8 @@ export default {
           t('harvester.upgradePage.selectExisting'),
         ]"
       />
+
+      <UpgradeInfo />
 
       <div v-if="uploadImage">
         <LabeledInput v-model.trim="imageValue.spec.displayName" class="mb-20" label-key="harvester.fields.name" required />

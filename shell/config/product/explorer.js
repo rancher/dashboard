@@ -12,7 +12,7 @@ import {
 
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
-  INGRESS_DEFAULT_BACKEND, INGRESS_TARGET,
+  INGRESS_DEFAULT_BACKEND, INGRESS_TARGET, INGRESS_CLASS,
   SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE, WORKLOAD_IMAGES, POD_IMAGES,
   USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
@@ -88,6 +88,8 @@ export function init(store) {
   weightGroup('storage', 95, true);
   weightType(POD, -1, true);
 
+  // here is where we define the usage of the WORKLOAD custom list view for
+  // all the workload types (ex: deployments, cron jobs, daemonsets, etc)
   for (const key in WORKLOAD_TYPES) {
     componentForType(WORKLOAD_TYPES[key], WORKLOAD);
   }
@@ -117,7 +119,8 @@ export function init(store) {
   mapGroup(/^(.*\.)?tigera\.io$/, 'Tigera');
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
   mapGroup(/^(.*\.)?(fleet|gitjob)\.cattle\.io$/, 'Fleet');
-  mapGroup(/^(.*\.)?(helm|k3s)\.cattle\.io$/, 'K3s');
+  mapGroup(/^(.*\.)?(k3s)\.cattle\.io$/, 'K3s');
+  mapGroup(/^(.*\.)?(helm)\.cattle\.io$/, 'Helm');
   mapGroup(/^(.*\.)?upgrade\.cattle\.io$/, 'Upgrade Controller');
   mapGroup(/^(.*\.)?cis\.cattle\.io$/, 'CIS');
   mapGroup(/^(.*\.)?traefik\.containo\.us$/, 'Træfik');
@@ -179,7 +182,7 @@ export function init(store) {
     },
     AGE
   ]);
-  headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, AGE]);
+  headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE]);
   headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
   headers(HPA, [STATE, NAME_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE]);
 

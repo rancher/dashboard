@@ -131,6 +131,7 @@ export default Vue.extend<Data, any, any, any>({
         name-key="name"
         namespace-key="namespace"
         :namespaces-override="namespaces"
+        :create-namespace-override="true"
         :description-hidden="true"
         :value="values.meta"
         :mode="mode"

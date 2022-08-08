@@ -88,6 +88,7 @@ export default {
       :value="normanCluster"
       :mode="mode"
       :display-side-by-side="false"
+      :label-title-tooltip="t('labels.labels.fleetClusterTooltip')"
     />
   </CruResource>
 </template>

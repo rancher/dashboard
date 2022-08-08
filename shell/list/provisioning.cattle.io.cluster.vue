@@ -134,16 +134,16 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" :namespaced="false">
+    <ResourceTable :schema="schema" :rows="rows" :namespaced="false" :loading="$fetchState.pending">
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
       <template #cell:explorer="{row}">
         <span v-if="row.mgmt && row.mgmt.isHarvester"></span>
-        <n-link v-else-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
+        <n-link v-else-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-secondary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
           Explore
         </n-link>
-        <button v-else :disabled="true" class="btn btn-sm role-primary">
+        <button v-else :disabled="true" class="btn btn-sm role-secondary">
           Explore
         </button>
       </template>

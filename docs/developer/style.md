@@ -4,14 +4,6 @@
 
 SCSS Styles can be found in `assets/styles/`. It's recommended to browse through some of the common styles in `_helpers.scss` and `_mixins.scss`.
 
-### Examples
-
-The following pages contain example components and their styling
-
-- Buttons - `<dashboard url>/design-system`
-- Form Controls - `<dashboard url>/design-system/form-controls`
-- Provider Images - `<dashboard url>/design-system/provider-images`
-
 ### Icons 
 Icons are font based and can be shown via the icon class
 

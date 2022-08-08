@@ -266,6 +266,11 @@ export const SCOPED_RESOURCES = {
         'Events',
       ]
     },
+    'helm.cattle.io': {
+      resources: [
+        'ProjectHelmCharts',
+      ]
+    },
     'monitoring.coreos.com': {
       resources: [
         'Alertmanagers',

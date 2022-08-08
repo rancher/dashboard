@@ -329,9 +329,9 @@ export default {
     <div class="spacer"></div>
 
     <div class="rd-header-right">
-      <HarvesterUpgrade v-if="isVirtualCluster" />
+      <HarvesterUpgrade v-if="isVirtualCluster && currentProduct.name === VIRTUAL" />
       <div
-        v-if="(currentCluster || currentProduct.customNamespaceFilter) && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
+        v-if="(currentCluster || (currentProduct && currentProduct.customNamespaceFilter)) && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
         class="top"
       >
         <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
@@ -492,13 +492,13 @@ export default {
                 </div>
               </li>
               <nuxt-link v-if="showPreferencesLink" tag="li" :to="{name: 'prefs'}" class="user-menu-item">
-                <a>{{ t('nav.userMenu.preferences') }} <i class="icon icon-fw icon-gear" /></a>
+                <a>{{ t('nav.userMenu.preferences') }}</a>
               </nuxt-link>
               <nuxt-link v-if="showAccountAndApiKeyLink" tag="li" :to="{name: 'account'}" class="user-menu-item">
-                <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }} <i class="icon icon-fw icon-user" /></a>
+                <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
               </nuxt-link>
               <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">
-                <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }} <i class="icon icon-fw icon-close" /></a>
+                <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }}</a>
               </nuxt-link>
             </ul>
           </template>

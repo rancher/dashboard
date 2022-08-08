@@ -21,7 +21,7 @@ export default {
 
   computed: {
     html() {
-      return this.marked(this.value, {
+      return this.marked.parse(this.value, {
         renderer: this.markedRenderer,
         breaks:   true
       });
@@ -33,7 +33,7 @@ export default {
   },
 
   async mounted() {
-    const marked = (await import(/* webpackChunkName: "markdown" */ 'marked')).default;
+    const marked = (await import(/* webpackChunkName: "markdown" */ 'marked'));
     const dompurify = (await import(/* webpackChunkName: "markdown" */ 'dompurify')).default;
 
     const renderer = new marked.Renderer();

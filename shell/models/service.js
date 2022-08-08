@@ -98,11 +98,17 @@ export default class extends SteveModel {
       });
     }
 
-    if (loadBalancerIP && this.serviceType === 'LoadBalancer') {
-      out.push({
-        label:   this.t('servicesPage.ips.loadBalancerIp.label'),
-        content: loadBalancerIP
-      });
+    if (this.serviceType === 'LoadBalancer') {
+      const statusIps = this.status.loadBalancer?.ingress?.map(ingress => ingress.hostname || ingress.ip).join(', ');
+
+      const loadbalancerInfo = loadBalancerIP || statusIps || '';
+
+      if (loadbalancerInfo) {
+        out.push({
+          label:   this.t('servicesPage.ips.loadBalancer.label'),
+          content: loadbalancerInfo
+        });
+      }
     }
 
     if (externalName) {

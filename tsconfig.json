@@ -3,5 +3,14 @@
   "compilerOptions": {
     "types": ["@types/node", "@types/jest", "@nuxt/types"]
   },
-  "exclude": ["node_modules", ".nuxt", "dist", "dist-pkg", "cypress", "shell/creators"]
+  "exclude": [
+    "node_modules",
+    ".nuxt",
+    "dist",
+    "dist-pkg",
+    "cypress",
+    "shell/creators",
+    "cypress",
+    "./cypress.config.ts"
+  ]
 }

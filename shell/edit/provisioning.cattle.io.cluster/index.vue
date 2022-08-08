@@ -6,7 +6,7 @@ import SelectIconGrid from '@shell/components/SelectIconGrid';
 import EmberPage from '@shell/components/EmberPage';
 import ToggleSwitch from '@shell/components/form/ToggleSwitch';
 import {
-  CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT
+  CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
 } from '@shell/config/query-params';
 import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
@@ -156,7 +156,7 @@ export default {
       if (this.value) {
         // For custom RKE2 clusters, don't load an Ember page.
         // It should be the dashboard.
-        if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.subType || '').toLowerCase() === 'custom')) {
+        if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
           // For admins, this.value.isCustom is used to check if it is a custom cluster.
           // For cluster owners, this.subtype is used.
           this.selectType('custom', false);

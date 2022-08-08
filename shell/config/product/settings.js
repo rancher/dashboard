@@ -80,11 +80,22 @@ export function init(store) {
     route:          { name: 'c-cluster-settings-banners' }
   });
 
+  virtualType({
+    ifHaveType:     MANAGEMENT.SETTING,
+    labelKey:       'performance.settingName',
+    name:           'performance',
+    namespaced:     false,
+    weight:         97,
+    icon:           'folder',
+    route:          { name: 'c-cluster-settings-performance' }
+  });
+
   basicType([
     'settings',
     'features',
     'brand',
-    'banners'
+    'banners',
+    'performance'
   ]);
 
   configureType(MANAGEMENT.SETTING, {

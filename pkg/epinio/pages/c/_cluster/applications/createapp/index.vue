@@ -202,6 +202,5 @@ export default Vue.extend<Data, any, any, any>({
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding-top: 0;
 }
 </style>

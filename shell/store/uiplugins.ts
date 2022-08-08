@@ -4,7 +4,7 @@
 // import { addObject, removeObject } from '@shell/utils/array';
 
 import { allHash } from '@shell/utils/promise';
-import { Plugin } from '~/shell/core/plugin';
+import { Plugin } from '@shell/core/plugin';
 
 interface UIPluginState {
   plugins: Plugin[],

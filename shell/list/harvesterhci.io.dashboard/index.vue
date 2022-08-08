@@ -375,50 +375,22 @@ export default {
     },
 
     cpuReserved() {
-      const useful = this.pods.filter((pod) => {
-        const nodeName = pod?.spec?.nodeName;
-
-        return this.availableNodes.includes(nodeName);
-      }).reduce((sum, pod) => {
-        const containers = pod?.spec?.containers || [];
-
-        const containerCpuReserved = containers.reduce((sum, c) => {
-          sum += parseSi(c?.resources?.requests?.cpu || '0m');
-
-          return sum;
-        }, 0);
-
-        sum += containerCpuReserved;
-
-        return sum;
+      const useful = this.nodes.reduce((total, node) => {
+        return total + node.cpuReserved;
       }, 0);
 
       return {
-        total:  this.cpusTotal,
-        useful: Number(formatSi(useful)),
+        total: this.cpusTotal,
+        useful,
       };
     },
 
     ramReserved() {
-      const useful = this.pods.filter((pod) => {
-        const nodeName = pod?.spec?.nodeName;
-
-        return this.availableNodes.includes(nodeName);
-      }).reduce((sum, pod) => {
-        const containers = pod?.spec?.containers || [];
-
-        const containerMemoryReserved = containers.reduce((sum, c) => {
-          sum += parseSi(c?.resources?.requests?.memory || '0m', { increment: 1024 });
-
-          return sum;
-        }, 0);
-
-        sum += containerMemoryReserved;
-
-        return sum;
+      const useful = this.nodes.reduce((total, node) => {
+        return total + node.memoryReserved;
       }, 0);
 
-      return this.createMemoryValues(this.memoryTotal, useful);
+      return createMemoryValues(this.memoryTotal, useful);
     },
 
     availableNodes() {
@@ -583,7 +555,12 @@ export default {
       <h3 class="mt-40">
         {{ t('clusterIndexPage.sections.capacity.label') }}
       </h3>
-      <div class="hardware-resource-gauges">
+      <div
+        class="hardware-resource-gauges"
+        :class="{
+          live: !storageTotal,
+        }"
+      >
         <HardwareResourceGauge
           :name="t('harvester.dashboard.hardwareResourceGauge.cpu')"
           :reserved="cpuReserved"
@@ -595,6 +572,7 @@ export default {
           :used="ramUsed"
         />
         <HardwareResourceGauge
+          v-if="storageTotal"
           :name="t('harvester.dashboard.hardwareResourceGauge.storage')"
           :used="storageUsed"
           :reserved="storageReserved"

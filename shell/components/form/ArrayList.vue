@@ -4,11 +4,12 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { removeAt } from '@shell/utils/array';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { clone } from '@shell/utils/object';
+import { LabeledInput } from '@components/Form/LabeledInput';
 
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
-  components: { TextAreaAutoGrow },
+  components: { TextAreaAutoGrow, LabeledInput },
 
   props: {
     value: {
@@ -85,6 +86,13 @@ export default {
     disabled: {
       type:    Boolean,
       default: false,
+    },
+
+    rules: {
+      default:   () => [],
+      type:      Array,
+      // we only want functions in the rules array
+      validator: rules => rules.every(rule => ['function'].includes(typeof rule))
     }
   },
 
@@ -266,6 +274,17 @@ export default {
                 @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
               />
+              <LabeledInput
+                v-else-if="rules.length > 0"
+                ref="value"
+                v-model="row.value"
+                :placeholder="valuePlaceholder"
+                :disabled="isView || disabled"
+                :rules="rules"
+                :compact="false"
+                @paste="onPaste(idx, $event)"
+                @input="queueUpdate"
+              />
               <input
                 v-else
                 ref="value"
@@ -305,7 +324,7 @@ export default {
       <slot name="empty" />
     </div>
     <div v-if="showAdd && !isView" class="footer">
-      <slot v-if="showAdd" name="add">
+      <slot v-if="showAdd" name="add" :add="add">
         <button
           type="button"
           class="btn role-tertiary add"

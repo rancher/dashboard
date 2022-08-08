@@ -17,6 +17,10 @@ export default {
       type:    Array,
       default: () => [],
     },
+    rules: {
+      default: () => ({ host: [] }),
+      type:    Object,
+    }
   },
   data() {
     const defaultCert = {
@@ -91,7 +95,7 @@ export default {
       />
     </div>
     <div class="col span-6">
-      <ArrayList :value="hosts" :add-label="t('ingress.certificates.addHost')" @input="onHostsInput" />
+      <ArrayList :value="hosts" :add-label="t('ingress.certificates.addHost')" :rules="rules.host" @input="onHostsInput" />
     </div>
   </div>
 </template>

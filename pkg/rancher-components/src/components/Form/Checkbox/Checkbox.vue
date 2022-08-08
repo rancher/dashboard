@@ -102,7 +102,15 @@ export default Vue.extend({
     description: {
       type:    String,
       default: null
-    }
+    },
+
+    /**
+     * Primary checkbox displays label so that it stands out more
+     */
+    primary: {
+      type:    Boolean,
+      default: false
+    },    
   },
 
   computed: {
@@ -179,13 +187,7 @@ export default Vue.extend({
      * @param value A collection of values for the checkbox.
      */
     findTrueValues(value: boolean[]): boolean {
-      const lookup = value.find(v => v === this.valueWhenTrue);
-
-      if (typeof lookup === 'undefined') {
-        throw new TypeError('Method findTrueValue is undefined');
-      }
-
-      return lookup;
+      return value.find(v => v === this.valueWhenTrue) || false;
     }
   }
 });
@@ -221,6 +223,7 @@ export default Vue.extend({
       <span
         v-if="$slots.label || label || labelKey || tooltipKey || tooltip"
         class="checkbox-label"
+        :class="{ 'checkbox-primary': primary }"
       >
         <slot name="label">
           <t v-if="labelKey" :k="labelKey" :raw="true" />
@@ -247,9 +250,10 @@ $fontColor: var(--input-label);
   flex-direction: column;
   &-description {
     color: $fontColor;
-    font-size: 11px;
-    margin-left: 20px;
+    font-size: 14px;
+    margin-left: 19px;
     margin-top: 5px;
+    opacity: 0.8;
   }
 }
 
@@ -267,6 +271,11 @@ $fontColor: var(--input-label);
     color: var(--input-label);
     display: inline-flex;
     margin: 0px 10px 0px 5px;
+
+    &.checkbox-primary {
+      color: inherit;
+      font-weight: 600;
+    }
   }
 
   .checkbox-info {

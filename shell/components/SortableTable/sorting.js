@@ -96,7 +96,9 @@ export default {
     changeSort(sort, desc) {
       this.sortBy = sort;
       this.descending = desc;
-      this.currentPage = 1;
+
+      // Always go back to the first page when the sort is changed
+      this.setPage(1);
     },
   },
 };

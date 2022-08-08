@@ -15,16 +15,24 @@ export default class ProvCluster extends SteveModel {
   get details() {
     const out = [
       {
-        label:   'Provisioner',
+        label:   this.t('cluster.detail.provisioner'),
         content: this.provisionerDisplay || this.t('generic.none'),
       },
       {
-        label:   'Machine Provider',
+        label:   this.t('cluster.detail.machineProvider'),
         content: this.machineProvider ? this.machineProviderDisplay : null,
       },
       {
-        label:   'Kubernetes Version',
+        label:   this.t('cluster.detail.kubernetesVersion'),
         content: this.kubernetesVersion,
+      },
+      {
+        label:   this.t('cluster.detail.machinePools'),
+        content: this.pools.length,
+      },
+      {
+        label:   this.t('cluster.detail.machines'),
+        content: this.desired,
       },
     ].filter(x => !!x.content);
 
@@ -53,11 +61,6 @@ export default class ProvCluster extends SteveModel {
   }
 
   get _availableActions() {
-    // No actions for Harvester clusters
-    if (this.isHarvester) {
-      return [];
-    }
-
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
 
@@ -183,7 +186,17 @@ export default class ProvCluster extends SteveModel {
     return super.canEditYaml;
   }
 
+  get isAKS() {
+    return this.provisioner === 'AKS';
+  }
+
+  get isEKS() {
+    return this.provisioner === 'EKS';
+  }
+
   get isImported() {
+    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
+    // in which this.provisioner is `k3s`.
     return this.provisioner === 'imported';
   }
 
@@ -204,6 +217,8 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImportedK3s() {
+    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
+    // in which this.provisioner is `k3s`.
     return this.isImported && this.mgmt?.status?.provider === 'k3s';
   }
 
@@ -237,6 +252,10 @@ export default class ProvCluster extends SteveModel {
     const out = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
 
     return out;
+  }
+
+  get isReady() {
+    return !!this.mgmt?.isReady;
   }
 
   waitForProvisioner(timeout, interval) {

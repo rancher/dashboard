@@ -14,6 +14,7 @@ function registerType(state, type) {
       haveSelector: {},
       revision:     0, // The highest known resourceVersion from the server for this type
       generation:   0, // Updated every time something is loaded for this type
+      loadCounter:  0, // Used to cancel incremental loads if the page changes during load
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -29,7 +30,7 @@ function registerType(state, type) {
   return cache;
 }
 
-function load(state, { data, ctx, existing }) {
+export function load(state, { data, ctx, existing }) {
   const { getters } = ctx;
   let type = normalizeType(data.type);
   const keyField = getters.keyFieldForType(type);
@@ -103,6 +104,8 @@ function load(state, { data, ctx, existing }) {
       cache.map.set(id, entry);
     }
   }
+
+  return entry;
 }
 
 export function forgetType(state, type) {
@@ -130,7 +133,35 @@ export function resetStore(state, commit) {
   }
 }
 
-export function loadAll(state, { type, data, ctx }) {
+export function remove(state, obj, getters) {
+  let type = normalizeType(obj.type);
+  const keyField = getters[`${ state.config.namespace }/keyFieldForType`](type);
+  const id = obj[keyField];
+
+  let entry = state.types[type];
+
+  if ( entry ) {
+    removeObject(entry.list, obj);
+    entry.map.delete(id);
+  }
+
+  if ( obj.baseType ) {
+    type = normalizeType(obj.baseType);
+    entry = state.types[type];
+
+    if ( entry ) {
+      removeObject(entry.list, obj);
+      entry.map.delete(id);
+    }
+  }
+}
+
+export function loadAll(state, {
+  type,
+  data,
+  ctx,
+  skipHaveAll
+}) {
   const { getters } = ctx;
 
   if (!data) {
@@ -159,7 +190,12 @@ export function loadAll(state, { type, data, ctx }) {
     cache.map.set(proxies[i][keyField], proxies[i]);
   }
 
-  cache.haveAll = true;
+  // Allow requester to skip setting that everything has loaded
+  if (!skipHaveAll) {
+    cache.haveAll = true;
+  }
+
+  return proxies;
 }
 
 export default {
@@ -216,12 +252,33 @@ export default {
     });
   },
 
+  // Add a set of resources to the store for a given type
+  // Don't mark the 'haveAll' field - this is used for incremental loading
+  loadAdd(state, { type, data: allLatest, ctx }) {
+    const { getters } = ctx;
+    const keyField = getters.keyFieldForType(type);
+
+    allLatest.forEach((entry) => {
+      const existing = state.types[type].map.get(entry[keyField]);
+
+      load(state, {
+        data: entry, ctx, existing
+      });
+    });
+  },
+
   forgetAll(state, { type }) {
     const cache = registerType(state, type);
 
     clear(cache.list);
     cache.map.clear();
     cache.generation++;
+  },
+
+  setHaveAll(state, { type }) {
+    const cache = registerType(state, type);
+
+    cache.haveAll = true;
   },
 
   loadedAll(state, { type }) {
@@ -232,26 +289,7 @@ export default {
   },
 
   remove(state, obj) {
-    let type = normalizeType(obj.type);
-    const keyField = this.getters[`${ state.config.namespace }/keyFieldForType`](type);
-    const id = obj[keyField];
-
-    let entry = state.types[type];
-
-    if ( entry ) {
-      removeObject(entry.list, obj);
-      entry.map.delete(id);
-    }
-
-    if ( obj.baseType ) {
-      type = normalizeType(obj.baseType);
-      entry = state.types[type];
-
-      if ( entry ) {
-        removeObject(entry.list, obj);
-        entry.map.delete(id);
-      }
-    }
+    remove(state, obj, this.getters);
   },
 
   reset(state) {
@@ -259,4 +297,12 @@ export default {
   },
 
   forgetType,
+
+  incrementLoadCounter(state, type) {
+    const typeData = state.types[type];
+
+    if (typeData) {
+      typeData.loadCounter++;
+    }
+  }
 };

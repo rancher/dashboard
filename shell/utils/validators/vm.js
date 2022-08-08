@@ -119,15 +119,15 @@ export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value)
     errors.push(getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting'));
   }
 
-  let hasImageVolumeOrExistingVolume = false;
+  let requiredVolume = false;
 
   _volumes.forEach((V, idx) => {
     const { type, typeValue } = getVolumeType(V, _volumeClaimTemplates);
     const prefix = V.name || idx + 1;
 
-    if (type === SOURCE_TYPE.IMAGE || type === SOURCE_TYPE.ATTACH_VOLUME) { // root image
+    if ([SOURCE_TYPE.IMAGE, SOURCE_TYPE.ATTACH_VOLUME, SOURCE_TYPE.CONTAINER].includes(type)) { // root image
       // const message = getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting');
-      hasImageVolumeOrExistingVolume = true;
+      requiredVolume = true;
       // errors.push(message);
     }
 
@@ -160,14 +160,14 @@ export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value)
       }
     }
 
-    if (V?.containerDisk && !V.containerDisk.image) {
+    if (type === SOURCE_TYPE.CONTAINER && !V.containerDisk.image) {
       const message = getters['i18n/t']('harvester.validation.vm.volume.docker');
 
       errors.push(getters['i18n/t']('harvester.validation.vm.volume.error', { prefix, message }));
     }
   });
 
-  if (!hasImageVolumeOrExistingVolume && !value.links) {
+  if (!requiredVolume && !value.links) {
     const message = getters['i18n/t']('harvester.validation.vm.volume.needImageOrExisting');
 
     errors.push(message);
@@ -206,6 +206,13 @@ export function getVolumeType(V, DVTS) {
     // existing, container type volume doesn't need validator
     return {
       type:      SOURCE_TYPE.ATTACH_VOLUME,
+      typeValue: null
+    };
+  }
+
+  if (V.containerDisk) {
+    return {
+      type:      SOURCE_TYPE.CONTAINER,
       typeValue: null
     };
   }
