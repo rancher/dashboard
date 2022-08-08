@@ -1593,7 +1593,6 @@ export default {
       border: $padding solid white;
       border-radius: calc( 3 * var(--border-radius));
       position: relative;
-      margin-bottom: 15px
     }
 
     .logo {

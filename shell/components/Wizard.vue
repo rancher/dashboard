@@ -392,6 +392,7 @@ $spacer: 10px;
   display: flex;
   align-content: space-between;
   align-items: center;
+  margin-bottom: 2*$spacer;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
@@ -439,20 +440,12 @@ $spacer: 10px;
           align-items: center;
           width: 40px;
           overflow: visible;
-          padding-top: 15px;
+          padding-top: 0;
 
-          .cru__content & {
-            padding-top: 0;
-
-          }
           & > span {
-            padding-bottom: 5px;
+            padding-bottom: 3px;
             margin-bottom: 5px;
             white-space: nowrap;
-
-            .cru__content & {
-              padding-bottom: 3px;
-            }
           }
         }
 
@@ -479,11 +472,7 @@ $spacer: 10px;
         flex-basis: 100%;
         border-top: 1px solid var(--border);
         position: relative;
-        top: 28px;
-
-        .cru__content & {
-          top: 13px;
-        }
+        top: 13px;
       }
     }
   }
@@ -588,11 +577,5 @@ $spacer: 10px;
       }
     }
   }
-
-.wizard {
-  .header {
-    margin-bottom: 2*$spacer;
-  }
-}
 
 </style>
