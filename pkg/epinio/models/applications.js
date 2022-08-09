@@ -4,6 +4,7 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import EpinioMetaResource from './epinio-namespaced-resource';
 import { downloadFile } from '@shell/utils/download';
 import { createEpinioRoute } from '../utils/custom-routing';
+import { epiniofy } from '../store/epinio-store/actions';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -353,6 +354,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
   async create() {
     this.trace('Create the application resource');
+    const { type, id } = epiniofy(this, this.schema, this.type);
+
+    this.type = type;
+    this.id = id;
 
     await this.followLink('create', {
       method:  'post',
@@ -465,9 +470,22 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     this.showStagingLog(stage.id);
   }
 
+  get appShellId() {
+    return `epinio-${ this.id }-app-shell`;
+  }
+
+  get appLogId() {
+    return `epinio-${ this.id }-app-logs`;
+  }
+
+  getStagingLog(stageId = this.stage_id) {
+    return `epinio-${ this.id }-logs-${ stageId }`;
+  }
+
   showAppShell() {
+    console.log('this, showAppShell: ', this.id );
     this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-app-shell`,
+      id:        this.appShellId,
       label:     `${ this.meta.name } - App Shell`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'chevron-right',
@@ -481,8 +499,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
   }
 
   showAppLog() {
+    console.log('this, showAppLog', this.id);
+
     this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-app-logs`,
+      id:        this.appLogId,
       label:     `${ this.meta.name } - App Logs`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'file',
@@ -517,6 +537,14 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
         ansiToHtml:  true
       }
     }, { root: true });
+  }
+
+  async remove(opt = {} ) {
+    this.$dispatch('wm/close', this.appShellId, { root: true });
+    this.$dispatch('wm/close', this.appLogId, { root: true });
+    this.$dispatch('wm/close', this.getStagingLog(this.appShellId), { root: true });
+
+    await super.remove();
   }
 
   async waitForStaging(stageId, iteration = 0) {
