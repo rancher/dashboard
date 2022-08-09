@@ -153,8 +153,9 @@ export default {
 
       return displayVersion;
     },
+
     singleProductAbout() {
-      return this.isSingleProduct.aboutPage;
+      return this.isSingleProduct?.aboutPage;
     },
 
     showProductFooter() {
