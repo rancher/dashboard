@@ -11,7 +11,7 @@ describe('Cluster Manager', () => {
     cy.login();
   });
 
-  it('can create new local RKE2 custom cluster', () => {
+  it('can create new RKE2 custom cluster', () => {
     cy.userPreferences();
     cy.visit(clusterManagerPath);
     cy.getId('cluster-manager-list-create').click();
@@ -23,7 +23,7 @@ describe('Cluster Manager', () => {
     cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterName }#registration`);
   });
 
-  it('can import new custom cluster', () => {
+  it('can create new imported generic cluster', () => {
     cy.visit(clusterManagerPath);
     cy.getId('cluster-manager-list-import').click();
     cy.getId('cluster-manager-create-grid-1-0').click();
@@ -43,7 +43,7 @@ describe('Cluster Manager', () => {
     cy.contains(`Custom - ${ clusterName }`).should('exist');
   });
 
-  it('can explore the local cluster', () => {
+  it('can navigate to local cluster explore product', () => {
     const clusterName = 'local';
 
     cy.visit(clusterManagerPath);
@@ -54,7 +54,7 @@ describe('Cluster Manager', () => {
     cy.url().should('include', `/c/${ clusterName }/explorer`);
   });
 
-  it('can edit cluster config and see changes afterwards', () => {
+  it('can edit RKE2 custom cluster and see changes afterwards', () => {
     cy.intercept('PUT', `${ clusterRequestBase }/${ clusterName }`).as('saveRequest');
 
     cy.visit(clusterManagerPath);
@@ -71,7 +71,7 @@ describe('Cluster Manager', () => {
     });
   });
 
-  it('can view cluster YAML editor', () => {
+  it('can view RKE2 cluster YAML editor', () => {
     cy.visit(clusterManagerPath);
     // Click action menu button for the cluster row within the table matching given name
     cy.contains(clusterName).parent().parent().parent()
