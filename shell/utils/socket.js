@@ -42,6 +42,7 @@ export default class Socket extends EventTarget {
   disconnectCbs = [];
   disconnectedAt = 0;
   closingId = 0;
+  autoReconnectUrl = null;
 
   constructor(url, autoReconnect = true, frameTimeout = null, protocol = null) {
     super();
@@ -182,6 +183,13 @@ export default class Socket extends EventTarget {
     this.autoReconnect = autoReconnect;
   }
 
+  /**
+   * Supply an async fn that will provide a new url to reconnect to
+   */
+  setAutoReconnectUrl(autoReconnectUrl) {
+    this.autoReconnectUrl = autoReconnectUrl;
+  }
+
   // "Private"
   _close() {
     const socket = this.socket;
@@ -296,13 +304,19 @@ export default class Socket extends EventTarget {
 
         this.dispatchEvent(e);
       }
-      this.state = STATE_RECONNECTING;
-      this.tries++;
-      const delay = Math.max(1000, Math.min(1000 * this.tries, 30000));
+      const p = this.autoReconnectUrl ? this.autoReconnectUrl() : Promise.resolve(this.url);
 
-      this.reconnectTimer = setTimeout(() => {
-        this.connect();
-      }, delay);
+      p.then((url) => {
+        this.setUrl(url);
+
+        this.state = STATE_RECONNECTING;
+        this.tries++;
+        const delay = Math.max(1000, Math.min(1000 * this.tries, 30000));
+
+        this.reconnectTimer = setTimeout(() => {
+          this.connect();
+        }, delay);
+      });
     } else {
       this.state = STATE_DISCONNECTED;
     }
