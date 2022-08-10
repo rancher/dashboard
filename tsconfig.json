@@ -11,6 +11,7 @@
     "cypress",
     "shell/creators",
     "cypress",
-    "./cypress.config.ts"
+    "./cypress.config.ts",
+    "script/standalone"
   ]
 }
