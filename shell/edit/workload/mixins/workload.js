@@ -147,22 +147,33 @@ export default {
     }
 
     if (!this.value.spec) {
+
       this.value.spec = {};
+      if(this.value.type === 'pod') {
+
+        const podContainers = [{
+          imagePullPolicy: 'Always',
+          name:            `container-0`,
+        }]
+        const podSpec = { template : { spec: { containers: podContainers, initContainers: [] } } }
+        this.$set(this.value, 'spec', podSpec)
+      }
     }
 
     const spec = this.value.spec;
     let container;
-    const podTemplateSpec =
-      type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    const podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    
     let containers = podTemplateSpec.containers;
 
     if (
       this.mode === _CREATE ||
       this.mode === _VIEW ||
-      (!createSidecar && !this.value.hasSidecars)
+      (!createSidecar && !this.value.hasSidecars) // hasSideCars = containers.length > 1 || initContainers.length;
     ) {
       container = containers[0];
     } else {
+      // This means that there are no containers.
       if (!podTemplateSpec.initContainers) {
         podTemplateSpec.initContainers = [];
       }
@@ -178,7 +189,7 @@ export default {
         });
         containers = podTemplateSpec.initContainers;
       }
-      if (createSidecar) {
+      if (createSidecar || this.value.type === 'pod') {
         container = {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,

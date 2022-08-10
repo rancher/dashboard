@@ -1,5 +1,4 @@
 <script>
-import WorkloadGeneric from './types/Generic';
 import WorkloadDeployment from './types/Deployment';
 
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
@@ -7,7 +6,6 @@ import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 export default {
   name:       'CruWorkload',
   components: {
-    WorkloadGeneric,
     WorkloadDeployment
   },
   props: {

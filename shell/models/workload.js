@@ -446,7 +446,7 @@ export default class Workload extends SteveModel {
       [WORKLOAD_TYPES.REPLICA_SET]:  'replicaSet',
       [WORKLOAD_TYPES.DEPLOYMENT]:   'deployment',
       [WORKLOAD_TYPES.STATEFUL_SET]: 'statefulSet',
-      [WORKLOAD_TYPES.DAEMON_SET]:   'daemonSet'
+      [WORKLOAD_TYPES.DAEMON_SET]:   'daemonSet',
     };
     const selectorKey = Object.keys(this.workloadSelector)[0];
 
