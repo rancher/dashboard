@@ -478,12 +478,11 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return `epinio-${ this.id }-app-logs`;
   }
 
-  getStagingLog(stageId = this.stage_id) {
-    return `epinio-${ this.id }-logs-${ stageId }`;
+  getStagingLog() {
+    return `epinio-${ this.id }-logs-`;
   }
 
   showAppShell() {
-    console.log('this, showAppShell: ', this.id );
     this.$dispatch('wm/open', {
       id:        this.appShellId,
       label:     `${ this.meta.name } - App Shell`,
@@ -499,8 +498,6 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
   }
 
   showAppLog() {
-    console.log('this, showAppLog', this.id);
-
     this.$dispatch('wm/open', {
       id:        this.appLogId,
       label:     `${ this.meta.name } - App Logs`,
@@ -540,9 +537,20 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
   }
 
   async remove(opt = {} ) {
+    // Closes appShell & appLogs on app Remove.
     this.$dispatch('wm/close', this.appShellId, { root: true });
     this.$dispatch('wm/close', this.appLogId, { root: true });
-    this.$dispatch('wm/close', this.getStagingLog(this.appShellId), { root: true });
+
+    // Closes all builds logs on app Remove.
+    const allTabs = await this.$rootGetters['wm/allTabs'];
+
+    if ( allTabs.length > 0 ) {
+      allTabs.map((e) => {
+        if (e.id.startsWith(this.getStagingLog())) {
+          this.$dispatch('wm/close', e.id, { root: true });
+        }
+      });
+    }
 
     await super.remove();
   }
