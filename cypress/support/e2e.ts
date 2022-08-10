@@ -1,4 +1,4 @@
-
+import '@cypress/code-coverage/support';
 import { Matcher } from '~/cypress/support/types';
 import './commands';
 
