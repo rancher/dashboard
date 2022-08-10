@@ -84,7 +84,7 @@ export default Vue.extend<Data, any, any, any>({
       const matchGithub = str.match('^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)(.git)*$');
 
       return `${ matchGithub?.[4] }/${ matchGithub?.[5] }`;
-    },
+    }
   },
 
   computed: {

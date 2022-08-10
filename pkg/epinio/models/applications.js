@@ -523,7 +523,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     endpoint = endpoint.replace('/applications', '/staging');
 
     this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-logs-${ stageId }`,
+      id:        `${ this.getStagingLog }${ stageId }`,
       label:     `${ this.meta.name } - Build - ${ stageId }`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'file',
