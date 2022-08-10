@@ -2,13 +2,7 @@
 import { mapGetters } from 'vuex';
 
 export default {
-  name:  'LocalSelector',
-  props: {
-    open: {
-      type:    Boolean,
-      default: true
-    },
-  },
+  name: 'LocalSelector',
 
   computed: {
     ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),

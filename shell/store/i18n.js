@@ -1,6 +1,5 @@
 import merge from 'lodash/merge';
 import IntlMessageFormat from 'intl-messageformat';
-import { LOCALE } from '@shell/config/cookies';
 import { get } from '@shell/utils/object';
 import en from '@shell/assets/translations/en-us.yaml';
 import { getProduct, getVendor, DOCS_BASE } from '@shell/config/private-label';
@@ -208,8 +207,10 @@ export const mutations = {
 };
 
 export const actions = {
-  init({ state, commit, dispatch }) {
-    let selected = this.$cookies.get(LOCALE, { parseJSON: false });
+  init({
+    state, commit, dispatch, rootGetters
+  }) {
+    let selected = rootGetters['prefs/get']('locale');
 
     // We might be using a locale that is loaded by a plugin that is no longer loaded
     const exists = !!state.available.find(loc => loc === selected);
@@ -308,13 +309,11 @@ export const actions = {
     }
 
     commit('setSelected', locale);
-    this.$cookies.set(LOCALE, locale, {
-      encode:   x => x,
-      maxAge:   86400 * 365,
-      path:     '/',
-      sameSite: true,
-      secure:   true,
-    });
+
+    dispatch('prefs/set', {
+      key:   'locale',
+      value: state.selected
+    }, { root: true });
   },
 
   toggleNone({ state, dispatch }) {
