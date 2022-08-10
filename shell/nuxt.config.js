@@ -48,7 +48,8 @@ export default function(dir, _appConfig) {
   const autoLoadPackages = [];
   const watcherIgnores = [
     /.shell/,
-    /dist-pkg/
+    /dist-pkg/,
+    /scripts\/standalone/
   ];
 
   autoLoad.forEach((pkg) => {
