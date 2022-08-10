@@ -205,52 +205,76 @@ export default {
 
 <template>
   <div id="restore">
-    <div class="mb-20">
-      <RadioGroup
-        v-model="restoreNewVm"
-        name="model"
-        :options="[true,false]"
-        :labels="[t('harvester.backup.restore.createNew'), t('harvester.backup.restore.replaceExisting')]"
-        :disabled="disableExisting"
-        :mode="mode"
-      />
-    </div>
-
-    <div class="row">
-      <div class="col span-6">
-        <LabeledSelect
-          v-model="namespace"
-          :disabled="!restoreNewVm"
-          :label="t('nameNsDescription.namespace.label')"
-          :options="namespaces"
+    <div class="content">
+      <div class="mb-20">
+        <RadioGroup
+          v-model="restoreNewVm"
+          name="model"
+          :options="[true,false]"
+          :labels="[t('harvester.backup.restore.createNew'), t('harvester.backup.restore.replaceExisting')]"
+          :disabled="disableExisting"
+          :mode="mode"
         />
       </div>
 
-      <div class="col span-6">
-        <LabeledInput
-          v-model="name"
-          :disabled="!restoreNewVm"
-          :label="t('harvester.backup.restore.virtualMachineName')"
-          :placeholder="t('nameNsDescription.name.placeholder')"
-          class="mb-20"
-        />
+      <div class="row">
+        <div class="col span-6">
+          <LabeledSelect
+            v-model="namespace"
+            :disabled="!restoreNewVm"
+            :label="t('nameNsDescription.namespace.label')"
+            :options="namespaces"
+          />
+        </div>
+
+        <div class="col span-6">
+          <LabeledInput
+            v-model="name"
+            :disabled="!restoreNewVm"
+            :label="t('harvester.backup.restore.virtualMachineName')"
+            :placeholder="t('nameNsDescription.name.placeholder')"
+            class="mb-20"
+          />
+        </div>
       </div>
+
+      <LabeledSelect v-model="backupName" class="mb-20" :label="t('harvester.backup.restore.backup')" :options="backupOption" />
+
+      <LabeledSelect v-if="!restoreNewVm" v-model="deletionPolicy" :label="t('harvester.backup.restore.deletePreviousVolumes')" :options="deletionPolicyOption" />
     </div>
 
-    <LabeledSelect v-model="backupName" class="mb-20" :label="t('harvester.backup.restore.backup')" :options="backupOption" />
-
-    <LabeledSelect v-if="!restoreNewVm" v-model="deletionPolicy" :label="t('harvester.backup.restore.deletePreviousVolumes')" :options="deletionPolicyOption" />
-
-    <Footer mode="create" :errors="errors" @save="saveRestore" @done="done" />
+    <Footer mode="create" class="footer" :errors="errors" @save="saveRestore" @done="done" />
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 #restore {
-  .radio-group {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+
+  ::v-deep .radio-group {
     display: flex;
     .radio-container {
       margin-right: 30px;
+    }
+  }
+
+  .content {
+    flex-grow: 1
+  }
+
+  .footer {
+    border-top: var(--header-border-size) solid var(--header-border);
+
+    // Overrides outlet padding
+    margin-left: -$space-m;
+    margin-right: -$space-m;
+    margin-bottom: -$space-m;
+    padding: $space-s $space-m;
+
+    ::v-deep .spacer-small {
+      padding: 0px;
     }
   }
 }
