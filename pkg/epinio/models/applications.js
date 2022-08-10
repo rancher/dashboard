@@ -478,7 +478,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return `epinio-${ this.id }-app-logs`;
   }
 
-  getStagingLog() {
+  get stagingLog() {
     return `epinio-${ this.id }-logs-`;
   }
 
@@ -523,7 +523,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     endpoint = endpoint.replace('/applications', '/staging');
 
     this.$dispatch('wm/open', {
-      id:        `${ this.getStagingLog }${ stageId }`,
+      id:        `${ this.stagingLog }${ stageId }`,
       label:     `${ this.meta.name } - Build - ${ stageId }`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'file',
@@ -546,7 +546,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
     if ( allTabs.length > 0 ) {
       allTabs.map((e) => {
-        if (e.id.startsWith(this.getStagingLog())) {
+        if (e.id.startsWith(this.stagingLog)) {
           this.$dispatch('wm/close', e.id, { root: true });
         }
       });
