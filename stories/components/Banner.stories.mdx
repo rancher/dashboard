@@ -44,6 +44,21 @@ Primary banner are triggered by system events. They appear as a fixed, full-widt
   </Story>
 </Canvas>
 
+#### Secondary
+Secondary alerts should be used when there are tips or special notes that's require users attention.
+
+<Canvas>
+  <Story
+    name="Secondary"
+    args={{
+      label:    'Please update system with new patch',
+      closable: true,
+      color:    'secondary',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
 #### Success
 Success alerts should be used when an action was performed successfully.
 
