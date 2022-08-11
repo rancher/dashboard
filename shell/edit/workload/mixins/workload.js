@@ -162,9 +162,16 @@ export default {
 
     const spec = this.value.spec;
     let container;
-    const podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
     
-    let containers = podTemplateSpec.containers;
+    let containers = [];
+
+    if(this.mode === _VIEW && this.value.type === 'pod' ) {
+      podTemplateSpec = spec;
+      containers = podTemplateSpec.containers; 
+    } else {
+      containers = podTemplateSpec.containers
+    }
 
     if (
       this.mode === _CREATE ||
@@ -597,6 +604,8 @@ export default {
     },
 
     async saveService() {
+
+      console.log('SAVE SERVICE')
       // If we can't access services then just return - the UI should only allow ports without service creation
       if (!this.$store.getters['cluster/schemaFor'](SERVICE)) {
         return;

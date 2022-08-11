@@ -156,7 +156,7 @@ export default {
                   <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
                 </div>
               </div>
-              <div class="spacer" />ß
+              <div class="spacer" />
               <div>
                 <h3>{{ t('workload.container.titles.command') }}</h3>
                 <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
