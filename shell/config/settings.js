@@ -74,7 +74,7 @@ export const ALLOWED_SETTINGS = {
   [SETTING.AUTH_TOKEN_MAX_TTL_MINUTES]:           {},
   [SETTING.KUBECONFIG_GENERATE_TOKEN]:            { kind: 'boolean' },
   [SETTING.KUBECONFIG_TOKEN_TTL_MINUTES]:         {},
-  [SETTING.KUBECONFIG_DEFAULT_TTL_MINUTES]:       { kind: 'integer' },
+  [SETTING.KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES]: { kind: 'integer' },
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
