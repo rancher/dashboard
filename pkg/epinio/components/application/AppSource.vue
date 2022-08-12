@@ -272,8 +272,14 @@ export default Vue.extend<Data, any, any, any>({
 
       this.update();
     },
-    githubUrl(url: string, username: string, commit: string) {
-      if (url.length && username.length) {
+    githubData({ repo, selectedAccOrOrg, commit }: {
+      commit: string,
+      selectedAccOrOrg: string,
+      repo: string,
+    }) {
+      const url = `https://github.com/${ selectedAccOrOrg }/${ repo }`;
+
+      if (url.length && selectedAccOrOrg.length) {
         this.github.url = url;
         this.github.commit = commit;
 
@@ -447,7 +453,7 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
-      <GithubPicker @generateUrl="githubUrl" />
+      <GithubPicker @githubData="githubData" />
     </template>
     <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30">
       <template>

@@ -175,9 +175,14 @@ export default {
       this.selectedCommit = this.commits.filter(ele => ele.sha === commitId)[0];
 
       if (this.selectedAccOrOrg && this.selectedRepo && this.selectedCommit) {
-        const url = `https://github.com/${ this.selectedAccOrOrg }/${ this.selectedRepo }`;
+        this.$emit('githubData', {
+          selectedAccOrOrg: this.selectedAccOrOrg,
+          repo:             this.selectedRepo,
+          branch:           this.selectedBranch,
+          commitSha:        this.selectedCommit.sha,
 
-        this.$emit('generateUrl', url, this.selectedAccOrOrg, this.selectedCommit.sha);
+        });
+
         this.$emit('valid', true);
         this.showSelections = true;
       }
@@ -372,10 +377,6 @@ export default {
             </div>
           </div>
         </template>
-      </div>
-    </div>
-  </div>
-</template>
       </div>
     </div>
   </div>
