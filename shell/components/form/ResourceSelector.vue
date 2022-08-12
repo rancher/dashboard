@@ -22,8 +22,8 @@ export default {
       default: _EDIT,
     },
     type: {
-      type:    String,
-      default: '',
+      type:     String,
+      required: true,
     },
     value: {
       type:     Object,
@@ -54,9 +54,9 @@ export default {
 
     return {
       matchingResources,
-      allResources:            [],
-      allResourcesInNamespace: [],
-      tableHeaders:            this.$store.getters['type-map/headersFor'](
+      allResources:        [],
+      allResourcesInScope: [],
+      tableHeaders:        this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](this.type)
       ),
     };
@@ -90,8 +90,8 @@ export default {
 
   methods: {
     updateMatchingResources: throttle(function() {
-      this.allResourcesInNamespace = this.allResources.filter(res => res.metadata.namespace === this.namespace);
-      const match = matching(this.allResourcesInNamespace, this.selectorExpressions);
+      this.allResourcesInScope = this.namespace ? this.allResources.filter(res => res.metadata.namespace === this.namespace) : this.allResources;
+      const match = matching(this.allResourcesInScope, this.selectorExpressions);
       const matched = match.length || 0;
       const sample = match[0]?.nameDisplay;
 
@@ -100,7 +100,7 @@ export default {
         matches: match,
         none:    matched === 0,
         sample,
-        total:   this.allResourcesInNamespace.length,
+        total:   this.allResourcesInScope.length,
       };
     }, 250, { leading: true }),
   }
@@ -117,7 +117,7 @@ export default {
           :mode="mode"
           :show-remove="false"
           :type="type"
-          :target-resources="allResourcesInNamespace"
+          :target-resources="allResourcesInScope"
         />
       </div>
     </div>
