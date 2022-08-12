@@ -63,26 +63,26 @@ const config = {
             label:    'Docs',
           },
           {
-            href: 'https://rancher.github.io/storybook/',
-            position: 'right',
+            href:         'https://rancher.github.io/storybook/',
+            position:     'right',
             'aria-label': 'Component & Style guideline',
-            'label': 'Components & Design kit',
+            label:        'Components & Design kit',
           },
         ],
       },
       footer: {
-        style:     'dark',
-        links:     [
+        style: 'dark',
+        links: [
           {
             label: 'Stack',
-            href: 'https://slack.rancher.io/',
+            href:  'https://slack.rancher.io/',
           },
           {
             label: 'Github',
             href:  'https://github.com/rancher/',
           },
         ],
-        copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
       },
       prism: {
         theme:     lightCodeTheme,
