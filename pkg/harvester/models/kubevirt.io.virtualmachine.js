@@ -258,7 +258,11 @@ export default class VirtVm extends HarvesterResource {
     }
 
     // delete, spec?.dataSource:  The original data should not be saved when clone template
-    const volumeClaimTemplate = JSON.parse(this.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
+    let volumeClaimTemplate = [];
+
+    try {
+      volumeClaimTemplate = JSON.parse(this.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
+    } catch (e) {}
 
     const deleteDataSource = volumeClaimTemplate.map((volume) => {
       if (volume?.spec?.dataSource) {

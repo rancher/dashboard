@@ -196,7 +196,7 @@ export default {
 
         cloneVersionVM.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(deleteDataSource);
 
-        this.getInitConfig({ value: cloneVersionVM });
+        this.getInitConfig({ value: cloneVersionVM, existUserData: true });
         this.$set(this, 'hasCreateVolumes', []); // When using the template, all volume names need to be newly created
         // const claimTemplate = this.getVolumeClaimTemplates(cloneVersionVM);
         // this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
