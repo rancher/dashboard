@@ -1,6 +1,7 @@
 <script>
 import SortableTable from '@shell/components/SortableTable';
 import RadioButton from '@components/Form/Radio/RadioButton';
+import { NORMAN } from '@shell/config/types';
 import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -19,21 +20,21 @@ export default {
     const eventHeaders = [
       {
         name:  'index',
-        label: 'Choose',
+        label: this.t('githubPicker.tableHeaders.choose.label'),
       },
       {
         name:  'sha',
-        label: 'SHA',
+        label: this.t('githubPicker.tableHeaders.sha.label'),
         value: 'sha',
       },
       {
         name:  'author',
-        label: 'Author',
+        label: this.t('githubPicker.tableHeaders.author.label'),
         value: 'author.login',
       },
       {
         name:  'message',
-        label: 'Message',
+        label: this.t('githubPicker.tableHeaders.message.label'),
         value: 'message',
       },
     ];
@@ -64,7 +65,11 @@ export default {
     };
   },
 
-  computed: {},
+  computed: {
+    defaultAvatar() {
+      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+    },
+  },
   methods:  {
     reset() {
       this.selectedRepo = null;
@@ -240,6 +245,16 @@ export default {
     },
     branchesRules() {
       return this.hasError.branch ? this.t('githubPicker.errors.noBranch') : null;
+    },
+    resolveRemovedUser(author) {
+      if (author) {
+        return author;
+      } else {
+        return {
+          login:      'User removed',
+          avatar_url: this.defaultAvatar.avatarSrc
+        };
+      }
     }
   }
 };
@@ -318,8 +333,8 @@ export default {
           </template>
           <template #cell:author="{row}">
             <div class="sortable-table-avatar">
-              <img :src="row.author.avatar_url" alt="" />
-              {{ row.author.login }}
+              <img :src="resolveRemovedUser(row.author).avatar_url" alt="" />
+              {{ resolveRemovedUser( row.author).login }}
             </div>
           </template>
         </SortableTable>
@@ -328,34 +343,39 @@ export default {
         <template v-if="showSelections && selectedCommit && selectedBranch">
           <div class="spacer">
             <div class="resumed">
-              <img ref="img" :src="selectedCommit.author.avatar_url" alt="" />
+              <img ref="img" :src="resolveRemovedUser(selectedCommit.author).avatar_url" alt="" />
               <div class="resumed-details">
                 <div class="resumed-details-source">
                   <div>
                     <span class="label">{{ t('githubPicker.username.label') }}:</span>
-                    {{ selectedCommit.author.login }}
-                  </div>
-                  <div>
-                    <span class="label">{{ t('githubPicker.branch.label') }}: </span>
-                    {{ selectedBranch }}
-                  </div>
-                  <div>
-                    <span class="label">{{ t('githubPicker.commit.label') }} :</span>
-                    <a class="text-link" :href="selectedCommit.html_url" target="_blank" rel="nofollow noopener noreferrer">
-                      {{ trimCommit(selectedCommit.sha) }}
-                    </a>
+                    <!-- {{ selectedCommit.author.login }} -->
+                    {{ resolveRemovedUser( selectedCommit.author).login }}
                   </div>
                 </div>
-                <div class="mt-10">
-                  <span class="label">{{ t('githubPicker.commitMessage.label') }} </span>
-                  <p class="mt-4">
-                    {{ selectedCommit.commit.message }}
-                  </p>
+                <div>
+                  <span class="label">{{ t('githubPicker.branch.label') }}: </span>
+                  {{ selectedBranch }}
                 </div>
+                <div>
+                  <span class="label">{{ t('githubPicker.commit.label') }} :</span>
+                  <a class="text-link" :href="selectedCommit.html_url" target="_blank" rel="nofollow noopener noreferrer">
+                    {{ trimCommit(selectedCommit.sha) }}
+                  </a>
+                </div>
+              </div>
+              <div class="mt-10">
+                <span class="label">{{ t('githubPicker.commitMessage.label') }} </span>
+                <p class="mt-4">
+                  {{ selectedCommit.commit.message }}
+                </p>
               </div>
             </div>
           </div>
         </template>
+      </div>
+    </div>
+  </div>
+</template>
       </div>
     </div>
   </div>

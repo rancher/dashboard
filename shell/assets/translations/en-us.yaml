@@ -7023,6 +7023,15 @@ vncConsole:
 
 githubPicker:
   label: GitHub
+  tableHeaders:
+    choose:
+      label: Choose
+    sha:
+      label: SHA
+    author:
+      label: Author
+    message:
+      label: Message
   username:
     label: Username / Organization
     inputLabel: Username / Organization
