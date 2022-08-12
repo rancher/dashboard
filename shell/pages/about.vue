@@ -90,7 +90,15 @@ export default {
   <Loading v-if="!settings" />
   <div v-else class="about">
     <BackLink :link="backLink" />
-    <h1 v-t="'about.title'" />
+    <div class="title-block mt-20 mb-40">
+      <h1 v-t="'about.title'" />
+      <n-link
+        :to="{ name: 'diagnostic' }"
+        class="btn role-primary"
+      >
+        {{ t('about.diagnostic.title') }}
+      </n-link>
+    </div>
     <h3>{{ t('about.versions.title') }}</h3>
     <table>
       <thead>
@@ -174,6 +182,12 @@ export default {
 
 <style lang="scss" scoped>
 .about {
+  .title-block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   table {
     border-collapse: collapse;
     overflow: hidden;

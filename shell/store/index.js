@@ -138,15 +138,20 @@ const getActiveNamespaces = (state, getters) => {
 };
 
 const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
-  state.activeNamespaceCache = activeNamespaceCache;
-
   // This is going to run a lot, so keep it optimised
   let cacheKey = '';
 
-  for (const key in state.activeNamespaceCache) {
-    cacheKey += key + state.activeNamespaceCache[key];
+  for (const key in activeNamespaceCache) {
+    // I though array.join would be faster than string concatenation, but in places like this where the array must first be constructed it's
+    // slower.
+    cacheKey += key + activeNamespaceCache[key];
   }
-  state.activeNamespaceCacheKey = cacheKey;
+
+  // Only update `activeNamespaceCache` if there have been changes. This reduces a lot of churn
+  if (state.activeNamespaceCacheKey !== cacheKey) {
+    state.activeNamespaceCacheKey = cacheKey;
+    state.activeNamespaceCache = activeNamespaceCache;
+  }
 };
 
 export const state = () => {

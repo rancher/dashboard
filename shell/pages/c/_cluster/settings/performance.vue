@@ -29,12 +29,12 @@ export default {
   },
   async fetch() {
     try {
-      this.uiPerfSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORNMANCE });
+      this.uiPerfSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
     } catch (e) {
       this.uiPerfSetting = await this.$store.dispatch('management/create', { type: MANAGEMENT.SETTING }, { root: true });
       // Setting does not exist - create a new one
       this.uiPerfSetting.value = JSON.stringify(DEFAULT_PERF_SETTING);
-      this.uiPerfSetting.metadata = { name: SETTING.UI_PERFORNMANCE };
+      this.uiPerfSetting.metadata = { name: SETTING.UI_PERFORMANCE };
     }
 
     const sValue = this.uiPerfSetting?.value || JSON.stringify(DEFAULT_PERF_SETTING);
@@ -87,10 +87,6 @@ export default {
         <div class="mt-40">
           <h2>{{ t('performance.incrementalLoad.label') }}</h2>
           <p>{{ t('performance.incrementalLoad.description') }}</p>
-          <p>
-            <span class="underline">{{ t('performance.incrementalLoad.applyText') }}</span>
-            <span>{{ t('performance.incrementalLoad.applyList') }}</span>
-          </p>
           <Checkbox
             v-model="value.incrementalLoading.enabled"
             :label="t('performance.incrementalLoad.checkboxLabel')"
@@ -115,10 +111,6 @@ export default {
         <div class="mt-40">
           <h2 v-t="'performance.manualRefresh.label'" />
           <p>{{ t('performance.manualRefresh.description') }}</p>
-          <p>
-            <span class="underline">{{ t('performance.incrementalLoad.applyText') }}</span>
-            <span>{{ t('performance.incrementalLoad.applyList') }}</span>
-          </p>
           <Checkbox
             v-model="value.manualRefresh.enabled"
             :label="t('performance.manualRefresh.checkboxLabel')"
