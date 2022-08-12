@@ -9,7 +9,7 @@ const config = {
   title:                 'Rancher DevKit',
   tagline:               'Rancher development kit',
   url:                   'https://bisht-richa.github.io',
-  baseUrl:               '/dashboard/',
+  baseUrl:               '/',
   onBrokenLinks:         'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon:               'img/favicon.ico',

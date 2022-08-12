@@ -8,17 +8,17 @@ A good base knowledge of Vue, Vuex and Nuxt should be reached before going throu
 
 ## Helpful links
 
-Description | Link
------| ---
-Core Vue Docs | <https://vuejs.org/v2/guide>
-Typescript in Vue | <https://vuejs.org/v2/guide/typescript.html>
-Vue Template/Directive Shorthands | <https://vuejs.org/v2/guide/syntax.html>
-Vue Conditional rendering | <https://vuejs.org/v2/guide/conditional.html>
-Vuex Core Docs | <https://vuex.vuejs.org/>
-Nuxt Get Started | <https://nuxtjs.org/docs/2.x/get-started/installation>
-Nuxt Structure | <https://nuxtjs.org/docs/2.x/directory-structure>
-Axios (HTTP Requests) | <https://axios.nuxtjs.org/options>
-HTTP Proxy middleware | <https://github.com/nuxt-community/proxy-module> (<https://github.com/chimurai/http-proxy-middleware>)
+| Description                       | Link                                                                                                   |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Core Vue Docs                     | <https://vuejs.org/v2/guide>                                                                           |
+| Typescript in Vue                 | <https://vuejs.org/v2/guide/typescript.html>                                                           |
+| Vue Template/Directive Shorthands | <https://vuejs.org/v2/guide/syntax.html>                                                               |
+| Vue Conditional rendering         | <https://vuejs.org/v2/guide/conditional.html>                                                          |
+| Vuex Core Docs                    | <https://vuex.vuejs.org/>                                                                              |
+| Nuxt Get Started                  | <https://nuxtjs.org/docs/2.x/get-started/installation>                                                 |
+| Nuxt Structure                    | <https://nuxtjs.org/docs/2.x/directory-structure>                                                      |
+| Axios (HTTP Requests)             | <https://axios.nuxtjs.org/options>                                                                     |
+| HTTP Proxy middleware             | <https://github.com/nuxt-community/proxy-module> (<https://github.com/chimurai/http-proxy-middleware>) |
 
 ## Platform
 

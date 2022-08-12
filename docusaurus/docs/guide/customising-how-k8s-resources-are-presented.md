@@ -6,14 +6,14 @@ sidebar_label: Customizing Kubernetes Resources
 
 These are where you do most of the daily work of customizing of how a particular k8s resource is presented.
 
-Path | Used for
------|---------
-config | Configuration of how products look and work; constants for labels, types, cookies, query params, etc that are used
-chart | Custom components to present when installing a Product chart
-detail | Custom components to show as the detail view for a particular resource instance
-edit | Custom components to show as the edit (or view config) view for a particular resource instance
-list | Custom components to show as the list view for a resource type
-models | Custom logic extending the standard resource class for each API type and model returned by the API
+| Path   | Used for                                                                                                           |
+| ------ | ------------------------------------------------------------------------------------------------------------------ |
+| config | Configuration of how products look and work; constants for labels, types, cookies, query params, etc that are used |
+| chart  | Custom components to present when installing a Product chart                                                       |
+| detail | Custom components to show as the detail view for a particular resource instance                                    |
+| edit   | Custom components to show as the edit (or view config) view for a particular resource instance                     |
+| list   | Custom components to show as the list view for a resource type                                                     |
+| models | Custom logic extending the standard resource class for each API type and model returned by the API                 |
 
 There is one `Config` entry for each "product", which are the result of installing one of our helm charts to add a feature into Rancher such as Istio, monitoring, logging, CIS scans, etc.  The config defines things like:
   - The condition for when that product should appear (usually the presence of a type in a certain k8s API group)

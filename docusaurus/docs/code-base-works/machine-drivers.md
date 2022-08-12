@@ -13,13 +13,13 @@ To tell Rancher about a new driver, go to Cluster Management -> Drivers -> Node 
 
 For more advanced control, the machine driver custom resource supports several annotations:
 
-| Key                       | Value                                                                                             |
-| --------------------------|---------------------------------------------------------------------------------------------------|
-| publicCredentialFields    | Fields that are considered "public" information and ok to display in cleartext for detail screens |
-| privateCredentialFields   | Fields that are private information that should be stored as a secret                             |
-| optionalCredentialFields  | Fields that are related to the credential, but are optional for the user to fill out              |
-| passwordFields            | Fields that should be displayed as type="password" bullets instead of cleartext                   |
-| defaults                  | Default values to set which the user may override                                                 |
+| Key                      | Value                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| publicCredentialFields   | Fields that are considered "public" information and ok to display in cleartext for detail screens |
+| privateCredentialFields  | Fields that are private information that should be stored as a secret                             |
+| optionalCredentialFields | Fields that are related to the credential, but are optional for the user to fill out              |
+| passwordFields           | Fields that should be displayed as type="password" bullets instead of cleartext                   |
+| defaults                 | Default values to set which the user may override                                                 |
 
 Each has a value that is a comma-separated list of field names.  `defaults` are comma-separated, then colon-separated for key and value (e.g. `foo:bar,baz:42`).  The annotations become information in API schemas, which the generic UI support uses to show better information.
 
