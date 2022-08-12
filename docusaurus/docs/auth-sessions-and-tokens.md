@@ -14,7 +14,7 @@ This process cannot be reversed, still admin password can be changed in the prof
 Rancher uses the following cookies:
 
 | Name | Description |
-|======|=============|
+|------|-------------|
 | `R_SESS` | The logged in user's session token |
 | `R_PCS`  | The user's preferred color scheme, used for server side rendering. If it's auto, it's the user's system preference. |
 | `CSRF`   | Cross site request. The server sets this cookie as defined in the header of the request. For any request other than a GET request, we have to use Javascript to read this value and use it as a header in the request. That proves we are using our code on Rancher's domain and our header matches that cookie. |

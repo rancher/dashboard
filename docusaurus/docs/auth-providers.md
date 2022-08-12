@@ -34,6 +34,7 @@ Use the steps below to set up a Keycloak instance for dev environments and confi
 
    > Double check the client has the correct checkboxes set, specifically the Mappers `group` entry.
 1. Using either the Ember or Vue UI set up the Keycloak auth provider by follow the instructions at [here](https://rancher.com/docs/rancher/v2.6/en/admin-settings/authentication/keycloak-saml/)
+   
    | Field              | Value                                                                                                                                                                                                                                                                                        |
    | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
    | Display Name Field | givenName                                                                                                                                                                                                                                                                                    |

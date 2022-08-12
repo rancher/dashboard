@@ -113,6 +113,10 @@ export default {
 
     loading() {
       return this.hasData ? false : this.$fetchState.pending;
+    },
+
+    showIncrementalLoadingIndicator() {
+      return this.perfConfig?.incrementalLoading?.enabled;
     }
   },
 
@@ -141,6 +145,7 @@ export default {
     >
       <template v-slot:header>
         <ResourceLoadingIndicator
+          v-if="showIncrementalLoadingIndicator"
           :resources="loadResources"
           :indeterminate="loadIndeterminate"
         />
