@@ -38,5 +38,5 @@ EXE=$(which node)
 cp $EXE .
 
 rm -rf dashboard.tar
-tar --exclude=package.* --exclude *.tar -cvf dashboard.tar .
+tar --exclude *.tar -cvf dashboard.tar .
 gzip dashboard.tar
