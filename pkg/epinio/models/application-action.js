@@ -116,7 +116,11 @@ export default class ApplicationActionResource extends Resource {
   }
 
   async gitFetch({ source }) {
-    source.github.commit.length ? await this.application.gitFetch(source.github.url, null, source.github.commit) : await this.application.gitFetch(source.gitUrl.url, source.gitUrl.branch);
+    // Handle github & gitUrl sources
+    const rev = !!source.github.commit ? source.github.commit : source.gitUrl.branch;
+    const url = !!source.github.url ? source.github.url : source.gitUrl.url;
+
+    return await this.application.gitFetch(url, rev);
   }
 
   async build({ source }) {

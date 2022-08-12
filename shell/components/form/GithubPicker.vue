@@ -19,7 +19,7 @@ export default {
     const eventHeaders = [
       {
         name:  'index',
-        label: 'Chose',
+        label: 'Choose',
       },
       {
         name:  'sha',
@@ -45,7 +45,6 @@ export default {
       loadingCommits:     true,
 
       hasError: {
-        username: false,
         repo:     false,
         branch:   false,
         commits:  false,
@@ -57,7 +56,7 @@ export default {
       branches: [],
       commits:  [],
 
-      selectedUsername: null,
+      selectedAccOrOrg: null,
       selectedRepo:     null,
       selectedBranch:   null,
       selectedCommit:   false,
@@ -74,10 +73,10 @@ export default {
     },
     async fetchRepos() {
       try {
-        if (this.selectedUsername.length) {
+        if (this.selectedAccOrOrg.length) {
           this.selectedRepo = null;
 
-          const res = await this.$store.dispatch('github/fetchRecentRepos', { username: this.selectedUsername });
+          const res = await this.$store.dispatch('github/fetchRecentRepos', { username: this.selectedAccOrOrg });
 
           if (res?.message) {
             this.hasError.repo = true;
@@ -87,8 +86,8 @@ export default {
           }
 
           // Reset selections once username changes
-          if (this.oldUsername !== this.selectedUsername) {
-            this.oldUsername = this.selectedUsername;
+          if (this.oldUsername !== this.selectedAccOrOrg) {
+            this.oldUsername = this.selectedAccOrOrg;
 
             return this.reset();
           }
@@ -104,9 +103,14 @@ export default {
       this.selectedCommit = false;
 
       try {
-        const res = await this.$store.dispatch('github/fetchBranches', { repo: this.selectedRepo, username: this.selectedUsername });
+        const res = await this.$store.dispatch('github/fetchBranches', { repo: this.selectedRepo, username: this.selectedAccOrOrg });
 
-        this.branches = res;
+        if (res?.message) {
+          this.hasError.branch = true;
+        } else {
+          this.branches = res;
+          this.hasError.branch = false;
+        }
       } finally {
         this.loadingBranches = false;
       }
@@ -119,7 +123,7 @@ export default {
       try {
         const res = await this.$store.dispatch('github/fetchCommits', {
           repo:     this.selectedRepo,
-          username: this.selectedUsername,
+          username: this.selectedAccOrOrg,
           branch:   this.selectedBranch,
         });
 
@@ -160,19 +164,15 @@ export default {
       return res;
     },
     trimCommit(commit) {
-      if (!commit) {
-        return;
-      }
-
-      return commit.slice(0, 7);
+      return !!commit ? commit.slice(0, 7) : undefined;
     },
     final(commitId) {
       this.selectedCommit = this.commits.filter(ele => ele.sha === commitId)[0];
 
-      if (this.selectedUsername && this.selectedRepo && this.selectedCommit) {
-        const url = `https://github.com/${ this.selectedUsername }/${ this.selectedRepo }`;
+      if (this.selectedAccOrOrg && this.selectedRepo && this.selectedCommit) {
+        const url = `https://github.com/${ this.selectedAccOrOrg }/${ this.selectedRepo }`;
 
-        this.$emit('generateUrl', url, this.selectedUsername, this.selectedCommit.sha);
+        this.$emit('generateUrl', url, this.selectedAccOrOrg, this.selectedCommit.sha);
         this.$emit('valid', true);
         this.showSelections = true;
       }
@@ -197,7 +197,7 @@ export default {
 
         if (!resultInCurrentState) {
           // Search for specific repo under the username
-          const res = await this.$store.dispatch('github/search', { repo: query, username: this.selectedUsername });
+          const res = await this.$store.dispatch('github/search', { repo: query, username: this.selectedAccOrOrg });
 
           if (res.message) {
             this.hasError.repo = true;
@@ -219,7 +219,7 @@ export default {
       const res = await this.$store.dispatch('github/search', {
         repo:     this.selectedRepo,
         branch:   query,
-        username: this.selectedUsername,
+        username: this.selectedAccOrOrg,
       });
 
       if (res.message) {
@@ -235,6 +235,12 @@ export default {
     status(value) {
       return !value ? null : 'error';
     },
+    reposRules() {
+      return this.hasError.repo ? this.t('githubPicker.errors.noAccount') : null;
+    },
+    branchesRules() {
+      return this.hasError.branch ? this.t('githubPicker.errors.noBranch') : null;
+    }
   }
 };
 </script>
@@ -242,112 +248,112 @@ export default {
 <template>
   <div class="picker">
     <div class="row">
-      <div class="spacer archive">
-        <template>
-          <div class="spacer archive">
-            <LabeledInput
-              v-model="selectedUsername"
-              data-testid="epinio_app-source_git-username"
-              :tooltip="t('epinio.applications.steps.source.github.username.tooltip')"
-              :label="t('epinio.applications.steps.source.github.username.inputLabel')"
-              :required="true"
-              :delay="500"
-              :status="status(hasError.repo)"
-              @input="fetchRepos"
-            />
-          </div>
-          <div class="spacer archive">
-            <LabeledSelect
-              v-if="repos.length"
-              v-model="selectedRepo"
-              :required="true"
-              :label="t('epinio.applications.steps.source.github.repo.inputLabel')"
-              :options="prepareArray(repos)"
-              :clearable="true"
-              :searchable="true"
-              :reduce="(e) => e"
-              :status="status(hasError.repo)"
-              @search="onSearch"
-              @input="fetchBranches"
-            />
-          </div>
-          <!-- Deals with Branches  -->
-          <div class="spacer archive">
-            <LabeledSelect
-              v-if="selectedRepo"
-              v-model="selectedBranch"
-              :required="true"
-              :label="t('epinio.applications.steps.source.github.branch.inputLabel')"
-              :options="prepareArray(branches)"
-              :clearable="false"
-              :reduce="(e) => e"
-              :searchable="true"
-              :status="status(hasError.branch)"
-              @search="onSearch"
-              @input="fetchCommits"
-            />
-          </div>
-          <!-- Deals with Commits, display & allow to pick from it  -->
-          <div v-if="selectedBranch && commits.length" class="spacer archive">
-            <p>{{ t('epinio.applications.steps.source.github.commits.tooltip') }}</p>
-            <SortableTable
-              :rows="prepareArray(commits, true)"
-              :headers="eventHeaders"
-              mode="view"
-              key-field="sha"
-              :search="true"
-              :paging="true"
-              :table-actions="false"
-              :row-actions="false"
-              :rows-per-page="10"
-            >
-              <template #cell:index="{row}">
-                <RadioButton :value="selectedCommit.sha" :val="row.commitId" @input="final($event, row.commitId)" />
-              </template>
+      <div class="spacer">
+        <LabeledInput
+          v-model="selectedAccOrOrg"
+          data-testid="epinio_app-source_git-username"
+          :tooltip="t('githubPicker.username.tooltip')"
+          :label="t('githubPicker.username.inputLabel')"
+          :required="true"
+          :rules="[reposRules]"
+          :delay="500"
+          :status="status(hasError.repo)"
+          @input="fetchRepos"
+        />
+      </div>
 
-              <template #cell:author="{row}">
-                <div class="sortable-table-avatar">
-                  <img :src="row.author.avatar_url" alt="" />
-                  {{ row.author.login }}
+      <div class="spacer">
+        <LabeledSelect
+          v-if="repos.length && !hasError.repo"
+          v-model="selectedRepo"
+          class="spacer"
+          :required="true"
+          :label="t('githubPicker.repo.inputLabel')"
+          :options="prepareArray(repos)"
+          :clearable="true"
+          :searchable="true"
+          :reduce="(e) => e"
+          :rules="[branchesRules]"
+          :status="status(hasError.repo)"
+          @search="onSearch"
+          @input="fetchBranches"
+        />
+      </div>
+      <!-- Deals with Branches  -->
+      <div class="spacer">
+        <LabeledSelect
+          v-if="selectedRepo"
+          v-model="selectedBranch"
+          class="spacer"
+          :required="true"
+          :label="t('githubPicker.branch.inputLabel')"
+          :options="prepareArray(branches)"
+          :clearable="false"
+          :reduce="(e) => e"
+          :searchable="true"
+          :status="status(hasError.branch)"
+          @search="onSearch"
+          @input="fetchCommits"
+        />
+      </div>
+      <!-- Deals with Commits, display & allow to pick from it  -->
+      <div v-if="selectedBranch && commits.length" class="spacer">
+        <SortableTable
+          :rows="prepareArray(commits, true)"
+          :headers="eventHeaders"
+          mode="view"
+          key-field="sha"
+          :search="true"
+          :paging="true"
+          :table-actions="false"
+          :row-actions="false"
+          :rows-per-page="10"
+        >
+          <template #cell:index="{row}">
+            <RadioButton :value="selectedCommit.sha" :val="row.commitId" @input="final($event, row.commitId)" />
+          </template>
+
+          <template #cell:author="{row}">
+            <div class="sortable-table-avatar">
+              <img :src="row.author.avatar_url" alt="" />
+              {{ row.author.login }}
+            </div>
+          </template>
+        </SortableTable>
+
+        <!-- Selection resume -->
+        <template v-if="showSelections && selectedCommit && selectedBranch">
+          <div class="spacer">
+            <div class="resumed">
+              <img ref="img" :src="selectedCommit.author.avatar_url" alt="" />
+              <div class="resumed-details">
+                <div class="label">
+                  {{ t('githubPicker.details.tooltip') }}:
                 </div>
-              </template>
-            </SortableTable>
-
-            <!-- Selection resume -->
-            <template v-if="showSelections && selectedCommit && selectedBranch">
-              <div class="separator">
-                <div class="resumed">
-                  <img ref="img" :src="selectedCommit.author.avatar_url" alt="" />
-                  <div class="resumed-details">
-                    <div class="label">
-                      {{ t('epinio.applications.steps.source.github.details.tooltip') }}:
-                    </div>
-                    <div class="resumed-details-source">
-                      <div>
-                        <span class="label">{{ t('epinio.applications.steps.source.github.username.label') }}:</span>
-                        {{ selectedCommit.author.login }}
-                      </div>
-                      <div>
-                        <span class="label">{{ t('epinio.applications.steps.source.github.branch.label') }}: </span>
-                        {{ selectedBranch }}
-                      </div>
-                      <div>
-                        <span class="label">{{ t('epinio.applications.steps.source.github.commit.label') }} :</span>
-                        <a class="text-link" :href="selectedCommit.html_url">
-                          {{ trimCommit(selectedCommit.sha) }}
-                        </a>
-                      </div>
-                    </div>
-                    <div class="mt-10">
-                      <span class="label">{{ t('epinio.applications.steps.source.github.commitMessage.label') }} </span>
-                      <p class="mt-4">
-                        {{ selectedCommit.commit.message }}
-                      </p>
-                    </div>
+                <div class="resumed-details-source">
+                  <div>
+                    <span class="label">{{ t('githubPicker.username.label') }}:</span>
+                    {{ selectedCommit.author.login }}
+                  </div>
+                  <div>
+                    <span class="label">{{ t('githubPicker.branch.label') }}: </span>
+                    {{ selectedBranch }}
+                  </div>
+                  <div>
+                    <span class="label">{{ t('githubPicker.commit.label') }} :</span>
+                    <a class="text-link" :href="selectedCommit.html_url" target="_blank" rel="nofollow noopener noreferrer">
+                      {{ trimCommit(selectedCommit.sha) }}
+                    </a>
                   </div>
                 </div>
+                <div class="mt-10">
+                  <span class="label">{{ t('githubPicker.commitMessage.label') }} </span>
+                  <p class="mt-4">
+                    {{ selectedCommit.commit.message }}
+                  </p>
+                </div>
               </div>
-            </template>
+            </div>
           </div>
         </template>
       </div>
@@ -357,9 +363,19 @@ export default {
 
 <style lang="scss" scoped>
 .picker {
+  .row {
+    display: flex;
+    flex-direction: column;
+    margin: 6px 0;
+  }
+
   img {
     height: 30px;
     margin-right: 1rem;
+
+    .labeled-input {
+      width: 100%;
+    }
   }
 
   .sortable-table-avatar {
@@ -418,10 +434,6 @@ export default {
     width: auto;
     max-height: 23px;
     margin-right: 0.5rem;
-  }
-
-  .spacer {
-    width: 100%;
   }
 
   .v-select .dropdown li {

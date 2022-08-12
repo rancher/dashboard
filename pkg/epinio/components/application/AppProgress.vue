@@ -27,31 +27,31 @@ export default Vue.extend<Data, any, any, any>({
   props: {
     application: {
       type:     Object as PropType<EpinioApplication>,
-      required: true,
+      required: true
     },
     source: {
       type:     Object as PropType<EpinioAppSource>,
-      required: true,
+      required: true
     },
     bindings: {
       type:    Object as PropType<EpinioAppBindings>,
-      default: () => null,
+      default: () => null
     },
     mode: {
       type:     String,
-      required: true,
+      required: true
     },
     step: {
       type:     Object as PropType<any>,
-      required: true,
+      required: true
     },
   },
 
   async fetch() {
     const coreArgs: Partial<ApplicationAction & {
-      application: EpinioApplication;
-      bindings: EpinioAppBindings;
-      type: string;
+      application: EpinioApplication,
+      bindings: EpinioAppBindings,
+      type: string
     }> = {
       application: this.application,
       bindings:    this.bindings,
@@ -96,7 +96,8 @@ export default Vue.extend<Data, any, any, any>({
       );
     }
 
-    if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE || this.source.type === APPLICATION_SOURCE_TYPE.FOLDER) {
+    if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ||
+    this.source.type === APPLICATION_SOURCE_TYPE.FOLDER) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.UPLOAD,
@@ -125,7 +126,10 @@ export default Vue.extend<Data, any, any, any>({
       );
     }
 
-    if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE || this.source.type === APPLICATION_SOURCE_TYPE.FOLDER || this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL || this.source.type === APPLICATION_SOURCE_TYPE.GIT_HUB) {
+    if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ||
+    this.source.type === APPLICATION_SOURCE_TYPE.FOLDER ||
+    this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL ||
+    this.source.type === APPLICATION_SOURCE_TYPE.GIT_HUB) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.BUILD,
@@ -135,12 +139,11 @@ export default Vue.extend<Data, any, any, any>({
       );
     }
 
-    this.actions.push(
-      await this.$store.dispatch('epinio/create', {
-        action: APPLICATION_ACTION_TYPE.DEPLOY,
-        index:  7,
-        ...coreArgs,
-      })
+    this.actions.push(await this.$store.dispatch('epinio/create', {
+      action: APPLICATION_ACTION_TYPE.DEPLOY,
+      index:  7,
+      ...coreArgs,
+    })
     );
 
     this.create();

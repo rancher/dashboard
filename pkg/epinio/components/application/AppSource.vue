@@ -138,7 +138,7 @@ export default Vue.extend<Data, any, any, any>({
         label: this.t('epinio.applications.steps.source.gitUrl.label'),
         value: APPLICATION_SOURCE_TYPE.GIT_URL
       }, {
-        label: this.t('epinio.applications.steps.source.github.label'),
+        label: this.t('epinio.applications.steps.source.gitHub.label'),
         value: APPLICATION_SOURCE_TYPE.GIT_HUB
       }],
       unSafeType: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
@@ -272,7 +272,7 @@ export default Vue.extend<Data, any, any, any>({
 
       this.update();
     },
-    githubUrL(url: string, username: string, commit: string) {
+    githubUrl(url: string, username: string, commit: string) {
       if (url.length && username.length) {
         this.github.url = url;
         this.github.commit = commit;
@@ -447,7 +447,7 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
-      <GithubPicker @generateUrl="githubUrL" />
+      <GithubPicker @generateUrl="githubUrl" />
     </template>
     <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30">
       <template>
@@ -490,7 +490,7 @@ export default Vue.extend<Data, any, any, any>({
 
 <style lang="scss" scoped>
 .appSource {
-  max-width: 700px;
+  max-width: 920px;
 
   .button-row {
     display: flex;

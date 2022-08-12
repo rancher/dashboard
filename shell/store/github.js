@@ -1,17 +1,6 @@
-export const EXTENDED_SCOPES = ['repo'];
-export const GITHUB_BASE_API = 'https://api.github.com';
+const GITHUB_BASE_API = 'https://api.github.com';
 
-export const state = function() {
-  return {
-    repos:    [],
-    commits:  [],
-    branches: [],
-    scopes:   [],
-    errors:   null,
-  };
-};
-
-export const FetchGithubAPI = async(endpoint) => {
+const fetchGithubAPI = async(endpoint) => {
   try {
     const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
 
@@ -28,27 +17,26 @@ export const FetchGithubAPI = async(endpoint) => {
 };
 
 export const actions = {
-  // eslint-disable-next-line no-empty-pattern
-  async apiList({ }, {
+  async apiList({ ctx }, {
     username, endpoint, repo, branch
   }) {
     switch (endpoint) {
     case 'branches': {
-      return await FetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=100&direction=desc`);
+      return await fetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=100&direction=desc`);
     }
     case 'commits': {
-      return await FetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
+      return await fetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
     }
     case 'search': {
       // Fetch for a specific branches
       if (username && repo && branch) {
-        const response = await FetchGithubAPI(`repos/${ username }/${ repo }/branches/${ branch }`);
+        const response = await fetchGithubAPI(`repos/${ username }/${ repo }/branches/${ branch }`);
 
         return [response];
       }
 
       // Fetch for repos
-      const response = await FetchGithubAPI(`search/repositories?q=repo:${ username }/${ repo }`);
+      const response = await fetchGithubAPI(`search/repositories?q=repo:${ username }/${ repo }`);
 
       if (response) {
         return response.items;
@@ -56,13 +44,11 @@ export const actions = {
     }
     }
 
-    return await FetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=100&direction=desc`);
+    return await fetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=100&direction=desc`);
   },
 
   async fetchRecentRepos({ commit, dispatch }, { username } = {}) {
     const res = await dispatch('apiList', { username });
-
-    commit('setRepos', res);
 
     return res;
   },
@@ -72,8 +58,6 @@ export const actions = {
       username, endpoint: 'branches', repo
     });
 
-    commit('setBranches', res);
-
     return res;
   },
 
@@ -81,8 +65,6 @@ export const actions = {
     const res = await dispatch('apiList', {
       username, endpoint: 'commits', repo, branch
     });
-
-    commit('setCommits', res);
 
     return res;
   },
@@ -93,20 +75,4 @@ export const actions = {
 
     return res;
   },
-};
-
-export const mutations = {
-  setScopes(state, scopes) {
-    state.scopes = scopes;
-  },
-
-  setRepos(state, repos) {
-    state.repos = repos;
-  },
-  setBranches(state, branches) {
-    state.branches = branches;
-  },
-  setCommits(state, commits) {
-    state.commits = commits;
-  }
 };

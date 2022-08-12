@@ -241,20 +241,20 @@ about:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
     checkboxLabel: Make additional requests
-    systemInformation: 
+    systemInformation:
       subtitle: System Information
       os: OS
       browserUserAgent: Browser User Agent
       browserLanguage: Browser Language
-      cookieEnabled: Cookies Enabled 
-      deviceMemory: Device Memory 
-      hardwareConcurrency: Hardware Concurrency 
-      memJsHeapLimit: Memory JS Heap Size limit 
-      memTotalJsHeapSize: Memory Total JS Heap Size 
-      memUsedJsHeapSize: Memory Used JS Heap Size 
-    logs: 
+      cookieEnabled: Cookies Enabled
+      deviceMemory: Device Memory
+      hardwareConcurrency: Hardware Concurrency
+      memJsHeapLimit: Memory JS Heap Size limit
+      memTotalJsHeapSize: Memory Total JS Heap Size
+      memUsedJsHeapSize: Memory Used JS Heap Size
+    logs:
       subtitle: Latest Logs
-    resourceCounts: 
+    resourceCounts:
       subtitle: Resource Counts
 
 accountAndKeys:
@@ -1928,14 +1928,14 @@ fleet:
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
       addRepo: Add Repository
       noRepos: No repositories have been added
-    add: 
-      steps: 
-        repoInfo: 
+    add:
+      steps:
+        repoInfo:
           label: Repository Details
           title: Specify the Git Repository to add to fleet
           subtext: 'Define repository details'
           description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
-        targetInfo: 
+        targetInfo:
           label: Target Details
           title: Specify which target to synchronise this repository to
           subtext: 'Define target details'
@@ -2089,9 +2089,9 @@ graphOptions:
 
 growl:
   clearAll: Clear All Notifications
-  disconnected: 
+  disconnected:
     message: "The connection to {url} closed unexpectedly {time}. Retrying..."
-    title: Websocket Disconnected 
+    title: Websocket Disconnected
 
 hpa:
   detail:
@@ -5532,8 +5532,8 @@ workload:
       label: Termination Grace Period
       tip: The duration the pod needs to terminate successfully.
     title: Upgrading
-  tabs: 
-    labels: 
+  tabs:
+    labels:
       deployment: Deployment
       pod: Pod
       containers: Containers
@@ -6052,7 +6052,7 @@ harvester:
       warning: WARNING
       doc: Before you upgrade to the newer Harvester version, you must perform the required <a href="https://docs.harvesterhci.io/v1.0/upgrade/automatic/" target="_blank"> pre-upgrade checks </a>for your cluster. Complete only those tasks that apply to your environment.
       tip: Failure to perform these checks may result in a failed upgrade or hitting known issues that require a manual workaround fix.
-      moreNotes: For more details about the release notes, please visit - 
+      moreNotes: For more details about the release notes, please visit -
 
   backup:
     label: Backups
@@ -6599,7 +6599,7 @@ typeLabel:
     {count, plural,
       one { Cluster Registration Token }
       other { Cluster Registration Tokens }
-    } 
+    }
 
 action:
   clone: Clone
@@ -7020,3 +7020,32 @@ auth:
 vncConsole:
   error:
     message: Web VNC console connection is disconnected
+
+githubPicker:
+  label: GitHub
+  username:
+    label: Username / Organization
+    inputLabel: Username / Organization
+    tooltip: Username / Organization of the Git Repository
+  branch:
+    label: Branch
+    inputLabel: Branch
+    tooltip: Branch to deploy
+  repo:
+    label: Repository
+    inputLabel: Repository
+    tooltip: Branch to deploy from
+  commits:
+    label: Commits
+    tooltip: Commits to deploy from
+  commit:
+    label: Commit
+    inputLabel: Commit
+  commitMessage:
+    label: Commit Message
+  errors:
+    noAccount: No GitHub account or Organization found. Please review your query and try again.
+    noBranch: No branch found. Please review your query and try again."
+  details:
+    label: Selected Commit
+    tooltip: Selected Commit
