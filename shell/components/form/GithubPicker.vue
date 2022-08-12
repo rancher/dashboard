@@ -313,6 +313,9 @@ export default {
             <RadioButton :value="selectedCommit.sha" :val="row.commitId" @input="final($event, row.commitId)" />
           </template>
 
+          <template #cell:sha="{row}">
+            <a class="text-link" :href="row.html_url" target="_blank" rel="nofollow noopener noreferrer">{{ trimCommit(row.sha) }}</a>
+          </template>
           <template #cell:author="{row}">
             <div class="sortable-table-avatar">
               <img :src="row.author.avatar_url" alt="" />
@@ -327,9 +330,6 @@ export default {
             <div class="resumed">
               <img ref="img" :src="selectedCommit.author.avatar_url" alt="" />
               <div class="resumed-details">
-                <div class="label">
-                  {{ t('githubPicker.details.tooltip') }}:
-                </div>
                 <div class="resumed-details-source">
                   <div>
                     <span class="label">{{ t('githubPicker.username.label') }}:</span>

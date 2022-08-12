@@ -246,7 +246,11 @@ export default Vue.extend<Data, any, any, any>({
         </template>
         <template #cell:state="{row}">
           <div class="status">
-            <i v-if="row.state === APPLICATION_ACTION_STATE.RUNNING" v-tooltip="row.stateDisplay" class="icon icon-lg icon-spinner icon-spin" />
+            <i
+              v-if="row.state === APPLICATION_ACTION_STATE.RUNNING"
+              v-tooltip="row.stateDisplay"
+              class="icon icon-lg icon-spinner icon-spin"
+            />
             <BadgeState v-else :color="row.stateBackground" :label="row.stateDisplay" class="badge" />
           </div>
         </template>
