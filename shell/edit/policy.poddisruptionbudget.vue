@@ -38,26 +38,40 @@ export default {
     return { POD };
   },
 
-  watch: {
-    'value.spec.minAvailable'(val) {
-      const isNumeric = /^\\d+$/;
+  computed: {
+    minAvailable: {
+      get() {
+        return this.value.spec.minAvailable;
+      },
+      set(val) {
+        const isNumeric = /^\d+$/;
 
-      if (val && isNumeric.test(val)) {
-        this.value.spec.minAvailable = parseInt(val, 10);
-      } else if (!val) {
-        delete this.value.spec.minAvailable;
+        if (val && isNumeric.test(val)) {
+          this.$set(this.value.spec, 'minAvailable', Number.parseInt(val));
+        } else if (val) {
+          this.$set(this.value.spec, 'minAvailable', val);
+        } else {
+          this.$delete(this.value.spec, 'minAvailable');
+        }
       }
     },
-    'value.spec.maxUnavailable'(val) {
-      const isNumeric = /^\\d+$/;
+    maxUnavailable: {
+      get() {
+        return this.value.spec.maxUnavailable;
+      },
+      set(val) {
+        const isNumeric = /^\d+$/;
 
-      if (val && isNumeric.test(val)) {
-        this.value.spec.maxUnavailable = parseInt(val, 10);
-      } else if (!val) {
-        delete this.value.spec.maxUnavailable;
+        if (val && isNumeric.test(val)) {
+          this.$set(this.value.spec, 'maxUnavailable', Number.parseInt(val));
+        } else if (val) {
+          this.$set(this.value.spec, 'maxUnavailable', val);
+        } else {
+          this.$delete(this.value.spec, 'maxUnavailable');
+        }
       }
-    }
-  },
+    },
+  }
 };
 </script>
 
@@ -85,14 +99,14 @@ export default {
         <div class="row">
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.minAvailable"
+              v-model="minAvailable"
               :mode="mode"
               :label="t('podDisruptionBudget.minAvailable.label')"
             />
           </div>
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.maxUnavailable"
+              v-model="maxUnavailable"
               :mode="mode"
               :label="t('podDisruptionBudget.maxUnavailable.label')"
             />
