@@ -10,7 +10,7 @@ The Rancher DevKit is all you need to develop Rancher applications. Rancher DevK
 
 ### Rancher Storybook
 Rancher Storybook is a tool for UI development. It makes development faster and easier. 
-[Click here](#) to know more about components.
+[Click here](https://rancher.github.io/storybook/) to know more about components.
 
 
 
