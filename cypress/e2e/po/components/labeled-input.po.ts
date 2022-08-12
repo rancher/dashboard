@@ -7,6 +7,8 @@ export default class LabeledInputPo extends ComponentPo {
    * @returns
    */
   set(value: string): Cypress.Chainable {
+    this.input().should('be.visible');
+
     return this.input()
       .focus()
       .type(value);
