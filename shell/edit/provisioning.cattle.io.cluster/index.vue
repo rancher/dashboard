@@ -64,6 +64,15 @@ export default {
     value: {
       type:    Object,
       default: null,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'cluster-manager-create'
     }
   },
 
@@ -465,7 +474,7 @@ export default {
           >
             <ToggleSwitch
               v-model="provisioner"
-              data-testid="cluster-manager-create-rke-switch"
+              :data-testid="componentTestId + '-rke-switch'"
               class="rke-switch"
               off-value="rke1"
               :off-label="t('cluster.toggle.v1')"
@@ -481,7 +490,7 @@ export default {
           name-field="label"
           side-label-field="tag"
           :color-for="colorFor"
-          :component-testid="'cluster-manager-create-grid-' + i"
+          :component-testid="componentTestId + '-grid-' + i"
           @clicked="clickedType"
         />
       </div>
