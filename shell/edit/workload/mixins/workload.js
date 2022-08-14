@@ -160,11 +160,18 @@ export default {
       }
     }
 
+    if(this.mode === _EDIT && this.value.type === 'pod' ) {
+      const podSpec =  {...this.value.spec}
+      this.$set(this.value.spec, 'template', {spec: podSpec})
+    }
+
     const spec = this.value.spec;
     let container;
     let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
     
     let containers = [];
+
+
 
     if(this.mode === _VIEW && this.value.type === 'pod' ) {
       podTemplateSpec = spec;
