@@ -1,12 +1,8 @@
 import { findBy, insertAt } from '@shell/utils/array';
-import {
-  TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS, CATTLE_PUBLIC_ENDPOINTS
-} from '@shell/config/labels-annotations';
+import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
-import { clone, get, set } from '@shell/utils/object';
+import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import SteveModel from '@shell/plugins/steve/steve-class';
-import { shortenedImage } from '@shell/utils/string';
 import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/components/DetailTop';
 import WorkloadService from '@shell/models/workload.service';

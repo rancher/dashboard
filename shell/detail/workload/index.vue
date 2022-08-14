@@ -150,7 +150,6 @@ export default {
       } 
        
       return this.value.spec?.template?.spec;
-      
     },
 
     container() {
