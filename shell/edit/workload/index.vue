@@ -5,10 +5,8 @@ import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 
 export default {
   name:       'CruWorkload',
-  components: {
-    WorkloadDeployment
-  },
-  props: {
+  components: { WorkloadDeployment },
+  props:      {
     value: {
       type:     Object,
       required: true,

@@ -83,13 +83,13 @@ export default {
       </div>
       <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" @changed="changed">
         <Tab
-            v-for="(tab, i) in allContainers"
-            :key="i"
-            :label="tab.name"
-            :name="tab.name"
-            :weight="tab.weight"
-            :error="!!tab.error"
-          >
+          v-for="(tab, i) in allContainers"
+          :key="i"
+          :label="tab.name"
+          :name="tab.name"
+          :weight="tab.weight"
+          :error="!!tab.error"
+        >
           <Tabbed :side-tabs="true">
             <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']" :error="tabErrors.general">
               <template #tab-header-right class="tab-content-controls">
@@ -134,21 +134,20 @@ export default {
                   </div>
                 </div>
                 <div class="row">
-                <div class="col span-6">
-                  <LabeledSelect
-                    v-model="imagePullSecrets"
-                    :label="t('workload.container.imagePullSecrets')"
-                    :multiple="true"
-                    :taggable="true"
-                    :options="namespacedSecrets"
-                    :mode="mode"
-                    option-label="metadata.name"
-                    :reduce="service=>service.metadata.name"
-                  />
+                  <div class="col span-6">
+                    <LabeledSelect
+                      v-model="imagePullSecrets"
+                      :label="t('workload.container.imagePullSecrets')"
+                      :multiple="true"
+                      :taggable="true"
+                      :options="namespacedSecrets"
+                      :mode="mode"
+                      option-label="metadata.name"
+                      :reduce="service=>service.metadata.name"
+                    />
+                  </div>
                 </div>
               </div>
-              </div>
-
               <div class="spacer" />
               <div>
                 <h3>{{ t('workload.container.titles.ports') }}</h3>
@@ -185,11 +184,10 @@ export default {
               <HealthCheck v-model="healthCheck" :mode="mode" />
             </Tab>
             <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
-                <Security v-model="container.securityContext" :mode="mode" />
+              <Security v-model="container.securityContext" :mode="mode" />
             </Tab>
           </Tabbed>
         </Tab>
-
         <Tab :label="t('workload.tabs.labels.deployment')" :name="'deployment'" :weight="99">
           <Tabbed :side-tabs="true">
             <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="tabWeightMap['labels']">

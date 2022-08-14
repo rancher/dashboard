@@ -147,37 +147,33 @@ export default {
     }
 
     if (!this.value.spec) {
-
       this.value.spec = {};
-      if(this.value.type === 'pod') {
-
+      if (this.value.type === 'pod') {
         const podContainers = [{
           imagePullPolicy: 'Always',
           name:            `container-0`,
-        }]
-        const podSpec = { template : { spec: { containers: podContainers, initContainers: [] } } }
-        this.$set(this.value, 'spec', podSpec)
+        }];
+
+        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] } } };
+
+        this.$set(this.value, 'spec', podSpec);
       }
     }
 
-    if(this.mode === _EDIT && this.value.type === 'pod' ) {
-      const podSpec =  {...this.value.spec}
-      this.$set(this.value.spec, 'template', {spec: podSpec})
+    if (this.mode === _EDIT && this.value.type === 'pod' ) {
+      const podSpec = { ...this.value.spec };
+
+      this.$set(this.value.spec, 'template', { spec: podSpec });
     }
 
     const spec = this.value.spec;
     let container;
     let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
-    
+
     let containers = [];
 
-
-
-    if(this.mode === _VIEW && this.value.type === 'pod' ) {
+    if (this.mode === _VIEW && this.value.type === 'pod' ) {
       podTemplateSpec = spec;
-      containers = podTemplateSpec.containers; 
-    } else {
-      containers = podTemplateSpec.containers
     }
 
     if (
@@ -611,8 +607,6 @@ export default {
     },
 
     async saveService() {
-
-      console.log('SAVE SERVICE')
       // If we can't access services then just return - the UI should only allow ports without service creation
       if (!this.$store.getters['cluster/schemaFor'](SERVICE)) {
         return;

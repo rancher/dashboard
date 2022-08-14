@@ -137,18 +137,14 @@ export default {
     },
 
     podTemplateSpec() {
-
-      console.log('TEMPLATE SPEC')
-
       if ( this.value.type === WORKLOAD_TYPES.CRON_JOB ) {
         return this.value.spec.jobTemplate.spec.template.spec;
-      } 
+      }
 
       if ( this.value.type === WORKLOAD_TYPES.POD ) {
-        console.log('POD')
         return this.value;
-      } 
-       
+      }
+
       return this.value.spec?.template?.spec;
     },
 

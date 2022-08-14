@@ -182,7 +182,6 @@ export default class Pod extends WorkloadService {
   }
 
   save() {
-
     const { metadata, spec } = this.spec.template;
 
     this.spec = {
@@ -192,10 +191,10 @@ export default class Pod extends WorkloadService {
         ...metadata
       },
       ...spec
-    }
+    };
 
     delete this.spec.template;
-    
+
     return this._save(...arguments);
   }
 }

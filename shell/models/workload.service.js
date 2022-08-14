@@ -1,10 +1,8 @@
 
 import { findBy } from '@shell/utils/array';
-import {
-  TARGET_WORKLOADS, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS, CATTLE_PUBLIC_ENDPOINTS
-} from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
-import { clone, get, set } from '@shell/utils/object';
+import { TARGET_WORKLOADS, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
+import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
 
@@ -313,5 +311,4 @@ export default class WorkloadService extends SteveModel {
 
     return { toSave, toRemove };
   }
-
 }

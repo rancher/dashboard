@@ -81,8 +81,6 @@ export default {
         template:{ spec: { terminationGracePeriodSeconds } }
       } = this.value;
 
-      console.log('JOB');
-
       return {
         completions,
         parallelism,
