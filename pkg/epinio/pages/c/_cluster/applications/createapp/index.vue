@@ -103,10 +103,11 @@ export default Vue.extend<Data, any, any, any>({
       const { appChart, ...cleanChanges } = changes;
 
       if (appChart) {
-        // app chart actuall belongs in config, so stick it in there
+        // app chart actually belongs in config, so stick it in there
         this.value.configuration = this.value.configuration || {};
         this.set(this.value.configuration, { appchart: appChart });
       }
+
       this.set(this.source, cleanChanges);
     },
 
@@ -188,12 +189,6 @@ export default Vue.extend<Data, any, any, any>({
         ></AppProgress>
       </template>
     </Wizard>
-    <!-- <br><br>
-    Debug<br>
-    Mode: {{ mode }}<br>
-    Value: {{ JSON.stringify(value) }}<br>
-    initialValue: {{ JSON.stringify(initialValue) }}<br>
-    source: {{ JSON.stringify(source) }}<br> -->
   </div>
 </template>
 

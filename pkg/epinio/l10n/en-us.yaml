@@ -102,6 +102,9 @@ epinio:
       basics:
         label: Details
         subtext: Basic info about your app
+      commits:
+        label: Commits
+        subtext: List of commits based on your git repo
       source:
         label: Source
         subtext: Provide the source
@@ -145,6 +148,9 @@ epinio:
             label: Branch
             inputLabel: Branch
             tooltip: Branch to deploy
+        gitHub:
+          label: GitHub
+
       configurations:
         label: Bindings
         subtext: Bind to Application

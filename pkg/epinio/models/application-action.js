@@ -116,7 +116,11 @@ export default class ApplicationActionResource extends Resource {
   }
 
   async gitFetch({ source }) {
-    await this.application.gitFetch(source.gitUrl.url, source.gitUrl.branch);
+    // Handle github & gitUrl sources
+    const rev = !!source.github.commit ? source.github.commit : source.gitUrl.branch;
+    const url = !!source.github.url ? source.github.url : source.gitUrl.url;
+
+    return await this.application.gitFetch(url, rev);
   }
 
   async build({ source }) {
@@ -155,6 +159,14 @@ export default class ApplicationActionResource extends Resource {
         git:       {
           revision:   source.gitUrl.branch,
           repository:      source.gitUrl.url
+        },
+      };
+    case APPLICATION_SOURCE_TYPE.GIT_HUB:
+      return {
+        kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT_HUB,
+        git:       {
+          revision:   source.github.commit,
+          repository:      source.github.url
         },
       };
     }
