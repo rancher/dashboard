@@ -30,7 +30,13 @@ export default defineConfig({
   trashAssetsBeforeRuns:  true,
   env:                    {
     baseUrl,
-    coverage:             false,
+    coverage:             true,
+    codeCoverage: {
+      exclude: [
+        'cypress/**/*.*',
+        '**/__tests__/**/*.*',
+      ]
+    },
     username:             process.env.TEST_USERNAME,
     password:             process.env.TEST_PASSWORD,
     bootstrapPassword:    process.env.CATTLE_BOOTSTRAP_PASSWORD,
