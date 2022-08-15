@@ -45,7 +45,7 @@ export default {
       {
         name:        'date',
         width:        220,
-        label:       this.t('githubPicker.tableHeaders.message.label'),
+        label:       this.t('githubPicker.tableHeaders.date.label'),
         value:       'date',
         sort:        'date',
         formatter:   'Date',
