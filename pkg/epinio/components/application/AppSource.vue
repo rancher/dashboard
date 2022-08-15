@@ -347,7 +347,7 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div class="appSource">
-    <div class="spacer button-row">
+    <div class="button-row source">
       <LabeledSelect
         v-model="unSafeType"
         data-testid="epinio_app-source_type"
@@ -369,7 +369,7 @@ export default Vue.extend<Data, any, any, any>({
     </div>
 
     <template v-if="type === APPLICATION_SOURCE_TYPE.ARCHIVE">
-      <div class="spacer archive">
+      <div class="spacer source">
         <h3>{{ t('epinio.applications.steps.source.archive.file.label') }}</h3>
         <div class="button-row">
           <LabeledInput
@@ -393,7 +393,7 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.FOLDER">
-      <div class="spacer archive">
+      <div class="spacer source">
         <h3>{{ t('epinio.applications.steps.source.folder.file.label') }}</h3>
         <div class="button-row">
           <LabeledInput
@@ -417,7 +417,7 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.CONTAINER_URL">
-      <div class="spacer archive">
+      <div class="spacer source">
         <h3>{{ t('epinio.applications.steps.source.containerUrl.url.label') }}</h3>
         <LabeledInput
           v-model="container.url"
@@ -430,7 +430,7 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_URL">
-      <div class="spacer archive">
+      <div class="spacer source">
         <h3>{{ t('epinio.applications.steps.source.gitUrl.url.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.url"
@@ -441,7 +441,7 @@ export default Vue.extend<Data, any, any, any>({
           @input="update"
         />
       </div>
-      <div class="spacer archive">
+      <div class="spacer source">
         <h3>{{ t('epinio.applications.steps.source.gitUrl.branch.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.branch"
@@ -456,7 +456,7 @@ export default Vue.extend<Data, any, any, any>({
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
       <GithubPicker @githubData="githubData" />
     </template>
-    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30">
+    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30 source">
       <template>
         <LabeledSelect
           v-model="appChart"
@@ -499,7 +499,7 @@ export default Vue.extend<Data, any, any, any>({
 .appSource {
   // max-width: 920px;
 
-  .spacer {
+  .source {
     max-width: 700px;
   }
 
