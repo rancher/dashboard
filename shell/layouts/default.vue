@@ -154,6 +154,10 @@ export default {
       return displayVersion;
     },
 
+    singleProductAbout() {
+      return this.isSingleProduct?.aboutPage;
+    },
+
     showProductFooter() {
       if (this.isVirtualProduct) {
         return true;
@@ -612,7 +616,15 @@ export default {
           </span>
         </div>
         <div v-else class="version text-muted">
-          {{ displayVersion }}
+          <nuxt-link
+            v-if="singleProductAbout"
+            :to="singleProductAbout"
+          >
+            {{ displayVersion }}
+          </nuxt-link>
+          <template v-else>
+            {{ displayVersion }}
+          </template>
         </div>
       </nav>
       <main v-if="clusterReady">

@@ -23,6 +23,7 @@ export function init($plugin: any, store: any) {
     store.dispatch('setIsSingleProduct', {
       logo:                require(`../assets/logo-epinio.svg`),
       productNameKey:      'epinio.label',
+      aboutPage:           createEpinioRoute('about', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       disableSteveSockets: true,

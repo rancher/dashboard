@@ -38,6 +38,9 @@ typeDescription:
   catalogservices: Catalog Services provide additional, common functionality to applications. For example an instance of a database Catalog Service can be bound to an application.
 epinio:
   label: Epinio
+  about:
+    allPackages: See all packages
+    getBinaries: Get binaries
   intro:
     welcome: Welcome to Epinio
     blurb: The Application Development Engine for Kubernetes
