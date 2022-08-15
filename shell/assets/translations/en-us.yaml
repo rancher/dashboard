@@ -7055,6 +7055,3 @@ githubPicker:
   errors:
     noAccount: No GitHub account or Organization found. Please review your query and try again.
     noBranch: No branch found. Please review your query and try again."
-  details:
-    label: Selected Commit
-    tooltip: Selected Commit

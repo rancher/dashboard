@@ -17,20 +17,23 @@ export default {
   },
 
   data() {
-    const eventHeaders = [
+    const commitsTableHeaders = [
       {
         name:  'index',
         label: this.t('githubPicker.tableHeaders.choose.label'),
+        width:         60,
+      }, {
+        name:      'sha',
+        label:     this.t('githubPicker.tableHeaders.sha.label'),
+        formatter: 'Link',
+        width:         90,
+        getValue:  row => ({ url: row.html_url })
       },
       {
-        name:  'sha',
-        label: this.t('githubPicker.tableHeaders.sha.label'),
-        value: 'sha',
-      },
-      {
-        name:  'author',
-        label: this.t('githubPicker.tableHeaders.author.label'),
-        value: 'author.login',
+        name:      'author',
+        label:     this.t('githubPicker.tableHeaders.author.label'),
+        width:        190,
+        value:     'author.login',
       },
       {
         name:  'message',
@@ -49,6 +52,7 @@ export default {
         repo:     false,
         branch:   false,
         commits:  false,
+        message: null,
       },
       showSelections: false,
       oldUsername:    null,
@@ -61,7 +65,7 @@ export default {
       selectedRepo:     null,
       selectedBranch:   null,
       selectedCommit:   false,
-      eventHeaders,
+      commitsTableHeaders,
     };
   },
 
@@ -83,12 +87,9 @@ export default {
 
           const res = await this.$store.dispatch('github/fetchRecentRepos', { username: this.selectedAccOrOrg });
 
-          if (res?.message) {
-            this.hasError.repo = true;
-          } else {
-            this.repos = res;
-            this.hasError.repo = false;
-          }
+          this.repos = res;
+          this.hasError.repo = false;
+          this.resetFetchErrorMessage();
 
           // Reset selections once username changes
           if (this.oldUsername !== this.selectedAccOrOrg) {
@@ -97,6 +98,9 @@ export default {
             return this.reset();
           }
         }
+      } catch (error) {
+        this.hasError.repo = true;
+        this.hasError.message = error.message;
       } finally {
         this.loadingRecentRepos = false;
       }
@@ -110,12 +114,12 @@ export default {
       try {
         const res = await this.$store.dispatch('github/fetchBranches', { repo: this.selectedRepo, username: this.selectedAccOrOrg });
 
-        if (res?.message) {
-          this.hasError.branch = true;
-        } else {
-          this.branches = res;
-          this.hasError.branch = false;
-        }
+        this.branches = res;
+        this.hasError.branch = false;
+        this.resetFetchErrorMessage();
+      } catch (error) {
+        this.hasError.branch = true;
+        this.hasError.message = error.message;
       } finally {
         this.loadingBranches = false;
       }
@@ -133,9 +137,16 @@ export default {
         });
 
         this.commits = res;
+        this.resetFetchErrorMessage();
+      } catch (error) {
+        this.hasError.commits = true;
+        this.hasError.message = error.message;
       } finally {
         this.loadingCommits = false;
       }
+    },
+    resetFetchErrorMessage() {
+      this.hasError.message = null;
     },
     prepareArray(arr, commits) {
       if (!isArray(arr)) {
@@ -201,28 +212,33 @@ export default {
       }
     },
     async searchRepo(query) {
-      if (query.length) {
+      try {
+        if (query.length) {
         // Check if the result is already in the fetched list.
-        const resultInCurrentState = some(this.repos, { name: query });
+          const resultInCurrentState = some(this.repos, { name: query });
 
-        if (!resultInCurrentState) {
+          if (!resultInCurrentState) {
           // Search for specific repo under the username
-          const res = await this.$store.dispatch('github/search', { repo: query, username: this.selectedAccOrOrg });
+            const res = await this.$store.dispatch('github/search', { repo: query, username: this.selectedAccOrOrg });
 
-          if (res.message) {
-            this.hasError.repo = true;
-          } else {
-            if (res.length >= 1) {
-              this.repos = res;
+            if (res.message) {
+              this.hasError.repo = true;
             } else {
-              return this.repos;
-            }
+              if (res.length >= 1) {
+                this.repos = res;
+              } else {
+                return this.repos;
+              }
 
-            this.hasError.repo = false;
+              this.hasError.repo = false;
+            }
+          } else {
+            return resultInCurrentState;
           }
-        } else {
-          return resultInCurrentState;
         }
+      } catch (error) {
+        // this.hasError.repo = true;
+        this.hasError.message = `Could't find repository with the name of ${ query }`;
       }
     },
     async searchBranch(query) {
@@ -282,11 +298,9 @@ export default {
         />
       </div>
 
-      <div class="spacer">
+      <div v-if="repos.length && !hasError.repo" class="spacer">
         <LabeledSelect
-          v-if="repos.length && !hasError.repo"
           v-model="selectedRepo"
-          class="spacer"
           :required="true"
           :label="t('githubPicker.repo.inputLabel')"
           :options="prepareArray(repos)"
@@ -300,11 +314,9 @@ export default {
         />
       </div>
       <!-- Deals with Branches  -->
-      <div class="spacer">
+      <div v-if="selectedRepo" class="spacer">
         <LabeledSelect
-          v-if="selectedRepo"
           v-model="selectedBranch"
-          class="spacer"
           :required="true"
           :label="t('githubPicker.branch.inputLabel')"
           :options="prepareArray(branches)"
@@ -317,10 +329,10 @@ export default {
         />
       </div>
       <!-- Deals with Commits, display & allow to pick from it  -->
-      <div v-if="selectedBranch && commits.length" class="spacer">
+      <div v-if="selectedBranch && commits.length" class="commits-table">
         <SortableTable
           :rows="prepareArray(commits, true)"
-          :headers="eventHeaders"
+          :headers="commitsTableHeaders"
           mode="view"
           key-field="sha"
           :search="true"
@@ -333,9 +345,6 @@ export default {
             <RadioButton :value="selectedCommit.sha" :val="row.commitId" @input="final($event, row.commitId)" />
           </template>
 
-          <template #cell:sha="{row}">
-            <a class="text-link" :href="row.html_url" target="_blank" rel="nofollow noopener noreferrer">{{ trimCommit(row.sha) }}</a>
-          </template>
           <template #cell:author="{row}">
             <div class="sortable-table-avatar">
               <img :src="resolveRemovedUser(row.author).avatar_url" alt="" />
@@ -343,40 +352,6 @@ export default {
             </div>
           </template>
         </SortableTable>
-
-        <!-- Selection resume -->
-        <template v-if="showSelections && selectedCommit && selectedBranch">
-          <div class="spacer">
-            <div class="resumed">
-              <img ref="img" :src="resolveRemovedUser(selectedCommit.author).avatar_url" alt="" />
-              <div class="resumed-details">
-                <div class="resumed-details-source">
-                  <div>
-                    <span class="label">{{ t('githubPicker.username.label') }}:</span>
-                    <!-- {{ selectedCommit.author.login }} -->
-                    {{ resolveRemovedUser( selectedCommit.author).login }}
-                  </div>
-                </div>
-                <div>
-                  <span class="label">{{ t('githubPicker.branch.label') }}: </span>
-                  {{ selectedBranch }}
-                </div>
-                <div>
-                  <span class="label">{{ t('githubPicker.commit.label') }} :</span>
-                  <a class="text-link" :href="selectedCommit.html_url" target="_blank" rel="nofollow noopener noreferrer">
-                    {{ trimCommit(selectedCommit.sha) }}
-                  </a>
-                </div>
-              </div>
-              <div class="mt-10">
-                <span class="label">{{ t('githubPicker.commitMessage.label') }} </span>
-                <p class="mt-4">
-                  {{ selectedCommit.commit.message }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </template>
       </div>
     </div>
   </div>
@@ -411,39 +386,12 @@ export default {
     }
   }
 
-  .resumed {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    outline: 1px solid var(--border);
-    border-radius: var(--border-radius);
-    padding: 10px;
-    margin-top: 40px;
-    transition: all 0.3s ease-in-out;
+  .spacer {
+    max-width: 700px;
+  }
 
-    .label {
-      color: var(--input-label);
-    }
-
-    img {
-      width: 60px;
-      height: 60px;
-      border-radius: var(--border-radius);
-    }
-
-    &-details {
-      display: flex;
-      padding: 10px 0;
-      flex-direction: column;
-      width: 100%;
-
-      &-source {
-        display: flex;
-        flex-direction: row;
-        margin-top: 10px;
-        justify-content: space-between;
-      }
-    }
+  .commits-table {
+    max-width: 1400px;
   }
 
   .d-center {

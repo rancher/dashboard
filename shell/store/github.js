@@ -1,50 +1,53 @@
 const GITHUB_BASE_API = 'https://api.github.com';
 
 const fetchGithubAPI = async(endpoint) => {
+  // eslint-disable-next-line no-useless-catch
   try {
     const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
 
     if (!response.ok) {
-      return await response.json();
+      throw response;
     }
 
     return await response.json();
   } catch (error) {
-    if (error.response) {
-      return error.response;
-    }
+    throw error;
   }
 };
 
 export const actions = {
-  async apiList({ ctx }, {
+  async apiList(ctx, {
     username, endpoint, repo, branch
   }) {
-    switch (endpoint) {
-    case 'branches': {
-      return await fetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=100&direction=desc`);
-    }
-    case 'commits': {
-      return await fetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
-    }
-    case 'search': {
-      // Fetch for a specific branches
-      if (username && repo && branch) {
-        const response = await fetchGithubAPI(`repos/${ username }/${ repo }/branches/${ branch }`);
+    try {
+      switch (endpoint) {
+      case 'branches': {
+        return await fetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=100&direction=desc`);
+      }
+      case 'commits': {
+        return await fetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
+      }
+      case 'search': {
+        // Fetch for a specific branches
+        if (username && repo && branch) {
+          const response = await fetchGithubAPI(`repos/${ username }/${ repo }/branches/${ branch }`);
 
-        return [response];
+          return [response];
+        }
+
+        // Fetch for repos
+        const response = await fetchGithubAPI(`search/repositories?q=repo:${ username }/${ repo }`);
+
+        if (response) {
+          return response.items;
+        }
+      }
       }
 
-      // Fetch for repos
-      const response = await fetchGithubAPI(`search/repositories?q=repo:${ username }/${ repo }`);
-
-      if (response) {
-        return response.items;
-      }
+      return await fetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=100&direction=desc`);
+    } catch (error) {
+      throw await error.json() ?? Error(`Error fetching ${ endpoint }`);
     }
-    }
-
-    return await fetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=100&direction=desc`);
   },
 
   async fetchRecentRepos({ commit, dispatch }, { username } = {}) {

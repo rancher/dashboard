@@ -30,7 +30,7 @@ interface GitUrl {
 }
 
 interface GitHub {
-  username?: string,
+  usernameOrOrg?: string,
   url: string
   commit: string,
 }
@@ -113,9 +113,9 @@ export default Vue.extend<Data, any, any, any>({
       },
 
       github: {
-        username: this.source?.github.username || '',
-        url:      this.source?.github.url || '',
-        commit:      this.source?.github.commit || '',
+        usernameOrOrg: this.source?.github.usernameOrOrg || '',
+        url:           this.source?.github.url || '',
+        commit:        this.source?.github.commit || '',
       },
 
       builderImage: {
@@ -280,6 +280,7 @@ export default Vue.extend<Data, any, any, any>({
       const url = `https://github.com/${ selectedAccOrOrg }/${ repo }`;
 
       if (url.length && selectedAccOrOrg.length) {
+        this.github.usernameOrOrg = selectedAccOrOrg;
         this.github.url = url;
         this.github.commit = commit;
 
@@ -310,7 +311,7 @@ export default Vue.extend<Data, any, any, any>({
       case APPLICATION_SOURCE_TYPE.GIT_URL:
         return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value;
       case APPLICATION_SOURCE_TYPE.GIT_HUB:
-        return !!this.github.username && !!this.github.url && !!this.github.commit;
+        return !!this.github.usernameOrOrg && !!this.github.url && !!this.github.commit;
       }
 
       return false;
@@ -346,7 +347,7 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div class="appSource">
-    <div class="button-row">
+    <div class="spacer button-row">
       <LabeledSelect
         v-model="unSafeType"
         data-testid="epinio_app-source_type"
@@ -455,7 +456,7 @@ export default Vue.extend<Data, any, any, any>({
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
       <GithubPicker @githubData="githubData" />
     </template>
-    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30">
+    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30">
       <template>
         <LabeledSelect
           v-model="appChart"
@@ -496,7 +497,11 @@ export default Vue.extend<Data, any, any, any>({
 
 <style lang="scss" scoped>
 .appSource {
-  max-width: 920px;
+  // max-width: 920px;
+
+  .spacer {
+    max-width: 700px;
+  }
 
   .button-row {
     display: flex;
