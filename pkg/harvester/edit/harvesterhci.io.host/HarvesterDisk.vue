@@ -80,7 +80,7 @@ export default {
 
       const systems = ['ext4', 'XFS'];
 
-      if (lastFormattedAt) {
+      if (lastFormattedAt || this.value?.blockDevice?.childParts?.length > 0) {
         return true;
       } else if (systems.includes(fileSystem)) {
         return false;
