@@ -7,6 +7,7 @@ import { dashboardExists } from '@shell/utils/grafana';
 import { monitoringStatus } from '@shell/utils/monitoring';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
+import { Banner } from '@components/Banner';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
@@ -19,7 +20,7 @@ export default {
   name: 'PolicyServer',
 
   components: {
-    DashboardMetrics, Loading, ResourceTabs, ResourceTable, Tab, TraceTable
+    Banner, DashboardMetrics, Loading, ResourceTabs, ResourceTable, Tab, TraceTable
   },
 
   mixins: [CreateEditView],

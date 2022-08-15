@@ -61,6 +61,9 @@ export default {
           }
         }
 
+        /*
+          TODO: will not work with artifacthub until 502 is resolved
+        */
         if ( this.keywords ) {
           for ( const selected of this.keywords ) {
             if ( !subtype.keywords.includes(selected) ) {
@@ -75,6 +78,9 @@ export default {
       return sortBy(out, ['category', 'label', 'description']);
     },
 
+    /*
+      TODO: will not work with artifacthub until 502 is resolved
+    */
     keywordOptions() {
       const flattened = this.value.flatMap((subtype) => {
         return subtype.keywords;

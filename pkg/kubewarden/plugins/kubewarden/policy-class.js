@@ -8,6 +8,7 @@ import { SERVICE } from '@shell/config/types';
 import { proxyUrlFromParts } from '@shell/models/service';
 import { findBy, isArray } from '@shell/utils/array';
 import { isEmpty } from '@shell/utils/object';
+import { addParam } from '@shell/utils/url';
 
 export const TRACE_HEADERS = [
   {
@@ -124,6 +125,8 @@ export const NAMESPACE_SELECTOR = {
   values:   RANCHER_NAMESPACES
 };
 
+export const ARTIFACTHUB_ENDPOINT = 'artifacthub.io/api/v1';
+
 export default class KubewardenModel extends SteveModel {
   async allServices() {
     const inStore = this.$rootGetters['currentProduct'].inStore;
@@ -153,6 +156,54 @@ export default class KubewardenModel extends SteveModel {
     } else {
       return null;
     }
+  }
+
+  /*
+    Fetches all of the packages from the kubewarden org
+  */
+  get artifactHubRepo() {
+    return async() => {
+      let url = '/meta/proxy/';
+      const packages = 'packages/search';
+      const headers = { Accept: 'application/json' };
+
+      url += `${ ARTIFACTHUB_ENDPOINT }/${ packages }`;
+      url = addParam(url, 'org', 'kubewarden');
+
+      /*
+        TODO: fix issue with 502 gateway error from proxy
+        Failing here:
+          shell/plugins/steve/actions.js - L112
+        Errors from container logs:
+          2022/07/22 15:53:35 [INFO] Failed to proxy: invalid host: artifacthub.io
+          2022/07/22 15:53:35 http: proxy error: unsupported protocol scheme ""
+        Gist of request:
+          https://gist.github.com/jordojordo/8c418ee4f3f729b1b2d646c00ba79cc7
+        Gist of request through axios:
+          https://gist.github.com/jordojordo/147d248c31fa36b378c7206d34814d9e
+      */
+
+      return await this.$dispatch('management/request', {
+        url,
+        headers,
+        redirectUnauthorized: false
+      }, { root: true });
+    };
+  }
+
+  /*
+    Necessary for retrieving detailed package info
+  */
+  get artifactHubPackage() {
+    return (pkg) => {
+      try {
+        const url = `/meta/proxy/${ ARTIFACTHUB_ENDPOINT }/packages/kubewarden/${ pkg.repository.name }/${ pkg.name }`;
+
+        return this.$dispatch('management/request', { url }, { root: true });
+      } catch (e) {
+        console.error(`Error fetching pkg: ${ e }`); // eslint-disable-line no-console
+      }
+    };
   }
 
   get grafanaProxy() {
@@ -328,7 +379,7 @@ export default class KubewardenModel extends SteveModel {
     if ( isArray(traces) ) {
       traces?.map(t => traceArray.push(t.data));
     } else {
-      Object.assign(traceArray, traces.data);
+      Object.assign(traceArray, traces?.data);
     }
 
     const out = traceArray.flatMap(trace => trace.map((t) => {

@@ -44,6 +44,14 @@ export default ({
   async fetch() {
     this.errors = [];
 
+    this.repository = await this.value.artifactHubRepo();
+
+    if ( this.repository ) {
+      const promises = this.repository.map(pkg => this.packageDetails(pkg));
+
+      this.packages = await Promise.all(promises);
+    }
+
     if ( !this.chartValues ) {
       try {
         // Without importing this here the object would maintain the state
@@ -69,7 +77,9 @@ export default ({
   data() {
     return {
       errors:            null,
+      packages:          null,
       questions:         null,
+      repository:        null,
       splitType:         null,
       type:              null,
       typeModule:        null,
@@ -137,12 +147,12 @@ export default ({
           const resourceType = this.t(`kubewarden.policyCharts.${ shortType }.resourceType`);
 
           const subtype = {
-            key,
-            resourceType,
-            id:           type,
-            label:        this.t(`kubewarden.policyCharts.${ shortType }.name`),
-            description:  this.t(`kubewarden.policyCharts.${ shortType }.description`),
-            keywords:     this.t(`kubewarden.policyCharts.${ shortType }.keywords`).split('\n').slice(0, -1)
+            key, // unnecessary with artifacthub
+            resourceType, // have this `package.data.['kubewarden/resources']`
+            id:           type, // unnecessary with artifacthub
+            label:        this.t(`kubewarden.policyCharts.${ shortType }.name`), // have this
+            description:  this.t(`kubewarden.policyCharts.${ shortType }.description`), // have this
+            keywords:     this.t(`kubewarden.policyCharts.${ shortType }.keywords`).split('\n').slice(0, -1) // need to fetch package details for this
           };
 
           out.push(subtype);
@@ -187,6 +197,12 @@ export default ({
       } catch (e) {
         this.errors.push(e);
       }
+    },
+
+    async packageDetails(pkg) {
+      try {
+        return await this.value.artifactHubPackage(pkg);
+      } catch (e) {}
     },
 
     policyQuestions(isCustom) {
