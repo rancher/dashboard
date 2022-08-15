@@ -7033,6 +7033,8 @@ githubPicker:
       unknown: Unknown
     message:
       label: Message
+    date:
+      label: Date
   username:
     label: Username / Organization
     inputLabel: Username / Organization

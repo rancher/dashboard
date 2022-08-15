@@ -34,11 +34,22 @@ export default {
         label:     this.t('githubPicker.tableHeaders.author.label'),
         width:        190,
         value:     'author.login',
+        sort:     'author.login',
       },
       {
         name:  'message',
         label: this.t('githubPicker.tableHeaders.message.label'),
         value: 'message',
+        sort:  'message',
+      },
+      {
+        name:        'date',
+        width:        220,
+        label:       this.t('githubPicker.tableHeaders.message.label'),
+        value:       'date',
+        sort:        'date',
+        formatter:   'Date',
+        defaultSort: true,
       },
     ];
 
@@ -170,6 +181,7 @@ export default {
             commitId:  cur?.sha,
             author:    cur.author,
             isChecked: false,
+            date:      cur?.commit.committer.date
           });
 
           return acc;
