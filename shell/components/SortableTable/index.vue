@@ -340,6 +340,10 @@ export default {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
 
+    searchQuery(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
     sortFields(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
