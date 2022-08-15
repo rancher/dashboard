@@ -118,6 +118,7 @@ export default {
       } catch (error) {
         this.hasError.repo = true;
         this.hasError.message = error.message;
+        this.selectedBranch = null;
       } finally {
         this.loadingRecentRepos = false;
       }
