@@ -258,11 +258,6 @@ export default {
         }
       }
     },
-
-    $route(a, b) {
-      this.$nextTick(() => this.syncNav());
-    },
-
   },
 
   async created() {
@@ -271,11 +266,6 @@ export default {
     this.getGroups();
 
     await this.$store.dispatch('prefs/setLastVisited', this.$route);
-  },
-
-  mounted() {
-    // Sync the navigation tree on fresh load
-    this.$nextTick(() => this.syncNav());
   },
 
   methods: {
@@ -303,12 +293,6 @@ export default {
         name:   this.$route.name,
         params: this.$route.params
       };
-    },
-
-    collapseAll() {
-      this.$refs.groups.forEach((grp) => {
-        grp.isExpanded = false;
-      });
     },
 
     getGroups() {
@@ -468,14 +452,6 @@ export default {
       this.$store.dispatch('prefs/toggleTheme');
     },
 
-    groupSelected(selected) {
-      this.$refs.groups.forEach((grp) => {
-        if (grp.canCollapse) {
-          grp.isExpanded = (grp.group.name === selected.name);
-        }
-      });
-    },
-
     wheresMyDebugger() {
       // vue-shortkey is preventing F8 from passing through to the browser... this works for now.
       // eslint-disable-next-line no-debugger
@@ -499,37 +475,6 @@ export default {
       }
 
       cluster.openShell();
-    },
-
-    syncNav() {
-      const refs = this.$refs.groups;
-
-      if (refs) {
-        // Only expand one group - so after the first has been expanded, no more will
-        // This prevents the 'More Resources' group being expanded in addition to the normal group
-        let canExpand = true;
-        const expanded = refs.filter(grp => grp.isExpanded)[0];
-
-        if (expanded && expanded.hasActiveRoute()) {
-          this.$nextTick(() => expanded.syncNav());
-
-          return;
-        }
-        refs.forEach((grp) => {
-          if (!grp.group.isRoot) {
-            grp.isExpanded = false;
-            if (canExpand) {
-              const isActive = grp.hasActiveRoute();
-
-              if (isActive) {
-                grp.isExpanded = true;
-                canExpand = false;
-                this.$nextTick(() => grp.syncNav());
-              }
-            }
-          }
-        });
-      }
     },
 
     switchLocale(locale) {
@@ -557,8 +502,6 @@ export default {
               :group="g"
               :can-collapse="!g.isRoot"
               :show-header="!g.isRoot"
-              @selected="groupSelected($event)"
-              @expand="groupSelected($event)"
             />
           </template>
         </div>

@@ -93,12 +93,10 @@ export default {
     },
 
     groupSelected() {
-      // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
-      if (this.hasActiveRoute() && this.isExpanded) {
-        return;
-      }
-
-      this.expandGroup();
+      // You can click a nav item such as Workloads
+      // to collapse it, but it will still be marked
+      // as active if you are currently on that page.
+      this.isExpanded = !this.isExpanded;
 
       const items = this.group[this.childrenKey];
 
@@ -130,12 +128,6 @@ export default {
       this.$emit('close');
     },
 
-    // User clicked on the expander icon, so toggle the expansion so the user can see inside the group
-    peek($event) {
-      this.isExpanded = !this.isExpanded;
-      $event.stopPropagation();
-    },
-
     hasActiveRoute(items) {
       if (!items) {
         items = this.group;
@@ -158,43 +150,28 @@ export default {
 
       return false;
     },
-
-    syncNav() {
-      const refs = this.$refs.groups;
-
-      if (refs) {
-        // Only expand one group - so after the first has been expanded, no more will
-        let canExpand = true;
-
-        refs.forEach((grp) => {
-          if (!grp.group.isRoot) {
-            if (canExpand) {
-              const isActive = this.hasActiveRoute(grp.group);
-
-              if (isActive) {
-                grp.isExpanded = true;
-                canExpand = false;
-                this.$nextTick(() => grp.syncNav());
-              }
-            }
-          }
-        });
-      }
-    }
   }
 };
 </script>
 
 <template>
   <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}">
-    <div v-if="showHeader" class="header" :class="{'active': isOverview, 'noHover': !canCollapse}" @click="groupSelected()">
+    <div
+      v-if="showHeader"
+      class="header"
+      :class="{
+        'active': isOverview,
+        'noHover': !canCollapse
+      }"
+      @click.prevent="groupSelected($event)"
+    >
       <slot name="header">
         <n-link v-if="hasOverview" :to="group.children[0].route" :exact="group.children[0].exact">
           <h6 v-html="group.labelDisplay || group.label" />
         </n-link>
         <h6 v-else v-html="group.labelDisplay || group.label" />
       </slot>
-      <i v-if="!onlyHasOverview && canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="peek($event, true)" />
+      <i v-if="!onlyHasOverview && canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
     </div>
     <ul v-if="isExpanded" class="list-unstyled body" v-bind="$attrs">
       <template v-for="(child, idx) in group[childrenKey]">
@@ -214,7 +191,6 @@ export default {
             :can-collapse="canCollapse"
             :group="child"
             :fixed-open="fixedOpen"
-            @selected="groupSelected($event)"
             @expand="expandGroup($event)"
             @close="close($event)"
           />
