@@ -1,4 +1,3 @@
-import codeCoverageTask from '@cypress/code-coverage/task';
 import { defineConfig } from 'cypress';
 // Required for env vars to be available in cypress
 require('dotenv').config();
@@ -44,7 +43,7 @@ export default defineConfig({
   e2e:                   {
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
-      codeCoverageTask(on, config);
+      require('@cypress/code-coverage/task')(on, config);
 
       return config;
     },
