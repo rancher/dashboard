@@ -170,7 +170,7 @@ export default {
     let container;
     let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
 
-    let containers = [];
+    let containers = podTemplateSpec.containers || [];
 
     if (this.mode === _VIEW && this.value.type === 'pod' ) {
       podTemplateSpec = spec;
