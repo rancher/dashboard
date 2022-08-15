@@ -121,6 +121,8 @@ epinio:
             tooltip: Paketo builder image to use for staging
             default: Default Image
             custom: Custom Image
+          appchart:
+            label: Application Template
         containerUrl:
           label: Container Image
           url:
