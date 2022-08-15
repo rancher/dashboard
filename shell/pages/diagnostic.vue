@@ -193,7 +193,7 @@ export default {
         return responseTimes;
       });
     },
-    parseStoreData(storeData) {
+    parseStoreData(rootStore) {
       // clear potencial sensitive data
       const disallowedDataKeys = [
         'aws',
@@ -210,24 +210,48 @@ export default {
         'elemental',
       ];
 
-      disallowedDataKeys.forEach((key) => {
-        if (storeData[key]) {
-          delete storeData[key];
+      const cleanRootStore = {};
+
+      Object.entries(rootStore).forEach(([storeKey, store]) => {
+        if (disallowedDataKeys.includes(storeKey)) {
+          // Ignore any root store in the disallowed list
+          return;
         }
+
+        // Remove all `list` keys, for example `management.types['management.cattle.io.cluster'].list`
+
+        if (!clearListsKeys.includes(storeKey)) {
+          // This is only done for some store namespaces, if not just save the raw entry
+          cleanRootStore[storeKey] = store;
+
+          return;
+        }
+
+        // if there's no types property to clear, just save the raw entry
+        if (!Object.keys(store.types || {}).length) {
+          cleanRootStore[storeKey] = store;
+
+          return;
+        }
+
+        // Save the root entry with empty types prop
+        cleanRootStore[storeKey] = {
+          ...store,
+          types: {},
+        };
+
+        // Save the root entries type's entries without the list property
+        Object.entries(store.types).forEach(([type, entry]) => {
+          const { list, ...otherProps } = entry;
+
+          cleanRootStore[storeKey].types[type] = {
+            ...otherProps,
+            count: list.length,
+          };
+        });
       });
 
-      clearListsKeys.forEach((key) => {
-        if (storeData[key] && storeData[key].types && Object.keys(storeData[key].types).length) {
-          Object.keys(storeData[key].types).forEach((k) => {
-            if (storeData[key].types[k]?.list) {
-              storeData[key].types[k].count = storeData[key].types[k]?.list.length;
-              delete storeData[key].types[k]?.list;
-            }
-          });
-        }
-      });
-
-      return storeData;
+      return cleanRootStore;
     }
   },
 };
