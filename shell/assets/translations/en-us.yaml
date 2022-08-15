@@ -7025,11 +7025,12 @@ githubPicker:
   label: GitHub
   tableHeaders:
     choose:
-      label: Choose
+      label: Select
     sha:
       label: SHA
     author:
       label: Author
+      unknown: Unknown
     message:
       label: Message
   username:

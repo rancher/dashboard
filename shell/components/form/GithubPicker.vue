@@ -1,7 +1,6 @@
 <script>
 import SortableTable from '@shell/components/SortableTable';
 import RadioButton from '@components/Form/Radio/RadioButton';
-import { NORMAN } from '@shell/config/types';
 import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -23,11 +22,12 @@ export default {
         label: this.t('githubPicker.tableHeaders.choose.label'),
         width:         60,
       }, {
-        name:      'sha',
-        label:     this.t('githubPicker.tableHeaders.sha.label'),
-        formatter: 'Link',
+        name:          'sha',
+        label:         this.t('githubPicker.tableHeaders.sha.label'),
         width:         90,
-        getValue:  row => ({ url: row.html_url })
+        formatter:     'Link',
+        formatterOpts: { urlKey: 'html_url' },
+        value:         'sha'
       },
       {
         name:      'author',
@@ -70,8 +70,14 @@ export default {
   },
 
   computed: {
-    defaultAvatar() {
-      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+    preparedRepos() {
+      return this.prepareArray(this.repos);
+    },
+    preparedBranches() {
+      return this.prepareArray(this.branches);
+    },
+    preparedCommits() {
+      return this.prepareArray(this.commits, true);
     },
   },
   methods:  {
@@ -267,16 +273,6 @@ export default {
     branchesRules() {
       return this.hasError.branch ? this.t('githubPicker.errors.noBranch') : null;
     },
-    resolveRemovedUser(author) {
-      if (author) {
-        return author;
-      } else {
-        return {
-          login:      'User removed',
-          avatar_url: this.defaultAvatar.avatarSrc
-        };
-      }
-    }
   }
 };
 </script>
@@ -303,7 +299,7 @@ export default {
           v-model="selectedRepo"
           :required="true"
           :label="t('githubPicker.repo.inputLabel')"
-          :options="prepareArray(repos)"
+          :options="preparedRepos"
           :clearable="true"
           :searchable="true"
           :reduce="(e) => e"
@@ -319,7 +315,7 @@ export default {
           v-model="selectedBranch"
           :required="true"
           :label="t('githubPicker.branch.inputLabel')"
-          :options="prepareArray(branches)"
+          :options="preparedBranches"
           :clearable="false"
           :reduce="(e) => e"
           :searchable="true"
@@ -329,9 +325,9 @@ export default {
         />
       </div>
       <!-- Deals with Commits, display & allow to pick from it  -->
-      <div v-if="selectedBranch && commits.length" class="commits-table">
+      <div v-if="selectedBranch && commits.length" class="commits-table mt-20">
         <SortableTable
-          :rows="prepareArray(commits, true)"
+          :rows="preparedCommits"
           :headers="commitsTableHeaders"
           mode="view"
           key-field="sha"
@@ -347,8 +343,15 @@ export default {
 
           <template #cell:author="{row}">
             <div class="sortable-table-avatar">
-              <img :src="resolveRemovedUser(row.author).avatar_url" alt="" />
-              {{ resolveRemovedUser( row.author).login }}
+              <template v-if="row.author">
+                <img :src="row.author.avatar_url" alt="" />
+                <a :href="row.author.html_url" target="_blank" rel="nofollow noopener noreferrer">
+                  {{ row.author.login }}
+                </a>
+              </template>
+              <template v-else>
+                {{ t('githubPicker.tableHeaders.author.unknown') }}
+              </template>
             </div>
           </template>
         </SortableTable>
