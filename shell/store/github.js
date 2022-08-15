@@ -1,18 +1,13 @@
 const GITHUB_BASE_API = 'https://api.github.com';
 
 const fetchGithubAPI = async(endpoint) => {
-  // eslint-disable-next-line no-useless-catch
-  try {
-    const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
+  const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
 
-    if (!response.ok) {
-      throw response;
-    }
-
-    return await response.json();
-  } catch (error) {
-    throw error;
+  if (!response.ok) {
+    throw response;
   }
+
+  return await response.json();
 };
 
 export const actions = {
