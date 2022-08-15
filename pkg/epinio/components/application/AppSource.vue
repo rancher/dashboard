@@ -421,7 +421,7 @@ export default Vue.extend<Data, any, any, any>({
         <LabeledSelect
           v-model="appChart"
           data-testid="epinio_app-source_appchart"
-          label="Application Chart"
+          :label="t('epinio.applications.steps.source.archive.appchart.label')"
           :options="appCharts"
           :mode="mode"
           :clearable="false"

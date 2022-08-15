@@ -4,6 +4,7 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import EpinioMetaResource from './epinio-namespaced-resource';
 import { downloadFile } from '@shell/utils/download';
 import { createEpinioRoute } from '../utils/custom-routing';
+import { epiniofy } from '../store/epinio-store/actions';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -353,6 +354,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
   async create() {
     this.trace('Create the application resource');
+    const { type, id } = epiniofy(this, this.schema, this.type);
+
+    this.type = type;
+    this.id = id;
 
     await this.followLink('create', {
       method:  'post',
@@ -465,9 +470,21 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     this.showStagingLog(stage.id);
   }
 
+  get appShellId() {
+    return `epinio-${ this.id }-app-shell`;
+  }
+
+  get appLogId() {
+    return `epinio-${ this.id }-app-logs`;
+  }
+
+  get stagingLog() {
+    return `epinio-${ this.id }-logs-`;
+  }
+
   showAppShell() {
     this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-app-shell`,
+      id:        this.appShellId,
       label:     `${ this.meta.name } - App Shell`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'chevron-right',
@@ -482,7 +499,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
   showAppLog() {
     this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-app-logs`,
+      id:        this.appLogId,
       label:     `${ this.meta.name } - App Logs`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'file',
@@ -506,7 +523,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     endpoint = endpoint.replace('/applications', '/staging');
 
     this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-logs-${ stageId }`,
+      id:        `${ this.stagingLog }${ stageId }`,
       label:     `${ this.meta.name } - Build - ${ stageId }`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'file',
@@ -517,6 +534,25 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
         ansiToHtml:  true
       }
     }, { root: true });
+  }
+
+  async remove(opt = {} ) {
+    // Closes appShell & appLogs on app Remove.
+    this.$dispatch('wm/close', this.appShellId, { root: true });
+    this.$dispatch('wm/close', this.appLogId, { root: true });
+
+    // Closes all builds logs on app Remove.
+    const allTabs = await this.$rootGetters['wm/allTabs'];
+
+    if ( allTabs.length > 0 ) {
+      allTabs.map((e) => {
+        if (e.id.startsWith(this.stagingLog)) {
+          this.$dispatch('wm/close', e.id, { root: true });
+        }
+      });
+    }
+
+    await super.remove();
   }
 
   async waitForStaging(stageId, iteration = 0) {

@@ -19,7 +19,7 @@ const createId = (schema: any, resource: any) => {
   return name;
 };
 
-const epiniofy = (obj: any, schema: any, type: any) => ({
+export const epiniofy = (obj: any, schema: any, type: any) => ({
   ...obj,
   // Note - these must be applied here ... so things that need an id before classifying have access to them
   id: createId(schema, obj),

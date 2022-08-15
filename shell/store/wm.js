@@ -12,7 +12,8 @@ export const state = function() {
 export const getters = {
   byId: state => (id) => {
     return state.tabs.find(x => x.id === id);
-  }
+  },
+  allTabs: state => state.tabs,
 };
 
 export const mutations = {
