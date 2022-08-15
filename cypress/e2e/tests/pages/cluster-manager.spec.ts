@@ -11,16 +11,56 @@ describe('Cluster Manager', () => {
     cy.login();
   });
 
-  it('can create new RKE2 custom cluster', () => {
-    cy.userPreferences();
-    cy.visit(clusterManagerPath);
-    cy.getId('cluster-manager-list-create').click();
-    cy.getId('cluster-manager-create-rke-switch').click();
-    cy.getId('cluster-manager-create-grid-2-0').click();
-    cy.getId('name-ns-description-name').type(clusterName);
-    cy.getId('rke2-custom-create-save').click();
+  describe('using RKE2', () => {
+    describe('given custom selection', () => {
+      it('can create new cluster', () => {
+        cy.userPreferences();
+        cy.visit(clusterManagerPath);
+        cy.getId('cluster-manager-list-create').click();
+        cy.getId('cluster-manager-create-rke-switch').click();
+        cy.getId('cluster-manager-create-grid-2-0').click();
+        cy.getId('name-ns-description-name').type(clusterName);
+        cy.getId('rke2-custom-create-save').click();
 
-    cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterName }#registration`);
+        cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterName }#registration`);
+      });
+
+      it(`can see cluster's details`, () => {
+        cy.visit(clusterManagerPath);
+        // Click action menu button for the cluster row within the table matching given name
+        cy.contains(clusterName).parent().parent().parent()
+          .within(() => cy.getId('-action-button', '$').click());
+        cy.getId('action-menu-0-item').click();
+
+        cy.contains(`Custom - ${ clusterName }`).should('exist');
+      });
+
+      it('can edit cluster and see changes afterwards', () => {
+        cy.intercept('PUT', `${ clusterRequestBase }/${ clusterName }`).as('saveRequest');
+
+        cy.visit(clusterManagerPath);
+        // Click action menu button for the cluster row within the table matching given name
+        cy.contains(clusterName).parent().parent().parent()
+          .within(() => cy.getId('-action-button', '$').click());
+        cy.getId('action-menu-0-item').click();
+        cy.getId('name-ns-description-description').type(clusterName);
+        cy.getId('rke2-custom-create-save').click();
+
+        cy.wait('@saveRequest').then(() => {
+          cy.visit(`${ clusterManagerPath }/fleet-default/${ clusterName }?mode=edit#basic`);
+          cy.getId('name-ns-description-description').find('input').should('have.value', clusterName);
+        });
+      });
+    });
+
+    it('can view cluster YAML editor', () => {
+      cy.visit(clusterManagerPath);
+      // Click action menu button for the cluster row within the table matching given name
+      cy.contains(clusterName).parent().parent().parent()
+        .within(() => cy.getId('-action-button', '$').click());
+      cy.getId('action-menu-1-item').click();
+      cy.getId('yaml-editor-code-mirror').contains(clusterName);
+    });
   });
 
   it('can create new imported generic cluster', () => {
@@ -33,16 +73,6 @@ describe('Cluster Manager', () => {
     cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterNameImport }#registration`);
   });
 
-  it('can see cluster details', () => {
-    cy.visit(clusterManagerPath);
-    // Click action menu button for the cluster row within the table matching given name
-    cy.contains(clusterName).parent().parent().parent()
-      .within(() => cy.getId('-action-button', '$').click());
-    cy.getId('action-menu-0-item').click();
-
-    cy.contains(`Custom - ${ clusterName }`).should('exist');
-  });
-
   it('can navigate to local cluster explore product', () => {
     const clusterName = 'local';
 
@@ -52,32 +82,6 @@ describe('Cluster Manager', () => {
       .within(() => cy.getId('cluster-manager-list-explore-management').click());
 
     cy.url().should('include', `/c/${ clusterName }/explorer`);
-  });
-
-  it('can edit RKE2 custom cluster and see changes afterwards', () => {
-    cy.intercept('PUT', `${ clusterRequestBase }/${ clusterName }`).as('saveRequest');
-
-    cy.visit(clusterManagerPath);
-    // Click action menu button for the cluster row within the table matching given name
-    cy.contains(clusterName).parent().parent().parent()
-      .within(() => cy.getId('-action-button', '$').click());
-    cy.getId('action-menu-0-item').click();
-    cy.getId('name-ns-description-description').type(clusterName);
-    cy.getId('rke2-custom-create-save').click();
-
-    cy.wait('@saveRequest').then(() => {
-      cy.visit(`${ clusterManagerPath }/fleet-default/${ clusterName }?mode=edit#basic`);
-      cy.getId('name-ns-description-description').find('input').should('have.value', clusterName);
-    });
-  });
-
-  it('can view RKE2 cluster YAML editor', () => {
-    cy.visit(clusterManagerPath);
-    // Click action menu button for the cluster row within the table matching given name
-    cy.contains(clusterName).parent().parent().parent()
-      .within(() => cy.getId('-action-button', '$').click());
-    cy.getId('action-menu-1-item').click();
-    cy.getId('yaml-editor-code-mirror').contains(clusterName);
   });
 
   it('can delete cluster', () => {
