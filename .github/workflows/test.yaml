@@ -2,9 +2,9 @@ name: Tests
 on:
   push:
   pull_request:
-      branches:
-        - master
-        - 'release-*'
+    branches:
+      - master
+      - 'release-*'
   workflow_dispatch:
     environment:
       description: 'Environment to run tests against'
@@ -45,7 +45,7 @@ jobs:
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          name: coverage
           path: coverage/**/*
           
       - name: Upload screenshots
@@ -83,7 +83,7 @@ jobs:
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          name: coverage
           path: coverage/**/*
 
   i18n:
@@ -134,6 +134,11 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '14.x'
+
+      - name: Download Coverage Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: coverage
 
       - name: Merge coverage files
         run: yarn coverage
