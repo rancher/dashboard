@@ -41,6 +41,12 @@ export default {
       hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
     }
 
+    // Fetch RKE template revisions so we can show when an updated template is available
+    // This request does not need to be blocking
+    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
+    }
+
     const res = await allHash(hash);
 
     this.mgmtClusters = res.mgmtClusters;

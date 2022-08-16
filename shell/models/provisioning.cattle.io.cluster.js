@@ -592,6 +592,34 @@ export default class ProvCluster extends SteveModel {
     return this._stateObj;
   }
 
+  get rkeTemplateUpgrade() {
+    if (!this.isRke1 || !this.mgmt) {
+      // Not an RKE! cluster or no management cluster available
+      return false;
+    }
+
+    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
+      // Cluster does not use an RKE template
+      return false;
+    }
+
+    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
+
+    // Get all of the template revisions for this template
+    const revisions = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).filter(t => t.spec.enabled && t.spec.clusterTemplateName === this.mgmt.spec.clusterTemplateName);
+
+    if (revisions.length <= 1) {
+      // Only one template revision
+      return false;
+    }
+
+    revisions.sort((a, b) => {
+      return parseInt(a.metadata.resourceVersion, 10) - parseInt(b.metadata.resourceVersion, 10);
+    }).reverse();
+
+    return revisions[0].id !== clusterTemplateRevisionName ? revisions[0].spec?.displayName : false;
+  }
+
   get _stateObj() {
     if (!this.isRke2) {
       return this.mgmt?.stateObj || this.metadata?.state;
