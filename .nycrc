@@ -1,0 +1,6 @@
+{
+  "reporter": [
+    "json"
+  ],
+  "report-dir": "coverage/e2e"
+}

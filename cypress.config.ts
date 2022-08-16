@@ -29,7 +29,7 @@ export default defineConfig({
   trashAssetsBeforeRuns:  true,
   env:                    {
     baseUrl,
-    coverage:             true,
+    coverage:             false,
     codeCoverage: {
       exclude: [
         'cypress/**/*.*',
