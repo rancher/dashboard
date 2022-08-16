@@ -1,3 +1,11 @@
+---
+name: Bug report
+about: Report a bug with Rancher Dashboard
+title: "[BUG]"
+labels: kind/bug
+assignees: ''
+
+---
 <!--------- For bugs and general issues --------->
 **Setup**
 - Rancher version:
