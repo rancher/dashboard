@@ -170,6 +170,7 @@ export const MANAGEMENT = {
   MANAGED_CHART:                 'management.cattle.io.managedchart',
   USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
+  RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
   RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
 };
 

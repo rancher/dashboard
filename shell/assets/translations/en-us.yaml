@@ -1494,6 +1494,7 @@ cluster:
     machineProvider: Machine Provider
     machinePools: Machine Pools
     machines: Machines
+    rkeTemplate: RKE Template
 
   machinePool:
     name:

@@ -36,6 +36,17 @@ export default class ProvCluster extends SteveModel {
       },
     ].filter(x => !!x.content);
 
+    // RKE Template details
+    const rkeTemplate = this.rkeTemplate;
+
+    if (rkeTemplate) {
+      out.push({
+        label:     this.t('cluster.detail.rkeTemplate'),
+        formatter: 'RKETemplateName',
+        content:   rkeTemplate,
+      });
+    }
+
     if (!this.machineProvider) {
       out.splice(1, 1);
 
@@ -590,6 +601,34 @@ export default class ProvCluster extends SteveModel {
     }
 
     return this._stateObj;
+  }
+
+  get rkeTemplate() {
+    if (!this.isRke1 || !this.mgmt) {
+      // Not an RKE! cluster or no management cluster available
+      return false;
+    }
+
+    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
+      // Cluster does not use an RKE template
+      return false;
+    }
+
+    const clusterTemplateName = this.mgmt.spec.clusterTemplateName.replace(':', '/');
+    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
+    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find(t => t.id === clusterTemplateName);
+    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find(t => t.spec.enabled && t.id === clusterTemplateRevisionName);
+
+    if (!template || !revision) {
+      return false;
+    }
+
+    return {
+      displayName: `${ template.spec?.displayName }/${ revision.spec?.displayName }`,
+      upgrade:     this.rkeTemplateUpgrade,
+      template,
+      revision,
+    };
   }
 
   get rkeTemplateUpgrade() {
