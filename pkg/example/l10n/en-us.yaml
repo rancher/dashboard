@@ -1,0 +1,33 @@
+typeLabel:
+  "example.resource": |-
+    {count, plural,
+      one { Resource }
+      other { Resources }
+    }
+  "example.resource.2": |-
+    {count, plural,
+      one { Resource 2 }
+      other { Resources 2}
+    }
+  "example.cluster": |-
+    {count, plural,
+      one { Example Cluster }
+      other { Example Clusters }
+    }
+typeDescription:
+  example.resource: This is an example of an optional description that can be shown for a resource
+product:
+  example: Example Product
+example:
+  example-resource:
+    detail:
+      tabLabel: Example of some tabs
+      tab1: 
+        label: Tab 1 Title
+        description: Tab 1 Content
+      tab2:
+        label: Tab 2 Title
+        description: Tab 2 Content
+      tab3:
+        label: Tab 3 Title
+        description: Tab 3 Content

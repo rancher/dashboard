@@ -17,7 +17,17 @@ export interface PackageMetadata {
 
 export type VuexStoreObject = { [key: string]: any }
 export type CoreStoreSpecifics = { state: () => VuexStoreObject, getters: VuexStoreObject, mutations: VuexStoreObject, actions: VuexStoreObject }
-export type CoreStoreConfig = { namespace: string, baseUrl?: string, modelBaseClass?: string, supportsStream?: boolean, isClusterStore?: boolean }
+export type CoreStoreConfig = {
+  namespace: string,
+  baseUrl?: string,
+  modelBaseClass?: string,
+  supportsStream?: boolean,
+  /**
+   * Denotes that this store should be treated as a 'cluster' store
+   * When the user navigates to/away from a route containing a cluster id the dashboard will initialise/reset this store
+   */
+  isClusterStore?: boolean
+}
 export type RegisterStore = () => (store: any) => void
 export type UnregisterStore = (store: any) => void
 
