@@ -43,7 +43,6 @@
     "e2e:dev": "START_SERVER_AND_TEST_INSECURE=1 server-test start:dev https-get://localhost:8005 cy:run:sorry",
     "e2e:pre-prod": "yarn docker:local:stop && yarn docker:local:start && DEV_PORTS=true yarn build",
     "e2e:prod": "START_SERVER_AND_TEST_INSECURE=1 server-test start:prod https-get://localhost:8005 cy:run:sorry",
-    "precoverage": "cp coverage/e2e/coverage-final.json coverage/coverage-e2e.json && cp coverage/unit/coverage-final.json coverage/coverage-unit.json",
     "coverage": "npx nyc merge coverage coverage/coverage.json",
     "storybook": "yarn run install-storybook && start-storybook -p 6006",
     "build-storybook": "yarn run install-storybook && build-storybook",

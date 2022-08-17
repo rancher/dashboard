@@ -40,13 +40,16 @@ jobs:
         run: yarn e2e:pre-prod
       
       - name: Run tests
-        run: yarn e2e:prod
+        run: |
+          yarn e2e:prod
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
 
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         with:
-          name: coverage
-          path: coverage/**/*
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          path: coverage-artifacts/**/*
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v2
@@ -54,14 +57,6 @@ jobs:
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
           path: cypress/screenshots
-
-      # Disabled due freezing issues related to the CI machine resources
-      # - name: Upload videos
-      #   uses: actions/upload-artifact@v2
-      #   if: ${{ failure() }}
-      #   with:
-      #     name: ${{github.run_number}}-${{github.run_attempt}}-videos
-      #     path: cypress/videos
 
   unit-test:
     runs-on: ubuntu-latest
@@ -78,13 +73,16 @@ jobs:
         run: yarn install
       
       - name: Run tests
-        run: yarn test:ci
+        run: |
+          yarn test:ci
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
 
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         with:
-          name: coverage
-          path: coverage/**/*
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          path: coverage-artifacts/**/*
 
   i18n:
     runs-on: ubuntu-latest
@@ -138,10 +136,12 @@ jobs:
       - name: Download Coverage Artifacts
         uses: actions/download-artifact@v2
         with:
-          name: coverage
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 
       - name: Merge coverage files
-        run: yarn coverage
+        run: |
+          ls
+          yarn coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
