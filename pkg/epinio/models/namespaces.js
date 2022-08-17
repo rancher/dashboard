@@ -62,6 +62,26 @@ export default class EpinioNamespace extends EpinioMetaResource {
     return true;
   }
 
+  async remove() {
+    if (this.apps && this.apps.length) {
+      const allTabs = await this.$rootGetters['wm/allTabs'];
+
+      this.apps.map((e) => {
+        if ( allTabs.length > 0 ) {
+          allTabs.map((el) => {
+            if (el.id.startsWith(`epinio-${ this.id }/${ e }-logs-`)) {
+              this.$dispatch('wm/close', el.id, { root: true });
+            }
+          });
+        }
+
+        this.$dispatch('wm/close', `epinio-${ this.id }/${ e }-app-logs`, { root: true });
+        this.$dispatch('wm/close', `epinio-${ this.id }/${ e }-app-shell`, { root: true });
+      });
+    }
+    await super.remove();
+  }
+
   get warnDeletionMessage() {
     return this.t('epinio.namespace.deleteWarning');
   }
