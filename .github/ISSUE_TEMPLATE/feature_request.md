@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest a new feature or enhancement for Rancher Dashboard
-title: "<bug title: summarize feature in one line>"
+title: "<feature title: summarize feature in one line>"
 labels: 'kind/enhancement'
 assignees: ''
 
