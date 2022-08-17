@@ -12,6 +12,7 @@ import { saferDump } from '@shell/utils/create-yaml';
 import { set } from '@shell/utils/object';
 
 import Loading from '@shell/components/Loading';
+import Markdown from '@shell/components/Markdown';
 import Wizard from '@shell/components/Wizard';
 
 import PolicyGrid from './PolicyGrid';
@@ -22,6 +23,7 @@ export default ({
 
   components: {
     Loading,
+    Markdown,
     Wizard,
     PolicyGrid,
     Values
@@ -46,8 +48,8 @@ export default ({
 
     this.repository = await this.value.artifactHubRepo();
 
-    if ( this.repository ) {
-      const promises = this.repository.map(pkg => this.packageDetails(pkg));
+    if ( this.repository && this.repository.packages.length > 0 ) {
+      const promises = this.repository.packages.map(pkg => this.packageDetails(pkg));
 
       this.packages = await Promise.all(promises);
     }
@@ -56,7 +58,6 @@ export default ({
       try {
         // Without importing this here the object would maintain the state
         this.questions = await import(/* webpackChunkName: "questions-data" */ '../../questions/questions.json');
-
         const _questions = cloneDeep(JSON.parse(JSON.stringify(this.questions)));
 
         // This object will need to be refactored when helm charts exist for policies
@@ -98,11 +99,18 @@ export default ({
         ready:  false,
         weight: 99
       },
+      stepReadme: {
+        hidden: false,
+        name:   'readme',
+        label:  'Readme',
+        ready:  true,
+        weight: 98
+      },
       stepValues: {
         name:   'values',
         label:  'Values',
         ready:  true,
-        weight: 98
+        weight: 97
       },
     };
   },
@@ -124,11 +132,22 @@ export default ({
       return !!this.type;
     },
 
+    readme() {
+      if ( this.type ) {
+        const pkg = this.packages?.find(p => p.name === this.type);
+
+        return pkg?.readme;
+      }
+
+      return null;
+    },
+
     steps() {
       const steps = [];
 
       steps.push(
         this.stepPolicies,
+        this.stepReadme,
         this.stepValues
       );
 
@@ -246,6 +265,7 @@ export default ({
       if ( type === 'custom' ) {
         this.$set(this, 'hasCustomRegistry', true);
 
+        this.stepReadme.hidden = true;
         this.stepPolicies.ready = true;
         this.$refs.wizard.next();
 
@@ -261,6 +281,7 @@ export default ({
       });
 
       this.policyQuestions();
+      this.stepReadme.hidden = false;
       this.stepPolicies.ready = true;
       this.$refs.wizard.next();
       this.splitType = type.split('policies.kubewarden.io.policies.')[1];
@@ -289,7 +310,7 @@ export default ({
       @finish="finish"
     >
       <template #policies>
-        <PolicyGrid :value="subtypes" @selectType="selectType($event)">
+        <PolicyGrid :value="packages" @selectType="selectType($event)">
           <template #customSubtype>
             <div class="subtype" @click="selectType('custom')">
               <div class="subtype__metadata">
@@ -308,6 +329,10 @@ export default ({
             </div>
           </template>
         </PolicyGrid>
+      </template>
+
+      <template #readme>
+        <Markdown v-if="readme" :value="readme" class="mb-20" />
       </template>
 
       <template #values>

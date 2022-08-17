@@ -82,6 +82,9 @@ export function init($plugin, store) {
     resourceEdit:   CLUSTER_ADMISSION_POLICY,
   });
 
+  /*
+    TODO: remove these when artifacthub integration is complete
+  */
   // These are policies from the Policy Hub
   spoofedType({
     label:   'Policies',

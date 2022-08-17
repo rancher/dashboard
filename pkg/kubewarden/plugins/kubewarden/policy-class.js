@@ -55,6 +55,33 @@ export const TRACE_HEADERS = [
   }
 ];
 
+export const RULE_HEADERS = [
+  {
+    name:  'apiGroups',
+    value: 'apiGroups',
+    label: 'API Groups',
+    sort:  'apiGroups'
+  },
+  {
+    name:  'apiVersions',
+    value: 'apiVersions',
+    label: 'API Versions',
+    sort:  'apiVersions'
+  },
+  {
+    name:  'operations',
+    value: 'operations',
+    label: 'Operations',
+    sort:  'operations'
+  },
+  {
+    name:  'resources',
+    value: 'resources',
+    label: 'Resources',
+    sort:  'resources'
+  },
+];
+
 export const CATEGORY_MAP = [
   {
     label: 'All',
@@ -92,7 +119,7 @@ export const OPERATION_MAP = {
 export const RESOURCE_MAP = {
   pod:     'var(--info)',
   ingress: 'var(--success)',
-  global:  'var(--warning)',
+  '*':     'var(--warning)',
   service: 'var(--error)'
 };
 
@@ -165,29 +192,11 @@ export default class KubewardenModel extends SteveModel {
     return async() => {
       let url = '/meta/proxy/';
       const packages = 'packages/search';
-      const headers = { Accept: 'application/json' };
 
       url += `${ ARTIFACTHUB_ENDPOINT }/${ packages }`;
       url = addParam(url, 'org', 'kubewarden');
 
-      /*
-        TODO: fix issue with 502 gateway error from proxy
-        Failing here:
-          shell/plugins/steve/actions.js - L112
-        Errors from container logs:
-          2022/07/22 15:53:35 [INFO] Failed to proxy: invalid host: artifacthub.io
-          2022/07/22 15:53:35 http: proxy error: unsupported protocol scheme ""
-        Gist of request:
-          https://gist.github.com/jordojordo/8c418ee4f3f729b1b2d646c00ba79cc7
-        Gist of request through axios:
-          https://gist.github.com/jordojordo/147d248c31fa36b378c7206d34814d9e
-      */
-
-      return await this.$dispatch('management/request', {
-        url,
-        headers,
-        redirectUnauthorized: false
-      }, { root: true });
+      return await this.$dispatch('management/request', { url, redirectUnauthorized: false }, { root: true });
     };
   }
 
@@ -199,7 +208,7 @@ export default class KubewardenModel extends SteveModel {
       try {
         const url = `/meta/proxy/${ ARTIFACTHUB_ENDPOINT }/packages/kubewarden/${ pkg.repository.name }/${ pkg.name }`;
 
-        return this.$dispatch('management/request', { url }, { root: true });
+        return this.$dispatch('management/request', { url, redirectUnauthorized: false }, { root: true });
       } catch (e) {
         console.error(`Error fetching pkg: ${ e }`); // eslint-disable-line no-console
       }

@@ -12,13 +12,14 @@ import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Tab from '@shell/components/Tabbed/Tab';
 
+import RulesTable from '../components/RulesTable';
 import TraceTable from '../components/TraceTable';
 
 export default {
   name: 'ClusterAdmissionPolicy',
 
   components: {
-    Banner, DashboardMetrics, Loading, ResourceTabs, Tab, TraceTable
+    Banner, DashboardMetrics, Loading, ResourceTabs, RulesTable, Tab, TraceTable
   },
 
   mixins: [CreateEditView],
@@ -100,6 +101,10 @@ export default {
       return !!this.value.metadata?.relationships;
     },
 
+    rulesRows() {
+      return this.value.spec?.rules;
+    },
+
     tracesRows() {
       return this.value.traceTableRows(this.traces);
     }
@@ -114,16 +119,8 @@ export default {
       <h3>{{ t('namespace.resources') }}</h3>
     </div>
     <ResourceTabs v-model="value" :mode="mode" :need-related="hasRelationships">
-      <Tab v-if="metricsService" name="policy-metrics" label="Metrics" :weight="99">
-        <template #default="props">
-          <DashboardMetrics
-            v-if="props.active"
-            :detail-url="metricsProxy"
-            :summary-url="metricsProxy"
-            :vars="dashboardVars"
-            graph-height="825px"
-          />
-        </template>
+      <Tab name="policy-rules" label="Rules" :weight="99">
+        <RulesTable :rows="rulesRows" />
       </Tab>
       <Tab name="policy-tracing" label="Tracing" :weight="98">
         <TraceTable
@@ -136,6 +133,17 @@ export default {
             </Banner>
           </template>
         </TraceTable>
+      </Tab>
+      <Tab v-if="metricsService" name="policy-metrics" label="Metrics" :weight="97">
+        <template #default="props">
+          <DashboardMetrics
+            v-if="props.active"
+            :detail-url="metricsProxy"
+            :summary-url="metricsProxy"
+            :vars="dashboardVars"
+            graph-height="825px"
+          />
+        </template>
       </Tab>
     </ResourceTabs>
   </div>

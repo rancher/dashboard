@@ -13,7 +13,7 @@ export default {
       default: _CREATE
     },
 
-    // computed subtypes
+    // packages
     value: {
       type:    Array,
       default: () => {
@@ -99,7 +99,7 @@ export default {
 
     resourceColor(type) {
       return this.RESOURCE_MAP[type.toLowerCase()];
-    },
+    }
   }
 };
 </script>
@@ -157,20 +157,32 @@ export default {
 
       <div
         v-for="subtype in filteredSubtypes"
-        :key="subtype.id"
+        :key="subtype.package_id"
         class="subtype"
-        @click="$emit('selectType', subtype.id)"
+        @click="$emit('selectType', subtype.name)"
       >
         <div class="subtype__metadata">
-          <div class="subtype__badge" :style="{ 'background-color': resourceColor(subtype.resourceType) }">
-            <label>{{ subtype.resourceType }}</label>
+          <div class="subtype__badge" :style="{ 'background-color': resourceColor(subtype.data['kubewarden/resources']) }">
+            <label>{{ subtype.data['kubewarden/resources'] === '*' ? 'Global' : subtype.data['kubewarden/resources'] }}</label>
+          </div>
+
+          <div v-if="subtype.signed" class="subtype__signed">
+            <i v-tooltip="t('kubewarden.policyCharts.signedPolicy')" class="icon icon-checkmark" />
+          </div>
+
+          <div v-if="subtype.data['kubewarden/mutation'] === 'true'" class="subtype__mutation">
+            <i v-tooltip="t('kubewarden.policyCharts.mutationPolicy')" class="icon icon-edit" />
+          </div>
+
+          <div v-if="subtype.data['kubewarden/contextAware'] === 'true'" class="subtype__aware">
+            <i v-tooltip="t('kubewarden.policyCharts.contextAware')" class="icon icon-show" />
           </div>
 
           <h4 class="subtype__label">
-            {{ subtype.label }}
+            {{ subtype.display_name }}
           </h4>
 
-          <div v-if="subtype.description" class="subtype__description">
+          <div v-if="subtype.description" class="subtype__description mb-20">
             {{ subtype.description }}
           </div>
         </div>
@@ -260,6 +272,26 @@ $margin: 10px;
   .disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+}
+
+.subtype {
+  &__signed, &__mutation, &__aware {
+    position: absolute;
+    bottom: 5px;
+    padding: 0px 5px;
+  }
+
+  &__signed {
+    left: 10px;
+  }
+
+  &__mutation {
+    right: 10px;
+  }
+
+  &__aware {
+    right: 30px;
   }
 }
 </style>

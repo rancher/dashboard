@@ -104,7 +104,7 @@ export default {
 
         const filtered = schemas?.filter(s => s.attributes?.resource);
 
-        return filtered.map(f => f.attributes.resource);
+        return filtered?.map(f => f.attributes.resource);
       }
 
       return null;
@@ -127,7 +127,7 @@ export default {
 
 <template>
   <div v-if="value" class="rules-row mt-40 mb-20">
-    <div class="">
+    <div>
       <LabeledSelect
         v-model="value.apiGroups"
         :label="t('kubewarden.policyConfig.apiGroups.label')"
@@ -137,7 +137,7 @@ export default {
       />
     </div>
 
-    <div class="">
+    <div>
       <LabeledSelect
         v-model="value.apiVersions"
         :clearable="true"
@@ -154,7 +154,7 @@ export default {
       </LabeledSelect>
     </div>
 
-    <div class="">
+    <div>
       <LabeledSelect
         v-model="value.operations"
         :label="t('kubewarden.policyConfig.operations.label')"
@@ -165,7 +165,7 @@ export default {
       />
     </div>
 
-    <div class="">
+    <div>
       <LabeledSelect
         v-model="value.resources"
         :label="t('kubewarden.policyConfig.resources.label')"
@@ -176,7 +176,7 @@ export default {
       />
     </div>
 
-    <slot name="removeRule" class="" />
+    <slot name="removeRule" />
   </div>
 </template>
 

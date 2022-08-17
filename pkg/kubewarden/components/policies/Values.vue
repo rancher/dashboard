@@ -37,6 +37,10 @@ export default {
       type:     Object,
       required: true
     },
+    hasReadme: {
+      type:     Boolean,
+      default:  false
+    },
     value: {
       type:     Object,
       required: true

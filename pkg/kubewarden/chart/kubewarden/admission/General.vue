@@ -5,6 +5,7 @@ import { KUBEWARDEN } from '../../../types';
 
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 
@@ -29,6 +30,7 @@ export default {
   },
 
   components: {
+    Banner,
     NameNsDescription,
     LabeledInput,
     LabeledSelect,
@@ -36,6 +38,8 @@ export default {
   },
 
   async fetch() {
+    this.policyMode = this.value?.policy?.spec?.mode;
+
     this.policyServers = await this.$store.dispatch('cluster/findAll', { type: KUBEWARDEN.POLICY_SERVER });
 
     if ( this.isGlobal ) {
@@ -52,7 +56,11 @@ export default {
       policy = this.value;
     }
 
-    return { policyServers: [], policy };
+    return {
+      policy,
+      policyMode:     null,
+      policyServers:  []
+    };
   },
 
   computed: {
@@ -75,7 +83,7 @@ export default {
     modeDisabled() {
       // Kubewarden doesn't allow switching a policy from 'protect' to 'monitor'
       if ( !this.isCreate ) {
-        return this.policy.spec.mode === 'protect';
+        return this.policyMode === 'protect';
       }
 
       return false;
@@ -91,6 +99,14 @@ export default {
       }
 
       return this.policyServers || [];
+    },
+
+    showModeBanner() {
+      if ( !this.isCreate && this.policyMode !== this.value?.policy?.spec?.mode ) {
+        return true;
+      }
+
+      return false;
     }
   }
 };
@@ -155,6 +171,7 @@ export default {
           :labels="['Monitor', 'Protect']"
           :tooltip="t('kubewarden.policyConfig.mode.tooltip')"
         />
+        <Banner v-if="showModeBanner" color="warning" :label="t('kubewarden.policyConfig.mode.warning')" />
       </div>
     </div>
     <template v-if="isGlobal">

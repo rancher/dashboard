@@ -31,8 +31,10 @@ export default {
   computed: {
     headers() {
       return this.$store.getters['type-map/headersFor'](this.schema);
-    },
+    }
+  },
 
+  methods: {
     hasNamespaceSelector(row) {
       return row.namespaceSelector;
     },
@@ -55,7 +57,7 @@ export default {
             <span class="text-capitalize">{{ row.spec.mode }}</span>
             <i
               v-if="!hasNamespaceSelector(row)"
-              :[v-tooltip.bottom]="t('kubewarden.admissionPolicy.namespaceWarning')"
+              v-tooltip.bottom="t('kubewarden.admissionPolicy.namespaceWarning')"
               class="icon icon-warning"
             />
           </span>
