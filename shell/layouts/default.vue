@@ -69,6 +69,10 @@ export default {
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
+    namespaces() {
+      return this.$store.getters['activeNamespaceCache'];
+    },
+
     dev:            mapPref(DEV),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
 
@@ -212,6 +216,13 @@ export default {
     },
 
     namespaceMode(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
+    },
+
+    namespaces(a, b) {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
@@ -531,8 +542,8 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
-    <AwsComplianceBanner />
-    <AzureWarning />
+    <AwsComplianceBanner v-if="managementReady" />
+    <AzureWarning v-if="managementReady" />
     <div v-if="managementReady" class="dashboard-content">
       <Header />
       <nav v-if="clusterReady" class="side-nav">

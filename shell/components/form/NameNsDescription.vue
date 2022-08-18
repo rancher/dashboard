@@ -195,16 +195,20 @@ export default {
       description = metadata?.annotations?.[DESCRIPTION];
     }
 
+    const inStore = this.$store.getters['currentStore']();
+    const nsSchema = this.$store.getters[`${ inStore }/schemaFor`](NAMESPACE);
+
     return {
       namespace,
       name,
       description,
-      createNamespace: false
+      createNamespace: false,
+      nsSchema
     };
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
+    ...mapGetters(['isVirtualCluster', 'currentCluster']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -249,18 +253,22 @@ export default {
         });
       }
 
-      return [
-        {
+      const out = [];
+
+      if (this.canCreateNamespace) {
+        out.push({
           label: this.t('namespace.createNamespace'),
           value: ''
-        },
-        {
-          label:    'divider',
-          disabled: true,
-          kind:     'divider'
-        },
-        ...sortedByLabel
-      ];
+        });
+      }
+      out.push({
+        label:    'divider',
+        disabled: true,
+        kind:     'divider'
+      },
+      ...sortedByLabel);
+
+      return out;
     },
 
     isView() {
@@ -279,6 +287,11 @@ export default {
 
       return `span-${ span }`;
     },
+
+    canCreateNamespace() {
+      // Check if user can push to namespaces... and as the ns is outside of a project restrict to admins and cluster owners
+      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster.canUpdate;
+    }
   },
 
   watch: {

@@ -474,7 +474,7 @@ export default {
           >
             <ToggleSwitch
               v-model="provisioner"
-              :data-testid="componentTestId + '-rke-switch'"
+              data-testid="cluster-manager-create-rke-switch"
               class="rke-switch"
               off-value="rke1"
               :off-label="t('cluster.toggle.v1')"
@@ -490,7 +490,7 @@ export default {
           name-field="label"
           side-label-field="tag"
           :color-for="colorFor"
-          :component-testid="componentTestId + '-grid-' + i"
+          :component-testid="'cluster-manager-create-grid-' + i"
           @clicked="clickedType"
         />
       </div>

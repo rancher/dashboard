@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
-import PodAffinity from '@shell/components/form/PodAffinity';
+// import PodAffinity from '@shell/components/form/PodAffinity';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -26,7 +26,7 @@ export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-    Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity
+    Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity
   },
 
   mixins: [CreateEditView],
@@ -538,7 +538,7 @@ export default {
           @input="updateNodeScheduling"
         />
 
-        <h3 class="mt-20">
+        <!-- <h3 class="mt-20">
           {{ t("workload.container.titles.podScheduling") }}
         </h3>
         <PodAffinity
@@ -547,7 +547,7 @@ export default {
           :nodes="allNodeObjects"
           :namespaces="namespaces"
           @update="updateScheduling"
-        />
+        /> -->
 
         <h3 class="mt-20">
           {{ t("cluster.credential.harvester.userData.title") }}
