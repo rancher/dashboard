@@ -20,6 +20,10 @@ export function matchRuleIsPopulated(rule) {
     return true;
   }
 
+  if ( rule.namespaces?.length ) {
+    return true;
+  }
+
   return false;
 }
 

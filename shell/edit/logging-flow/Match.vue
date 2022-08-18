@@ -27,6 +27,16 @@ export default {
       type:    Array,
       default: () => [],
     },
+
+    namespaces: {
+      type:    Array,
+      default: () => [],
+    },
+
+    isClusterFlow: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   methods: {
@@ -90,6 +100,27 @@ export default {
           :close-on-select="false"
           placement="top"
         />
+      </div>
+    </div>
+    <div v-if="isClusterFlow">
+      <div class="spacer"></div>
+      <h3>
+        Limit to specific namespaces
+      </h3>
+      <div class="row">
+        <div class="col span-12">
+          <Select
+            v-model="value.namespaces"
+            class="lg"
+            :options="namespaces"
+            placeholder="Default: Any namespace"
+            :multiple="true"
+            :taggable="true"
+            :clearable="true"
+            :close-on-select="false"
+            placement="top"
+          />
+        </div>
       </div>
     </div>
   </div>
