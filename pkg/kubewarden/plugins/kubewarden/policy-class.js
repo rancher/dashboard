@@ -7,7 +7,6 @@ import { KUBEWARDEN } from '../../types';
 import { SERVICE } from '@shell/config/types';
 import { proxyUrlFromParts } from '@shell/models/service';
 import { findBy, isArray } from '@shell/utils/array';
-import { isEmpty } from '@shell/utils/object';
 import { addParam } from '@shell/utils/url';
 
 export const TRACE_HEADERS = [
@@ -326,9 +325,10 @@ export default class KubewardenModel extends SteveModel {
 
   // Determines if a policy is targeting rancher specific namespaces (which happens by default)
   get namespaceSelector() {
-    const out = filter(this.spec?.namespaceSelector?.matchExpressions, matches(NAMESPACE_SELECTOR));
+    const rancherNs = RANCHER_NAMESPACES.find(ns => ns === this.metadata?.namespace);
+    const selector = filter(this.spec?.namespaceSelector?.matchExpressions, matches(NAMESPACE_SELECTOR));
 
-    if ( !isEmpty(out) ) {
+    if ( rancherNs || selector.length > 0 ) {
       return true;
     }
 

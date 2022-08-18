@@ -36,7 +36,7 @@ export default {
 
   computed: {
     hasSettings() {
-      return !!this.value?.policy?.spec?.settings && !isEmpty(this.value.policy.spec.settings);
+      return !!this.value?.policy?.spec?.settings && !isEmpty(this.value?.policy?.spec?.settings);
     },
 
     targetNamespace() {

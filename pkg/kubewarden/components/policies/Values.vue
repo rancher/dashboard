@@ -110,11 +110,11 @@ export default {
       const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
       const cloned = this.chartValues?.policy ? clone(this.chartValues.policy) : this.value;
 
-      this.yamlValues = createYaml(schemas, this.value.type, cloned);
+      this.yamlValues = createYaml(schemas, this.value?.type, cloned);
     },
 
     async loadValuesComponent() {
-      if ( this.value.haveComponent('kubewarden/admission') ) {
+      if ( this.value?.haveComponent('kubewarden/admission') ) {
         this.valuesComponent = this.value.importComponent('kubewarden/admission');
         await this.valuesComponent();
 
