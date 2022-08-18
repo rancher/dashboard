@@ -2,6 +2,8 @@
 
 This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
 
+> Note: Docusaurus 2 expected node version `>=16.14`.
+
 
 ### Installation
 
@@ -29,8 +31,11 @@ $ docs:build
 
 ### Adding new documents
 
+Guide for [Docusaurus 2](https://docusaurus.io/docs/sidebar).
+
 > Note: We are using `sidebars.js` file to generated custome sidebar.
 
 1. Create a Markdown file, greeting.md, and place it under the docs directory.
 
 2. Add file name in `sidebars.js`.
+   
