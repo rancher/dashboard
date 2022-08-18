@@ -8,5 +8,5 @@ export default {
 </script>
 
 <template>
-  <ResourceDetail />
+  <ResourceDetail component-testid="cluster-manager-create" />
 </template>

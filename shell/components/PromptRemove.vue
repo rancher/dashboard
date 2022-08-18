@@ -15,6 +15,16 @@ export default {
   components: {
     Card, Checkbox, AsyncButton
   },
+  props: {
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'prompt-remove'
+    }
+  },
   data() {
     const { resource } = this.$route.params;
 
@@ -353,7 +363,13 @@ export default {
             </div>
           </template>
         </div>
-        <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
+        <input
+          v-if="needsConfirm"
+          id="confirm"
+          v-model="confirmName"
+          :data-testid="componentTestid + '-input'"
+          type="text"
+        />
         <div class="text-warning mb-10 mt-10">
           {{ warning }}
         </div>
@@ -370,7 +386,13 @@ export default {
           {{ t('generic.cancel') }}
         </button>
         <div class="spacer"></div>
-        <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="deleteDisabled" @click="remove" />
+        <AsyncButton
+          mode="delete"
+          class="btn bg-error ml-10"
+          :disabled="deleteDisabled"
+          :data-testid="componentTestid + '-confirm-button'"
+          @click="remove"
+        />
       </template>
     </Card>
   </modal>
