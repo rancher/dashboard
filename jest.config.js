@@ -33,7 +33,7 @@ module.exports = {
     '<rootDir>/shell/scripts/',
   ],
   coverageDirectory:        '<rootDir>/coverage/unit',
-  coverageReporters:        ['json'],
+  coverageReporters:        ['json', 'text-summary'],
   globals:                  { 'ts-jest': { isolatedModules: true } },
   preset:                   'ts-jest'
 };
