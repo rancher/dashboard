@@ -2522,13 +2522,39 @@ logging:
       doesntExistTooltip: This cluster output doesn't exist
       label: Cluster Outputs
     matches:
+      banner: Configure which container logs will be pulled from
+      unsupportedConfig: This resource contains a match configuration that the form editor does not support. Please use YAML edit.
       label: Matches
       addSelect: Add Include Rule
       addExclude: Add Exclude Rule
+      pods:
+        title:
+          include: Include Pods
+          exclude: Exclude Pods
+        keyLabel: Pod Label Key
+        valueLabel: Pod Label Value
+        addLabel: Add Pod
+      nodes:
+        title:
+          include: Limit to specific nodes
+          exclude: Exclude specific nodes
+        placeholder: "Default: Any node"
+      containerNames:
+        title:
+          include: Limit to specific container names
+          exclude: Exclude specific container names
+        placeholder: "Default: Any container"
+      namespaces:
+        title:
+          include: Limit to specific namespaces
+          exclude: Exclude specific namespaces
+        placeholder: "Default: Any namespace"
+
     filters:
       label: Filters
     outputs:
       doesntExistTooltip: This output doesn't exist
+      sameNamespaceError: Output must reside in same namespace as the flow.
       label: Outputs
   install:
     k3sContainerEngine: K3S Container Engine

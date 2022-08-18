@@ -53,19 +53,19 @@ export default {
   <div>
     <KeyValue
       v-model="value.labels"
-      :title="value.select ? 'Include Pods' : 'Exclude Pods'"
+      :title="value.select ? t('logging.flow.matches.pods.title.include') : t('logging.flow.matches.pods.title.exclude')"
       :mode="mode"
       :initial-empty-row="true"
       :read-allowed="false"
       :title-add="true"
       protip=""
-      key-label="Pod Label Key"
-      value-label="Pod Label Value"
-      add-label="Add Pod"
+      :key-label="t('logging.flow.matches.pods.keyLabel')"
+      :value-label="t('logging.flow.matches.pods.valueLabel')"
+      :add-label="t('logging.flow.matches.pods.addLabel')"
     />
     <div class="spacer" />
     <h3>
-      Limit to specific nodes
+      {{ value.select ? t('logging.flow.matches.nodes.title.include') : t('logging.flow.matches.nodes.title.exclude') }}
     </h3>
     <div class="row">
       <div class="col span-12">
@@ -73,7 +73,7 @@ export default {
           v-model="value.hosts"
           class="lg"
           :options="nodes"
-          placeholder="Default: Any node"
+          :placeholder="t('logging.flow.matches.nodes.placeholder')"
           :multiple="true"
           :searchable="true"
           :taggable="true"
@@ -85,7 +85,7 @@ export default {
     </div>
     <div class="spacer" />
     <h3>
-      Limit to specific container names
+      {{ value.select ? t('logging.flow.matches.containerNames.title.include') : t('logging.flow.matches.containerNames.title.exclude') }}
     </h3>
     <div class="row">
       <div class="col span-12">
@@ -93,7 +93,7 @@ export default {
           v-model="value.container_names"
           class="lg"
           :options="containers"
-          placeholder="Default: Any container"
+          :placeholder="t('logging.flow.matches.containerNames.placeholder')"
           :multiple="true"
           :taggable="true"
           :clearable="true"
@@ -103,9 +103,9 @@ export default {
       </div>
     </div>
     <div v-if="isClusterFlow">
-      <div class="spacer"></div>
+      <div class="spacer" />
       <h3>
-        Limit to specific namespaces
+        {{ value.select ? t('logging.flow.matches.namespaces.title.include') : t('logging.flow.matches.namespaces.title.exclude') }}
       </h3>
       <div class="row">
         <div class="col span-12">
@@ -113,7 +113,7 @@ export default {
             v-model="value.namespaces"
             class="lg"
             :options="namespaces"
-            placeholder="Default: Any namespace"
+            :placeholder="t('logging.flow.matches.namespaces.placeholder')"
             :multiple="true"
             :taggable="true"
             :clearable="true"

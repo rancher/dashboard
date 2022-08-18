@@ -370,7 +370,7 @@ export default {
         <Banner
           color="info"
           class="mt-0"
-          label="Configure which container logs will be pulled from"
+          :label="t('logging.flow.matches.banner')"
         />
         <ArrayListGrouped
           v-model="matches"
@@ -417,7 +417,7 @@ export default {
       >
         <Banner
           v-if="value.type !== LOGGING.CLUSTER_FLOW"
-          label="Output must reside in same namespace as the flow."
+          :label="t('logging.flow.outputs.sameNamespaceError')"
           color="info"
         />
         <LabeledSelect
@@ -480,7 +480,7 @@ export default {
   </CruResource>
   <Banner
     v-else
-    label="This resource contains a match configuration that the form editor does not support.  Please use YAML edit."
+    :label="t('logging.flow.matches.unsupportedConfig')"
     color="error"
   />
 </template>
