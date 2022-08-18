@@ -16,7 +16,7 @@ $ yarn docs:install
 > Note this command will open a web browser on the locally served site (http://localhost:3000)
 
 ```
-$ docs:start
+$ yarn docs:start
 ```
 
 This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
@@ -26,12 +26,12 @@ This command starts a local development server and opens up a browser window. Mo
 ### Build
 
 ```
-$ docs:build
+$ yarn docs:build
 ```
 
 ### Adding new documents
 
-Guide for [Docusaurus 2](https://docusaurus.io/docs/sidebar).
+Guide for [sidebars.js](https://docusaurus.io/docs/sidebar).
 
 > Note: We are using `sidebars.js` file to generated custome sidebar.
 
