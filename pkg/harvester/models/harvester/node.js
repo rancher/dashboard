@@ -192,7 +192,7 @@ export default class HciNode extends HarvesterResource {
   }
 
   cordon() {
-    this.doAction('cordon', {});
+    this.doActionGrowl('cordon', {});
   }
 
   uncordon() {
