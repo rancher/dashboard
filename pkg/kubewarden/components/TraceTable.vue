@@ -39,10 +39,10 @@ export default {
 
     rowsPerPage() {
       if ( !!this.isPolicyServer ) {
-        return 100;
+        return 50;
       }
 
-      return 10;
+      return 25;
     }
   },
 

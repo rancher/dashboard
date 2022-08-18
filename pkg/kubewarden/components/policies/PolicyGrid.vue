@@ -280,6 +280,7 @@ $margin: 10px;
     position: absolute;
     bottom: 5px;
     padding: 0px 5px;
+    border: 1px solid var(--border);
   }
 
   &__signed {

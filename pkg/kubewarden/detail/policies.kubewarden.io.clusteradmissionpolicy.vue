@@ -123,9 +123,7 @@ export default {
         <RulesTable :rows="rulesRows" />
       </Tab>
       <Tab name="policy-tracing" label="Tracing" :weight="98">
-        <TraceTable
-          :rows="tracesRows"
-        >
+        <TraceTable :rows="tracesRows">
           <template #traceBanner>
             <Banner v-if="emptyTraces" color="warning">
               <span v-if="!jaegerService" v-html="t('kubewarden.tracing.noJaeger', {}, true)" />

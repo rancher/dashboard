@@ -74,6 +74,14 @@ export default {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
 
+    emptyTraces() {
+      if ( this.traces ) {
+        return !this.traces.find(t => t.data.length);
+      }
+
+      return true;
+    },
+
     tracesRows() {
       return this.value.traceTableRows(this.traces);
     }
@@ -147,9 +155,9 @@ export default {
             :rows="tracesRows"
           >
             <template #traceBanner>
-              <Banner v-if="!traces" color="warning">
+              <Banner v-if="emptyTraces" color="warning">
                 <span v-if="!jaegerService" v-html="t('kubewarden.tracing.noJaeger', {}, true)" />
-                <span>{{ t('kubewarden.tracing.noRelatedTraces') }}</span>
+                <span v-else>{{ t('kubewarden.tracing.noRelatedTraces') }}</span>
               </Banner>
             </template>
           </TraceTable>
