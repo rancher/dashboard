@@ -16,6 +16,9 @@ For the cypress test runner to consume the UI, you should specify the environmen
   - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` password (do not pick `admin`)
 - `TEST_BASE_URL` // URL used by Cypress to run the tests, default `https://localhost:8005`
 - `TEST_SKIP_SETUP` // Avoid to execute bootstrap setup tests for already initialized Rancher instances
+- Dashboard
+  - `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
+  - `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
 
 ### Development with watch/dev
 
@@ -27,6 +30,30 @@ While writing the tests, you can simply run Rancher dashboard and then open the 
 The Cypress dashboard will contain the options and the list of test suites. These will automatically re-run if they are altered (hot reloading).
 
 For further information, consult [official documentation](https://docs.cypress.io/guides/guides/command-line#cypress-open).
+
+### E2E Dashboard 
+
+#### Self-hosted: Sorry Cypress
+
+Link to the dashboard: http://139.59.134.103:8080/
+
+E2E tests can be added and displayed in a dashboard by defining the project ID with the env var `TEST_PROJECT_ID`, then run the script:
+
+```bash
+yarn cy:run:sorry
+```
+
+#### Cypress Dashboard
+
+E2E tests can be displayed in Cypress dashboard by defining the project ID with the env var `TEST_PROJECT_ID`, then run the script by passing the parameters
+
+```bash
+yarn cy:run --record --key YOUR_RECORD_KEY_HERE
+```
+
+These values are provided when you create a new project within Cypress dashboard or within `Project settings`.
+
+It's also possible to run a workflow in GitHub Actions E2E test using these values to record on personal dashboards.
 
 ### Local and CI/prod run
 
@@ -41,7 +68,7 @@ It is possible to start the project and run all the tests at once with a single 
 
 As Cypress common practice, some custom commands have been created within `command.ts` file to simplify the development process. Please consult Cypress documentation for more details about when and how to use them.
 
-Worth mentioning the `cy.getId()` command, as it is mainly used to select elements. This would require to add `data-testid` to your element inside the markup.
+Worth mentioning the `cy.getId()` and `cy.findId()` commands, as it is mainly used to select elements. This would require to add `data-testid` to your element inside the markup and optionally matchers.
 
 ### Writing tests
 
@@ -79,6 +106,53 @@ describe.only('Burger Side Nav Menu', () => {
 ```ts
 it.only('Opens and closes on menu icon click', () => {
 ```
+
+### Data testid naming
+
+While defining naming, always consider deterministic usage and rely on specific values. For cases where the content is required, e.g. select name specific elements as in cluster selection, consider use the `contain()` method. Further guideline and explanation in the official documentation related section.
+
+In case of complex component, define a prefix for your `data-testid` with a the prop `componentTestid` and a default value. This will help you to define unique value and composable identifier in case of more elements, as well to avoid custom term for each test if not necessary, e.g. no multiple elements.
+
+E.g. given the action menu:
+
+```ts
+/**
+ * Inherited global identifier prefix for tests
+ * Define a term based on the parent component to avoid conflicts on multiple components
+ */
+componentTestid: {
+  type:    String,
+  default: 'action-menu'
+}
+```
+
+```html
+<li
+  v-for="(option, i) in options"
+  :key="opt.action"
+  :data-testid="componentTestid + '-' + i + '-item'"
+>
+```
+
+### Debugging
+
+To summarize what [defined in the documentation](https://docs.cypress.io/guides/guides/debugging), the following modalities of debugging are provided:
+
+- `debugger` flag
+- `.debug()` as chained command
+- `cy.pause()` for analyzing the state of the test
+- Inspect commands in the Cypress dashboard to view the logs
+- `.then(console.log)` to append the log to the resolved promise
+
+### Cypress Dashboard
+
+E2E tests can be displayed in Cypress dashboard by adding the key `"projectId": "YOUR_PROJECT_ID_HERE"` to the `cypress.json` file and run the script by passing the parameters
+
+```bash
+yarn cy:run  --record --key YOUR_RECORD_KEY_HERE
+```
+
+These values are provided when you create a new project within Cypress dashboard or within `Project settings`.
 
 ## Unit tests
 

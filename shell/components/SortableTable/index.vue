@@ -1,9 +1,11 @@
 <script>
+import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
+import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
@@ -59,7 +61,7 @@ export const COLUMN_BREAKPOINTS = {
 export default {
   name:       'SortableTable',
   components: {
-    THead, Checkbox, ActionDropdown
+    THead, Checkbox, AsyncButton, ActionDropdown
   },
   mixins: [
     filtering,
@@ -291,11 +293,21 @@ export default {
     getCustomDetailLink: {
       type:    Function,
       default: null
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'sortable-table'
     }
   },
 
   data() {
     return {
+      currentPhase:        ASYNC_BUTTON_STATES.WAITING,
       expanded:            {},
       searchQuery:         '',
       eventualSearchQuery: '',
@@ -314,8 +326,6 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main.on('scroll', this._onScroll);
-
-    this.updateLiveAndDelayed();
   },
 
   beforeDestroy() {
@@ -330,17 +340,69 @@ export default {
     $main.off('scroll', this._onScroll);
   },
 
-  updated() {
-    this.updateLiveAndDelayed();
-  },
-
   watch: {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
     }, 200),
+
+    descending(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    searchQuery(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    sortFields(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    groupBy(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    namespaces(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    page(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    // Ensure we update live and delayed columns on first load
+    initalLoad(neu, old) {
+      if (neu && !old) {
+        this._didinit = true;
+        this.$nextTick(() => this.updateLiveAndDelayed());
+      }
+    },
+
+    isManualRefreshLoading(neu, old) {
+      this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+      // setTimeout is needed so that this is pushed further back on the JS computing queue
+      // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
+      setTimeout(() => {
+        this.watcherUpdateLiveAndDelayed(neu, old);
+      }, 500);
+    }
+  },
+
+  created() {
+    this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
   },
 
   computed: {
+    ...mapGetters({ isTooManyItemsToAutoUpdate: 'resource-fetch/isTooManyItemsToAutoUpdate' }),
+    ...mapGetters({ isManualRefreshLoading: 'resource-fetch/manualRefreshIsLoading' }),
+    namespaces() {
+      return this.$store.getters['activeNamespaceCache'];
+    },
+
+    initalLoad() {
+      return !this.loading && !this._didinit && this.rows?.length;
+    },
+
     fullColspan() {
       let span = 0;
 
@@ -531,7 +593,9 @@ export default {
   },
 
   methods: {
-
+    refreshTableData() {
+      this.$store.dispatch('resource-fetch/doManualRefresh');
+    },
     get,
     dasherize,
 
@@ -547,6 +611,12 @@ export default {
       }
     },
 
+    watcherUpdateLiveAndDelayed(neu, old) {
+      if (neu !== old) {
+        this.$nextTick(() => this.updateLiveAndDelayed());
+      }
+    },
+
     updateLiveAndDelayed() {
       if (this.hasLiveColumns) {
         this.updateLiveColumns();
@@ -558,6 +628,8 @@ export default {
     },
 
     updateDelayedColumns() {
+      clearTimeout(this._delayedColumnsTimer);
+
       if (!this.$refs.column || this.pagedRows.length === 0) {
         return;
       }
@@ -590,6 +662,8 @@ export default {
     },
 
     updateLiveColumns() {
+      clearTimeout(this._liveColumnsTimer);
+
       if (!this.$refs.column || !this.hasLiveColumns || this.pagedRows.length === 0) {
         return;
       }
@@ -777,6 +851,7 @@ export default {
                 class="btn role-primary"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
+                :data-testid="componentTestid + '-' + act.action"
                 @click="applyTableAction(act, null, $event)"
                 @mouseover="setBulkActionOfInterest(act)"
                 @mouseleave="setBulkActionOfInterest(null)"
@@ -819,8 +894,15 @@ export default {
             </template>
           </slot>
         </div>
-        <div v-if="$slots['header-middle'] && $slots['header-middle'].length" class="middle">
+        <div v-if="isTooManyItemsToAutoUpdate || $slots['header-middle'] && $slots['header-middle'].length" class="middle">
           <slot name="header-middle" />
+          <AsyncButton
+            v-if="isTooManyItemsToAutoUpdate"
+            v-tooltip="t('performance.manualRefresh.buttonTooltip')"
+            mode="refresh"
+            :current-phase="currentPhase"
+            @click="debouncedRefreshTableData"
+          />
         </div>
 
         <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
@@ -908,9 +990,21 @@ export default {
               <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
               because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
               the value of :class changes. -->
-              <tr :key="row.key" class="main-row" :class="{ 'has-sub-row': row.showSubRow}" :data-node-id="row.key" :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest">
+              <tr
+                :key="row.key"
+                class="main-row"
+                :data-testid="componentTestid + '-' + i + '-row'"
+                :class="{ 'has-sub-row': row.showSubRow}"
+                :data-node-id="row.key"
+                :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest"
+              >
                 <td v-if="tableActions" class="row-check" align="middle">
-                  {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="row.key" :value="selectedRows.includes(row.row)" />
+                  {{ row.mainRowKey }}<Checkbox
+                    class="selection-checkbox"
+                    :data-node-id="row.key"
+                    :data-testid="componentTestid + '-' + i + '-checkbox'"
+                    :value="selectedRows.includes(row.row)"
+                  />
                 </td>
                 <td v-if="subExpandColumn" class="row-expand" align="middle">
                   <i
@@ -988,6 +1082,7 @@ export default {
                     <button
                       :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
                       :ref="`actionButton${i}`"
+                      :data-testid="componentTestid + '-' + i + '-action-button'"
                       aria-haspopup="true"
                       aria-expanded="false"
                       type="button"
@@ -1011,6 +1106,7 @@ export default {
             <tr
               v-if="row.row.stateDescription"
               :key="row.row[keyField] + '-description'"
+              :data-testid="componentTestid + '-' + i + '-row-description'"
               class="state-description sub-row"
               @mouseenter="onRowMouseEnter"
               @mouseleave="onRowMouseLeave"
@@ -1285,36 +1381,36 @@ $spacing: 10px;
   }
 }
 
- .for-inputs{
-   & TABLE.sortable-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: $spacing;
+.for-inputs{
+  & TABLE.sortable-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: $spacing;
 
-    >TBODY>TR>TD, >THEAD>TR>TH {
-      padding-right: $spacing;
-      padding-bottom: $spacing;
+  >TBODY>TR>TD, >THEAD>TR>TH {
+    padding-right: $spacing;
+    padding-bottom: $spacing;
 
-      &:last-of-type {
-        padding-right: 0;
-      }
-    }
-
-    >TBODY>TR:first-of-type>TD {
-      padding-top: $spacing;
-    }
-
-    >TBODY>TR:last-of-type>TD {
-      padding-bottom: 0;
+    &:last-of-type {
+      padding-right: 0;
     }
   }
 
-    &.edit, &.create, &.clone {
-     TABLE.sortable-table>THEAD>TR>TH {
-      border-color: transparent;
-      }
+  >TBODY>TR:first-of-type>TD {
+    padding-top: $spacing;
+  }
+
+  >TBODY>TR:last-of-type>TD {
+    padding-bottom: 0;
+  }
+}
+
+  &.edit, &.create, &.clone {
+    TABLE.sortable-table>THEAD>TR>TH {
+    border-color: transparent;
     }
   }
+}
 
 .sortable-table-header {
   position: relative;
@@ -1384,6 +1480,22 @@ $spacing: 10px;
   .middle {
     grid-area: middle;
     white-space: nowrap;
+
+    .icon.icon-backup.animate {
+      animation-name: spin;
+      animation-duration: 1000ms;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+
+    @keyframes spin {
+      from {
+        transform:rotate(0deg);
+      }
+      to {
+        transform:rotate(360deg);
+      }
+    }
   }
 
   .search {

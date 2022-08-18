@@ -63,6 +63,15 @@ export default {
       type:    PointerEvent,
       default: null
     },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'action-menu'
+    }
   },
 
   data() {
@@ -224,10 +233,11 @@ export default {
     <div class="background" @click="hide" @contextmenu.prevent></div>
     <ul class="list-unstyled menu" :style="style">
       <li
-        v-for="opt in menuOptions"
+        v-for="(opt, i) in menuOptions"
         :key="opt.action"
         :disabled="opt.disabled"
         :class="{divider: opt.divider}"
+        :data-testid="componentTestid + '-' + i + '-item'"
         @click="execute(opt, $event)"
       >
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />

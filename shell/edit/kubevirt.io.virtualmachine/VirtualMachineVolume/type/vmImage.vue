@@ -73,7 +73,7 @@ export default {
 
   computed: {
     imagesOption() {
-      return this.images.filter(c => c.isReady).map( (I) => {
+      return this.images.filter(c => c.isReady).sort((a, b) => a.creationTimestamp > b.creationTimestamp ? -1 : 1).map( (I) => {
         return {
           label: `${ I.metadata.namespace }/${ I.spec.displayName }`,
           value: I.id
@@ -229,6 +229,7 @@ export default {
             :label="t('harvester.fields.image')"
             :options="imagesOption"
             :mode="mode"
+            :searchable="true"
             :required="validateRequired"
             @input="onImageChange"
           />

@@ -48,6 +48,9 @@ export default {
   },
 
   methods: {
+    convertToString(event) {
+      this.value.value = `${ event.target.value }`;
+    },
     saveSettings(done) {
       const t = this.$store.getters['i18n/t'];
 
@@ -128,6 +131,14 @@ export default {
           v-model="value.value"
           v-focus
           :min-height="254"
+        />
+      </div>
+      <div v-else-if="setting.kind === 'integer'">
+        <input
+          :value="parseInt(value.value, 10)"
+          type="number"
+          min="0"
+          @input="convertToString($event)"
         />
       </div>
       <div v-else>

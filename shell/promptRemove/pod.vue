@@ -36,7 +36,7 @@ export default {
   data() {
     return {
       errors:      [],
-      forceDelete: true
+      forceDelete: false
     };
   },
 

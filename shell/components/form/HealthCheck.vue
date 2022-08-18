@@ -54,7 +54,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div>
       <div class="row">
@@ -68,7 +68,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div class="row">
       <Probe

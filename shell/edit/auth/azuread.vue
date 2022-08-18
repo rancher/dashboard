@@ -113,7 +113,7 @@ export default {
 
     needsUpdate() {
       return (
-        get(this.value, `metadata.annotations."${ AZURE_MIGRATED }"`) !== 'true'
+        get(this.model, `annotations."${ AZURE_MIGRATED }"`) !== 'true'
       );
     },
 
@@ -151,7 +151,8 @@ export default {
           this.$set(this, 'applicationSecret', this.model.applicationSecret);
         }
       }
-    }
+    },
+
   },
 
   methods: {

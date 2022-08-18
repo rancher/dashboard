@@ -40,5 +40,7 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :schema="schema" :rows="relatedWorkloadRows" :headers="relatedWorkloadHeaders" />
+  <div>
+    <ResourceTable :schema="schema" :rows="relatedWorkloadRows" :headers="relatedWorkloadHeaders" />
+  </div>
 </template>

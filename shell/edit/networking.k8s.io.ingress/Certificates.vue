@@ -23,6 +23,10 @@ export default {
     certificates: {
       type:    Array,
       default: () => []
+    },
+    rules: {
+      default: () => ({ host: [] }),
+      type:    Object,
     }
   },
   data() {
@@ -94,6 +98,7 @@ export default {
           class="mb-20"
           :mode="mode"
           :certs="certificates"
+          :rules="rules"
         />
       </template>
     </ArrayListGrouped>

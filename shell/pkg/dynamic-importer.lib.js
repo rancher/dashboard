@@ -64,3 +64,11 @@ export function resolveEdit(key) {
 export function resolveDetail(key) {
   return undefined;
 }
+
+export function importWindowComponent(name) {
+  return () => undefined;
+}
+
+export function resolveWindowComponent(key) {
+  return undefined;
+}

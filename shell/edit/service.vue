@@ -25,6 +25,7 @@ import { matching } from '@shell/utils/selector';
 import { NAME as HARVESTER } from '@shell/config/product/harvester';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
+import { Port } from '@shell/utils/validators/formRules';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -292,11 +293,12 @@ export default {
 
     targetPortsStrOrInt(targetPorts = []) {
       const neu = clone(targetPorts);
-      const isNumeric = /^\\d+$/;
 
       neu.forEach((port, idx) => {
-        if (port?.targetPort && isNumeric.test(port.targetPort)) {
-          port.targetPort = parseInt(port.targetPort, 10);
+        const targetPort = new Port(port?.targetPort);
+
+        if (targetPort.isInt) {
+          port.targetPort = targetPort.int;
         }
       });
 
