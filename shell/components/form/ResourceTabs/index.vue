@@ -66,20 +66,19 @@ export default {
     }
   },
 
-  async fetch() {
+  data() {
     const inStore = this.$store.getters['currentStore'](EVENT);
 
-    if ( this.$store.getters[`${ inStore }/schemaFor`](EVENT) ) {
-      this.hasEvents = true; // @TODO be smarter about which ones actually ever have events
-      this.allEvents = await this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT });
-    }
+    return {
+      hasEvents:     this.$store.getters[`${ inStore }/schemaFor`](EVENT), // @TODO be smarter about which resources actually ever have events
+      allEvents:     [],
+      selectedTab:   this.defaultTab,
+      didLoadEvents: false,
+    };
   },
 
-  data() {
-    return {
-      hasEvents: null,
-      allEvents: []
-    };
+  beforeDestroy() {
+    this.$store.dispatch('cluster/forgetType', EVENT);
   },
 
   computed: {
@@ -89,10 +88,10 @@ export default {
       return this.isView && this.needConditions && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
     },
     showEvents() {
-      return this.isView && this.needEvents && !this.$fetchState.pending && this.hasEvents && (this.events.length || this.alwaysShowEvents);
+      return this.isView && this.needEvents && this.hasEvents && (this.events.length || this.alwaysShowEvents);
     },
     showRelated() {
-      return this.isView && this.needRelated && !this.$fetchState.pending;
+      return this.isView && this.needRelated;
     },
     eventHeaders() {
       return [
@@ -146,17 +145,26 @@ export default {
     }
   },
 
-  mounted() {
-    // For easy access debugging...
-    if ( typeof window !== 'undefined' ) {
-      window.v = this.value;
+  methods: {
+    // Ensures we only fetch events and show the table when the events tab has been activated
+    tabChange(neu) {
+      this.selectedTab = neu?.selectedName;
+
+      if (!this.didLoadEvents && this.selectedTab === 'events') {
+        const inStore = this.$store.getters['currentStore'](EVENT);
+
+        this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }).then((events) => {
+          this.allEvents = events;
+          this.didLoadEvents = true;
+        });
+      }
     }
-  },
+  }
 };
 </script>
 
 <template>
-  <Tabbed v-bind="$attrs" :default-tab="defaultTab">
+  <Tabbed v-bind="$attrs" :default-tab="defaultTab" @changed="tabChange">
     <slot />
 
     <Tab v-if="showConditions" label-key="resourceTabs.conditions.tab" name="conditions" :weight="-1" :display-alert-icon="conditionsHaveIssues">
@@ -165,6 +173,7 @@ export default {
 
     <Tab v-if="showEvents" label-key="resourceTabs.events.tab" name="events" :weight="-2">
       <SortableTable
+        v-if="selectedTab === 'events'"
         :rows="events"
         :headers="eventHeaders"
         key-field="id"
