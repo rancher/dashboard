@@ -12,16 +12,15 @@ export default {
         this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
       }
     } catch (e) {}
+
+    this.globalSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
   },
 
   data() {
-    return { apps: [] };
+    return { apps: [], globalSettings: [] };
   },
 
   computed: {
-    globalSettings() {
-      return this.$store.getters['management/all'](MANAGEMENT.SETTING);
-    },
 
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
