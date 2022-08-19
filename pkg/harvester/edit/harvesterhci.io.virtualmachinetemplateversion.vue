@@ -6,10 +6,9 @@ import { Checkbox } from '@components/Form/Checkbox';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import UnitInput from '@shell/components/form/UnitInput';
 import NodeScheduling from '@shell/components/form/NodeScheduling';
-import Reserved from '@shell/edit/kubevirt.io.virtualmachine/VirtualMachineReserved';
 
+import Reserved from './kubevirt.io.virtualmachine/VirtualMachineReserved';
 import Volume from './kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from './kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import CpuMemory from './kubevirt.io.virtualmachine/VirtualMachineCpuMemory';

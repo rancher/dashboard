@@ -45,7 +45,7 @@ export default {
 
     // Get all the custom volume types from the file names of this folder
     const customSettingComponents = require
-      .context('@/pkg/harvester/components/settings', false, /^.*\.vue$/)
+      .context('../components/settings', false, /^.*\.vue$/)
       .keys()
       .map(path => path.replace(/(\.\/)|(.vue)/g, ''));
 

@@ -13,7 +13,7 @@ import HarvesterAirgapUpdgrade from '../pages/c/_cluster/airgapupgrade/index.vue
 import HarvesterMembers from '../pages/c/_cluster/members/index.vue';
 import ProjectNamespaces from '@shell/components/ExplorerProjectsNamespaces.vue';
 
-const routes: RouteConfig[] = [
+const routes = [
   {
     name:      `${ PRODUCT_NAME }-c-cluster-support`,
     path:      `/:product/c/:cluster/support`,

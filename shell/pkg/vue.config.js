@@ -40,7 +40,7 @@ module.exports = function(dir) {
       config.resolve.alias['@shell'] = path.join(dir, '.shell');
       config.resolve.alias['~shell'] = path.join(dir, '.shell');
       // This should be udpated once we move to rancher-components as a dependency
-      config.resolve.alias['@components'] = path.join(maindir, 'pkg', 'rancher-components', 'src', 'components');
+      config.resolve.alias['@components'] = COMPONENTS_DIR;
       config.resolve.alias['./node_modules'] = path.join(maindir, 'node_modules');
       config.resolve.alias['@pkg'] = dir;
       config.resolve.alias['~pkg'] = dir;

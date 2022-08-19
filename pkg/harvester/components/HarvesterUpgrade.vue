@@ -5,7 +5,7 @@ import { allHash } from '@shell/utils/promise';
 import ModalWithCard from '@shell/components/ModalWithCard';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Banner } from '@components/Banner';
-import UpgradeInfo from './UpgradeInfo';
+import UpgradeInfo from '../list/harvesterhci.io.dashboard/UpgradeInfo';
 
 export default {
   name: 'HarvesterUpgrade',

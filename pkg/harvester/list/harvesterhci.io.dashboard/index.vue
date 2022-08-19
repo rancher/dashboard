@@ -22,7 +22,7 @@ import DashboardMetrics from '@shell/components/DashboardMetrics';
 import metricPoller from '@shell/mixins/metric-poller';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import { isEmpty } from '@shell/utils/object';
-import HarvesterUpgrade from '../components/HarvesterUpgrade';
+import HarvesterUpgrade from '../../components/HarvesterUpgrade';
 
 dayjs.extend(utc);
 dayjs.extend(minMax);
