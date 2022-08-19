@@ -12,7 +12,7 @@ export default {
       // model doesn't work for imported K3s clusters, in
       // which case it returns 'k3s' instead of 'imported.'
       // This is the workaround.
-      isImported: props.row.mgmt.providerForEmberParam === 'import'
+      isImported: props.row.mgmt?.providerForEmberParam === 'import'
     };
   }
 };

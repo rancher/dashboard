@@ -68,7 +68,7 @@ It is possible to start the project and run all the tests at once with a single 
 
 As Cypress common practice, some custom commands have been created within `command.ts` file to simplify the development process. Please consult Cypress documentation for more details about when and how to use them.
 
-Worth mentioning the `cy.getId()` command, as it is mainly used to select elements. This would require to add `data-testid` to your element inside the markup.
+Worth mentioning the `cy.getId()` and `cy.findId()` commands, as it is mainly used to select elements. This would require to add `data-testid` to your element inside the markup and optionally matchers.
 
 ### Writing tests
 
@@ -106,6 +106,53 @@ describe.only('Burger Side Nav Menu', () => {
 ```ts
 it.only('Opens and closes on menu icon click', () => {
 ```
+
+### Data testid naming
+
+While defining naming, always consider deterministic usage and rely on specific values. For cases where the content is required, e.g. select name specific elements as in cluster selection, consider use the `contain()` method. Further guideline and explanation in the official documentation related section.
+
+In case of complex component, define a prefix for your `data-testid` with a the prop `componentTestid` and a default value. This will help you to define unique value and composable identifier in case of more elements, as well to avoid custom term for each test if not necessary, e.g. no multiple elements.
+
+E.g. given the action menu:
+
+```ts
+/**
+ * Inherited global identifier prefix for tests
+ * Define a term based on the parent component to avoid conflicts on multiple components
+ */
+componentTestid: {
+  type:    String,
+  default: 'action-menu'
+}
+```
+
+```html
+<li
+  v-for="(option, i) in options"
+  :key="opt.action"
+  :data-testid="componentTestid + '-' + i + '-item'"
+>
+```
+
+### Debugging
+
+To summarize what [defined in the documentation](https://docs.cypress.io/guides/guides/debugging), the following modalities of debugging are provided:
+
+- `debugger` flag
+- `.debug()` as chained command
+- `cy.pause()` for analyzing the state of the test
+- Inspect commands in the Cypress dashboard to view the logs
+- `.then(console.log)` to append the log to the resolved promise
+
+### Cypress Dashboard
+
+E2E tests can be displayed in Cypress dashboard by adding the key `"projectId": "YOUR_PROJECT_ID_HERE"` to the `cypress.json` file and run the script by passing the parameters
+
+```bash
+yarn cy:run  --record --key YOUR_RECORD_KEY_HERE
+```
+
+These values are provided when you create a new project within Cypress dashboard or within `Project settings`.
 
 ## Unit tests
 

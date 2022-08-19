@@ -148,6 +148,15 @@ export default {
         description: []
       }),
       type: Object,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'name-ns-description'
     }
   },
 
@@ -360,7 +369,11 @@ export default {
 
 <template>
   <div class="row mb-20">
-    <div v-if="namespaced && !nameNsHidden && createNamespace" class="col span-3">
+    <div
+      v-if="namespaced && !nameNsHidden && createNamespace"
+      :data-testid="componentTestid + '-namespace-create'"
+      class="col span-3"
+    >
       <LabeledInput
         ref="namespace"
         v-model="namespace"
@@ -385,7 +398,11 @@ export default {
         />
       </button>
     </div>
-    <div v-if="namespaced && !nameNsHidden && !createNamespace" class="col span-3">
+    <div
+      v-if="namespaced && !nameNsHidden && !createNamespace"
+      :data-testid="componentTestid + '-namespace'"
+      class="col span-3"
+    >
       <LabeledSelect
         v-show="!createNamespace"
         v-model="namespace"
@@ -403,7 +420,11 @@ export default {
       />
     </div>
 
-    <div v-if="!nameNsHidden" class="col span-3">
+    <div
+      v-if="!nameNsHidden"
+      :data-testid="componentTestid + '-name'"
+      class="col span-3"
+    >
       <LabeledInput
         ref="name"
         key="name"
@@ -418,7 +439,11 @@ export default {
       />
     </div>
 
-    <div v-show="!descriptionHidden" :class="['col', extraColumns.length > 0 ? 'span-3' : 'span-6']">
+    <div
+      v-show="!descriptionHidden"
+      :data-testid="componentTestid + '-description'"
+      :class="['col', extraColumns.length > 0 ? 'span-3' : 'span-6']"
+    >
       <LabeledInput
         key="description"
         v-model="description"
