@@ -3620,6 +3620,9 @@ persistentVolumeClaim:
     storageClass: Storage Class
     requestStorage: Request Storage
     persistentVolume: Persistent Volume
+    tooltips:
+      noStorageClass: You don't have permission to list Storage Classes, enter a name manually
+      noPersistentVolume: You don't have permission to list Persistent Volumes, enter a name manually
   customize:
     label: Customize
     accessModes:
