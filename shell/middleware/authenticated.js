@@ -325,7 +325,7 @@ export default async function({
       });
     }
 
-    if (product === VIRTUAL || route.name === `${ VIRTUAL }-c-cluster` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
+    if (product === VIRTUAL || route.name === `${ VIRTUAL }-c-cluster` || route.name?.startsWith(`${ VIRTUAL }-c-cluster`)) {
       setProduct(store, route);
       const res = [
         ...always,
