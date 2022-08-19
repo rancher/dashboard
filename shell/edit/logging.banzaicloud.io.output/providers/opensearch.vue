@@ -192,6 +192,15 @@ export default {
       </div>
     </div>
     <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="value.ssl_version"
+          :mode="mode"
+          :disabled="disabled"
+          :options="sslVersions"
+          :label="t('logging.elasticsearch.sslVersion')"
+        />
+      </div>
       <div class="col span-6 vertically-center">
         <Checkbox
           v-model="value.ssl_verify"
