@@ -2556,6 +2556,15 @@ logging:
     clientKeyPass: Client Key Pass from Secret
     verifySsl: Verify SSL
     sslVersion: SSL Version
+  redis:
+    host: Host
+    port: Port
+    dbNumber: Redis database number
+    ttl: TTL for each key
+    password: Password from Secret
+    format:
+      title: Format
+      type: Type
   gelf:
     host: Host
     port: Port

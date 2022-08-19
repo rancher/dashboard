@@ -77,6 +77,18 @@ export const PROVIDERS = [
     default:  { },
   },
   {
+    name:     'opensearch',
+    labelKey: 'logging.outputProviders.opensearch',
+    default:  {},
+  },
+  {
+    name:     'redis',
+    labelKey: 'logging.outputProviders.redis',
+    default:  {
+      port: 6379, db_number: 0, ttl: 0
+    },
+  },
+  {
     name:     'splunkHec',
     labelKey: 'logging.outputProviders.splunkHec',
     default:  {},
