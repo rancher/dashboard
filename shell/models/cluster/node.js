@@ -7,7 +7,7 @@ import { parseSi } from '@shell/utils/units';
 import findLast from 'lodash/findLast';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { LOCAL } from '~/shell/config/query-params';
+import { LOCAL } from '@shell/config/query-params';
 
 export default class ClusterNode extends SteveModel {
   get _availableActions() {
