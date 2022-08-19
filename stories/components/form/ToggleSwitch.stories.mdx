@@ -1,0 +1,45 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+
+import ToggleSwitch from '@shell/components/form/ToggleSwitch';
+
+export const Template = (args, { argTypes }) => ({
+  components: { ToggleSwitch },
+  props:      Object.keys(argTypes),
+  template:   '<ToggleSwitch v-bind="$props" />',
+})
+
+<Meta title="Components/Form/ToggleSwitch" />
+
+
+# Toggle switch
+The toggle switch is a digital on/off controller that enables the user to switch between settings without submitting the form.
+
+### Description
+- Always associate a label to every checkbox for good accessibility. Do not include a colon at the end of the label.
+- Use a toggle switch when users have to choose between two mutually exclusive options.
+- Toggle switches should take immediate effect and should not require the user to submit the form to apply the new state.
+- If immediate results are not achievable, use an alternative like radio buttons or a single checkbox.
+
+<Canvas>
+  <Story
+    name="ToggleSwitch"
+    args={{
+      value: '',
+      offLabel: 'Dark mode: '
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import 
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import ToggleSwitch from '@shell/components/form/ToggleSwitch';
+  `}
+/>
+
+### Props table
+<ArgsTable of={ToggleSwitch} />
