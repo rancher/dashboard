@@ -1042,6 +1042,7 @@ cluster:
     harvester:
       label: Harvester
   copyConfig: Copy KubeConfig to Clipboard
+  copiedConfig: Copied KubeConfig to Clipboard
   custom:
     nodeRole:
       label: Node Role
