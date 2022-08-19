@@ -305,8 +305,9 @@ export default function(dir, _appConfig) {
     },
 
     router: {
-      base:       routerBasePath,
-      middleware: ['i18n'],
+      base:          routerBasePath,
+      middleware:    ['i18n'],
+      prefetchLinks: false
     },
 
     alias: {
