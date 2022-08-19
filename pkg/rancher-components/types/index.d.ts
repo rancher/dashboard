@@ -9,3 +9,4 @@ export const LabeledTooltip: VueConstructor;
 export const RadioButton: VueConstructor;
 export const RadioGroup: VueConstructor;
 export const TextAreaAutoGrow: VueConstructor;
+export const ToggleSwitch: VueConstructor;
