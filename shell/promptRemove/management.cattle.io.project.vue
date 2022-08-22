@@ -71,12 +71,17 @@ export default {
     names() {
       return this.filteredNamespaces.map(obj => obj.nameDisplay).slice(0, 5);
     },
+    // Only admins and cluster owners can see namespaces outside of projects
+    canSeeProjectlessNamespaces() {
+      return this.currentCluster.canUpdate;
+    }
   },
   methods: {
     resourceNames,
     remove() {
       // Delete all of thre namespaces and return false - this tells the prompt remove dialog to continue and delete the project
-      if (this.deleteProjectNamespaces) {
+      // Delete all namespaces if the user wouldn't be able to see them after deleting the project
+      if (this.deleteProjectNamespaces || !this.canSeeProjectlessNamespaces) {
         return Promise.all(this.filteredNamespaces.map(n => n.remove())).then(() => false);
       }
 
@@ -91,9 +96,13 @@ export default {
   <div>
     <div>
       <div class="mb-10">
-        {{ t('promptRemove.attemptingToRemove', { type }) }} <span class="display-name">{{ displayName }}</span>
+        {{ t('promptRemove.attemptingToRemove', { type }) }} <span class="display-name">{{ `${displayName}.` }}</span>
+        <template v-if="!canSeeProjectlessNamespaces">
+          <span class="delete-warning"> {{ t('promptRemove.willDeleteAssociatedNamespaces') }}</span> <br />
+          <div class="mt-10" v-html="resourceNames(names, plusMore, t)"></div>
+        </template>
       </div>
-      <div v-if="filteredNamespaces.length > 0" class="mt-20 remove-project-dialog">
+      <div v-if="filteredNamespaces.length > 0 && canSeeProjectlessNamespaces" class="mt-20 remove-project-dialog">
         <Checkbox v-model="deleteProjectNamespaces" :label="t('promptRemove.deleteAssociatedNamespaces')" />
         <div class="mt-10 ml-20">
           <span v-html="resourceNames(names, plusMore, t)"></span>
@@ -104,8 +113,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.delete-warning{
+    color: var(--error)
+}
 .remove-project-dialog {
-
   border: 1px solid var(--border);
   padding: 10px;
   border-radius: 5px;

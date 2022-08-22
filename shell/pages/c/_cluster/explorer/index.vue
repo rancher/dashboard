@@ -1,8 +1,7 @@
 <script>
-import Loading from '@shell/components/Loading';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import { allHash } from '@shell/utils/promise';
+import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
 import { parseSi, createMemoryValues } from '@shell/utils/units';
@@ -26,7 +25,6 @@ import {
   CATALOG,
   POD,
 } from '@shell/config/types';
-import { findBy } from '@shell/utils/array';
 import { mapPref, CLUSTER_TOOLS_TIP } from '@shell/store/prefs';
 import { haveV1Monitoring, monitoringStatus } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
@@ -64,7 +62,6 @@ export default {
     EtcdInfoBanner,
     DashboardMetrics,
     HardwareResourceGauge,
-    Loading,
     ResourceSummary,
     Tab,
     Tabbed,
@@ -77,25 +74,30 @@ export default {
 
   mixins: [metricPoller],
 
-  async fetch() {
-    const hash = { nodes: fetchClusterResources(this.$store, NODE) };
+  fetch() {
+    fetchClusterResources(this.$store, NODE);
 
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-    }
+    setPromiseResult(
+      allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
+      this,
+      'showClusterMetrics',
+      `Determine cluster metrics`
+    );
+    setPromiseResult(
+      allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
+      this,
+      'showK8sMetrics',
+      `Determine k8s metrics`
+    );
+    setPromiseResult(
+      allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
+      this,
+      'showEtcdMetrics',
+      `Determine etcd metrics`
+    );
 
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-      hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-    }
-
-    this.showClusterMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
-    this.showK8sMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]);
-    this.showEtcdMetrics = this.isRKE && await allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]);
-
-    const res = await allHash(hash);
-
-    for ( const k in res ) {
-      this[k] = res[k];
+    if (this.currentCluster.isLocal) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
     }
   },
 
@@ -112,8 +114,6 @@ export default {
       constraints:         [],
       events:              [],
       nodeMetrics:         [],
-      nodeTemplates:       [],
-      nodes:               [],
       showClusterMetrics: false,
       showK8sMetrics:     false,
       showEtcdMetrics:    false,
@@ -129,16 +129,26 @@ export default {
   },
 
   beforeDestroy() {
-    // Remove the data and stop watching events and nodes
+    // Remove the data and stop watching resources that were fetched in this page
     // Events in particular can lead to change messages having to be processed when we are no longer interested in events
     this.$store.dispatch('cluster/forgetType', EVENT);
     this.$store.dispatch('cluster/forgetType', NODE);
     this.$store.dispatch('cluster/forgetType', ENDPOINTS); // Used by AlertTable to get alerts when v2 monitoring is installed
+    this.$store.dispatch('cluster/forgetType', METRIC.NODE);
+    this.$store.dispatch('cluster/forgetType', MANAGEMENT.NODE);
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
+
+    nodes() {
+      return this.$store.getters['cluster/all'](NODE);
+    },
+
+    mgmtNodes() {
+      return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+    },
 
     hideClusterToolsTip: mapPref(CLUSTER_TOOLS_TIP),
 
@@ -250,9 +260,8 @@ export default {
 
           return acc;
         }, {});
-        const managementNodes = this.$store.getters['management/all'](MANAGEMENT.NODE);
 
-        checkNodes = managementNodes.filter((n) => {
+        checkNodes = this.mgmtNodes.filter((n) => {
           const nodeName = n.metadata?.labels?.['management.cattle.io/nodename'] || n.id;
 
           return !!nodeNames[nodeName];
@@ -344,10 +353,10 @@ export default {
       });
     },
 
+    // Used by metric-poller mixin
     async loadMetrics() {
       this.nodeMetrics = await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
     },
-    findBy,
 
     // Events/Alerts tab changed
     tabChange(neu) {
@@ -358,8 +367,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <section v-else class="dashboard">
+  <section class="dashboard">
     <header>
       <div class="title">
         <h1>

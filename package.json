@@ -18,6 +18,7 @@
     "publish-shell": "./shell/scripts/publish-shell.sh",
     "clean": "./scripts/clean",
     "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .js,.ts,.vue .",
+    "lint:lib": "cd pkg/rancher-components && yarn lint",
     "lint-l10n": "./node_modules/.bin/yamllint ./shell/assets/translations",
     "test": "jest --watch",
     "test:ci": "jest --collectCoverage",
@@ -36,16 +37,18 @@
     "generate": "./node_modules/.bin/nuxt generate",
     "dev-debug": "node --inspect ./node_modules/.bin/nuxt",
     "cy:open": "cypress open",
-    "cy:run": "cypress run",
+    "cy:run": "cypress run --browser chrome",
+    "cy:run:sorry": "./scripts/e2e",
     "e2e:pre-dev": "yarn docker:local:stop && yarn docker:local:start && NODE_ENV=dev yarn build",
-    "e2e:dev": "START_SERVER_AND_TEST_INSECURE=1 server-test start:dev https-get://localhost:8005 cy:run",
+    "e2e:dev": "START_SERVER_AND_TEST_INSECURE=1 server-test start:dev https-get://localhost:8005 cy:run:sorry",
     "e2e:pre-prod": "yarn docker:local:stop && yarn docker:local:start && DEV_PORTS=true yarn build",
-    "e2e:prod": "START_SERVER_AND_TEST_INSECURE=1 server-test start:prod https-get://localhost:8005 cy:run",
+    "e2e:prod": "START_SERVER_AND_TEST_INSECURE=1 server-test start:prod https-get://localhost:8005 cy:run:sorry",
     "storybook": "yarn run install-storybook && start-storybook -p 6006",
     "build-storybook": "yarn run install-storybook && build-storybook",
     "install-storybook": "./scripts/storybook-install",
     "remove-storybook": "./scripts/storybook-install -d",
-    "remove-storybook-deps": "./scripts/storybook-install -r"
+    "remove-storybook-deps": "./scripts/storybook-install -r",
+    "publish:lib": "cd pkg/rancher-components && npm publish"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.1.0",
@@ -154,6 +157,7 @@
     "core-js": "^3.20.3",
     "css-loader": "4.3.0",
     "csv-loader": "^3.0.3",
+    "cy2": "^2.0.0",
     "cypress": "^10.3.1",
     "eslint": "^7.32.0",
     "eslint-config-standard": ">=12.0.0",
@@ -181,7 +185,14 @@
     "webpack-virtual-modules": "^0.4.3",
     "worker-loader": "^3.0.8",
     "yaml-lint": "^1",
-    "yarn": "^1.22.11"
+    "yarn": "^1.22.11",
+    "@storybook/addon-actions": "^6.3.8",
+    "@storybook/addon-essentials": "^6.3.8",
+    "@storybook/addon-links": "^6.3.8",
+    "@storybook/addon-a11y": "^6.3.8",
+    "@storybook/vue": "^6.3.8",
+    "storybook-dark-mode": "^1.0.8",
+    "storybook-auto-events": "^0.1.1"
   },
   "nyc": {
     "extension": [

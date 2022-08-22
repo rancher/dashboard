@@ -119,6 +119,15 @@ export default {
     namespaceKey: {
       type:    String,
       default: 'metadata.namespace'
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'form'
     }
   },
 
@@ -505,6 +514,7 @@ export default {
             :mode="mode"
             :is-form="showAsForm"
             :show-cancel="showCancel"
+            :component-testid="componentTestid"
             @cancel-confirmed="confirmCancel"
           >
             <!-- Pass down templates provided by the caller -->
@@ -516,6 +526,7 @@ export default {
               <div v-if="!isView">
                 <button
                   v-if="showYaml"
+                  :data-testid="componentTestid + '-yaml'"
                   type="button"
                   class="btn role-secondary"
                   @click="showPreviewYaml"
@@ -527,6 +538,7 @@ export default {
                   ref="save"
                   :disabled="!canSave"
                   :mode="finishButtonMode || mode"
+                  :data-testid="componentTestid + '-save'"
                   @click="clickSave($event)"
                 />
               </div>
@@ -568,12 +580,14 @@ export default {
                       v-if="showPreview"
                       type="button"
                       class="btn role-secondary"
+                      :data-testid="componentTestid + '-yaml-yaml'"
                       @click="yamlUnpreview"
                     >
                       <t k="resourceYaml.buttons.continue" />
                     </button>
                     <button
                       v-if="!showPreview && isEdit"
+                      :data-testid="componentTestid + '-yaml-yaml-preview'"
                       :disabled="!canDiff"
                       type="button"
                       class="btn role-secondary"
@@ -583,11 +597,17 @@ export default {
                     </button>
                   </div>
                   <div v-if="_selectedSubtype || !subtypes.length" class="controls-right">
-                    <button type="button" class="btn role-secondary" @click="checkCancel(false)">
+                    <button
+                      :data-testid="componentTestid + '-yaml-cancel'"
+                      type="button"
+                      class="btn role-secondary"
+                      @click="checkCancel(false)"
+                    >
                       <t k="cruResource.backToForm" />
                     </button>
                     <AsyncButton
                       v-if="!showSubtypeSelection"
+                      :data-testid="componentTestid + '-yaml-save'"
                       :disabled="!canSave"
                       :action-label="isEdit ? t('generic.save') : t('generic.create')"
                       @click="cb=>yamlSave(cb)"

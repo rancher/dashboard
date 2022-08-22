@@ -319,7 +319,12 @@ export default {
     return all;
   },
 
-  async findMatching(ctx, { type, selector, opt }) {
+  async findMatching(ctx, {
+    type,
+    selector,
+    opt,
+    namespace
+  }) {
     const {
       getters, commit, dispatch, rootGetters
     } = ctx;
@@ -332,7 +337,7 @@ export default {
       commit('registerType', type);
     }
     if ( opt.force !== true && getters['haveSelector'](type, selector) ) {
-      return getters.matching( type, selector );
+      return getters.matching( type, selector, namespace );
     }
 
     const typeOptions = rootGetters['type-map/optionsFor'](type);
@@ -366,7 +371,7 @@ export default {
       });
     }
 
-    return getters.matching( type, selector );
+    return getters.matching( type, selector, namespace );
   },
 
   // opt:
