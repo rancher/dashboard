@@ -91,7 +91,7 @@ export default {
           />
         </div>
       </div>
-      <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" @changed="changed">
+      <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" @changed="changed" :default-tab="defaultTab">
         <Tab
           v-for="(tab, i) in allContainers"
           :key="i"
@@ -100,7 +100,7 @@ export default {
           :weight="tab.weight"
           :error="!!tab.error"
         >
-          <Tabbed :side-tabs="true">
+          <Tabbed :side-tabs="true" :weight="99">
             <Tab :label="t('workload.container.titles.general')" name="general" :weight="tabWeightMap['general']" :error="tabErrors.general">
               <template #tab-header-right class="tab-content-controls">
                 <button v-if="allContainers.length > 1 && !isView" type="button" class="btn-sm role-link" @click="removeContainer(tab)">
@@ -198,7 +198,7 @@ export default {
             </Tab>
           </Tabbed>
         </Tab>
-        <Tab :label="t('workload.tabs.labels.deployment')" :name="'deployment'" :weight="99">
+        <Tab :label="nameDisplayFor(type)" :name="nameDisplayFor(type)" :weight="99" v-if="!isPod">
           <Tabbed :side-tabs="true">
             <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="tabWeightMap['labels']">
               <Labels v-model="value" :mode="mode" />
@@ -209,7 +209,7 @@ export default {
             </Tab>
           </Tabbed>
         </Tab>
-        <Tab :label="t('workload.tabs.labels.pod')" :name="'pod'" :weight="99">
+        <Tab :label="t('workload.tabs.labels.pod')" :name="'pod'" :weight="98">
           <Tabbed :side-tabs="true">
             <Tab :label="t('workload.storage.title')" name="storage" :weight="tabWeightMap['storage']">
               <Storage

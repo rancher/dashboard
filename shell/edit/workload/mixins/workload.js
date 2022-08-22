@@ -138,6 +138,7 @@ export default {
   },
 
   data() {
+    let defaultTab;
     let type = this.$route.params.resource;
     const createSidecar = !!this.$route.query.sidecar;
     const isInitContainer = !!this.$route.query.init;
@@ -154,13 +155,19 @@ export default {
           name:            `container-0`,
         }];
 
+        defaultTab = 'container-0'
+
         const podSpec = { template: { spec: { containers: podContainers, initContainers: [] } } };
 
         this.$set(this.value, 'spec', podSpec);
       }
     }
 
-    if (this.mode === _EDIT && this.value.type === 'pod' ) {
+    if (this.mode === _CREATE) {
+      defaultTab = 'container-0'
+    }
+
+    if ((this.mode === _EDIT || _VIEW) && this.value.type === 'pod' ) {
       const podSpec = { ...this.value.spec };
 
       this.$set(this.value.spec, 'template', { spec: podSpec });
@@ -197,6 +204,8 @@ export default {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
         });
+        defaultTab = 'container-0'
+
         containers = podTemplateSpec.initContainers;
       }
       if (createSidecar || this.value.type === 'pod') {
@@ -204,6 +213,9 @@ export default {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
         };
+
+        defaultTab = 'container-0'
+
         containers.push(container);
       } else {
         container = containers[0];
@@ -238,7 +250,9 @@ export default {
       fvFormRuleSets:      [{
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
-      fvReportedValidationPaths: ['spec']
+      fvReportedValidationPaths: ['spec'],
+      defaultTab
+
     };
   },
 
@@ -270,6 +284,10 @@ export default {
 
     isDeployment() {
       return this.type === WORKLOAD_TYPES.DEPLOYMENT;
+    },
+
+    isPod() {
+      return this.value.type === WORKLOAD_TYPES.POD;
     },
 
     isStatefulSet() {
