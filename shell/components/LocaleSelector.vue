@@ -40,7 +40,7 @@ export default {
 
       <template slot="popover">
         <ul class="list-unstyled dropdown" style="margin: -1px;">
-          <li v-t="'locale.none'" class="hand" @click="switchLocale('none')" />
+          <li v-if="showNone" v-t="'locale.none'" class="hand" @click="switchLocale('none')" />
           <li
             v-for="(label, name) in availableLocales"
             :key="name"
