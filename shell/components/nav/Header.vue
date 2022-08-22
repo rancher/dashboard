@@ -606,11 +606,10 @@ export default {
       display: flex;
       flex: 1;
       flex-direction: row;
-      grid-area: header-left;
-      padding-left: 0.25rem;
 
       > .menu-spacer {
-        flex: 0 0 calc(var(--header-height) + 10px);
+        width: 55px;
+        min-width: 55px;
 
         &.isSingleProduct  {
           display: flex;
@@ -622,6 +621,7 @@ export default {
         align-items: center;
         position: relative;
         display: flex;
+        padding-left: 0.25rem;
 
         .logo {
           height: 30px;
