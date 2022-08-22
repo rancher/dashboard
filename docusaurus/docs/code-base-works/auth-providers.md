@@ -3,37 +3,42 @@
 ## Github
 
 ### Developer Set up
+
 Follow the in-dashboard instructions when configuring a Github auth provider.
 
 ### Multiple GitHub auth configs
-The auth system supports multiple GitHub auth URLs and using the appropriate one based on the Host header that a request comes in on.  Configuring this is not exposed in the regular UI, but is particularly useful for development against a server that already has GitHub setup.
 
-In `management.cattle.io.authconfig`, edit the `github` entry.  Add a `hostnameToClientId` map of Host header value -> GitHub client ID:
+The auth system supports multiple GitHub auth URLs and using the appropriate one based on the Host header that a request comes in on. Configuring this is not exposed in the regular UI, but is particularly useful for development against a server that already has GitHub setup.
+
+In `management.cattle.io.authconfig`, edit the `github` entry. Add a `hostnameToClientId` map of Host header value -> GitHub client ID:
 
 ```yaml
 hostnameToClientId:
   "localhost:8005": <your GitHub Client ID for localhost:8005>
 ```
 
-In the `secret`, namespace `cattle-global-data`, edit `githubconfig-clientsecret`.  Add GitHub client ID -> base64-encoded client secret to the `data` section:
+In the `secret`, namespace `cattle-global-data`, edit `githubconfig-clientsecret`. Add GitHub client ID -> base64-encoded client secret to the `data` section:
 
 ```yaml
 data:
   clientsecret: <the normal client secret already configured>
   <your client id>: <your base64-encoded client secret for localhost:8005>
- ```
+```
 
 ## Keycloak
 
 ### Developer Set Up (SAML)
+
 Use the steps below to set up a Keycloak instance for dev environments and configure an Auth Provider for it.
 
 1. Bring up a local Keycloak instance in docker using the instructions at [here](https://www.keycloak.org/getting-started/getting-started-docker).
-   
+
    > Ensure that the admin user has a first name, last name and email. These fields are referenced in the Keycloak client's mappers which are then referenced in the Rancher's auth provider config.
 
    > Double check the client has the correct checkboxes set, specifically the Mappers `group` entry.
+
 1. Using either the Ember or Vue UI set up the Keycloak auth provider by follow the instructions at [here](https://rancher.com/docs/rancher/v2.6/en/admin-settings/authentication/keycloak-saml/)
+
    | Field              | Value                                                                                                                                                                                                                                                                                        |
    | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
    | Display Name Field | givenName                                                                                                                                                                                                                                                                                    |
@@ -60,4 +65,3 @@ Use the steps below to set up a Keycloak instance for dev environments and confi
    | Keycloak Realm         | Find via the keycloak console (above menu on left or in path after /realms/) |
 
 > The user used when enabling the provider must be an Admin or in a group
-
