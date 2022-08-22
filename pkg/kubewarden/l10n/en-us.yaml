@@ -75,7 +75,7 @@ kubewarden:
         file: Read Certificate from File
     verification:
       label: Verification Config
-      description: This is the name of a VerificationConfig configmap within the same namespace, containing a Sigstore verification configuration. The configuration must be under a key named verification-config in the Configmap. More information can be found <a href="https://docs.kubewarden.io/operator-manual/verification-config" target="_blank" rel="noopener noreferrer nofollow">here</a>.
+      description: This is the name of a VerificationConfig configmap within the same namespace, containing a Sigstore verification configuration. The configuration must be under a key named verification-config in the Configmap. More information can be found <a href="https://docs.kubewarden.io/distributing-policies/secure-supply-chain#configuring-the-policy-server-to-check-policy-signatures" target="_blank" rel="noopener noreferrer nofollow">here</a>.
   policyCharts:
     signedPolicy: This policy has been signed with cosign (Sigstore).
     mutationPolicy: Mutation Policy

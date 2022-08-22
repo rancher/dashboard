@@ -1,5 +1,7 @@
 <script>
 import { _CREATE } from '@shell/config/query-params';
+import { CAPI, CONFIG_MAP, SERVICE_ACCOUNT } from '@shell/config/types';
+import { allHash } from '@shell/utils/promise';
 
 import Tab from '@shell/components/Tabbed/Tab';
 
@@ -25,20 +27,34 @@ export default {
     General, Labels, Tab, Registry, Verification
   },
 
-  data() {
-    return { chartValues: this.value.questions };
+  async fetch() {
+    const requests = { rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }) };
+    const needed = {
+      configMaps:      CONFIG_MAP,
+      serviceAccounts: SERVICE_ACCOUNT,
+    };
+
+    // Only fetch types if the user can see them
+    Object.keys(needed).forEach((key) => {
+      const type = needed[key];
+
+      if ( this.$store.getters['cluster/schemaFor'](type) ) {
+        requests[key] = this.$store.dispatch('cluster/findAll', { type });
+      }
+    });
+
+    const hash = await allHash(requests);
+
+    this.configMaps = hash.configMaps || [];
+    this.serviceAccounts = hash.serviceAccounts || [];
   },
 
-  computed: {
-    targetNamespace() {
-      if ( this.forceNamespace ) {
-        return this.forceNamespace;
-      } else if ( this.value?.metadata?.namespace ) {
-        return this.value.metadata.namespace;
-      }
-
-      return 'default';
-    },
+  data() {
+    return {
+      chartValues:     this.value.questions,
+      configMaps:      [],
+      serviceAccounts: []
+    };
   },
 
   methods: {
@@ -65,13 +81,13 @@ export default {
 <template>
   <div>
     <Tab name="general" label="General" :weight="99">
-      <General v-model="chartValues" :mode="mode" />
+      <General v-model="chartValues" :mode="mode" :service-accounts="serviceAccounts" />
     </Tab>
     <Tab name="labels" label="Labels & Annotations" :weight="98">
       <Labels v-model="chartValues.metadata" :mode="mode" />
     </Tab>
     <Tab name="verification" label="Verification" :weight="97">
-      <Verification :value="chartValues.spec" :namespace="targetNamespace" :mode="mode" />
+      <Verification :value="chartValues.spec" :mode="mode" :config-maps="configMaps" />
     </Tab>
     <Tab name="registry" label="Container Registry" :weight="96" @active="refresh">
       <Registry ref="registry" :value="chartValues.spec" :mode="mode" />

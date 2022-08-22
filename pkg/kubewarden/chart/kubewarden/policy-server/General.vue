@@ -1,7 +1,5 @@
 <script>
 import { _CREATE } from '@shell/config/query-params';
-import { SERVICE_ACCOUNT } from '@shell/config/types';
-import { allHash } from '@shell/utils/promise';
 
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
@@ -18,6 +16,11 @@ export default {
     value: {
       type:     Object,
       required: true
+    },
+
+    serviceAccounts: {
+      type:     Array,
+      required: true
     }
   },
 
@@ -25,42 +28,17 @@ export default {
     LabeledInput, NameNsDescription, RadioGroup, ServiceNameSelect
   },
 
-  async fetch() {
-    const serviceAccountSchema = await this.$store.getters['cluster/schemaFor'](SERVICE_ACCOUNT);
-    const requests = {};
-
-    // Only fetch types if the user can see them
-    if ( serviceAccountSchema ) {
-      Object.assign(requests, { serviceAccount: SERVICE_ACCOUNT });
-
-      requests.serviceAccount = this.$store.dispatch('cluster/findAll', { type: SERVICE_ACCOUNT });
-    }
-
-    const hash = await allHash(requests);
-
-    this.serviceAccounts = hash.serviceAccount || [];
-  },
-
   data() {
     return {
       defaultImage:          true,
       defaultServiceAccount: this.value?.spec?.serviceAccountName || null,
-      serviceAccounts:       [],
     };
   },
 
   computed: {
     isCreate() {
       return this.mode === _CREATE;
-    },
-
-    namespacedServiceNames() {
-      if ( this.selectedNamespace ) {
-        return this.serviceAccounts.filter(s => s.metadata.namespace === this.selectedNamespace);
-      }
-
-      return this.serviceAccounts;
-    },
+    }
   }
 };
 </script>
@@ -109,9 +87,10 @@ export default {
           :mode="mode"
           :select-label="t('workload.serviceAccountName.label')"
           :select-placeholder="t('workload.serviceAccountName.label')"
-          :options="namespacedServiceNames"
+          :options="serviceAccounts"
           :default-option="value.spec.serviceAccountName"
-          option-label="metadata.name"
+          option-label="id"
+          option-key="metadata.uid"
         />
       </div>
     </div>

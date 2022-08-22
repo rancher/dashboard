@@ -2,7 +2,7 @@
 import { _CREATE } from '@shell/config/query-params';
 
 import { Banner } from '@components/Banner';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
   props: {
@@ -13,11 +13,16 @@ export default {
 
     value: {
       type:     Object,
+      default:  null
+    },
+
+    configMaps: {
+      type:     Array,
       required: true
     }
   },
 
-  components: { Banner, LabeledInput }
+  components: { Banner, LabeledSelect }
 };
 </script>
 
@@ -32,10 +37,14 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput
+        <LabeledSelect
           v-model="value.verificationConfig"
           :mode="mode"
           :label="t('kubewarden.policyServerConfig.verification.label')"
+          :options="configMaps"
+          option-key="id"
+          option-label="id"
+          :reduce="opt => opt.metadata.name"
         />
       </div>
     </div>

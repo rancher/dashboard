@@ -11,6 +11,11 @@
   "engines": {
     "node": ">=12"
   },
+  "dependencies": {
+    "@rancher/shell": "^0.1.1",
+    "core-js": "^3.20.3",
+    "css-loader": "4.3.0"
+  },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-service": "~4.5.0",

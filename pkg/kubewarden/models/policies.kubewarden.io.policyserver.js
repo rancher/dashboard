@@ -1,4 +1,5 @@
 import { POD } from '@shell/config/types';
+
 import KubewardenModel from '../plugins/kubewarden/policy-class';
 import { ADMISSION_POLICY_STATE } from '../config/kubewarden';
 import { KUBEWARDEN } from '../types';

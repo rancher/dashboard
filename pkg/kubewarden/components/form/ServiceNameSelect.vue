@@ -27,6 +27,10 @@ export default {
       type:    String,
       default: 'label',
     },
+    optionKey: {
+      type:    String,
+      default: null
+    },
     options: {
       type:     Array,
       required: true,
@@ -137,6 +141,7 @@ export default {
         :multiple="false"
         :mode="mode"
         :option-label="optionLabel"
+        :option-key="optionKey"
         :placement="$attrs.placement ? $attrs.placement : null"
         :v-bind="$attrs"
         @input="changeSelected"
