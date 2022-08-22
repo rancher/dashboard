@@ -50,8 +50,8 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'DevKit',
-        logo: {
+        title: 'UI DevKit',
+        logo:  {
           alt: 'Rancher Logo',
           src: 'img/rancher-logo.svg',
         },
@@ -65,7 +65,6 @@ const config = {
           {
             href:         'https://rancher.github.io/storybook/',
             position:     'right',
-            'aria-label': 'Component & Style guideline',
             label:        'Components & Design kit',
           },
         ],
@@ -82,7 +81,7 @@ const config = {
             href:  'https://github.com/rancher/',
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
+        copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
       },
       prism: {
         theme:     lightCodeTheme,

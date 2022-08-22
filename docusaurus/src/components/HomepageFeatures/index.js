@@ -1,21 +1,20 @@
-import React from 'react';
 import clsx from 'clsx';
 import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Getting Started',
-    Svg: require('@site/static/img/documentation.svg').default,
+    title:       'Getting Started',
+    Svg:         require('@site/static/img/documentation.svg').default,
     description: (
       <>
-        This section covers the basics of working with the Rancher dashboard. It will familiarize you with the development 
+        This section covers the basics of working with the Rancher dashboard. It will familiarize you with the development
         environment, concepts, and new Rancher UI.
       </>
     ),
   },
   {
-    title: 'Components & Design kit',
-    Svg: require('@site/static/img/storybook.svg').default,
+    title:       'Components & Design kit',
+    Svg:         require('@site/static/img/storybook.svg').default,
     description: (
       <>
         Rancher storybook is a collection of pre-built, reusable assets—components, patterns, and documentation guidance, to help
@@ -25,7 +24,7 @@ const FeatureList = [
   },
 ];
 
-function Feature({Svg, title, description}) {
+function Feature({ Svg, title, description }) {
   return (
     <div className={clsx('col col--6')}>
       <div className="text--center">
