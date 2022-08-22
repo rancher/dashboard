@@ -25,8 +25,13 @@ export default {
     return state.types[type].list;
   },
 
-  matching: (state, getters) => (type, selector) => {
-    const all = getters['all'](type);
+  matching: (state, getters) => (type, selector, namespace) => {
+    let all = getters['all'](type);
+
+    // Filter first by namespace if one is provided, since this is efficient
+    if (namespace) {
+      all = all.filter(obj => obj.namespace === namespace);
+    }
 
     return all.filter((obj) => {
       return matches(obj, selector);

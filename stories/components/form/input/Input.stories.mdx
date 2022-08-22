@@ -1,0 +1,107 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+
+import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
+
+export const TemplateLabeledInput = (args, { argTypes }) => ({
+  components: { LabeledInput },
+  props:      Object.keys(argTypes),
+  template:   '<LabeledInput v-bind="$props" />',
+})
+
+
+<Meta title="Components/Form/Input"
+  component={LabeledInput}
+/>
+
+# Text input
+Input elements with type ‘text’ allow users to enter any combination of letters, numbers, or symbols. A text box only allows for a single line of input.
+
+
+### Description
+- Always associate a label to every text field for good accessibility. Do not include a colon at the end of the label.
+- Use the appropriate length for the text input. The length of the input text field provides a hint to users as to how much text is expected.
+- An input text field only allows for a single line of input.
+
+<br/>
+
+
+### Labeled Input
+<Canvas isColumn>
+  <Story
+    name="Labeled Input"
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon',
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+</Canvas>
+
+### Different status of Labeled Input
+
+<Canvas isColumn>
+Info
+  <Story
+    Info
+    name='Labeled Input Info'
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon',
+      status: 'info',
+      tooltipKey: 'Info message'
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+  Success
+  <Story
+    name='Labeled Input Success'
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon',
+      status: 'success',
+      tooltipKey: 'Success message'
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+  Warning
+  <Story
+    name='Labeled Input Warning'
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon',
+      status: 'warning',
+       tooltipKey: 'Warning message'
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+  Error
+  <Story
+    name='Labeled Input Error'
+    args={{
+      label: 'Name',
+      type: 'text',
+      value: 'Simon',
+      status: 'error',
+      tooltipKey: 'Error message'
+    }}>
+    {TemplateLabeledInput.bind({})}
+  </Story>
+</Canvas>
+
+<br/>
+
+### Import
+
+<Source
+  language='js'
+  code={`
+     import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
+  `}
+/>
+
+### Props table
+<ArgsTable of={LabeledInput} />
