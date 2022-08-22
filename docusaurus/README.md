@@ -38,4 +38,3 @@ Guide for [sidebars.js](https://docusaurus.io/docs/sidebar).
 1. Create a Markdown file, greeting.md, and place it under the docs directory.
 
 2. Add file name in `sidebars.js`.
-   

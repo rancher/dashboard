@@ -48,6 +48,36 @@ h1, h2, h3, h4, h5, h6 {
 .navbar__logo {
   height: 1.5rem;
 }
-      
 
+      
+.homepage-banner {
+  text-align: left;
+  min-height: 300px;
+  background: url(@site/static/img/footer-bg.png) no-repeat right bottom;
+  background-size: 75%;
+  padding: 50px;
+}
+
+.homepage-banner p {
+  width: 50%;
+}
+
+.featureSvg_src-components-HomepageFeatures-styles-module {
+  max-width: 150px;
+}
+
+@media screen and (max-width: 996px) {
+  .homepage-banner {
+    padding: 30px 30px;
+    background-size: 100%;
+  }
+
+  .homepage-banner p {
+    width: 100%;
+  }
+}
+
+.featureSvg_GfXr {
+  width: 150px;
+}
 
