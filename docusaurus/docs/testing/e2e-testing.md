@@ -43,6 +43,10 @@ E2E tests can be added and displayed in a dashboard by defining the project ID w
 yarn cy:run:sorry
 ```
 
+#### Cypress dashboard installation guide
+
+The setup is done using a cloud hosting service and with its IP we configured the Sorry Cypress as indicated in the [guide](https://docs.sorry-cypress.dev/guide/dashboard-and-api). The process is straightforward, except for the IP which is required to be overwritten within `minio.yml` manifest as the default `http://localhost` value generate CORS issues.
+
 #### Cypress Dashboard
 
 E2E tests can be displayed in Cypress dashboard by defining the project ID with the env var `TEST_PROJECT_ID`, then run the script by passing the parameters
@@ -146,7 +150,7 @@ To summarize what [defined in the documentation](https://docs.cypress.io/guides/
 
 ### Cypress Dashboard
 
-E2E tests can be displayed in Cypress dashboard by adding the key `"projectId": "YOUR_PROJECT_ID_HERE"` to the `cypress.json` file and run the script by passing the parameters
+E2E tests can be displayed in Cypress dashboard by adding the key `"projectId": "YOUR_PROJECT_ID_HERE"` to the `cypress.js` file and run the script by passing the parameters
 
 ```bash
 yarn cy:run  --record --key YOUR_RECORD_KEY_HERE
@@ -354,3 +358,9 @@ describe('FX: isRequired', () => {
   });
 });
 ```
+
+## Coverage
+
+Both unit and E2E tests generate coverage respectively with Jest and NYC. These values are generated on both PR and push to `master` and `release` after merging. The service used to display the values is Codecov and can be found [here](https://app.codecov.io/gh/rancher/dashboard).
+
+Special attention goes to the E2E as the code is instrumented with Babel and the configuration is set within Nuxt.js.
