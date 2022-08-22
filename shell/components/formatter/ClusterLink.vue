@@ -64,6 +64,11 @@ export default {
     </n-link>
     <span v-else>{{ value }}</span>
     <i
+      v-if="row.rkeTemplateUpgrade"
+      v-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
+      class="template-upgrade-icon icon-alert icon"
+    />
+    <i
       v-if="clusterHasIssues"
       v-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
       class="conditions-alert-icon icon-error icon-lg"
@@ -92,5 +97,13 @@ export default {
   }
   .mytooltip ul {
     outline: 1px dashed red;
+  }
+  .template-upgrade-icon {
+    border: 1px solid var(--warning);
+    border-radius: 50%;
+    color: var(--warning);
+    margin-left: 4px;
+    font-size: 14px;
+    padding: 2px;
   }
 </style>
