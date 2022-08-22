@@ -1,7 +1,7 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class PagePo extends ComponentPo {
-  constructor(private path: string, selector: string = '.dashboard-root') {
+  constructor(protected path: string, selector: string = '.dashboard-root') {
     super(selector);
   }
 
