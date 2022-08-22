@@ -245,7 +245,7 @@ export default {
                       <LabeledInput v-model.number="podTemplateSpec.priority" :mode="mode" :label="t('workload.scheduling.priority.priority')" />
                     </div>
                     <div class="col span-6">
-                      <LabeledInput v-model="podTemplateSpec.priorityClassname" :mode="mode" :label="t('workload.scheduling.priority.className')" />
+                      <LabeledInput v-model="podTemplateSpec.priorityClassName" :mode="mode" :label="t('workload.scheduling.priority.className')" />
                     </div>
                   </div>
                 </div>
