@@ -1,5 +1,5 @@
 
-import { Matcher } from '~/cypress/support/types';
+import { Matcher } from '@/cypress/support/types';
 import './commands';
 
 declare global {
