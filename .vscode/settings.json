@@ -30,7 +30,9 @@
     "pvcs",
     "testid",
     "tolerations",
+    "userpreferences",
     "virtualmachine",
-    "vuex"
+    "vuex",
+    "whatsnew"
   ],
 }

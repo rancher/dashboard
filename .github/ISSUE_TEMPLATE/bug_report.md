@@ -1,3 +1,11 @@
+---
+name: Bug report
+about: Report a bug with Rancher Dashboard
+title: "[BUG]"
+labels: kind/bug
+assignees: ''
+
+---
 <!--------- For bugs and general issues --------->
 **Setup**
 - Rancher version:
@@ -19,11 +27,3 @@
 
 **Additional context**
 <!--Add any other context about the problem here. -->
-
-<!--------- For feature requests --------->
-**Detailed Description**
-<!--- Provide a detailed description of the change or addition you are proposing -->
-
-**Context**
-<!--- Why is this change important to you? How would you use it? -->
-<!--- How can it benefit other users? -->

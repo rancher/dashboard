@@ -88,7 +88,14 @@ export default Vue.extend({
     muteLabel(): boolean {
       // Don't mute the label if the mode is view and the button is checked
       return this.disabled && !(this.mode === _VIEW && this.isChecked);
-    }
+    },
+
+    /**
+     * Determines if the description slot is in use.
+     */
+    hasDescriptionSlot(): boolean {
+      return !!this.$slots.description;
+    },
   },
 
   watch: {
@@ -154,6 +161,12 @@ export default Vue.extend({
         <template v-else-if="description">
           {{ description }}
         </template>
+      </div>
+      <div
+        v-else-if="hasDescriptionSlot"
+        class="radio-button-outer-container-description"
+      >
+        <slot name="description" />
       </div>
     </div>
   </label>

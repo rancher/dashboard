@@ -260,7 +260,13 @@ export default {
       @select-type="selectType"
       @error="e=>errors = e"
     >
-      <NameNsDescription v-model="value" name-key="_name" :mode="mode" :namespaced="false" />
+      <NameNsDescription
+        v-model="value"
+        name-key="_name"
+        description-key="description"
+        :mode="mode"
+        :namespaced="false"
+      />
       <keep-alive>
         <component
           :is="cloudComponent"

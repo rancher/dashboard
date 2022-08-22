@@ -38,6 +38,15 @@ export default {
       type:    Boolean,
       default: true
     },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'form-footer'
+    }
   },
 
   data() {
@@ -76,6 +85,7 @@ export default {
       <button
         v-if="!isView && showCancel"
         id="cru-cancel"
+        :data-testid="componentTestid + '-cancel'"
         type="button"
         class="btn role-secondary"
         @click="confirmCancelRequired ? checkCancel(true) : $emit('cancel-confirmed', true)"
@@ -86,11 +96,17 @@ export default {
     <slot :checkCancel="checkCancel">
       <AsyncButton
         v-if="!isView"
+        :data-testid="componentTestid + '-create'"
         :mode="finishButtonMode || mode"
         @click="$emit('finish', $event)"
       />
     </slot>
-    <ResourceCancelModal ref="cancelModal" :is-cancel-modal="isCancelModal" :is-form="isForm" @confirm-cancel="confirmCancel($event)"></ResourceCancelModal>
+    <ResourceCancelModal
+      ref="cancelModal"
+      :is-cancel-modal="isCancelModal"
+      :is-form="isForm"
+      @confirm-cancel="confirmCancel($event)"
+    ></ResourceCancelModal>
   </div>
 </template>
 

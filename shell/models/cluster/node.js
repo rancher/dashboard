@@ -7,6 +7,7 @@ import { parseSi } from '@shell/utils/units';
 import findLast from 'lodash/findLast';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { LOCAL } from '@shell/config/query-params';
 
 export default class ClusterNode extends SteveModel {
   get _availableActions() {
@@ -254,10 +255,20 @@ export default class ClusterNode extends SteveModel {
     }));
   }
 
+  /**
+   *Find the node's cluster id from it's url
+   */
   get clusterId() {
     const parts = this.links.self.split('/');
 
-    return parts[parts.length - 4];
+    // Local cluster url links omit `/k8s/clusters/<cluster id>`
+    // `/v1/nodes` vs `k8s/clusters/c-m-274kcrc4/v1/nodes`
+    // Be safe when determining this, so work back through the url from a known point
+    if (parts.length > 6 && parts[parts.length - 6] === 'k8s' && parts[parts.length - 5] === 'clusters') {
+      return parts[parts.length - 4];
+    }
+
+    return LOCAL;
   }
 
   get normanNodeId() {

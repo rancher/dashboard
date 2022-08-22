@@ -1,7 +1,7 @@
 import ConsumptionGauge from '@shell/components/ConsumptionGauge';
 
 export default {
-  title:       'Components/ConsumptionGauge',
+  title:       'WIP/ConsumptionGauge',
   component:   ConsumptionGauge,
 };
 

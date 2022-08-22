@@ -6,9 +6,9 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title:                 'Rancher DevKit',
-  tagline:               'Rancher development kit',
-  url:                   'https://bisht-richa.github.io',
+  title:                 'Rancher UI DevKit',
+  tagline:               'Rancher UI development kit',
+  url:                   'https://rancher.github.io',
   baseUrl:               '/dashboard/',
   onBrokenLinks:         'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -17,7 +17,7 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'bisht-richa', // Usually your GitHub org/user name.
+  organizationName: 'rancher', // Usually your GitHub org/user name.
   projectName:      'dashboard', // Usually your repo name.
 
   // Even if you don't use internalization, you can use this field to set useful

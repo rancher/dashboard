@@ -293,6 +293,15 @@ export default {
     getCustomDetailLink: {
       type:    Function,
       default: null
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'sortable-table'
     }
   },
 
@@ -337,6 +346,10 @@ export default {
     }, 200),
 
     descending(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    searchQuery(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
 
@@ -838,6 +851,7 @@ export default {
                 class="btn role-primary"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
+                :data-testid="componentTestid + '-' + act.action"
                 @click="applyTableAction(act, null, $event)"
                 @mouseover="setBulkActionOfInterest(act)"
                 @mouseleave="setBulkActionOfInterest(null)"
@@ -976,9 +990,21 @@ export default {
               <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
               because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
               the value of :class changes. -->
-              <tr :key="row.key" class="main-row" :class="{ 'has-sub-row': row.showSubRow}" :data-node-id="row.key" :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest">
+              <tr
+                :key="row.key"
+                class="main-row"
+                :data-testid="componentTestid + '-' + i + '-row'"
+                :class="{ 'has-sub-row': row.showSubRow}"
+                :data-node-id="row.key"
+                :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest"
+              >
                 <td v-if="tableActions" class="row-check" align="middle">
-                  {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="row.key" :value="selectedRows.includes(row.row)" />
+                  {{ row.mainRowKey }}<Checkbox
+                    class="selection-checkbox"
+                    :data-node-id="row.key"
+                    :data-testid="componentTestid + '-' + i + '-checkbox'"
+                    :value="selectedRows.includes(row.row)"
+                  />
                 </td>
                 <td v-if="subExpandColumn" class="row-expand" align="middle">
                   <i
@@ -1056,6 +1082,7 @@ export default {
                     <button
                       :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
                       :ref="`actionButton${i}`"
+                      :data-testid="componentTestid + '-' + i + '-action-button'"
                       aria-haspopup="true"
                       aria-expanded="false"
                       type="button"
@@ -1079,6 +1106,7 @@ export default {
             <tr
               v-if="row.row.stateDescription"
               :key="row.row[keyField] + '-description'"
+              :data-testid="componentTestid + '-' + i + '-row-description'"
               class="state-description sub-row"
               @mouseenter="onRowMouseEnter"
               @mouseleave="onRowMouseLeave"

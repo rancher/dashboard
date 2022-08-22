@@ -4,7 +4,7 @@ import Loading from '@shell/components/Loading';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import EmberPage from '@shell/components/EmberPage';
-import ToggleSwitch from '@shell/components/form/ToggleSwitch';
+import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import {
   CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
 } from '@shell/config/query-params';
@@ -427,8 +427,14 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else-if="emberLink" class="embed">
-    <EmberPage :force-new="true" :src="emberLink" />
+  <div
+    v-else-if="emberLink"
+    class="embed"
+  >
+    <EmberPage
+      :force-new="true"
+      :src="emberLink"
+    />
   </div>
   <CruResource
     v-else
@@ -446,11 +452,20 @@ export default {
     @error="e=>errors = e"
   >
     <template #subtypes>
-      <div v-for="obj in groupedSubTypes" :key="obj.id" class="mb-20" style="width: 100%;">
+      <div
+        v-for="(obj, i) in groupedSubTypes"
+        :key="obj.id"
+        class="mb-20"
+        style="width: 100%;"
+      >
         <h4>
-          <div v-if="showRkeToggle && [_RKE1,_RKE2].includes(obj.name)" class="grouped-type">
+          <div
+            v-if="showRkeToggle && [_RKE1,_RKE2].includes(obj.name)"
+            class="grouped-type"
+          >
             <ToggleSwitch
               v-model="provisioner"
+              data-testid="cluster-manager-create-rke-switch"
               class="rke-switch"
               off-value="rke1"
               :off-label="t('cluster.toggle.v1')"
@@ -466,6 +481,7 @@ export default {
           name-field="label"
           side-label-field="tag"
           :color-for="colorFor"
+          :component-testid="'cluster-manager-create-grid-' + i"
           @clicked="clickedType"
         />
       </div>
@@ -486,7 +502,10 @@ export default {
       :provider="subType"
     />
 
-    <template v-if="subType" #form-footer>
+    <template
+      v-if="subType"
+      #form-footer
+    >
       <div><!-- Hide the outer footer --></div>
     </template>
   </CruResource>
