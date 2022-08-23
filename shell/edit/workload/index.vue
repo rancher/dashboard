@@ -91,7 +91,7 @@ export default {
           />
         </div>
       </div>
-      <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" @changed="changed" :default-tab="defaultTab">
+      <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" :default-tab="defaultTab" @changed="changed">
         <Tab
           v-for="(tab, i) in allContainers"
           :key="i"
@@ -198,7 +198,7 @@ export default {
             </Tab>
           </Tabbed>
         </Tab>
-        <Tab :label="nameDisplayFor(type)" :name="nameDisplayFor(type)" :weight="99" v-if="!isPod">
+        <Tab v-if="!isPod" :label="nameDisplayFor(type)" :name="nameDisplayFor(type)" :weight="99">
           <Tabbed :side-tabs="true">
             <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="tabWeightMap['labels']">
               <Labels v-model="value" :mode="mode" />

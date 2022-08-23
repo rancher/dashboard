@@ -155,7 +155,7 @@ export default {
           name:            `container-0`,
         }];
 
-        defaultTab = 'container-0'
+        defaultTab = 'container-0';
 
         const podSpec = { template: { spec: { containers: podContainers, initContainers: [] } } };
 
@@ -164,7 +164,7 @@ export default {
     }
 
     if (this.mode === _CREATE) {
-      defaultTab = 'container-0'
+      defaultTab = 'container-0';
     }
 
     if ((this.mode === _EDIT || _VIEW) && this.value.type === 'pod' ) {
@@ -204,7 +204,7 @@ export default {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
         });
-        defaultTab = 'container-0'
+        defaultTab = 'container-0';
 
         containers = podTemplateSpec.initContainers;
       }
@@ -214,7 +214,7 @@ export default {
           name:            `container-${ allContainers.length }`,
         };
 
-        defaultTab = 'container-0'
+        defaultTab = 'container-0';
 
         containers.push(container);
       } else {
