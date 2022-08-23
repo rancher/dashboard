@@ -6,7 +6,6 @@ import IndentedPanel from '@shell/components/IndentedPanel';
 import SortableTable from '@shell/components/SortableTable';
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks';
-import SimpleBox from '@shell/components/SimpleBox';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI } from '@shell/config/types';
@@ -34,7 +33,6 @@ export default {
     SortableTable,
     BadgeState,
     CommunityLinks,
-    SimpleBox,
     SingleClusterInfo,
   },
 
@@ -291,23 +289,6 @@ export default {
 
       <div class="row">
         <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel }" class="col">
-          <SimpleBox
-            id="migration"
-            class="panel"
-            :title="t('landing.gettingStarted.title')"
-            :pref="HIDE_HOME_PAGE_CARDS"
-            pref-key="migrationTip"
-          >
-            <div class="getting-started">
-              <span>
-                {{ t('landing.gettingStarted.body') }}
-              </span>
-              <nuxt-link :to="{name: 'docs-doc', params: {doc: 'getting-started'}}" class="getting-started-btn">
-                {{ t('landing.learnMore') }}
-              </nuxt-link>
-            </div>
-          </SimpleBox>
-
           <div v-if="!showSetLoginBanner" class="mt-5 mb-10 row">
             <div class="col span-12">
               <Banner color="set-login-page" :closable="true" @close="closeSetLoginBanner()">
@@ -316,7 +297,6 @@ export default {
               </Banner>
             </div>
           </div>
-
           <div class="row panel">
             <div v-if="mcm" class="col span-12">
               <SortableTable
@@ -394,11 +374,6 @@ export default {
         </div>
         <div v-if="showSidePanel" class="col span-3">
           <CommunityLinks v-if="showCommunityLinks" :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
-          <SimpleBox v-if="showCommercialSupport" :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
-            <nuxt-link :to="{ path: 'support'}">
-              {{ t('landing.commercial.body') }}
-            </nuxt-link>
-          </SimpleBox>
         </div>
       </div>
     </IndentedPanel>

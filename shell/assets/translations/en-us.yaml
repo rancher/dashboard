@@ -6201,7 +6201,9 @@ resourceQuota:
     namespace: 'This Namespace:'
     available: 'Available:'
     max: 'Total:'
-
+customLinks: 
+  label: Links
+  description: 'Links to display on the home page.'
 
 
 ##############################

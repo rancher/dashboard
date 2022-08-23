@@ -9,7 +9,8 @@ if (process.env.RANCHER_ENV === 'harvester') {
 const excludes = process.env.EXCLUDES_PKG || defaultExcludes;
 
 export default config(__dirname, {
-  excludes: excludes.replace(/\s/g, '').split(','),
+  excludes:  excludes.replace(/\s/g, '').split(','),
+  useEslint: false
   // excludes: ['fleet', 'example']
   // autoLoad: ['fleet', 'example']
 });
