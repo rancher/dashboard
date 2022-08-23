@@ -21,12 +21,11 @@ export default {
   mixins: [Closeable],
 
   async fetch() {
-    this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
-    this.communitySetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.COMMUNITY_LINKS });
+    this.uiCustomLinks = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
   },
 
   data() {
-    return { uiIssuesSetting: null, communitySetting: null };
+    return { uiCustomLinks: null };
   },
 
   computed: {
@@ -40,18 +39,14 @@ export default {
         return this.linkOptions;
       }
 
-      if (this.communitySetting?.value === 'false') {
-        return options(this.uiIssuesSetting?.value, true);
+      if (this.uiCustomLinks) {
+        return JSON.parse(this.uiCustomLinks.value).reduce((prev, curr) => {
+          return { ...prev, [curr.key]: curr.value };
+        }, {});
       }
 
       return options(this.uiIssuesSetting?.value);
     },
-
-    title() {
-      const hasCustomizedFileIssueLink = this.uiIssuesSetting?.value;
-
-      return hasCustomizedFileIssueLink ? 'landing.support' : 'landing.community.title';
-    }
   },
   methods: {
     show() {
@@ -66,9 +61,9 @@ export default {
 
 <template>
   <div>
-    <SimpleBox :title="t(title)" :pref="pref" :pref-key="prefKey">
+    <SimpleBox :title="t('landing.support')" :pref="pref" :pref-key="prefKey">
       <div v-for="(value, name) in options" :key="name" class="support-link">
-        <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
+        <a :href="value" target="_blank" rel="noopener noreferrer nofollow"> {{ name }} </a>
       </div>
 
       <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
