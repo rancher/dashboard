@@ -34,6 +34,11 @@ export default defineConfig({
       exclude: [
         'cypress/**/*.*',
         '**/__tests__/**/*.*',
+        '**/shell/scripts/**/*.*',
+      ],
+      include: [
+        'shell/**/*.{vue,ts,js}',
+        'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
     username:             process.env.TEST_USERNAME,
