@@ -143,9 +143,26 @@ jobs:
           ls
           yarn coverage
 
-      - name: Upload coverage to Codecov
+      - name: Upload unit test coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./coverage
-          fail_ci_if_error: tr
+          flags: unit
+          files: ./coverage/coverage-unit.json
+          fail_ci_if_error: true
+
+      - name: Upload e2e test coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: e2e
+          files: ./coverage/coverage-e2e.json
+          fail_ci_if_error: true
+
+      - name: Upload merged coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: merged
+          files: ./coverage/coverage.json
+          fail_ci_if_error: true
