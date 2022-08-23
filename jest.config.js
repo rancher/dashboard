@@ -30,6 +30,8 @@ module.exports = {
   modulePathIgnorePatterns: [
     '<rootDir>/cypress/',
     '<rootDir>/scripts/',
+    '<rootDir>/docusaurus/',
+    '<rootDir>/stories/',
     '<rootDir>/shell/scripts/',
   ],
   coverageDirectory:        '<rootDir>/coverage/unit',
