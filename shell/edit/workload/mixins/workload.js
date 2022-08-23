@@ -1,3 +1,4 @@
+import { mapGetters } from 'vuex';
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@shell/utils/object';
 import {
@@ -11,6 +12,7 @@ import {
   CAPI,
   POD,
 } from '@shell/config/types';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
@@ -29,7 +31,7 @@ import WorkloadPorts from '@shell/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import KeyValue from '@shell/components/form/KeyValue';
 import Tabbed from '@shell/components/Tabbed';
-import { mapGetters } from 'vuex';
+
 import NodeScheduling from '@shell/components/form/NodeScheduling';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import Tolerations from '@shell/components/form/Tolerations';
@@ -118,36 +120,10 @@ export default {
   },
 
   async fetch() {
-    const requests = { rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }) };
-    const needed = {
-      configMaps: CONFIG_MAP,
-      nodes:      NODE,
-      services:   SERVICE,
-      pvcs:       PVC,
-      sas:        SERVICE_ACCOUNT,
-      secrets:    SECRET,
-    };
+    await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
 
-    // Only fetch types if the user can see them
-    Object.keys(needed).forEach((key) => {
-      const type = needed[key];
-
-      if (this.$store.getters['cluster/schemaFor'](type)) {
-        requests[key] = this.$store.dispatch('cluster/findAll', { type });
-      }
-    });
-
-    const hash = await allHash(requests);
-
-    this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
-
-    this.allSecrets = hash.secrets || [];
-    this.allConfigMaps = hash.configMaps || [];
-    this.allNodeObjects = hash.nodes || [];
-    this.allNodes = this.allNodeObjects.map(node => node.id);
-    this.allServices = hash.services || [];
-    this.pvcs = hash.pvcs || [];
-    this.sas = hash.sas || [];
+    // don't block UI for these resources
+    this.$fetchSecondaryResources();
   },
 
   data() {
@@ -228,29 +204,31 @@ export default {
     this.selectContainer(container);
 
     return {
-      allConfigMaps:     [],
-      allNodes:          null,
-      allNodeObjects:    [],
-      allSecrets:        [],
-      allServices:       [],
-      name:              this.value?.metadata?.name || null,
-      pvcs:              [],
-      sas:               [],
-      showTabs:          false,
-      pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
+      isLoadingSecondaryResources: false,
+      secondaryResourcesFetched:   [],
+      allConfigMaps:               [],
+      allNodes:                    null,
+      allNodeObjects:              [],
+      allSecrets:                  [],
+      allServices:                 [],
+      name:                        this.value?.metadata?.name || null,
+      pvcs:                        [],
+      sas:                         [],
+      showTabs:                    false,
+      pullPolicyOptions:           ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      servicesOwned:     [],
-      servicesToRemove:  [],
-      portsForServices:  [],
+      servicesOwned:               [],
+      servicesToRemove:            [],
+      portsForServices:            [],
       isInitContainer,
       container,
-      containerChange:   0,
-      tabChange:         0,
-      podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
-      savePvcHookName:   'savePvcHook',
-      tabWeightMap:      TAB_WEIGHT_MAP,
-      fvFormRuleSets:      [{
+      containerChange:             0,
+      tabChange:                   0,
+      podFsGroup:                  podTemplateSpec.securityContext?.fsGroup,
+      savePvcHookName:             'savePvcHook',
+      tabWeightMap:                TAB_WEIGHT_MAP,
+      fvFormRuleSets:              [{
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
       fvReportedValidationPaths: ['spec'],
@@ -259,6 +237,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     tabErrors() {
       return { general: this.fvGetPathErrors(['image'])?.length > 0 };
     },
@@ -609,7 +588,66 @@ export default {
     this.registerAfterHook(this.saveService, 'saveService');
   },
 
+  // beforeDestroy() {
+  //   this.secondaryResourcesFetched.forEach(type => this.$store.dispatch('cluster/forgetType', type));
+  // },
+
   methods: {
+    async $fetchSecondaryResources() {
+      const requests = {};
+      const needed = {
+        configMaps: CONFIG_MAP,
+        nodes:      NODE,
+        services:   SERVICE,
+        pvcs:       PVC,
+        sas:        SERVICE_ACCOUNT,
+        secrets:    SECRET,
+      };
+
+      const clusterId = this.currentCluster.id;
+      // const namespace = this.value?.metadata?.namespace;
+      // const url = `/k8s/clusters/${ clusterId }/v1/namespaces/${ namespace }`;
+      const url = `/k8s/clusters/${ clusterId }/v1`;
+
+      // Only fetch types if the user can see them
+      Object.keys(needed).forEach((key) => {
+        const type = needed[key];
+
+        if (this.$store.getters['cluster/schemaFor'](type)) {
+          requests[key] = this.$store.dispatch('cluster/request', { url: `${ url }/${ type }s` });
+          this.secondaryResourcesFetched.push(type);
+        }
+      });
+
+      if (Object.keys(requests).length) {
+        this.isLoadingSecondaryResources = true;
+        const hash = await allHash(requests);
+
+        // this.isLoadingSecondaryResources = false;
+
+        const res = {};
+
+        Object.keys(hash).forEach((key) => {
+          res[key] = hash[key].data.length;
+        });
+
+        console.log('HASH RESULTS', res);
+        console.log('THIS1', this);
+
+        this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
+
+        // this.allSecrets = secrets.map(x => this.$store.dispatch(`cluster/create`, x)) || [];
+        this.allSecrets = hash.secrets.data || [];
+        this.allConfigMaps = hash.configMaps.data || [];
+        this.allNodeObjects = hash.nodes.data || [];
+        this.allNodes = this.allNodeObjects.map(node => node.id);
+        this.allServices = hash.services.data || [];
+        this.pvcs = hash.pvcs.data || []; // IS THIS EVEN NEEDED?!?
+        this.sas = hash.sas.data || [];
+
+        console.log('THIS2', this);
+      }
+    },
     addContainerBtn() {
       this.selectContainer({ name: 'Add Container', __add: true });
     },
