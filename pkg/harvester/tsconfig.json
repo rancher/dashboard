@@ -33,6 +33,9 @@
       "@shell/config/*": [
         "../../shell/config/*"
       ],
+      "@shell/components/*": [
+        "../../shell/components/*"
+      ],
       "@shell/store/*": [
         "../../shell/store/*"
       ],
@@ -58,12 +61,15 @@
   },
   "include": [
     "**/*.ts",
+    "**/*.d.ts",
     "**/*.tsx",
     "**/*.vue",
     "../../shell/types/*.d.ts",
     "../../shell/core/*.ts",
-    "../../shell/config/**/*.js"
-, "config/harvester-table-headers.js"  ],
+    "../../shell/config/**/*.js",
+    "../../shell/components/**/*.vue",
+    "../../vue-shim.d.ts",
+  ],
   "exclude": [
     "node_modules"
   ]

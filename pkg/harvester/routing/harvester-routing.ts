@@ -11,9 +11,9 @@ import ViewHarvesterResource from '../pages/c/_cluster/_resource/_id.vue';
 import ViewHarvesterNsResource from '../pages/c/_cluster/_resource/_namespace/_id.vue';
 import HarvesterAirgapUpdgrade from '../pages/c/_cluster/airgapupgrade/index.vue';
 import HarvesterMembers from '../pages/c/_cluster/members/index.vue';
-import ProjectNamespaces from '@shell/components/ExplorerProjectsNamespaces.vue';
+import ProjectNamespaces from '../pages/c/_cluster/projectsnamespaces.vue';
 
-const routes = [
+const routes: RouteConfig[] = [
   {
     name:      `${ PRODUCT_NAME }-c-cluster-support`,
     path:      `/:product/c/:cluster/support`,

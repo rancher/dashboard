@@ -1,7 +1,7 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import harvesterRoutes from './routing/harvester-routing';
-import harvesterCommonStore from './store/harvester-common.js';
+import harvesterCommonStore from './store/harvester-common';
 import customValidators from './validators';
 
 // Init the package
