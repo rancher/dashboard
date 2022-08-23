@@ -7,15 +7,16 @@ import {
   colorForState,
   stateDisplay
 } from '@shell/plugins/dashboard-store/resource-class';
-import SteveModel from '@shell/plugins/steve/steve-class';
 import { parseSi } from '@shell/utils/units';
+import HarvesterResource from '~/pkg/harvester/models/harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 const ALLOW_SYSTEM_LABEL_KEYS = [
   'topology.kubernetes.io/zone',
   'topology.kubernetes.io/region',
 ];
 
-export default class HciNode extends SteveModel {
+export default class HciNode extends HarvesterResource {
   get _availableActions() {
     const cordon = {
       action:  'cordon',
@@ -147,7 +148,7 @@ export default class HciNode extends SteveModel {
     delete detailLocation.params.namespace;
     delete detailLocation.params.id;
     detailLocation.params.resource = HCI.HOST;
-    detailLocation.name = 'c-cluster-product-resource';
+    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource`;
 
     return detailLocation;
   }

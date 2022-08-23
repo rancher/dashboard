@@ -2,10 +2,11 @@ import { HCI } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { findBy } from '@shell/utils/array';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
-import SteveModel from '@shell/plugins/steve/steve-class';
 import { _CREATE } from '@shell/config/query-params';
+import HarvesterResource from '~/pkg/harvester/models/harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-export default class HciVmBackup extends SteveModel {
+export default class HciVmBackup extends HarvesterResource {
   detailPageHeaderActionOverride(realMode) {
     if (realMode === _CREATE) {
       return this.t('harvester.backup.title');
@@ -49,7 +50,7 @@ export default class HciVmBackup extends SteveModel {
     const router = this.currentRouter();
 
     router.push({
-      name:   `c-cluster-product-resource-create`,
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
       params: { resource: HCI.BACKUP },
       query:  { restoreMode: 'existing', backupName: resource.name }
     });
@@ -59,7 +60,7 @@ export default class HciVmBackup extends SteveModel {
     const router = this.currentRouter();
 
     router.push({
-      name:   `c-cluster-product-resource-create`,
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
       params: { resource: HCI.BACKUP },
       query:  { restoreMode: 'new', backupName: resource.name }
     });

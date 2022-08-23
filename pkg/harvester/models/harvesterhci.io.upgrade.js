@@ -1,10 +1,10 @@
 import jsyaml from 'js-yaml';
 import { NODE } from '@shell/config/types';
-import SteveModel from '@shell/plugins/steve/steve-class';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { HCI } from '@shell/config/labels-annotations';
+import HarvesterResource from '~/pkg/harvester/models/harvester';
 
-export default class HciUpgrade extends SteveModel {
+export default class HciUpgrade extends HarvesterResource {
   get isLatestUpgrade() {
     return this?.metadata?.labels?.[HCI.LATEST_UPGRADE] === 'true';
   }

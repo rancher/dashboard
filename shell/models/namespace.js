@@ -173,10 +173,6 @@ export default class Namespace extends SteveModel {
   }
 
   get listLocation() {
-    if (this.$rootGetters['isSingleProduct']) {
-      return { name: 'c-cluster-product-resource' };
-    }
-
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
       return { name: `${ HARVESTER }-c-cluster-projectsnamespaces` };
     }

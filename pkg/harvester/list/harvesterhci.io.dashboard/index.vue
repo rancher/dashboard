@@ -23,6 +23,7 @@ import metricPoller from '@shell/mixins/metric-poller';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import { isEmpty } from '@shell/utils/object';
 import HarvesterUpgrade from '../../components/HarvesterUpgrade';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
 
 dayjs.extend(utc);
 dayjs.extend(minMax);
@@ -43,35 +44,53 @@ const PARSE_RULES = {
 };
 
 const RESOURCES = [{
-  type:            NODE,
+  type:    NODE,
   spoofed: {
     location: {
-      name:     'c-cluster-product-resource',
+      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
       params:   { resource: HCI.HOST }
     },
-    name: 'Host',
+    name: HCI.HOST,
   }
 },
-{ type: HCI.VM },
+{
+  type:    HCI.VM,
+  spoofed: {
+    location: {
+      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params:   { resource: HCI.VM }
+    },
+    name: HCI.VM,
+  }
+},
 {
   type:    NETWORK_ATTACHMENT,
   spoofed: {
     location: {
-      name:     'c-cluster-product-resource',
+      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
       params:   { resource: HCI.NETWORK_ATTACHMENT }
     },
-    name: 'Network',
+    name: HCI.NETWORK_ATTACHMENT,
   }
 },
-{ type: HCI.IMAGE },
+{
+  type:    HCI.IMAGE,
+  spoofed: {
+    location: {
+      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params:   { resource: HCI.IMAGE }
+    },
+    name: HCI.IMAGE,
+  }
+},
 {
   type:    PVC,
   spoofed: {
     location: {
-      name:     'c-cluster-product-resource',
+      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
       params:   { resource: HCI.VOLUME }
     },
-    name:            'Volume',
+    name:            HCI.VOLUME,
     filterNamespace: ['cattle-monitoring-system']
   }
 }];
@@ -221,9 +240,7 @@ export default {
             isSpoofed: true
           };
 
-          if (out[resource.type].total > 1) {
-            out[resource.type].name = `${ out[resource.type].name }s`;
-          }
+          out[resource.type].name = this.t(`typeLabel."${ resource.spoofed.name }"`, { count: out[resource.type].total });
         }
       });
 

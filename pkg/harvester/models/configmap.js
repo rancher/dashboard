@@ -1,8 +1,10 @@
 import { clone } from '@shell/utils/object';
 import { HCI } from '@shell/config/types';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from '~/pkg/harvester/models/harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-export default class HciConfigMap extends SteveModel {
+// FIXME: Request for Harvester team to validate navigation (list, create, etc) for this resource type
+export default class HciConfigMap extends HarvesterResource {
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
@@ -17,7 +19,7 @@ export default class HciConfigMap extends SteveModel {
     delete detailLocation.params.namespace;
     delete detailLocation.params.id;
     detailLocation.params.resource = HCI.CLOUD_TEMPLATE;
-    detailLocation.name = 'c-cluster-product-resource';
+    detailLocation.name = `${ HARVESTER_PRODUCT }-cluster-product-resource`;
 
     return detailLocation;
   }

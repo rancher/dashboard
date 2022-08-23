@@ -8,6 +8,7 @@ import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
 import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, HCI_SETTING } from '../config/settings';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 export default {
   components: {
@@ -123,9 +124,10 @@ export default {
 </script>
 
 <template>
+  <!-- TODO: RC :done-route="'c-cluster-product-resource'" -->
   <CruResource
     class="route"
-    :done-route="'c-cluster-product-resource'"
+
     :errors="errors"
     :mode="mode"
     :resource="value"

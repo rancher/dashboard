@@ -1,6 +1,6 @@
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from '~/pkg/harvester/models/harvester';
 
-export default class HciVmRestore extends SteveModel {
+export default class HciVmRestore extends HarvesterResource {
   get isComplete() {
     return this?.status?.complete || false;
   }

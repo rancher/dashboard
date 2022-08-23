@@ -62,6 +62,10 @@ export default class Project extends HybridModel {
     });
   }
 
+  get doneOverride() {
+    return this.listLocation;
+  }
+
   get listLocation() {
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
       return { name: `${ HARVESTER }-c-cluster-projectsnamespaces` };

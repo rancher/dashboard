@@ -8,6 +8,7 @@ import UpgradeInfo from '../../../../list/harvesterhci.io.dashboard/UpgradeInfo'
 import { HCI } from '@shell/config/types';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../../../config/harvester';
 
 const IMAGE_METHOD = {
   NEW:    'new',
@@ -69,7 +70,7 @@ export default {
 
   computed: {
     doneRoute() {
-      return 'c-cluster-product-resource';
+      return `${ HARVESTER_PRODUCT }-c-cluster-resource`;
     },
 
     osImageOptions() {

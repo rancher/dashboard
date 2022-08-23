@@ -1,8 +1,9 @@
-import Resource from '@shell/plugins/dashboard-store/resource-class';
 import { HCI } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
+import HarvesterResource from './harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-export default class HciSetting extends Resource {
+export default class HciSetting extends HarvesterResource {
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
@@ -17,9 +18,13 @@ export default class HciSetting extends Resource {
     delete detailLocation.params.namespace;
     delete detailLocation.params.id;
     detailLocation.params.resource = HCI.SETTING;
-    detailLocation.name = 'c-cluster-product-resource';
+    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource`;
 
     return detailLocation;
+  }
+
+  get doneRoute() {
+    return null;
   }
 
   get parentNameOverride() {

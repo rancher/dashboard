@@ -18,7 +18,12 @@ export default {
     Loading, Masthead, MoveModal, ResourceTable
   },
 
-  props: {},
+  props: {
+    ovverrideCreateProjectLocation: {
+      type:    Object,
+      default: () => null
+    }
+  },
 
   async fetch() {
     const inStore = this.$store.getters['currentStore'](NAMESPACE);
@@ -114,6 +119,9 @@ export default {
       return [...this.rows, ...fakeRows];
     },
     createProjectLocation() {
+      return this.ovverrideCreateProjectLocation || this.defaultCreateProjectLocation;
+    },
+    defaultCreateProjectLocation() {
       return {
         name:   'c-cluster-product-resource-create',
         params: {

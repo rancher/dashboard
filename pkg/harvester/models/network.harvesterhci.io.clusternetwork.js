@@ -1,8 +1,9 @@
 import { HCI } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from '~/pkg/harvester/models/harvester';
 
-export default class HciClusterNetwork extends SteveModel {
+// FIXME: Request for Harvester team to validate navigation (list, create, etc) for this resource type
+export default class HciClusterNetwork extends HarvesterResource {
   get availableActions() {
     let out = super._availableActions;
     const toFilter = ['goToClone', 'cloneYaml', 'goToViewYaml', 'goToViewConfig', 'promptRemove', 'goToEditYaml', 'download'];

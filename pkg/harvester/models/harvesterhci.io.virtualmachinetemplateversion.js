@@ -5,9 +5,10 @@ import {
   AS, MODE, _VIEW, _CONFIG, _UNFLAG, _EDIT
 } from '@shell/config/query-params';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from '~/pkg/harvester/models/harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-export default class HciVmTemplateVersion extends SteveModel {
+export default class HciVmTemplateVersion extends HarvesterResource {
   get availableActions() {
     let out = super._availableActions;
     const toFilter = ['goToClone', 'cloneYaml', 'goToViewConfig', 'goToEditYaml', 'goToViewYaml'];
@@ -139,7 +140,7 @@ export default class HciVmTemplateVersion extends SteveModel {
     const router = this.currentRouter();
 
     router.push({
-      name:   `c-cluster-product-resource-create`,
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
       params: { resource: HCI.VM },
       query:  { templateId, versionId: launchVersion }
     });

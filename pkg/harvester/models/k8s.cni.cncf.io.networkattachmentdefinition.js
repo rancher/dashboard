@@ -1,12 +1,30 @@
 import { clone } from '@shell/utils/object';
 import { HCI } from '@shell/config/types';
 import NetworkAttachmentDef from '@shell/models/k8s.cni.cncf.io.networkattachmentdefinition';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
+// FIXME: Request for Harvester team to validate navigation (list, create, etc) for this resource type
 export default class HarvesterNetworkAttachmentDef extends NetworkAttachmentDef {
+  get listLocation() {
+    return this.$rootGetters['type-map/optionsFor'](this.type).customRoute || {
+      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params:   {
+        product:  HARVESTER_PRODUCT,
+        cluster:   this.$rootGetters['clusterId'],
+        resource:  this.type,
+      },
+    };
+  }
+
+  get doneRoute() {
+    return this.listLocation.name;
+  }
+
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
 
     detailLocation.params.resource = HCI.NETWORK_ATTACHMENT;
+    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource`;
 
     return detailLocation;
   }
@@ -17,7 +35,7 @@ export default class HarvesterNetworkAttachmentDef extends NetworkAttachmentDef 
     delete detailLocation.params.namespace;
     delete detailLocation.params.id;
     detailLocation.params.resource = HCI.NETWORK_ATTACHMENT;
-    detailLocation.name = 'c-cluster-product-resource';
+    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource`;
 
     return detailLocation;
   }

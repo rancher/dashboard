@@ -9,11 +9,12 @@ import { get, clone } from '@shell/utils/object';
 import { formatSi } from '@shell/utils/units';
 import { ucFirst } from '@shell/utils/string';
 import { stateDisplay, colorForState } from '@shell/plugins/dashboard-store/resource-class';
-import SteveModel from '@shell/plugins/steve/steve-class';
 import { _CLONE } from '@shell/config/query-params';
 import { isReady } from '@shell/machine-config/harvester';
+import HarvesterResource from '~/pkg/harvester/models/harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-export default class HciVmImage extends SteveModel {
+export default class HciVmImage extends HarvesterResource {
   get availableActions() {
     let out = super._availableActions;
     const toFilter = ['goToEditYaml'];
@@ -49,7 +50,7 @@ export default class HciVmImage extends SteveModel {
     const router = this.currentRouter();
 
     router.push({
-      name:   `c-cluster-product-resource-create`,
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
       params: { resource: HCI.VM },
       query:  { image: this.id }
     });

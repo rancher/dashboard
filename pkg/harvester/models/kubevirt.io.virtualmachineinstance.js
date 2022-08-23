@@ -1,7 +1,7 @@
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { HCI, NODE } from '@shell/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from '~/pkg/harvester/models/harvester';
 
 const PAUSED = 'Paused';
 const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';
@@ -15,7 +15,7 @@ const VMIPhase = {
   Unknown:    'Unknown',
 };
 
-export default class VirtVmInstance extends SteveModel {
+export default class VirtVmInstance extends HarvesterResource {
   get _availableActions() {
     const out = super._availableActions;
 
