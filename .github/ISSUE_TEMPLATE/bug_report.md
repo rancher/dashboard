@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Report a bug with Rancher Dashboard
-title: "[BUG]"
+title: "<bug title: summarize bug in one line>"
 labels: kind/bug
 assignees: ''
 
