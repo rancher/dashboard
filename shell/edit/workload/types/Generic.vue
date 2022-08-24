@@ -177,6 +177,7 @@ export default {
             :container="container"
             :save-pvc-hook-name="savePvcHookName"
             :loading="isLoadingSecondaryResources"
+            :namespaced-pvcs="pvcs"
             @removePvcForm="clearPvcFormState"
           />
         </Tab>

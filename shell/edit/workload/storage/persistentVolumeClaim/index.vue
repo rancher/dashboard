@@ -53,6 +53,10 @@ export default {
       type:     String,
       required: true
     },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   async fetch() {
@@ -129,6 +133,7 @@ export default {
             :mode="mode"
             :label="t('workload.storage.subtypes.persistentVolumeClaim')"
             :options="pvcs"
+            :loading="loading"
           />
         </div>
       </div>

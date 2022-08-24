@@ -488,7 +488,7 @@ export default {
 
   watch: {
     'value.metadata.namespace': {
-      handler(neu) {
+      handler() {
         this.$fetchSecondaryResources();
       }
     },
@@ -589,9 +589,7 @@ export default {
           }
         });
 
-        console.log('HASH RESULTS', res);
-
-        this.servicesOwned = hash.services ? await this.value.getServicesOwned() : []; // TODO... check this one
+        this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
 
         // this.allSecrets = secrets.map(x => this.$store.dispatch(`cluster/create`, x)) || [];
         this.namespacedSecrets = hash.secrets.value ? hash.secrets.value.items : [];
@@ -600,7 +598,7 @@ export default {
         this.allNodes = this.allNodeObjects.map(node => node.id);
         this.allServices = hash.services.value ? hash.services.value.items : [];
         this.headlessServices = this.allServices.filter(service => service.spec.clusterIP === 'None');
-        this.pvcs = hash.pvcs.value ? hash.pvcs.value.items : []; // IS THIS EVEN NEEDED?!?
+        this.pvcs = hash.pvcs.value ? hash.pvcs.value.items : [];
         this.namespacedServiceNames = hash.sas.value ? hash.sas.value.items : [];
       }
     },
