@@ -9,7 +9,9 @@
     "node": ">=12"
   },
   "workspaces": [
-    "pkg/rancher-components"
+    "pkg/rancher-components",
+    "pkg/epinio",
+    "shell"
   ],
   "scripts": {
     "build-pkg": "./shell/scripts/build-pkg.sh",
