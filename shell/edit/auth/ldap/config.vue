@@ -1,6 +1,5 @@
 <script>
-import { RadioGroup } from '@components/Form/Radio';
-import { LabeledInput, Checkbox, Banner } from '@rancher/components';
+import { RadioGroup, LabeledInput, Checkbox, Banner } from '@rancher/components';
 
 import UnitInput from '@shell/components/form/UnitInput';
 

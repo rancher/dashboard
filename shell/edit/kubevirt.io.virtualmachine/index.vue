@@ -2,12 +2,11 @@
 import isEqual from 'lodash/isEqual';
 import { mapGetters } from 'vuex';
 
-import { Banner, Checkbox, LabeledInput } from '@rancher/components';
+import { Banner, Checkbox, LabeledInput, RadioGroup } from '@rancher/components';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 
 import CruResource from '@shell/components/CruResource';
-import { RadioGroup } from '@components/Form/Radio';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import NameNsDescription from '@shell/components/form/NameNsDescription';

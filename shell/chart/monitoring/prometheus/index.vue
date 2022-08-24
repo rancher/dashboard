@@ -2,12 +2,11 @@
 import isEmpty from 'lodash/isEmpty';
 import { mapGetters } from 'vuex';
 
-import { Banner, Checkbox, LabeledInput } from '@rancher/components';
+import { Banner, Checkbox, LabeledInput, RadioGroup } from '@rancher/components';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import StorageClassSelector from '@shell/chart/monitoring/StorageClassSelector';
-import { RadioGroup } from '@components/Form/Radio';
 
 import { set } from '@shell/utils/object';
 import { simplify, convert } from '@shell/utils/selector';

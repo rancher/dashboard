@@ -1,7 +1,7 @@
 <script>
 import KeyValue from '@shell/components/form/KeyValue';
-import { LabeledInput } from '@rancher/components';
-import { RadioGroup } from '@components/Form/Radio';
+import { LabeledInput, RadioGroup } from '@rancher/components';
+
 import { _CREATE } from '@shell/config/query-params';
 import { LONGHORN_DRIVER } from '@shell/models/persistentvolume';
 

@@ -3,8 +3,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
-import { Card, Checkbox } from '@rancher/components';
-import { RadioGroup } from '@components/Form/Radio';
+import { Card, Checkbox, RadioGroup } from '@rancher/components';
 
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 

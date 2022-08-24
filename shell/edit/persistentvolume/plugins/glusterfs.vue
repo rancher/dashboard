@@ -1,6 +1,5 @@
 <script>
-import { LabeledInput } from '@rancher/components';
-import { RadioGroup } from '@components/Form/Radio';
+import { LabeledInput, RadioGroup } from '@rancher/components';
 
 export default {
   components: { RadioGroup, LabeledInput },

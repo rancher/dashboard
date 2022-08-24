@@ -14,7 +14,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@rancher/components';
+import { LabeledInput, RadioGroup } from '@rancher/components';
 import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
 import HealthCheck from '@shell/components/form/HealthCheck';
 import Security from '@shell/components/form/Security';
@@ -37,7 +37,7 @@ import Command from '@shell/components/form/Command';
 import LifecycleHooks from '@shell/components/form/LifecycleHooks';
 import Storage from '@shell/edit/workload/storage';
 import Labels from '@shell/components/form/Labels';
-import { RadioGroup } from '@components/Form/Radio';
+
 import { UI_MANAGED } from '@shell/config/labels-annotations';
 import { removeObject } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';

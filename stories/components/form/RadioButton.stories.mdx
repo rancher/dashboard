@@ -1,7 +1,6 @@
 import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
 
-import RadioButton from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton';
-import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioGroup';
+import { RadioGroup, RadioButton } from '@rancher/components';
 
 export const Template = (args, { argTypes }) => ({
   components: { RadioButton },
@@ -63,7 +62,7 @@ A radio button or option button is a graphical control element that allows the u
 <Source
   language='js'
   code={`
-     import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton';
+    import { RadioGroup } from '@rancher/components';
   `}
 />
 
@@ -91,7 +90,7 @@ A radio button or option button is a graphical control element that allows the u
 <Source
   language='js'
   code={`
-     import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioGroup';
+    import { RadioGroup } from '@rancher/components';
   `}
 />
 
