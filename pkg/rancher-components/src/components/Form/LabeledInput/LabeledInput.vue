@@ -3,7 +3,7 @@ import Vue, { VueConstructor } from 'vue';
 import CompactInput from '@shell/mixins/compact-input';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
-import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
+import { LabeledTooltip } from '@rancher/components';
 import { escapeHtml } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
