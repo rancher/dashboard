@@ -40,7 +40,7 @@ export default {
       type:    Array,
       default: null
     },
-    loading: {
+    asyncDataLoading: {
       default: false,
       type:    Boolean
     },
@@ -309,7 +309,7 @@ export default {
                 :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
                 :options="existingNodeLabels"
                 :disabled="mode==='view'"
-                :loading="loading"
+                :loading="asyncDataLoading"
                 @input="update"
               />
               <LabeledInput

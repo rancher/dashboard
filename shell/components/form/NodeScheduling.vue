@@ -32,7 +32,7 @@ export default {
       type:    String,
       default: 'create'
     },
-    loading: {
+    asyncDataLoading: {
       default: false,
       type:    Boolean
     },
@@ -181,7 +181,7 @@ export default {
             :options="nodes || []"
             :mode="mode"
             :multiple="false"
-            :loading="loading"
+            :loading="asyncDataLoading"
             @input="update"
           />
         </div>

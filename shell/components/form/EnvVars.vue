@@ -23,7 +23,7 @@ export default {
       type:     Array,
       required: true
     },
-    loading: {
+    asyncDataLoading: {
       default: false,
       type:    Boolean
     },
@@ -111,7 +111,7 @@ export default {
         :all-secrets="secrets"
         :all-config-maps="configMaps"
         :mode="mode"
-        :loading="loading"
+        :async-data-loading="asyncDataLoading"
         @remove="removeRow(i)"
         @input="updateRow"
       />

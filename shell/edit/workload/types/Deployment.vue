@@ -183,7 +183,7 @@ export default {
                   :secrets="namespacedSecrets"
                   :config-maps="namespacedConfigMaps"
                   :mode="mode"
-                  :loading="isLoadingSecondaryResources"
+                  :async-data-loading="isLoadingSecondaryResources"
                 />
               </div>
               <ServiceNameSelect
@@ -193,7 +193,7 @@ export default {
                 :select-placeholder="t('workload.serviceAccountName.label')"
                 :options="namespacedServiceNames"
                 option-label="metadata.name"
-                :loading="isLoadingSecondaryResources"
+                :async-data-loading="isLoadingSecondaryResources"
                 @input="updateServiceAccount"
               />
               <div class="spacer" />
@@ -234,7 +234,7 @@ export default {
                 :config-maps="namespacedConfigMaps"
                 :container="container"
                 :save-pvc-hook-name="savePvcHookName"
-                :loading="isLoadingSecondaryResources"
+                :async-data-loading="isLoadingSecondaryResources"
                 :namespaced-pvcs="pvcs"
                 @removePvcForm="clearPvcFormState"
               />
@@ -267,10 +267,10 @@ export default {
               </template>
             </Tab>
             <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling" :weight="tabWeightMap['podScheduling']">
-              <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" :loading="isLoadingSecondaryResources" />
+              <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" :async-data-loading="isLoadingSecondaryResources" />
             </Tab>
             <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="tabWeightMap['nodeScheduling']">
-              <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" :loading="isLoadingSecondaryResources" />
+              <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" :async-data-loading="isLoadingSecondaryResources" />
             </Tab>
             <Tab :label="t('workload.container.titles.upgrading')" name="upgrading" :weight="tabWeightMap['upgrading']">
               <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />

@@ -36,7 +36,7 @@ export default {
         return {};
       },
     },
-    loading: {
+    asyncDataLoading: {
       default: false,
       type:    Boolean
     },
@@ -204,7 +204,7 @@ export default {
       :config-maps="configMaps"
       :secrets="secrets"
       :value="value"
-      :loading="loading"
+      :async-data-loading="asyncDataLoading"
     />
   </div>
 </template>
