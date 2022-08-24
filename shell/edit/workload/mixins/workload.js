@@ -167,17 +167,17 @@ export default {
       defaultTab = 'container-0';
     }
 
-    if ((this.mode === _EDIT || _VIEW) && this.value.type === 'pod' ) {
+    if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
       const podSpec = { ...this.value.spec };
 
       this.$set(this.value.spec, 'template', { spec: podSpec });
     }
 
     const spec = this.value.spec;
-    let container;
     let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
 
     let containers = podTemplateSpec.containers || [];
+    let container;
 
     if (this.mode === _VIEW && this.value.type === 'pod' ) {
       podTemplateSpec = spec;
