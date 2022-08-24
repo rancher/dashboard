@@ -520,7 +520,8 @@ export default {
 
   watch: {
     'value.metadata.namespace': {
-      async handler() {
+      async handler(neu) {
+        this.secondaryResourceData.namespace = neu;
         this.$resourceManagerFetchSecondaryResources(this.secondaryResourceData);
         this.servicesOwned = await this.value.getServicesOwned();
       }
