@@ -67,7 +67,7 @@ for (const [key, value] of Object.entries(proxy)) {
 
 app.use(express.static(dist));
 
-// Catch reload on a dyanmic page
+// Catch reload on a dynamic page
 // Check that the requestor will accept html and send them the index file
 app.use('*', (req, res, next) => {
   const accept = req.headers.accept || '';
