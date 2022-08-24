@@ -2,7 +2,7 @@
 import isEqual from 'lodash/isEqual';
 import { mapGetters } from 'vuex';
 
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { Checkbox } from '@components/Form/Checkbox';

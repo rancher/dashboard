@@ -5,7 +5,7 @@ import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@shell/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
-import Banner from '@components/Banner/Banner.vue';
+import { Banner } from '@rancher/components';
 
 /**
  * Explorer members page.

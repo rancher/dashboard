@@ -1,6 +1,6 @@
 <script>
 import { Checkbox } from '@components/Form/Checkbox';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 
 export default {
   components: { Banner, Checkbox },

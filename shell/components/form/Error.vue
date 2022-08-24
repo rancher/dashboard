@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import Banner from '@components/Banner/Banner.vue';
+import { Banner } from '@rancher/components';
 
 type Rule = (v?: string) => undefined | string;
 

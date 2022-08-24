@@ -7,7 +7,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { NORMAN } from '@shell/config/types';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE } from '@shell/config/query-params';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 
 export default {
   components: {

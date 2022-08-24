@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { mapGetters, mapState } from 'vuex';
 import { isEmpty } from 'lodash';

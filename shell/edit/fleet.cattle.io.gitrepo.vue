@@ -6,7 +6,7 @@ import {
 } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import ArrayList from '@shell/components/form/ArrayList';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import InputWithSelect from '@shell/components/form/InputWithSelect';

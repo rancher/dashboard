@@ -9,7 +9,7 @@
  */
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { _VIEW } from '@shell/config/query-params';
 import { ALIBABA_CLOUD_SMS_URL, MS_TEAMS_URL } from '@shell/edit/monitoring.coreos.com.receiver/types/webhook.add.vue';
 import TLS from '../tls';

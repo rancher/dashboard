@@ -8,7 +8,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 
 import { get } from '@shell/utils/object';
 import { mapGetters } from 'vuex';

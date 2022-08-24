@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@shell/config/types';
 import { ALLOWED_SETTINGS } from '@shell/config/settings';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import Loading from '@shell/components/Loading';
 import { DEV } from '@shell/store/prefs';
 

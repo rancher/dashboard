@@ -2,7 +2,7 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabelValue from '@shell/components/LabelValue';
 import { BadgeState } from '@components/BadgeState';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { RadioGroup, RadioButton } from '@components/Form/Radio';
 
 export default {

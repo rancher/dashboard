@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import TypeDescription from '@shell/components/TypeDescription';
 import {

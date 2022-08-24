@@ -1,7 +1,7 @@
 <script>
 import labeledFormElement from '@shell/mixins/labeled-form-element';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { _VIEW } from '@shell/config/query-params';
 
 export default {

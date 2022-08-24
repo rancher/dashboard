@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 
 export default {
   name: 'HarvesterUpgradeInfo',

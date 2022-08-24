@@ -1,6 +1,6 @@
 <script>
 import LabelValue from '@shell/components/LabelValue';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { LONGHORN, METRIC, HCI } from '@shell/config/types';

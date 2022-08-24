@@ -2,7 +2,7 @@
 import { mapState, mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import Date from '@shell/components/formatter/Date.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';

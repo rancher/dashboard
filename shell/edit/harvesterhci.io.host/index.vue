@@ -19,7 +19,7 @@ import { clone } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import KeyValue from '@shell/components/form/KeyValue';
 import { sortBy } from '@shell/utils/sort';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import HarvesterDisk from './HarvesterDisk';
 
 const LONGHORN_SYSTEM = 'longhorn-system';

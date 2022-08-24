@@ -1,6 +1,5 @@
 import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
-import Banner from '@/pkg/rancher-components/src/components/Banner/Banner';
-
+import { Banner } from '@rancher/components';
 
 <Meta 
   title="Components/Banner"
@@ -128,7 +127,7 @@ Danger banners should be used when the system has failed to perform an action, o
   light
   format={false}
   code={`
-     import Banner from '@/pkg/rancher-components/src/components/Banner/Banner';
+    import { Banner } from '@rancher/components';
   `}
 />
 

@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
 import { NORMAN } from '@shell/config/types';

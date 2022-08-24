@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 

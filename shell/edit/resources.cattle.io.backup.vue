@@ -5,7 +5,7 @@ import formValidation from '@shell/mixins/form-validation';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { RadioGroup } from '@components/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Loading from '@shell/components/Loading';

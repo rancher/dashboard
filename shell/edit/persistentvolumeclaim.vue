@@ -14,7 +14,7 @@ import { STORAGE_CLASS, PV } from '@shell/config/types';
 import StatusTable from '@shell/components/StatusTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Labels from '@shell/components/form/Labels';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 
 const DEFAULT_STORAGE = '10Gi';
 
