@@ -1,7 +1,0 @@
-FROM node:12
-
-RUN mkdir /src
-WORKDIR /src
-
-EXPOSE 8005
-CMD ["scripts/dev"]

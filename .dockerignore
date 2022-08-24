@@ -1,7 +1,0 @@
-.nuxt
-.nuxt-prod
-.env
-.nuxt
-.nyc_output
-coverage
-node_modules
