@@ -1,9 +1,9 @@
 <script>
 import CruResource from '@shell/components/CruResource';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput, Banner, Checkbox } from '@rancher/components';
 import UnitInput from '@shell/components/form/UnitInput';
-import { Banner, Checkbox } from '@rancher/components';
+
 import Loading from '@shell/components/Loading';
 import { CIS, CONFIG_MAP } from '@shell/config/types';
 import { mapGetters } from 'vuex';

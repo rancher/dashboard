@@ -1,8 +1,8 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput, Banner } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-import { Banner } from '@rancher/components';
+
 import { get, set } from '@shell/utils/object';
 
 export default {

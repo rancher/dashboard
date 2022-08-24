@@ -1,8 +1,8 @@
 <script>
 import SecretSelector from '@shell/components/form/SecretSelector';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput, Checkbox } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Checkbox } from '@rancher/components';
+
 import { protocol, updatePort } from './utils';
 
 export default {

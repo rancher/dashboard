@@ -1,7 +1,7 @@
 <script>
 import ArrayList from '@shell/components/form/ArrayList';
-import { Banner } from '@rancher/components';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { Banner, LabeledInput } from '@rancher/components';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _VIEW } from '@shell/config/query-params';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';

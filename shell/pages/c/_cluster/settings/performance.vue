@@ -1,9 +1,8 @@
 <script>
-import { Checkbox, Banner } from '@rancher/components';
+import { Checkbox, Banner, LabeledInput } from '@rancher/components';
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
 
-import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';

@@ -1,11 +1,10 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card, Banner } from '@rancher/components';
+import { Card, Banner, LabeledInput } from '@rancher/components';
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 
-import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 

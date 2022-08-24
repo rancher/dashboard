@@ -1,7 +1,7 @@
 <script>
 import { findBy } from '@shell/utils/array';
 import UnitInput from '@shell/components/form/UnitInput';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import InputOrDisplay from '@shell/components/InputOrDisplay';
 import { HCI, PVC } from '@shell/config/types';

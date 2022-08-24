@@ -1,8 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card, Banner } from '@rancher/components';
+import { Card, Banner, LabeledInput } from '@rancher/components';
 
-import { LabeledInput } from '@components/Form/LabeledInput';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 const DEFAULT_REVISION = 'v1';

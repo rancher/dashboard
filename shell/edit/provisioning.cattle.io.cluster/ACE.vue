@@ -1,6 +1,6 @@
 <script>
 import { RadioGroup } from '@components/Form/Radio';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
 import { set } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';

@@ -1,6 +1,6 @@
 import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
 
-import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 
 export const TemplateLabeledInput = (args, { argTypes }) => ({
   components: { LabeledInput },
@@ -99,7 +99,7 @@ Info
 <Source
   language='js'
   code={`
-     import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput';
+    import { LabeledInput } from '@rancher/components';
   `}
 />
 

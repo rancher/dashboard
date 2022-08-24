@@ -3,8 +3,8 @@ import Tab from '@shell/components/Tabbed/Tab';
 import S3 from '@shell/chart/rancher-backup/S3';
 import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Banner } from '@rancher/components';
+import { LabeledInput, Banner } from '@rancher/components';
+
 import { get } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, SECRET, PV } from '@shell/config/types';

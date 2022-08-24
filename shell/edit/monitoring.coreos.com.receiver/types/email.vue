@@ -7,8 +7,7 @@
  * AlertmanagerConfig resource, which has a different API. The new forms are
  * located in @shell/edit/monitoring.coreos.com.alertmanagerconfig/types.
  */
-import { LabeledInput } from '@components/Form/LabeledInput';
-import { Checkbox } from '@rancher/components';
+import { Checkbox, LabeledInput } from '@rancher/components';
 import TLS from '../tls';
 
 export default {

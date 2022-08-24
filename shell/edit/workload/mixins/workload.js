@@ -14,7 +14,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
 import HealthCheck from '@shell/components/form/HealthCheck';
 import Security from '@shell/components/form/Security';

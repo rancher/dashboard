@@ -1,7 +1,7 @@
 <script>
-import { Checkbox } from '@rancher/components';
+import { Checkbox, LabeledInput } from '@rancher/components';
 import ColorInput from '@shell/components/form/ColorInput';
-import { LabeledInput } from '@components/Form/LabeledInput';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { RadioGroup } from '@components/Form/Radio';
 import { _EDIT, _VIEW } from '@shell/config/query-params';

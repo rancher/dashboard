@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import { _EDIT } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 

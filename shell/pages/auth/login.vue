@@ -1,12 +1,12 @@
 <script>
 import { removeObject } from '@shell/utils/array';
 import { USERNAME } from '@shell/config/cookies';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput, Banner, Checkbox } from '@rancher/components';
 import AsyncButton from '@shell/components/AsyncButton';
 import BrandImage from '@shell/components/BrandImage';
 import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
-import { Banner, Checkbox } from '@rancher/components';
+
 import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@shell/config/query-params';
 
 import Password from '@shell/components/form/Password';

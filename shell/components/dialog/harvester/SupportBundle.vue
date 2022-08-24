@@ -2,10 +2,9 @@
 import { randomStr } from '@shell/utils/string';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import { HCI } from '@shell/config/types';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput, Banner } from '@rancher/components';
 import AsyncButton from '@shell/components/AsyncButton';
 import GraphCircle from '@shell/components/graph/Circle';
-import { Banner } from '@rancher/components';
 
 export default {
   name: 'SupportBundle',

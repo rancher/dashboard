@@ -2,9 +2,8 @@
 import isEmpty from 'lodash/isEmpty';
 import { mapGetters } from 'vuex';
 
-import { Banner, Checkbox } from '@rancher/components';
+import { Banner, Checkbox, LabeledInput } from '@rancher/components';
 
-import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import StorageClassSelector from '@shell/chart/monitoring/StorageClassSelector';

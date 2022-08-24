@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import { randomStr } from '@shell/utils/string';
 
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ModalWithCard from '@shell/components/ModalWithCard';
 

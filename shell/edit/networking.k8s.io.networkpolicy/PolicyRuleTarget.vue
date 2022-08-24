@@ -1,13 +1,13 @@
 <script>
 
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput, Banner } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _EDIT } from '@shell/config/query-params';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import { convert, matching, simplify } from '@shell/utils/selector';
 import { POD } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
-import { Banner } from '@rancher/components';
+
 import throttle from 'lodash/throttle';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
 

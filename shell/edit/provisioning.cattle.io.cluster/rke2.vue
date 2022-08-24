@@ -31,10 +31,10 @@ import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import { BadgeState, Banner, Checkbox } from '@rancher/components';
+import { BadgeState, Banner, Checkbox, LabeledInput } from '@rancher/components';
 
 import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
 import MatchExpressions from '@shell/components/form/MatchExpressions';

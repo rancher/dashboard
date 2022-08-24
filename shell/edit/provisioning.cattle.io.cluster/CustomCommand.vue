@@ -1,9 +1,9 @@
 <script>
-import { Banner, Checkbox } from '@rancher/components';
+import { Banner, Checkbox, LabeledInput } from '@rancher/components';
 import InfoBox from '@shell/components/InfoBox';
 
 import CopyCode from '@shell/components/CopyCode';
-import { LabeledInput } from '@components/Form/LabeledInput';
+
 import KeyValue from '@shell/components/form/KeyValue';
 import Taints from '@shell/components/form/Taints';
 import { MANAGEMENT } from '@shell/config/types';

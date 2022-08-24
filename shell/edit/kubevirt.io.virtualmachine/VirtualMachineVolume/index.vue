@@ -1,10 +1,10 @@
 <script>
 import draggable from 'vuedraggable';
 import InfoBox from '@shell/components/InfoBox';
-import { Banner } from '@rancher/components';
+import { Banner, LabeledInput } from '@rancher/components';
 import BadgeStateFormatter from '@shell/components/formatter/BadgeStateFormatter';
 import UnitInput from '@shell/components/form/UnitInput';
-import { LabeledInput } from '@components/Form/LabeledInput';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ModalWithCard from '@shell/components/ModalWithCard';
 

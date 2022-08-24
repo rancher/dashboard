@@ -3,7 +3,7 @@ import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CruResource from '@shell/components/CruResource';
 import {

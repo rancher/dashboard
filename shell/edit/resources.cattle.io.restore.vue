@@ -1,9 +1,9 @@
 <script>
 import CruResource from '@shell/components/CruResource';
 import createEditView from '@shell/mixins/create-edit-view';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput, Checkbox } from '@rancher/components';
 import UnitInput from '@shell/components/form/UnitInput';
-import { Checkbox } from '@rancher/components';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
 import { RadioGroup } from '@components/Form/Radio';

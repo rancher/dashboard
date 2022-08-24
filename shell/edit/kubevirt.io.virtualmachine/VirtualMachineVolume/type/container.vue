@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import InputOrDisplay from '@shell/components/InputOrDisplay';
 import { VOLUME_TYPE, InterfaceOption } from '@shell/config/harvester-map';

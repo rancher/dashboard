@@ -6,12 +6,12 @@ import { mapPref, DIFF } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
 import { mapGetters } from 'vuex';
 
-import { Banner, Checkbox } from '@rancher/components';
+import { Banner, Checkbox, LabeledInput } from '@rancher/components';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';

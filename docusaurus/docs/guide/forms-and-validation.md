@@ -84,7 +84,7 @@ A very simple form implementing form validation might look like this:
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource';
-import LabeledInput from '@shell/components/form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 
 export default {
   components: {

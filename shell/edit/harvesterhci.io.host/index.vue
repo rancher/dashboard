@@ -5,7 +5,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Footer from '@shell/components/form/Footer';
 import InfoBox from '@shell/components/InfoBox';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput, Banner } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
@@ -19,7 +19,7 @@ import { clone } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import KeyValue from '@shell/components/form/KeyValue';
 import { sortBy } from '@shell/utils/sort';
-import { Banner } from '@rancher/components';
+
 import HarvesterDisk from './HarvesterDisk';
 
 const LONGHORN_SYSTEM = 'longhorn-system';

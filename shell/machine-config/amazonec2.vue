@@ -1,9 +1,9 @@
 <script>
 import Loading from '@shell/components/Loading';
-import { Banner, Checkbox } from '@rancher/components';
+import { Banner, Checkbox, LabeledInput } from '@rancher/components';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+
 import KeyValue from '@shell/components/form/KeyValue';
 import UnitInput from '@shell/components/form/UnitInput';
 import { RadioGroup } from '@components/Form/Radio';

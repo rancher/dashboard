@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import { RadioGroup } from '@components/Form/Radio';
 import UnitInput from '@shell/components/form/UnitInput';
 import { _CREATE } from '@shell/config/query-params';

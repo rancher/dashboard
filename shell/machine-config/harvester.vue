@@ -5,10 +5,9 @@ import NodeAffinity from '@shell/components/form/NodeAffinity';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput, Banner } from '@rancher/components';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
-import { Banner } from '@rancher/components';
 
 import { get } from '@shell/utils/object';
 import { mapGetters } from 'vuex';

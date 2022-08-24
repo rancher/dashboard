@@ -6,7 +6,7 @@ import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { _VIEW, _EDIT } from '@shell/config/query-params';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export function normalizeName(str) {

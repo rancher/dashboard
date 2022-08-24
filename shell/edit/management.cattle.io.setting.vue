@@ -1,6 +1,6 @@
 <script>
 import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
