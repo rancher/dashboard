@@ -1,6 +1,7 @@
 <script>
 import { RULE_HEADERS } from '../plugins/kubewarden/policy-class';
 
+import { Banner } from '@components/Banner';
 import SortableTable from '@shell/components/SortableTable';
 
 export default {
@@ -11,10 +12,17 @@ export default {
     }
   },
 
-  components: { SortableTable },
+  components: { Banner, SortableTable },
 
   data() {
     return { RULE_HEADERS };
+  },
+
+  methods: {
+    joinColumn(resource) {
+      return resource?.join(', ') || '';
+    }
+
   }
 };
 </script>
@@ -22,7 +30,7 @@ export default {
 <template>
   <div>
     <SortableTable
-      v-if="rows"
+      v-if="rows.length > 0"
       :rows="rows"
       :headers="RULE_HEADERS"
       :table-actions="false"
@@ -44,15 +52,22 @@ export default {
 
       <template #col:operations="{row}">
         <td>
-          <span>{{ row.operations.join(', ') }}</span>
+          <span>{{ joinColumn(row.operations) }}</span>
         </td>
       </template>
 
       <template #col:resources="{row}">
         <td>
-          <span>{{ row.resources.join(', ') }}</span>
+          <span>{{ joinColumn(row.resources) }}</span>
         </td>
       </template>
     </SortableTable>
+    <div v-else>
+      <Banner
+        class="type-banner mb-20 mt-0"
+        color="warning"
+        :label="t('kubewarden.policies.noRules')"
+      />
+    </div>
   </div>
 </template>

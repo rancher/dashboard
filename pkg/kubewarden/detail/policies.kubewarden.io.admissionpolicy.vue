@@ -67,6 +67,7 @@ export default {
 
   data() {
     return {
+      jaegerService:      null,
       metricsProxy:       null,
       metricsService:     null,
       traces:             null,

@@ -1,11 +1,12 @@
 <script>
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
-import ResourceTable from '@shell/components/ResourceTable';
+
+import PolicyList from '../components/policies/PolicyList';
 
 export default {
   components: {
-    Banner, Loading, ResourceTable
+    Banner, Loading, PolicyList
   },
 
   props: {
@@ -13,7 +14,6 @@ export default {
       type:     String,
       required: true,
     },
-
     schema: {
       type:     Object,
       required: true,
@@ -26,18 +26,6 @@ export default {
 
   data() {
     return { rows: null };
-  },
-
-  computed: {
-    headers() {
-      return this.$store.getters['type-map/headersFor'](this.schema);
-    }
-  },
-
-  methods: {
-    hasNamespaceSelector(row) {
-      return row.namespaceSelector;
-    },
   }
 };
 </script>
@@ -50,19 +38,7 @@ export default {
       color="info"
       :label="t('kubewarden.admissionPolicy.description')"
     />
-    <ResourceTable :schema="schema" :rows="rows" :headers="headers">
-      <template #col:mode="{ row }">
-        <td>
-          <span class="policy__mode">
-            <span class="text-capitalize">{{ row.spec.mode }}</span>
-            <i
-              v-if="hasNamespaceSelector(row)"
-              v-tooltip.bottom="t('kubewarden.admissionPolicy.namespaceWarning')"
-              class="icon icon-warning"
-            />
-          </span>
-        </td>
-      </template>
-    </ResourceTable>
+
+    <PolicyList :resource="resource" :rows="rows" :schema="schema" />
   </div>
 </template>

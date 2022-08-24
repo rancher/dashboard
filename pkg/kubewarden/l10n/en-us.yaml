@@ -5,7 +5,6 @@ kubewarden:
   admissionPolicy:
     title: Admission Policies
     description: AdmissionPolicy is a namespace-wide resource. These policies will process only the requests that are targeting the Namespace where the AdmissionPolicy is defined.
-    namespaceWarning: This policy is targeting Rancher specific namespaces which will cause catastrophic failures with your Rancher deployment.
   clusterAdmissionPolicy:
     title: Cluster Admission Policies
     description: ClusterAdmissionPolicy is a cluster-wide resource. These policies will process all requests within the cluster where the ClusterAdmissionPolicy is defined.
@@ -13,6 +12,9 @@ kubewarden:
     badge: Custom
     title: Custom Policy
     description: A generic template for using your own policy.
+  policies:
+    noRules: There are no rules configured for this policy.
+    namespaceWarning: This policy is targeting Rancher specific namespaces which will cause catastrophic failures with your Rancher deployment.
   utils:
     resetFilter: Reset Filter
   tracing:

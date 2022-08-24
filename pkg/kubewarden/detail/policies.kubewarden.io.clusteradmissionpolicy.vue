@@ -71,8 +71,6 @@ export default {
       jaegerService:  null,
       metricsProxy:   null,
       metricsService: null,
-      monitorTraces:  null,
-      protectTraces:  null,
       traces:         null
     };
   },
@@ -119,7 +117,7 @@ export default {
       <h3>{{ t('namespace.resources') }}</h3>
     </div>
     <ResourceTabs v-model="value" :mode="mode" :need-related="hasRelationships">
-      <Tab name="policy-rules" label="Rules" :weight="99">
+      <Tab v-if="!!rulesRows" name="policy-rules" label="Rules" :weight="99">
         <RulesTable :rows="rulesRows" />
       </Tab>
       <Tab name="policy-tracing" label="Tracing" :weight="98">

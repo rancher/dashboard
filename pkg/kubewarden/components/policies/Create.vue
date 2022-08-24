@@ -152,33 +152,6 @@ export default ({
       );
 
       return steps.sort((a, b) => b.weight - a.weight);
-    },
-
-    subtypes() {
-      const out = [];
-      const { SPOOFED } = KUBEWARDEN;
-
-      for ( const key in SPOOFED ) {
-        const type = SPOOFED[key];
-
-        if ( type !== SPOOFED.POLICIES && type !== SPOOFED.POLICY ) {
-          const shortType = type.replace(`${ SPOOFED.POLICIES }.`, '');
-          const resourceType = this.t(`kubewarden.policyCharts.${ shortType }.resourceType`);
-
-          const subtype = {
-            key, // unnecessary with artifacthub
-            resourceType, // have this `package.data.['kubewarden/resources']`
-            id:           type, // unnecessary with artifacthub
-            label:        this.t(`kubewarden.policyCharts.${ shortType }.name`), // have this
-            description:  this.t(`kubewarden.policyCharts.${ shortType }.description`), // have this
-            keywords:     this.t(`kubewarden.policyCharts.${ shortType }.keywords`).split('\n').slice(0, -1) // need to fetch package details for this
-          };
-
-          out.push(subtype);
-        }
-      }
-
-      return out;
     }
   },
 
