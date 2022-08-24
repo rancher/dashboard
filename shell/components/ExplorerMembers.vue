@@ -30,7 +30,6 @@ export default {
         return {
           name:   'c-cluster-product-resource-create',
           params: { resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }
-
         };
       }
     }

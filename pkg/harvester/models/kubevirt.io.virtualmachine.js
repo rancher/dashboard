@@ -7,8 +7,7 @@ import { parseSi } from '@shell/utils/units';
 import { get } from '@shell/utils/object';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { _CLONE } from '@shell/config/query-params';
-import SteveModel from '@shell/plugins/steve/steve-class';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 
 export const OFF = 'Off';
 

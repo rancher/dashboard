@@ -1,6 +1,6 @@
 import { HCI } from '@shell/config/types';
 import { MODE, _CREATE } from '@shell/config/query-params';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 export default class HciVmTemplate extends HarvesterResource {

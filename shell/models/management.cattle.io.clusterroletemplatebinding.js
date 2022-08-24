@@ -86,7 +86,7 @@ export default class CRTB extends HybridModel {
   }
 
   /**
-   * TODO move this logic + projects/namespaces to component level
+   * TODO: RC move this logic + projects/namespaces to component level.
    */
   get listLocation() {
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER_NAME) {

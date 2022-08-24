@@ -5,7 +5,7 @@ import {
   AS, MODE, _VIEW, _CONFIG, _UNFLAG, _EDIT
 } from '@shell/config/query-params';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 export default class HciVmTemplateVersion extends HarvesterResource {

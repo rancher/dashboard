@@ -1,7 +1,7 @@
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { HCI, NODE } from '@shell/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 
 const PAUSED = 'Paused';
 const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';

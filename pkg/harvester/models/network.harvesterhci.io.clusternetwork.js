@@ -1,8 +1,8 @@
 import { HCI } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 
-// FIXME: Request for Harvester team to validate navigation (list, create, etc) for this resource type
+// FIXME: Harvester Request for team to validate navigation (list, create, etc) for this resource type
 export default class HciClusterNetwork extends HarvesterResource {
   get availableActions() {
     let out = super._availableActions;

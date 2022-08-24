@@ -110,8 +110,6 @@ export default {
         v-if="rows && rows.length"
         :schema="schema"
         :rows="rows"
-        :table-actions="false"
-        :row-actions="false"
         :is-creatable="true"
         :namespaced="false"
       >

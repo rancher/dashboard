@@ -11,7 +11,7 @@ import { ucFirst } from '@shell/utils/string';
 import { stateDisplay, colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { _CLONE } from '@shell/config/query-params';
 import { isReady } from '@shell/machine-config/harvester';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 export default class HciVmImage extends HarvesterResource {
@@ -34,7 +34,7 @@ export default class HciVmImage extends HarvesterResource {
         enabled:    canCreateVM,
         icon:       'icon icon-fw icon-spinner',
         label:      this.t('harvester.action.createVM'),
-        disabled:   !this.isReady,
+        disabled:   !this.isReady, // FIXME: Harvester working as expected?
       },
       ...out
     ];

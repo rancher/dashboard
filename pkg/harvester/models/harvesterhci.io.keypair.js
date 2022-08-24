@@ -1,6 +1,6 @@
 import { get } from '@shell/utils/object';
 import { findBy } from '@shell/utils/array';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 
 export default class HciKeypair extends HarvesterResource {
   get stateDisplay() {

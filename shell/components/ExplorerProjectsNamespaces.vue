@@ -19,7 +19,7 @@ export default {
   },
 
   props: {
-    ovverrideCreateProjectLocation: {
+    createProjectLocationOverride: {
       type:    Object,
       default: () => null
     }
@@ -119,7 +119,7 @@ export default {
       return [...this.rows, ...fakeRows];
     },
     createProjectLocation() {
-      return this.ovverrideCreateProjectLocation || this.defaultCreateProjectLocation;
+      return this.createProjectLocationOverride || this.defaultCreateProjectLocation;
     },
     defaultCreateProjectLocation() {
       return {

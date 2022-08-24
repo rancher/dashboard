@@ -2,11 +2,6 @@ import Vue from 'vue';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
 import { DEFAULT_WORKSPACE } from '@shell/config/types';
 export default class HciCluster extends ProvCluster {
-  get _availableActions() {
-    // No actions for Harvester clusters
-    return [];
-  }
-
   get stateObj() {
     return this._stateObj;
   }

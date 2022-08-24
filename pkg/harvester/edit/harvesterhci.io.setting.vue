@@ -8,7 +8,6 @@ import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
 import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, HCI_SETTING } from '../config/settings';
-import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 export default {
   components: {
@@ -44,6 +43,7 @@ export default {
 
     const isHarvester = this.value?.type?.includes('harvesterhci');
 
+    // FIXME: Harverster - Confirm this is fine and works as originally
     // Get all the custom volume types from the file names of this folder
     const customSettingComponents = require
       .context('../components/settings', false, /^.*\.vue$/)
@@ -124,10 +124,8 @@ export default {
 </script>
 
 <template>
-  <!-- TODO: RC :done-route="'c-cluster-product-resource'" -->
   <CruResource
     class="route"
-
     :errors="errors"
     :mode="mode"
     :resource="value"

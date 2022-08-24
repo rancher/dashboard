@@ -8,7 +8,7 @@ import {
   stateDisplay
 } from '@shell/plugins/dashboard-store/resource-class';
 import { parseSi } from '@shell/utils/units';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 const ALLOW_SYSTEM_LABEL_KEYS = [

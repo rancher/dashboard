@@ -10,6 +10,7 @@ export default {
         name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
         params: {
           product:  HARVESTER_PRODUCT,
+          cluster:  this.$store.getters['currentCluster']?.id,
           resource: MANAGEMENT.PROJECT
         },
       }
@@ -18,4 +19,4 @@ export default {
 };
 </script>
 
-<template><ExplorerProjectsNamespaces v-bind="$attrs" :ovverride-create-project-location="createProjectLocation" /></template>
+<template><ExplorerProjectsNamespaces v-bind="$attrs" :create-project-location-override="createProjectLocation" /></template>

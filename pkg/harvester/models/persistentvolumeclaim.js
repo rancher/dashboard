@@ -9,10 +9,10 @@ import {
 import { findBy } from '@shell/utils/array';
 import { get, clone } from '@shell/utils/object';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-// FIXME: Request for Harvester team to validate navigation (list, create, etc) for this resource type
+// FIXME: Harvester Request for team to validate navigation (list, create, etc) for this resource type
 export default class HciPv extends HarvesterResource {
   applyDefaults(_, realMode) {
     const accessModes = realMode === _CLONE ? this.spec.accessModes : [];

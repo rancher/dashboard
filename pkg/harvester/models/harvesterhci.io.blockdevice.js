@@ -1,6 +1,5 @@
 import { HCI } from '@shell/config/types';
-import SteveModel from '@shell/plugins/steve/steve-class';
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 
 export default class HciBlockDevice extends HarvesterResource {
   get childParts() {

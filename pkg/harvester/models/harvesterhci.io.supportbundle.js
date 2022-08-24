@@ -1,4 +1,4 @@
-import HarvesterResource from '~/pkg/harvester/models/harvester';
+import HarvesterResource from './harvester';
 
 export default class HciSupportBundle extends HarvesterResource {
   get bundleState() {
