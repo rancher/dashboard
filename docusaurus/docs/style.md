@@ -1,4 +1,4 @@
-# Style
+# Style and format
 
 ## SCSS
 
