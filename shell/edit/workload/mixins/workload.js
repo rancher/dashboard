@@ -12,10 +12,9 @@ import {
   CAPI,
   POD,
 } from '@shell/config/types';
-import { classify } from '@shell/plugins/dashboard-store/classify';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { allHash } from '@shell/utils/promise';
+import { allHashSettled } from '@shell/utils/promise';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
@@ -205,15 +204,15 @@ export default {
 
     return {
       isLoadingSecondaryResources: false,
-      secondaryResourcesFetched:   [],
-      allConfigMaps:               [],
+      namespacedConfigMaps:        [],
       allNodes:                    null,
       allNodeObjects:              [],
-      allSecrets:                  [],
+      namespacedSecrets:           [],
       allServices:                 [],
+      headlessServices:            [],
       name:                        this.value?.metadata?.name || null,
       pvcs:                        [],
-      sas:                         [],
+      namespacedServiceNames:      [],
       showTabs:                    false,
       pullPolicyOptions:           ['Always', 'IfNotPresent', 'Never'],
       spec,
@@ -446,55 +445,6 @@ export default {
       return this.$store.getters['cluster/schemaFor'](this.type);
     },
 
-    namespacedSecrets() {
-      const namespace = this.value?.metadata?.namespace;
-
-      if (namespace) {
-        return this.allSecrets.filter(
-          secret => secret.metadata.namespace === namespace
-        );
-      } else {
-        return this.allSecrets;
-      }
-    },
-
-    imagePullNamespacedSecrets() {
-      const namespace = this.value?.metadata?.namespace;
-
-      return this.allSecrets.filter(secret => secret.metadata.namespace === namespace && (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
-    },
-
-    namespacedConfigMaps() {
-      const namespace = this.value?.metadata?.namespace;
-
-      if (namespace) {
-        return this.allConfigMaps.filter(
-          configMap => configMap.metadata.namespace === namespace
-        );
-      } else {
-        return this.allConfigMaps;
-      }
-    },
-
-    namespacedServiceNames() {
-      const { namespace } = this.value?.metadata;
-
-      if (namespace) {
-        return this.sas.filter(
-          serviceName => serviceName.metadata.namespace === namespace
-        );
-      } else {
-        return this.sas;
-      }
-    },
-
-    headlessServices() {
-      return this.allServices.filter(
-        service => service.spec.clusterIP === 'None' &&
-          service.metadata.namespace === this.value.metadata.namespace
-      );
-    },
-
     workloadTypes() {
       return omitBy(WORKLOAD_TYPES, (type) => {
         return (
@@ -537,6 +487,11 @@ export default {
   },
 
   watch: {
+    'value.metadata.namespace': {
+      handler(neu) {
+        this.$fetchSecondaryResources();
+      }
+    },
     type(neu, old) {
       const template =
         old === WORKLOAD_TYPES.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;
@@ -588,10 +543,6 @@ export default {
     this.registerAfterHook(this.saveService, 'saveService');
   },
 
-  // beforeDestroy() {
-  //   this.secondaryResourcesFetched.forEach(type => this.$store.dispatch('cluster/forgetType', type));
-  // },
-
   methods: {
     async $fetchSecondaryResources() {
       const requests = {};
@@ -605,47 +556,52 @@ export default {
       };
 
       const clusterId = this.currentCluster.id;
-      // const namespace = this.value?.metadata?.namespace;
-      // const url = `/k8s/clusters/${ clusterId }/v1/namespaces/${ namespace }`;
-      const url = `/k8s/clusters/${ clusterId }/v1`;
+      const namespace = this.value?.metadata?.namespace;
 
       // Only fetch types if the user can see them
       Object.keys(needed).forEach((key) => {
         const type = needed[key];
+        const schema = this.$store.getters['cluster/schemaFor'](type);
 
-        if (this.$store.getters['cluster/schemaFor'](type)) {
+        if (schema) {
+          const isNamespaced = schema?.attributes?.namespaced || false;
+          let url = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }`;
+
+          if (!isNamespaced) {
+            url = `/k8s/clusters/${ clusterId }/v1`;
+          }
+
           requests[key] = this.$store.dispatch('cluster/request', { url: `${ url }/${ type }s` });
-          this.secondaryResourcesFetched.push(type);
         }
       });
 
       if (Object.keys(requests).length) {
         this.isLoadingSecondaryResources = true;
-        const hash = await allHash(requests);
+        const hash = await allHashSettled(requests);
 
-        // this.isLoadingSecondaryResources = false;
+        this.isLoadingSecondaryResources = false;
 
         const res = {};
 
         Object.keys(hash).forEach((key) => {
-          res[key] = hash[key].data.length;
+          if (hash[key].value) {
+            res[key] = hash[key].value.data ? hash[key].value.data.length : hash[key].value.items ? hash[key].value.items.length : 0;
+          }
         });
 
         console.log('HASH RESULTS', res);
-        console.log('THIS1', this);
 
-        this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
+        this.servicesOwned = hash.services ? await this.value.getServicesOwned() : []; // TODO... check this one
 
         // this.allSecrets = secrets.map(x => this.$store.dispatch(`cluster/create`, x)) || [];
-        this.allSecrets = hash.secrets.data || [];
-        this.allConfigMaps = hash.configMaps.data || [];
-        this.allNodeObjects = hash.nodes.data || [];
+        this.namespacedSecrets = hash.secrets.value ? hash.secrets.value.items : [];
+        this.namespacedConfigMaps = hash.configMaps.value ? hash.configMaps.value.items : [];
+        this.allNodeObjects = hash.nodes.value ? hash.nodes.value.data : []; // non-namespaced items have the list of resources in the 'data' prop...
         this.allNodes = this.allNodeObjects.map(node => node.id);
-        this.allServices = hash.services.data || [];
-        this.pvcs = hash.pvcs.data || []; // IS THIS EVEN NEEDED?!?
-        this.sas = hash.sas.data || [];
-
-        console.log('THIS2', this);
+        this.allServices = hash.services.value ? hash.services.value.items : [];
+        this.headlessServices = this.allServices.filter(service => service.spec.clusterIP === 'None');
+        this.pvcs = hash.pvcs.value ? hash.pvcs.value.items : []; // IS THIS EVEN NEEDED?!?
+        this.namespacedServiceNames = hash.sas.value ? hash.sas.value.items : [];
       }
     },
     addContainerBtn() {

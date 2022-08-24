@@ -266,7 +266,7 @@ export default {
               </template>
             </Tab>
             <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling" :weight="tabWeightMap['podScheduling']">
-              <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" />
+              <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" :loading="isLoadingSecondaryResources" />
             </Tab>
             <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="tabWeightMap['nodeScheduling']">
               <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" :loading="isLoadingSecondaryResources" />
