@@ -156,6 +156,25 @@ export function remove(state, obj, getters) {
   }
 }
 
+export function loadPage(state, {
+  type,
+  data,
+  ctx
+}) {
+  console.dir('loadPage!!!');
+  const proxies = data.map(row => classify(ctx, row));
+  const cache = registerType(state, type);
+
+  clear(cache.list);
+  cache.map.clear();
+  cache.generation++;
+  addObjects(cache.list, proxies);
+  cache.haveAll = true;
+
+  // return proxies;
+  return [];
+}
+
 export function loadAll(state, {
   type,
   data,

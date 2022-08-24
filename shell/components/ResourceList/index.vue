@@ -94,6 +94,8 @@ export default {
       // incremental loading
       loadResources:     [resource],
       loadIndeterminate: false,
+      page:              1,
+      pageSize:          100
     };
   },
 
@@ -117,6 +119,79 @@ export default {
 
     showIncrementalLoadingIndicator() {
       return this.perfConfig?.incrementalLoading?.enabled;
+    },
+
+    totalCount() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/typeEntry`]('count').list[0].counts[this.resource].summary.count;
+    },
+    indexFrom() {
+      return Math.max(0, 1 + this.pageSize * (this.page - 1));
+    },
+
+    indexTo() {
+      return Math.min(this.totalCount, this.indexFrom + this.pageSize - 1);
+    },
+
+    totalPages() {
+      return Math.ceil(this.totalCount / this.pageSize );
+    },
+
+    showPaging() {
+      return this.totalPages > 1;
+    },
+
+    pagingDisplay() {
+      const opt = {
+        ...(this.pagingParams || {}),
+
+        count: this.totalCount,
+        pages: this.totalPages,
+        from:  this.indexFrom,
+        to:    this.indexTo,
+      };
+
+      return this.$store.getters['i18n/t']('sortableTable.paging.generic', opt);
+    },
+  },
+
+  methods: {
+    setPage(num) {
+      if (this.page === num) {
+        return;
+      }
+
+      this.page = num;
+    },
+
+    goToPage(which) {
+      let page;
+
+      switch (which) {
+      case 'first':
+        page = 1;
+        break;
+      case 'prev':
+        page = Math.max(1, this.page - 1 );
+        break;
+      case 'next':
+        page = Math.min(this.totalPages, this.page + 1 );
+        break;
+      case 'last':
+        page = this.totalPages;
+        break;
+      }
+
+      this.setPage(page);
+    }
+  },
+
+  watch: {
+    async page() {
+      const resource = this.resource;
+
+      this.rows = await this.$fetchType(resource);
     }
   },
 
@@ -164,7 +239,45 @@ export default {
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"
+      :page="page"
     />
+    <div class="paging">
+      <button
+        type="button"
+        class="btn btn-sm role-multi-action"
+        :disabled="page == 1"
+        @click="goToPage('first')"
+      >
+        <i class="icon icon-chevron-beginning" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm role-multi-action"
+        :disabled="page == 1"
+        @click="goToPage('prev')"
+      >
+        <i class="icon icon-chevron-left" />
+      </button>
+      <span>
+        {{ pagingDisplay }}
+      </span>
+      <button
+        type="button"
+        class="btn btn-sm role-multi-action"
+        :disabled="page == totalPages"
+        @click="goToPage('next')"
+      >
+        <i class="icon icon-chevron-right" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm role-multi-action"
+        :disabled="page == totalPages"
+        @click="goToPage('last')"
+      >
+        <i class="icon icon-chevron-end" />
+      </button>
+    </div>
   </div>
 </template>
 

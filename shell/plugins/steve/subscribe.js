@@ -28,9 +28,11 @@ const MINIMUM_TIME_NOTIFIED = 3000;
 const MINIMUM_TIME_DISCONNECTED = 10000;
 
 // We only create a worker for the cluster store
+// ToDo:
 export function createWorker(store, ctx) {
-  const { getters } = ctx;
+  const { getters, state } = ctx;
   const storeName = getters.storeName;
+  const baseUrl = `${ state.config.baseUrl }/subscribe`;
 
   store.$workers = store.$workers || {};
 
@@ -47,7 +49,7 @@ export function createWorker(store, ctx) {
 
     store.$workers[storeName] = worker;
 
-    worker.initWorker(storeName, Comlink.proxy(callback));
+    worker.initWorker(storeName, baseUrl, Comlink.proxy(callback));
   }
 }
 
@@ -75,6 +77,10 @@ export function equivalentWatch(a, b) {
   }
 
   return true;
+}
+
+function loadPage() {
+  console.dir('loadPage!');
 }
 
 function queueChange({ getters, state }, { data, revision }, load, label) {

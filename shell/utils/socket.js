@@ -57,10 +57,10 @@ export default class Socket extends EventTarget {
 
   setUrl(url) {
     if ( !url.match(/wss?:\/\//) ) {
-      url = window.location.origin.replace(/^http/, 'ws') + url;
+      url = self.location.origin.replace(/^http/, 'ws') + url;
     }
 
-    if ( window.location.protocol === 'https:' && url.startsWith(INSECURE) ) {
+    if ( self.location.protocol === 'https:' && url.startsWith(INSECURE) ) {
       url = SECURE + url.substr(INSECURE.length);
     }
 

@@ -5,6 +5,7 @@ import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
 import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
+import * as Comlink from 'comlink';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -302,6 +303,7 @@ export default {
       }
     }
 
+    // ToDo:
     if ( opt.watch !== false ) {
       dispatch('watch', {
         type,
@@ -317,6 +319,42 @@ export default {
     }
 
     return all;
+  },
+
+  async findListFromWorker(ctx, { type, opt = {} }) {
+    const { getters, commit, state } = ctx;
+    const { page = 1, pageSize = 100 } = opt;
+    const indexFrom = pageSize * (page - 1);
+    const indexTo = indexFrom + pageSize;
+
+    type = getters.normalizeType(type);
+
+    opt.url = getters.urlFor(type, null, opt);
+    opt.baseUrl = state.config.baseUrl;
+
+    if ( !getters.typeRegistered(type) ) {
+      commit('registerType', type);
+    }
+
+    console.log(`findListFromWorker: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
+
+    function loadPage(pageData) {
+      commit('loadPage', {
+        ctx,
+        type,
+        data: pageData
+      });
+    }
+
+    const data = await this.$workers['cluster'].getPods(opt, indexFrom, indexTo, Comlink.proxy(loadPage));
+
+    commit('loadPage', {
+      ctx,
+      type,
+      data
+    });
+
+    return getters.all(type);
   },
 
   async findMatching(ctx, { type, selector, opt }) {

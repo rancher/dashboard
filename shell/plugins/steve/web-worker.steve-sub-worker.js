@@ -1,17 +1,34 @@
 import * as Comlink from 'comlink';
 import { SCHEMA } from '@shell/config/types';
+import axios from 'axios';
+import { get } from 'lodash';
+import Socket, {
+  EVENT_CONNECTED,
+  EVENT_DISCONNECTED,
+  EVENT_MESSAGE,
+  //  EVENT_FRAME_TIMEOUT,
+  EVENT_CONNECT_ERROR,
+  EVENT_DISCONNECT_ERROR
+} from '@shell/utils/socket';
 
 const COUNTS_FLUSH_TIMEOUT = 5000;
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 
 const state = {
-  store:      '', // Store name
-  load:       undefined, // Load callback to load a resource into the store
-  counts:     [], // Buffer of count resources recieved in a given window
-  countTimer: undefined, // Tiemr to flush the count buffer
-  flushTimer: undefined, // Timer to flush the schema chaneg queue
-  queue:      [], // Schema change queue
-  schemas:    {} // Map of schema id to hash to track when a schema actually changes
+  store:             '', // Store name
+  load:              undefined, // Load callback to load a resource into the store
+  counts:            [], // Buffer of count resources received in a given window
+  countTimer:        undefined, // Tiemr to flush the count buffer
+  flushTimer:        undefined, // Timer to flush the schema chaneg queue
+  queue:             [], // Schema change queue
+  schemas:           {}, // Map of schema id to hash to track when a schema actually changes
+  pods:              [], // this is the full array of pods we get back from our API call
+  podRevisions:      {},
+  lastPodHash:       undefined, // before we message a payload back to the UI thread, we hash it and compare to the last hash, if the hashes match we don't bother.
+  baseUrl:           undefined,
+  socket:            undefined,
+  socketToListenFor: [],
+  socketListening:   []
 };
 
 // Quick, simple hash function
@@ -68,9 +85,10 @@ function load(data) {
 
 // Web Worker API
 const fns = {
-  initWorker(storeName, loadFn) {
+  initWorker(storeName, baseUrl, loadFn) {
     state.store = storeName;
     state.load = loadFn;
+    state.baseUrl = baseUrl;
   },
 
   destroyWorker() {
@@ -95,6 +113,49 @@ const fns = {
         load(last);
       }, COUNTS_FLUSH_TIMEOUT);
     }
+  },
+
+  async getPods(opt, from = 0, to = 10, loadPage = () => {}) {
+    if (state.pods.length === 0) {
+      const res = await axios({ ...opt, headers: { Accept: 'application/json' } });
+
+      // right now we're deferring the whole "what if we want to watch multiple resources?" problem to future me
+      if (!state.socket) {
+        state.socket = new Socket(`${ opt.baseUrl }/subscribe`);
+        state.socket.connect();
+        state.socket.addEventListener(EVENT_CONNECTED, (e) => {
+          setupListeners();
+        });
+        state.socket.addEventListener(EVENT_MESSAGE, (e) => {
+          const event = e.detail;
+
+          if ( event.data) {
+            const msg = JSON.parse(event.data);
+
+            if (storeMutations[msg.name]) {
+              storeMutations[msg.name](msg?.data?.id);
+            }
+
+            loadPage(makePage(opt, from, to));
+          }
+        });
+      }
+
+      state.pods = (res?.data?.data || []);
+
+      // writing this as a reduce instead of this way increases time taken by as much as 1000x (!)
+      state.podRevisions = {};
+      for (let i = 0; i < state.pods.length; i++) {
+        state.podRevisions[state.pods[i].id] = { resourceVersion: state.pods[i].metadata.resourceVersion, index: i };
+      }
+      if (state.socket.isConnected()) {
+        listenFor({ resourceType: res.data.resourceType, resourceVersion: res.data.revision });
+      } else {
+        state.socketToListenFor.push({ resourceType: res.data.resourceType, resourceVersion: res.data.revision });
+      }
+    }
+
+    return makePage(opt, from, to);
   },
 
   // Called to load schema
@@ -122,6 +183,56 @@ const fns = {
 
     // Delete the schema from the map, so if it comes back we don't ignore it if the hash is the same
     delete state.schemas[id];
+  }
+};
+
+function setupListeners() {
+  if (state.socket.isConnected()) {
+    state.socketToListenFor.forEach((payload) => {
+      const ok = state.socket.send(JSON.stringify(payload));
+
+      if (!ok) {
+        console.error(`unable to listen for: ${ JSON.stringify(payload) }`);
+      } else {
+        state.socketListening.push(payload);
+      }
+    });
+  }
+}
+
+function listenFor(payload) {
+  const ok = state.socket.send(JSON.stringify(payload));
+
+  if (!ok) {
+    console.error(`unable to listen for: ${ JSON.stringify(payload) }`);
+
+    return false;
+  } else {
+    state.socketListening.push(listenFor);
+
+    return true;
+  }
+}
+
+function makePage(opt, from = 0, to = 10, sortPath = 'metadata.name') {
+  const sortedResources = [...state.pods].sort((a, b) => get(a, sortPath).localeCompare(get(b, sortPath)));
+  const currentPage = [];
+
+  for (let i = from; i < to; i++) {
+    currentPage.push(sortedResources[i]);
+  }
+
+  if (state.lastPodHash !== hashObj(currentPage)) {
+    state.lastPodHash = hashObj(currentPage);
+  }
+
+  return currentPage;
+}
+
+const storeMutations = {
+  'resource.remove': (id) => {
+    state.pods.splice(state.podRevisions[id].index, 0);
+    delete state.podRevisions[id];
   }
 };
 

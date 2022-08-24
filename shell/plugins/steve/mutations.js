@@ -4,6 +4,7 @@ import {
   forgetType,
   resetStore,
   loadAll,
+  loadPage,
   load,
   remove
 } from '@shell/plugins/dashboard-store/mutations';
@@ -27,6 +28,16 @@ function registerNamespace(state, namespace) {
 }
 
 export default {
+  loadPage(state, {
+    type,
+    data,
+    ctx,
+    skipHaveAll
+  }) {
+    loadPage(state, {
+      type, data, ctx
+    });
+  },
   loadAll(state, {
     type,
     data,

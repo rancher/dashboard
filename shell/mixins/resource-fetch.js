@@ -94,13 +94,17 @@ export default {
         this.fetchedResourceType.push(type);
       }
 
-      return this.$store.dispatch(`${ inStore }/findAll`, {
+      const findAction = type === 'pod' ? 'findListFromWorker' : 'findAll';
+
+      return this.$store.dispatch(`${ inStore }/${ findAction }`, {
         type,
         opt: {
           incremental:      this.incremental,
           watch:            this.watch,
           force:            this.force,
-          hasManualRefresh: this.hasManualRefresh
+          hasManualRefresh: this.hasManualRefresh,
+          page:             this.page,
+          pageSize:         this.pageSize
         }
       });
     },
