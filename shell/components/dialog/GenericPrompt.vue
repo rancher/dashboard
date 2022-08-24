@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card } from '@components/Card';
-import { Banner } from '@rancher/components';
+import { Card, Banner } from '@rancher/components';
+
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {

@@ -1,8 +1,8 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { Banner } from '@rancher/components';
-import { Card } from '@components/Card';
+import { Banner, Card } from '@rancher/components';
+
 import { mapGetters, mapState } from 'vuex';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';

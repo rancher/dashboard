@@ -5,8 +5,8 @@ import { NODE, HCI } from '@shell/config/types';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 
-import { Card } from '@components/Card';
-import { Banner } from '@rancher/components';
+import { Card, Banner } from '@rancher/components';
+
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 

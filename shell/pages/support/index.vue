@@ -3,7 +3,7 @@ import { options } from '@shell/config/footer';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import AsyncButton from '@shell/components/AsyncButton';
 import IndentedPanel from '@shell/components/IndentedPanel';
-import { Card } from '@components/Card';
+import { Card } from '@rancher/components';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { getVendor, setBrand } from '@shell/config/private-label';

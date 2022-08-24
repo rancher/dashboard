@@ -4,9 +4,9 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 // import { Checkbox } from '@components/Form/Checkbox';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
-import { Banner } from '@rancher/components';
+import { Banner, Card } from '@rancher/components';
 import UnitInput from '@shell/components/form/UnitInput';
-import { Card } from '@components/Card';
+
 import { RadioGroup } from '@components/Form/Radio';
 import KeyValue from '@shell/components/form/KeyValue';
 import { LabeledInput } from '@components/Form/LabeledInput';

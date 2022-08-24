@@ -2,8 +2,8 @@
 import { mapGetters } from 'vuex';
 import { CLUSTER_BADGE } from '@shell/config/labels-annotations';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card } from '@components/Card';
-import { Banner } from '@rancher/components';
+import { Card, Banner } from '@rancher/components';
+
 import ClusterBadge from '@shell/components/ClusterBadge';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { exceptionToErrorsArray } from '@shell/utils/error';
