@@ -4,7 +4,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { downloadFile } from '@shell/utils/download';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { sortBy } from '@shell/utils/sort';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rancher/components';
 
 export default {
   layout:     'plain',

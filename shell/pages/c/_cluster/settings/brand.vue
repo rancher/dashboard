@@ -3,12 +3,12 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import ColorInput from '@shell/components/form/ColorInput';
 import TypeDescription from '@shell/components/TypeDescription';
 
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox, Banner } from '@rancher/components';
 import FileSelector from '@shell/components/form/FileSelector';
 import SimpleBox from '@shell/components/SimpleBox';
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@rancher/components';
+
 import { allHash } from '@shell/utils/promise';
 import { MANAGEMENT } from '@shell/config/types';
 import { getVendor, setVendor } from '@shell/config/private-label';

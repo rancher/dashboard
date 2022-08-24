@@ -1,10 +1,10 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox, Banner } from '@rancher/components';
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@rancher/components';
+
 import BannerSettings from '@shell/components/form/BannerSettings';
 import { allHash } from '@shell/utils/promise';
 import { MANAGEMENT } from '@shell/config/types';

@@ -2,7 +2,7 @@
 import { mapState, mapGetters } from 'vuex';
 import { PROJECT } from '@shell/config/labels-annotations';
 import { MANAGEMENT, NAMESPACE } from '@shell/config/types';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rancher/components';
 import { resourceNames } from '@shell/utils/string';
 
 export default {

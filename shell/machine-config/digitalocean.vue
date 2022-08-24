@@ -3,11 +3,10 @@ import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ArrayList from '@shell/components/form/ArrayList';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox, Banner } from '@rancher/components';
 import { NORMAN } from '@shell/config/types';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE } from '@shell/config/query-params';
-import { Banner } from '@rancher/components';
 
 export default {
   components: {
