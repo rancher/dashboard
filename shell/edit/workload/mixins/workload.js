@@ -14,7 +14,7 @@ import {
 } from '@shell/config/types';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { allHashSettled } from '@shell/utils/promise';
+import ResourceManager from '@shell/mixins/resource-manager';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
@@ -95,7 +95,7 @@ export default {
     ContainerMountPaths
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, ResourceManager],
 
   props: {
     value: {
@@ -122,7 +122,8 @@ export default {
     await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
 
     // don't block UI for these resources
-    this.$fetchSecondaryResources();
+    this.$resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+    this.servicesOwned = await this.value.getServicesOwned();
   },
 
   data() {
@@ -204,6 +205,37 @@ export default {
 
     return {
       isLoadingSecondaryResources: false,
+      secondaryResourceData:       {
+        namespace: this.value?.metadata?.namespace || null,
+        data:      {
+          [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
+          [PVC]:             { applyTo: [{ var: 'pvcs' }] },
+          [SERVICE_ACCOUNT]: { applyTo: [{ var: 'namespacedServiceNames' }] },
+          [SECRET]:          { applyTo: [{ var: 'namespacedSecrets' }] },
+          [NODE]:            {
+            applyTo: [
+              { var: 'allNodeObjects' },
+              {
+                var:         'allNodes',
+                parsingFunc: (data) => {
+                  return data.map(node => node.id);
+                }
+              }
+            ]
+          },
+          [SERVICE]: {
+            applyTo: [
+              { var: 'allServices' },
+              {
+                var:         'headlessServices',
+                parsingFunc: (data) => {
+                  return data.filter(service => service.spec.clusterIP === 'None');
+                }
+              }
+            ]
+          },
+        }
+      },
       namespacedConfigMaps:        [],
       allNodes:                    null,
       allNodeObjects:              [],
@@ -488,8 +520,9 @@ export default {
 
   watch: {
     'value.metadata.namespace': {
-      handler() {
-        this.$fetchSecondaryResources();
+      async handler() {
+        this.$resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+        this.servicesOwned = await this.value.getServicesOwned();
       }
     },
     type(neu, old) {
@@ -544,56 +577,6 @@ export default {
   },
 
   methods: {
-    async $fetchSecondaryResources() {
-      const requests = {};
-      const needed = {
-        configMaps: CONFIG_MAP,
-        nodes:      NODE,
-        services:   SERVICE,
-        pvcs:       PVC,
-        sas:        SERVICE_ACCOUNT,
-        secrets:    SECRET,
-      };
-
-      const clusterId = this.currentCluster.id;
-      const namespace = this.value?.metadata?.namespace;
-
-      // Only fetch types if the user can see them
-      Object.keys(needed).forEach((key) => {
-        const type = needed[key];
-        const schema = this.$store.getters['cluster/schemaFor'](type);
-
-        if (schema) {
-          const isNamespaced = schema?.attributes?.namespaced || false;
-          let url = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }`;
-
-          if (!isNamespaced) {
-            url = `/k8s/clusters/${ clusterId }/v1`;
-          }
-
-          requests[key] = this.$store.dispatch('cluster/request', { url: `${ url }/${ type }s` });
-        }
-      });
-
-      if (Object.keys(requests).length) {
-        this.isLoadingSecondaryResources = true;
-        const hash = await allHashSettled(requests);
-
-        this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
-
-        // this.allSecrets = secrets.map(x => this.$store.dispatch(`cluster/create`, x)) || [];
-        this.namespacedSecrets = hash.secrets.value ? hash.secrets.value.items : [];
-        this.namespacedConfigMaps = hash.configMaps.value ? hash.configMaps.value.items : [];
-        this.allNodeObjects = hash.nodes.value ? hash.nodes.value.data : []; // non-namespaced items have the list of resources in the 'data' prop...
-        this.allNodes = this.allNodeObjects.map(node => node.id);
-        this.allServices = hash.services.value ? hash.services.value.items : [];
-        this.headlessServices = this.allServices.filter(service => service.spec.clusterIP === 'None');
-        this.pvcs = hash.pvcs.value ? hash.pvcs.value.items : [];
-        this.namespacedServiceNames = hash.sas.value ? hash.sas.value.items : [];
-
-        this.isLoadingSecondaryResources = false;
-      }
-    },
     addContainerBtn() {
       this.selectContainer({ name: 'Add Container', __add: true });
     },
