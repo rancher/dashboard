@@ -1,6 +1,6 @@
 import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
 
-import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow';
+import { TextAreaAutoGrow } from '@rancher/components';
 
 export const Template = (args, { argTypes }) => ({
   components: { TextAreaAutoGrow },
@@ -29,7 +29,7 @@ The text area represents a multi-line plain-text editing control, allows users t
   light
   format={false}
   code={`
-     import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow';
+    import { TextAreaAutoGrow } from '@rancher/components';
   `}
 />
 

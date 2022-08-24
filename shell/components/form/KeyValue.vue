@@ -4,7 +4,7 @@ import { typeOf } from '@shell/utils/sort';
 import { removeAt, removeObject } from '@shell/utils/array';
 import { base64Encode, base64Decode, binarySize } from '@shell/utils/crypto';
 import { downloadFile } from '@shell/utils/download';
-import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import { TextAreaAutoGrow } from '@rancher/components';
 import { get } from '@shell/utils/object';
 import Select from '@shell/components/form/Select';
 import FileSelector from '@shell/components/form/FileSelector';
