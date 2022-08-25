@@ -8,11 +8,11 @@ export default {
     *
     * resourceData object structure
     *
-    * @param {String} resourceData.namespace Namespace identifier
-    * @param {Object} resourceData.data Object containing info about the data needed to be fetched and how it should be parsed. Note: The KEY NEEDS to be the resource TYPE!
-    * @param {Array} resourceData.data[TYPE].applyTo The array of operations needed to be performed for the specific data TYPE
-    * @param {String} resourceData.data[TYPE].applyTo[x].var The 'this' property name that should be populated with the data fetched
-    * @param {Function} resourceData.data[TYPE].applyTo[x].parsingFunc Optional parsing function if the fetched data needs to be parsed
+    * @param {String} resourceData.namespace - Namespace identifier
+    * @param {Object} resourceData.data - Object containing info about the data needed to be fetched and how it should be parsed. Note: The KEY NEEDS to be the resource TYPE!
+    * @param {Array} resourceData.data[TYPE].applyTo - The array of operations needed to be performed for the specific data TYPE
+    * @param {String} resourceData.data[TYPE].applyTo[x].var - The 'this' property name that should be populated with the data fetched
+    * @param {Function} resourceData.data[TYPE].applyTo[x].parsingFunc - Optional parsing function if the fetched data needs to be parsed
     */
     async $resourceManagerFetchSecondaryResources(resourceData) {
       const requests = {};
