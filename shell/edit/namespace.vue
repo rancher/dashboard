@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -62,8 +63,10 @@ export default {
   },
 
   computed: {
-    isHarvester() {
-      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+    ...mapGetters(['isSingleProduct']),
+
+    isSingleHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER && this.isSingleProduct;
     },
 
     projectOpts() {
@@ -93,7 +96,11 @@ export default {
     },
 
     showResourceQuota() {
-      return Object.keys(this.project?.spec?.resourceQuota?.limit || {}).length > 0;
+      return !this.isSingleHarvester && Object.keys(this.project?.spec?.resourceQuota?.limit || {}).length > 0;
+    },
+
+    showContainerResourceLimit() {
+      return !this.isSingleHarvester;
     }
   },
 
@@ -166,7 +173,7 @@ export default {
     </NameNsDescription>
 
     <Tabbed :side-tabs="true">
-      <Tab v-if="project && showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
+      <Tab v-if="showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
         <div class="row">
           <div class="col span-12">
             <p class="helper-text mb-10">
@@ -177,7 +184,7 @@ export default {
         </div>
         <ResourceQuota v-model="value" :mode="mode" :project="project" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
-      <Tab v-if="project" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
+      <Tab v-if="showContainerResourceLimit" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
         <ContainerResourceLimit
           :key="JSON.stringify(containerResourceLimits)"
           :value="containerResourceLimits"
@@ -200,6 +207,6 @@ export default {
         />
       </Tab>
     </Tabbed>
-    <MoveModal v-if="project" />
+    <MoveModal v-if="projects" />
   </CruResource>
 </template>

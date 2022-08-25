@@ -22,6 +22,11 @@ export default {
     createProjectLocationOverride: {
       type:    Object,
       default: () => null
+    },
+
+    createNamespaceLocationOverride: {
+      type:    Object,
+      default: () => null
     }
   },
 
@@ -44,12 +49,19 @@ export default {
 
   data() {
     return {
-      schema:        null,
-      namespaces:    [],
-      projects:      [],
-      projectSchema: null,
+      schema:                       null,
+      namespaces:                   [],
+      projects:                     [],
+      projectSchema:                null,
       MANAGEMENT,
-      VIRTUAL_TYPES
+      VIRTUAL_TYPES,
+      defaultCreateProjectLocation: {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          product:  this.$store.getters['currentProduct'].name,
+          resource: MANAGEMENT.PROJECT
+        },
+      }
     };
   },
 
@@ -120,15 +132,6 @@ export default {
     },
     createProjectLocation() {
       return this.createProjectLocationOverride || this.defaultCreateProjectLocation;
-    },
-    defaultCreateProjectLocation() {
-      return {
-        name:   'c-cluster-product-resource-create',
-        params: {
-          product:  this.$store.getters['currentProduct'].name,
-          resource: MANAGEMENT.PROJECT
-        },
-      };
     },
     groupPreference: mapPref(GROUP_RESOURCES),
     activeNamespaceFilters() {
@@ -239,14 +242,17 @@ export default {
     createNamespaceLocation(group) {
       const project = group.rows[0].project;
 
-      return {
+      const location = this.createNamespaceLocationOverride ? { ...this.createNamespaceLocationOverride } : {
         name:   'c-cluster-product-resource-create',
         params: {
           product:  this.$store.getters['currentProduct'].name,
           resource: NAMESPACE
         },
-        query: { [PROJECT_ID]: project?.metadata.name }
       };
+
+      location.query = { [PROJECT_ID]: project?.metadata.name };
+
+      return location;
     },
     showProjectAction(event, group) {
       const project = group.rows[0].project;
