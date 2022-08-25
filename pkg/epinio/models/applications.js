@@ -1,4 +1,4 @@
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import { formatSi } from '@shell/utils/units';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import EpinioMetaResource from './epinio-namespaced-resource';
@@ -627,7 +627,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       // 'deployed' status. Unfortunately we don't have that... so wait for ready === desired replica sets instead
       const fresh = this.$getters['byId'](EPINIO_TYPES.APP, `${ this.meta.namespace }/${ this.meta.name }`);
 
-      if (fresh.deployment?.readyreplicas === fresh.deployment?.desiredreplicas) {
+      if (fresh.deployment?.readyreplicas === fresh.deployment?.desiredreplicas && fresh.deployment.state === APPLICATION_ACTION_STATE.SUCCESS) {
         return true;
       }
       // This is an async fn, but we're in a sync fn. It might create a backlog if previous requests don't complete in time
