@@ -345,27 +345,7 @@ export default {
       this.searchQuery = q;
     }, 200),
 
-    descending(neu, old) {
-      this.watcherUpdateLiveAndDelayed(neu, old);
-    },
-
-    searchQuery(neu, old) {
-      this.watcherUpdateLiveAndDelayed(neu, old);
-    },
-
-    sortFields(neu, old) {
-      this.watcherUpdateLiveAndDelayed(neu, old);
-    },
-
-    groupBy(neu, old) {
-      this.watcherUpdateLiveAndDelayed(neu, old);
-    },
-
-    namespaces(neu, old) {
-      this.watcherUpdateLiveAndDelayed(neu, old);
-    },
-
-    page(neu, old) {
+    displayRows(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
 
@@ -380,14 +360,8 @@ export default {
       immediate: true
     },
 
-    isManualRefreshLoading(neu, old) {
+    isManualRefreshLoading(neu) {
       this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
-
-      // setTimeout is needed so that this is pushed further back on the JS computing queue
-      // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
-      setTimeout(() => {
-        this.watcherUpdateLiveAndDelayed(neu, old);
-      }, 500);
     }
   },
 
