@@ -5,6 +5,8 @@ import styles from './styles.module.css';
 const FeatureList = [
   {
     title:       'Getting Started',
+    link:        'getting-started/concepts/',
+    target:      '',
     Svg:         require('@site/static/img/documentation.svg').default,
     description: (
       <>
@@ -15,6 +17,8 @@ const FeatureList = [
   },
   {
     title:       'Components & Design kit',
+    link:        'https://rancher.github.io/storybook/',
+    target:      '_blank',
     Svg:         require('@site/static/img/storybook.svg').default,
     description: (
       <>
@@ -25,16 +29,18 @@ const FeatureList = [
   },
 ];
 
-function Feature({ Svg, title, description }) {
+function Feature({ Svg, title, description, link, target }) {
   return (
     <div className={clsx('col col--6')}>
-      <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
-      </div>
-      <div className="text--center padding-horiz--md">
-        <h3>{title}</h3>
-        <p>{description}</p>
-      </div>
+      <a className="featureLink" href={link} target={target}>
+        <div className="text--center">
+          <Svg className={styles.featureSvg} role="img" />
+        </div>
+        <div className="text--center padding-horiz--md">
+          <h3>{title}</h3>
+          <p>{description}</p>
+        </div>
+      </a>
     </div>
   );
 }

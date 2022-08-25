@@ -50,7 +50,6 @@ const sidebars = {
         'code-base-works/performance',
       ],
     },
-    'fossa',
     'on-screen-text-and-translations',
     'products-and-navigation',
     'server-side-rendering',

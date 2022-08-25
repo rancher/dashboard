@@ -81,7 +81,7 @@ const config = {
             href:  'https://github.com/rancher/',
           },
         ],
-        copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks.`,
+        copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved.`,
       },
       prism: {
         theme:     lightCodeTheme,
