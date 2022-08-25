@@ -10,7 +10,7 @@ describe('ToggleSwitch.vue', () => {
     expect(toggleInput.checked).toBeFalsy();
   });
 
-  it('renders truthy', () => {
+  it('renders a true value', () => {
     const wrapper = shallowMount(
       ToggleSwitch,
       {
@@ -21,7 +21,7 @@ describe('ToggleSwitch.vue', () => {
 
     const toggleInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement
 
-    expect(toggleInput.checked).toBeTruthy();
+    expect(toggleInput.checked).toBe(true);
   });
 
   it('updates from falsy to truthy when props change', async () => {
@@ -29,11 +29,11 @@ describe('ToggleSwitch.vue', () => {
   
     const toggleInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement
 
-    expect(toggleInput.checked).toBeFalsy();
+    expect(toggleInput.checked).toBe(false);
 
     await wrapper.setProps({ value: true });
   
-    expect(toggleInput.checked).toBeTruthy();
+    expect(toggleInput.checked).toBe(true);
   });
 
   it('emits an input event with default values when clicked', async () => {
