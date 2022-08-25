@@ -1,11 +1,9 @@
-import { shallowMount, ThisTypedShallowMountOptions } from '@vue/test-utils';
+import { shallowMount } from '@vue/test-utils';
 import { ToggleSwitch } from './index';
-
-const createWrapper = (options?: ThisTypedShallowMountOptions<Vue> | undefined) => shallowMount(ToggleSwitch, options);
 
 describe('ToggleSwitch.vue', () => {
   it('renders falsy by default', () => {
-    const wrapper = createWrapper();
+    const wrapper = shallowMount(ToggleSwitch);
 
     const toggleInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement
 
@@ -13,7 +11,8 @@ describe('ToggleSwitch.vue', () => {
   });
 
   it('renders truthy', () => {
-    const wrapper = createWrapper(
+    const wrapper = shallowMount(
+      ToggleSwitch,
       {
         propsData: {
           value: true
@@ -26,7 +25,7 @@ describe('ToggleSwitch.vue', () => {
   });
 
   it('updates from falsy to truthy when props change', async () => {
-    const wrapper = createWrapper();
+    const wrapper = shallowMount(ToggleSwitch);
   
     const toggleInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement
 
@@ -38,7 +37,7 @@ describe('ToggleSwitch.vue', () => {
   });
 
   it('emits an input event with default values when clicked', async () => {
-    const wrapper = createWrapper();
+    const wrapper = shallowMount(ToggleSwitch);
 
     (wrapper.vm as any).toggle(true);
 
@@ -61,7 +60,8 @@ describe('ToggleSwitch.vue', () => {
     const onValue = 'THE TRUTH';
     const offValue = 'NOT THE TRUTH';
 
-    const wrapper = createWrapper(
+    const wrapper = shallowMount(
+      ToggleSwitch,
       {
         propsData: {
           onValue,
