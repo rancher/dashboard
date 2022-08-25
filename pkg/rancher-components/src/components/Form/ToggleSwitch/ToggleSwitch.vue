@@ -27,13 +27,22 @@ export default {
     },
   },
   data() {
-    return { state: this.value === this.onValue };
+    return { state: false };
   },
 
   methods: {
     toggle(neu) {
       this.state = neu === null ? !this.state : neu;
       this.$emit('input', this.state ? this.onValue : this.offValue);
+    }
+  },
+
+  watch: {
+    value: {
+      handler() {
+        this.state = this.value === this.onValue;
+      },
+      immediate: true
     }
   }
 };
