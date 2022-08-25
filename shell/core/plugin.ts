@@ -1,6 +1,6 @@
 import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
-import { IPlugin } from './types';
+import { CoreStoreInit, IPlugin } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
   PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
@@ -114,13 +114,14 @@ export class Plugin implements IPlugin {
     });
   }
 
-  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig) {
+  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig, init?: CoreStoreInit) {
     this.stores.push({
       storeName,
       register: () => {
         return coreStore(
           this.storeFactory(storeSpecifics, config),
           config,
+          init,
         );
       },
       unregister: (store: any) => {

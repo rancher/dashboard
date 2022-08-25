@@ -6,18 +6,27 @@ import actions from './actions';
 
 import { PRODUCT_NAME } from '../../config/harvester';
 
+import { SteveFactory, steveStoreInit } from '../../../../shell/plugins/steve/index';
+
 const harvesterFactory = (): CoreStoreSpecifics => {
-  return {
-    state() {
-      return { };
-    },
+  const steveFactory = SteveFactory();
 
-    getters: { ...getters },
-
-    mutations: { ...mutations },
-
-    actions: { ...actions },
+  steveFactory.getters = {
+    ...steveFactory.getters,
+    ...getters,
   };
+
+  steveFactory.mutations = {
+    ...steveFactory.mutations,
+    ...mutations,
+  };
+
+  steveFactory.actions = {
+    ...steveFactory.actions,
+    ...actions,
+  };
+
+  return steveFactory;
 };
 const config: CoreStoreConfig = {
   namespace:      PRODUCT_NAME,
@@ -26,5 +35,6 @@ const config: CoreStoreConfig = {
 
 export default {
   specifics: harvesterFactory(),
-  config
+  config,
+  init:      steveStoreInit
 };

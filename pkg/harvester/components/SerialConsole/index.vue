@@ -250,10 +250,7 @@ export default {
 </template>
 
 <style lang="scss">
-  // TODO: RC this block isn't scoped
-  // TODO: RC this fails the build
-  // @import '@/node_modules/xterm/css/xterm.css';
-  // @import '@../../../../node_modules/xterm/css/xterm.css';
+  @import '../../../../node_modules/xterm/css/xterm.css';
 
   body, #__nuxt, #__layout, MAIN {
     height: 100%;

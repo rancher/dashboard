@@ -73,7 +73,14 @@ export function init($plugin, store) {
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
       [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management'
     },
-    supportRoute: { name: `${ PRODUCT_NAME }-c-cluster-support` }
+    supportRoute: { name: `${ PRODUCT_NAME }-c-cluster-support` },
+    to:           {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: {
+        product:  PRODUCT_NAME,
+        resource: HCI.DASHBOARD
+      }
+    }
   });
 
   basicType([HCI.DASHBOARD]);

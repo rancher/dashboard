@@ -1,8 +1,13 @@
 <script lang="ts">
+import Vue from 'vue';
+import { Location } from 'vue-router';
 import ExplorerProjectsNamespaces from '@shell/components/ExplorerProjectsNamespaces.vue';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../../config/harvester';
 import { MANAGEMENT } from '~/shell/config/types';
-export default {
+interface Data {
+  createProjectLocation: Location
+}
+export default Vue.extend<Data, any, any, any>({
   components: { ExplorerProjectsNamespaces },
   data() {
     return {
@@ -16,7 +21,7 @@ export default {
       }
     };
   }
-};
+});
 </script>
 
 <template><ExplorerProjectsNamespaces v-bind="$attrs" :create-project-location-override="createProjectLocation" /></template>
