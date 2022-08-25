@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -34,9 +33,11 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
+      this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
-    this.project = this.projects.find(p => p.id.includes(this.projectName));
+      this.project = this.projects.find(p => p.id.includes(this.projectName));
+    }
   },
 
   data() {
@@ -61,7 +62,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isSingleProduct']),
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
@@ -160,13 +160,13 @@ export default {
       :namespaced="false"
       :mode="mode"
     >
-      <template v-if="!isSingleProduct" #project-col>
+      <template v-if="project" #project-col>
         <LabeledSelect v-model="projectName" :label="t('namespace.project.label')" :options="projectOpts" />
       </template>
     </NameNsDescription>
 
     <Tabbed :side-tabs="true">
-      <Tab v-if="!isSingleProduct && showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
+      <Tab v-if="project && showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
         <div class="row">
           <div class="col span-12">
             <p class="helper-text mb-10">
@@ -177,7 +177,7 @@ export default {
         </div>
         <ResourceQuota v-model="value" :mode="mode" :project="project" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
-      <Tab v-if="!isSingleProduct" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
+      <Tab v-if="project" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
         <ContainerResourceLimit
           :key="JSON.stringify(containerResourceLimits)"
           :value="containerResourceLimits"
@@ -200,6 +200,6 @@ export default {
         />
       </Tab>
     </Tabbed>
-    <MoveModal />
+    <MoveModal v-if="project" />
   </CruResource>
 </template>

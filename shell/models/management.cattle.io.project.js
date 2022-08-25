@@ -67,11 +67,23 @@ export default class Project extends HybridModel {
   }
 
   get listLocation() {
+    // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
       return { name: `${ HARVESTER }-c-cluster-projectsnamespaces` };
     }
 
     return { name: 'c-cluster-product-projectsnamespaces' };
+  }
+
+  get _detailLocation() {
+    // Harvester uses these resource directly... but has different routes. detailLocation covers routes leading to resource (like edit)
+    const _detailLocation = super._detailLocation;
+
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      _detailLocation.name = `${ HARVESTER }-${ _detailLocation.name }`.replace('-product', '');
+    }
+
+    return _detailLocation;
   }
 
   get parentLocationOverride() {

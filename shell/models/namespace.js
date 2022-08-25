@@ -173,11 +173,26 @@ export default class Namespace extends SteveModel {
   }
 
   get listLocation() {
+    const listLocation = { name: this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-namespaces' };
+
+    // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
-      return { name: `${ HARVESTER }-c-cluster-projectsnamespaces` };
+      listLocation.name = `${ HARVESTER }-${ listLocation.name }`.replace('-product', '');
+      listLocation.params = { resource: 'namespace' };
     }
 
-    return { name: this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-namespaces' };
+    return listLocation;
+  }
+
+  get _detailLocation() {
+    const _detailLocation = super._detailLocation;
+
+    // Harvester uses these resource directly... but has different routes. detailLocation covers routes leading to resource (like edit)
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      _detailLocation.name = `${ HARVESTER }-${ _detailLocation.name }`.replace('-product', '');
+    }
+
+    return _detailLocation;
   }
 
   get parentLocationOverride() {

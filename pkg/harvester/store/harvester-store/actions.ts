@@ -7,7 +7,7 @@ import { NAMESPACE_FILTER_ALL_USER as ALL_USER } from '@shell/utils/namespace-fi
 
 export default {
   async loadCluster({
-    commit, dispatch, getters, rootGetters
+    state, commit, dispatch, getters, rootGetters, rootState
   }: any, { id }: any) {
     // This is a workaround for a timing issue where the mgmt cluster schema may not be available
     // Try and wait until the schema exists before proceeding
@@ -41,7 +41,6 @@ export default {
 
     dispatch('subscribe');
 
-    let isRancher = false;
     const projectArgs = {
       type: MANAGEMENT.PROJECT,
       opt:  {
@@ -50,9 +49,19 @@ export default {
       }
     };
 
-    if (rootGetters['management/schemaFor'](MANAGEMENT.PROJECT)) {
-      isRancher = true;
-    }
+    const fetchProjects = async() => {
+      let limit = 30000;
+      const sleep = 100;
+
+      while ( limit > 0 && !rootState.managementReady ) {
+        await setTimeout(() => {}, sleep);
+        limit -= sleep;
+      }
+
+      if ( rootGetters['management/schemaFor'](MANAGEMENT.PROJECT) ) {
+        return dispatch('management/findAll', projectArgs, { root: true });
+      }
+    };
 
     if (id !== 'local' && getters['schemaFor'](MANAGEMENT.SETTING)) { // multi-cluster
       const settings = await dispatch('findAll', {
@@ -71,7 +80,7 @@ export default {
     }
 
     const hash: { [key: string]: Promise<any>} = {
-      projects:          isRancher && dispatch('management/findAll', projectArgs, { root: true }),
+      projects:          fetchProjects(),
       virtualCount:      dispatch('findAll', { type: COUNT }),
       virtualNamespaces: dispatch('findAll', { type: NAMESPACE }),
       settings:          dispatch('findAll', { type: HCI.SETTING }),
