@@ -10,8 +10,8 @@ function HomepageHeader() {
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container homepage-banner">
-        <h1 className="hero__title">Rancher DevKit</h1>
-        <p className="hero__subtitle">Rancher DevKit helps developers to write clean, understandable, and maintainable code.</p>
+        <h1 className="hero__title">Rancher UI DevKit</h1>
+        <p className="hero__subtitle">Rancher UI DevKit provides everything you need to start developing with the Rancher UI and plugins</p>
       </div>
     </header>
   );
