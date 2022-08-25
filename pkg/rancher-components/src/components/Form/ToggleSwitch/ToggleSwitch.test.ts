@@ -43,7 +43,6 @@ describe('ToggleSwitch.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input).toBeTruthy()
     expect(wrapper.emitted().input?.length).toBe(1);
     expect(wrapper.emitted().input?.[0][0]).toBe(true);
 
@@ -63,7 +62,6 @@ describe('ToggleSwitch.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('input')).toBeTruthy();
     expect(wrapper.emitted().input?.length).toBe(1);
     expect(wrapper.emitted().input?.[0][0]).toBe(false);
   })
@@ -83,7 +81,6 @@ describe('ToggleSwitch.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input).toBeTruthy()
     expect(wrapper.emitted().input?.length).toBe(1);
     expect(wrapper.emitted().input?.[0][0]).toBe(onValue);
   });
@@ -104,7 +101,6 @@ describe('ToggleSwitch.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('input')).toBeTruthy();
     expect(wrapper.emitted().input?.length).toBe(1);
     expect(wrapper.emitted().input?.[0][0]).toBe(offValue);
   })
