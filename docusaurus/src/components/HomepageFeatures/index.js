@@ -29,7 +29,9 @@ const FeatureList = [
   },
 ];
 
-function Feature({ Svg, title, description, link, target }) {
+function Feature( {
+  Svg, title, description, link, target
+} ) {
   return (
     <div className={clsx('col col--6')}>
       <a className="featureLink" href={link} target={target}>
