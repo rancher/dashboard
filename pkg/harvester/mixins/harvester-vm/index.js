@@ -268,7 +268,7 @@ export default {
       }
       const osType = this.getOsType(vm) || 'linux';
 
-      userData = this.isCreate && !existUserData ? this.getInitUserData({ osType }) : userData;
+      userData = this.isCreate && !existUserData && !this.isClone ? this.getInitUserData({ osType }) : userData;
 
       const installUSBTablet = this.isInstallUSBTablet(spec);
       const installAgent = this.hasInstallAgent(userData, osType, true);
@@ -1313,10 +1313,7 @@ export default {
     secretRef: {
       handler(secret) {
         if (secret && this.resource !== HCI.BACKUP) {
-          this.userScript = secret?.decodedData?.userdata || this.userScript;
-          this.networkScript = secret?.decodedData?.networkdata || this.networkScript;
           this.secretName = secret?.metadata.name;
-          this.refreshYamlEditor();
         }
       },
       immediate: true,
