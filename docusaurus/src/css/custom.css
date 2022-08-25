@@ -66,6 +66,16 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 150px;
 }
 
+
+a.featureLink {
+  color: var(--ifm-color-body);
+}
+
+a.featureLink:hover {
+  color: var(--ifm-link-color);
+  text-decoration: none;
+}
+
 @media screen and (max-width: 996px) {
   .homepage-banner {
     padding: 30px 30px;
