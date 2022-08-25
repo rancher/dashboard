@@ -36,7 +36,7 @@ describe('ToggleSwitch.vue', () => {
     expect(toggleInput.checked).toBe(true);
   });
 
-  it('emits an input event with default values when clicked', async () => {
+  it('emits an input event with a true value', async () => {
     const wrapper = shallowMount(ToggleSwitch);
 
     (wrapper.vm as any).toggle(true);
@@ -47,25 +47,35 @@ describe('ToggleSwitch.vue', () => {
     expect(wrapper.emitted().input?.length).toBe(1);
     expect(wrapper.emitted().input?.[0][0]).toBe(true);
 
+  });
+
+  it('emits an input event with a false value', async () => {
+    const wrapper = shallowMount(
+      ToggleSwitch,
+      {
+        propsData: {
+          value: true
+        }
+      }
+    );
+
     (wrapper.vm as any).toggle(false);
 
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('input')).toBeTruthy();
-    expect(wrapper.emitted().input?.length).toBe(2);
-    expect(wrapper.emitted().input?.[1][0]).toBe(false);
-  });
+    expect(wrapper.emitted().input?.length).toBe(1);
+    expect(wrapper.emitted().input?.[0][0]).toBe(false);
+  })
 
-  it('emits an input event with custom values when clicked', async () => {
+  it('emits an input event with a custom onValue', async () => {
     const onValue = 'THE TRUTH';
-    const offValue = 'NOT THE TRUTH';
 
     const wrapper = shallowMount(
       ToggleSwitch,
       {
         propsData: {
           onValue,
-          offValue,
         }
       });
 
@@ -76,13 +86,26 @@ describe('ToggleSwitch.vue', () => {
     expect(wrapper.emitted().input).toBeTruthy()
     expect(wrapper.emitted().input?.length).toBe(1);
     expect(wrapper.emitted().input?.[0][0]).toBe(onValue);
+  });
+
+  it('emits an input event with a custom offValue', async () => {
+    const offValue = 'NOT THE TRUTH';
+
+    const wrapper = shallowMount(
+      ToggleSwitch,
+      {
+        propsData: {
+          value: true,
+          offValue,
+        }
+      });
 
     (wrapper.vm as any).toggle(false);
 
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted('input')).toBeTruthy();
-    expect(wrapper.emitted().input?.length).toBe(2);
-    expect(wrapper.emitted().input?.[1][0]).toBe(offValue);
-  });
+    expect(wrapper.emitted().input?.length).toBe(1);
+    expect(wrapper.emitted().input?.[0][0]).toBe(offValue);
+  })
 });
