@@ -1,18 +1,19 @@
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue';
+export default Vue.extend({
   props: {
     value: {
-      type:    null,
+      type:    [Boolean, String, Number],
       default: false
     },
 
     offValue: {
-      type:    null,
+      type:    [Boolean, String, Number],
       default: false,
     },
 
     onValue: {
-      type:    null,
+      type:    [Boolean, String, Number],
       default: true,
     },
 
@@ -27,11 +28,11 @@ export default {
     },
   },
   data() {
-    return { state: false };
+    return { state: false as boolean | string | number };
   },
 
   methods: {
-    toggle(neu) {
+    toggle(neu: boolean | string | number) {
       this.state = neu === null ? !this.state : neu;
       this.$emit('input', this.state ? this.onValue : this.offValue);
     }
@@ -45,7 +46,7 @@ export default {
       immediate: true
     }
   }
-};
+});
 </script>
 
 <template>

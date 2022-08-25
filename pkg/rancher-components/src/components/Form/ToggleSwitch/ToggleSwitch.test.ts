@@ -86,4 +86,3 @@ describe('ToggleSwitch.vue', () => {
     expect(wrapper.emitted().input?.[1][0]).toBe(offValue);
   });
 });
-
