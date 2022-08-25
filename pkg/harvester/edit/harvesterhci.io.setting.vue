@@ -75,7 +75,7 @@ export default {
 
     if ( hasCustomComponent ) {
       try {
-        customComponent = require(`@/pkg/harvester/components/settings/${ this.value.id }.vue`).default;
+        customComponent = require(`../components/settings/${ this.value.id }.vue`).default;
       } catch {}
     }
     this.hasCustomComponent = hasCustomComponent;

@@ -1,4 +1,4 @@
-import SteveModel from '~/shell/plugins/steve/steve-class';
+import SteveModel from '@shell/plugins/steve/steve-class';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 export default class HarvesterResource extends SteveModel {
