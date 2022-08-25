@@ -17,13 +17,17 @@ harvester:
         tip: 请输入模板名称。
         success: '模板 { templateName } 创建成功。'
         failed: '生成模板失败。'
-    deepCloneVM:
+    cloneVM:
       title: 克隆虚拟机
-      name: 名称
+      name: 新虚拟机名称
+      type: 克隆数据卷
+      action:
+        create: 创建
+        clone: 克隆
       message:
         tip: 请输入虚拟机名称!
         success: '虚拟机 { name } 克隆成功.'
-        failed: '克隆虚拟机失败!'
+        failed: '克隆虚拟机失败!' 
     exportImage:
       title: 导出镜像
       name: 名称
