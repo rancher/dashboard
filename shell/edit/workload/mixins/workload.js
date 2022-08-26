@@ -204,7 +204,6 @@ export default {
     this.selectContainer(container);
 
     return {
-      isLoadingSecondaryResources: false,
       secondaryResourceData:       {
         namespace: this.value?.metadata?.namespace || null,
         data:      {

@@ -3,6 +3,9 @@ import { allHashSettled } from '@shell/utils/promise';
 
 export default {
   computed: { ...mapGetters(['currentCluster']) },
+  data() {
+    return { isLoadingSecondaryResources: false };
+  },
   methods:  {
     /**
     *
@@ -11,6 +14,7 @@ export default {
     * @param {String} resourceData.namespace - Namespace identifier
     * @param {Object} resourceData.data - Object containing info about the data needed to be fetched and how it should be parsed. Note: The KEY NEEDS to be the resource TYPE!
     * @param {Array} resourceData.data[TYPE].applyTo - The array of operations needed to be performed for the specific data TYPE
+    * @param {String} resourceData.data[TYPE].plural - String to override the default 's' plural used in resource requests, if needed
     * @param {String} resourceData.data[TYPE].applyTo[x].var - The 'this' property name that should be populated with the data fetched
     * @param {Function} resourceData.data[TYPE].applyTo[x].parsingFunc - Optional parsing function if the fetched data needs to be parsed
     */
@@ -31,7 +35,9 @@ export default {
             url = `/k8s/clusters/${ clusterId }/v1`;
           }
 
-          requests[type] = this.$store.dispatch('cluster/request', { url: `${ url }/${ type }s` });
+          const requestPlural = resourceData.data[type].plural || 's';
+
+          requests[type] = this.$store.dispatch('cluster/request', { url: `${ url }/${ type }${ requestPlural }` });
         }
       });
 
