@@ -265,6 +265,7 @@ export default {
                   :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
                   :selectable="isPersistentVolumeSelectable"
                   :mode="immutableMode"
+                  :loading="isLoadingSecondaryResources"
                 />
                 <LabeledInput
                   v-else
