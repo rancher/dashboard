@@ -67,7 +67,7 @@ interface FileWithRelativePath extends File {
    readonly webkitRelativePath: string;
 }
 
-const DEFAULT_BUILD_PACK = 'paketobuildpacks/builder:full';
+const DEFAULT_BUILD_PACK = 'paketobuildpacks/builder:test';
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
@@ -98,9 +98,11 @@ export default Vue.extend<Data, any, any, any>({
   async created() {
     const res = await this.$store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
 
-    this.defaultBuilderImage = res.default_builder_image;
     if (res.default_builder_image) {
+      this.defaultBuilderImage = res.default_builder_image;
       this.builderImage.value = res.default_builder_image;
+    } else {
+      this.builderImage.value = DEFAULT_BUILD_PACK;
     }
   },
   data() {
