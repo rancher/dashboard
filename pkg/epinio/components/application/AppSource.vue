@@ -95,10 +95,18 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
   },
+  async created() {
+    const res = await this.$store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
 
+    this.defaultBuilderImage = res.default_builder_image;
+    if (res.default_builder_image) {
+      this.builderImage.value = res.default_builder_image;
+    }
+  },
   data() {
     return {
-      open: false,
+      open:                false,
+      defaultBuilderImage: undefined,
 
       archive: {
         tarball:             this.source?.archive.tarball || '',
@@ -120,7 +128,7 @@ export default Vue.extend<Data, any, any, any>({
 
       builderImage: {
         value:   this.source?.builderImage?.value || DEFAULT_BUILD_PACK,
-        default: this.source?.builderImage?.default !== undefined ? this.source.builderImage.default : true,
+        default: this.defaultBuilderImage !== undefined ? this.source.builderImage.default : true,
       },
 
       appChart: this.source?.appChart,
@@ -265,7 +273,7 @@ export default Vue.extend<Data, any, any, any>({
 
     onImageType(defaultImage: boolean) {
       if (defaultImage) {
-        this.builderImage.value = DEFAULT_BUILD_PACK;
+        this.builderImage.value = this.defaultBuilderImage;
       }
 
       this.builderImage.default = defaultImage;
@@ -456,7 +464,7 @@ export default Vue.extend<Data, any, any, any>({
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
       <GithubPicker @githubData="githubData" />
     </template>
-    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30 source">
+    <Collapse v-if="defaultBuilderImage" :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30 source">
       <template>
         <LabeledSelect
           v-model="appChart"
