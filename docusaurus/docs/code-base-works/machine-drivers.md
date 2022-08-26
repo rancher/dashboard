@@ -13,13 +13,13 @@ To tell Rancher about a new driver, go to Cluster Management -> Drivers -> Node 
 
 For more advanced control, the machine driver custom resource supports several annotations:
 
-| Key                       | Value                                                                                             |
-| --------------------------|---------------------------------------------------------------------------------------------------|
-| publicCredentialFields    | Fields that are considered "public" information and ok to display in cleartext for detail screens |
-| privateCredentialFields   | Fields that are private information that should be stored as a secret                             |
-| optionalCredentialFields  | Fields that are related to the credential, but are optional for the user to fill out              |
-| passwordFields            | Fields that should be displayed as type="password" bullets instead of cleartext                   |
-| defaults                  | Default values to set which the user may override                                                 |
+| Key                      | Value                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| publicCredentialFields   | Fields that are considered "public" information and ok to display in cleartext for detail screens |
+| privateCredentialFields  | Fields that are private information that should be stored as a secret                             |
+| optionalCredentialFields | Fields that are related to the credential, but are optional for the user to fill out              |
+| passwordFields           | Fields that should be displayed as type="password" bullets instead of cleartext                   |
+| defaults                 | Default values to set which the user may override                                                 |
 
 Each has a value that is a comma-separated list of field names.  `defaults` are comma-separated, then colon-separated for key and value (e.g. `foo:bar,baz:42`).  The annotations become information in API schemas, which the generic UI support uses to show better information.
 
@@ -31,7 +31,7 @@ Cloud Credentials store the username & password, or other similar information, n
 
 The cloud credential component lives in the top-level `cloud-credential` directory in the repo.  The file should be named the same as the driver, in all lowercase (e.g. `cloud-credential/digitalocean.vue`).
 
-If there is a reason to rename it or map multiple drivers to the same credential, configure that in the [plugins store](`../../../../store/plugins.js`).  There is also other info in there about how guesses are taken on what each field is for and how it should be displayed.  These can be customized for your driver by importing and calling `configureCredential()` and `mapDriver()`.
+If there is a reason to rename it or map multiple drivers to the same credential, configure that in the [plugins store](../../shell/store/plugins.js).  There is also other info in there about how guesses are taken on what each field is for and how it should be displayed.  These can be customized for your driver by importing and calling `configureCredential()` and `mapDriver()`.
 
 Create a component which displays each field that is relevant to authentication and lets the user configure them.  Only the actual auth fields themselves, the rest of configuring the name, description, save buttons, etc is handled outside of the credential component.
 

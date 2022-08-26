@@ -146,6 +146,16 @@ export default {
     this.allNodePools = fetchTwoRes.allNodePools || [];
     this.haveNodePools = !!fetchTwoRes.allNodePools;
     this.machineTemplates = fetchTwoRes.mdtt || [];
+
+    // Fetch RKE template revisions so we can show when an updated template is available
+    // This request does not need to be blocking
+    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE });
+    }
+
+    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
+    }
   },
 
   created() {
