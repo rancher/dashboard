@@ -335,6 +335,10 @@ export default {
     clearTimeout(this._liveColumnsTimer);
     clearTimeout(this._delayedColumnsTimer);
 
+    if (this.manualRefreshTimer) {
+      clearTimeout(this.manualRefreshTimer);
+    }
+
     const $main = $('main');
 
     $main.off('scroll', this._onScroll);
@@ -345,7 +349,22 @@ export default {
       this.searchQuery = q;
     }, 200),
 
-    displayRows(neu, old) {
+    descending(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    searchQuery(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    sortFields(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    groupBy(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    namespaces(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    page(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
 
@@ -360,8 +379,16 @@ export default {
       immediate: true
     },
 
-    isManualRefreshLoading(neu) {
+    isManualRefreshLoading(neu, old) {
       this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+      // setTimeout is needed so that this is pushed further back on the JS computing queue
+      // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
+      if (old && !neu) {
+        this.manualRefreshTimer = setTimeout(() => {
+          this.watcherUpdateLiveAndDelayed(neu, old);
+        }, 500);
+      }
     }
   },
 
