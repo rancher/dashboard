@@ -387,7 +387,7 @@ export default {
       if (old && !neu) {
         this.manualRefreshTimer = setTimeout(() => {
           this.watcherUpdateLiveAndDelayed(neu, old);
-        }, 500);
+        }, 1000);
       }
     }
   },
