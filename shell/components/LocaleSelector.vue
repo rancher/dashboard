@@ -8,7 +8,7 @@ export default {
     ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
 
     showLocale() {
-      return (Object.keys(this.availableLocales).length > 1 && this.availableLocales !== null) || this.dev;
+      return (this.availableLocales && Object.keys(this.availableLocales).length > 1) || this.dev;
     },
 
     showNone() {
