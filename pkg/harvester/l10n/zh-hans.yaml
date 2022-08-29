@@ -653,8 +653,10 @@ harvester:
     harvesterMonitoring:
       label: Harvester Monitoring
       section:
-        prometheus: Prometheus 配置
-        prometheusNodeExporter: Prometheus Node Exporter 配置
+        prometheus: Prometheus
+        prometheusNodeExporter: Prometheus Node Exporter
+        grafana: Grafana
+        alertmanager: Alertmanager
       tips:
         scrape: 每次采集数据的间隔时间
         evaluation: 每次评估规则的间隔时间
@@ -724,6 +726,14 @@ harvester:
     label: VM 快照
     createText: 还原快照
     snapshot: 快照
+
+  monitoring:
+    alertmanagerConfig:
+      label: Alertmanager Configs
+      diabledTips:
+        prefix: '你需要先启用'
+        middle: 'Alertmanager'
+        suffix: '然后才能创建新配置'
 
 advancedSettings:
   descriptions:
@@ -816,9 +826,13 @@ typeLabel:
       one { 卷快照 }
       other { 卷快照 }
     }
-
   harvesterhci.io.vmsnapshot: |-
     {count, plural,
       one { VM 快照 }
       other { VM 快照 }
+    }
+  harvesterhci.io.monitoring.alertmanagerconfig: |-
+    {count, plural,
+      one { Alertmanager Config }
+      other { Alertmanager Configs }
     }
