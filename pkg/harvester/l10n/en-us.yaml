@@ -657,8 +657,10 @@ harvester:
     harvesterMonitoring:
       label: Harvester Monitoring
       section:
-        prometheus: Prometheus Configuration
-        prometheusNodeExporter: Prometheus Node Exporter Configuration
+        prometheus: Prometheus
+        prometheusNodeExporter: Prometheus Node Exporter
+        grafana: Grafana
+        alertmanager: Alertmanager
       tips:
         scrape: Interval between consecutive scrapes
         evaluation: Interval between consecutive evaluations
@@ -696,6 +698,16 @@ harvester:
       label: Protocols
     ciphers:
       label: Ciphers
+  
+  monitoring:
+    configuration:
+      label: Configuration
+    alertmanagerConfig:
+      label: Alertmanager Configs
+      diabledTips:
+        prefix: 'You must enable'
+        middle: 'Alertmanager'
+        suffix: 'before creating a new config.'
 
   snapshot:
     label: Volume Snapshots
@@ -799,9 +811,13 @@ typeLabel:
       one { Volume Snapshot }
       other { Volume Snapshots }
     }
-
   harvesterhci.io.vmsnapshot: |-
     {count, plural,
       one { VM Snapshot }
       other { VM Snapshots }
+    }
+  harvesterhci.io.monitoring.alertmanagerconfig: |-
+    {count, plural,
+      one { Alertmanager Config }
+      other { Alertmanager Configs }
     }

@@ -25,6 +25,7 @@ export const HCI = {
   MANAGED_CHART:      'harvesterhci.io.managedchart',
   SNAPSHOT:           'harvesterhci.io.volumesnapshot',
   VM_SNAPSHOT:        'harvesterhci.io.vmsnapshot',
+  ALERTMANAGERCONFIG: 'harvesterhci.io.monitoring.alertmanagerconfig',
 };
 
 export const VOLUME_SNAPSHOT = 'snapshot.storage.k8s.io.volumesnapshot';

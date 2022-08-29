@@ -29,7 +29,9 @@ export default {
     // Make sure secrets are in the store so that the secret
     // selectors in the receiver config forms will have secrets
     // to choose from.
-    const allSecrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    const currentCluster = this.$store.getters['currentCluster'];
+    const inStore = currentCluster.isHarvester ? 'harvester' : 'cluster';
+    const allSecrets = await this.$store.dispatch(`${ inStore }/findAll`, { type: SECRET });
 
     const allSecretsInNamespace = allSecrets.filter(secret => this.types.includes(secret._type) && secret.namespace === this.namespace);
 

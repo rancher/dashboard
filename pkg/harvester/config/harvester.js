@@ -1,3 +1,4 @@
+import { _EDIT, MODE } from '@shell/config/query-params';
 import {
   NODE,
   CONFIG_MAP,
@@ -6,6 +7,7 @@ import {
   MANAGEMENT,
   PVC,
   NETWORK_ATTACHMENT,
+  MONITORING,
 } from '@shell/config/types';
 import { HCI, VOLUME_SNAPSHOT } from '../types';
 import {
@@ -230,6 +232,62 @@ export function init($plugin, store) {
       exact: false
     });
   }
+
+  basicType([
+    HCI.MANAGED_CHART,
+    HCI.ALERTMANAGERCONFIG
+  ], 'Monitoring & Logging::Monitoring');
+
+  virtualType({
+    ifHaveType:    MANAGEMENT.MANAGED_CHART,
+    labelKey:     'harvester.monitoring.configuration.label',
+    name:         HCI.MANAGED_CHART,
+    namespaced:   true,
+    weight:       88,
+    route:        {
+      name:      `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
+      params:    {
+        resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: 'rancher-monitoring'
+      },
+      query: { [MODE]: _EDIT }
+    },
+    exact: false,
+  });
+
+  headers(HCI.ALERTMANAGERCONFIG, [
+    STATE,
+    NAME_COL,
+    NAMESPACE_COL,
+    {
+      name:      'receivers',
+      labelKey:  'tableHeaders.receivers',
+      formatter: 'ReceiverIcons',
+      value:     'name'
+    },
+  ]);
+
+  configureType(HCI.ALERTMANAGERCONFIG, {
+    location:    {
+      name:    'c-cluster-product-resource',
+      params:  { resource: HCI.ALERTMANAGERCONFIG },
+    },
+    resource:       MONITORING.ALERTMANAGERCONFIG,
+    resourceDetail: HCI.ALERTMANAGERCONFIG,
+    resourceEdit:   HCI.ALERTMANAGERCONFIG
+  });
+
+  virtualType({
+    ifHaveType:    MONITORING.ALERTMANAGERCONFIG,
+    labelKey:     'harvester.monitoring.alertmanagerConfig.label',
+    name:         HCI.ALERTMANAGERCONFIG,
+    namespaced:   true,
+    weight:       87,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.ALERTMANAGERCONFIG }
+    },
+    exact: false,
+  });
 
   basicType(
     [

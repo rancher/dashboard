@@ -1,7 +1,9 @@
+import { _EDIT, MODE } from '@shell/config/query-params';
 import isEqual from 'lodash/isEqual';
 import { HCI } from '../../types';
 import { clone } from '@shell/utils/object';
 import HarvesterResource from '../harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
 
 export default class HciManagedChart extends HarvesterResource {
   get availableActions() {
@@ -43,29 +45,21 @@ export default class HciManagedChart extends HarvesterResource {
   }
 
   get doneOverride() {
-    const detailLocation = clone(this.listLocation);
-
-    detailLocation.params.resource = HCI.SETTING;
-
-    return detailLocation;
+    return this.detailLocation;
   }
 
   get parentLocationOverride() {
-    return {
-      ...this.listLocation,
-      params: {
-        ...this.listLocation.params,
-        resource: HCI.SETTING
-      }
-    };
+    return this.doneOverride;
   }
 
   get detailLocation() {
-    const detailLocation = clone(this._detailLocation);
-
-    detailLocation.params.resource = HCI.MANAGED_CHART;
-
-    return detailLocation;
+    return {
+      name:      `${ HARVESTER_PRODUCT }-c-cluster-resource-namespace-id`,
+      params:    {
+        resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: 'rancher-monitoring'
+      },
+      query: { [MODE]: _EDIT }
+    };
   }
 
   get customValue() {
@@ -104,6 +98,30 @@ export default class HciManagedChart extends HarvesterResource {
           requests: {
             cpu:    '100m',
             memory: '30Mi'
+          }
+        }
+      },
+      grafana: {
+        resources: {
+          limits: {
+            cpu:    '200m',
+            memory: '500Mi'
+          },
+          requests: {
+            cpu:    '100m',
+            memory: '200Mi'
+          }
+        }
+      },
+      alertmanager: {
+        resources: {
+          limits: {
+            cpu:    '1000m',
+            memory: '600Mi'
+          },
+          requests: {
+            cpu:    '100m',
+            memory: '100Mi'
           }
         }
       }

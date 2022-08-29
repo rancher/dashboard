@@ -12,6 +12,7 @@ import ViewHarvesterNsResource from '../pages/c/_cluster/_resource/_namespace/_i
 import HarvesterAirgapUpdgrade from '../pages/c/_cluster/airgapupgrade/index.vue';
 import HarvesterMembers from '../pages/c/_cluster/members/index.vue';
 import ProjectNamespaces from '../pages/c/_cluster/projectsnamespaces.vue';
+import HarvesterAlertmanagerReceiver from '../pages/c/_cluster/alertmanagerconfig/_alertmanagerconfigid/receiver.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -33,6 +34,11 @@ const routes: RouteConfig[] = [
     name:      `${ PRODUCT_NAME }-c-cluster-airgapupgrade`,
     path:      `/:product/c/:cluster/airgapupgrade`,
     component: HarvesterAirgapUpdgrade,
+  },
+  {
+    name:      `${ PRODUCT_NAME }-c-cluster-alertmanagerconfig-alertmanagerconfigid-receiver`,
+    path:      `/:product/c/:cluster/alertmanagerconfig/:alertmanagerconfigid/receiver`,
+    component: HarvesterAlertmanagerReceiver,
   },
   {
     name:      `${ PRODUCT_NAME }-c-cluster-members`,
