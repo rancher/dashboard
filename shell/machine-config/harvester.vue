@@ -470,7 +470,7 @@ export default {
             :options="imageOptions"
             :required="true"
             :searchable="true"
-            :disabled="disabledEdit"
+            :disabled="disabled"
             label-key="cluster.credential.harvester.image"
             :placeholder="t('cluster.harvester.machinePool.image.placeholder')"
             @on-open="onOpen"
