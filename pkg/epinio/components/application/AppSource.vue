@@ -67,7 +67,7 @@ interface FileWithRelativePath extends File {
    readonly webkitRelativePath: string;
 }
 
-const DEFAULT_BUILD_PACK = 'paketobuildpacks/builder:test';
+const DEFAULT_BUILD_PACK = 'paketobuildpacks/builder:full';
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
