@@ -8,7 +8,7 @@ export default {
     ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
 
     showLocale() {
-      return Object.keys(this.availableLocales).length > 1 || this.dev;
+      return (Object.keys(this.availableLocales).length > 1 && this.availableLocales !== null) || this.dev;
     },
 
     showNone() {
@@ -36,6 +36,7 @@ export default {
         class="locale-chooser"
       >
         {{ selectedLocaleLabel }}
+        <i class="icon icon-fw icon-sort-down" />
       </a>
 
       <template slot="popover">
@@ -59,7 +60,6 @@ export default {
 .advanced {
   user-select: none;
   padding: 0 5px;
-  cursor: pointer;
   line-height: 40px;
   font-size: 15px;
   font-weight: 500;
@@ -69,5 +69,13 @@ export default {
   padding: 10px;
   margin-top: 6px;
   border-radius: 4px;
+}
+
+.locale-chooser {
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: none;
+  }
 }
 </style>
