@@ -42,6 +42,7 @@ export default {
 
     return {
       VIRTUAL,
+      hciDashboard: HCI.DASHBOARD,
       resource,
       hResource:    HCI.CLUSTER,
       realSchema:   this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
@@ -119,10 +120,11 @@ export default {
               <n-link
                 v-if="row.isReady"
                 :to="{
-                  name: `${VIRTUAL}-c-cluster`,
+                  name: `${VIRTUAL}-c-cluster-resource`,
                   params: {
                     cluster: row.status.clusterName,
-                    product: VIRTUAL
+                    product: VIRTUAL,
+                    resource: hciDashboard
                   }
                 }"
               >

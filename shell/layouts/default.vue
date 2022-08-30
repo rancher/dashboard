@@ -178,7 +178,15 @@ export default {
 
     unmatchedRoute() {
       return !this.$route?.matched?.length;
-    }
+    },
+
+    /**
+     * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
+     * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
+     */
+    clusterAndRouteReady() {
+      return this.clusterReady && this.clusterId === this.$route?.params?.cluster;
+    },
 
   },
 
@@ -619,7 +627,7 @@ export default {
           {{ displayVersion }}
         </div>
       </nav>
-      <main v-if="clusterReady">
+      <main v-if="clusterAndRouteReady">
         <nuxt class="outlet" />
         <ActionMenu />
         <PromptRemove />

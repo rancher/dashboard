@@ -22,7 +22,7 @@ function generateTypeImport(pkg, dir) {
   contextFolders.forEach((f) => {
     if (fs.existsSync(path.join(dir, f))) {
       fs.readdirSync(path.join(dir, f)).forEach((file) => {
-        const name = file.replace(/\.[^/.]+$/, '');
+        const name = file.replace(/\.[^\.]+$/, '');
         const importType = (f === 'models') ? 'require' : 'import';
         const chunkName = (f === 'l10n') ? '' : `/* webpackChunkName: "${ f }" */`;
 
