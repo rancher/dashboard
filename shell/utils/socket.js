@@ -10,6 +10,7 @@ const INSECURE = 'ws://';
 const SECURE = 'wss://';
 
 const STATE_DISCONNECTED = 'disconnected';
+
 const STATE_CONNECTING = 'connecting';
 const STATE_CONNECTED = 'connected';
 const STATE_CLOSING = 'closing';
@@ -57,10 +58,10 @@ export default class Socket extends EventTarget {
 
   setUrl(url) {
     if ( !url.match(/wss?:\/\//) ) {
-      url = window.location.origin.replace(/^http/, 'ws') + url;
+      url = self.location.origin.replace(/^http/, 'ws') + url;
     }
 
-    if ( window.location.protocol === 'https:' && url.startsWith(INSECURE) ) {
+    if ( self.location.protocol === 'https:' && url.startsWith(INSECURE) ) {
       url = SECURE + url.substr(INSECURE.length);
     }
 
@@ -176,6 +177,10 @@ export default class Socket extends EventTarget {
 
   isConnected() {
     return this.state === STATE_CONNECTED;
+  }
+
+  isConnecting() {
+    return this.state === STATE_CONNECTING;
   }
 
   setAutoReconnect(autoReconnect) {

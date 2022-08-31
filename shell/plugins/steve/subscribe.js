@@ -15,8 +15,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 
 // eslint-disable-next-line
-import Worker from './web-worker.steve-sub-worker.js'
-import * as Comlink from 'comlink';
+import webworker from './web-worker.steve-sub-worker.js'
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -32,22 +31,32 @@ export function createWorker(store, ctx) {
   const { getters } = ctx;
   const storeName = getters.storeName;
 
+  const workerActions = {
+    load: (resource) => {
+      queueChange(ctx, resource, true, 'Change');
+    }
+  };
+
   store.$workers = store.$workers || {};
 
   if (storeName !== 'cluster') {
     return;
   }
 
-  function callback(resource) {
-    queueChange(ctx, resource, true, 'Change');
-  }
-
   if (!store.$workers[storeName]) {
-    const worker = Comlink.wrap(new Worker());
+    const worker = new webworker();
 
     store.$workers[storeName] = worker;
 
-    worker.initWorker(storeName, Comlink.proxy(callback));
+    worker.postMessage({ initWorker: { storeName } });
+
+    store.$workers[storeName].onmessage = (e) => {
+      const messageActions = Object.keys(e?.data);
+
+      messageActions.forEach((action) => {
+        workerActions[action](e?.data[action]);
+      });
+    };
   }
 }
 
@@ -145,6 +154,9 @@ export const actions = {
       socket.setUrl(url);
     } else {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);
+      if (this.$workers[getters.storeName] && state.config.baseUrl) {
+        this.$workers[getters.storeName].postMessage({ connect: state.config.baseUrl });
+      }
 
       commit('setSocket', socket);
       socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -187,8 +199,7 @@ export const actions = {
 
     if (worker) {
       try {
-        worker.destroyWorker();
-        worker[Comlink.releaseProxy]();
+        worker.postMessage({ destroyWorker: true });
       } catch (e) {
         console.error(e); // eslint-disable-line no-console
       }
@@ -308,6 +319,12 @@ export const actions = {
 
     if ( selector ) {
       msg.selector = selector;
+    }
+
+    if (getters.storeName === 'cluster' && this.$workers[getters.storeName] && (msg?.resourceType === 'count' || msg.resourceType === 'schema')) {
+      this.$workers[getters.storeName].postMessage({ watch: msg });
+
+      return;
     }
 
     return dispatch('send', msg);
@@ -458,7 +475,7 @@ export const actions = {
     if (e.type === EVENT_DISCONNECT_ERROR) {
       // do not send a growl notification unless the socket stays disconnected for more than MINIMUM_TIME_DISCONNECTED
       setTimeout(() => {
-        if (state.socket.isConnected()) {
+        if (state?.socket.isConnected()) {
           return;
         }
         const dateFormat = escapeHtml( rootGetters['prefs/get'](DATE_FORMAT));
@@ -572,7 +589,7 @@ export const actions = {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
-        worker.countsUpdate(msg);
+        worker.postMessage({ countsUpdate: msg });
 
         // No further processing - let the web worker debounce the counts
         return;
@@ -585,7 +602,7 @@ export const actions = {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
-        worker.updateSchema(data);
+        worker.postMessage({ updateSchema: data });
 
         // No further processing - let the web worker check the schema updates
         return;
@@ -620,7 +637,7 @@ export const actions = {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
-        worker.removeSchema(data.id);
+        worker.postMessage({ removeSchema: data.id });
       }
     }
 

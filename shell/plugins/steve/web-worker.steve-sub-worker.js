@@ -1,20 +1,30 @@
-import * as Comlink from 'comlink';
 import { SCHEMA } from '@shell/config/types';
+import Socket, {
+  EVENT_CONNECTED,
+  EVENT_DISCONNECTED,
+  EVENT_MESSAGE,
+  //  EVENT_FRAME_TIMEOUT,
+  EVENT_CONNECT_ERROR,
+  EVENT_DISCONNECT_ERROR,
+} from '@shell/utils/socket';
 
 const COUNTS_FLUSH_TIMEOUT = 5000;
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 
+// ToDo: need to think about validating synconicity with the UI thread and recovery if needed.
+
 const state = {
-  store:      '', // Store name
-  load:       undefined, // Load callback to load a resource into the store
-  counts:     [], // Buffer of count resources recieved in a given window
-  countTimer: undefined, // Tiemr to flush the count buffer
-  flushTimer: undefined, // Timer to flush the schema chaneg queue
-  queue:      [], // Schema change queue
-  schemas:    {} // Map of schema id to hash to track when a schema actually changes
+  store:      '',
+  baseUrl:    '',
+  socket:     undefined,
+  counts:     [],
+  countTimer: undefined,
+  flushTimer: undefined,
+  queue:      [],
+  schemas:    [],
+  watches:    [] // each watch will be an object with a 'watched' boolean, true means we've sent the message through the socket, false means we haven't
 };
 
-// Quick, simple hash function
 function hash(str) {
   let hash = 0;
 
@@ -33,72 +43,108 @@ function hashObj(obj) {
   return hash(JSON.stringify(obj, null, 2));
 }
 
-function flush() {
-  state.queue.forEach((schema) => {
-    const hash = hashObj(schema);
-    const existing = state.schemas[schema.id];
-
-    if (!existing || (existing && existing !== hash)) {
-      // console.log(`${ schema.id } CHANGED  ${ hash } > ${ existing }`);
-      state.schemas[schema.id] = hash;
-
-      const msg = {
-        data:          schema,
-        resourceType:  SCHEMA,
-        type:          'resource.change'
-      };
-
-      load(msg);
-    }
-  });
-
-  state.queue = [];
-
-  state.flushTimer = setTimeout(flush, SCHEMA_FLUSH_TIMEOUT);
+function load(data) {
+  // ToDo: write now this is the only way for us to pass back data to the UI thread which I'm currently reworking to be a bit more flexible
+  self.postMessage({ load: data });
 }
 
-state.flushTimer = setTimeout(flush, SCHEMA_FLUSH_TIMEOUT);
+function connectSocket() {
+  if (state.baseUrl) {
+    state.socket = new Socket(`${ state.baseUrl }/subscribe`);
+    state.socket.setAutoReconnect(true);
+    state.socket.addEventListener(EVENT_CONNECTED, (e) => {
+      syncWatches();
+      // ToDo: setup a setInterval here that'll inspect hashes for changes, batch them up, send them over to the UI thread to figure out
+    });
+    state.socket.addEventListener(EVENT_DISCONNECTED, (e) => {
+      console.log(EVENT_DISCONNECTED, e);
+    });
 
-// Callback to the store's load function (in the main thread) to process a load
-function load(data) {
-  if (state.load) {
-    state.load(data);
+    state.socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
+      console.log(EVENT_CONNECT_ERROR, e);
+    });
+
+    state.socket.addEventListener(EVENT_DISCONNECT_ERROR, (e) => {
+      console.log(EVENT_DISCONNECT_ERROR, e);
+    });
+
+    state.socket.addEventListener(EVENT_MESSAGE, (e) => {
+      const event = e.detail;
+
+      if ( event.data) {
+        const msg = JSON.parse(event.data);
+
+        if (stateMutations[msg.name]) {
+          stateMutations[msg.name](msg?.data?.id);
+        }
+
+        // loadPage(makePage(opt, from, to));
+      }
+    });
+    state.socket.connect();
+  } else {
+    console.warn(`Cannot connect websocket in worker "${ state.store }": no baseUrl`); // eslint-disable-line no-console
   }
 }
 
-// Web Worker API
-const fns = {
-  initWorker(storeName, loadFn) {
-    state.store = storeName;
-    state.load = loadFn;
-  },
+function syncWatches() {
+  if (state?.socket?.isConnected()) {
+    state.watches
+      .filter(watch => !watch.watched) // we only want the unwatched watches
+      .forEach((watch, i) => {
+        const ok = state.socket.send(JSON.stringify(watch.payload));
 
-  destroyWorker() {
-    clearTimeout(state.countTimer);
-    clearTimeout(state.flushTimer);
+        if (ok) {
+          state.watches[i].watched = true;
+        }
+      });
+  } else if (!state?.socket?.isConnecting()) {
+    state.watches = state.watches.map((watch) => {
+      return {
+        ...watch,
+        watched: false
+      };
+    });
+    connectSocket();
+  }
+}
+
+onmessage = (e) => {
+  const messageActions = Object.keys(e?.data);
+
+  messageActions.forEach((action) => {
+    if (workerActions[action]) {
+      workerActions[action](e?.data[action]);
+    } else {
+      console.warn('no associated action for:', action); // eslint-disable-line no-console
+    }
+  });
+};
+
+const workerActions = {
+  watch: (msg) => {
+    state.watches.push({ watched: false, payload: msg });
+    syncWatches();
+  },
+  initWorker: ({ storeName }) => {
+    state.store = storeName;
+  },
+  connect: (url) => {
+    state.baseUrl = url;
+    connectSocket();
+  },
+  destroyWorker: () => {
+    // ToDo: put some more thought into destroying the worker and cleaning up
 
     // Web worker global function to terminate the web worker
     close();
   },
-
-  // Debounce counts messages so we only process at most 1 every 5 seconds
-  countsUpdate(resource) {
-    state.counts.push(resource);
-
-    if (!state.countTimer) {
-      state.countTimer = setTimeout(() => {
-        const last = state.counts.pop();
-
-        state.counts = [];
-        state.countTimer = null;
-
-        load(last);
-      }, COUNTS_FLUSH_TIMEOUT);
-    }
+  countsUpdate: (resource) => {
+    // ToDo: put some more thought into how we get here generically and how we message the UI thread generically
   },
-
-  // Called to load schema
-  loadSchema(schemas) {
+  loadSchema: (schemas) => {
+    // ToDo: Trying to request schemas from inside the worker is all kinds of messy so we've got to pass
+    // the initial load from the UI thread, need to figure out how to re-request it if the worker dies
     schemas.forEach((schema) => {
       // These properties are added to the object, but aren't on the raw object, so remove them
       // otherwise our comparison will show changes when there aren't any
@@ -108,15 +154,13 @@ const fns = {
       state.schemas[schema.id] = hashObj(schema);
     });
   },
-
-  // Called when schema is updated
-  updateSchema(schema) {
+  updateSchema: (schema) => {
     // Add the schema to the queue to be checked to see if the schema really changed
-    state.queue.push(schema);
+    // ToDo: Comparison of individual resources should be done in real-time and then a final comparison at message time to determine if we really need to send to the UI thread
+    // state.queue.push(schema);
   },
-
-  // Remove the cached schema
-  removeSchema(id) {
+  removeSchema: (id) => {
+    // ToDo: Should be handled generically
     // Remove anything in the queue related to the schema - we don't want to send any pending updates later for a schema that has been removed
     state.queue = state.queue.filter(schema => schema.id !== id);
 
@@ -124,6 +168,3 @@ const fns = {
     delete state.schemas[id];
   }
 };
-
-// Expose the Web Worker API - see: https://github.com/GoogleChromeLabs/comlink
-Comlink.expose(fns);
