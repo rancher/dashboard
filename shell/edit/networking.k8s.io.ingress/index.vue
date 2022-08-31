@@ -44,10 +44,11 @@ export default {
     }
   },
   async fetch() {
+    const ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
     const hash = await allHash({
       secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
       services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      ingressClasses: this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }),
+      ingressClasses: ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
     });
 
     this.allServices = hash.services;
