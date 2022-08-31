@@ -149,7 +149,7 @@ export default {
 
     if (!this.value.spec) {
       this.value.spec = {};
-      if (this.value.type === 'pod') {
+      if (this.value.type === WORKLOAD_TYPES.POD) {
         const podContainers = [{
           imagePullPolicy: 'Always',
           name:            `container-0`,
