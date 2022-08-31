@@ -10,7 +10,7 @@ export default class Chart extends SteveModel {
     let version;
     const chartVersions = this.versions;
     const currentCluster = this.$rootGetters['currentCluster'];
-    const workerOSs = currentCluster.workerOSs;
+    const workerOSs = currentCluster?.workerOSs;
     const compatibleVersions = compatibleVersionsFor(this, workerOSs);
 
     if (compatibleVersions.length) {
