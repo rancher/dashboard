@@ -1,6 +1,6 @@
 # Development Environment
 
-This is part of the developer [getting started guide](../../../README.md).
+This is part of the developer [getting started guide](https://github.com/rancher/dashboard/blob/master/README.md).
 
 ## Stack
 
@@ -8,17 +8,17 @@ A good base knowledge of Vue, Vuex and Nuxt should be reached before going throu
 
 ## Helpful links
 
-Description | Link
------| ---
-Core Vue Docs | <https://vuejs.org/v2/guide>
-Typescript in Vue | <https://vuejs.org/v2/guide/typescript.html>
-Vue Template/Directive Shorthands | <https://vuejs.org/v2/guide/syntax.html>
-Vue Conditional rendering | <https://vuejs.org/v2/guide/conditional.html>
-Vuex Core Docs | <https://vuex.vuejs.org/>
-Nuxt Get Started | <https://nuxtjs.org/docs/2.x/get-started/installation>
-Nuxt Structure | <https://nuxtjs.org/docs/2.x/directory-structure>
-Axios (HTTP Requests) | <https://axios.nuxtjs.org/options>
-HTTP Proxy middleware | <https://github.com/nuxt-community/proxy-module> (<https://github.com/chimurai/http-proxy-middleware>)
+| Description                       | Link                                                                                                   |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Core Vue Docs                     | <https://vuejs.org/v2/guide>                                                                           |
+| Typescript in Vue                 | <https://vuejs.org/v2/guide/typescript.html>                                                           |
+| Vue Template/Directive Shorthands | <https://vuejs.org/v2/guide/syntax.html>                                                               |
+| Vue Conditional rendering         | <https://vuejs.org/v2/guide/conditional.html>                                                          |
+| Vuex Core Docs                    | <https://vuex.vuejs.org/>                                                                              |
+| Nuxt Get Started                  | <https://nuxtjs.org/docs/2.x/get-started/installation>                                                 |
+| Nuxt Structure                    | <https://nuxtjs.org/docs/2.x/directory-structure>                                                      |
+| Axios (HTTP Requests)             | <https://axios.nuxtjs.org/options>                                                                     |
+| HTTP Proxy middleware             | <https://github.com/nuxt-community/proxy-module> (<https://github.com/chimurai/http-proxy-middleware>) |
 
 ## Platform
 
@@ -87,7 +87,7 @@ Developers are free to use the IDE and modern browser of their choosing. Here's 
 
 ### Running the Dashboard
 
-See the [Running For Development](../../../README.md#running-for-development) section on how to bring up the Dashboard locally
+See the [Running For Development](https://github.com/rancher/dashboard/blob/master/README.md#running-for-development) section on how to bring up the Dashboard locally
 
 > Troubleshooting: Multiple `Could not freeze errors` in `yarn dev` terminal
 >

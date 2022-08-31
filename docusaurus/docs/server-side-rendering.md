@@ -1,4 +1,8 @@
-## Server-Side-Rendering (SSR)
+---
+sidebar_label: Server-side Rendering
+---
+
+# Server-side-Rendering (SSR)
 
 > Update: From Rancher 2.6.6 SSR mode is disabled for devs by default
 

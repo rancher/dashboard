@@ -146,7 +146,6 @@ export default {
   },
 
   computed: {
-
     label() {
       return this.t(`rbac.roletemplate.subtypes.${ this.value.subtype }.label`);
     },
@@ -299,6 +298,9 @@ export default {
     },
     isDetail() {
       return this.as === _DETAIL;
+    },
+    isBuiltin() {
+      return this.value.builtin;
     },
     doneLocationOverride() {
       return this.value.listLocation;
@@ -576,6 +578,9 @@ export default {
           <ArrayList
             v-model="value.rules"
             label="Resources"
+            :disabled="isBuiltin"
+            :remove-allowed="!isBuiltin"
+            :add-allowed="!isBuiltin"
             :default-add-value="defaultRule"
             :initial-empty-row="true"
             :show-header="true"
@@ -612,6 +617,7 @@ export default {
                   <Select
                     :value="props.row.value.verbs"
                     class="lg"
+                    :disabled="isBuiltin"
                     :taggable="true"
                     :searchable="true"
                     :options="verbOptions"
@@ -623,6 +629,7 @@ export default {
                 <div :class="ruleClass">
                   <Select
                     :value="getRule('resources', props.row.value)"
+                    :disabled="isBuiltin"
                     :options="resourceOptions"
                     :searchable="true"
                     :taggable="true"
@@ -634,6 +641,7 @@ export default {
                 <div :class="ruleClass">
                   <LabeledInput
                     :value="getRule('apiGroups', props.row.value)"
+                    :disabled="isBuiltin"
                     :mode="mode"
                     @input="setRule('apiGroups', props.row.value, $event)"
                   />
@@ -641,6 +649,7 @@ export default {
                 <div v-if="!isNamespaced" :class="ruleClass">
                   <LabeledInput
                     :value="getRule('nonResourceURLs', props.row.value)"
+                    :disabled="isBuiltin"
                     :mode="mode"
                     @input="setRule('nonResourceURLs', props.row.value, $event)"
                   />
@@ -657,6 +666,9 @@ export default {
         >
           <ArrayList
             v-model="value.roleTemplateNames"
+            :disabled="isBuiltin"
+            :remove-allowed="!isBuiltin"
+            :add-allowed="!isBuiltin"
             label="Resources"
             add-label="Add Resource"
             :mode="mode"
@@ -668,6 +680,7 @@ export default {
                     v-model="props.row.value"
                     class="lg"
                     :taggable="false"
+                    :disabled="isBuiltin"
                     :searchable="true"
                     :options="templateOptions"
                     option-key="value"

@@ -305,8 +305,9 @@ export default function(dir, _appConfig) {
     },
 
     router: {
-      base:       routerBasePath,
-      middleware: ['i18n'],
+      base:          routerBasePath,
+      middleware:    ['i18n'],
+      prefetchLinks: false
     },
 
     alias: {
@@ -570,7 +571,6 @@ export default function(dir, _appConfig) {
       path.join(NUXT_SHELL, 'plugins/global-formatters'),
       path.join(NUXT_SHELL, 'plugins/trim-whitespace'),
       { src: path.join(NUXT_SHELL, 'plugins/extend-router') },
-      { src: path.join(NUXT_SHELL, 'plugins/lookup'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/console'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/int-number'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },

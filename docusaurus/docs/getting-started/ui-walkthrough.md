@@ -161,4 +161,4 @@ Node templates make it more convenient to define node pools so that you don't ha
 
 ![RKE1 node templates](./screenshots/rke1-node-templates.png)
 
-For technical reasons that are better explained in the section on [cluster management resources,](../cluster-management-resources.md) node templates are not a planned feature for V2 cluster provisioning. For V2 provinioning, you have to fill in the machine configuration details when you create or edit the Kubernetes cluster through Rancher.
+For technical reasons that are better explained in the section on [cluster management resources,](../code-base-works/cluster-management-resources.md) node templates are not a planned feature for V2 cluster provisioning. For V2 provinioning, you have to fill in the machine configuration details when you create or edit the Kubernetes cluster through Rancher.

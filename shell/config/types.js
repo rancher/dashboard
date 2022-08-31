@@ -169,7 +169,9 @@ export const MANAGEMENT = {
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
   MANAGED_CHART:                 'management.cattle.io.managedchart',
   USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
-  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider'
+  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
+  RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
+  RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
 };
 
 export const CAPI = {

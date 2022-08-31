@@ -25,13 +25,13 @@ This is in contrast to the Norman API, which had a concept of 'actions' - impera
 
 In a production setup these are all handled natively by Rancher.  For development of dashboard, they are proxied to the Rancher install that the `API` environment variable points at.
 
-Endpoint                 | Notes
--------------------------|-------
-`/v3`                    | Norman API
-`/v3-public`             | Norman unauthenticated API (mostly for info required to login)
-`/v1`                    | Steve API for the management ("local") cluster
-`/k8s/clusters/<id>`     | Proxy straight to the native k8s API for the given downstream cluster
-`/k8s/clusters/<id>/v1`  | Steve API for given downstream cluster via the server proxy
+| Endpoint                | Notes                                                                 |
+| ----------------------- | --------------------------------------------------------------------- |
+| `/v3`                   | Norman API                                                            |
+| `/v3-public`            | Norman unauthenticated API (mostly for info required to login)        |
+| `/v1`                   | Steve API for the management ("local") cluster                        |
+| `/k8s/clusters/<id>`    | Proxy straight to the native k8s API for the given downstream cluster |
+| `/k8s/clusters/<id>/v1` | Steve API for given downstream cluster via the server proxy           |
 
 The older Norman API is served on `/v3`. The newer Steve API (see [here](https://github.com/rancher/api-spec/blob/master/specification.md) for spec) is served on `/v1` .
 
@@ -104,29 +104,29 @@ There are 3 main stores for communicating with different parts of the Rancher AP
 
 And then a bunch of others:
 
-Name                 | For
----------------------|-------
-action-menu | Maintains the current selection for tables and handling bulk operations on them
-auth | Authentication, logging in and out, etc
-catalog | Stores the index data for Helm catalogs and methods to find charts, determine if upgrades are available, etc
-github | Part of authentication, communicating with the GitHub API
-growl | Global "growl" notifications in the corner of the screen
-i18n | Internationalization
-index | The root store, manages things like which cluster you're connected to and what namespaces should be shown
-prefs | User preferences
-type-map | Meta-information about all the k8s types that are available to the current user and how they should be displayed
-wm | "Window manager" at the bottom of the screen for things like container shells and logs.
+| Name        | For                                                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| action-menu | Maintains the current selection for tables and handling bulk operations on them                                  |
+| auth        | Authentication, logging in and out, etc                                                                          |
+| catalog     | Stores the index data for Helm catalogs and methods to find charts, determine if upgrades are available, etc     |
+| github      | Part of authentication, communicating with the GitHub API                                                        |
+| growl       | Global "growl" notifications in the corner of the screen                                                         |
+| i18n        | Internationalization                                                                                             |
+| index       | The root store, manages things like which cluster you're connected to and what namespaces should be shown        |
+| prefs       | User preferences                                                                                                 |
+| type-map    | Meta-information about all the k8s types that are available to the current user and how they should be displayed |
+| wm          | "Window manager" at the bottom of the screen for things like container shells and logs.                          |
 
 
 Store objects are accessed in different ways, below are common ways they are referenced by models and components
 
-|Location|type|object|example|
-|----|----|----|----|
-| `/model/<resource type>` | Dispatching Actions | `this.$dispatch` | `this.$dispatch('cluster/find', { type: WORKLOAD_TYPES.JOB, id: relationship.toId }, { root: true })`
-| `/model/<resource type>` | Access getters (store type) | `this.$getters` | `this.$getters['schemaFor'](this.type)`
-| `/model/<resource type>` | Access getters (all) | `this.$rootGetters` | `this.$rootGetters['productId']`
-| component | Dispatching Actions | `this.$store.dispatch` | ``this.$store.dispatch(`${ inStore }/find`, { type: row.type, id: row.id })``
-| component | Access getters | `this.$store.getters` | `this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.value)`
+| Location                 | type                        | object                 | example                                                                                               |
+| ------------------------ | --------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| `/model/<resource type>` | Dispatching Actions         | `this.$dispatch`       | `this.$dispatch('cluster/find', { type: WORKLOAD_TYPES.JOB, id: relationship.toId }, { root: true })` |
+| `/model/<resource type>` | Access getters (store type) | `this.$getters`        | `this.$getters['schemaFor'](this.type)`                                                               |
+| `/model/<resource type>` | Access getters (all)        | `this.$rootGetters`    | `this.$rootGetters['productId']`                                                                      |
+| component                | Dispatching Actions         | `this.$store.dispatch` | ``this.$store.dispatch(`${ inStore }/find`, { type: row.type, id: row.id })``                         |
+| component                | Access getters              | `this.$store.getters`  | `this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.value)`                                   |
 
 > Prefixing a property in a model with `$`, as per `model` rows above, results in calling properties on the store object directly.
 
@@ -183,13 +183,13 @@ We also 'dehydrate' resources by stripping out properties with double underscore
 
 Most of the options to create and fetch resources can be achieved via dispatching actions defined in `/plugins/dashboard-store/actions.js`
 
-| Function    | Action | Example Command | Description |
-|-------------|--------|-----------------|-----|
-| `create`  | Create | `$store.$dispatch('<store type>/create', <new object>)`| Creates a new Proxy object of the required type (`type` property must be included in the new object) |
-| `clone`   | Clone | `$store.$dispatch('<store type>/clone', { resource: <existing object> })` | Performs a deep clone and creates a proxy from it |
-| `findAll` | Fetch all of a resource type and watch for changes to the returned resources so that the list updates as it changes. | `$store.dispatch('<store type>/findAll', { type: <resource type> })` | Fetches all resources of the given type. Also, when applicable, will register the type for automatic updates. If the type has already been fetched return the local cached list instead |
-| `find`    | Fetch a resource by ID and watch for changes to that individual resource. | `$store.dispatch('<store type>/find', { type: <resource type>, id: <resource id> })` | Finds the resource matching the ID. If the type has already been fetched return the local cached instance. |
-| `findMatching` | Fetch resources by label and watch for changes to the returned resources, a live array that updates as it changes. | `$store.dispatch('<store type>/findMatching', { type: <resource type>, selector: <label name:value map> })` | Fetches resources that have `metadata.labels` matching that of the name-value properties in the selector. Does not support match expressions. |
+| Function       | Action                                                                                                               | Example Command                                                                                             | Description                                                                                                                                                                             |
+| -------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `create`       | Create                                                                                                               | `$store.$dispatch('<store type>/create', <new object>)`                                                     | Creates a new Proxy object of the required type (`type` property must be included in the new object)                                                                                    |
+| `clone`        | Clone                                                                                                                | `$store.$dispatch('<store type>/clone', { resource: <existing object> })`                                   | Performs a deep clone and creates a proxy from it                                                                                                                                       |
+| `findAll`      | Fetch all of a resource type and watch for changes to the returned resources so that the list updates as it changes. | `$store.dispatch('<store type>/findAll', { type: <resource type> })`                                        | Fetches all resources of the given type. Also, when applicable, will register the type for automatic updates. If the type has already been fetched return the local cached list instead |
+| `find`         | Fetch a resource by ID and watch for changes to that individual resource.                                            | `$store.dispatch('<store type>/find', { type: <resource type>, id: <resource id> })`                        | Finds the resource matching the ID. If the type has already been fetched return the local cached instance.                                                                              |
+| `findMatching` | Fetch resources by label and watch for changes to the returned resources, a live array that updates as it changes.   | `$store.dispatch('<store type>/findMatching', { type: <resource type>, selector: <label name:value map> })` | Fetches resources that have `metadata.labels` matching that of the name-value properties in the selector. Does not support match expressions.                                           |
 
 Once objects of most types are fetched they will be automatically updated. See [Watching Resources](#watching-resources) for more info. For some types this does not happen. For those cases, or when an immediate update is required, adding `force: true` to the `find` style actions will result in a fresh http request.
 
@@ -285,22 +285,22 @@ The Create/Edit Yaml experience is controlled by `/components/ResourceYaml.vue`.
 
 Special attention should be made of the `mode` and `as` params that's available via the `CreateEditView` mixin (as well as other helpful functionality). Changing these should change the behaviour of the resource details page (depending on the availability of resource type custom components).
 
-For more information about CreateEditView and how to add new create/edit forms, see [Create/Edit Forms.](./forms-and-validation.md)
+For more information about CreateEditView and how to add new create/edit forms, see [Create/Edit Forms.](../guide/forms-and-validation.md)
 
-| `mode` | `as` | Content |
-|------------|----------|-------|
-| falsy | falsy | Shows the View YAML or Customised Detail component|
-| falsy | `config` | Shows the View YAML or Customised Edit component (in read only mode)|
-| `edit` | falsy | Shows the Customised Edit component|
-| `edit` | `yaml` | Shows the Edit Yaml component|
+| `mode` | `as`     | Content                                                              |
+| ------ | -------- | -------------------------------------------------------------------- |
+| falsy  | falsy    | Shows the View YAML or Customised Detail component                   |
+| falsy  | `config` | Shows the View YAML or Customised Edit component (in read only mode) |
+| `edit` | falsy    | Shows the Customised Edit component                                  |
+| `edit` | `yaml`   | Shows the Edit Yaml component                                        |
 
 In addition the Create process (assessable with the same url + `/create`) is also managed by the resource detail page with similar param options. 
 
-| `mode` | `as` | Content |
-|------------|----------|-------| 
-| falsy | `yaml` | Show the Edit YAML component in create mode
-| `edit` | falsy | Show the Customised Edit component in create mode
-| `clone` | falsy | Shows the Customised Edit component in create mode pre-populated with an existing resource
+| `mode`  | `as`   | Content                                                                                    |
+| ------- | ------ | ------------------------------------------------------------------------------------------ |
+| falsy   | `yaml` | Show the Edit YAML component in create mode                                                |
+| `edit`  | falsy  | Show the Customised Edit component in create mode                                          |
+| `clone` | falsy  | Shows the Customised Edit component in create mode pre-populated with an existing resource |
 
 ### Customising Resource Detail Pages
 
