@@ -188,14 +188,7 @@
     "webpack-virtual-modules": "^0.4.3",
     "worker-loader": "^3.0.8",
     "yaml-lint": "^1",
-    "yarn": "^1.22.11",
-    "@storybook/addon-actions": "^6.3.8",
-    "@storybook/addon-essentials": "^6.3.8",
-    "@storybook/addon-links": "^6.3.8",
-    "@storybook/addon-a11y": "^6.3.8",
-    "@storybook/vue": "^6.3.8",
-    "storybook-dark-mode": "^1.0.8",
-    "storybook-auto-events": "^0.1.1"
+    "yarn": "^1.22.11"
   },
   "nyc": {
     "extension": [

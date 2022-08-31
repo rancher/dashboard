@@ -210,7 +210,7 @@ export default {
             :mode="mode"
             :output-modifier="true"
             :base-unit="t('cluster.machinePool.autoReplace.unit')"
-            @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}m`"
+            @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}s`"
           />
         </div>
         <div class="col span-4">
