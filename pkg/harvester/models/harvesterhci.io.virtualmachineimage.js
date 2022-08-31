@@ -36,6 +36,12 @@ export default class HciVmImage extends HarvesterResource {
         label:      this.t('harvester.action.createVM'),
         disabled:   !this.isReady,
       },
+      {
+        action:     'download',
+        enabled:    this.links?.download,
+        icon:       'icon icon-download',
+        label:      this.t('asyncButton.download.action'),
+      },
       ...out
     ];
   }
@@ -236,5 +242,9 @@ export default class HciVmImage extends HarvesterResource {
       },
       ...out
     ];
+  }
+
+  download() {
+    window.location.href = this.links.download;
   }
 }
