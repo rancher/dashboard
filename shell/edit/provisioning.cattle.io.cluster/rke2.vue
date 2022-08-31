@@ -249,10 +249,6 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
-    if (this.isHarvesterDriver && this.mode === _CREATE && this.agentConfig['cloud-provider-name'] === undefined) {
-      this.agentConfig['cloud-provider-name'] = HARVESTER;
-    }
-
     await this.initAddons();
     await this.initRegistry();
 
@@ -501,11 +497,17 @@ export default {
         // If we have a preferred provider... only show default, preferred and external
         const isPreferred = opt === preferred;
         const isExternal = opt === 'external';
+        let disabled = false;
+
+        if (this.isHarvesterExternalCredential && isPreferred) {
+          disabled = true;
+        }
 
         if (showAllOptions || isPreferred || isExternal) {
           out.push({
             label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
             value: opt,
+            disabled,
           });
         }
       }
@@ -843,7 +845,11 @@ export default {
 
     showForm() {
       return !!this.credentialId || !this.needCredential;
-    }
+    },
+
+    isHarvesterExternalCredential() {
+      return this.credential?.harvestercredentialConfig?.clusterType === 'external';
+    },
   },
 
   watch: {
@@ -861,6 +867,7 @@ export default {
     credentialId(val) {
       if ( val ) {
         this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
+        this.setHarvesterDefaultCloudProvider();
       } else {
         this.credential = null;
       }
@@ -1552,7 +1559,15 @@ export default {
         }
       });
     },
-    get
+    get,
+
+    setHarvesterDefaultCloudProvider() {
+      if (this.isHarvesterDriver && this.mode === _CREATE && this.agentConfig['cloud-provider-name'] === undefined && !this.isHarvesterExternalCredential) {
+        this.agentConfig['cloud-provider-name'] = HARVESTER;
+      } else {
+        this.agentConfig['cloud-provider-name'] = '';
+      }
+    },
   },
 };
 </script>
