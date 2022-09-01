@@ -178,7 +178,8 @@ export class Plugin implements IPlugin {
     const nparts = name.split('/');
 
     // Support components in a sub-folder - component_name/index.vue (and ignore other componnets in that folder)
-    if (nparts.length === 2) {
+    // Allow store-scoped models via sub-folder - pkgname/models/storename/type will be registered as storename/type to avoid overwriting shell/models/type
+    if (nparts.length === 2 && type !== 'models') {
       if (nparts[1] !== 'index') {
         return;
       }
