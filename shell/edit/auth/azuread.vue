@@ -67,6 +67,10 @@ export default {
 
   async fetch() {
     await this.reloadModel();
+
+    if ( this.value?.graphEndpoint ) {
+      this.setInitialEndpoint(this.value.graphEndpoint);
+    }
   },
 
   data() {
@@ -168,6 +172,16 @@ export default {
             )
           );
         });
+      }
+    },
+
+    setInitialEndpoint(endpoint) {
+      const endpointKey = Object.keys(ENDPOINT_MAPPING).find(key => ENDPOINT_MAPPING[key].graphEndpoint === endpoint);
+
+      if ( endpointKey ) {
+        this.endpoint = endpointKey;
+      } else {
+        this.endpoint = 'custom';
       }
     },
 
