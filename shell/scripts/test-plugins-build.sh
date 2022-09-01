@@ -42,6 +42,12 @@ if [ $SKIP_SETUP == "false" ]; then
     sleep 10
 
     echo "Configuring Verdaccio user"
+
+    # Remove existing admin if already there
+    if [ -f ~/.config/verdaccio/htpasswd ]; then
+      sed -i '/^admin:/d' ~/.config/verdaccio/htpasswd
+    fi
+
     curl -XPUT -H "Content-type: application/json" -d '{ "name": "admin", "password": "admin" }' 'http://localhost:4873/-/user/admin' > login.json
     TOKEN=$(jq -r .token login.json)
     rm login.json
@@ -54,9 +60,20 @@ EOF
   fi
 fi
 
-rm -rf ~/.local/share/verdaccio/storage/@rancher/*
+if [ -d ~/.local/share/verdaccio/storage/@rancher ]; then 
+  rm -rf ~/.local/share/verdaccio/storage/@rancher/*
+else
+  rm -rf ~/.config/verdaccio/storage/@rancher/*
+fi
 
 export YARN_REGISTRY=http://localhost:4873
+export NEXT_TELEMETRY_DISABLED=1
+
+# We need to patch the version number of the shell, otherwise if we are running
+# with the currently published version, things will fail as those versions
+# are already published and Verdaccio will check, since it is a read-through cache
+sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"7.7.7\",/g" ${SHELL_DIR}/package.json
+rm ${SHELL_DIR}/package.json.bak
 
 # Publish shell
 echo "Publishing shell packages to local registry"

@@ -4,7 +4,7 @@ set -e
 DIR=$(cd $(dirname $0)/../..; pwd)
 
 # clean
-if [ $1 == "-c" ]; then
+if [ "$1" == "-c" ]; then
   echo "Cleaning .."
   rm -f dashboard.tar.gz
   rm -f dashboard.tar

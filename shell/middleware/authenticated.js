@@ -11,7 +11,6 @@ import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
@@ -245,10 +244,8 @@ export default async function({
       window.location.href = backTo;
     }
   }
-
   // Load stuff
   await applyProducts(store, $plugin);
-
   // Setup a beforeEach hook once to keep track of the current product
   if ( !beforeEachSetup ) {
     beforeEachSetup = true;
@@ -327,49 +324,37 @@ export default async function({
       });
     }
 
-    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
-      setProduct(store, route);
-      const res = [
-        ...always,
-        store.dispatch('loadVirtual', {
-          id: clusterId,
-          oldProduct,
-        }),
-      ];
+    // Always run loadCluster, it handles 'unload' as well
+    // Run them in parallel
+    await Promise.all([
+      ...always,
+      store.dispatch('loadCluster', {
+        id:     clusterId,
+        oldPkg: oldPkgPlugin,
+        newPkg: newPkgPlugin,
+        product,
+        oldProduct,
+      })
+    ]);
 
-      await Promise.all(res);
-    } else {
-      // Always run loadCluster, it handles 'unload' as well
-      // Run them in parallel
-      await Promise.all([
-        ...always,
-        store.dispatch('loadCluster', {
-          id:     clusterId,
-          oldPkg: oldPkgPlugin,
-          newPkg: newPkgPlugin,
-          product,
-          oldProduct,
-        })]);
+    if (!clusterId) {
+      clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
+      const isSingleProduct = store.getters['isSingleProduct'];
 
-      if (!clusterId) {
-        clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
-        const isSingleProduct = store.getters['isSingleProduct'];
+      if (isSingleProduct?.afterLoginRoute) {
+        const value = {
+          name:   'c-cluster-product',
+          ...isSingleProduct.afterLoginRoute,
+          params: {
+            cluster: clusterId,
+            ...isSingleProduct.afterLoginRoute?.params
+          },
+        };
 
-        if (isSingleProduct?.afterLoginRoute) {
-          const value = {
-            name:   'c-cluster-product',
-            ...isSingleProduct.afterLoginRoute,
-            params: {
-              cluster: clusterId,
-              ...isSingleProduct.afterLoginRoute?.params
-            },
-          };
-
-          await store.dispatch('prefs/set', {
-            key: AFTER_LOGIN_ROUTE,
-            value,
-          });
-        }
+        await store.dispatch('prefs/set', {
+          key: AFTER_LOGIN_ROUTE,
+          value,
+        });
       }
     }
   } catch (e) {

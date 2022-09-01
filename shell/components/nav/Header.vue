@@ -2,7 +2,6 @@
 import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { NORMAN, STEVE } from '@shell/config/types';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { ucFirst } from '@shell/utils/string';
 import { isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
@@ -13,7 +12,6 @@ import ClusterBadge from '@shell/components/ClusterBadge';
 import { LOGGED_OUT } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
-import HarvesterUpgrade from './HarvesterUpgrade.vue';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
@@ -31,7 +29,6 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
-    HarvesterUpgrade
   },
 
   props: {
@@ -51,14 +48,14 @@ export default {
       kubeConfigCopying: false,
       searchShortcut,
       shellShortcut,
-      VIRTUAL,
       LOGGED_OUT,
+      navHeaderRight:         null
     };
   },
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isVirtualCluster']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -94,12 +91,12 @@ export default {
     },
 
     showPreferencesLink() {
-      return (this.$store.getters['management/schemaFor'](STEVE.PREFERENCE)?.resourceMethods || []).includes('PUT');
+      return (this.$store.getters['management/schemaFor'](STEVE.PREFERENCE, false, false)?.resourceMethods || []).includes('PUT');
     },
 
     showAccountAndApiKeyLink() {
       // Keep this simple for the moment and only check if the user can see tokens... plus the usual isRancher/isSingleProduct
-      const canSeeTokens = this.$store.getters['rancher/schemaFor'](NORMAN.TOKEN);
+      const canSeeTokens = this.$store.getters['rancher/schemaFor'](NORMAN.TOKEN, false, false);
 
       return canSeeTokens && (this.isRancher || this.isSingleProduct);
     },
@@ -152,6 +149,7 @@ export default {
         }
       };
     },
+
   },
 
   watch: {
@@ -168,6 +166,8 @@ export default {
     window.addEventListener('resize', this.debouncedLayoutHeader);
 
     this.$nextTick(() => this.layoutHeader(null, true));
+
+    this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
   },
 
   beforeDestroy() {
@@ -329,7 +329,8 @@ export default {
     <div class="spacer"></div>
 
     <div class="rd-header-right">
-      <HarvesterUpgrade v-if="isVirtualCluster && currentProduct.name === VIRTUAL" />
+      <component :is="navHeaderRight" />
+
       <div
         v-if="(currentCluster || (currentProduct && currentProduct.customNamespaceFilter)) && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
         class="top"
@@ -457,7 +458,6 @@ export default {
       </div>
 
       <div class="header-spacer"></div>
-
       <div
         v-if="showUserMenu"
         class="user user-menu"

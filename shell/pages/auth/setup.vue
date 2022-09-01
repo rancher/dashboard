@@ -114,7 +114,7 @@ export default {
       setVendor(plSetting.value);
     }
 
-    const productName = plSetting.default === 'Harvester' ? 'Harvester' : 'Rancher';
+    const productName = plSetting.default;
 
     const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
     const me = findBy(principals, 'me', true);

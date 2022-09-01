@@ -291,7 +291,7 @@ export default {
         <InfoBox v-if="!model.enabled" id="reply-info" class="mt-20 mb-20 p-10">
           {{ t('authConfig.azuread.reply.info') }}
           <br />
-          <label>{{ t('authConfig.azuread.reply.label') }} </label>
+          <label class="reply-url">{{ t('authConfig.azuread.reply.label') }} </label>
           <CopyToClipboardText :plain="true" :text="replyUrl" />
         </InfoBox>
 
@@ -386,5 +386,10 @@ export default {
 <style lang="scss">
 #reply-info {
   flex-grow: 0;
+}
+
+.reply-url {
+  color: inherit;
+  font-weight: 700;
 }
 </style>

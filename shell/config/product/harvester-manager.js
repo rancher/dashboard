@@ -3,8 +3,11 @@ import { HARVESTER, MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@shell/config/table-headers';
 import { allHash } from '@shell/utils/promise';
+import { BLANK_CLUSTER } from '@shell/store';
 
 export const NAME = 'harvesterManager';
+
+export const HARVESTER_NAME = 'harvester';
 
 const MACHINE_POOLS = {
   name:      'summary',
@@ -33,6 +36,14 @@ export function init(store) {
     removable:           false,
     showClusterSwitcher: false,
     weight:              100,
+    to:                   {
+      name:   'c-cluster-product-resource',
+      params: {
+        cluster:  BLANK_CLUSTER,
+        product:  NAME,
+        resource: HCI.CLUSTER
+      }
+    },
   });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });

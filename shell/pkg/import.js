@@ -1,4 +1,4 @@
-const _NAME = require.context('BASE/NAME', true, /\.(vue|js|yaml)$/).keys();
+const _NAME = require.context('BASE/DIR', true, /\.(vue|js|yaml)$/).keys();
 
 _NAME.forEach((f) => {
   let name = f.substr(2);
@@ -6,5 +6,5 @@ _NAME.forEach((f) => {
 
   name = name.substr(0, ext);
 
-  $plugin.register('NAME', name, () => REQUIRE(CHUNK`BASE/NAME/${ name }EXT`)); // eslint-disable-line no-undef
+  $plugin.register('DIR', name, () => REQUIRE(CHUNK`BASE/DIR/${ name }EXT`)); // eslint-disable-line no-undef
 });
