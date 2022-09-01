@@ -13,12 +13,17 @@
     "sourceMap": true,
     "baseUrl": ".",
     "preserveSymlinks": true,
+    "typeRoots": [
+      "../../node_modules",
+      "../../shell/types"
+    ],
     "types": [
       "node",
       "webpack-env",
       "@types/node",
       "@types/jest",
-      "@nuxt/types"
+      "@nuxt/types",
+      "rancher"
     ],
     "lib": [
       "esnext",
@@ -64,10 +69,7 @@
     "**/*.d.ts",
     "**/*.tsx",
     "**/*.vue",
-    "../../shell/types/*.d.ts",
-    "../../shell/core/*.ts",
-    "../../shell/config/**/*.js",
-    "../../shell/components/**/*.vue",
+    "../../shell/core/types.ts",
     "../../vue-shim.d.ts",
   ],
   "exclude": [

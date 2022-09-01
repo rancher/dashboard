@@ -691,7 +691,6 @@ export default {
       <div class="wm">
         <WindowManager />
       </div>
-      </main>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
