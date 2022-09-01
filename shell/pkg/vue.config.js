@@ -51,7 +51,7 @@ module.exports = function(dir) {
       const dynamicImporterOveride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
         resource.request = path.join(__dirname, 'dynamic-importer.lib.js');
       });
-      // TODO: RC this causes model lookups in pkg to return null
+      // TODO: RC Neil - this causes model lookups in pkg to return null
       // const modelLoaderImporterOveride = new webpack.NormalModuleReplacementPlugin(/model-loader$/, (resource) => {
       //   resource.request = path.join(__dirname, 'model-loader.lib.js');
       // });
@@ -67,7 +67,7 @@ module.exports = function(dir) {
       // These modules will be externalised and not included with the build of a package library
       // This helps reduce the package size, but these dependencies must be provided by the hosting application
       config.externals = {
-        // jquery:    '$', // TODO: RC selection.js  _(...) is not a function
+        // jquery:    '$', / TODO: RC Neil - selection.js  _(...) is not a function
         jszip:     '__jszip',
         'js-yaml': '__jsyaml'
       };

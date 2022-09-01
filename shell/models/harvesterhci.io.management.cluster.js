@@ -32,6 +32,7 @@ export default class HciCluster extends ProvCluster {
   cachedHarvesterClusterVersion = '';
 
   async _pkgDetails() {
+    // TODO: RC Update - with changes from PR
     const clusterId = this.mgmt.id;
 
     // Fetch the version of the pkg to fetch

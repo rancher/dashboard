@@ -188,7 +188,7 @@ export default {
       let { displayVersion } = getVersionInfo(this.$store);
 
       if (this.isVirtualProduct && this.isSingleProduct) {
-        // TODO: RC this should come from isSingleProduct
+        // TODO: RC Update - this should come from isSingleProduct
         const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
 
         displayVersion = setting?.value || 'unknown';
@@ -223,7 +223,7 @@ export default {
       return !this.$route?.matched?.length;
     },
 
-    // TODO: RC
+    // TODO: RC Test - validate this can be removed
     /**
      * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
      * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
