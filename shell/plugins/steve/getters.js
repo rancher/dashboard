@@ -110,4 +110,22 @@ export default {
     return map?.list || [];
   },
 
+  debugInfo: state => () => {
+    const watches = state.started.map(w => w.type);
+    const types = [];
+
+    Object.keys(state.types).forEach((t) => {
+      const info = state.types[t];
+
+      types.push({
+        name:  t,
+        count: info.list.length
+      });
+    });
+
+    return {
+      watches,
+      types
+    };
+  }
 };

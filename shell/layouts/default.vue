@@ -15,6 +15,7 @@ import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
+import DebugPanel from '@shell/components/DebugPanel';
 import {
   COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
 } from '@shell/config/types';
@@ -46,7 +47,8 @@ export default {
     WindowManager,
     FixedBanner,
     AwsComplianceBanner,
-    AzureWarning
+    AzureWarning,
+    DebugPanel
   },
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
@@ -75,6 +77,10 @@ export default {
 
     dev:            mapPref(DEV),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
+
+    devEnv() {
+      return process.env.dev;
+    },
 
     pageActions() {
       const pageActions = [];
@@ -544,7 +550,7 @@ export default {
     <FixedBanner :header="true" />
     <AwsComplianceBanner v-if="managementReady" />
     <AzureWarning v-if="managementReady" />
-    <div v-if="managementReady" class="dashboard-content">
+    <div v-if="managementReady" id="dashboard-content" class="dashboard-content">
       <Header />
       <nav v-if="clusterReady" class="side-nav">
         <div class="nav">
@@ -637,6 +643,7 @@ export default {
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <DebugPanel v-if="devEnv && managementReady" content="dashboard-content" />
   </div>
 </template>
 <style lang="scss" scoped>
