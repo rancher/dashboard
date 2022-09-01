@@ -120,6 +120,8 @@ export const HCI_SETTING = {
   RANCHER_MONITORING:               'fleet-local/rancher-monitoring',
   RELEASE_DOWNLOAD_URL:             'release-download-url'
 };
+
+// TODO: RC MOVE TO PKG
 export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.BACKUP_TARGET]: { kind: 'json', from: 'import' },
   [HCI_SETTING.LOG_LEVEL]:     {

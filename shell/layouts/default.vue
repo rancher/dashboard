@@ -188,6 +188,7 @@ export default {
       let { displayVersion } = getVersionInfo(this.$store);
 
       if (this.isVirtualProduct && this.isSingleProduct) {
+        // TODO: RC this should come from isSingleProduct
         const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
 
         displayVersion = setting?.value || 'unknown';

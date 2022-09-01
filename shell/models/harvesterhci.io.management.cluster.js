@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
-import { DEFAULT_WORKSPACE, SERVICE } from '@shell/config/types';
+import { DEFAULT_WORKSPACE, SERVICE, HCI } from '@shell/config/types';
 import { HARVESTER_NAME, HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 
 export default class HciCluster extends ProvCluster {
@@ -67,13 +67,13 @@ export default class HciCluster extends ProvCluster {
   }
 
   async loadClusterPlugin() {
-    const { pkgUrl, packageName } = await this._pkgDetails();
+    // const { pkgUrl, packageName } = await this._pkgDetails();
 
-    console.warn('Harvester package details: ', packageName, pkgUrl);
+    // console.warn('Harvester package details: ', packageName, pkgUrl);
 
     // TODO: RC Remove
-    // const packageName = 'harvester-0.6.0';
-    // const pkgUrl = `http://127.0.0.1:4500/${ packageName }/${ packageName }.umd.min.js`;
+    const packageName = 'harvester-0.3.0';
+    const pkgUrl = `http://127.0.0.1:4500/${ packageName }/${ packageName }.umd.min.js`;
 
     // Avoid loading the plugin if it's already loaded
     const loadedPkgs = Object.keys(this.$rootState.$plugin.getPlugins());
@@ -111,7 +111,7 @@ export default class HciCluster extends ProvCluster {
           params: {
             cluster:  this.status.clusterName,
             product:  VIRTUAL,
-            resource: 'harvesterhci.io.dashboard' // Go directly to dashboard to avoid blip of components on screen
+            resource: HCI.DASHBOARD // Go directly to dashboard to avoid blip of components on screen
           }
         });
       })

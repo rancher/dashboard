@@ -266,6 +266,7 @@ export const VIRTUAL_TYPES = {
 };
 
 // harvester
+// TODO: RC tidy
 export const HCI = {
   // VM:                 'kubevirt.io.virtualmachine',
   // VMI:                'kubevirt.io.virtualmachineinstance',
@@ -284,8 +285,8 @@ export const HCI = {
   // CLUSTER_NETWORK:    'network.harvesterhci.io.clusternetwork',
   // SUPPORT_BUNDLE:     'harvesterhci.io.supportbundle',
   // NETWORK_ATTACHMENT: 'harvesterhci.io.networkattachmentdefinition',
-  CLUSTER: 'harvesterhci.io.management.cluster',
-  // DASHBOARD:          'harvesterhci.io.dashboard',
+  CLUSTER:   'harvesterhci.io.management.cluster',
+  DASHBOARD: 'harvesterhci.io.dashboard',
   // BLOCK_DEVICE:       'harvesterhci.io.blockdevice',
   // CLOUD_TEMPLATE:     'harvesterhci.io.cloudtemplate',
   // HOST:               'harvesterhci.io.host',
