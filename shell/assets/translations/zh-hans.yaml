@@ -5639,12 +5639,6 @@ harvester:
       title: 添加卷
     hotunplug:
       success: '卷 { name } 拔出成功。'
-  notification:
-    title:
-      succeed: 成功
-      info: 信息
-      warning: 警告
-      error: 错误
   action:
     createVM: 创建虚拟机
     start: 启动

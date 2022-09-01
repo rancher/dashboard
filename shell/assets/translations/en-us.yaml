@@ -5595,12 +5595,6 @@ harvester:
       title: Add Volume
     hotunplug:
       success: 'Volume { name } is detach successfully.'
-  notification:
-    title:
-      succeed: Succeed
-      info: Info
-      warning: Warning
-      error: Error
   action:
     createVM: Create a Virtual Machine
     start: Start

@@ -8,7 +8,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import { CAPI, SERVICE } from '@shell/config/types';
 
 export default {

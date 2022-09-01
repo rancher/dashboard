@@ -9,7 +9,7 @@ import { STATE, DESCRIPTION } from '@shell/config/table-headers';
 import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication } from '../../types';
 import { EpinioAppSource } from '../../components/application/AppSource.vue';
 import { EpinioAppBindings } from '../../components/application/AppConfiguration.vue';
-import EpinioNamespace from '~/pkg/epinio/models/namespaces';
+import EpinioNamespace from '../../models/namespaces';
 
 interface Data {
   running: boolean;
