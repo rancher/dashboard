@@ -80,6 +80,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get provisioner() {
+    // For imported K3s clusters, this.status.driver is 'k3s.'
     return this.status?.driver ? this.status.driver : 'imported';
   }
 
@@ -99,11 +100,9 @@ export default class MgmtCluster extends HybridModel {
     return this.spec?.clusterTemplateRevisionName;
   }
 
-  get emberEditPath() {
+  get providerForEmberParam() {
     // Ember wants one word called provider to tell what component to show, but has much indirect mapping to figure out what it is.
     let provider;
-    let clusterTemplateRevision;
-
     // Provisioner is the "<something>Config" in the model
     const provisioner = KONTAINER_TO_DRIVER[(this.provisioner || '').toLowerCase()] || this.provisioner;
 
@@ -114,13 +113,6 @@ export default class MgmtCluster extends HybridModel {
       } else {
         provider = 'custom';
       }
-
-      // If the RKE1 cluster is created from an RKE template, we need
-      // to get the template version to pass into the Ember UI for
-      // the iFramed edit cluster form
-      if (this.rkeTemplateVersion) {
-        clusterTemplateRevision = this.rkeTemplateVersion;
-      }
     } else if ( this.driver ) {
       provider = this.driver;
     } else if ( provisioner && provisioner.endsWith('v2') ) {
@@ -128,6 +120,20 @@ export default class MgmtCluster extends HybridModel {
     } else {
       provider = 'import';
     }
+
+    return provider;
+  }
+
+  get emberEditPath() {
+    let clusterTemplateRevision;
+
+    // If the RKE1 cluster is created from an RKE template, we need
+    // to get the template version to pass into the Ember UI for
+    // the iFramed edit cluster form
+    if (this.rkeTemplateVersion) {
+      clusterTemplateRevision = this.rkeTemplateVersion;
+    }
+    const provider = this.providerForEmberParam;
 
     // Avoid passing falsy values as query parameters
     const qp = { };

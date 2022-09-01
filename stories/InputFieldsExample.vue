@@ -1,5 +1,5 @@
 <script>
-import LabeledInput from '@/pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import InputWithSelect from '@shell/components/form/InputWithSelect.vue';

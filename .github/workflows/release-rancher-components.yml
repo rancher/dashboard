@@ -1,0 +1,41 @@
+name: Build and Publish Rancher Components
+
+on:
+  push:
+    tags:
+        - 'components-v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16.x'
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@rancher'
+
+    - name: Install
+      run: yarn install --frozen-lockfile
+
+    - name: Lint
+      run: yarn lint:lib
+
+    - name: Build
+      run: yarn build:lib
+
+    - name: Unit Test
+      run: yarn test:ci ./pkg/rancher-components
+
+    - name: Publish to npm
+      run: yarn publish:lib
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

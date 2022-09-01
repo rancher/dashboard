@@ -112,7 +112,7 @@ export default {
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
     namespaces() {
-      return this.$store.getters['namespaces']();
+      return this.$store.getters['activeNamespaceCache'];
     },
 
     dev:            mapPref(DEV),
@@ -216,6 +216,19 @@ export default {
       }
 
       return { name: `c-cluster-${ product?.name }-support` };
+    },
+
+    unmatchedRoute() {
+      return !this.$route?.matched?.length;
+    },
+
+    // TODO: RC
+    /**
+     * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
+     * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
+     */
+    clusterAndRouteReady() {
+      return this.clusterReady && this.clusterId === this.$route?.params?.cluster;
     },
 
   },
@@ -373,7 +386,9 @@ export default {
 
       // TODO fix for harvester?
       if ( !this.$store.getters['isAllNamespaces'] ) {
-        namespaces = Object.keys(this.namespaces);
+        const namespacesObject = this.$store.getters['namespaces']();
+
+        namespaces = Object.keys(namespacesObject);
       }
 
       // Always show cluster-level types, regardless of the namespace filter
@@ -583,8 +598,8 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
-    <AwsComplianceBanner />
-    <AzureWarning />
+    <AwsComplianceBanner v-if="managementReady" />
+    <AzureWarning v-if="managementReady" />
     <div v-if="managementReady" class="dashboard-content">
       <Header />
       <nav v-if="clusterReady && !clusterChanging" class="side-nav">
@@ -668,13 +683,13 @@ export default {
         <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
         <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
       </main>
+      <!-- Ensure there's an outlet to show the error (404) page -->
+      <main v-else-if="unmatchedRoute">
+        <nuxt class="outlet" />
+      </main>
       <div class="wm">
         <WindowManager />
       </div>
-      <main v-if="!clusterId && !clusterChanging">
-        <!-- Always ensure there's an outlet to cover 404 cases get directed to error page -->
-        <nuxt class="outlet" />
-      </main>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />

@@ -37,9 +37,11 @@
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
 //   ifHaveVerb,              -- In combination with ifHaveTYpe, show it only if the type also has this collectionMethod
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
+//   inExplorer,              -- Determines if the product is to be scoped to the explorer
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 //   category,                -- Group to show the product in for the nav hamburger menu
 //   typeStoreMap,            -- An object mapping types to the store that should be used to retrieve information about the type
+//   hideSystemResources      -- Hide resources in namespaces where namespace.isSystem === true, or a namespace managed by fleet (per its annotation) and hide those namespaces from ns/project list and nsfilter (default false)
 // })
 //
 // externalLink(stringOrFn)  The product has an external page (function gets context object
@@ -166,7 +168,6 @@ export const IF_HAVE = {
   NO_PROJECT:               'no-project',
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
-  HARVESTER_SINGLE_CLUSTER: 'harv-multi-cluster',
   NEUVECTOR_NAMESPACE:      'neuvector-namespace',
 };
 
@@ -179,6 +180,7 @@ export function DSL(store, product, module = 'type-map') {
         name:                product,
         weight:              1,
         inStore:             'cluster',
+        inExplorer:          false,
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
@@ -1736,9 +1738,6 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.MULTI_CLUSTER: {
     return getters.isMultiCluster;
-  }
-  case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
-    return getters.isSingleVirtualCluster;
   }
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
     return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);

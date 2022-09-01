@@ -26,9 +26,9 @@ module.exports = {
   snapshotSerializers: ['<rootDir>/node_modules/jest-serializer-vue'],
   collectCoverage:     false,
   collectCoverageFrom: [
-    '<rootDir>/components/**/*.vue',
-    // '<rootDir>/pages/*.vue',
-    '!<rootDir>/components/RancherProviderIcon.vue',
+    '<rootDir>/shell/**/*.{vue,ts,js}',
+    '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
+    // '!<rootDir>/components/RancherProviderIcon.vue',
   ],
   modulePathIgnorePatterns: ['<rootDir>/cypress/'],
   coverageDirectory:        '<rootDir>/coverage',

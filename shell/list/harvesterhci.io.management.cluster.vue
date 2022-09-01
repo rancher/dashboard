@@ -42,6 +42,7 @@ export default {
 
     return {
       VIRTUAL,
+      hciDashboard: HCI.DASHBOARD,
       resource,
       hResource:    HCI.CLUSTER,
       realSchema:   this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
@@ -95,60 +96,59 @@ export default {
         <TypeDescription :resource="hResource" />
       </template>
 
-      <template v-if="canCreateCluster" slot="extraActions">
-        <n-link
-          :to="importLocation"
-          class="btn role-primary"
-        >
-          {{ t('cluster.importAction') }}
-        </n-link>
-      </template>
-    </Masthead>
+        <template v-if="canCreateCluster" slot="extraActions">
+          <n-link
+            :to="importLocation"
+            class="btn role-primary"
+          >
+            {{ t('cluster.importAction') }}
+          </n-link>
+        </template>
+      </Masthead>
 
-    <ResourceTable
-      v-if="rows && rows.length"
-      :schema="schema"
-      :rows="rows"
-      :table-actions="false"
-      :row-actions="false"
-      :is-creatable="true"
-      :namespaced="false"
-    >
-      <template #col:name="{row}">
-        <td>
-          <span>
-            <a v-if="row.isReady" class="link" @click="row.goToCluster()">{{ row.nameDisplay }}</a>
-            <span v-else>
-              {{ row.nameDisplay }}
+      <ResourceTable
+        v-if="rows && rows.length"
+        :schema="schema"
+        :rows="rows"
+        :is-creatable="true"
+        :namespaced="false"
+      >
+        <template #col:name="{row}">
+          <td>
+            <span>
+              <a v-if="row.isReady" class="link" @click="row.goToCluster()">{{ row.nameDisplay }}</a>
+              <span v-else>
+                {{ row.nameDisplay }}
+              </span>
             </span>
-          </span>
-        </td>
-      </template>
+          </td>
+        </template>
 
-      <template #cell:harvester="{row}">
-        <n-link
-          class="btn btn-sm role-primary"
-          :to="row.detailLocation"
-        >
-          {{ t('harvester.virtualizationManagement.manage') }}
-        </n-link>
-      </template>
-    </ResourceTable>
-    <div v-else>
-      <div class="no-clusters">
-        {{ t('harvester.manager.cluster.none') }}
+        <template #cell:harvester="{row}">
+          <n-link
+            class="btn btn-sm role-primary"
+            :to="row.detailLocation"
+          >
+            {{ t('harvester.virtualizationManagement.manage') }}
+          </n-link>
+        </template>
+      </ResourceTable>
+      <div v-else>
+        <div class="no-clusters">
+          {{ t('harvester.manager.cluster.none') }}
+        </div>
+        <hr class="info-section" />
+        <div class="logo">
+          <BrandImage file-name="harvester.png" height="64" />
+        </div>
+        <div class="tagline">
+          <div>{{ t('harvester.manager.cluster.description') }}</div>
+        </div>
+        <div class="tagline sub-tagline">
+          <div v-html="t('harvester.manager.cluster.learnMore', {}, true)"></div>
+        </div>
       </div>
-      <hr class="info-section" />
-      <div class="logo">
-        <BrandImage file-name="harvester.png" height="64" />
-      </div>
-      <div class="tagline">
-        <div>{{ t('harvester.manager.cluster.description') }}</div>
-      </div>
-      <div class="tagline sub-tagline">
-        <div v-html="t('harvester.manager.cluster.learnMore', {}, true)"></div>
-      </div>
-    </div>
+    </template>
   </div>
 </template>
 

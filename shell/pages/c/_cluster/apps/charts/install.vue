@@ -740,12 +740,6 @@ export default {
 
     window.scrollTop = 0;
 
-    // For easy access debugging...
-    if ( typeof window !== 'undefined' ) {
-      window.v = this.value;
-      window.c = this;
-    }
-
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
   },
 
@@ -1593,6 +1587,7 @@ export default {
       border: $padding solid white;
       border-radius: calc( 3 * var(--border-radius));
       position: relative;
+      margin-bottom: 15px
     }
 
     .logo {

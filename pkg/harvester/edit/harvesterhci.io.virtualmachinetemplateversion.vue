@@ -6,8 +6,9 @@ import { Checkbox } from '@components/Form/Checkbox';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import UnitInput from '@shell/components/form/UnitInput';
+import NodeScheduling from '@shell/components/form/NodeScheduling';
 
+import Reserved from './kubevirt.io.virtualmachine/VirtualMachineReserved';
 import Volume from './kubevirt.io.virtualmachine/VirtualMachineVolume';
 import Network from './kubevirt.io.virtualmachine/VirtualMachineNetwork';
 import CpuMemory from './kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
@@ -16,7 +17,7 @@ import SSHKey from './kubevirt.io.virtualmachine/VirtualMachineSSHKey';
 
 import { HCI } from '@shell/config/types';
 import { randomStr } from '@shell/utils/string';
-import { RunStrategys } from '@shell/config/harvester-map';
+import { RunStrategys } from '../config/harvester-map';
 import { _CONFIG, _EDIT, _VIEW } from '@shell/config/query-params';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 
@@ -38,8 +39,9 @@ export default {
     CruResource,
     CloudConfig,
     LabeledSelect,
-    UnitInput,
-    NameNsDescription
+    NameNsDescription,
+    NodeScheduling,
+    Reserved,
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -243,7 +245,19 @@ export default {
         <Network v-model="networkRows" :mode="mode" />
       </Tab>
 
-      <Tab name="advanced" :label="t('harvester.tab.advanced')" :weight="-3">
+      <Tab
+        name="nodeScheduling"
+        :label="t('workload.container.titles.nodeScheduling')"
+        :weight="-89"
+      >
+        <NodeScheduling
+          :mode="mode"
+          :value="spec.template.spec"
+          :nodes="nodesIdOptions"
+        />
+      </Tab>
+
+      <Tab name="advanced" :label="t('harvester.tab.advanced')" :weight="-99">
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledSelect
@@ -269,18 +283,12 @@ export default {
           <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
         </div>
 
-        <div v-if="showAdvanced" class="row mb-20">
-          <div class="col span-6">
-            <UnitInput
-              v-model="reservedMemory"
-              v-int-number
-              :label="t('harvester.virtualMachine.input.reservedMemory')"
-              :mode="mode"
-              :input-exponent="2"
-              :increment="1024"
-              :output-modifier="true"
-            />
-          </div>
+        <div v-if="showAdvanced" class="mb-20">
+          <Reserved
+            :reserved-memory="reservedMemory"
+            :mode="mode"
+            @updateReserved="updateReserved"
+          />
         </div>
 
         <CloudConfig

@@ -2,6 +2,31 @@
 title: What's New in 2.6
 ---
 
+
+## New in 2.6.7
+
+### Amazon Billing in the Marketplace
+
+- You can now purchase support for Rancher directly through the AWS Marketplace: https://rancher.com/docs/rancher/v2.6/en/installation/cloud-marketplace/aws/
+
+### Ability to configure Azure AD with MSAL
+
+- Microsoft has deprecated the Azure AD Graph API that Rancher had been using for authentication via Azure AD. A configuration update is necessary to make sure users can still use Rancher with Azure AD. For more details, see: https://rancher.com/docs/rancher/v2.6/en/admin-settings/authentication/azure-ad/#migrating-from-azure-ad-graph-api-to-microsoft-graph-api
+
+### Kubernetes 1.24
+
+- Kubernetes 1.24 is now a supported Kubernetes version for running Rancher as well as for provisioned and imported RKE1/RKE2/k3s clusters.
+
+### RKE2 Encryption Key Rotation
+
+- RKE2 encrypts secret data at rest by default. You can now rotate the key used for this encryption for Rancher-provisioned RKE2 clusters with supported k8s versions.
+
+
+## New in 2.6.6
+
+- 2.6.6 was released to account for a major performance issue. The issue occurred when Rancher was attempting to control large volumes of traffic from downstream clusters. This mechanism was not handling disconnects properly and would result in indefinite locks but this is now fixed in this version.
+
+
 ## New in 2.6.5
 
 ### NeuVector Integration

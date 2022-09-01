@@ -5,7 +5,8 @@ import {
   VIRTUAL_TYPES,
   MANAGEMENT,
   PVC,
-  NETWORK_ATTACHMENT
+  NETWORK_ATTACHMENT,
+  HCI
 } from '@shell/config/types';
 import { HCI, PRODUCT_NAME } from '../types.ts';
 import {
@@ -26,6 +27,9 @@ import { IF_HAVE } from '@shell/store/type-map';
 
 const TEMPLATE = HCI.VM_VERSION;
 
+// TODO: RC
+export const PRODUCT_NAME = 'harvester';
+
 export function init($plugin, store) {
   const {
     product,
@@ -35,42 +39,49 @@ export function init($plugin, store) {
     virtualType
   } = $plugin.DSL(store, PRODUCT_NAME);
 
-  const isSingleVirtualCluster = process.env.rancherEnv === 'harvester';
+  const isSingleVirtualCluster = process.env.rancherEnv === PRODUCT_NAME;
 
   if (isSingleVirtualCluster) {
+    const home = {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: {
+        product:  PRODUCT_NAME,
+        resource: HCI.DASHBOARD
+      }
+    };
+
     store.dispatch('setIsSingleProduct', {
       logo:           require(`@shell/assets/images/providers/harvester.svg`),
       productNameKey: 'product.harvester',
-      version:        store.getters['harvester/byId'](HCI.SETTING, 'server-version')
+      version:        store.getters[`${ PRODUCT_NAME }/byId`](HCI.SETTING, 'server-version')
         ?.value,
-      afterLoginRoute: {
-        name:   `${ PRODUCT_NAME }-c-cluster`,
-        params: { product: PRODUCT_NAME }
-      },
-      logoRoute: {
-        name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-        params: {
-          product:  PRODUCT_NAME,
-          resource: HCI.DASHBOARD
-        }
-      }
+      afterLoginRoute: home,
+      logoRoute:       home
     });
   }
 
   product({
-    inStore:             'harvester',
+    inStore:             PRODUCT_NAME,
     removable:           false,
     showNamespaceFilter: true,
     hideKubeShell:       true,
     hideKubeConfig:      true,
     showClusterSwitcher: true,
     hideCopyConfig:      true,
+    hideSystemResources: true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
       [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: 'management'
     },
-    supportRoute: { name: `${ PRODUCT_NAME }-c-cluster-support` }
+    supportRoute: { name: `${ PRODUCT_NAME }-c-cluster-support` },
+    to:           {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: {
+        product:  PRODUCT_NAME,
+        resource: HCI.DASHBOARD
+      }
+    }
   });
 
   basicType([HCI.DASHBOARD]);
@@ -125,7 +136,7 @@ export function init($plugin, store) {
     namespaced: false,
     name:       VIRTUAL_TYPES.CLUSTER_MEMBERS,
     weight:     100,
-    route:      { name: 'harvester-c-cluster-members' },
+    route:      { name: `${ PRODUCT_NAME }-c-cluster-members` },
     exact:      true,
     ifHaveType: {
       type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
@@ -206,20 +217,21 @@ export function init($plugin, store) {
   });
 
   // singleVirtualCluster
-  headers(NAMESPACE, [STATE, NAME_UNLINKED, AGE]);
-  basicType([NAMESPACE]);
-  virtualType({
-    ifHave:     IF_HAVE.HARVESTER_SINGLE_CLUSTER,
-    labelKey:   'harvester.namespace.label',
-    name:       NAMESPACE,
-    namespaced: true,
-    weight:     89,
-    route:      {
-      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-      params: { resource: NAMESPACE }
-    },
-    exact: false
-  });
+  if (isSingleVirtualCluster) {
+    headers(NAMESPACE, [STATE, NAME_UNLINKED, AGE]);
+    basicType([NAMESPACE]);
+    virtualType({
+      labelKey:   'harvester.namespace.label',
+      name:       NAMESPACE,
+      namespaced: true,
+      weight:     89,
+      route:      {
+        name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+        params: { resource: NAMESPACE }
+      },
+      exact: false
+    });
+  }
 
   basicType(
     [

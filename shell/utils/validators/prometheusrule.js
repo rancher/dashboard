@@ -9,7 +9,7 @@ export function ruleGroups(spec, getters, errors, validatorArgs) {
   return errors;
 }
 
-export function groupsAreValid(groups, getters, errors, validatorArgs) {
+export function groupsAreValid(groups = [], getters, errors, validatorArgs) {
   groups.forEach((group, groupIndex) => {
     const readableGroupIndex = groupIndex + 1; // oh that ol zero based array index....
 

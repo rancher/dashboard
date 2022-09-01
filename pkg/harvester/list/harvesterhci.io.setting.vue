@@ -5,18 +5,18 @@ import Loading from '@shell/components/Loading';
 import { DEV } from '@shell/store/prefs';
 import { HCI, MANAGEMENT } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
-import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '@shell/config/settings';
+import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '../config/settings';
 
 export default {
   components: { Banner, Loading },
 
   async fetch() {
     const isDev = this.$store.getters['prefs/get'](DEV);
-    const isSingleVirtualCluster = this.$store.getters['isSingleVirtualCluster'];
+    const isSingleProduct = !!this.$store.getters['isSingleProduct'];
 
     const hash = { harvesterSettings: this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }) };
 
-    if (isSingleVirtualCluster) {
+    if (isSingleProduct) {
       hash.settings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
     }
 
@@ -44,7 +44,7 @@ export default {
 
     allRows.push(...rows.harvesterSettings);
 
-    if (isSingleVirtualCluster) {
+    if (isSingleProduct) {
       allRows = [...rows.settings, ...allRows];
     }
 
@@ -58,7 +58,7 @@ export default {
     const initSettings = [];
     let SETTINGS = HCI_ALLOWED_SETTINGS;
 
-    if (isSingleVirtualCluster) {
+    if (isSingleProduct) {
       SETTINGS = {
         ...HCI_ALLOWED_SETTINGS,
         ...HCI_SINGLE_CLUSTER_ALLOWED_SETTING,

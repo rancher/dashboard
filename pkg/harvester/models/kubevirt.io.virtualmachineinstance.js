@@ -1,7 +1,7 @@
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { HCI, NODE } from '@shell/config/types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from './harvester';
 
 const PAUSED = 'Paused';
 const PAUSED_VM_MODAL_MESSAGE = 'This VM has been paused. If you wish to unpause it, please click the Unpause button below. For further details, please check with your system administrator.';
@@ -15,7 +15,7 @@ const VMIPhase = {
   Unknown:    'Unknown',
 };
 
-export default class VirtVmInstance extends SteveModel {
+export default class VirtVmInstance extends HarvesterResource {
   get _availableActions() {
     const out = super._availableActions;
 
@@ -106,13 +106,13 @@ export default class VirtVmInstance extends SteveModel {
   get isTerminated() {
     const conditions = this?.status?.conditions || [];
 
-    return conditions.filter(cond => cond.type === 'Ready')?.status === 'False';
+    return conditions.find(cond => cond.type === 'Ready')?.status === 'False';
   }
 
   get getVMIApiPath() {
     const clusterId = this.$rootGetters['clusterId'];
 
-    if (this.$rootGetters['isMultiVirtualCluster']) {
+    if (this.$rootGetters['isMultiCluster']) {
       const prefix = `/k8s/clusters/${ clusterId }`;
 
       return `${ prefix }/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/vnc`;
@@ -131,7 +131,7 @@ export default class VirtVmInstance extends SteveModel {
   get getSerialConsolePath() {
     const clusterId = this.$rootGetters['clusterId'];
 
-    if (this.$rootGetters['isMultiVirtualCluster']) {
+    if (this.$rootGetters['isMultiCluster']) {
       const prefix = `/k8s/clusters/${ clusterId }`;
 
       return `${ prefix }/apis/subresources.kubevirt.io/v1/namespaces/${ this.metadata.namespace }/virtualmachineinstances/${ this.name }/console`;

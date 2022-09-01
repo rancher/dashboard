@@ -7,7 +7,7 @@ import { parseSi } from '@shell/utils/units';
 import { get } from '@shell/utils/object';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { _CLONE } from '@shell/config/query-params';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from './harvester';
 
 export const OFF = 'Off';
 
@@ -77,7 +77,7 @@ const VMIPhase = {
 
 const IgnoreMessages = ['pod has unbound immediate PersistentVolumeClaims'];
 
-export default class VirtVm extends SteveModel {
+export default class VirtVm extends HarvesterResource {
   get availableActions() {
     const out = super._availableActions;
 
@@ -524,12 +524,7 @@ export default class VirtVm extends SteveModel {
   }
 
   get isBeingStopped() {
-    if (
-      this &&
-      !this.isVMExpectedRunning &&
-      this.isVMCreated &&
-      this.vmi?.isTerminated
-    ) {
+    if (this && !this.isVMExpectedRunning && this.isVMCreated && this.vmi?.status?.phase !== VMIPhase.Succeeded) {
       return { status: STOPPING };
     }
 

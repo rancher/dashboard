@@ -7,7 +7,7 @@ import InputOrDisplay from '@shell/components/InputOrDisplay';
 import { sortBy } from '@shell/utils/sort';
 import { HCI, PVC } from '@shell/config/types';
 import { _CREATE } from '@shell/config/query-params';
-import { VOLUME_TYPE, InterfaceOption } from '@shell/config/harvester-map';
+import { VOLUME_TYPE, InterfaceOption } from '../../../../config/harvester-map';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 export default {

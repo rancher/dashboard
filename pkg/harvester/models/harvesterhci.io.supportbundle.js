@@ -1,6 +1,6 @@
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from './harvester';
 
-export default class HciSupportBundle extends SteveModel {
+export default class HciSupportBundle extends HarvesterResource {
   get bundleState() {
     const state = this?.status?.state;
 

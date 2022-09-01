@@ -1,6 +1,6 @@
 <script>
 import { HCI } from '@shell/config/types';
-import SerialConsole from '@shell/components/form/SerialConsole';
+import SerialConsole from '../../../../../components/SerialConsole';
 import Loading from '@shell/components/Loading';
 
 export default {

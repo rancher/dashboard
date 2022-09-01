@@ -4,31 +4,37 @@ import getters from './getters';
 import mutations from './mutations';
 import actions from './actions';
 
-import { PRODUCT_NAME } from '../../types';
+import { PRODUCT_NAME } from '../../config/harvester';
+
+import { SteveFactory, steveStoreInit } from '../../../../shell/plugins/steve/index';
 
 const harvesterFactory = (): CoreStoreSpecifics => {
-  return {
-    state() {
-      return { };
-    },
+  const steveFactory = SteveFactory();
 
-    getters: { ...getters },
-
-    mutations: { ...mutations },
-
-    actions: { ...actions },
+  steveFactory.getters = {
+    ...steveFactory.getters,
+    ...getters,
   };
+
+  steveFactory.mutations = {
+    ...steveFactory.mutations,
+    ...mutations,
+  };
+
+  steveFactory.actions = {
+    ...steveFactory.actions,
+    ...actions,
+  };
+
+  return steveFactory;
 };
 const config: CoreStoreConfig = {
   namespace:      PRODUCT_NAME,
   isClusterStore: true
 };
 
-/**
- * `epinio` store is like a `cluster` store...
- * .. it contains epinio instance specific resources that should be setup/reset when navigating to/away from an epinio instances
- */
 export default {
   specifics: harvesterFactory(),
-  config
+  config,
+  init:      steveStoreInit
 };

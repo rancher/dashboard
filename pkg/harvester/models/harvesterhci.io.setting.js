@@ -1,9 +1,10 @@
 import { findBy } from '@shell/utils/array';
 import { HCI } from '@shell/config/types';
-import SteveModel from '@shell/plugins/steve/steve-class';
-import { HCI_ALLOWED_SETTINGS, HCI_SETTING } from '@shell/config/settings';
+import { HCI_ALLOWED_SETTINGS, HCI_SETTING } from '../config/settings';
+import HarvesterResource from './harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-export default class HciSetting extends SteveModel {
+export default class HciSetting extends HarvesterResource {
   get _availableActions() {
     const toFilter = ['cloneYaml', 'download', 'goToEditYaml', 'goToViewYaml', 'goToViewConfig', 'promptRemove'];
     const settingMetadata = HCI_ALLOWED_SETTINGS[this.id];
@@ -48,7 +49,7 @@ export default class HciSetting extends SteveModel {
     const router = this.currentRouter();
 
     router.push({
-      name:   'harvester-c-cluster-airgapupgrade',
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-airgapupgrade`,
       params: { cluster: this.$rootGetters['currentCluster'].id, product: 'harvester' },
     });
   }

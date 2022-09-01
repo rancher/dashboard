@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Parse from 'url-parse';
 import { HCI } from '@shell/config/types';
-import { PRODUCT_NAME } from '../types';
+import { PRODUCT_NAME } from '../config/harvester';
 
 const state = function() {
   return {
@@ -106,7 +106,7 @@ const actions = {
 
           dispatch(
             'growl/fromError',
-            { title: t('harvester.notification.title.error'), err },
+            { title: t('generic.notification.title.error'), err },
             { root: true }
           );
           clearInterval(timer);
@@ -124,7 +124,7 @@ const actions = {
           commit('setBundlePercentage', 0);
         }, 600);
 
-        if (rootGetters['isMultiVirtualCluster']) {
+        if (rootGetters['isMultiCluster']) {
           const clusterId = rootGetters['clusterId'];
           const prefix = `/k8s/clusters/${ clusterId }`;
 

@@ -1,9 +1,9 @@
 import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { HCI } from '@shell/config/types';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from './harvester';
 
-export default class HciNodeNetwork extends SteveModel {
+export default class HciNodeNetwork extends HarvesterResource {
   get message() {
     const conditions = get(this, 'status.conditions');
 

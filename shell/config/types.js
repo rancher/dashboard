@@ -46,6 +46,7 @@ export const EVENT = 'event';
 export const ENDPOINTS = 'endpoints';
 export const HPA = 'autoscaling.horizontalpodautoscaler';
 export const INGRESS = 'networking.k8s.io.ingress';
+export const INGRESS_CLASS = 'networking.k8s.io.ingressclass';
 export const NAMESPACE = 'namespace';
 export const NODE = 'node';
 export const NETWORK_POLICY = 'networking.k8s.io.networkpolicy';
@@ -168,7 +169,9 @@ export const MANAGEMENT = {
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
   MANAGED_CHART:                 'management.cattle.io.managedchart',
   USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
-  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider'
+  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
+  RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
+  RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
 };
 
 export const CAPI = {
@@ -298,3 +301,10 @@ export const ADDRESSES = {
 };
 
 export const DEFAULT_WORKSPACE = 'fleet-default';
+
+export const AUTH_TYPE = {
+  _NONE:  '_none',
+  _BASIC: '_basic',
+  _SSH:   '_ssh',
+  _S3:    '_S3'
+};

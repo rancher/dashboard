@@ -4,11 +4,6 @@ import { DEFAULT_WORKSPACE, SERVICE } from '@shell/config/types';
 import { HARVESTER_NAME, HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 
 export default class HciCluster extends ProvCluster {
-  get _availableActions() {
-    // No actions for Harvester clusters
-    return [];
-  }
-
   get stateObj() {
     return this._stateObj;
   }

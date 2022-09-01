@@ -47,11 +47,11 @@ export default class CRTB extends HybridModel {
   }
 
   get roleDisplay() {
-    return this.roleTemplate.nameDisplay;
+    return this.roleTemplate?.nameDisplay;
   }
 
   get roleDescription() {
-    return this.roleTemplate.description;
+    return this.roleTemplate?.description;
   }
 
   get roleTemplate() {
@@ -89,6 +89,7 @@ export default class CRTB extends HybridModel {
    * TODO move this logic + projects/namespaces to component level
    */
   get listLocation() {
+    // Harvester uses these resource directly... but has different routes
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER_NAME) {
       return { name: `${ HARVESTER_NAME }-c-cluster-members` };
     }

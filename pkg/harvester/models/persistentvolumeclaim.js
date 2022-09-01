@@ -8,10 +8,12 @@ import {
 } from '@shell/config/labels-annotations';
 import { findBy } from '@shell/utils/array';
 import { get, clone } from '@shell/utils/object';
-import SteveModel from '@shell/plugins/steve/steve-class';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import HarvesterResource from './harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-export default class HciPv extends SteveModel {
+// FIXME: Harvester Request for team to validate navigation (list, create, etc) for this resource type
+export default class HciPv extends HarvesterResource {
   applyDefaults(_, realMode) {
     const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
     const storage =
@@ -121,7 +123,7 @@ export default class HciPv extends SteveModel {
     delete detailLocation.params.namespace;
     delete detailLocation.params.id;
     detailLocation.params.resource = HCI.VOLUME;
-    detailLocation.name = 'c-cluster-product-resource';
+    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource`;
 
     return detailLocation;
   }

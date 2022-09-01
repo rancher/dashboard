@@ -58,11 +58,16 @@ export default {
 
 </script>
 <template>
-  <span>
+  <span class="cluster-link">
     <n-link v-if="to" :to="to">
       {{ value }}
     </n-link>
     <span v-else>{{ value }}</span>
+    <i
+      v-if="row.rkeTemplateUpgrade"
+      v-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
+      class="template-upgrade-icon icon-alert icon"
+    />
     <i
       v-if="clusterHasIssues"
       v-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
@@ -72,9 +77,13 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .cluster-link {
+    display: flex;
+    align-items: center;
+  }
   .conditions-alert-icon {
     color: var(--error);
-    padding-left: 2px;
+    margin-left: 4px;
   }
   ::v-deep {
     .labeled-tooltip, .status-icon {
@@ -88,5 +97,13 @@ export default {
   }
   .mytooltip ul {
     outline: 1px dashed red;
+  }
+  .template-upgrade-icon {
+    border: 1px solid var(--warning);
+    border-radius: 50%;
+    color: var(--warning);
+    margin-left: 4px;
+    font-size: 14px;
+    padding: 2px;
   }
 </style>

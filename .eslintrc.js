@@ -181,5 +181,9 @@ module.exports = {
       rules:   { 'jest/prefer-expect-assertions': 'off' },
       extends: ['plugin:jest/all']
     },
+    {
+      files:   ['docusaurus/**/*.{js,ts}'],
+      rules:   { 'no-use-before-define': 'off' },
+    },
   ]
 };

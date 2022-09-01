@@ -1,8 +1,9 @@
 import { HCI } from '@shell/config/types';
 import { MODE, _CREATE } from '@shell/config/query-params';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import HarvesterResource from './harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-export default class HciVmTemplate extends SteveModel {
+export default class HciVmTemplate extends HarvesterResource {
   get availableActions() {
     const toFilter = ['goToEdit', 'cloneYaml', 'goToClone', 'goToEditYaml', 'download'];
 
@@ -44,7 +45,7 @@ export default class HciVmTemplate extends SteveModel {
     const router = this.currentRouter();
 
     router.push({
-      name:   `c-cluster-product-resource-create`,
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
       params: { resource: HCI.VM },
       query:  { templateId: this.id, versionId: this.spec.defaultVersionId }
     });
@@ -54,7 +55,7 @@ export default class HciVmTemplate extends SteveModel {
     const router = this.currentRouter();
 
     router.push({
-      name:   `c-cluster-product-resource-create`,
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
       params: { resource: HCI.VM_VERSION },
       query:  {
         [MODE]:     _CREATE,

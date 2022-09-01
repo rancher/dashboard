@@ -6,7 +6,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import InputOrDisplay from '@shell/components/InputOrDisplay';
 import { HCI, PVC } from '@shell/config/types';
 import { formatSi, parseSi } from '@shell/utils/units';
-import { VOLUME_TYPE, InterfaceOption } from '@shell/config/harvester-map';
+import { VOLUME_TYPE, InterfaceOption } from '../../../../config/harvester-map';
 
 export default {
   name: 'HarvesterEditVMImage',
@@ -73,7 +73,7 @@ export default {
 
   computed: {
     imagesOption() {
-      return this.images.filter(c => c.isReady).map( (I) => {
+      return this.images.filter(c => c.isReady).sort((a, b) => a.creationTimestamp > b.creationTimestamp ? -1 : 1).map( (I) => {
         return {
           label: `${ I.metadata.namespace }/${ I.spec.displayName }`,
           value: I.id
@@ -229,6 +229,7 @@ export default {
             :label="t('harvester.fields.image')"
             :options="imagesOption"
             :mode="mode"
+            :searchable="true"
             :required="validateRequired"
             @input="onImageChange"
           />

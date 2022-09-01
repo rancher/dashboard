@@ -1,0 +1,100 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+
+import RadioButton from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton';
+import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioGroup';
+
+export const Template = (args, { argTypes }) => ({
+  components: { RadioButton },
+  props:      Object.keys(argTypes),
+  template:   '<RadioButton v-bind="$props" />',
+})
+
+export const Template2 = (args, { argTypes }) => ({
+  components: { RadioGroup },
+  props:      Object.keys(argTypes),
+  template:   '<RadioGroup v-bind="$props" />',
+})
+
+<Meta title="Components/Form/RadioButton" />
+
+# Radio Button
+A radio button or option button is a graphical control element that allows the user to choose only one of a predefined set of mutually exclusive options.
+
+### Description
+
+- Always associate a label to every radio button for good accessibility. Do not include a colon at the end of the label.
+- Use radio buttons when users have to choose only one option among many.
+
+
+<Canvas columns={2}>
+  Default
+  <Story
+    name="Default"
+    args={{
+      label: 'Kubernetes',
+      val: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+  Selected
+  <Story
+    name="Selected"
+    args={{
+      label: 'Kubernetes',
+      val: true,
+      value: true
+    }}>
+    {Template.bind({})}
+  </Story>
+  Disabled
+  <Story
+    name="Disabled"
+    args={{
+      label: 'Kubernetes',
+      val: true,
+      disabled: true
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  code={`
+     import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioButton';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={RadioButton} />
+
+# Radio button group
+
+<Canvas>
+  <Story
+    name="RadioGroup"
+    args={{
+      name: 'RadioGroup',
+      label: 'Choose one of the following theme',
+      options: ["Custom", "Dark", "Light"],
+      row: false
+    }}>
+    {Template2.bind({})}
+  </Story>
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  code={`
+     import RadioGroup from '@/pkg/rancher-components/src/components/Form/Radio/RadioGroup';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={RadioGroup} />

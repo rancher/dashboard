@@ -12,8 +12,9 @@ import { PVC, HCI } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { randomStr } from '@shell/utils/string';
-import { SOURCE_TYPE } from '@shell/config/harvester-map';
+import { SOURCE_TYPE } from '../../../config/harvester-map';
 import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../../config/harvester';
 
 export default {
   components: {
@@ -122,7 +123,7 @@ export default {
         const rows = neu.map((V) => {
           if (!this.isCreate && V.source !== SOURCE_TYPE.CONTAINER && !V.newCreateId) {
             V.to = {
-              name:   'c-cluster-product-resource-namespace-id',
+              name:   `${ HARVESTER_PRODUCT }-c-cluster-product-resource-namespace-id`,
               params: {
                 product:   'harvester',
                 resource:  HCI.VOLUME,

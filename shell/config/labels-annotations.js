@@ -51,7 +51,9 @@ export const CAPI = {
   FORCE_MACHINE_REMOVE: 'provisioning.cattle.io/force-machine-remove',
   MACHINE_NAME:         'cluster.x-k8s.io/machine',
   DELETE_MACHINE:       'cluster.x-k8s.io/delete-machine',
-  PROVIDER:             'provider.cattle.io'
+  PROVIDER:             'provider.cattle.io',
+  SECRET_AUTH:          'v2prov-secret-authorized-for-cluster',
+  SECRET_WILL_DELETE:   'v2prov-authorized-secret-deletes-on-cluster-removal'
 };
 
 export const CATALOG = {
@@ -166,7 +168,8 @@ export const HCI = {
   DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
   VM_VOLUME_STATUS:             'harvesterhci.io/volume-status',
   IMAGE_SUFFIX:                 'harvesterhci.io/image-type',
-  OS_TYPE:                      'harvesterhci.io/os-type'
+  OS_TYPE:                      'harvesterhci.io/os-type',
+  HOST_REQUEST:                 'management.cattle.io/pod-requests',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge

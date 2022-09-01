@@ -9,26 +9,12 @@ import { get, clone } from '@shell/utils/object';
 import { formatSi } from '@shell/utils/units';
 import { ucFirst } from '@shell/utils/string';
 import { stateDisplay, colorForState } from '@shell/plugins/dashboard-store/resource-class';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import { _CLONE } from '@shell/config/query-params';
+import { isReady } from '@shell/machine-config/harvester';
+import HarvesterResource from './harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
-export function isReady() {
-  function getStatusConditionOfType(type, defaultValue = []) {
-    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
-
-    return conditions.find( cond => cond.type === type);
-  }
-
-  const initialized = getStatusConditionOfType.call(this, 'Initialized');
-  const imported = getStatusConditionOfType.call(this, 'Imported');
-  const isCompleted = this.status?.progress === 100;
-
-  if ([initialized?.status, imported?.status].includes('False')) {
-    return false;
-  } else {
-    return isCompleted && true;
-  }
-}
-export default class HciVmImage extends SteveModel {
+export default class HciVmImage extends HarvesterResource {
   get availableActions() {
     let out = super._availableActions;
     const toFilter = ['goToEditYaml'];
@@ -48,24 +34,32 @@ export default class HciVmImage extends SteveModel {
         enabled:    canCreateVM,
         icon:       'icon icon-fw icon-spinner',
         label:      this.t('harvester.action.createVM'),
-        disabled:   !this.isReady,
+        disabled:   !this.isReady, // FIXME: Harvester does this still work as expected?
       },
       ...out
     ];
   }
 
   applyDefaults(resources = this, realMode) {
-    Vue.set(this.metadata, 'labels', { [HCI_ANNOTATIONS.OS_TYPE]: '', [HCI_ANNOTATIONS.IMAGE_SUFFIX]: '' });
+    if (realMode !== _CLONE) {
+      Vue.set(this.metadata, 'labels', { [HCI_ANNOTATIONS.OS_TYPE]: '', [HCI_ANNOTATIONS.IMAGE_SUFFIX]: '' });
+    }
   }
 
   createFromImage() {
     const router = this.currentRouter();
 
     router.push({
-      name:   `c-cluster-product-resource-create`,
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
       params: { resource: HCI.VM },
       query:  { image: this.id }
     });
+  }
+
+  cleanForNew() {
+    this.$dispatch(`cleanForNew`, this);
+
+    delete this.spec.displayName;
   }
 
   get nameDisplay() {
@@ -238,13 +232,7 @@ export default class HciVmImage extends SteveModel {
         required:       true,
         minLength:      1,
         maxLength:      63,
-        translationKey: 'generic.name'
-      },
-      {
-        nullable:       false,
-        path:           'spec.displayName',
-        required:       true,
-        translationKey: 'generic.name'
+        translationKey: 'generic.name',
       },
       ...out
     ];

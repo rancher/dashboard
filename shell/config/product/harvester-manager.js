@@ -6,6 +6,7 @@ import { allHash } from '@shell/utils/promise';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { BLANK_CLUSTER } from '@shell/store';
 
+
 dynamicPluginLoader.register({
   load: async({ route, store }) => {
     // Check that we've either got here either
@@ -45,7 +46,7 @@ dynamicPluginLoader.register({
             // harvester instance that hasn't been updated to serve a plugin)
             console.error('Failed to load harvester package: ', typeof error === 'object' ? JSON.stringify(err) : err); // eslint-disable-line no-console
 
-            return harvesterClustersLocation;
+            return harvesterClustersLocation; // TODO: RC confirm still valid fall back
           }
         }
       }
