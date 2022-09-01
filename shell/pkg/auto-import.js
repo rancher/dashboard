@@ -29,6 +29,7 @@ function generateTypeImport(pkg, dir) {
   contextFolders.forEach((f) => {
     const filePath = path.join(dir, f);
 
+    // TODO: RC Neil - Review
     if (fs.existsSync(filePath)) {
       fs.readdirSync(path.join(dir, f)).forEach((file) => {
         const fileStat = fs.lstatSync(path.join(filePath, file));

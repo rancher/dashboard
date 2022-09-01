@@ -672,25 +672,30 @@ export default {
           {{ displayVersion }}
         </div>
       </nav>
+      <<<<<<< HEAD
       <main v-if="clusterReady && !clusterChanging">
-        <nuxt class="outlet" />
-        <ActionMenu />
-        <PromptRemove />
-        <PromptRestore />
-        <AssignTo />
-        <PromptModal />
-        <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
-        <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
-        <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
-        <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
+        =======
+        <main v-if="clusterAndRouteReady">
+          >>>>>>> upstream/master
+          <nuxt class="outlet" />
+          <ActionMenu />
+          <PromptRemove />
+          <PromptRestore />
+          <AssignTo />
+          <PromptModal />
+          <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
+          <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
+          <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
+          <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
+        </main>
+        <!-- Ensure there's an outlet to show the error (404) page -->
+        <main v-else-if="unmatchedRoute">
+          <nuxt class="outlet" />
+        </main>
+        <div class="wm">
+          <WindowManager />
+        </div>
       </main>
-      <!-- Ensure there's an outlet to show the error (404) page -->
-      <main v-else-if="unmatchedRoute">
-        <nuxt class="outlet" />
-      </main>
-      <div class="wm">
-        <WindowManager />
-      </div>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />

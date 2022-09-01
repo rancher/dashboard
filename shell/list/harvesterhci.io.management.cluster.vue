@@ -42,6 +42,7 @@ export default {
 
     return {
       VIRTUAL,
+      hciDashboard: HCI.DASHBOARD,
       resource,
       hResource:    HCI.CLUSTER,
       realSchema:   this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
@@ -147,8 +148,6 @@ export default {
         <div v-html="t('harvester.manager.cluster.learnMore', {}, true)"></div>
       </div>
     </div>
-  </div>
-</template>
   </div>
 </template>
 
