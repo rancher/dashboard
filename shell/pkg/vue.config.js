@@ -51,15 +51,16 @@ module.exports = function(dir) {
       const dynamicImporterOveride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
         resource.request = path.join(__dirname, 'dynamic-importer.lib.js');
       });
-      const modelLoaderImporterOveride = new webpack.NormalModuleReplacementPlugin(/model-loader$/, (resource) => {
-        resource.request = path.join(__dirname, 'model-loader.lib.js');
-      });
+      // TODO: RC this causes model lookups in pkg to return null
+      // const modelLoaderImporterOveride = new webpack.NormalModuleReplacementPlugin(/model-loader$/, (resource) => {
+      //   resource.request = path.join(__dirname, 'model-loader.lib.js');
+      // });
 
       // Auto-generate module to import the types (model, detail, edit etc)
       const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@rancher/auto-import': generateTypeImport('@pkg', dir) });
 
       config.plugins.unshift(dynamicImporterOveride);
-      config.plugins.unshift(modelLoaderImporterOveride);
+      // config.plugins.unshift(modelLoaderImporterOveride);
       config.plugins.unshift(autoImportPlugin);
       // config.plugins.unshift(debug);
 
