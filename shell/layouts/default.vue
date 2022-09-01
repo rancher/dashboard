@@ -22,7 +22,7 @@ import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
@@ -167,14 +167,26 @@ export default {
     },
 
     supportLink() {
-      const product = this.$store.getters['currentProduct'].name;
+      const product = this.$store.getters['currentProduct'];
 
-      return { name: `c-cluster-${ product }-support` };
+      if (product?.supportRoute) {
+        return { ...product.supportRoute, params: { ...product.supportRoute.params, cluster: this.clusterId } };
+      }
+
+      return { name: `c-cluster-${ product?.name }-support` };
     },
 
     unmatchedRoute() {
       return !this.$route?.matched?.length;
-    }
+    },
+
+    /**
+     * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
+     * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
+     */
+    clusterAndRouteReady() {
+      return this.clusterReady && this.clusterId === this.$route?.params?.cluster;
+    },
 
   },
 
@@ -315,7 +327,6 @@ export default {
       if ( this.gettingGroups ) {
         return;
       }
-
       this.gettingGroups = true;
 
       if ( !this.clusterReady ) {
@@ -370,6 +381,7 @@ export default {
 
         for ( const mode of modes ) {
           const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
+
           const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
 
           if ( productId === EXPLORER || !this.isExplorer ) {
@@ -615,7 +627,7 @@ export default {
           {{ displayVersion }}
         </div>
       </nav>
-      <main v-if="clusterReady">
+      <main v-if="clusterAndRouteReady">
         <nuxt class="outlet" />
         <ActionMenu />
         <PromptRemove />

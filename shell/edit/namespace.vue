@@ -15,7 +15,7 @@ import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 
 export default {
   components: {
@@ -34,9 +34,11 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
+      this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
-    this.project = this.projects.find(p => p.id.includes(this.projectName));
+      this.project = this.projects.find(p => p.id.includes(this.projectName));
+    }
   },
 
   data() {
@@ -62,8 +64,9 @@ export default {
 
   computed: {
     ...mapGetters(['isSingleProduct']),
-    isHarvester() {
-      return this.$store.getters['currentProduct'].inStore === HARVESTER;
+
+    isSingleHarvester() {
+      return this.$store.getters['currentProduct'].inStore === HARVESTER && this.isSingleProduct;
     },
 
     projectOpts() {
@@ -93,7 +96,11 @@ export default {
     },
 
     showResourceQuota() {
-      return Object.keys(this.project?.spec?.resourceQuota?.limit || {}).length > 0;
+      return !this.isSingleHarvester && Object.keys(this.project?.spec?.resourceQuota?.limit || {}).length > 0;
+    },
+
+    showContainerResourceLimit() {
+      return !this.isSingleHarvester;
     }
   },
 
@@ -160,13 +167,13 @@ export default {
       :namespaced="false"
       :mode="mode"
     >
-      <template v-if="!isSingleProduct" #project-col>
+      <template v-if="project" #project-col>
         <LabeledSelect v-model="projectName" :label="t('namespace.project.label')" :options="projectOpts" />
       </template>
     </NameNsDescription>
 
     <Tabbed :side-tabs="true">
-      <Tab v-if="!isSingleProduct && showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
+      <Tab v-if="showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
         <div class="row">
           <div class="col span-12">
             <p class="helper-text mb-10">
@@ -177,7 +184,7 @@ export default {
         </div>
         <ResourceQuota v-model="value" :mode="mode" :project="project" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
       </Tab>
-      <Tab v-if="!isSingleProduct" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
+      <Tab v-if="showContainerResourceLimit" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
         <ContainerResourceLimit
           :key="JSON.stringify(containerResourceLimits)"
           :value="containerResourceLimits"
@@ -200,6 +207,6 @@ export default {
         />
       </Tab>
     </Tabbed>
-    <MoveModal />
+    <MoveModal v-if="projects" />
   </CruResource>
 </template>

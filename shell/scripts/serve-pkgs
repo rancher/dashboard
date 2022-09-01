@@ -9,13 +9,14 @@ const dir = path.resolve('.');
 const pkgs = path.join(dir, 'dist-pkg');
 let port = 4500;
 
-var express = require('express')
-var serveStatic = require('serve-static');
- 
-var app = express()
+const express = require('express');
+const serveStatic = require('serve-static');
+
+const app = express();
 
 function catalog(res) {
   const response = [];
+
   fs.readdirSync(pkgs).forEach((f) => {
     const pkgFile = path.join(pkgs, f, 'package.json');
 
@@ -27,7 +28,7 @@ function catalog(res) {
     }
   });
 
-  res.json(response)
+  res.json(response);
 }
 
 app.use('/', (req, res, next) => {
@@ -37,7 +38,7 @@ app.use('/', (req, res, next) => {
 
   return next();
 });
- 
+
 app.use(serveStatic(pkgs));
 
 if (process.env.PORT) {
@@ -47,7 +48,7 @@ if (process.env.PORT) {
 const base = `http://127.0.0.1:${ port }`;
 
 console.log('');
-console.log(`Serving catalog on ${ base }`)
+console.log(`Serving catalog on ${ base }`);
 console.log('');
 console.log(`Serving packages:`);
 console.log('');
@@ -58,5 +59,5 @@ fs.readdirSync(pkgs).forEach((f) => {
     console.log(`  ${ f } available at: ${ base }/${ f }/${ main }`);
   }
 });
- 
-app.listen(port)
+
+app.listen(port);

@@ -5264,7 +5264,7 @@ workload:
     cannotViewIngresses: Could not list Ingresses due to lack of permission.
     cannotFindIngresses: Could not find any Ingresses that forward traffic to Services that select Pods in this workload.
     ingressListCaption: "The following Ingresses forward traffic to Services that select Pods from this workload:"
-    cannotViewIngressesBecauseCannotViewServices: Could not find relevant relevant Ingresses due to lack of permission to view Services.
+    cannotViewIngressesBecauseCannotViewServices: Could not find relevant Ingresses due to lack of permission to view Services.
     pods:
       title: Pods
   detailTop:
@@ -5595,12 +5595,6 @@ harvester:
       title: Add Volume
     hotunplug:
       success: 'Volume { name } is detach successfully.'
-  notification:
-    title:
-      succeed: Succeed
-      info: Info
-      warning: Warning
-      error: Error
   action:
     createVM: Create a Virtual Machine
     start: Start
