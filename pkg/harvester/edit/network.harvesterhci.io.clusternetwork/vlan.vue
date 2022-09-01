@@ -5,7 +5,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import Tip from '@shell/components/Tip';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
-import { HCI } from '../types';
+import { HCI } from '../../types';
 
 export default {
   name:       'EditHarvesterVlan',

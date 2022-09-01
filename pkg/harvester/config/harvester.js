@@ -7,7 +7,7 @@ import {
   PVC,
   NETWORK_ATTACHMENT,
 } from '@shell/config/types';
-import {  HCI } from '../types';
+import { HCI } from '../types';
 import {
   STATE,
   NAME_UNLINKED,

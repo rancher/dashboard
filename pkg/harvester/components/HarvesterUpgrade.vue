@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { HCI } from '../types'
+import { HCI } from '../types';
 import { allHash } from '@shell/utils/promise';
 import ModalWithCard from '@shell/components/ModalWithCard';
 import LabeledSelect from '@shell/components/form/LabeledSelect';

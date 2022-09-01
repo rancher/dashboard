@@ -7,7 +7,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
 import { get } from '@shell/utils/object';
-import { HCI } from '../types'
+import { HCI } from '../types';
 import { sortBy } from '@shell/utils/sort';
 import { saferDump } from '@shell/utils/create-yaml';
 import { InterfaceOption } from '../config/harvester-map';

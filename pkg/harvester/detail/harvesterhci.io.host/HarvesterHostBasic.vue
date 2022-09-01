@@ -4,7 +4,7 @@ import { Banner } from '@components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { LONGHORN, METRIC } from '@shell/config/types';
-import {  HCI } from '../../types'
+import { HCI } from '../../types';
 import HarvesterCPUUsed from '../../formatters/HarvesterCPUUsed';
 import HarvesterMemoryUsed from '../../formatters/HarvesterMemoryUsed';
 import HarvesterStorageUsed from '../../formatters/HarvesterStorageUsed';
