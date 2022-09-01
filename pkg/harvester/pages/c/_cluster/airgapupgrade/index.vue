@@ -5,7 +5,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UpgradeInfo from '../../../../components/UpgradeInfo';
 
-import { HCI } from '@shell/config/types';
+import { HCI } from '../../../../types';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../../../config/harvester';

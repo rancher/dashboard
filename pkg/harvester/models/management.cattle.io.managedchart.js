@@ -1,5 +1,5 @@
 import isEqual from 'lodash/isEqual';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import { clone } from '@shell/utils/object';
 import HarvesterResource from './harvester';
 

@@ -3,7 +3,7 @@ import HarvesterIpAddress from '../../../formatters/HarvesterIpAddress';
 import VMConsoleBar from '../../../components/VMConsoleBar';
 import LabelValue from '@shell/components/LabelValue';
 import InputOrDisplay from '@shell/components/InputOrDisplay';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../../../types'
 import CreateEditView from '@shell/mixins/create-edit-view';
 
 const UNDEFINED = 'n/a';

@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,

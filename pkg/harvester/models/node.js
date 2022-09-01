@@ -1,5 +1,6 @@
 import pickBy from 'lodash/pickBy';
-import { HCI, LONGHORN, POD, NODE } from '@shell/config/types';
+import { LONGHORN, POD, NODE } from '@shell/config/types';
+import { HCI } from '../types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { clone } from '@shell/utils/object';
 import findLast from 'lodash/findLast';

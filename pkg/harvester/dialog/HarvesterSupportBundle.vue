@@ -1,7 +1,7 @@
 <script>
 import { randomStr } from '@shell/utils/string';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types'
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import GraphCircle from '@shell/components/graph/Circle';

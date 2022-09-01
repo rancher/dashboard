@@ -3,7 +3,7 @@ import Loading from '@shell/components/Loading';
 import LiveData from '@shell/components/formatter/LiveDate';
 import ResourceTable from '@shell/components/ResourceTable';
 
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import { allHash } from '@shell/utils/promise';
 import { STATE, AGE, NAME, NAMESPACE } from '@shell/config/table-headers';
 

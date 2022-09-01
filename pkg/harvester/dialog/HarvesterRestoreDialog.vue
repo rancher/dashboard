@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 
 import { randomStr } from '@shell/utils/string';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types'
 import { allHash } from '@shell/utils/promise';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 

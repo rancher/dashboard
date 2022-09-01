@@ -1,6 +1,6 @@
 import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import HarvesterResource from './harvester';
 
 export default class HciNodeNetwork extends HarvesterResource {

@@ -8,7 +8,7 @@ import LabelValue from '@shell/components/LabelValue';
 import VM_MIXIN from '../../mixins/harvester-vm';
 import { allHash } from '@shell/utils/promise';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../../types'
 import CpuMemory from '../../edit/kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
 
 import OverviewKeypairs from '../kubevirt.io.virtualmachine/VirtualMachineTabs/VirtualMachineKeypairs';

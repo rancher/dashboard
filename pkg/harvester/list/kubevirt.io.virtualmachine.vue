@@ -5,7 +5,8 @@ import LinkDetail from '@shell/components/formatter/LinkDetail';
 import HarvesterVmState from '..//formatters/HarvesterVmState';
 
 import { STATE, AGE, NAME, NAMESPACE } from '@shell/config/table-headers';
-import { HCI, NODE, POD } from '@shell/config/types';
+import { NODE, POD } from '@shell/config/types';
+import { HCI } from '../types';
 
 import { allHash } from '@shell/utils/promise';
 import Loading from '@shell/components/Loading';

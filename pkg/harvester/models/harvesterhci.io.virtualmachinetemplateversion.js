@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import find from 'lodash/find';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import {
   AS, MODE, _VIEW, _CONFIG, _UNFLAG, _EDIT
 } from '@shell/config/query-params';

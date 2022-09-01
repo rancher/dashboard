@@ -3,7 +3,8 @@ import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 
 import { allHash } from '@shell/utils/promise';
-import { PVC, SCHEMA, HCI } from '@shell/config/types';
+import { PVC, SCHEMA } from '@shell/config/types';
+import { HCI } from '../types';
 import { STATE, AGE, NAME, NAMESPACE } from '@shell/config/table-headers';
 
 const schema = {

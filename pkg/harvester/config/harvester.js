@@ -6,8 +6,8 @@ import {
   MANAGEMENT,
   PVC,
   NETWORK_ATTACHMENT,
-  HCI,
 } from '@shell/config/types';
+import {  HCI } from '../types';
 import {
   STATE,
   NAME_UNLINKED,

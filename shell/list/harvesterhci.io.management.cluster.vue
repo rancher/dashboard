@@ -42,7 +42,6 @@ export default {
 
     return {
       VIRTUAL,
-      hciDashboard: HCI.DASHBOARD,
       resource,
       hResource:    HCI.CLUSTER,
       realSchema:   this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),

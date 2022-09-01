@@ -1,4 +1,4 @@
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import { MODE, _CREATE } from '@shell/config/query-params';
 import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';

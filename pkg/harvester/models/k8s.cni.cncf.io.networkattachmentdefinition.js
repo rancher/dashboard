@@ -1,5 +1,5 @@
 import { clone } from '@shell/utils/object';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import NetworkAttachmentDef from '@shell/models/k8s.cni.cncf.io.networkattachmentdefinition';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
