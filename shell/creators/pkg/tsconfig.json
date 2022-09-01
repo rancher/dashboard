@@ -20,8 +20,6 @@
     "types": [
       "node",
       "webpack-env",
-      "@types/node",
-      "@types/jest",
       "@nuxt/types",
       "rancher"
     ],

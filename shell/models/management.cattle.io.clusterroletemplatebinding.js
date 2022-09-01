@@ -85,9 +85,6 @@ export default class CRTB extends HybridModel {
     return { name, params };
   }
 
-  /**
-   * TODO move this logic + projects/namespaces to component level
-   */
   get listLocation() {
     // Harvester uses these resource directly... but has different routes
     if (this.$rootGetters['currentProduct'].inStore === HARVESTER_NAME) {
