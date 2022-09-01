@@ -67,6 +67,20 @@ for (const [key, value] of Object.entries(proxy)) {
 
 app.use(express.static(dist));
 
+// Catch reload on a dynamic page
+// Check that the requestor will accept html and send them the index file
+app.use('*', (req, res, next) => {
+  const accept = req.headers.accept || '';
+  const acceptArray = accept.split(',');
+  const html = acceptArray.find(h => h.trim() === 'text/html');
+
+  if (html) {
+    return res.sendFile(path.join(dist, 'index.html'));
+  }
+
+  next();
+});
+
 const server = https.createServer(options, app);
 const appServer = server.listen(PORT);
 
