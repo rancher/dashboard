@@ -69,6 +69,12 @@ fi
 export YARN_REGISTRY=http://localhost:4873
 export NEXT_TELEMETRY_DISABLED=1
 
+# We need to patch the version number of the shell, otherwise if we are running
+# with the currently published version, things will fail as those versions
+# are already published and Verdaccio will check, since it is a read-through cache
+sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"7.7.7\",/g" ${SHELL_DIR}/package.json
+rm ${SHELL_DIR}/package.json.bak
+
 # Publish shell
 echo "Publishing shell packages to local registry"
 ${SHELL_DIR}/scripts/publish-shell.sh
