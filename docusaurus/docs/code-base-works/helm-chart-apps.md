@@ -10,16 +10,16 @@ The Rancher UI injects the following global values
 into the Helm chart values of apps installed through Rancher.
 It adds them under `values.global.cattle.`
 
-| YAML Directive | Source |
-|------|-------|
-| `cattle.clusterId`    | The management cluster ID |
-| `cattle.clusterName`  | The management cluster name |
-| `systemDefaultRegistry` | The default registry, taken from the settings |
-| `cattle.url` | The Rancher server URL, taken from the settings |
-| `cattle.rkePathPrefix` | The prefix path defined in the management cluster at `spec.rancherKubernetesEngineConfig.prefixPath` |
+| YAML Directive                | Source                                                                                                          |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `cattle.clusterId`            | The management cluster ID                                                                                       |
+| `cattle.clusterName`          | The management cluster name                                                                                     |
+| `systemDefaultRegistry`       | The default registry, taken from the settings                                                                   |
+| `cattle.url`                  | The Rancher server URL, taken from the settings                                                                 |
+| `cattle.rkePathPrefix`        | The prefix path defined in the management cluster at `spec.rancherKubernetesEngineConfig.prefixPath`            |
 | `cattle.rkeWindowsPathPrefix` | The Windows prefix path defined in the management cluster at `spec.rancherKubernetesEngineConfig.winPrefixPath` |
-| `cattle.windows` | Included in global values if `workerOSs` on the management cluster contains Windows |
-| `cattle.systemProjectId` | Taken from the ID of the project named System |
+| `cattle.windows`              | Included in global values if `workerOSs` on the management cluster contains Windows                             |
+| `cattle.systemProjectId`      | Taken from the ID of the project named System                                                                   |
 
 If there are two charts associated with an app, such as `rancher-monitoring` and `rancher-monitoring-crd`, Rancher injects the global values into the values of both charts.
 

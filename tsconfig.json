@@ -12,6 +12,7 @@
     "shell/creators",
     "cypress",
     "./cypress.config.ts",
+    "docusaurus",
     "script/standalone"
   ]
 }

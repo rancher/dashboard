@@ -14,25 +14,6 @@ const SPECIAL = [BASE, ADMIN, USER];
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 
 export default class GlobalRole extends SteveModel {
-  get availableActions() {
-    const out = super._availableActions;
-
-    const toFilter = ['goToEdit', 'promptRemove'];
-    const editActions = out.filter((a) => {
-      if ( toFilter.includes(a.action) ) {
-        return a;
-      }
-    });
-
-    if ( editActions.length > 0 ) {
-      editActions.forEach((a) => {
-        a.enabled = !this.builtin;
-      });
-    }
-
-    return out;
-  }
-
   get customValidationRules() {
     return Role.customValidationRules();
   }

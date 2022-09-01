@@ -1489,12 +1489,15 @@ cluster:
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
 
+  rkeTemplateUpgrade: Template revision {name} available for upgrade
+
   detail:
     provisioner: Provisioner
     kubernetesVersion: Kubernetes Version
     machineProvider: Machine Provider
     machinePools: Machine Pools
     machines: Machines
+    rkeTemplate: RKE Template
 
   machinePool:
     name:
@@ -1542,7 +1545,7 @@ cluster:
     autoReplace:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
-      unit: "Minutes"
+      unit: "Seconds"
   managementTimeout: The cluster to become available. It's possible the cluster was created. We suggest checking the clusters page before trying to create another.
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
@@ -5261,7 +5264,7 @@ workload:
     cannotViewIngresses: Could not list Ingresses due to lack of permission.
     cannotFindIngresses: Could not find any Ingresses that forward traffic to Services that select Pods in this workload.
     ingressListCaption: "The following Ingresses forward traffic to Services that select Pods from this workload:"
-    cannotViewIngressesBecauseCannotViewServices: Could not find relevant relevant Ingresses due to lack of permission to view Services.
+    cannotViewIngressesBecauseCannotViewServices: Could not find relevant Ingresses due to lack of permission to view Services.
     pods:
       title: Pods
   detailTop:
