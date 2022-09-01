@@ -24,5 +24,3 @@ export const HCI = {
   VERSION:            'harvesterhci.io.version',
   MANAGED_CHART:      'harvesterhci.io.managedchart',
 };
-
-export const PRODUCT_NAME = 'harvester';

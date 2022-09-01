@@ -6,7 +6,6 @@ import { allHash } from '@shell/utils/promise';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { BLANK_CLUSTER } from '@shell/store';
 
-
 dynamicPluginLoader.register({
   load: async({ route, store }) => {
     // Check that we've either got here either

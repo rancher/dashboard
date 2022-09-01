@@ -7,15 +7,7 @@ import { TextAreaAutoGrow } from '@components/Form/TextArea';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
 
-<<<<<<<< HEAD:pkg/harvester/edit/harvesterhci.io.setting/index.vue
-import {
-  HCI_ALLOWED_SETTINGS,
-  HCI_SINGLE_CLUSTER_ALLOWED_SETTING,
-  HCI_SETTING
-} from '@shell/config/settings';
-========
 import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, HCI_SETTING } from '../config/settings';
->>>>>>>> origin/harvester-plugin-rebased:pkg/harvester/edit/harvesterhci.io.setting.vue
 
 export default {
   components: {
@@ -67,16 +59,10 @@ export default {
       editHelp:           t(`advancedSettings.editHelp.${ this.value.id }`),
       enumOptions,
       canReset,
-<<<<<<<< HEAD:pkg/harvester/edit/harvesterhci.io.setting/index.vue
-      errors:             [],
-      hasCustomComponent: false,
-      customComponent:    null
-========
       errors:               [],
       hasCustomComponent:   false,
       customComponent:      null,
       customSettingComponents
->>>>>>>> origin/harvester-plugin-rebased:pkg/harvester/edit/harvesterhci.io.setting.vue
     };
   },
 
@@ -88,26 +74,12 @@ export default {
 
   created() {
     let customComponent = false;
-<<<<<<<< HEAD:pkg/harvester/edit/harvesterhci.io.setting/index.vue
-
-    // const resource = this.$route.params.resource;
-    const name = this.value.metadata.name;
-    const path = `${ resource }/${ name }`;
-
-    const hasCustomComponent = this.$store.getters['type-map/hasComponent'](
-      path
-    );
-
-    if (hasCustomComponent) {
-      customComponent = this.$store.getters['type-map/importComponent'](path);
-========
     const hasCustomComponent = this.customSettingComponents.includes(this.value.id);
 
     if ( hasCustomComponent ) {
       try {
         customComponent = require(`../components/settings/${ this.value.id }.vue`).default;
       } catch {}
->>>>>>>> origin/harvester-plugin-rebased:pkg/harvester/edit/harvesterhci.io.setting.vue
     }
     this.hasCustomComponent = hasCustomComponent;
     this.customComponent = customComponent;

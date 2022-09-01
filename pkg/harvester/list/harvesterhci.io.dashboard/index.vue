@@ -22,12 +22,8 @@ import DashboardMetrics from '@shell/components/DashboardMetrics';
 import metricPoller from '@shell/mixins/metric-poller';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import { isEmpty } from '@shell/utils/object';
-<<<<<<<< HEAD:pkg/harvester/list/harvesterhci.io.dashboard.vue
-import HarvesterUpgrade from '../components/HarvesterUpgrade';
-========
 import HarvesterUpgrade from '../../components/HarvesterUpgrade';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
->>>>>>>> origin/harvester-plugin-rebased:pkg/harvester/list/harvesterhci.io.dashboard/index.vue
 
 dayjs.extend(utc);
 dayjs.extend(minMax);

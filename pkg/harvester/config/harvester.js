@@ -6,9 +6,8 @@ import {
   MANAGEMENT,
   PVC,
   NETWORK_ATTACHMENT,
-  HCI
+  HCI,
 } from '@shell/config/types';
-import { HCI, PRODUCT_NAME } from '../types.ts';
 import {
   STATE,
   NAME_UNLINKED,
@@ -27,7 +26,6 @@ import { IF_HAVE } from '@shell/store/type-map';
 
 const TEMPLATE = HCI.VM_VERSION;
 
-// TODO: RC
 export const PRODUCT_NAME = 'harvester';
 
 export function init($plugin, store) {
