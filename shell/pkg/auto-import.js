@@ -20,13 +20,32 @@ function generateTypeImport(pkg, dir) {
 
   // Auto-import if the folder exists
   contextFolders.forEach((f) => {
-    if (fs.existsSync(path.join(dir, f))) {
-      fs.readdirSync(path.join(dir, f)).forEach((file) => {
-        const name = file.replace(/\.[^\.]+$/, '');
+    const filePath = path.join(dir, f);
+    if (fs.existsSync(filePath)) {
+
+      function register(file, type) {
         const importType = (f === 'models') ? 'require' : 'import';
         const chunkName = (f === 'l10n') ? '' : `/* webpackChunkName: "${ f }" */`;
 
-        content += `  $plugin.register('${ f }', '${ name }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
+        content += `  $plugin.register('${ f }', '${ type }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
+      }
+
+      fs.readdirSync(path.join(dir, f)).forEach((file) => {
+        const fileStat = fs.lstatSync(path.join(filePath, file));
+        if (fileStat.isDirectory()) {
+          // This might be a <type>/index.vue file
+          const indexFilePath = path.join(file, 'index.vue');
+          const fullIndexFilePath = path.join(filePath, indexFilePath);
+          if (fs.existsSync(fullIndexFilePath)) {
+            const indexFilePath = path.join(file, 'index.vue');
+            register(indexFilePath, file)
+          }
+        } else {
+          // This is a simple <type>.vue file
+          const name = file.replace(/\.[^/.]+$/, '');
+          register(file, name)
+        } 
+        
       });
     }
   });
