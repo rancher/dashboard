@@ -536,21 +536,25 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     }, { root: true });
   }
 
-  async remove(opt = {} ) {
+  closeWindows() {
     // Closes appShell & appLogs on app Remove.
     this.$dispatch('wm/close', this.appShellId, { root: true });
     this.$dispatch('wm/close', this.appLogId, { root: true });
 
     // Closes all builds logs on app Remove.
-    const allTabs = await this.$rootGetters['wm/allTabs'];
+    const allTabs = this.$rootGetters['wm/allTabs'];
 
     if ( allTabs.length > 0 ) {
-      allTabs.map((e) => {
+      allTabs.forEach((e) => {
         if (e.id.startsWith(this.stagingLog)) {
           this.$dispatch('wm/close', e.id, { root: true });
         }
       });
     }
+  }
+
+  async remove(opt = {} ) {
+    this.closeWindows();
 
     await super.remove();
   }

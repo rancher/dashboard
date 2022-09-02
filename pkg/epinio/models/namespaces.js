@@ -1,3 +1,4 @@
+import { EPINIO_TYPES } from '~/pkg/epinio/types';
 import EpinioMetaResource from './epinio-namespaced-resource';
 
 export default class EpinioNamespace extends EpinioMetaResource {
@@ -60,6 +61,21 @@ export default class EpinioNamespace extends EpinioMetaResource {
 
   confirmRemove() {
     return true;
+  }
+
+  async remove() {
+    const allTabs = this.$rootGetters['wm/allTabs'];
+
+    if (this.apps?.length && allTabs?.length) {
+      this.apps.forEach((e) => {
+        const app = this.$getters['byId'](EPINIO_TYPES.APP, `${ this.name }/${ e }`);
+
+        if (!!app && app.meta.namespace === this.name) {
+          app.closeWindows();
+        }
+      });
+    }
+    await super.remove();
   }
 
   get warnDeletionMessage() {
