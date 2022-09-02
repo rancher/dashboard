@@ -4,7 +4,7 @@ import { clone } from '@shell/utils/object';
 import { SETTING } from '@shell/config/settings';
 
 const definitions = {};
-const prefsBeforeLogin = {};
+let prefsBeforeLogin = {};
 
 export const create = function(name, def, opt = {}) {
   const parseJSON = opt.parseJSON === true;
@@ -267,7 +267,7 @@ export const actions = {
     if ( definition.asUserPreference ) {
       const checkLogin = rootGetters['auth/loggedIn'];
 
-      if ( !checkLogin) {
+      if (!checkLogin) {
         prefsBeforeLogin[key] = value;
 
         return;
@@ -391,18 +391,6 @@ export const actions = {
     //   return;
     // }
 
-    if (Object.keys(prefsBeforeLogin).length > 0) {
-      const updates = [];
-
-      Object.keys(prefsBeforeLogin).forEach((key) => {
-        const value = prefsBeforeLogin[key];
-
-        updates.push(dispatch('set', { key, value }));
-      });
-
-      await Promise.all(updates);
-    }
-
     try {
       const all = await dispatch('management/findAll', {
         type: STEVE.PREFERENCE,
@@ -424,6 +412,17 @@ export const actions = {
 
     if ( !server?.data ) {
       return;
+    }
+
+    if (Object.keys(prefsBeforeLogin).length > 0) {
+      Object.keys(prefsBeforeLogin).forEach((key) => {
+        server.data[key] = prefsBeforeLogin[key];
+      });
+
+      await server.save({ redirectUnauthorized: false });
+
+      // Clear prefsBeforeLogin, as we have now saved theses
+      prefsBeforeLogin = {};
     }
 
     for (const key in definitions) {

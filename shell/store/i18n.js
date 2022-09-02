@@ -260,8 +260,11 @@ export const actions = {
     state,
     rootState,
     commit,
-    dispatch
+    dispatch,
+    getters
   }, locale) {
+    const currentLocale = getters['current']();
+
     if ( locale === NONE ) {
       commit('setSelected', locale);
 
@@ -310,10 +313,13 @@ export const actions = {
 
     commit('setSelected', locale);
 
-    dispatch('prefs/set', {
-      key:   'locale',
-      value: state.selected
-    }, { root: true });
+    // Ony update the preference if the locale changed
+    if (currentLocale !== locale) {
+      dispatch('prefs/set', {
+        key:   'locale',
+        value: state.selected
+      }, { root: true });
+    }
   },
 
   toggleNone({ state, dispatch }) {
