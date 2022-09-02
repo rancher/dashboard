@@ -171,7 +171,7 @@ export default Vue.extend({
         this.$emit('input', this.value);
       } else if (this.isString(this.valueWhenTrue)) {
         if (this.isChecked) {
-          this.$emit('input', undefined);
+          this.$emit('input', null);
         } else {
           this.$emit('input', this.valueWhenTrue);
         }
