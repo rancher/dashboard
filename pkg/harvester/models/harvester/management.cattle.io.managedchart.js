@@ -1,7 +1,7 @@
 import isEqual from 'lodash/isEqual';
 import { HCI } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
-import HarvesterResource from './harvester';
+import HarvesterResource from '../harvester';
 
 // FIXME: Harvester Request for team to validate navigation (list, create, etc) for this resource type
 export default class HciManagedChart extends HarvesterResource {
