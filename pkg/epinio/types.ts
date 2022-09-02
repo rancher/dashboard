@@ -135,3 +135,10 @@ export interface EpinioServiceResource {
 }
 
 export type EpinioService = EpinioServiceResource & EpinioServiceModel & EpinioMetaProperty;
+
+export interface EpinioInfo {
+  default_builder_image: string, // eslint-disable-line camelcase
+  kube_version: string, // eslint-disable-line camelcase
+  platform: string, // eslint-disable-line camelcase
+  version: string, // eslint-disable-line camelcase
+}

@@ -12,7 +12,7 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { sortBy } from '@shell/utils/sort';
 import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
-import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES } from '../../types';
+import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
 
 interface Archive{
@@ -90,6 +90,10 @@ export default Vue.extend<Data, any, any, any>({
       type:     Object as PropType<EpinioAppSource>,
       default: null
     },
+    info: {
+      type:     Object as PropType<EpinioInfo>,
+      default: null
+    },
     mode: {
       type:     String,
       required: true
@@ -97,8 +101,12 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   data() {
+    const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
+    const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
+
     return {
       open: false,
+      defaultBuilderImage,
 
       archive: {
         tarball:             this.source?.archive.tarball || '',
@@ -119,8 +127,8 @@ export default Vue.extend<Data, any, any, any>({
       },
 
       builderImage: {
-        value:   this.source?.builderImage?.value || DEFAULT_BUILD_PACK,
-        default: this.source?.builderImage?.default !== undefined ? this.source.builderImage.default : true,
+        value:   builderImage,
+        default:  builderImage === defaultBuilderImage,
       },
 
       appChart: this.source?.appChart,
@@ -265,7 +273,7 @@ export default Vue.extend<Data, any, any, any>({
 
     onImageType(defaultImage: boolean) {
       if (defaultImage) {
-        this.builderImage.value = DEFAULT_BUILD_PACK;
+        this.builderImage.value = this.defaultBuilderImage;
       }
 
       this.builderImage.default = defaultImage;
@@ -336,6 +344,7 @@ export default Vue.extend<Data, any, any, any>({
         label: `${ ap.meta.name } (${ ap.short_description })`
       }));
     },
+
     type() {
       // There's a bug in the select component which fires off the option ({ value, label}) instead of the value
       // (possibly `reduce` related). This the workaround

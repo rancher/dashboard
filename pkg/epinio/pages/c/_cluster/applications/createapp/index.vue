@@ -11,6 +11,7 @@ import AppSource, { EpinioAppSource } from '../../../../../components/applicatio
 import AppConfiguration, { EpinioAppBindings } from '../../../../../components/application/AppConfiguration.vue';
 import AppProgress from '../../../../../components/application/AppProgress.vue';
 import { createEpinioRoute } from '../../../../../utils/custom-routing';
+import { allHash } from '~/shell/utils/promise';
 
 interface Data {
   value?: Application,
@@ -38,10 +39,13 @@ export default Vue.extend<Data, any, any, any>({
   ],
 
   async fetch() {
-    await Promise.all([
-      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE }),
-      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS }),
-    ]);
+    const hash: { [key:string]: any } = await allHash({
+      ns:     this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE }),
+      charts: this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS }),
+      info:   this.$store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } })
+    });
+
+    this.epinioInfo = hash.info;
 
     this.originalModel = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.APP });
     // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
@@ -80,7 +84,8 @@ export default Vue.extend<Data, any, any, any>({
         subtext:        this.t('epinio.applications.steps.progress.subtext'),
         ready:          false,
         previousButton: { disable: true }
-      }]
+      }],
+      epinioInfo: undefined
     };
   },
 
@@ -166,6 +171,7 @@ export default Vue.extend<Data, any, any, any>({
           :application="value"
           :source="source"
           :mode="mode"
+          :info="epinioInfo"
           @change="updateSource"
           @changeAppInfo="updateInfo"
           @changeAppConfig="updateManifestConfigurations"
