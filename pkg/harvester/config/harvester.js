@@ -49,10 +49,9 @@ export function init($plugin, store) {
     };
 
     store.dispatch('setIsSingleProduct', {
-      logo:           require(`@shell/assets/images/providers/harvester.svg`),
-      productNameKey: 'product.harvester',
-      version:        store.getters[`${ PRODUCT_NAME }/byId`](HCI.SETTING, 'server-version')
-        ?.value,
+      logo:            require(`@shell/assets/images/providers/harvester.svg`),
+      productNameKey:  'product.harvester',
+      getVersionInfo:  store => store.getters[`${ PRODUCT_NAME }/byId`](HCI.SETTING, 'server-version')?.value || 'unknown', // TODO: RC Test do we have this at this point?
       afterLoginRoute: home,
       logoRoute:       home
     });

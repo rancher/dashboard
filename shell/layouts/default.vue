@@ -16,7 +16,7 @@ import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import {
-  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
+  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
 } from '@shell/config/types';
 import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
@@ -185,14 +185,12 @@ export default {
     },
 
     displayVersion() {
-      let { displayVersion } = getVersionInfo(this.$store);
-
-      if (this.isVirtualProduct && this.isSingleProduct) {
-        // TODO: RC Update - this should come from isSingleProduct
-        const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
-
-        displayVersion = setting?.value || 'unknown';
+      if (this.isSingleProduct?.getVersionInfo) {
+        // TODO: RC Test
+        return this.isSingleProduct?.getVersionInfo(this.$store);
       }
+
+      const { displayVersion } = getVersionInfo(this.$store);
 
       return displayVersion;
     },
@@ -385,7 +383,6 @@ export default {
       const currentType = this.$route.params.resource || '';
       let namespaces = null;
 
-      // TODO: RC ??? fix for harvester?
       if ( !this.$store.getters['isAllNamespaces'] ) {
         const namespacesObject = this.$store.getters['namespaces']();
 
