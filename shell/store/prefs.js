@@ -4,6 +4,7 @@ import { clone } from '@shell/utils/object';
 import { SETTING } from '@shell/config/settings';
 
 const definitions = {};
+const prefsBeforeLogin = {};
 
 export const create = function(name, def, opt = {}) {
   const parseJSON = opt.parseJSON === true;
@@ -243,7 +244,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async set({ dispatch, commit }, opt) {
+  async set({ dispatch, commit, rootGetters }, opt) {
     let { key, value } = opt; // eslint-disable-line prefer-const
     const definition = definitions[key];
     let server;
@@ -264,6 +265,14 @@ export const actions = {
     }
 
     if ( definition.asUserPreference ) {
+      const checkLogin = rootGetters['auth/loggedIn'];
+
+      if ( !checkLogin) {
+        prefsBeforeLogin[key] = value;
+
+        return;
+      }
+
       try {
         server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
 
@@ -377,10 +386,21 @@ export const actions = {
     state, dispatch, commit, rootState, rootGetters
   }, ignoreKey) {
     let server = { data: {} };
-    const checkLogin = rootGetters['auth/loggedIn'];
+    // const checkLogin = rootGetters['auth/loggedIn'];
+    // if ( !checkLogin ) {
+    //   return;
+    // }
 
-    if ( !checkLogin ) {
-      return;
+    if (Object.keys(prefsBeforeLogin).length > 0) {
+      const updates = [];
+
+      Object.keys(prefsBeforeLogin).forEach((key) => {
+        const value = prefsBeforeLogin[key];
+
+        updates.push(dispatch('set', { key, value }));
+      });
+
+      await Promise.all(updates);
     }
 
     try {
