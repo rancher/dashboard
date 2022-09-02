@@ -12,7 +12,7 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { sortBy } from '@shell/utils/sort';
 import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
-import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES } from '../../types';
+import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
 
 interface Archive{
@@ -90,25 +90,23 @@ export default Vue.extend<Data, any, any, any>({
       type:     Object as PropType<EpinioAppSource>,
       default: null
     },
+    info: {
+      type:     Object as PropType<EpinioInfo>,
+      default: null
+    },
     mode: {
       type:     String,
       required: true
     },
   },
-  async created() {
-    const res = await this.$store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
 
-    if (res.default_builder_image) {
-      this.defaultBuilderImage = res.default_builder_image;
-      this.builderImage.value = res.default_builder_image;
-    } else {
-      this.builderImage.value = DEFAULT_BUILD_PACK;
-    }
-  },
   data() {
+    const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
+    const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
+
     return {
-      open:                false,
-      defaultBuilderImage: undefined,
+      open: false,
+      defaultBuilderImage,
 
       archive: {
         tarball:             this.source?.archive.tarball || '',
@@ -129,8 +127,8 @@ export default Vue.extend<Data, any, any, any>({
       },
 
       builderImage: {
-        value:   this.source?.builderImage?.value || DEFAULT_BUILD_PACK,
-        default: this.defaultBuilderImage !== undefined ? this.source.builderImage.default : true,
+        value:   builderImage,
+        default:  builderImage === defaultBuilderImage,
       },
 
       appChart: this.source?.appChart,
@@ -346,6 +344,7 @@ export default Vue.extend<Data, any, any, any>({
         label: `${ ap.meta.name } (${ ap.short_description })`
       }));
     },
+
     type() {
       // There's a bug in the select component which fires off the option ({ value, label}) instead of the value
       // (possibly `reduce` related). This the workaround
@@ -466,7 +465,7 @@ export default Vue.extend<Data, any, any, any>({
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
       <GithubPicker @githubData="githubData" />
     </template>
-    <Collapse v-if="defaultBuilderImage" :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30 source">
+    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30 source">
       <template>
         <LabeledSelect
           v-model="appChart"
