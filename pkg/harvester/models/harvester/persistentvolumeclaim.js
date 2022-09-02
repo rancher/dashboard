@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { _CLONE } from '@shell/config/query-params';
 import pick from 'lodash/pick';
-import { HCI } from '../types';
+import { HCI } from '../../types';
 import {
   HCI as HCI_ANNOTATIONS,
   DESCRIPTION

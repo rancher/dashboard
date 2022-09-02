@@ -1,4 +1,4 @@
-import { HCI } from '../types';
+import { HCI } from '../../types';
 import { clone } from '@shell/utils/object';
 import HarvesterResource from '../harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
