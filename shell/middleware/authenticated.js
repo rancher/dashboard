@@ -28,7 +28,7 @@ const getPackageFromRoute = (route) => {
 
 let beforeEachSetup = false;
 
-function getProduct(to) {
+export function getProductFromRoute(to) {
   let product = to.params?.product;
 
   if ( !product ) {
@@ -43,7 +43,7 @@ function getProduct(to) {
 }
 
 function setProduct(store, to) {
-  let product = getProduct(to);
+  let product = getProductFromRoute(to);
 
   if ( !product ) {
     product = EXPLORER;
@@ -274,10 +274,10 @@ export default async function({
     let clusterId = get(route, 'params.cluster');
 
     const pkg = getPackageFromRoute(route);
-    const product = getProduct(route);
+    const product = getProductFromRoute(route);
 
     const oldPkg = getPackageFromRoute(from);
-    const oldProduct = getProduct(from);
+    const oldProduct = getProductFromRoute(from);
 
     // Leave an old pkg where we weren't before?
     const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find(p => p.name === oldPkg) : null;

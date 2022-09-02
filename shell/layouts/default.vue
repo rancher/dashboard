@@ -29,40 +29,9 @@ import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
-import { get } from '@shell/utils/object';
+import { getProductFromRoute } from '@shell/middleware/authenticated';
 
 const SET_LOGIN_ACTION = 'set-as-login';
-
-// checkClusterChanging, resolveClusterChanging and clusterChanging explained
-
-// This layout is used predominently for pages with a cluster context.
-// When the user changes page to a different cluster the authentication middelware ..
-// - resets the current cluster and set clusterReady to false (this hides current page components)
-// - loads the new cluster and set clusterReady to true (this shows the current page components)
-// However the old page hasn't been left until the middleware and router hooks run. This results
-// in the old page's components showing again before the new page is reached
-// This isn't an obvious issue when the cluster is kube based (schema and resources won't change much)
-// however if we're switching product it can result in the old page's components throwing an error which
-// prevents the new page showing.
-// To avoid this we block display of the nuxt container until we've reached the new page
-//
-// TL;DR - If the cluster changes hide page content until we've reach the new page location
-
-const checkClusterChanging = ({ route: to, store, from }) => {
-  const oldClusterId = get(from, 'params.cluster');
-  const newClusterId = get(to, 'params.cluster');
-
-  const product = to?.params?.product;
-  const oldProduct = from?.params?.product;
-
-  if ((oldProduct && oldProduct !== product) || (oldClusterId && oldClusterId !== newClusterId)) {
-    store.commit('clusterChanging', true);
-  }
-};
-
-const resolveClusterChanging = ($store) => {
-  $store.commit('clusterChanging', false);
-};
 
 export default {
 
@@ -89,22 +58,16 @@ export default {
       groups:                        [],
       gettingGroups:                 false,
       wantNavSync:                   false,
-      resolveClusterChangingHandler: this.$router.afterEach(() => resolveClusterChanging(this.$store))
     };
-  },
-
-  unmounted() {
-    this.resolveClusterChangingHandler();
   },
 
   // Note - These will run on route change
   middleware: [
-    checkClusterChanging,
     'authenticated'
   ],
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'clusterChanging']),
+    ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
@@ -221,13 +184,14 @@ export default {
       return !this.$route?.matched?.length;
     },
 
-    // TODO: RC Test - validate this can be removed
     /**
      * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
      * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
      */
     clusterAndRouteReady() {
-      return this.clusterReady && this.clusterId === this.$route?.params?.cluster;
+      return this.clusterReady &&
+        this.clusterId === this.$route?.params?.cluster &&
+        this.currentProduct?.name === getProductFromRoute(this.$route);
     },
 
   },
@@ -600,7 +564,7 @@ export default {
     <AzureWarning v-if="managementReady" />
     <div v-if="managementReady" class="dashboard-content">
       <Header />
-      <nav v-if="clusterReady && !clusterChanging" class="side-nav">
+      <nav v-if="clusterReady" class="side-nav">
         <div class="nav">
           <template v-for="(g) in groups">
             <Group
@@ -669,7 +633,7 @@ export default {
           {{ displayVersion }}
         </div>
       </nav>
-      <main v-if="clusterReady && !clusterChanging">
+      <main v-if="clusterAndRouteReady">
         <nuxt class="outlet" />
         <ActionMenu />
         <PromptRemove />

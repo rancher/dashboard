@@ -175,10 +175,6 @@ export const getters = {
     return state.clusterReady === true;
   },
 
-  clusterChanging(state) {
-    return state.clusterChanging === true;
-  },
-
   isMultiCluster(state) {
     return state.isMultiCluster === true;
   },
@@ -471,10 +467,6 @@ export const mutations = {
 
   clusterReady(state, ready) {
     state.clusterReady = ready;
-  },
-
-  clusterChanging(state, ready) {
-    state.clusterChanging = ready;
   },
 
   updateNamespaces(state, { filters, all }) {
