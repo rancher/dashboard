@@ -1,3 +1,4 @@
+import { EPINIO_TYPES } from '~/pkg/epinio/types';
 import EpinioMetaResource from './epinio-namespaced-resource';
 
 export default class EpinioNamespace extends EpinioMetaResource {
@@ -63,20 +64,15 @@ export default class EpinioNamespace extends EpinioMetaResource {
   }
 
   async remove() {
-    if (this.apps && this.apps.length) {
-      const allTabs = await this.$rootGetters['wm/allTabs'];
+    const allTabs = this.$rootGetters['wm/allTabs'];
 
-      this.apps.map((e) => {
-        if ( allTabs.length > 0 ) {
-          allTabs.map((el) => {
-            if (el.id.startsWith(`epinio-${ this.id }/${ e }-logs-`)) {
-              this.$dispatch('wm/close', el.id, { root: true });
-            }
-          });
+    if (this.apps?.length && allTabs?.length) {
+      this.apps.forEach((e) => {
+        const app = this.$getters['byId'](EPINIO_TYPES.APP, `${ this.name }/${ e }`);
+
+        if (!!app && app.meta.namespace === this.name) {
+          app.closeWindows();
         }
-
-        this.$dispatch('wm/close', `epinio-${ this.id }/${ e }-app-logs`, { root: true });
-        this.$dispatch('wm/close', `epinio-${ this.id }/${ e }-app-shell`, { root: true });
       });
     }
     await super.remove();
