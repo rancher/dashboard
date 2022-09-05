@@ -92,10 +92,6 @@ export const ALLOWED_SETTINGS = {
     options: ['prompt', 'in', 'out']
   },
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
-  // [SETTING.BANNERS]:                        { kind: 'json' },
-  // [SETTING.PL]:                             {},
-  // [SETTING.ISSUES]:                         {},
-  // [SETTING.CLUSTER_DEFAULTS]:               { kind: 'json' },
 };
 
 // harvester Settings ID
