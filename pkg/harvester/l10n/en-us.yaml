@@ -528,7 +528,7 @@ harvester:
       moreNotes: For more details about the release notes, please visit - 
 
   backup:
-    label: Backups
+    label: VM Backups
     createText: Restore Backup
     title: Restore Virtual Machine
     backupTargetTip: The endpoint used to access the backupstore. NFS and S3 are supported.
@@ -545,6 +545,11 @@ harvester:
         prefix: Click
         middle: here
         suffix: to view the backup config.
+      testConnect:
+        actionLabel: Test connection
+        waitingLabel: Testing connection...
+        successLabel: Connection tested
+        successMessage: 'Harvester can successfully connect to the endpoint {endpoint}'
     restore:
       backup: Backup
       deletePreviousVolumes: Delete Previous Volumes
@@ -763,8 +768,8 @@ typeLabel:
     }
   harvesterhci.io.virtualmachinebackup: |-
     {count, plural,
-      one { Backup }
-      other { Backups }
+      one { VM Backup }
+      other { VM Backups }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,

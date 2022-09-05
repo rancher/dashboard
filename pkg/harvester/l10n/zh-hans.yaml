@@ -766,8 +766,8 @@ typeLabel:
     }
   harvesterhci.io.virtualmachinebackup: |-
     {count, plural,
-      one { 备份 }
-      other { 备份 }
+      one { 虚拟机备份 }
+      other { 虚拟机备份 }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,
