@@ -38,9 +38,7 @@ module.exports = {
     'space-in-parens':          'off',
     strict:                     'off',
     'unicorn/no-new-buffer':    'off',
-    'vue/html-self-closing':    'off',
     'vue/no-unused-components': 'warn',
-    'vue/no-v-html':            'off',
     'wrap-iife':                'off',
 
     'array-bracket-spacing':             'warn',
@@ -172,6 +170,29 @@ module.exports = {
     'array-callback-return':                'off',
     'import/order':                         'off',
     'import/no-named-as-default':           'off',
+    // Vue/HTML Formatting
+    'vue/no-v-html':                        'off',
+    'vue/html-indent':                      ['error', 2],
+    'vue/html-closing-bracket-newline':     ['error', {
+      singleline: 'never',
+      multiline:  'always'
+    }],
+    'vue/html-closing-bracket-spacing':     2,
+    'vue/html-end-tags':                    2,
+    'vue/html-quotes':                      2,
+    'vue/html-self-closing':                ['error', {
+      html: {
+        void:      'never',
+        normal:    'always',
+        component: 'always'
+      },
+      svg:  'always',
+      math: 'always'
+    }],
+    'vue/max-attributes-per-line':          ['error', {
+      singleline: { max: 1 },
+      multiline:  { max: 1 }
+    }]
   },
   overrides: [
     {
