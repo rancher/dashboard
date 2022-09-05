@@ -6099,7 +6099,6 @@ advancedSettings:
     'ui-dashboard-index': '{appName} UI 的 HTML 索引位置。'
     'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-index 和 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
     'ui-pl': '自有品牌公司名称。'
-    'ui-issues': "使用 URL 地址发送新的\"提交问题\"报告，而不是让用户发送到 GitHub Issue 页面。"
     'telemetry-opt': '遥测报告加入。'
     'auth-user-info-max-age-seconds': '在同步验证提供程序组成员之前，用户验证 Token 的最长存活时间。'
     'auth-user-info-resync-cron': '重新同步验证提供程序组成员的默认 cron 调度。'
@@ -6240,11 +6239,6 @@ branding:
     custom: 自定义主题
   uiPL:
     label: 自有品牌
-  uiIssues:
-    label: 支持链接
-    issuesUrl: 问题报告 URL
-    invalidUrl: 必须是包括协议头的完整 URL。
-    communityLinks: 显示 Rancher 社区支持链接
   color:
     label: 主颜色
     tip: 使用自定义颜色替换整个 UI 中使用的主颜色。
