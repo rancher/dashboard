@@ -4,11 +4,20 @@ module.exports = {
     browser: true,
     node:    true
   },
-  globals: { NodeJS: true, Timer: true },
-  plugins: ['jest'],
+  globals:        { NodeJS: true, Timer: true },
+  plugins:        ['jest'],
+  ignorePatterns: [
+    'node_modules/',
+    'dist/',
+    'coverage/',
+    'build/',
+    'public/',
+    'pgk/**/node_modules/'
+  ],
   extends: [
     'standard',
     'eslint:recommended',
+    // 'plugin:nuxt/recommended',
     '@nuxtjs/eslint-config-typescript',
     'plugin:cypress/recommended',
   ],
