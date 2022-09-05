@@ -46,28 +46,27 @@ module.exports = function(dir) {
       config.resolve.alias['~pkg'] = dir;
       delete config.resolve.alias['@'];
 
-      // Prevent the dynamic importer and the model-loader from importing anything dynamically - we don't want all of the
+      // Prevent the dynamic importer and the model-loader-require from importing anything dynamically - we don't want all of the
       // models etc when we build as a library
-      const dynamicImporterOveride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
+      const dynamicImporterOverride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
         resource.request = path.join(__dirname, 'dynamic-importer.lib.js');
       });
-      // TODO: RC Neil - this causes model lookups in pkg to return null
-      // const modelLoaderImporterOveride = new webpack.NormalModuleReplacementPlugin(/model-loader$/, (resource) => {
-      //   resource.request = path.join(__dirname, 'model-loader.lib.js');
-      // });
+      const modelLoaderImporterOverride = new webpack.NormalModuleReplacementPlugin(/model-loader-require$/, (resource) => {
+        resource.request = path.join(__dirname, 'model-loader-require.lib.js');
+      });
 
       // Auto-generate module to import the types (model, detail, edit etc)
       const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@rancher/auto-import': generateTypeImport('@pkg', dir) });
 
-      config.plugins.unshift(dynamicImporterOveride);
-      // config.plugins.unshift(modelLoaderImporterOveride);
+      config.plugins.unshift(dynamicImporterOverride);
+      config.plugins.unshift(modelLoaderImporterOverride);
       config.plugins.unshift(autoImportPlugin);
       // config.plugins.unshift(debug);
 
       // These modules will be externalised and not included with the build of a package library
       // This helps reduce the package size, but these dependencies must be provided by the hosting application
       config.externals = {
-        // jquery:    '$', // TODO: RC Neil - selection.js  _(...) is not a function
+        jquery:    '$',
         jszip:     '__jszip',
         'js-yaml': '__jsyaml'
       };

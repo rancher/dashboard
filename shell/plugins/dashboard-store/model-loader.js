@@ -1,4 +1,5 @@
 import { normalizeType } from './normalize';
+import modelLoaderRequire from './model-loader-require';
 
 const cache = {};
 
@@ -16,7 +17,9 @@ function find(cache, type, rootState) {
     let base;
 
     if (!pluginModel) {
-      base = require(`@shell/models/${ type }`);
+      // Model hasn't come from a plugin, fall back on something reasonable
+      // by default this is the dashboard's local models folder
+      base = modelLoaderRequire(type);
     } else if (typeof pluginModel === 'function') {
       // pluginModel could be an object in the case the plugin is built-in
       base = pluginModel();

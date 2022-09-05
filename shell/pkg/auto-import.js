@@ -35,7 +35,6 @@ function generateTypeImport(pkg, dir) {
   contextFolders.forEach((f) => {
     const filePath = path.join(dir, f);
 
-    // TODO: RC Neil - Review
     if (fs.existsSync(filePath)) {
       fs.readdirSync(path.join(dir, f)).forEach((file) => {
         const fileStat = fs.lstatSync(path.join(filePath, file));
@@ -47,14 +46,12 @@ function generateTypeImport(pkg, dir) {
           const fullIndexFilePath = path.join(filePath, indexFilePath);
 
           if (fs.existsSync(fullIndexFilePath)) {
-            const indexFilePath = path.join(file, 'index.vue');
-
             content += registerFile(indexFilePath, file, pkg, f);
 
             return;
           }
 
-          // This might be a <store name>/<model name>.js file (aka nested model)
+          // This might be a <store name>/<model name|type>.js file (aka nested model)
           if (f === 'models') {
             fs.readdirSync(path.join(filePath, file)).forEach((store) => {
               content += register(path.join(file, store), pkg, f);
