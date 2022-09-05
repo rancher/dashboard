@@ -1,7 +1,8 @@
 import Vue from 'vue';
 import ProvCluster from '@shell/models/provisioning.cattle.io.cluster';
-import { DEFAULT_WORKSPACE, SERVICE, HCI } from '@shell/config/types';
+import { DEFAULT_WORKSPACE, HCI, MANAGEMENT } from '@shell/config/types';
 import { HARVESTER_NAME, HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
+import { SETTING } from '~/shell/config/settings';
 
 export default class HciCluster extends ProvCluster {
   get stateObj() {
@@ -31,77 +32,139 @@ export default class HciCluster extends ProvCluster {
 
   cachedHarvesterClusterVersion = '';
 
-  async _pkgDetails() {
-    // TODO: RC Update - with changes from PR
-    const clusterId = this.mgmt.id;
+  _uiInfo = undefined;
 
-    // Fetch the version of the pkg to fetch
-    if (!this.cachedHarvesterClusterVersion) {
-      // Note - The version MUST match the version in the pkg's package.json (and filename)
-      const versionUrl = `/k8s/clusters/${ clusterId }/v1/harvester/harvesterhci.io.settings/server-version`;
-      const res = await this.$dispatch('request', { url: versionUrl });
+  /**
+   * Fetch and cache the response for /ui-info
+   *
+   * Storing this in a cache means any changes to `ui-info` require a dashboard refresh... but it cuts out a http request every time we
+   * go to a cluster
+   *
+   * @param {string} clusterId
+   */
+  async _getUiInfo(clusterId) {
+    if (!this._uiInfo) {
+      try {
+        const infoUrl = `/k8s/clusters/${ clusterId }/v1/harvester/ui-info`;
 
-      this.cachedHarvesterClusterVersion = res.value;
+        this._uiInfo = await this.$dispatch('request', { url: infoUrl });
+      } catch (e) {
+        console.info(`Failed to fetch harvester ui-info from ${ this.nameDisplay }, this may be an older cluster that cannot provide one`); // eslint-disable-line no-console
+      }
     }
 
-    // Work out the package Name
-    const packageName = `${ HARVESTER_NAME }-${ this.cachedHarvesterClusterVersion }`;
+    return this._uiInfo;
+  }
 
-    // Work out the dashboard url (which contains the harvester pkg)
-    const namespace = 'harvester-system';
-    const serviceName = 'harvester';
-    // Note - We can always fetch this from the embedded version.
-    // Standalone Context - The harv pkg will be built in, so this code is never hit
-    // Rancher Context - We will always go out to the harvester package bundled with the cluster
-    // So we can ignore the ui-index and ui-source (`bundled` `auto`, `external`) settings
-    // TODO: RC cluster members user do not have access to the harvester-system namespace. Seeking input from harv team
-    const dashboardUrl = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }/${ SERVICE }s/https:${ serviceName }:8443/proxy/dashboard`;
+  /**
+   * Determine the harvester plugin's package name and url for legacy clusters that don't provide them
+   */
+  _legacyClusterPkgDetails() {
+    let uiOfflinePreferred = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_OFFLINE_PREFERRED)?.value;
+    // options: ['dynamic', 'true', 'false']
 
-    // Use all of above to create the filename and full url of hte package
-    const fileName = `${ packageName }.umd.min.js`;
-    const pkgUrl = `${ dashboardUrl }/${ packageName }/${ fileName }doesnotexist`;
+    if (uiOfflinePreferred === 'dynamic') {
+      // We shouldn't need to worry about the version of the dashboard when embedded in harvester (aka in isSingleProduct)
+      const version = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, 'server-version')?.value;
+
+      if (version.endsWith('-head')) {
+        uiOfflinePreferred = 'false';
+      } else {
+        uiOfflinePreferred = 'true';
+      }
+    }
+
+    const pkgName = `${ HARVESTER_NAME }-1.0.3`;
+
+    if (uiOfflinePreferred === 'true') {
+      // Embedded
+      const embeddedPath = `dashboard/${ pkgName }/${ pkgName }.umd.min.js`;
+
+      return {
+        pkgUrl: process.env.dev ? embeddedPath : `dashboard/${ embeddedPath }`,
+        pkgName
+      };
+    }
+
+    if (uiOfflinePreferred === 'false') {
+      // Remote
+      // TODO: RC remove
+      const uiDashboardHarvesterRemotePlugin = `http://127.0.0.1:4500/harvester-0.3.0/harvester-0.3.0.umd.min.js`;
+      // const uiDashboardHarvesterRemotePlugin =
+      //   this.rootGetters['management/byId'](MANAGEMENT.SETTING, 'abc') ||
+      //   `https://releases.rancher.com/harvester-ui/plugin/${ pkgName }-head/${ pkgName }-head.umd.min.js`;
+
+      const parts = uiDashboardHarvesterRemotePlugin.replace('.umd.min.js', '').split('/');
+      const pkgNameFromUrl = parts.length > 1 ? parts[parts.length - 1] : null;
+
+      if (!pkgNameFromUrl) {
+        throw new Error(`Unable to determine harvester plugin name from ${ uiDashboardHarvesterRemotePlugin }`);
+      }
+
+      return {
+        pkgUrl:  uiDashboardHarvesterRemotePlugin,
+        pkgName: pkgNameFromUrl
+      };
+    }
+
+    throw new Error(`Unsupported value for ${ SETTING.UI_OFFLINE_PREFERRED }: 'uiOfflinePreferred'`);
+  }
+
+  /**
+   * Determine the harvester plugin's package name and url for clusters that provide the plugin
+   */
+  _supportedClusterPkgDetails(uiInfo, clusterId) {
+    const pkgName = `${ HARVESTER_NAME }-${ uiInfo['ui-plugin-bundled-version'] }`;
+    const fileName = `${ pkgName }.umd.min.js`;
+    let pkgUrl;
+
+    if (uiInfo['ui-source'] === 'bundled' ) { // offline bundled
+      pkgUrl = `k8s/clusters/${ clusterId }/v1/harvester/plugin-assets/${ fileName }`;
+    } else if (uiInfo['ui-source'] === 'external') {
+      if (uiInfo['ui-plugin-index']) {
+        pkgUrl = uiInfo['ui-plugin-index'];
+      } else {
+        throw new Error('Harvester cluster requested the plugin at `ui-plugin-index` is used, however did not provide a value for it');
+      }
+    }
 
     return {
       pkgUrl,
-      packageName
+      pkgName
     };
   }
 
+  async _pkgDetails() {
+    const clusterId = this.mgmt.id;
+    const uiInfo = await this._getUiInfo(clusterId);
+
+    return uiInfo ? this._supportedClusterPkgDetails(uiInfo, clusterId) : this._legacyClusterPkgDetails();
+  }
+
   async loadClusterPlugin() {
-    // const { pkgUrl, packageName } = await this._pkgDetails();
+    // Skip loading if it's built in
+    const plugins = this.$rootState.$plugin.getPlugins();
+    const loadedPkgs = Object.keys(plugins);
 
-    // console.warn('Harvester package details: ', packageName, pkgUrl);
+    if (loadedPkgs.find(pkg => pkg === HARVESTER_NAME)) {
+      console.info('Harvester plugin built in', plugins); // eslint-disable-line no-console
 
-    // TODO: RC Remove
-    const packageName = 'harvester-0.3.0';
-    const pkgUrl = `http://127.0.0.1:4500/${ packageName }/${ packageName }.umd.min.js`;
-
-    // Avoid loading the plugin if it's already loaded
-    const loadedPkgs = Object.keys(this.$rootState.$plugin.getPlugins());
-
-    // Skip loading if it's built in or we've previously grabbed it
-    if (loadedPkgs.find(pkg => pkg === HARVESTER_NAME) || !!this.$rootState.$plugin.getPlugins()[packageName]) {
       return;
     }
 
-    console.info('Attempting to load harvester plugin', packageName, pkgUrl); // eslint-disable-line no-console
+    // Determine the plugin name and the url it can be fetched from
+    const { pkgUrl, pkgName } = await this._pkgDetails();
 
-    return await this.$rootState.$plugin.loadAsync(packageName, pkgUrl);
-  }
+    console.info('Harvester plugin details: ', pkgName, pkgUrl); // eslint-disable-line no-console
 
-  async standaloneUrl() {
-    // TODO: RC This will not always work, ingress isn't to be expected
-    // Should use the VIP_IP instead, not sure if this is available. Similar issue to finding the dashboard url above
-    const clusterId = this.mgmt.id;
-    const ingressUrl = `/k8s/clusters/${ clusterId }/v1/networking.k8s.io.ingresses/cattle-system/rancher`;
-    const res = await this.$dispatch('request', { url: ingressUrl });
-    const link = res?.spec?.rules?.[0].host;
-
-    if (!link) {
-      throw new Error('Unable to find host within ingress rule');
+    // Skip loading if we've previously loaded the correct one
+    if (!!plugins[pkgName]) {
+      return;
     }
 
-    return `https://${ link }`;
+    console.info('Attempting to load Harvester plugin'); // eslint-disable-line no-console
+
+    return await this.$rootState.$plugin.loadAsync(pkgName, pkgUrl);
   }
 
   goToCluster() {
@@ -121,21 +184,11 @@ export default class HciCluster extends ProvCluster {
 
         console.error('Failed to load harvester package: ', message); // eslint-disable-line no-console
 
-        // We cannot load a plugin for this harvester instance, fall back on opening their standalone UI in a different tab
-        this.standaloneUrl()
-          .then((url) => {
-            window.open(url, '_blank');
-          }).catch((err) => {
-            const urlMessage = typeof error === 'object' ? JSON.stringify(err) : err;
-
-            console.error('Failed to determine standalone harvester url: ', urlMessage); // eslint-disable-line no-console
-
-            this.$dispatch('growl/error', {
-              title:   this.t('harvesterManager.plugins.loadError'),
-              message,
-              timeout: 5000
-            }, { root: true });
-          });
+        this.$dispatch('growl/error', {
+          title:   this.t('harvesterManager.plugins.loadError'),
+          message,
+          timeout: 5000
+        }, { root: true });
       });
   }
 }
