@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import EpinioCatalogServiceModel from '~/pkg/epinio/models/catalogservices'; // TODO: RC ~/pkg
+import EpinioCatalogServiceModel from '../models/catalogservices';
 import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 
 import ResourceTable from '@shell/components/ResourceTable.vue';

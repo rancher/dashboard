@@ -88,6 +88,6 @@ export default class EpinioServiceModel extends EpinioNamespacedResource {
   }
 
   async remove() {
-    await this.delete(true); // TODO: RC wire in somehow
+    await this.delete(true);
   }
 }

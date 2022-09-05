@@ -188,7 +188,6 @@ export default Vue.extend<Data, any, any, any>({
 
       for (const action of enabledActions) {
         try {
-          // TODO: RC bind to SI action
           await action.execute({ source: this.source });
         } catch (err) {
           Vue.set(this, 'running', false);
