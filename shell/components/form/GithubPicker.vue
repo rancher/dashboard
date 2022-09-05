@@ -15,6 +15,12 @@ export default {
     LabeledInput,
   },
 
+  props: {
+    selection: {
+      type:     Object,
+      default: null
+    }
+  },
   data() {
     const commitsTableHeaders = [
       {
@@ -80,6 +86,19 @@ export default {
     };
   },
 
+  mounted() {
+    // Keeps the selected repo/branch/commit when the user switches between steps
+    if (this.selection) {
+      this.selectedAccOrOrg = this.selection.usernameOrOrg;
+      this.selectedRepo = this.selection.repo;
+      this.selectedBranch = this.selection.branch;
+
+      // API calls data
+      this.repos = this.selection.sourceData.repos;
+      this.branches = this.selection.sourceData.branches;
+      this.commits = this.selection.sourceData.commits;
+    }
+  },
   computed: {
     preparedRepos() {
       return this.prepareArray(this.repos);
@@ -96,6 +115,15 @@ export default {
       this.selectedRepo = null;
       this.selectedBranch = null;
       this.selectedCommit = false;
+
+      this.communicateReset();
+    },
+    communicateReset() {
+      this.$emit('githubData', {
+        selectedAccOrOrg: this.selectedAccOrOrg,
+        repo:             this.selectedRepo,
+        commitSha:        this.selectedCommit,
+      });
     },
     async fetchRepos() {
       try {
@@ -111,6 +139,9 @@ export default {
           // Reset selections once username changes
           if (this.oldUsername !== this.selectedAccOrOrg) {
             this.oldUsername = this.selectedAccOrOrg;
+
+            // Resets state, just in case.
+            this.communicateReset();
 
             return this.reset();
           }
@@ -129,6 +160,8 @@ export default {
       this.selectedBranch = null;
       this.selectedCommit = false;
 
+      this.communicateReset();
+
       try {
         const res = await this.$store.dispatch('github/fetchBranches', { repo: this.selectedRepo, username: this.selectedAccOrOrg });
 
@@ -146,6 +179,8 @@ export default {
       this.loadingCommits = true;
       this.showSelections = false;
       this.selectedCommit = false;
+
+      this.communicateReset();
 
       try {
         const res = await this.$store.dispatch('github/fetchCommits', {
@@ -210,10 +245,14 @@ export default {
           repo:             this.selectedRepo,
           branch:           this.selectedBranch,
           commitSha:        this.selectedCommit.sha,
+          sourceData:       {
+            repos:    this.repos,
+            branches: this.branches,
+            commits:  this.commits
+          }
 
         });
 
-        this.$emit('valid', true);
         this.showSelections = true;
       }
 
