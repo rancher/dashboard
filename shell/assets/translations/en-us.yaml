@@ -6692,6 +6692,7 @@ advancedSettings:
     invalidJSON: Invalid JSON - please check and correct your input before saving
   descriptions:
     'cacerts': "CA Certificates needed to verify the server's certificate."
+    'password-min-length': 'Define minimum characters required for an user password.'
     'cluster-defaults': 'Override RKE Defaults when creating new clusters.'
     'engine-install-url': 'Default Docker engine installation URL (for most node drivers).'
     'engine-iso-url': 'Default OS installation URL (for vSphere driver).'
