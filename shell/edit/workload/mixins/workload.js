@@ -921,7 +921,7 @@ export default {
       }
     },
     nvidiaIsValid(nvidiaGpuLimit) {
-      if (!Number.isInteger(nvidiaGpuLimit)) {
+      if ( !Number.isInteger(parseInt(nvidiaGpuLimit)) ) {
         return false;
       }
       if (nvidiaGpuLimit === undefined) {
