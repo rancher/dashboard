@@ -459,7 +459,11 @@ export const actions = {
     if (e.type === EVENT_DISCONNECT_ERROR) {
       // determine if websocket notifications are disabled
       const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
-      const disableGrowl = JSON.parse(perfSetting?.value).disableWebsocketNotification || false;
+      let disableGrowl = false;
+
+      if ( perfSetting?.value ) {
+        disableGrowl = JSON.parse(perfSetting.value).disableWebsocketNotification || false;
+      }
 
       if ( !disableGrowl ) {
         // do not send a growl notification unless the socket stays disconnected for more than MINIMUM_TIME_DISCONNECTED
