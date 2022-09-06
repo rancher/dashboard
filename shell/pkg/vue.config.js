@@ -52,7 +52,10 @@ module.exports = function(dir) {
         resource.request = path.join(__dirname, 'dynamic-importer.lib.js');
       });
       const modelLoaderImporterOverride = new webpack.NormalModuleReplacementPlugin(/model-loader-require$/, (resource) => {
-        resource.request = path.join(__dirname, 'model-loader-require.lib.js');
+        const fileName = 'model-loader-require.lib.js';
+        const pkgModelLoaderRequire = path.join(dir, fileName);
+
+        resource.request = fs.existsSync(pkgModelLoaderRequire) ? pkgModelLoaderRequire : path.join(__dirname, fileName);
       });
 
       // Auto-generate module to import the types (model, detail, edit etc)
