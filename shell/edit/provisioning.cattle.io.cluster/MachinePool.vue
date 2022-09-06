@@ -64,11 +64,17 @@ export default {
 
   data() {
     const parseDuration = (duration) => {
-      // The back end stores the timeout in Duration format, for example, "10m".
-      // Here we convert that string to an integer.
-      const numberString = duration.split('m')[0];
+      // The back end stores the timeout in Duration format, for example, "10m30s".
+      // Here we convert that string to an integer and return the duration as seconds.
+      const splitStr = duration.split(/[m,s]/).filter(s => s);
+      const minutes = parseInt(splitStr[0], 10);
+      const seconds = parseInt(splitStr[1], 10);
 
-      return parseInt(numberString, 10);
+      if ( isNaN(seconds) ) {
+        return minutes;
+      }
+
+      return seconds + minutes * 60;
     };
 
     return {
