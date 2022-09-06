@@ -26,6 +26,10 @@ export const HCI = {
   SNAPSHOT:           'harvesterhci.io.volumesnapshot',
   VM_SNAPSHOT:        'harvesterhci.io.vmsnapshot',
   ALERTMANAGERCONFIG: 'harvesterhci.io.monitoring.alertmanagerconfig',
+  CLUSTER_FLOW:       'harvesterhci.io.logging.clusterflow',
+  CLUSTER_OUTPUT:     'harvesterhci.io.logging.clusteroutput',
+  FLOW:               'harvesterhci.io.logging.flow',
+  OUTPUT:             'harvesterhci.io.logging.output',
   STORAGE:            'harvesterhci.io.storage',
   KSTUNED:            'node.harvesterhci.io.ksmtuned'
 };

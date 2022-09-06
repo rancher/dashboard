@@ -16,6 +16,11 @@ import isEmpty from 'lodash/isEmpty';
 import jsyaml from 'js-yaml';
 import { createYaml } from '@shell/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
+import { FLOW_TYPE } from '../config/harvester-map';
+
+const LOGGING_EVENT = 'Logging/Event';
+const AUDIT_ONLY = 'Audit Only';
+const OUTPUT_TYPE = [LOGGING_EVENT, AUDIT_ONLY];
 
 export default {
   components: {
@@ -25,11 +30,11 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    await this.$store.dispatch('cluster/findAll', { type: SECRET });
+    await this.$store.dispatch('harvester/findAll', { type: SECRET });
   },
 
   data() {
-    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+    const schemas = this.$store.getters['harvester/all'](SCHEMA);
 
     if (this.isCreate) {
       this.value.metadata.namespace = 'default';
@@ -80,7 +85,8 @@ export default {
       selectedProvider,
       hasMultipleProvidersSelected: selectedProviders.length > 1,
       selectedProviders,
-      LOGGING
+      LOGGING,
+      loggingType:                  this.value.loggingType !== FLOW_TYPE.AUDIT ? LOGGING_EVENT : AUDIT_ONLY
     };
   },
 
@@ -97,7 +103,10 @@ export default {
       }
 
       return this.mode;
-    }
+    },
+    outputTypeOptions() {
+      return OUTPUT_TYPE;
+    },
   },
 
   created() {
@@ -105,7 +114,7 @@ export default {
   },
   methods: {
     getComponent(name) {
-      return require(`./providers/${ name }`).default;
+      return require(`@shell/edit/logging.banzaicloud.io.output/providers/${ name }`).default;
     },
     launch(provider) {
       this.$refs.tabbed.select(provider.name);
@@ -119,6 +128,10 @@ export default {
         this.value.spec[this.selectedProvider].buffer = bufferJson;
       } else {
         this.$delete(this.value.spec[this.selectedProvider], 'buffer');
+      }
+
+      if (this.loggingType === AUDIT_ONLY) {
+        this.$set(this.value.spec, 'loggingRef', 'harvester-kube-audit-log-ref');
       }
     },
     tabChanged({ tab }) {
@@ -170,6 +183,18 @@ export default {
       </Banner>
       <Tabbed v-else ref="tabbed" :side-tabs="true" @changed="tabChanged($event)">
         <Tab name="Output" label="Output" :weight="2">
+          <div class="row">
+            <div class="col span-6">
+              <LabeledSelect
+                v-model="loggingType"
+                class="mb-20"
+                :options="outputTypeOptions"
+                :disabled="!isCreate"
+                :mode="mode"
+                :label="t('generic.type')"
+              />
+            </div>
+          </div>
           <div class="row">
             <div class="col span-6">
               <LabeledSelect v-model="selectedProvider" label="Output" :options="providers" :mode="mode" />

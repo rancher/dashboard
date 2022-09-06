@@ -8,6 +8,7 @@ import {
   PVC,
   NETWORK_ATTACHMENT,
   MONITORING,
+  LOGGING,
   STORAGE_CLASS,
 } from '@shell/config/types';
 import { HCI, VOLUME_SNAPSHOT } from '../types';
@@ -16,7 +17,11 @@ import {
   NAME_UNLINKED,
   NAME as NAME_COL,
   AGE,
-  NAMESPACE as NAMESPACE_COL
+  NAMESPACE as NAMESPACE_COL,
+  LOGGING_OUTPUT_PROVIDERS,
+  OUTPUT,
+  CLUSTER_OUTPUT,
+  CONFIGURED_PROVIDERS
 } from '@shell/config/table-headers';
 
 import {
@@ -29,6 +34,10 @@ import {
 import { IF_HAVE } from '@shell/store/type-map';
 
 const TEMPLATE = HCI.VM_VERSION;
+const MONITORING_GROUP = 'Monitoring & Logging::Monitoring';
+const LOGGING_GROUP = 'Monitoring & Logging::Logging';
+const MONITORING_CONFIGURATION = 'monitoring-configuration';
+const LOGGING_CONFIGURATION = 'logging-configuration';
 
 export const PRODUCT_NAME = 'harvester';
 
@@ -38,7 +47,8 @@ export function init($plugin, store) {
     basicType,
     headers,
     configureType,
-    virtualType
+    virtualType,
+    weightGroup,
   } = $plugin.DSL(store, PRODUCT_NAME);
 
   const isSingleVirtualCluster = process.env.rancherEnv === PRODUCT_NAME;
@@ -235,20 +245,47 @@ export function init($plugin, store) {
   }
 
   basicType([
-    HCI.MANAGED_CHART,
+    MONITORING_CONFIGURATION,
     HCI.ALERTMANAGERCONFIG
-  ], 'Monitoring & Logging::Monitoring');
+  ], MONITORING_GROUP);
+
+  basicType([
+    LOGGING_CONFIGURATION,
+    HCI.CLUSTER_FLOW,
+    HCI.CLUSTER_OUTPUT,
+    HCI.FLOW,
+    HCI.OUTPUT,
+  ], LOGGING_GROUP);
+
+  weightGroup('Monitoring', 2, true);
+  weightGroup('Logging', 1, true);
 
   virtualType({
     ifHaveType:    MANAGEMENT.MANAGED_CHART,
     labelKey:     'harvester.monitoring.configuration.label',
-    name:         HCI.MANAGED_CHART,
+    name:         MONITORING_CONFIGURATION,
     namespaced:   true,
     weight:       88,
     route:        {
       name:      `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
       params:    {
         resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: 'rancher-monitoring'
+      },
+      query: { [MODE]: _EDIT }
+    },
+    exact: false,
+  });
+
+  virtualType({
+    ifHaveType:    MANAGEMENT.MANAGED_CHART,
+    labelKey:     'harvester.monitoring.configuration.label',
+    name:         LOGGING_CONFIGURATION,
+    namespaced:   true,
+    weight:       88,
+    route:        {
+      name:      `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
+      params:    {
+        resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: 'rancher-logging'
       },
       query: { [MODE]: _EDIT }
     },
@@ -269,7 +306,7 @@ export function init($plugin, store) {
 
   configureType(HCI.ALERTMANAGERCONFIG, {
     location:    {
-      name:    'c-cluster-product-resource',
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params:  { resource: HCI.ALERTMANAGERCONFIG },
     },
     resource:       MONITORING.ALERTMANAGERCONFIG,
@@ -289,6 +326,103 @@ export function init($plugin, store) {
     },
     exact: false,
   });
+
+  configureType(HCI.CLUSTER_FLOW, {
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.CLUSTER_FLOW },
+    },
+    resource:       LOGGING.CLUSTER_FLOW,
+    resourceDetail: HCI.CLUSTER_FLOW,
+    resourceEdit:   HCI.CLUSTER_FLOW
+  });
+
+  virtualType({
+    ifHaveType:    LOGGING.CLUSTER_FLOW,
+    labelKey:     'harvester.logging.clusterFlow.label',
+    name:         HCI.CLUSTER_FLOW,
+    namespaced:   true,
+    weight:       79,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.CLUSTER_FLOW }
+    },
+    exact: false,
+  });
+
+  configureType(HCI.CLUSTER_OUTPUT, {
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.CLUSTER_OUTPUT },
+    },
+    resource:       LOGGING.CLUSTER_OUTPUT,
+    resourceDetail: HCI.CLUSTER_OUTPUT,
+    resourceEdit:   HCI.CLUSTER_OUTPUT
+  });
+
+  virtualType({
+    ifHaveType:    LOGGING.CLUSTER_OUTPUT,
+    labelKey:     'harvester.logging.clusterOutput.label',
+    name:         HCI.CLUSTER_OUTPUT,
+    namespaced:   true,
+    weight:       78,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.CLUSTER_OUTPUT }
+    },
+    exact: false,
+  });
+
+  configureType(HCI.FLOW, {
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.FLOW },
+    },
+    resource:       LOGGING.FLOW,
+    resourceDetail: HCI.FLOW,
+    resourceEdit:   HCI.FLOW
+  });
+
+  virtualType({
+    ifHaveType:    LOGGING.FLOW,
+    labelKey:     'harvester.logging.flow.label',
+    name:         HCI.FLOW,
+    namespaced:   true,
+    weight:       77,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.FLOW }
+    },
+    exact: false,
+  });
+
+  configureType(HCI.OUTPUT, {
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.OUTPUT },
+    },
+    resource:       LOGGING.OUTPUT,
+    resourceDetail: HCI.OUTPUT,
+    resourceEdit:   HCI.OUTPUT
+  });
+
+  virtualType({
+    ifHaveType:    LOGGING.OUTPUT,
+    labelKey:     'harvester.logging.output.label',
+    name:         HCI.OUTPUT,
+    namespaced:   true,
+    weight:       76,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.OUTPUT }
+    },
+    exact: false,
+  });
+
+  headers(HCI.FLOW, [STATE, NAME_COL, NAMESPACE_COL, OUTPUT, CLUSTER_OUTPUT, CONFIGURED_PROVIDERS, AGE]);
+  headers(HCI.OUTPUT, [STATE, NAME_COL, NAMESPACE_COL, LOGGING_OUTPUT_PROVIDERS, AGE]);
+  headers(HCI.CLUSTER_FLOW, [STATE, NAME_COL, NAMESPACE_COL, CLUSTER_OUTPUT, CONFIGURED_PROVIDERS, AGE]);
+  headers(HCI.CLUSTER_OUTPUT, [STATE, NAME_COL, NAMESPACE_COL, LOGGING_OUTPUT_PROVIDERS, AGE]);
 
   basicType(
     [

@@ -18,7 +18,13 @@ import { clone, set } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 import Match from './Match';
+
+const FLOW_LOGGING = 'Logging';
+const FLOW_AUDIT = 'Audit';
+const FLOW_EVENT = 'Event';
+const FLOW_TYPE = [FLOW_LOGGING, FLOW_AUDIT, FLOW_EVENT];
 
 function emptyMatch(include = true) {
   const rule = {
@@ -49,14 +55,16 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const hasAccessToClusterOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_OUTPUT);
-    const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.OUTPUT);
-    const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
-    const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
+    const currentCluster = this.$store.getters['currentCluster'];
+    const inStore = currentCluster.isHarvester ? VIRTUAL : 'cluster';
+    const hasAccessToClusterOutputs = this.$store.getters[`${ inStore }/schemaFor`](LOGGING.CLUSTER_OUTPUT);
+    const hasAccessToOutputs = this.$store.getters[`${ inStore }/schemaFor`](LOGGING.OUTPUT);
+    const hasAccessToNodes = this.$store.getters[`${ inStore }/schemaFor`](NODE);
+    const hasAccessToPods = this.$store.getters[`${ inStore }/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
 
     const getAllOrDefault = (type, hasAccess) => {
-      return hasAccess ? this.$store.dispatch('cluster/findAll', { type }) : Promise.resolve([]);
+      return hasAccess ? this.$store.dispatch(`${ inStore }/findAll`, { type }) : Promise.resolve([]);
     };
 
     const hash = await allHash({
@@ -72,7 +80,9 @@ export default {
   },
 
   data() {
-    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+    const currentCluster = this.$store.getters['currentCluster'];
+    const inStore = currentCluster.isHarvester ? VIRTUAL : 'cluster';
+    const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
     let filtersYaml;
 
     set(this.value, 'spec', this.value.spec || {});
@@ -118,7 +128,8 @@ export default {
       filtersYaml,
       initialFiltersYaml:   filtersYaml,
       globalOutputRefs,
-      localOutputRefs
+      localOutputRefs,
+      loggingType:        clone(this.value.loggingType || FLOW_LOGGING)
     };
   },
 
@@ -192,6 +203,14 @@ export default {
       }
 
       return uniq(out).sort();
+    },
+
+    isHarvester() {
+      return this.$store.getters['currentProduct'].inStore === VIRTUAL;
+    },
+
+    flowTypeOptions() {
+      return FLOW_TYPE;
     },
   },
 
@@ -301,6 +320,20 @@ export default {
       if (this.value.spec.match && this.isMatchEmpty(this.value.spec.match)) {
         this.$delete(this.value.spec, 'match');
       }
+
+      if (this.loggingType === FLOW_AUDIT) {
+        this.$set(this.value.spec, 'loggingRef', 'harvester-kube-audit-log-ref');
+      }
+
+      if (this.loggingType === FLOW_EVENT) {
+        const eventSelector = { select: { labels: { 'app.kubernetes.io/name': 'event-tailer' } } };
+
+        if (!this.value.spec.match) {
+          this.$set(this.value.spec, 'match', [eventSelector]);
+        } else {
+          this.value.spec.match.push(eventSelector);
+        }
+      }
     },
     onYamlEditorReady(cm) {
       cm.getMode().fold = 'yamlcomments';
@@ -334,7 +367,17 @@ export default {
 
     <Tabbed :side-tabs="true" @changed="tabChanged($event)">
       <Tab name="match" :label="t('logging.flow.matches.label')" :weight="3">
-        <Banner color="info" class="mt-0" label="Configure which container logs will be pulled from" />
+        <Banner v-if="!isHarvester" color="info" class="mt-0" label="Configure which container logs will be pulled from" />
+        <div v-if="isHarvester">
+          <LabeledSelect
+            v-model="loggingType"
+            class="mb-20"
+            :options="flowTypeOptions"
+            :mode="mode"
+            :disabled="!isCreate"
+            :label="t('generic.type')"
+          />
+        </div>
         <ArrayListGrouped v-model="matches" :add-label="t('ingress.rules.addRule')" :default-add-value="{}" :mode="mode">
           <template #default="props">
             <Match

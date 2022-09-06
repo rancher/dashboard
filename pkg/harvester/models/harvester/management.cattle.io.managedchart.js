@@ -25,10 +25,6 @@ export default class HciManagedChart extends HarvesterResource {
     return out;
   }
 
-  get canCustomEdit() {
-    return true;
-  }
-
   get hasCustomized() {
     const clonedValue = clone({
       prometheus:                 this.spec.values.prometheus.prometheusSpec,
@@ -38,10 +34,6 @@ export default class HciManagedChart extends HarvesterResource {
     delete clonedValue.prometheus.storageSpec;
 
     return !isEqual(clonedValue.prometheus, this.defaultValue.prometheus) || !isEqual(clonedValue['prometheus-node-exporter'], this.defaultValue['prometheus-node-exporter']);
-  }
-
-  get displayName() {
-    return this.$rootGetters['i18n/t']('harvester.setting.harvesterMonitoring.label');
   }
 
   get doneOverride() {
@@ -56,7 +48,7 @@ export default class HciManagedChart extends HarvesterResource {
     return {
       name:      `${ HARVESTER_PRODUCT }-c-cluster-resource-namespace-id`,
       params:    {
-        resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: 'rancher-monitoring'
+        resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: this.metadata.name
       },
       query: { [MODE]: _EDIT }
     };
@@ -129,80 +121,191 @@ export default class HciManagedChart extends HarvesterResource {
   }
 
   get customValidationRules() {
-    const rules = [
-      {
-        nullable:       false,
-        path:           'spec.values.prometheus.prometheusSpec.scrapeInterval',
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.scrape'
-      },
-      {
-        nullable:       false,
-        path:           'spec.values.prometheus.prometheusSpec.evaluationInterval',
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.evaluation'
-      },
-      {
-        nullable:       false,
-        path:           'spec.values.prometheus.prometheusSpec.retention',
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.retention'
-      },
-      {
-        nullable:       false,
-        path:           'spec.values.prometheus.prometheusSpec.retentionSize',
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.retentionSize'
-      },
-      {
-        nullable:       false,
-        path:           'spec.values.prometheus.prometheusSpec.resources.requests.cpu',
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.requests.cpu'
-      },
-      {
-        nullable:       false,
-        path:           'spec.values.prometheus.prometheusSpec.resources.requests.memory',
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.requests.memory'
-      },
-      {
-        nullable:       false,
-        path:           'spec.values.prometheus.prometheusSpec.resources.limits.cpu',
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.limits.cpu'
-      },
-      {
-        nullable:       false,
-        path:           'spec.values.prometheus.prometheusSpec.resources.limits.memory',
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.limits.memory'
-      },
-      {
-        nullable:       false,
-        path:           `spec.values.prometheus-node-exporter.resources.requests.cpu`,
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.requests.cpu'
-      },
-      {
-        nullable:       false,
-        path:           `spec.values.prometheus-node-exporter.resources.requests.memory`,
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.requests.memory'
-      },
-      {
-        nullable:       false,
-        path:           `spec.values.prometheus-node-exporter.resources.limits.cpu`,
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.limits.cpu'
-      },
-      {
-        nullable:       false,
-        path:           `spec.values.prometheus-node-exporter.resources.limits.memory`,
-        required:       true,
-        translationKey: 'monitoring.prometheus.config.limits.memory'
-      },
-    ];
+    let rules = [];
+
+    if (this.metadata.name === 'rancher-monitoring') {
+      rules = [
+        {
+          nullable:       false,
+          path:           'spec.values.prometheus.prometheusSpec.scrapeInterval',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.scrape'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.prometheus.prometheusSpec.evaluationInterval',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.evaluation'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.prometheus.prometheusSpec.retention',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.retention'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.prometheus.prometheusSpec.retentionSize',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.retentionSize'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.prometheus.prometheusSpec.resources.requests.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.prometheus.prometheusSpec.resources.requests.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.memory'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.prometheus.prometheusSpec.resources.limits.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.prometheus.prometheusSpec.resources.limits.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.memory'
+        },
+        {
+          nullable:       false,
+          path:           `spec.values.prometheus-node-exporter.resources.requests.cpu`,
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.cpu'
+        },
+        {
+          nullable:       false,
+          path:           `spec.values.prometheus-node-exporter.resources.requests.memory`,
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.memory'
+        },
+        {
+          nullable:       false,
+          path:           `spec.values.prometheus-node-exporter.resources.limits.cpu`,
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.cpu'
+        },
+        {
+          nullable:       false,
+          path:           `spec.values.prometheus-node-exporter.resources.limits.memory`,
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.memory'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.grafana.resources.requests.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.grafana.resources.requests.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.memory'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.grafana.resources.limits.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.grafana.resources.limits.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.memory'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.alertmanager.alertmanagerSpec.retention',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.retention'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.alertmanager.alertmanagerSpec.resources.requests.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.alertmanager.alertmanagerSpec.resources.requests.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.memory'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.alertmanager.alertmanagerSpec.resources.limits.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.alertmanager.alertmanagerSpec.resources.limits.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.memory'
+        },
+      ];
+    }
+
+    if (this.metadata.name === 'rancher-logging') {
+      rules = [
+        {
+          nullable:       false,
+          path:           'spec.values.additionalLoggingSources.fluentbit.resources.requests.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.additionalLoggingSources.fluentbit.resources.requests.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.memory'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.additionalLoggingSources.fluentbit.resources.limits.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.additionalLoggingSources.fluentbit.resources.limits.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.memory'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.additionalLoggingSources.fluentd.resources.requests.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.additionalLoggingSources.fluentd.resources.requests.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.requests.memory'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.additionalLoggingSources.fluentd.resources.limits.cpu',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.cpu'
+        },
+        {
+          nullable:       false,
+          path:           'spec.values.additionalLoggingSources.fluentd.resources.limits.memory',
+          required:       true,
+          translationKey: 'monitoring.prometheus.config.limits.memory'
+        },
+      ];
+    }
 
     return rules;
   }

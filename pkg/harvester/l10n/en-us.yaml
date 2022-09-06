@@ -766,6 +766,20 @@ harvester:
         middle: 'Alertmanager'
         suffix: 'before creating a new config.'
 
+  logging:
+    configuration:
+      section:
+        fluentbit: Fluentbit
+        fluentd: Fluentd
+    clusterFlow:
+      label: Cluster Flow
+    clusterOutput:
+      label: Cluster Output
+    flow:
+      label: Flow
+    output:
+      label: Output
+
   snapshot:
     label: Volume Snapshots
     targetVolume: Original Volume
@@ -908,6 +922,26 @@ typeLabel:
     {count, plural,
       one { Alertmanager Config }
       other { Alertmanager Configs }
+    }
+  harvesterhci.io.logging.clusterflow: |-
+    {count, plural,
+      one { Cluster Flow }
+      other { Cluster Flows }
+    }
+  harvesterhci.io.logging.clusteroutput: |-
+    {count, plural,
+      one { Cluster Output }
+      other { Cluster Outputs }
+    }
+  harvesterhci.io.logging.flow: |-
+    {count, plural,
+      one { Flow }
+      other { Flows }
+    }
+  harvesterhci.io.logging.output: |-
+    {count, plural,
+      one { Output }
+      other { Outputs }
     }
   harvesterhci.io.storage: |-
     {count, plural,
