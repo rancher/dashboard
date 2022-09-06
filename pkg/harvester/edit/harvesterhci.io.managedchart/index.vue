@@ -1,11 +1,10 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
-import RancherMonitoring from './rancher-monitoring';
 
 export default {
   name:       'EditManagedChart',
-  components: { CruResource, RancherMonitoring },
+  components: { CruResource },
   mixins:     [CreateEditView],
 
   props: {
@@ -18,6 +17,12 @@ export default {
   computed: {
     doneLocationOverride() {
       return this.value.doneOverride;
+    },
+
+    currentComponent() {
+      const name = this.value.metadata.name;
+
+      return require(`./${ name }.vue`).default;
     },
   },
 };
@@ -37,7 +42,8 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <RancherMonitoring
+    <component
+      :is="currentComponent"
       :value="value"
     />
   </CruResource>

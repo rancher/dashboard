@@ -47,3 +47,9 @@ export const VOLUME_DATA_SOURCE_KIND = {
   VolumeSnapshot:        'VolumeSnapshot',
   PersistentVolumeClaim: 'Volume'
 };
+
+export const FLOW_TYPE = {
+  LOGGING: 'Logging',
+  AUDIT:   'Audit',
+  EVENT:   'Event'
+};
