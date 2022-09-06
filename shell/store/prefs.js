@@ -4,6 +4,7 @@ import { clone } from '@shell/utils/object';
 import { SETTING } from '@shell/config/settings';
 
 const definitions = {};
+// To store prefs before login in
 let prefsBeforeLogin = {};
 
 export const create = function(name, def, opt = {}) {
@@ -386,10 +387,6 @@ export const actions = {
     state, dispatch, commit, rootState, rootGetters
   }, ignoreKey) {
     let server = { data: {} };
-    // const checkLogin = rootGetters['auth/loggedIn'];
-    // if ( !checkLogin ) {
-    //   return;
-    // }
 
     try {
       const all = await dispatch('management/findAll', {
@@ -414,6 +411,7 @@ export const actions = {
       return;
     }
 
+    // if prefsBeforeLogin has values from login page, update the backend
     if (Object.keys(prefsBeforeLogin).length > 0) {
       Object.keys(prefsBeforeLogin).forEach((key) => {
         server.data[key] = prefsBeforeLogin[key];
