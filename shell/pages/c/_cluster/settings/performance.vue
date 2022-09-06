@@ -16,7 +16,8 @@ const DEFAULT_PERF_SETTING = {
   manualRefresh: {
     enabled:   false,
     threshold: 2500,
-  }
+  },
+  disableWebsocketNotification: false
 };
 
 export default {
