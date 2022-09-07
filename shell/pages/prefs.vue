@@ -11,7 +11,7 @@ import {
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
-import { getVendor } from '@shell/config/private-label';
+import { getProduct } from '@shell/config/private-label';
 
 export default {
   layout:     'plain',
@@ -32,7 +32,7 @@ export default {
     ...mapGetters(['isSingleProduct']),
 
     product() {
-      return getVendor();
+      return getProduct();
     },
 
     theme: {
@@ -164,9 +164,9 @@ export default {
       <LandingPagePreference />
     </div>
     <hr />
-    <h4 v-t="'prefs.formatting.title'" />
+    <h4 v-t="'prefs.displaySettings.title'" />
     <p class="set-landing-leadin">
-      {{ t('prefs.formatting.detail', {product}) }}
+      {{ t('prefs.displaySettings.detail', {product}) }}
     </p>
     <div class="row mt-20">
       <div class="col span-4">
