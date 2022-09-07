@@ -189,7 +189,7 @@ export default {
           :searchable="true"
           :required="true"
           :disabled="disabled"
-          label="Location"
+          :label="t('cluster.machineConfig.pnap.serverLocation.label')"
         />
       </div>
       <div class="col span-6">
@@ -200,7 +200,7 @@ export default {
           :searchable="true"
           :required="true"
           :disabled="disabled"
-          label="Type"
+          :label="t('cluster.machineConfig.pnap.serverType.label')"
         />
       </div>
     </div>
@@ -209,32 +209,32 @@ export default {
         <LabeledInput
           v-model="type.metadata.cpu"
           :mode="mode"
-          :readonly="true"
-          label="CPU"
+          :disabled="true"
+          :label="t('cluster.machineConfig.pnap.serverCpu.label')"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
           v-model="type.metadata.coresPerCpu"
           :mode="mode"
-          :readonly="true"
-          label="Cores per CPU"
+          :disabled="true"
+          :label="t('cluster.machineConfig.pnap.serverCoresPerCpu.label')"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
           v-model="type.metadata.cpuCount"
           :mode="mode"
-          :readonly="true"
-          label="CPU Count"
+          :disabled="true"
+          :label="t('cluster.machineConfig.pnap.serverCpuCount.label')"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
           v-model="type.metadata.cpuFrequency"
           :mode="mode"
-          :readonly="true"
-          label="CPU Frequency [GHz]"
+          :disabled="true"
+          :label="t('cluster.machineConfig.pnap.serverCpuFrequency.label')"
         />
       </div>
     </div>
@@ -243,24 +243,24 @@ export default {
         <LabeledInput
           v-model="type.metadata.ramInGb"
           :mode="mode"
-          :readonly="true"
-          label="RAM [GB]"
+          :disabled="true"
+          :label="t('cluster.machineConfig.pnap.serverRam.label')"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
           v-model="type.metadata.storage"
           :mode="mode"
-          :readonly="true"
-          label="Storage"
+          :disabled="true"
+          :label="t('cluster.machineConfig.pnap.serverStorage.label')"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
           v-model="type.metadata.network"
           :mode="mode"
-          :readonly="true"
-          label="Network"
+          :disabled="true"
+          :label="t('cluster.machineConfig.pnap.serverNetwork.label')"
         />
       </div>
       <div class="col span-3">
@@ -271,7 +271,7 @@ export default {
           :searchable="true"
           :required="true"
           :disabled="disabled"
-          label="OS"
+          :label="t('cluster.machineConfig.pnap.serverOs.label')"
         />
       </div>
     </div>

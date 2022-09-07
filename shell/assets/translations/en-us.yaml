@@ -1441,6 +1441,27 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+    pnap:
+      serverLocation:
+        label: Location
+      serverType:
+        label: Type
+      serverCpu:
+        label: CPU
+      serverCoresPerCpu:
+        label: Cores per CPU
+      serverCpuCount:
+        label: CPU Count
+      serverCpuFrequency:
+        label: CPU Frequency [GHz]
+      serverRam:
+        label: RAM [GB]
+      serverStorage:
+        label: Storage
+      serverNetwork:
+        label: Network
+      serverOs:
+        label: OS
   addOns:
     dependencyBanner: Add-On Configurations can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
