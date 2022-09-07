@@ -1,6 +1,7 @@
 <script>
 import BrandImage from '@shell/components/BrandImage';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
+import LocaleSelector from '@shell/components/LocaleSelector';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
@@ -19,7 +20,9 @@ const UI_COMMIT = process.env.COMMIT || UNKNOWN;
 
 export default {
 
-  components: { BrandImage, ClusterProviderIcon },
+  components: {
+    BrandImage, ClusterProviderIcon, LocaleSelector
+  },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -46,7 +49,6 @@ export default {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct']),
     ...mapGetters('type-map', ['activeProducts']),
-    ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
     ...mapGetters({ features: 'features/get' }),
 
     value: {
@@ -107,14 +109,6 @@ export default {
     dev: mapPref(DEV),
 
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
-
-    showLocale() {
-      return Object.keys(this.availableLocales).length > 1 || this.dev;
-    },
-
-    showNone() {
-      return !!process.env.dev && this.dev;
-    },
 
     multiClusterApps() {
       const options = this.options;
@@ -231,10 +225,6 @@ export default {
       this.$nextTick(() => {
         this.setClusterListHeight(this.maxClustersToShow);
       });
-    },
-
-    switchLocale(locale) {
-      this.$store.dispatch('i18n/switchTo', locale);
     },
   }
 };
@@ -359,34 +349,7 @@ export default {
               v-html="displayVersion"
             />
           </div>
-          <div v-if="showLocale">
-            <v-popover
-              popover-class="localeSelector"
-              placement="top"
-              trigger="click"
-            >
-              <a
-                data-testid="locale-selector"
-                class="locale-chooser"
-              >
-                {{ selectedLocaleLabel }}
-              </a>
-
-              <template slot="popover">
-                <ul class="list-unstyled dropdown" style="margin: -1px;">
-                  <li v-if="showNone" v-t="'locale.none'" class="hand" @click="switchLocale('none')" />
-                  <li
-                    v-for="(label, name) in availableLocales"
-                    :key="name"
-                    class="hand"
-                    @click="switchLocale(name)"
-                  >
-                    {{ label }}
-                  </li>
-                </ul>
-              </template>
-            </v-popover>
-          </div>
+          <LocaleSelector></LocaleSelector>
         </div>
       </div>
     </transition>

@@ -604,7 +604,7 @@ export const actions = {
     }
 
     res = await allHash(promises);
-
+    dispatch('i18n/init');
     let isMultiCluster = true;
 
     if ( res.clusters.length === 1 && res.clusters[0].metadata?.name === 'local' ) {
