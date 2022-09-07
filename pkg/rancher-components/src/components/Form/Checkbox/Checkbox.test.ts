@@ -2,11 +2,11 @@ import { shallowMount } from '@vue/test-utils';
 import { Checkbox } from './index';
 
 describe('Checkbox.vue', () => {
-  it('renders falsy by default', () => {
+  it('is unchecked by default', () => {
     const wrapper = shallowMount(Checkbox);
     const cbInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement;
 
-    expect(cbInput.checked).toBeFalsy();
+    expect(cbInput.checked).toBe(false);
   });
 
   it('renders a true value', () => {
@@ -56,7 +56,7 @@ describe('Checkbox.vue', () => {
     await wrapper.vm.$nextTick();
 
     expect(wrapper.emitted().input?.length).toBe(1);
-    expect(wrapper.emitted().input?.[0][0]).toBeTruthy();
+    expect(wrapper.emitted().input?.[0][0]).toBe(valueWhenTrue);
   });
 
   it('updates from valueWhenTrue to falsy', async () => {
@@ -72,6 +72,6 @@ describe('Checkbox.vue', () => {
     (wrapper.vm as any).clicked(event);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input?.[0][0]).toBeFalsy();
+    expect(wrapper.emitted().input?.[0][0]).toBe(null);
   })
 });
