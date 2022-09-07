@@ -11,11 +11,12 @@ import {
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
+import LocaleSelector from '@shell/components/LocaleSelector';
 
 export default {
   layout:     'plain',
   components: {
-    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference
+    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector
   },
   mixins:     [BackRoute],
   computed:   {
@@ -30,14 +31,6 @@ export default {
 
     ...mapGetters(['isSingleProduct']),
     ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
-
-    showLocale() {
-      return Object.keys(this.availableLocales).length > 1 || this.dev;
-    },
-
-    showNone() {
-      return !!process.env.dev && this.dev;
-    },
 
     theme: {
       get() {
@@ -72,17 +65,6 @@ export default {
       return this.$store.getters['prefs/options'](DATE_FORMAT).map((value) => {
         return {
           label: now.format(value),
-          value
-        };
-      });
-    },
-
-    localesOptions() {
-      const value = Object.keys(this.availableLocales);
-
-      return value.map((value) => {
-        return {
-          label: this.t(`locale.${ value }`),
           value
         };
       });
@@ -157,11 +139,6 @@ export default {
         this.hideDesc = val;
       }
     },
-  },
-  methods: {
-    switchLocale($event) {
-      this.$store.dispatch('i18n/switchTo', $event);
-    },
   }
 };
 </script>
@@ -182,11 +159,7 @@ export default {
     <h4 v-t="'prefs.language'" class="mt-10" />
     <div class="row">
       <div class="col span-4">
-        <LabeledSelect
-          v-model="dateFormat"
-          :options="localesOptions"
-          @input="switchLocale($event)"
-        />
+        <LocaleSelector></LocaleSelector>
       </div>
     </div>
     <div v-if="!isSingleProduct">
