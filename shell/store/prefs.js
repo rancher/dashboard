@@ -4,7 +4,10 @@ import { clone } from '@shell/utils/object';
 import { SETTING } from '@shell/config/settings';
 
 const definitions = {};
-// To store prefs before login in
+/**
+ * Key/value of prefrences are stored before login here and cookies due lack of access permission.
+ * Once user is logged in while setting asUserPreference, update stored before login Key/value to the backend in loadServer function.
+ */
 let prefsBeforeLogin = {};
 
 export const create = function(name, def, opt = {}) {
@@ -268,6 +271,7 @@ export const actions = {
     if ( definition.asUserPreference ) {
       const checkLogin = rootGetters['auth/loggedIn'];
 
+      // Check for login status
       if (!checkLogin) {
         prefsBeforeLogin[key] = value;
 
