@@ -11,6 +11,7 @@ import {
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
+import { getVendor } from '@shell/config/private-label';
 
 export default {
   layout:     'plain',
@@ -29,6 +30,10 @@ export default {
     menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
 
     ...mapGetters(['isSingleProduct']),
+
+    product() {
+      return getVendor();
+    },
 
     theme: {
       get() {
@@ -159,8 +164,11 @@ export default {
       <LandingPagePreference />
     </div>
     <hr />
-    <h4 v-t="'prefs.formatting'" />
-    <div class="row">
+    <h4 v-t="'prefs.formatting.title'" />
+    <p class="set-landing-leadin">
+      {{ t('prefs.formatting.detail', {product}) }}
+    </p>
+    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model="dateFormat"
@@ -175,7 +183,9 @@ export default {
           :options="timeOptions"
         />
       </div>
+    </div>
 
+    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model.number="perPage"
@@ -186,9 +196,6 @@ export default {
           placeholder="Select a row count"
         />
       </div>
-    </div>
-
-    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model.number="menuMaxClusters"
