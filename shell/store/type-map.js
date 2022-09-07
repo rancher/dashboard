@@ -131,8 +131,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail
-
+  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail, importDialog
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -1122,6 +1121,12 @@ export const getters = {
   importComponent(state, getters) {
     return (path) => {
       return importEdit(path);
+    };
+  },
+
+  importDialog(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'dialog', getters.componentFor(rawType, subType), importDialog);
     };
   },
 

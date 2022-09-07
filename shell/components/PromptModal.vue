@@ -32,8 +32,8 @@ export default {
       return this.modalData?.modalWidth || '600px';
     },
     component() {
-      // Looks for a dialog component by looking up @shell/dialog/${name}.
-      return importDialog(this.modalData?.component);
+      // Looks for a dialog component by looking up in plugins and @shell/dialog/${name}.
+      return this.$store.getters['type-map/importDialog'](this.modalData?.component);
     },
     cssProps() {
       // this computed property lets us generate a scss var that we can use in the style
