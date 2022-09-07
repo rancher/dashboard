@@ -7,6 +7,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+
 const DEFAULT_PERF_SETTING = {
   incrementalLoading: {
     enabled:   false,
@@ -15,7 +16,8 @@ const DEFAULT_PERF_SETTING = {
   manualRefresh: {
     enabled:   false,
     threshold: 2500,
-  }
+  },
+  disableWebsocketNotification: false
 };
 
 export default {
@@ -27,6 +29,7 @@ export default {
     Banner,
     LabeledInput,
   },
+
   async fetch() {
     try {
       this.uiPerfSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
@@ -41,6 +44,7 @@ export default {
 
     this.value = JSON.parse(sValue);
   },
+
   data() {
     return {
       uiPerfSetting: DEFAULT_PERF_SETTING,
@@ -49,6 +53,7 @@ export default {
       errors:        [],
     };
   },
+
   computed: {
     mode() {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
@@ -56,10 +61,12 @@ export default {
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
   },
+
   methods: {
     async save(btnCB) {
       this.uiPerfSetting.value = JSON.stringify(this.value);
       this.errors = [];
+
       try {
         await this.uiPerfSetting.save();
         btnCB(true);
@@ -78,12 +85,19 @@ export default {
       {{ t('performance.label') }}
     </h1>
     <div>
-      <label class="text-label">
-        {{ t(`performance.description`, {}, true) }}
-      </label>
-      <Banner color="error" label-key="performance.banner" />
-      <!-- Incremental Loading -->
       <div class="ui-perf-setting">
+        <!-- Websocket Notifications -->
+        <div class="mt-40">
+          <h2>{{ t('performance.websocketNotification.label') }}</h2>
+          <p>{{ t('performance.websocketNotification.description') }}</p>
+          <Checkbox
+            v-model="value.disableWebsocketNotification"
+            :label="t('performance.websocketNotification.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
+        </div>
+        <!-- Incremental Loading -->
         <div class="mt-40">
           <h2>{{ t('performance.incrementalLoad.label') }}</h2>
           <p>{{ t('performance.incrementalLoad.description') }}</p>
@@ -111,6 +125,7 @@ export default {
         <div class="mt-40">
           <h2 v-t="'performance.manualRefresh.label'" />
           <p>{{ t('performance.manualRefresh.description') }}</p>
+          <Banner color="error" label-key="performance.manualRefresh.banner" />
           <Checkbox
             v-model="value.manualRefresh.enabled"
             :label="t('performance.manualRefresh.checkboxLabel')"
