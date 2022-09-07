@@ -18,26 +18,24 @@ echo "BRANCH: ${COMMIT_BRANCH:-<none>}"
 echo "TAG: ${GIT_TAG:-<none>}"
 DIR=${GIT_TAG:-$COMMIT_BRANCH}
 
-echo "RANCHER ENV: $RANCHER_ENV"
-echo "BUILD AND EMBED PKG: $EMBED_PKG"
-
 OUTPUT_DIR=dist/${DIR}-embedded
 
 echo "Building..."
-NUXT_ENV_commit=${COMMIT} NUXT_ENV_version=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard' RANCHER_ENV=$RANCHER_ENV yarn run build --spa
+NUXT_ENV_commit=${COMMIT} NUXT_ENV_version=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard' yarn run build
 
-# TODO: RC Test/confirm this is needed (see harv dev notes confluence)
 if [ -v EMBED_PKG ]; then
-    BASE_DIR="$( cd .. & pwd)"
+    echo "Build and embed plugin from: $EMBED_PKG"
+    PKG_FILE_NAME=${EMBED_PKG##*/}
+    PKG_NAME=$(cut -d "-" -f1 <<< "$PKG_FILE_NAME")
+    echo "Plugin name: '$PKG_NAME'"
 
-    PKG_LOCATION=$BASE_DIR/pkg/$EMBED_PKG
-    echo "Building Package $PKG_LOCATION..."
-    PKG_VERSION=$(cd $PKG_LOCATION; node -p -e "require('./package.json').version")
-    PKG_NAME=${EMBED_PKG}-${PKG_VERSION}
-    yarn run build-pkg $EMBED_PKG
-    mv dist-pkg/$PKG_NAME $OUTPUT_DIR
-else
-    echo "No embedded package specified"
+    # Fetch file, unpack and move to dist
+    curl $EMBED_PKG --output $PKG_FILE_NAME
+    OUTPUT_DIR_PKG=$OUTPUT_DIR/$PKG_NAME
+    mkdir -p $OUTPUT_DIR_PKG
+    tar xvfz $PKG_FILE_NAME -C $OUTPUT_DIR/$PKG_NAME
+    echo "Plugin contents that will be served from $PKG_NAME"
+    ls -alR $OUTPUT_DIR/$PKG_NAME
 fi
 
 echo "Destroying..."
