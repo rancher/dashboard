@@ -57,7 +57,8 @@ export default class HciCluster extends ProvCluster {
   }
 
   /**
-   * Determine the harvester plugin's package name and url for legacy clusters that don't provide them
+   * Determine the harvester plugin's package name and url for legacy clusters that don't provide the package (i.e. it's coming from
+   * outside the cluster)
    */
   _legacyClusterPkgDetails() {
     let uiOfflinePreferred = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_OFFLINE_PREFERRED)?.value;
@@ -74,10 +75,11 @@ export default class HciCluster extends ProvCluster {
       }
     }
 
+    // This is the version that's embedded in the dashboard
     const pkgName = `${ HARVESTER_NAME }-1.0.3`;
 
     if (uiOfflinePreferred === 'true') {
-      // Embedded
+      // Embedded (aka give me the version of the embedded plugin that was in the last release)
       const embeddedPath = `dashboard/${ pkgName }/${ pkgName }.umd.min.js`;
 
       return {
@@ -87,13 +89,8 @@ export default class HciCluster extends ProvCluster {
     }
 
     if (uiOfflinePreferred === 'false') {
-      // Remote
-      // TODO: RC remove
-      const uiDashboardHarvesterRemotePlugin = `http://127.0.0.1:4500/harvester-0.3.0/harvester-0.3.0.umd.min.js`;
-      // const uiDashboardHarvesterRemotePlugin =
-      //   this.rootGetters['management/byId'](MANAGEMENT.SETTING, 'abc') ||
-      //   `https://releases.rancher.com/harvester-ui/plugin/${ pkgName }-head/${ pkgName }-head.umd.min.js`;
-
+      // Remote (aka give me the latest version of the embedded plugin that might not have been released yet)
+      const uiDashboardHarvesterRemotePlugin = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN);
       const parts = uiDashboardHarvesterRemotePlugin.replace('.umd.min.js', '').split('/');
       const pkgNameFromUrl = parts.length > 1 ? parts[parts.length - 1] : null;
 
@@ -134,7 +131,32 @@ export default class HciCluster extends ProvCluster {
     };
   }
 
+  _overridePkgDetails() {
+    // Support loading the pkg from a locally, or other, address
+    // This helps testing of the harvester plugin when packaged up, instead of directly imported
+    const harvesterPkgUrl = process.env.harvesterPkgUrl;
+
+    if (!harvesterPkgUrl) {
+      return;
+    }
+    const parts = harvesterPkgUrl.replace('.umd.min.js', '').split('/');
+    const pkgNameFromUrl = parts.length > 1 ? parts[parts.length - 1] : null;
+
+    if (pkgNameFromUrl) {
+      return {
+        pkgUrl:  harvesterPkgUrl,
+        pkgName: pkgNameFromUrl
+      };
+    }
+  }
+
   async _pkgDetails() {
+    const overridePkgDetails = this._overridePkgDetails();
+
+    if (overridePkgDetails) {
+      return overridePkgDetails;
+    }
+
     const clusterId = this.mgmt.id;
     const uiInfo = await this._getUiInfo(clusterId);
 

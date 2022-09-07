@@ -38,6 +38,7 @@ export const SETTING = {
   CLUSTER_TEMPLATE_ENFORCEMENT:         'cluster-template-enforcement',
   UI_INDEX:                             'ui-index',
   UI_DASHBOARD_INDEX:                   'ui-dashboard-index',
+  UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN: 'ui-dashboard-harvester-legacy-plugin',
   UI_OFFLINE_PREFERRED:                 'ui-offline-preferred',
   SYSTEM_DEFAULT_REGISTRY:              'system-default-registry',
   UI_ISSUES:                            'ui-issues',
