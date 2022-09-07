@@ -29,6 +29,15 @@ export default {
     menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
 
     ...mapGetters(['isSingleProduct']),
+    ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
+
+    showLocale() {
+      return Object.keys(this.availableLocales).length > 1 || this.dev;
+    },
+
+    showNone() {
+      return !!process.env.dev && this.dev;
+    },
 
     theme: {
       get() {
@@ -63,6 +72,17 @@ export default {
       return this.$store.getters['prefs/options'](DATE_FORMAT).map((value) => {
         return {
           label: now.format(value),
+          value
+        };
+      });
+    },
+
+    localesOptions() {
+      const value = Object.keys(this.availableLocales);
+
+      return value.map((value) => {
+        return {
+          label: this.t(`locale.${ value }`),
           value
         };
       });
@@ -138,6 +158,11 @@ export default {
       }
     },
   },
+  methods: {
+    switchLocale($event) {
+      this.$store.dispatch('i18n/switchTo', $event);
+    },
+  }
 };
 </script>
 
@@ -152,6 +177,17 @@ export default {
     </div>
     <div class="mt-10">
       <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
+    </div>
+    <hr />
+    <h4 v-t="'prefs.language'" class="mt-10" />
+    <div class="row">
+      <div class="col span-4">
+        <LabeledSelect
+          v-model="dateFormat"
+          :options="localesOptions"
+          @input="switchLocale($event)"
+        />
+      </div>
     </div>
     <div v-if="!isSingleProduct">
       <hr />
