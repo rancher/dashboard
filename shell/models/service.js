@@ -136,7 +136,11 @@ export default class extends SteveModel {
       let pods = [];
 
       if (podRelationship) {
-        pods = await this.$dispatch('cluster/findMatching', { type: POD, selector: podRelationship.selector }, { root: true });
+        pods = await this.$dispatch('cluster/findMatching', {
+          type:      POD,
+          selector:  podRelationship.selector,
+          namespace: this.namespace
+        }, { root: true });
       }
 
       return pods;

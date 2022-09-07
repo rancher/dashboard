@@ -4,14 +4,13 @@ import {
   SETUP, TIMED_OUT, UPGRADED, _FLAGGED, _UNFLAG
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
@@ -189,7 +188,9 @@ export default async function({
   }
 
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
+    // `await` so we have one successfully request whilst possibly logged in (ensures fromHeader is populated from `x-api-cattle-auth`)
     await store.dispatch('auth/getUser');
+
     const v3User = store.getters['auth/v3User'] || {};
 
     if (v3User?.mustChangePassword) {
@@ -243,10 +244,8 @@ export default async function({
       window.location.href = backTo;
     }
   }
-
   // Load stuff
   await applyProducts(store, $plugin);
-
   // Setup a beforeEach hook once to keep track of the current product
   if ( !beforeEachSetup ) {
     beforeEachSetup = true;
@@ -320,54 +319,42 @@ export default async function({
       // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
       setProduct(store, route);
       store.commit('updateWorkspace', {
-        value:   store.getters['prefs/get'](WORKSPACE),
+        value:   store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
         getters: store.getters
       });
     }
 
-    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
-      setProduct(store, route);
-      const res = [
-        ...always,
-        store.dispatch('loadVirtual', {
-          id: clusterId,
-          oldProduct,
-        }),
-      ];
+    // Always run loadCluster, it handles 'unload' as well
+    // Run them in parallel
+    await Promise.all([
+      ...always,
+      store.dispatch('loadCluster', {
+        id:     clusterId,
+        oldPkg: oldPkgPlugin,
+        newPkg: newPkgPlugin,
+        product,
+        oldProduct,
+      })
+    ]);
 
-      await Promise.all(res);
-    } else {
-      // Always run loadCluster, it handles 'unload' as well
-      // Run them in parallel
-      await Promise.all([
-        ...always,
-        store.dispatch('loadCluster', {
-          id:     clusterId,
-          oldPkg: oldPkgPlugin,
-          newPkg: newPkgPlugin,
-          product,
-          oldProduct,
-        })]);
+    if (!clusterId) {
+      clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
+      const isSingleProduct = store.getters['isSingleProduct'];
 
-      if (!clusterId) {
-        clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
-        const isSingleProduct = store.getters['isSingleProduct'];
+      if (isSingleProduct?.afterLoginRoute) {
+        const value = {
+          name:   'c-cluster-product',
+          ...isSingleProduct.afterLoginRoute,
+          params: {
+            cluster: clusterId,
+            ...isSingleProduct.afterLoginRoute?.params
+          },
+        };
 
-        if (isSingleProduct?.afterLoginRoute) {
-          const value = {
-            name:   'c-cluster-product',
-            ...isSingleProduct.afterLoginRoute,
-            params: {
-              cluster: clusterId,
-              ...isSingleProduct.afterLoginRoute?.params
-            },
-          };
-
-          await store.dispatch('prefs/set', {
-            key: AFTER_LOGIN_ROUTE,
-            value,
-          });
-        }
+        await store.dispatch('prefs/set', {
+          key: AFTER_LOGIN_ROUTE,
+          value,
+        });
       }
     }
   } catch (e) {
@@ -382,6 +369,7 @@ export default async function({
 }
 
 async function findMe(store) {
+  // First thing we do in loadManagement is fetch principals anyway.... so don't ?me=true here
   const principals = await store.dispatch('rancher/findAll', {
     type: NORMAN.PRINCIPAL,
     opt:  {

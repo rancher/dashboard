@@ -2,6 +2,7 @@ import { DEFAULT_PROJECT, SYSTEM_PROJECT } from '@shell/config/labels-annotation
 import { MANAGEMENT, NAMESPACE, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import isEmpty from 'lodash/isEmpty';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 
 function clearUnusedResourceQuotas(spec, types) {
   types.forEach((type) => {
@@ -61,8 +62,28 @@ export default class Project extends HybridModel {
     });
   }
 
+  get doneOverride() {
+    return this.listLocation;
+  }
+
   get listLocation() {
+    // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      return { name: `${ HARVESTER }-c-cluster-projectsnamespaces` };
+    }
+
     return { name: 'c-cluster-product-projectsnamespaces' };
+  }
+
+  get _detailLocation() {
+    // Harvester uses these resource directly... but has different routes. detailLocation covers routes leading to resource (like edit)
+    const _detailLocation = super._detailLocation;
+
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      _detailLocation.name = `${ HARVESTER }-${ _detailLocation.name }`.replace('-product', '');
+    }
+
+    return _detailLocation;
   }
 
   get parentLocationOverride() {
@@ -91,8 +112,6 @@ export default class Project extends HybridModel {
       }
     }
 
-    await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
-
     return newValue;
   }
 
@@ -100,7 +119,6 @@ export default class Project extends HybridModel {
     const norman = await this.norman;
 
     await norman.remove(...arguments);
-    await this.$dispatch('management/remove', this, { root: true });
     await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
   }
 

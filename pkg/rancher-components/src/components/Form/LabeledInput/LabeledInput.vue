@@ -126,6 +126,8 @@ export default (
       if (this.hasTooltip) {
         return this.tooltipKey ? this.t(this.tooltipKey) : this.tooltip
       }
+
+      return undefined;
     },
 
     /**

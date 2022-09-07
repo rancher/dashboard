@@ -36,10 +36,10 @@ export default {
       default: () => []
     },
 
-    hasNodesAndNs: {
-      type:    Boolean,
-      default: true
-    }
+    namespaces: {
+      type:    Array,
+      default: null
+    },
   },
 
   data() {
@@ -99,7 +99,7 @@ export default {
 
     allNamespaces() {
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
-      const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
+      const choices = this.namespaces || this.$store.getters[`${ inStore }/all`](NAMESPACE);
       const out = sortBy(choices.map((obj) => {
         return {
           label: obj.nameDisplay,
@@ -112,7 +112,15 @@ export default {
 
     existingNodeLabels() {
       return getUniqueLabelKeys(this.nodes);
-    }
+    },
+
+    hasNodes() {
+      return this.nodes.length;
+    },
+
+    hasNamespaces() {
+      return this.allNamespaces.length;
+    },
   },
 
   created() {
@@ -190,7 +198,12 @@ export default {
     },
 
     updateNamespaces(term, namespaces) {
-      const nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
+      let nsArray = namespaces;
+
+      // namespaces would be String if there is no namespace
+      if (!this.hasNamespaces) {
+        nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
+      }
 
       this.$set(term, 'namespaces', nsArray);
       this.queueUpdate();
@@ -250,13 +263,14 @@ export default {
           <div class="spacer"></div>
           <div v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')" class="row mb-20">
             <LabeledSelect
-              v-if="hasNodesAndNs"
+              v-if="hasNamespaces"
               v-model="props.row.value.namespaces"
               :mode="mode"
               :multiple="true"
               :taggable="true"
               :options="allNamespaces"
               :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+              @input="updateNamespaces(props.row.value, props.row.value.namespaces)"
             />
             <LabeledInput
               v-else
@@ -280,7 +294,7 @@ export default {
           <div class="row">
             <div class="col span-12">
               <LabeledSelect
-                v-if="hasNodesAndNs"
+                v-if="hasNodes"
                 v-model="props.row.value.topologyKey"
                 :taggable="true"
                 :searchable="true"

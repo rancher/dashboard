@@ -24,7 +24,7 @@ import {
   validateDnsLikeTypes,
   validateLength,
 } from '@shell/utils/validators';
-import formRulesGenerator from '@shell/utils/validators/formRules';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import jsyaml from 'js-yaml';
 import compact from 'lodash/compact';
 import forIn from 'lodash/forIn';
@@ -1587,8 +1587,15 @@ export default class Resource {
           if (!isEmpty(validatorName) && validatorExists) {
             CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
           } else if (!isEmpty(validatorName) && !validatorExists) {
-            // eslint-disable-next-line
-            console.warn(this.t('validation.custom.missing', { validatorName }));
+            // Check if validator is imported from plugin
+            const pluginValidator = this.$rootState.$plugin?.getValidator(validatorName);
+
+            if (pluginValidator) {
+              pluginValidator(pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
+            } else {
+              // eslint-disable-next-line
+              console.warn(this.t('validation.custom.missing', { validatorName }));
+            }
           }
         });
       });

@@ -48,7 +48,8 @@ export default function(dir, _appConfig) {
   const autoLoadPackages = [];
   const watcherIgnores = [
     /.shell/,
-    /dist-pkg/
+    /dist-pkg/,
+    /scripts\/standalone/
   ];
 
   autoLoad.forEach((pkg) => {
@@ -304,8 +305,9 @@ export default function(dir, _appConfig) {
     },
 
     router: {
-      base:       routerBasePath,
-      middleware: ['i18n'],
+      base:          routerBasePath,
+      middleware:    ['i18n'],
+      prefetchLinks: false
     },
 
     alias: {
@@ -453,6 +455,13 @@ export default function(dir, _appConfig) {
           },
         });
 
+        // Ensure there is a fallback for browsers that don't support web workers
+        config.module.rules.unshift({
+          test:    /web-worker.[a-z-]+.js/i,
+          loader:  'worker-loader',
+          options: { inline: 'fallback' },
+        });
+
         // Prevent warning in log with the md files in the content folder
         config.module.rules.push({
           test:    /\.md$/,
@@ -562,7 +571,7 @@ export default function(dir, _appConfig) {
       path.join(NUXT_SHELL, 'plugins/global-formatters'),
       path.join(NUXT_SHELL, 'plugins/trim-whitespace'),
       { src: path.join(NUXT_SHELL, 'plugins/extend-router') },
-      { src: path.join(NUXT_SHELL, 'plugins/lookup'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/console'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/int-number'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
       path.join(NUXT_SHELL, 'plugins/replaceall'),

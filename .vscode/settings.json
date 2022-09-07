@@ -17,20 +17,25 @@
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "cSpell.words": [
     "autoscroll",
+    "cacerts",
     "chainable",
     "epinio",
     "hevi",
     "kube",
+    "kubeconfig",
     "kubectl",
     "Kubernetes",
     "kubevirt",
     "nuxt",
+    "overcommit",
     "prepending",
     "protip",
     "pvcs",
     "testid",
     "tolerations",
+    "userpreferences",
     "virtualmachine",
-    "vuex"
+    "vuex",
+    "whatsnew"
   ],
 }

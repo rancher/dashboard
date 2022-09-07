@@ -237,6 +237,25 @@ about:
     title: Image Lists
   downloadCLI:
     title: CLI Downloads
+  diagnostic:
+    title: Diagnostics
+    checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
+    checkboxLabel: Make additional requests
+    systemInformation: 
+      subtitle: System Information
+      os: OS
+      browserUserAgent: Browser User Agent
+      browserLanguage: Browser Language
+      cookieEnabled: Cookies Enabled 
+      deviceMemory: Device Memory 
+      hardwareConcurrency: Hardware Concurrency 
+      memJsHeapLimit: Memory JS Heap Size limit 
+      memTotalJsHeapSize: Memory Total JS Heap Size 
+      memUsedJsHeapSize: Memory Used JS Heap Size 
+    logs: 
+      subtitle: Latest Logs
+    resourceCounts: 
+      subtitle: Resource Counts
 
 accountAndKeys:
   title: Account and API Keys
@@ -545,6 +564,10 @@ asyncButton:
     action:  Deactivate
     waiting: Deactivating&hellip;
     success: Deactivated
+  diagnostic:
+    action: Download Data
+    success: Saving
+    waiting: Downloading&hellip;
   done:
     action: Done
     success: Saved
@@ -1019,6 +1042,7 @@ cluster:
     harvester:
       label: Harvester
   copyConfig: Copy KubeConfig to Clipboard
+  copiedConfig: Copied KubeConfig to Clipboard
   custom:
     nodeRole:
       label: Node Role
@@ -1038,6 +1062,7 @@ cluster:
       windowsDetail: Run this command in PowerShell on each of the existing Windows machines you want to register. Windows nodes can only be workers.
       windowsNotReady: The cluster must be up and running with Linux etcd, control plane, and worker nodes before the registration command for adding Windows workers will display.
       windowsWarning: Workload pods, including some deployed by Rancher charts, will be scheduled on both Linux and Windows nodes by default. Edit NodeSelector in the chart to direct them to be placed onto a compatible node.
+      windowsDeprecatedForRKE1: Windows support is being deprecated for RKE1. We suggest migrating to RKE2.
       insecure: "Insecure: Select this to skip TLS verification if your server has a self-signed certificate."
   credential:
     banner:
@@ -1200,6 +1225,8 @@ cluster:
     commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your {vendor} installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
     clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
     clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
+  explore: Explore
+  exploreHarvester: Explore
   importAction: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
@@ -1462,12 +1489,15 @@ cluster:
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
 
+  rkeTemplateUpgrade: Template revision {name} available for upgrade
+
   detail:
     provisioner: Provisioner
     kubernetesVersion: Kubernetes Version
     machineProvider: Machine Provider
     machinePools: Machine Pools
     machines: Machines
+    rkeTemplate: RKE Template
 
   machinePool:
     name:
@@ -1515,7 +1545,7 @@ cluster:
     autoReplace:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
-      unit: "Minutes"
+      unit: "Seconds"
   managementTimeout: The cluster to become available. It's possible the cluster was created. We suggest checking the clusters page before trying to create another.
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
@@ -3593,6 +3623,9 @@ persistentVolumeClaim:
     storageClass: Storage Class
     requestStorage: Request Storage
     persistentVolume: Persistent Volume
+    tooltips:
+      noStorageClass: You don't have permission to list Storage Classes, enter a name manually
+      noPersistentVolume: You don't have permission to list Persistent Volumes, enter a name manually
   customize:
     label: Customize
     accessModes:
@@ -3822,6 +3855,7 @@ promptRemove:
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
   deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
+  willDeleteAssociatedNamespaces: "This will also delete all namespaces in the project: "
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
@@ -4064,6 +4098,8 @@ resourceList:
     create: Create
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
+resourceLoadingIndicator:
+  loading: Loading
 
 resourceTable:
   groupBy:
@@ -5228,7 +5264,7 @@ workload:
     cannotViewIngresses: Could not list Ingresses due to lack of permission.
     cannotFindIngresses: Could not find any Ingresses that forward traffic to Services that select Pods in this workload.
     ingressListCaption: "The following Ingresses forward traffic to Services that select Pods from this workload:"
-    cannotViewIngressesBecauseCannotViewServices: Could not find relevant relevant Ingresses due to lack of permission to view Services.
+    cannotViewIngressesBecauseCannotViewServices: Could not find relevant Ingresses due to lack of permission to view Services.
     pods:
       title: Pods
   detailTop:
@@ -5559,12 +5595,6 @@ harvester:
       title: Add Volume
     hotunplug:
       success: 'Volume { name } is detach successfully.'
-  notification:
-    title:
-      succeed: Succeed
-      info: Info
-      warning: Warning
-      error: Error
   action:
     createVM: Create a Virtual Machine
     start: Start
@@ -6659,6 +6689,7 @@ advancedSettings:
     invalidJSON: Invalid JSON - please check and correct your input before saving
   descriptions:
     'cacerts': "CA Certificates needed to verify the server's certificate."
+    'password-min-length': 'Define minimum characters required for an user password.'
     'cluster-defaults': 'Override RKE Defaults when creating new clusters.'
     'engine-install-url': 'Default Docker engine installation URL (for most node drivers).'
     'engine-iso-url': 'Default OS installation URL (for vSphere driver).'
@@ -6745,6 +6776,28 @@ featureFlags:
   restart:
     title: Waiting for Restart
     wait: This may take a few moments
+
+performance:
+  label: UI Performance Settings
+  settingName: Performance
+  description: |-
+    Performance settings allow the behavior of the UI to be configured when dealing with many resources in a cluster. These settings only apply to the following resources: Pods, Deployments, Cron Jobs, Daemon Sets, Jobs, Stateful Sets, Replica Sets, Replication Controllers, Workloads and Secrets.
+  banner: These settings are experimental and may be removed or updated in future versions
+  incrementalLoad:
+    label: Incremental Loading
+    setting: You can configure the threshold above which incremental loading will be used.
+    description: |-
+      When enabled, resources will appear more quickly, but it may take slightly longer to load the entire set of resources.
+    checkboxLabel: Enable incremental loading
+    inputLabel: Resource Threshold
+  manualRefresh:
+    label: Manual Refresh
+    setting: You can configure a threshold above which manual refresh will be enabled.
+    buttonTooltip: Refresh list
+    description: |-
+      When enabled list data will not auto-update but instead the user must manually trigger a list-view refresh.
+    checkboxLabel: Enable manual refresh of data for lists
+    inputLabel: Resource Threshold
 
 banner:
   label: Fixed Banners

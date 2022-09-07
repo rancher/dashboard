@@ -131,6 +131,7 @@ export default {
     :mode="mode"
     :resource="value"
     :errors="errors"
+    component-testid="cluster-manager-import"
     @finish="saveOverride"
     @error="e=>errors = e"
   >

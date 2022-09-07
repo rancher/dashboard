@@ -88,6 +88,8 @@ export function init(store) {
   weightGroup('storage', 95, true);
   weightType(POD, -1, true);
 
+  // here is where we define the usage of the WORKLOAD custom list view for
+  // all the workload types (ex: deployments, cron jobs, daemonsets, etc)
   for (const key in WORKLOAD_TYPES) {
     componentForType(WORKLOAD_TYPES[key], WORKLOAD);
   }

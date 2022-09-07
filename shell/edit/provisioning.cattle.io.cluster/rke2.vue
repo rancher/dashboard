@@ -13,7 +13,8 @@ import {
   MANAGEMENT,
   NORMAN,
   SCHEMA,
-  DEFAULT_WORKSPACE
+  DEFAULT_WORKSPACE,
+  SECRET
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -53,6 +54,8 @@ import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
 import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import { SETTING } from '@shell/config/settings';
+import { base64Encode } from '@shell/utils/crypto';
+import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import ACE from './ACE';
 import AgentEnv from './AgentEnv';
 import DrainOptions from './DrainOptions';
@@ -244,10 +247,6 @@ export default {
 
     if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-    }
-
-    if (this.isHarvesterDriver && this.mode === _CREATE && this.agentConfig['cloud-provider-name'] === undefined) {
-      this.agentConfig['cloud-provider-name'] = HARVESTER;
     }
 
     await this.initAddons();
@@ -498,11 +497,17 @@ export default {
         // If we have a preferred provider... only show default, preferred and external
         const isPreferred = opt === preferred;
         const isExternal = opt === 'external';
+        let disabled = false;
+
+        if (this.isHarvesterExternalCredential && isPreferred) {
+          disabled = true;
+        }
 
         if (showAllOptions || isPreferred || isExternal) {
           out.push({
             label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
             value: opt,
+            disabled,
           });
         }
       }
@@ -840,7 +845,11 @@ export default {
 
     showForm() {
       return !!this.credentialId || !this.needCredential;
-    }
+    },
+
+    isHarvesterExternalCredential() {
+      return this.credential?.harvestercredentialConfig?.clusterType === 'external';
+    },
   },
 
   watch: {
@@ -858,6 +867,7 @@ export default {
     credentialId(val) {
       if ( val ) {
         this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
+        this.setHarvesterDefaultCloudProvider();
       } else {
         this.credential = null;
       }
@@ -1199,12 +1209,29 @@ export default {
           },
         });
 
-        set(this.agentConfig, 'cloud-provider-config', res.data);
+        const kubeconfig = res.data;
+
+        const harvesterKubeconfigSecret = await this.createKubeconfigSecret(kubeconfig);
+
+        set(this.agentConfig, 'cloud-provider-config', `secret://fleet-default:${ harvesterKubeconfigSecret?.metadata?.name }`);
         set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.clusterName`, this.value.metadata.name);
         set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, '/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
       }
 
       await this.save(btnCb);
+    },
+    // create a secret to reference the harvester cluster kubeconfig in rkeConfig
+    async createKubeconfigSecret(kubeconfig = '') {
+      const clusterName = this.value.metadata.name;
+      const secret = await this.$store.dispatch('management/create', {
+        type:     SECRET,
+        metadata: {
+          namespace: 'fleet-default', generateName: 'harvesterconfig', annotations: { [CAPI_ANNOTATIONS.SECRET_AUTH]: clusterName, [CAPI_ANNOTATIONS.SECRET_WILL_DELETE]: 'true' }
+        },
+        data: { credential: base64Encode(kubeconfig) }
+      });
+
+      return secret.save({ url: '/v1/secrets', method: 'POST' });
     },
 
     cancel() {
@@ -1532,7 +1559,15 @@ export default {
         }
       });
     },
-    get
+    get,
+
+    setHarvesterDefaultCloudProvider() {
+      if (this.isHarvesterDriver && this.mode === _CREATE && this.agentConfig['cloud-provider-name'] === undefined && !this.isHarvesterExternalCredential) {
+        this.agentConfig['cloud-provider-name'] = HARVESTER;
+      } else {
+        this.agentConfig['cloud-provider-name'] = '';
+      }
+    },
   },
 };
 </script>
@@ -1552,6 +1587,7 @@ export default {
     :apply-hooks="applyHooks"
     :generate-yaml="generateYaml"
     class="rke2"
+    component-testid="rke2-custom-create"
     @done="done"
     @finish="saveOverride"
     @cancel="cancel"

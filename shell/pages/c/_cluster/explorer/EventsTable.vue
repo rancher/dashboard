@@ -50,12 +50,8 @@ export default {
 </script>
 
 <template>
-  <div v-if="$fetchState.pending" class="events-loading">
-    <i class="icon icon-spin icon-spinner icon-lg" />
-    <div v-html="t('generic.loading', {}, true)" />
-  </div>
   <SortableTable
-    v-else
+    :loading="$fetchState.pending"
     :rows="events"
     :headers="eventHeaders"
     key-field="id"
@@ -76,13 +72,3 @@ export default {
     </template>
   </SortableTable>
 </template>
-<style lang="scss" scoped>
-  .events-loading {
-    align-items: center;
-    display: flex;
-
-    > i {
-      margin-right: 5px;
-    }
-  }
-</style>

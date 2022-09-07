@@ -67,6 +67,10 @@ export default {
 
   async fetch() {
     await this.reloadModel();
+
+    if ( this.value?.graphEndpoint ) {
+      this.setInitialEndpoint(this.value.graphEndpoint);
+    }
   },
 
   data() {
@@ -168,6 +172,16 @@ export default {
             )
           );
         });
+      }
+    },
+
+    setInitialEndpoint(endpoint) {
+      const endpointKey = Object.keys(ENDPOINT_MAPPING).find(key => ENDPOINT_MAPPING[key].graphEndpoint === endpoint);
+
+      if ( endpointKey ) {
+        this.endpoint = endpointKey;
+      } else {
+        this.endpoint = 'custom';
       }
     },
 
@@ -291,7 +305,7 @@ export default {
         <InfoBox v-if="!model.enabled" id="reply-info" class="mt-20 mb-20 p-10">
           {{ t('authConfig.azuread.reply.info') }}
           <br />
-          <label>{{ t('authConfig.azuread.reply.label') }} </label>
+          <label class="reply-url">{{ t('authConfig.azuread.reply.label') }} </label>
           <CopyToClipboardText :plain="true" :text="replyUrl" />
         </InfoBox>
 
@@ -386,5 +400,10 @@ export default {
 <style lang="scss">
 #reply-info {
   flex-grow: 0;
+}
+
+.reply-url {
+  color: inherit;
+  font-weight: 700;
 }
 </style>

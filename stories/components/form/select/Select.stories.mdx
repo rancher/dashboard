@@ -1,0 +1,87 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import Select from '@/shell/components/form/Select.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+
+
+export const TemplateSelect = (args, { argTypes }) => ({
+  components: { Select },
+  props:      Object.keys(argTypes),
+  template:   '<Select v-bind="$props" />',
+})
+
+export const TemplateLabeledSelect = (args, { argTypes }) => ({
+  components: { LabeledSelect },
+  props:      Object.keys(argTypes),
+  template:   '<LabeledSelect v-bind="$props" />',
+})
+
+
+<Meta title="Components/Form/Select" />
+
+# Select
+The select element represents a control that allows the user to choose from a number of options. The single selection element is represented visually by a dropdown.
+
+### Description
+
+- Always associate a label to every select element for good accessibility. Do not include a colon at the end of the label.
+- Dropdown select lists allow users to select one item at a time, multiple select boxes (aka list boxes) allow users to select a multiple items at a time.
+
+
+<Canvas>
+  <Story
+    name="Select"
+    args={{
+      label: 'Select',
+      options: ['value01', 'value02', 'value03', 'value04'],
+      placeholder: 'Select option'
+    }}>
+    {TemplateSelect.bind({})}
+  </Story>
+</Canvas>
+
+### Import 
+<Source
+  language='js'
+  code={`
+     import Select from '@/shell/components/form/Select.vue';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={Select} />
+
+<br/><br/>
+
+# Labeled Select
+
+<Canvas>
+  <Story
+    name="LabeledSelect"
+    args={{
+      label: 'System',
+      options: ['System01', 'System02', 'System03', 'System04'],
+      placeholder: 'Select option'
+    }}>
+    {TemplateLabeledSelect.bind({})}
+  </Story>
+</Canvas>
+
+### Import 
+<Source
+  language='js'
+  code={`
+     import LabeledSelect from '@shell/components/form/LabeledSelect';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={LabeledSelect} />
+
+
+
+
+
+
+

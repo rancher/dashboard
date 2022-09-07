@@ -5,6 +5,7 @@ import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import { RadioGroup } from '@components/Form/Radio';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 import uniq from 'lodash/uniq';
@@ -24,6 +25,7 @@ export default {
     Banner,
     Checkbox,
     CruResource,
+    LabeledInput,
     LabeledSelect,
     Labels,
     NameNsDescription,
@@ -38,7 +40,9 @@ export default {
   async fetch() {
     const storageClasses = await this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
 
-    this.persistentVolumes = await this.$store.dispatch('cluster/findAll', { type: PV });
+    if (this.$store.getters['management/canList'](PV)) {
+      this.persistentVolumes = await this.$store.dispatch('cluster/findAll', { type: PV });
+    }
 
     this.storageClassOptions = storageClasses.map(s => s.name).sort();
     this.storageClassOptions.unshift(this.t('persistentVolumeClaim.useDefault'));
@@ -55,6 +59,8 @@ export default {
     this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || this.storageClassOptions[0]);
   },
   data() {
+    const canListPersistentVolumes = this.$store.getters['management/canList'](PV);
+    const canListStorageClasses = this.$store.getters['management/canList'](STORAGE_CLASS);
     const sourceOptions = [
       {
         label: this.t('persistentVolumeClaim.source.options.new'),
@@ -65,6 +71,7 @@ export default {
         value: 'existing'
       }
     ];
+
     const defaultAccessModes = ['ReadWriteOnce'];
 
     this.$set(this.value, 'spec', this.value.spec || {});
@@ -85,6 +92,8 @@ export default {
       persistentVolumes:       [],
       storageClassOptions:     [],
       defaultTab,
+      canListPersistentVolumes,
+      canListStorageClasses,
     };
   },
   computed: {
@@ -216,15 +225,36 @@ export default {
           <div class="col span-6">
             <div class="row">
               <div v-if="source === 'new'" class="col span-12">
-                <LabeledSelect v-model="value.spec.storageClassName" :options="storageClassOptions" :label="t('persistentVolumeClaim.volumeClaim.storageClass')" :mode="immutableMode" />
+                <LabeledSelect
+                  v-if="canListStorageClasses"
+                  v-model="value.spec.storageClassName"
+                  :options="storageClassOptions"
+                  :label="t('persistentVolumeClaim.volumeClaim.storageClass')"
+                  :mode="immutableMode"
+                />
+                <LabeledInput
+                  v-else
+                  v-model="value.spec.storageClassName"
+                  :label="t('persistentVolumeClaim.volumeClaim.storageClass')"
+                  :mode="immutableMode"
+                  :tooltip="t('persistentVolumeClaim.volumeClaim.tooltips.noStorageClass')"
+                />
               </div>
               <div v-else class="col span-12">
                 <LabeledSelect
+                  v-if="canListPersistentVolumes"
                   v-model="persistentVolume"
                   :options="persistentVolumeOptions"
                   :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
                   :selectable="isPersistentVolumeSelectable"
                   :mode="immutableMode"
+                />
+                <LabeledInput
+                  v-else
+                  v-model="persistentVolume"
+                  :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
+                  :mode="immutableMode"
+                  :tooltip="t('persistentVolumeClaim.volumeClaim.tooltips.noPersistentVolume')"
                 />
               </div>
             </div>
@@ -239,6 +269,7 @@ export default {
                   :output-modifier="true"
                   :increment="1024"
                   :min="1"
+                  :required="true"
                 />
                 <Banner v-if="isEdit && !value.expandable" color="info" class="mt-10">
                   {{ t('persistentVolumeClaim.expand.notSupported') }}

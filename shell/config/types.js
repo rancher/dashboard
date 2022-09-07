@@ -79,7 +79,8 @@ export const WORKLOAD_TYPES = {
   JOB:                    'batch.job',
   STATEFUL_SET:           'apps.statefulset',
   REPLICA_SET:            'apps.replicaset',
-  REPLICATION_CONTROLLER: 'replicationcontroller'
+  REPLICATION_CONTROLLER: 'replicationcontroller',
+  POD:                    'pod'
 };
 
 const {
@@ -169,7 +170,9 @@ export const MANAGEMENT = {
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
   MANAGED_CHART:                 'management.cattle.io.managedchart',
   USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
-  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider'
+  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
+  RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
+  RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
 };
 
 export const CAPI = {

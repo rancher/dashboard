@@ -1,5 +1,6 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
+import { COUNT, SCHEMA } from '@shell/config/types';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
@@ -13,6 +14,10 @@ import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 
+// eslint-disable-next-line
+import Worker from './web-worker.steve-sub-worker.js'
+import * as Comlink from 'comlink';
+
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
 
@@ -21,6 +26,30 @@ const MINIMUM_TIME_NOTIFIED = 3000;
 
 // minimum time a socket must be disconnected for before sending a growl
 const MINIMUM_TIME_DISCONNECTED = 10000;
+
+// We only create a worker for the cluster store
+export function createWorker(store, ctx) {
+  const { getters } = ctx;
+  const storeName = getters.storeName;
+
+  store.$workers = store.$workers || {};
+
+  if (storeName !== 'cluster') {
+    return;
+  }
+
+  function callback(resource) {
+    queueChange(ctx, resource, true, 'Change');
+  }
+
+  if (!store.$workers[storeName]) {
+    const worker = Comlink.wrap(new Worker());
+
+    store.$workers[storeName] = worker;
+
+    worker.initWorker(storeName, Comlink.proxy(callback));
+  }
+}
 
 export function keyForSubscribe({
   resourceType, type, namespace, id, selector
@@ -78,7 +107,7 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
       });
     }
 
-    if ( type === 'schema' ) {
+    if ( type === SCHEMA ) {
       // Clear the current records in the store when a type disappears
       state.queue.push({
         action: 'commit',
@@ -150,10 +179,22 @@ export const actions = {
     socket.connect(get(opt, 'metadata'));
   },
 
-  unsubscribe({ state, commit }) {
+  unsubscribe({ state, commit, getters }) {
     const socket = state.socket;
+    const worker = (this.$workers || {})[getters.storeName];
 
     commit('setWantSocket', false);
+
+    if (worker) {
+      try {
+        worker.destroyWorker();
+        worker[Comlink.releaseProxy]();
+      } catch (e) {
+        console.error(e); // eslint-disable-line no-console
+      }
+
+      delete this.$workers[getters.storeName];
+    }
 
     if ( socket ) {
       return socket.disconnect();
@@ -523,10 +564,36 @@ export const actions = {
   },
 
   'ws.resource.change'(ctx, msg) {
-    queueChange(ctx, msg, true, 'Change');
-
     const data = msg.data;
     const type = data.type;
+
+    // Debounce count changes so we send at most 1 every 5 seconds
+    if (type === COUNT) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.countsUpdate(msg);
+
+        // No further processing - let the web worker debounce the counts
+        return;
+      }
+    }
+
+    // Web worker can process schemas to check that they are actually changing and
+    // only load updates if the schema did actually change
+    if (type === SCHEMA) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.updateSchema(data);
+
+        // No further processing - let the web worker check the schema updates
+        return;
+      }
+    }
+
+    queueChange(ctx, msg, true, 'Change');
+
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
     if (typeOption?.alias?.length > 0) {
@@ -546,10 +613,19 @@ export const actions = {
   },
 
   'ws.resource.remove'(ctx, msg) {
-    queueChange(ctx, msg, false, 'Remove');
-
     const data = msg.data;
     const type = data.type;
+
+    if (type === SCHEMA) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.removeSchema(data.id);
+      }
+    }
+
+    queueChange(ctx, msg, false, 'Remove');
+
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
     if (typeOption?.alias?.length > 0) {

@@ -131,8 +131,8 @@ export default Vue.extend({
     }
 
     &.secondary {
-      background: var(--secondary-banner-bg);
-      border-left: solid $left-border-size var(--secondary);
+      background: var(--default-banner-bg);
+      border-left: solid $left-border-size var(--default);
       color: var(--body-text);
     }
 

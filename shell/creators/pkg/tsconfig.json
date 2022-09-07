@@ -13,9 +13,15 @@
     "sourceMap": true,
     "baseUrl": ".",
     "preserveSymlinks": true,
+    "typeRoots": [
+      "../../node_modules",
+      "../../node_modules/@rancher/shell/types"
+    ],
     "types": [
       "node",
-      "webpack-env"
+      "webpack-env",
+      "@nuxt/types",
+      "rancher"
     ],
     "lib": [
       "esnext",
@@ -39,7 +45,6 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.vue",
-    "../../node_modules/@rancher/shell/types/*.d.ts",
     "../../node_modules/@rancher/shell/core/types.ts"
   ],
   "exclude": [
