@@ -1,7 +1,7 @@
 import { HCI } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
-import HarvesterResource from './harvester';
-import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
+import HarvesterResource from '../harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
 
 export default class HciSetting extends HarvesterResource {
   get detailLocation() {

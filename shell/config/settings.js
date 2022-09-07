@@ -1,5 +1,6 @@
 // Settings
 import { MANAGEMENT } from './types';
+
 // Adapted from: https://github.com/rancher/ui/blob/08c379a9529f740666a704b52522a468986c3520/lib/shared/addon/utils/constants.js#L564
 // Setting IDs
 export const SETTING = {
@@ -15,12 +16,12 @@ export const SETTING = {
   API_HOST:                         'api-host',
   CA_CERTS:                         'cacerts',
 
-  // Allow the local cluste to be hidden
+  // Allow the local cluster to be hidden
   HIDE_LOCAL_CLUSTER:                   'hide-local-cluster',
   AUTH_TOKEN_MAX_TTL_MINUTES:           'auth-token-max-ttl-minutes',
   KUBECONFIG_GENERATE_TOKEN:            'kubeconfig-generate-token',
   KUBECONFIG_TOKEN_TTL_MINUTES:         'kubeconfig-token-ttl-minutes',
-  KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES:       'kubeconfig-default-token-ttl-minutes',
+  KUBECONFIG_DEFAULT_TOKEN_TTL_MINUTES: 'kubeconfig-default-token-ttl-minutes',
   ENGINE_URL:                           'engine-install-url',
   ENGINE_ISO_URL:                       'engine-iso-url',
   FIRST_LOGIN:                          'first-login',
@@ -33,6 +34,7 @@ export const SETTING = {
   AUTH_USER_SESSION_TTL_MINUTES:        'auth-user-session-ttl-minutes',
   AUTH_USER_INFO_RESYNC_CRON:           'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:             'auth-password-requirements-description',
+  CATTLE_PASSWORD_MIN_LENGTH:           'password-min-length',
   CLUSTER_TEMPLATE_ENFORCEMENT:         'cluster-template-enforcement',
   UI_INDEX:                             'ui-index',
   UI_DASHBOARD_INDEX:                   'ui-dashboard-index',
@@ -63,11 +65,9 @@ export const SETTING = {
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS = {
   [SETTING.CA_CERTS]:                             { kind: 'multiline', readOnly: true },
-  // [SETTING.CLUSTER_DEFAULTS]:            { kind: 'json' },
   [SETTING.ENGINE_URL]:                           {},
   [SETTING.ENGINE_ISO_URL]:                       {},
-  // [SETTING.PL]:                             {},
-  // [SETTING.ISSUES]:                         {},
+  [SETTING.CATTLE_PASSWORD_MIN_LENGTH]:           { kind: 'integer' },
   [SETTING.INGRESS_IP_DOMAIN]:                    {},
   [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]:       {},
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:        {},
@@ -78,7 +78,6 @@ export const ALLOWED_SETTINGS = {
   [SETTING.AUTH_USER_INFO_RESYNC_CRON]:           {},
   [SETTING.SERVER_URL]:                           { kind: 'url', canReset: true },
   [SETTING.RKE_METADATA_CONFIG]:                  { kind: 'json' },
-  // [SETTING.BANNERS]:                        { kind: 'json' },
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:              {},
   [SETTING.UI_INDEX]:                             {},
   [SETTING.UI_DASHBOARD_INDEX]:                   {},
@@ -94,6 +93,7 @@ export const ALLOWED_SETTINGS = {
   },
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
 };
+
 // harvester Settings ID
 export const HCI_SETTING = {
   BACKUP_TARGET:                    'backup-target',
@@ -120,6 +120,7 @@ export const HCI_SETTING = {
   RANCHER_MONITORING:               'fleet-local/rancher-monitoring',
   RELEASE_DOWNLOAD_URL:             'release-download-url'
 };
+
 export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.BACKUP_TARGET]: { kind: 'json', from: 'import' },
   [HCI_SETTING.LOG_LEVEL]:     {
@@ -154,6 +155,7 @@ export const HCI_ALLOWED_SETTINGS = {
   },
   [HCI_SETTING.RELEASE_DOWNLOAD_URL]: { kind: 'url' },
 };
+
 export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
   [HCI_SETTING.UI_SOURCE]: {
     kind:    'enum',
@@ -162,6 +164,7 @@ export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
   [HCI_SETTING.UI_INDEX]:                 { kind: 'url' },
   [HCI_SETTING.CLUSTER_REGISTRATION_URL]: { kind: 'url' },
 };
+
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {
   let setting;
 
@@ -181,6 +184,7 @@ export const fetchOrCreateSetting = async(store, id, val, save = true) => {
 
   return setting;
 };
+
 export const setSetting = async(store, id, val) => {
   const setting = await fetchOrCreateSetting(store, id, val, false);
 

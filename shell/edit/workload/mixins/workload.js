@@ -138,6 +138,7 @@ export default {
   },
 
   data() {
+    let defaultTab;
     let type = this.$route.params.resource;
     const createSidecar = !!this.$route.query.sidecar;
     const isInitContainer = !!this.$route.query.init;
@@ -148,21 +149,48 @@ export default {
 
     if (!this.value.spec) {
       this.value.spec = {};
+      if (this.value.type === WORKLOAD_TYPES.POD) {
+        const podContainers = [{
+          imagePullPolicy: 'Always',
+          name:            `container-0`,
+        }];
+
+        defaultTab = 'container-0';
+
+        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] } } };
+
+        this.$set(this.value, 'spec', podSpec);
+      }
+    }
+
+    if (this.mode === _CREATE) {
+      defaultTab = 'container-0';
+    }
+
+    if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
+      const podSpec = { ...this.value.spec };
+
+      this.$set(this.value.spec, 'template', { spec: podSpec });
     }
 
     const spec = this.value.spec;
+    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+
+    let containers = podTemplateSpec.containers || [];
     let container;
-    const podTemplateSpec =
-      type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
-    let containers = podTemplateSpec.containers;
+
+    if (this.mode === _VIEW && this.value.type === 'pod' ) {
+      podTemplateSpec = spec;
+    }
 
     if (
       this.mode === _CREATE ||
       this.mode === _VIEW ||
-      (!createSidecar && !this.value.hasSidecars)
+      (!createSidecar && !this.value.hasSidecars) // hasSideCars = containers.length > 1 || initContainers.length;
     ) {
       container = containers[0];
     } else {
+      // This means that there are no containers.
       if (!podTemplateSpec.initContainers) {
         podTemplateSpec.initContainers = [];
       }
@@ -176,13 +204,18 @@ export default {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
         });
+        defaultTab = 'container-0';
+
         containers = podTemplateSpec.initContainers;
       }
-      if (createSidecar) {
+      if (createSidecar || this.value.type === 'pod') {
         container = {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
         };
+
+        defaultTab = 'container-0';
+
         containers.push(container);
       } else {
         container = containers[0];
@@ -217,7 +250,9 @@ export default {
       fvFormRuleSets:      [{
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
-      fvReportedValidationPaths: ['spec']
+      fvReportedValidationPaths: ['spec'],
+      defaultTab
+
     };
   },
 
@@ -249,6 +284,10 @@ export default {
 
     isDeployment() {
       return this.type === WORKLOAD_TYPES.DEPLOYMENT;
+    },
+
+    isPod() {
+      return this.value.type === WORKLOAD_TYPES.POD;
     },
 
     isStatefulSet() {
@@ -882,7 +921,7 @@ export default {
       }
     },
     nvidiaIsValid(nvidiaGpuLimit) {
-      if (!Number.isInteger(nvidiaGpuLimit)) {
+      if ( !Number.isInteger(parseInt(nvidiaGpuLimit)) ) {
         return false;
       }
       if (nvidiaGpuLimit === undefined) {

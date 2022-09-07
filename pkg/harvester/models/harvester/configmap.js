@@ -1,7 +1,7 @@
 import { clone } from '@shell/utils/object';
 import { HCI } from '@shell/config/types';
-import HarvesterResource from './harvester';
-import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
+import HarvesterResource from '../harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
 
 // FIXME: Harvester Request for team to validate navigation (list, create, etc) for this resource type
 export default class HciConfigMap extends HarvesterResource {

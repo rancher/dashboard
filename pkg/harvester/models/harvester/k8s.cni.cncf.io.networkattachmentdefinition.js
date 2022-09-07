@@ -1,7 +1,7 @@
 import { clone } from '@shell/utils/object';
 import { HCI } from '@shell/config/types';
 import NetworkAttachmentDef from '@shell/models/k8s.cni.cncf.io.networkattachmentdefinition';
-import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
 
 // FIXME: Harvester Request for team to validate navigation (list, create, etc) for this resource type
 export default class HarvesterNetworkAttachmentDef extends NetworkAttachmentDef {

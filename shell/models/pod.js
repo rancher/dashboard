@@ -1,8 +1,8 @@
 import { insertAt } from '@shell/utils/array';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
-import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
+import WorkloadService from '@shell/models/workload.service';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -14,7 +14,7 @@ export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 7,
 };
 
-export default class Pod extends SteveModel {
+export default class Pod extends WorkloadService {
   get _availableActions() {
     const out = super._availableActions;
 
@@ -179,5 +179,22 @@ export default class Pod extends SteveModel {
     }
 
     return 0;
+  }
+
+  save() {
+    const { metadata, spec } = this.spec.template;
+
+    this.spec = {
+      ...this.spec,
+      metadata: {
+        ...this.metadata,
+        ...metadata
+      },
+      ...spec
+    };
+
+    delete this.spec.template;
+
+    return this._save(...arguments);
   }
 }
