@@ -1,7 +1,6 @@
 <script>
 import { mapState } from 'vuex';
 import { isArray } from '@shell/utils/array';
-import { importDialog } from '@shell/utils/dynamic-importer';
 
 /**
  * @name PromptModal
