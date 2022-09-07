@@ -1089,24 +1089,11 @@ export const getters = {
     };
   },
 
-  hasCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
+  hasCustomPromptRemove(state, getters, rootState) {
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
 
-      const cache = state.cache.promptRemove;
-
-      if ( cache[type] !== undefined ) {
-        return cache[type];
-      }
-
-      try {
-        require.resolve(`@shell/promptRemove/${ type }`);
-        cache[type] = true;
-      } catch (e) {
-        cache[type] = false;
-      }
-
-      return cache[type];
+      return hasCustom(state, rootState, 'promptRemove', key, () => require.resolve(`@shell/promptRemove/${ key }`));
     };
   },
 
@@ -1148,11 +1135,9 @@ export const getters = {
     };
   },
 
-  importCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
-
-      return importCustomPromptRemove(type);
+  importCustomPromptRemove(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'promptRemove', getters.componentFor(rawType, subType), importCustomPromptRemove);
     };
   },
 
