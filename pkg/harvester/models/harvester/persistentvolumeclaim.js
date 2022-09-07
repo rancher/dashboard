@@ -48,7 +48,8 @@ export default class HciPv extends HarvesterResource {
   exportImage(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'HarvesterExportImageDialog'
+      component: 'HarvesterExportImageDialog',
+      product:   'harvester'
     });
   }
 

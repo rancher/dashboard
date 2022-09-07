@@ -58,9 +58,13 @@ export function importEdit(name) {
   return () => import(/* webpackChunkName: "edit" */ `@shell/edit/${name}`);
 }
 
-export function importDialog(name) {
+export function importDialog(name, product) {
   if ( !name ) {
     throw new Error('Name required');
+  }
+
+  if (product === 'harvester') {
+    return () => import(/* webpackChunkName: "dialog" */ `../../pkg/harvester/dialog/${ name }`); 
   }
 
   return () => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`);

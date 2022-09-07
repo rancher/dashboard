@@ -269,7 +269,8 @@ export default class VirtVm extends HarvesterResource {
   backupVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'HarvesterBackupModal'
+      component: 'HarvesterBackupModal',
+      product:   'harvester'
     });
   }
 
@@ -279,14 +280,16 @@ export default class VirtVm extends HarvesterResource {
     this.$dispatch('promptModal', {
       resources,
       diskName,
-      component: 'HarvesterUnplugVolume'
+      component: 'HarvesterUnplugVolume',
+      product:   'harvester'
     });
   }
 
   restoreVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'HarvesterRestoreDialog'
+      component: 'HarvesterRestoreDialog',
+      product:   'harvester'
     });
   }
 
@@ -329,14 +332,16 @@ export default class VirtVm extends HarvesterResource {
   migrateVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'HarvesterMigrationDialog'
+      component: 'HarvesterMigrationDialog',
+      product:   'harvester'
     });
   }
 
   ejectCDROM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'HarvesterEjectCDROMDialog'
+      component: 'HarvesterEjectCDROMDialog',
+      product:   'harvester'
     });
   }
 
@@ -347,14 +352,16 @@ export default class VirtVm extends HarvesterResource {
   createTemplate(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'HarvesterCloneTemplate'
+      component: 'HarvesterCloneTemplate',
+      product:   'harvester'
     });
   }
 
   addHotplug(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'HarvesterAddHotplugModal'
+      component: 'HarvesterAddHotplugModal',
+      product:   'harvester'
     });
   }
 

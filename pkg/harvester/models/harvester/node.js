@@ -187,7 +187,8 @@ export default class HciNode extends HarvesterResource {
   enableMaintenanceMode(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'HarvesterMaintenanceDialog'
+      component: 'HarvesterMaintenanceDialog',
+      product:   'harvester'
     });
   }
 

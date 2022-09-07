@@ -33,7 +33,7 @@ export default {
     },
     component() {
       // Looks for a dialog component by looking up @shell/dialog/${name}.
-      return importDialog(this.modalData?.component);
+      return importDialog(this.modalData?.component, this.modalData?.product);
     },
     cssProps() {
       // this computed property lets us generate a scss var that we can use in the style
