@@ -47,10 +47,22 @@ export default {
     };
   },
 
-  methods: {
+  computed: {
+    /**
+     * Validate rule if any and return error if any
+     * @param {*} value
+     */
+    validate() {
+      const errorText = this.setting.validate && this.setting.validate(this.value.value);
+
+      return errorText ? this.t(errorText) : undefined;
+    },
+  },
+  methods:  {
     convertToString(event) {
       this.value.value = `${ event.target.value }`;
     },
+
     saveSettings(done) {
       const t = this.$store.getters['i18n/t'];
 
@@ -122,6 +134,7 @@ export default {
         <LabeledSelect
           v-model="value.value"
           :label="t('advancedSettings.edit.value')"
+          :rules="validate"
           :localized-label="true"
           :mode="mode"
           :options="enumOptions"
@@ -131,6 +144,7 @@ export default {
         <RadioGroup
           v-model="value.value"
           name="settings_value"
+          :rules="validate"
           :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
           :options="['true', 'false']"
         />
@@ -139,6 +153,7 @@ export default {
         <TextAreaAutoGrow
           v-model="value.value"
           v-focus
+          :rules="validate"
           :min-height="254"
         />
       </div>
@@ -146,6 +161,7 @@ export default {
         <input
           :value="parseInt(value.value, 10)"
           type="number"
+          :rules="validate"
           min="0"
           @input="convertToString($event)"
         >
@@ -154,6 +170,7 @@ export default {
         <LabeledInput
           v-model="value.value"
           v-focus
+          :rules="validate"
           :label="t('advancedSettings.edit.value')"
         />
       </div>
