@@ -632,6 +632,7 @@ export default {
               <div>
                 <Checkbox
                   v-model="value.httpEndpoint"
+                  value-when-true="enabled"
                   :mode="mode"
                   :disabled="disabled"
                   :label="t('cluster.machineConfig.amazonEc2.httpEndpoint')"
@@ -640,6 +641,7 @@ export default {
               <div>
                 <Checkbox
                   v-model="value.httpTokens"
+                  value-when-true="required"
                   :mode="mode"
                   :disabled="!value.httpEndpoint || disabled"
                   :label="t('cluster.machineConfig.amazonEc2.httpTokens')"
