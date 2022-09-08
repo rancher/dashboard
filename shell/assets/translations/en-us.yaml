@@ -3648,7 +3648,7 @@ prefs:
     ember: Cluster Manager
   displaySettings: 
     title: Display Settings
-    detail: Change the way information is displayed in {vendor}.
+    detail: Change the way information is displayed in the UI.
   clusterToShow:
     label: Number of clusters to show in side menu
     value: |-

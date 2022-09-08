@@ -11,7 +11,6 @@ import {
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
-import { getProduct } from '@shell/config/private-label';
 
 export default {
   layout:     'plain',
@@ -30,10 +29,6 @@ export default {
     menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
 
     ...mapGetters(['isSingleProduct']),
-
-    product() {
-      return getProduct();
-    },
 
     theme: {
       get() {
@@ -166,7 +161,7 @@ export default {
     <hr />
     <h4 v-t="'prefs.displaySettings.title'" />
     <p class="set-landing-leadin">
-      {{ t('prefs.displaySettings.detail', {product}) }}
+      {{ t('prefs.displaySettings.detail', {}, raw=true) }}
     </p>
     <div class="row mt-20">
       <div class="col span-4">
