@@ -1,7 +1,7 @@
 import { RouteConfig } from 'vue-router';
 import { PRODUCT_NAME } from '../config/harvester';
 
-import ListHarvester from '../pages/c/_cluster/index.vue';
+import Root from '../pages/c/_cluster/index.vue';
 import HarvesterSupport from '../pages/c/_cluster/support/index.vue';
 import HarvesterConsoleSerial from '../pages/c/_cluster/console/_uid/serial.vue';
 import HarvesterConsoleVnc from '../pages/c/_cluster/console/_uid/vnc.vue';
@@ -40,14 +40,9 @@ const routes: RouteConfig[] = [
     component: HarvesterMembers,
   },
   {
-    name:      `${ PRODUCT_NAME }`,
-    path:      `/:product`,
-    component: ListHarvester,
-  },
-  {
     name:      `${ PRODUCT_NAME }-c-cluster`,
     path:      `/:product/c/:cluster`,
-    component: ListHarvester,
+    component: Root,
   }, {
     name:      `${ PRODUCT_NAME }-c-cluster-projectsnamespaces`,
     path:      `/:product/c/:cluster/projectsnamespaces`,

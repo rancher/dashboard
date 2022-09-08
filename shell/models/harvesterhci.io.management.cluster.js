@@ -91,11 +91,11 @@ export default class HciCluster extends ProvCluster {
     if (uiOfflinePreferred === 'false') {
       // Remote (aka give me the latest version of the embedded plugin that might not have been released yet)
       const uiDashboardHarvesterRemotePlugin = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN);
-      const parts = uiDashboardHarvesterRemotePlugin.replace('.umd.min.js', '').split('/');
+      const parts = uiDashboardHarvesterRemotePlugin?.replace('.umd.min.js', '').split('/');
       const pkgNameFromUrl = parts.length > 1 ? parts[parts.length - 1] : null;
 
       if (!pkgNameFromUrl) {
-        throw new Error(`Unable to determine harvester plugin name from ${ uiDashboardHarvesterRemotePlugin }`);
+        throw new Error(`Unable to determine harvester plugin name from '${ uiDashboardHarvesterRemotePlugin }'`);
       }
 
       return {
