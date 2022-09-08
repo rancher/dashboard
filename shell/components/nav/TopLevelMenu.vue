@@ -131,7 +131,13 @@ export default {
           icon:    'icon-gear',
           value:   'plugins',
           weight:  1,
-          to:      { name: 'plugins' },
+          to:      {
+            name: 'plugins',
+            params: {
+              product: 'uiplugins',
+              cluster: 'local'
+            }
+          },
         });
       }
 

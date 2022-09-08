@@ -100,6 +100,8 @@ export const CATALOG = {
   REPO:           'catalog.cattle.io.repo',
 };
 
+export const UI_PLUGIN = 'catalog.cattle.io.uiplugin';
+
 export const HELM = { PROJECTHELMCHART: 'helm.cattle.io.projecthelmchart' };
 
 export const MONITORING = {

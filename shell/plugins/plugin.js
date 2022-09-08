@@ -1,10 +1,12 @@
-// This plugin loads any extensions at app load time
+// This plugin loads any UI Plugins at app load time
+import { allHashSettled } from '@shell/utils/promise';
 
-import { allHash } from '@shell/utils/promise';
+import { UI_PLUGIN } from '@shell/config/types';
 
 const META_NAME_PREFIX = 'app-autoload-';
 
 export default async(context) => {
+  // UI Plugins declared in the HTML head
   const meta = context.app?.head?.meta || [];
   const hash = {};
 
@@ -18,5 +20,71 @@ export default async(context) => {
     }
   });
 
-  await allHash(hash);
+  // Discover all of the UI Plugins CRs
+  console.error('>>>>>>>>>>>>>>>>>>>>>>');
+  console.log(context.route);
+
+  let loadPlugins = true;
+
+  // TODO: Might only want to do this if the user is an admin
+  // Not sure we can tell this at this point
+  // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
+  if (context.route?.path === '/safeMode') {
+    loadPlugins = false;
+    console.warn('Safe Mode - plugins will not be loaded')
+  }
+
+  const { store, $plugin, app } = context;
+  const router = app.router;
+
+  try {
+    const res = await store.dispatch('management/request', {
+      url: `/v1/${ UI_PLUGIN }`,
+      timeout: 5000,
+      headers: {
+        accept: 'application/json'
+      }
+    });
+
+    if (loadPlugins && res && res.data) {
+      (res.data || []).forEach((resource) => {
+        const plugin = resource.spec?.plugin;
+
+        if (plugin) {
+          const id = `${ plugin.name }-${ plugin.version }`;
+
+          console.log('Loading plugin: ' + id);
+
+          const url = `http://127.0.0.1:4500/${ id }/${ id }.umd.min.js`;
+
+          console.log(url);
+
+          hash[plugin.name] = $plugin.loadAsync(id, url);
+        }
+      });
+    }
+  } catch (e) {
+    console.error('Could not load UI Plugins');
+    console.log(e);
+  }
+
+  // TODO: Need to load routes after app has loaded
+  // Need a Nuxt window.onready
+
+  // TODO - use the API
+  // Load all of the plugins
+  const pluginLoads = await allHashSettled(hash);
+
+  // Some pluigns may have failed to load - store this
+  Object.keys(pluginLoads).forEach((name) => {
+    const res = pluginLoads[name];
+
+    if (res?.status === 'rejected') {
+      console.error(`Failed to load plugin: ${ name }`);
+
+      // Record error in the uiplugins store, so that we can show this to the user
+    }
+  });
+
+  console.log('LOADED !!!!!!! *********');
 };

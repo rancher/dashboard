@@ -38,6 +38,11 @@ export default {
     noContent: {
       type:    Boolean,
       default: false,
+    },
+
+    tabsOnly: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -207,7 +212,7 @@ export default {
 </script>
 
 <template>
-  <div :class="{'side-tabs': !!sideTabs }">
+  <div :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }">
     <ul
       ref="tablist"
       role="tablist"
@@ -334,6 +339,19 @@ export default {
 
   &.no-content {
     padding: 0 0 3px 0;
+  }
+}
+
+.tabs-only {
+  margin-bottom: 20px;
+
+  .tab-container {
+    display: none;
+  }
+
+  .tabs {
+    border: 0;
+    border-bottom: 2px solid var(--border);
   }
 }
 
