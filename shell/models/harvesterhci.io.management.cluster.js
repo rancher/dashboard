@@ -83,7 +83,7 @@ export default class HciCluster extends ProvCluster {
       const embeddedPath = `dashboard/${ pkgName }/${ pkgName }.umd.min.js`;
 
       return {
-        pkgUrl: process.env.dev ? embeddedPath : `dashboard/${ embeddedPath }`,
+        pkgUrl: process.env.dev ? `${ process.env.api }/${ embeddedPath }` : embeddedPath,
         pkgName
       };
     }
@@ -92,7 +92,7 @@ export default class HciCluster extends ProvCluster {
       // Remote (aka give me the latest version of the embedded plugin that might not have been released yet)
       const uiDashboardHarvesterRemotePlugin = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN);
       const parts = uiDashboardHarvesterRemotePlugin?.replace('.umd.min.js', '').split('/');
-      const pkgNameFromUrl = parts.length > 1 ? parts[parts.length - 1] : null;
+      const pkgNameFromUrl = parts?.length > 1 ? parts[parts.length - 1] : null;
 
       if (!pkgNameFromUrl) {
         throw new Error(`Unable to determine harvester plugin name from '${ uiDashboardHarvesterRemotePlugin }'`);
@@ -169,7 +169,7 @@ export default class HciCluster extends ProvCluster {
     const loadedPkgs = Object.keys(plugins);
 
     if (loadedPkgs.find(pkg => pkg === HARVESTER_NAME)) {
-      console.info('Harvester plugin built in', plugins); // eslint-disable-line no-console
+      console.info('Harvester plugin built is built in, skipping load from external sources'); // eslint-disable-line no-console
 
       return;
     }
@@ -181,12 +181,18 @@ export default class HciCluster extends ProvCluster {
 
     // Skip loading if we've previously loaded the correct one
     if (!!plugins[pkgName]) {
+      console.info('Harvester plugin already loaded, no need to load', pkgName); // eslint-disable-line no-console
+
       return;
     }
 
-    console.info('Attempting to load Harvester plugin'); // eslint-disable-line no-console
+    console.info('Attempting to load Harvester plugin', pkgName); // eslint-disable-line no-console
 
-    return await this.$rootState.$plugin.loadAsync(pkgName, pkgUrl);
+    const res = await this.$rootState.$plugin.loadAsync(pkgName, pkgUrl);
+
+    console.info('Loaded Harvester plugin', pkgName); // eslint-disable-line no-console
+
+    return res;
   }
 
   goToCluster() {
