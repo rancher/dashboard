@@ -119,7 +119,7 @@ export default {
       "avatar name"
       "avatar description";
     grid-template-columns: $size auto;
-    grid-template-rows: math.div($size, 2) math.div($size, 2);
+    grid-template-rows: auto math.div($size, 2);
     column-gap: 10px;
 
     &.showLabels {
