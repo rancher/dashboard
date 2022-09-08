@@ -1,6 +1,23 @@
 // Settings
 import { GC_DEFAULTS } from '../utils/gc/gc-types';
 import { MANAGEMENT } from './types';
+import { Store } from 'vuex';
+
+interface RancherSetting {
+  [key: string]: {
+    alias?: string,
+    canReset?: boolean,
+    customFormatter?: string,
+    from?: string,
+    kind?: string,
+    options?: string[]
+    readOnly?: boolean,
+    /**
+     * Function used from the form validation
+     */
+    validate?: (value: string) => string | undefined,
+  };
+}
 
 // Adapted from: https://github.com/rancher/ui/blob/08c379a9529f740666a704b52522a468986c3520/lib/shared/addon/utils/constants.js#L564
 // Setting IDs
@@ -66,7 +83,7 @@ export const SETTING = {
 };
 
 // These are the settings that are allowed to be edited via the UI
-export const ALLOWED_SETTINGS = {
+export const ALLOWED_SETTINGS: RancherSetting = {
   [SETTING.CA_CERTS]:                             { kind: 'multiline', readOnly: true },
   [SETTING.ENGINE_URL]:                           {},
   [SETTING.ENGINE_ISO_URL]:                       {},
@@ -110,7 +127,7 @@ export const DEFAULT_PERF_SETTING = {
   garbageCollection:            GC_DEFAULTS
 };
 
-export const fetchOrCreateSetting = async(store, id, val, save = true) => {
+export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: string, save = true): Promise<any> => {
   let setting;
 
   try {
@@ -130,7 +147,7 @@ export const fetchOrCreateSetting = async(store, id, val, save = true) => {
   return setting;
 };
 
-export const setSetting = async(store, id, val) => {
+export const setSetting = async(store: Store<any>, id: string, val: string): Promise<any> => {
   const setting = await fetchOrCreateSetting(store, id, val, false);
 
   setting.value = val;
