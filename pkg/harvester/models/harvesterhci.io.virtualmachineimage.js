@@ -34,7 +34,7 @@ export default class HciVmImage extends HarvesterResource {
         enabled:    canCreateVM,
         icon:       'icon icon-fw icon-spinner',
         label:      this.t('harvester.action.createVM'),
-        disabled:   !this.isReady, // FIXME: Harvester does this still work as expected?
+        disabled:   !this.isReady,
       },
       ...out
     ];

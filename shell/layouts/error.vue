@@ -35,7 +35,6 @@ export default {
       return;
     }
 
-    // TODO: RC Test - is this still needed?
     // Avoid scenarios where the 404 error will blip up whilst the authenticated middleware is determining if there's an alternative valid
     // route
     setTimeout(() => {

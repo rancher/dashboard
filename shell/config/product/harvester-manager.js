@@ -45,7 +45,7 @@ dynamicPluginLoader.register({
             // harvester instance that hasn't been updated to serve a plugin)
             console.error('Failed to load harvester package: ', typeof error === 'object' ? JSON.stringify(err) : err); // eslint-disable-line no-console
 
-            return harvesterClustersLocation; // TODO: RC Test - confirm still valid fall back
+            return harvesterClustersLocation;
           }
         }
       }

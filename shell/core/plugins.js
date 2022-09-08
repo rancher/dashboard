@@ -72,7 +72,6 @@ export default function({
             // to update caches when new plugins are loaded
             _lastLoaded = new Date().getTime();
 
-            // TODO: RC Investigate - Error if we are loading a plugin already loaded?
             // name is the name of the plugin, including the version number
             const plugin = new Plugin(id);
 

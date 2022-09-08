@@ -149,7 +149,6 @@ export default {
 
     displayVersion() {
       if (this.isSingleProduct?.getVersionInfo) {
-        // TODO: RC Test
         return this.isSingleProduct?.getVersionInfo(this.$store);
       }
 

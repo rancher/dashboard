@@ -46,7 +46,6 @@ export default {
 
     const isHarvester = this.value?.type?.includes('harvesterhci');
 
-    // FIXME: Harverster - Confirm this is fine and works as originally
     // Get all the custom volume types from the file names of this folder
     const customSettingComponents = require
       .context('../components/settings', false, /^.*\.vue$/)
