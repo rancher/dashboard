@@ -1,5 +1,4 @@
 <script>
-
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import { _EDIT } from '@shell/config/query-params';
@@ -64,17 +63,40 @@ export default {
 
   data() {
     const parseDuration = (duration) => {
-      // The back end stores the timeout in Duration format, for example, "10m30s".
+      // The back end stores the timeout in Duration format, for example, "42d31h10m30s".
       // Here we convert that string to an integer and return the duration as seconds.
-      const splitStr = duration.split(/[m,s]/).filter(s => s);
-      const minutes = parseInt(splitStr[0], 10);
-      const seconds = parseInt(splitStr[1], 10);
+      const splitStr = duration.split(/([a-z])/);
 
-      if ( isNaN(seconds) ) {
-        return minutes;
-      }
+      const durationsAsSeconds = splitStr.reduce((old, neu, idx) => {
+        const parsed = parseInt(neu);
 
-      return seconds + minutes * 60;
+        if ( isNaN(parsed) ) {
+          return old;
+        }
+
+        const interval = splitStr[(idx + 1)];
+
+        switch (interval) {
+        case 'd':
+          old.push(parsed * 24 * 60 * 60);
+          break;
+        case 'h':
+          old.push(parsed * 60 * 60);
+          break;
+        case 'm':
+          old.push(parsed * 60);
+          break;
+        case 's':
+          old.push(parsed);
+          break;
+        default:
+          break;
+        }
+
+        return old;
+      }, []);
+
+      return durationsAsSeconds.reduce((old, neu) => old + neu);
     };
 
     return {
