@@ -47,7 +47,11 @@ export default {
     };
   },
 
-  computed: {
+  methods:  {
+    convertToString(event) {
+      this.value.value = `${ event.target.value }`;
+    },
+
     /**
      * Validate rule if any and return error if any
      * @param {*} value
@@ -56,11 +60,6 @@ export default {
       const errorText = this.setting.validate && this.setting.validate(this.value.value);
 
       return errorText ? this.t(errorText) : undefined;
-    },
-  },
-  methods:  {
-    convertToString(event) {
-      this.value.value = `${ event.target.value }`;
     },
 
     saveSettings(done) {
@@ -135,7 +134,7 @@ export default {
           v-model="value.value"
           v-focus
           :label="t('advancedSettings.edit.value')"
-          :rules="validate"
+          :rules="[validate]"
           :localized-label="true"
           :mode="mode"
           required="true"
@@ -146,7 +145,7 @@ export default {
         <RadioGroup
           v-model="value.value"
           name="settings_value"
-          :rules="validate"
+          :rules="[validate]"
           :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
           :options="['true', 'false']"
         />
@@ -156,22 +155,21 @@ export default {
           v-model="value.value"
           v-focus
           required="true"
-          :rules="validate"
+          :rules="[validate]"
           :min-height="254"
         />
       </div>
       <div v-else-if="setting.kind === 'integer'">
         <LabeledInput
+          v-model="value.value"
           v-focus
-          :value="parseInt(value.value, 10)"
           :label="t('advancedSettings.edit.value')"
           :localized-label="true"
           :mode="mode"
           type="number"
-          :rules="validate"
+          :rules="[validate]"
           required="true"
-          @input="convertToString($event)"
-        >
+        />
       </div>
       <div v-else>
         <LabeledInput
@@ -180,7 +178,7 @@ export default {
           :localized-label="true"
           required="true"
           :mode="mode"
-          :rules="validate"
+          :rules="[validate]"
           :label="t('advancedSettings.edit.value')"
         />
       </div>
