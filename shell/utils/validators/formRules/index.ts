@@ -62,6 +62,18 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
   const endHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(-1) === '-' ? t(`validation.dns.${ label }.endHyphen`, { key: displayKey }) : undefined;
 
+  const minValue: Validator = (val: string | number, min: string | number) => Number(val) > Number(min) ? t('validation.minValue', { key: displayKey }) : undefined;
+
+  const maxValue: Validator = (val: string | number, max: string | number) => Number(val) < Number(max) ? t('validation.maxValue', { key: displayKey }) : undefined;
+
+  const betweenValue: Validator = (val: string | number, [min, max]: (string | number)[]) => Number(val) > Number(min) && Number(val) < Number(max) ? t('validation.betweenValue', { key: displayKey }) : undefined;
+
+  const minLength: Validator = (val: string | number, min: string | number) => Number(val) > Number(min) ? t('validation.minLength', { key: displayKey }) : undefined;
+
+  const maxLength: Validator = (val: string | number, max: string | number) => Number(val) < Number(max) ? t('validation.maxLength', { key: displayKey }) : undefined;
+
+  const betweenLength: Validator = (val: string | number, [min, max]: (string | number)[]) => Number(val) > Number(min) && Number(val) < Number(max) ? t('validation.betweenLength', { key: displayKey }) : undefined;
+
   const requiredInt: Validator = (val: string) => isNaN(parseInt(val, 10)) ? t('validation.number.requiredInt', { key: displayKey }) : undefined;
 
   const portNumber: Validator = (val: string) => parseInt(val, 10) < 1 || parseInt(val, 10) > 65535 ? t('validation.number.between', {
@@ -425,6 +437,8 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   return {
     absolutePath,
     backupTarget,
+    betweenLength,
+    betweenValue,
     clusterIp,
     clusterName,
     containerImage,
@@ -441,6 +455,10 @@ export default function(t: (key: string, options?: any) => string, opt: {display
     interval,
     isHttps,
     matching,
+    maxLength,
+    maxValue,
+    minLength,
+    minValue,
     noUpperCase,
     portNumber,
     required,
