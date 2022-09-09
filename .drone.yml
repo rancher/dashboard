@@ -272,6 +272,8 @@ steps:
 - name: build
   pull: default
   image: node:14
+  environment:
+    DISABLED_EMBED_PKG: https://releases.rancher.com/harvester-ui/plugin/harvester-1.0.3/harvester-1.0.3.tar.gz
   commands:
   - ./scripts/build-embedded
 
@@ -306,6 +308,8 @@ steps:
 - name: build
   pull: default
   image: node:14
+  environment:
+    DISABLED_EMBED_PKG: https://releases.rancher.com/harvester-ui/plugin/harvester-1.0.3/harvester-1.0.3.tar.gz
   commands:
   - ./scripts/build-embedded
 
