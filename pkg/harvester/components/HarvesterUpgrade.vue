@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import { allHash } from '@shell/utils/promise';
 import ModalWithCard from '@shell/components/ModalWithCard';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -108,7 +108,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div v-if="currentCluster">
     <header class="header mb-0">
       <h1>
         <t

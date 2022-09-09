@@ -469,9 +469,7 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
-  updateNamespaces(state, getters) {
-    const { filters, all } = getters;
-
+  updateNamespaces(state, { filters, all }) {
     state.namespaceFilters = filters.filter(x => !!x);
 
     if ( all ) {

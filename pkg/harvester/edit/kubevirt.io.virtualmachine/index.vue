@@ -23,7 +23,7 @@ import AccessCredentials from './VirtualMachineAccessCredentials';
 
 import { clear } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../../types';
 import { RunStrategys } from '../../config/harvester-map';
 import { saferDump } from '@shell/utils/create-yaml';
 import { exceptionToErrorsArray } from '@shell/utils/error';

@@ -1,5 +1,5 @@
 <script>
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 
 export default {
   props: {

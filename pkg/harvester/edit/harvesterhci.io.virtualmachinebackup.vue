@@ -6,7 +6,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { HCI, NAMESPACE } from '@shell/config/types';
+import { NAMESPACE } from '@shell/config/types';
+import { HCI } from '../types';
 import { sortBy } from '@shell/utils/sort';
 import { clone } from '@shell/utils/object';
 

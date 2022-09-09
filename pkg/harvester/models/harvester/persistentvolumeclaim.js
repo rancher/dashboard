@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { _CLONE } from '@shell/config/query-params';
 import pick from 'lodash/pick';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../../types';
 import {
   HCI as HCI_ANNOTATIONS,
   DESCRIPTION
@@ -12,7 +12,6 @@ import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import HarvesterResource from '../harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
 
-// FIXME: Harvester Request for team to validate navigation (list, create, etc) for this resource type
 export default class HciPv extends HarvesterResource {
   applyDefaults(_, realMode) {
     const accessModes = realMode === _CLONE ? this.spec.accessModes : [];

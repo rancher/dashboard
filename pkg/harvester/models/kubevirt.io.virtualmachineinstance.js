@@ -1,5 +1,6 @@
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
-import { HCI, NODE } from '@shell/config/types';
+import { NODE } from '@shell/config/types';
+import { HCI } from '../types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import HarvesterResource from './harvester';
 

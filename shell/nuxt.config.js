@@ -265,7 +265,9 @@ export default function(dir, _appConfig) {
       dev,
       pl,
       perfTest,
-      rancherEnv
+      rancherEnv,
+      harvesterPkgUrl: process.env.HARVESTER_PKG_URL,
+      api
     },
 
     publicRuntimeConfig: { rancherEnv },

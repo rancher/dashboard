@@ -5,7 +5,7 @@ import MessageLink from '@shell/components/MessageLink';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import ResourceTable from '@shell/components/ResourceTable';
 
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import { allHash } from '@shell/utils/promise';
 import { STATE, AGE, NAME, NAMESPACE } from '@shell/config/table-headers';
 

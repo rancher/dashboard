@@ -6223,6 +6223,9 @@ harvester:
     ciphers:
       label: Ciphers
 
+harvesterManager:
+  plugins:
+    loadError: Error loading harvester plugin
 ##############################
 # Model Properties
 ##############################

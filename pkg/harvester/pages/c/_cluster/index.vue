@@ -1,6 +1,6 @@
 <script>
 import { PRODUCT_NAME } from '../../../config/harvester';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../../../types';
 
 export default {
   middleware({ redirect, route }) {

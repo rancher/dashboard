@@ -1,4 +1,4 @@
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import { get } from '@shell/utils/object';
 import { findBy } from '@shell/utils/array';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';

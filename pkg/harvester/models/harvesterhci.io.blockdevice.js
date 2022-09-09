@@ -1,4 +1,4 @@
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import HarvesterResource from './harvester';
 
 export default class HciBlockDevice extends HarvesterResource {

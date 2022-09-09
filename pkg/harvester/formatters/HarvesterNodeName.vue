@@ -1,5 +1,6 @@
 <script>
-import { HCI, NODE } from '@shell/config/types';
+import { NODE } from '@shell/config/types';
+import { HCI } from '../types';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 
 export default {

@@ -2,7 +2,8 @@
 import { mapGetters } from 'vuex';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import { EVENT, HCI, SERVICE, POD } from '@shell/config/types';
+import { EVENT, SERVICE, POD } from '@shell/config/types';
+import { HCI } from '../../types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import VM_MIXIN from '../../mixins/harvester-vm';
 import DashboardMetrics from '@shell/components/DashboardMetrics';

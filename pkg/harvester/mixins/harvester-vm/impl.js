@@ -1,7 +1,8 @@
 import jsyaml from 'js-yaml';
 import isEqual from 'lodash/isEqual';
 import { clone } from '@shell/utils/object';
-import { HCI, SECRET } from '@shell/config/types';
+import { SECRET } from '@shell/config/types';
+import { HCI } from '../../types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { OS } from './index';
 

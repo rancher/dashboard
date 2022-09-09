@@ -14,8 +14,9 @@ import { formatSi, parseSi } from '@shell/utils/units';
 import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '../../config/harvester-map';
 import { _CLONE } from '@shell/config/query-params';
 import {
-  PVC, HCI, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP, NETWORK_ATTACHMENT
+  PVC, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP, NETWORK_ATTACHMENT
 } from '@shell/config/types';
+import { HCI } from '../../types';
 import { HCI_SETTING } from '../../config/settings';
 import { HCI as HCI_ANNOTATIONS, HOSTNAME } from '@shell/config/labels-annotations';
 import impl, { QGA_JSON, USB_TABLET } from './impl';
