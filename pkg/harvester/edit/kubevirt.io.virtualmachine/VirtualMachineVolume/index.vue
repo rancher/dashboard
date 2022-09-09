@@ -124,9 +124,8 @@ export default {
         const rows = neu.map((V) => {
           if (!this.isCreate && V.source !== SOURCE_TYPE.CONTAINER && !V.newCreateId) {
             V.to = {
-              name:   `${ HARVESTER_PRODUCT }-c-cluster-product-resource-namespace-id`,
+              name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-namespace-id`,
               params: {
-                product:   'harvester',
                 resource:  HCI.VOLUME,
                 namespace: this.namespace,
                 id:        V.realName
