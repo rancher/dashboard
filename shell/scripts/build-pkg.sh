@@ -62,22 +62,23 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
 fi
 
 
-INCLUDE_PACKAGE COMMIT_BRANCH
-if [ -e ${CREATE_TARBALL} ]; then
+if [ -n "${CREATE_TARBALL}" ]; then
   echo $COMMIT $COMMIT_BRANCH > ${PKG_DIST}/version-commit.txt
+
+  TARBALL=${NAME}.tar.gz
 
   pushd ${PKG_DIST}
 
-  TARBALL=${NAME}.tar.gz
+  pushd ..
+  rm $TARBALL
+  popd
+
   echo "Compressing to ${TARBALL}..."
-  echo "PKG_DIST ${PKG_DIST}"
 
   tar -czf ../${TARBALL} .
 
   popd
 
-  export PKG_NAME=$NAME
-  export PKG_TARBALL=$TARBALL
 fi
 
 exit $EXIT_CODE
