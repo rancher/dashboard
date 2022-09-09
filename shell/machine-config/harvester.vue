@@ -99,7 +99,7 @@ export default {
 
       if (clusterId && isImportCluster) {
         const res = await allHashSettled({
-          namespaces:   this.$store.dispatch('harvester/findAll', { type: NAMESPACE, opt: { url: `${ url }/${ NAMESPACE }s` } }),
+          namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
           images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
           configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
           networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
@@ -170,7 +170,7 @@ export default {
           };
         });
 
-        (res.namespaces.value || []).forEach((namespace) => {
+        (res.namespaces.value.data || []).forEach((namespace) => {
           if (!namespace.isSystem) {
             const value = namespace.metadata.name;
             const label = namespace.metadata.name;
