@@ -270,6 +270,7 @@ export const VIRTUAL_TYPES = {
 export const HCI = {
   CLUSTER:   'harvesterhci.io.management.cluster',
   DASHBOARD: 'harvesterhci.io.dashboard',
+  IMAGE:     'harvesterhci.io.virtualmachineimage',
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';
