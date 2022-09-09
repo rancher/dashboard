@@ -133,10 +133,12 @@ export default {
       <div v-if="setting.kind === 'enum'">
         <LabeledSelect
           v-model="value.value"
+          v-focus
           :label="t('advancedSettings.edit.value')"
           :rules="validate"
           :localized-label="true"
           :mode="mode"
+          required="true"
           :options="enumOptions"
         />
       </div>
@@ -153,16 +155,21 @@ export default {
         <TextAreaAutoGrow
           v-model="value.value"
           v-focus
+          required="true"
           :rules="validate"
           :min-height="254"
         />
       </div>
       <div v-else-if="setting.kind === 'integer'">
-        <input
+        <LabeledInput
+          v-focus
           :value="parseInt(value.value, 10)"
+          :label="t('advancedSettings.edit.value')"
+          :localized-label="true"
+          :mode="mode"
           type="number"
           :rules="validate"
-          min="0"
+          required="true"
           @input="convertToString($event)"
         >
       </div>
@@ -170,6 +177,9 @@ export default {
         <LabeledInput
           v-model="value.value"
           v-focus
+          :localized-label="true"
+          required="true"
+          :mode="mode"
           :rules="validate"
           :label="t('advancedSettings.edit.value')"
         />
