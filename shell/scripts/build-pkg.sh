@@ -12,7 +12,12 @@ if [ ! -d ${SHELL_DIR} ]; then
   SHELL_DIR=$(cd -P ${SHELL_DIR} && pwd)
 fi
 
-VERSION=$(cd pkg/$1; node -p -e "require('./package.json').version")
+CREATE_TARBALL=${2}
+
+if [ -z "$VERSION" ]; then
+  VERSION=$(cd pkg/$1; node -p -e "require('./package.json').version")
+fi
+
 NAME=${1}-${VERSION}
 PKG_DIST=${BASE_DIR}/dist-pkg/${NAME}
 
@@ -42,6 +47,10 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
     FILE=index.ts
   fi
 
+  if [ -n "$COMMIT" ]; then
+    echo ${COMMIT} > ${PKG_DIST}/version
+  fi
+
   ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${NAME} --target lib ${FILE} --dest ${PKG_DIST} --formats umd-min --filename ${NAME}
   EXIT_CODE=$?
   cp -f ./package.json ${PKG_DIST}/package.json
@@ -50,6 +59,25 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
   rm .shell
 
   popd  
+fi
+
+
+INCLUDE_PACKAGE COMMIT_BRANCH
+if [ -e ${CREATE_TARBALL} ]; then
+  echo $COMMIT $COMMIT_BRANCH > ${PKG_DIST}/version-commit.txt
+
+  pushd ${PKG_DIST}
+
+  TARBALL=${NAME}.tar.gz
+  echo "Compressing to ${TARBALL}..."
+  echo "PKG_DIST ${PKG_DIST}"
+
+  tar -czf ../${TARBALL} .
+
+  popd
+
+  export PKG_NAME=$NAME
+  export PKG_TARBALL=$TARBALL
 fi
 
 exit $EXIT_CODE
