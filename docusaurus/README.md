@@ -33,7 +33,7 @@ $ yarn docs:build
 
 Guide for [sidebars.js](https://docusaurus.io/docs/sidebar).
 
-> Note: We are using `sidebars.js` file to generated custome sidebar.
+> Note: We are using `sidebars.js` file to generate a custom sidebar.
 
 1. Create a Markdown file, greeting.md, and place it under the docs directory.
 
