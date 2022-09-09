@@ -102,7 +102,8 @@ export function init(store) {
     NAME_COL,
     {
       ...VERSION,
-      value: 'kubernetesVersion'
+      value:    'kubernetesVersion',
+      getValue: row => row.kubernetesVersion
     },
     MACHINE_POOLS,
     AGE,
