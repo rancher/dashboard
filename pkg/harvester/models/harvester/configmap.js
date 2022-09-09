@@ -18,7 +18,7 @@ export default class HciConfigMap extends HarvesterResource {
     delete detailLocation.params.namespace;
     delete detailLocation.params.id;
     detailLocation.params.resource = HCI.CLOUD_TEMPLATE;
-    detailLocation.name = `${ HARVESTER_PRODUCT }-cluster-product-resource`;
+    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource`;
 
     return detailLocation;
   }
