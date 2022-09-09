@@ -9,7 +9,7 @@ export default Vue.extend({
      * The checkbox value.
      */
     value: {
-      type:    [Boolean, Array] as PropType<boolean | boolean[]>,
+      type:    [Boolean, Array, String] as PropType<boolean | boolean[] | string>,
       default: false
     },
 
@@ -169,6 +169,12 @@ export default Vue.extend({
           addObject(this.value, this.valueWhenTrue);
         }
         this.$emit('input', this.value);
+      } else if (this.isString(this.valueWhenTrue)) {
+        if (this.isChecked) {
+          this.$emit('input', null);
+        } else {
+          this.$emit('input', this.valueWhenTrue);
+        }
       } else {
         this.$emit('input', !this.value);
         this.$el.dispatchEvent(click);
@@ -178,8 +184,12 @@ export default Vue.extend({
     /**
      * Determines if there are multiple values for the checkbox.
      */
-    isMulti(value: boolean | boolean[]): value is boolean[] {
+    isMulti(value: boolean | boolean[] | string): value is boolean[] {
       return Array.isArray(value);
+    },
+
+    isString(value: boolean | number | string): value is boolean {
+      return typeof value === 'string';
     },
 
     /**
