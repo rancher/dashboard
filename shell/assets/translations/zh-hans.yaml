@@ -2457,10 +2457,6 @@ landing:
   seeWhatsNew: 点击右侧链接，了解此版本的新功能和优化。
   whatsNewLink: "2.6 的新功能"
   learnMore: 了解更多
-  gettingStarted:
-    title: 快速入门
-    body: 查看快速入门指南。Cluster Manager 用户可以了解 Dashboard UI 的更多新功能。
-  support: 支持
   community:
     title: 社区支持
     docs: Rancher 官方文档

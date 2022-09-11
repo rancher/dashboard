@@ -25,20 +25,25 @@ const DEFAULT_CUSTOM_LINKS = [
     key:   'Slack',
     value: 'https://slack.rancher.io/'
   },
+  {
+    order: 5,
+    key:   'Getting Started',
+    value: '/docs/getting-started'
+  }
 
 ];
 
 const DEFAULT_SUPPORT_LINK = {
-  order: 5,
+  order: 4,
   key:   'File an issue',
   value: 'https://github.com/rancher/dashboard/issues/new'
 };
 
-const COMMUNITY_INKS = [
+const COMMUNITY_LINKS = [
   {
     order: 99,
     key:   'Commercial Support',
-    value: 'https://localhost:8005/support'
+    value: '/support'
   }
 ];
 
@@ -51,16 +56,6 @@ export default {
     Banner,
   },
   async fetch() {
-    console.log('FETCHING');
-    try {
-      const reset = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
-
-      console.log('reset', reset);
-      const remove = await reset.remove();
-
-      console.log('?REMOVE', remove);
-    } catch {}
-
     try {
       const { uiIssuesSetting, uiCommunitySetting } = await allHash({
         uiIssuesSetting:    this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES }),
@@ -72,9 +67,8 @@ export default {
     } catch {}
 
     try {
-      console.log(this.uiIssuesSetting);
       const defaultIssueLink = { key: 'File an issue', value: this.uiIssuesSetting.value } || DEFAULT_SUPPORT_LINK;
-      const defaultLinks = [...DEFAULT_CUSTOM_LINKS, defaultIssueLink, ...COMMUNITY_INKS];
+      const defaultLinks = [...DEFAULT_CUSTOM_LINKS, defaultIssueLink, ...COMMUNITY_LINKS];
 
       this.uiCustomLinks = await fetchOrCreateSetting(this.$store, SETTING.UI_CUSTOM_LINKS, JSON.stringify(defaultLinks));
 
@@ -100,10 +94,6 @@ export default {
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
 
-    migratedLinks() {
-      return '';
-    },
-
     defaultLinks: {
       get(issueLink) {
         if ( issueLink ) {
@@ -117,7 +107,7 @@ export default {
   },
   methods: {
     useDefaults() {
-      const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_INKS;
+      const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_LINKS;
 
       this.value = [...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks];
     },

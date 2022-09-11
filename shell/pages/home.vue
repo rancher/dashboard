@@ -116,6 +116,11 @@ export default {
       return this.showCommercialSupport || this.showCommunityLinks;
     },
 
+    isSupport() {
+      // NB: This is temporary until API implemented
+      return false;
+    },
+
     clusterHeaders() {
       return [
         STATE,
@@ -372,8 +377,8 @@ export default {
             </div>
           </div>
         </div>
-        <div v-if="showSidePanel" class="col span-3">
-          <CommunityLinks v-if="showCommunityLinks" :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
+        <div class="col span-3">
+          <CommunityLinks />
         </div>
       </div>
     </IndentedPanel>
@@ -421,6 +426,11 @@ export default {
     display: contents;
     white-space: nowrap;
   }
+
+.support-link {
+  margin: 15px 0 0 0;
+}
+
 </style>
 <style lang="scss">
 .home-page {

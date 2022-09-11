@@ -7,6 +7,8 @@ import { SETTING } from '@shell/config/settings';
 import { mapGetters } from 'vuex';
 
 export default {
+  name: 'CommunityLinks',
+
   components: { SimpleBox },
 
   props: {
@@ -21,11 +23,25 @@ export default {
   mixins: [Closeable],
 
   async fetch() {
-    this.uiCustomLinks = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
+    try {
+      this.uiCustomLinks = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
+    } catch (err) {
+
+    }
+
+    // Fallback:
+    // NB: this.uiIssueSetting is deprecated now.
+    if (!this.uiCustomLinks) {
+      try {
+        this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
+      } catch (err) {
+
+      }
+    }
   },
 
   data() {
-    return { uiCustomLinks: null };
+    return { uiCustomLinks: null, uiIssuesSetting: null };
   },
 
   computed: {
@@ -35,17 +51,20 @@ export default {
     ]),
 
     options() {
+      // Link options are provided
       if (Object.keys(this.linkOptions).length > 0) {
         return this.linkOptions;
       }
 
+      // Custom links set from settings
       if (this.uiCustomLinks) {
         return JSON.parse(this.uiCustomLinks.value).reduce((prev, curr) => {
           return { ...prev, [curr.key]: curr.value };
         }, {});
       }
 
-      return options(this.uiIssuesSetting?.value);
+      // Fallback
+      return options(false, this.uiIssuesSetting?.value);
     },
   },
   methods: {
@@ -61,11 +80,11 @@ export default {
 
 <template>
   <div>
-    <SimpleBox :title="t('landing.support')" :pref="pref" :pref-key="prefKey">
+    <SimpleBox :title="t('customLinks.displayTitle')" :pref="pref" :pref-key="prefKey">
       <div v-for="(value, name) in options" :key="name" class="support-link">
         <a :href="value" target="_blank" rel="noopener noreferrer nofollow"> {{ name }} </a>
       </div>
-
+      <slot />
       <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
         <a class="link" @click="show">
           {{ t('footer.wechat.title') }}
