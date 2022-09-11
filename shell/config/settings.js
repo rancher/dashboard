@@ -127,27 +127,7 @@ export const fetchOrCreateSetting = async(store, id, val, save = true) => {
 
   return setting;
 };
-export const fetchOrForceCreateSetting = async(store, id, val, save = true) => {
-  let setting;
 
-  if(force)
-
-  try {
-    setting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
-
-    const schema = store.getters['management/schemaFor'](MANAGEMENT.SETTING);
-    const url = schema.linkFor('collection');
-
-    setting = await store.dispatch('management/create', {
-      type: MANAGEMENT.SETTING, metadata: { name: id }, value: val, default: val || ''
-    });
-    if ( save ) {
-      await setting.save({ url });
-    }
-  }
-
-  return setting;
-};
 export const setSetting = async(store, id, val) => {
   const setting = await fetchOrCreateSetting(store, id, val, false);
 

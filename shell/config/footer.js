@@ -1,19 +1,27 @@
 import { DOCS_BASE } from '@shell/config/private-label';
 
-export function options(issues, hideRancher) {
+// Deprecated
+export function options(isSupport, issues, hideRancher) {
   if (!issues) {
     if (hideRancher) {
       return { };
     }
     issues = 'https://github.com/rancher/dashboard/issues/new';
   } else if (hideRancher) {
-    return { 'footer.issue': issues };
+    return { 'File an issue': issues };
   }
 
-  return {
-    'footer.docs':    DOCS_BASE,
-    'footer.forums': 'https://forums.rancher.com/',
-    'footer.slack':  'https://slack.rancher.io',
-    'footer.issue':  issues,
+  const links = {
+    Docs:              DOCS_BASE,
+    Forums:            'https://forums.rancher.com/',
+    Slack:             'https://slack.rancher.io',
+    'File an Issue':   issues,
+    'Getting started': '/docs/getting-started'
   };
+
+  if (!isSupport) {
+    links['Commercial Support'] = '/support';
+  }
+
+  return links;
 }

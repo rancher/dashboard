@@ -104,11 +104,12 @@ export default {
     },
 
     hasSupport() {
-      return (this.supportSetting?.value && this.supportSetting?.value !== 'false') || this.hasAWSSupport;
+      // TODO: API Implementation
+      return false;
     },
 
     options() {
-      return options( this.uiIssuesSetting?.value, this.communitySetting?.value === 'false');
+      return options(true, this.uiIssuesSetting?.value, this.communitySetting?.value === 'false');
     },
 
     title() {
@@ -194,11 +195,7 @@ export default {
               <div>{{ t(`${key}.text`) }}</div>
             </div>
           </div>
-          <div v-if="!hasSupport" class="external">
-            <a href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }} <i class="icon icon-external-link" /></a>
-            or
-            <a href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }} <i class="icon icon-external-link" /></a>
-          </div>
+
           <div v-if="!hasSupport" class="register row">
             <div>
               {{ t('support.subscription.haveSupport') }}
@@ -214,7 +211,16 @@ export default {
           </div>
         </div>
         <div class="community">
-          <CommunityLinks />
+          <CommunityLinks :link-options="options">
+            <div v-if="!hasSupport" class="external support-links">
+              <div class="support-link">
+                <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }} <i class="icon icon-external-link" /></a>
+              </div>
+              <div class="support-link">
+                <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }} <i class="icon icon-external-link" /></a>
+              </div>
+            </div>
+          </CommunityLinks>
         </div>
       </div>
     </IndentedPanel>
@@ -279,13 +285,12 @@ export default {
     font-weight: 300;
     margin-bottom: 20px;
   }
-  .support-link {
-    margin: 10px 0;
-  }
 }
-.external {
-  margin-top: 20px;
+
+.support-link {
+  margin: 15px 0 0 0;
 }
+
 .register {
   display: flex;
   align-items: center;
