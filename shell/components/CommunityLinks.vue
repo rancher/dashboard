@@ -23,6 +23,8 @@ export default {
   mixins: [Closeable],
 
   async fetch() {
+    // If user already have custom links and uiIssueSetting Doc URL set
+    // This should already be in the uiCustomLinks
     try {
       this.uiCustomLinks = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
     } catch (err) {
