@@ -103,9 +103,15 @@ export default {
       return out;
     },
   },
+
+  methods: {
+    displayWarning(row) {
+      return !!row.status?.summary && (row.status.summary.desiredReady !== row.status.summary.ready);
+    }
+  }
 };
 </script>
-
+ß
 <template>
   <div>
     <Loading v-if="$fetchState.pending" />
@@ -117,7 +123,7 @@ export default {
         :rows="bundles"
       >
         <template #cell:deploymentsReady="{row}">
-          <span v-if="row.status.summary.desiredReady != row.status.summary.ready" class="text-warning">
+          <span v-if="displayWarning(row)" class="text-warning">
             {{ row.status.summary.ready }}/{{ row.status.summary.desiredReady }}</span>
           <span v-else>{{ row.status.summary.desiredReady }}</span>
         </template>
