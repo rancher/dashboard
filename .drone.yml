@@ -373,7 +373,7 @@ steps:
   commands:
   - ./scripts/build-upload-gate
 
-- name: upload
+- name: upload-plugin-tarball
   pull: default
   image: plugins/gcs
   settings:
@@ -385,7 +385,7 @@ steps:
     token:
       from_secret: google_auth_key
 
-- name: upload
+- name: upload-plugin-directory
   pull: default
   image: plugins/gcs
   settings:

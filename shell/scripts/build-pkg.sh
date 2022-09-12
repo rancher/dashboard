@@ -61,6 +61,10 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
   popd  
 fi
 
+if [ $EXIT_CODE -ne 0 ]; then
+  exit $EXIT_CODE
+fi
+
 
 if [ -n "${CREATE_TARBALL}" ]; then
   echo $COMMIT $COMMIT_BRANCH > ${PKG_DIST}/version-commit.txt

@@ -22,7 +22,7 @@ COMMIT=$COMMIT COMMIT_BRANCH=$COMMIT_BRANCH VERSION=$VERSION ./shell/scripts/bui
 EXIT_CODE=$?
 
 export PKG_NAME=${1}-${VERSION}
-export PKG_TARBALL=${PKG_NAME}-tar.gz
+export PKG_TARBALL=${PKG_NAME}.tar.gz
 
 echo "Drone Build Artefacts"
 echo "Package Directory: ${PKG_NAME}"
