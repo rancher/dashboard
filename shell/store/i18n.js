@@ -291,6 +291,8 @@ export const actions = {
         }
       }
 
+      console.warn('store i18n', i18nExt); // eslint-disable-line no-console
+
       // Load all of the locales from the plugins
       if (i18nExt && i18nExt.length) {
         const p = [];
