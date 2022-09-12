@@ -134,7 +134,7 @@ export default {
               </div>
 
               <div class="col span-6">
-                {{ t('product.harvester') }}: <span class="text-muted">{{ repoInfo.release.harvester }}</span>
+                {{ t('harvester.productLabel') }}: <span class="text-muted">{{ repoInfo.release.harvester }}</span>
               </div>
             </div>
 
