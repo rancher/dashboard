@@ -341,7 +341,7 @@ export default class VirtVm extends HarvesterResource {
   goToCloneVM(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'harvester/CloneVmDialog'
+      component: 'CloneVmDialog'
     });
   }
 
