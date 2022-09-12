@@ -94,7 +94,7 @@ export default {
       <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" :default-tab="defaultTab" @changed="changed">
         <Tab
           v-for="(tab, i) in allContainers"
-          :key="i"
+          :key="i+tab.name"
           :label="tab.name"
           :name="tab.name"
           :weight="tab.weight"
@@ -163,13 +163,13 @@ export default {
               <div>
                 <h3>{{ t('workload.container.titles.ports') }}</h3>
                 <div class="row">
-                  <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
+                  <WorkloadPorts v-model="allContainers[i].ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
                 </div>
               </div>
               <div class="spacer" />
               <div>
                 <h3>{{ t('workload.container.titles.command') }}</h3>
-                <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
+                <Command v-model="allContainers[i]" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
               </div>
               <ServiceNameSelect
                 :value="podTemplateSpec.serviceAccountName"
@@ -183,7 +183,7 @@ export default {
               <div class="spacer" />
               <div>
                 <h3>{{ t('workload.container.titles.lifecycle') }}</h3>
-                <LifecycleHooks v-model="container.lifecycle" :mode="mode" />
+                <LifecycleHooks v-model="allContainers[i].lifecycle" :mode="mode" />
               </div>
             </Tab>
             <Tab :label="t('workload.container.titles.resources')" name="resources" :weight="tabWeightMap['resources']">
@@ -192,10 +192,10 @@ export default {
             </Tab>
 
             <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck" :weight="tabWeightMap['healthCheck']">
-              <HealthCheck v-model="healthCheck" :mode="mode" />
+              <HealthCheck :value="allContainers[i]" :mode="mode" @input="Object.assign(allContainers[i], $event)" />
             </Tab>
             <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
-              <Security v-model="container.securityContext" :mode="mode" />
+              <Security v-model="allContainers[i].securityContext" :mode="mode" />
             </Tab>
           </Tabbed>
         </Tab>
