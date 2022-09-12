@@ -1,7 +1,6 @@
+#!/usr/bin/env bash
 
-pushd ../..
 yarn --pure-lockfile install
-popd
 
 source scripts/version
 
