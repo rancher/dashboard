@@ -33,6 +33,10 @@ export default {
     await allHash(hash);
   },
 
+  data() {
+    return { productName: HARVESTER };
+  },
+
   computed: {
     ...mapGetters(['currentProduct', 'isVirtualCluster']),
 
@@ -134,7 +138,7 @@ export default {
               </div>
 
               <div class="col span-6">
-                {{ t('product.harvester') }}: <span class="text-muted">{{ repoInfo.release.harvester }}</span>
+                {{ productName }}: <span class="text-muted">{{ repoInfo.release.harvester }}</span>
               </div>
             </div>
 
