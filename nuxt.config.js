@@ -4,6 +4,7 @@ import config from './shell/nuxt.config';
 let defaultExcludes = 'epinio, rancher-components, harvester';
 
 if (process.env.RANCHER_ENV === 'harvester') {
+  console.warn('nuxt config', 'bringing in harvester')
   defaultExcludes = defaultExcludes.replace(', harvester', '');
 }
 const excludes = process.env.EXCLUDES_PKG || defaultExcludes;

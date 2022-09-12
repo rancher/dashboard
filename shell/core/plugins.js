@@ -205,6 +205,7 @@ export default function({
 
     // Apply the plugin based on its metadata
     applyPlugin(plugin) {
+      console.warn('plugins', 'applyPlugin', plugin.id)
       // Types
       Object.keys(plugin.types).forEach((typ) => {
         Object.keys(plugin.types[typ]).forEach((name) => {
@@ -215,6 +216,7 @@ export default function({
       // l10n
       Object.keys(plugin.l10n).forEach((name) => {
         plugin.l10n[name].forEach((fn) => {
+          console.warn('plugins', 'applyPlugin', 'l10n', plugin.id, name, fn)
           this.register('l10n', name, fn);
         });
       });

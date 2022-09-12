@@ -15,7 +15,10 @@ function registerFile(file, type, pkg, f) {
   const importType = (f === 'models') ? 'require' : 'import';
   const chunkName = (f === 'l10n') ? '' : `/* webpackChunkName: "${ f }" */`;
 
-  return `  $plugin.register('${ f }', '${ type }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
+  const a = `  $plugin.register('${ f }', '${ type }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
+  console.warn('AUTO-IMPORT', 'generateTypeImport', pkg, a)
+
+  return a;
 }
 
 function register(file, pkg, f) {
@@ -30,6 +33,7 @@ function register(file, pkg, f) {
 // the code splitting will be respected
 function generateTypeImport(pkg, dir) {
   let content = 'export function importTypes($plugin) { \n';
+  console.warn('AUTO-IMPORT', 'generateTypeImport', pkg, dir)
 
   // Auto-import if the folder exists
   contextFolders.forEach((f) => {
@@ -76,6 +80,8 @@ function generateTypeImport(pkg, dir) {
 // for development. Also note the top-level folders are not watched, so if you don't have a 'list' folder (for example), you must create it
 // and then restart the dev server for it to be picked up.
 function generateDynamicTypeImport(pkg, dir) {
+
+  console.warn('AUTO-IMPORT', 'generateDynamicTypeImport', pkg, dir)
   const template = fs.readFileSync(path.join(__dirname, 'import.js'), { encoding: 'utf8' });
   let content = 'export function importTypes($plugin) { \n';
 
