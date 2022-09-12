@@ -870,7 +870,6 @@ export const FEATURE_DESCRIPTION = {
   value:         'status.description',
   align:         'left',
   sort:          ['status.description'],
-  width:         300,
   formatter:     'Translate',
   formatterOpts: { prefix: 'featureFlags.description' },
 };
