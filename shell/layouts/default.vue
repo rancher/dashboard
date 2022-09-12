@@ -103,7 +103,7 @@ export default {
     },
 
     allSchemas() {
-      const managementReady = this.$store.getters['managementReady'];
+      const managementReady = this.managementReady;
       const product = this.$store.getters['currentProduct'];
 
       if ( !managementReady || !product ) {
@@ -122,7 +122,7 @@ export default {
     },
 
     counts() {
-      const managementReady = this.$store.getters['managementReady'];
+      const managementReady = this.managementReady;
       const product = this.$store.getters['currentProduct'];
 
       if ( !managementReady || !product ) {
@@ -196,20 +196,28 @@ export default {
   },
 
   watch: {
-    counts() {
-      this.queueUpdate();
+    counts(a, b) {
+      if ( a !== b ) {
+        this.queueUpdate();
+      }
     },
 
-    allSchemas() {
-      this.queueUpdate();
+    allSchemas(a, b) {
+      if ( a !== b ) {
+        this.queueUpdate();
+      }
     },
 
-    allNavLinks() {
-      this.queueUpdate();
+    allNavLinks(a, b) {
+      if ( a !== b ) {
+        this.queueUpdate();
+      }
     },
 
-    favoriteTypes() {
-      this.queueUpdate();
+    favoriteTypes(a, b) {
+      if ( !isEqual(a, b) ) {
+        this.queueUpdate();
+      }
     },
 
     locale(a, b) {
