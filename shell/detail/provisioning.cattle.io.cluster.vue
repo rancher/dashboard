@@ -321,6 +321,14 @@ export default {
       return false;
     },
 
+    showEksNodeGroupWarning() {
+      if ( this.value.isEKS && this.nodes?.length < 1 ) {
+        return !!this.value.eksNodeGroups.find(g => g.desiredSize === 0);
+      }
+
+      return false;
+    },
+
     machineHeaders() {
       return [
         STATE,
@@ -585,6 +593,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <Banner v-if="showWindowsWarning" color="error" :label="t('cluster.banner.os', { newOS: 'Windows', existingOS: 'Linux' })" />
+    <Banner v-if="showEksNodeGroupWarning" color="error" :label="t('cluster.banner.desiredNodeGroupWarning')" />
 
     <Banner v-if="$fetchState.error" color="error" :label="$fetchState.error" />
     <ResourceTabs v-model="value" :default-tab="defaultTab">
