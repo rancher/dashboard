@@ -129,23 +129,23 @@ export default {
           class="btn btn-sm role-primary"
           :to="row.detailLocation"
         >
-          {{ t('harvester.virtualizationManagement.manage') }}
+          {{ t('harvesterManager.manage') }}
         </n-link>
       </template>
     </ResourceTable>
     <div v-else>
       <div class="no-clusters">
-        {{ t('harvester.manager.cluster.none') }}
+        {{ t('harvesterManager.cluster.none') }}
       </div>
       <hr class="info-section" />
       <div class="logo">
         <BrandImage file-name="harvester.png" height="64" />
       </div>
       <div class="tagline">
-        <div>{{ t('harvester.manager.cluster.description') }}</div>
+        <div>{{ t('harvesterManager.cluster.description') }}</div>
       </div>
       <div class="tagline sub-tagline">
-        <div v-html="t('harvester.manager.cluster.learnMore', {}, true)"></div>
+        <div v-html="t('harvesterManager.cluster.learnMore', {}, true)"></div>
       </div>
     </div>
   </div>

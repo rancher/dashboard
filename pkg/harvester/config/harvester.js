@@ -50,7 +50,7 @@ export function init($plugin, store) {
 
     store.dispatch('setIsSingleProduct', {
       logo:            require(`@shell/assets/images/providers/harvester.svg`),
-      productNameKey:  'product.harvester',
+      productNameKey:  'harvester.productLabel',
       getVersionInfo:  store => store.getters[`${ PRODUCT_NAME }/byId`](HCI.SETTING, 'server-version')?.value || 'unknown',
       afterLoginRoute: home,
       logoRoute:       home
