@@ -2,7 +2,7 @@
 import LabelValue from '@shell/components/LabelValue';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
-import HarvesterDisk from '@shell/mixins/harvester-disk';
+import HarvesterDisk from '../../mixins/harvester-disk';
 
 export default {
   components: {

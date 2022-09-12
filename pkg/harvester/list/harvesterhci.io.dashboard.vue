@@ -25,7 +25,6 @@ import { allDashboardsExist } from '@shell/utils/grafana';
 import { isEmpty } from '@shell/utils/object';
 import HarvesterUpgrade from '../components/HarvesterUpgrade';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
-import { findBy } from '@shell/utils/array';
 
 dayjs.extend(utc);
 dayjs.extend(minMax);
