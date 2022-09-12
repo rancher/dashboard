@@ -82,6 +82,12 @@ export default class VirtVm extends HarvesterResource {
   get availableActions() {
     const out = super._availableActions;
 
+    const clone = out.find(action => action.action === 'goToClone');
+
+    if (clone) {
+      clone.action = 'goToCloneVM';
+    }
+
     return [
       {
         action:   'stopVM',
@@ -243,6 +249,23 @@ export default class VirtVm extends HarvesterResource {
         interfaces[i].macAddress = '';
       }
     }
+
+    // delete, spec?.dataSource:  The original data should not be saved when clone template
+    let volumeClaimTemplate = [];
+
+    try {
+      volumeClaimTemplate = JSON.parse(this.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
+    } catch (e) {}
+
+    const deleteDataSource = volumeClaimTemplate.map((volume) => {
+      if (volume?.spec?.dataSource) {
+        delete volume.spec.dataSource;
+      }
+
+      return volume;
+    });
+
+    this.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(deleteDataSource);
   }
 
   restartVM() {
@@ -313,6 +336,13 @@ export default class VirtVm extends HarvesterResource {
 
   pauseVM() {
     this.doActionGrowl('pause', {});
+  }
+
+  goToCloneVM(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'CloneVmDialog'
+    });
   }
 
   unpauseVM() {

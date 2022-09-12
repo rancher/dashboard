@@ -111,30 +111,32 @@ export default {
     return {
       OS,
       isClone,
-      spec:               null,
-      osType:             'linux',
-      sshKey:             [],
-      runStrategy:        'RerunOnFailure',
-      installAgent:       true,
-      hasCreateVolumes:   [],
-      installUSBTablet:   true,
-      networkScript:      '',
-      userScript:         '',
-      imageId:            '',
-      diskRows:           [],
-      networkRows:        [],
-      machineType:        '',
-      secretName:         '',
-      secretRef:          null,
-      showAdvanced:       false,
-      deleteAgent:        true,
-      memory:             null,
-      cpu:                '',
-      reservedMemory:     null,
-      accessCredentials:  [],
-      efiEnabled:         false,
-      secureBoot:         false,
-      userDataTemplateId: '',
+      spec:                       null,
+      osType:                     'linux',
+      sshKey:                     [],
+      runStrategy:                'RerunOnFailure',
+      installAgent:               true,
+      hasCreateVolumes:           [],
+      installUSBTablet:           true,
+      networkScript:              '',
+      userScript:                 '',
+      imageId:                    '',
+      diskRows:                   [],
+      networkRows:                [],
+      machineType:                '',
+      secretName:                 '',
+      secretRef:                  null,
+      showAdvanced:               false,
+      deleteAgent:                true,
+      memory:                     null,
+      cpu:                        '',
+      reservedMemory:             null,
+      accessCredentials:          [],
+      efiEnabled:                 false,
+      secureBoot:                 false,
+      userDataTemplateId:         '',
+      saveUserDataAsClearText:    false,
+      saveNetworkDataAsClearText: false
     };
   },
 
@@ -216,7 +218,7 @@ export default {
 
   methods: {
     getInitConfig(config) {
-      const { value } = config;
+      const { value, existUserData } = config;
 
       const vm = this.resource === HCI.VM ? value : this.resource === HCI.BACKUP ? this.value.status?.source : value.spec.vm;
 
@@ -251,7 +253,7 @@ export default {
       const networkRows = this.getNetworkRows(vm);
       const hasCreateVolumes = this.getHasCreatedVolumes(spec) || [];
 
-      let { userData = undefined, networkData = undefined } = this.getSecretCloudData(spec);
+      let { userData = undefined, networkData = undefined } = this.getCloudInitNoCloud(spec);
 
       if (this.resource === HCI.BACKUP) {
         const secretBackups = this.value.status?.secretBackups;
@@ -266,9 +268,10 @@ export default {
       }
       const osType = this.getOsType(vm) || 'linux';
 
-      userData = this.isCreate ? this.getInitUserData({ osType }) : userData;
+      userData = this.isCreate && !existUserData && !this.isClone ? this.getInitUserData({ osType }) : userData;
+
       const installUSBTablet = this.isInstallUSBTablet(spec);
-      const installAgent = this.isCreate ? true : this.hasInstallAgent(userData, osType, true);
+      const installAgent = this.hasInstallAgent(userData, osType, true);
       const efiEnabled = this.isEfiEnabled(spec);
       const secureBoot = this.isSecureBoot(spec);
 
@@ -305,6 +308,8 @@ export default {
       this.$set(this, 'imageId', imageId);
 
       this.$set(this, 'diskRows', diskRows);
+
+      this.refreshYamlEditor();
     },
 
     getDiskRows(vm) {
@@ -343,6 +348,7 @@ export default {
           let volumeMode = '';
           let storageClassName = '';
           let hotpluggable = false;
+          let dataSource = null;
 
           const type = DISK?.cdrom ? CD_ROM : HARD_DISK;
 
@@ -372,6 +378,7 @@ export default {
               accessMode = dataVolumeSpecPVC?.accessModes?.[0];
               size = dataVolumeSpecPVC?.resources?.requests?.storage || '10Gi';
               storageClassName = dataVolumeSpecPVC?.storageClassName;
+              dataSource = dataVolumeSpecPVC?.dataSource;
             } else { // SOURCE_TYPE.ATTACH_VOLUME
               const allPVCs = this.$store.getters['harvester/all'](PVC);
               const pvcResource = allPVCs.find( O => O.id === `${ namespace }/${ volume?.persistentVolumeClaim?.claimName }`);
@@ -420,6 +427,7 @@ export default {
             storageClassName,
             hotpluggable,
             volumeStatus,
+            dataSource
           };
         });
       }
@@ -524,13 +532,26 @@ export default {
             disk: { bus: 'virtio' }
           });
 
-          volumes.push({
+          const userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });
+
+          const cloudinitdisk = {
             name:             'cloudinitdisk',
-            cloudInitNoCloud: {
-              secretRef:            { name: this.secretName },
-              networkDataSecretRef: { name: this.secretName }
-            }
-          });
+            cloudInitNoCloud: {}
+          };
+
+          if (this.saveUserDataAsClearText) {
+            cloudinitdisk.cloudInitNoCloud.userData = userData;
+          } else {
+            cloudinitdisk.cloudInitNoCloud.secretRef = { name: this.secretName };
+          }
+
+          if (this.saveNetworkDataAsClearText) {
+            cloudinitdisk.cloudInitNoCloud.networkData = this.networkScript;
+          } else {
+            cloudinitdisk.cloudInitNoCloud.networkDataSecretRef = { name: this.secretName };
+          }
+
+          volumes.push(cloudinitdisk);
         }
       }
 
@@ -792,6 +813,10 @@ export default {
         }
       };
 
+      if (R.dataSource) {
+        out.spec.dataSource = R.dataSource;
+      }
+
       switch (R.source) {
       case SOURCE_TYPE.NEW:
         out.spec.storageClassName = R.storageClassName || this.customDefaultStorageClass || this.defaultStorageClass;
@@ -1034,10 +1059,18 @@ export default {
 
       try {
         if (secret) {
-          secret.setData('userdata', userData);
-          secret.setData('networkdata', this.networkScript);
+          if (!this.saveUserDataAsClearText) {
+            secret.setData('userdata', userData);
+          }
 
-          await secret.save();
+          if (!this.saveNetworkDataAsClearText) {
+            secret.setData('networkdata', this.networkScript);
+          }
+
+          // If none of the data comes from the secret, then no data needs to be saved to the secret
+          if (!this.saveUserDataAsClearText || !this.saveNetworkDataAsClearText) {
+            await secret.save();
+          }
         }
       } catch (e) {
         return Promise.reject(e);
@@ -1280,10 +1313,7 @@ export default {
     secretRef: {
       handler(secret) {
         if (secret && this.resource !== HCI.BACKUP) {
-          this.userScript = secret?.decodedData?.userdata;
-          this.networkScript = secret?.decodedData?.networkdata;
           this.secretName = secret?.metadata.name;
-          this.refreshYamlEditor();
         }
       },
       immediate: true,

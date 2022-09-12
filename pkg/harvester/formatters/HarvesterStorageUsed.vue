@@ -36,18 +36,9 @@ export default {
   computed: {
     usage() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`);
-      let out = 0;
+      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.row.id }`) || {};
 
-      const diskStatus = longhornNode?.status?.diskStatus || {};
-
-      Object.values(diskStatus).map((disk) => {
-        if (disk?.storageAvailable && disk?.storageMaximum) {
-          out += disk.storageMaximum - disk.storageAvailable;
-        }
-      });
-
-      return Number(out);
+      return longhornNode?.used || 0;
     },
 
     reserved() {

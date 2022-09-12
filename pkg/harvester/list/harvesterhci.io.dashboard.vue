@@ -310,25 +310,18 @@ export default {
     },
 
     storageUsage() {
-      let out = 0;
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNodes = this.$store.getters[`${ inStore }/all`](LONGHORN.NODES) || [];
 
-      (this.longhornNode || []).forEach((node) => {
-        const diskStatus = node?.status?.diskStatus || {};
-
-        Object.values(diskStatus).map((disk) => {
-          if (disk?.conditions?.Schedulable?.status === 'True' && disk?.storageAvailable && disk?.storageMaximum) {
-            out += (disk.storageMaximum - disk.storageAvailable);
-          }
-        });
-      });
-
-      return out;
+      return longhornNodes.filter(node => node.spec?.allowScheduling).reduce((total, node) => {
+        return total + node.used;
+      }, 0);
     },
 
     storageReservedTotal() {
       let out = 0;
 
-      (this.longhornNode || []).forEach((node) => {
+      (this.longhornNode || []).filter(node => node.spec?.allowScheduling).forEach((node) => {
         const disks = node?.spec?.disks || {};
 
         Object.values(disks).map((disk) => {

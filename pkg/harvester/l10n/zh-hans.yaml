@@ -17,6 +17,17 @@ harvester:
         tip: 请输入模板名称。
         success: '模板 { templateName } 创建成功。'
         failed: '生成模板失败。'
+    cloneVM:
+      title: 克隆虚拟机
+      name: 新虚拟机名称
+      type: 克隆数据卷
+      action:
+        create: 创建
+        clone: 克隆
+      message:
+        tip: 请输入虚拟机名称!
+        success: '虚拟机 { name } 克隆成功.'
+        failed: '克隆虚拟机失败!' 
     exportImage:
       title: 导出镜像
       name: 名称
@@ -53,6 +64,8 @@ harvester:
     softreboot: 安全重启
     stop: 停止
     pause: 暂停
+    deepClone: 克隆
+    shallowClone: 克隆模版
     unpause: 取消暂停
     ejectCDROM: 弹出 CDROM
     launchFormTemplate: 从模板启动实例
@@ -178,6 +191,7 @@ harvester:
 
     version: 版本
   host:
+    console: 控制台
     label: 主机
     inconsistentIP: "主机 IP 不一致，当前 IP：{currentIP}，初始 IP：{initIP}"
     promote:

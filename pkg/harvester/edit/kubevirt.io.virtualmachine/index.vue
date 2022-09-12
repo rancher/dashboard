@@ -184,12 +184,22 @@ export default {
         delete cloneVersionVM.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_NAMES];
         delete cloneVersionVM.spec?.template?.metadata?.annotations?.[HCI_ANNOTATIONS.DYNAMIC_SSHKEYS_USERS];
 
-        this.getInitConfig({ value: cloneVersionVM });
-        this.$set(this, 'hasCreateVolumes', []); // When using the template, all volume names need to be newly created
-
         const claimTemplate = this.getVolumeClaimTemplates(cloneVersionVM);
 
-        this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
+        const deleteDataSource = claimTemplate.map((volume) => {
+          if (volume?.spec?.dataSource) {
+            delete volume.spec.dataSource;
+          }
+
+          return volume;
+        });
+
+        cloneVersionVM.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(deleteDataSource);
+
+        this.getInitConfig({ value: cloneVersionVM, existUserData: true });
+        this.$set(this, 'hasCreateVolumes', []); // When using the template, all volume names need to be newly created
+        // const claimTemplate = this.getVolumeClaimTemplates(cloneVersionVM);
+        // this.value.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(claimTemplate);
       }
     },
 
@@ -380,243 +390,243 @@ export default {
 </script>
 
 <template>
-  <div v-if="spec" id="vm">
-    <CruResource
-      :done-route="doneRoute"
-      :resource="value"
+  <CruResource
+    v-if="spec"
+    id="vm"
+    :done-route="doneRoute"
+    :resource="value"
+    :mode="mode"
+    :can-yaml="isSingle ? true : false"
+    :errors="errors"
+    :generate-yaml="generateYaml"
+    :apply-hooks="applyHooks"
+    @finish="saveVM"
+  >
+    <RadioGroup
+      v-if="isCreate"
+      v-model="isSingle"
+      class="mb-20 vm-radio-group"
+      name="createInstanceMode"
+      :options="[true,false]"
+      :labels="[t('harvester.virtualMachine.instance.single.label'), t('harvester.virtualMachine.instance.multiple.label')]"
+    />
+
+    <NameNsDescription
+      v-model="value"
       :mode="mode"
-      :can-yaml="isSingle ? true : false"
-      :errors="errors"
-      :generate-yaml="generateYaml"
-      :apply-hooks="applyHooks"
-      @finish="saveVM"
+      :has-extra="!isSingle"
+      :name-label="nameLabel"
+      :namespaced="true"
+      :name-placeholder="isSingle ? 'nameNsDescription.name.placeholder' : 'harvester.virtualMachine.instance.multiple.nameNsDescription'"
+      :extra-columns="isSingle ? [] :['type']"
     >
-      <RadioGroup
-        v-if="isCreate"
-        v-model="isSingle"
-        class="mb-20 vm-radio-group"
-        name="createInstanceMode"
-        :options="[true,false]"
-        :labels="[t('harvester.virtualMachine.instance.single.label'), t('harvester.virtualMachine.instance.multiple.label')]"
-      />
+      <template v-slot:type>
+        <LabeledInput
+          v-if="!isSingle"
+          v-model.number="count"
+          v-int-number
+          type="number"
+          :label="t('harvester.virtualMachine.instance.multiple.count')"
+          required
+          @input="validateCount"
+        />
+      </template>
+    </NameNsDescription>
 
-      <NameNsDescription
-        v-model="value"
-        :mode="mode"
-        :has-extra="!isSingle"
-        :name-label="nameLabel"
-        :namespaced="true"
-        :name-placeholder="isSingle ? 'nameNsDescription.name.placeholder' : 'harvester.virtualMachine.instance.multiple.nameNsDescription'"
-        :extra-columns="isSingle ? [] :['type']"
-      >
-        <template v-slot:type>
-          <LabeledInput
-            v-if="!isSingle"
-            v-model.number="count"
-            v-int-number
-            type="number"
-            :label="t('harvester.virtualMachine.instance.multiple.count')"
-            required
-            @input="validateCount"
-          />
-        </template>
-      </NameNsDescription>
+    <Checkbox
+      v-if="isCreate"
+      v-model="useTemplate"
+      class="check mb-20"
+      type="checkbox"
+      label-key="harvester.virtualMachine.useTemplate.label"
+    />
 
-      <Checkbox
-        v-if="isCreate"
-        v-model="useTemplate"
-        class="check mb-20"
-        type="checkbox"
-        label-key="harvester.virtualMachine.useTemplate.label"
-      />
-
-      <div v-if="useTemplate" class="row mb-20">
-        <div class="col span-6">
-          <LabeledSelect
-            v-model="templateId"
-            label-key="harvester.virtualMachine.useTemplate.template.label"
-            :options="templateOptions"
-            @input="updateTemplateId"
-          />
-        </div>
-
-        <div class="col span-6">
-          <LabeledSelect
-            v-model="templateVersionId"
-            label-key="harvester.virtualMachine.useTemplate.version.label"
-            :options="versionOptions"
-          />
-        </div>
+    <div v-if="useTemplate" class="row mb-20">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="templateId"
+          label-key="harvester.virtualMachine.useTemplate.template.label"
+          :options="templateOptions"
+          @input="updateTemplateId"
+        />
       </div>
 
-      <Tabbed :side-tabs="true" @changed="onTabChanged">
-        <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
-          <CpuMemory
-            :cpu="cpu"
-            :memory="memory"
-            :mode="mode"
-            @updateCpuMemory="updateCpuMemory"
-          />
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="templateVersionId"
+          label-key="harvester.virtualMachine.useTemplate.version.label"
+          :options="versionOptions"
+        />
+      </div>
+    </div>
 
-          <SSHKey
-            v-model="sshKey"
-            class="mb-20"
-            :namespace="value.metadata.namespace"
-            :mode="mode"
-            :disabled="isWindows"
-            @update:sshKey="updateSSHKey"
-            @register-after-hook="registerAfterHook"
-          />
-        </Tab>
+    <Tabbed :side-tabs="true" @changed="onTabChanged">
+      <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
+        <CpuMemory
+          :cpu="cpu"
+          :memory="memory"
+          :mode="mode"
+          @updateCpuMemory="updateCpuMemory"
+        />
 
-        <Tab name="Volume" :label="t('harvester.tab.volume')" :weight="-1">
-          <Volume
-            v-model="diskRows"
-            :mode="mode"
-            :custom-volume-mode="customVolumeMode"
-            :namespace="value.metadata.namespace"
-            :resource-type="value.type"
-            :vm="value"
-            :validate-required="true"
-          />
-        </Tab>
+        <SSHKey
+          v-model="sshKey"
+          class="mb-20"
+          :namespace="value.metadata.namespace"
+          :mode="mode"
+          :disabled="isWindows"
+          @update:sshKey="updateSSHKey"
+          @register-after-hook="registerAfterHook"
+        />
+      </Tab>
 
-        <Tab name="Network" :label="t('harvester.tab.network')" :weight="-2">
-          <Network v-model="networkRows" :mode="mode" />
-        </Tab>
+      <Tab name="Volume" :label="t('harvester.tab.volume')" :weight="-1">
+        <Volume
+          v-model="diskRows"
+          :mode="mode"
+          :custom-volume-mode="customVolumeMode"
+          :namespace="value.metadata.namespace"
+          :resource-type="value.type"
+          :vm="value"
+          :validate-required="true"
+        />
+      </Tab>
 
-        <Tab name="nodeScheduling" :label="t('workload.container.titles.nodeScheduling')" :weight="-3">
-          <NodeScheduling :mode="mode" :value="spec.template.spec" :nodes="nodesIdOptions" />
-        </Tab>
+      <Tab name="Network" :label="t('harvester.tab.network')" :weight="-2">
+        <Network v-model="networkRows" :mode="mode" />
+      </Tab>
 
-        <Tab v-if="isEdit" :label="t('harvester.tab.accessCredentials')" name="accessCredentials" :weight="-4">
-          <AccessCredentials v-model="accessCredentials" :mode="mode" :resource="value" :is-qemu-installed="isQemuInstalled" />
-        </Tab>
+      <Tab name="nodeScheduling" :label="t('workload.container.titles.nodeScheduling')" :weight="-3">
+        <NodeScheduling :mode="mode" :value="spec.template.spec" :nodes="nodesIdOptions" />
+      </Tab>
 
-        <Tab
-          name="advanced"
-          :label="t('harvester.tab.advanced')"
-          :weight="-5"
-        >
+      <Tab v-if="isEdit" :label="t('harvester.tab.accessCredentials')" name="accessCredentials" :weight="-4">
+        <AccessCredentials v-model="accessCredentials" :mode="mode" :resource="value" :is-qemu-installed="isQemuInstalled" />
+      </Tab>
+
+      <Tab
+        name="advanced"
+        :label="t('harvester.tab.advanced')"
+        :weight="-5"
+      >
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="runStrategy"
+              label-key="harvester.virtualMachine.runStrategy"
+              :options="RunStrategys"
+              :mode="mode"
+            />
+          </div>
+
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="osType"
+              label-key="harvester.virtualMachine.osType"
+              :options="OS"
+              :disabled="!isCreate"
+            />
+          </div>
+        </div>
+
+        <div class="row mb-20">
+          <a v-if="showAdvanced" v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
+          <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
+        </div>
+
+        <div v-if="showAdvanced" class="mb-20">
           <div class="row mb-20">
             <div class="col span-6">
-              <LabeledSelect
-                v-model="runStrategy"
-                label-key="harvester.virtualMachine.runStrategy"
-                :options="RunStrategys"
+              <LabeledInput
+                v-model="hostname"
+                :label-key="hostnameLabel"
+                :placeholder="hostPlaceholder"
                 :mode="mode"
               />
             </div>
 
             <div class="col span-6">
               <LabeledSelect
-                v-model="osType"
-                label-key="harvester.virtualMachine.osType"
-                :options="OS"
-                :disabled="!isCreate"
+                v-model="machineType"
+                label-key="harvester.virtualMachine.input.MachineType"
+                :options="machineTypeOptions"
+                :mode="mode"
               />
             </div>
           </div>
 
-          <div class="row mb-20">
-            <a v-if="showAdvanced" v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
-            <a v-else v-t="'harvester.generic.showMore'" role="button" @click="toggleAdvanced" />
-          </div>
-
-          <div v-if="showAdvanced" class="mb-20">
-            <div class="row mb-20">
-              <div class="col span-6">
-                <LabeledInput
-                  v-model="hostname"
-                  :label-key="hostnameLabel"
-                  :placeholder="hostPlaceholder"
-                  :mode="mode"
-                />
-              </div>
-
-              <div class="col span-6">
-                <LabeledSelect
-                  v-model="machineType"
-                  label-key="harvester.virtualMachine.input.MachineType"
-                  :options="machineTypeOptions"
-                  :mode="mode"
-                />
-              </div>
-            </div>
-
-            <Reserved
-              :reserved-memory="reservedMemory"
-              :mode="mode"
-              @updateReserved="updateReserved"
-            />
-          </div>
-
-          <CloudConfig
-            ref="yamlEditor"
-            :user-script="userScript"
+          <Reserved
+            :reserved-memory="reservedMemory"
             :mode="mode"
-            :view-code="isWindows"
-            :namespace="value.metadata.namespace"
-            :network-script="networkScript"
-            @updateUserData="updateUserData"
-            @updateNetworkData="updateNetworkData"
-            @updateDataTemplateId="updateDataTemplateId"
+            @updateReserved="updateReserved"
           />
+        </div>
+
+        <CloudConfig
+          ref="yamlEditor"
+          :user-script="userScript"
+          :mode="mode"
+          :view-code="isWindows"
+          :namespace="value.metadata.namespace"
+          :network-script="networkScript"
+          @updateUserData="updateUserData"
+          @updateNetworkData="updateNetworkData"
+          @updateDataTemplateId="updateDataTemplateId"
+        />
+
+        <Checkbox
+          v-model="installUSBTablet"
+          class="check mt-20"
+          type="checkbox"
+          tooltip-key="harvester.virtualMachine.usbTip"
+          label-key="harvester.virtualMachine.enableUsb"
+          :mode="mode"
+        />
+
+        <Checkbox
+          v-model="installAgent"
+          class="check"
+          type="checkbox"
+          :disabled="isWindows"
+          label-key="harvester.virtualMachine.installAgent"
+          :mode="mode"
+          @input="updateAgent"
+        />
+
+        <Checkbox
+          v-model="efiEnabled"
+          class="check"
+          type="checkbox"
+          :label="t('harvester.virtualMachine.efiEnabled')"
+          :mode="mode"
+        />
+
+        <Checkbox
+          v-if="efiEnabled"
+          v-model="secureBoot"
+          class="check"
+          type="checkbox"
+          :label="t('harvester.virtualMachine.secureBoot')"
+          :mode="mode"
+        />
+      </Tab>
+    </Tabbed>
+
+    <div class="mt-20">
+      <span v-if="isEdit && (hasRestartAction || hasStartAction)" class="restart">
+        <Banner color="warning" class="banner-right">
+          {{ t('harvester.virtualMachine.restartTip', { restart: hasRestartAction }) }}
 
           <Checkbox
-            v-model="installUSBTablet"
-            class="check mt-20"
+            v-model="isRestartImmediately"
+            class="check ml-20"
             type="checkbox"
-            tooltip-key="harvester.virtualMachine.usbTip"
-            label-key="harvester.virtualMachine.enableUsb"
-            :mode="mode"
+            :label="t('harvester.virtualMachine.restartNow', { restart: hasRestartAction })"
           />
-
-          <Checkbox
-            v-model="installAgent"
-            class="check"
-            type="checkbox"
-            :disabled="isWindows"
-            label-key="harvester.virtualMachine.installAgent"
-            :mode="mode"
-            @input="updateAgent"
-          />
-
-          <Checkbox
-            v-model="efiEnabled"
-            class="check"
-            type="checkbox"
-            :label="t('harvester.virtualMachine.efiEnabled')"
-            :mode="mode"
-          />
-
-          <Checkbox
-            v-if="efiEnabled"
-            v-model="secureBoot"
-            class="check"
-            type="checkbox"
-            :label="t('harvester.virtualMachine.secureBoot')"
-            :mode="mode"
-          />
-        </Tab>
-      </Tabbed>
-
-      <div class="mt-20">
-        <span v-if="isEdit && (hasRestartAction || hasStartAction)" class="restart">
-          <Banner color="warning" class="banner-right">
-            {{ t('harvester.virtualMachine.restartTip', { restart: hasRestartAction }) }}
-
-            <Checkbox
-              v-model="isRestartImmediately"
-              class="check ml-20"
-              type="checkbox"
-              :label="t('harvester.virtualMachine.restartNow', { restart: hasRestartAction })"
-            />
-          </Banner>
-        </span>
-      </div>
-    </CruResource>
-  </div>
+        </Banner>
+      </span>
+    </div>
+  </CruResource>
 </template>
 
 <style lang="scss" scoped>

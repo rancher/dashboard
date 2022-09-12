@@ -62,46 +62,44 @@ export default {
 </script>
 
 <template>
-  <div class="keypair-card">
-    <CruResource
-      :done-route="doneRoute"
-      :resource="value"
-      :mode="mode"
-      :errors="errors"
-      :apply-hooks="applyHooks"
-      @finish="save"
-    >
-      <div class="header mb-20">
-        <FileSelector
-          v-if="isCreate"
-          class="btn btn-sm bg-primary mt-10"
-          :label="t('generic.readFromFile')"
-          accept=".pub"
-          @selected="onKeySelected"
-        />
-      </div>
-
-      <NameNsDescription
-        ref="nd"
-        :key="randomString"
-        v-model="value"
-        :mode="mode"
+  <CruResource
+    :done-route="doneRoute"
+    :resource="value"
+    :mode="mode"
+    :errors="errors"
+    :apply-hooks="applyHooks"
+    @finish="save"
+  >
+    <div class="header mb-20">
+      <FileSelector
+        v-if="isCreate"
+        class="btn btn-sm bg-primary mt-10"
+        :label="t('generic.readFromFile')"
+        accept=".pub"
+        @selected="onKeySelected"
       />
+    </div>
 
-      <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-        <Tab name="basic" :label="t('harvester.sshKey.tabs.basics')" :weight="1" class="bordered-table">
-          <LabeledInput
-            v-model="publicKey"
-            type="multiline"
-            :mode="mode"
-            :min-height="160"
-            :label="t('harvester.sshKey.keypair')"
-            required
-          />
-        </Tab>
-      </Tabbed>
-    </CruResource>
-  </div>
+    <NameNsDescription
+      ref="nd"
+      :key="randomString"
+      v-model="value"
+      :mode="mode"
+    />
+
+    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
+      <Tab name="basic" :label="t('harvester.sshKey.tabs.basics')" :weight="1" class="bordered-table">
+        <LabeledInput
+          v-model="publicKey"
+          type="multiline"
+          :mode="mode"
+          :min-height="160"
+          :label="t('harvester.sshKey.keypair')"
+          required
+        />
+      </Tab>
+    </Tabbed>
+  </CruResource>
 </template>
 
 <style lang="scss" scoped>
