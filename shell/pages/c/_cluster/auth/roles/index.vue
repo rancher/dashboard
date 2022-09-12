@@ -39,6 +39,15 @@ export default {
   async asyncData({ store }) {
     const globalRoleSchema = store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
     const roleTemplatesSchema = store.getters[`management/schemaFor`](MANAGEMENT.ROLE_TEMPLATE);
+    const clusterRoleBindingsSchema = store.getters[`management/schemaFor`](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
+    const globalRoleBindingsSchema = store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE_BINDING);
+
+    if (clusterRoleBindingsSchema) {
+      store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, opt: { watch: false } });
+    }
+    if (globalRoleBindingsSchema) {
+      store.dispatch(`management/findAll`, { type: MANAGEMENT.GLOBAL_ROLE_BINDING, opt: { watch: false } });
+    }
 
     return {
       globalRoles:   globalRoleSchema ? await store.dispatch(`management/findAll`, { type: MANAGEMENT.GLOBAL_ROLE }) : [],
