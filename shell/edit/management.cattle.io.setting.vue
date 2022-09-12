@@ -132,18 +132,19 @@ export default {
       <div v-if="setting.kind === 'enum'">
         <LabeledSelect
           v-model="value.value"
-          v-focus
+          data-testid="input-setting-enum"
           :label="t('advancedSettings.edit.value')"
           :rules="[validate]"
           :localized-label="true"
           :mode="mode"
-          required="true"
+          :required="true"
           :options="enumOptions"
         />
       </div>
       <div v-else-if="setting.kind === 'boolean'">
         <RadioGroup
           v-model="value.value"
+          data-testid="input-setting-boolean"
           name="settings_value"
           :rules="[validate]"
           :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
@@ -153,8 +154,8 @@ export default {
       <div v-else-if="setting.kind === 'multiline' || setting.kind === 'json'">
         <TextAreaAutoGrow
           v-model="value.value"
-          v-focus
-          required="true"
+          data-testid="input-setting-json"
+          :required="true"
           :rules="[validate]"
           :min-height="254"
         />
@@ -162,21 +163,20 @@ export default {
       <div v-else-if="setting.kind === 'integer'">
         <LabeledInput
           v-model="value.value"
-          v-focus
+          data-testid="input-setting-integer"
           :label="t('advancedSettings.edit.value')"
-          :localized-label="true"
           :mode="mode"
           type="number"
           :rules="[validate]"
-          required="true"
+          :required="true"
         />
       </div>
       <div v-else>
         <LabeledInput
           v-model="value.value"
-          v-focus
+          data-testid="input-setting-generic"
           :localized-label="true"
-          required="true"
+          :required="true"
           :mode="mode"
           :rules="[validate]"
           :label="t('advancedSettings.edit.value')"
