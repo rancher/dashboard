@@ -73,9 +73,7 @@ if [ -n "${CREATE_TARBALL}" ]; then
 
   pushd ${PKG_DIST}
 
-  pushd ..
-  rm $TARBALL
-  popd
+  rm -f ../$TARBALL
 
   echo "Compressing to ${TARBALL}..."
 
