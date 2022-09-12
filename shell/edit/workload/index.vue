@@ -150,10 +150,11 @@ export default {
                       :label="t('workload.container.imagePullSecrets')"
                       :multiple="true"
                       :taggable="true"
-                      :options="namespacedSecrets"
+                      :options="imagePullNamespacedSecrets"
                       :mode="mode"
                       option-label="metadata.name"
                       :reduce="service=>service.metadata.name"
+                      :create-option="createOption"
                     />
                   </div>
                 </div>
