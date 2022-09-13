@@ -863,7 +863,7 @@ export default {
                 <template #button-content>
                   <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!selectedRows.length">
                     <i class="icon icon-gear" />
-                    <span>{{ t('harvester.tableHeaders.actions') }}</span>
+                    <span>{{ t('sortableTable.bulkActions.collapsed.label') }}</span>
                     <i class="ml-10 icon icon-chevron-down" />
                   </button>
                 </template>
