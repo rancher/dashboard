@@ -2,6 +2,7 @@
 import { GC_DEFAULTS } from '../utils/gc/gc-types';
 import { MANAGEMENT } from './types';
 import { Store } from 'vuex';
+import { Validator } from '~/shell/utils/validators/formRules';
 
 interface RancherSetting {
   [key: string]: {
@@ -15,7 +16,7 @@ interface RancherSetting {
     /**
      * Function used from the form validation
      */
-    validate?: (value: string) => string | undefined,
+    rules?: Validator[],
   };
 }
 
@@ -97,7 +98,7 @@ export const ALLOWED_SETTINGS: RancherSetting = {
   [SETTING.CA_CERTS]:                             { kind: 'multiline', readOnly: true },
   [SETTING.ENGINE_URL]:                           {},
   [SETTING.ENGINE_ISO_URL]:                       {},
-  [SETTING.CATTLE_PASSWORD_MIN_LENGTH]:           { kind: 'integer', validate: minPasswordLength },
+  [SETTING.CATTLE_PASSWORD_MIN_LENGTH]:           { kind: 'integer', rules: [minPasswordLength] },
   [SETTING.INGRESS_IP_DOMAIN]:                    {},
   [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]:       {},
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:        {},

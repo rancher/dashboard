@@ -52,16 +52,6 @@ export default {
       this.value.value = `${ event.target.value }`;
     },
 
-    /**
-     * Validate rule if any and return error if any
-     * @param {*} value
-     */
-    validate() {
-      const errorText = this.setting.validate && this.setting.validate(this.value.value);
-
-      return errorText ? this.t(errorText) : undefined;
-    },
-
     saveSettings(done) {
       const t = this.$store.getters['i18n/t'];
 
@@ -134,7 +124,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-enum"
           :label="t('advancedSettings.edit.value')"
-          :rules="[validate]"
+          :rules="setting.rules"
           :localized-label="true"
           :mode="mode"
           :required="true"
@@ -146,7 +136,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-boolean"
           name="settings_value"
-          :rules="[validate]"
+          :rules="setting.rules"
           :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
           :options="['true', 'false']"
         />
@@ -156,7 +146,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-json"
           :required="true"
-          :rules="[validate]"
+          :rules="setting.rules"
           :min-height="254"
         />
       </div>
@@ -167,7 +157,7 @@ export default {
           :label="t('advancedSettings.edit.value')"
           :mode="mode"
           type="number"
-          :rules="[validate]"
+          :rules="setting.rules"
           :required="true"
         />
       </div>
@@ -178,7 +168,7 @@ export default {
           :localized-label="true"
           :required="true"
           :mode="mode"
-          :rules="[validate]"
+          :rules="setting.rules"
           :label="t('advancedSettings.edit.value')"
         />
       </div>
