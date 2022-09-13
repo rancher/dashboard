@@ -2,6 +2,14 @@ const GITHUB_BASE_API = 'https://api.github.com';
 
 const fetchGithubAPI = async(endpoint) => {
   const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
+  // TODO: Look for rate limit headers and handle appropriately https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
+
+  // If rate-limit is exceeded, we should wait until the rate limit is reset
+  if (response.status === 403) {
+    const resetTime = new Date(response.headers.get('X-RateLimit-Reset') * 1000);
+
+    throw new Error(`Rate limit exceeded. Try again at ${ resetTime }`);
+  }
 
   if (!response.ok) {
     throw response;
@@ -18,6 +26,9 @@ export const actions = {
       switch (endpoint) {
       case 'branches': {
         return await fetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=100&direction=desc`);
+      }
+      case 'repo': {
+        return await fetchGithubAPI(`repos/${ username }/${ repo }`);
       }
       case 'commits': {
         return await fetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
@@ -47,6 +58,14 @@ export const actions = {
 
   async fetchRecentRepos({ commit, dispatch }, { username } = {}) {
     const res = await dispatch('apiList', { username });
+
+    return res;
+  },
+
+  async fetchRepoDetails({ commit, dispatch }, { username, repo } = {}) {
+    const res = await dispatch('apiList', {
+      username, endpoint: 'repo', repo
+    });
 
     return res;
   },

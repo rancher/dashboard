@@ -206,6 +206,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return Object.keys(this.configuration?.environment || []).length;
   }
 
+  get envDetails() {
+    return this.configuration?.environment;
+  }
+
   get routeCount() {
     return this.configuration?.routes.length;
   }
@@ -258,9 +262,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
             value: this.origin.git.repository
           }, {
             label: 'Revision',
-            icon:  'icon-github',
+            icon:  'icon-commit',
             value: this.origin.git.revision
-          }]
+          },
+        ]
       };
     case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:
       return {
@@ -270,6 +275,20 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
           appChart, {
             label: 'Image',
             value: this.origin.Container || this.origin.container
+          }]
+      };
+    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT_HUB:
+      return {
+        label:   'GitHub',
+        icon:    'icon-github',
+        details:  [
+          appChart, {
+            label: 'Url',
+            value: this.origin.git.repository
+          }, {
+            label: 'Revision',
+            icon:  'icon-github',
+            value: this.origin.git.revision
           }]
       };
     default:

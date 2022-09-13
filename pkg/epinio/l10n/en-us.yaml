@@ -86,6 +86,11 @@ epinio:
         instances: Instances
         services: Services
         configs: Configurations
+        overview: Overview
+        githubCommits: Github commits
+    gitSource:
+      latestCommit: Latest commit deployed
+      behindCommits: Commits behind
     create:
       title: Application
       titleSubText: Epinio

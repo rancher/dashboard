@@ -111,6 +111,10 @@ export default Vue.extend<Data, any, any, any>({
         // app chart actually belongs in config, so stick it in there
         this.value.configuration = this.value.configuration || {};
         this.set(this.value.configuration, { appchart: appChart });
+        // FIX: this is a hack to get the app chart to show up in the UI
+        if (!!changes.github.url) {
+          this.set(this.value.configuration, { environment: { appDeployment: JSON.stringify(changes.github) } });
+        }
       }
 
       this.set(this.source, cleanChanges);
