@@ -141,16 +141,16 @@ export default function(dir, _appConfig) {
       // Package file must have rancher field to be a plugin
       if (includePkg(name) && f.rancher) {
         reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
+
+        // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
+        // if (!nmPackages[name]) {
+        //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
+        //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
+
+        //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
+        // }
+        autoImportTypes[`@rancher/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
       }
-
-      // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
-      // if (!nmPackages[name]) {
-      //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
-      //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
-
-      //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
-      // }
-      autoImportTypes[`@rancher/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
     });
   }
 
