@@ -1,7 +1,7 @@
 import { insertAt } from '@shell/utils/array';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import namespace from '@shell/models/namespace';
 
-export default class HciNamespace extends SteveModel {
+export default class HciNamespace extends namespace {
   get _availableActions() {
     const out = super._availableActions;
     const remove = out.findIndex(a => a.action === 'promptRemove');
@@ -30,7 +30,7 @@ export default class HciNamespace extends SteveModel {
     this.$dispatch('promptModal', {
       resources,
       warningMessageKey: 'promptRemove.confirmRelatedResource',
-      component:         'harvester/ConfirmRelatedToRemoveDialog'
+      component:         'ConfirmRelatedToRemoveDialog'
     });
   }
 }
