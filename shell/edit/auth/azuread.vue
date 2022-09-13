@@ -176,10 +176,13 @@ export default {
     },
 
     setInitialEndpoint(endpoint) {
-      const endpointKey = Object.keys(ENDPOINT_MAPPING).find(key => ENDPOINT_MAPPING[key].graphEndpoint === endpoint);
+      const newEndpointKey = Object.keys(ENDPOINT_MAPPING).find(key => ENDPOINT_MAPPING[key].graphEndpoint === endpoint);
+      const oldEndpointKey = Object.keys(OLD_ENDPOINTS).find(key => OLD_ENDPOINTS[key].graphEndpoint === endpoint);
 
-      if ( endpointKey ) {
-        this.endpoint = endpointKey;
+      if ( newEndpointKey ) {
+        this.endpoint = newEndpointKey;
+      } else if ( oldEndpointKey ) {
+        this.endpoint = oldEndpointKey;
       } else {
         this.endpoint = 'custom';
       }
