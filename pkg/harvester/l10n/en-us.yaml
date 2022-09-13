@@ -18,17 +18,6 @@ harvester:
         tip: Please enter a template name!
         success: 'Template { templateName } created successfully.'
         failed: 'Failed generated template!'
-    cloneVM:
-      title: Clone VM
-      name: New VM Name
-      type: clone volume data
-      action:
-        create: Create
-        clone: Clone
-      message:
-        tip: Please enter a VM name!
-        success: 'VM { name } cloned successfully.'
-        failed: 'Failed clone VM!'
     exportImage:
       title: Export to Image
       name: Name
@@ -71,8 +60,6 @@ harvester:
     softreboot: Soft Reboot
     stop: Stop
     pause: Pause
-    deepClone: Clone
-    shallowClone: Clone Template
     unpause: Unpause
     ejectCDROM: Eject CDROM
     launchFormTemplate: Launch instance from template
@@ -190,7 +177,6 @@ harvester:
 
     version: Version
   host:
-    console: Console
     label: Hosts
     inconsistentIP: "Host IP is inconsistent, current IP: { currentIP }, initial IP: { initIP }"
     promote:

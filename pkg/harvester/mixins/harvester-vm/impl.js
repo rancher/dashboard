@@ -111,25 +111,11 @@ export default {
       return !!spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
     },
 
-    getCloudInitNoCloud(spec) {
+    getSecretCloudData(spec, type) {
       const secret = this.getSecret(spec);
-      let userData = secret?.decodedData?.userdata;
-      let networkData = secret?.decodedData?.networkdata;
 
-      const cloudInitNoCloud = spec?.template?.spec?.volumes?.find( (V) => {
-        return V.name === 'cloudinitdisk';
-      })?.cloudInitNoCloud || {};
-
-      // If the value is not found inside the secret, the data may be written directly in the yaml
-      if (cloudInitNoCloud?.userData) {
-        userData = cloudInitNoCloud.userData;
-        this.saveUserDataAsClearText = true;
-      }
-
-      if (cloudInitNoCloud?.networkData) {
-        networkData = cloudInitNoCloud.networkData;
-        this.saveNetworkDataAsClearText = true;
-      }
+      const userData = secret?.decodedData?.userdata;
+      const networkData = secret?.decodedData?.networkdata;
 
       return { userData, networkData };
     },
@@ -228,7 +214,7 @@ export default {
 
     mergeAllSSHs(spec) {
       const keys = this.getSSHFromAnnotation(spec);
-      const { userScript: userData } = this.getCloudInitNoCloud(spec);
+      const { userScript: userData } = this.getSecretCloudData(spec);
 
       if (!keys?.length < 0 && !userData) {
         return [];

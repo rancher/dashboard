@@ -26,7 +26,7 @@ export function backupTarget(value, getters, errors, validatorArgs) {
     }
   }
 
-  if (!parseValue.endpoint && type !== 's3') {
+  if (!parseValue.endpoint) {
     errors.push(t('validation.required', { key: 'endpoint' }));
   }
 
