@@ -95,6 +95,18 @@ export const ALLOWED_SETTINGS = {
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
 };
 
+export const DEFAULT_PERF_SETTING = {
+  incrementalLoading: {
+    enabled:   true,
+    threshold: 2500,
+  },
+  manualRefresh: {
+    enabled:   false,
+    threshold: 2500,
+  },
+  disableWebsocketNotification: false
+};
+
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {
   let setting;
 

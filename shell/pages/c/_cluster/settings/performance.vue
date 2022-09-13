@@ -5,20 +5,8 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
+import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
-
-const DEFAULT_PERF_SETTING = {
-  incrementalLoading: {
-    enabled:   false,
-    threshold: 2500,
-  },
-  manualRefresh: {
-    enabled:   false,
-    threshold: 2500,
-  },
-  disableWebsocketNotification: false
-};
 
 export default {
   layout:     'authenticated',
