@@ -41,6 +41,7 @@ export default {
     const resource = CAPI.RANCHER_CLUSTER;
 
     return {
+      navigating:   false,
       VIRTUAL,
       hciDashboard: HCI.DASHBOARD,
       resource,
@@ -79,6 +80,21 @@ export default {
     typeDisplay() {
       return this.t(`typeLabel."${ HCI.CLUSTER }"`, { count: this.row?.length || 0 });
     },
+  },
+
+  methods: {
+    async goToCluster(row) {
+      try {
+        setTimeout(() => {
+          // Don't show loading indicator for quickly fetched plugins
+          this.navigating = row.id;
+        }, 1000);
+        await row.goToCluster();
+      } catch {
+        // The error handling is carried out within goToCluster
+        this.navigating = false;
+      }
+    }
   }
 };
 </script>
@@ -115,11 +131,12 @@ export default {
     >
       <template #col:name="{row}">
         <td>
-          <span>
-            <a v-if="row.isReady" class="link" @click="row.goToCluster()">{{ row.nameDisplay }}</a>
+          <span class="cluster-link">
+            <a v-if="row.isReady" class="link" :disabled="navigating" @click="goToCluster(row)">{{ row.nameDisplay }}</a>
             <span v-else>
               {{ row.nameDisplay }}
             </span>
+            <i class="icon icon-spinner icon-spin ml-5" :class="{'navigating': navigating === row.id}" />
           </span>
         </td>
       </template>
@@ -152,6 +169,20 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .cluster-link {
+    display: flex;
+    align-items: center;
+
+    .icon {
+      // Use visibility to avoid the columns re-adjusting when the icon is shown
+      visibility: hidden;
+
+      &.navigating {
+        visibility: visible;
+      }
+    }
+
+  }
   .no-clusters {
     text-align: center;
   }
