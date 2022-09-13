@@ -98,11 +98,11 @@ export const ALLOWED_SETTINGS = {
 export const DEFAULT_PERF_SETTING = {
   incrementalLoading: {
     enabled:   true,
-    threshold: 2500,
+    threshold: 1500,
   },
   manualRefresh: {
     enabled:   false,
-    threshold: 2500,
+    threshold: 1500,
   },
   disableWebsocketNotification: false
 };
