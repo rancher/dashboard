@@ -12,6 +12,7 @@ import { sortBy } from '@shell/utils/sort';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
 import { mapGetters } from 'vuex';
+import isEqual from 'lodash/isEqual';
 
 export const EPINIO_SERVICE_PARAM = 'service';
 
@@ -66,6 +67,10 @@ export default Vue.extend<Data, any, any, any>({
     ...mapGetters({ t: 'i18n/t' }),
 
     validationPassed() {
+      if (!isEqual(this.selectedApps, this.initialValue.boundapps)) {
+        return true;
+      }
+
       if (!this.value.catalog_service) {
         return false;
       }
