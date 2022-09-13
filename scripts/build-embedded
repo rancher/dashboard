@@ -26,7 +26,9 @@ NUXT_ENV_commit=${COMMIT} NUXT_ENV_version=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROU
 if [ -v EMBED_PKG ]; then
     echo "Build and embed plugin from: $EMBED_PKG"
     PKG_FILE_NAME=${EMBED_PKG##*/}
-    PKG_NAME=$(cut -d "-" -f1 <<< "$PKG_FILE_NAME")
+    echo PKG_FILE_NAME: $PKG_FILE_NAME
+
+    PKG_NAME="${PKG_FILE_NAME/.tar.gz/""}"
     echo "Plugin name: '$PKG_NAME'"
 
     # Fetch file, unpack and move to dist
