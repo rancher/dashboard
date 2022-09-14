@@ -359,7 +359,7 @@ BODY, .theme-light {
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : #{$link};
+  --checkbox-ticked-bg         : var(--link);
 
   --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
@@ -371,7 +371,7 @@ BODY, .theme-light {
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$dark};
   --dropdown-hover-text        : #{$lightest};
-  --dropdown-hover-bg          : var(--primary);
+  --dropdown-hover-bg          : var(--link);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-highlight-text     : #{$link};
