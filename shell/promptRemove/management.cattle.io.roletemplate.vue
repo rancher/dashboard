@@ -28,7 +28,6 @@ export default {
     </template>
     <div v-if="info" class="text info mb-10 mt-20">
       <span v-html="info" />
-      <i v-if="isLoading" class="icon-spin icon icon-spinner" />
     </div>
     <div v-if="warning" class="text-warning mb-10 mt-20">
       {{ warning }}

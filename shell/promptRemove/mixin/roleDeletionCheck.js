@@ -7,7 +7,6 @@ export default {
     return {
       warning:             '',
       info:                '',
-      isLoading:           false,
     };
   },
 
@@ -37,7 +36,6 @@ export default {
     resourceNames,
     async handleRoleDeletionCheck(rolesToRemove, resourceType) {
       this.warning = '';
-      this.isLoading = true;
       let resourceToCheck;
       let propToMatch;
       let numberOfRolesWithBinds = 0;
@@ -76,7 +74,6 @@ export default {
             }
           });
 
-          this.isLoading = false;
           if (numberOfRolesWithBinds && numberUniqueUsersWithBinds) {
             this.info = '';
             this.warning = this.t('rbac.globalRoles.usersBinded', { count: numberUniqueUsersWithBinds });
@@ -84,11 +81,9 @@ export default {
             this.info = this.t('rbac.globalRoles.noBinding', null, true);
           }
         } else {
-          this.isLoading = false;
           this.info = this.t('rbac.globalRoles.noBinding', null, true);
         }
       } catch (e) {
-        this.isLoading = false;
         this.info = this.t('rbac.globalRoles.unableToCheck');
       }
     },

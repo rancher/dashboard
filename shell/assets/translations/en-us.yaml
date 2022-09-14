@@ -3961,8 +3961,8 @@ rbac:
     unableToCheck: Unable to check user bindings. Please try again.
     waiting: |-
       {count, plural,
-        =1 { Checking if there are any users binded to this role }
-        other { Checking if there are any users binded to these roles }
+        =1 { Checking if there are any users binded to this role <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+        other { Checking if there are any users binded to these roles <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
       }
     usersBinded: |-
       {count, plural,
