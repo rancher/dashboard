@@ -102,9 +102,9 @@ export default class Project extends HybridModel {
     try {
       await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
     } catch (err) {
-      if (err.status === 409) {
+      if ( err.status === 409 || err.status === 403 ) {
         // The backend updates each new project soon after it is created,
-        // so there is a chance of a resource conflict error. If that happens,
+        // so there is a chance of a resource conflict or forbidden error. If that happens,
         // retry the action.
         await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
       } else {
