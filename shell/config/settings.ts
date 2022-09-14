@@ -30,6 +30,16 @@ const minPasswordLength = (value: string): string | undefined => {
   return isCorrect ? undefined : 'validation.minPasswordLength';
 };
 
+/**
+ * Prevent the user to allow no passwords
+ * @param {*} value
+ */
+const maxPasswordLength = (value: string): string | undefined => {
+  const isCorrect = value && Number(value) < 256;
+
+  return isCorrect ? undefined : 'validation.maxPasswordLength';
+};
+
 // Adapted from: https://github.com/rancher/ui/blob/08c379a9529f740666a704b52522a468986c3520/lib/shared/addon/utils/constants.js#L564
 // Setting IDs
 export const SETTING = {
@@ -98,7 +108,7 @@ export const ALLOWED_SETTINGS: RancherSetting = {
   [SETTING.CA_CERTS]:                             { kind: 'multiline', readOnly: true },
   [SETTING.ENGINE_URL]:                           {},
   [SETTING.ENGINE_ISO_URL]:                       {},
-  [SETTING.CATTLE_PASSWORD_MIN_LENGTH]:           { kind: 'integer', rules: [minPasswordLength] },
+  [SETTING.CATTLE_PASSWORD_MIN_LENGTH]:           { kind: 'integer', rules: [minPasswordLength, maxPasswordLength] },
   [SETTING.INGRESS_IP_DOMAIN]:                    {},
   [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]:       {},
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:        {},
