@@ -5159,6 +5159,8 @@ validation:
       startLetter: '"{key}" must start with a letter or number'
       tooLongKey: '"{key}" cannot have a key longer than {max} characters'
       tooLongPrefix: '"{key}" cannot have a prefix longer than {max} characters'
+  minPasswordLength: Must contain more than 2 characters
+  maxPasswordLength: Must contain less than 256 characters
   noSchema: No schema found to validate
   noType: No type to validate
   number:
