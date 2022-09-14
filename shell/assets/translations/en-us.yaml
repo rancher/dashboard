@@ -3645,7 +3645,9 @@ prefs:
     label: Login Landing Page
     vue: Cluster Explorer
     ember: Cluster Manager
-  formatting: Formatting
+  displaySettings: 
+    title: Display Settings
+    detail: Change the way information is displayed in the UI.
   clusterToShow:
     label: Number of clusters to show in side menu
     value: |-
