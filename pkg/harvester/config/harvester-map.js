@@ -42,3 +42,8 @@ export const ACCESS_CREDENTIALS = {
 };
 
 export const RunStrategys = ['Always', 'RerunOnFailure', 'Manual', 'Halted'];
+
+export const VOLUME_DATA_SOURCE_KIND = {
+  VolumeSnapshot:        'VolumeSnapshot',
+  PersistentVolumeClaim: 'Volume'
+};
