@@ -197,6 +197,19 @@ export default {
             <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
               <Security v-model="allContainers[i].securityContext" :mode="mode" />
             </Tab>
+            <Tab :label="t('workload.storage.title')" name="storage" :weight="tabWeightMap['storage']">
+              <Storage
+                v-model="podTemplateSpec"
+                :namespace="value.metadata.namespace"
+                :register-before-hook="registerBeforeHook"
+                :mode="mode"
+                :secrets="namespacedSecrets"
+                :config-maps="namespacedConfigMaps"
+                :container="allContainers[i]"
+                :save-pvc-hook-name="savePvcHookName"
+                @removePvcForm="clearPvcFormState"
+              />
+            </Tab>
           </Tabbed>
         </Tab>
         <Tab v-if="!isPod" :label="nameDisplayFor(type)" :name="nameDisplayFor(type)" :weight="99">
@@ -212,19 +225,6 @@ export default {
         </Tab>
         <Tab :label="t('workload.tabs.labels.pod')" :name="'pod'" :weight="98">
           <Tabbed :side-tabs="true">
-            <Tab :label="t('workload.storage.title')" name="storage" :weight="tabWeightMap['storage']">
-              <Storage
-                v-model="podTemplateSpec"
-                :namespace="value.metadata.namespace"
-                :register-before-hook="registerBeforeHook"
-                :mode="mode"
-                :secrets="namespacedSecrets"
-                :config-maps="namespacedConfigMaps"
-                :container="container"
-                :save-pvc-hook-name="savePvcHookName"
-                @removePvcForm="clearPvcFormState"
-              />
-            </Tab>
             <Tab :label="t('workload.container.titles.resources')" name="resources" :weight="tabWeightMap['resources']">
               <template>
                 <div>
