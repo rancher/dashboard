@@ -322,8 +322,12 @@ export default {
     },
 
     showEksNodeGroupWarning() {
-      if ( this.value.isEKS && this.nodes?.length < 1 ) {
-        return !!this.value.eksNodeGroups.find(g => g.desiredSize === 0);
+      if ( this.value.isEKS ) {
+        const desiredTotal = this.value.eksNodeGroups.filter(g => g.desiredSize === 0);
+
+        if ( desiredTotal.length === this.value.eksNodeGroups.length ) {
+          return true;
+        }
       }
 
       return false;
