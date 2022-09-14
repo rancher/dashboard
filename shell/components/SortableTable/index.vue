@@ -370,11 +370,14 @@ export default {
     },
 
     // Ensure we update live and delayed columns on first load
-    initalLoad(neu, old) {
-      if (neu && !old) {
-        this._didinit = true;
-        this.$nextTick(() => this.updateLiveAndDelayed());
-      }
+    initalLoad: {
+      handler(neu) {
+        if (neu) {
+          this._didinit = true;
+          this.$nextTick(() => this.updateLiveAndDelayed());
+        }
+      },
+      immediate: true
     },
 
     isManualRefreshLoading(neu, old) {
@@ -400,7 +403,7 @@ export default {
     },
 
     initalLoad() {
-      return !this.loading && !this._didinit && this.rows?.length;
+      return !!(!this.loading && !this._didinit && this.rows?.length);
     },
 
     fullColspan() {
