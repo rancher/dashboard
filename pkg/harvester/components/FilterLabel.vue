@@ -57,6 +57,7 @@ export default {
 
     removeAll() {
       this.$set(this, 'searchLabels', []);
+      this.filterRows();
     },
 
     remove(label) {
