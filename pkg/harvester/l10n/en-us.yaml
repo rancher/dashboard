@@ -695,6 +695,7 @@ advancedSettings:
     'harv-upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
     'harv-ui-source': Config how to load the UI source.
     'harv-ui-index': 'HTML index location for the UI.'
+    'harv-ui-plugin-index': 'JS index location for the harvester plugin UI.'
     'harv-cluster-registration-url': Registration URL for mutil-cluster management.
     'harv-http-proxy': 'HTTP proxy for Harvester to access external services.'
     'harv-additional-ca': 'Custom CA root certificates for TLS validation.'

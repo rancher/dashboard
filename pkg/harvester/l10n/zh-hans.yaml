@@ -698,6 +698,7 @@ advancedSettings:
     'harv-upgrade-checker-url': 默认 Harvester 升级检查 URL。只有当 <code>upgrade-checker-enabled</code>  设置为 true 时可使用。
     'harv-ui-source': 配置加载 UI 资源方式。
     'harv-ui-index': 'UI 的 HTML 索引位置。'
+    'harv-ui-plugin-index': 'Harvester 插件的 JS 文件索引位置'
     'harv-cluster-registration-url': 用于多集群管理的注册 URL。
     'harv-http-proxy': '用于 Harvester 访问外部服务的 HTTP 代理。'
     'harv-additional-ca': '用于 TLS 验证的自定义 CA 根证书。'
