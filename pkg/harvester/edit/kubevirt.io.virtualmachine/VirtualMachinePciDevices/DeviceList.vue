@@ -19,11 +19,11 @@ export default {
     },
 
   },
-  // TODO uncomment
-  // async fetch() {
-  //   const inStore = this.$store.getters['currentProduct'].inStore;
-  //   await this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.PCI_CLAIM });
-  // },
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    await this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.PCI_CLAIM });
+  },
 
   data() {
     const isSingleProduct = this.$store.getters['isSingleProduct'];

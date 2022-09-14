@@ -32,7 +32,6 @@ import {
 } from './table-headers';
 
 import { IF_HAVE } from '@shell/store/type-map';
-import { mockedPCIDevices } from '../../../mock-data/pcid-generator';
 
 const TEMPLATE = HCI.VM_VERSION;
 const MONITORING_GROUP = 'Monitoring & Logging::Monitoring';
@@ -50,7 +49,6 @@ export function init($plugin, store) {
     configureType,
     virtualType,
     weightGroup,
-    spoofedType,
   } = $plugin.DSL(store, PRODUCT_NAME);
 
   const isSingleVirtualCluster = process.env.rancherEnv === PRODUCT_NAME;
@@ -666,23 +664,8 @@ export function init($plugin, store) {
       name:     `${ PRODUCT_NAME }-c-cluster-resource`,
       params:   { resource: HCI.PCI_DEVICE }
     },
-    getInstances: () => mockedPCIDevices
+    exact: false,
   });
-
-  basicType([HCI.PCI_DEVICE], 'advanced');
-
-  // UNMOCK
-  //   virtualType({
-  //     label:      'PCI Devices',
-  //     group:      'advanced',
-  //     name:       HCI.PCI_DEVICE,
-  //     namespaced:  false,
-  //     route:      {
-  //       name:     `${ PRODUCT_NAME }-c-cluster-resource`,
-  //       params:   { resource: HCI.PCI_DEVICE }
-  //     },
-  //     exact: false,
-  //   });
 
   configureType(HCI.PCI_DEVICE, {
     listGroups: [
