@@ -34,8 +34,6 @@ export default {
       confirmName:         '',
       error:               '',
       warning:             '',
-      info:                '',
-      isLoading:           false,
       preventDelete:       false,
       removeComponent:     this.$store.getters['type-map/importCustomPromptRemove'](resource),
       chartsToRemoveIsApp: false,
@@ -186,7 +184,6 @@ export default {
     // if none found (delete is allowed), then check for any resources with a warning message
     toRemove(neu) {
       let message;
-
       const preventDeletionMessages = neu.filter(item => item.preventDeletionMessage);
 
       this.preventDelete = false;
@@ -373,10 +370,6 @@ export default {
           :data-testid="componentTestid + '-input'"
           type="text"
         />
-        <div class="text info mb-10 mt-10">
-          <span>{{ info }}</span>
-          <i v-if="isLoading" class="icon-spin icon icon-spinner" />
-        </div>
         <div class="text-warning mb-10 mt-10">
           {{ warning }}
         </div>

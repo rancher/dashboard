@@ -56,26 +56,26 @@ export default {
         break;
       }
 
-      const data = await this.$store.dispatch('management/request', {
-        url:           `/v1/${ resourceToCheck }`,
-        method:        'get',
-      }, { root: true });
+      try {
+        const data = await this.$store.dispatch('management/request', {
+          url:           `/v1/${ resourceToCheck }`,
+          method:        'get',
+        }, { root: true });
 
-      if (data.data && data.data.length) {
-        rolesToRemove.forEach((toRemove) => {
-          const usedRoles = data.data.filter(item => item[propToMatch] === toRemove.id);
+        if (data.data && data.data.length) {
+          rolesToRemove.forEach((toRemove) => {
+            const usedRoles = data.data.filter(item => item[propToMatch] === toRemove.id);
 
-          if (usedRoles.length) {
-            const uniqueUsers = [...new Set(usedRoles.map(item => item.userName))];
+            if (usedRoles.length) {
+              const uniqueUsers = [...new Set(usedRoles.map(item => item.userName))];
 
-            if (uniqueUsers.length) {
-              numberOfRolesWithBinds++;
-              numberUniqueUsersWithBinds += uniqueUsers.length;
+              if (uniqueUsers.length) {
+                numberOfRolesWithBinds++;
+                numberUniqueUsersWithBinds += uniqueUsers.length;
+              }
             }
-          }
-        });
+          });
 
-        setTimeout(() => {
           this.isLoading = false;
           if (numberOfRolesWithBinds && numberUniqueUsersWithBinds) {
             this.info = '';
@@ -83,7 +83,13 @@ export default {
           } else {
             this.info = this.t('rbac.globalRoles.noBinding', null, true);
           }
-        }, 3000);
+        } else {
+          this.isLoading = false;
+          this.info = this.t('rbac.globalRoles.noBinding', null, true);
+        }
+      } catch (e) {
+        this.isLoading = false;
+        this.info = this.t('rbac.globalRoles.unableToCheck');
       }
     },
   },

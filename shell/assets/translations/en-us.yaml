@@ -3957,7 +3957,8 @@ rbac:
       noContext:
         label: No Context
   globalRoles:
-    noBinding: 'No user bindings found <i class="icon icon-checkmark"></i>'
+    noBinding: 'No user bindings found <i class="icon icon-checkmark" style="margin-left: 5px"></i>'
+    unableToCheck: Unable to check user bindings. Please try again.
     waiting: |-
       {count, plural,
         =1 { Checking if there are any users binded to this role }
