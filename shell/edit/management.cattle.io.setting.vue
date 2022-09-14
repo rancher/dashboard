@@ -26,14 +26,14 @@ export default {
 
     let enumOptions = [];
 
-    if (setting.kind === 'enum' ) {
+    if (setting?.kind === 'enum' ) {
       enumOptions = setting.options.map(id => ({
         label: `advancedSettings.enum.${ this.value.id }.${ id }`,
         value: id,
       }));
     }
 
-    const canReset = setting.canReset || !!this.value.default;
+    const canReset = setting?.canReset || !!this.value.default;
 
     this.value.value = this.value.value || this.value.default;
 
