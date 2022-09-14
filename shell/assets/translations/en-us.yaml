@@ -4377,6 +4377,9 @@ setup:
   welcome: Welcome to {vendor}!
 
 sortableTable:
+  bulkActions:
+    collapsed:
+      label: Actions
   actionAvailability:
     selected: "{actionable} selected"
     some: "Affects {actionable} of {total}"
