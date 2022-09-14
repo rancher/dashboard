@@ -3,6 +3,7 @@ export const HCI_SETTING = {
   LOG_LEVEL:                 'log-level',
   SERVER_VERSION:            'server-version',
   UI_INDEX:                  'ui-index',
+  UI_PLUGIN_INDEX:           'ui-plugin-index',
   UPGRADE_CHECKER_ENABLED:   'upgrade-checker-enabled',
   UPGRADE_CHECKER_URL:       'upgrade-checker-url',
   VLAN:                      'vlan',
@@ -58,6 +59,7 @@ export const HCI_ALLOWED_SETTINGS = {
     kind: 'custom', from: 'import', canReset: true, customFormatter: 'json', alias: 'harvester-monitoring'
   },
   [HCI_SETTING.RELEASE_DOWNLOAD_URL]: { kind: 'url' },
+  [HCI_SETTING.UI_PLUGIN_INDEX]:                 { kind: 'url' },
 };
 
 export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
