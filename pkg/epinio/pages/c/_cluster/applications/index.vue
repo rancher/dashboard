@@ -18,7 +18,7 @@ export default {
 
   async fetch() {
     await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
-    // Don't block on these, they can show asyncronously
+    // Don't block on these, they can show asynchronously
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
   },
@@ -52,8 +52,29 @@ export default {
 
     hasNamespaces() {
       return !!this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE)?.length;
-    }
+    },
   },
+  methods: {
+    boundService(row, serviceName) {
+      const { name: theAppName } = row.meta;
+      const { services } = row;
+
+      if (services.length) {
+        const serviceBounds = [];
+
+        // We iterate over all services.
+        services.map((service) => {
+          // now we have the service, as redis, for instance
+          if (service.boundapps && service.boundapps.includes(theAppName)) {
+            // in the service, we have some bounded apps, check if the app we are looking for is bounded
+            serviceBounds.push(service.meta.name);
+          }
+        });
+
+        return serviceBounds.includes(serviceName);
+      }
+    }
+  }
 
 };
 </script>
@@ -84,9 +105,10 @@ export default {
       </template>
       <template #cell:services="{ row }">
         <span v-if="row.services.length">
-          <template v-for="(service, index) in row.services">
-            <LinkDetail :key="service.id" :row="service" :value="service.meta.name" />
-            <span v-if="index < row.services.length - 1" :key="service.id + 'i'">, </span>
+          <template v-for="(service) in row.services">
+            <div v-if="boundService(row, service.meta.name)" :key="service.id" class="services-col">
+              <LinkDetail :key="service.id" :row="service" :value="service.meta.name" />
+            </div>
           </template>
         </span>
         <span v-else class="text-muted">&nbsp;</span>
@@ -108,5 +130,15 @@ export default {
 <style lang="scss" scoped>
 .route {
   word-break: break-all;
+}
+
+.services-col {
+  display: flex;
+  flex-flow: row;
+}
+
+.services-col ~ .services-col:not(:empty):before {
+    content: ", ";
+    margin-right: 4px;
 }
 </style>
