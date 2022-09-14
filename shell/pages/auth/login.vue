@@ -16,8 +16,8 @@ import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
 import { importLogin } from '@shell/utils/dynamic-importer';
 import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/dashboard-store/actions';
-import { MANAGEMENT, NORMAN, SCHEMA } from '@shell/config/types';
-import { setSetting, SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
+import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 import { LOGIN_ERRORS } from '@shell/store/auth';
 import {
   getBrand,
@@ -241,21 +241,6 @@ export default {
 
         if (!!user?.[0]) {
           this.$store.dispatch('auth/gotUser', user[0]);
-        }
-
-        // we need the schemas and force-update the settings on the store in order to force the update of the performance setting
-        await this.$store.dispatch('management/findAll', { type: SCHEMA, opt: { url: 'schemas', force: true } });
-        await this.$store.dispatch('management/findAll', {
-          type: MANAGEMENT.SETTING,
-          opt:  { url: `/v1/${ MANAGEMENT.SETTING }`, force: true },
-        });
-
-        // here we enforce the default performance setting to the user in order to ensure
-        // that we have incremental loading enabled by default if there's no setting on the server for it
-        const perfSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
-
-        if (!perfSetting || !perfSetting.value || !perfSetting.value.length) {
-          setSetting(this.$store, SETTING.UI_PERFORMANCE, JSON.stringify(DEFAULT_PERF_SETTING));
         }
 
         if ( this.remember ) {
