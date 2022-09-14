@@ -84,14 +84,19 @@ export default {
 
   methods: {
     async goToCluster(row) {
+      const timeout = setTimeout(() => {
+        // Don't show loading indicator for quickly fetched plugins
+        this.navigating = row.id;
+      }, 1000);
+
       try {
-        setTimeout(() => {
-          // Don't show loading indicator for quickly fetched plugins
-          this.navigating = row.id;
-        }, 1000);
         await row.goToCluster();
+
+        clearTimeout(timeout);
+        this.navigating = false;
       } catch {
-        // The error handling is carried out within goToCluster
+        // The error handling is carried out within goToCluster, but just in case something happens before the promise chain can catch it...
+        clearTimeout(timeout);
         this.navigating = false;
       }
     }
