@@ -7,7 +7,7 @@ import {
   PVC,
   NETWORK_ATTACHMENT,
 } from '@shell/config/types';
-import { HCI } from '../types';
+import { HCI, VOLUME_SNAPSHOT } from '../types';
 import {
   STATE,
   NAME_UNLINKED,
@@ -19,7 +19,8 @@ import {
 import {
   IMAGE_DOWNLOAD_SIZE,
   FINGERPRINT,
-  IMAGE_PROGRESS
+  IMAGE_PROGRESS,
+  SNAPSHOT_TARGET_VOLUME,
 } from './table-headers';
 
 import { IF_HAVE } from '@shell/store/type-map';
@@ -235,6 +236,7 @@ export function init($plugin, store) {
       TEMPLATE,
       HCI.NETWORK_ATTACHMENT,
       HCI.BACKUP,
+      HCI.SNAPSHOT,
       HCI.SSH,
       HCI.CLOUD_TEMPLATE,
       HCI.SETTING
@@ -306,6 +308,29 @@ export function init($plugin, store) {
       params: { resource: HCI.NETWORK_ATTACHMENT }
     },
     exact: false
+  });
+
+  configureType(HCI.SNAPSHOT, {
+    isCreatable: false,
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.SNAPSHOT },
+    },
+    resource:       VOLUME_SNAPSHOT,
+    resourceDetail: HCI.SNAPSHOT,
+    resourceEdit:   HCI.SNAPSHOT,
+  });
+  headers(HCI.SNAPSHOT, [STATE, NAME_COL, NAMESPACE_COL, SNAPSHOT_TARGET_VOLUME, AGE]);
+  virtualType({
+    labelKey:     'harvester.snapshot.label',
+    name:         HCI.SNAPSHOT,
+    namespaced:   true,
+    weight:       190,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:    { resource: HCI.SNAPSHOT }
+    },
+    exact: false,
   });
 
   headers(HCI.SSH, [STATE, NAME_COL, NAMESPACE_COL, FINGERPRINT, AGE]);

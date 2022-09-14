@@ -4,7 +4,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 
 import { allHash } from '@shell/utils/promise';
 import { PVC, SCHEMA } from '@shell/config/types';
-import { HCI } from '../types';
+import { HCI, VOLUME_SNAPSHOT } from '../types';
 import { STATE, AGE, NAME, NAMESPACE } from '@shell/config/table-headers';
 
 const schema = {
@@ -23,8 +23,9 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      pvcs: this.$store.dispatch('harvester/findAll', { type: PVC }),
-      vms:  this.$store.dispatch('harvester/findAll', { type: HCI.VM })
+      pvcs:      this.$store.dispatch('harvester/findAll', { type: PVC }),
+      vms:       this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      snapshots: this.$store.dispatch('harvester/findAll', { type: VOLUME_SNAPSHOT }),
     });
 
     const pvcSchema = this.$store.getters['harvester/schemaFor'](PVC);
@@ -68,6 +69,13 @@ export default {
           labelKey:  'tableHeaders.attachedVM',
           type:      'attached',
           value:     'spec.claimRef',
+          sort:      'name',
+        },
+        {
+          name:      'VolumeSnapshotCounts',
+          labelKey:  'harvester.tableHeaders.volumeSnapshotCounts',
+          value:     'relatedVolumeSnapshotCounts',
+          formatter: 'RelatedVolumeSnapshotCounts',
           sort:      'name',
         },
         {

@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { _CLONE } from '@shell/config/query-params';
 import pick from 'lodash/pick';
-import { HCI } from '../../types';
+import { HCI, VOLUME_SNAPSHOT } from '../../types';
 import {
   HCI as HCI_ANNOTATIONS,
   DESCRIPTION
@@ -40,6 +40,18 @@ export default class HciPv extends HarvesterResource {
         icon:    'icon icon-backup',
         label:   this.t('harvester.action.cancelExpand')
       },
+      {
+        action:     'snapshot',
+        enabled:    this.hasAction('snapshot'),
+        icon:       'icon icon-backup',
+        label:      this.t('harvester.action.snapshot'),
+      },
+      {
+        action:     'pvcClone',
+        enabled:    this.hasAction('clone'),
+        icon:       'icon icon-copy',
+        label:      this.t('harvester.action.pvcClone'),
+      },
       ...super._availableActions
     ];
   }
@@ -53,6 +65,20 @@ export default class HciPv extends HarvesterResource {
 
   cancelExpand(resources = this) {
     this.doActionGrowl('cancelExpand', {});
+  }
+
+  snapshot(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'SnapshotDialog'
+    });
+  }
+
+  pvcClone(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'PvcCloneDialog'
+    });
   }
 
   cleanForNew() {
@@ -171,5 +197,24 @@ export default class HciPv extends HarvesterResource {
     }
 
     return false;
+  }
+
+  get relatedVolumeSnapshotCounts() {
+    const snapshots = this.$rootGetters['harvester/all'](VOLUME_SNAPSHOT);
+
+    return snapshots.filter((snapshot) => {
+      const volumeName = snapshot.spec?.source?.persistentVolumeClaimName;
+      const snapClass = snapshot.spec?.volumeSnapshotClassName;
+
+      return volumeName === this.metadata?.name && !['longhorn', 'vxflexos-backupclass'].includes(snapClass);
+    });
+  }
+
+  get originalSnapshot() {
+    if (this.spec?.dataSource) {
+      return this.$rootGetters['harvester/all'](VOLUME_SNAPSHOT).find(V => V.metadata?.name === this.spec.dataSource.name);
+    } else {
+      return null;
+    }
   }
 }

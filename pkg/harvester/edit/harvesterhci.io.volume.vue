@@ -1,19 +1,23 @@
 <script>
 import Tab from '@shell/components/Tabbed/Tab';
+import SortableTable from '@shell/components/SortableTable';
 import CruResource from '@shell/components/CruResource';
 import UnitInput from '@shell/components/form/UnitInput';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
+import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
-import { HCI } from '../types';
+import { HCI, VOLUME_SNAPSHOT } from '../types';
 import { sortBy } from '@shell/utils/sort';
 import { saferDump } from '@shell/utils/create-yaml';
-import { InterfaceOption } from '../config/harvester-map';
+import { InterfaceOption, VOLUME_DATA_SOURCE_KIND } from '../config/harvester-map';
 import { _CREATE } from '@shell/config/query-params';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { STATE, NAME, AGE, NAMESPACE } from '@shell/config/table-headers';
 
 export default {
   name: 'HarvesterVolume',
@@ -22,15 +26,23 @@ export default {
     Tab,
     UnitInput,
     CruResource,
+    SortableTable,
     ResourceTabs,
     LabeledSelect,
+    LabeledInput,
     NameNsDescription,
   },
 
   mixins: [CreateEditView],
 
   async fetch() {
-    await this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE });
+    const _hash = {
+      images:    this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }),
+      snapshots: this.$store.dispatch('harvester/findAll', { type: VOLUME_SNAPSHOT }),
+    };
+    const hash = await allHash(_hash);
+
+    this.snapshots = hash.snapshots;
   },
 
   data() {
@@ -47,6 +59,7 @@ export default {
       source,
       storage,
       imageId,
+      snapshots: [],
     };
   },
 
@@ -92,6 +105,48 @@ export default {
         'label'
       );
     },
+
+    associatedSnapshots() {
+      return this.snapshots.filter((snapshot) => {
+        const volumeName = snapshot.spec?.source?.persistentVolumeClaimName;
+        const snapClass = snapshot.spec?.volumeSnapshotClassName;
+
+        return volumeName === this.value.metadata?.name && !['longhorn', 'vxflexos-backupclass'].includes(snapClass);
+      });
+    },
+
+    snapshotHeaders() {
+      return [
+        STATE,
+        NAME,
+        NAMESPACE,
+        {
+          name:          'size',
+          labelKey:      'tableHeaders.size',
+          value:         'status.restoreSize',
+          sort:          'size',
+          formatter:     'Si',
+          formatterOpts: {
+            opts: {
+              increment: 1024, addSuffix: true, maxExponent: 3, minExponent: 3, suffix: 'i',
+            },
+            needParseSi: true
+          },
+        },
+        {
+          name:      'readyToUse',
+          labelKey:  'tableHeaders.readyToUse',
+          value:     'status.readyToUse',
+          align:     'left',
+          formatter: 'Checked',
+        },
+        AGE
+      ];
+    },
+
+    dataSourceKind() {
+      return VOLUME_DATA_SOURCE_KIND[this.value.spec?.dataSource?.kind];
+    }
   },
 
   methods: {
@@ -187,6 +242,20 @@ export default {
           class="mb-20"
           @input="update"
         />
+      </Tab>
+      <Tab v-if="!isCreate" name="instances" :label="t('harvester.volume.tabs.snapshots')" :weight="2" class="bordered-table">
+        <SortableTable
+          v-bind="$attrs"
+          :headers="snapshotHeaders"
+          default-sort-by="age"
+          :rows="associatedSnapshots"
+          key-field="_key"
+          v-on="$listeners"
+        />
+      </Tab>
+      <Tab v-if="!isCreate && value.spec.dataSource" name="datasource" :label="t('harvester.volume.tabs.datasource')" :weight="1" class="bordered-table">
+        <LabeledInput v-model="dataSourceKind" class="mb-20" :mode="mode" :disabled="true" :label="t('harvester.volume.kind')" />
+        <LabeledInput v-model="value.spec.dataSource.name" :mode="mode" :disabled="true" :label="t('nameNsDescription.name.label')" />
       </Tab>
     </ResourceTabs>
   </CruResource>

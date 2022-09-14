@@ -58,6 +58,20 @@ harvester:
       title: Add Volume
     hotunplug:
       success: 'Volume { name } is detach successfully.'
+    snapshot:
+      title: Take Snapshot
+      name: Name
+      message:
+        success: 'Take Snapshot { name } successfully.'
+    pvcClone:
+      title: Clone Volume
+      name: Name
+      message:
+        success: 'New Volume { name } cloned successfully.'
+    restoreSnapshot:
+      title: Restore Snapshot
+      name: 'New Volume Name'
+      success: 'New Volume { name } restored successfully.'
   notification:
     title:
       succeed: Succeed
@@ -94,6 +108,8 @@ harvester:
     exportImage: Export Image
     viewlogs: View Logs
     cancelExpand: Cancel Expand
+    snapshot: Take Snapshot
+    pvcClone: Clone Volume
   tableHeaders:
     size: Size
     progress: Progress
@@ -114,6 +130,8 @@ harvester:
     network:
       type: Type
       vlan: Vlan ID
+    snapshotTargetVolume: Original Volume
+    volumeSnapshotCounts: Snapshot Counts
   tab:
     volume: Volumes
     network: Networks
@@ -455,8 +473,11 @@ harvester:
     label: Volumes
     tabs:
       basics: Basics
+      snapshots: Snapshots
+      datasource: Data Source
     size: Size
     source: Source
+    kind: Kind
     sourceOptions:
       new: New
       vmImage: VM Image
@@ -690,6 +711,12 @@ harvester:
     ciphers:
       label: Ciphers
 
+  snapshot:
+    label: Volume Snapshots
+    targetVolume: Original Volume
+    size: Size
+    image: Image
+
 advancedSettings:
   descriptions:
     'harv-vlan': Default Network Interface name of the VLAN network.
@@ -775,4 +802,9 @@ typeLabel:
     {count, plural,
       one { Cloud Config Template }
       other { Cloud Config Templates }
+    }
+  harvesterhci.io.volumesnapshot: |-
+    {count, plural,
+      one { Volume Snapshot }
+      other { Volume Snapshots }
     }

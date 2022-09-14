@@ -57,6 +57,20 @@ harvester:
       title: 添加卷
     hotunplug:
       success: '卷 { name } 拔出成功。'
+    snapshot:
+      title: 生成快照
+      name: 名称
+      message:
+        success: '快照 { name } 生成成功。'
+    pvcClone:
+      title: 克隆卷
+      name: 名称
+      message:
+        success: '{ name } 克隆成功。'
+    restoreSnapshot:
+      success: '{ name } 还原创建成功。'
+      title: 快照还原
+      name: '名称'
   action:
     createVM: 创建虚拟机
     start: 启动
@@ -87,6 +101,8 @@ harvester:
     exportImage: 导出镜像
     viewlogs: 查看日志
     cancelExpand: 取消展开
+    snapshot: 生成快照
+    pvcClone: 克隆卷
   tableHeaders:
     size: 大小
     progress: 进度
@@ -107,6 +123,8 @@ harvester:
     network:
       type: 类型
       vlan: Vlan ID
+    snapshotTargetVolume: 原始卷
+    volumeSnapshotCounts: 快照数量
   tab:
     volume: 卷
     network: 网络
@@ -456,8 +474,11 @@ harvester:
     label: 卷
     tabs:
       basics: 基本信息
+      snapshots: 快照
+      datasource: 数据源
     size: 大小
     source: 源
+    kind: 类型 
     sourceOptions:
       new: 创建
       vmImage: 虚拟机镜像
@@ -688,6 +709,12 @@ harvester:
     ciphers:
       label: 密码
 
+  snapshot:
+    label: 快照
+    targetVolume: 原始卷
+    size: 大小
+    image: 镜像
+
 advancedSettings:
   descriptions:
     'harv-vlan': VLAN 网络的默认网络接口名称。
@@ -773,4 +800,9 @@ typeLabel:
     {count, plural,
       one { Cloud Config 模板 }
       other { Cloud Config 模板 }
+    }
+  harvesterhci.io.volumesnapshot: |-
+    {count, plural,
+      one { 卷快照 }
+      other { 卷快照 }
     }
