@@ -8,7 +8,7 @@ import { alternateLabel } from '@shell/utils/platform';
 import { uniq } from '@shell/utils/array';
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { CATALOG, MANAGEMENT } from '@shell/config/types';
+import { CATALOG } from '@shell/config/types';
 export default {
   name: 'PromptRemove',
 
@@ -187,12 +187,6 @@ export default {
     toRemove(neu) {
       let message;
 
-      if (neu.length && (neu[0].type === MANAGEMENT.GLOBAL_ROLE || neu[0].type === MANAGEMENT.ROLE_TEMPLATE)) {
-        this.handleRoleDeletionCheck(neu, neu[0].type);
-
-        return;
-      }
-
       const preventDeletionMessages = neu.filter(item => item.preventDeletionMessage);
 
       this.preventDelete = false;
@@ -220,58 +214,6 @@ export default {
   methods: {
     resourceNames,
     escapeHtml,
-    async handleRoleDeletionCheck(rolesToRemove, resourceType) {
-      this.warning = '';
-      this.isLoading = true;
-      let resourceToCheck;
-      let propToMatch;
-      let numberOfRolesWithBinds = 0;
-      let numberUniqueUsersWithBinds = 0;
-
-      this.info = 'waiting to check user bindings...';
-
-      switch (resourceType) {
-      case MANAGEMENT.GLOBAL_ROLE:
-        resourceToCheck = MANAGEMENT.GLOBAL_ROLE_BINDING;
-        propToMatch = 'globalRoleName';
-        break;
-      default:
-        resourceToCheck = MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING;
-        propToMatch = 'roleTemplateName';
-        break;
-      }
-
-      const data = await this.$store.dispatch('management/request', {
-        url:           `/v1/${ resourceToCheck }`,
-        method:        'get',
-      }, { root: true });
-
-      if (data.data && data.data.length) {
-        rolesToRemove.forEach((toRemove) => {
-          const usedRoles = data.data.filter(item => item[propToMatch] === toRemove.id);
-
-          console.log('usedRoles', usedRoles);
-          if (usedRoles.length) {
-            const uniqueUsers = [...new Set(usedRoles.map(item => item.userName))];
-
-            console.log('uniqueUsers', uniqueUsers);
-
-            if (uniqueUsers.length) {
-              numberOfRolesWithBinds++;
-              numberUniqueUsersWithBinds += uniqueUsers.length;
-            }
-          }
-        });
-
-        if (numberOfRolesWithBinds && numberUniqueUsersWithBinds) {
-          this.isLoading = false;
-          this.info = '';
-          this.warning = this.t('rbac.globalRoles.usersBinded', { count: numberUniqueUsersWithBinds });
-        } else {
-          this.info = 'no user bindings found';
-        }
-      }
-    },
     close() {
       this.confirmName = '';
       this.error = '';
@@ -465,14 +407,6 @@ export default {
 
 <style lang='scss'>
   .prompt-remove {
-    .text.info {
-      display: flex;
-      align-items: center;
-
-      > span {
-        margin-right: 10px;
-      }
-    }
     &.card-container {
       box-shadow: none;
     }

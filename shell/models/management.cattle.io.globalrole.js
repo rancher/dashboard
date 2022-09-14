@@ -1,5 +1,5 @@
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { SCHEMA, NORMAN, MANAGEMENT } from '@shell/config/types';
+import { SCHEMA, NORMAN } from '@shell/config/types';
 import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
 import { uniq } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
@@ -14,40 +14,6 @@ const SPECIAL = [BASE, ADMIN, USER];
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 
 export default class GlobalRole extends SteveModel {
-  get availableActions() {
-    const out = super._availableActions;
-
-    const toFilter = ['goToEdit', 'promptRemove'];
-    const editActions = out.filter((a) => {
-      if ( toFilter.includes(a.action) ) {
-        return a;
-      }
-    });
-
-    if ( editActions.length > 0 ) {
-      editActions.forEach((a) => {
-        a.enabled = !this.builtin;
-      });
-    }
-
-    return out;
-  }
-
-  get preventDeletionMessage() {
-    const globalRoleBindings = this.$getters['all'](MANAGEMENT.GLOBAL_ROLE_BINDING);
-    const usedRoles = globalRoleBindings.filter(item => item.globalRoleName === this.id);
-
-    if (usedRoles.length) {
-      const uniqueUsers = [...new Set(usedRoles.map(item => item.userName))];
-
-      if (uniqueUsers.length) {
-        return this.t('rbac.globalRoles.usersBinded', { count: uniqueUsers.length });
-      }
-    }
-
-    return null;
-  }
-
   get customValidationRules() {
     return Role.customValidationRules();
   }

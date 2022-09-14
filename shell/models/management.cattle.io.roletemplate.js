@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { get } from '@shell/utils/object';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { NORMAN } from '@shell/config/types';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import Role from './rbac.authorization.k8s.io.role';
 
@@ -74,21 +74,6 @@ export default class RoleTemplate extends SteveDescriptionModel {
     });
 
     return out;
-  }
-
-  get preventDeletionMessage() {
-    const clusterRoleTemplateBindings = this.$getters['all'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
-    const usedRoles = clusterRoleTemplateBindings.filter(item => item.roleTemplateName === this.id);
-
-    if (usedRoles.length) {
-      const uniqueUsers = [...new Set(usedRoles.map(item => item.userName))];
-
-      if (uniqueUsers.length) {
-        return this.t('rbac.globalRoles.usersBinded', { count: uniqueUsers.length });
-      }
-    }
-
-    return null;
   }
 
   get state() {

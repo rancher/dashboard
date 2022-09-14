@@ -3957,10 +3957,16 @@ rbac:
       noContext:
         label: No Context
   globalRoles:
+    noBinding: 'No user bindings found <i class="icon icon-checkmark"></i>'
+    waiting: |-
+      {count, plural,
+        =1 { Checking if there are any users binded to this role }
+        other { Checking if there are any users binded to these roles }
+      }
     usersBinded: |-
       {count, plural,
-        =1 { Caution: There is 1 user binded to this role! }
-        other { Caution: There are {count} users binded to this role! }
+        =1 { Caution: There is 1 user binded to the roles about to be deleted. Do you want to proceed? }
+        other { Caution: There are {count} users binded to the roles about to be deleted. Do you want to proceed? }
       }
     types:
       global:
