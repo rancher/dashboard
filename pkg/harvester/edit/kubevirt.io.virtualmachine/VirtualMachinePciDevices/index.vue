@@ -10,8 +10,7 @@ import CompatibilityMatrix from './CompatibilityMatrix';
 import DeviceList from './DeviceList';
 
 import remove from 'lodash/remove';
-import { get, set } from '@shell/utils/object';
-import { mockedPCIDevices } from '~/mock-data/pcid-generator';
+import { set } from '@shell/utils/object';
 // TODO get the right path to pcid in vm & verify its format
 // 'value' here is <vm>.spec.template.spec
 const PATH_TO_DEVICES = 'pci';
@@ -39,9 +38,7 @@ export default {
     const hash = {
       // claims fetched here so synchronous pciDevice model property works
       pciDevices: this.$store.dispatch('harvester/findAll', { type: HCI.PCI_DEVICE }),
-      // TODO uncomment
-
-      // claims:     this.$store.dispatch('harvester/findAll', { type: HCI.PCI_CLAIM }),
+      claims:     this.$store.dispatch('harvester/findAll', { type: HCI.PCI_CLAIM }),
     };
 
     const res = await allHash(hash);
