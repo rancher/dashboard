@@ -179,7 +179,7 @@ export function parseField(str) {
   }
 }
 
-export function sortBy(ary, keys, desc) {
+export function sortBy(ary, keys, desc, compareFnMap) {
   if ( !Array.isArray(keys) ) {
     keys = [keys];
   }
@@ -189,7 +189,9 @@ export function sortBy(ary, keys, desc) {
       const parsed = parseField(keys[i]);
       const a = get(objA, parsed.field);
       const b = get(objB, parsed.field);
-      let res = compare(a, b);
+      const c = compareFnMap?.[parsed.field];
+
+      let res = c ? c(a, b) : compare(a, b);
 
       if ( res ) {
         if ( desc ) {

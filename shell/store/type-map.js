@@ -1025,6 +1025,57 @@ export const getters = {
           }
         }
 
+        const reg = /^((?:(\d+)y)?(?:(\d+)M)?(?:(\d+)w)?(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?(?:(\d+)ms)?)?$/;
+        const none = '<none>';
+        let compareFn;
+
+        if (col.name === 'Duration' || col.name === 'Last Schedule') {
+          compareFn = (a, b) => {
+            if (a === b) {
+              return 0;
+            }
+            const isDa = a && a !== none;
+            const isDb = b && b !== none;
+
+            if (isDa && isDb) {
+              const da = a.match(reg)?.slice(2) ?? [];
+              const db = b.match(reg)?.slice(2) ?? [];
+              const len = da.length;
+
+              for (let i = 0;i < len;i++) {
+                if (da[i] === db[i]) {
+                  continue;
+                }
+
+                if (da[i] && db[i]) {
+                  return da[i] - db[i];
+                }
+
+                if (da[i]) {
+                  return 1;
+                }
+                if (db[i]) {
+                  return -1;
+                }
+
+                return 0;
+              }
+
+              return 0;
+            }
+
+            if (isDa) {
+              return 1;
+            }
+
+            if (isDb) {
+              return -1;
+            }
+
+            return 0;
+          };
+        }
+
         return {
           name:    col.name.toLowerCase(),
           label:   exists(labelKey) ? t(labelKey) : col.name,
@@ -1033,7 +1084,8 @@ export const getters = {
           formatter,
           formatterOpts,
           width,
-          tooltip
+          tooltip,
+          compare: compareFn
         };
       }
     };

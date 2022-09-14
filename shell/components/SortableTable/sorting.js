@@ -40,7 +40,7 @@ export default {
         }
       }
 
-      const out = sortBy(this.rows, this.sortFields, this.descending);
+      const out = sortBy(this.rows, this.sortFields, this.descending, this.comparedFunMap);
 
       if ( key ) {
         this.cacheKey = key;
@@ -49,6 +49,14 @@ export default {
 
       return out;
     },
+
+    comparedFunMap() {
+      return this.headers.filter(h => h.compare).reduce((t, c) => {
+        t[c.sort[0]] = c.compare;
+
+        return t;
+      }, {});
+    }
   },
 
   data() {
