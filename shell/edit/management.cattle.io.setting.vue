@@ -3,6 +3,7 @@ import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 
 import { ALLOWED_SETTINGS, SETTING } from '@shell/config/settings';
@@ -18,33 +19,30 @@ export default {
     TextAreaAutoGrow
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   data() {
     const t = this.$store.getters['i18n/t'];
-    const setting = ALLOWED_SETTINGS[this.value.id];
-
-    let enumOptions = [];
-
-    if (setting?.kind === 'enum' ) {
-      enumOptions = setting.options.map(id => ({
-        label: `advancedSettings.enum.${ this.value.id }.${ id }`,
-        value: id,
-      }));
-    }
-
-    const canReset = setting?.canReset || !!this.value.default;
-
-    this.value.value = this.value.value || this.value.default;
 
     return {
-      setting,
-      description: t(`advancedSettings.descriptions.${ this.value.id }`),
-      editHelp:    t(`advancedSettings.editHelp.${ this.value.id }`),
-      enumOptions,
-      canReset,
-      errors:      [],
+      setting:        ALLOWED_SETTINGS[this.value.id],
+      description:    t(`advancedSettings.descriptions.${ this.value.id }`),
+      editHelp:       t(`advancedSettings.editHelp.${ this.value.id }`),
+      enumOptions:    [],
+      canReset:       false,
+      errors:         [],
+      fvFormRuleSets: []
     };
+  },
+
+  created() {
+    this.value.value = this.value.value || this.value.default;
+    this.enumOptions = this.setting?.kind === 'enum' ? this.setting.options.map(id => ({
+      label: `advancedSettings.enum.${ this.value.id }.${ id }`,
+      value: id,
+    })) : [];
+    this.fvFormRuleSets = this.setting?.rules ? [{ path: 'value.value', rules: this.setting?.rules }] : [];
+    this.canReset = this.setting?.canReset || !!this.value.default;
   },
 
   methods:  {
@@ -94,6 +92,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
+    :validation-passed="fvFormIsValid"
     @error="e=>errors = e"
     @finish="saveSettings"
     @cancel="done"
@@ -124,7 +123,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-enum"
           :label="t('advancedSettings.edit.value')"
-          :rules="setting.rules"
+          :rules="setting.rules || []"
           :localized-label="true"
           :mode="mode"
           :required="true"
@@ -136,7 +135,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-boolean"
           name="settings_value"
-          :rules="setting.rules"
+          :rules="setting.rules || []"
           :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
           :options="['true', 'false']"
         />
@@ -146,7 +145,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-json"
           :required="true"
-          :rules="setting.rules"
+          :rules="setting.rules || []"
           :min-height="254"
         />
       </div>
@@ -157,7 +156,7 @@ export default {
           :label="t('advancedSettings.edit.value')"
           :mode="mode"
           type="number"
-          :rules="setting.rules"
+          :rules="setting.rules || []"
           :required="true"
         />
       </div>
@@ -168,7 +167,7 @@ export default {
           :localized-label="true"
           :required="true"
           :mode="mode"
-          :rules="setting.rules"
+          :rules="setting.rules || []"
           :label="t('advancedSettings.edit.value')"
         />
       </div>
