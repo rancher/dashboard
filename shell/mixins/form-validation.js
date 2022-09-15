@@ -111,7 +111,7 @@ export default {
     fvValidationErrors() { // checks for any and all errors, regardless of being bound, from the model, or from the form
       const paths = this.fvRulesets.filter(ruleset => !!ruleset.formValidationRule).map(ruleset => ruleset.path);
       const formErrors = this.fvGetPathErrors(paths);
-      const modelErrors = this.value.customValidationErrors(this.value); // the model already has a means of producing errors, not reinventing the wheel... yet...
+      const modelErrors = this.value.customValidationErrors ? this.value.customValidationErrors(this.value) : []; // the model already has a means of producing errors, not reinventing the wheel... yet...
 
       return [...formErrors, ...modelErrors];
     },
