@@ -2,8 +2,6 @@
 import { _EDIT } from '@shell/config/query-params';
 import { allHash } from '@shell/utils/promise';
 import { HCI } from '../../../types';
-import { HCI as HCI_LABELS } from '@shell/config/labels-annotations';
-
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Banner from '@components/Banner/Banner.vue';
 import CompatibilityMatrix from './CompatibilityMatrix';
@@ -11,9 +9,6 @@ import DeviceList from './DeviceList';
 
 import remove from 'lodash/remove';
 import { set } from '@shell/utils/object';
-// TODO get the right path to pcid in vm & verify its format
-// 'value' here is <vm>.spec.template.spec
-const PATH_TO_DEVICES = 'pci';
 
 export default {
   name:       'VirtualMachinePCIDevices',
@@ -28,6 +23,7 @@ export default {
       type:    String,
       default: _EDIT
     },
+    // spec.template.spec
     value: {
       type:    Object,
       default: () => {}
@@ -59,31 +55,19 @@ export default {
   },
 
   watch: {
-    value(neu) {
-      if (!neu.affinity) {
-        this.$set(neu, 'affinity', { nodeAffinity: { requiredDuringSchedulingIgnoredDuringExecution: { nodeSelectorTerms: [] } } } );
-      }
-      if (!neu.affinity.nodeAffinity) {
-        this.$set(neu.affinity, 'nodeAffinity', { requiredDuringSchedulingIgnoredDuringExecution: { nodeSelectorTerms: [] } } );
-      }
-      if (!neu.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution) {
-        this.$set(neu.nodeAffinity, 'requiredDuringSchedulingIgnoredDuringExecution', { nodeSelectorTerms: [] });
-      }
-      if (!neu.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms) {
-        this.$set(neu.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution, 'nodeSelectorTerms', []);
-      }
-    },
-
     selectedDevices(neu) {
-      set(this.value, PATH_TO_DEVICES, neu);
+      const formatted = neu.map((deviceUid) => {
+        return {
+          deviceName: deviceUid,
+          name:         this.uniqueDevices[deviceUid].deviceCRDs[0].status.description
+        };
+      });
+
+      set(this.value.domain.devices, 'hostDevices', formatted);
     }
   },
 
   computed: {
-    nodeSelectorTerms() {
-      return this.value?.affinity?.nodeAffinity?.requiredDuringSchedulingIgnoredDuringExecution?.nodeSelectorTerms;
-    },
-
     // user can only select devices for whcih pci passthrough is enabled/claimed by them - determined by finding the associated passthrough CRD
     enabledDevices() {
       return this.pciDevices.filter((device) => {
@@ -148,27 +132,6 @@ export default {
       return out;
     },
 
-    // // array of device uids available on compatible nodes
-    // compatibleDeviceOpts() {
-    //   const out = [];
-
-    //   for (const deviceUid in this.uniqueDevices) {
-    //     const nodesWithDevice = this.uniqueDevices[deviceUid].nodes;
-
-    //     if (nodesWithDevice.some(nodeName => this.compatibleNodes.includes(nodeName))) {
-    //       const device = this.uniqueDevices[deviceUid].deviceCRDs[0];
-
-    //       out.push({
-    //         description: device?.status?.description,
-    //         value:       deviceUid,
-    //         label:       deviceUid
-    //       });
-    //     }
-    //   }
-
-    //   return out;
-    // },
-
     // format an array of available devices for the dropdown
     deviceOpts() {
       return Object.keys(this.uniqueDevices).map((deviceId) => {
@@ -194,51 +157,6 @@ export default {
         }
       }
     },
-
-    // add a label selector so the VM is scheduled on a node w/ this device
-    addToNodeAffinity(deviceUid) {
-      const t = this.$store.getters['i18n/t'];
-
-      this.selectedDevices.push(deviceUid);
-      const deviceCRD = this.uniqueDevices[deviceUid].deviceCRDs[0];
-      const labelRegex = new RegExp(`${ HCI_LABELS.PCI_DEVICE.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') }.*`);
-      const existingTerm = this.nodeSelectorTerms.find((term) => {
-        return term?.matchExpressions.find(rule => rule?.key.match(labelRegex));
-      });
-
-      if (existingTerm) {
-        existingTerm.matchExpressions.push({
-          key:      deviceCRD.nodeLabel,
-          operator: 'Exists',
-          _forced:  t('harvester.pci.labelRequired')
-        });
-      } else {
-        this.nodeSelectorTerms.push({
-          matchExpressions: [{
-            key:      deviceCRD.nodeLabel,
-            operator: 'Exists',
-            _forced:  t('harvester.pci.labelRequired')
-          }]
-        });
-      }
-    },
-
-    removeFromNodeAffinity(deviceUid) {
-      remove(this.selectedDevices, device => device === deviceUid);
-      const deviceCRD = this.uniqueDevices[deviceUid].deviceCRDs[0];
-
-      const termContainingRule = this.nodeSelectorTerms.find((term) => {
-        return !!term?.matchExpressions.find(rule => rule?.key === deviceCRD.nodeLabel);
-      });
-
-      remove(termContainingRule.matchExpressions, (rule) => {
-        return rule?.key === deviceCRD.nodeLabel;
-      });
-
-      if (termContainingRule.matchExpressions.length === 0) {
-        remove(this.nodeSelectorTerms, term => term === termContainingRule );
-      }
-    },
   }
 };
 </script>
@@ -262,8 +180,6 @@ export default {
             multiple
             taggable
             :options="deviceOpts"
-            @deselecting="option=>removeFromNodeAffinity(option.value)"
-            @selecting="option=>addToNodeAffinity(option.value)"
           >
             <template #option="option">
               <span>{{ option.value }} <span class="text-label">{{ option.description }}</span></span>
