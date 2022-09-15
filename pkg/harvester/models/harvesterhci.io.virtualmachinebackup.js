@@ -1,5 +1,5 @@
 import { HCI } from '../types';
-import { get } from '@shell/utils/object';
+import { get, clone } from '@shell/utils/object';
 import { findBy } from '@shell/utils/array';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { _CREATE } from '@shell/config/query-params';
@@ -8,9 +8,42 @@ import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 export default class HciVmBackup extends HarvesterResource {
   detailPageHeaderActionOverride(realMode) {
+    const route = this.currentRoute();
+
     if (realMode === _CREATE) {
-      return this.t('harvester.backup.title');
+      return route.params.resource === HCI.BACKUP ? this.t('harvester.backup.title') : this.t('harvester.vmSnapshot.title');
     }
+  }
+
+  get detailLocation() {
+    const detailLocation = clone(this._detailLocation);
+    const route = this.currentRoute();
+
+    detailLocation.params.resource = route.params.resource;
+
+    return detailLocation;
+  }
+
+  get doneOverride() {
+    const route = this.currentRoute();
+    const detailLocation = clone(this._detailLocation);
+
+    delete detailLocation.params.namespace;
+    delete detailLocation.params.id;
+    detailLocation.params.resource = route.params.resource;
+    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource`;
+
+    return detailLocation;
+  }
+
+  get parentNameOverride() {
+    const route = this.currentRoute();
+
+    return this.$rootGetters['i18n/t'](`typeLabel."${ route.params.resource }"`, { count: 1 })?.trim();
+  }
+
+  get parentLocationOverride() {
+    return this.doneOverride;
   }
 
   get _availableActions() {
@@ -47,22 +80,24 @@ export default class HciVmBackup extends HarvesterResource {
   }
 
   restoreExistingVM(resource = this) {
+    const route = this.currentRoute();
     const router = this.currentRouter();
 
     router.push({
       name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
-      params: { resource: HCI.BACKUP },
-      query:  { restoreMode: 'existing', backupName: resource.name }
+      params: { resource: route.params.resource },
+      query:  { restoreMode: 'existing', resourceName: resource.name }
     });
   }
 
   restoreNewVM(resource = this) {
+    const route = this.currentRoute();
     const router = this.currentRouter();
 
     router.push({
       name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-create`,
-      params: { resource: HCI.BACKUP },
-      query:  { restoreMode: 'new', backupName: resource.name }
+      params: { resource: route.params.resource },
+      query:  { restoreMode: 'new', resourceName: resource.name }
     });
   }
 

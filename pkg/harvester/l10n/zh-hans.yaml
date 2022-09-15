@@ -71,6 +71,10 @@ harvester:
       success: '{ name } 还原创建成功。'
       title: 快照还原
       name: '名称'
+    vmSnapshot:
+      title: 生成 VM 快照
+      name: 名称
+      success: 'VM 快照 { name } 生成成功。'
   action:
     createVM: 创建虚拟机
     start: 启动
@@ -103,6 +107,7 @@ harvester:
     cancelExpand: 取消展开
     snapshot: 生成快照
     pvcClone: 克隆卷
+    vmSnapshot: 生成 VM 快照
   tableHeaders:
     size: 大小
     progress: 进度
@@ -696,6 +701,11 @@ harvester:
     size: 大小
     image: 镜像
 
+  vmSnapshot:
+    label: VM 快照
+    createText: 还原快照
+    snapshot: 快照
+
 advancedSettings:
   descriptions:
     'harv-vlan': VLAN 网络的默认网络接口名称。
@@ -786,4 +796,10 @@ typeLabel:
     {count, plural,
       one { 卷快照 }
       other { 卷快照 }
+    }
+
+  harvesterhci.io.vmsnapshot: |-
+    {count, plural,
+      one { VM 快照 }
+      other { VM 快照 }
     }

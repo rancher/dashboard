@@ -135,6 +135,12 @@ export default class VirtVm extends HarvesterResource {
         label:   this.t('harvester.action.backup')
       },
       {
+        action:  'takeVMSnapshot',
+        enabled: !!this.actions?.backup,
+        icon:    'icon icon-backup',
+        label:   this.t('harvester.action.vmSnapshot')
+      },
+      {
         action:  'restoreVM',
         enabled: !!this.actions?.restore,
         icon:    'icon icon-backup-restore',
@@ -294,6 +300,13 @@ export default class VirtVm extends HarvesterResource {
     this.$dispatch('promptModal', {
       resources,
       component: 'HarvesterBackupModal'
+    });
+  }
+
+  takeVMSnapshot(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'HarvesterVMSnapshotDialog'
     });
   }
 

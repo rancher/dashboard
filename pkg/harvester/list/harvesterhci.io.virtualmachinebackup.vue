@@ -96,6 +96,10 @@ export default {
       ];
     },
 
+    filterdRows() {
+      return this.rows.filter(R => R.spec?.type !== 'snapshot');
+    },
+
     backupTargetResource() {
       return this.settings.find( O => O.id === 'backup-target');
     },
@@ -165,7 +169,7 @@ export default {
       v-bind="$attrs"
       :headers="headers"
       :groupable="true"
-      :rows="rows"
+      :rows="filterdRows"
       :schema="schema"
       key-field="_key"
       default-sort-by="age"
@@ -187,6 +191,5 @@ export default {
         </td>
       </template>
     </resourcetable>
-  </div>
   </div>
 </template>

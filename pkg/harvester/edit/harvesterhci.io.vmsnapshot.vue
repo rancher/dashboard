@@ -24,7 +24,7 @@ const createObject = {
     },
     virtualMachineBackupName: '',
     newVM:                    true,
-    deletionPolicy:           'delete'
+    deletionPolicy:           'retain'
   }
 };
 
@@ -41,38 +41,38 @@ export default {
 
   async fetch() {
     await allHash({
-      backups: this.$store.dispatch('harvester/findAll', { type: HCI.BACKUP }),
-      vms:     this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      backups:         this.$store.dispatch('harvester/findAll', { type: HCI.BACKUP }),
+      vms:             this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
     });
   },
 
   data() {
     const restoreMode = this.$route.query?.restoreMode;
-    const backupName = this.$route.query?.resourceName;
+    const snapshotName = this.$route.query?.resourceName;
 
     const restoreResource = clone(createObject);
 
     const restoreNewVm = restoreMode === 'new' || restoreMode === undefined;
 
     return {
-      backupName,
+      snapshotName,
       restoreNewVm,
       restoreResource,
       name:           '',
       description:    '',
-      deletionPolicy: 'delete',
+      deletionPolicy: 'retain',
       namespace:      ''
     };
   },
 
   computed: {
-    backupOption() {
+    snapshotOption() {
       const choices = this.$store.getters['harvester/all'](HCI.BACKUP);
 
       return choices.filter( (T) => {
         const hasVM = this.restoreNewVm || T.attachVmExisting;
 
-        return hasVM && T?.status?.readyToUse && T.spec?.type !== 'snapshot';
+        return hasVM && T?.status?.readyToUse && T.spec?.type === 'snapshot';
       }).map( (T) => {
         return {
           label: T.metadata.name,
@@ -83,16 +83,13 @@ export default {
 
     deletionPolicyOption() {
       return [{
-        value: 'delete',
-        label: 'Delete'
-      }, {
         value: 'retain',
         label: 'Retain'
       }];
     },
 
     currentBackupResource() {
-      const name = this.backupName;
+      const name = this.snapshotName;
 
       const backupList = this.$store.getters['harvester/all'](HCI.BACKUP);
 
@@ -103,10 +100,10 @@ export default {
       return !this.currentBackupResource?.attachVmExisting;
     },
 
-    backupNamespace() {
+    snapshotNamespace() {
       const backupList = this.$store.getters['harvester/all'](HCI.BACKUP);
 
-      return backupList.find( B => B.metadata.name === this.backupName)?.metadata?.namespace;
+      return backupList.find( B => B.metadata.name === this.snapshotName)?.metadata?.namespace;
     },
 
     namespaces() {
@@ -129,7 +126,7 @@ export default {
   },
 
   watch: {
-    backupName: {
+    snapshotName: {
       handler(neu) {
         if (this.currentBackupResource) {
           if (!this.restoreNewVm) {
@@ -150,7 +147,7 @@ export default {
       }
     },
 
-    backupNamespace: {
+    snapshotNamespace: {
       handler(neu) {
         this.namespace = neu;
       },
@@ -165,7 +162,7 @@ export default {
       const proxyResource = await this.$store.dispatch('harvester/create', this.restoreResource);
 
       proxyResource.metadata.namespace = this.namespace;
-      proxyResource.spec.virtualMachineBackupNamespace = this.backupNamespace;
+      proxyResource.spec.virtualMachineBackupNamespace = this.snapshotNamespace;
 
       try {
         await proxyResource.save();
@@ -182,7 +179,7 @@ export default {
     },
 
     update() {
-      this.restoreResource.metadata.generateName = `restore-${ this.backupName }-`;
+      this.restoreResource.metadata.generateName = `restore-${ this.snapshotName }-`;
       if (this.name) {
         this.restoreResource.spec.target.name = this.name;
       }
@@ -221,7 +218,7 @@ export default {
         <div class="col span-6">
           <LabeledSelect
             v-model="namespace"
-            :disabled="!restoreNewVm"
+            :disabled="true"
             :label="t('nameNsDescription.namespace.label')"
             :options="namespaces"
           />
@@ -238,7 +235,7 @@ export default {
         </div>
       </div>
 
-      <LabeledSelect v-model="backupName" class="mb-20" :label="t('harvester.backup.restore.backup')" :options="backupOption" />
+      <LabeledSelect v-model="snapshotName" class="mb-20" :label="t('harvester.vmSnapshot.snapshot')" :options="snapshotOption" />
 
       <LabeledSelect v-if="!restoreNewVm" v-model="deletionPolicy" :label="t('harvester.backup.restore.deletePreviousVolumes')" :options="deletionPolicyOption" />
     </div>
