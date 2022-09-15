@@ -13,7 +13,7 @@ import ApplicationCard from '@shell/components/cards/ApplicationCard.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable/index.vue';
-
+import AppGitHubDeployment from '../components/application/AppGitHubDeployment.vue';
 interface Data {
 }
 
@@ -26,6 +26,7 @@ export default Vue.extend<Data, any, any, any>({
     ResourceTable,
     PlusMinus,
     ApplicationCard,
+    AppGitHubDeployment,
     Tabbed,
     Tab,
   },
@@ -345,56 +346,11 @@ export default Vue.extend<Data, any, any, any>({
                 v-if="gitSource"
                 class="repo-info"
               >
-                <div class="repo-info-owner">
-                  <img
-                    :src="gitSource.owner.avatar_url"
-                    alt=""
-                  >
-                  <div>
-                    <a
-                      ref="nofollow"
-                      target="_blank"
-                      :href="gitSource.owner.html_url"
-                    >{{ gitSource.owner.login }}</a>
-                    <span>/</span>
-                    <a
-                      ref="nofollow"
-                      target="_blank"
-                      :href="gitSource.html_url"
-                    >{{ gitSource.name }}</a>
-                  </div>
-                </div>
-                <div
-                  v-if="gitDeployment.deployedCommit"
-                  class="repo-info-revision"
-                >
-                  <span>
-                    <i class="icon icon-fw icon-commit" />
-                    {{ gitDeployment.deployedCommit.short }}
-
-                  </span>
-                  <span
-                    v-if="commitPosition"
-                    class="masthead-state badge-state"
-                  >
-                    <i class="icon icon-fw icon-commit" />
-                    {{ commitPosition.text }}
-                  </span>
-                </div>
-                <div class="repo-info-description">
-                  <i class="icon icon-fw icon-comment" />
-                  <p>
-                    {{ gitSource.description }}
-                  </p>
-                </div>
-                <ul>
-                  <li>
-                    <span>Created</span>: {{ formatDate(gitSource.created_at) }}
-                  </li>
-                  <li>
-                    <span>Updated</span>: {{ formatDate(gitSource.updated_at, true) }}
-                  </li>
-                </ul>
+                <AppGitHubDeployment
+                  :git-deployment="gitDeployment"
+                  :git-source="gitSource"
+                  :commit-position="commitPosition"
+                />
               </div>
               <hr class="mt-10 mb-10">
               <div class="deployment__origin__list">
@@ -621,89 +577,6 @@ export default Vue.extend<Data, any, any, any>({
         }
       }
     }
-
-.deployment {
-  .application-card {
-    margin-top: 0 !important;
-  }
-
-  .repo-info {
-    display: grid;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-gap: 20px;
-    // outline: 1px solid var(--border);
-    font-size: 14px;
-
-    &-owner {
-      display: flex;
-      align-self: center;
-      a {
-        font-size: 16px !important;
-      }
-
-      img {
-        margin-right: 8px;
-        align-self: center;
-        width: 20px;
-        border-radius: 5%;
-      }
-
-      span {
-        opacity: 0.5;
-      }
-    }
-
-    &-description, &-revision{
-      display: flex;
-      align-items: center;
-      align-self: center;
-      i {
-        opacity: 0.8;
-      }
-
-      span {
-        display: flex;
-        align-self: center;
-      }
-    }
-
-    &-revision {
-      justify-content: space-between;
-    }
-
-    ul {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      display: flex;
-      justify-content: space-between;
-
-      li {
-        font-size: 12px;
-        opacity: 0.5;
-        span {
-          color: #c4c4c4;
-        }
-      }
-    }
-  }
-
-  .simple-box {
-    width: 100%;
-    margin-bottom: 0;
-  }
-  .app-instances {
-    tr td {
-      min-width: 58px;
-      padding: 5px 0;
-      font-size: 1.1rem;
-    }
-    .scale-instances {
-      display: flex;
-      justify-content: center;
-    }
-  }
-}
 
 .sortable-table-avatar {
   display: flex;
