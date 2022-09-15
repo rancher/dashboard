@@ -62,11 +62,8 @@ export default {
       if (services.length) {
         const serviceBounds = [];
 
-        // We iterate over all services.
         services.map((service) => {
-          // now we have the service, as redis, for instance
           if (service.boundapps && service.boundapps.includes(theAppName)) {
-            // in the service, we have some bounded apps, check if the app we are looking for is bounded
             serviceBounds.push(service.meta.name);
           }
         });
