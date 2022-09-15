@@ -121,10 +121,7 @@ export default {
         this.uiIssuesSetting.value = '';
         this.uiCommunitySetting.value = '';
 
-        return Promise.all([
-          this.uiIssuesSetting.save(),
-          this.uiIssuesSetting.save()
-        ]);
+        return this.uiIssuesSetting.save();
       }
     },
 

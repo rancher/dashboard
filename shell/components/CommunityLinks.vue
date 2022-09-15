@@ -61,7 +61,9 @@ export default {
       // Custom links set from settings
       if (this.uiCustomLinks) {
         return JSON.parse(this.uiCustomLinks.value).reduce((prev, curr) => {
-          return { ...prev, [curr.key]: curr.value };
+          prev[curr.key] = curr.value;
+
+          return prev;
         }, {});
       }
 

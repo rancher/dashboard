@@ -4,8 +4,7 @@ import config from './shell/nuxt.config';
 const excludes = process.env.EXCLUDES_PKG || 'epinio, rancher-components';
 
 export default config(__dirname, {
-  excludes:  excludes.replace(/\s/g, '').split(','),
-  useEslint: false
+  excludes: excludes.replace(/\s/g, '').split(','),
   // excludes: ['fleet', 'example']
   // autoLoad: ['fleet', 'example']
 });
