@@ -219,21 +219,6 @@ export default {
           <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" :mode="mode" :maxlength="100" />
         </div>
       </div>
-
-      <h3 class="mt-20 mb-5 pb-5">
-        {{ t('branding.uiIssues.label') }}
-      </h3>
-      <label class="text-label">
-        {{ t(`advancedSettings.descriptions.${ 'ui-issues' }`, {}, true) }}
-      </label>
-      <div :style="{'align-items':'center'}" class="row mt-10">
-        <div class="col span-6 pb-5">
-          <LabeledInput v-model="uiIssuesSetting.value" :label="t('branding.uiIssues.issuesUrl')" :mode="mode" />
-        </div>
-        <div class="col span-6">
-          <Checkbox :value="uiCommunitySetting.value === 'true'" :label="t('branding.uiIssues.communityLinks')" :mode="mode" @input="e=>$set(uiCommunitySetting, 'value', e.toString())" />
-        </div>
-      </div>
       <h3 class="mt-20 mb-5 pb-5">
         {{ t('branding.logos.label') }}
       </h3>
