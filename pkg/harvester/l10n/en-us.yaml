@@ -72,6 +72,10 @@ harvester:
       title: Restore Snapshot
       name: 'New Volume Name'
       success: 'New Volume { name } restored successfully.'
+    vmSnapshot:
+      title: Take VM Snapshot
+      name: Name
+      success: 'Take VM Snapshot { name } successfully.'
   notification:
     title:
       succeed: Succeed
@@ -110,6 +114,7 @@ harvester:
     cancelExpand: Cancel Expand
     snapshot: Take Snapshot
     pvcClone: Clone Volume
+    vmSnapshot: Take Snapshot
   tableHeaders:
     size: Size
     progress: Progress
@@ -717,6 +722,11 @@ harvester:
     size: Size
     image: Image
 
+  vmSnapshot:
+    label: VM Snapshots
+    createText: Restore Snapshot
+    snapshot: Snapshot
+
 advancedSettings:
   descriptions:
     'harv-vlan': Default Network Interface name of the VLAN network.
@@ -807,4 +817,10 @@ typeLabel:
     {count, plural,
       one { Volume Snapshot }
       other { Volume Snapshots }
+    }
+
+  harvesterhci.io.vmsnapshot: |-
+    {count, plural,
+      one { VM Snapshot }
+      other { VM Snapshots }
     }

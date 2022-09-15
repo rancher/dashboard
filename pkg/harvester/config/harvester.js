@@ -237,6 +237,7 @@ export function init($plugin, store) {
       HCI.NETWORK_ATTACHMENT,
       HCI.BACKUP,
       HCI.SNAPSHOT,
+      HCI.VM_SNAPSHOT,
       HCI.SSH,
       HCI.CLOUD_TEMPLATE,
       HCI.SETTING
@@ -331,6 +332,29 @@ export function init($plugin, store) {
       params:    { resource: HCI.SNAPSHOT }
     },
     exact: false,
+  });
+
+  configureType(HCI.VM_SNAPSHOT, {
+    showListMasthead: false,
+    location:         {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.VM_SNAPSHOT }
+    },
+    resource:       HCI.BACKUP,
+    resourceDetail: HCI.VM_SNAPSHOT,
+    resourceEdit:   HCI.VM_SNAPSHOT
+  });
+
+  virtualType({
+    labelKey:   'harvester.vmSnapshot.label',
+    name:       HCI.VM_SNAPSHOT,
+    namespaced: true,
+    weight:     191,
+    route:      {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.VM_SNAPSHOT }
+    },
+    exact: false
   });
 
   headers(HCI.SSH, [STATE, NAME_COL, NAMESPACE_COL, FINGERPRINT, AGE]);
