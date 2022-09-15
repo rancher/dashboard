@@ -112,10 +112,6 @@ export default {
       this.value = [...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks];
     },
 
-    cancel() {
-      this.done();
-    },
-
     deprecateIssueLinks() {
       if (this.uiIssuesSetting.value || this.uiIssuesSetting.value) {
         this.uiIssuesSetting.value = '';
