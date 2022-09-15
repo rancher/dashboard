@@ -1,17 +1,19 @@
 <script>
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
-import { LabeledInput } from '@components/Form/LabeledInput';
 import { CATALOG, UI_PLUGIN } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
-import AsyncButton from '@shell/components/AsyncButton';
 
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
 import UninstallDialog from './UninstallDialog.vue';
+import InstallDialog from './InstallDialog.vue';
+import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
+import PluginInfoPanel from './PluginInfoPanel.vue';
 
 // const PLUGIN_CHART_ANNOTATION = 'uiplugin.cattle.io';
 
@@ -22,37 +24,27 @@ const PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
 
 export default {
   components: {
-    AsyncButton,
-    LabeledInput,
+    DeveloperInstallDialog,
     IconMessage,
-    Tabbed,
+    InstallDialog,
+    PluginInfoPanel,
     Tab,
+    Tabbed,
     UninstallDialog,
   },
   data() {
     return {
-      name:              '',
-      location:          '',
-      catalogUrl:        '',
       view:              '',
-      dialogOpen:        false,
-      catalogDialogOpen: false,
-      installDialogOpen: false,
-      canModifyName:     true,
-      canModifyLocation: true,
       charts:            [],
-      selected:          undefined,
       installing:        {},
-      dialogBusy:        false,
       plugins:           [], // The installed plugins
       helmOps:           [], // Helm operations
       loading:           true,
-      showSlideIn:       false,
-      info:              undefined,
-
     };
   },
+
   layout: 'plain',
+
   async fetch() {
     const hash = {};
 
@@ -78,47 +70,53 @@ export default {
     this.loading = false;
   },
   computed: {
-    // TODO: Remove these
-    // ...mapGetters({ plugins: 'uiplugins/plugins' }),
-    // ...mapGetters({ catalog: 'uiplugins/catalog' }),
+    ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
+    ...mapGetters({ uiErrors: 'uiplugins/errors' }),
 
     list() {
       const all = this.available;
 
       switch (this.view) {
-        case 'installed': 
-          return all.filter(p => !!p.installed || !!p.installing);
-        case 'available':
-          return all.filter(p => !p.installed);
-        default:
-          return all;
+      case 'installed':
+        return all.filter(p => !!p.installed || !!p.installing);
+      case 'updates':
+        return this.updates;
+      case 'available':
+        return all.filter(p => !p.installed);
+      default:
+        return all;
       }
+    },
+
+    // Message to display when the tab view is empty (depends on the tab)
+    emptyMessage() {
+      return this.t(`plugins.empty.${ this.view }`);
+    },
+
+    updates() {
+      return this.available.filter(plugin => !!plugin.upgrade);
     },
 
     available() {
       let all = this.charts.filter(c => !!c.versions.find(v => v.annotations && v.annotations[PLUGIN_CHART_ANNOTATION] === 'true'));
 
-      all = all.map(chart => {
+      all = all.map((chart) => {
         const item = {
-          name:        chart.chartNameDisplay,
-          description: chart.chartDescription,
-          id: chart.id,
-          versions: [],
+          name:           chart.chartNameDisplay,
+          description:    chart.chartDescription,
+          id:             chart.id,
+          versions:       [],
           displayVersion: chart.versions?.length > 0 ? chart.versions[0].version : '',
-          installed: false,
-          builtin: false,
-        }
+          installed:      false,
+          builtin:        false,
+        };
 
-        console.log(chart);
-
-        item.versions.push(chart.versions[0]);
+        this.latest = chart.versions[0]
+        item.versions = [...chart.versions];
         item.chart = chart;
 
-        console.log('recompute');
-        console.log(this.installing);
-
         if (this.installing[item.name]) {
-          console.log('PLUGIN IS BEING INSTALLED: ' + item.name + ' ' + this.installing[item.name]);
+          console.log('PLUGIN IS BEING INSTALLED: ' + item.name + ' ' + this.installing[item.name]); // eslint-disable-line no-console
           item.installing = this.installing[item.name];
         }
 
@@ -126,71 +124,66 @@ export default {
       });
 
       // Go through the CRs for the plugins and wire them into the catalog
-      this.plugins.forEach(p => {
-        const chart = all.find(c => c.name === p.name);
-        if (chart) {
-          chart.installed = true;
-          chart.uiplugin = p;
-          chart.displayVersion = p.version;
-          chart.installing = false;
-        }
-      });
-
-      return all;
-    },
-
-    _list() {
-      // Get installed plugins and mark up the list
-      const pMap = {};
-      const list = [];
-      // Map of plugins in the catalog
-      const cMap = {};
-
       this.plugins.forEach((p) => {
-        pMap[p.name] = p;
-      });
+        if (!p.removed) {
+          const chart = all.find(c => c.name === p.name);
 
-      this.catalog.forEach((catalogItem) => {
-        const item = { ...catalogItem };
+          if (chart) {
+            chart.installed = true;
+            chart.uiplugin = p;
+            chart.displayVersion = p.version;
 
-        list.push(item);
-        cMap[item.name] = true;
+            // Can't do this here
+            chart.installing = this.installing[chart.name];
 
-        item.installed = pMap[item.name]?.metadata;
-        item.builtin = !!pMap[item.name]?.builtin;
-        item.displayVersion = item.installed ? item.installed.version : item.version;
-        item.icon = item.installed?.icon;
-        item.download = `/download-pkg/${ item.name }-${ item.version }`;
-
-        if (item.installed) {
-          if (item.installed.version !== item.version) {
-            // TODO: Only if newer
-            item.upgrade = item.version;
+            // Check for upgrade
+            if (chart.versions.length && p.version !== chart.versions[0].version) {
+              chart.upgrade = chart.versions[0].version;
+            }
           }
         }
       });
 
-      this.plugins.forEach((p) => {
-        if (!cMap[p.name]) {
-          // Plugin is installed but not in the catalog, so add item for it
-          list.push({
-            ...p.metadata,
+      // Check that all of the loaded plugins are represented
+      this.uiplugins.forEach((p) => {
+        const chart = all.find(c => c.name === p.name);
+
+        if (!chart) {
+          // A pluign is loaded, but there is no chart, so add an item so that it shows up
+          const item = {
+            name:           p.name,
+            description:    p.metadata?.description,
+            id:             p.id,
+            versions:       [],
+            displayVersion: p.metadata?.version || '-',
             installed:      true,
-            builtin:        p.builtin,
-            displayVersion: p.metadata?.version,
-            icon:           p.metadata?.icon
-          });
+            builtin:        !!p.builtin,
+          };
+
+          all.push(item);
         }
       });
 
-      return list;
-    }
+      // Merge in the plugin load errors
+      Object.keys(this.uiErrors).forEach((e) => {
+        const chart = all.find(c => c.name === e);
+
+        if (chart) {
+          chart.error = !!this.uiErrors[e];
+        }
+      });
+
+      console.log('avaialble');
+      console.log(this.uierrors);
+
+      console.log(all);
+
+      return all;
+    },
   },
+
   watch: {
     helmOps(neu) {
-      console.log('HELM OP');
-      // console.log(neu);
-
       // Get Helm operations for UI plugins and order by date
       let pluginOps = neu.filter((op) => {
         return op.namespace === PLUGIN_NAMESPACE;
@@ -198,323 +191,109 @@ export default {
 
       pluginOps = sortBy(pluginOps, 'metadata.creationTimestamp', true);
 
-      console.log(pluginOps);
-
-      const found = {};
-
       // Go through the installed plugins
       (this.available || []).forEach((plugin) => {
-        console.log('Checking plugin: ' + plugin.name);
-
         const op = pluginOps.find(o => o.status?.releaseName === plugin.name);
-
-        console.log('Found op for plugin');
 
         if (op) {
           const active = op.metadata.state?.transitioning;
 
-          console.log(active);
-          console.log(op.status.action);
+          // console.log(active);
+          // console.log(op.status.action);
 
           if (active) {
-            Vue.set(this.installing, plugin.name, op.status.action);
-          } else if (op.status === 'uninstall') {
+            this.updatePluginInstallStatus(plugin.name, op.status.action);
+          } else if (op.status.action === 'uninstall') {
             // Uninstall has finished
-            Vue.set(this.installing, plugin.name, false);
+            this.updatePluginInstallStatus(plugin.name, false);
           }
         } else {
-            Vue.set(this.installing, plugin.name, false);
+          this.updatePluginInstallStatus(plugin.name, false);
         }
-
-        // plugin.operation = op;
-        // if (!plugin.operation) {
-        //   Vue.set(plugin, 'installing', false);
-        // } else {
-        //   Vue.set(plugin, 'installing', true);
-        // }
       });
     },
 
+    // TDOO: This is called first off, so we install the plugins again
     plugins(neu, old) {
-      console.log('Plugins have changed!!!');
+      console.log('Plugins have changed!!!'); // eslint-disable-line no-console
 
-      console.log(neu);
-      
       const installed = this.$store.getters['uiplugins/plugins'];
-
-      console.log(installed);
 
       neu.forEach((plugin) => {
         const existing = installed.find(p => !p.removed && p.name === plugin.name);
 
-        console.log(existing);
-        console.log(plugin);
-
         if (!existing) {
-          console.error('!!!!!!!!!!!!!!! NEW PLUGIN!');
-          console.log(plugin);
+          console.error('!!!!!!!!!!!!!!! NEW PLUGIN!'); // eslint-disable-line no-console
+          console.log(plugin); // eslint-disable-line no-console
 
           const id = `${ plugin.name }-${ plugin.version }`;
           const url = `http://127.0.0.1:4500/${ id }/${ id }.umd.min.js`;
 
-          console.error('Load Plugin ' + id + ' ' + url);
+          console.error('Load Plugin ' + id + ' ' + url); // eslint-disable-line no-console
 
-          this.$plugin.loadAsync(id, url);
+          this.$plugin.loadAsync(id, url).catch((e) => {
+            console.log('Failed to load plugin');
+          });
+
+          this.updatePluginInstallStatus(plugin.name, false);
         }
       });
     },
 
-    name(neu, old) {
-      if (this.canModifyLocation) {
-        this.location = `/pkg/${ neu }/${ neu }.umd.min.js`;
-      }
-    },
-    location(neu, old) {
-      if (this.canModifyName) {
-        const names = neu.split('/');
-        let last = names[names.length - 1];
-        const index = last.indexOf('.umd.min.js');
-
-        if (index !== -1) {
-          last = last.substr(0, index);
-        }
-
-        this.name = last;
-      }
-    }
   },
   methods:    {
     filterChanged(f) {
-      console.log('FILTER CHANGED');
-      console.log(f.selectedName);
       this.view = f.selectedName;
-
-      console.log(this.$refs.tabs);
-    },
-    updateName(v) {
-      this.canModifyName = v.length === 0;
-    },
-    updateLocation(v) {
-      this.canModifyLocation = v.length === 0;
-    },
-    showAddDialog() {
-      this.dialogOpen = true;
-      this.$modal.show('addPluginDialog');
     },
 
-    closeAddDialog() {
-      this.dialogOpen = false;
-      this.$modal.hide('addPluginDialog');
-    },
-
-    showAddCatalogDialog() {
-      this.catalogDialogOpen = true;
-      this.$modal.show('addCatlogDialog');
-    },
-    closeAddCatalogDialog() {
-      this.catalogDialogOpen = false;
-      this.$modal.hide('addCatlogDialog');
-    },
-
-    showInstallDialog(plugin, ev) {
-      this.dialogBusy = false;
-      this.selected = plugin;
-      this.installDialogOpen = true;
-      this.$modal.show('installDialog');
-
-      ev.preventDefault();
-      ev.stopPropagation();
-    },
-    closeInstallDialog() {
-      this.dialogBusy = false;
-      this.selected = undefined;
-      this.installDialogOpen = false;
-      this.$modal.hide('installDialog');
-    },    
-
-    addCatalog() {
-      this.$store.dispatch('uiplugins/addCatalog', this.catalogUrl);
-      this.$store.dispatch('uiplugins/loadCatalogs');
-      this.closeAddCatalogDialog();
-    },
-
-    loadPlugin() {
-      this.load(this.name, this.location);
-    },
-
-    load(name, url) {
-      if (!name) {
-        const parts = url.split('/');
-        const n = parts[parts.length - 1];
-
-        name = n.split('.')[0];
-      }
-
-      this.$plugin.loadAsync(name, url).then(() => {
-        this.closeAddDialog();
-        this.$store.dispatch('growl/success', {
-          title:   `Loaded plugin ${ name }`,
-          message: `Plugin was loaded successfully`,
-          timeout: 3000,
-        }, { root: true });
-      }).catch((error) => {
-        this.closeAddDialog();
-        const message = typeof error === 'object' ? 'Could not load code' : error;
-
-        this.$store.dispatch('growl/error', {
-          title:   'Error loading plugin',
-          message,
-          timeout: 5000
-        }, { root: true });
-      });
-    },
-
-    // Install the helm chart for the plugin
-    async installPlugin() {
-      console.log('INSTALL PLUGIN');
-      console.log(this.selected);
-
-      // Vue.set(this.installed, this.selected.name, 'install');
-
-      this.dialogBusy = true;
-
-      const version = this.selected.versions[0];
-      const repoType = version.repoType;
-      const repoName = version.repoName;
-      const repo = this.$store.getters['catalog/repo']({repoType, repoName});
-
-      console.log(repo);
-
-      const chart = {
-        chartName:   this.selected.chart.chartName,
-        version:     version.version,
-        releaseName: this.selected.chart.chartName,
-        annotations: {
-          [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: this.selected.repoType,
-          [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.selected.repoName
-        },
-        values: {}
-      };
-
-      const input = {
-        charts:    [chart],
-        //timeout:   this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
-        //wait:      this.cmdOptions.wait === true,
-        namespace: PLUGIN_NAMESPACE,
-        //projectId: this.project,
-      };
-
-      const action = 'install';
-
-      const name = this.selected.chart.chartName;
-
-      //const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
-      const res = await repo.doAction(action, input);
-      const operationId = `${ res.operationNamespace }/${ res.operationName }`;
-
-      // Vue.set(this.installing, this.selected.chart.chartName, operationId);
-
-      // Change the view to installed
-      this.$refs.tabs?.select('installed');
-
-      this.closeInstallDialog();
-
-      console.log(res);
-      console.log(operationId);
-
-      await repo.waitForOperation(operationId);
-
-      const operation = await this.$store.dispatch(`management/find`, {
-        type: CATALOG.OPERATION,
-        id:   operationId
-      });
-
-      console.log(operation);
-
-      console.log('OK');
-
-      // Vue.set(this.installing, name, operation);
-
-      console.log(this.installing);
-    },
-
-    async install(plugin) {
-      // Might need to download the package first
-      if (plugin.download) {
-        await this.$store.dispatch('rancher/request', { url: plugin.download }, { root: true });
-      }
-
-      const name = `${ plugin.name }-${ plugin.version }`;
-      let moduleUrl = `/pkg/${ name }/${ name }.umd.min.js`;
-
-      if (plugin.location) {
-        moduleUrl = `${ plugin.location }/${ name }/${ name }.umd.min.js`;
-      }
-
-      this.load(name, moduleUrl);
-    },
-
-    // Uninstall plugin
-    // Prompt for confirmation, delete CR and remove Helm app
-    uninstall(plugin, ev) {
+    showDeveloperLoaddDialog(ev) {
       ev.target?.blur();
       ev.preventDefault();
       ev.stopPropagation();
 
-      console.log('Uninstall!!');
-      console.log(plugin);
+      this.$refs.developerInstallDialog.showDialog();
+    },
+
+    showInstallDialog(plugin, ev) {
+      ev.target?.blur();
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      this.$refs.installDialog.showDialog(plugin);
+    },
+
+    showUninstallDialog(plugin, ev) {
+      ev.target?.blur();
+      ev.preventDefault();
+      ev.stopPropagation();
 
       this.$refs.uninstallDialog.showDialog(plugin);
-
-      // TODO: Confirmation
-
-      // TODO: Busy action
-
-      // if (plugin.uiplugin) {
-      //   // Delete the custom resource
-      //   // await plugin.uiplugin.remove();
-      // }
-
-      // // Find the app for this plugin
-      // const apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
-
-      // const pluginApp = apps.find((app) => {
-      //   return app.namespace == PLUGIN_NAMESPACE && app.name === plugin.name;
-      // });
-
-      // if (pluginApp) {
-      //   console.log('Going to remove app for plugin');
-      //   const remove = await pluginApp.remove();
-
-      //   console.log(remove);
-      // }
-
-      // // Unload the plugin code
-      // this.$plugin.removePlugin(plugin.name);
     },
 
     didUninstall(plugin) {
       if (plugin) {
-        console.error('!!!!!!! DID UNINSTALL');
+        this.updatePluginInstallStatus(plugin.name, 'uninstall');
 
-        console.log(plugin);
+        // Clear the load error, if there was one
+        this.$store.dispatch('uiplugins/setError', { name: plugin.name, error: false });
+      }
+    },
 
-        Vue.set(plugin, 'installed', false);
-        Vue.set(plugin, 'installing', false);
-
-        console.log(plugin.name);
-        console.log(this.installed);
-
-        // Vue.set(this.installed, plugin.name, false);
+    didInstall(plugin) {
+      if (plugin) {
+        // Change the view to installed if we started installing a plugin
+        this.$refs.tabs?.select('installed');
       }
     },
 
     showPluginDetail(plugin) {
-      this.showSlideIn = true;
-      this.info = plugin;
+      this.$refs.infoPanel.show(plugin);
+    },
 
-      console.log(plugin);
-    }
+    updatePluginInstallStatus(name, status) {
+      console.log('UPDATING PLUGIN STATUS: ' + name + ' ' + status); // eslint-disable-line no-console
+      Vue.set(this.installing, name, status);
+    },
   }
 };
 </script>
@@ -522,49 +301,19 @@ export default {
 <template>
   <div class="plugins">
     <div class="plugin-header">
-      <h2>Plugins</h2>
-      <!-- TODO: NEED TO BRING IN DEVELOPER SUPPORT FOR LOADING A PLUGIN -->
-      <!--
-      <button class="btn role-primary mr-10" @click="showAddCatalogDialog()">
-        Add Catalog
+      <h2>{{ t('plugins.title') }}</h2>
+      <button class="btn role-primary" @click="showDeveloperLoaddDialog($event)">
+        {{ t('plugins.actions.developerLoad') }}
       </button>
-      <button class="btn role-primary" @click="showAddDialog()">
-        Load
-      </button>
-      -->
-    </div>
-    <br />
-
-    <div v-if="showSlideIn" class="glass" @click="showSlideIn = false" />
-
-    <div class="slideIn" :class="{'hide': false, 'slideIn__show': showSlideIn}">
-      <div v-if="info">
-        <h2 class="slideIn__header">
-          {{ info.name }}
-          <div class="slideIn__header__buttons">
-            <div class="slideIn__header__button" @click="showSlideIn = false">
-              <i class="icon icon-close" />
-            </div>
-          </div>
-        </h2>
-        <p>{{ info.description }}</p>
-        <h3>Versions</h3>
-        <ul>
-          <li v-for="v in info.versions" :key="v.version">
-            {{ v.version }}
-          </li>
-        </ul>
-
-        <h3>Readme goes here</h3>
-      </div>
-      <!--
-      <ChartReadme v-if="hasReadme" :version-info="versionInfo" class="chart-content__tabs" />
-      -->
     </div>
 
-    <Tabbed :tabs-only="true" ref="tabs" @changed="filterChanged">
-      <Tab name="installed" label="Installed" :weight="20" />
-      <Tab name="available" label="Available" :weight="19"  />
+    <PluginInfoPanel ref="infoPanel" />
+
+    <Tabbed ref="tabs" :tabs-only="true" @changed="filterChanged">
+      <Tab name="installed" label-key="plugins.tabs.installed" :weight="20" />
+      <Tab name="available" label-key="plugins.tabs.available" :weight="19" />
+      <Tab name="updates" label-key="plugins.tabs.updates" :weight="18" :badge="updates.length" />
+      <Tab name="all" label-key="plugins.tabs.all" :weight="17" />
     </Tabbed>
     <div v-if="loading" class="data-loading">
       <i class="icon-spin icon icon-spinner" />
@@ -576,7 +325,7 @@ export default {
         :vertical="true"
         :subtle="true"
         icon="icon-gear"
-        message="No Plugins installed"
+        :message="emptyMessage"
       />
       <template v-else>
         <div v-for="plugin in list" :key="plugin.name" class="plugin" @click="showPluginDetail(plugin)">
@@ -593,127 +342,42 @@ export default {
               Built-in plugin
             </div>
             <div class="plugin-version">
-              {{ plugin.displayVersion }}
+              <i v-if="plugin.installing" class="version-busy icon icon-spin icon-spinner" />
+              <span v-else>
+                <span>{{ plugin.displayVersion }}</span>
+                <span v-if="plugin.upgrade" v-tooltip="'A newer version of this UI Plugin is available'"> -> {{ plugin.upgrade }}</span>
+              </span>
             </div>
-            <!--
-              <button class="btn role-secondary" @click="showPluginDetail(plugin)">
-                Info
-              </button>
-              -->
+            <div class="plugin-spacer" />
+            <div class="plugin-actions">
+              <div v-if="plugin.error" v-tooltip="t('plugins.loadError')" class="plugin-error">
+                <i class="icon icon-warning" />
+              </div>
 
-            <div v-if="plugin.installing">
-              <div class="plugin-actions">
+              <div class="plugin-spacer" />
+
+              <div v-if="plugin.installing">
                 {{ plugin.installing }}ing ...
               </div>
-            </div>
-
-            <div v-else-if="plugin.installed">
-              <!-- <div>{{ plugin.installed.version }}</div> -->
-              <div class="plugin-actions">
-                <button class="btn role-secondary" @click="uninstall(plugin, $event)">
+              <div v-else-if="plugin.installed">
+                <button v-if="!plugin.builtin" class="btn role-secondary" @click="showUninstallDialog(plugin, $event)">
                   Uninstall
                 </button>
               </div>
-            </div>
-            <div v-else class="plugin-actions">
-              <button class="btn role-secondary" @click="showInstallDialog(plugin, $event)">
-                Install
-              </button>
+              <div v-else>
+                <button class="btn role-secondary" @click="showInstallDialog(plugin, $event)">
+                  Install
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </template>
     </div>
 
-    <modal
-      name="addPluginDialog"
-      height="auto"
-      :scrollable="true"
-      @closed="closeAddDialog()"
-    >
-      <div class="plugin-add-dialog">
-        <h4 class="mt-20">
-          Load Plugin
-        </h4>
-        <div class="custom">
-          <div class="fields">
-            <LabeledInput v-model="name" v-focus label="Plugin module name" @input="updateName" />
-          </div>
-        </div>
-        <div class="custom mt-10">
-          <div class="fields">
-            <LabeledInput v-model="location" label="Plugin URL" @input="updateLocation" />
-          </div>
-          <div class="dialog-buttons">
-            <!--
-            <button class="btn role-secondary" @click="closeAddDialog()">
-              Cancel
-            </button>
-            <button class="btn role-primary" @click="loadPlugin()">
-              Load Plugin
-            </button>
-            -->
-          </div>
-        </div>
-      </div>
-    </modal>
-
-    <modal
-      name="addCatlogDialog"
-      height="auto"
-      :scrollable="true"
-      @closed="closeAddCatalogDialog()"
-    >
-      <div class="plugin-add-dialog">
-        <h4 class="mt-20">
-          Add Plugin Catalog
-        </h4>
-        <div class="custom mt-10">
-          <div class="fields">
-            <LabeledInput v-model="catalogUrl" label="Catalog URL" />
-          </div>
-          <div class="dialog-buttons">
-            <button class="btn role-secondary" @click="closeAddCatalogDialog()">
-              Cancel
-            </button>
-            <button class="btn role-primary" @click="addCatalog()">
-              Add
-            </button>
-          </div>
-        </div>
-      </div>
-    </modal>
-
-    <UninstallDialog ref="uninstallDialog" @closed="didUninstall" />
-
-    <modal
-      name="installDialog"
-      height="auto"
-      :scrollable="true"
-      @closed="closeInstallDialog()"
-    >
-      <div v-if="selected" class="plugin-install-dialog">
-        <h4 class="mt-10">
-          Install Plugin: {{ selected.name }}
-        </h4>
-        <div class="custom mt-10">
-          <div class="install-info">
-            <p>Are you sure that you want to install this plugin?</p>
-            <p>Please ensure that you are aware of the risks of installing plugins from untrusted authors.</p>
-          </div>
-          <div class="dialog-buttons">
-            <button :disbaled="dialogBusy" class="btn role-secondary" @click="closeInstallDialog()">
-              Cancel
-            </button>
-            <AsyncButton
-              mode="install"
-              @click="installPlugin"
-            />            
-          </div>
-        </div>
-      </div>
-    </modal>
-
+    <InstallDialog ref="installDialog" @closed="didInstall" @update="updatePluginInstallStatus" />
+    <UninstallDialog ref="uninstallDialog" @closed="didUninstall" @update="updatePluginInstallStatus" />
+    <DeveloperInstallDialog ref="developerInstallDialog" @closed="didInstall" />
   </div>
 </template>
 
@@ -784,8 +448,14 @@ export default {
       }
     }
 
-    .plugin-metadata {
+    .plugin-spacer {
       flex: 1;
+    }
+
+    .plugin-metadata {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
     }
 
     .plugin-builtin {
@@ -802,16 +472,38 @@ export default {
 
     .plugin-version {
       // border: 1px solid var(--primary);
-      display: inline-block;
+      align-items: center;
+      display: inline-flex;
       font-size: 12px;
       // padding: 2px 5px;
       border-radius: 4px;
       margin: 5px 0;
+
+      i.icon-spinner {
+        padding-right: 5px;
+        font-size: 16px;
+        height: 16px;
+        width: 16px;
+      }
     }
 
     .plugin-actions {
+      align-items:center;
       display: flex;
-      justify-content: flex-end;
+
+      $error-icon-size: 22px;
+
+      .plugin-error {
+        display: inline;
+        cursor: help;
+
+        > i {
+          color: var(--error);
+          height: $error-icon-size;
+          font-size: $error-icon-size;
+          width: $error-icon-size;
+        }
+      }
 
       .btn {
         line-height: 20px;
@@ -834,88 +526,6 @@ export default {
       margin-top: 10px;
     }
   }
-
-  $slideout-width: 35%;
-  $title-height: 50px;
-  $padding: 5px;
-  $slideout-width: 35%;
-  $header-height: 54px;
-
-  .glass {
-    z-index: 9;
-    position: fixed;
-    top: $header-height;
-    height: calc(100% - $header-height);
-    left: 0;
-    width: 100%;
-    opacity: 0;
-  }
-
-  .slideIn {
-    border-left: var(--header-border-size) solid var(--header-border);
-    position: fixed;
-    top: $header-height;
-    right: -$slideout-width;
-    height: calc(100% - $header-height);
-    background-color: var(--topmenu-bg);
-    width: $slideout-width;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-
-    padding: 10px;
-
-    transition: right .5s ease;
-
-    h3 {
-      font-size: 16px;
-      margin-top: 10px;
-    }
-
-    &__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      &__buttons {
-        display: flex;
-      }
-
-      &__button {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2px;
-        > i {
-          font-size: 20px;
-          opacity: 0.5;
-        }
-        &:hover {
-          background-color: var(--wm-closer-hover-bg);
-        }
-      }
-    }
-
-    .chart-content__tabs {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-
-      height: 0;
-
-      padding-bottom: 10px;
-
-      ::v-deep .chart-readmes {
-        flex: 1;
-        overflow: auto;
-      }
-    }
-
-    &__show {
-      right: 0;
-    }
-  }  
 
   .plugin-install-dialog {
     h4 {

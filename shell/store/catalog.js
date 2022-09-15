@@ -346,15 +346,11 @@ export const actions = {
     // Fetching list of cluster templates? This is fine (in management store)
     // Installing a cluster template? This isn't fine (in cluster store as per installing app, but if there is no cluster we need to default to management)
 
-    console.log(storeName);
-
     let inStore = storeName;
 
     if (!inStore) {
       inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
     }
-
-    console.log(inStore);
 
     if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {
       promises.cluster = dispatch(`${ inStore }/findAll`, { type: CATALOG.CLUSTER_REPO }, { root: true });
@@ -376,16 +372,12 @@ export const actions = {
 
     promises = {};
 
-    console.log('LOADING!');
-
     for ( const repo of repos ) {
       if ( (force === true || !getters.isLoaded(repo)) && repo.canLoad ) {
         console.info('Loading index for repo', repo.name, `(${ repo._key })`); // eslint-disable-line no-console
         promises[repo._key] = repo.followLink('index');
       }
     }
-
-    console.log(repos);
 
     const res = await allHashSettled(promises);
     const charts = reset ? {} : state.charts;
@@ -409,19 +401,11 @@ export const actions = {
       loaded.push(repo);
     }
 
-    console.log('>>>>>>>>');
-
-    console.log(charts);
-
-    console.log(Object.values(charts));
-
     commit('setCharts', {
       charts,
       errors,
       loaded,
     });
-
-    console.log('LOADED!');
   },
 
   async refresh({ getters, commit, dispatch }) {

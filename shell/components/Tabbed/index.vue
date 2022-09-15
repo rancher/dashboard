@@ -238,6 +238,7 @@ export default {
           @click.prevent="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
+          <span v-if="tab.badge" class="tab-badge">{{ tab.badge }}</span>
           <i v-if="hasIcon(tab)" v-tooltip="t('validation.tab')" class="conditions-alert-icon icon-error icon-lg" />
         </a>
       </li>
@@ -330,6 +331,15 @@ export default {
       & A > i {
         color: var(--error);
       }
+    }
+
+    .tab-badge {
+      margin-left: 5px;
+      background-color: var(--link);
+      color: #fff;
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-size: 11px;
     }
   }
 }

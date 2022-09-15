@@ -598,7 +598,11 @@ asyncButton:
   install:
     action: Install
     success: Installing
-    waiting: Starting&hellip;
+    waiting: Installing&hellip;
+  load:
+    action: Load
+    success: Loaded
+    waiting: Loadingg&hellip;
   pause:
     action: Pause Orchestration
     success: Paused Orchestration
@@ -3645,6 +3649,27 @@ persistentVolumeClaim:
       readWriteMany: Many Nodes Read-Write
   status:
     label: Status
+
+# UI Plugins
+plugins:
+  actions:
+    developerLoad: Developer Load
+  empty:
+    all: No UI Plugins either installed nor available
+    available: No UI Plugins available
+    installed: No UI Plugins installed
+    updates: No UI Plugin updates available
+  loadError: "An error occurred loading the code for this plugin" 
+  tabs:
+    all: All
+    available: Available
+    installed: Installed
+    updates: Updates
+  title: UI Plugins
+  uninstall:
+    title: "Uninstall UI Plugin:"
+    prompt: "Are you sure that you want to uninstall this UI Plugin?"
+
 prefs:
   title: Preferences
   theme:

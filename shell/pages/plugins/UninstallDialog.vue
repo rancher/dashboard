@@ -10,17 +10,7 @@ export default {
     AsyncButton,
   },
 
-  // props: {
-  //   plugin: {
-  //     type:     Object,
-  //     required: true,
-  //   }
-  // },
-  
   data() {
-    console.log('uninstall dialog');
-    console.log(this.plugin);
-
     return { plugin: undefined, busy: false };
   },
 
@@ -31,18 +21,18 @@ export default {
       this.$modal.show('uninstallPluginDialog');
     },
     closeDialog(result) {
-      console.log('!!!!!!!');
-      console.log(result);
       this.$modal.hide('uninstallPluginDialog');
       this.$emit('closed', result);
     },
     async uninstall() {
       console.log('UNINSTALL !!!!!');
       console.log(this);
+
       this.busy = true;
 
       const plugin = this.plugin;
 
+      // TODO: Delete the CR if there is one and there is no Helm Chart
       if (plugin.uiplugin) {
         // Delete the custom resource
         // await plugin.uiplugin.remove();
@@ -58,6 +48,8 @@ export default {
       if (pluginApp) {
         console.log('Going to remove app for plugin');
         const remove = await pluginApp.remove();
+
+        // This starts the removal of the helm chart for the plugin
 
         console.warn('REMOVE');
         console.log(remove);
@@ -78,6 +70,8 @@ export default {
           // plugin.operation = pluginOps[0];
           console.warn('FOUND OP FOR PLUGIN *********');
           console.log(pluginOps[0]);
+
+          // We don't do anything with this op?
         }
       }
 
@@ -87,7 +81,7 @@ export default {
       this.closeDialog(plugin);
     }
   }
-}
+};
 </script>
 
 <template>
@@ -98,11 +92,11 @@ export default {
   >
     <div v-if="plugin" class="plugin-install-dialog">
       <h4 class="mt-10">
-        Uninstall Plugin: {{ plugin.name }}
+        Uninstall UI Plugin: {{ plugin.name }}
       </h4>
       <div class="mt-10 dialog-panel">
         <div class="dialog-info">
-          <p>Are you sure that you want to uninstall this plugin?</p>
+          <p>Are you sure that you want to uninstall this UI Plugin?</p>
         </div>
         <div class="dialog-buttons">
           <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">

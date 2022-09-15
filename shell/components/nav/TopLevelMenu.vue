@@ -126,7 +126,7 @@ export default {
       // Ony when developing for now
       if (process.env.dev) {
         items.push({
-          label:   'Plugins',
+          label:   'UI Plugins',
           inStore: 'management',
           icon:    'icon-gear',
           value:   'plugins',

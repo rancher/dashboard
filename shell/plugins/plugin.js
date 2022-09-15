@@ -21,8 +21,6 @@ export default async(context) => {
   });
 
   // Discover all of the UI Plugins CRs
-  console.error('>>>>>>>>>>>>>>>>>>>>>>');
-  console.log(context.route);
 
   let loadPlugins = true;
 
@@ -31,19 +29,16 @@ export default async(context) => {
   // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
   if (context.route?.path === '/safeMode') {
     loadPlugins = false;
-    console.warn('Safe Mode - plugins will not be loaded')
+    console.warn('Safe Mode - plugins will not be loaded'); // eslint-disable-line no-console
   }
 
   const { store, $plugin, app } = context;
-  const router = app.router;
 
   try {
     const res = await store.dispatch('management/request', {
-      url: `/v1/${ UI_PLUGIN }`,
+      url:     `/v1/${ UI_PLUGIN }`,
       timeout: 5000,
-      headers: {
-        accept: 'application/json'
-      }
+      headers: { accept: 'application/json' }
     });
 
     if (loadPlugins && res && res.data) {
@@ -52,20 +47,15 @@ export default async(context) => {
 
         if (plugin) {
           const id = `${ plugin.name }-${ plugin.version }`;
-
-          console.log('Loading plugin: ' + id);
-
           const url = `http://127.0.0.1:4500/${ id }/${ id }.umd.min.js`;
-
-          console.log(url);
 
           hash[plugin.name] = $plugin.loadAsync(id, url);
         }
       });
     }
   } catch (e) {
-    console.error('Could not load UI Plugins');
-    console.log(e);
+    console.error('Could not load UI Plugins'); // eslint-disable-line no-console
+    console.log(e); // eslint-disable-line no-console
   }
 
   // TODO: Need to load routes after app has loaded
@@ -80,11 +70,10 @@ export default async(context) => {
     const res = pluginLoads[name];
 
     if (res?.status === 'rejected') {
-      console.error(`Failed to load plugin: ${ name }`);
+      console.error(`Failed to load plugin: ${ name }`); // eslint-disable-line no-console
 
       // Record error in the uiplugins store, so that we can show this to the user
+      context.store.dispatch('uiplugins/setError', { name, error: true });
     }
   });
-
-  console.log('LOADED !!!!!!! *********');
 };
