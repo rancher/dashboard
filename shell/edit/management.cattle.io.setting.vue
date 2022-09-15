@@ -3,7 +3,6 @@ import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import FormValidation from '@shell/mixins/form-validation';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 
 import { ALLOWED_SETTINGS, SETTING } from '@shell/config/settings';
@@ -19,7 +18,7 @@ export default {
     TextAreaAutoGrow
   },
 
-  mixins: [CreateEditView, FormValidation],
+  mixins: [CreateEditView],
 
   data() {
     const t = this.$store.getters['i18n/t'];
@@ -31,7 +30,6 @@ export default {
       enumOptions:    [],
       canReset:       false,
       errors:         [],
-      fvFormRuleSets: []
     };
   },
 
@@ -41,13 +39,19 @@ export default {
       label: `advancedSettings.enum.${ this.value.id }.${ id }`,
       value: id,
     })) : [];
-    this.fvFormRuleSets = this.setting?.rules ? [{ path: 'value.value', rules: this.setting?.rules }] : [];
     this.canReset = this.setting?.canReset || !!this.value.default;
   },
 
   methods:  {
     convertToString(event) {
       this.value.value = `${ event.target.value }`;
+    },
+
+    isValid() {
+      return (this.setting.rules || [])
+        .map(rule => rule(this.value.value))
+        .filter(Boolean)
+        .length === 0;
     },
 
     saveSettings(done) {
@@ -92,7 +96,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
-    :validation-passed="fvFormIsValid"
+    :validation-passed="isValid()"
     @error="e=>errors = e"
     @finish="saveSettings"
     @cancel="done"
