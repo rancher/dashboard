@@ -1,25 +1,9 @@
 import { mapGetters } from 'vuex';
-import {
-  COUNT, MANAGEMENT, POD, WORKLOAD_TYPES, WORKLOAD, SECRET
-} from '@shell/config/types';
+import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
-
-// restrict advanced features of manual refresh and incremental loading to these resource types
-export const TYPES_RESTRICTED = [
-  SECRET,
-  POD,
-  WORKLOAD_TYPES.DEPLOYMENT,
-  WORKLOAD_TYPES.CRON_JOB,
-  WORKLOAD_TYPES.DAEMON_SET,
-  WORKLOAD_TYPES.JOB,
-  WORKLOAD_TYPES.STATEFUL_SET,
-  WORKLOAD_TYPES.REPLICA_SET,
-  WORKLOAD_TYPES.REPLICATION_CONTROLLER,
-  WORKLOAD
-];
 
 export default {
   data() {
@@ -80,6 +64,7 @@ export default {
       const inStore = this.$store.getters['currentStore'](COUNT);
 
       if (!this.init) {
+        console.log('FETCHTYPE INIT', type, multipleResources);
         this.__gatherResourceFetchData(type, multipleResources);
 
         // make sure after init that, if we have a manual refresh, we always set the force = true
@@ -96,6 +81,12 @@ export default {
         this.fetchedResourceType.push(type);
       }
 
+      console.log('FETCHTYPE type', type);
+      console.log('FETCHTYPE inStore', inStore);
+      console.log('FETCHTYPE incremental', this.incremental);
+      console.log('FETCHTYPE hasManualRefresh', this.hasManualRefresh);
+      console.log(' ****************************************************** ');
+
       return this.$store.dispatch(`${ inStore }/findAll`, {
         type,
         opt: {
@@ -108,6 +99,9 @@ export default {
     },
     __getCountForResource(resourceName) {
       let resourceCount;
+
+      console.log('this.counts', this.counts);
+      console.log('this.counts resourceName', this.counts[`${ resourceName }`]);
 
       if (this.counts[`${ resourceName }`]) {
         resourceCount = this.counts[`${ resourceName }`].summary?.count;
@@ -133,6 +127,7 @@ export default {
       const inStore = this.$store.getters['currentStore'](resourceName);
       let resourceCount = 0;
 
+      console.log('__gatherResourceFetchData inStore', inStore);
       // manual refresh vars
       let watch = true;
       let isTooManyItemsToAutoUpdate = false;
@@ -152,6 +147,8 @@ export default {
           resourceCount = this.__getCountForResource(resourceName);
         }
       }
+
+      console.log('resourceCount', resourceCount);
 
       // manual refresh check
       if (manualDataRefreshEnabled && resourceCount >= manualDataRefreshThreshold) {

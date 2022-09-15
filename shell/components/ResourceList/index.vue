@@ -3,7 +3,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
-import ResourceFetch, { TYPES_RESTRICTED } from '@shell/mixins/resource-fetch';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
@@ -55,11 +55,7 @@ export default {
         return;
       }
 
-      if (TYPES_RESTRICTED.includes(resource)) {
-        this.rows = await this.$fetchType(resource);
-      } else {
-        this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource });
-      }
+      this.rows = await this.$fetchType(resource);
     }
   },
 
@@ -142,18 +138,15 @@ export default {
       :type-display="customTypeDisplay"
       :schema="schema"
       :resource="resource"
+      :show-incremental-loading-indicator="showIncrementalLoadingIndicator"
+      :load-resources="loadResources"
+      :load-indeterminate="loadIndeterminate"
     >
-      <template v-slot:header>
-        <ResourceLoadingIndicator
-          v-if="showIncrementalLoadingIndicator"
-          :resources="loadResources"
-          :indeterminate="loadIndeterminate"
-        />
-      </template>
     </Masthead>
     <div v-if="hasListComponent">
       <component
         :is="listComponent"
+        :incremental-loading-indicator="showIncrementalLoadingIndicator"
         v-bind="$data"
       />
     </div>

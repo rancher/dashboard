@@ -3,11 +3,12 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import { get } from '@shell/utils/object';
 import { AGE } from '@shell/config/table-headers';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: { Loading, ResourceTable },
-
-  props: {
+  mixins:     [ResourceFetch],
+  props:      {
     resource: {
       type:     String,
       required: true,
@@ -20,7 +21,7 @@ export default {
   },
 
   async fetch() {
-    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
+    this.rows = await this.$fetchType(this.resource);
   },
 
   data() {

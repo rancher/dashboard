@@ -4,6 +4,7 @@ import Favorite from '@shell/components/nav/Favorite';
 import TypeDescription from '@shell/components/TypeDescription';
 import { get } from '@shell/utils/object';
 import { AS, _YAML } from '@shell/config/query-params';
+import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 
 /**
  * Resource List Masthead component.
@@ -15,6 +16,7 @@ export default {
   components: {
     Favorite,
     TypeDescription,
+    ResourceLoadingIndicator,
   },
   props: {
     resource: {
@@ -53,6 +55,20 @@ export default {
       type:    String,
       default: null
     },
+    loadResources: {
+      type:    Array,
+      default: () => []
+    },
+
+    loadIndeterminate: {
+      type:    Boolean,
+      default: false
+    },
+
+    showIncrementalLoadingIndicator: {
+      type:    Boolean,
+      default: false
+    },
 
     /**
      * Inherited global identifier prefix for tests
@@ -76,6 +92,12 @@ export default {
       params,
       query: { [AS]: _YAML },
     };
+
+    console.error('loadResources', this.loadResources);
+    console.error('loadIndeterminate', this.loadIndeterminate);
+    console.error('showIncrementalLoadingIndicator', this.showIncrementalLoadingIndicator);
+    // console.error('showMasthead', showMasthead);
+    // console.error('loadResources', [resource]);
 
     return {
       formRoute,
@@ -155,7 +177,12 @@ export default {
       <h1 class="m-0">
         {{ _typeDisplay }} <Favorite v-if="isExplorer" :resource="favoriteResource || resource" />
       </h1>
-      <slot name="header"></slot>
+      <p>HERE ARE SOME DRAGONS!!!!</p>
+      <ResourceLoadingIndicator
+        v-if="showIncrementalLoadingIndicator"
+        :resources="loadResources"
+        :indeterminate="loadIndeterminate"
+      />
     </div>
     <div class="actions-container">
       <slot name="actions">

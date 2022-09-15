@@ -3,6 +3,7 @@ import { FLEET } from '@shell/config/types';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 import {
   AGE,
   STATE,
@@ -15,8 +16,8 @@ export default {
   components: {
     Banner, Loading, ResourceTable
   },
-
-  props: {
+  mixins:     [ResourceFetch],
+  props:  {
     schema: {
       type:     Object,
       required: true,
@@ -24,7 +25,7 @@ export default {
   },
 
   async fetch() {
-    this.allBundles = await this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE });
+    this.allBundles = await this.$fetchType(FLEET.BUNDLE);
     this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
   },
 

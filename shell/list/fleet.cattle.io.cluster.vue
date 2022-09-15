@@ -4,14 +4,15 @@ import { FLEET, MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { Banner } from '@components/Banner';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListCluster',
   components: {
     Banner, FleetClusters, Loading
   },
-
-  props: {
+  mixins:     [ResourceFetch],
+  props:  {
     schema: {
       type:     Object,
       required: true,
@@ -21,7 +22,7 @@ export default {
   async fetch() {
     await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
     this.allMgmt = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
-    this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    this.allFleet = await this.$fetchType(FLEET.CLUSTER);
   },
 
   data() {

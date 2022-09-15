@@ -8,6 +8,7 @@ import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manag
 import { CAPI, HCI, MANAGEMENT } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
@@ -17,20 +18,32 @@ export default {
     TypeDescription,
     Loading
   },
-
+  mixins:     [ResourceFetch],
   props:      {
     schema: {
       type:     Object,
       required: true,
     },
+    loadResources: {
+      type:    Array,
+      default: () => []
+    },
+
+    loadIndeterminate: {
+      type:    Boolean,
+      default: false
+    },
+
+    incrementalLoadingIndicator: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   async fetch() {
-    const inStore = this.$store.getters['currentProduct'].inStore;
-
     const hash = await allHash({
-      hciClusters:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.CLUSTER }),
-      mgmtClusters: this.$store.dispatch(`${ inStore }/findAll`, { type: MANAGEMENT.CLUSTER })
+      hciClusters:  this.$fetchType(CAPI.RANCHER_CLUSTER, [CAPI.RANCHER_CLUSTER, MANAGEMENT.CLUSTER]),
+      mgmtClusters:  this.$fetchType(MANAGEMENT.CLUSTER, [CAPI.RANCHER_CLUSTER, MANAGEMENT.CLUSTER]),
     });
 
     this.hciClusters = hash.hciClusters;
@@ -49,6 +62,13 @@ export default {
       realSchema:   this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       hciClusters:  [],
       mgmtClusters: []
+    };
+  },
+
+  $loadingResources() {
+    return {
+      loadResources:     [CAPI.RANCHER_CLUSTER, MANAGEMENT.CLUSTER],
+      loadIndeterminate: true,
     };
   },
 
@@ -112,6 +132,9 @@ export default {
       :resource="resource"
       :is-creatable="false"
       :type-display="typeDisplay"
+      :show-incremental-loading-indicator="incrementalLoadingIndicator"
+      :load-resources="loadResources"
+      :load-indeterminate="loadIndeterminate"
     >
       <template #typeDescription>
         <TypeDescription :resource="hResource" />

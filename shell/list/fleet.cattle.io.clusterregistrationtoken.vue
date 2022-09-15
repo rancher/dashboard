@@ -4,14 +4,15 @@ import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import { isHarvesterCluster } from '@shell/utils/cluster';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListClusterGroup',
   components: {
     Banner, Loading, ResourceTable
   },
-
-  props: {
+  mixins:     [ResourceFetch],
+  props:  {
     schema: {
       type:     Object,
       required: true,
@@ -19,7 +20,7 @@ export default {
   },
 
   async fetch() {
-    this.allTokens = await this.$store.dispatch('management/findAll', { type: FLEET.TOKEN });
+    this.allTokens = await this.$fetchType(FLEET.TOKEN);
     this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
   },
 
