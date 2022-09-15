@@ -521,6 +521,18 @@ export default Vue.extend<Data, any, any, any>({
         }
       }
     }
+
+    .scale-instances {
+      display: flex;
+      align-items: center;
+
+      .plus-minus {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
   }
   .box {
     display: flex;
@@ -559,24 +571,24 @@ export default Vue.extend<Data, any, any, any>({
   }
 }
 
- .deployment__origin__list {
-      ul {
-        margin: 0;
-        padding: 0;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+.deployment__origin__list {
+  ul {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
 
-        li {
-          margin: 5px;
-          list-style: none;
-          h4 {
-            color: #c4c4c4;
-            font-weight: 300;
-            margin: 0;
-          }
-        }
+    li {
+      margin: 5px;
+      list-style: none;
+      h4 {
+        color: #c4c4c4;
+        font-weight: 300;
+        margin: 0;
       }
     }
+  }
+}
 
 .sortable-table-avatar {
   display: flex;
