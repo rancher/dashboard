@@ -170,9 +170,11 @@ export default {
     },
 
     getFeaturedCharts() {
-      const newArray = (this.filteredCharts || []);
+      const allCharts = (this.filteredCharts || []);
 
-      return newArray.slice(0, 5);
+      allCharts.sort((a, b) => a.featured - b.featured);
+
+      return allCharts.slice(0, 5);
     },
 
     categories() {
