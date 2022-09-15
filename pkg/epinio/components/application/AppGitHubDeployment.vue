@@ -4,14 +4,19 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 
 export default {
   props: {
-    gitSource:      { default: null, type: Array },
-    commitPosition:     { default: null, type: {} },
+    gitSource:      { default: null, type: Object },
+    commitPosition:     {
+      default: null,
+      type:    {
+        text:     { default: null, type: String },
+        position:  { default: null, type: Number },
+      }
+    },
     gitDeployment:  {
       default: null,
       type:    {
-        branch: { default: null, type: String },
-        commit: { default: null, type: String },
-        repo:   { default: null, type: String },
+        deployedCommit: { default: null, type: String },
+        commitsArray:    { default: null, type: Array },
       }
     },
   },
