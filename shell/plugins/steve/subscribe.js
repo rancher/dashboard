@@ -25,9 +25,6 @@ export const NO_SCHEMA = 'NO_SCHEMA';
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
-// minimum time a socket must be disconnected for before sending a growl
-const MINIMUM_TIME_DISCONNECTED = 10000;
-
 // We only create a worker for the cluster store
 export function createWorker(store, ctx) {
   const { getters } = ctx;
@@ -396,8 +393,15 @@ export const actions = {
     commit, dispatch, state, getters, rootGetters
   }, event) {
     state.debugSocket && console.info(`WebSocket Opened [${ getters.storeName }]`); // eslint-disable-line no-console
-
     const socket = event.currentTarget;
+    const tries = event?.detail?.tries; // have to pull it off of the event because the socket's tries is already reset to 0
+    const t = rootGetters['i18n/t'];
+    const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+    let disableGrowl = false;
+
+    if ( perfSetting?.value ) {
+      disableGrowl = JSON.parse(perfSetting.value).disableWebsocketNotification || false;
+    }
 
     this.$socket = socket;
 
@@ -420,19 +424,16 @@ export const actions = {
     if ( socket.hasReconnected ) {
       await dispatch('reconnectWatches');
       // Check for disconnect notifications and clear them
-      const growlErr = rootGetters['growl/find']({ key: 'url', val: this.$socket.url });
+      const growlErr = rootGetters['growl/find']({ key: 'url', val: socket.url });
 
       if (growlErr) {
-        const now = Date.now();
-
-        // even if the socket reconnected, keep the error growl for at least a few seconds to ensure its readable
-        if (now >= growlErr.earliestClose) {
-          dispatch('growl/remove', growlErr.id, { root: true });
-        } else {
-          setTimeout(() => {
-            dispatch('growl/remove', growlErr.id, { root: true });
-          }, growlErr.earliestClose - now);
-        }
+        dispatch('growl/remove', growlErr.id, { root: true });
+      }
+      if (tries > 1 && !disableGrowl) {
+        dispatch('growl/success', {
+          title:   t('growl.reconnected.title'),
+          message: t('growl.reconnected.message', { url: this.$socket.url, tries }),
+        }, { root: true });
       }
     }
 
@@ -456,42 +457,58 @@ export const actions = {
   }, e) {
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
-    if (e.type === EVENT_DISCONNECT_ERROR) {
-      // determine if websocket notifications are disabled
-      const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
-      let disableGrowl = false;
+
+    // determine if websocket notifications are disabled
+    const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+    let disableGrowl = false;
+
+    if (!disableGrowl) {
+      const dateFormat = escapeHtml( rootGetters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( rootGetters['prefs/get'](TIME_FORMAT));
+      const time = e?.srcElement?.disconnectedAt || Date.now();
+
+      const timeFormatted = `${ day(time).format(`${ dateFormat } ${ timeFormat }`) }`;
+      const url = e?.srcElement?.url;
+      const tries = state?.socket?.tries;
+
+      const t = rootGetters['i18n/t'];
 
       if ( perfSetting?.value ) {
         disableGrowl = JSON.parse(perfSetting.value).disableWebsocketNotification || false;
       }
 
-      if ( !disableGrowl ) {
-        // do not send a growl notification unless the socket stays disconnected for more than MINIMUM_TIME_DISCONNECTED
-        setTimeout(() => {
-          if (state.socket.isConnected()) {
-            return;
-          }
-          const dateFormat = escapeHtml( rootGetters['prefs/get'](DATE_FORMAT));
-          const timeFormat = escapeHtml( rootGetters['prefs/get'](TIME_FORMAT));
-          const time = e?.srcElement?.disconnectedAt || Date.now();
+      const growlErr = rootGetters['growl/find']({ key: 'url', val: url });
 
-          const timeFormatted = `${ day(time).format(`${ dateFormat } ${ timeFormat }`) }`;
-          const url = e?.srcElement?.url;
-
-          const t = rootGetters['i18n/t'];
-
-          dispatch('growl/error', {
-            title:         t('growl.disconnected.title'),
-            message:       t('growl.disconnected.message', { url, time: timeFormatted }, { raw: true }),
-            icon:          'error',
-            earliestClose: time + MINIMUM_TIME_NOTIFIED + MINIMUM_TIME_DISCONNECTED,
-            url
-          }, { root: true });
-        }, MINIMUM_TIME_DISCONNECTED);
+      if (e.type === EVENT_CONNECT_ERROR) { // if this occurs, then we're at least retrying to connect
+        if (growlErr) {
+          dispatch('growl/remove', growlErr.id, { root: true });
+        }
+        dispatch('growl/error', {
+          title:         t('growl.connectError.title'),
+          message:       t('growl.connectError.message', {
+            url, time: timeFormatted, tries
+          }, { raw: true }),
+          icon:          'error',
+          earliestClose: time + MINIMUM_TIME_NOTIFIED,
+          url
+        }, { root: true });
+      } else if (e.type === EVENT_DISCONNECT_ERROR) { // if this occurs, we've given up on trying to reconnect
+        if (growlErr) {
+          dispatch('growl/remove', growlErr.id, { root: true });
+        }
+        dispatch('growl/error', {
+          title:         t('growl.disconnectError.title'),
+          message:       t('growl.disconnectError.message', {
+            url, time: timeFormatted, tries
+          }, { raw: true }),
+          icon:          'error',
+          earliestClose: time + MINIMUM_TIME_NOTIFIED,
+          url
+        }, { root: true });
+      } else {
+        // if the error is not a connect error or disconnect error, the socket never worked: log whether the current browser is safari
+        console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
       }
-    } else {
-      // if the error is not a disconnect error, the socket never worked: log whether the current browser is safari
-      console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
     }
   },
 
