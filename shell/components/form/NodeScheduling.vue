@@ -31,11 +31,6 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    },
-    // harvester VM MUST use scheduling rules (selectNode == affinity) if PCI devices are defined
-    requiredAffinity: {
-      type:    Boolean,
-      default: false
     }
   },
 
@@ -97,6 +92,7 @@ export default {
 
       return out;
     },
+
   },
   methods: {
     update() {
@@ -157,12 +153,6 @@ export default {
         }
       },
     },
-
-    requiredAffinity(neu) {
-      if (neu) {
-        this.selectNode = 'affinity';
-      }
-    }
   },
 };
 </script>
@@ -175,7 +165,6 @@ export default {
         name="selectNode"
         :options="selectNodeOptions"
         :mode="mode"
-        :disabled="requiredAffinity"
         @input="update"
       />
     </div>

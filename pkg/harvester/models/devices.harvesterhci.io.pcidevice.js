@@ -91,13 +91,6 @@ export default class PCIDevice extends SteveModel {
     return !!this.passthroughClaim;
   }
 
-  // used to create node selectors during vm creation
-  get nodeLabel() {
-    const { vendorId, deviceId } = this.status;
-
-    return `${ HCI_LABELS.PCI_DEVICE }/vendor/${ vendorId }/device/${ deviceId }`;
-  }
-
   // map status.passthroughEnabled to disabled/enabled & overwrite default dash colors
   get claimStatusDisplay() {
     if (!this.passthroughClaim) {
