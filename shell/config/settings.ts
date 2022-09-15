@@ -2,7 +2,7 @@
 import { GC_DEFAULTS } from '../utils/gc/gc-types';
 import { MANAGEMENT } from './types';
 import { Store } from 'vuex';
-import { Validator } from '~/shell/utils/validators/formRules';
+import { Validator } from '@shell/utils/validators/formRules';
 
 interface RancherSetting {
   [key: string]: {
