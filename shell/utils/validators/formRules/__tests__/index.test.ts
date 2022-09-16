@@ -8,7 +8,7 @@ const mockT = (key: string, args: any) => {
 };
 
 describe('formRules', () => {
-  const formRules = formRulesGenerator(mockT, { displayKey: 'testDisplayKey' });
+  const formRules = formRulesGenerator(mockT, { key: 'testDisplayKey' });
 
   it('"required" : returns undefined when value supplied', () => {
     const testValue = 'foo';
