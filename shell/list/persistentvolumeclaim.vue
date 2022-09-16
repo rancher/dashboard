@@ -1,12 +1,13 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { STORAGE_CLASS } from '@shell/config/types';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListPersistentVolumeClaim',
   components: { ResourceTable },
-
-  props: {
+  mixins:     [ResourceFetch],
+  props:      {
     resource: {
       type:     String,
       required: true,
@@ -24,7 +25,7 @@ export default {
     // Fetch storage classes so we can determine if a PVC can be expanded
     this.$store.dispatch(`${ inStore }/findAll`, { type: STORAGE_CLASS });
 
-    this.rows = await this.$store.dispatch(`${ inStore }/findAll`, { type: this.resource });
+    this.rows = await this.$fetchType(this.resource);
   },
 
   data() {

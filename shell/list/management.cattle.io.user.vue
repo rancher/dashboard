@@ -5,6 +5,7 @@ import { NAME } from '@shell/config/product/auth';
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
@@ -13,14 +14,30 @@ export default {
     ResourceTable,
     Masthead
   },
+  mixins: [ResourceFetch],
+  props:  {
+    loadResources: {
+      type:    Array,
+      default: () => []
+    },
 
+    loadIndeterminate: {
+      type:    Boolean,
+      default: false
+    },
+
+    incrementalLoadingIndicator: {
+      type:    Boolean,
+      default: false
+    },
+  },
   async fetch() {
     const store = this.$store;
     const resource = this.resource;
 
     await store.dispatch(`rancher/findAll`, { type: NORMAN.USER });
 
-    this.allUsers = await store.dispatch(`management/findAll`, { type: resource });
+    this.allUsers = await this.$fetchType(resource);
 
     this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
       .then(res => !!res?.actions?.refreshauthprovideraccess);
@@ -99,6 +116,9 @@ export default {
     <Masthead
       :schema="schema"
       :resource="resource"
+      :show-incremental-loading-indicator="incrementalLoadingIndicator"
+      :load-resources="loadResources"
+      :load-indeterminate="loadIndeterminate"
     >
       <template slot="extraActions">
         <AsyncButton

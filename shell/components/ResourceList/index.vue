@@ -73,6 +73,8 @@ export default {
 
     const existingData = getters[`${ inStore }/all`](resource) || [];
 
+    console.error('RESOURCE LIST RESOURCE', resource);
+
     return {
       inStore,
       schema,

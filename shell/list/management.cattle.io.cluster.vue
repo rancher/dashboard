@@ -3,13 +3,13 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import { MANAGEMENT } from '@shell/config/types';
 import { filterOnlyKubernetesClusters } from '@shell/utils/cluster';
-
+import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListMgmtClusters',
   components: { Loading, ResourceTable },
-
+  mixins:     [ResourceFetch],
   async fetch() {
-    await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.$attrs.resource });
+    await this.$fetchType(this.$attrs.resource);
   },
 
   computed: {

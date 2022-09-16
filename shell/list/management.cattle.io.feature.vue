@@ -8,6 +8,7 @@ import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
@@ -18,8 +19,8 @@ export default {
     ResourceTable,
     LabeledInput
   },
-
-  props: {
+  mixins:     [ResourceFetch],
+  props:  {
     resource: {
       type:     String,
       required: true,
@@ -32,7 +33,7 @@ export default {
   },
 
   async fetch() {
-    this.rows = await this.$store.dispatch('management/findAll', { type: this.resource });
+    this.rows = await this.$fetchType(this.resource);
 
     this.serverUrlSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
 

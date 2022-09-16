@@ -16,7 +16,7 @@ import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/components/SortableTable/index.vue';
-
+import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListNode',
   components: {
@@ -25,7 +25,7 @@ export default {
     Tag,
     Banner
   },
-  mixins: [metricPoller],
+  mixins: [metricPoller, ResourceFetch],
 
   props: {
     schema: {
@@ -35,7 +35,7 @@ export default {
   },
 
   async fetch() {
-    const hash = { kubeNodes: this.$store.dispatch('cluster/findAll', { type: NODE }) };
+    const hash = { kubeNodes: this.$fetchType(NODE) };
 
     this.canViewPods = this.$store.getters[`cluster/schemaFor`](POD);
 

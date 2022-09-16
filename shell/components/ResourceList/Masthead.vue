@@ -93,11 +93,9 @@ export default {
       query: { [AS]: _YAML },
     };
 
-    console.error('loadResources', this.loadResources);
-    console.error('loadIndeterminate', this.loadIndeterminate);
-    console.error('showIncrementalLoadingIndicator', this.showIncrementalLoadingIndicator);
-    // console.error('showMasthead', showMasthead);
-    // console.error('loadResources', [resource]);
+    console.error('MastheadResourceList loadResources', this.loadResources);
+    console.error('MastheadResourceList loadIndeterminate', this.loadIndeterminate);
+    console.error('MastheadResourceList showIncrementalLoadingIndicator', this.showIncrementalLoadingIndicator);
 
     return {
       formRoute,
@@ -177,7 +175,6 @@ export default {
       <h1 class="m-0">
         {{ _typeDisplay }} <Favorite v-if="isExplorer" :resource="favoriteResource || resource" />
       </h1>
-      <p>HERE ARE SOME DRAGONS!!!!</p>
       <ResourceLoadingIndicator
         v-if="showIncrementalLoadingIndicator"
         :resources="loadResources"
