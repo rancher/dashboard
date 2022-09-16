@@ -116,11 +116,6 @@ export default {
       return this.showCommercialSupport || this.showCommunityLinks;
     },
 
-    isSupport() {
-      // NB: This is temporary until API implemented
-      return false;
-    },
-
     clusterHeaders() {
       return [
         STATE,
