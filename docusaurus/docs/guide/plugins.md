@@ -50,8 +50,8 @@ Now, back in the original console window, run:
 
 ```
 npm adduser --registry http://localhost:4873  (just add a user with username/password: admin/admin)
-yarn publish ./shell/creators/app --patch
-yarn publish ./shell/creators/pkg --patch
+yarn publish ./shell/creators/app --patch --registry http://localhost:4873/
+yarn publish ./shell/creators/pkg --patch --registry http://localhost:4873/
 ```
 
 These steps will publish the two [creator](https://classic.yarnpkg.com/en/docs/cli/create) packages to the local npm registry. If you open a browser to `http://127.0.0.1:4873` you'll see the two packages there.
@@ -59,7 +59,7 @@ These steps will publish the two [creator](https://classic.yarnpkg.com/en/docs/c
 Now we'll publish the `shell` package.
 
 ```
-yarn publish ./shell --patch
+PUBLISH_ARGS="--registry http://localhost:4873/" yarn publish-shell 
 ```
 
 At this point, we've published 3 NPM packages:
