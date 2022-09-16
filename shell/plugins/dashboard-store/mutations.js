@@ -3,18 +3,20 @@ import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA } from '@shell/config/types';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { classify } from '@shell/plugins/dashboard-store/classify';
+import { garbageCollectReset } from '@shell/utils/gc/gc-utils';
 
 function registerType(state, type) {
   let cache = state.types[type];
 
   if ( !cache ) {
     cache = {
-      list:         [],
-      haveAll:      false,
-      haveSelector: {},
-      revision:     0, // The highest known resourceVersion from the server for this type
-      generation:   0, // Updated every time something is loaded for this type
-      loadCounter:  0, // Used to cancel incremental loads if the page changes during load
+      list:             [],
+      haveAll:          false,
+      haveSelector:     {},
+      revision:         0, // The highest known resourceVersion from the server for this type
+      generation:       0, // Updated every time something is loaded for this type
+      loadCounter:      0, // Used to cancel incremental loads if the page changes during load
+      gcLastAccessed:   null, // The last time this resource was accessed by either find or getters style functions
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -308,5 +310,9 @@ export default {
     if (typeData) {
       typeData.loadCounter++;
     }
+  },
+
+  gcReset(state) {
+    garbageCollectReset(state);
   }
 };

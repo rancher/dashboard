@@ -30,15 +30,21 @@ export default {
 
     const sValue = this.uiPerfSetting?.value || JSON.stringify(DEFAULT_PERF_SETTING);
 
-    this.value = JSON.parse(sValue);
+    this.value = {
+      ...DEFAULT_PERF_SETTING,
+      ...JSON.parse(sValue),
+    };
+
+    this.gcStartedEnabled = this.value.garbageCollection.enabled;
   },
 
   data() {
     return {
-      uiPerfSetting: DEFAULT_PERF_SETTING,
-      bannerVal:     {},
-      value:         {},
-      errors:        [],
+      uiPerfSetting:    DEFAULT_PERF_SETTING,
+      bannerVal:        {},
+      value:            {},
+      errors:           [],
+      gcStartedEnabled: null
     };
   },
 
@@ -57,6 +63,16 @@ export default {
 
       try {
         await this.uiPerfSetting.save();
+        if (this.value.garbageCollection.enabled) {
+          this.$store.dispatch('gcStartIntervals', { root: true });
+        } else {
+          this.$store.dispatch('gcStopIntervals', { root: true });
+          if (this.gcStartedEnabled) {
+            // If we're disabling garbage collection we should reset any gc state we have stored. This avoids stale data if we enable it again
+            this.$store.dispatch('gcReset', { root: true });
+          }
+        }
+        this.gcStartedEnabled = this.value.garbageCollection.enabled;
         btnCB(true);
       } catch (err) {
         this.errors.push(err);
@@ -75,7 +91,7 @@ export default {
     <div>
       <div class="ui-perf-setting">
         <!-- Websocket Notifications -->
-        <div class="mt-40">
+        <div class="mt-20">
           <h2>{{ t('performance.websocketNotification.label') }}</h2>
           <p>{{ t('performance.websocketNotification.description') }}</p>
           <Checkbox
@@ -128,6 +144,42 @@ export default {
               v-model.number="value.manualRefresh.threshold"
               :label="t('performance.manualRefresh.inputLabel')"
               :disabled="!value.manualRefresh.enabled"
+              class="input"
+              type="number"
+              min="0"
+            />
+          </div>
+        </div>
+        <!-- Enable GC of resources from store -->
+        <div class="mt-40">
+          <h2 v-t="'performance.gc.label'" />
+          <p>{{ t('performance.gc.description') }}</p>
+          <Banner color="error" label-key="performance.gc.banner" />
+          <Checkbox
+            v-model="value.garbageCollection.enabled"
+            :label="t('performance.gc.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
+          <div class="ml-20">
+            <p :class="{ 'text-muted': !value.garbageCollection.enabled }">
+              {{ t('performance.gc.age.description') }}
+            </p>
+            <LabeledInput
+              v-model.number="value.garbageCollection.ageThreshold"
+              :label="t('performance.gc.age.inputLabel')"
+              :disabled="!value.garbageCollection.enabled"
+              class="input"
+              type="number"
+              min="0"
+            />
+            <p class="mt-20" :class="{ 'text-muted': !value.garbageCollection.enabled }">
+              {{ t('performance.gc.count.description') }}
+            </p>
+            <LabeledInput
+              v-model.number="value.garbageCollection.countThreshold"
+              :label="t('performance.gc.count.inputLabel')"
+              :disabled="!value.garbageCollection.enabled"
               class="input"
               type="number"
               min="0"

@@ -1,5 +1,6 @@
 // Settings
 import { MANAGEMENT } from './types';
+import { GC_DEFAULTS } from '@shell/utils/gc/gc-utils';
 
 // Adapted from: https://github.com/rancher/ui/blob/08c379a9529f740666a704b52522a468986c3520/lib/shared/addon/utils/constants.js#L564
 // Setting IDs
@@ -105,7 +106,8 @@ export const DEFAULT_PERF_SETTING = {
     enabled:   false,
     threshold: 1500,
   },
-  disableWebsocketNotification: true
+  disableWebsocketNotification: true,
+  garbageCollection:            GC_DEFAULTS
 };
 
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {
