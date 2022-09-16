@@ -1,6 +1,6 @@
 import merge from 'lodash/merge';
 
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, POD } from '@shell/config/types';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
 import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
@@ -70,6 +70,26 @@ export async function loadSchemas(ctx, watch = true) {
   return all;
 }
 
+export function findAllInWorker(ctx, { type, opt = {} }, worker) {
+  const { getters, commit, state } = ctx;
+  const resourceType = getters.normalizeType(type);
+  // ToDo: paging will go here a little later but for now leaving it out will mimic the existing behavior
+  const pagination = {};
+
+  opt.url = getters.urlFor(resourceType, null, opt);
+  opt.baseUrl = state.config.baseUrl;
+
+  if ( !getters.typeRegistered(resourceType) ) {
+    commit('registerType', resourceType);
+  }
+
+  worker.postMessage({
+    requestResourceList: {
+      type, opt, pagination
+    }
+  });
+}
+
 export default {
   request() {
     throw new Error('Not Implemented');
@@ -134,6 +154,15 @@ export default {
 
     opt = opt || {};
     type = getters.normalizeType(type);
+
+    if (type === POD) {
+      const worker = this.$workers['cluster'];
+
+      // commit('cluster/findAllInWorker', { type, opt });
+      findAllInWorker(ctx, { type, opt }, worker);
+
+      return getters.all(type);
+    }
 
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
@@ -473,6 +502,15 @@ export default {
     commit('loadMulti', {
       data,
       ctx,
+    });
+  },
+
+  batchChanges(ctx, batch) {
+    const { commit } = ctx;
+
+    commit('batchMutation', {
+      ctx,
+      batch
     });
   },
 

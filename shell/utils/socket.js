@@ -185,6 +185,10 @@ export default class Socket extends EventTarget {
     return this.state === STATE_CONNECTED;
   }
 
+  isConnecting() {
+    return this.state === STATE_CONNECTING || this.state === STATE_RECONNECTING;
+  }
+
   setAutoReconnect(autoReconnect) {
     this.autoReconnect = autoReconnect;
   }
@@ -334,6 +338,6 @@ export default class Socket extends EventTarget {
 
     message.push(`(state=${ this.state }, id=${ this.socket ? this.socket.sockId : 0 })`);
 
-    console.log(message.join(' ')); // eslint-disable-line no-console
+    // console.log(message.join(' ')); // eslint-disable-line no-console
   }
 }

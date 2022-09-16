@@ -2,6 +2,7 @@
 import ResourceTable from '@shell/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { mapGetters } from 'vuex';
 
 const schema = {
   id:         'workload',
@@ -62,6 +63,10 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ all: `cluster/all` }),
+    resourceList() {
+      return this.all(POD);
+    },
     allTypes() {
       return this.$route.params.resource === schema.id;
     },
@@ -77,21 +82,21 @@ export default {
     },
 
     rows() {
-      const out = [];
+      // const out = [];
 
-      for ( const typeRows of this.resources ) {
-        if ( !typeRows ) {
-          continue;
-        }
+      // for ( const typeRows of this.resources ) {
+      //   if ( !typeRows ) {
+      //     continue;
+      //   }
 
-        for ( const row of typeRows ) {
-          if (!this.allTypes || row.showAsWorkload) {
-            out.push(row);
-          }
-        }
-      }
+      //   for ( const row of typeRows ) {
+      //     if (!this.allTypes || row.showAsWorkload) {
+      //       out.push(row);
+      //     }
+      //   }
+      // }
 
-      return out;
+      return this.resourceList || [];
     },
   },
 

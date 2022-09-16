@@ -4,6 +4,7 @@ import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch, { TYPES_RESTRICTED } from '@shell/mixins/resource-fetch';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -98,6 +99,12 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ all: `cluster/all` }),
+    resourceList() {
+      console.dir(this.resource);
+
+      return this.all(this.resource);
+    },
     headers() {
       if ( this.hasListComponent || !this.schema ) {
         // Custom lists figure out their own headers
@@ -112,7 +119,8 @@ export default {
     },
 
     loading() {
-      return this.hasData ? false : this.$fetchState.pending;
+      return false;
+      // return this.hasData ? false : this.$fetchState.pending;
     },
 
     showIncrementalLoadingIndicator() {
@@ -160,7 +168,7 @@ export default {
     <ResourceTable
       v-else
       :schema="schema"
-      :rows="rows"
+      :rows="resourceList"
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"

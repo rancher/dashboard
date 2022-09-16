@@ -1,5 +1,5 @@
 import { addObject, removeObject } from '@shell/utils/array';
-import { NAMESPACE, POD, SCHEMA } from '@shell/config/types';
+import { NAMESPACE, POD, SCHEMA, COUNT } from '@shell/config/types';
 import {
   forgetType,
   resetStore,
@@ -64,7 +64,15 @@ export default {
 
       if (worker) {
         // Store raw json objects, not the proxies
-        worker.loadSchema(data);
+        worker.postMessage({ loadSchemas: [...data] });
+      }
+    }
+
+    if (type === COUNT) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.postMessage({ loadCounts: [...data] });
       }
     }
   },
