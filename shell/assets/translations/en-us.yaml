@@ -6195,6 +6195,9 @@ customLinks:
   displayTitle: Links
   label: Home Links
   description: 'Links to display on the home page.'
+  settings:
+    keyLabel: Display Text
+    valueLabel: URL
   defaults: 
     docs:       Docs
     forums:     Forums
