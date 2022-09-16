@@ -72,6 +72,10 @@ export default {
     },
   },
   methods: {
+    getLabel(label) {
+      return this.$store.getters['i18n/withFallback'](`customLinks.defaults.${ label }`, null, label);
+    },
+
     show() {
       this.$modal.show('wechat-modal');
     },
@@ -86,7 +90,7 @@ export default {
   <div>
     <SimpleBox :title="t('customLinks.displayTitle')" :pref="pref" :pref-key="prefKey">
       <div v-for="(value, name) in options" :key="name" class="support-link">
-        <a :href="value" target="_blank" rel="noopener noreferrer nofollow"> {{ name }} </a>
+        <a :href="value" target="_blank" rel="noopener noreferrer nofollow"> {{ getLabel(name) }} </a>
       </div>
       <slot />
       <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
