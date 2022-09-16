@@ -146,12 +146,12 @@ export default {
         {{ t(`customLinks.description`, {}, true) }}
       </label>
       <!-- Incremental Loading -->
-      <div class="ui-links-setting">
+      <div class="ui-links-setting mt-20">
         <KeyValue
           v-model="value"
           :as-map="false"
-          :key-label="'text'"
-          :value-label="'URL'"
+          :key-label="t('customLinks.settings.keyLabel')"
+          :value-label="t('customLinks.settings.valueLabel')"
           :add-label="t('labels.addLabel')"
           :mode="mode"
           :read-allowed="false"
