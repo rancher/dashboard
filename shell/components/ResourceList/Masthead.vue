@@ -93,10 +93,6 @@ export default {
       query: { [AS]: _YAML },
     };
 
-    console.error('MastheadResourceList loadResources', this.loadResources);
-    console.error('MastheadResourceList loadIndeterminate', this.loadIndeterminate);
-    console.error('MastheadResourceList showIncrementalLoadingIndicator', this.showIncrementalLoadingIndicator);
-
     return {
       formRoute,
       yamlRoute,

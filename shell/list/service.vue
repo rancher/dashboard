@@ -3,10 +3,12 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
 import { NODE } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListService',
   components: { Loading, ResourceTable },
+  mixins:     [ResourceFetch],
   // fetch nodes before loading this page, as they may be referenced in the Target table column
   async fetch() {
     const store = this.$store;
@@ -21,7 +23,7 @@ export default {
       }
     } catch {}
 
-    const hash = { rows: store.dispatch(`${ inStore }/findAll`, { type: this.$attrs.resource }) };
+    const hash = { rows: this.$fetchType(this.$attrs.resource) };
 
     if (hasNodes) {
       hash.nodes = store.dispatch(`${ inStore }/findAll`, { type: NODE });

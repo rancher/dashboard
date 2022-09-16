@@ -261,7 +261,12 @@ export default {
     const keyField = getters.keyFieldForType(type);
 
     allLatest.forEach((entry) => {
-      const existing = state.types[type].map.get(entry[keyField]);
+      let existing;
+
+      // need to check if [type] is already a store entry so that we don't have ".map of undefined" errors
+      if (state.types[type]) {
+        existing = state.types[type].map.get(entry[keyField]);
+      }
 
       load(state, {
         data: entry, ctx, existing

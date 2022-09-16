@@ -4,15 +4,33 @@ import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { Banner } from '@components/Banner';
 import { HELM } from '@shell/config/types';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
     Loading, ResourceTable, Masthead, Banner
   },
+  mixins: [ResourceFetch],
+  props:  {
+    loadResources: {
+      type:    Array,
+      default: () => []
+    },
+
+    loadIndeterminate: {
+      type:    Boolean,
+      default: false
+    },
+
+    incrementalLoadingIndicator: {
+      type:    Boolean,
+      default: false
+    },
+  },
   async fetch() {
     this.projectHelmChartSchema = this.$store.getters['cluster/schemaFor'](HELM.PROJECTHELMCHART);
 
-    this.projectHelmCharts = await this.$store.dispatch('cluster/findAll', { type: HELM.PROJECTHELMCHART } );
+    this.projectHelmCharts = await this.$fetchType(HELM.PROJECTHELMCHART);
     this.pending = false;
     this.$store.dispatch('type-map/configureType', { match: HELM.PROJECTHELMCHART, isCreatable: true });
     this.headers = this.$store.getters['type-map/headersFor'](this.projectHelmChartSchema).map((header) => {
@@ -51,6 +69,9 @@ export default {
     <Masthead
       :schema="projectHelmChartSchema"
       :resource="resource"
+      :show-incremental-loading-indicator="incrementalLoadingIndicator"
+      :load-resources="loadResources"
+      :load-indeterminate="loadIndeterminate"
       is-creatable
     />
     <Banner color="info" :label="t('monitoring.projectMonitoring.list.banner')" />

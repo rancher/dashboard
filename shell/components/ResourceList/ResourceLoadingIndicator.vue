@@ -20,9 +20,6 @@ export default {
   },
 
   data() {
-    console.error('ResourceLoadingIndicator resources', this.resources);
-    console.error('ResourceLoadingIndicator indeterminate', this.indeterminate);
-
     const inStore = this.$store.getters['currentStore'](this.resource);
 
     return { inStore };

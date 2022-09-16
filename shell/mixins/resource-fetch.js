@@ -60,11 +60,10 @@ export default {
     }
   },
   methods:  {
-    $fetchType(type, multipleResources = []) {
+    $fetchType(type, multipleResources = [], opt) {
       const inStore = this.$store.getters['currentStore'](COUNT);
 
       if (!this.init) {
-        console.log('FETCHTYPE INIT', type, multipleResources);
         this.__gatherResourceFetchData(type, multipleResources);
 
         // make sure after init that, if we have a manual refresh, we always set the force = true
@@ -81,15 +80,10 @@ export default {
         this.fetchedResourceType.push(type);
       }
 
-      console.log('FETCHTYPE type', type);
-      console.log('FETCHTYPE inStore', inStore);
-      console.log('FETCHTYPE incremental', this.incremental);
-      console.log('FETCHTYPE hasManualRefresh', this.hasManualRefresh);
-      console.log(' ****************************************************** ');
-
       return this.$store.dispatch(`${ inStore }/findAll`, {
         type,
         opt: {
+          ...opt,
           incremental:      this.incremental,
           watch:            this.watch,
           force:            this.force,
@@ -99,9 +93,6 @@ export default {
     },
     __getCountForResource(resourceName) {
       let resourceCount;
-
-      console.log('this.counts', this.counts);
-      console.log('this.counts resourceName', this.counts[`${ resourceName }`]);
 
       if (this.counts[`${ resourceName }`]) {
         resourceCount = this.counts[`${ resourceName }`].summary?.count;
@@ -127,7 +118,6 @@ export default {
       const inStore = this.$store.getters['currentStore'](resourceName);
       let resourceCount = 0;
 
-      console.log('__gatherResourceFetchData inStore', inStore);
       // manual refresh vars
       let watch = true;
       let isTooManyItemsToAutoUpdate = false;
@@ -147,8 +137,6 @@ export default {
           resourceCount = this.__getCountForResource(resourceName);
         }
       }
-
-      console.log('resourceCount', resourceCount);
 
       // manual refresh check
       if (manualDataRefreshEnabled && resourceCount >= manualDataRefreshThreshold) {

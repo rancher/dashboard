@@ -8,17 +8,35 @@ import { MODE, _IMPORT } from '@shell/config/query-params';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
     Banner, ResourceTable, Masthead
   },
+  mixins: [ResourceFetch],
+  props:  {
+    loadResources: {
+      type:    Array,
+      default: () => []
+    },
+
+    loadIndeterminate: {
+      type:    Boolean,
+      default: false
+    },
+
+    incrementalLoadingIndicator: {
+      type:    Boolean,
+      default: false
+    },
+  },
 
   async fetch() {
     const hash = {
+      rancherClusters: this.$fetchType(CAPI.RANCHER_CLUSTER),
       normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
       mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
     };
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
@@ -130,6 +148,9 @@ export default {
       :resource="resource"
       :create-location="createLocation"
       component-testid="cluster-manager-list"
+      :show-incremental-loading-indicator="incrementalLoadingIndicator"
+      :load-resources="loadResources"
+      :load-indeterminate="loadIndeterminate"
     >
       <template v-if="canImport" slot="extraActions">
         <n-link
