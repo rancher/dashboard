@@ -56,10 +56,13 @@ export default {
 
   watch: {
     selectedDevices(neu) {
-      const formatted = neu.map((deviceUid) => {
+      const formatted = neu.map((deviceUid, idx) => {
+        const deviceCRD = this.uniqueDevices[deviceUid].deviceCRDs[0];
+        const deviceName = deviceCRD?.status?.description;
+
         return {
-          deviceName: deviceUid,
-          name:         this.uniqueDevices[deviceUid].deviceCRDs[0].status.description
+          deviceName,
+          name: `${ deviceName.split('/')[1] }${ idx + 1 }`
         };
       });
 

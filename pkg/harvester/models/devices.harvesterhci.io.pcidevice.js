@@ -58,10 +58,7 @@ export default class PCIDevice extends SteveModel {
 
   // this is an id for each 'type' of device - there may be multiple instances of device CRs
   get uniqueId() {
-    const vendorId = typeof this.status?.vendorId === 'string' ? parseInt(this.status?.vendorId).toString(16) : this.status?.vendorId.toString(16);
-    const deviceId = typeof this.status?.deviceId === 'string' ? parseInt(this.status?.deviceId).toString(16) : this.status?.deviceId.toString(16);
-
-    return `${ vendorId }:${ deviceId }`;
+    return `${ this.status?.vendorId }:${ this.status?.deviceId }`;
   }
 
   get claimedBy() {
