@@ -12,11 +12,11 @@ export function options(isSupport, issues, hideRancher) {
   }
 
   const links = {
-    Docs:              DOCS_BASE,
-    Forums:            'https://forums.rancher.com/',
-    Slack:             'https://slack.rancher.io',
-    'File an Issue':   issues,
-    'Getting started': '/docs/getting-started'
+    docs:        DOCS_BASE,
+    forums:     'https://forums.rancher.com/',
+    slack:      'https://slack.rancher.io',
+    issues,
+    getStarted: '/docs/getting-started'
   };
 
   if (!isSupport) {

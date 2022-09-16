@@ -6195,6 +6195,13 @@ customLinks:
   displayTitle: Links
   label: Home Links
   description: 'Links to display on the home page.'
+  defaults: 
+    docs:       Docs
+    forums:     Forums
+    slack:      Slack
+    issues:     File an Issue
+    getStarted: Get Started
+
 
 
 ##############################
