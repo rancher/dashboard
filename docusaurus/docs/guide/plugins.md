@@ -64,7 +64,7 @@ PUBLISH_ARGS="--registry http://localhost:4873/" yarn publish-shell
 
 At this point, we've published 3 NPM packages:
 
-- `@rancher/shell` - the core shell UI that can be incorporated into a new UI to give core funtionality
+- `@rancher/shell` - the core shell UI that can be incorporated into a new UI to give core functionality
 - `@rancher/create-app` - a simple package that can be used with the `yarn create` command to create a new UI
 - `@rancher/create-pkg` - a simple package that can be used with the `yarn create` command to create a new UI Package
 
@@ -95,7 +95,7 @@ yarn dev
 You should be able to open a browser at `https://127.0.0.1:8005` and you'll get the Rancher Dashboard UI.
 
 This illustrates being able to share the `shell` across UIs - in practice, we would extract the Rancher code from the shell, so instead of getting the Rancher
-functionality in this example, you'd get an empty shell applciation with the side menu, UI chrome, avatar menu etc.
+functionality in this example, you'd get an empty shell application with the side menu, UI chrome, avatar menu etc.
 
 You would now add new functionality to this application by adding new UI Packages.
 
@@ -259,7 +259,7 @@ Now we can add our UI package that we published to the local registry with:
 yarn add testplugin
 ```
 
-Now when we run the app with `yarn dev` and browse to https://127.0.0.1:8005 you'll see that our `testplugin` plugin ahas been included in the UI.
+Now when we run the app with `yarn dev` and browse to https://127.0.0.1:8005 you'll see that our `testplugin` plugin has been included in the UI.
 
 This supports the use case where we may be developing a UI Package that relies on another UI package - so we can create a skeleton app, add the dependencies we need via NPM and then develop our own plugin in the repository - so the only code we have is the code for out plugin, but we are able to test and run it in a UI locally with the other plugins that it needs.
 
@@ -284,4 +284,4 @@ yarn link @rancher/shell
 
 This link the package used by the app to the dashboard source code. We can make changes to the shell code in the Rancher Dashboard repository and the separate app will hot-reload.
 
-This allows us to develop a new UI Application and be able to make changes to the Shell - in this use case, we're working against two git repositories, so we need to ensure we commit chanages accordingly.
+This allows us to develop a new UI Application and be able to make changes to the Shell - in this use case, we're working against two git repositories, so we need to ensure we commit changes accordingly.
