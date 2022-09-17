@@ -82,6 +82,7 @@ export const ALLOWED_SETTINGS = {
   [SETTING.SYSTEM_DEFAULT_REGISTRY]:              {},
   [SETTING.UI_INDEX]:                             {},
   [SETTING.UI_DASHBOARD_INDEX]:                   {},
+  [SETTING.UI_DASHBOARD_HARVESTER_LEGACY_PLUGIN]: { kind: 'url', canReset: true },
   [SETTING.UI_OFFLINE_PREFERRED]:                 {
     kind:    'enum',
     options: ['dynamic', 'true', 'false']
