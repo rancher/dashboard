@@ -4,7 +4,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
-import { LabeledInput } from '@components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 export default {
   name:       'HarvesterRestoreSnapshotDialog',
   components: {
