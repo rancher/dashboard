@@ -2,7 +2,7 @@
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
-import { LabeledInput } from '@components/form/LabeledInput';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { get } from '@shell/utils/object';
 import { HCI } from '../types';
