@@ -31,6 +31,9 @@ export const OS = [{
   label: 'Linux',
   value: 'linux'
 }, {
+  label: 'SUSE Linux Enterprise',
+  value: 'SLEs'
+}, {
   label: 'Debian',
   value: 'debian'
 }, {
@@ -39,9 +42,6 @@ export const OS = [{
 }, {
   label: 'Gentoo',
   value: 'gentoo'
-}, {
-  label: 'Mandriva',
-  value: 'mandriva'
 }, {
   label: 'Oracle',
   value: 'oracle'
@@ -52,14 +52,8 @@ export const OS = [{
   label: 'openSUSE',
   value: 'openSUSE',
 }, {
-  label: 'Turbolinux',
-  value: 'turbolinux'
-}, {
   label: 'Ubuntu',
   value: 'ubuntu'
-}, {
-  label: 'Xandros',
-  value: 'xandros'
 }, {
   label: 'Other Linux',
   match: ['centos'],
