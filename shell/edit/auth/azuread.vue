@@ -177,7 +177,7 @@ export default {
     },
 
     setInitialEndpoint(endpoint) {
-      const newEndpointKey = Object.keys(ENDPOINT_MAPPING).find(key => ENDPOINT_MAPPING[key].graphEndpoint === endpoint);
+      const newEndpointKey = this.determineEndpointKeyType(ENDPOINT_MAPPING);
       const oldEndpointKey = Object.keys(OLD_ENDPOINTS).find(key => OLD_ENDPOINTS[key].graphEndpoint === endpoint);
 
       if ( newEndpointKey ) {
@@ -188,6 +188,23 @@ export default {
       } else {
         this.endpoint = 'custom';
       }
+    },
+
+    determineEndpointKeyType(endpointTypes) {
+      let out = null;
+
+      for ( const [key, values] of Object.entries(endpointTypes) ) {
+        const mappedValues = Object.values(values).map(v => v.replace(TENANT_ID_TOKEN, this.model?.tenantId));
+        const valuesToCheck = Object.keys(values).map(k => this.value[k]);
+
+        if ( mappedValues === valuesToCheck ) {
+          out = key;
+        } else {
+          out = 'custom';
+        }
+      }
+
+      return out;
     },
 
     getNewApplicationSecret() {
