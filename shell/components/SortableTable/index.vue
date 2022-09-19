@@ -334,10 +334,7 @@ export default {
     clearTimeout(this._loadingDelayTimer);
     clearTimeout(this._liveColumnsTimer);
     clearTimeout(this._delayedColumnsTimer);
-
-    if (this.manualRefreshTimer) {
-      clearTimeout(this.manualRefreshTimer);
-    }
+    clearTimeout(this.manualRefreshTimer);
 
     const $main = $('main');
 
