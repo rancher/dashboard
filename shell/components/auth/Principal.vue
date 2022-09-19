@@ -159,6 +159,7 @@ export default {
     .name {
       grid-area: name;
       line-height: math.div($size, 2);
+      overflow-wrap: anywhere;
     }
 
     .description {
