@@ -24,6 +24,10 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 
+// Added by Verrazzano Start
+import VerrazzanoLinksBox from '@/pkg/verrazzano/components/VerrazzanoLinksBox';
+// Added by Verrazzano End
+
 export default {
   name:       'Home',
   layout:     'home',
@@ -36,6 +40,9 @@ export default {
     CommunityLinks,
     SimpleBox,
     SingleClusterInfo,
+    // Added by Verrazzano Start
+    VerrazzanoLinksBox,
+    // Added by Verrazzano End
   },
 
   mixins: [PageHeaderActions],
@@ -393,6 +400,9 @@ export default {
           </div>
         </div>
         <div v-if="showSidePanel" class="col span-3">
+          <!-- Added by Verrazzano Start -->
+          <VerrazzanoLinksBox class="mb-20" />
+          <!-- Added by Verrazzano End -->
           <CommunityLinks v-if="showCommunityLinks" :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
           <SimpleBox v-if="showCommercialSupport" :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
             <nuxt-link :to="{ path: 'support'}">

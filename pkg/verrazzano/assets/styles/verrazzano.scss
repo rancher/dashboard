@@ -1,0 +1,41 @@
+/* Added by Verrazzano */
+
+// used for close vertical spacing between components
+.spacer-tiny {
+    padding: 5px 0 0 0;
+}
+
+// surround the form content so that
+// tree nav and content will scroll independently
+.tree-tabbed-form {
+    height: 10px;
+    flex: 1 1 auto;
+
+    .cru {
+        height: 100%;
+    }
+
+    .tree-tabbed {
+        height: 10px;
+        flex: 1 1 auto;
+    }
+}
+
+// gauges for detail pages
+.gauges {
+    display: flex;
+    justify-content: space-around;
+    &>*{
+        flex: 1;
+        margin-right: $column-gutter;
+    }
+    &__pods {
+        flex-wrap: wrap;
+        justify-content: left;
+        .count-gauge {
+            width: 23%;
+            margin-bottom: 10px;
+            flex: initial;
+        }
+    }
+}

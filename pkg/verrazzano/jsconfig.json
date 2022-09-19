@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "module": "commonjs",
+    "sourceMap": true,
+    "target": "es2017",
+    "paths": {
+      "@shell/components/*": [
+        "../../shell/components/*"
+      ],
+      "@shell/core/*": [
+        "../../shell/core/*"
+      ],
+      "@shell/config/*": [
+        "../../shell/config/*"
+      ],
+      "@shell/store/*": [
+        "../../shell/store/*"
+      ],
+      "@shell/plugins/*": [
+        "../../shell/plugins/*"
+      ],
+      "@shell/utils/*": [
+        "../../shell/utils/*"
+      ],
+      "@shell/models/*": [
+        "../../shell/models/*"
+      ],
+      "@components/*": [
+        "../rancher-components/src/components/*"
+      ],
+      "@pkg/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.js",
+    "**/*.vue"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
