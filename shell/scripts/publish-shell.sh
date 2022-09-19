@@ -61,6 +61,9 @@ function publish() {
   fi
 }
 
+# Generate the type definitions for the shell
+${SCRIPT_DIR}/typegen.sh
+
 # Publish the packages - don't tag the git repo and don't auto-increment the version number
 publish "Shell" ${SHELL_DIR}
 

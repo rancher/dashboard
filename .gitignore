@@ -106,6 +106,7 @@ dist-pkg
 
 # Plugins - temporary
 shell/rancher-components
+shell/types/shell
 
 # standalone script
 scripts/standalone/ui
