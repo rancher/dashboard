@@ -108,10 +108,9 @@ export default {
 
     associatedSnapshots() {
       return this.snapshots.filter((snapshot) => {
-        const volumeName = snapshot.spec?.source?.persistentVolumeClaimName;
-        const snapClass = snapshot.spec?.volumeSnapshotClassName;
+        const ownerReferences = snapshot.metadata?.ownerReferences?.[0];
 
-        return volumeName === this.value.metadata?.name && !['longhorn', 'vxflexos-backupclass'].includes(snapClass);
+        return ownerReferences.name === this.value.metadata?.name && ownerReferences.kind === 'PersistentVolumeClaim';
       });
     },
 
