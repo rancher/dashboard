@@ -130,6 +130,6 @@ rm -rf ./pkg/test-pkg
 yarn create @rancher/pkg test-pkg -t
 cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
 FORCE_COLOR=true yarn build-pkg test-pkg | cat
-#rm -rf ./pkg/test-pkg
+rm -rf ./pkg/test-pkg
 
 echo "All done"
