@@ -199,7 +199,6 @@ export const actions = {
 
     if (worker) {
       worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
-      // ToDo: we catch the confirmation of this in workerActions which is where we then delete the worker itself
     }
 
     if ( socket ) {
