@@ -58,7 +58,7 @@ export default {
     selectedDevices(neu) {
       const formatted = neu.map((deviceUid, idx) => {
         const deviceCRD = this.uniqueDevices[deviceUid].deviceCRDs[0];
-        const deviceName = deviceCRD?.status?.description;
+        const deviceName = deviceCRD?.status?.resourceName;
 
         return {
           deviceName,
@@ -141,9 +141,9 @@ export default {
         const device = this.uniqueDevices[deviceId].deviceCRDs[0];
 
         return {
-          description: device?.status?.description,
-          value:       deviceId,
-          label:       deviceId
+          resourceName: device?.status?.resourceName,
+          value:        deviceId,
+          label:        deviceId
         };
       });
     },
@@ -185,7 +185,7 @@ export default {
             :options="deviceOpts"
           >
             <template #option="option">
-              <span>{{ option.value }} <span class="text-label">{{ option.description }}</span></span>
+              <span>{{ option.value }} <span class="text-label">{{ option.resourceName }}</span></span>
             </template>
           </LabeledSelect>
         </div>
