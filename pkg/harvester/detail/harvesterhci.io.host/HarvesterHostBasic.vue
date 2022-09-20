@@ -1,10 +1,8 @@
 <script>
 import LabelValue from '@shell/components/LabelValue';
-import { Banner } from '@components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { LONGHORN, METRIC } from '@shell/config/types';
-import { HCI } from '../../types';
 import HarvesterCPUUsed from '../../formatters/HarvesterCPUUsed';
 import HarvesterMemoryUsed from '../../formatters/HarvesterMemoryUsed';
 import HarvesterStorageUsed from '../../formatters/HarvesterStorageUsed';
@@ -19,7 +17,6 @@ export default {
 
   components: {
     LabelValue,
-    Banner,
     HarvesterCPUUsed,
     HarvesterMemoryUsed,
     HarvesterStorageUsed,
@@ -44,14 +41,6 @@ export default {
       required: false,
       default:  'view'
     },
-
-    hostNetworkResource: {
-      type:     Object,
-      required: false,
-      default:  () => {
-        return null;
-      }
-    }
   },
 
   computed: {
@@ -148,28 +137,10 @@ export default {
       return promoteStatus;
     },
 
-    networkType() {
-      return this.hostNetworkResource?.spec?.type || '-';
-    },
-
-    nic() {
-      return this.hostNetworkResource?.spec?.nic || '-';
-    },
-
-    networkMessage() {
-      return this.hostNetworkResource?.message;
-    },
-
     hasMetricNodeSchema() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
       return !!this.$store.getters[`${ inStore }/schemaFor`](METRIC.NODE);
-    },
-
-    hasHostNetworksSchema() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-
-      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.NODE_NETWORK);
     },
 
     hasLonghornSchema() {
@@ -239,23 +210,6 @@ export default {
         <LabelValue :name="t('harvester.host.detail.consoleUrl')" :value="consoleUrl.value">
           <a slot="value" :href="consoleUrl.value" target="_blank">{{ consoleUrl.display }}</a>
         </LabelValue>
-      </div>
-    </div>
-
-    <div v-if="hasHostNetworksSchema">
-      <hr class="divider" />
-      <h3>{{ t('harvester.host.detail.title.network') }}</h3>
-      <Banner v-if="networkMessage" color="error">
-        {{ networkMessage }}
-      </Banner>
-      <div class="row mb-20">
-        <div class="col span-6">
-          <LabelValue :name="t('harvester.host.detail.networkType')" :value="networkType" />
-        </div>
-
-        <div class="col span-6">
-          <LabelValue :name="t('harvester.host.detail.nic')" :value="nic" />
-        </div>
       </div>
     </div>
 

@@ -27,7 +27,6 @@ export default {
     const hash = await allHash({
       vms:                 this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
       vmis:                this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
-      allNodeNetwork:      this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
       allClusterNetwork:   this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK }),
     });
     const instanceMap = {};
@@ -40,7 +39,6 @@ export default {
       }
     });
 
-    this.allNodeNetwork = hash.allNodeNetwork;
     this.allClusterNetwork = hash.allClusterNetwork;
     this.rows = hash.vms.filter((row) => {
       return instanceMap[row.metadata?.uid]?.status?.nodeName === this.node?.metadata?.labels?.[HOSTNAME];
@@ -50,7 +48,6 @@ export default {
   data() {
     return {
       rows:              [],
-      allNodeNetwork:    [],
       allClusterNetwork: []
     };
   },
@@ -109,7 +106,7 @@ export default {
       >
         <template slot="cell:state" slot-scope="scope" class="state-col">
           <div class="state">
-            <HarvesterVmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetwork" :all-cluster-network="allClusterNetwork" />
+            <HarvesterVmState class="vmstate" :row="scope.row" :all-cluster-network="allClusterNetwork" />
           </div>
         </template>
       </Sortabletable>

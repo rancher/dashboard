@@ -94,6 +94,7 @@ generic:
   deprecated: Deprecated
   placeholder: "e.g. {text}"
   moreInfo: More Info
+  basic: Basic
 
 locale:
   en-us: English
@@ -136,6 +137,7 @@ nav:
     apps: Apps
     clusterProvisioning: Cluster Provisioning
     core: Core
+    networks: Networks
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources

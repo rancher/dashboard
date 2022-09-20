@@ -426,8 +426,15 @@ export function init($plugin, store) {
 
   basicType(
     [
-      TEMPLATE,
+      HCI.VLAN_CONFIG,
       HCI.NETWORK_ATTACHMENT,
+    ],
+    'networks'
+  );
+
+  basicType(
+    [
+      TEMPLATE,
       HCI.BACKUP,
       HCI.SNAPSHOT,
       HCI.VM_SNAPSHOT,
@@ -480,6 +487,29 @@ export function init($plugin, store) {
       params: { resource: HCI.BACKUP }
     },
     exact: false
+  });
+
+  headers(HCI.VLAN_CONFIG, [
+    STATE,
+    NAME_COL,
+    {
+      name:     'clusterNetwork',
+      labelKey: 'harvester.network.clusterNetwork.label',
+      value:    'spec.clusterNetwork',
+      sort:     'spec.clusterNetwork',
+    },
+    AGE
+  ]);
+  virtualType({
+    labelKey:   'harvester.vlanConfig.title',
+    name:       HCI.VLAN_CONFIG,
+    namespaced: false,
+    weight:     190,
+    route:      {
+      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:   { resource: HCI.VLAN_CONFIG }
+    },
+    exact: false,
   });
 
   configureType(NETWORK_ATTACHMENT, { isEditable: false, showState: false });

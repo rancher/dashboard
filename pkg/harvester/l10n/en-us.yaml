@@ -637,12 +637,11 @@ harvester:
     matchTarget: The current backup target does not match the existing one.
 
   network:
-    label: Networks
+    label: VLANs
     tabs:
       basics: Basics
       layer3Network: Route
     message:
-      vlanInactive: 'VLAN network is inactive at {name} host'
       premise:
         prefix: 'You must configure a network in'
         middle: 'Settings'
@@ -655,6 +654,10 @@ harvester:
         prefix: Physical NIC value in
         middle: Setting
         suffix: "is invalid, error: "
+    clusterNetwork:
+      label: Cluster Network
+      create: Create a New Cluster Network
+      toolTip: Define your custom cluster scope network name
     layer3Network:
       mode:
         label: Mode
@@ -836,6 +839,34 @@ harvester:
       migratable:
         label: Migratable
 
+  vlanConfig:
+    title: Network Configs
+    titles:
+      nodeSelector: Node Selector
+      uplink: Uplink
+      bondOptions: Bond Options
+    scheduling:
+      affinity:
+        allNodes: Select all nodes
+        specificNode: Select specific node
+        schedulingRules: Select node(s) matching rules
+    uplink:
+      nics:
+        label: NICs
+        addLabel: Add NIC
+      linkAttributes:
+        mtu: 
+          label: MTU
+      bondOptions:
+        mode:
+          label: Mode
+        miimon:
+          label: Miimon
+
+  vlanStatus:
+    vlanConfig:
+      label: Network Config
+
 advancedSettings:
   descriptions:
     'harv-vlan': Default Network Interface name of the VLAN network.
@@ -884,13 +915,13 @@ typeLabel:
     }
   k8s.cni.cncf.io.networkattachmentdefinition: |-
     {count, plural,
-      one { Network Attachment Definition }
-      other { Network Attachment Definitions }
+      one { VLAN }
+      other { VLANs }
     }
   harvesterhci.io.networkattachmentdefinition: |-
     {count, plural,
-      one { Network }
-      other { Networks }
+      one { VLAN }
+      other { VLANs }
     }
   harvesterhci.io.volume: |-
     {count, plural,
@@ -931,6 +962,11 @@ typeLabel:
     {count, plural,
       one { VM Snapshot }
       other { VM Snapshots }
+    }
+  network.harvesterhci.io.vlanconfig: |-
+    {count, plural,
+      one { Network Config }
+      other { Network Configs }
     }
   harvesterhci.io.monitoring.alertmanagerconfig: |-
     {count, plural,

@@ -3,10 +3,8 @@ import { mapGetters } from 'vuex';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import Footer from '@shell/components/form/Footer';
-import InfoBox from '@shell/components/InfoBox';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -31,10 +29,8 @@ export default {
   components: {
     Footer,
     Tabbed,
-    InfoBox,
     Tab,
     LabeledInput,
-    LabeledSelect,
     NameNsDescription,
     ArrayListGrouped,
     HarvesterDisk,
@@ -53,21 +49,10 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
-    const hash = await allHash({
-      hostNetworks:      this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.NODE_NETWORK }),
+    await allHash({
       longhornNodes: this.$store.dispatch(`${ inStore }/findAll`, { type: LONGHORN.NODES }),
-      blockDevices:   this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
+      blockDevices:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
     });
-
-    const hostNetworks = hash.hostNetworks;
-    const hostNetworkResource = hostNetworks.find( O => this.value.id === O.attachNodeName);
-
-    if (hostNetworkResource) {
-      this.hostNetworkResource = hostNetworkResource;
-      this.nic = hostNetworkResource.spec?.nic;
-      this.type = hostNetworkResource.spec?.type;
-      this.nics = hostNetworkResource.nics;
-    }
 
     const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
     const provisionedBlockDevices = blockDevices.filter((d) => {
@@ -100,12 +85,8 @@ export default {
     const consoleUrl = this.value.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.HOST_CONSOLE_URL] || '';
 
     return {
-      hostNetworkResource:  null,
       customName,
       consoleUrl,
-      type:                 'vlan',
-      nic:                  '',
-      nics:                 [],
       disks:                [],
       newDisks:             [],
       blockDevice:          [],
@@ -115,24 +96,7 @@ export default {
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-    nicsOptions() {
-      return this.nics.filter((N) => {
-        return !(N.masterIndex !== undefined && N.usedByVlanNetwork === undefined);
-      })
-        .map( (N) => {
-          const isRecommended = N.usedByManagementNetwork ? `(${ this.$store.getters['i18n/t']('harvester.host.detail.notRecommended') })` : '';
 
-          const label = `${ N.name }(${ N.type }, ${ N.state })   ${ isRecommended }`;
-
-          return {
-            value:                   N.name,
-            label,
-            state:                   N.state,
-            type:                    N.type,
-            usedByManagementNetwork: N.usedByManagementNetwork,
-          };
-        });
-    },
     removedDisks() {
       const out = this.disks.filter((d) => {
         return !findBy(this.newDisks, 'name', d.name);
@@ -140,6 +104,7 @@ export default {
 
       return out;
     },
+
     longhornDisks() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `${ LONGHORN_SYSTEM }/${ this.value.id }`);
@@ -182,12 +147,6 @@ export default {
       return out.length > 0;
     },
 
-    hasHostNetworksSchema() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-
-      return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.NODE_NETWORK);
-    },
-
     hasBlockDevicesSchema() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
@@ -221,21 +180,12 @@ export default {
     }
 
     if (this.registerAfterHook) {
-      this.registerAfterHook(this.saveHostNetwork);
       this.registerAfterHook(this.saveDisk);
       this.registerAfterHook(this.saveLonghornNode);
     }
   },
 
   methods: {
-    saveHostNetwork() {
-      if (this.hostNetworkResource) {
-        this.hostNetworkResource.save();
-      }
-    },
-    update() {
-      this.$set(this.hostNetworkResource.spec, 'nic', this.nic);
-    },
     addDisk(id) {
       const removedDisk = findBy(this.removedDisks, 'blockDevice.id', id);
 
@@ -274,6 +224,7 @@ export default {
         forceFormatted,
       });
     },
+
     async saveDisk() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const addDisks = this.newDisks.filter(d => d.isNew);
@@ -325,6 +276,7 @@ export default {
 
       return true;
     },
+
     getBlockDeviceOpts() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const blockDevices = this.$store.getters[`${ inStore }/all`](HCI.BLOCK_DEVICE);
@@ -441,40 +393,6 @@ export default {
           class="mb-20"
           :mode="mode"
         />
-      </Tab>
-      <Tab v-if="hasHostNetworksSchema" name="network" :weight="90" :label="t('harvester.host.tabs.network')">
-        <InfoBox class="wrapper">
-          <div class="row">
-            <div class="col span-6">
-              <LabeledInput
-                v-model="type"
-                label="Type"
-                class="mb-20"
-                :mode="mode"
-                :disabled="true"
-              />
-            </div>
-            <div class="col span-6">
-              <LabeledSelect
-                v-model="nic"
-                :options="nicsOptions"
-                :label="t('harvester.fields.PhysicalNic')"
-                class="mb-20"
-                :mode="mode"
-                :disabled="!hostNetworkResource"
-                @input="update"
-              >
-                <template v-slot:option="option">
-                  <template>
-                    <div class="nicOption">
-                      <span>{{ option.value }}({{ option.type }}, {{ option.state }}) </span> <span class="pull-right">{{ option.usedByManagementNetwork ? t('harvester.host.detail.notRecommended') : '' }}</span>
-                    </div>
-                  </template>
-                </template>
-              </LabeledSelect>
-            </div>
-          </div>
-        </InfoBox>
       </Tab>
       <Tab
         v-if="hasBlockDevicesSchema"
