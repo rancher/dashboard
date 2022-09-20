@@ -2446,6 +2446,7 @@ landing:
     title: Getting Started
     body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find your favorite features in the Dashboard UI.
   support: Support
+  deprecatedPsp: "In Kubernetes v1.25, Pod Security Policies will be removed following it's deprecation in v1.21. They will be removed in favor of Pod Security Admissions, for which you can follow the instructions for migration <a href='https://kubernetes.io/docs/tasks/configure-pod-container/migrate-from-psp/' target='_blank' rel='noopener nofollow noreferrer'>here</a>"
   community:
     title: Community Support
     docs: Docs
