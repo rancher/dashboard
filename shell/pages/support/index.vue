@@ -102,7 +102,7 @@ export default {
     },
 
     hasSupport() {
-      // TODO: API Implementation
+      // NB: This is temporary until API implemented
       return false;
     },
 
