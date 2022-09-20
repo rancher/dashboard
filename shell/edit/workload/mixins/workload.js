@@ -36,6 +36,7 @@ import CruResource from '@shell/components/CruResource';
 import Command from '@shell/components/form/Command';
 import LifecycleHooks from '@shell/components/form/LifecycleHooks';
 import Storage from '@shell/edit/workload/storage';
+import ContainerMountPaths from '@shell/edit/workload/storage/ContainerMountPaths.vue';
 import Labels from '@shell/components/form/Labels';
 import { RadioGroup } from '@components/Form/Radio';
 import { UI_MANAGED } from '@shell/config/labels-annotations';
@@ -89,6 +90,7 @@ export default {
     Upgrading,
     VolumeClaimTemplate,
     WorkloadPorts,
+    ContainerMountPaths
   },
 
   mixins: [CreateEditView],

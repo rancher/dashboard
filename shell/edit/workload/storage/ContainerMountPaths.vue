@@ -1,5 +1,6 @@
 <script>
 import { PVC } from '@shell/config/types';
+import { removeObjects, addObjects } from '@shell/utils/array';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import Mount from '@shell/edit/workload/storage/Mount';
 import { _VIEW } from '@shell/config/query-params';
@@ -7,10 +8,12 @@ import CodeMirror from '@shell/components/CodeMirror';
 import jsyaml from 'js-yaml';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { randomStr } from '@shell/utils/string';
-
+import Select from '@shell/components/Form/Select';
+import LabeledSelect from '@shell/components/Form/LabeledSelect';
 export default {
+  name:       'ContainerMountPaths',
   components: {
-    ArrayListGrouped, ButtonDropdown, Mount, CodeMirror
+    ArrayListGrouped, ButtonDropdown, Mount, CodeMirror, Select, LabeledSelect
   },
 
   props: {
@@ -73,8 +76,10 @@ export default {
     this.initializeStorage();
 
     return {
-      pvcs:           [],
-      storageVolumes: this.value.volumes,
+      containerVolumes:         [],
+      pvcs:                     [],
+      storageVolumes:           this.getStorageVolumes(),
+      selectedContainerVolumes: this.getSelectedContainerVolumes()
     };
   },
 
@@ -93,7 +98,7 @@ export default {
      * Generated list of volumes
      */
     volumeTypeOptions() {
-      const excludedFiles = ['index', 'Mount', 'PVC'];
+      const excludedFiles = ['index', 'Mount', 'PVC', 'ContainerMountPaths'];
       const defaultVolumeTypes = [
         'csi',
         'configMap',
@@ -119,24 +124,51 @@ export default {
         }));
     },
 
+    selectedVolumeOptions() {
+      const containerVolumes = this.container.volumeMounts.map(item => item.name);
+
+      return this.value.volumes.filter(vol => !containerVolumes.includes(vol.name)).map((item) => {
+        return {
+          label:  item.name,
+          action: this.selectVolume,
+          value:  item.name
+        };
+      });
+    },
+
     pvcNames() {
       return this.namespacedPVCs.map(pvc => pvc.metadata.name);
     },
+
+    volumeNames() {
+      return this.value.volumes.map((item) => {
+        return { label: item.name };
+      });
+    }
   },
 
-  // watch: {
-  //   storageVolumes(neu, old) {
-  //     removeObjects(this.value.volumes, old);
-  //     addObjects(this.value.volumes, neu);
-  //     const names = neu.reduce((all, each) => {
-  //       all.push(each.name);
+  watch: {
+    storageVolumes(neu, old) {
+      // removeObjects(this.value.volumes, old);
+      // addObjects(this.value.volumes, neu);
+      const names = neu.reduce((all, each) => {
+        all.push(each.name);
 
-  //       return all;
-  //     }, []);
+        return all;
+      }, []);
 
-  //     this.container.volumeMounts = this.container.volumeMounts.filter(mount => names.includes(mount.name));
-  //   }
-  // },
+      this.container.volumeMounts = this.container.volumeMounts.filter(mount => names.includes(mount.name));
+    },
+
+    selectedContainerVolumes(neu, old) {
+      // removeObjects(this.value.volumes, old);
+      // addObjects(this.value.volumes, neu);
+      const names = neu.map(item => item.name);
+
+      this.container.volumeMounts = this.container.volumeMounts.filter(mount => names.includes(mount.name));
+    }
+
+  },
 
   methods: {
     /**
@@ -144,11 +176,32 @@ export default {
      */
     initializeStorage() {
       if (!this.container.volumeMounts) {
-        //   this.$set(this.container, 'volumeMounts', []);
+        this.$set(this.container, 'volumeMounts', []);
       }
       if (!this.value.volumes) {
         this.$set(this.value, 'volumes', []);
       }
+    },
+
+    /**
+     * Get existing paired storage volumes
+     */
+    getStorageVolumes() {
+      // Extract volume mounts to map storage volumes
+      const { volumeMounts = [] } = this.container;
+      const names = volumeMounts.map(({ name }) => name);
+
+      // Extract storage volumes to allow mutation, if matches mount map
+      return this.value.volumes.filter(volume => names.includes(volume.name));
+    },
+
+    getSelectedContainerVolumes() {
+      // Extract volume mounts to map storage volumes
+      const { volumeMounts = [] } = this.container;
+      const names = volumeMounts.map(({ name }) => name);
+
+      // Extract storage volumes to allow mutation, if matches mount map
+      return this.value.volumes.filter(volume => names.includes(volume.name));
     },
 
     /**
@@ -157,7 +210,17 @@ export default {
     removeVolume(volume) {
       const removeName = volume.row.value.name;
 
-      this.storageVolumes = this.storageVolumes.filter(({ name }) => name !== removeName);
+      this.selectedContainerVolumes = this.selectedContainerVolumes.filter(({ name }) => name !== removeName);
+    },
+
+    selectVolume(event) {
+      const selectedVolume = this.value.volumes.find(vol => vol.name === event.value);
+
+      this.selectedContainerVolumes.push(selectedVolume);
+
+      const { name } = selectedVolume;
+
+      this.container.volumeMounts.push(name);
     },
 
     addVolume(type) {
@@ -183,7 +246,7 @@ export default {
         });
       }
 
-      // this.container.volumeMounts.push({ name });
+      this.container.volumeMounts.push({ name });
     },
 
     volumeType(vol) {
@@ -262,21 +325,21 @@ export default {
   <div>
     <!-- Storage Volumes -->
     <ArrayListGrouped
-      :key="storageVolumes.length"
-      v-model="storageVolumes"
+      :key="selectedContainerVolumes.length"
+      v-model="selectedContainerVolumes"
       :mode="mode"
       @remove="removeVolume"
     >
       <!-- Custom/default storage volume form -->
       <template #default="props">
-        <h3>{{ headerFor(volumeType(props.row.value)) }}</h3>
+        <h3>Volume: {{ props.row.value.name }}</h3>
         <div class="bordered-section">
           <component
             :is="getComponent(volumeType(props.row.value))"
             v-if="getComponent(volumeType(props.row.value))"
             :value="props.row.value"
             :pod-spec="value"
-            :mode="mode"
+            :mode="'view'"
             :namespace="namespace"
             :secrets="secrets"
             :config-maps="configMaps"
@@ -294,26 +357,31 @@ export default {
           </div>
         </div>
 
-        <!-- Mount point list to be mapped to volume
+        <!-- Mount point list to be mapped to volume -->
+        MOUNT
         <Mount
           :container="container"
           :name="props.row.value.name"
           :mode="mode"
-        /> -->
+        />
       </template>
 
       <!-- Add Storage Volume -->
       <template #add>
         <ButtonDropdown
           v-if="!isView"
-          id="select-volume"
+          id="add-volume"
           :button-label="t('workload.storage.addVolume')"
-          :dropdown-options="volumeTypeOptions"
+          :dropdown-options="selectedVolumeOptions"
           size="sm"
-          @click-action="e=>addVolume(e.value)"
+          @click-action="e=>selectVolume(e)"
         />
       </template>
+      </labeledselect>
+      </select>
     </ArrayListGrouped>
+    </select>
+    </labeledselect>
   </div>
 </template>
 
