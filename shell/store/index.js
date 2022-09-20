@@ -26,7 +26,7 @@ import {
   NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
   splitNamespaceFilterKey,
 } from '@shell/utils/namespace-filter';
-import { gcActions, gcGetters, gcMutations } from '@shell/utils/gc/gc-root-store';
+import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -169,7 +169,6 @@ export const state = () => {
     serverVersion:           null,
     systemNamespaces:        [],
     isSingleProduct:         undefined,
-    gcRouteChanged:          null, // Track when a logged in route changes.
   };
 };
 
@@ -546,7 +545,6 @@ export const mutations = {
     state.isSingleProduct = isSingleProduct;
   },
 
-  ...gcMutations
 };
 
 export const actions = {

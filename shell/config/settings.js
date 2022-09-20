@@ -1,6 +1,6 @@
 // Settings
+import { GC_DEFAULTS } from '../utils/gc/gc-types';
 import { MANAGEMENT } from './types';
-import { GC_DEFAULTS } from '@shell/utils/gc/gc-utils';
 
 // Adapted from: https://github.com/rancher/ui/blob/08c379a9529f740666a704b52522a468986c3520/lib/shared/addon/utils/constants.js#L564
 // Setting IDs

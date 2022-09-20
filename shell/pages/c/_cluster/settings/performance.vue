@@ -69,7 +69,7 @@ export default {
           this.$store.dispatch('gcStopIntervals', { root: true });
           if (this.gcStartedEnabled) {
             // If we're disabling garbage collection we should reset any gc state we have stored. This avoids stale data if we enable it again
-            this.$store.dispatch('gcReset', { root: true });
+            this.$store.dispatch('gcResetStores', { root: true });
           }
         }
         this.gcStartedEnabled = this.value.garbageCollection.enabled;

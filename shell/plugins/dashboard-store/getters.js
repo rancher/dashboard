@@ -9,7 +9,7 @@ import Resource from '@shell/plugins/dashboard-store/resource-class';
 import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
-import { gcUpdateLastAccessed } from '@shell/utils/gc/gc-utils';
+import garbageCollect from '@shell/utils/gc/gc';
 
 export default {
 
@@ -23,7 +23,7 @@ export default {
       mutations.registerType(state, type);
     }
 
-    gcUpdateLastAccessed({
+    garbageCollect.gcUpdateLastAccessed({
       state, getters, rootState
     }, type);
 
@@ -38,7 +38,7 @@ export default {
       all = all.filter(obj => obj.namespace === namespace);
     }
 
-    gcUpdateLastAccessed({
+    garbageCollect.gcUpdateLastAccessed({
       state, getters, rootState
     }, type);
 
@@ -52,7 +52,7 @@ export default {
     const entry = state.types[type];
 
     if ( entry ) {
-      gcUpdateLastAccessed({
+      garbageCollect.gcUpdateLastAccessed({
         state, getters, rootState
       }, type);
 

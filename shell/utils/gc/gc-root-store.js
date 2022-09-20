@@ -1,22 +1,6 @@
-import {
-  gcEnabledForStore, gcEnabledSetting, GC_INTERVAL, GC_RUN_ON_INTERVAL, GC_RUN_ON_ROUTE_CHANGE
-} from '@shell/utils/gc/gc-utils';
-
-let gcInterval = null;
-
-function getResourceFromRoute(to) {
-  let resource = to.params?.resource;
-
-  if ( !resource ) {
-    const match = to.name?.match(/^c-cluster-([^-]+)/);
-
-    if ( match ) {
-      resource = match[2];
-    }
-  }
-
-  return resource;
-}
+import gc from './gc';
+import gcInterval from './gc-interval';
+import gcRoute from './gc-route-changed';
 
 export const gcGetters = {
   /**
@@ -31,7 +15,7 @@ export const gcGetters = {
         return;
       }
 
-      if (!gcEnabledForStore(storeState)) {
+      if (!gc.gcEnabledForStore(storeState)) {
         return;
       }
 
@@ -40,68 +24,25 @@ export const gcGetters = {
   }
 };
 
-export const gcMutations = {
-  gcRouteChanged(state) {
-    state.gcRouteChanged = new Date().getTime();
-  },
-};
-
 export const gcActions = {
-  /**
-   * A logged in route has changed
-   * 1) Track the time this occurred to ensure any resources fetched afterwards are not GCd
-   * 2) Kick off a GC
-   */
-  gcRouteChanged({ dispatch, commit, rootState }, to) {
-    commit(`gcRouteChanged`);
 
-    if (!gcEnabledSetting({ rootState }) || !GC_RUN_ON_ROUTE_CHANGE || to.name === 'auth-logout') {
-      // Convenience, no point GC'ing if we've just lost all types
-      console.warn('root gcRouteChanged', 'IGNORING (disabled)');// TODO: RC LOG
-
-      return;
-    }
-
-    const resource = getResourceFromRoute(to);
-    const ignoreTYpes = !!resource ? { [resource]: true } : {};
-
-    console.warn('resource from route:', resource, to); // TODO: RC LOG
-
-    dispatch('garbageCollect', ignoreTYpes);
+  gcRouteChanged(ctx, to) {
+    gcRoute.gcRouteChanged(ctx, to);
   },
 
-  /**
-   * Request we start garbage collection at regular intervals
-   *
-   * If GC is disabled or running return early
-   */
-  gcStartIntervals({ dispatch, rootState }) {
-    if (!gcEnabledSetting({ rootState }) || !GC_RUN_ON_INTERVAL) {
-      console.warn('root gcStartIntervals', 'IGNORING (disabled)');// TODO: RC LOG
-
-      return;
-    }
-
-    if (gcInterval) {
-      return;
-    }
-    console.warn('root gcStartIntervals', 'start'); // TODO: RC LOG
-
-    gcInterval = setInterval(() => {
-      dispatch('garbageCollect');
-    }, GC_INTERVAL);
+  gcStartIntervals(ctx) {
+    gcInterval.gcStartIntervals(ctx);
   },
 
-  gcStopIntervals() {
-    console.warn('root gcStartIntervals', 'stpp'); // TODO: RC LOG
-    clearInterval(gcInterval);
+  gcStopIntervals(ctx) {
+    gcInterval.gcStopIntervals();
   },
 
-  gcReset({ dispatch, getters }) {
+  gcResetStores({ dispatch, getters }) {
     getters.gcStores.forEach(([storeName, storeState]) => {
-      console.warn('root gcReset', '', storeName); // TODO: RC LOG
+      console.warn('root gcResetStores', '', storeName); // TODO: RC LOG
 
-      dispatch(`${ storeName }/gcReset`);
+      dispatch(`${ storeName }/gcResetStore`);
     });
   },
 
@@ -109,7 +50,7 @@ export const gcActions = {
    * Kick of a GC in all stores that support it
    */
   garbageCollect({ rootState, dispatch, getters }, ignoreTypes) {
-    if (!gcEnabledSetting({ rootState })) {
+    if (!gc.gcEnabledSetting({ rootState })) {
       console.warn('root garbageCollect', 'IGNORING (disabled)');// TODO: RC LOG
 
       return;
