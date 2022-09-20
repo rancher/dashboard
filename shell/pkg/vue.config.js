@@ -71,8 +71,7 @@ module.exports = function(dir) {
       config.externals = {
         jquery:    '$',
         jszip:     '__jszip',
-        'js-yaml': '__jsyaml',
-        crypto:    '__crypto'
+        'js-yaml': '__jsyaml'
       };
 
       // Prevent warning in log with the md files in the content folder

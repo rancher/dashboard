@@ -29,6 +29,5 @@ export default function({
     window.$ = $;
     window.__jszip = JSZip;
     window.__jsyaml = jsyaml;
-    window.__crypto = require('crypto');
   }
 }
