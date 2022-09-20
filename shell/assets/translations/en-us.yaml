@@ -2432,6 +2432,10 @@ labels:
   annotations:
     title: Annotations
 
+labeledSelect:
+  startTyping: Start typing to define an item
+  pressEnter: Press enter to add "{input}"
+
 landing:
   clusters:
     title: Clusters
