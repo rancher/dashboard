@@ -80,11 +80,14 @@ export default {
     // users to freely type in resources that are not shown in the list.
 
     if (this.value.subtype === CLUSTER || this.value.subtype === NAMESPACE) {
-      this.templateOptions = (await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }))
-        .map(option => ({
-          label: option.nameDisplay,
-          value: option.id
-        }));
+      (await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE })).forEach((template) => {
+        // Ensure we have quick access to a specific template. This allows unselected drop downs to show the correct value
+        this.keyedTemplateOptions[template.id] = {
+          label: template.nameDisplay,
+          value: template.id
+        };
+      });
+      this.templateOptions = Object.values(this.keyedTemplateOptions);
     }
   },
 
@@ -97,11 +100,13 @@ export default {
         resources:       [],
         verbs:           []
       },
-      verbOptions:       VERBS,
-      templateOptions:   [],
-      resources:         this.value.resources,
-      scopedResources:   SCOPED_RESOURCES,
-      defaultValue:      false,
+      verbOptions:          VERBS,
+      templateOptions:      [],
+      keyedTemplateOptions: {},
+      resources:            this.value.resources,
+      scopedResources:      SCOPED_RESOURCES,
+      defaultValue:         false,
+      selectFocused:        null,
     };
   },
 
@@ -682,10 +687,12 @@ export default {
                     :taggable="false"
                     :disabled="isBuiltin"
                     :searchable="true"
-                    :options="templateOptions"
+                    :options="selectFocused === props.i ? templateOptions : [keyedTemplateOptions[props.row.value]]"
                     option-key="value"
                     option-label="label"
                     :mode="mode"
+                    @on-focus="selectFocused = props.i"
+                    @on-blur="selectFocused = null"
                   />
                 </div>
               </div>

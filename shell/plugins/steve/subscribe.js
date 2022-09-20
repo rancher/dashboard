@@ -404,6 +404,12 @@ export const actions = {
     const socket = event.currentTarget;
     const tries = event?.detail?.tries; // have to pull it off of the event because the socket's tries is already reset to 0
     const t = rootGetters['i18n/t'];
+    const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+    let disableGrowl = false;
+
+    if ( perfSetting?.value ) {
+      disableGrowl = JSON.parse(perfSetting.value).disableWebsocketNotification || false;
+    }
 
     this.$socket = socket;
 
@@ -431,7 +437,7 @@ export const actions = {
       if (growlErr) {
         dispatch('growl/remove', growlErr.id, { root: true });
       }
-      if (tries > 1) {
+      if (tries > 1 && !disableGrowl) {
         dispatch('growl/success', {
           title:   t('growl.reconnected.title'),
           message: t('growl.reconnected.message', { url: this.$socket.url, tries }),
