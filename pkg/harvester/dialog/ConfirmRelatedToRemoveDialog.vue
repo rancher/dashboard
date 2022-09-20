@@ -114,7 +114,9 @@ export default {
 
     async remove(buttonDone) {
       try {
-        await this.resources[0].remove();
+        for (const resource of this.resources) {
+          await resource.remove();
+        }
         buttonDone(true);
         this.close();
       } catch (e) {
