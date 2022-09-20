@@ -300,3 +300,11 @@ export function isIpv4(ip) {
 
   return reg.test(ip);
 }
+
+export function translateKeysWithFallback(items, tFallbackFn, key = 'key') {
+  return [...items].map((item) => {
+    item[key] = tFallbackFn(item[key], null, item[key]);
+
+    return item;
+  });
+}
