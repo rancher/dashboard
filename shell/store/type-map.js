@@ -1544,7 +1544,7 @@ export const mutations = {
     let obj = { ...options, match };
 
     if ( idx >= 0 ) {
-      obj = Object.assign(obj, state.typeOptions[idx]);
+      obj = Object.assign(state.typeOptions[idx], obj);
       state.typeOptions.splice(idx, 1, obj);
     } else {
       const obj = Object.assign({}, options, { match });
