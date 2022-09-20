@@ -167,6 +167,7 @@ export default {
           blockDevice,
           displayName:      blockDevice?.displayName || key,
           forceFormatted:   blockDevice?.spec?.fileSystem?.forceFormatted || false,
+          tags:             diskSpec?.[key]?.tags || [],
         };
       });
 
@@ -189,6 +190,13 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
       return !!this.$store.getters[`${ inStore }/schemaFor`](HCI.BLOCK_DEVICE);
+    },
+
+    longhornNode() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNodes = this.$store.getters[`${ inStore }/all`](LONGHORN.NODES);
+
+      return longhornNodes.find(node => node.id === `${ LONGHORN_SYSTEM }/${ this.value.id }`);
     },
   },
   watch: {
@@ -213,6 +221,7 @@ export default {
     if (this.registerAfterHook) {
       this.registerAfterHook(this.saveHostNetwork);
       this.registerAfterHook(this.saveDisk);
+      this.registerAfterHook(this.saveLonghornNode);
     }
   },
 
@@ -391,6 +400,20 @@ export default {
         }
       });
     },
+
+    async saveLonghornNode() {
+      const disks = this.longhornNode?.spec?.disks || {};
+
+      this.newDisks.map((disk) => {
+        (disks[disk.name] || {}).tags = disk.tags;
+      });
+
+      try {
+        await this.longhornNode.save();
+      } catch (err) {
+        return Promise.reject(exceptionToErrorsArray(err));
+      }
+    },
   },
 };
 </script>
@@ -457,6 +480,22 @@ export default {
         :weight="80"
         :label="t('harvester.host.tabs.disk')"
       >
+        <div
+          v-if="longhornNode"
+          class="row mb-20"
+        >
+          <div class="col span-12">
+            <LabeledSelect
+              v-model="longhornNode.spec.tags"
+              :mode="mode"
+              :multiple="true"
+              :taggable="true"
+              :options="[]"
+              :label="t('harvester.host.tags.label')"
+              :searchable="true"
+            />
+          </div>
+        </div>
         <ArrayListGrouped
           v-model="newDisks"
           :mode="mode"

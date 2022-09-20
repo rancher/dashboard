@@ -15,10 +15,12 @@ export default class HciPv extends HarvesterResource {
     const accessModes = realMode === _CLONE ? this.spec.accessModes : [];
     const storage =
       realMode === _CLONE ? this.spec.resources.requests.storage : null;
+    const storageClassName =
+      realMode === _CLONE ? this.spec.storageClassName : '';
 
     Vue.set(this, 'spec', {
       accessModes,
-      storageClassName: '',
+      storageClassName,
       volumeName:       '',
       resources:        { requests: { storage } }
     });
@@ -214,5 +216,11 @@ export default class HciPv extends HarvesterResource {
     } else {
       return null;
     }
+  }
+
+  get source() {
+    const imageId = get(this, `metadata.annotations."${ HCI_ANNOTATIONS.IMAGE_ID }"`);
+
+    return imageId ? 'image' : 'data';
   }
 }

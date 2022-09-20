@@ -8,7 +8,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ModalWithCard from '@shell/components/ModalWithCard';
 
-import { PVC } from '@shell/config/types';
+import { PVC, STORAGE_CLASS } from '@shell/config/types';
 import { HCI } from '../../../types';
 import { clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
@@ -161,6 +161,13 @@ export default {
         bus:         'virtio',
         newCreateId: randomStr(10), // judge whether it is a disk that has been created
       };
+
+      if (type === SOURCE_TYPE.NEW) {
+        const inStore = this.$store.getters['currentProduct'].inStore;
+        const defaultStorage = this.$store.getters[`${ inStore }/all`](STORAGE_CLASS).find( O => O.isDefault);
+
+        neu.storageClassName = defaultStorage?.metadata?.name || 'longhorn';
+      }
 
       this.rows.push(neu);
       this.update();

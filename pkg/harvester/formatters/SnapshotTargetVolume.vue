@@ -21,7 +21,8 @@ export default {
   },
   computed: {
     volume() {
-      const volume = this.volumeList.find( V => V.metadata.name === this.value);
+      const namespace = this.row?.metadata?.namespace;
+      const volume = this.volumeList.find( V => V.id === `${ namespace }/${ this.value }`) || {};
 
       return volume;
     },

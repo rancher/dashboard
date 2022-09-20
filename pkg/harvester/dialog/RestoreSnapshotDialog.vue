@@ -5,10 +5,19 @@ import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+
+import { allHash } from '@shell/utils/promise';
+import { STORAGE_CLASS } from '@shell/config/types';
+
 export default {
   name:       'HarvesterRestoreSnapshotDialog',
   components: {
-    AsyncButton, Banner, Card, LabeledInput
+    AsyncButton,
+    Banner,
+    Card,
+    LabeledInput,
+    LabeledSelect,
   },
   props:      {
     resources: {
@@ -18,27 +27,71 @@ export default {
   },
   data() {
     return {
-      name:      '',
-      errors:       []
+      name:             '',
+      errors:           [],
+      storageClassName: '',
     };
   },
+
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    const hash = { storages: this.$store.dispatch(`${ inStore }/findAll`, { type: STORAGE_CLASS }) };
+
+    await allHash(hash);
+
+    if (this.showStorageClass) {
+      const defaultStorage = this.$store.getters[`${ inStore }/all`](STORAGE_CLASS).find(s => s.isDefault);
+
+      this.$set(this, 'storageClassName', defaultStorage?.metadata?.name || 'longhorn');
+    }
+  },
+
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     actionResource() {
-      return this.resources[0];
+      return this.resources[0] || {};
     },
     disableSave() {
-      return !this.name;
-    }
+      return !(this.name && (this.showStorageClass ? this.storageClassName : true));
+    },
+
+    storageClassOptions() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const storages = this.$store.getters[`${ inStore }/all`](STORAGE_CLASS);
+
+      const out = storages.filter(s => !s.parameters?.backingImage).map((s) => {
+        const label = s.isDefault ? `${ s.name } (${ this.t('generic.default') })` : s.name;
+
+        return {
+          label,
+          value: s.name,
+        };
+      }) || [];
+
+      return out;
+    },
+
+    showStorageClass() {
+      return this.actionResource?.volume?.source === 'data';
+    },
   },
   methods: {
     close() {
       this.name = '';
+      this.storageClassName = '';
+
       this.$emit('close');
     },
     async save(buttonCb) {
       try {
-        const res = await this.actionResource.doAction('restore', { name: this.name });
+        const payload = { name: this.name };
+
+        if (this.showStorageClass) {
+          payload.storageClassName = this.storageClassName;
+        }
+
+        const res = await this.actionResource.doAction('restore', payload);
 
         if (res._status === 200 || res._status === 204) {
           this.$store.dispatch('growl/success', {
@@ -73,6 +126,14 @@ export default {
       <LabeledInput
         v-model="name"
         :label="t('harvester.modal.restoreSnapshot.name')"
+        required
+      />
+      <LabeledSelect
+        v-if="showStorageClass"
+        v-model="storageClassName"
+        :options="storageClassOptions"
+        :label="t('harvester.storage.storageClass.label')"
+        class="mt-20"
         required
       />
     </template>
