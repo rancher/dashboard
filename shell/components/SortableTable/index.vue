@@ -334,6 +334,7 @@ export default {
     clearTimeout(this._loadingDelayTimer);
     clearTimeout(this._liveColumnsTimer);
     clearTimeout(this._delayedColumnsTimer);
+    clearTimeout(this.manualRefreshTimer);
 
     const $main = $('main');
 
@@ -348,23 +349,18 @@ export default {
     descending(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     searchQuery(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     sortFields(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     groupBy(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     namespaces(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     page(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
@@ -385,9 +381,11 @@ export default {
 
       // setTimeout is needed so that this is pushed further back on the JS computing queue
       // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
-      setTimeout(() => {
-        this.watcherUpdateLiveAndDelayed(neu, old);
-      }, 500);
+      if (old && !neu) {
+        this.manualRefreshTimer = setTimeout(() => {
+          this.watcherUpdateLiveAndDelayed(neu, old);
+        }, 1000);
+      }
     }
   },
 
