@@ -24,16 +24,18 @@ export default {
       hash.settings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
     }
 
-    if (this.$store.getters['harvester/schemaFor'](HCI.CLUSTER_NETWORK)) {
-      hash.clusterNetwork = this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK });
+    if (this.$store.getters['harvester/schemaFor'](MANAGEMENT.MANAGED_CHART)) {
+      hash.managedcharts = this.$store.dispatch('harvester/findAll', { type: MANAGEMENT.MANAGED_CHART });
     }
 
     const rows = await allHash(hash);
 
     let allRows = [];
 
-    if (rows.clusterNetwork) {
-      allRows.push(...rows.clusterNetwork);
+    const monitoring = (rows.managedcharts || []).find(c => c.id === 'fleet-local/rancher-monitoring');
+
+    if (monitoring) {
+      allRows.push(...rows.managedcharts);
     }
 
     allRows.push(...rows.harvesterSettings);

@@ -105,6 +105,7 @@ generic:
           =1 {Matches 1 of {total, number}: "{sample}"}
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
+  basic: Basic
 
 locale:
   en-us: English
@@ -148,6 +149,7 @@ nav:
     apps: Apps
     clusterProvisioning: Cluster Provisioning
     core: Core
+    networks: Networks
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources

@@ -586,7 +586,6 @@ harvester:
       basics: 基本信息
       layer3Network: 路由
     message:
-      vlanInactive: 'VLAN 网络在 {name} 主机上处于非活动状态'
       premise:
         prefix: '你需要先进行网络'
         middle: '设置'

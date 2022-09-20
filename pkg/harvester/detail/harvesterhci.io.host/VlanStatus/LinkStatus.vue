@@ -1,15 +1,12 @@
 <script>
 import LabelValue from '@shell/components/LabelValue';
-import InputOrDisplay from '@shell/components/InputOrDisplay';
+
 import { _CREATE } from '@shell/config/query-params';
 
 export default {
-  name: 'HarvesterHostNetwork',
+  name: 'LinkStatus',
 
-  components: {
-    LabelValue,
-    InputOrDisplay,
-  },
+  components: { LabelValue },
 
   props: {
     value: {
@@ -27,7 +24,7 @@ export default {
 
 <template>
   <div>
-    <div class="row">
+    <div class="row mt-10">
       <div class="col span-6">
         <LabelValue
           :name="t('generic.name')"
@@ -56,21 +53,6 @@ export default {
       </div>
     </div>
     <div class="row mt-10">
-      <div class="col span-6">
-        <InputOrDisplay
-          :name="t('harvester.fields.ipv4Address')"
-          :value="value.ipv4Address"
-          :mode="mode"
-        >
-          <template #value>
-            <ul>
-              <li v-for="a in value.ipv4Address" :key="a">
-                {{ a }}
-              </li>
-            </ul>
-          </template>
-        </InputOrDisplay>
-      </div>
       <div
         v-if="value.promiscuous === 'true'"
         class="col span-6"

@@ -1,4 +1,4 @@
-import { findBy } from '@shell/utils/array';
+import { findBy, isArray } from '@shell/utils/array';
 
 export default {
   computed: {
@@ -7,11 +7,19 @@ export default {
     },
 
     readyCondition() {
-      return findBy(this.conditions, 'type', 'Ready') || {};
+      if (isArray(this.conditions)) {
+        return findBy(this.conditions, 'type', 'Ready') || {};
+      } else {
+        return this.conditions.Ready;
+      }
     },
 
     schedulableCondition() {
-      return findBy(this.conditions, 'type', 'Schedulable') || {};
+      if (isArray(this.conditions)) {
+        return findBy(this.conditions, 'type', 'Schedulable') || {};
+      } else {
+        return this.conditions.Schedulable;
+      }
     },
   },
 };

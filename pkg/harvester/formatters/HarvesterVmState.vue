@@ -35,25 +35,8 @@ export default {
   },
 
   computed: {
-    networkImpassability() {
-      const nodeName = this.row?.nodeName;
-      const nn = this.allNodeNetwork.find( N => N.attachNodeName === nodeName);
-
-      return (!!nn?.message || !this.enableClusterNetwork) && this.row?.attachNetwork && this?.row?.actualState === 'Running';
-    },
-
-    enableClusterNetwork() {
-      const clusterNetwork = this.allClusterNetwork?.[0] || {};
-
-      return clusterNetwork?.enable;
-    },
-
     warningMessage() {
       const out = [];
-
-      if (this.networkImpassability && this.allClusterNetwork.length) {
-        out.push(this.t('harvester.network.message.vlanInactive', { name: this.row.realAttachNodeName }));
-      }
 
       if (this.row.warningMessage?.pod) {
         const pod = this.row.warningMessage.pod;
