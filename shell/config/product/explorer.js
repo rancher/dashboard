@@ -58,6 +58,7 @@ export function init(store) {
     'namespaces',
     NODE,
     VIRTUAL_TYPES.CLUSTER_MEMBERS,
+    EVENT,
   ], 'cluster');
   basicType([
     SERVICE,
@@ -142,6 +143,7 @@ export function init(store) {
   configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: true });
 
   configureType(EVENT, { limit: 500 });
+  weightType(EVENT, -1, true);
 
   // Allow Pods to be grouped by node
   configureType(POD, {

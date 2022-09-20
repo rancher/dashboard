@@ -2067,6 +2067,7 @@ glance:
   installMonitoring: Install Monitoring
   v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
+  eventsTable: Full events list
 
 clusterBadge:
   addLabel: Add Cluster Badge
