@@ -52,7 +52,6 @@ export default {
     }
     this.supportSetting = await fetchOrCreateSetting('has-support', 'false');
     this.brandSetting = await fetchOrCreateSetting(SETTING.BRAND, '');
-    this.communitySetting = await fetchOrCreateSetting(SETTING.COMMUNITY_LINKS, 'true');
     this.serverUrlSetting = await fetchOrCreateSetting(SETTING.SERVER_URL, '');
     this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
   },
@@ -65,7 +64,6 @@ export default {
       supportSetting:       null,
       brandSetting:         null,
       uiIssuesSetting:      null,
-      communitySetting:     null,
       serverSetting:        null,
       promos:               [
         'support.promos.one',

@@ -7,27 +7,28 @@ import { fetchOrCreateSetting, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import KeyValue from '@shell/components/form/KeyValue';
 import { allHash } from '@shell/utils/promise';
+import { translateKeysWithFallback } from '~/shell/utils/string';
 
 const DEFAULT_CUSTOM_LINKS = [
   {
     order: 1,
-    key:   'Docs',
+    key:   'customLinks.defaults.docs',
     value: 'https://rancher.com/docs/rancher/v2.6/en'
   },
   {
     order: 2,
-    key:   'Forums',
+    key:   'customLinks.defaults.forums',
     value: 'https://forums.rancher.com/'
 
   },
   {
     order: 3,
-    key:   'Slack',
+    key:   'customLinks.defaults.slack',
     value: 'https://slack.rancher.io/'
   },
   {
     order: 5,
-    key:   'Getting Started',
+    key:   'customLinks.defaults.getStarted',
     value: '/docs/getting-started'
   }
 
@@ -35,14 +36,14 @@ const DEFAULT_CUSTOM_LINKS = [
 
 const DEFAULT_SUPPORT_LINK = {
   order: 4,
-  key:   'File an issue',
+  key:   'customLinks.defaults.issues',
   value: 'https://github.com/rancher/dashboard/issues/new'
 };
 
 const COMMUNITY_LINKS = [
   {
     order: 99,
-    key:   'Commercial Support',
+    key:   'customLinks.defaults.commercialSupport',
     value: '/support'
   }
 ];
@@ -67,15 +68,15 @@ export default {
     } catch {}
 
     try {
-      const defaultIssueLink = { key: 'File an issue', value: this.uiIssuesSetting.value } || DEFAULT_SUPPORT_LINK;
-      const defaultLinks = [...DEFAULT_CUSTOM_LINKS, defaultIssueLink, ...COMMUNITY_LINKS];
+      const defaultIssueLink = !!this.uiIssuesSetting.value ? { key: this.t('customLinks.defaults.issues'), value: this.uiIssuesSetting.value } : DEFAULT_SUPPORT_LINK;
+      const defaultLinks = translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, defaultIssueLink, ...COMMUNITY_LINKS], this.$store.getters['i18n/withFallback']);
 
       this.uiCustomLinks = await fetchOrCreateSetting(this.$store, SETTING.UI_CUSTOM_LINKS, JSON.stringify(defaultLinks));
 
       await this.deprecateIssueLinks();
     } catch {}
 
-    const sValue = this.uiCustomLinks?.value || JSON.stringify(DEFAULT_CUSTOM_LINKS);
+    const sValue = this.uiCustomLinks?.value || JSON.stringify(translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, this.$store.getters['i18n/withFallback']]));
 
     this.value = JSON.parse(sValue);
   },
@@ -97,10 +98,10 @@ export default {
     defaultLinks: {
       get(issueLink) {
         if ( issueLink ) {
-          return [...DEFAULT_CUSTOM_LINKS, issueLink, ...DEFAULT_CUSTOM_LINKS];
+          return translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, issueLink, ...DEFAULT_CUSTOM_LINKS], this.$store.getters['i18n/withFallback']);
         }
 
-        return [...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...DEFAULT_CUSTOM_LINKS];
+        return translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...DEFAULT_CUSTOM_LINKS], this.$store.getters['i18n/withFallback']);
       }
     }
 
@@ -109,7 +110,7 @@ export default {
     useDefaults() {
       const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_LINKS;
 
-      this.value = [...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks];
+      this.value = translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks], this.$store.getters['i18n/withFallback']);
     },
 
     deprecateIssueLinks() {
