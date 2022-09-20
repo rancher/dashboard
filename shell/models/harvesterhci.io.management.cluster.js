@@ -79,11 +79,11 @@ export default class HciCluster extends ProvCluster {
     const pkgName = `${ HARVESTER_NAME }-1.0.3`;
 
     if (uiOfflinePreferred === 'true') {
-      // Embedded (aka give me the version of the embedded plugin that was in the last release)
-      const embeddedPath = `dashboard/${ pkgName }/${ pkgName }.umd.min.js`;
+      // Embedded (aka give me the embedded plugin that was in the last rancher release)
+      const embeddedPath = `${ pkgName }/${ pkgName }.umd.min.js`;
 
       return {
-        pkgUrl: process.env.dev ? `${ process.env.api }/${ embeddedPath }` : embeddedPath,
+        pkgUrl: process.env.dev ? `${ process.env.api }/dashboard/${ embeddedPath }` : embeddedPath,
         pkgName
       };
     }
