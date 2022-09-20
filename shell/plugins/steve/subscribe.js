@@ -16,8 +16,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 
 // eslint-disable-next-line
-import Worker from './web-worker.steve-sub-worker.js'
-import * as Comlink from 'comlink';
+import webworker from './web-worker.steve-sub-worker.js';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -36,16 +35,31 @@ export function createWorker(store, ctx) {
     return;
   }
 
-  function callback(resource) {
-    queueChange(ctx, resource, true, 'Change');
-  }
+  const workerActions = {
+    load: (resource) => {
+      queueChange(ctx, resource, true, 'Change');
+    },
+    destroyWorker: () => {
+      delete this.$workers[storeName];
+    }
+  };
 
   if (!store.$workers[storeName]) {
-    const worker = Comlink.wrap(new Worker());
+    const worker = new webworker();
 
     store.$workers[storeName] = worker;
 
-    worker.initWorker(storeName, Comlink.proxy(callback));
+    worker.postMessage({ initWorker: { storeName } });
+
+    store.$workers[storeName].onmessage = (e) => {
+      /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
+      // good enough for now considering that we never send more than one message action at a time right now */
+      const messageActions = Object.keys(e?.data);
+
+      messageActions.forEach((action) => {
+        workerActions[action](e?.data[action]);
+      });
+    };
   }
 }
 
@@ -177,21 +191,14 @@ export const actions = {
     socket.connect(get(opt, 'metadata'));
   },
 
-  unsubscribe({ state, commit, getters }) {
+  unsubscribe({ commit, getters, state }) {
     const socket = state.socket;
     const worker = (this.$workers || {})[getters.storeName];
 
     commit('setWantSocket', false);
 
     if (worker) {
-      try {
-        worker.destroyWorker();
-        worker[Comlink.releaseProxy]();
-      } catch (e) {
-        console.error(e); // eslint-disable-line no-console
-      }
-
-      delete this.$workers[getters.storeName];
+      worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
     }
 
     if ( socket ) {
@@ -600,7 +607,7 @@ export const actions = {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
-        worker.countsUpdate(msg);
+        worker.postMessage({ countsUpdate: msg });
 
         // No further processing - let the web worker debounce the counts
         return;
@@ -613,7 +620,7 @@ export const actions = {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
-        worker.updateSchema(data);
+        worker.postMessage({ updateSchema: data });
 
         // No further processing - let the web worker check the schema updates
         return;
@@ -648,7 +655,7 @@ export const actions = {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
-        worker.removeSchema(data.id);
+        worker.postMessage({ removeSchema: data.id });
       }
     }
 
@@ -729,7 +736,7 @@ export const mutations = {
     clear(state.started);
     clear(state.pendingFrames);
     clear(state.queue);
-    clearInterval(state.queueTimer);
+    clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;
   }
