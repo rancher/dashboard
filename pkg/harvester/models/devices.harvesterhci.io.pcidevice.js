@@ -53,7 +53,7 @@ export default class PCIDevice extends SteveModel {
   get passthroughClaim() {
     const passthroughClaims = this.$getters['all'](HCI.PCI_CLAIM) || [];
 
-    return passthroughClaims.find(req => req?.spec?.nodeName === this.status.nodeName && req?.spec?.address === this.status.address);
+    return !!this.status && passthroughClaims.find(req => req?.spec?.nodeName === this.status?.nodeName && req?.spec?.address === this.status?.address);
   }
 
   // this is an id for each 'type' of device - there may be multiple instances of device CRs
@@ -178,6 +178,6 @@ export default class PCIDevice extends SteveModel {
 
   // group device list by unique device (same vendorid and deviceid)
   get groupByDevice() {
-    return this.status.description;
+    return this.status?.description;
   }
 }
