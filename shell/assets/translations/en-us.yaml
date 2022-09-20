@@ -2096,9 +2096,15 @@ graphOptions:
 
 growl:
   clearAll: Clear All Notifications
-  disconnected: 
-    message: "The connection to {url} closed unexpectedly {time}. Retrying..."
+  disconnectError: 
+    message: "The connection to {url} closed unexpectedly at {time}. Disconnected after {tries} reconnect attempts. Check your network connection and reload the page"
     title: Websocket Disconnected 
+  connectError: 
+    message: "The connection to {url} closed unexpectedly at {time}. Reconnect attempt #{tries}."
+    title: Websocket Reconnecting 
+  reconnected: 
+    message: "The connection to {url} was restored on attempt #{tries}."
+    title: Websocket Reconnected
 
 hpa:
   detail:
