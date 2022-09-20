@@ -33,7 +33,7 @@ export default {
   },
   data() {
     return {
-      loading: false, error: false, interval: null, initialUrl: this.computeUrl()
+      loading: false, error: false, interval: null, initialUrl: this.computeUrl(), errorTimer: null
     };
   },
   computed: {
@@ -63,6 +63,17 @@ export default {
         injector.get('$route').updateParams(this.computeParams());
         injector.get('$route').reload();
       }
+    },
+
+    error(neu) {
+      if (neu) {
+        this.errorTimer = setInterval(() => {
+          this.reload();
+        }, 45000);
+      } else {
+        clearInterval(this.errorTimer);
+        this.errorTimer = null;
+      }
     }
   },
   mounted() {
@@ -72,6 +83,10 @@ export default {
   beforeDestroy() {
     if (this.interval) {
       clearInterval(this.interval);
+    }
+
+    if (this.errorTimer) {
+      clearInterval(this.errorTimer);
     }
   },
   methods: {
@@ -150,7 +165,7 @@ export default {
       return params;
     },
     reload(ev) {
-      ev.preventDefault();
+      ev && ev.preventDefault();
       this.$refs.frame.contentWindow.location.reload();
       this.poll();
     },
