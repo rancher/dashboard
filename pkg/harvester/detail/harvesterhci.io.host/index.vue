@@ -13,6 +13,9 @@ import Basic from './HarvesterHostBasic';
 import Instance from './VirtualMachineInstance';
 import Disk from './HarvesterHostDisk';
 import Network from './HarvesterHostNetwork';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+
+const LONGHORN_SYSTEM = 'longhorn-system';
 
 export default {
   name: 'DetailHost',
@@ -25,6 +28,7 @@ export default {
     ArrayListGrouped,
     Disk,
     Network,
+    LabeledSelect,
   },
   mixins: [metricPoller],
 
@@ -165,7 +169,15 @@ export default {
 
     hasHostNetworksSchema() {
       return !!this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK);
-    }
+    },
+
+    longhornNode() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNodes = this.$store.getters[`${ inStore }/all`](LONGHORN.NODES);
+
+      return longhornNodes.find(node => node.id === `${ LONGHORN_SYSTEM }/${ this.value.id }`);
+      // return this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `${ LONGHORN_SYSTEM }/${ this.value.id }`);
+    },
   },
 
   methods: {
@@ -222,6 +234,22 @@ export default {
         :weight="1"
         :label="t('harvester.host.tabs.disk')"
       >
+        <div
+          v-if="longhornNode"
+          class="row mb-20"
+        >
+          <div class="col span-12">
+            <LabeledSelect
+              v-model="longhornNode.spec.tags"
+              :mode="mode"
+              :multiple="true"
+              :taggable="true"
+              :options="[]"
+              :label="t('harvester.host.tags.label')"
+              :searchable="true"
+            />
+          </div>
+        </div>
         <ArrayListGrouped
           v-model="newDisks"
           :mode="mode"

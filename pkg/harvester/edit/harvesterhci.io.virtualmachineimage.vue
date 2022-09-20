@@ -8,11 +8,16 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { RadioGroup } from '@components/Form/Radio';
 import LabelValue from '@shell/components/LabelValue';
 import Select from '@shell/components/form/Select';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { OS } from '../mixins/harvester-vm';
 import { VM_IMAGE_FILE_FORMAT } from '../validators/vm-image';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { allHash } from '@shell/utils/promise';
+import { STORAGE_CLASS } from '@shell/config/types';
+import { HCI } from '../types';
 
 const DOWNLOAD = 'download';
 const UPLOAD = 'upload';
@@ -31,6 +36,7 @@ export default {
     NameNsDescription,
     RadioGroup,
     LabelValue,
+    LabeledSelect,
   },
 
   mixins: [CreateEditView],
@@ -40,6 +46,19 @@ export default {
       type:     Object,
       required: true,
     },
+  },
+
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    await allHash({
+      images:         this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.IMAGE }),
+      storageClasses: this.$store.dispatch(`${ inStore }/findAll`, { type: STORAGE_CLASS }),
+    });
+
+    const defaultStorage = this.$store.getters[`${ inStore }/all`](STORAGE_CLASS).find(s => s.isDefault);
+
+    this.$set(this, 'storageClassName', this.storageClassName || defaultStorage?.metadata?.name || 'longhorn');
   },
 
   data() {
@@ -76,7 +95,33 @@ export default {
 
     showEditAsYaml() {
       return this.value.spec.sourceType === DOWNLOAD;
-    }
+    },
+
+    storageClassOptions() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const storages = this.$store.getters[`${ inStore }/all`](STORAGE_CLASS);
+
+      const out = storages.filter(s => !s.parameters?.backingImage).map((s) => {
+        const label = s.isDefault ? `${ s.name } (${ this.t('generic.default') })` : s.name;
+
+        return {
+          label,
+          value: s.name,
+        };
+      }) || [];
+
+      return out;
+    },
+
+    storageClassName: {
+      get() {
+        return this.value.metadata.annotations[HCI_ANNOTATIONS.STORAGE_CLASS];
+      },
+
+      set(nue) {
+        this.value.metadata.annotations[HCI_ANNOTATIONS.STORAGE_CLASS] = nue;
+      }
+    },
   },
 
   watch: {
@@ -237,7 +282,12 @@ export default {
     />
 
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab name="basic" :label="t('harvester.image.tabs.basics')" :weight="3" class="bordered-table">
+      <Tab
+        name="basic"
+        :label="t('harvester.image.tabs.basics')"
+        :weight="99"
+        class="bordered-table"
+      >
         <RadioGroup
           v-if="isCreate"
           v-model="value.spec.sourceType"
@@ -310,6 +360,26 @@ export default {
             <LabelValue
               :name="t('harvester.image.fileName')"
               :value="imageName"
+            />
+          </div>
+        </div>
+      </Tab>
+
+      <Tab
+        name="storage"
+        :label="t('harvester.storage.label')"
+        :weight="89"
+        class="bordered-table"
+      >
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="storageClassName"
+              :options="storageClassOptions"
+              :label="t('harvester.storage.storageClass.label')"
+              :mode="mode"
+              :disabled="isEdit"
+              class="mb-20"
             />
           </div>
         </div>

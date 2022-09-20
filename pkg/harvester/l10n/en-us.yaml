@@ -193,6 +193,7 @@ harvester:
         image: '"Image" is required!'
         volume: '"Volume" is required!'
         docker: '"Docker Image" is required!'
+        storageClass: '"Storage Class" is required!'
         needImageOrExisting: 'At least an image volume or an existing root-disk volume is required!'
     image:
       ruleTip: 'The URL you have entered ends in an extension that we do not support. We only accept image files that end in .img, .iso, .qcow, .qcow2, .raw.'
@@ -229,7 +230,7 @@ harvester:
       basics: Basics
       instance: Virtual Machines
       monitor: Monitor Data
-      disk: Disks
+      disk: Storage
       labels: Labels
     detail:
       title:
@@ -280,6 +281,10 @@ harvester:
       error: Host has unready or unschedulable disks.
       fileSystem:
         info: Current file system is {system}, You can format it manually.
+      tags:
+        label: Disk Tags
+    tags:
+      label: Host Tags
 
   virtualMachine:
     label: Virtual Machines
@@ -739,6 +744,37 @@ harvester:
     createText: Restore Snapshot
     snapshot: Snapshot
 
+  storage:
+    label: Storage
+    useDefault: Use the default storage
+    migratable:
+      label: Migratable
+    numberOfReplicas:
+      label: Number Of Replicas
+    staleReplicaTimeout:
+      label: Stale Replica Timeout
+    nodeSelector:
+      label: Host Selector
+    diskSelector:
+      label: Disk Selector
+    storageClass:
+      label: Storage Class
+    title: Storage Classes
+    customize:
+      volumeBindingMode:
+        later: Bind and provision a persistent volume once a VM using the PersistentVolumeClaim is created
+    parameters:
+      numberOfReplicas:
+        label: Number Of Replicas
+      staleReplicaTimeout:
+        label: Stale Replica Timeout
+      diskSelector:
+        label: Disk Selector
+      nodeSelector:
+        label: Node Selector
+      migratable:
+        label: Migratable
+
 advancedSettings:
   descriptions:
     'harv-vlan': Default Network Interface name of the VLAN network.
@@ -839,4 +875,9 @@ typeLabel:
     {count, plural,
       one { Alertmanager Config }
       other { Alertmanager Configs }
+    }
+  harvesterhci.io.storage: |-
+    {count, plural,
+      one { Storage Class }
+      other { Storage Classes }
     }

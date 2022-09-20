@@ -8,6 +8,7 @@ import {
   PVC,
   NETWORK_ATTACHMENT,
   MONITORING,
+  STORAGE_CLASS,
 } from '@shell/config/types';
 import { HCI, VOLUME_SNAPSHOT } from '../types';
 import {
@@ -298,6 +299,7 @@ export function init($plugin, store) {
       HCI.VM_SNAPSHOT,
       HCI.SSH,
       HCI.CLOUD_TEMPLATE,
+      HCI.STORAGE,
       HCI.SETTING
     ],
     'advanced'
@@ -464,5 +466,28 @@ export function init($plugin, store) {
       params: { resource: HCI.SETTING }
     },
     exact: false
+  });
+
+  configureType(HCI.STORAGE, {
+    location: {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.STORAGE }
+    },
+    resource:       STORAGE_CLASS,
+    resourceDetail: HCI.STORAGE,
+    resourceEdit:   HCI.STORAGE,
+  });
+  virtualType({
+    labelKey:   'harvester.storage.title',
+    group:      'root',
+    ifHaveType: STORAGE_CLASS,
+    name:       HCI.STORAGE,
+    namespaced: false,
+    weight:     79,
+    route:      {
+      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:   { resource: HCI.STORAGE }
+    },
+    exact: false,
   });
 }

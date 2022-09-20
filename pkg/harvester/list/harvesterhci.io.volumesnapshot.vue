@@ -1,8 +1,9 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, PVC } from '@shell/config/types';
 import { VOLUME_SNAPSHOT, HCI } from '../types';
+import { allHash } from '@shell/utils/promise';
 
 const schema = {
   id:         HCI.SNAPSHOT,
@@ -20,7 +21,14 @@ export default {
   components: { ResourceTable, Loading },
 
   async fetch() {
-    this.rows = await this.$store.dispatch('harvester/findAll', { type: VOLUME_SNAPSHOT });
+    const hash = {
+      volumes:   this.$store.dispatch(`harvester/findAll`, { type: PVC }),
+      snapshots: this.$store.dispatch('harvester/findAll', { type: VOLUME_SNAPSHOT }),
+    };
+
+    const res = await allHash(hash);
+
+    this.rows = res.snapshots;
 
     const snapShotSchema = this.$store.getters['harvester/schemaFor'](VOLUME_SNAPSHOT);
 

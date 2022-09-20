@@ -11,6 +11,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { HCI, VOLUME_SNAPSHOT } from '../types';
+import { STORAGE_CLASS } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { saferDump } from '@shell/utils/create-yaml';
 import { InterfaceOption, VOLUME_DATA_SOURCE_KIND } from '../config/harvester-map';
@@ -39,10 +40,15 @@ export default {
     const _hash = {
       images:    this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }),
       snapshots: this.$store.dispatch('harvester/findAll', { type: VOLUME_SNAPSHOT }),
+      storages:  this.$store.dispatch(`harvester/findAll`, { type: STORAGE_CLASS }),
     };
     const hash = await allHash(_hash);
 
     this.snapshots = hash.snapshots;
+
+    const defaultStorage = this.$store.getters[`harvester/all`](STORAGE_CLASS).find( O => O.isDefault);
+
+    this.$set(this.value.spec, 'storageClassName', this.value?.spec?.storageClassName || defaultStorage?.metadata?.name || 'longhorn');
   },
 
   data() {
@@ -145,7 +151,23 @@ export default {
 
     dataSourceKind() {
       return VOLUME_DATA_SOURCE_KIND[this.value.spec?.dataSource?.kind];
-    }
+    },
+
+    storageClassOptions() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const storages = this.$store.getters[`${ inStore }/all`](STORAGE_CLASS);
+
+      const out = storages.filter(s => !s.parameters?.backingImage).map((s) => {
+        const label = s.isDefault ? `${ s.name } (${ this.t('generic.default') })` : s.name;
+
+        return {
+          label,
+          value: s.name,
+        };
+      }) || [];
+
+      return out;
+    },
   },
 
   methods: {
@@ -154,7 +176,7 @@ export default {
     },
     update() {
       let imageAnnotations = '';
-      let storageClassName = 'longhorn';
+      let storageClassName = this.value.spec.storageClassName;
 
       if (this.isVMImage && this.imageId) {
         imageAnnotations = {
@@ -227,6 +249,17 @@ export default {
           required
           :mode="mode"
           class="mb-20"
+          @input="update"
+        />
+
+        <LabeledSelect
+          v-if="source === 'blank'"
+          v-model="value.spec.storageClassName"
+          :options="storageClassOptions"
+          :label="t('harvester.storage.storageClass.label')"
+          :mode="mode"
+          class="mb-20"
+          :disabled="!isCreate"
           @input="update"
         />
 
