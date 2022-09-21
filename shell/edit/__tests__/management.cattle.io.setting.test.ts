@@ -1,10 +1,10 @@
 import { mount } from '@vue/test-utils';
 import Settings from '@shell/edit/management.cattle.io.setting.vue';
+import { SETTING } from '@shell/config/settings';
 
 describe('management.cattle.io.setting should', () => {
   describe('validate input with provided settings', () => {
     const requiredSetup = () => ({
-      propsData: { value: { value: 'anything' } },
       // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
       mocks:     {
         $store: {
@@ -23,7 +23,8 @@ describe('management.cattle.io.setting should', () => {
 
     it('allowing to save if no rules', () => {
       const wrapper = mount(Settings, {
-        data: () => ({ setting: { } }),
+        propsData: { value: { value: 'anything' } },
+        data:      () => ({ setting: { } }),
         ...requiredSetup()
       });
       const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
@@ -31,24 +32,28 @@ describe('management.cattle.io.setting should', () => {
       expect(saveButton.disabled).toBe(false);
     });
 
-    it('allowing to save if valid', () => {
-      const wrapper = mount(Settings, {
-        data: () => ({ setting: { rules: [() => undefined] } }),
-        ...requiredSetup()
+    describe('using predefined generic rule', () => {
+      const id = SETTING.CATTLE_PASSWORD_MIN_LENGTH;
+
+      it('allowing to save if pass', () => {
+        const wrapper = mount(Settings, {
+          propsData: { value: { id, value: '3' } },
+          ...requiredSetup()
+        });
+        const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
+
+        expect(saveButton.disabled).toBe(false);
       });
-      const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
-      expect(saveButton.disabled).toBe(false);
-    });
+      it('preventing to save if any error', () => {
+        const wrapper = mount(Settings, {
+          propsData: { value: { id, value: '1' } },
+          ...requiredSetup()
+        });
+        const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
 
-    it('preventing to save if any error', () => {
-      const wrapper = mount(Settings, {
-        data: () => ({ setting: { rules: [() => 'error'] } }),
-        ...requiredSetup()
+        expect(saveButton.disabled).toBe(true);
       });
-      const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
-
-      expect(saveButton.disabled).toBe(true);
     });
   });
 });
