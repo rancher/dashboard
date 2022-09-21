@@ -5446,6 +5446,7 @@ workload:
     addClaim: Add Claim
     addMount: Add Mount
     addVolume: Add Volume
+    selectVolume: Select Volume
     certificate: Certificate
     csi:
       diskName: Disk Name
