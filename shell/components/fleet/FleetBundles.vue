@@ -125,7 +125,7 @@ export default {
         <template #cell:deploymentsReady="{row}">
           <span v-if="displayWarning(row)" class="text-warning">
             {{ row.status.summary.ready }}/{{ row.status.summary.desiredReady }}</span>
-          <span v-else>{{ row.status.summary.desiredReady }}</span>
+          <span v-else-if="row.status">{{ row.status.summary.desiredReady }}</span>
         </template>
       </ResourceTable>
     </div>
