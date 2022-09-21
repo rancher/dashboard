@@ -232,6 +232,7 @@ harvester:
       monitor: Monitor Data
       disk: Storage
       labels: Labels
+      ksmtuned: Ksmtuned
     detail:
       title:
         network: Network Configuration
@@ -258,6 +259,38 @@ harvester:
     cordon:
       title: Cordon
       protip: This operation will mark the node { node } as unschedulable.
+    ksmtuned:
+      run: Run
+      configure: Configure
+      mode: Mode
+      modeLink: Mode <a href="https://docs.harvesterhci.io/v1.0/host/host/#enable-ksmtuned" target="_blank"><i class="icon icon-info" /></a>
+      thresCoef: ThresCoef
+      modeOption:
+        standard: Standard
+        high: High-Perfomanace
+        customized: Customized
+      parameters: 
+        title: Ksmtuned Parameters
+        boost: Boost
+        decay: Decay
+        sleepMsec: Sleep Milliseconds
+        minPages: Minimum Pages
+        maxPages: Maximum Pages
+        description:
+          boost: The number of scanned pages is incremented each time, and if the available memory is less than the ThresCoef.
+          decay: The number of scanned pages is decremented each time, and if the available memory is greater than the ThresCoef.
+          sleepMsec: The interval between each detection, is calculated by the formula for the interval between two scans.
+          minPages: The minimum number of pages per scan, also the configuration for the first run.
+          maxPages: Maximum number of pages per scan.
+      statistics:
+        title: Statistics <a href="https://www.kernel.org/doc/html/latest/admin-guide/mm/ksm.html#ksm-daemon-sysfs-interface" target="_blank"><i class="icon icon-info" /></a>
+        sharing: Sharing
+        shared: Shared
+        unshared: Unshared
+        volatile: Volatile
+        fullScans: Full Scans
+        stableNodeChains: Stable Node Chains
+        stableNodeDups: Stable Node Dups
     disk:
       add: Add Disk
       path:
