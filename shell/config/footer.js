@@ -1,14 +1,7 @@
 import { DOCS_BASE } from '@shell/config/private-label';
 
 // Deprecated
-export function options(isSupport, issuesUrl) {
-  if (!issuesUrl) {
-    if (hideRancher) {
-      return { };
-    }
-    issuesUrl = 'https://github.com/rancher/dashboard/issues/new';
-  }
-
+export function options(isSupport, issuesUrl = 'https://github.com/rancher/dashboard/issues/new') {
   const links = {
     docs:        DOCS_BASE,
     forums:     'https://forums.rancher.com/',
