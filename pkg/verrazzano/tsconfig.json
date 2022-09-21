@@ -30,6 +30,9 @@
       "@shell/config/*": [
         "../../shell/config/*"
       ],
+      "@shell/mixins/*": [
+        "../../shell/mixins/*"
+      ],
       "@shell/store/*": [
         "../../shell/store/*"
       ],
@@ -52,6 +55,7 @@
   },
   "include": [
     "**/*.ts",
+    "**/*.js",
     "**/*.d.ts",
     "**/*.tsx",
     "**/*.vue",

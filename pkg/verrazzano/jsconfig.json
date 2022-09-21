@@ -18,6 +18,9 @@
       "@shell/store/*": [
         "../../shell/store/*"
       ],
+      "@shell/mixins/*": [
+        "../../shell/mixins/*"
+      ],
       "@shell/plugins/*": [
         "../../shell/plugins/*"
       ],

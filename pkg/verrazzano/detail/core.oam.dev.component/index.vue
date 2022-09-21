@@ -6,7 +6,7 @@ import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
 import Tab from '@shell/components/Tabbed/Tab';
-import VerrazzanoHelper from '@/pkg/verrazzano/mixins/verrazzano-helper';
+import VerrazzanoHelper from '@pkg/mixins/verrazzano-helper';
 import V1WorkloadMetrics from '@shell/mixins/v1-workload-metrics';
 
 import {

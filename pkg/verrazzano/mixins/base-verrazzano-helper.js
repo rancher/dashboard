@@ -1,7 +1,7 @@
 // Added by Verrazzano
 import CreateEditView from '@shell/mixins/create-edit-view';
-import NavigationHelper from './navigation-helper';
-import NotSetPlaceholder from './not-set-placeholder';
+import NavigationHelper from '@pkg/mixins/navigation-helper';
+import NotSetPlaceholder from '@pkg/mixins/not-set-placeholder';
 
 import { clone, get, isEmpty, set } from '@shell/utils/object';
 import { mapGetters } from 'vuex';

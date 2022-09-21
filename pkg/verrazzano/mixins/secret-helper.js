@@ -1,5 +1,5 @@
 // Added by Verrazzano
-import OamComponentHelper from './oam-component-helper';
+import OamComponentHelper from '@pkg/mixins/oam-component-helper';
 
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 
