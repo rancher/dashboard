@@ -21,7 +21,7 @@ export default {
 
   computed: {
     html() {
-      return this.marked(this.value, {
+      return this.marked.parse(this.value, {
         renderer: this.markedRenderer,
         breaks:   true
       });
@@ -33,7 +33,7 @@ export default {
   },
 
   async mounted() {
-    const marked = (await import(/* webpackChunkName: "markdown" */ 'marked')).default;
+    const marked = (await import(/* webpackChunkName: "markdown" */ 'marked'));
     const dompurify = (await import(/* webpackChunkName: "markdown" */ 'dompurify')).default;
 
     const renderer = new marked.Renderer();
@@ -79,18 +79,50 @@ export default {
   <Loading v-else />
 </template>
 
-<style lang="scss" scoped>
-  ::v-deep {
-    P {
-      font-size: initial;
-      line-height: initial;
-      font-weight: initial;
-      letter-spacing: initial;
-      font-style: normal;
-    }
+<style lang="scss">
 
+::v-deep {
+  P {
+    font-size: initial;
+    line-height: initial;
+    font-weight: initial;
+    letter-spacing: initial;
+    font-style: normal;
+  }
+}
+
+.markdown {
     TH {
       text-align: left;
     }
-  }
+
+    table tr th {
+      font-weight: bold;
+      text-align: left;
+      margin: 0;
+      padding: 6px 13px;
+    }
+
+    table tr th {
+      font-weight: bold;
+      text-align: left;
+      margin: 0;
+      padding: 6px 13px;
+    }
+
+    table tr td {
+      text-align: left;
+      margin: 0;
+      padding: 6px 13px;
+    }
+
+    table tr th :first-child, table tr td :first-child {
+      margin-top: 0;
+    }
+
+    table tr th :last-child, table tr td :last-child {
+      margin-bottom: 0;
+    }
+}
+
 </style>

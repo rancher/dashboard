@@ -242,7 +242,7 @@ export default {
             <LabeledInput v-model="location" label="Plugin URL" @input="updateLocation" />
           </div>
           <div class="dialog-buttons">
-            <button class="btn" @click="closeAddDialog()">
+            <button class="btn role-secondary" @click="closeAddDialog()">
               Cancel
             </button>
             <button class="btn role-primary" @click="loadPlugin()">
@@ -268,7 +268,7 @@ export default {
             <LabeledInput v-model="catalogUrl" label="Catalog URL" />
           </div>
           <div class="dialog-buttons">
-            <button class="btn" @click="closeAddCatalogDialog()">
+            <button class="btn role-secondary" @click="closeAddCatalogDialog()">
               Cancel
             </button>
             <button class="btn role-primary" @click="addCatalog()">

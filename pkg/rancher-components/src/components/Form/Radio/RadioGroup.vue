@@ -1,65 +1,101 @@
-<script>
+<script lang="ts">
+import Vue, { PropType } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
-import { RadioButton } from '@components/Form/Radio';
+import RadioButton from '@components/Form/Radio/RadioButton.vue';
 
-export default {
+interface Option {
+  value: unknown,
+  label: string
+}
+
+export default Vue.extend({
   components: { RadioButton },
   props:      {
-    // Name for the checkbox grouping, must be unique on page
+    /**
+     * Name for the checkbox grouping, must be unique on page.
+     */
     name: {
       type:     String,
       required: true
     },
 
-    // Options can be an array of {label, value}, or just values
+    /**
+     * Options can be an array of {label, value}, or just values.
+     */
     options: {
-      type:     Array,
+      type:     Array as PropType<Option[] | string[]>,
       required: true
     },
 
-    // If options are just values, then labels can be a corresponding display value
+    /**
+     * If options are just values, then labels can be a corresponding display 
+     * value.
+     */
     labels: {
-      type:    Array,
+      type:    Array as PropType<string[]>,
       default: null
     },
 
-    // The selected value
+    /**
+     * The selected value.
+     */
     value: {
       type:    [Boolean, String, Object],
       default: null
     },
 
+    /**
+     * Disable the radio group.
+     */
     disabled: {
       type:    Boolean,
       default: false
     },
 
+    /**
+     * The radio group editing mode.
+     * @values _EDIT, _VIEW
+     */
     mode: {
       type:    String,
       default: 'edit'
     },
 
-    // Label for above the radios
+    /**
+     * Label for above the radios.
+     */
     label: {
       type:    String,
       default: null
     },
+
+    /**
+     * The i18n key to use for the radio group label.
+     */
     labelKey: {
       type:    String,
       default: null
     },
 
-    // Label for above the radios
+    /**
+     * Radio group tooltip.
+     */
     tooltip: {
       type:    [String, Object],
       default: null
     },
+
+    /**
+     * The i18n key to use for the radio group tooltip.
+     */
     tooltipKey: {
       type:    String,
       default: null
     },
 
-    // show radio buttons in column or row
+    /**
+     * Show radio buttons in column or row.
+     */
     row: {
       type:    Boolean,
       default: false
@@ -67,8 +103,11 @@ export default {
   },
 
   computed: {
-    normalizedOptions() {
-      const out = [];
+    /**
+     * Creates a collection of Options from the provided props.
+     */
+    normalizedOptions(): Option[] {
+      const out: Option[] = [];
 
       for (let i = 0; i < this.options.length; i++) {
         const opt = this.options[i];
@@ -91,18 +130,27 @@ export default {
       return out;
     },
 
-    isView() {
+    /**
+     * Determines the view mode for the radio group.
+     */
+    isView(): boolean {
       return this.mode === _VIEW;
     },
 
-    isDisabled() {
+    /**
+     * Determines if the radio group is disabled.
+     */
+    isDisabled(): boolean {
       return (this.disabled || this.isView);
     }
   },
 
   methods: {
-    // keyboard left/right event listener to select next/previous option
-    clickNext(direction) {
+    /**
+     * Keyboard left/right event listener to select next/previous option. Emits
+     * the input event.
+     */
+    clickNext(direction: number): void {
       const opts = this.normalizedOptions;
       const selected = opts.find(x => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;
@@ -116,7 +164,7 @@ export default {
       this.$emit('input', opts[newIndex].value);
     }
   }
-};
+});
 </script>
 
 <template>

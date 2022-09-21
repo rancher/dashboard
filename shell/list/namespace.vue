@@ -17,10 +17,10 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
+    ...mapGetters(['currentProduct']),
 
     filterRow() {
-      if (this.isVirtualCluster) {
+      if (this.currentProduct.hideSystemResources) {
         return this.rows.filter( (N) => {
           return !N.isSystem && !N.isFleetManaged;
         });

@@ -25,8 +25,13 @@ export default {
     return state.types[type].list;
   },
 
-  matching: (state, getters) => (type, selector) => {
-    const all = getters['all'](type);
+  matching: (state, getters) => (type, selector, namespace) => {
+    let all = getters['all'](type);
+
+    // Filter first by namespace if one is provided, since this is efficient
+    if (namespace) {
+      all = all.filter(obj => obj.namespace === namespace);
+    }
 
     return all.filter((obj) => {
       return matches(obj, selector);
@@ -282,6 +287,18 @@ export default {
 
   isClusterStore: (state) => {
     return state.config.isClusterStore;
-  }
+  },
 
+  // Increment the load counter for a resource type
+  // This is used for incremental loading do detect when a page changes occur of the a reload happend
+  // While a previous incremental loading operation is still in progress
+  loadCounter: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+
+    if (!!state.types[type]) {
+      return state.types[type].loadCounter;
+    }
+
+    return 0;
+  }
 };

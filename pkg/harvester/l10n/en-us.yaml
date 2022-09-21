@@ -1,0 +1,772 @@
+harvester:
+  productLabel: 'Harvester'
+  modal:
+    backup:
+      success: 'Backup { backUpName } has been initiated.'
+      addBackup: Add Backup
+    restore:
+      success: 'Restore { name } created successfully.'
+      title: Backup and restore
+      selectBackup: Select Backup
+      message:
+        backup: Please select the backup that needs to be restored.
+    createTemplate:
+      title: 'Generate Template'
+      name: 'Name'
+      description: 'Description'
+      message:
+        tip: Please enter a template name!
+        success: 'Template { templateName } created successfully.'
+        failed: 'Failed generated template!'
+    cloneVM:
+      title: Clone VM
+      name: New VM Name
+      type: clone volume data
+      action:
+        create: Create
+        clone: Clone
+      message:
+        tip: Please enter a VM name!
+        success: 'VM { name } cloned successfully.'
+        failed: 'Failed clone VM!'
+    exportImage:
+      title: Export to Image
+      name: Name
+      namespace: Namespace
+      message:
+        success: 'Image { name } created successfully.'
+    migration:
+      failedMessage: Latest migration failed!
+      title: Migration
+      fields:
+        nodeName:
+          label: Target Node
+          placeholder: Choose Target Node
+    ejectCDROM:
+      title: Eject CDROM
+      warnTip: Eject volume will restart the virtual machine.
+      operationTip: 'Select the volume you want to delete:'
+      delete: Delete
+    bundle:
+      title: Generate Support Bundle
+      url: Issue URL
+      description: Description
+      requiredDesc: Description is required!
+      titleDescription: Collect system-related log in Harvester, to help with troubleshooting and support.
+    hotplug:
+      success: 'Volume { diskName } is mounted to the VM { vm }.'
+      title: Add Volume
+    hotunplug:
+      success: 'Volume { name } is detach successfully.'
+  notification:
+    title:
+      succeed: Succeed
+      info: Info
+      warning: Warning
+      error: Error
+  action:
+    createVM: Create a Virtual Machine
+    start: Start
+    restart: Restart
+    softreboot: Soft Reboot
+    stop: Stop
+    pause: Pause
+    deepClone: Clone
+    shallowClone: Clone Template
+    unpause: Unpause
+    ejectCDROM: Eject CDROM
+    launchFormTemplate: Launch instance from template
+    modifyTemplate: Modify template (Create new version)
+    setDefaultVersion: Set default version
+    addTemplateVersion: Add templateVersion
+    backup: Take Backup
+    restore: Restore
+    restoreNewVM: Restore New
+    restoreExistingVM: Replace Existing
+    migrate: Migrate
+    abortMigration: Abort Migration
+    createTemplate: Generate Template
+    enableMaintenance: Enable Maintenance Mode
+    disableMaintenance: Disable Maintenance Mode
+    cordon: Cordon
+    uncordon: Uncordon
+    addHotplug: Add Volume
+    exportImage: Export Image
+    viewlogs: View Logs
+    cancelExpand: Cancel Expand
+  tableHeaders:
+    size: Size
+    progress: Progress
+    message: Message
+    phase: Phase
+    attachedVM: Attached VM
+    fingerprint: Fingerprint
+    value: Value
+    actions: Actions
+    readyToUse: Ready To Use
+    backupTarget: Backup Target
+    targetVm: Target VM
+    hostIp: Host IP
+    vm:
+      ipAddress: IP Address
+      node: Node
+      defaultVersion: Default Version
+    network:
+      type: Type
+      vlan: Vlan ID
+  tab:
+    volume: Volumes
+    network: Networks
+    advanced: Advanced Options
+    accessCredentials: Access Credentials
+  fields:
+    version: Version
+    name: Name
+    type: Type
+    image: Image
+    size: Size
+    volume: Volume
+    network: Network
+    model: Model
+    macAddress: Mac Address
+    port: Port
+    protocol: Protocol
+    remove: REMOVE
+    PhysicalNic: Physical NIC
+    cpu: Cpu
+    memory: Memory
+    virtualName: Virtual machine name
+    promiscuous: Promiscuous
+    ipv4Address: IPv4 Address
+    filterLabels: Filter Labels
+  generic:
+    close: Close
+    open: Open
+    showMore: Show More
+    hideMore: Hide More
+    memory: Memory
+    cpu: CPU
+    storage: Storage
+    noFileChosen: No file chosen
+
+  validation:
+    custom:
+      tooLongName: '"Name" cannot be more than {max} characters.'
+    vm:
+      name: 'name is required'
+      memory: '"Memory" is required!'
+      network:
+        error: 'network {prefix}: {message}'
+        name: 'Network Name is required'
+        macFormat: 'Invalid MAC address format.'
+        duplicatedName: 'network with this name already exists!.'
+        duplicatedPortName: 'Duplicate name of the port.'
+        duplicatedPortNumber: 'Duplicate number of the port'
+      volume:
+        error: 'volume {prefix}: {message}'
+        duplicatedName: 'volume with this name already exists!.'
+        type: '"Type" is required!'
+        size: '"Size" is required!'
+        image: '"Image" is required!'
+        volume: '"Volume" is required!'
+        docker: '"Docker Image" is required!'
+        needImageOrExisting: 'At least an image volume or an existing root-disk volume is required!'
+    image:
+      ruleTip: 'The URL you have entered ends in an extension that we do not support. We only accept image files that end in .img, .iso, .qcow, .qcow2, .raw.'
+      ruleFileTip: 'The file you have chosen ends in an extension that we do not support. We only accept image files that end in .img, .iso, .qcow, .qcow2, .raw.'
+
+  dashboard:
+    label: Dashboard
+    header: "Harvester Cluster: {cluster}"
+    hardwareResourceGauge:
+      cpu: CPU
+      memory: Memory
+      storage: Storage
+    sections:
+      events:
+        label: Events
+      vmMetrics:
+        label: VM Metrics
+
+    version: Version
+  host:
+    console: Console
+    label: Hosts
+    inconsistentIP: "Host IP is inconsistent, current IP: { currentIP }, initial IP: { initIP }"
+    promote:
+      none: ' '
+      running: promoting
+      failed: promote failed
+      unknown: promote halted
+      promoteRestart: restarting
+      promoteSucceed: promote completed
+    tabs:
+      network: Network
+      overview: Overview
+      basics: Basics
+      instance: Virtual Machines
+      monitor: Monitor Data
+      disk: Disks
+      labels: Labels
+    detail:
+      title:
+        network: Network Configuration
+      hostIP: Host IP
+      role: Role
+      os: Operating System
+      create: Creation Time
+      update: Last Update Time
+      customName: Custom Name
+      consoleUrl: Console URL
+      more: More Information
+      uuid: UUID
+      containerRuntime: Container Runtime
+      kernel: Kernel
+      management: Management Node
+      compute: Compute Node
+      storage: Storage
+      nic: Physical NIC
+      notRecommended: 'Not recommended'
+      networkType: Type
+    enableMaintenance:
+      title: Enable Maintenance Mode
+      protip: The operation will migrate all virtual machines on this node to other nodes.
+    cordon:
+      title: Cordon
+      protip: This operation will mark the node { node } as unschedulable.
+    disk:
+      add: Add Disk
+      path:
+        label: Path
+      storageReserved:
+        label: Storage Reserved
+      allowScheduling:
+        label: Scheduling
+      evictionRequested:
+        label: Eviction Requested
+      forceFormatted:
+        label: Force Formatted
+        toolTip: Force formatted will cleanup disk data, make sure you backup all available data to prevent data loss.
+        yes: Yes (Ext4 File System)
+      description:
+        label: Description
+      lastFormattedAt:
+        info: The disk has already been force-formatted.
+      notification:
+        success: 'Update host "{name}" configurations successfully.'
+      error: Host has unready or unschedulable disks.
+      fileSystem:
+        info: Current file system is {system}, You can format it manually.
+
+  virtualMachine:
+    label: Virtual Machines
+    osType: OS Type
+    instance:
+      singleInstance:
+      multipleInstance:
+      single:
+        label: Single Instance
+        nameLabel: Name
+        host:
+          label: Hostname
+          placeholder: default to the virtual machine name.
+      multiple:
+        label: Multiple Instance
+        nameNsDescription: Name prefix for each instance
+        count: Count
+        countTip: Count should be between 1 and 10
+        nameLabel: Name Prefix
+        host:
+          label: Host Prefix Name
+          placeholder: default to the virtual machine name.
+    useTemplate:
+      label: "Use VM Template:"
+      template:
+        label: template
+      version:
+        label: version
+    console:
+      novnc: Open in Web VNC
+      serial: Open in Serial Console
+    promptRemove:
+      title: 'Select the volume you want to delete:'
+      deleteAll: Delete All
+    unplug:
+      title: 'Are you sure that you want to detach volume {name} ?'
+      actionLabel: Detach
+      detachVolume:
+        Detach Volume
+    restartTip: |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } the virtual machine now to take effect of the configuration changes.
+    runStrategy: Run Strategy
+    restartNow:  |-
+      {restart, select,
+        true {Restart}
+        other {Start}
+      } Now
+    createSSHKey: Create a New...
+    installAgent: Install guest agent
+    enableUsb: Enable USB Tablet
+    usbTip: Provides an absolute pointer device which often helps with getting a consistent mouse cursor position in VNC.
+    sshTitle: Add Public SSH Key
+    imageTip: An external URL to the .iso, .img, .qcow2 or .raw that the virtual machine should be created from.
+    efiEnabled: Booting in EFI mode
+    secureBoot: Secure Boot
+    volume:
+      dragTip: Drag and drop volumes, or use the volume's arrows, to change the boot order.
+      volumeTip: The VM only contains a cd-rom volume. You may want to add additional disk volumes.
+      macTip: "MAC address as seen inside the guest system."
+      volumeUpdate: 'Set volume { name } successfully'
+      type: Type
+      size: Size
+      edit: Edit
+      bus:  Bus
+      bootOrder: Boot Order
+      volume: Volume
+      dockerImage: Docker Image
+      addVolume: Add Volume
+      addExistingVolume: Add Existing Volume
+      addVmImage: Add VM Image
+      addContainer: Add Container
+      setFirst: Set as root volume
+      saveVolume: Update Volume
+      title:
+        vmImage: Image Volume
+        existingVolume: Existing Volume
+        volume: Volume
+        container: Container
+      unmount:
+        title: Are you sure?
+        message: Are you sure you want to unmount this volume?
+    network:
+      title: Network
+      addNetwork: Add Network
+      addPort:  Add Port
+    cloudConfig:
+      title: Cloud Config
+      createTemplateTitle: 'Create {name}.'
+      createNew: Create new...
+      cloudInit:
+        label: Cloud Init
+        placeholder: Select a template
+      user:
+        label: User Data Template
+        title: "User Data:"
+        tip: "You can specify user data to configure an instance or run a configuration script during launch. If you launch more than one instance at a time, the user data is available to all the instances in that reservation. <a href='https://cloudinit.readthedocs.io/en/latest/topics/examples.html' target='_blank'>Learn more</a>"
+      network:
+        label: Network Data Template
+        title: "Network Data:"
+        tip: "The network-data configuration allows you to customize the instance’s networking interfaces by assigning subnet configuration, virtual device creation (bonds, bridges, vlans) routes and DNS configuration. <a href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html' target='_blank'>Learn more</a>"
+    scheduling:
+      affinity:
+        anyNode: 'Run VM on any available node'
+        schedulingRules: 'Run VM on node(s) matching scheduling rules'
+        specificNode: Run VM on specific node - (Live migration is not supported)
+    accessCredentials:
+      resetPwd:
+        label: Add Basic Auth
+      injectSSH:
+        label: Add SSHKey
+        users: Select Users
+        addUser: Add User
+      tips: qemu-guest-agent must be installed to enable Access Credentials, the VM should be restarted after credentials added. Need to enter the VM to edit password or remove SSH-Key after deleting the credentials.
+      userTips: The user to be added must already exist; otherwise, the credentials will not take effect.
+      duplicatedUser: User already exist.
+      invalidUser: Invalid Username.
+    input:
+      name: Name
+      memory: Memory
+      image: Image
+      sshKey: SSHKey
+      sshKeyValue: SSH-Key
+      MachineType: Machine Type
+      username: Username
+      password: Password
+      reservedMemory: Reserved Memory
+    machineTypeTip: 'Specify a processor architecture to emulate. To see a list of supported architectures, run: qemu-system-x86_64 -cpu ?'
+    detail:
+      tabs:
+        overview: Overview
+        details: Details
+        environment: Environment
+        events: Events
+        migration: Migration
+        console: Console
+        networkInterfaces: Network Interfaces
+        disks: Disks
+        networks: Networks
+        basics: Basics
+        configurations: Configurations
+        inventory: Inventory
+        hostBasic: Basic Attributes
+        instance: Virtual Machines
+        monitor: Monitor Data
+        keypairs: SSH Keys
+        cloudConfig: Cloud Config
+        metrics: VM Metrics
+      details:
+        title:
+          vmDetails: Virtual Machine Details
+          requirements: Scheduling and resources requirements
+          services: Services
+          users: Logged in users
+        name: Name
+        namespace: Namespace
+        created: Created
+        hostname: Hostname
+        node: Node
+        ipAddress: IP Address
+        status: Status
+        pod: Pod
+        labels: Labels
+        bootOrder: Boot Order
+        annotations: Annotations
+        CDROMs: CD-ROMs
+        description: Description
+        operatingSystem: Operating System
+        template: Template
+        kernelRelease: Kernel Release
+        owner: Owner
+        workloadProfile: Workload Profile
+        nodeSelector: Node Selector
+        flavor: Flavor
+        tolerations: Tolerations
+        dedicatedResources: Dedicated Resources
+        down: VM not running
+        affinityRules: Affinity Rules
+        sourceNode: Source Node
+        targetNode: Target Node
+        started: Started
+        ended: Ended
+      notAvailable: Not available
+      GuestAgentNotInstalled: Guest agent required
+      noOwner: No Owner
+      events:
+        from: Generated from
+        down: No events in the past hour
+      console:
+        down: This Virtual Machine is down. Please start it to access its console.
+        shortKeys: Shortcut Keys
+
+  volume:
+    label: Volumes
+    tabs:
+      basics: Basics
+    size: Size
+    source: Source
+    sourceOptions:
+      new: New
+      vmImage: VM Image
+    image: Image
+
+  image:
+    label: Images
+    tabs:
+      basics: Basics
+    url: URL
+    size: Size
+    urlTip: 'supports the <code>raw</code> and <code>qcow2</code> image formats which are supported by <a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a>. Bootable ISO images can also be used and are treated like <code>raw</code> images.'
+    fileName: File Name
+    uploadFile: Upload File
+    source: Source
+    sourceType:
+      download: URL
+      upload: File
+    warning:
+      uploading: |-
+        {count, plural,
+        =1 {1 image is uploading, please do not refresh or close the page.}
+        other {{count} images are uploading, please do not refresh or close the page.}
+        }
+
+  vmTemplate:
+    label: Templates
+    tabs:
+      basics: Basics
+    nameNsDescription:
+      name: Template Name
+    tips:
+      notExistImage:
+        title: Image {name} does not exist!
+        message: Please select a new Image.
+      notExistNode:
+        title: Node {name} does not exist!
+        message: Please select a new Node.
+
+  upgradePage:
+    upgradeApp: Upgrade Software
+    upgrade: Upgrade
+    upgradeTip: Please select the version you want to upgrade to
+    currentVersion: CURRENT VERSION
+    versionLabel: AVAILABLE COMPATIBLE VERSIONS
+    upgradeNode: Upgrading Node
+    upgradeSysService: Upgrading System Service
+    upgradeImage: Download Upgrade Image
+    osUpgrade: OS Upgrade
+    uploadNew: Upload New Image
+    selectExisting: Select Existing Image
+    createRepository: Creating Upgrade Repository
+    succeeded: Succeeded
+    pending: Pending
+    repoInfo:
+      upgradeStatus: Upgrade Status
+      os: OS
+      kubernetes: Kubernetes
+      monitoringChart: Monitoring Chart
+      harvesterChart: Harvester Chart
+      success: Success
+      fail:  Fail
+      ongoing: on-going
+    dismissMessage: Dismiss it
+    upgradeInfo:
+      warning: WARNING
+      doc: Before you upgrade to the newer Harvester version, you must perform the required <a href="https://docs.harvesterhci.io/v1.0/upgrade/automatic/" target="_blank"> pre-upgrade checks </a>for your cluster. Complete only those tasks that apply to your environment.
+      tip: Failure to perform these checks may result in a failed upgrade or hitting known issues that require a manual workaround fix.
+      moreNotes: For more details about the release notes, please visit - 
+
+  backup:
+    label: Backups
+    createText: Restore Backup
+    title: Restore Virtual Machine
+    backupTargetTip: The endpoint used to access the backupstore. NFS and S3 are supported.
+    message:
+      noSetting:
+        prefix: You must configure the backup target in
+        middle: 'setting'
+        suffix: before creating a new backup.
+      errorTip:
+        prefix: Backup Target value in
+        middle: Setting
+        suffix: "is invalid, error: "
+      viewSetting:
+        prefix: Click
+        middle: here
+        suffix: to view the backup config.
+    restore:
+      backup: Backup
+      deletePreviousVolumes: Delete Previous Volumes
+      createNew: Create new
+      replaceExisting: Replace existing
+      virtualMachineName: Virtual Machine Name
+    matchTarget: The current backup target does not match the existing one.
+
+  network:
+    label: Networks
+    tabs:
+      basics: Basics
+      layer3Network: Route
+    message:
+      vlanInactive: 'VLAN network is inactive at {name} host'
+      premise:
+        prefix: 'You must configure a network in'
+        middle: 'Settings'
+        suffix: 'before creating a new network.'
+      viewSetting:
+        prefix: Click
+        middle: here
+        suffix: to view default cluster network config.
+      errorTip:
+        prefix: Physical NIC value in
+        middle: Setting
+        suffix: "is invalid, error: "
+    layer3Network:
+      mode:
+        label: Mode
+        auto: Auto(DHCP)
+        manual: Manual
+      serverIPAddr:
+        label: DHCP Server IP
+      gateway:
+        label: Gateway
+        placeholder: e.g. 172.16.0.1
+      cidr:
+        label: CIDR
+        placeholder: e.g. 172.16.0.1/24
+  sshKey:
+    label: SSH Keys
+    keypair: SSH Key
+    tabs:
+      basics: Basics
+
+  setting:
+    label: Settings
+    validation:
+      physicalNIC: DefaultPhysicalNIC
+    placeholder:
+      accessKeyId: specify your access key id
+      secretAccessKey: specify your secret access key
+      cert: upload a self-signed SSL certificate
+    vlanChangeTip: The newly modified default network interface only applies to newly added nodes, not existing ones.
+    defaultPhysicalNIC: Default Network Interface
+    percentTip: The value in parentheses represents the distribution percentage of the network interface on all hosts. If an interface less than 100% is selected, the user needs to manually specify the network interface on the host where the vlan network configuration fails.
+    message:
+      ca:
+        prefix: 'Click'
+        middle: 'here'
+        suffix: 'to add a custom certificate.'
+    sslCertificates:
+      publicCertificate: Public Certificate
+      privateKey: Private Key
+      ca: CA
+    vmForceDeletionPolicy:
+      period: Period
+    supportBundleImage:
+      imagePullPolicy: Pull Policy
+      repo: Repository
+      tag: Tag
+
+    upgrade:
+      selectExitImage: Please select the OS image to upgrade.
+      imageUrl: Please input a valid image url.
+      chooseFile: Please select to upload an image.
+      checksum: Checksum
+    harvesterMonitoring:
+      label: Harvester Monitoring
+      section:
+        prometheus: Prometheus Configuration
+        prometheusNodeExporter: Prometheus Node Exporter Configuration
+      tips:
+        scrape: Interval between consecutive scrapes
+        evaluation: Interval between consecutive evaluations
+        retention: How long to retain metrics
+        retentionSize: Maximum size of metrics
+  cloudTemplate:
+    label: Cloud Config Templates
+    templateType: Template Type
+    userData: User Data
+    networkData: Network Data
+ 
+  support:
+    title: Harvester Support
+    kubeconfig:
+      title: Download KubeConfig
+      titleDescription: Download kubeconfig for debugging.
+
+  namespace:
+    label: Namespaces
+
+  projectNamespace:
+    label: Projects/Namespaces
+
+  service:
+    title: Add-on Config
+    ipam:
+      label: IPAM
+    healthCheckPort:
+      label: Health Check Port
+    healthCheckSuccessThreshold:
+      label: Health Check Success Threshold
+      description: If the number of times the prober continuously detects an address successfully reaches the success threshold, then the backend server can start to forward traffic.
+    healthCheckFailureThreshold:
+      label: Health Check Failure Threshold
+      description: The backend server will stop forwarding traffic if the number of health check failures reaches the failure threshold.
+    healthCheckPeriod:
+      label: Health Check Period
+    healthCheckTimeout:
+      label: Health Check Timeout
+    healthCheckEnabled:
+      label: Health Check
+
+  vip:
+    namespace:
+      label: Namespace
+    cidr:
+      label: CIDR
+      invalid: '"CIRD" is invalid.'
+    add:
+      label: Add IP Pools
+
+  sslParameters:
+    protocols:
+      label: Protocols
+    ciphers:
+      label: Ciphers
+
+advancedSettings:
+  descriptions:
+    'harv-vlan': Default Network Interface name of the VLAN network.
+    'harv-backup-target': Custom backup target to store VM backups.
+    'harv-log-level': Configure Harvester server log level. Default to info.
+    'harv-server-version': Harvester server version.
+    'harv-upgrade-checker-enabled': Specify whether to enable Harvester upgrade check or not. Default is true.
+    'harv-upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
+    'harv-ui-source': Config how to load the UI source.
+    'harv-ui-index': 'HTML index location for the UI.'
+    'harv-cluster-registration-url': Registration URL for mutil-cluster management.
+    'harv-http-proxy': 'HTTP proxy for Harvester to access external services.'
+    'harv-additional-ca': 'Custom CA root certificates for TLS validation.'
+    'harv-overcommit-config': 'Resource overcommit configuration.'
+    'harv-vip-pools': 'Config global or namespace IP address pools of the VIP by CIDR.'
+    'harv-support-bundle-timeout': 'Support Bundle timeout config in minutes, use 0 to disable the timeout.'
+    'harv-vm-force-reset-policy': Config the force-reset action when a VM is stuck on a node that is down.
+    'harv-ssl-parameters': Custom SSL Parameters for TLS validation.
+    'harv-support-bundle-namespaces': Specify resources in other namespaces to be collected by the support package.
+    'harv-auto-disk-provision-paths': Specify the disks(using glob pattern) that Harvester will automatically add as VM storage.
+    'harv-support-bundle-image': Support bundle image configuration. Find different versions in <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a>.
+    'harv-release-download-url': This setting allows you to configure the <code>upgrade release download</code> URL address. Harvester will get the ISO URL and checksum value from the (<code>$URL</code>/<code>$VERSION</code>/version.yaml) file hosted by the configured URL.
+    'harvester-monitoring': Specifies the monitoring configuration that the Harvester's built-in Prometheus will use.
+
+typeLabel:
+  kubevirt.io.virtualmachine: |-
+    {count, plural,
+      one { Virtual Machine }
+      other { Virtual Machines }
+    }
+  harvesterhci.io.virtualmachineimage: |-
+    {count, plural,
+      one { Image }
+      other { Images }
+    }
+  harvesterhci.io.keypair: |-
+    {count, plural,
+      one { SSH Key }
+      other { SSH Keys }
+    }
+  harvesterhci.io.host: |-
+    {count, plural,
+      one { Host }
+      other { Hosts }
+    }
+  k8s.cni.cncf.io.networkattachmentdefinition: |-
+    {count, plural,
+      one { Network Attachment Definition }
+      other { Network Attachment Definitions }
+    }
+  harvesterhci.io.networkattachmentdefinition: |-
+    {count, plural,
+      one { Network }
+      other { Networks }
+    }
+  harvesterhci.io.volume: |-
+    {count, plural,
+      one { Volume }
+      other { Volumes }
+    }
+  harvesterhci.io.user:  |-
+    {count, plural,
+      one { User }
+      other { Users }
+    }
+  harvesterhci.io.setting:  |-
+    {count, plural,
+      one { Setting }
+      other { Settings }
+    }
+  harvesterhci.io.virtualmachinetemplateversion: |-
+    {count, plural,
+      one { Template }
+      other { Templates }
+    }
+  harvesterhci.io.virtualmachinebackup: |-
+    {count, plural,
+      one { Backup }
+      other { Backups }
+    }
+  harvesterhci.io.cloudtemplate: |-
+    {count, plural,
+      one { Cloud Config Template }
+      other { Cloud Config Templates }
+    }

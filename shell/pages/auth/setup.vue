@@ -33,6 +33,14 @@ const calcMustChangePassword = async(store) => {
 export default {
   layout: 'unauthenticated',
 
+  data() {
+    return {
+      passwordOptions: [
+        { label: this.t('setup.useRandom'), value: true },
+        { label: this.t('setup.useManual'), value: false }],
+    };
+  },
+
   async middleware({ store, redirect, route } ) {
     try {
       await store.dispatch('management/findAll', {
@@ -106,7 +114,7 @@ export default {
       setVendor(plSetting.value);
     }
 
-    const productName = plSetting.default === 'Harvester' ? 'Harvester' : 'Rancher';
+    const productName = plSetting.default;
 
     const principals = await store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
     const me = findBy(principals, 'me', true);
@@ -289,7 +297,12 @@ export default {
             <!-- For password managers... -->
             <input type="hidden" name="username" autocomplete="username" :value="username" />
             <div class="mb-20">
-              <RadioGroup v-model="useRandom" name="password-mode" :options="[{label: t('setup.useRandom'), value: true}, {label: t('setup.useManual'), value: false}]" />
+              <RadioGroup
+                v-model="useRandom"
+                data-testid="setup-password-mode"
+                name="password-mode"
+                :options="passwordOptions"
+              />
             </div>
             <div class="mb-20">
               <LabeledInput
@@ -298,6 +311,7 @@ export default {
                 v-model.trim="password"
                 :type="useRandom ? 'text' : 'password'"
                 :disabled="useRandom"
+                data-testid="setup-password-random"
                 label-key="setup.newPassword"
               >
                 <template v-if="useRandom" #suffix>
@@ -311,6 +325,7 @@ export default {
                 ref="password"
                 v-model.trim="password"
                 :label="t('setup.newPassword')"
+                data-testid="setup-password"
                 :required="true"
               />
             </div>
@@ -318,6 +333,7 @@ export default {
               v-show="!useRandom"
               v-model.trim="confirm"
               autocomplete="new-password"
+              data-testid="setup-password-confirm"
               :label="t('setup.confirmPassword')"
               :required="true"
             />
@@ -330,15 +346,27 @@ export default {
                 <t k="setup.serverUrl.tip" :raw="true" />
               </p>
               <div class="mt-20">
-                <LabeledInput v-model="serverUrl" :label="t('setup.serverUrl.label')" />
+                <LabeledInput
+                  v-model="serverUrl"
+                  :label="t('setup.serverUrl.label')"
+                  data-testid="setup-server-url"
+                />
               </div>
             </template>
 
             <div class="checkbox mt-40">
-              <Checkbox id="checkbox-telemetry" v-model="telemetry" label-key="setup.telemetry" />
+              <Checkbox id="checkbox-telemetry" v-model="telemetry">
+                <template #label>
+                  <t k="setup.telemetry" :raw="true" :name="productName" />
+                </template>
+              </Checkbox>
             </div>
             <div class="checkbox pt-10 eula">
-              <Checkbox id="checkbox-eula" v-model="eula">
+              <Checkbox
+                id="checkbox-eula"
+                v-model="eula"
+                data-testid="setup-agreement"
+              >
                 <template #label>
                   <t k="setup.eula" :raw="true" :name="productName" />
                 </template>
@@ -346,8 +374,18 @@ export default {
             </div>
           </template>
 
-          <div id="submit" class="text-center mt-20">
-            <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="!saveEnabled" @click="save" />
+          <div
+            id="submit"
+            class="text-center mt-20"
+          >
+            <AsyncButton
+              key="passwordSubmit"
+              type="submit"
+              mode="continue"
+              :disabled="!saveEnabled"
+              data-testid="setup-submit"
+              @click="save"
+            />
           </div>
 
           <div class="setup-errors mt-20">

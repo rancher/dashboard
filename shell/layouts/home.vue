@@ -4,14 +4,22 @@ import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
 import { mapPref, DEV } from '@shell/store/prefs';
+import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
+import AzureWarning from '@shell/components/auth/AzureWarning';
+import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
+import { mapState } from 'vuex';
 
 export default {
 
   components: {
-    Header, FixedBanner, GrowlManager
+    Header,
+    FixedBanner,
+    GrowlManager,
+    AzureWarning,
+    AwsComplianceBanner
   },
 
-  mixins: [Brand],
+  mixins: [Brand, BrowserTabVisibility],
 
   middleware: ['authenticated'],
 
@@ -22,7 +30,10 @@ export default {
     };
   },
 
-  computed: { dev: mapPref(DEV) },
+  computed: {
+    dev: mapPref(DEV),
+    ...mapState(['managementReady']),
+  },
 
   methods: {
     toggleTheme() {
@@ -36,8 +47,11 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
+    <AwsComplianceBanner />
+    <AzureWarning />
+
     <div class="dashboard-content">
-      <Header :simple="true" />
+      <Header v-if="managementReady" :simple="true" />
 
       <main>
         <nuxt class="outlet" />

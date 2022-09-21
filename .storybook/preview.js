@@ -1,18 +1,18 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { themes } from '@storybook/theming';
-import { get } from '@shell/utils/object';
+import { get } from '../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 
-const i18nStrings = require('../assets/translations/en-us.yaml');
+const i18nStrings = require('../shell/assets/translations/en-us.yaml');
 
 // Register custom i18n plugin
-require('../plugins/i18n');
+require('../shell/plugins/i18n');
 
-require('../plugins/v-select');
-require('../plugins/tooltip');
+require('../shell/plugins/v-select');
+require('../shell/plugins/tooltip');
 
 //const store = require('./store');
 
@@ -43,6 +43,9 @@ const storePlugin = {
 Vue.use(storePlugin);
 
 export const parameters = {
+  previewTabs: { 
+    canvas: { hidden: false },
+  },
   actions: { argTypesRegex: "^on[A-Z].*" },
   layout: 'centered',
   // viewMode: 'docs',
@@ -57,12 +60,12 @@ export const parameters = {
     dark: {
       ...themes.dark,
       brandTitle: 'Rancher Storybook',
-      brandImage: 'https://raw.githubusercontent.com/rancher/dashboard/master/assets/images/pl/dark/rancher-logo.svg'
+      brandImage: '/dark/rancher-logo.svg'
     },
     light: {
       ...themes.normal,
       brandTitle: 'Rancher Storybook',
-      brandImage: 'https://raw.githubusercontent.com/rancher/dashboard/master/assets/images/pl/rancher-logo.svg'
+      brandImage: '/rancher-logo.svg'
     },
     darkClass: 'theme-dark',
     lightClass: 'theme-light',

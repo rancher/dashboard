@@ -1,10 +1,9 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NAMESPACE_FILTERS } from '@shell/store/prefs';
+import { NAMESPACE_FILTERS, DEV } from '@shell/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@shell/utils/array';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
 import {
   NAMESPACE_FILTER_SPECIAL as SPECIAL,
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
@@ -29,7 +28,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster', 'isMultiVirtualCluster', 'currentProduct']),
+    ...mapGetters(['currentProduct']),
 
     hasFilter() {
       return this.filter.length > 0;
@@ -97,7 +96,7 @@ export default {
         });
       }
 
-      if (!this.isVirtualCluster) {
+      if (!this.currentProduct?.hideSystemResources) {
         out = [
           {
             id:    ALL,
@@ -130,24 +129,23 @@ export default {
       }
 
       const inStore = this.$store.getters['currentStore'](NAMESPACE);
-      const namespaces = sortBy(
+      let namespaces = sortBy(
         this.$store.getters[`${ inStore }/all`](NAMESPACE),
         ['nameDisplay']
-      ).filter( (N) => {
-        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
+      );
 
-        const needFilter = !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace;
-        const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
+      namespaces = this.filterNamespaces(namespaces);
 
-        return this.isVirtualCluster && isVirtualProduct ? needFilter : true;
-      });
-
-      if (this.$store.getters['isRancher'] || this.isMultiVirtualCluster) {
+      // isRancher = mgmt schemas are loaded and there's a project schema
+      if (this.$store.getters['isRancher']) {
         const cluster = this.$store.getters['currentCluster'];
         let projects = this.$store.getters['management/all'](
           MANAGEMENT.PROJECT
         );
 
+        projects = projects.filter((p) => {
+          return this.currentProduct?.hideSystemResources ? !p.isSystem && p.spec.clusterName === cluster.id : p.spec.clusterName === cluster.id;
+        });
         projects = sortBy(filterBy(projects, 'spec.clusterName', cluster.id), [
           'nameDisplay',
         ]);
@@ -323,6 +321,31 @@ export default {
   },
 
   methods: {
+    filterNamespaces(namespaces) {
+      if (this.$store.getters['prefs/get'](DEV)) {
+        // If developer tools are turned on in the user preferences,
+        // return all namespaces including system namespaces and RBAC
+        // management namespaces.
+        return namespaces;
+      }
+
+      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
+
+      return namespaces.filter((namespace) => {
+        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
+        const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
+
+        // For Harvester, filter out system namespaces AND obscure namespaces.
+        if (isVirtualCluster) {
+          return !systemNS && !namespace.isObscure;
+        }
+
+        // Otherwise only filter out obscure namespaces, such as namespaces
+        // that Rancher uses to manage RBAC for projects, which should not be
+        // edited or deleted by Rancher users.
+        return !namespace.isObscure;
+      });
+    },
     // Layout the content in the dropdown box to best use the space to show the selection
     layout() {
       this.$nextTick(() => {

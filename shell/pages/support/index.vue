@@ -5,9 +5,11 @@ import AsyncButton from '@shell/components/AsyncButton';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import { Card } from '@components/Card';
 import CommunityLinks from '@shell/components/CommunityLinks';
-import { MANAGEMENT } from '@shell/config/types';
+import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { getVendor, setBrand } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
+import { findBy } from '@shell/utils/array';
+import { addParam } from '@shell/utils/url';
 
 const KEY_REGEX = /^[0-9a-fA-F]{16}$/;
 
@@ -45,21 +47,26 @@ export default {
       return setting;
     };
 
+    if ( this.$store.getters['management/canList'](CATALOG.APP) ) {
+      this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
+    }
     this.supportSetting = await fetchOrCreateSetting('has-support', 'false');
     this.brandSetting = await fetchOrCreateSetting(SETTING.BRAND, '');
     this.communitySetting = await fetchOrCreateSetting(SETTING.COMMUNITY_LINKS, 'true');
-
+    this.serverUrlSetting = await fetchOrCreateSetting(SETTING.SERVER_URL, '');
     this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
   },
 
   data() {
     return {
+      apps:                 [],
       vendor:               getVendor(),
       supportKey:           '',
       supportSetting:       null,
       brandSetting:         null,
       uiIssuesSetting:      null,
-      communitySetting: null,
+      communitySetting:     null,
+      serverSetting:        null,
       promos:               [
         'support.promos.one',
         'support.promos.two',
@@ -70,8 +77,34 @@ export default {
   },
 
   computed: {
+    cspAdapter() {
+      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
+    },
+
+    hasAWSSupport() {
+      return !!this.cspAdapter;
+    },
+
+    serverUrl() {
+      if (process.client) {
+        // Client-side rendered: use the current window location
+        return window.location.origin;
+      }
+
+      // Server-side rendered
+      return this.serverSetting?.value || '';
+    },
+
+    supportConfigLink() {
+      if (!this.cspAdapter) {
+        return false;
+      }
+
+      return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig`;
+    },
+
     hasSupport() {
-      return this.supportSetting?.value && this.supportSetting?.value !== 'false';
+      return (this.supportSetting?.value && this.supportSetting?.value !== 'false') || this.hasAWSSupport;
     },
 
     options() {
@@ -85,6 +118,10 @@ export default {
     validSupportKey() {
       return !!this.supportKey.match(KEY_REGEX);
     },
+
+    sccLink() {
+      return this.hasAWSSupport ? addParam('https://scc.suse.com', 'from_marketplace', '1') : 'https://scc.suse.com';
+    }
   },
 
   methods: {
@@ -126,7 +163,7 @@ export default {
       if (input) {
         input.focus();
       }
-    }
+    },
   }
 };
 </script>
@@ -141,9 +178,14 @@ export default {
             <h2>{{ t('support.suse.access.title') }}</h2>
             <div>
               <p class="pb-10">
-                {{ t('support.suse.access.text') }}
+                {{ hasAWSSupport ? t("support.suse.access.aws.text") : t("support.suse.access.text") }}
               </p>
-              <a href="https://scc.suse.com" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.suse.access.action') }} <i class="icon icon-external-link" /></a>
+              <a v-if="hasAWSSupport" class="mr-5 btn role-secondary btn-sm" :href="supportConfigLink">
+                {{ t('support.suse.access.aws.generateConfig') }}
+              </a>
+              <a :href="sccLink" target="_blank" rel="noopener noreferrer nofollow">
+                {{ t('support.suse.access.action') }} <i class="icon icon-external-link" />
+              </a>
             </div>
           </div>
           <div class="boxes">
@@ -165,7 +207,7 @@ export default {
               {{ t('support.subscription.addSubscription') }}
             </button>
           </div>
-          <div v-if="hasSupport" class="register row">
+          <div v-if="hasSupport && !hasAWSSupport" class="register row">
             <a class="remove-link" @click="showDialog(true)">
               {{ t('support.subscription.removeSubscription') }}
             </a>

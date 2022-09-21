@@ -6,7 +6,7 @@ import { base64Encode } from '@shell/utils/crypto';
 import { NAMESPACE_FILTERS } from '@shell/store/prefs';
 import { createNamespaceFilterKeyWithId } from '@shell/utils/namespace-filter';
 import { parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
-// import https from 'https';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 
 const createId = (schema: any, resource: any) => {
   const name = resource.meta?.name || resource.name;
@@ -33,7 +33,7 @@ export default {
   },
 
   async request({ rootGetters, dispatch, getters }: any, {
-    opt, type, clusterId, growlOnError = true
+    opt, type, clusterId, growlOnError = false
   }: any) {
     const spoofedRes = await handleSpoofedRequest(rootGetters, EPINIO_PRODUCT_NAME, opt, EPINIO_PRODUCT_NAME);
 
@@ -104,8 +104,7 @@ export default {
         if ( opt.responseType ) {
           return res;
         } else {
-          const preOut = res.data || {};
-          const out = preOut.services || preOut.catalog_services || preOut;// TODO: See https://github.com/epinio/ui/issues/97#issuecomment-1124880156
+          const out = res.data || {};
           const schema = getters.schemaFor(type);
 
           if (Array.isArray(out)) {
@@ -181,6 +180,13 @@ export default {
         attributes:        { namespaced: true }
       }, {
         product:           EPINIO_PRODUCT_NAME,
+        id:                EPINIO_TYPES.APP_CHARTS,
+        type:              'schema',
+        links:             { collection: '/api/v1/appcharts' },
+        collectionMethods: ['get'],
+        resourceFields:    { },
+      }, {
+        product:           EPINIO_PRODUCT_NAME,
         id:                EPINIO_TYPES.NAMESPACE,
         type:              'schema',
         links:             { collection: '/api/v1/namespaces' },
@@ -234,6 +240,7 @@ export default {
 
   loadCluster: async( { dispatch, commit, rootGetters }: any, { id }: any ) => {
     await dispatch(`findAll`, { type: EPINIO_TYPES.NAMESPACE });
+    dispatch(`findAll`, { type: EPINIO_TYPES.APP }); // This is used often, get a kick start
     await dispatch('cleanNamespaces', null, { root: true });
 
     const key = createNamespaceFilterKeyWithId(id, EPINIO_PRODUCT_NAME);
@@ -264,5 +271,13 @@ export default {
     commit('singleProductCNSI', cnsi);
 
     return cnsi;
+  },
+
+  createNamespace(ctx: any, obj: { name : string }) {
+    // Note - created model save --> create
+    return classify(ctx, {
+      type:     EPINIO_TYPES.NAMESPACE,
+      meta: { name: obj.name }
+    });
   }
 };

@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
-import { escapeHtml } from '@shell/utils/string';
+import { escapeHtml, resourceNames } from '@shell/utils/string';
 import { Card } from '@components/Card';
 import { Checkbox } from '@components/Form/Checkbox';
 import { alternateLabel } from '@shell/utils/platform';
@@ -9,10 +9,21 @@ import { uniq } from '@shell/utils/array';
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
-
 export default {
+  name: 'PromptRemove',
+
   components: {
     Card, Checkbox, AsyncButton
+  },
+  props: {
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'prompt-remove'
+    }
   },
   data() {
     const { resource } = this.$route.params;
@@ -140,22 +151,6 @@ export default {
 
     ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
     ...mapGetters({ t: 'i18n/t' }),
-
-    resourceNames() {
-      return this.names.reduce((res, name, i) => {
-        if (i >= 5) {
-          return res;
-        }
-        res += `<b>${ escapeHtml(name) }</b>`;
-        if (i === this.names.length - 1) {
-          res += this.plusMore;
-        } else {
-          res += i === this.toRemove.length - 2 ? ' and ' : ', ';
-        }
-
-        return res;
-      }, '');
-    }
   },
 
   watch:    {
@@ -214,8 +209,8 @@ export default {
   },
 
   methods: {
+    resourceNames,
     escapeHtml,
-
     close() {
       this.confirmName = '';
       this.error = '';
@@ -224,15 +219,33 @@ export default {
       this.$store.commit('action-menu/togglePromptRemove');
     },
 
-    remove(btnCB) {
+    async remove(btnCB) {
       if (this.doneLocation) {
         // doneLocation will recompute to undefined when delete request completes
         this.cachedDoneLocation = { ...this.doneLocation };
       }
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
-        this.$refs.customPrompt.remove(btnCB);
+        let handled = this.$refs.customPrompt.remove(btnCB);
 
-        return;
+        // If the response is a promise, then wait for the promise
+        if (handled && handled.then) {
+          try {
+            handled = await handled;
+          } catch (err) {
+            this.error = err;
+            btnCB(false);
+
+            return;
+          }
+        }
+
+        // If the remove function for the custom dialog handled the request, it can return true or not return anything
+        // if it returned false, then it wants us to continue with the deletion logic below - this is useful
+        // where the custom dialog needs to delete additional resources - it handles those and retrurns false to get us
+        // to delete the main resource
+        if (handled === undefined || handled) {
+          return;
+        }
       }
       const serialRemove = this.toRemove.some(resource => resource.removeSerially);
 
@@ -242,7 +255,6 @@ export default {
         this.parallelRemove(btnCB);
       }
     },
-
     async serialRemove(btnCB) {
       try {
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
@@ -252,14 +264,12 @@ export default {
         }
 
         await this.refreshSpoofedTypes(spoofedTypes);
-
         this.done();
       } catch (err) {
         this.error = err;
         btnCB(false);
       }
     },
-
     async parallelRemove(btnCB) {
       try {
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
@@ -272,14 +282,12 @@ export default {
         btnCB(false);
       }
     },
-
     done() {
       if ( this.cachedDoneLocation && !isEmpty(this.cachedDoneLocation) ) {
         this.currentRouter.push(this.cachedDoneLocation);
       }
       this.close();
     },
-
     getSpoofedTypes(resources) {
       const uniqueResourceTypes = uniq(this.toRemove.map(resource => resource.type));
 
@@ -316,7 +324,7 @@ export default {
   <modal
     class="remove-modal"
     name="promptRemove"
-    :width="350"
+    :width="400"
     height="auto"
     styles="max-height: 100vh;"
     @closed="close"
@@ -328,7 +336,9 @@ export default {
       <div slot="body">
         <div class="mb-10">
           <template v-if="!hasCustomRemove">
-            {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
+            {{ t('promptRemove.attemptingToRemove', { type }) }} <span
+              v-html="resourceNames(names, plusMore, t)"
+            ></span>
           </template>
 
           <template>
@@ -338,6 +348,7 @@ export default {
               ref="customPrompt"
               v-model="toRemove"
               v-bind="_data"
+              :close="close"
               :needs-confirm="needsConfirm"
               :value="toRemove"
               :names="names"
@@ -352,7 +363,13 @@ export default {
             </div>
           </template>
         </div>
-        <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
+        <input
+          v-if="needsConfirm"
+          id="confirm"
+          v-model="confirmName"
+          :data-testid="componentTestid + '-input'"
+          type="text"
+        />
         <div class="text-warning mb-10 mt-10">
           {{ warning }}
         </div>
@@ -368,7 +385,14 @@ export default {
         <button class="btn role-secondary" @click="close">
           {{ t('generic.cancel') }}
         </button>
-        <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="deleteDisabled" @click="remove" />
+        <div class="spacer"></div>
+        <AsyncButton
+          mode="delete"
+          class="btn bg-error ml-10"
+          :disabled="deleteDisabled"
+          :data-testid="componentTestid + '-confirm-button'"
+          @click="remove"
+        />
       </template>
     </Card>
   </modal>
@@ -396,9 +420,13 @@ export default {
     .actions {
       text-align: right;
     }
+
     .card-actions {
       display: flex;
-      justify-content: center;
+
+      .spacer {
+        flex: 1;
+      }
     }
   }
 </style>

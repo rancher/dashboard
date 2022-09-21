@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 import { _VIEW } from '@shell/config/query-params';
 import { isEmpty } from '@shell/utils/object';
 import { HOSTNAME } from '@shell/config/labels-annotations';
@@ -46,7 +46,7 @@ export default {
 
     if (this.value.nodeName) {
       selectNode = 'nodeSelector';
-    } else if (isHarvester && this.value.nodeSelector) {
+    } else if (isHarvester && this.value?.nodeSelector?.[HOSTNAME]) {
       selectNode = 'nodeSelector';
       nodeName = nodeSelector[HOSTNAME];
     } else if (!isEmpty(nodeAffinity)) {
@@ -127,7 +127,33 @@ export default {
       }
     },
     isEmpty
-  }
+  },
+
+  watch: {
+    'value.nodeSelector': {
+      handler(nodeSelector) {
+        if (this.isHarvester && nodeSelector?.[HOSTNAME]) {
+          this.selectNode = 'nodeSelector';
+          const nodeName = nodeSelector[HOSTNAME];
+
+          this.nodeName = nodeName;
+
+          const array = this.nodes.map(n => n.value);
+
+          if (nodeName && !array.includes(nodeName)) {
+            this.$store.dispatch('growl/error', {
+              title:   this.$store.getters['i18n/t']('harvester.vmTemplate.tips.notExistNode.title', { name: nodeName }),
+              message: this.$store.getters['i18n/t']('harvester.vmTemplate.tips.notExistNode.message')
+            }, { root: true });
+
+            delete this.value.nodeSelector;
+            this.$set(this, 'nodeName', '');
+            this.$set(this, 'selectNode', null);
+          }
+        }
+      },
+    },
+  },
 };
 </script>
 

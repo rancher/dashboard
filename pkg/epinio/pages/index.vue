@@ -36,6 +36,14 @@ export default Vue.extend<Data, any, any, any>({
     return { clustersSchema: this.$store.getters[`${ EPINIO_MGMT_STORE }/schemaFor`](EPINIO_TYPES.INSTANCE) };
   },
 
+  mounted() {
+    window.addEventListener('visibilitychange', this.visibilitychange);
+  },
+
+  beforeDestroy() {
+    window.removeEventListener('visibilitychange', this.visibilitychange);
+  },
+
   computed: {
     cluster(): string {
       return this.$route.params.cluster;
@@ -61,6 +69,12 @@ export default Vue.extend<Data, any, any, any>({
       buttonCb(true);
     },
 
+    visibilitychange() {
+      if (this.canRediscover && document.visibilityState === 'visible') {
+        this.rediscover(() => undefined);
+      }
+    },
+
     setClusterState(cluster: Cluster, state: string, metadataStateObj: { transitioning: boolean, error: boolean, message: string }) {
       Vue.set(cluster, 'state', state);
       Vue.set(cluster, 'metadata', metadataStateObj);
@@ -75,12 +89,8 @@ export default Vue.extend<Data, any, any, any>({
         }
       });
 
-      this.$store.dispatch('epinio/request', {
-        opt: { url: `/ready` }, clusterId: c.id, growlOnError: false
-      })
-        .then(() => this.$store.dispatch(`epinio/request`, {
-          opt: { url: `/api/v1/info` }, clusterId: c.id, growlOnError: false
-        }))
+      this.$store.dispatch('epinio/request', { opt: { url: `/ready` }, clusterId: c.id })
+        .then(() => this.$store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` }, clusterId: c.id }))
         .then((res: any) => {
           Vue.set(c, 'version', res?.version);
           this.setClusterState(c, 'available', { state: { transitioning: false } });

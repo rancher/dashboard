@@ -3,6 +3,7 @@ import { removeObject } from '@shell/utils/array';
 import { USERNAME } from '@shell/config/cookies';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
+import LocaleSelector from '@shell/components/LocaleSelector';
 import BrandImage from '@shell/components/BrandImage';
 import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
@@ -30,7 +31,7 @@ export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector
   },
 
   async asyncData({ route, redirect, store }) {
@@ -164,7 +165,7 @@ export default {
 
     kubectlCmd() {
       return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
-    }
+    },
 
   },
 
@@ -291,7 +292,11 @@ export default {
             {{ t('login.loginAgain') }}
           </h4>
         </div>
-        <div v-if="firstLogin" class="first-login-message">
+        <div
+          v-if="firstLogin"
+          class="first-login-message"
+          data-testid="first-login-message"
+        >
           <InfoBox color="info">
             <t k="setup.defaultPassword.intro" :raw="true" />
 
@@ -340,6 +345,7 @@ export default {
                   id="username"
                   ref="username"
                   v-model.trim="username"
+                  data-testid="local-login-username"
                   :label="t('login.username')"
                   autocomplete="username"
                 />
@@ -349,6 +355,7 @@ export default {
                   id="password"
                   ref="password"
                   v-model="password"
+                  data-testid="local-login-password"
                   :label="t('login.password')"
                   autocomplete="password"
                 />
@@ -358,6 +365,7 @@ export default {
               <div class="col span-12 text-center">
                 <AsyncButton
                   id="submit"
+                  data-testid="login-submit"
                   type="submit"
                   :action-label="t('login.loginWithLocal')"
                   :waiting-label="t('login.loggingIn')"
@@ -372,7 +380,12 @@ export default {
             </div>
           </form>
           <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
-            <a id="login-useLocal" role="button" @click="toggleLocal">
+            <a
+              id="login-useLocal"
+              data-testid="login-useLocal"
+              role="button"
+              @click="toggleLocal"
+            >
               {{ t('login.useLocal') }}
             </a>
           </div>
@@ -380,6 +393,9 @@ export default {
             <a role="button" @click="toggleLocal">
               {{ nonLocalPrompt }}
             </a>
+          </div>
+          <div class="locale-elector">
+            <LocaleSelector></LocaleSelector>
           </div>
         </template>
       </div>
@@ -422,5 +438,10 @@ export default {
         }
       }
     }
+  }
+
+  .locale-elector {
+    position: absolute;
+    bottom: 30px;
   }
 </style>

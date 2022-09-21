@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import $ from 'jquery';
 import JSZip from 'jszip';
 import jsyaml from 'js-yaml';
 
@@ -25,6 +26,7 @@ export default function({
     window.Vue = Vue;
 
     // Global libraries - allows us to externalise these to reduce package bundle size
+    window.$ = $;
     window.__jszip = JSZip;
     window.__jsyaml = jsyaml;
   }

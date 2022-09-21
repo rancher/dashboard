@@ -1,36 +1,38 @@
-import compact from 'lodash/compact';
-import isEmpty from 'lodash/isEmpty';
-import isFunction from 'lodash/isFunction';
-import isString from 'lodash/isString';
-import jsyaml from 'js-yaml';
-import forIn from 'lodash/forIn';
-import uniq from 'lodash/uniq';
-import Vue from 'vue';
-
+import { NORMAN_NAME } from '@shell/config/labels-annotations';
+import {
+  _CLONE,
+  _CONFIG,
+  _EDIT,
+  _UNFLAG,
+  _VIEW,
+  _YAML,
+  AS,
+  MODE
+} from '@shell/config/query-params';
+import { DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
 import { downloadFile, generateZip } from '@shell/utils/download';
-import { eachLimit } from '@shell/utils/promise';
 import { clone, get } from '@shell/utils/object';
-import { DEV } from '@shell/store/prefs';
+import { eachLimit } from '@shell/utils/promise';
 import { sortableNumericSuffix } from '@shell/utils/sort';
-import {
-  coerceStringTypeToScalarType,
-  escapeHtml,
-  ucFirst
-} from '@shell/utils/string';
+import { coerceStringTypeToScalarType, escapeHtml, ucFirst } from '@shell/utils/string';
 import {
   displayKeyFor,
+  validateBoolean,
   validateChars,
   validateDnsLikeTypes,
   validateLength,
-  validateBoolean
 } from '@shell/utils/validators';
-
-import { NORMAN_NAME } from '@shell/config/labels-annotations';
-import {
-  AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
-} from '@shell/config/query-params';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import jsyaml from 'js-yaml';
+import compact from 'lodash/compact';
+import forIn from 'lodash/forIn';
+import isEmpty from 'lodash/isEmpty';
+import isFunction from 'lodash/isFunction';
+import isString from 'lodash/isString';
+import uniq from 'lodash/uniq';
+import Vue from 'vue';
 
 import { normalizeType } from './normalize';
 
@@ -89,6 +91,7 @@ export const STATES_ENUM = {
   DEGRADED:         'degraded',
   DENIED:           'denied',
   DEPLOYED:         'deployed',
+  DEPLOYING:        'deploying',
   DISABLED:         'disabled',
   DISCONNECTED:     'disconnected',
   DRAINED:          'drained',
@@ -427,6 +430,9 @@ export const STATES = {
   },
   [STATES_ENUM.WARNING]:            {
     color: 'warning', icon: 'error', label: 'Warning', compoundIcon: 'warning'
+  },
+  [STATES_ENUM.DEPLOYING]:          {
+    color: 'info', icon: 'info', label: 'Deploying', compoundIcon: 'info'
   },
 };
 
@@ -1034,17 +1040,35 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  patch(data, opt = {}) {
+  patch(data, opt = {}, merge = false, alertOnError = false) {
     if ( !opt.url ) {
-      opt.url = this.linkFor('self');
+      // Workaround for the links not being correct - view link is the only one that seems correct
+      opt.url = this.linkFor('view') || this.linkFor('self');
     }
 
     opt.method = 'patch';
     opt.headers = opt.headers || {};
-    opt.headers['content-type'] = 'application/json-patch+json';
+
+    if (!opt.headers['content-type']) {
+      const contentType = merge ? 'application/strategic-merge-patch+json' : 'application/json-patch+json';
+
+      opt.headers['content-type'] = contentType;
+    }
     opt.data = data;
 
-    return this.$dispatch('request', { opt, type: this.type } );
+    const dispatch = this.$dispatch('request', { opt, type: this.type } );
+
+    return !alertOnError ? dispatch : dispatch.catch((e) => {
+      const title = this.t('resource.errors.update', { name: this.name });
+
+      console.error(title, e); // eslint-disable-line no-console
+
+      this.$dispatch('growl/error', {
+        title,
+        message: e?.message,
+        timeout: 5000
+      }, { root: true });
+    });
   }
 
   save() {
@@ -1466,7 +1490,121 @@ export default class Resource {
     }
   }
 
-  validationErrors(data, ignoreFields) {
+  get modelValidationRules() {
+    const rules = [];
+
+    const customValidationRulesets = this?.customValidationRules
+      .filter(rule => !!rule.validators || !!rule.required)
+      .map((rule) => {
+        const formRules = formRulesGenerator(this.t, { displayKey: rule?.translationKey ? this.t(rule.translationKey) : 'Value' });
+
+        return {
+          path:  rule.path,
+          rules: [
+            ...(rule.validators || []),
+            ...rule.required ? ['required'] : [],
+            ...['dnsLabel', 'dnsLabelRestricted', 'hostname'].includes(rule.type) ? [rule.type] : []
+          ]
+            .map((rule) => {
+              if (rule.includes(':')) {
+                const [ruleKey, ruleArg] = rule.split(':');
+
+                return formRules[ruleKey](ruleArg);
+              }
+
+              return formRules[rule];
+            }
+            )
+            .filter(rule => !!rule)
+        };
+      })
+      .filter(ruleset => ruleset.rules.length > 0);
+
+    rules.push(...customValidationRulesets);
+
+    return rules;
+  }
+
+  customValidationErrors(data, ignorePaths = []) {
+    const errors = [];
+
+    let { customValidationRules } = this;
+
+    if (!isEmpty(customValidationRules)) {
+      if (isFunction(customValidationRules)) {
+        customValidationRules = customValidationRules();
+      }
+
+      customValidationRules.filter(rule => !ignorePaths.includes(rule.path)).forEach((rule) => {
+        const {
+          path,
+          requiredIf: requiredIfPath,
+          validators = [],
+          type: fieldType,
+        } = rule;
+        let pathValue = get(data, path);
+
+        const parsedRules = compact((validators || []));
+        let displayKey = path;
+
+        if (rule.translationKey && this.$rootGetters['i18n/exists'](rule.translationKey)) {
+          displayKey = this.t(rule.translationKey);
+        }
+
+        if (isString(pathValue)) {
+          pathValue = pathValue.trim();
+        }
+        if (requiredIfPath) {
+          const reqIfVal = get(data, requiredIfPath);
+
+          if (!isEmpty(reqIfVal) && (isEmpty(pathValue) && pathValue !== 0)) {
+            errors.push(this.t('validation.required', { key: displayKey }));
+          }
+        }
+
+        validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
+        validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
+
+        if ( !isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
+          // DNS types should be lowercase
+          const tolower = (pathValue || '').toLowerCase();
+
+          if ( tolower !== pathValue ) {
+            pathValue = tolower;
+
+            Vue.set(data, path, pathValue);
+          }
+
+          errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));
+        }
+
+        parsedRules.forEach((validator) => {
+          const validatorAndArgs = validator.split(':');
+          const validatorName = validatorAndArgs.slice(0, 1);
+          const validatorArgs = validatorAndArgs.slice(1) || null;
+          const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
+
+          if (!isEmpty(validatorName) && validatorExists) {
+            CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
+          } else if (!isEmpty(validatorName) && !validatorExists) {
+            // Check if validator is imported from plugin
+            const pluginValidator = this.$rootState.$plugin?.getValidator(validatorName);
+
+            if (pluginValidator) {
+              pluginValidator(pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
+            } else {
+              // eslint-disable-next-line
+              console.warn(this.t('validation.custom.missing', { validatorName }));
+            }
+          }
+        });
+      });
+    }
+
+    return errors;
+  }
+
+  validationErrors(data = this, ignoreFields) {
     const errors = [];
     const {
       type: originalType,
@@ -1552,73 +1690,7 @@ export default class Resource {
       errors.push(...fieldErrors);
     }
 
-    let { customValidationRules } = this;
-
-    if (!isEmpty(customValidationRules)) {
-      if (isFunction(customValidationRules)) {
-        customValidationRules = customValidationRules();
-      }
-
-      customValidationRules.forEach((rule) => {
-        const {
-          path,
-          requiredIf: requiredIfPath,
-          validators = [],
-          type: fieldType,
-        } = rule;
-        let pathValue = get(data, path);
-
-        const parsedRules = compact((validators || []));
-        let displayKey = path;
-
-        if (rule.translationKey && this.$rootGetters['i18n/exists'](rule.translationKey)) {
-          displayKey = this.t(rule.translationKey);
-        }
-
-        if (isString(pathValue)) {
-          pathValue = pathValue.trim();
-        }
-        if (requiredIfPath) {
-          const reqIfVal = get(data, requiredIfPath);
-
-          if (!isEmpty(reqIfVal) && (isEmpty(pathValue) && pathValue !== 0)) {
-            errors.push(this.t('validation.required', { key: displayKey }));
-          }
-        }
-
-        validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
-        validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
-
-        if ( !isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
-          // DNS types should be lowercase
-          const tolower = (pathValue || '').toLowerCase();
-
-          if ( tolower !== pathValue ) {
-            pathValue = tolower;
-
-            Vue.set(data, path, pathValue);
-          }
-
-          errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));
-        }
-
-        parsedRules.forEach((validator) => {
-          const validatorAndArgs = validator.split(':');
-          const validatorName = validatorAndArgs.slice(0, 1);
-          const validatorArgs = validatorAndArgs.slice(1) || null;
-          const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
-
-          if (!isEmpty(validatorName) && validatorExists) {
-            CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey, data);
-          } else if (!isEmpty(validatorName) && !validatorExists) {
-            // eslint-disable-next-line
-            console.warn(this.t('validation.custom.missing', { validatorName }));
-          }
-        });
-      });
-    }
-
-    return uniq(errors);
+    return uniq([...errors, ...this.customValidationErrors(data)]);
   }
 
   get ownersByType() {
@@ -1815,5 +1887,9 @@ export default class Resource {
     }
 
     return out;
+  }
+
+  get creationTimestamp() {
+    return this.metadata?.creationTimestamp;
   }
 }

@@ -37,9 +37,11 @@
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore], This can also be specified as an object { type: TYPE, store: 'management' } if the type isn't in the current [inStore]
 //   ifHaveVerb,              -- In combination with ifHaveTYpe, show it only if the type also has this collectionMethod
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
+//   inExplorer,              -- Determines if the product is to be scoped to the explorer
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 //   category,                -- Group to show the product in for the nav hamburger menu
 //   typeStoreMap,            -- An object mapping types to the store that should be used to retrieve information about the type
+//   hideSystemResources      -- Hide resources in namespaces where namespace.isSystem === true, or a namespace managed by fleet (per its annotation) and hide those namespaces from ns/project list and nsfilter (default false)
 // })
 //
 // externalLink(stringOrFn)  The product has an external page (function gets context object
@@ -129,8 +131,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent
-
+  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail, importDialog
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -166,7 +167,6 @@ export const IF_HAVE = {
   NO_PROJECT:               'no-project',
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
-  HARVESTER_SINGLE_CLUSTER: 'harv-multi-cluster',
   NEUVECTOR_NAMESPACE:      'neuvector-namespace',
 };
 
@@ -179,6 +179,7 @@ export function DSL(store, product, module = 'type-map') {
         name:                product,
         weight:              1,
         inStore:             'cluster',
+        inExplorer:          false,
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
@@ -215,7 +216,7 @@ export function DSL(store, product, module = 'type-map') {
     headers(type, headers) {
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
-        if (process.client && header.getValue) {
+        if (header.getValue) {
           header.value = header.getValue;
         }
 
@@ -374,12 +375,12 @@ export const getters = {
   // ----------------------------------------------------------------------------
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
   labelFor(state, getters, rootState, rootGetters) {
-    return (schema, count = 1) => {
+    return (schema, count = 1, language = null) => {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
         const key = `typeLabel."${ schema.id.toLowerCase() }"`;
 
-        if ( rootGetters['i18n/exists'](key) ) {
-          return rootGetters['i18n/t'](key, { count }).trim();
+        if ( rootGetters['i18n/exists'](key, language) ) {
+          return rootGetters['i18n/t'](key, { count }, language).trim();
         }
 
         const out = schema?.attributes?.kind || schema.id || '?';
@@ -539,6 +540,10 @@ export const getters = {
       // get added before children
       const keys = Object.keys(allTypes).sort((a, b) => a.length - b.length);
 
+      // Set these for later
+      const currentLocal = rootGetters['i18n/current']();
+      const defaultLocal = rootGetters['i18n/default']();
+
       for ( const type of keys ) {
         const typeObj = allTypes[type];
 
@@ -580,7 +585,7 @@ export const getters = {
           }
         }
 
-        const labelDisplay = highlightLabel(label, icon);
+        const labelDisplay = highlightLabel(label, icon, typeObj.count, typeObj.schema);
 
         if ( !labelDisplay ) {
           // Search happens in highlight and returns null if not found
@@ -687,11 +692,22 @@ export const getters = {
         return group;
       }
 
-      function highlightLabel(original, icon) {
+      function highlightLabel(original, icon, count, schema) {
         let label = escapeHtml(original);
 
         if ( searchRegex ) {
-          const match = label.match(searchRegex);
+          let match = label.match(searchRegex);
+
+          if (!match) {
+            if ( currentLocal !== defaultLocal && schema ) {
+              const defaultLabel = getters.labelFor(schema, count, defaultLocal);
+
+              if (defaultLabel && defaultLabel !== label ) {
+                label += ` (${ defaultLabel })`;
+                match = label.match(searchRegex);
+              }
+            }
+          }
 
           if ( match ) {
             label = `${ escapeHtml(match[1]) }<span class="highlight">${ escapeHtml(match[2]) }</span>${ escapeHtml(match[3]) }`;
@@ -1043,7 +1059,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'detail', key, key => resolveList(key));
+      return hasCustom(state, rootState, 'detail', key, key => resolveDetail(key));
     };
   },
 
@@ -1073,24 +1089,11 @@ export const getters = {
     };
   },
 
-  hasCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
+  hasCustomPromptRemove(state, getters, rootState) {
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
 
-      const cache = state.cache.promptRemove;
-
-      if ( cache[type] !== undefined ) {
-        return cache[type];
-      }
-
-      try {
-        require.resolve(`@shell/promptRemove/${ type }`);
-        cache[type] = true;
-      } catch (e) {
-        cache[type] = false;
-      }
-
-      return cache[type];
+      return hasCustom(state, rootState, 'promptRemove', key, () => require.resolve(`@shell/promptRemove/${ key }`));
     };
   },
 
@@ -1105,6 +1108,12 @@ export const getters = {
   importComponent(state, getters) {
     return (path) => {
       return importEdit(path);
+    };
+  },
+
+  importDialog(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'dialog', getters.componentFor(rawType, subType), importDialog);
     };
   },
 
@@ -1126,11 +1135,9 @@ export const getters = {
     };
   },
 
-  importCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
-
-      return importCustomPromptRemove(type);
+  importCustomPromptRemove(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'promptRemove', getters.componentFor(rawType, subType), importCustomPromptRemove);
     };
   },
 
@@ -1537,7 +1544,7 @@ export const mutations = {
     let obj = { ...options, match };
 
     if ( idx >= 0 ) {
-      obj = Object.assign(obj, state.typeOptions[idx]);
+      obj = Object.assign(state.typeOptions[idx], obj);
       state.typeOptions.splice(idx, 1, obj);
     } else {
       const obj = Object.assign({}, options, { match });
@@ -1721,9 +1728,6 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.MULTI_CLUSTER: {
     return getters.isMultiCluster;
-  }
-  case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
-    return getters.isSingleVirtualCluster;
   }
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
     return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);

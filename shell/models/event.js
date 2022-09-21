@@ -20,4 +20,8 @@ export default class K8sEvent extends SteveModel {
   get timestamp() {
     return this.lastTimestamp || this.metadata?.creationTimestamp;
   }
+
+  get eventType() {
+    return this._type;
+  }
 }

@@ -10,27 +10,43 @@ import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import AuthConfig from '@shell/mixins/auth-config';
+import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
+import { get } from '@shell/utils/object';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
+
+// Azure AD Graph will be deprecated end of 2022, see: https://docs.microsoft.com/en-us/graph/migrate-azure-ad-graph-overview
+export const OLD_ENDPOINTS = {
+  standard: {
+    graphEndpoint: 'https://graph.windows.net/',
+    tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/token`,
+    authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/authorize`
+  },
+  china: {
+    graphEndpoint: 'https://graph.chinacloudapi.cn/',
+    tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/token`,
+    authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/authorize`
+  }
+};
 
 const ENDPOINT_MAPPING = {
   standard: {
     endpoint:      'https://login.microsoftonline.com/',
-    graphEndpoint: 'https://graph.windows.net/',
-    tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/token`,
-    authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/authorize`,
+    graphEndpoint: 'https://graph.microsoft.com',
+    tokenEndpoint: `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
+    authEndpoint:  `https://login.microsoftonline.com/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`
   },
   china: {
-    endpoint:      'https://login.chinacloudapi.cn/',
-    graphEndpoint: 'https://graph.chinacloudapi.cn/',
-    tokenEndpoint: `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/token`,
-    authEndpoint:  `https://login.chinacloudapi.cn/${ TENANT_ID_TOKEN }/oauth2/authorize`,
+    endpoint:      'https://login.partner.microsoftonline.cn/',
+    graphEndpoint: 'https://microsoftgraph.chinacloudapi.cn',
+    tokenEndpoint: `https://login.partner.microsoftonline.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/token`,
+    authEndpoint:  `https://login.partner.microsoftonline.cn/${ TENANT_ID_TOKEN }/oauth2/v2.0/authorize`
   },
   custom: {
     endpoint:      'https://login.microsoftonline.com/',
     graphEndpoint: '',
     tokenEndpoint: '',
-    authEndpoint:  '',
+    authEndpoint:  ''
   }
 };
 
@@ -51,11 +67,17 @@ export default {
 
   async fetch() {
     await this.reloadModel();
+
+    if ( this.value?.graphEndpoint ) {
+      this.setInitialEndpoint(this.value.graphEndpoint);
+    }
   },
 
   data() {
     return {
       endpoint:          'standard',
+      oldEndpoint:        false,
+
       // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
       // override the steve authconfig with a norman config the applicationSecret is lost
       applicationSecret: this.value.applicationSecret
@@ -65,9 +87,9 @@ export default {
   computed: {
     tArgs() {
       return {
-        baseUrl:   this.baseUrl,
-        provider:  this.displayName,
-        username:  this.principal.loginName || this.principal.name,
+        baseUrl:  this.baseUrl,
+        provider: this.displayName,
+        username: this.principal.loginName || this.principal.name
       };
     },
 
@@ -89,11 +111,26 @@ export default {
       return {
         config: {
           ...this.model,
-          enabled:           true,
-          description:       'Enable AzureAD'
+          enabled:     true,
+          description: 'Enable AzureAD'
         }
       };
     },
+
+    needsUpdate() {
+      return (
+        get(this.model, `annotations."${ AZURE_MIGRATED }"`) !== 'true'
+      );
+    },
+
+    modalConfig() {
+      return {
+        applyAction: this.updateEndpoint,
+        applyMode:   'update',
+        title:       this.t('authConfig.azuread.updateEndpoint.modal.title'),
+        body:        this.t('authConfig.azuread.updateEndpoint.modal.body', null, { raw: true })
+      };
+    }
   },
 
   watch: {
@@ -112,26 +149,50 @@ export default {
       handler() {
         this.model.accessMode = this.model.accessMode || 'unrestricted';
         this.model.rancherUrl = this.model.rancherUrl || this.replyUrl;
-        if (this.endpoint !== 'custom') {
-          this.setEndpoints(this.endpoint);
-        }
 
         if (this.model.applicationSecret) {
           this.$set(this, 'applicationSecret', this.model.applicationSecret);
         }
       }
-    }
+    },
+
   },
 
   methods: {
     setEndpoints(endpoint) {
-      Object.keys(ENDPOINT_MAPPING[endpoint]).forEach((key) => {
-        this.$set(this.model, key, ENDPOINT_MAPPING[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId));
-      });
+      if (this.editConfig || !this.model.enabled) {
+        const endpointType = this.oldEndpoint && endpoint !== 'custom' ? OLD_ENDPOINTS : ENDPOINT_MAPPING;
+
+        Object.keys(endpointType[endpoint]).forEach((key) => {
+          this.$set(
+            this.model,
+            key,
+            endpointType[endpoint][key].replace(
+              TENANT_ID_TOKEN,
+              this.model.tenantId
+            )
+          );
+        });
+      }
+    },
+
+    setInitialEndpoint(endpoint) {
+      const newEndpointKey = Object.keys(ENDPOINT_MAPPING).find(key => ENDPOINT_MAPPING[key].graphEndpoint === endpoint);
+      const oldEndpointKey = Object.keys(OLD_ENDPOINTS).find(key => OLD_ENDPOINTS[key].graphEndpoint === endpoint);
+
+      if ( newEndpointKey ) {
+        this.endpoint = newEndpointKey;
+      } else if ( oldEndpointKey ) {
+        this.endpoint = oldEndpointKey;
+        this.oldEndpoint = true;
+      } else {
+        this.endpoint = 'custom';
+      }
     },
 
     getNewApplicationSecret() {
-      const applicationSecretOrId = this.model.applicationSecret || this.applicationSecret;
+      const applicationSecretOrId =
+        this.model.applicationSecret || this.applicationSecret;
 
       // The application secret comes back as an ID from steve API and this indicates
       // that the current application secret isn't new
@@ -140,8 +201,36 @@ export default {
       }
 
       return applicationSecretOrId;
+    },
+
+    promptUpdate() {
+      this.$store.dispatch('management/promptModal', {
+        component: 'GenericPrompt',
+        resources: [this.modalConfig]
+      });
+    },
+
+    // update the authconfig to change the azure ad graph endpoint to the microsoft graph endpoint
+    // only relevant for setups upgrading to 2.6.6 with azuread auth already enabled
+    updateEndpoint(btnCB) {
+      if (this.needsUpdate) {
+        this.model
+          .doAction('upgrade')
+          .then(() => {
+            this.reloadModel();
+            this.$store.dispatch('growl/success', { message: 'Graph endpoint updated successfully.' });
+            btnCB(true);
+          })
+          .catch((err) => {
+            this.$store.dispatch('growl/fromError', {
+              title: 'Error updating graph endpoint',
+              err
+            });
+            btnCB(false);
+          });
+      }
     }
-  },
+  }
 };
 </script>
 
@@ -154,39 +243,75 @@ export default {
       :resource="model"
       :subtypes="[]"
       :validation-passed="true"
-      :finish-button-mode="model.enabled ? 'edit' : 'enable'"
+      :finish-button-mode="model && model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
       :show-cancel="showCancel"
       :cancel-event="true"
-      @error="e=>errors = e"
+      @error="e => (errors = e)"
       @finish="save"
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
           <template slot="rows">
-            <tr><td>{{ t(`authConfig.azuread.tenantId`) }}: </td><td>{{ model.tenantId }}</td></tr>
-            <tr><td>{{ t(`authConfig.azuread.applicationId`) }}: </td><td>{{ model.applicationId }}</td></tr>
-            <tr><td>{{ t(`authConfig.azuread.endpoint`) }}: </td><td>{{ model.endpoint }}</td></tr>
-            <tr><td>{{ t(`authConfig.azuread.graphEndpoint`) }}: </td><td>{{ model.graphEndpoint }}</td></tr>
-            <tr><td>{{ t(`authConfig.azuread.tokenEndpoint`) }}: </td><td>{{ model.tokenEndpoint }}</td></tr>
-            <tr><td>{{ t(`authConfig.azuread.authEndpoint`) }}: </td><td>{{ model.authEndpoint }}</td></tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.tenantId`) }}:</td>
+              <td>{{ model.tenantId }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.applicationId`) }}:</td>
+              <td>{{ model.applicationId }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.endpoint`) }}:</td>
+              <td>{{ model.endpoint }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.graphEndpoint`) }}:</td>
+              <td>{{ model.graphEndpoint }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.tokenEndpoint`) }}:</td>
+              <td>{{ model.tokenEndpoint }}</td>
+            </tr>
+            <tr>
+              <td>{{ t(`authConfig.azuread.authEndpoint`) }}:</td>
+              <td>{{ model.authEndpoint }}</td>
+            </tr>
+          </template>
+          <template v-if="needsUpdate" slot="actions">
+            <button
+              type="button"
+              class="btn btn-sm role-secondary mr-10 update"
+              @click="promptUpdate"
+            >
+              {{ t('authConfig.azuread.updateEndpoint.button') }}
+            </button>
           </template>
         </AuthBanner>
 
         <hr />
 
-        <AllowedPrincipals provider="azuread" :auth-config="model" :mode="mode" />
+        <AllowedPrincipals
+          provider="azuread"
+          :auth-config="model"
+          :mode="mode"
+        />
       </template>
 
       <template v-else>
-        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+        <Banner
+          v-if="!model.enabled"
+          :label="t('authConfig.stateBanner.disabled', tArgs)"
+          color="warning"
+        />
 
-        <InfoBox v-if="!model.enabled" class="mt-20 mb-20 p-10">
-          Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that is may take up to 5 minutes for the whitelisted URL to propagate.
+        <InfoBox v-if="!model.enabled" id="reply-info" class="mt-20 mb-20 p-10">
+          {{ t('authConfig.azuread.reply.info') }}
           <br />
-          <label>Reply URL: </label> <CopyToClipboardText :plain="true" :text="replyUrl" />
+          <label class="reply-url">{{ t('authConfig.azuread.reply.label') }} </label>
+          <CopyToClipboardText :plain="true" :text="replyUrl" />
         </InfoBox>
 
         <div class="row mb-20">
@@ -230,7 +355,7 @@ export default {
           :required="true"
           label="Endpoints"
           name="endpoints"
-          :options="['standard','china', 'custom']"
+          :options="['standard', 'china', 'custom']"
           :mode="mode"
           :labels="['Standard', 'China', 'Custom']"
         />
@@ -276,3 +401,14 @@ export default {
     </CruResource>
   </div>
 </template>
+
+<style lang="scss">
+#reply-info {
+  flex-grow: 0;
+}
+
+.reply-url {
+  color: inherit;
+  font-weight: 700;
+}
+</style>

@@ -151,6 +151,7 @@ export const NODE = {
   name:          'node',
   labelKey:      'tableHeaders.node',
   value:         'spec.nodeName',
+  getValue:      row => row.spec?.nodeName,
   sort:          'spec.nodeName',
   formatter:     'LinkName',
   formatterOpts: { type: NODE_TYPE },
@@ -161,6 +162,7 @@ export const NODE_NAME = {
   labelKey:  'tableHeaders.nodeName',
   sort:      'name',
   value:     'name',
+  getValue:  row => row.name,
   formatter: 'LinkDetail',
 };
 
@@ -212,7 +214,7 @@ export const PODS = {
   labelKey:  'tableHeaders.pods',
   sort:      'podConsumed',
   search:    false,
-  value:     'podConsumedUsage',
+  value:     row => row.podConsumedUsage,
   formatter: 'PercentageBar',
   width:     120,
 };
@@ -220,9 +222,9 @@ export const PODS = {
 export const AGE = {
   name:      'age',
   labelKey:  'tableHeaders.age',
-  value:     'metadata.creationTimestamp',
-  getValue:  row => row.metadata?.creationTimestamp,
-  sort:      'metadata.creationTimestamp:desc',
+  value:     'creationTimestamp',
+  getValue:  row => row.creationTimestamp,
+  sort:      'creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
   width:     100,
@@ -231,6 +233,7 @@ export const AGE = {
 
 export const AGE_NORMAN = {
   ...AGE,
+  getValue:  row => row.created,
   value:     'created',
   sort:      'created:desc',
 };
@@ -264,14 +267,20 @@ export const POD_IMAGES = {
   value:     'imageNames',
   getValue:  row => row.imageNames,
   sort:      'imageNames',
-  search:    'imageNames',
+  // search:    'imageNames',
   formatter: 'PodImages'
 };
 
 export const POD_RESTARTS = {
-  name:      'pod_restarts',
-  labelKey:  'tableHeaders.podRestarts',
-  value:     'restartCount'
+  name:         'pod_restarts',
+  labelKey:     'tableHeaders.podRestarts',
+  formatter:    'LivePodRestarts',
+  delayLoading: true,
+  value:        'restartCount',
+  getValue:     row => row.restartCount,
+  // This column is expensive to compute, so don't make it searchable
+  search:       false,
+  liveUpdates:  true
 };
 
 export const ENDPOINTS = {
@@ -414,6 +423,7 @@ export const TYPE = {
   name:     'type',
   labelKey: 'tableHeaders.type',
   value:    'typeDisplay',
+  getValue: row => row.typeDisplay,
   sort:     ['typeDisplay'],
   width:    100,
 };
@@ -527,6 +537,13 @@ export const API_GROUP = {
   sort:     ['apiGroups']
 };
 
+export const INGRESS_CLASS = {
+  name:      'ingressClassName',
+  labelKey:  'tableHeaders.ingressClass',
+  value:     `$['spec']['ingressClassName']`,
+  sort:      `$['spec']['ingressClassName']`,
+};
+
 export const INGRESS_DEFAULT_BACKEND = {
   name:      'ingressDefaultBackend',
   labelKey:  'tableHeaders.ingressDefaultBackend',
@@ -636,9 +653,13 @@ export const WORKLOAD_HEALTH_SCALE = {
   name:         'workloadHealthScale',
   labelKey:     'tableHeaders.health',
   formatter:    'WorkloadHealthScale',
+  getValue:     () => undefined,
   width:        150,
   skipSelect:   true,
   delayLoading: true,
+  // This column is expensive to compute, so don't make it searchable
+  search:       false,
+  liveUpdates:  true,
 };
 
 export const FLEET_SUMMARY = {
@@ -849,7 +870,6 @@ export const FEATURE_DESCRIPTION = {
   value:         'status.description',
   align:         'left',
   sort:          ['status.description'],
-  width:         300,
   formatter:     'Translate',
   formatterOpts: { prefix: 'featureFlags.description' },
 };
@@ -873,19 +893,21 @@ export const KUBE_NODE_OS = {
 };
 
 export const MACHINE_NODE_OS = {
-  name:      'operating-system',
-  labelKey:  'tableHeaders.operatingSystem',
-  value:     'operatingSystem',
-  sort:      ['operatingSystem'],
-  formatter: 'Capitalize'
+  name:        'operating-system',
+  labelKey:    'tableHeaders.operatingSystem',
+  value:       'operatingSystem',
+  sort:        ['operatingSystem'],
+  formatter:   'Capitalize',
+  dashIfEmpty: true,
 };
 
 export const MANAGEMENT_NODE_OS = {
-  name:      'operating-system',
-  labelKey:  'tableHeaders.operatingSystem',
-  value:     'status.internalNodeStatus.nodeInfo.operatingSystem',
-  sort:      ['status.internalNodeStatus.nodeInfo.operatingSystem'],
-  formatter: 'Capitalize'
+  name:        'operating-system',
+  labelKey:    'tableHeaders.operatingSystem',
+  value:       'status.internalNodeStatus.nodeInfo.operatingSystem',
+  sort:        ['status.internalNodeStatus.nodeInfo.operatingSystem'],
+  formatter:   'Capitalize',
+  dashIfEmpty: true,
 };
 
 // FLEET
@@ -911,5 +933,4 @@ export const IP_ADDRESS = {
   name:          'ipaddress',
   value:         'ipaddress',
   labelKey:      'tableHeaders.ipaddress',
-
 };

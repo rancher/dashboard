@@ -9,10 +9,19 @@ import { escapeHtml } from '@shell/utils/string';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import Vue from 'vue';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace
-  'p-', // project namespace
+
+  // Project namespace. When a user creates a project, Rancher creates
+  // namespaces in the local cluster with the 'p-' prefix which are
+  // used to manage RBAC for the project. If these namespaces are deleted,
+  // role bindings can be lost and Rancher may need to be restored from
+  // backup. Therefore we hide these namespaces unless the developer setting
+  // is turned on from the user preferences.
+  'p-',
+
   'user-', // user namespace
   'local', // local namespace
 ];
@@ -164,11 +173,26 @@ export default class Namespace extends SteveModel {
   }
 
   get listLocation() {
-    if (this.$rootGetters['isSingleProduct']) {
-      return { name: 'c-cluster-product-resource' };
+    const listLocation = { name: this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-resource' };
+
+    // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      listLocation.name = `${ HARVESTER }-${ listLocation.name }`.replace('-product', '');
+      listLocation.params = { resource: 'namespace' };
     }
 
-    return { name: this.$rootGetters['isRancher'] ? 'c-cluster-product-projectsnamespaces' : 'c-cluster-product-namespaces' };
+    return listLocation;
+  }
+
+  get _detailLocation() {
+    const _detailLocation = super._detailLocation;
+
+    // Harvester uses these resource directly... but has different routes. detailLocation covers routes leading to resource (like edit)
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      _detailLocation.name = `${ HARVESTER }-${ _detailLocation.name }`.replace('-product', '');
+    }
+
+    return _detailLocation;
   }
 
   get parentLocationOverride() {

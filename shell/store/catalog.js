@@ -410,6 +410,10 @@ export const actions = {
     await dispatch('load', { force: true, reset: true });
   },
 
+  /*
+    Fetch full information about a specific version of a Helm chart,
+    including the standard values and README.
+  */
   async getVersionInfo({ state, getters, commit }, {
     repoType, repoName, chartName, versionName
   }) {
@@ -651,7 +655,9 @@ export function filterAndArrangeCharts(charts, {
       const searchTokens = searchQuery.split(/\s*[, ]\s*/).map(x => ensureRegex(x, false));
 
       for ( const token of searchTokens ) {
-        if ( !c.chartNameDisplay.match(token) && (c.chartDescription && !c.chartDescription.match(token)) ) {
+        const chartDescription = c.chartDescription || '';
+
+        if ( !c.chartNameDisplay.match(token) && !chartDescription.match(token) ) {
           return false;
         }
       }

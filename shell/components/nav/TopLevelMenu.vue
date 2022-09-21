@@ -1,6 +1,7 @@
 <script>
 import BrandImage from '@shell/components/BrandImage';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
+import LocaleSelector from '@shell/components/LocaleSelector';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
@@ -19,10 +20,13 @@ const UI_COMMIT = process.env.COMMIT || UNKNOWN;
 
 export default {
 
-  components: { BrandImage, ClusterProviderIcon },
+  components: {
+    BrandImage, ClusterProviderIcon, LocaleSelector
+  },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
+    const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     return {
       shown:          false,
@@ -31,14 +35,20 @@ export default {
       uiCommit:       UI_COMMIT,
       uiVersion:      UI_VERSION,
       clusterFilter:  '',
+      hasProvCluster,
     };
+  },
+
+  fetch() {
+    if (this.hasProvCluster) {
+      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+    }
   },
 
   computed: {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct']),
     ...mapGetters('type-map', ['activeProducts']),
-    ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
     ...mapGetters({ features: 'features/get' }),
 
     value: {
@@ -57,18 +67,21 @@ export default {
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      const pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
       let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
-      const available = pClusters.reduce((p, c) => {
-        p[c.mgmt] = true;
 
-        return p;
-      }, {});
+      if (this.hasProvCluster) {
+        const pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
+        const available = pClusters.reduce((p, c) => {
+          p[c.mgmt] = true;
 
-      // Filter to only show mgmt clusters that exist for the available provisionning clusters
-      // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
-      // provisionning cluster has been deleted
-      kubeClusters = kubeClusters.filter(c => !!available[c]);
+          return p;
+        }, {});
+
+        // Filter to only show mgmt clusters that exist for the available provisionning clusters
+        // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
+        // provisionning cluster has been deleted
+        kubeClusters = kubeClusters.filter(c => !!available[c]);
+      }
 
       return kubeClusters.map((x) => {
         return {
@@ -96,14 +109,6 @@ export default {
     dev: mapPref(DEV),
 
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
-
-    showLocale() {
-      return Object.keys(this.availableLocales).length > 1 || this.dev;
-    },
-
-    showNone() {
-      return this.dev;
-    },
 
     multiClusterApps() {
       const options = this.options;
@@ -140,7 +145,7 @@ export default {
 
     options() {
       const cluster = this.clusterId || this.$store.getters['defaultClusterId'];
-
+      // TODO plugin routes
       const entries = this.activeProducts.map((p) => {
         // Try product-specific index first
         const to = p.to || {
@@ -221,21 +226,27 @@ export default {
         this.setClusterListHeight(this.maxClustersToShow);
       });
     },
-
-    switchLocale(locale) {
-      this.$store.dispatch('i18n/switchTo', locale);
-    },
   }
 };
 </script>
 <template>
   <div>
-    <div class="menu" :class="{'raised': shown, 'unraised':!shown}" @click="toggle()">
+    <div
+      data-testid="top-level-menu"
+      class="menu"
+      :class="{'raised': shown, 'unraised':!shown}"
+      @click="toggle()"
+    >
       <svg class="menu-icon" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none" /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
     </div>
     <div v-if="shown" class="side-menu-glass" @click="hide()"></div>
     <transition name="fade">
-      <div v-if="shown" class="side-menu" tabindex="-1">
+      <div
+        v-if="shown"
+        data-testid="side-menu"
+        class="side-menu"
+        tabindex="-1"
+      >
         <div class="title">
           <div class="menu-spacer"></div>
           <div class="side-menu-logo">
@@ -338,31 +349,7 @@ export default {
               v-html="displayVersion"
             />
           </div>
-          <div v-if="showLocale">
-            <v-popover
-              popover-class="localeSelector"
-              placement="top"
-              trigger="click"
-            >
-              <a class="locale-chooser">
-                {{ selectedLocaleLabel }}
-              </a>
-
-              <template slot="popover">
-                <ul class="list-unstyled dropdown" style="margin: -1px;">
-                  <li v-if="showNone" v-t="'locale.none'" class="hand" @click="switchLocale('none')" />
-                  <li
-                    v-for="(label, name) in availableLocales"
-                    :key="name"
-                    class="hand"
-                    @click="switchLocale(name)"
-                  >
-                    {{ label }}
-                  </li>
-                </ul>
-              </template>
-            </v-popover>
-          </div>
+          <LocaleSelector></LocaleSelector>
         </div>
       </div>
     </transition>

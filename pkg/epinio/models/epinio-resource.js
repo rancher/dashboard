@@ -10,6 +10,14 @@ export default class EpinioResource extends Resource {
     });
   }
 
+  get parentLocationOverride() {
+    return this.listLocation;
+  }
+
+  get doneRoute() {
+    return this.listLocation.name;
+  }
+
   // ------------------------------------------------------------------
 
   get canClone() {

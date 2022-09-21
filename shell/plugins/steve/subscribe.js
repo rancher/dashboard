@@ -1,16 +1,67 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
+import { COUNT, MANAGEMENT, SCHEMA } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
   //  EVENT_FRAME_TIMEOUT,
-  EVENT_CONNECT_ERROR
+  EVENT_CONNECT_ERROR,
+  EVENT_DISCONNECT_ERROR
 } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import day from 'dayjs';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { escapeHtml } from '@shell/utils/string';
+
+// eslint-disable-next-line
+import webworker from './web-worker.steve-sub-worker.js';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
+
+// minimum length of time a disconnect notification is shown
+const MINIMUM_TIME_NOTIFIED = 3000;
+
+// We only create a worker for the cluster store
+export function createWorker(store, ctx) {
+  const { getters } = ctx;
+  const storeName = getters.storeName;
+
+  store.$workers = store.$workers || {};
+
+  if (storeName !== 'cluster') {
+    return;
+  }
+
+  const workerActions = {
+    load: (resource) => {
+      queueChange(ctx, resource, true, 'Change');
+    },
+    destroyWorker: () => {
+      delete this.$workers[storeName];
+    }
+  };
+
+  if (!store.$workers[storeName]) {
+    const worker = new webworker();
+
+    store.$workers[storeName] = worker;
+
+    worker.postMessage({ initWorker: { storeName } });
+
+    store.$workers[storeName].onmessage = (e) => {
+      /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
+      // good enough for now considering that we never send more than one message action at a time right now */
+      const messageActions = Object.keys(e?.data);
+
+      messageActions.forEach((action) => {
+        workerActions[action](e?.data[action]);
+      });
+    };
+  }
+}
 
 export function keyForSubscribe({
   resourceType, type, namespace, id, selector
@@ -68,7 +119,7 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
       });
     }
 
-    if ( type === 'schema' ) {
+    if ( type === SCHEMA ) {
       // Clear the current records in the store when a type disappears
       state.queue.push({
         action: 'commit',
@@ -108,7 +159,6 @@ export const actions = {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);
 
       commit('setSocket', socket);
-
       socket.addEventListener(EVENT_CONNECTED, (e) => {
         dispatch('opened', e);
       });
@@ -118,7 +168,11 @@ export const actions = {
       });
 
       socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
-        dispatch('error', e.detail);
+        dispatch('error', e );
+      });
+
+      socket.addEventListener(EVENT_DISCONNECT_ERROR, (e) => {
+        dispatch('error', e );
       });
 
       socket.addEventListener(EVENT_MESSAGE, (e) => {
@@ -137,10 +191,15 @@ export const actions = {
     socket.connect(get(opt, 'metadata'));
   },
 
-  unsubscribe({ state, commit }) {
+  unsubscribe({ commit, getters, state }) {
     const socket = state.socket;
+    const worker = (this.$workers || {})[getters.storeName];
 
     commit('setWantSocket', false);
+
+    if (worker) {
+      worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
+    }
 
     if ( socket ) {
       return socket.disconnect();
@@ -338,11 +397,18 @@ export const actions = {
   },
 
   async opened({
-    commit, dispatch, state, getters
+    commit, dispatch, state, getters, rootGetters
   }, event) {
     state.debugSocket && console.info(`WebSocket Opened [${ getters.storeName }]`); // eslint-disable-line no-console
-
     const socket = event.currentTarget;
+    const tries = event?.detail?.tries; // have to pull it off of the event because the socket's tries is already reset to 0
+    const t = rootGetters['i18n/t'];
+    const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+    let disableGrowl = false;
+
+    if ( perfSetting?.value ) {
+      disableGrowl = JSON.parse(perfSetting.value).disableWebsocketNotification || false;
+    }
 
     this.$socket = socket;
 
@@ -364,6 +430,18 @@ export const actions = {
 
     if ( socket.hasReconnected ) {
       await dispatch('reconnectWatches');
+      // Check for disconnect notifications and clear them
+      const growlErr = rootGetters['growl/find']({ key: 'url', val: socket.url });
+
+      if (growlErr) {
+        dispatch('growl/remove', growlErr.id, { root: true });
+      }
+      if (tries > 1 && !disableGrowl) {
+        dispatch('growl/success', {
+          title:   t('growl.reconnected.title'),
+          message: t('growl.reconnected.message', { url: this.$socket.url, tries }),
+        }, { root: true });
+      }
     }
 
     // Try resending any frames that were attempted to be sent while the socket was down, once.
@@ -381,10 +459,64 @@ export const actions = {
     state.queueTimer = null;
   },
 
-  error({ getters, state }, event) {
-    console.error(`WebSocket Error [${ getters.storeName }]`, event); // eslint-disable-line no-console
+  error({
+    getters, state, dispatch, rootGetters
+  }, e) {
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
+
+    // determine if websocket notifications are disabled
+    const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+    let disableGrowl = false;
+
+    if (!disableGrowl) {
+      const dateFormat = escapeHtml( rootGetters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( rootGetters['prefs/get'](TIME_FORMAT));
+      const time = e?.srcElement?.disconnectedAt || Date.now();
+
+      const timeFormatted = `${ day(time).format(`${ dateFormat } ${ timeFormat }`) }`;
+      const url = e?.srcElement?.url;
+      const tries = state?.socket?.tries;
+
+      const t = rootGetters['i18n/t'];
+
+      if ( perfSetting?.value ) {
+        disableGrowl = JSON.parse(perfSetting.value).disableWebsocketNotification || false;
+      }
+
+      const growlErr = rootGetters['growl/find']({ key: 'url', val: url });
+
+      if (e.type === EVENT_CONNECT_ERROR) { // if this occurs, then we're at least retrying to connect
+        if (growlErr) {
+          dispatch('growl/remove', growlErr.id, { root: true });
+        }
+        dispatch('growl/error', {
+          title:         t('growl.connectError.title'),
+          message:       t('growl.connectError.message', {
+            url, time: timeFormatted, tries
+          }, { raw: true }),
+          icon:          'error',
+          earliestClose: time + MINIMUM_TIME_NOTIFIED,
+          url
+        }, { root: true });
+      } else if (e.type === EVENT_DISCONNECT_ERROR) { // if this occurs, we've given up on trying to reconnect
+        if (growlErr) {
+          dispatch('growl/remove', growlErr.id, { root: true });
+        }
+        dispatch('growl/error', {
+          title:         t('growl.disconnectError.title'),
+          message:       t('growl.disconnectError.message', {
+            url, time: timeFormatted, tries
+          }, { raw: true }),
+          icon:          'error',
+          earliestClose: time + MINIMUM_TIME_NOTIFIED,
+          url
+        }, { root: true });
+      } else {
+        // if the error is not a connect error or disconnect error, the socket never worked: log whether the current browser is safari
+        console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
+      }
+    }
   },
 
   send({ state, commit }, obj) {
@@ -467,10 +599,36 @@ export const actions = {
   },
 
   'ws.resource.change'(ctx, msg) {
-    queueChange(ctx, msg, true, 'Change');
-
     const data = msg.data;
     const type = data.type;
+
+    // Debounce count changes so we send at most 1 every 5 seconds
+    if (type === COUNT) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.postMessage({ countsUpdate: msg });
+
+        // No further processing - let the web worker debounce the counts
+        return;
+      }
+    }
+
+    // Web worker can process schemas to check that they are actually changing and
+    // only load updates if the schema did actually change
+    if (type === SCHEMA) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.postMessage({ updateSchema: data });
+
+        // No further processing - let the web worker check the schema updates
+        return;
+      }
+    }
+
+    queueChange(ctx, msg, true, 'Change');
+
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
     if (typeOption?.alias?.length > 0) {
@@ -490,10 +648,19 @@ export const actions = {
   },
 
   'ws.resource.remove'(ctx, msg) {
-    queueChange(ctx, msg, false, 'Remove');
-
     const data = msg.data;
     const type = data.type;
+
+    if (type === SCHEMA) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.postMessage({ removeSchema: data.id });
+      }
+    }
+
+    queueChange(ctx, msg, false, 'Remove');
+
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
     if (typeOption?.alias?.length > 0) {
@@ -569,7 +736,7 @@ export const mutations = {
     clear(state.started);
     clear(state.pendingFrames);
     clear(state.queue);
-    clearInterval(state.queueTimer);
+    clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;
   }

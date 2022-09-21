@@ -2,8 +2,6 @@
 import BrandImage from '@shell/components/BrandImage';
 import { mapGetters, mapState } from 'vuex';
 import { stringify } from '@shell/utils/error';
-import { getVendor } from '@shell/config/private-label';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
 
 export default {
   layout: 'home',
@@ -13,7 +11,7 @@ export default {
   data() {
     const store = this.$store;
 
-    if ( process.client && !store.state.error && !store.state.cameFromError) {
+    if (!store.state.error && !store.state.cameFromError) {
       store.commit('cameFromError');
       this.$router.replace('/');
     }
@@ -29,13 +27,6 @@ export default {
     ...mapGetters(['isSingleProduct']),
 
     home() {
-      const isOnlyHarvester = getVendor() === HARVESTER;
-
-      if (isOnlyHarvester) {
-        // This looks like it's covered by `isSingleProduct?.afterLoginRoute` too
-        return 'c/local/harvester/harvesterhci.io.dashboard';
-      }
-
       if (this.isSingleProduct?.afterLoginRoute) {
         return this.$router.resolve(this.isSingleProduct.afterLoginRoute).href;
       }

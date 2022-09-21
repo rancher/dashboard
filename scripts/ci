@@ -15,6 +15,9 @@ yarn --pure-lockfile install
 echo "Linting..."
 yarn run lint
 
+echo "Linting translations..."
+yarn run lint-l10n
+
 echo "Testing..."
 yarn run test:ci
 

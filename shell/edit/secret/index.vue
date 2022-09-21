@@ -3,6 +3,8 @@ import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import { MANAGEMENT, NAMESPACE, DEFAULT_WORKSPACE } from '@shell/config/types';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
+import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CruResource from '@shell/components/CruResource';
 import {
   CLOUD_CREDENTIAL, _CLONE, _CREATE, _EDIT, _FLAGGED
@@ -32,6 +34,8 @@ export default {
   name: 'CruSecret',
 
   components: {
+    LabeledInput,
+    LabeledSelect,
     Loading,
     NameNsDescription,
     CruResource,
@@ -63,14 +67,41 @@ export default {
       this.$set(this.value, 'data', {});
     }
 
+    const secretTypes = [
+      {
+        label: 'Custom',
+        value: 'custom'
+      },
+      {
+        label:    'divider',
+        disabled: true,
+        kind:     'divider'
+      }
+    ];
+
+    Object.values(TYPES).forEach((t) => {
+      secretTypes.push({
+        label: t,
+        value: t
+      });
+    });
+
     return {
       isCloud,
-      nodeDrivers: null,
-
+      nodeDrivers:       null,
+      secretTypes,
+      secretType:        this.value._type,
+      initialSecretType: this.value._type
     };
   },
 
   computed: {
+    isCustomSecretCreate() {
+      return this.mode === _CREATE && this.$route.query.type === 'custom';
+    },
+    showCustomSecretType() {
+      return this.secretType === 'custom';
+    },
     typeKey() {
       if ( this.isCloud ) {
         return 'cloud';
@@ -147,6 +178,13 @@ export default {
             docLink:     this.t(`secret.typeDescriptions.'${ id }'.docLink`)
           });
         }
+
+        out.push({
+          id:          'custom',
+          label:       this.t('secret.customType'),
+          bannerAbbrv: this.initialDisplayFor('custom'),
+          description: this.t('secret.typeDescriptions.custom.description')
+        });
       }
 
       return sortBy(out, 'label');
@@ -237,6 +275,12 @@ export default {
 
       this.$set(this.value, '_type', type);
       this.$emit('set-subtype', this.typeDisplay(type, driver));
+
+      this.secretType = type;
+
+      if (this.mode === _CREATE && type === 'custom') {
+        this.$set(this.value, '_type', '');
+      }
     },
 
     typeDisplay(type, driver) {
@@ -254,6 +298,12 @@ export default {
 
       return this.$store.getters['i18n/withFallback'](`secret.initials."${ type }"`, null, fallback);
     },
+
+    selectCustomType(type) {
+      if (type !== 'custom') {
+        this.$set(this.value, '_type', type);
+      }
+    }
   },
 };
 </script>
@@ -275,6 +325,34 @@ export default {
       @error="e=>errors = e"
     >
       <NameNsDescription v-model="value" :mode="mode" :namespaced="!isCloud" />
+
+      <div v-if="isCustomSecretCreate" class="row">
+        <div class="col span-3">
+          <LabeledSelect
+            v-model="secretType"
+            :options="secretTypes"
+            :searchable="false"
+            :mode="mode"
+            :multiple="false"
+            :reduce="(e) => e.value"
+            label-key="secret.type"
+            required
+            @input="selectCustomType"
+          />
+        </div>
+
+        <div class="col span-3">
+          <LabeledInput
+            v-if="showCustomSecretType"
+            ref="customType"
+            v-model="value._type"
+            v-focus
+            label-key="secret.customType"
+            :mode="mode"
+            required
+          />
+        </div>
+      </div>
 
       <div class="spacer"></div>
       <component

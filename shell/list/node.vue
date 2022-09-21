@@ -54,8 +54,8 @@ export default {
     }
 
     if (this.canViewPods) {
-      // Used for running pods metrics
-      hash.pods = this.$store.dispatch('cluster/findAll', { type: POD });
+      // Used for running pods metrics - we don't need to block on this to show the list of nodes
+      this.$store.dispatch('cluster/findAll', { type: POD });
     }
 
     const res = await allHash(hash);
@@ -68,6 +68,13 @@ export default {
       kubeNodes:   null,
       canViewPods: false,
     };
+  },
+
+  beforeDestroy() {
+    // Stop watching pods, nodes and node metrics
+    this.$store.dispatch('cluster/forgetType', POD);
+    this.$store.dispatch('cluster/forgetType', NODE);
+    this.$store.dispatch('cluster/forgetType', METRIC.NODE);
   },
 
   computed: {

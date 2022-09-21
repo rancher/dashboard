@@ -1,6 +1,5 @@
 import merge from 'lodash/merge';
 import IntlMessageFormat from 'intl-messageformat';
-import { LOCALE } from '@shell/config/cookies';
 import { get } from '@shell/utils/object';
 import en from '@shell/assets/translations/en-us.yaml';
 import { getProduct, getVendor, DOCS_BASE } from '@shell/config/private-label';
@@ -59,16 +58,17 @@ export const getters = {
     return out;
   },
 
-  t: state => (key, args) => {
-    if (state.selected === NONE ) {
+  t: state => (key, args, language) => {
+    if (state.selected === NONE && !language) {
       return `%${ key }%`;
     }
 
-    const cacheKey = `${ state.selected }/${ key }`;
+    const locale = language || state.selected;
+    const cacheKey = `${ locale }/${ key }`;
     let formatter = intlCache[cacheKey];
 
     if ( !formatter ) {
-      let msg = get(state.translations[state.selected], key);
+      let msg = get(state.translations[locale], key);
 
       if ( !msg ) {
         msg = get(state.translations[state.default], key);
@@ -85,7 +85,7 @@ export const getters = {
       }
 
       if ( msg?.includes('{')) {
-        formatter = new IntlMessageFormat(msg, state.selected);
+        formatter = new IntlMessageFormat(msg, locale);
       } else {
         formatter = msg;
       }
@@ -110,8 +110,9 @@ export const getters = {
     }
   },
 
-  exists: state => (key) => {
-    const cacheKey = `${ state.selected }/${ key }`;
+  exists: state => (key, language) => {
+    const locale = language || state.selected;
+    const cacheKey = `${ locale }/${ key }`;
 
     if ( intlCache[cacheKey] ) {
       return true;
@@ -119,8 +120,8 @@ export const getters = {
 
     let msg = get(state.translations[state.default], key);
 
-    if ( !msg && state.selected && state.selected !== NONE ) {
-      msg = get(state.translations[state.selected], key);
+    if ( !msg && locale && locale !== NONE ) {
+      msg = get(state.translations[locale], key);
     }
 
     if ( msg !== undefined ) {
@@ -206,8 +207,10 @@ export const mutations = {
 };
 
 export const actions = {
-  init({ state, commit, dispatch }) {
-    let selected = this.$cookies.get(LOCALE, { parseJSON: false });
+  init({
+    state, commit, dispatch, rootGetters
+  }) {
+    let selected = rootGetters['prefs/get']('locale');
 
     // We might be using a locale that is loaded by a plugin that is no longer loaded
     const exists = !!state.available.find(loc => loc === selected);
@@ -257,8 +260,11 @@ export const actions = {
     state,
     rootState,
     commit,
-    dispatch
+    dispatch,
+    getters
   }, locale) {
+    const currentLocale = getters['current']();
+
     if ( locale === NONE ) {
       commit('setSelected', locale);
 
@@ -306,13 +312,14 @@ export const actions = {
     }
 
     commit('setSelected', locale);
-    this.$cookies.set(LOCALE, locale, {
-      encode:   x => x,
-      maxAge:   86400 * 365,
-      path:     '/',
-      sameSite: true,
-      secure:   true,
-    });
+
+    // Ony update the preference if the locale changed
+    if (currentLocale !== locale) {
+      dispatch('prefs/set', {
+        key:   'locale',
+        value: state.selected
+      }, { root: true });
+    }
   },
 
   toggleNone({ state, dispatch }) {

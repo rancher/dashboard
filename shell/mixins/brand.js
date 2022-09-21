@@ -1,4 +1,4 @@
-import { MANAGEMENT } from '@shell/config/types';
+import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
@@ -6,14 +6,22 @@ import { createCssVars } from '@shell/utils/color';
 
 export default {
   async fetch() {
-    this.globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING);
+    // For the login page, the schemas won't be loaded - we don't need the apps in this case
+    try {
+      if (this.$store.getters['management/canList'](CATALOG.APP)) {
+        this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
+      }
+    } catch (e) {}
+
+    this.globalSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
   },
 
   data() {
-    return { globalSettings: [], brandCookie: null };
+    return { apps: [], globalSettings: [] };
   },
 
   computed: {
+
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
@@ -33,7 +41,18 @@ export default {
     },
 
     theme() {
+      const setting = findBy(this.globalSettings, 'id', SETTING.THEME);
+
+      // This handles cases where the settings update after the page loads (like on log out)
+      if (setting?.value) {
+        return setting?.value;
+      }
+
       return this.$store.getters['prefs/theme'];
+    },
+
+    cspAdapter() {
+      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
     }
   },
 
@@ -60,6 +79,33 @@ export default {
         this.setCustomColor(this.linkColor, 'link');
       }
     },
+
+    cspAdapter(neu) {
+      if (neu && !this.brand) {
+        const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
+
+        if (brandSetting) {
+          brandSetting.value = 'suse';
+          brandSetting.save();
+        } else {
+          const schema = this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING);
+          const url = schema?.linkFor('collection');
+
+          if (url) {
+            this.$store.dispatch('management/create', {
+              type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'suse', default: ''
+            }).then(setting => setting.save());
+          }
+        }
+      } else if (!neu) {
+        const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
+
+        if (brandSetting) {
+          brandSetting.value = '';
+          brandSetting.save();
+        }
+      }
+    }
   },
   methods: {
     setCustomColor(color, name = 'primary') {

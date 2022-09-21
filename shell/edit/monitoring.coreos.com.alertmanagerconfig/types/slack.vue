@@ -38,7 +38,8 @@ export default {
     return {
       view:              _VIEW,
       initialSecretKey:  this.value?.apiURL?.key ? this.value.apiURL.key : '',
-      initialSecretName: this.value.apiURL?.name ? this.value.apiURL.name : ''
+      initialSecretName: this.value.apiURL?.name ? this.value.apiURL.name : '',
+      none:              '__[[NONE]]__',
     };
   },
 
@@ -47,10 +48,14 @@ export default {
       const existingKey = this.value.apiURL?.key || '';
 
       if (this.value.apiURL) {
-        this.value.apiURL = {
-          key: existingKey,
-          name
-        };
+        if (name === this.none) {
+          delete this.value.apiURL;
+        } else {
+          this.value.apiURL = {
+            key: existingKey,
+            name,
+          };
+        }
       } else {
         this.value['apiURL'] = {
           key: '',

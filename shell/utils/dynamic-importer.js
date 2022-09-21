@@ -63,7 +63,7 @@ export function importDialog(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "dialog" */ `@shell/components/dialog/${name}`);
+  return () => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`);
 }
 
 export function importWindowComponent(name) {

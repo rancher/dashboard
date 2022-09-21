@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
@@ -8,6 +9,11 @@ module.exports = function(dir) {
   const maindir = path.resolve(dir, '..', '..');
   // The shell code must be sym-linked into the .shell folder
   const SHELL = path.join(dir, '.shell');
+  let COMPONENTS_DIR = path.join(SHELL, 'rancher-components');
+
+  if (fs.existsSync(path.join(maindir, 'shell'))) {
+    COMPONENTS_DIR = path.join(maindir, 'pkg', 'rancher-components', 'src', 'components');
+  }
 
   return {
     css: {
@@ -33,25 +39,30 @@ module.exports = function(dir) {
       // Alias updates
       config.resolve.alias['@shell'] = path.join(dir, '.shell');
       config.resolve.alias['~shell'] = path.join(dir, '.shell');
+      // This should be udpated once we move to rancher-components as a dependency
+      config.resolve.alias['@components'] = COMPONENTS_DIR;
       config.resolve.alias['./node_modules'] = path.join(maindir, 'node_modules');
       config.resolve.alias['@pkg'] = dir;
       config.resolve.alias['~pkg'] = dir;
       delete config.resolve.alias['@'];
 
-      // Prevent the dynamic importer and the model-loader from importing anything dynamically - we don't want all of the
+      // Prevent the dynamic importer and the model-loader-require from importing anything dynamically - we don't want all of the
       // models etc when we build as a library
-      const dynamicImporterOveride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
+      const dynamicImporterOverride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
         resource.request = path.join(__dirname, 'dynamic-importer.lib.js');
       });
-      const modelLoaderImporterOveride = new webpack.NormalModuleReplacementPlugin(/model-loader$/, (resource) => {
-        resource.request = path.join(__dirname, 'model-loader.lib.js');
+      const modelLoaderImporterOverride = new webpack.NormalModuleReplacementPlugin(/model-loader-require$/, (resource) => {
+        const fileName = 'model-loader-require.lib.js';
+        const pkgModelLoaderRequire = path.join(dir, fileName);
+
+        resource.request = fs.existsSync(pkgModelLoaderRequire) ? pkgModelLoaderRequire : path.join(__dirname, fileName);
       });
 
       // Auto-generate module to import the types (model, detail, edit etc)
       const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@rancher/auto-import': generateTypeImport('@pkg', dir) });
 
-      config.plugins.unshift(dynamicImporterOveride);
-      config.plugins.unshift(modelLoaderImporterOveride);
+      config.plugins.unshift(dynamicImporterOverride);
+      config.plugins.unshift(modelLoaderImporterOverride);
       config.plugins.unshift(autoImportPlugin);
       // config.plugins.unshift(debug);
 

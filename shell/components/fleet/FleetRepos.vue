@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import ResourceTable from '@shell/components/ResourceTable';
 import Link from '@shell/components/formatter/Link';
 import Shortened from '@shell/components/formatter/Shortened';
@@ -32,7 +31,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
     filteredRows() {
       if (!this.rows) {
         return [];

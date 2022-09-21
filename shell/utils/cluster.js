@@ -13,7 +13,7 @@ export function filterOnlyKubernetesClusters(mgmtClusters) {
 
 export function isHarvesterCluster(mgmtCluster) {
   // Use the provider if it is set otherwise use the label
-  const provider = mgmtCluster?.status?.provider || mgmtCluster?.metadata?.labels?.[CAPI.PROVIDER];
+  const provider = mgmtCluster?.metadata?.labels?.[CAPI.PROVIDER] || mgmtCluster?.status?.provider;
 
   return provider === VIRTUAL_HARVESTER_PROVIDER;
 }

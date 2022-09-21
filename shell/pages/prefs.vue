@@ -159,8 +159,11 @@ export default {
       <LandingPagePreference />
     </div>
     <hr />
-    <h4 v-t="'prefs.formatting'" />
-    <div class="row">
+    <h4 v-t="'prefs.displaySettings.title'" />
+    <p class="set-landing-leadin">
+      {{ t('prefs.displaySettings.detail', {}, raw=true) }}
+    </p>
+    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model="dateFormat"
@@ -175,7 +178,9 @@ export default {
           :options="timeOptions"
         />
       </div>
+    </div>
 
+    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model.number="perPage"
@@ -186,9 +191,6 @@ export default {
           placeholder="Select a row count"
         />
       </div>
-    </div>
-
-    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model.number="menuMaxClusters"
@@ -203,14 +205,22 @@ export default {
 
     <hr />
     <div class="row">
-      <div class="col span-8">
-        <h4 v-t="'prefs.keymap.label'" />
-        <ButtonGroup v-model="keymap" :options="keymapOptions" />
-      </div>
-      <div class="col span-4">
+      <div class="col prefs-advanced">
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
-        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
+        <p class="wrap-text">
+          {{ t('prefs.advancedTooltip') }}
+        </p>
+        <br>
+        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
+      </div>
+    </div>
+
+    <hr />
+    <div class="row">
+      <div class="col span-12">
+        <h4 v-t="'prefs.keymap.label'" />
+        <ButtonGroup v-model="keymap" :options="keymapOptions" />
       </div>
     </div>
 
@@ -229,5 +239,10 @@ export default {
 <style lang="scss" scoped>
   hr {
     margin: 20px 0;
+  }
+  .wrap-text {
+    overflow-wrap: break-word;
+    max-width: 80vw;
+    color: var(--input-label);
   }
 </style>

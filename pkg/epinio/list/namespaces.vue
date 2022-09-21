@@ -32,6 +32,7 @@ export default {
       submitted:       false,
       mode:            _CREATE,
       touched:         false,
+      resource:        EPINIO_TYPES.NAMESPACE
     };
   },
 
@@ -110,7 +111,7 @@ export default {
   <div>
     <Masthead
       :schema="schema"
-      :resource="'undefined'"
+      :resource="resource"
     >
       <template v-slot:createButton>
         <button

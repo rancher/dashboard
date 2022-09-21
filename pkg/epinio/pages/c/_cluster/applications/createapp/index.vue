@@ -8,16 +8,16 @@ import { EPINIO_TYPES } from '../../../../../types';
 import { _CREATE } from '@shell/config/query-params';
 import AppInfo, { EpinioAppInfo } from '../../../../../components/application/AppInfo.vue';
 import AppSource, { EpinioAppSource } from '../../../../../components/application/AppSource.vue';
-import AppConfiguration from '../../../../../components/application/AppConfiguration.vue';
+import AppConfiguration, { EpinioAppBindings } from '../../../../../components/application/AppConfiguration.vue';
 import AppProgress from '../../../../../components/application/AppProgress.vue';
 import { createEpinioRoute } from '../../../../../utils/custom-routing';
 
 interface Data {
   value?: Application,
-  initialValue?: Application,
   mode: string,
   errors: string[],
   source?: EpinioAppSource,
+  bindings?: EpinioAppBindings,
   steps: any[],
 }
 
@@ -38,7 +38,10 @@ export default Vue.extend<Data, any, any, any>({
   ],
 
   async fetch() {
-    await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE });
+    await Promise.all([
+      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE }),
+      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS }),
+    ]);
 
     this.originalModel = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.APP });
     // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
@@ -48,10 +51,10 @@ export default Vue.extend<Data, any, any, any>({
   data() {
     return {
       value:         undefined,
-      initialValue: undefined,
       mode:          _CREATE,
       errors:        [],
       source:        undefined,
+      bindings:      undefined,
       steps:         [{
         name:           'source',
         label:          this.t('epinio.applications.steps.source.label'),
@@ -97,11 +100,24 @@ export default Vue.extend<Data, any, any, any>({
 
     updateSource(changes: EpinioAppSource) {
       this.source = {};
-      this.set(this.source, changes);
+      const { appChart, ...cleanChanges } = changes;
+
+      if (appChart) {
+        // app chart actuall belongs in config, so stick it in there
+        this.value.configuration = this.value.configuration || {};
+        this.set(this.value.configuration, { appchart: appChart });
+      }
+      this.set(this.source, cleanChanges);
     },
 
-    updateConfigurations(changes: string[]) {
+    updateManifestConfigurations(changes: string[]) {
       this.set(this.value.configuration, { configurations: changes });
+    },
+
+    updateConfigurations(changes: EpinioAppBindings) {
+      this.bindings = {};
+      this.set(this.bindings, changes);
+      this.set(this.value.configuration, [...changes.configurations]);
     },
 
     cancel() {
@@ -151,7 +167,7 @@ export default Vue.extend<Data, any, any, any>({
           :mode="mode"
           @change="updateSource"
           @changeAppInfo="updateInfo"
-          @changeAppConfig="updateConfigurations"
+          @changeAppConfig="updateManifestConfigurations"
           @valid="steps[0].ready = $event"
         ></AppSource>
       </template>
@@ -166,6 +182,7 @@ export default Vue.extend<Data, any, any, any>({
         <AppProgress
           :application="value"
           :source="source"
+          :bindings="bindings"
           :mode="mode"
           :step="step"
         ></AppProgress>

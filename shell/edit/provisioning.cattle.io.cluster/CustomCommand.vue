@@ -71,7 +71,7 @@ export default {
         const e = sanitizeValue(t.effect);
 
         if ( k && v && e ) {
-          out.push(`--taint ${ k }=${ v }:${ e }`);
+          out.push(`--taints ${ k }=${ v }:${ e }`);
         }
       }
 
@@ -213,6 +213,11 @@ function sanitizeValue(v) {
       <template v-if="cluster.supportsWindows">
         <hr class="mt-20 mb-20" />
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
+        <Banner
+          v-if="cluster.isRke1"
+          color="warning"
+          :label="t('cluster.custom.registrationCommand.windowsDeprecatedForRKE1')"
+        />
         <template v-if="readyForWindows">
           <CopyCode
             id="copiedWindows"

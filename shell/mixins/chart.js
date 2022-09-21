@@ -118,6 +118,7 @@ export default {
       return out;
     },
 
+    // Conditionally filter out prerelease versions of the chart.
     filteredVersions() {
       return this.showPreRelease ? this.mappedVersions : this.mappedVersions.filter(v => !v.isPre);
     },
@@ -144,12 +145,18 @@ export default {
       return this.$route.query[HIDDEN] === _FLAGGED;
     },
 
+    // If the user is installing the app for the first time,
+    // warn them about CPU and memory requirements.
     warnings() {
       const warnings = [];
 
       if ( this.existing ) {
         // Ignore the limits on upgrade (or if asked by query) and don't show any warnings
       } else {
+        // The UI will show warnings about CPU and memory if
+        // these annotations are added to Helm chart:
+        // - catalog.cattle.io/requests-cpu
+        // - catalog.cattle.io/requests-memory
         const needCpu = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_CPU] || '0');
         const needMemory = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_MEMORY] || '0');
 
@@ -238,7 +245,10 @@ export default {
       await this.$store.dispatch('catalog/load');
 
       if ( this.query.appNamespace && this.query.appName ) {
-        // Explicitly asking for edit
+        // First check the URL query for an app name and namespace.
+        // Use those values to check for a catalog app resource.
+        // If found, set the form to edit mode. If not, set the
+        // form to create mode.
 
         try {
           this.existing = await this.$store.dispatch('cluster/find', {
@@ -252,8 +262,11 @@ export default {
           this.existing = null;
         }
       } else if ( this.chart?.targetNamespace && this.chart?.targetName ) {
-        // Asking to install a special chart with fixed namespace/name
-        // so edit it if there's an existing install
+        // If the app name and namespace values are not provided in the
+        // query, fall back on target values defined in the Helm chart itself.
+
+        // Ask to install a special chart with fixed namespace/name
+        // or edit it if there's an existing install.
 
         try {
           this.existing = await this.$store.dispatch('cluster/find', {
@@ -275,6 +288,9 @@ export default {
         return;
       }
 
+      // If no version is given in the URL query,
+      // use the first version provided by the Helm chart
+      // as the default.
       if ( !this.query.versionName && this.chart.versions?.length ) {
         this.query.versionName = this.chart.versions[0].version;
       }
@@ -304,10 +320,26 @@ export default {
           chartName:     this.query.chartName,
           versionName: this.query.versionName
         });
+        // Here we set us versionInfo. The returned
+        // object contains everything all info
+        // about a currently installed app, and it has the
+        // following keys:
+        //
+        // - appReadme: A short overview of what the app does. This
+        //   forms the first few paragraphs of the chart info when
+        //   you install a Helm chart app through Rancher.
+        // - chart: Metadata about the Helm chart, including the
+        //   name and version.
+        // - readme: This is more detailed information that appears
+        //   under the heading "Chart Information (Helm README)" when
+        //   you install or upgrade a Helm chart app through Rancher,
+        //   below the app README.
+        // - values: All Helm chart values for the currently installed
+        //   app.
       } catch (e) {
         console.error('Unable to fetch VersionInfo: ', e); // eslint-disable-line no-console
       }
-    },
+    }, // End of fetchChart
 
     selectVersion({ id: version }) {
       this.$router.applyQuery({ [VERSION]: version });

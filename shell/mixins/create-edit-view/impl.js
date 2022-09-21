@@ -12,14 +12,6 @@ export default {
 
   mixins: [ChildHook],
 
-  mounted() {
-    // For easy access debugging...
-    if ( typeof window !== 'undefined' ) {
-      window.v = this.value;
-      window.c = this;
-    }
-  },
-
   data() {
     // Keep label and annotation filters in data so each resource CRUD page can alter individually
     return { errors: [] };

@@ -7,22 +7,45 @@ import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 
+/**
+ * Class representing Cluster resource.
+ * @extends SteveModal
+ */
 export default class ProvCluster extends SteveModel {
   get details() {
     const out = [
       {
-        label:   'Provisioner',
+        label:   this.t('cluster.detail.provisioner'),
         content: this.provisionerDisplay || this.t('generic.none'),
       },
       {
-        label:   'Machine Provider',
+        label:   this.t('cluster.detail.machineProvider'),
         content: this.machineProvider ? this.machineProviderDisplay : null,
       },
       {
-        label:   'Kubernetes Version',
+        label:   this.t('cluster.detail.kubernetesVersion'),
         content: this.kubernetesVersion,
       },
+      {
+        label:   this.t('cluster.detail.machinePools'),
+        content: this.pools.length,
+      },
+      {
+        label:   this.t('cluster.detail.machines'),
+        content: this.desired,
+      },
     ].filter(x => !!x.content);
+
+    // RKE Template details
+    const rkeTemplate = this.rkeTemplate;
+
+    if (rkeTemplate) {
+      out.push({
+        label:     this.t('cluster.detail.rkeTemplate'),
+        formatter: 'RKETemplateName',
+        content:   rkeTemplate,
+      });
+    }
 
     if (!this.machineProvider) {
       out.splice(1, 1);
@@ -33,13 +56,19 @@ export default class ProvCluster extends SteveModel {
     return out;
   }
 
-  get availableActions() {
-    // No actions for Harvester clusters
-    if (this.isHarvester) {
-      return [];
+  // using this computed because on the provisioning cluster we are
+  // displaying the oldest age between provisioning.cluster and management.cluster
+  // so that on a version upgrade of Rancher (ex: 2.5.x to 2.6.x)
+  // we can have the correct age of the cluster displayed on the UI side
+  get creationTimestamp() {
+    const provCreationTimestamp = Date.parse(this.metadata?.creationTimestamp);
+    const mgmtCreationTimestamp = Date.parse(this.mgmt?.metadata?.creationTimestamp);
+
+    if (mgmtCreationTimestamp && mgmtCreationTimestamp < provCreationTimestamp) {
+      return this.mgmt?.metadata?.creationTimestamp;
     }
 
-    return this._availableActions;
+    return super.creationTimestamp;
   }
 
   get _availableActions() {
@@ -113,8 +142,7 @@ export default class ProvCluster extends SteveModel {
         action:     'rotateEncryptionKey',
         label:      this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
         icon:       'icon icon-refresh',
-        // Disabling encryption key rotation for RKE2 for now because it was removed from v2.6.5
-        enabled:    (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready) // || canEditRKE2cluster
+        enabled:    canEditRKE2cluster || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready)
       }, {
         action:     'saveAsRKETemplate',
         label:      this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),
@@ -157,6 +185,10 @@ export default class ProvCluster extends SteveModel {
     this.currentRouter().push(location);
   }
 
+  get canDelete() {
+    return super.canDelete && this.stateObj.name !== 'removing';
+  }
+
   get canEditYaml() {
     if (!this.isRke2) {
       return false;
@@ -165,7 +197,17 @@ export default class ProvCluster extends SteveModel {
     return super.canEditYaml;
   }
 
+  get isAKS() {
+    return this.provisioner === 'AKS';
+  }
+
+  get isEKS() {
+    return this.provisioner === 'EKS';
+  }
+
   get isImported() {
+    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
+    // in which this.provisioner is `k3s`.
     return this.provisioner === 'imported';
   }
 
@@ -181,7 +223,13 @@ export default class ProvCluster extends SteveModel {
     return false;
   }
 
+  get confirmRemove() {
+    return true;
+  }
+
   get isImportedK3s() {
+    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
+    // in which this.provisioner is `k3s`.
     return this.isImported && this.mgmt?.status?.provider === 'k3s';
   }
 
@@ -217,13 +265,21 @@ export default class ProvCluster extends SteveModel {
     return out;
   }
 
+  get isReady() {
+    return !!this.mgmt?.isReady;
+  }
+
+  get eksNodeGroups() {
+    return this.mgmt?.spec?.eksConfig?.nodeGroups;
+  }
+
   waitForProvisioner(timeout, interval) {
     return this.waitForTestFn(() => {
       return !!this.provisioner;
     }, `set provisioner`, timeout, interval);
   }
 
-  waitForMgmt(timeout, interval) {
+  waitForMgmt(timeout = 60000, interval) {
     return this.waitForTestFn(() => {
       // `this` instance isn't getting updated with `status.clusterName`
       // Workaround - Get fresh copy from the store
@@ -231,7 +287,7 @@ export default class ProvCluster extends SteveModel {
       const name = this.status?.clusterName || pCluster?.status?.clusterName;
 
       return name && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
-    }, `mgmt cluster create`, timeout, interval);
+    }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval);
   }
 
   get provisioner() {
@@ -435,8 +491,13 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.generateKubeConfig();
   }
 
-  copyKubeConfig() {
-    return this.mgmt?.copyKubeConfig();
+  async copyKubeConfig() {
+    await this.mgmt?.copyKubeConfig();
+
+    this.$dispatch('growl/success', {
+      title:   this.t('cluster.copiedConfig'),
+      timeout: 3000,
+    }, { root: true });
   }
 
   downloadKubeConfig() {
@@ -549,6 +610,62 @@ export default class ProvCluster extends SteveModel {
     }
 
     return this._stateObj;
+  }
+
+  get rkeTemplate() {
+    if (!this.isRke1 || !this.mgmt) {
+      // Not an RKE! cluster or no management cluster available
+      return false;
+    }
+
+    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
+      // Cluster does not use an RKE template
+      return false;
+    }
+
+    const clusterTemplateName = this.mgmt.spec.clusterTemplateName.replace(':', '/');
+    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
+    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find(t => t.id === clusterTemplateName);
+    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find(t => t.spec.enabled && t.id === clusterTemplateRevisionName);
+
+    if (!template || !revision) {
+      return false;
+    }
+
+    return {
+      displayName: `${ template.spec?.displayName }/${ revision.spec?.displayName }`,
+      upgrade:     this.rkeTemplateUpgrade,
+      template,
+      revision,
+    };
+  }
+
+  get rkeTemplateUpgrade() {
+    if (!this.isRke1 || !this.mgmt) {
+      // Not an RKE! cluster or no management cluster available
+      return false;
+    }
+
+    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
+      // Cluster does not use an RKE template
+      return false;
+    }
+
+    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
+
+    // Get all of the template revisions for this template
+    const revisions = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).filter(t => t.spec.enabled && t.spec.clusterTemplateName === this.mgmt.spec.clusterTemplateName);
+
+    if (revisions.length <= 1) {
+      // Only one template revision
+      return false;
+    }
+
+    revisions.sort((a, b) => {
+      return parseInt(a.metadata.resourceVersion, 10) - parseInt(b.metadata.resourceVersion, 10);
+    }).reverse();
+
+    return revisions[0].id !== clusterTemplateRevisionName ? revisions[0].spec?.displayName : false;
   }
 
   get _stateObj() {

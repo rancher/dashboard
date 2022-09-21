@@ -270,6 +270,7 @@ export default {
         this.$store.commit(`action-menu/show`, {
           resources,
           event: e.originalEvent || e, // Handle jQuery event and raw event
+          elem:  actionElement
         });
 
         return;

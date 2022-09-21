@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 const schema = {
   id:         'workload',
@@ -15,6 +16,7 @@ const schema = {
 export default {
   name:       'ListWorkload',
   components: { ResourceTable },
+  mixins:     [ResourceFetch],
 
   async fetch() {
     try {
@@ -30,19 +32,23 @@ export default {
     this.loadHeathResources();
 
     if ( this.allTypes ) {
-      resources = await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => {
-      // You may not have RBAC to see some of the types
-        if ( !this.$store.getters['cluster/schemaFor'](type) ) {
-          return null;
-        }
+      const allowedResources = [];
 
-        return this.$store.dispatch('cluster/findAll', { type });
+      Object.values(WORKLOAD_TYPES).forEach((type) => {
+        // You may not have RBAC to see some of the types
+        if (this.$store.getters['cluster/schemaFor'](type) ) {
+          allowedResources.push(type);
+        }
+      });
+
+      resources = await Promise.all(allowedResources.map((allowed) => {
+        return this.$fetchType(allowed, allowedResources);
       }));
     } else {
       const type = this.$route.params.resource;
 
       if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$store.dispatch('cluster/findAll', { type });
+        const resource = await this.$fetchType(type);
 
         resources = [resource];
       }
@@ -87,6 +93,25 @@ export default {
 
       return out;
     },
+  },
+
+  // All of the resources that we will load that we need for the loading indicator
+  $loadingResources(route, store) {
+    const allTypes = route.params.resource === schema.id;
+
+    const allowedResources = [];
+
+    Object.values(WORKLOAD_TYPES).forEach((type) => {
+      // You may not have RBAC to see some of the types
+      if (store.getters['cluster/schemaFor'](type) ) {
+        allowedResources.push(type);
+      }
+    });
+
+    return {
+      loadResources:     allTypes ? allowedResources : [route.params.resource],
+      loadIndeterminate: allTypes,
+    };
   },
 
   methods: {

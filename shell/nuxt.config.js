@@ -2,10 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import serveStatic from 'serve-static';
 import webpack from 'webpack';
+
 import { STANDARD } from './config/private-label';
+import { generateDynamicTypeImport } from './pkg/auto-import';
 import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
-import { generateDynamicTypeImport } from './pkg/auto-import';
 
 const createProxyMiddleware = require('http-proxy-middleware');
 
@@ -21,6 +22,8 @@ export default function(dir, _appConfig) {
   let SHELL = 'node_modules/@rancher/shell';
   let SHELL_ABS = path.join(dir, 'node_modules/@rancher/shell');
   let NUXT_SHELL = '~~node_modules/@rancher/shell';
+  let COMPONENTS_DIR = path.join(SHELL_ABS, 'rancher-components');
+  let typescript = {};
 
   // If we have a local folder named 'shell' then use that rather than the one in node_modules
   // This will be the case in the main dashboard repository.
@@ -28,6 +31,9 @@ export default function(dir, _appConfig) {
     SHELL = './shell';
     SHELL_ABS = path.join(dir, 'shell');
     NUXT_SHELL = '~~/shell';
+    COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
+
+    typescript = { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } };
   }
 
   // ===============================================================================================
@@ -42,7 +48,8 @@ export default function(dir, _appConfig) {
   const autoLoadPackages = [];
   const watcherIgnores = [
     /.shell/,
-    /dist-pkg/
+    /dist-pkg/,
+    /scripts\/standalone/
   ];
 
   autoLoad.forEach((pkg) => {
@@ -134,16 +141,16 @@ export default function(dir, _appConfig) {
       // Package file must have rancher field to be a plugin
       if (includePkg(name) && f.rancher) {
         reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
+
+        // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
+        // if (!nmPackages[name]) {
+        //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
+        //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
+
+        //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
+        // }
+        autoImportTypes[`@rancher/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
       }
-
-      // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
-      // if (!nmPackages[name]) {
-      //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
-      //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
-
-      //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
-      // }
-      autoImportTypes[`@rancher/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
     });
   }
 
@@ -258,7 +265,9 @@ export default function(dir, _appConfig) {
       dev,
       pl,
       perfTest,
-      rancherEnv
+      rancherEnv,
+      harvesterPkgUrl: process.env.HARVESTER_PKG_URL,
+      api
     },
 
     publicRuntimeConfig: { rancherEnv },
@@ -298,15 +307,16 @@ export default function(dir, _appConfig) {
     },
 
     router: {
-      base:       routerBasePath,
-      middleware: ['i18n'],
+      base:          routerBasePath,
+      middleware:    ['i18n'],
+      prefetchLinks: false
     },
 
     alias: {
       '~shell':      SHELL_ABS,
       '@shell':      SHELL_ABS,
       '@pkg':        path.join(dir, 'pkg'),
-      '@components': path.join(dir, 'pkg', 'rancher-components', 'src', 'components'),
+      '@components': COMPONENTS_DIR,
     },
 
     modulesDir: [
@@ -447,6 +457,13 @@ export default function(dir, _appConfig) {
           },
         });
 
+        // Ensure there is a fallback for browsers that don't support web workers
+        config.module.rules.unshift({
+          test:    /web-worker.[a-z-]+.js/i,
+          loader:  'worker-loader',
+          options: { inline: 'fallback' },
+        });
+
         // Prevent warning in log with the md files in the content folder
         config.module.rules.push({
           test:    /\.md$/,
@@ -556,7 +573,7 @@ export default function(dir, _appConfig) {
       path.join(NUXT_SHELL, 'plugins/global-formatters'),
       path.join(NUXT_SHELL, 'plugins/trim-whitespace'),
       { src: path.join(NUXT_SHELL, 'plugins/extend-router') },
-      { src: path.join(NUXT_SHELL, 'plugins/lookup'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/console'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/int-number'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
       path.join(NUXT_SHELL, 'plugins/replaceall'),
@@ -611,7 +628,8 @@ export default function(dir, _appConfig) {
       ]
     },
 
-    typescript: { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } },
+    // Typescript eslint
+    typescript,
 
     ssr: false,
   };

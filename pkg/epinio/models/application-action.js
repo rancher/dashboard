@@ -1,20 +1,27 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class';
-import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE } from '../types';
+import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE, EPINIO_PRODUCT_NAME } from '../types';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import Vue from 'vue';
 
 export const APPLICATION_ACTION_TYPE = {
-  CREATE:    'create',
-  GIT_FETCH: 'gitFetch',
-  UPLOAD:    'upload',
-  BUILD:     'build',
-  DEPLOY:    'deploy',
+  CREATE_NS:           'create_namespace',
+  CREATE:              'create',
+  GIT_FETCH:           'gitFetch',
+  UPLOAD:              'upload',
+  BIND_CONFIGURATIONS: 'bind_configurations',
+  BIND_SERVICES:       'bind_services',
+  BUILD:               'build',
+  DEPLOY:              'deploy',
 };
 
 export default class ApplicationActionResource extends Resource {
   // Props ---------------------------------------------------
   run = true;
   state = APPLICATION_ACTION_STATE.PENDING;
+
+  // application; // : EpinioApplication;
+  // bindings; // : EpinioAppBindings;
+  // type; // : EPINIO_TYPES / string;
 
   get name() {
     return this.t(`epinio.applications.action.${ this.action }.label`);
@@ -59,8 +66,17 @@ export default class ApplicationActionResource extends Resource {
 
   async innerExecute(params) {
     switch (this.action) {
+    case APPLICATION_ACTION_TYPE.CREATE_NS:
+      await this.createNamespace(params);
+      break;
     case APPLICATION_ACTION_TYPE.CREATE:
       await this.create(params);
+      break;
+    case APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS:
+      await this.bindConfigurations(params);
+      break;
+    case APPLICATION_ACTION_TYPE.BIND_SERVICES:
+      await this.bindServices(params);
       break;
     case APPLICATION_ACTION_TYPE.GIT_FETCH:
       await this.gitFetch(params);
@@ -77,8 +93,22 @@ export default class ApplicationActionResource extends Resource {
     }
   }
 
+  async createNamespace() {
+    const ns = await this.$dispatch(`${ EPINIO_PRODUCT_NAME }/createNamespace`, { name: this.application.meta.namespace }, { root: true });
+
+    await ns.create();
+  }
+
   async create() {
     await this.application.create();
+  }
+
+  async bindConfigurations() {
+    await this.application.updateConfigurations([], this.bindings.configurations);
+  }
+
+  async bindServices() {
+    await this.application.updateServices([], this.bindings.services);
   }
 
   async upload({ source }) {

@@ -4,6 +4,11 @@ import { clone } from '@shell/utils/object';
 import { SETTING } from '@shell/config/settings';
 
 const definitions = {};
+/**
+ * Key/value of prefrences are stored before login here and cookies due lack of access permission.
+ * Once user is logged in while setting asUserPreference, update stored before login Key/value to the backend in loadServer function.
+ */
+let prefsBeforeLogin = {};
 
 export const create = function(name, def, opt = {}) {
   const parseJSON = opt.parseJSON === true;
@@ -59,7 +64,7 @@ export const THEME = create('theme', 'auto', {
 export const PREFERS_SCHEME = create('pcs', '', { asCookie, asUserPreference: false });
 export const LOCALE = create('locale', 'en-us', { asCookie });
 export const KEYMAP = create('keymap', 'sublime', { options: ['sublime', 'emacs', 'vim'] });
-export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100, 250, 500, 1000], parseJSON });
+export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100], parseJSON });
 export const LOGS_WRAP = create('logs-wrap', true, { parseJSON });
 export const LOGS_TIME = create('logs-time', true, { parseJSON });
 export const LOGS_RANGE = create('logs-range', '30 minutes', { parseJSON });
@@ -164,7 +169,13 @@ export const getters = {
     return definition.options.slice();
   },
 
-  theme: (state, getters) => {
+  theme: (state, getters, rootState, rootGetters) => {
+    const setting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.THEME);
+
+    if (setting?.value) {
+      return setting?.value;
+    }
+
     let theme = getters['get'](THEME);
     const pcs = getters['get'](PREFERS_SCHEME);
 
@@ -238,7 +249,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async set({ dispatch, commit }, opt) {
+  async set({ dispatch, commit, rootGetters }, opt) {
     let { key, value } = opt; // eslint-disable-line prefer-const
     const definition = definitions[key];
     let server;
@@ -259,6 +270,15 @@ export const actions = {
     }
 
     if ( definition.asUserPreference ) {
+      const checkLogin = rootGetters['auth/loggedIn'];
+
+      // Check for login status
+      if (!checkLogin) {
+        prefsBeforeLogin[key] = value;
+
+        return;
+      }
+
       try {
         server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
 
@@ -368,7 +388,9 @@ export const actions = {
     }
   },
 
-  async loadServer({ state, dispatch, commit }, ignoreKey) {
+  async loadServer( {
+    state, dispatch, commit, rootState, rootGetters
+  }, ignoreKey) {
     let server = { data: {} };
 
     try {
@@ -392,6 +414,18 @@ export const actions = {
 
     if ( !server?.data ) {
       return;
+    }
+
+    // if prefsBeforeLogin has values from login page, update the backend
+    if (Object.keys(prefsBeforeLogin).length > 0) {
+      Object.keys(prefsBeforeLogin).forEach((key) => {
+        server.data[key] = prefsBeforeLogin[key];
+      });
+
+      await server.save({ redirectUnauthorized: false });
+
+      // Clear prefsBeforeLogin, as we have now saved theses
+      prefsBeforeLogin = {};
     }
 
     for (const key in definitions) {

@@ -41,6 +41,12 @@ export default {
       hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
     }
 
+    // Fetch RKE template revisions so we can show when an updated template is available
+    // This request does not need to be blocking
+    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
+    }
+
     const res = await allHash(hash);
 
     this.mgmtClusters = res.mgmtClusters;
@@ -123,28 +129,40 @@ export default {
       :schema="schema"
       :resource="resource"
       :create-location="createLocation"
+      component-testid="cluster-manager-list"
     >
       <template v-if="canImport" slot="extraActions">
         <n-link
           :to="importLocation"
           class="btn role-primary"
+          data-testid="cluster-manager-list-import"
         >
           {{ t('cluster.importAction') }}
         </n-link>
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" :namespaced="false">
+    <ResourceTable :schema="schema" :rows="rows" :namespaced="false" :loading="$fetchState.pending">
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
       <template #cell:explorer="{row}">
         <span v-if="row.mgmt && row.mgmt.isHarvester"></span>
-        <n-link v-else-if="row.mgmt && row.mgmt.isReady" class="btn btn-sm role-primary" :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}">
-          Explore
+        <n-link
+          v-else-if="row.mgmt && row.mgmt.isReady"
+          data-testid="cluster-manager-list-explore-management"
+          class="btn btn-sm role-secondary"
+          :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"
+        >
+          {{ t('cluster.exploreHarvester') }}
         </n-link>
-        <button v-else :disabled="true" class="btn btn-sm role-primary">
-          Explore
+        <button
+          v-else
+          data-testid="cluster-manager-list-explore"
+          :disabled="true"
+          class="btn btn-sm role-secondary"
+        >
+          {{ t('cluster.explore') }}
         </button>
       </template>
     </ResourceTable>

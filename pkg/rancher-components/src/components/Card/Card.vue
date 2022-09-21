@@ -1,37 +1,61 @@
-<script>
-export default {
+<script lang="ts">
+import Vue from 'vue';
+
+export default Vue.extend({
   name:  'Card',
   props: {
+    /**
+     * The card's title.
+     */
     title: {
       type:    String,
       default: ''
     },
+    /**
+     * The text content for the card's body.
+     */
     content: {
       type:    String,
       default: ''
     },
+    /**
+     * The function to invoke when the default action button is clicked.
+     */
     buttonAction: {
       type:    Function,
-      default: () => { }
+      default: (): void => { }
     },
+    /**
+     * The text for the default action button.
+     */
     buttonText: {
       type:    String,
       default: 'go'
     },
+    /**
+     * Toggles the card's highlight-border class.
+     */
     showHighlightBorder: {
       type:    Boolean,
       default: true
     },
+    /**
+     * Toggles the card's Actions section.
+     */
     showActions: {
       type:    Boolean,
       default: true
-    }
+    },
+    sticky: {
+      type:    Boolean,
+      default: false,
+    },    
   }
-};
+});
 </script>
 
 <template>
-  <div class="card-container" :class="{'highlight-border': showHighlightBorder}">
+  <div class="card-container" :class="{'highlight-border': showHighlightBorder, 'card-sticky': sticky}">
     <div class="card-wrap">
       <div class="card-title">
         <slot name="title">
@@ -95,6 +119,31 @@ export default {
      }
     .flex-right {
       margin-left: auto;
+    }
+   }
+
+  // Sticky mode will stick header and footer to top and bottom with content in the middle scrolling
+   &.card-sticky {
+      // display: flex;
+      // flex-direction: column;
+      overflow: hidden;
+
+    .card-wrap {
+      display: flex;
+      flex-direction: column;
+
+      .card-body {
+        justify-content: flex-start;
+        overflow: scroll;
+      }
+
+      > * {
+        flex: 0;
+      }
+
+      .card-body {
+        flex: 1;
+      }
     }
    }
  }

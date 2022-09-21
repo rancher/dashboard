@@ -48,7 +48,7 @@ export default Vue.extend<Data, any, any, any>({
   async fetch() {
     await this.mixinFetch();
 
-    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0].metadata.name);
+    Vue.set(this.value.meta, 'namespace', this.initialValue.meta.namespace || this.namespaces[0]?.metadata.name);
     this.selectedApps = [...this.initialValue.configuration?.boundapps || []];
   },
 
@@ -56,19 +56,18 @@ export default Vue.extend<Data, any, any, any>({
     Vue.set(this.value, 'data', { ...this.initialValue.configuration?.details });
 
     return {
-      errors:       [],
-      selectedApps: [],
+      errors:            [],
+      selectedApps:      [],
+      validationPassed: false
     };
+  },
+
+  mounted() {
+    this.updateValidation();
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-
-    validationPassed() {
-      const nameErrors = validateKubernetesName(this.value?.metadata.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
-
-      return nameErrors.length === 0;
-    },
 
     namespaces() {
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
@@ -80,15 +79,15 @@ export default Vue.extend<Data, any, any, any>({
     async save(saveCb: (success: boolean) => void) {
       this.errors = [];
       try {
-        if (this.mode === 'create') {
+        if (this.isCreate) {
           await this.value.create();
-          await this.updateConfigurations();
+          await this.updateConfigurationAppBindings();
           await this.$store.dispatch('epinio/findAll', { type: this.value.type, opt: { force: true } });
         }
 
-        if (this.mode === 'edit') {
+        if (this.isEdit) {
           await this.value.update();
-          await this.updateConfigurations();
+          await this.updateConfigurationAppBindings();
           await this.value.forceFetch();
         }
 
@@ -104,25 +103,50 @@ export default Vue.extend<Data, any, any, any>({
       Vue.set(this.value, 'data', data);
     },
 
+    updateValidation() {
+      const nameErrors = validateKubernetesName(this.value?.meta.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+      const nsErrors = validateKubernetesName(this.value?.meta.namespace || '', '', this.$store.getters, undefined, []);
+
+      if (nameErrors.length === 0 && nsErrors.length === 0) {
+        const dataValues = Object.entries(this.value?.data || {});
+
+        if (!!dataValues.length) {
+          Vue.set(this, 'validationPassed', true);
+
+          return;
+        }
+      }
+
+      Vue.set(this, 'validationPassed', false);
+    }
+
   },
 
   watch: {
     'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
+      this.updateValidation(); // For when a user is supplying their own ns
+    },
+
+    'value.meta.name'() {
+      this.updateValidation();
+    },
+
+    'value.data': {
+      deep: true,
+
+      handler(neu) {
+        this.updateValidation();
+      }
     }
   }
 });
 </script>
 
 <template>
-  <Loading v-if="!value || !namespaces" />
-  <div v-else-if="!namespaces.length">
-    <Banner color="warning">
-      {{ t('epinio.warnings.noNamespace') }}
-    </Banner>
-  </div>
+  <Loading v-if="!value || $fetchState.pending" />
   <CruResource
-    v-else-if="value && namespaces.length > 0"
+    v-else-if="value"
     :min-height="'7em'"
     :mode="mode"
     :done-route="doneRoute"
@@ -130,16 +154,20 @@ export default Vue.extend<Data, any, any, any>({
     :can-yaml="false"
     :errors="errors"
     :validation-passed="validationPassed"
+    namespace-key="meta.namespace"
     @error="(e) => (errors = e)"
     @finish="save"
     @cancel="done"
   >
+    <Banner v-if="value.isServiceRelated" color="info">
+      {{ t('epinio.configurations.tableHeaders.service.tooltip') }}
+    </Banner>
     <NameNsDescription
       name-key="name"
       namespace-key="namespace"
       :namespaces-override="namespaces"
       :description-hidden="true"
-      :value="value.metadata"
+      :value="value.meta"
       :mode="mode"
     />
     <div class="row">

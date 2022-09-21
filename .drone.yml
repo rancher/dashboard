@@ -5,7 +5,6 @@ name: test
 trigger:
   event:
   - push
-  - pull_request
   - tag
 
 platform:
@@ -15,7 +14,7 @@ platform:
 steps:
 - name: test
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - scripts/ci
 
@@ -41,7 +40,7 @@ platform:
 steps:
 - name: gate
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-upload-gate
 
@@ -103,13 +102,13 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-hosted
 
 - name: upload-gate
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-upload-gate
 
@@ -146,7 +145,7 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-hosted
 
@@ -180,7 +179,7 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-hosted
 
@@ -227,13 +226,15 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
+  environment:
+    EMBED_PKG: https://releases.rancher.com/harvester-ui/plugin/harvester-1.0.3.tar.gz
   commands:
   - ./scripts/build-embedded
 
 - name: upload-gate
   pull: default
-  image: node:12
+  image: node:14
   commands:
   - ./scripts/build-upload-gate
 
@@ -270,7 +271,9 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
+  environment:
+    EMBED_PKG: https://releases.rancher.com/harvester-ui/plugin/harvester-1.0.3.tar.gz
   commands:
   - ./scripts/build-embedded
 
@@ -304,7 +307,9 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:12
+  image: node:14
+  environment:
+    EMBED_PKG: https://releases.rancher.com/harvester-ui/plugin/harvester-1.0.3.tar.gz
   commands:
   - ./scripts/build-embedded
 
@@ -328,10 +333,10 @@ name: fossa
 steps:
 - name: fossa
   image: rancher/drone-fossa:latest
+  failure: ignore
   settings:
     api_key:
       from_secret: FOSSA_API_KEY
   when:
     instance:
       - drone-publish.rancher.io
-

@@ -52,6 +52,15 @@ export default {
     createButtonLabel: {
       type:    String,
       default: null
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'masthead'
     }
   },
 
@@ -146,6 +155,7 @@ export default {
       <h1 class="m-0">
         {{ _typeDisplay }} <Favorite v-if="isExplorer" :resource="favoriteResource || resource" />
       </h1>
+      <slot name="header"></slot>
     </div>
     <div class="actions-container">
       <slot name="actions">
@@ -158,6 +168,7 @@ export default {
               v-if="hasEditComponent && _isCreatable"
               :to="_createLocation"
               class="btn role-primary"
+              :data-testid="componentTestid+'-create'"
             >
               {{ _createButtonlabel }}
             </n-link>
@@ -165,6 +176,7 @@ export default {
               v-else-if="_isYamlCreatable"
               :to="_yamlCreateLocation"
               class="btn role-primary"
+              :data-testid="componentTestid+'-create-yaml'"
             >
               {{ t("resourceList.head.createFromYaml") }}
             </n-link>
@@ -174,3 +186,13 @@ export default {
     </div>
   </header>
 </template>
+
+<style lang="scss" scoped>
+  .title {
+    align-items: center;
+    display: flex;
+    h1 {
+      margin: 0;
+    }
+  }
+</style>

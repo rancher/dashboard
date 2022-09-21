@@ -1,9 +1,11 @@
 <script>
+import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import { dasherize, ucFirst } from '@shell/utils/string';
 import { get, clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
+import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
 import $ from 'jquery';
 import throttle from 'lodash/throttle';
@@ -15,6 +17,8 @@ import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
+// Uncomment for table performance debugging
+// import tableDebug from './debug';
 
 // Its quicker to render if we directly supply the components for the formatters
 // rather than just the name of a global component - so create a map of the formatter comoponents
@@ -57,9 +61,18 @@ export const COLUMN_BREAKPOINTS = {
 export default {
   name:       'SortableTable',
   components: {
-    THead, Checkbox, ActionDropdown
+    THead, Checkbox, AsyncButton, ActionDropdown
   },
-  mixins: [filtering, sorting, paging, grouping, selection, actions],
+  mixins: [
+    filtering,
+    sorting,
+    paging,
+    grouping,
+    selection,
+    actions,
+    // For table performance debugging - uncomment and uncomment the corresponding import
+    // tableDebug,
+  ],
 
   props: {
     headers: {
@@ -280,11 +293,21 @@ export default {
     getCustomDetailLink: {
       type:    Function,
       default: null
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'sortable-table'
     }
   },
 
   data() {
     return {
+      currentPhase:        ASYNC_BUTTON_STATES.WAITING,
       expanded:            {},
       searchQuery:         '',
       eventualSearchQuery: '',
@@ -303,8 +326,6 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main.on('scroll', this._onScroll);
-
-    this.updateLiveAndDelayed();
   },
 
   beforeDestroy() {
@@ -313,23 +334,76 @@ export default {
     clearTimeout(this._loadingDelayTimer);
     clearTimeout(this._liveColumnsTimer);
     clearTimeout(this._delayedColumnsTimer);
+    clearTimeout(this.manualRefreshTimer);
 
     const $main = $('main');
 
     $main.off('scroll', this._onScroll);
   },
 
-  updated() {
-    this.updateLiveAndDelayed();
-  },
-
   watch: {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
-    }, 100),
+    }, 200),
+
+    descending(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    searchQuery(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    sortFields(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    groupBy(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    namespaces(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    page(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+
+    // Ensure we update live and delayed columns on first load
+    initalLoad: {
+      handler(neu) {
+        if (neu) {
+          this._didinit = true;
+          this.$nextTick(() => this.updateLiveAndDelayed());
+        }
+      },
+      immediate: true
+    },
+
+    isManualRefreshLoading(neu, old) {
+      this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+
+      // setTimeout is needed so that this is pushed further back on the JS computing queue
+      // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
+      if (old && !neu) {
+        this.manualRefreshTimer = setTimeout(() => {
+          this.watcherUpdateLiveAndDelayed(neu, old);
+        }, 1000);
+      }
+    }
+  },
+
+  created() {
+    this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
   },
 
   computed: {
+    ...mapGetters({ isTooManyItemsToAutoUpdate: 'resource-fetch/isTooManyItemsToAutoUpdate' }),
+    ...mapGetters({ isManualRefreshLoading: 'resource-fetch/manualRefreshIsLoading' }),
+    namespaces() {
+      return this.$store.getters['activeNamespaceCache'];
+    },
+
+    initalLoad() {
+      return !!(!this.loading && !this._didinit && this.rows?.length);
+    },
+
     fullColspan() {
       let span = 0;
 
@@ -436,10 +510,23 @@ export default {
       return !!delaeydColumns;
     },
 
+    columnFormmatterIDs() {
+      const columnsIds = {};
+
+      this.columns.forEach((c) => {
+        if (c.formatter) {
+          columnsIds[c.formatter] = dasherize(c.formatter);
+        }
+      });
+
+      return columnsIds;
+    },
+
     // Generate row and column data for easier rendering in the template
     // ensures we only call methods like `valueFor` once
     displayRows() {
       const rows = [];
+      const columnFormmatterIDs = this.columnFormmatterIDs;
 
       this.groupedRows.forEach((grp) => {
         const group = {
@@ -463,7 +550,7 @@ export default {
           group.rows.push(rowData);
 
           this.columns.forEach((c) => {
-            const value = this.valueFor(row, c);
+            const value = c.delayLoading ? undefined : this.valueFor(row, c);
             let component;
             let formatted = value;
             let needRef = false;
@@ -472,9 +559,19 @@ export default {
               formatted = value.join(', ');
             }
 
-            if (c.formatter && FORMATTERS[c.formatter]) {
-              component = FORMATTERS[c.formatter];
-              needRef = true;
+            if (c.formatter) {
+              if (FORMATTERS[c.formatter]) {
+                component = FORMATTERS[c.formatter];
+                needRef = true;
+              } else {
+                // Check if we have a formatter from a plugin
+                const pluginFormatter = this.$plugin?.getDynamic('formatters', c.formatter);
+
+                if (pluginFormatter) {
+                  component = pluginFormatter;
+                  needRef = true;
+                }
+              }
             }
 
             rowData.columns.push({
@@ -486,7 +583,7 @@ export default {
               delayed:   c.delayLoading,
               live:      c.formatter?.startsWith('Live') || c.liveUpdates,
               label:     this.labelFor(c),
-              dasherize: dasherize(c.formatter || ''),
+              dasherize: columnFormmatterIDs[c.formatter] || '',
             });
           });
         });
@@ -497,7 +594,9 @@ export default {
   },
 
   methods: {
-
+    refreshTableData() {
+      this.$store.dispatch('resource-fetch/doManualRefresh');
+    },
     get,
     dasherize,
 
@@ -513,6 +612,12 @@ export default {
       }
     },
 
+    watcherUpdateLiveAndDelayed(neu, old) {
+      if (neu !== old) {
+        this.$nextTick(() => this.updateLiveAndDelayed());
+      }
+    },
+
     updateLiveAndDelayed() {
       if (this.hasLiveColumns) {
         this.updateLiveColumns();
@@ -524,6 +629,8 @@ export default {
     },
 
     updateDelayedColumns() {
+      clearTimeout(this._delayedColumnsTimer);
+
       if (!this.$refs.column || this.pagedRows.length === 0) {
         return;
       }
@@ -556,6 +663,8 @@ export default {
     },
 
     updateLiveColumns() {
+      clearTimeout(this._liveColumnsTimer);
+
       if (!this.$refs.column || !this.hasLiveColumns || this.pagedRows.length === 0) {
         return;
       }
@@ -601,7 +710,8 @@ export default {
         return col.value(row);
       }
 
-      // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // Use to debug table columns using expensive value getters
+      // Use to debug table columns using expensive value getters
+      // console.warn(`Performance: Table valueFor: ${ col.name } ${ col.value }`); // eslint-disable-line no-console
 
       const expr = col.value || col.name;
       const out = get(row, expr);
@@ -742,6 +852,7 @@ export default {
                 class="btn role-primary"
                 :class="{[bulkActionClass]:true}"
                 :disabled="!act.enabled"
+                :data-testid="componentTestid + '-' + act.action"
                 @click="applyTableAction(act, null, $event)"
                 @mouseover="setBulkActionOfInterest(act)"
                 @mouseleave="setBulkActionOfInterest(null)"
@@ -753,7 +864,7 @@ export default {
                 <template #button-content>
                   <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!selectedRows.length">
                     <i class="icon icon-gear" />
-                    <span>{{ t('harvester.tableHeaders.actions') }}</span>
+                    <span>{{ t('sortableTable.bulkActions.collapsed.label') }}</span>
                     <i class="ml-10 icon icon-chevron-down" />
                   </button>
                 </template>
@@ -784,8 +895,15 @@ export default {
             </template>
           </slot>
         </div>
-        <div v-if="$slots['header-middle'] && $slots['header-middle'].length" class="middle">
+        <div v-if="isTooManyItemsToAutoUpdate || $slots['header-middle'] && $slots['header-middle'].length" class="middle">
           <slot name="header-middle" />
+          <AsyncButton
+            v-if="isTooManyItemsToAutoUpdate"
+            v-tooltip="t('performance.manualRefresh.buttonTooltip')"
+            mode="refresh"
+            :current-phase="currentPhase"
+            @click="debouncedRefreshTableData"
+          />
         </div>
 
         <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
@@ -873,9 +991,21 @@ export default {
               <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
               because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
               the value of :class changes. -->
-              <tr :key="row.key" class="main-row" :class="{ 'has-sub-row': row.showSubRow}" :data-node-id="row.key" :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest">
+              <tr
+                :key="row.key"
+                class="main-row"
+                :data-testid="componentTestid + '-' + i + '-row'"
+                :class="{ 'has-sub-row': row.showSubRow}"
+                :data-node-id="row.key"
+                :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest"
+              >
                 <td v-if="tableActions" class="row-check" align="middle">
-                  {{ row.mainRowKey }}<Checkbox class="selection-checkbox" :data-node-id="row.key" :value="selectedRows.includes(row.row)" />
+                  {{ row.mainRowKey }}<Checkbox
+                    class="selection-checkbox"
+                    :data-node-id="row.key"
+                    :data-testid="componentTestid + '-' + i + '-checkbox'"
+                    :value="selectedRows.includes(row.row)"
+                  />
                 </td>
                 <td v-if="subExpandColumn" class="row-expand" align="middle">
                   <i
@@ -888,7 +1018,7 @@ export default {
                     @click.stop="toggleExpand(row.row)"
                   />
                 </td>
-                <template v-for="col in row.columns">
+                <template v-for="(col, j) in row.columns">
                   <slot
                     :name="'col:' + col.col.name"
                     :row="row.row"
@@ -900,6 +1030,7 @@ export default {
                     <td
                       :key="col.col.name"
                       :data-title="col.col.label"
+                      :data-testid="`sortable-cell-${ i }-${ j }`"
                       :align="col.col.align || 'left'"
                       :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
                       :width="col.col.width"
@@ -952,6 +1083,7 @@ export default {
                     <button
                       :id="`actionButton+${i}+${(row.row && row.row.name) ? row.row.name : ''}`"
                       :ref="`actionButton${i}`"
+                      :data-testid="componentTestid + '-' + i + '-action-button'"
                       aria-haspopup="true"
                       aria-expanded="false"
                       type="button"
@@ -975,6 +1107,7 @@ export default {
             <tr
               v-if="row.row.stateDescription"
               :key="row.row[keyField] + '-description'"
+              :data-testid="componentTestid + '-' + i + '-row-description'"
               class="state-description sub-row"
               @mouseenter="onRowMouseEnter"
               @mouseleave="onRowMouseLeave"
@@ -1249,36 +1382,36 @@ $spacing: 10px;
   }
 }
 
- .for-inputs{
-   & TABLE.sortable-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: $spacing;
+.for-inputs{
+  & TABLE.sortable-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: $spacing;
 
-    >TBODY>TR>TD, >THEAD>TR>TH {
-      padding-right: $spacing;
-      padding-bottom: $spacing;
+  >TBODY>TR>TD, >THEAD>TR>TH {
+    padding-right: $spacing;
+    padding-bottom: $spacing;
 
-      &:last-of-type {
-        padding-right: 0;
-      }
-    }
-
-    >TBODY>TR:first-of-type>TD {
-      padding-top: $spacing;
-    }
-
-    >TBODY>TR:last-of-type>TD {
-      padding-bottom: 0;
+    &:last-of-type {
+      padding-right: 0;
     }
   }
 
-    &.edit, &.create, &.clone {
-     TABLE.sortable-table>THEAD>TR>TH {
-      border-color: transparent;
-      }
+  >TBODY>TR:first-of-type>TD {
+    padding-top: $spacing;
+  }
+
+  >TBODY>TR:last-of-type>TD {
+    padding-bottom: 0;
+  }
+}
+
+  &.edit, &.create, &.clone {
+    TABLE.sortable-table>THEAD>TR>TH {
+    border-color: transparent;
     }
   }
+}
 
 .sortable-table-header {
   position: relative;
@@ -1337,11 +1470,33 @@ $spacing: 10px;
         }
       }
     }
+
+    .bulk-action  {
+      .icon {
+        vertical-align: -10%;
+      }
+    }
   }
 
   .middle {
     grid-area: middle;
     white-space: nowrap;
+
+    .icon.icon-backup.animate {
+      animation-name: spin;
+      animation-duration: 1000ms;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+
+    @keyframes spin {
+      from {
+        transform:rotate(0deg);
+      }
+      to {
+        transform:rotate(360deg);
+      }
+    }
   }
 
   .search {

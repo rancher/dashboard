@@ -26,10 +26,24 @@ export default {
     },
 
     mode: { type: String, default: _CREATE },
+
+    noPodSpec: {
+      type:    Boolean,
+      default: false
+    },
+
+    noDeploymentSpec: {
+      type:    Boolean,
+      default: false
+    }
   },
   data() {
     const {
-      strategy:strategyObj = {}, minReadySeconds = 0, progressDeadlineSeconds = 600, revisionHistoryLimit = 10, podManagementPolicy = 'OrderedReady'
+      strategy:strategyObj = {},
+      minReadySeconds = 0,
+      progressDeadlineSeconds = 600,
+      revisionHistoryLimit = 10,
+      podManagementPolicy = 'OrderedReady'
     } = this.value;
     const strategy = strategyObj.type || 'RollingUpdate';
     let maxSurge = '25';
@@ -57,7 +71,7 @@ export default {
 
     const podSpec = get(this.value, 'template.spec');
 
-    const { terminationGracePeriodSeconds = 30 } = podSpec;
+    const terminationGracePeriodSeconds = podSpec?.terminationGracePeriodSeconds ?? 30;
 
     return {
       surgeUnits,
@@ -110,7 +124,10 @@ export default {
     update() {
       const podSpec = this.value?.template?.spec;
       const {
-        minReadySeconds, revisionHistoryLimit, progressDeadlineSeconds, terminationGracePeriodSeconds
+        minReadySeconds,
+        revisionHistoryLimit,
+        progressDeadlineSeconds,
+        terminationGracePeriodSeconds
       } = this;
       let { maxSurge, maxUnavailable } = this;
 
@@ -121,7 +138,9 @@ export default {
         maxUnavailable = `${ maxUnavailable }%`;
       }
 
-      this.$set(podSpec, 'terminationGracePeriodSeconds', terminationGracePeriodSeconds);
+      if (podSpec) {
+        this.$set(podSpec, 'terminationGracePeriodSeconds', terminationGracePeriodSeconds);
+      }
 
       switch (this.type) {
       case WORKLOAD_TYPES.DEPLOYMENT: {
@@ -140,7 +159,10 @@ export default {
         }
 
         Object.assign(this.value, {
-          strategy, minReadySeconds, revisionHistoryLimit, progressDeadlineSeconds
+          strategy,
+          minReadySeconds,
+          revisionHistoryLimit,
+          progressDeadlineSeconds
         });
         break;
       }
@@ -162,13 +184,18 @@ export default {
         const updateStrategy = { type: this.strategy };
 
         Object.assign(this.value, {
-          updateStrategy, revisionHistoryLimit, podManagementPolicy: this.podManagementPolicy
+          updateStrategy,
+          revisionHistoryLimit,
+          podManagementPolicy:
+          this.podManagementPolicy
         });
         break;
       }
       default:
         break;
       }
+
+      this.$emit('input', this.value);
     },
 
     updateWithUnits({ selected:units, text:value }, target) {
@@ -190,10 +217,10 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div>
     <!--workload  spec.upgradeStrategy -->
-    <div v-if="strategyOptions" class="row mb-20">
-      <div class="col">
+    <div v-if="strategyOptions && !noDeploymentSpec" class="row mb-20">
+      <div class="col" data-testid="input-policy-strategy">
         <RadioGroup
           v-model="strategy"
           name="strategy"
@@ -204,8 +231,8 @@ export default {
         />
       </div>
     </div>
-    <div v-if="isStatefulSet" class="row mb-20">
-      <div class="col span-6">
+    <div v-if="isStatefulSet && !noDeploymentSpec" class="row mb-20">
+      <div class="col span-6" data-testid="input-policy-pod">
         <RadioGroup
           v-model="podManagementPolicy"
           name="podManagement"
@@ -216,8 +243,12 @@ export default {
         />
       </div>
     </div>
-    <template v-if="strategy === 'RollingUpdate'">
-      <div v-if="isDeployment || isDaemonSet" class="row mb-20">
+    <template v-if="strategy === 'RollingUpdate' && !noDeploymentSpec">
+      <div
+        v-if="isDeployment || isDaemonSet"
+        class="row mb-20"
+        data-testid="input-policy-surge"
+      >
         <div v-if="isDeployment" class="col span-6">
           <InputWithSelect
             :text-value="maxSurge"
@@ -230,7 +261,10 @@ export default {
             @input="e=>updateWithUnits(e, 'maxSurge')"
           />
         </div>
-        <div class="col span-6">
+        <div
+          class="col span-6"
+          data-testid="input-policy-unavailable"
+        >
           <InputWithSelect
             :text-value="maxUnavailable"
             :select-before-text="false"
@@ -246,47 +280,68 @@ export default {
     </template>
 
     <!-- workload spec -->
-    <div class="row mb-20">
-      <div v-if="!isStatefulSet" class="col span-6">
+    <div v-if="!noDeploymentSpec" class="row mb-20">
+      <div
+        v-if="!isStatefulSet"
+        class="col span-6"
+        data-testid="input-policy-min"
+      >
         <UnitInput
           v-model="minReadySeconds"
           :suffix="t('suffix.seconds', {count: minReadySeconds})"
           label-key="workload.upgrading.minReadySeconds.label"
           tooltip-key="workload.upgrading.minReadySeconds.tip"
           :mode="mode"
+          @input="update"
         />
       </div>
-      <div v-if="isDeployment || isStatefulSet || isDaemonSet" class="col span-6">
+      <div
+        v-if="isDeployment || isStatefulSet || isDaemonSet"
+        class="col span-6"
+        data-testid="input-policy-limit"
+      >
         <UnitInput
           v-model="revisionHistoryLimit"
           :suffix="t('suffix.revisions', {count: revisionHistoryLimit})"
           label-key="workload.upgrading.revisionHistoryLimit.label"
           tooltip-key="workload.upgrading.revisionHistoryLimit.tip"
           :mode="mode"
+          @input="update"
         />
       </div>
     </div>
-    <div v-if="isDeployment" class="row mb-20">
-      <div class="col span-6">
+    <div
+      v-if="isDeployment && !noDeploymentSpec"
+      class="row mb-20"
+    >
+      <div
+        class="col span-6"
+        data-testid="input-policy-deadline"
+      >
         <UnitInput
           v-model="progressDeadlineSeconds"
           :suffix="t('suffix.seconds', {count: progressDeadlineSeconds})"
           label-key="workload.upgrading.progressDeadlineSeconds.label"
           tooltip-key="workload.upgrading.progressDeadlineSeconds.tip"
           :mode="mode"
+          @input="update"
         />
       </div>
     </div>
 
     <!-- pod spec -->
-    <div class="row">
-      <div class="col span-6">
+    <div v-if="!noPodSpec" class="row">
+      <div
+        class="col span-6"
+        data-testid="input-policy-termination"
+      >
         <UnitInput
           v-model="terminationGracePeriodSeconds"
           :suffix="t('suffix.seconds', {count: terminationGracePeriodSeconds})"
           label-key="workload.upgrading.terminationGracePeriodSeconds.label"
           tooltip-key="workload.upgrading.terminationGracePeriodSeconds.tip"
           :mode="mode"
+          @input="update"
         />
       </div>
     </div>

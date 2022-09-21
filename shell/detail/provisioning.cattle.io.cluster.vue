@@ -19,7 +19,7 @@ import { addParams } from '@shell/utils/url';
 import { base64Decode } from '@shell/utils/crypto';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
-
+import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
@@ -28,9 +28,31 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@shell/utils/socket';
 import { get } from '@shell/utils/object';
+import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
+
+/**
+ * Machine Deployment has a reference to the 'template' used to create that deployment
+ * For an empty machine pool, we (obviously) don't get any machine deployments for that pool.
+ *
+ * This class allows us to fake a machine deployment - when created, we set additional properties (_cluster etc)
+ * and use these in the getters.
+ **/
+class EmptyCapiMachineDeployment extends CapiMachineDeployment {
+  get inClusterSpec() {
+    return this._clusterSpec;
+  }
+
+  get cluster() {
+    return this._cluster;
+  }
+
+  get template() {
+    return this._template;
+  }
+}
 
 export default {
   components: {
@@ -43,6 +65,7 @@ export default {
     CopyCode,
     CustomCommand,
     AsyncButton,
+    MachineSummaryGraph,
   },
 
   props: {
@@ -70,9 +93,10 @@ export default {
       fetchOne.snapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
-    if (this.value.isImported || this.value.isCustom) {
+    if ( this.value.isImported || this.value.isCustom || this.value.isAKS || this.value.isEKS ) {
       fetchOne.clusterToken = this.value.getOrCreateToken();
     }
+
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
       fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
@@ -121,6 +145,17 @@ export default {
     this.haveNodes = !!fetchTwoRes.allNodes;
     this.allNodePools = fetchTwoRes.allNodePools || [];
     this.haveNodePools = !!fetchTwoRes.allNodePools;
+    this.machineTemplates = fetchTwoRes.mdtt || [];
+
+    // Fetch RKE template revisions so we can show when an updated template is available
+    // This request does not need to be blocking
+    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE });
+    }
+
+    if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
+    }
   },
 
   created() {
@@ -188,16 +223,63 @@ export default {
       return '';
     },
 
+    // Used to show summary graph for each node pool group in the machine pool table
+    poolSummaryInfo() {
+      const info = {};
+
+      this.value?.pools.forEach((p) => {
+        const group = `[${ p.type }: ${ p.id }]`;
+
+        info[group] = p;
+      });
+
+      return info;
+    },
+
     fakeMachines() {
+      // When we scale up, the quantity will change to N+1 - so from 0 to 1, the quantity changes,
+      // but it takes tiem for the machine to appear, so the pool is empty, but if we just go off on a non-zero quqntity
+      // then the pool would be hidden - so we find empty pool by checking the machines
+      const emptyPools = (this.value.spec.rkeConfig?.machinePools || []).filter((mp) => {
+        const machinePrefix = `${ this.value.name }-${ mp.name }`;
+        const machines = this.value.machines.filter((machine) => {
+          return machine.spec?.infrastructureRef?.name.startsWith(machinePrefix);
+        });
+
+        return machines.length === 0;
+      });
+
       // When a deployment has no machines it's not shown.... so add a fake machine to it
       // This is a catch all scenario seen in older node pool world but not deployments
-      const emptyDeployments = this.allMachineDeployments.filter(x => x.spec.clusterName === this.value.metadata.name && x.spec.replicas === 0);
+      return emptyPools.map((mp, i) => {
+        const pool = new EmptyCapiMachineDeployment(
+          {
+            id:       i,
+            metadata: {
+              name:      `${ this.value.nameDisplay }-${ mp.name }`,
+              namespace: this.value.namespace,
+            },
+            spec: {}
+          },
+          {
+            getters:     this.$store.getters,
+            rootGetters: this.$root.$store.getters,
+          }
+        );
 
-      return emptyDeployments.map(d => ({
-        poolId:       d.id,
-        mainRowKey: 'isFake',
-        pool:       d,
-      }));
+        const templateNamePrefix = `${ pool.metadata.name }-`;
+
+        // All of these properties are needed to ensure the pool displays correctly and that we can scale up and down
+        pool._template = this.machineTemplates.find(t => t.metadata.name.startsWith(templateNamePrefix));
+        pool._cluster = this.value;
+        pool._clusterSpec = mp;
+
+        return {
+          poolId:     pool.id,
+          mainRowKey: 'isFake',
+          pool,
+        };
+      });
     },
 
     machines() {
@@ -239,6 +321,18 @@ export default {
       return false;
     },
 
+    showEksNodeGroupWarning() {
+      if ( this.value.isEKS ) {
+        const desiredTotal = this.value.eksNodeGroups.filter(g => g.desiredSize === 0);
+
+        if ( desiredTotal.length === this.value.eksNodeGroups.length ) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+
     machineHeaders() {
       return [
         STATE,
@@ -249,8 +343,10 @@ export default {
           sort:          'status.nodeRef.name',
           value:         'status.nodeRef.name',
           formatter:     'LinkDetail',
-          formatterOpts: { reference: 'kubeNodeDetailLocation' }
+          formatterOpts: { reference: 'kubeNodeDetailLocation' },
+          dashIfEmpty:   true,
         },
+        IP_ADDRESS,
         MACHINE_NODE_OS,
         ROLES,
         AGE,
@@ -266,7 +362,8 @@ export default {
           sort:          'kubeNodeName',
           value:         'kubeNodeName',
           formatter:     'LinkDetail',
-          formatterOpts: { reference: 'kubeNodeDetailLocation' }
+          formatterOpts: { reference: 'kubeNodeDetailLocation' },
+          dashIfEmpty:   true,
         },
         IP_ADDRESS,
         MANAGEMENT_NODE_OS,
@@ -354,6 +451,10 @@ export default {
         return true;
       }
 
+      if ( ( this.value.isAKS || this.value.isEKS ) && !this.isClusterReady ) {
+        return true;
+      }
+
       return false;
     },
 
@@ -380,7 +481,7 @@ export default {
     },
 
     snapshotsGroupBy() {
-      return `$['metadata']['annotations']['etcdsnapshot.rke.io/storage']`;
+      return 'backupLocation';
     }
   },
 
@@ -496,6 +597,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <Banner v-if="showWindowsWarning" color="error" :label="t('cluster.banner.os', { newOS: 'Windows', existingOS: 'Linux' })" />
+    <Banner v-if="showEksNodeGroupWarning" color="error" :label="t('cluster.banner.desiredNodeGroupWarning')" />
 
     <Banner v-if="$fetchState.error" color="error" :label="$fetchState.error" />
     <ResourceTabs v-model="value" :default-tab="defaultTab">
@@ -563,7 +665,7 @@ export default {
           <template #group-by="{group}">
             <div class="pool-row" :class="{'has-description':group.ref && group.ref.nodeTemplate}">
               <div v-trim-whitespace class="group-tab">
-                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix, count: group.ref.scale}, true)">
+                <div v-if="group.ref" v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix}, true)">
                 </div>
                 <div v-else v-html="t('resourceTable.groupLabel.notInANodePool')">
                 </div>
@@ -571,7 +673,8 @@ export default {
                   {{ group.ref.providerDisplay }} &ndash;  {{ group.ref.providerLocation }} / {{ group.ref.providerSize }} ({{ group.ref.providerName }})
                 </div>
               </div>
-              <div v-if="group.ref" class="right">
+              <div v-if="group.ref" class="right group-header-buttons">
+                <MachineSummaryGraph :row="poolSummaryInfo[group.ref]" :horizontal="true" class="mr-20" />
                 <template v-if="group.ref.hasLink('update')">
                   <button v-tooltip="t('node.list.scaleDown')" :disabled="group.ref.spec.quantity < 2" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
                     <i class="icon icon-sm icon-minus" />
@@ -606,6 +709,7 @@ export default {
       </Tab>
 
       <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
+        <Banner color="warning" :label="t('cluster.import.warningBanner')" />
         <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
@@ -681,6 +785,10 @@ export default {
           margin-top: -20px;
       }
     }
+  }
+  .group-header-buttons {
+    align-items: center;
+    display: flex;
   }
 }
 

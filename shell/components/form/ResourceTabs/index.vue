@@ -58,23 +58,27 @@ export default {
     needRelated: {
       type:    Boolean,
       default: true
-    }
-  },
+    },
 
-  async fetch() {
-    const inStore = this.$store.getters['currentStore'](EVENT);
-
-    if ( this.$store.getters[`${ inStore }/schemaFor`](EVENT) ) {
-      this.hasEvents = true; // @TODO be smarter about which ones actually ever have events
-      this.allEvents = await this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT });
+    alwaysShowEvents: {
+      type:    Boolean,
+      default: false
     }
   },
 
   data() {
+    const inStore = this.$store.getters['currentStore'](EVENT);
+
     return {
-      hasEvents: null,
-      allEvents: []
+      hasEvents:     this.$store.getters[`${ inStore }/schemaFor`](EVENT), // @TODO be smarter about which resources actually ever have events
+      allEvents:     [],
+      selectedTab:   this.defaultTab,
+      didLoadEvents: false,
     };
+  },
+
+  beforeDestroy() {
+    this.$store.dispatch('cluster/forgetType', EVENT);
   },
 
   computed: {
@@ -84,22 +88,28 @@ export default {
       return this.isView && this.needConditions && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
     },
     showEvents() {
-      return this.isView && this.needEvents && !this.$fetchState.pending && this.hasEvents && this.events.length;
+      return this.isView && this.needEvents && this.hasEvents && (this.events.length || this.alwaysShowEvents);
     },
     showRelated() {
-      return this.isView && this.needRelated && !this.$fetchState.pending;
+      return this.isView && this.needRelated;
     },
     eventHeaders() {
       return [
         {
+          name:  'type',
+          label: this.t('tableHeaders.type'),
+          value: 'eventType',
+          sort:  'eventType',
+        },
+        {
           name:  'reason',
-          label: 'Reason',
+          label: this.t('tableHeaders.reason'),
           value: 'reason',
           sort:  'reason',
         },
         {
           name:          'date',
-          label:         'Updated',
+          label:         this.t('tableHeaders.updated'),
           value:         'date',
           sort:          'date:desc',
           formatter:     'LiveDate',
@@ -108,7 +118,7 @@ export default {
         },
         {
           name:  'message',
-          label: 'Message',
+          label: this.t('tableHeaders.message'),
           value: 'message',
           sort:  'message',
         },
@@ -119,9 +129,10 @@ export default {
         return event.involvedObject?.uid === this.value?.metadata?.uid;
       }).map((event) => {
         return {
-          reason:  (`${ event.reason || 'Unknown' }${ event.count > 1 ? ` (${ event.count })` : '' }`).trim(),
-          message: event.message || 'Unknown',
-          date:    event.lastTimestamp || event.firstTimestamp || event.metadata.creationTimestamp,
+          reason:    (`${ event.reason || this.t('generic.unknown') }${ event.count > 1 ? ` (${ event.count })` : '' }`).trim(),
+          message:   event.message || this.t('generic.unknown'),
+          date:      event.lastTimestamp || event.firstTimestamp || event.metadata.creationTimestamp,
+          eventType: event.eventType
         };
       });
     },
@@ -134,17 +145,26 @@ export default {
     }
   },
 
-  mounted() {
-    // For easy access debugging...
-    if ( typeof window !== 'undefined' ) {
-      window.v = this.value;
+  methods: {
+    // Ensures we only fetch events and show the table when the events tab has been activated
+    tabChange(neu) {
+      this.selectedTab = neu?.selectedName;
+
+      if (!this.didLoadEvents && this.selectedTab === 'events') {
+        const inStore = this.$store.getters['currentStore'](EVENT);
+
+        this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT }).then((events) => {
+          this.allEvents = events;
+          this.didLoadEvents = true;
+        });
+      }
     }
-  },
+  }
 };
 </script>
 
 <template>
-  <Tabbed v-bind="$attrs" :default-tab="defaultTab">
+  <Tabbed v-bind="$attrs" :default-tab="defaultTab" @changed="tabChange">
     <slot />
 
     <Tab v-if="showConditions" label-key="resourceTabs.conditions.tab" name="conditions" :weight="-1" :display-alert-icon="conditionsHaveIssues">
@@ -153,6 +173,7 @@ export default {
 
     <Tab v-if="showEvents" label-key="resourceTabs.events.tab" name="events" :weight="-2">
       <SortableTable
+        v-if="selectedTab === 'events'"
         :rows="events"
         :headers="eventHeaders"
         key-field="id"
