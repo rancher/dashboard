@@ -1,6 +1,5 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml } from '@shell/utils/string';
-import { HCI as HCI_LABELS } from '@shell/config/labels-annotations';
 import { HCI } from '../types';
 
 const STATUS_DISPLAY = {
