@@ -14,6 +14,7 @@ import Instance from './VirtualMachineInstance';
 import Disk from './HarvesterHostDisk';
 import Network from './HarvesterHostNetwork';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import HarvesterKsmtuned from './HarvesterKsmtuned.vue';
 
 const LONGHORN_SYSTEM = 'longhorn-system';
 
@@ -29,6 +30,7 @@ export default {
     Disk,
     Network,
     LabeledSelect,
+    HarvesterKsmtuned
   },
   mixins: [metricPoller],
 
@@ -264,6 +266,15 @@ export default {
             />
           </template>
         </ArrayListGrouped>
+      </Tab>
+
+      <Tab
+        name="disk"
+        :weight="0"
+        :show-header="false"
+        :label="t('harvester.host.tabs.ksmtuned')"
+      >
+        <HarvesterKsmtuned :mode="mode" :node="value" />
       </Tab>
     </Tabbed>
   </div>

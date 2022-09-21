@@ -22,6 +22,7 @@ import KeyValue from '@shell/components/form/KeyValue';
 import { sortBy } from '@shell/utils/sort';
 import { Banner } from '@components/Banner';
 import HarvesterDisk from './HarvesterDisk';
+import HarvesterKsmtuned from './HarvesterKsmtuned';
 
 const LONGHORN_SYSTEM = 'longhorn-system';
 
@@ -37,6 +38,7 @@ export default {
     NameNsDescription,
     ArrayListGrouped,
     HarvesterDisk,
+    HarvesterKsmtuned,
     ButtonDropdown,
     KeyValue,
     Banner,
@@ -542,6 +544,9 @@ export default {
             <span v-else />
           </template>
         </ArrayListGrouped>
+      </Tab>
+      <Tab name="Ksmtuned" :weight="80" :label="t('harvester.host.tabs.ksmtuned')">
+        <HarvesterKsmtuned :mode="mode" :node="value" :register-before-hook="registerBeforeHook" />
       </Tab>
       <Tab name="labels" label-key="harvester.host.tabs.labels">
         <KeyValue

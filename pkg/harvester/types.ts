@@ -27,6 +27,7 @@ export const HCI = {
   VM_SNAPSHOT:        'harvesterhci.io.vmsnapshot',
   ALERTMANAGERCONFIG: 'harvesterhci.io.monitoring.alertmanagerconfig',
   STORAGE:            'harvesterhci.io.storage',
+  KSTUNED:            'node.harvesterhci.io.ksmtuned'
 };
 
 export const VOLUME_SNAPSHOT = 'snapshot.storage.k8s.io.volumesnapshot';
