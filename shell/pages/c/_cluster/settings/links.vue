@@ -7,7 +7,7 @@ import { fetchOrCreateSetting, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import KeyValue from '@shell/components/form/KeyValue';
 import { allHash } from '@shell/utils/promise';
-import { translateKeysWithFallback } from '~/shell/utils/string';
+import { mapGetters } from 'vuex';
 
 const DEFAULT_CUSTOM_LINKS = [
   {
@@ -69,14 +69,14 @@ export default {
 
     try {
       const defaultIssueLink = !!this.uiIssuesSetting.value ? { key: this.t('customLinks.defaults.issues'), value: this.uiIssuesSetting.value } : DEFAULT_SUPPORT_LINK;
-      const defaultLinks = translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, defaultIssueLink, ...COMMUNITY_LINKS], this.$store.getters['i18n/withFallback']);
+      const defaultLinks = this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, defaultIssueLink, ...COMMUNITY_LINKS]);
 
       this.uiCustomLinks = await fetchOrCreateSetting(this.$store, SETTING.UI_CUSTOM_LINKS, JSON.stringify(defaultLinks));
 
       await this.deprecateIssueLinks();
     } catch {}
 
-    const sValue = this.uiCustomLinks?.value || JSON.stringify(translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, this.$store.getters['i18n/withFallback']]));
+    const sValue = this.uiCustomLinks?.value || JSON.stringify(this.multiWithFallback([...DEFAULT_CUSTOM_LINKS]));
 
     this.value = JSON.parse(sValue);
   },
@@ -89,6 +89,8 @@ export default {
     };
   },
   computed: {
+    ...mapGetters({ multiWithFallback: 'i18n/multiWithFallback' }),
+
     mode() {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
@@ -98,10 +100,10 @@ export default {
     defaultLinks: {
       get(issueLink) {
         if ( issueLink ) {
-          return translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, issueLink, ...DEFAULT_CUSTOM_LINKS], this.$store.getters['i18n/withFallback']);
+          return this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, issueLink, ...DEFAULT_CUSTOM_LINKS]);
         }
 
-        return translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...DEFAULT_CUSTOM_LINKS], this.$store.getters['i18n/withFallback']);
+        return this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...DEFAULT_CUSTOM_LINKS]);
       }
     }
 
@@ -110,7 +112,7 @@ export default {
     useDefaults() {
       const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_LINKS;
 
-      this.value = translateKeysWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks], this.$store.getters['i18n/withFallback']);
+      this.value = this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks]);
     },
 
     deprecateIssueLinks() {

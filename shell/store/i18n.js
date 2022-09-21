@@ -139,6 +139,14 @@ export const getters = {
     return state.default;
   },
 
+  multiWithFallback: (state, getters) => (items, key = 'key') => {
+    return items.map((item) => {
+      item[key] = getters.withFallback(item[key], null, item[key]);
+
+      return item;
+    });
+  },
+
   withFallback: (state, getters) => (key, args, fallback, fallbackIsKey = false) => {
     // Support withFallback(key,fallback) when no args
     if ( !fallback && typeof args === 'string' ) {
@@ -153,7 +161,8 @@ export const getters = {
     } else {
       return fallback;
     }
-  }
+  },
+
 };
 
 export const mutations = {
