@@ -76,6 +76,10 @@ harvester:
       title: Take VM Snapshot
       name: Name
       success: 'Take VM Snapshot { name } successfully.'
+    restart:
+      title: Restart VM
+      tip: Restart the Virtual Machine now for configuration changes to take effect.
+      cancel: Save
   notification:
     title:
       succeed: Succeed

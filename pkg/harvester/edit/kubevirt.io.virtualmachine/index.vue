@@ -2,7 +2,6 @@
 import isEqual from 'lodash/isEqual';
 import { mapGetters } from 'vuex';
 
-import { Banner } from '@components/Banner';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -40,7 +39,6 @@ export default {
   components: {
     Tab,
     Tabbed,
-    Banner,
     Checkbox,
     RadioGroup,
     CruResource,
@@ -217,7 +215,7 @@ export default {
 
   created() {
     this.registerAfterHook(async() => {
-      this.restartVM();
+      await this.restartVM();
       const id = `${ this.value.metadata.namespace }/${ this.value.metadata.name }`;
 
       const res = this.$store.getters['harvester/byId'](HCI.VM, id);
@@ -328,25 +326,44 @@ export default {
     },
 
     restartVM() {
-      if ( this.mode === 'edit') {
-        const cloneDeepNewVM = clone(this.value);
-
-        delete cloneDeepNewVM?.metadata;
-        delete this.cloneVM?.metadata;
-
-        const oldVM = JSON.parse(JSON.stringify(this.cloneVM));
-        const newVM = JSON.parse(JSON.stringify(cloneDeepNewVM));
-
-        if (!isEqual(oldVM, newVM) && this.isRestartImmediately) {
-          if (this.value.hasAction('restart')) {
-            this.value.doActionGrowl('restart', {});
-          }
-
-          if (this.value.hasAction('start')) {
-            this.value.doActionGrowl('start', {});
-          }
-        }
+      if (this.mode !== 'edit') {
+        return;
       }
+      if (!this.value.isRunning) {
+        return;
+      }
+      const cloneDeepNewVM = clone(this.value);
+
+      delete cloneDeepNewVM?.metadata;
+      delete this.cloneVM?.metadata;
+      delete this.cloneVM?.__clone;
+
+      const cpu = cloneDeepNewVM.spec.template.spec.domain.resources.limits.cpu;
+
+      cloneDeepNewVM.spec.template.spec.domain.resources.limits.cpu = cpu.toString();
+
+      const oldVM = JSON.parse(JSON.stringify(this.cloneVM));
+      const newVM = JSON.parse(JSON.stringify(cloneDeepNewVM));
+
+      if (isEqual(oldVM, newVM)) {
+        return;
+      }
+
+      return new Promise((resolve) => {
+        this.$store.dispatch('harvester/promptModal', {
+          component: 'RestartVMDialog',
+          resources: {
+            applyAction: (buttonDone) => {
+              this.value.doActionGrowl('restart', {});
+              buttonDone(true);
+              resolve();
+            },
+            cancelAction: () => {
+              resolve();
+            },
+          },
+        }, { root: true });
+      });
     },
 
     updateBeforeSave() {
@@ -619,21 +636,6 @@ export default {
         />
       </Tab>
     </Tabbed>
-
-    <div class="mt-20">
-      <span v-if="isEdit && (hasRestartAction || hasStartAction)" class="restart">
-        <Banner color="warning" class="banner-right">
-          {{ t('harvester.virtualMachine.restartTip', { restart: hasRestartAction }) }}
-
-          <Checkbox
-            v-model="isRestartImmediately"
-            class="check ml-20"
-            type="checkbox"
-            :label="t('harvester.virtualMachine.restartNow', { restart: hasRestartAction })"
-          />
-        </Banner>
-      </span>
-    </div>
   </CruResource>
 </template>
 

@@ -681,6 +681,10 @@ asyncButton:
     action: 生成
     success: 已生成
     waiting: 正在生成&hellip;
+  restart:
+    action: 保存并重启
+    success: 已重启
+    waiting: 正在重启&hellip;
 
 backupRestoreOperator:
   backupFilename: 备份文件名

@@ -75,6 +75,10 @@ harvester:
       title: 生成 VM 快照
       name: 名称
       success: 'VM 快照 { name } 生成成功。'
+    restart:
+      title: 重启VM
+      tip: 现在重新启动虚拟机以使配置更改生效。
+      cancel: 仅保存
   action:
     createVM: 创建虚拟机
     start: 启动
