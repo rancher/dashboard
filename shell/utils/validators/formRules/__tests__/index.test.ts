@@ -1033,4 +1033,25 @@ describe('formRules', () => {
 
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
+
+  describe.skip.each([
+    ['minValue', 2, [3], [1]],
+    ['maxValue', 256, [1], [300]],
+    ['betweenValue', [2, 256], [3], [1, 300]],
+    ['minLength', 2, ['test'], ['x']],
+    ['maxLength', 10, ['x'], ['wrong value']],
+    ['betweenLength', [2, 10], ['test'], ['x', 'wrong value']],
+  ])('%p should', (rule, argument, correctValues, wrongValues) => {
+    it.each(wrongValues as [])('return error for value %p', (wrong) => {
+      const formRuleResult = (formRules as any)[rule](argument)(wrong);
+
+      expect(formRuleResult).not.toBeUndefined();
+    });
+
+    it.each(correctValues as [])('return valid for value %p', (correct) => {
+      const formRuleResult = (formRules as any)[rule](argument)(correct);
+
+      expect(formRuleResult).toBeUndefined();
+    });
+  });
 });
