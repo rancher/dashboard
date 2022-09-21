@@ -104,7 +104,7 @@ export default {
 
       const formErrors = this.fvGetPathErrors(paths);
 
-      const modelErrors = this.value.customValidationErrors(this.value, this.fvReportedValidationPaths); // the model already has a means of producing errors, not reinventing the wheel... yet...
+      const modelErrors = this.value.customValidationErrors ? this.value.customValidationErrors(this.value, this.fvReportedValidationPaths) : []; // the model already has a means of producing errors, not reinventing the wheel... yet...
 
       return [...formErrors, ...modelErrors, ...(this.errors || [])];
     },

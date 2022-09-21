@@ -4,10 +4,13 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
 
 import { ALLOWED_SETTINGS, SETTING } from '@shell/config/settings';
 import { RadioGroup } from '@components/Form/Radio';
+import FormValidation from '@shell/mixins/form-validation';
 import { setBrand } from '@shell/config/private-label';
+import { keyBy, mapValues } from 'lodash';
 
 export default {
   components: {
@@ -18,7 +21,7 @@ export default {
     TextAreaAutoGrow
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   data() {
     const t = this.$store.getters['i18n/t'];
@@ -30,6 +33,7 @@ export default {
       enumOptions:    [],
       canReset:       false,
       errors:         [],
+      fvFormRuleSets: [],
     };
   },
 
@@ -40,18 +44,28 @@ export default {
       value: id,
     })) : [];
     this.canReset = this.setting?.canReset || !!this.value.default;
+    this.fvFormRuleSets = this.setting?.ruleSet ? [{
+      path:  'value.value',
+      rules: this.setting.ruleSet.map(({ name }) => name)
+    }] : [];
+  },
+
+  computed: {
+    fvExtraRules() {
+      const t = this.$store.getters['i18n/t'];
+
+      // We map the setting rulesets to use values to define validation from factory
+      return this.setting?.ruleSet ? mapValues(
+        keyBy(this.setting.ruleSet, 'name'),
+        ({ key, name, arg }) => {
+          return formRulesGenerator(t, key ? { key } : {})[name](arg);
+        }) : {};
+    }
   },
 
   methods:  {
     convertToString(event) {
       this.value.value = `${ event.target.value }`;
-    },
-
-    isValid() {
-      return (this.setting.rules || [])
-        .map(rule => rule(this.value.value))
-        .filter(Boolean)
-        .length === 0;
     },
 
     saveSettings(done) {
@@ -91,12 +105,12 @@ export default {
   <CruResource
     class="route"
     :done-route="'c-cluster-product-resource'"
-    :errors="errors"
+    :errors="fvUnreportedValidationErrors"
     :mode="mode"
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
-    :validation-passed="isValid()"
+    :validation-passed="fvFormIsValid"
     @error="e=>errors = e"
     @finish="saveSettings"
     @cancel="done"
@@ -127,7 +141,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-enum"
           :label="t('advancedSettings.edit.value')"
-          :rules="setting.rules || []"
+          :rules="fvGetAndReportPathRules('value.value')"
           :localized-label="true"
           :mode="mode"
           :required="true"
@@ -139,7 +153,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-boolean"
           name="settings_value"
-          :rules="setting.rules || []"
+          :rules="fvGetAndReportPathRules('value.value')"
           :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
           :options="['true', 'false']"
         />
@@ -149,7 +163,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-json"
           :required="true"
-          :rules="setting.rules || []"
+          :rules="fvGetAndReportPathRules('value.value')"
           :min-height="254"
         />
       </div>
@@ -160,7 +174,7 @@ export default {
           :label="t('advancedSettings.edit.value')"
           :mode="mode"
           type="number"
-          :rules="setting.rules || []"
+          :rules="fvGetAndReportPathRules('value.value')"
           :required="true"
         />
       </div>
@@ -171,7 +185,7 @@ export default {
           :localized-label="true"
           :required="true"
           :mode="mode"
-          :rules="setting.rules || []"
+          :rules="fvGetAndReportPathRules('value.value')"
           :label="t('advancedSettings.edit.value')"
         />
       </div>

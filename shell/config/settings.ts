@@ -2,10 +2,14 @@
 import { GC_DEFAULTS } from '../utils/gc/gc-types';
 import { MANAGEMENT } from './types';
 import { Store } from 'vuex';
-import { Validator } from '@shell/utils/validators/formRules';
-import formRulesGenerator from '@shell/utils/validators/formRules/index';
 
-interface RancherSetting {
+interface GlobalSettingRuleset {
+  name: string,
+  key?: string | number,
+  arg?: string | number
+}
+
+interface GlobalSetting {
   [key: string]: {
     alias?: string,
     canReset?: boolean,
@@ -17,7 +21,7 @@ interface RancherSetting {
     /**
      * Function used from the form validation
      */
-    rules?: Validator[],
+     ruleSet?: GlobalSettingRuleset[],
   };
 }
 
@@ -85,16 +89,24 @@ export const SETTING = {
 };
 
 // These are the settings that are allowed to be edited via the UI
-export const ALLOWED_SETTINGS: RancherSetting = {
+export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CA_CERTS]:                             { kind: 'multiline', readOnly: true },
   [SETTING.ENGINE_URL]:                           {},
   [SETTING.ENGINE_ISO_URL]:                       {},
   [SETTING.CATTLE_PASSWORD_MIN_LENGTH]: {
-    kind:  'integer',
-    rules: [
-      value => formRulesGenerator(() => '', { key: 'Password' }).minValue(value, 2),
-      value => formRulesGenerator(() => '', { key: 'Password' }).maxValue(value, 256),
-    ]
+    kind:       'integer',
+    ruleSet: [
+      {
+        name: 'minValue',
+        key:  'Password',
+        arg:  2
+      },
+      {
+        name: 'maxValue',
+        key:  'Password',
+        arg:  256
+      }
+    ],
   },
   [SETTING.INGRESS_IP_DOMAIN]:                    {},
   [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]:       {},
