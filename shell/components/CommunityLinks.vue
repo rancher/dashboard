@@ -53,7 +53,7 @@ export default {
     ]),
 
     hasOptions() {
-      return !!Object.keys(options).length;
+      return !!Object.keys(this.options).length;
     },
 
     options() {
