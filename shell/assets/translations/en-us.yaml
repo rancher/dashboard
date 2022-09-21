@@ -3673,6 +3673,14 @@ prefs:
     sublime: 'Normal human'
     emacs: 'Emacs'
     vim: 'Vim'
+  features:
+    title: Features
+    allNamespaces: This setting reveals namespaces that are managed by Rancher and are not meant to be manually edited or deleted
+    themeShortcut: Enables keyboard shortcut to toggle light or dark theme (shift+T)
+    noLocaleShortcut: Enables keyboard shortcut to toggle locales (shift+L)
+  devTools:
+    title: Developer Tools
+    viewInApi: Enables 'View in API' option
   advanced: Advanced
   advancedTooltip: Enables 'View in API' option and keyboard shortcut to toggle light or dark theme (shift+t). This setting also reveals namespaces that are managed by Rancher and are not meant to be manually edited or deleted.
   dev:

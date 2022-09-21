@@ -4,13 +4,13 @@ import { MANAGEMENT } from '@shell/config/types';
 import { ALLOWED_SETTINGS } from '@shell/config/settings';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
-import { DEV } from '@shell/store/prefs';
+import { VIEW_IN_API } from '@shell/store/prefs';
 
 export default {
   components: { Banner, Loading },
 
   async fetch() {
-    const isDev = this.$store.getters['prefs/get'](DEV);
+    const viewInApi = this.$store.getters['prefs/get'](VIEW_IN_API);
     const rows = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
     const t = this.$store.getters['i18n/t'];
     // Map settings from array to object keyed by id
@@ -51,7 +51,7 @@ export default {
       }
       // There are only 2 actions that can be enabled - Edit Setting or View in API
       // If neither is available for this setting then we hide the action menu button
-      s.hasActions = (!s.readOnly || isDev) && setting.availableActions?.length;
+      s.hasActions = (!s.readOnly || viewInApi) && setting.availableActions?.length;
       settings.push(s);
     }
 

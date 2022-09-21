@@ -4,7 +4,7 @@ import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
-import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
+import { mapPref, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
@@ -102,8 +102,6 @@ export default {
 
       return sorted;
     },
-
-    dev: mapPref(DEV),
 
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
 
