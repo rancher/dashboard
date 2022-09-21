@@ -148,7 +148,6 @@ export default {
   },
 
   data() {
-    let defaultTab;
     let type = this.$route.params.resource;
     const createSidecar = !!this.$route.query.sidecar;
     const isInitContainer = !!this.$route.query.init;
