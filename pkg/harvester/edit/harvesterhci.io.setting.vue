@@ -100,7 +100,7 @@ export default {
       const t = this.$store.getters['i18n/t'];
 
       // Validate the JSON if the setting is a json value
-      if (this.setting.kind === 'json') {
+      if (this.setting.kind === 'json' && this.value.default) {
         try {
           JSON.parse(this.value.value);
           this.errors = [];
