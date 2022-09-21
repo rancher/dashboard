@@ -405,7 +405,7 @@ export default class Workload extends WorkloadService {
     case WORKLOAD_TYPES.CRON_JOB:
       out.push(detailItem.endpoint);
       break;
-    case WORKLOAD_TYPES.POD:
+    case POD:
       out.push(detailItem.ready);
       break;
     default: break;
