@@ -53,7 +53,6 @@ export default {
         cidr:         layer3Network.cidr || '',
         gateway:      layer3Network.gateway || '',
       },
-      createClusterNetwork: false,
     };
   },
 
@@ -185,30 +184,6 @@ export default {
 
         <div class="row">
           <div
-            v-if="createClusterNetwork"
-            class="col span-12"
-          >
-            <LabeledInput
-              ref="clusterNetwork"
-              v-model="config.bridge"
-              :label="t('harvester.network.clusterNetwork.label')"
-              :mode="mode"
-              required
-            />
-            <button
-              aria="Cancel create"
-              @click="() => {
-                createClusterNetwork = false
-              }"
-            >
-              <i
-                v-tooltip="t('generic.cancel')"
-                class="icon icon-lg icon-close align-value"
-              />
-            </button>
-          </div>
-          <div
-            v-else
             class="col span-12"
           >
             <LabeledSelect

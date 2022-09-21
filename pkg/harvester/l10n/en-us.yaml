@@ -641,19 +641,6 @@ harvester:
     tabs:
       basics: Basics
       layer3Network: Route
-    message:
-      premise:
-        prefix: 'You must configure a network in'
-        middle: 'Settings'
-        suffix: 'before creating a new network.'
-      viewSetting:
-        prefix: Click
-        middle: here
-        suffix: to view default cluster network config.
-      errorTip:
-        prefix: Physical NIC value in
-        middle: Setting
-        suffix: "is invalid, error: "
     clusterNetwork:
       label: Cluster Network
       create: Create a New Cluster Network
