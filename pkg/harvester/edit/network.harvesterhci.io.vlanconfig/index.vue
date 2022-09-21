@@ -68,7 +68,7 @@ export default {
 
       return [{
         label: this.t('harvester.network.clusterNetwork.create'),
-        value: 'empty',
+        value: null,
       }, {
         label:    'divider',
         disabled: true,
@@ -142,9 +142,8 @@ export default {
 
   methods: {
     selectClusterNetwork(e) {
-      if (!e || e.value === 'empty') {
+      if (!e || e.value === null) {
         this.createClusterNetwork = true;
-        this.value.spec.clusterNetwork = '';
 
         Vue.nextTick(() => this.$refs.clusterNetwork.focus());
       } else {
@@ -174,7 +173,7 @@ export default {
       const errors = [];
 
       const nics = this.value.spec?.uplink?.nics || [];
-      const nicRequired = this.t('validation.required', { key: this.t('harvester.vlanConfig.uplink.nics.label') }, true);
+      const nicRequired = this.t('validation.arrayCountRequired', { key: this.t('harvester.vlanConfig.uplink.nics.label'), count: 1 }, true);
 
       if (nics.length === 0) {
         errors.push(nicRequired);
@@ -242,7 +241,8 @@ export default {
             <button
               aria="Cancel create"
               @click="() => {
-                createClusterNetwork = false
+                createClusterNetwork = false;
+                value.spec.clusterNetwork = '';
               }"
             >
               <i

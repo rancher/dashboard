@@ -5013,6 +5013,7 @@ validation:
   required: '"{key}" is required'
   invalid: '"{key}" is invalid'
   requiredOrOverride: '"{key}" is required or must allow override'
+  arrayCountRequired: "At least {count} {key} {count, plural, =1 {is} other {are}} required, and {key} can not be empty."
   roleTemplate:
     roleTemplateRules:
       missingVerb: You must specify at least one verb for each resource grant
