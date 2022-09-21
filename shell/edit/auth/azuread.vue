@@ -1,4 +1,5 @@
 <script>
+import isEqual from 'lodash/isEqual';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
@@ -191,16 +192,14 @@ export default {
     },
 
     determineEndpointKeyType(endpointTypes) {
-      let out = null;
+      let out = 'custom';
 
-      for ( const [key, values] of Object.entries(endpointTypes) ) {
-        const mappedValues = Object.values(values).map(v => v.replace(TENANT_ID_TOKEN, this.model?.tenantId));
-        const valuesToCheck = Object.keys(values).map(k => this.value[k]);
+      for ( const [endpointKey, endpointKeyValues] of Object.entries(endpointTypes) ) {
+        const mappedValues = Object.values(endpointKeyValues).map(endpoint => endpoint.replace(TENANT_ID_TOKEN, this.model?.tenantId));
+        const valuesToCheck = Object.keys(endpointKeyValues).map(key => this.value[key]);
 
-        if ( mappedValues === valuesToCheck ) {
-          out = key;
-        } else {
-          out = 'custom';
+        if ( isEqual(mappedValues, valuesToCheck) ) {
+          out = endpointKey;
         }
       }
 
