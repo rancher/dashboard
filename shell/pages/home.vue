@@ -23,7 +23,6 @@ import { BLANK_CLUSTER } from '@shell/store';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
-import { allHash } from '~shell/utils/promise';
 
 export default {
   name:       'Home',
@@ -41,14 +40,9 @@ export default {
 
   mixins: [PageHeaderActions],
 
-  async fetch() {
-    const res = await allHash({
-      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-      mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      psps:            this.$store.dispatch('management/request', { url: '/v1/policy.podsecuritypolicies' }),
-    });
-
-    this.psps = res.psps?.data || [];
+  fetch() {
+    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
   },
 
   data() {
@@ -67,11 +61,7 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS,
-      fullVersion,
-      pageActions,
-      vendor: getVendor(),
-      psps:   [],
+      HIDE_HOME_PAGE_CARDS, fullVersion, pageActions, vendor: getVendor(),
     };
   },
 
@@ -82,10 +72,6 @@ export default {
 
     provClusters() {
       return this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
-    },
-
-    hasPodSecurityPolicies() {
-      return this.psps && this.psps.length;
     },
 
     canCreateCluster() {
@@ -305,9 +291,6 @@ export default {
 
       <div class="row">
         <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel }" class="col">
-          <Banner v-if="hasPodSecurityPolicies" color="warning">
-            <t k="landing.deprecatedPsp" :raw="true" />
-          </Banner>
           <SimpleBox
             id="migration"
             class="panel"

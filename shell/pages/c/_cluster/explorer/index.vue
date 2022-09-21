@@ -111,12 +111,12 @@ export default {
 
     return {
       nodeHeaders,
-      constraints:         [],
-      events:              [],
-      nodeMetrics:         [],
-      showClusterMetrics: false,
-      showK8sMetrics:     false,
-      showEtcdMetrics:    false,
+      constraints:                 [],
+      events:                      [],
+      nodeMetrics:                 [],
+      showClusterMetrics:          false,
+      showK8sMetrics:              false,
+      showEtcdMetrics:             false,
       CLUSTER_METRICS_DETAIL_URL,
       CLUSTER_METRICS_SUMMARY_URL,
       K8S_METRICS_DETAIL_URL,
@@ -124,7 +124,8 @@ export default {
       ETCD_METRICS_DETAIL_URL,
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts,
-      selectedTab:         'cluster-events',
+      selectedTab:                 'cluster-events',
+      displayPspDeprecationBanner: false
     };
   },
 
@@ -136,6 +137,26 @@ export default {
     this.$store.dispatch('cluster/forgetType', ENDPOINTS); // Used by AlertTable to get alerts when v2 monitoring is installed
     this.$store.dispatch('cluster/forgetType', METRIC.NODE);
     this.$store.dispatch('cluster/forgetType', MANAGEMENT.NODE);
+  },
+
+  watch: {
+    // logic to be removed once kube version is 1.25 or greater
+    // we need to hook up this API call to a watcher because the page logic is based on a getter
+    // as a temporary solution, this seems reasonable, so that we don't disrupt the optimal loading times of the page
+    currentCluster: {
+      async handler(neu, old) {
+        if (neu && (!old || old.id !== neu.id)) {
+          if (neu.status?.version?.major >= 1 && neu.status?.version?.minor >= 21) {
+            const psps = await this.$store.dispatch('management/request', { url: '/v1/policy.podsecuritypolicies' });
+
+            if (psps && psps.data && psps.data.length) {
+              this.displayPspDeprecationBanner = true;
+            }
+          }
+        }
+      },
+      immediate: true
+    },
   },
 
   computed: {
@@ -378,6 +399,12 @@ export default {
         </div>
       </div>
     </header>
+    <Banner
+      v-if="displayPspDeprecationBanner"
+      color="warning"
+    >
+      <t k="landing.deprecatedPsp" :raw="true" />
+    </Banner>
     <Banner
       v-if="!hideClusterToolsTip"
       :closable="true"
