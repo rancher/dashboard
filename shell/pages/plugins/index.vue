@@ -5,8 +5,8 @@ import { mapGetters } from 'vuex';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
 import { CATALOG, UI_PLUGIN } from '@shell/config/types';
-import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
+import ActionMenu from '@shell/components/ActionMenu';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
@@ -24,6 +24,7 @@ const PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
 
 export default {
   components: {
+    ActionMenu,
     DeveloperInstallDialog,
     IconMessage,
     InstallDialog,
@@ -33,6 +34,17 @@ export default {
     UninstallDialog,
   },
   data() {
+    const menuActions = [];
+    const isDeveloper = true;
+
+    if (isDeveloper) {
+      menuActions.push({
+        action:  'devLoad',
+        label:   this.t('plugins.actions.developerLoad'),
+        enabled: true
+      });
+    }
+
     return {
       view:              '',
       charts:            [],
@@ -40,6 +52,10 @@ export default {
       plugins:           [], // The installed plugins
       helmOps:           [], // Helm operations
       loading:           true,
+      menuTargetElement: null,
+      menuTargetEvent:   null,
+      menuOpen:          false,
+      menuActions,
     };
   },
 
@@ -88,6 +104,10 @@ export default {
       }
     },
 
+    isDeveloper() {
+      return true;
+    },
+
     // Message to display when the tab view is empty (depends on the tab)
     emptyMessage() {
       return this.t(`plugins.empty.${ this.view }`);
@@ -111,12 +131,12 @@ export default {
           builtin:        false,
         };
 
-        this.latest = chart.versions[0]
+        this.latest = chart.versions[0];
         item.versions = [...chart.versions];
         item.chart = chart;
 
         if (this.installing[item.name]) {
-          console.log('PLUGIN IS BEING INSTALLED: ' + item.name + ' ' + this.installing[item.name]); // eslint-disable-line no-console
+          console.log(`PLUGIN IS BEING INSTALLED: ${ item.name } ${ this.installing[item.name] }`); // eslint-disable-line no-console
           item.installing = this.installing[item.name];
         }
 
@@ -173,11 +193,6 @@ export default {
         }
       });
 
-      console.log('avaialble');
-      console.log(this.uierrors);
-
-      console.log(all);
-
       return all;
     },
   },
@@ -229,10 +244,10 @@ export default {
           const id = `${ plugin.name }-${ plugin.version }`;
           const url = `http://127.0.0.1:4500/${ id }/${ id }.umd.min.js`;
 
-          console.error('Load Plugin ' + id + ' ' + url); // eslint-disable-line no-console
+          console.error(`Load Plugin ${ id } ${ url }`); // eslint-disable-line no-console
 
           this.$plugin.loadAsync(id, url).catch((e) => {
-            console.log('Failed to load plugin');
+            console.log('Failed to load plugin'); // eslint-disable-line no-console
           });
 
           this.updatePluginInstallStatus(plugin.name, false);
@@ -246,11 +261,8 @@ export default {
       this.view = f.selectedName;
     },
 
-    showDeveloperLoaddDialog(ev) {
-      ev.target?.blur();
-      ev.preventDefault();
-      ev.stopPropagation();
-
+    // Developer Load is in the action menu
+    showDeveloperLoaddDialog() {
       this.$refs.developerInstallDialog.showDialog();
     },
 
@@ -291,9 +303,21 @@ export default {
     },
 
     updatePluginInstallStatus(name, status) {
-      console.log('UPDATING PLUGIN STATUS: ' + name + ' ' + status); // eslint-disable-line no-console
+      console.log(`UPDATING PLUGIN STATUS: ${ name } ${ status }`); // eslint-disable-line no-console
       Vue.set(this.installing, name, status);
     },
+
+    setMenu(event) {
+      this.menuOpen = !!event;
+
+      if (event) {
+        this.menuTargetElement = this.$refs.actions;
+        this.menuTargetEvent = event;
+      } else {
+        this.menuTargetElement = undefined;
+        this.menuTargetEvent = undefined;
+      }
+    }
   }
 };
 </script>
@@ -302,9 +326,25 @@ export default {
   <div class="plugins">
     <div class="plugin-header">
       <h2>{{ t('plugins.title') }}</h2>
-      <button class="btn role-primary" @click="showDeveloperLoaddDialog($event)">
-        {{ t('plugins.actions.developerLoad') }}
+      <button
+        v-if="menuActions.length > 0"
+        ref="actions"
+        aria-haspopup="true"
+        type="button"
+        class="btn actions"
+        @click="setMenu"
+      >
+        <i class="icon icon-actions" />
       </button>
+      <ActionMenu
+        :custom-actions="menuActions"
+        :open="menuOpen"
+        :use-custom-target-element="true"
+        :custom-target-element="menuTargetElement"
+        :custom-target-event="menuTargetEvent"
+        @close="setMenu(false)"
+        @devLoad="showDeveloperLoaddDialog"
+      />
     </div>
 
     <PluginInfoPanel ref="infoPanel" />

@@ -23,9 +23,6 @@ export default {
       this.versionError = null;
 
       this.loadPluginVersionInfo();
-
-      console.log(info);
-      console.log(info.versions);
     },
 
     hide() {
@@ -89,7 +86,9 @@ export default {
           </div>
         </h2>
         <p>{{ info.description }}</p>
-        <h3 v-if="info.versions">Versions</h3>
+        <h3 v-if="info.versions">
+          Versions
+        </h3>
         <ul>
           <li v-for="v in info.versions" :key="v.version">
             <a class="version-link" @click="loadPluginVersionInfo(v.version)">{{ v.version }}</a>

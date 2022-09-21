@@ -185,8 +185,6 @@ export default function(dir, _appConfig) {
 
   // Serve up the dist-pkg folder under /pkg
   serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
-  // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
-  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
   // Add the standard dashboard server middleware after the middleware added to serve up UI packages
   serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
 
@@ -555,7 +553,7 @@ export default function(dir, _appConfig) {
     plugins: [
       // Extensions
       path.relative(dir, path.join(SHELL, 'core/plugins.js')),
-      path.relative(dir, path.join(SHELL, 'core/plugins-loader.js')),
+      path.relative(dir, path.join(SHELL, 'core/plugins-loader.js')), // Load builtin plugins
 
       // Third-party
       path.join(NUXT_SHELL, 'plugins/axios'),
@@ -579,7 +577,7 @@ export default function(dir, _appConfig) {
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
       path.join(NUXT_SHELL, 'plugins/replaceall'),
       path.join(NUXT_SHELL, 'plugins/back-button'),
-      { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false }, // Load dyanmic plugins
       { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/formatters'), ssr: false }, // Populate formatters cache for sorted table
     ],
@@ -605,8 +603,6 @@ export default function(dir, _appConfig) {
       '/assets':       proxyOpts('https://127.0.0.1:8000'),
       '/translations': proxyOpts('https://127.0.0.1:8000'),
       '/engines-dist': proxyOpts('https://127.0.0.1:8000'),
-      // Plugin dev
-      '/verdaccio/':   proxyOpts('http://127.0.0.1:4873/-'),
     },
 
     // Nuxt server

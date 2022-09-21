@@ -32,7 +32,9 @@ export default async(context) => {
     console.warn('Safe Mode - plugins will not be loaded'); // eslint-disable-line no-console
   }
 
-  const { store, $plugin, app } = context;
+  const { store, $plugin } = context;
+
+  // TODO: Only fetch if the schema if present
 
   try {
     const res = await store.dispatch('management/request', {

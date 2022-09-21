@@ -1,14 +1,12 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { CATALOG, UI_PLUGIN } from '@shell/config/types';
+import { CATALOG } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 
 const PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
 
 export default {
-  components: {
-    AsyncButton,
-  },
+  components: { AsyncButton },
 
   data() {
     return { plugin: undefined, busy: false };
@@ -25,9 +23,6 @@ export default {
       this.$emit('closed', result);
     },
     async uninstall() {
-      console.log('UNINSTALL !!!!!');
-      console.log(this);
-
       this.busy = true;
 
       const plugin = this.plugin;
@@ -42,35 +37,27 @@ export default {
       const apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
 
       const pluginApp = apps.find((app) => {
-        return app.namespace == PLUGIN_NAMESPACE && app.name === plugin.name;
+        return app.namespace === PLUGIN_NAMESPACE && app.name === plugin.name;
       });
 
       if (pluginApp) {
-        console.log('Going to remove app for plugin');
-        const remove = await pluginApp.remove();
+        await pluginApp.remove();
 
         // This starts the removal of the helm chart for the plugin
-
-        console.warn('REMOVE');
-        console.log(remove);
-
         const helmOps = await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
 
         let pluginOps = helmOps.filter((op) => {
           return op.namespace === PLUGIN_NAMESPACE && op.status?.releaseName === plugin.name && op.status?.action === 'uninstall';
         });
 
-        console.log('Plugin ops');
-        console.log(pluginOps);
-        
+        // console.log('Plugin ops');
+        // console.log(pluginOps);
+
         // Sort them so that the newest is first - this will be the latest uninstall operation for the plugin
         pluginOps = sortBy(pluginOps, 'metadata.creationTimestamp', true);
 
         if (pluginOps.length > 0) {
-          // plugin.operation = pluginOps[0];
-          console.warn('FOUND OP FOR PLUGIN *********');
-          console.log(pluginOps[0]);
-
+          // TODO
           // We don't do anything with this op?
         }
       }

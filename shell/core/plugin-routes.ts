@@ -123,7 +123,6 @@ export class PluginRoutes {
     });
 
     this.updateMatcher(routes, allRoutes);
-
   }
 
   private updateMatcher(newRoutes: RouteInfo[], allRoutes: RouteConfig[]) {

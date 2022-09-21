@@ -132,7 +132,7 @@ export default {
           value:   'plugins',
           weight:  1,
           to:      {
-            name: 'plugins',
+            name:   'plugins',
             params: {
               product: 'uiplugins',
               cluster: 'local'

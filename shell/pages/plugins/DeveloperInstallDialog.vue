@@ -1,8 +1,8 @@
 <script>
-import AsyncButton from '@shell/components/AsyncButton'
+import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import { CATALOG, UI_PLUGIN } from '@shell/config/types';
+import { UI_PLUGIN } from '@shell/config/types';
 
 export default {
   components: {
@@ -59,9 +59,10 @@ export default {
     updateName(v) {
       this.canModifyName = v.length === 0;
     },
+
     updateLocation(v) {
       this.canModifyLocation = v.length === 0;
-    },    
+    },
 
     async loadPlugin(btnCb) {
       let name = this.name;
@@ -74,25 +75,15 @@ export default {
         name = n.split('.')[0];
       }
 
-      console.log('load plugin');
-
       // TODO: Not working
       if (this.persist) {
         // Create the custom resource to presist this plugin
         // TODO: Add no-cache by default
         const pluginCR = await this.$store.dispatch('management/create', {
-          type: UI_PLUGIN,
-          metadata: {
-            name
-          },
-          spec: {
-            plugin: {
-              name,
-            }
-          }
+          type:     UI_PLUGIN,
+          metadata: { name },
+          spec:     { plugin: { name } }
         });
-
-        console.log(pluginCR);
 
         await pluginCR.save();
       }
@@ -118,7 +109,7 @@ export default {
       });
     }
   }
-}
+};
 </script>
 
 <template>

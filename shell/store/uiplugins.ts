@@ -29,7 +29,7 @@ export const getters = {
 
   errors: (state: any) => {
     return state.errors;
-  },  
+  },
 };
 
 export const mutations = {

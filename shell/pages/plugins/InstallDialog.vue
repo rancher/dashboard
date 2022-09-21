@@ -1,8 +1,7 @@
 <script>
-import AsyncButton from '@shell/components/AsyncButton'
+import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import { CATALOG, UI_PLUGIN } from '@shell/config/types';
-import { sortBy } from '@shell/utils/sort';
+import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
@@ -63,7 +62,7 @@ export default {
       const version = plugin.versions[0];
       const repoType = version.repoType;
       const repoName = version.repoName;
-      const repo = this.$store.getters['catalog/repo']({repoType, repoName});
+      const repo = this.$store.getters['catalog/repo']({ repoType, repoName });
 
       const chart = {
         chartName:   plugin.chart.chartName,
@@ -78,17 +77,17 @@ export default {
 
       const input = {
         charts:    [chart],
-        //timeout:   this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
-        //wait:      this.cmdOptions.wait === true,
+        // timeout:   this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
+        // wait:      this.cmdOptions.wait === true,
         namespace: PLUGIN_NAMESPACE,
-        //projectId: this.project,
+        // projectId: this.project,
       };
 
       const action = 'install';
 
-      const name = plugin.chart.chartName;
+      // const name = plugin.chart.chartName;
 
-      //const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
+      // const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
       const res = await repo.doAction(action, input);
       const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
