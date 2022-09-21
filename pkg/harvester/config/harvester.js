@@ -625,41 +625,13 @@ export function init($plugin, store) {
     exact: false,
   });
 
-  // PCI PASSTHROUGH TEMPORARY MOCKS
-  spoofedType({
-    label:        'PCI Passthrough',
-    type:         HCI.PCI_DEVICE,
-    namespaced:   false,
-    schemas:      [
-      {
-        id:                HCI.PCI_DEVICE,
-        type:              'schema',
-        collectionMethods: ['GET'],
-        resourceFields:    { status: { type: `${ HCI.PCI_DEVICE }.status` } }
-      },
-      {
-        id:             `${ HCI.PCI_DEVICE }.status`,
-        type:           'schema',
-        resourceFields:    {
-          address:            { type: 'string' },
-          vendorId:           { type: 'string' },
-          deviceId:           { type: 'string' },
-          node:               { type: `${ HCI.PCI_DEVICE }.node` },
-          description:        { type: 'string' },
-          kernelDriverInUse:  { type: 'string' },
-          kernelModules:      { type: 'array[string]' },
+  basicType([HCI.PCI_DEVICE], 'advanced');
 
-        }
-      },
-      {
-        id:             `${ HCI.PCI_DEVICE }.node`,
-        type:           'schema',
-        resourceFields: {
-          systemUUID: { type: 'string' },
-          name:       { type: 'string' }
-        }
-      }
-    ],
+  virtualType({
+    label:      'PCI Devices',
+    group:      'advanced',
+    name:       HCI.PCI_DEVICE,
+    namespaced:  false,
     route:      {
       name:     `${ PRODUCT_NAME }-c-cluster-resource`,
       params:   { resource: HCI.PCI_DEVICE }
