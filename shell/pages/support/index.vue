@@ -112,7 +112,7 @@ export default {
       }
 
       // Load defaults for suppoet page
-      return options(true, this.uiIssuesSetting?.value, this.communitySetting?.value === 'false');
+      return options(true, this.uiIssuesSetting?.value);
     },
 
     title() {

@@ -1,14 +1,12 @@
 import { DOCS_BASE } from '@shell/config/private-label';
 
 // Deprecated
-export function options(isSupport, issuesUrl, hideRancher) {
+export function options(isSupport, issuesUrl) {
   if (!issuesUrl) {
     if (hideRancher) {
       return { };
     }
     issuesUrl = 'https://github.com/rancher/dashboard/issues/new';
-  } else if (hideRancher) {
-    return { 'File an issue': issuesUrl };
   }
 
   const links = {

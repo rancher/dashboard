@@ -52,6 +52,10 @@ export default {
       'selectedLocaleLabel'
     ]),
 
+    hasOptions() {
+      return !!Object.keys(options).length;
+    },
+
     options() {
       // Link options are provided
       if (Object.keys(this.linkOptions).length > 0) {
@@ -87,7 +91,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div v-if="hasOptions">
     <SimpleBox :title="t('customLinks.displayTitle')" :pref="pref" :pref-key="prefKey">
       <div v-for="(value, name) in options" :key="name" class="support-link">
         <a :href="value" target="_blank" rel="noopener noreferrer nofollow"> {{ getLabel(name) }} </a>
