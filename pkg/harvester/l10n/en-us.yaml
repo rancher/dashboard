@@ -703,6 +703,25 @@ harvester:
       imagePullPolicy: Pull Policy
       repo: Repository
       tag: Tag
+    containerdRegistry:
+      mirrors:
+        mirrors: Mirrors
+        registryName: RegistryName
+        endpoints: Endpoints
+        rewrite:
+          rewrite: Rewrite
+          addRewrite: Add Rewrite
+        addMirror: Add Mirror
+      configs:
+        configs: Configs
+        registryEDQNorIP: Registry FDQN or IP
+        registryPlaceholder: myregistry.local:5000
+        username: UserName
+        password: Password
+        auth: Auth
+        identityToken: IdentityToken
+        insecureSkipVerify: InsecureSkipVerify
+        addConfig: Add Config
 
     upgrade:
       selectExitImage: Please select the OS image to upgrade.
