@@ -69,7 +69,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
 
   const maxValue: ValidatorFactory = (max: string) => (val: string | number) => Number(val) > Number(max) ? t('validation.maxValue', { key, max }) : undefined;
 
-  const betweenValues: ValidatorFactory = (min: string, max: string) => (val: string | number) => !minValue(min) && !maxValue(max) ? t('validation.betweenValues', {
+  const betweenValues: ValidatorFactory = ([min, max]: string[]) => (val: string | number) => minValue(min) || maxValue(max) ? t('validation.betweenValues', {
     key, min, max
   }) : undefined;
 
@@ -77,7 +77,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
 
   const maxLength: ValidatorFactory = (max: string) => (val: string | number) => Number(val) > Number(max) ? t('validation.maxLength', { key, max }) : undefined;
 
-  const betweenLengths: ValidatorFactory = (min: string, max: string) => (val: string | number) => !minLength(min) && !maxLength(max) ? t('validation.betweenLengths', {
+  const betweenLengths: ValidatorFactory = ([min, max]: string[]) => (val: string | number) => minLength(min) || maxLength(max) ? t('validation.betweenLengths', {
     key, min, max
   }) : undefined;
 
