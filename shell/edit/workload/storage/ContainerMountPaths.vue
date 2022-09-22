@@ -249,7 +249,11 @@ export default {
           :dropdown-options="selectedVolumeOptions"
           size="sm"
           @click-action="e=>selectVolume(e)"
-        />
+        >
+          <template #no-options>
+            {{ t('workload.storage.noVolumes') }}
+          </template>
+        </ButtonDropdown>
       </template>
     </ArrayListGrouped>
   </div>
