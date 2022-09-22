@@ -81,7 +81,7 @@ export default {
     </div>
     <div v-else>
       <Select
-        v-model="selectedOption"
+        :value="selectedOption"
         :options="localesOptions"
         @input="switchLocale($event)"
       />

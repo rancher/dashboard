@@ -30,7 +30,6 @@ export default {
     menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
 
     ...mapGetters(['isSingleProduct']),
-    ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
 
     theme: {
       get() {
@@ -148,19 +147,19 @@ export default {
     <BackLink :link="backLink" />
     <h1 v-t="'prefs.title'" />
 
+    <h4 v-t="'prefs.language'" />
+    <div class="row">
+      <div class="col span-4">
+        <LocaleSelector />
+      </div>
+    </div>
+    <hr />
     <h4 v-t="'prefs.theme.label'" />
     <div>
       <ButtonGroup v-model="theme" :options="themeOptions" />
     </div>
     <div class="mt-10">
       <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
-    </div>
-    <hr />
-    <h4 v-t="'prefs.language'" class="mt-10" />
-    <div class="row">
-      <div class="col span-4">
-        <LocaleSelector></LocaleSelector>
-      </div>
     </div>
     <div v-if="!isSingleProduct">
       <hr />

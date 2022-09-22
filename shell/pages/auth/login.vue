@@ -395,7 +395,7 @@ export default {
             </a>
           </div>
           <div class="locale-elector">
-            <LocaleSelector mode="login"></LocaleSelector>
+            <LocaleSelector mode="login" />
           </div>
         </template>
       </div>
