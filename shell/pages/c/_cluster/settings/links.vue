@@ -148,7 +148,6 @@ export default {
       <label class="text-label">
         {{ t(`customLinks.description`, {}, true) }}
       </label>
-      <!-- Incremental Loading -->
       <div class="ui-links-setting mt-20">
         <KeyValue
           v-model="value"
@@ -168,7 +167,7 @@ export default {
     <div v-if="mode === 'edit'" class="mt-20">
       <AsyncButton class="pull-right" mode="apply" @click="save" />
       <button class="pull-right btn role-secondary mr-10" @click="useDefaults">
-        Restore default
+        {{ t('customLinks.restoreDefaults') }}
       </button>
     </div>
   </div>

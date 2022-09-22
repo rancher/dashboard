@@ -6912,6 +6912,7 @@ customLinks:
   displayTitle: Links
   label: Home Links
   description: 'Links to display on the home page.'
+  restoreDefaults: 'Restore Defaults'
   settings:
     keyLabel: Display Text
     valueLabel: URL

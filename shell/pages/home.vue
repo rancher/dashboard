@@ -287,9 +287,9 @@ export default {
         </div>
       </div>
 
-      <div class="row">
-        <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel }" class="col">
-          <div v-if="!showSetLoginBanner" class="mt-5 mb-10 row">
+      <div class="row home-panels">
+        <div class="col main-panel">
+          <div v-if="!showSetLoginBanner" class="mb-10 row">
             <div class="col span-12">
               <Banner color="set-login-page" :closable="true" @close="closeSetLoginBanner()">
                 <div>{{ t('landing.landingPrefs.title') }}</div>
@@ -372,17 +372,30 @@ export default {
             </div>
           </div>
         </div>
-        <div class="col span-3">
-          <CommunityLinks />
-        </div>
+        <CommunityLinks class="col span-3 side-panel" />
       </div>
     </IndentedPanel>
   </div>
 </template>
 <style lang='scss' scoped>
+  .home-panels {
+    display: flex;
+    align-items: stretch;
+    .col {
+      margin: 0
+    }
+    .main-panel {
+      flex: auto;
+    }
+
+    .side-panel {
+      margin-left: 1.75%;
+    }
+  }
+
   .banner.info.whats-new, .banner.set-login-page {
     border: 0;
-    margin-top: 10px;
+    margin-top: 0;
     display: flex;
     align-items: center;
     flex-direction: row;
