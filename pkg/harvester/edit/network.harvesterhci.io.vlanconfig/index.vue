@@ -237,6 +237,7 @@ export default {
               :label="t('harvester.network.clusterNetwork.label')"
               :mode="mode"
               required
+              :placeholder="t('harvester.network.clusterNetwork.createPlaceholder')"
             />
             <button
               aria="Cancel create"
@@ -263,6 +264,7 @@ export default {
               :options="clusterNetworkOptions"
               :mode="mode"
               :tooltip="t('harvester.network.clusterNetwork.toolTip')"
+              :placeholder="t('harvester.network.clusterNetwork.selectOrCreatePlaceholder')"
               @selecting="selectClusterNetwork"
             />
           </div>
