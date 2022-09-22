@@ -11,11 +11,12 @@ import {
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
+import LocaleSelector from '@shell/components/LocaleSelector';
 
 export default {
   layout:     'plain',
   components: {
-    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference
+    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector
   },
   mixins:     [BackRoute],
   computed:   {
@@ -137,7 +138,7 @@ export default {
         this.hideDesc = val;
       }
     },
-  },
+  }
 };
 </script>
 
@@ -146,6 +147,13 @@ export default {
     <BackLink :link="backLink" />
     <h1 v-t="'prefs.title'" />
 
+    <h4 v-t="'prefs.language'" />
+    <div class="row">
+      <div class="col span-4">
+        <LocaleSelector />
+      </div>
+    </div>
+    <hr />
     <h4 v-t="'prefs.theme.label'" />
     <div>
       <ButtonGroup v-model="theme" :options="themeOptions" />

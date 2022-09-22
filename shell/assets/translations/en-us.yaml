@@ -3648,6 +3648,7 @@ prefs:
     auto: Auto
     dark: Dark
     autoDetail: Auto uses OS preference if available, or dark from {pm} to {am}
+  language: Language
   landing:
     label: Login Landing Page
     vue: Cluster Explorer
