@@ -646,7 +646,7 @@ harvester:
       create: Create a New Cluster Network
       toolTip: Define your custom cluster scope network name
       createPlaceholder: Input a new Cluster Network name
-      selectorCreatePlaceholder: Select or Create a new Cluster Network
+      selectOrCreatePlaceholder: Select or Create a new Cluster Network
       selectPlaceholder: Select a Cluster Network
     layer3Network:
       mode:
