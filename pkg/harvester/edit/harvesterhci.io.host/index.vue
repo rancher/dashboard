@@ -17,6 +17,8 @@ import { findBy } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import KeyValue from '@shell/components/form/KeyValue';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+
 import { sortBy } from '@shell/utils/sort';
 import { Banner } from '@components/Banner';
 import HarvesterDisk from './HarvesterDisk';
@@ -38,6 +40,7 @@ export default {
     ButtonDropdown,
     KeyValue,
     Banner,
+    LabeledSelect,
   },
   mixins: [CreateEditView],
   props:  {
