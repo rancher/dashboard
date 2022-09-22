@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
@@ -97,13 +97,12 @@ export default {
 
       await repo.waitForOperation(operationId);
 
-      const operation = await this.$store.dispatch(`management/find`, {
+      await this.$store.dispatch(`management/find`, {
         type: CATALOG.OPERATION,
         id:   operationId
       });
 
-      console.log(operation); // eslint-disable-line no-console
-
+      // console.log(operation); // eslint-disable-line no-console
       // this.$emit(plugin.name, false);
     }
   }

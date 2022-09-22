@@ -120,28 +120,7 @@ export default {
     configurationApps() {
       const options = this.options;
 
-      const items = options.filter(opt => opt.category === 'configuration');
-
-      // Add plugin page
-      // Ony when developing for now
-      if (process.env.dev) {
-        items.push({
-          label:   'UI Plugins',
-          inStore: 'management',
-          icon:    'icon-gear',
-          value:   'plugins',
-          weight:  1,
-          to:      {
-            name:   'plugins',
-            params: {
-              product: 'uiplugins',
-              cluster: 'local'
-            }
-          },
-        });
-      }
-
-      return items;
+      return options.filter(opt => opt.category === 'configuration');
     },
 
     options() {

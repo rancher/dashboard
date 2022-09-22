@@ -2,6 +2,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 
+import { DEV } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
 import { CATALOG, UI_PLUGIN } from '@shell/config/types';
@@ -35,7 +36,7 @@ export default {
   },
   data() {
     const menuActions = [];
-    const isDeveloper = true;
+    const isDeveloper = this.$store.getters['prefs/get'](DEV);
 
     if (isDeveloper) {
       menuActions.push({
@@ -104,8 +105,8 @@ export default {
       }
     },
 
-    isDeveloper() {
-      return true;
+    hasMenuActions() {
+      return this.menuActions?.length > 0;
     },
 
     // Message to display when the tab view is empty (depends on the tab)
@@ -136,7 +137,6 @@ export default {
         item.chart = chart;
 
         if (this.installing[item.name]) {
-          console.log(`PLUGIN IS BEING INSTALLED: ${ item.name } ${ this.installing[item.name] }`); // eslint-disable-line no-console
           item.installing = this.installing[item.name];
         }
 
@@ -200,6 +200,10 @@ export default {
   watch: {
     helmOps(neu) {
       // Get Helm operations for UI plugins and order by date
+
+      console.error('HELM OPS CHANGED');
+      console.log(neu);
+
       let pluginOps = neu.filter((op) => {
         return op.namespace === PLUGIN_NAMESPACE;
       });
@@ -209,6 +213,10 @@ export default {
       // Go through the installed plugins
       (this.available || []).forEach((plugin) => {
         const op = pluginOps.find(o => o.status?.releaseName === plugin.name);
+
+        console.log('--------');
+        console.log(plugin);
+        console.log(op);
 
         if (op) {
           const active = op.metadata.state?.transitioning;
@@ -228,7 +236,8 @@ export default {
       });
     },
 
-    // TDOO: This is called first off, so we install the plugins again
+    // TDOO: This is called first off, so we install the plugins again?
+    // TODO: Better way to load new plugins when installation has completed?
     plugins(neu, old) {
       console.log('Plugins have changed!!!'); // eslint-disable-line no-console
 
@@ -238,16 +247,13 @@ export default {
         const existing = installed.find(p => !p.removed && p.name === plugin.name);
 
         if (!existing) {
-          console.error('!!!!!!!!!!!!!!! NEW PLUGIN!'); // eslint-disable-line no-console
-          console.log(plugin); // eslint-disable-line no-console
-
           const id = `${ plugin.name }-${ plugin.version }`;
           const url = `http://127.0.0.1:4500/${ id }/${ id }.umd.min.js`;
 
-          console.error(`Load Plugin ${ id } ${ url }`); // eslint-disable-line no-console
+          console.info(`Load Plugin ${ id } ${ url }`); // eslint-disable-line no-console
 
           this.$plugin.loadAsync(id, url).catch((e) => {
-            console.log('Failed to load plugin'); // eslint-disable-line no-console
+            console.error(`Failed to load plugin ${ id }`); // eslint-disable-line no-console
           });
 
           this.updatePluginInstallStatus(plugin.name, false);
@@ -303,7 +309,7 @@ export default {
     },
 
     updatePluginInstallStatus(name, status) {
-      console.log(`UPDATING PLUGIN STATUS: ${ name } ${ status }`); // eslint-disable-line no-console
+      // console.log(`UPDATING PLUGIN STATUS: ${ name } ${ status }`);
       Vue.set(this.installing, name, status);
     },
 
@@ -327,7 +333,7 @@ export default {
     <div class="plugin-header">
       <h2>{{ t('plugins.title') }}</h2>
       <button
-        v-if="menuActions.length > 0"
+        v-if="hasMenuActions"
         ref="actions"
         aria-haspopup="true"
         type="button"
@@ -337,6 +343,7 @@ export default {
         <i class="icon icon-actions" />
       </button>
       <ActionMenu
+        v-if="hasMenuActions"
         :custom-actions="menuActions"
         :open="menuOpen"
         :use-custom-target-element="true"
@@ -379,10 +386,18 @@ export default {
             </div>
             <div>{{ plugin.description }}</div>
             <div v-if="plugin.builtin" class="plugin-builtin">
-              Built-in plugin
+              {{ t('plugins.actions.builtin') }}
             </div>
             <div class="plugin-version">
-              <i v-if="plugin.installing" class="version-busy icon icon-spin icon-spinner" />
+              <div v-if="plugin.installing" class="plugin-installing">
+                <i class="version-busy icon icon-spin icon-spinner" />
+                <div v-if="plugin.installing='install'">
+                  {{ t('plugins.labels.installing') }}
+                </div>
+                <div v-else>
+                  {{ t('plugins.labels.uninstalling') }}
+                </div>
+              </div>
               <span v-else>
                 <span>{{ plugin.displayVersion }}</span>
                 <span v-if="plugin.upgrade" v-tooltip="'A newer version of this UI Plugin is available'"> -> {{ plugin.upgrade }}</span>
@@ -397,16 +412,16 @@ export default {
               <div class="plugin-spacer" />
 
               <div v-if="plugin.installing">
-                {{ plugin.installing }}ing ...
+                <!-- Don't show any buttons -->
               </div>
               <div v-else-if="plugin.installed">
                 <button v-if="!plugin.builtin" class="btn role-secondary" @click="showUninstallDialog(plugin, $event)">
-                  Uninstall
+                  {{ t('plugins.uninstall.label') }}
                 </button>
               </div>
               <div v-else>
                 <button class="btn role-secondary" @click="showInstallDialog(plugin, $event)">
-                  Install
+                  {{ t('plugins.install.label') }}
                 </button>
               </div>
             </div>
@@ -525,6 +540,16 @@ export default {
         height: 16px;
         width: 16px;
       }
+
+      .plugin-installing {
+        align-items: center;
+        display: flex;
+
+        > div {
+          font-size: 14px;
+          margin-left: 5px;
+        }
+      }
     }
 
     .plugin-actions {
@@ -555,10 +580,6 @@ export default {
 
   .fields {
     display: flex;
-    // > div:first-child {
-    //   width: 260px;
-    //   margin-right: 20px;
-    // }
   }
 
   .custom {

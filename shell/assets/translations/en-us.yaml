@@ -188,6 +188,7 @@ product:
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
+  uiplugins: UI Plugins
 
 suffix:
   percent: "%"
@@ -3652,6 +3653,10 @@ persistentVolumeClaim:
 
 # UI Plugins
 plugins:
+  labels:
+    builtin: Built-in
+    installing: Installing ...
+    uninstalling: Uninstalling ...
   actions:
     developerLoad: Developer Load
   empty:
@@ -3666,7 +3671,10 @@ plugins:
     installed: Installed
     updates: Updates
   title: UI Plugins
+  install:
+    label: Install
   uninstall:
+    label: Uninstall
     title: "Uninstall UI Plugin:"
     prompt: "Are you sure that you want to uninstall this UI Plugin?"
 
