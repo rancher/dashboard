@@ -23,7 +23,7 @@ export default class HarvesterNetworkAttachmentDef extends NetworkAttachmentDef 
     const detailLocation = clone(this._detailLocation);
 
     detailLocation.params.resource = HCI.NETWORK_ATTACHMENT;
-    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource`;
+    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource-namespace-id`;
 
     return detailLocation;
   }

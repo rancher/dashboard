@@ -503,6 +503,7 @@ export function init($plugin, store) {
   virtualType({
     labelKey:   'harvester.vlanConfig.title',
     name:       HCI.VLAN_CONFIG,
+    ifHaveType: HCI.VLAN_CONFIG,
     namespaced: false,
     weight:     190,
     route:      {
