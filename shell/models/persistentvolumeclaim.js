@@ -49,14 +49,6 @@ export default class PVC extends SteveModel {
     return out;
   }
 
-  get detailLocation() {
-    const location = { ...this._detailLocation };
-
-    location.params.id = this.name;
-
-    return location;
-  }
-
   goToEditVolumeSize() {
     const location = this.detailLocation;
 

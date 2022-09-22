@@ -62,14 +62,21 @@ export default {
               const apply = resourceData.data[type].applyTo[y];
               let resources = requestData;
 
-              if (apply.classify) {
-                // we need to add the type as a obj prop if it's not included... On PVC's in wasn't...
-                if (!requestData[0]?.type) {
-                  requestData.forEach((item, index) => {
-                    requestData[index].type = type;
-                  });
-                }
+              const schema = this.$store.getters['cluster/schemaFor'](type);
 
+              if (schema?.attributes?.namespaced) {
+                // The resources returned when requesting namespaced types do not contain id, type and links properties.
+                // This isn't perfect, or universally applicable, but will work for the current set of use cases
+                // To make this more generic
+                // - id param = this.$store.getters['cluster/keyFieldForType'](type)
+                // - id value = new dashboard-store getter, overwritten by steve store getter
+                requestData.forEach((item) => {
+                  item.type = type;
+                  item.id = `${ item.metadata.namespace }/${ item.metadata.name }`;
+                });
+              }
+
+              if (apply.classify) {
                 resources = await this.$store.dispatch('cluster/createMany', requestData);
               }
 
