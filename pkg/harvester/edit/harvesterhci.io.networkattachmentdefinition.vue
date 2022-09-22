@@ -193,6 +193,7 @@ export default {
               required
               :options="clusterNetworkOptions"
               :mode="mode"
+              :placeholder="t('harvester.network.clusterNetwork.selectPlaceholder')"
             />
           </div>
         </div>
