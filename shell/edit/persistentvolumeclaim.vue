@@ -42,7 +42,7 @@ export default {
     const storageClasses = await this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
 
     if (this.$store.getters['management/canList'](PV)) {
-      this.$resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+      this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
     }
 
     this.storageClassOptions = storageClasses.map(s => s.name).sort();
@@ -78,7 +78,7 @@ export default {
 
     return {
       secondaryResourceData:       {
-        namespace: null,
+        namespace: this.value?.metadata?.namespace || null,
         data:      {
           [PV]: {
             applyTo: [

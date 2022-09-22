@@ -60,7 +60,7 @@ export default {
       type:    Boolean,
       default: true,
     },
-    asyncDataLoading: {
+    loading: {
       type:    Boolean,
       default: false,
     },
@@ -138,7 +138,7 @@ export default {
         :option-label="optionLabel"
         :placement="$attrs.placement ? $attrs.placement : null"
         :v-bind="$attrs"
-        :loading="asyncDataLoading"
+        :loading="loading"
         @input="changeSelected"
       />
       <button

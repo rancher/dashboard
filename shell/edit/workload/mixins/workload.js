@@ -122,7 +122,7 @@ export default {
     await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
 
     // don't block UI for these resources
-    this.$resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+    this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
     this.servicesOwned = await this.value.getServicesOwned();
   },
 
@@ -521,7 +521,7 @@ export default {
     'value.metadata.namespace': {
       async handler(neu) {
         this.secondaryResourceData.namespace = neu;
-        this.$resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+        this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
         this.servicesOwned = await this.value.getServicesOwned();
       }
     },

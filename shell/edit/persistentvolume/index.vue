@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -44,6 +45,8 @@ export default {
 
   fetch() {
     if (this.mode === _EDIT) {
+      this.secondaryResourceData.namespace = this.value?.spec?.claimRef?.namespace || null;
+
       this.secondaryResourceData.data[PVC] = {
         applyTo: [
           {
@@ -56,7 +59,7 @@ export default {
       };
     }
 
-    this.$resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+    this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
   },
 
   data() {
@@ -80,7 +83,6 @@ export default {
         namespace: null,
         data:      {
           [STORAGE_CLASS]: {
-            plural:  'es',
             applyTo: [
               {
                 var:         'storageClassOptions',
@@ -110,7 +112,23 @@ export default {
 
   computed: {
     showUnsupportedStorage: mapFeature(UNSUPPORTED_STORAGE_DRIVERS),
+    ...mapGetters(['currentProduct', 'currentCluster']),
 
+    currentClaimDetailLocation() {
+      return {
+        name:   `c-cluster-product-resource-namespace-id`,
+        params: {
+          product:   this.currentProduct.name,
+          cluster:   this.currentCluster.id,
+          resource:  PVC,
+          namespace: this.currentClaim.metadata.namespace,
+          id:        this.currentClaim.metadata.name,
+        }
+      };
+    },
+    currentClaimNamespacedName() {
+      return `${ this.currentClaim.metadata.namespace }:${ this.currentClaim.metadata.name }`;
+    },
     readWriteOnce: {
       get() {
         return this.value.spec.accessModes.includes('ReadWriteOnce');
@@ -230,8 +248,8 @@ export default {
       <div class="row">
         <div class="col span-6 text-center">
           <label class="text-muted">Persistent Volume Claim:</label>&nbsp;
-          <n-link :to="currentClaim.detailLocation">
-            {{ currentClaim.namespacedName }}
+          <n-link :to="currentClaimDetailLocation">
+            {{ currentClaimNamespacedName }}
           </n-link>
         </div>
         <div class="col span-6 text-center">

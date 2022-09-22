@@ -53,7 +53,7 @@ export default {
       type:     String,
       required: true
     },
-    asyncDataLoading: {
+    loading: {
       default: false,
       type:    Boolean
     },
@@ -133,7 +133,7 @@ export default {
             :mode="mode"
             :label="t('workload.storage.subtypes.persistentVolumeClaim')"
             :options="pvcs"
-            :loading="asyncDataLoading"
+            :loading="loading"
           />
         </div>
       </div>

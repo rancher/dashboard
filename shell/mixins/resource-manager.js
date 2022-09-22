@@ -14,11 +14,10 @@ export default {
     * @param {String} resourceData.namespace - Namespace identifier
     * @param {Object} resourceData.data - Object containing info about the data needed to be fetched and how it should be parsed. Note: The KEY NEEDS to be the resource TYPE!
     * @param {Array} resourceData.data[TYPE].applyTo - The array of operations needed to be performed for the specific data TYPE
-    * @param {String} resourceData.data[TYPE].plural - String to override the default 's' plural used in resource requests, if needed
     * @param {String} resourceData.data[TYPE].applyTo[x].var - The 'this' property name that should be populated with the data fetched
     * @param {Function} resourceData.data[TYPE].applyTo[x].parsingFunc - Optional parsing function if the fetched data needs to be parsed
     */
-    async $resourceManagerFetchSecondaryResources(resourceData) {
+    async resourceManagerFetchSecondaryResources(resourceData) {
       const requests = {};
       const clusterId = this.currentCluster.id;
       const namespace = resourceData.namespace;
@@ -28,16 +27,17 @@ export default {
         const schema = this.$store.getters['cluster/schemaFor'](type);
 
         if (schema) {
+          let url;
           const isNamespaced = schema?.attributes?.namespaced || false;
-          let url = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }`;
+          const resourceTypePlural = schema?.pluralName;
 
-          if (!isNamespaced) {
-            url = `/k8s/clusters/${ clusterId }/v1`;
+          if (isNamespaced && namespace) {
+            url = `/k8s/clusters/${ clusterId }/api/v1/namespaces/${ namespace }/${ resourceTypePlural }`;
+          } else {
+            url = `/k8s/clusters/${ clusterId }/v1/${ resourceTypePlural }`;
           }
 
-          const requestPlural = resourceData.data[type].plural || 's';
-
-          requests[type] = this.$store.dispatch('cluster/request', { url: `${ url }/${ type }${ requestPlural }` });
+          requests[type] = this.$store.dispatch('cluster/request', { url });
         }
       });
 
@@ -49,7 +49,7 @@ export default {
         Object.keys(hash).forEach((type) => {
           const status = hash[type].status;
           // if it's namespaced, we get the data on 'items' prop, for non-namespaced it's  'data' prop...
-          const requestData = hash[type].value.items ? hash[type].value.items : hash[type].value.data ? hash[type].value.data : hash[type].value;
+          const requestData = hash[type].value.items || hash[type].value.data || hash[type].value;
 
           if (status === 'fulfilled' && resourceData.data[type] && resourceData.data[type].applyTo?.length) {
             resourceData.data[type].applyTo.forEach((apply) => {
@@ -59,6 +59,8 @@ export default {
                 this[apply.var] = requestData;
               }
             });
+          } else if (status === 'rejected') {
+            console.error(`Resource Manager - secondary data request for type ${ type } has failed`, status.error); // eslint-disable-line no-console
           }
         });
 

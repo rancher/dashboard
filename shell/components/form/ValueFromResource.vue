@@ -35,7 +35,7 @@ export default {
       type:    Boolean,
       default: true
     },
-    asyncDataLoading: {
+    loading: {
       default: false,
       type:    Boolean
     },
@@ -304,7 +304,7 @@ export default {
           :get-option-key="opt=>opt.id|| opt"
           :mode="mode"
           :label="sourceLabel"
-          :loading="asyncDataLoading"
+          :loading="loading"
         />
       </div>
       <div v-if="type!=='secretRef' && type!== 'configMapRef'">
@@ -315,7 +315,7 @@ export default {
           :mode="mode"
           option-label="label"
           :label="t('workload.container.command.fromResource.key.label')"
-          :loading="asyncDataLoading"
+          :loading="loading"
           @input="updateRow"
         />
       </div>
