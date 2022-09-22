@@ -158,13 +158,12 @@ export function init(store) {
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
-  configureType('workload', {
-    displayName: 'Workload',
+  configureType(WORKLOAD, {
+    displayName: store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 1 }).trim(),
     location:    {
       name:    'c-cluster-product-resource',
-      params:  { resource: 'workload' },
+      params:  { resource: WORKLOAD },
     },
-    resource: WORKLOAD_TYPES.DEPLOYMENT
   });
 
   headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
