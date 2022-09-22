@@ -91,18 +91,18 @@ export default {
       this.$plugin.loadAsync(name, url).then(() => {
         this.closeDialog(true);
         this.$store.dispatch('growl/success', {
-          title:   `Loaded plugin ${ name }`,
-          message: `Plugin was loaded successfully`,
+          title:   this.t('plugin.success.title', { name }),
+          message: this.t('plugins.success.message'),
           timeout: 3000,
         }, { root: true });
         btnCb(true);
       }).catch((error) => {
         btnCb(false);
         // this.closeDialog(false);
-        const message = typeof error === 'object' ? 'Could not load plugin code' : error;
+        const message = typeof error === 'object' ? this.t('plugins.error.message') : error;
 
         this.$store.dispatch('growl/error', {
-          title:   'Error loading plugin',
+          title:   this.t('plugins.error.title'),
           message,
           timeout: 5000
         }, { root: true });
@@ -120,24 +120,26 @@ export default {
   >
     <div class="plugin-install-dialog">
       <h4>
-        Developer Load Plugin
+        {{ t('plugins.developer.title') }}
       </h4>
-      <p>Load a plugin from a URL</p>
+      <p>
+        {{ t('plugins.developer.prompt') }}
+      </p>
       <div class="custom mt-10">
         <div class="fields">
-          <LabeledInput v-model="location" v-focus label="Plugin URL" @input="updateLocation" />
+          <LabeledInput v-model="location" v-focus label-key="plugins.developer.fields.url" @input="updateLocation" />
         </div>
       </div>
       <div class="custom mt-10">
         <div class="fields">
-          <LabeledInput v-model="name" label="Plugin module name" @input="updateName" />
+          <LabeledInput v-model="name" label-key="plugins.developer.fields.name" @input="updateName" />
         </div>
         <div class="fields mt-10">
-          <Checkbox v-model="persist" label="Persist plugin by creating custom resource" />
+          <Checkbox v-model="persist" label-key="plugins.developer.fields.persist" />
         </div>
         <div class="dialog-buttons mt-20">
           <button class="btn role-secondary" @click="closeDialog()">
-            Cancel
+            {{ t('generic.cancel') }}
           </button>
           <AsyncButton
             mode="load"

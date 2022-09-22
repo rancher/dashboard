@@ -3659,12 +3659,30 @@ plugins:
     uninstalling: Uninstalling ...
   actions:
     developerLoad: Developer Load
+  developer:
+    label: Developer Load
+    title: Developer Load Plugin
+    prompt: Load a plugin from a URL
+    error:
+      title: Error loading plugin
+      message: Could not load plugin code
+    success:
+      title: Loaded plugin {name}
+      message: Plugin was loaded successfully
+    fields:
+      url: Plugin URL
+      name: Plugin module name
+      persist: Persist plugin by creating custom resource
+    info:
+      versions: Versions
+      versionError: Could not load version information
   empty:
     all: No UI Plugins either installed nor available
     available: No UI Plugins available
     installed: No UI Plugins installed
     updates: No UI Plugin updates available
-  loadError: "An error occurred loading the code for this plugin" 
+  loadError: An error occurred loading the code for this plugin
+  helmError: "An error occurred installing the plugin via Helm"
   tabs:
     all: All
     available: Available
@@ -3677,6 +3695,7 @@ plugins:
     label: Uninstall
     title: "Uninstall UI Plugin:"
     prompt: "Are you sure that you want to uninstall this UI Plugin?"
+  upgradeAvailable: A newer version of this UI Plugin is available
 
 prefs:
   title: Preferences

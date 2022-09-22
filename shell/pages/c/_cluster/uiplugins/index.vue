@@ -50,6 +50,7 @@ export default {
       view:              '',
       charts:            [],
       installing:        {},
+      errors:            {},
       plugins:           [], // The installed plugins
       helmOps:           [], // Helm operations
       loading:           true,
@@ -193,6 +194,15 @@ export default {
         }
       });
 
+      // Merge in the plugin load errors from help ops
+      Object.keys(this.errors).forEach((e) => {
+        const chart = all.find(c => c.name === e);
+
+        if (chart) {
+          chart.helmError = !!this.errors[e];
+        }
+      });      
+
       return all;
     },
   },
@@ -214,20 +224,18 @@ export default {
       (this.available || []).forEach((plugin) => {
         const op = pluginOps.find(o => o.status?.releaseName === plugin.name);
 
-        console.log('--------');
-        console.log(plugin);
-        console.log(op);
-
         if (op) {
           const active = op.metadata.state?.transitioning;
+          const error = op.metadata.state?.error;
 
-          // console.log(active);
-          // console.log(op.status.action);
+          Vue.set(this.errors, plugin.name, error);
 
           if (active) {
             this.updatePluginInstallStatus(plugin.name, op.status.action);
           } else if (op.status.action === 'uninstall') {
             // Uninstall has finished
+            this.updatePluginInstallStatus(plugin.name, false);
+          } else if (error) {
             this.updatePluginInstallStatus(plugin.name, false);
           }
         } else {
@@ -400,12 +408,15 @@ export default {
               </div>
               <span v-else>
                 <span>{{ plugin.displayVersion }}</span>
-                <span v-if="plugin.upgrade" v-tooltip="'A newer version of this UI Plugin is available'"> -> {{ plugin.upgrade }}</span>
+                <span v-if="plugin.upgrade" v-tooltip="t('plugins.upgradeAvailable')"> -> {{ plugin.upgrade }}</span>
               </span>
             </div>
             <div class="plugin-spacer" />
             <div class="plugin-actions">
               <div v-if="plugin.error" v-tooltip="t('plugins.loadError')" class="plugin-error">
+                <i class="icon icon-warning" />
+              </div>
+              <div v-if="plugin.helmError" v-tooltip="t('plugins.helmError')" class="plugin-error">
                 <i class="icon icon-warning" />
               </div>
 

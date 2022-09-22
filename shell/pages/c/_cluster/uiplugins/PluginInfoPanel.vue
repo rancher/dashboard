@@ -87,7 +87,7 @@ export default {
         </h2>
         <p>{{ info.description }}</p>
         <h3 v-if="info.versions">
-          Versions
+          {{ t('plugins.info.versions') }}
         </h3>
         <ul>
           <li v-for="v in info.versions" :key="v.version">
@@ -97,7 +97,7 @@ export default {
         </ul>
 
         <div v-if="versionError">
-          Could not load version information
+          {{ t('plugins.info.versionError') }}
         </div>
         <div v-else>
           <ChartReadme v-if="versionInfo" :version-info="versionInfo" />
