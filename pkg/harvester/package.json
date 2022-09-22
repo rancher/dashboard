@@ -1,7 +1,7 @@
 {
   "name": "harvester",
   "description": "Cloud-Native Hyperconverged Infrastructure",
-  "version": "1.0.3",
+  "version": "1.0.3-head",
   "private": false,
   "rancher": true,
   "license": "Apache-2.0",
