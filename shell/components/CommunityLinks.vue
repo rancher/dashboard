@@ -53,7 +53,7 @@ export default {
     ]),
 
     hasOptions() {
-      return !!Object.keys(this.options).length;
+      return !!Object.keys(this.options).length || !!Object.keys(this.$slots).length;
     },
 
     options() {
@@ -92,9 +92,14 @@ export default {
 
 <template>
   <div v-if="hasOptions">
-    <SimpleBox :title="t('customLinks.displayTitle')" :pref="pref" :pref-key="prefKey">
+    <SimpleBox :pref="pref" :pref-key="prefKey">
+      <template #title>
+        <h2>
+          {{ t('customLinks.displayTitle') }} <i class="icon icon-external-link" />
+        </h2>
+      </template>
       <div v-for="(value, name) in options" :key="name" class="support-link">
-        <a :href="value" target="_blank" rel="noopener noreferrer nofollow"> {{ getLabel(name) }} </a>
+        <a :href="value" rel="noopener noreferrer nofollow" target="_blank"> {{ getLabel(name) }} </a>
       </div>
       <slot />
       <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
@@ -123,6 +128,15 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+  h2 {
+    display: flex;
+    align-items: center;
+
+    i {
+      font-size: 12px;
+      margin-left: 5px;
+    }
+  }
   .support-link:not(:first-child) {
     margin-top: 15px;
   }

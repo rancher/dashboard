@@ -217,10 +217,10 @@ export default {
           <CommunityLinks :link-options="options">
             <div v-if="!hasSupport" class="external support-links">
               <div class="support-link">
-                <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }} <i class="icon icon-external-link" /></a>
+                <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
               </div>
               <div class="support-link">
-                <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }} <i class="icon icon-external-link" /></a>
+                <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }}</a>
               </div>
             </div>
           </CommunityLinks>
