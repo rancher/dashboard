@@ -19,6 +19,7 @@ export default {
     * @param {Object} resourceData.data - Object containing info about the data needed to be fetched and how it should be parsed. Note: The KEY NEEDS to be the resource TYPE!
     * @param {Array} resourceData.data[TYPE].applyTo - The array of operations needed to be performed for the specific data TYPE
     * @param {String} resourceData.data[TYPE].applyTo[x].var - The 'this' property name that should be populated with the data fetched
+    * @param {Boolean} resourceData.data[TYPE].applyTo[x].classify - Whether the data fetched should have a model applied to it
     * @param {Function} resourceData.data[TYPE].applyTo[x].parsingFunc - Optional parsing function if the fetched data needs to be parsed
     */
     async resourceManagerFetchSecondaryResources(resourceData) {
