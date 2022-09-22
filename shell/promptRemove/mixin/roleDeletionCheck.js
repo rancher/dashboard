@@ -1,6 +1,8 @@
 import { mapState, mapGetters } from 'vuex';
 import { resourceNames } from '@shell/utils/string';
 import { MANAGEMENT } from '@shell/config/types';
+import { SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
+const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
 
 export default {
   data() {
@@ -27,14 +29,14 @@ export default {
   watch: {
     value: {
       handler(neu) {
-        this.handleRoleDeletionCheck(neu, neu[0].type);
+        this.handleRoleDeletionCheck(neu, neu[0].type, this.$route.hash);
       },
       immediate: true
     }
   },
   methods: {
     resourceNames,
-    async handleRoleDeletionCheck(rolesToRemove, resourceType) {
+    async handleRoleDeletionCheck(rolesToRemove, resourceType, queryHash) {
       this.warning = '';
       let resourceToCheck;
       let propToMatch;
@@ -49,20 +51,24 @@ export default {
         propToMatch = 'globalRoleName';
         break;
       default:
-        resourceToCheck = MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING;
+        if (queryHash.includes(CLUSTER)) {
+          resourceToCheck = MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING;
+        } else {
+          resourceToCheck = MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING;
+        }
         propToMatch = 'roleTemplateName';
         break;
       }
 
       try {
-        const data = await this.$store.dispatch('management/request', {
+        const request = await this.$store.dispatch('management/request', {
           url:           `/v1/${ resourceToCheck }`,
           method:        'get',
         }, { root: true });
 
-        if (data.data && data.data.length) {
+        if (request.data && request.data.length) {
           rolesToRemove.forEach((toRemove) => {
-            const usedRoles = data.data.filter(item => item[propToMatch] === toRemove.id);
+            const usedRoles = request.data.filter(item => item[propToMatch] === toRemove.id);
 
             if (usedRoles.length) {
               const uniqueUsers = [...new Set(usedRoles.map(item => item.userName))];
@@ -76,12 +82,12 @@ export default {
 
           if (numberOfRolesWithBinds && numberUniqueUsersWithBinds) {
             this.info = '';
-            this.warning = this.t('rbac.globalRoles.usersBinded', { count: numberUniqueUsersWithBinds });
+            this.warning = this.t('rbac.globalRoles.usersBound', { count: numberUniqueUsersWithBinds });
           } else {
-            this.info = this.t('rbac.globalRoles.noBinding', null, true);
+            this.info = this.t('rbac.globalRoles.notBound', null, true);
           }
         } else {
-          this.info = this.t('rbac.globalRoles.noBinding', null, true);
+          this.info = this.t('rbac.globalRoles.notBound', null, true);
         }
       } catch (e) {
         this.info = this.t('rbac.globalRoles.unableToCheck');
