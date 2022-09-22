@@ -22,7 +22,6 @@ export const HCI_SETTING = {
   SSL_PARAMETERS:                   'ssl-parameters',
   SUPPORT_BUNDLE_NAMESPACES:        'support-bundle-namespaces',
   AUTO_DISK_PROVISION_PATHS:        'auto-disk-provision-paths',
-  RANCHER_MONITORING:               'fleet-local/rancher-monitoring',
   RELEASE_DOWNLOAD_URL:             'release-download-url'
 };
 
@@ -55,9 +54,6 @@ export const HCI_ALLOWED_SETTINGS = {
   },
   [HCI_SETTING.SUPPORT_BUNDLE_NAMESPACES]:        { from: 'import', canReset: true },
   [HCI_SETTING.AUTO_DISK_PROVISION_PATHS]:        { canReset: true },
-  [HCI_SETTING.RANCHER_MONITORING]:               {
-    kind: 'custom', from: 'import', canReset: true, customFormatter: 'json', alias: 'harvester-monitoring'
-  },
   [HCI_SETTING.RELEASE_DOWNLOAD_URL]:             { kind: 'url' },
   [HCI_SETTING.UI_PLUGIN_INDEX]:                  { kind: 'url' },
   [HCI_SETTING.CONTAINERD_REGISTRY]:              {
