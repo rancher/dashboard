@@ -490,6 +490,10 @@ export default {
     return classify(ctx, data);
   },
 
+  createMany(ctx, data) {
+    return data.map(d => classify(ctx, d));
+  },
+
   createPopulated(ctx, userData) {
     const data = ctx.getters['defaultFor'](userData.type);
 

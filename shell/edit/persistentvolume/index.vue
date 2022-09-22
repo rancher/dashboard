@@ -51,6 +51,7 @@ export default {
         applyTo: [
           {
             var:         'currentClaim',
+            classify:    true,
             parsingFunc: (data) => {
               return data.find(claim => claim.spec.volumeName === this.value.name);
             }
@@ -114,21 +115,6 @@ export default {
     showUnsupportedStorage: mapFeature(UNSUPPORTED_STORAGE_DRIVERS),
     ...mapGetters(['currentProduct', 'currentCluster']),
 
-    currentClaimDetailLocation() {
-      return {
-        name:   `c-cluster-product-resource-namespace-id`,
-        params: {
-          product:   this.currentProduct.name,
-          cluster:   this.currentCluster.id,
-          resource:  PVC,
-          namespace: this.currentClaim.metadata.namespace,
-          id:        this.currentClaim.metadata.name,
-        }
-      };
-    },
-    currentClaimNamespacedName() {
-      return `${ this.currentClaim.metadata.namespace }:${ this.currentClaim.metadata.name }`;
-    },
     readWriteOnce: {
       get() {
         return this.value.spec.accessModes.includes('ReadWriteOnce');
@@ -248,8 +234,8 @@ export default {
       <div class="row">
         <div class="col span-6 text-center">
           <label class="text-muted">Persistent Volume Claim:</label>&nbsp;
-          <n-link :to="currentClaimDetailLocation">
-            {{ currentClaimNamespacedName }}
+          <n-link :to="currentClaim.detailLocation">
+            {{ currentClaim.namespacedName }}
           </n-link>
         </div>
         <div class="col span-6 text-center">
