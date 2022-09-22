@@ -111,7 +111,6 @@ export default {
   }
 };
 </script>
-ß
 <template>
   <div>
     <Loading v-if="$fetchState.pending" />
