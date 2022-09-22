@@ -382,11 +382,9 @@ export const actions = {
         continue;
       }
 
-      let index = 0;
-
       for ( const k in obj.value.entries ) {
         for ( const entry of obj.value.entries[k] ) {
-          addChart(ctx, charts, entry, repo, index++);
+          addChart(ctx, charts, entry, repo);
         }
       }
 
@@ -470,7 +468,7 @@ export function parseKey(key) {
   };
 }
 
-function addChart(ctx, map, chart, repo, index) {
+function addChart(ctx, map, chart, repo) {
   const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
   const repoName = repo.metadata.name;
   const key = generateKey(repoType, repoName, chart.name);
@@ -527,7 +525,7 @@ function addChart(ctx, map, chart, repo, index) {
       targetNamespace:      chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
       targetName:           chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
       scope:                chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
-      featured:             index,
+      featured:             chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
       provides:             [],
       windowsIncompatible:  !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows'),
       deploysOnWindows:     (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows')

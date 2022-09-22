@@ -172,9 +172,9 @@ export default {
     getFeaturedCharts() {
       const allCharts = (this.filteredCharts || []);
 
-      allCharts.sort((a, b) => a.featured - b.featured);
+      const featuredCharts = allCharts.filter(value => value.featured).sort((a, b) => a.featured - b.featured);
 
-      return allCharts.slice(0, 5);
+      return featuredCharts.slice(0, 5);
     },
 
     categories() {
@@ -347,11 +347,13 @@ export default {
         />
       </div>
     </header>
-    <Carousel
-      v-if="showCarousel"
-      :sliders="getFeaturedCharts"
-      @clicked="(row) => selectChart(row)"
-    />
+    <div v-if="showCarousel">
+      <h3>Featured Charts</h3>
+      <Carousel
+        :sliders="getFeaturedCharts"
+        @clicked="(row) => selectChart(row)"
+      />
+    </div>
     <TypeDescription resource="chart" />
     <div class="left-right-split">
       <Select
