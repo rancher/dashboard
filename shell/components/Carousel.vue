@@ -34,7 +34,8 @@ export default {
   data() {
     return {
       slider:          this.sliders,
-      activeItemId:    0
+      activeItemId:    0,
+      autoScroll:      true
     };
   },
 
@@ -46,7 +47,6 @@ export default {
 
       return `transform: translateX(-${ sliderItem }%); width: ${ width }%`;
     },
-
   },
 
   methods: {
@@ -55,18 +55,56 @@ export default {
     select(slide, i) {
       this.$emit('clicked', slide, i);
     },
+
     scrollSlide(i) {
+      this.autoScroll = false;
       this.activeItemId = i;
       setTimeout(() => {
-        if (i <= 1) {
-          this.$refs.slide[this.slider.length - 1].style.left = '-93%';
-          this.$refs.slide[0].style.left = '7%';
-        } else {
-          this.$refs.slide[this.slider.length - 1].style.left = '7%';
-          this.$refs.slide[0].style.left = '107%';
-        }
+        this.slidePosition();
       }, 400);
     },
+
+    nextPrev(item) {
+      this.autoScroll = false;
+      if (item === 'next' && this.activeItemId < this.slider.length - 1) {
+        this.activeItemId++;
+      }
+
+      if (item === 'prev' && this.activeItemId > 0) {
+        this.activeItemId--;
+      }
+
+      this.slidePosition();
+    },
+
+    timer() {
+      setInterval(this.autoScrollSlide, 2000);
+    },
+    autoScrollSlide() {
+      if (this.activeItemId < this.slider.length && this.autoScroll ) {
+        this.activeItemId++;
+      }
+
+      if (this.activeItemId > this.slider.length - 1) {
+        this.autoScroll = false;
+        this.activeItemId = 0;
+      }
+      this.slidePosition();
+    },
+
+    slidePosition() {
+      if (this.activeItemId <= 1) {
+        this.$refs.slide[this.slider.length - 1].style.left = '-93%';
+        this.$refs.slide[0].style.left = '7%';
+      } else {
+        this.$refs.slide[this.slider.length - 1].style.left = '7%';
+        this.$refs.slide[0].style.left = '107%';
+      }
+    }
+  },
+
+  mounted() {
+    this.timer();
   }
 };
 
@@ -87,9 +125,6 @@ export default {
         :rel="rel"
         @click="select(slide, i)"
       >
-        <div class="slide-header">
-          Featured chart
-        </div>
         <div class="slide-content">
           <div class="slide-img">
             <img :src="slide.icon ? slide.icon : `/_nuxt/shell/assets/images/generic-catalog.svg`" />
@@ -111,6 +146,12 @@ export default {
         @click="scrollSlide(i, slider.length)"
       ></div>
     </div>
+    <div ref="prev" class="prev" :class="[activeItemId === 0 ? 'disabled' : 'prev']" @click="nextPrev('prev')">
+      <i class="icon icon-chevron-left icon-4x"></i>
+    </div>
+    <div ref="next" class="next" :class="[activeItemId === slider.length - 1 ? 'disabled' : 'next']" @click="nextPrev('next')">
+      <i class="icon icon-chevron-right icon-4x"></i>
+    </div>
   </div>
 </template>
 
@@ -123,13 +164,20 @@ export default {
   overflow: hidden;
   margin-bottom: 30px;
   min-width: 700px;
+
+  &:hover {
+    .prev,
+    .next {
+      display: block;
+    }
+  }
 }
 
 .slide-track {
   display: flex;
   animation: scrolls 10s ;
   position: relative;
-  transition: 1s ease-in-out
+  transition: 1s ease-in-out;
 }
 
 .slider-badge {
@@ -162,6 +210,8 @@ export default {
 
     .slide-img {
       width: 150px;
+      background: var(--card-badge-text);
+      border-radius: calc(2 * var(--border-radius));
 
       img {
         width: 100%;
@@ -176,10 +226,9 @@ export default {
       span {
         margin: 0;
       }
-
     }
-  }
 
+  }
 }
 
 .slider::before,
@@ -189,7 +238,7 @@ export default {
   height: 100%;
   position: absolute;
   width: 15%;
-  z-index: z-index('overContent');;
+  z-index: z-index('overContent');
 }
 
 .slider::before {
@@ -221,4 +270,22 @@ export default {
     }
   }
 }
+.prev,
+.next {
+  position: absolute;
+  z-index: 20;
+  top: 90px;
+  display: none;
+  cursor: pointer;
+
+  &.disabled .icon {
+    color: var(--disabled-bg);
+    cursor: not-allowed;
+  }
+}
+
+.next {
+  right: 0;
+}
+
 </style>
