@@ -1,0 +1,9 @@
+{
+    "vzWhatsNewLink": "https://verrazzano.io/latest/docs/releasenotes/",
+    "vzGettingStartedLink": "https://blogs.oracle.com/developers/post/introducing-oracle-verrazzano-enterprise-container-platform",
+    "vzCommunityLinks": {
+        "verrazzano.links.docs": "https://verrazzano.io/latest/docs/",
+        "verrazzano.links.slack": "https://bit.ly/3gOeRJn",
+        "verrazzano.links.fileAnIssue": "https://github.com/verrazzano/verrazzano/issues"
+    }
+}

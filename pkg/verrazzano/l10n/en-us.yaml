@@ -15,6 +15,13 @@ typeLabel:
       other { Projects }
     }
 
+landing:
+  gettingStarted:
+    body: Take a look at the Verrazzano getting started blog.
+    link: Learn More
+    title: Getting Started with Verrazzano
+  whatsNewLink: What's new in 1.4
+
 ##############################
 ### Verrazzano keys
 ##############################
@@ -1419,6 +1426,8 @@ verrazzano:
   ########################
   links:
     consoleUrl: Verrazzano Console
+    docs: Docs
+    fileAnIssue: File an Issue
     grafanaUrl: Grafana Console
     elasticUrl: Elasticsearch Console
     jaegerUrl: Jaeger Console
@@ -1429,6 +1438,7 @@ verrazzano:
     openSearchUrl: OpenSearch Console
     prometheusUrl: Prometheus Console
     rancherUrl: Rancher Console
+    slack: Slack
     title: Verrazzano Links
 
   ###################################

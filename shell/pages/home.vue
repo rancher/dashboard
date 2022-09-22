@@ -25,6 +25,7 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 
 // Added by Verrazzano Start
+import { vzCommunityLinks, vzGettingStartedLink, vzWhatsNewLink } from '@/pkg/verrazzano/home-page-links.json';
 import VerrazzanoLinksBox from '@/pkg/verrazzano/components/VerrazzanoLinksBox';
 // Added by Verrazzano End
 
@@ -195,6 +196,20 @@ export default {
       return hasSomethingToShow && !hiddenByPreference;
     },
 
+    // Added by Verrazzano Start
+    communityLinks() {
+      return vzCommunityLinks;
+    },
+
+    gettingStartedLink() {
+      return vzGettingStartedLink;
+    },
+
+    whatsNewLink() {
+      return vzWhatsNewLink;
+    },
+    // Added by Verrazzano End
+
     ...mapGetters(['currentCluster', 'defaultClusterId']),
 
     kubeClusters() {
@@ -291,7 +306,15 @@ export default {
             color="info whats-new"
           >
             <div>{{ t('landing.seeWhatsNew') }}</div>
+            <!-- Added by Verrazzano Start -->
+            <!--
             <a class="hand" @click.prevent.stop="showWhatsNew"><span v-html="t('landing.whatsNewLink')" /></a>
+            -->
+            <a :href="whatsNewLink" target="_blank" rel="noopener noreferrer nofollow" class="hand">
+              <span v-html="t('landing.whatsNewLink')" />
+            </a>
+
+            <!-- Added by Verrazzano Start -->
           </Banner>
         </div>
       </div>
@@ -309,9 +332,17 @@ export default {
               <span>
                 {{ t('landing.gettingStarted.body') }}
               </span>
+              <!-- Added by Verrazzano Start -->
+              <!--
               <nuxt-link :to="{name: 'docs-doc', params: {doc: 'getting-started'}}" class="getting-started-btn">
                 {{ t('landing.learnMore') }}
               </nuxt-link>
+              -->
+
+              <a :href="gettingStartedLink" target="_blank" rel="noopener noreferrer nofollow" class="getting-started-btn">
+                {{ t('landing.gettingStarted.link') }}
+              </a>
+              <!-- Added by Verrazzano End -->
             </div>
           </SimpleBox>
 
@@ -402,13 +433,24 @@ export default {
         <div v-if="showSidePanel" class="col span-3">
           <!-- Added by Verrazzano Start -->
           <VerrazzanoLinksBox class="mb-20" />
-          <!-- Added by Verrazzano End -->
-          <CommunityLinks v-if="showCommunityLinks" :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
+
+          <!-- <CommunityLinks v-if="showCommunityLinks" :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" /> -->
+          <CommunityLinks
+            v-if="showCommunityLinks"
+            :link-options="communityLinks"
+            :pref="HIDE_HOME_PAGE_CARDS"
+            pref-key="communitySupportTip"
+            class="mb-20"
+          />
+
+          <!--
           <SimpleBox v-if="showCommercialSupport" :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
             <nuxt-link :to="{ path: 'support'}">
               {{ t('landing.commercial.body') }}
             </nuxt-link>
           </SimpleBox>
+          -->
+          <!-- Added by Verrazzano End -->
         </div>
       </div>
     </IndentedPanel>
