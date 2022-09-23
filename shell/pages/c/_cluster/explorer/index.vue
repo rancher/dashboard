@@ -140,14 +140,16 @@ export default {
   },
 
   watch: {
-    // logic to be removed once kube version is 1.25 or greater
     // we need to hook up this API call to a watcher because the page logic is based on a getter
-    // as a temporary solution, this seems reasonable, so that we don't disrupt the optimal loading times of the page
+    // this seems reasonable, so that we don't disrupt the optimal loading times of the page
     currentCluster: {
       async handler(neu, old) {
         if (neu && (!old || old.id !== neu.id)) {
-          if (neu.status?.version?.major >= 1 && neu.status?.version?.minor >= 21) {
-            const psps = await this.$store.dispatch('management/request', { url: '/v1/policy.podsecuritypolicies' });
+          const major = neu.status?.version?.major ? parseInt(neu.status?.version?.major) : 0;
+          const minor = neu.status?.version?.minor ? parseInt(neu.status?.version?.minor) : 0;
+
+          if (major === 1 && minor >= 21 && minor < 25) {
+            const psps = await this.$store.dispatch('cluster/request', { url: `/k8s/clusters/${ neu.id }/v1/policy.podsecuritypolicies` });
 
             if (psps && psps.data && psps.data.length) {
               this.displayPspDeprecationBanner = true;
