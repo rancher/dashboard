@@ -8,7 +8,7 @@ export default {
       params: {
         ...route.params,
         product:  NAME,
-        page:    'apps'
+        page:    'catalogs'
       }
     });
   }
