@@ -78,6 +78,14 @@ export default {
       return getAllValues(relevantRuleset?.rootObject || this.value, relevantRuleset?.path);
     },
 
+    fvGetValues(val, idx, arr) {
+      return (arr.length > 1 &&
+        typeof val === 'object' &&
+        !Array.isArray(val) &&
+        val !== null ? { ...val, idx } : val
+      );
+    },
+
     /**
      * Gets errors from multiple paths, usually used externally to check a single path but used
      * within the mixin to check all paths for errors
@@ -88,7 +96,7 @@ export default {
       const messages = paths.reduce((acc, path) => {
         const pathErrors = [];
         const relevantRules = this.fvGetPathRules(path);
-        const relevantValues = this.fvGetPathValues(path).map((val, idx, arr) => (arr.length > 1 && typeof val === 'object' && !Array.isArray(val) && val !== null ? { ...val, idx } : val));
+        const relevantValues = this.fvGetPathValues(path).map(this.fvGetValues);
 
         relevantRules.forEach((rule) => {
           relevantValues.forEach((value) => {
@@ -96,7 +104,7 @@ export default {
           });
         });
 
-        return [...acc, ...pathErrors].filter(error => !!error);
+        return [...acc, ...pathErrors].filter(Boolean);
       }, []);
 
       return messages;
@@ -128,7 +136,9 @@ export default {
       return [
         ...this.fvFormRuleSets.map((ruleset) => {
           const formRules = {
-            ...formRulesGenerator(this.$store.getters['i18n/t'], { displayKey: ruleset?.translationKey ? this.$store.getters['i18n/t'](ruleset.translationKey) : 'Value' }),
+            ...formRulesGenerator(
+              this.$store.getters['i18n/t'],
+              { displayKey: ruleset?.translationKey ? this.$store.getters['i18n/t'](ruleset.translationKey) : 'Value' }),
             ...this.fvExtraRules
           };
 
