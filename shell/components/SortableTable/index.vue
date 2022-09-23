@@ -22,16 +22,8 @@ import actions from './actions';
 
 // Its quicker to render if we directly supply the components for the formatters
 // rather than just the name of a global component - so create a map of the formatter comoponents
-const FORMATTERS = {};
-
-const components = require.context('@shell/components/formatter', false, /[A-Z]\w+\.(vue)$/);
-
-components.keys().forEach((fileName) => {
-  const componentConfig = components(fileName);
-  const componentName = fileName.split('/').pop().split('.')[0];
-
-  FORMATTERS[componentName] = componentConfig.default || componentConfig;
-});
+// NOTE: This is populated by a plugin (formatters.js) to avoid issues with plugins
+export const FORMATTERS = {};
 
 export const COLUMN_BREAKPOINTS = {
   /**
