@@ -58,7 +58,7 @@ export default {
       return this.mode === _VIEW;
     },
 
-    selectedVolumeOptions() {
+    availableVolumeOptions() {
       const containerVolumes = this.container.volumeMounts.map(item => item.name);
 
       return this.value.volumes.filter(vol => !containerVolumes.includes(vol.name)).map((item) => {
@@ -226,7 +226,7 @@ export default {
           v-if="!isView"
           id="add-volume"
           :button-label="t('workload.storage.selectVolume')"
-          :dropdown-options="selectedVolumeOptions"
+          :dropdown-options="availableVolumeOptions"
           size="sm"
           @click-action="e=>selectVolume(e)"
         >
