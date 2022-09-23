@@ -1543,7 +1543,7 @@ export default {
           </nuxt-link>
         </template>
         <template v-else-if="mcapp">
-            <span v-html="t('catalog.install.error.legacy.mcmNotSupported')" />
+          <span v-html="t('catalog.install.error.legacy.mcmNotSupported')" />
         </template>
         <template v-else>
           <nuxt-link :to="legacyAppRoute">
