@@ -434,11 +434,6 @@ export default {
     display: contents;
     white-space: nowrap;
   }
-
-.support-link {
-  margin: 15px 0 0 0;
-}
-
 </style>
 <style lang="scss">
 .home-page {

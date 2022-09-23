@@ -137,8 +137,8 @@ export default {
       margin-left: 5px;
     }
   }
-  .support-link:not(:first-child) {
-    margin-top: 15px;
+  .support-link:not(:last-child) {
+    margin-bottom: 15px;
   }
 
   .wechat-modal {

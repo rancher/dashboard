@@ -215,7 +215,7 @@ export default {
         </div>
         <div class="community">
           <CommunityLinks :link-options="options">
-            <div v-if="!hasSupport" class="external support-links">
+            <div v-if="!hasSupport" class="external support-links" :class="{ 'mt-15': !!options}">
               <div class="support-link">
                 <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
               </div>
@@ -290,7 +290,7 @@ export default {
   }
 }
 
-.support-link {
+.support-link:not(:first-child) {
   margin: 15px 0 0 0;
 }
 
