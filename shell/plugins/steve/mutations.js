@@ -64,7 +64,7 @@ export default {
 
       if (worker) {
         // Store raw json objects, not the proxies
-        worker.loadSchema(data);
+        worker.postMessage({ loadSchemas: data });
       }
     }
   },

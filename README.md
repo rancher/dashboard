@@ -11,7 +11,7 @@ During the transition to the new folder structured in 2.6.5 required by the plug
 - Run the script `./scripts/rejig -d` to move folders to their old location and update imports again
   Use this to convert newer branches to the old format (possibly useful for branches)
 
-For more information on plugins see [Plugins](./docs/developer/PLUGINS.md).
+For more information on plugins see [Plugins](./docusaurus/docs/guide/plugins.md).
 
 ## Running for Development
 This is what you probably want to get started.

@@ -2089,6 +2089,7 @@ export default {
         </Tab>
 
         <Tab
+          v-if="haveArgInfo || agentArgs['protect-kernel-defaults']"
           name="advanced"
           label-key="cluster.tabs.advanced"
           :weight="-1"

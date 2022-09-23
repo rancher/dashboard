@@ -79,11 +79,11 @@ export default class HciCluster extends ProvCluster {
     const pkgName = `${ HARVESTER_NAME }-1.0.3`;
 
     if (uiOfflinePreferred === 'true') {
-      // Embedded (aka give me the version of the embedded plugin that was in the last release)
-      const embeddedPath = `dashboard/${ pkgName }/${ pkgName }.umd.min.js`;
+      // Embedded (aka give me the embedded plugin that was in the last rancher release)
+      const embeddedPath = `${ pkgName }/${ pkgName }.umd.min.js`;
 
       return {
-        pkgUrl: process.env.dev ? `${ process.env.api }/${ embeddedPath }` : embeddedPath,
+        pkgUrl: process.env.dev ? `${ process.env.api }/dashboard/${ embeddedPath }` : embeddedPath,
         pkgName
       };
     }
@@ -111,7 +111,7 @@ export default class HciCluster extends ProvCluster {
    * Determine the harvester plugin's package name and url for clusters that provide the plugin
    */
   _supportedClusterPkgDetails(uiInfo, clusterId) {
-    const pkgName = `${ HARVESTER_NAME }-${ uiInfo['ui-plugin-bundled-version'] }`;
+    let pkgName = `${ HARVESTER_NAME }-${ uiInfo['ui-plugin-bundled-version'] }`;
     const fileName = `${ pkgName }.umd.min.js`;
     let pkgUrl;
 
@@ -120,6 +120,12 @@ export default class HciCluster extends ProvCluster {
     } else if (uiInfo['ui-source'] === 'external') {
       if (uiInfo['ui-plugin-index']) {
         pkgUrl = uiInfo['ui-plugin-index'];
+
+        // When using an external address, the pkgName should also be get from the url
+        const names = pkgUrl.split('/');
+        const jsName = names[names.length - 1];
+
+        pkgName = jsName?.split('.umd.min.js')[0];
       } else {
         throw new Error('Harvester cluster requested the plugin at `ui-plugin-index` is used, however did not provide a value for it');
       }

@@ -1487,6 +1487,7 @@ cluster:
     warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
+    desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
 
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
@@ -2095,9 +2096,15 @@ graphOptions:
 
 growl:
   clearAll: Clear All Notifications
-  disconnected: 
-    message: "The connection to {url} closed unexpectedly {time}. Retrying..."
+  disconnectError: 
+    message: "The connection to {url} closed unexpectedly at {time}. Disconnected after {tries} reconnect attempts. Check your network connection and reload the page"
     title: Websocket Disconnected 
+  connectError: 
+    message: "The connection to {url} closed unexpectedly at {time}. Reconnect attempt #{tries}."
+    title: Websocket Reconnecting 
+  reconnected: 
+    message: "The connection to {url} was restored on attempt #{tries}."
+    title: Websocket Reconnected
 
 hpa:
   detail:
@@ -3641,11 +3648,14 @@ prefs:
     auto: Auto
     dark: Dark
     autoDetail: Auto uses OS preference if available, or dark from {pm} to {am}
+  language: Language
   landing:
     label: Login Landing Page
     vue: Cluster Explorer
     ember: Cluster Manager
-  formatting: Formatting
+  displaySettings: 
+    title: Display Settings
+    detail: Change the way information is displayed in the UI.
   clusterToShow:
     label: Number of clusters to show in side menu
     value: |-
@@ -3957,6 +3967,18 @@ rbac:
       noContext:
         label: No Context
   globalRoles:
+    notBound: 'No users bound <i class="icon icon-checkmark" style="margin-left: 5px"></i>'
+    unableToCheck: Unable to check if any user is bound to the role(s). Please try again.
+    waiting: |-
+      {count, plural,
+        =1 { Checking if there are any users bound to this role <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+        other { Checking if there are any users bound to these roles <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+      }
+    usersBound: |-
+      {count, plural,
+        =1 { Caution: There is 1 user bound to the role(s) about to be deleted. Do you want to proceed? }
+        other { Caution: There are {count} users bound to the role(s) about to be deleted. Do you want to proceed? }
+      }
     types:
       global:
         label: Global Permissions
@@ -4377,6 +4399,9 @@ setup:
   welcome: Welcome to {vendor}!
 
 sortableTable:
+  bulkActions:
+    collapsed:
+      label: Actions
   actionAvailability:
     selected: "{actionable} selected"
     some: "Affects {actionable} of {total}"

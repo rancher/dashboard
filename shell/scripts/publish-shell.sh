@@ -6,7 +6,7 @@ BASE_DIR="$(
   pwd
 )"
 SHELL_DIR=$BASE_DIR/shell/
-PUBLISH_ARGS="--no-git-tag-version --access public"
+PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
 
 echo "Publishing Shell Packages"
 

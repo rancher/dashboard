@@ -334,6 +334,7 @@ export default {
     clearTimeout(this._loadingDelayTimer);
     clearTimeout(this._liveColumnsTimer);
     clearTimeout(this._delayedColumnsTimer);
+    clearTimeout(this.manualRefreshTimer);
 
     const $main = $('main');
 
@@ -348,33 +349,31 @@ export default {
     descending(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     searchQuery(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     sortFields(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     groupBy(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     namespaces(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
-
     page(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
 
     // Ensure we update live and delayed columns on first load
-    initalLoad(neu, old) {
-      if (neu && !old) {
-        this._didinit = true;
-        this.$nextTick(() => this.updateLiveAndDelayed());
-      }
+    initalLoad: {
+      handler(neu) {
+        if (neu) {
+          this._didinit = true;
+          this.$nextTick(() => this.updateLiveAndDelayed());
+        }
+      },
+      immediate: true
     },
 
     isManualRefreshLoading(neu, old) {
@@ -382,9 +381,11 @@ export default {
 
       // setTimeout is needed so that this is pushed further back on the JS computing queue
       // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
-      setTimeout(() => {
-        this.watcherUpdateLiveAndDelayed(neu, old);
-      }, 500);
+      if (old && !neu) {
+        this.manualRefreshTimer = setTimeout(() => {
+          this.watcherUpdateLiveAndDelayed(neu, old);
+        }, 1000);
+      }
     }
   },
 
@@ -400,7 +401,7 @@ export default {
     },
 
     initalLoad() {
-      return !this.loading && !this._didinit && this.rows?.length;
+      return !!(!this.loading && !this._didinit && this.rows?.length);
     },
 
     fullColspan() {
@@ -863,7 +864,7 @@ export default {
                 <template #button-content>
                   <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!selectedRows.length">
                     <i class="icon icon-gear" />
-                    <span>{{ t('harvester.tableHeaders.actions') }}</span>
+                    <span>{{ t('sortableTable.bulkActions.collapsed.label') }}</span>
                     <i class="ml-10 icon icon-chevron-down" />
                   </button>
                 </template>
