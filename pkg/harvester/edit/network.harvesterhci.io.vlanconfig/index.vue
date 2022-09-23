@@ -50,7 +50,6 @@ export default {
   created() {
     if (this.registerBeforeHook) {
       this.registerBeforeHook(this.validate);
-      this.registerBeforeHook(this.saveClusterNetwork);
     }
   },
 
@@ -148,24 +147,6 @@ export default {
         Vue.nextTick(() => this.$refs.clusterNetwork.focus());
       } else {
         this.createClusterNetwork = false;
-      }
-    },
-
-    async saveClusterNetwork() {
-      const clusterNetwork = this.value.spec.clusterNetwork;
-      const inStore = this.$store.getters['currentProduct'].inStore;
-
-      const found = this.$store.getters[`${ inStore }/byId`](HCI.CLUSTER_NETWORK, clusterNetwork);
-
-      if (!found) {
-        const newResource = await this.$store.dispatch(`${ inStore }/create`, {
-          metadata: { name: clusterNetwork },
-          type:     HCI.CLUSTER_NETWORK,
-        });
-
-        return await newResource.save();
-      } else {
-        return Promise.resolve();
       }
     },
 
