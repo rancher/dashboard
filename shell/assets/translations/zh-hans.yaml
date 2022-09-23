@@ -6370,16 +6370,12 @@ legacy:
   alerts: 告警
   apps: 应用
   catalogs: 应用商店
-  cis-scans: CIS 扫描
   configMaps: ConfigMaps
   configuration: 配置
   globalDnsEntries: 全局 DNS 条目
   globalDnsProviders: 全局 DNS 提供商
-  istio: Istio
-  logging: Logging
   notifiers: Notifiers
   monitoring: 监控
-  pipelines: 流水线
   psps: Pod 安全策略
   secrets: 密文
 
