@@ -166,12 +166,6 @@ export default {
     <div class="mt-10">
       <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
     </div>
-    <!-- Developer Tools -->
-    <div class="col dev-tools">
-      <hr />
-      <h4 v-t="'prefs.devTools.title'" />
-      <Checkbox v-model="viewInApi" :label="t('prefs.devTools.viewInApi', {}, true)" class="mt-10" />
-    </div>
     <!-- Login landing page -->
     <div v-if="!isSingleProduct">
       <hr />
@@ -225,15 +219,17 @@ export default {
         </div>
       </div>
     </div>
-    <!-- Features -->
-    <div class="col features">
+    <!-- Advanced Features -->
+    <div class="col adv-features">
       <hr />
-      <h4 v-t="'prefs.features.title'" />
-      <Checkbox v-model="allNamespaces" :label="t('prefs.features.allNamespaces', {}, true)" class="mt-10" />
+      <h4 v-t="'prefs.advFeatures.title'" />
+      <Checkbox v-model="viewInApi" :label="t('prefs.advFeatures.viewInApi', {}, true)" class="mt-10" />
       <br />
-      <Checkbox v-model="themeShortcut" :label="t('prefs.features.themeShortcut', {}, true)" class="mt-20" />
+      <Checkbox v-model="allNamespaces" :label="t('prefs.advFeatures.allNamespaces', {}, true)" class="mt-20" />
       <br />
-      <Checkbox v-model="noLocaleShortcut" :label="t('prefs.features.noLocaleShortcut', {}, true)" class="mt-20" />
+      <Checkbox v-model="themeShortcut" :label="t('prefs.advFeatures.themeShortcut', {}, true)" class="mt-20" />
+      <br />
+      <Checkbox v-model="noLocaleShortcut" :label="t('prefs.advFeatures.noLocaleShortcut', {}, true)" class="mt-20" />
       <br />
       <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-20" />
     </div>
