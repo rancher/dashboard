@@ -184,7 +184,7 @@ product:
   settings: Global Settings
   clusterManagement: Cluster Management
   monitoring: Monitoring
-  mcapps: Multi-cluster Apps
+  mcapps: Global Configuration
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
@@ -800,7 +800,8 @@ catalog:
         enableLegacy:
           prompt: You will need to enable Legacy Features to edit this App
           goto: Go to Feature Flag settings
-        navigate: Navigate to {legacyType} Apps
+        navigate: Navigate to Legacy Apps
+        mcmNotSupported: Legacy Multi-cluster Apps can not be managed through this UI
         category:
           legacy: Legacy
           mcm: Multi-cluster
