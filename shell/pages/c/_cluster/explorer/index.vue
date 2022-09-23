@@ -446,6 +446,11 @@ export default {
     <div class="mt-30">
       <Tabbed @changed="tabChange">
         <Tab name="cluster-events" :label="t('clusterIndexPage.sections.events.label')" :weight="2">
+          <span class="events-table-link">
+            <n-link :to="{name: 'c-cluster-explorer-event'}">
+              <span>{{ t('glance.eventsTable') }}</span>
+            </n-link>
+          </span>
           <EventsTable />
         </Tab>
         <Tab v-if="hasMonitoring" name="cluster-alerts" :label="t('clusterIndexPage.sections.alerts.label')" :weight="1">
@@ -546,6 +551,12 @@ export default {
   &:focus {
     outline: 0;
   }
+}
+
+.events-table-link {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
 
 .k8s-component-status {
