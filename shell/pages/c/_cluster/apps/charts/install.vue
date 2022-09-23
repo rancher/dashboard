@@ -1533,7 +1533,7 @@ export default {
       </div>
 
       <Banner color="warning" class="description">
-        <span>
+        <span v-if="!mcapp">
           {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>
         <template v-if="!legacyEnabled">
