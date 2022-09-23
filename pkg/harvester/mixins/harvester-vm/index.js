@@ -454,6 +454,7 @@ export default {
     },
 
     parseVM() {
+      this.userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });
       this.parseOther();
       this.parseAccessCredentials();
       this.parseNetworkRows(this.networkRows);
@@ -517,7 +518,7 @@ export default {
         this.secretName = this.generateSecretName(this.secretNamePrefix);
       }
 
-      if (!disks.find( D => D.name === 'cloudinitdisk')) {
+      if (!disks.find( D => D.name === 'cloudinitdisk') && (this.userData || this.networkData)) {
         if (!this.isWindows) {
           disks.push({
             name: 'cloudinitdisk',
@@ -1035,7 +1036,11 @@ export default {
 
       let secret = this.getSecret(vm.spec);
 
-      const userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });
+      // const userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });
+      if (!secret && this.isEdit && this.secretRef) {
+        // When editing the vm, if the userData and networkData are deleted, we also need to clean up the secret values
+        secret = this.secretRef;
+      }
 
       if (!secret || this.needNewSecret) {
         secret = await this.$store.dispatch('harvester/create', {
@@ -1051,16 +1056,10 @@ export default {
 
       try {
         if (secret) {
-          if (!this.saveUserDataAsClearText) {
-            secret.setData('userdata', userData);
-          }
-
-          if (!this.saveNetworkDataAsClearText) {
-            secret.setData('networkdata', this.networkScript);
-          }
-
           // If none of the data comes from the secret, then no data needs to be saved to the secret
           if (!this.saveUserDataAsClearText || !this.saveNetworkDataAsClearText) {
+            secret.setData('userdata', this.userData || '');
+            secret.setData('networkdata', this.networkScript || '');
             await secret.save();
           }
         }
