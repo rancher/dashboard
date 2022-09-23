@@ -17,7 +17,6 @@ import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenRelease
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
-import { SETTING } from '@shell/config/settings';
 import { BLANK_CLUSTER } from '@shell/store';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 
@@ -112,10 +111,6 @@ export default {
       return this.homePageCards?.setLoginPage;
     },
 
-    showSidePanel() {
-      return this.showCommercialSupport || this.showCommunityLinks;
-    },
-
     clusterHeaders() {
       return [
         STATE,
@@ -166,24 +161,6 @@ export default {
         //   label:  this.t('landing.clusters.explorer')
         // }
       ];
-    },
-
-    showCommercialSupport() {
-      const canEditSettings = (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
-
-      const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED) || {};
-
-      return !this.homePageCards.commercialSupportTip && hasSupport.value !== 'true' && canEditSettings;
-    },
-
-    showCommunityLinks() {
-      const uiIssuesSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_ISSUES) || {};
-      const communityLinksSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.COMMUNITY_LINKS) || {};
-
-      const hasSomethingToShow = communityLinksSetting?.value !== 'false' || !!( uiIssuesSetting.value && uiIssuesSetting.value !== '');
-      const hiddenByPreference = this.homePageCards.communitySupportTip === true;
-
-      return hasSomethingToShow && !hiddenByPreference;
     },
 
     ...mapGetters(['currentCluster', 'defaultClusterId']),
