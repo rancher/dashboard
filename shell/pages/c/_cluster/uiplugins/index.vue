@@ -16,10 +16,7 @@ import InstallDialog from './InstallDialog.vue';
 import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 
-// const PLUGIN_CHART_ANNOTATION = 'uiplugin.cattle.io';
-
-// TODO: Typo in this annotation
-const PLUGIN_CHART_ANNOTATION = 'uipluign.cattle.io';
+const PLUGIN_CHART_ANNOTATION = 'uiplugin.cattle.io';
 
 const PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
 
@@ -201,7 +198,7 @@ export default {
         if (chart) {
           chart.helmError = !!this.errors[e];
         }
-      });      
+      });
 
       return all;
     },
@@ -210,10 +207,6 @@ export default {
   watch: {
     helmOps(neu) {
       // Get Helm operations for UI plugins and order by date
-
-      console.error('HELM OPS CHANGED');
-      console.log(neu);
-
       let pluginOps = neu.filter((op) => {
         return op.namespace === PLUGIN_NAMESPACE;
       });

@@ -24,8 +24,6 @@ export default async(context) => {
 
   let loadPlugins = true;
 
-  // TODO: Might only want to do this if the user is an admin
-  // Not sure we can tell this at this point
   // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
   if (context.route?.path === '/safeMode') {
     loadPlugins = false;
@@ -34,8 +32,9 @@ export default async(context) => {
 
   const { store, $plugin } = context;
 
-  // TODO: Only fetch if the schema if present
-
+  // TODO: This will use the Rancher endpoint to get the list of plugins
+  // For now, this will only work if the user can access the plugins schema
+  // but allows for dev/testing until the backend endpoint is in place
   try {
     const res = await store.dispatch('management/request', {
       url:     `/v1/${ UI_PLUGIN }`,
@@ -60,10 +59,6 @@ export default async(context) => {
     console.log(e); // eslint-disable-line no-console
   }
 
-  // TODO: Need to load routes after app has loaded
-  // Need a Nuxt window.onready
-
-  // TODO - use the API
   // Load all of the plugins
   const pluginLoads = await allHashSettled(hash);
 
