@@ -469,9 +469,7 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
-  updateNamespaces(state, getters) {
-    const { filters, all } = getters;
-
+  updateNamespaces(state, { filters, all }) {
     state.namespaceFilters = filters.filter(x => !!x);
 
     if ( all ) {
@@ -604,7 +602,7 @@ export const actions = {
     }
 
     res = await allHash(promises);
-
+    dispatch('i18n/init');
     let isMultiCluster = true;
 
     if ( res.clusters.length === 1 && res.clusters[0].metadata?.name === 'local' ) {

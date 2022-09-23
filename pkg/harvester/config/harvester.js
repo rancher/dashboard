@@ -6,9 +6,8 @@ import {
   MANAGEMENT,
   PVC,
   NETWORK_ATTACHMENT,
-  HCI
 } from '@shell/config/types';
-
+import { HCI } from '../types';
 import {
   STATE,
   NAME_UNLINKED,
@@ -50,10 +49,9 @@ export function init($plugin, store) {
     };
 
     store.dispatch('setIsSingleProduct', {
-      logo:           require(`@shell/assets/images/providers/harvester.svg`),
-      productNameKey: 'product.harvester',
-      version:        store.getters[`${ PRODUCT_NAME }/byId`](HCI.SETTING, 'server-version')
-        ?.value,
+      logo:            require(`@shell/assets/images/providers/harvester.svg`),
+      productNameKey:  'harvester.productLabel',
+      getVersionInfo:  store => store.getters[`${ PRODUCT_NAME }/byId`](HCI.SETTING, 'server-version')?.value || 'unknown',
       afterLoginRoute: home,
       logoRoute:       home
     });

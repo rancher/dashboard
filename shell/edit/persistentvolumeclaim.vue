@@ -269,6 +269,7 @@ export default {
                   :output-modifier="true"
                   :increment="1024"
                   :min="1"
+                  :required="true"
                 />
                 <Banner v-if="isEdit && !value.expandable" color="info" class="mt-10">
                   {{ t('persistentVolumeClaim.expand.notSupported') }}

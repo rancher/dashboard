@@ -22,7 +22,7 @@ export default {
     state() {
       const longhornDisks = this.row?.longhornDisks || [];
       const out = longhornDisks.reduce((state, disk) => {
-        if (disk?.readyCondiction?.status !== 'True' || disk?.schedulableCondiction?.status !== 'True') {
+        if (disk?.readyCondition?.status !== 'True' || disk?.schedulableCondition?.status !== 'True') {
           state = WARNING;
         }
 

@@ -1,4 +1,3 @@
-import * as Comlink from 'comlink';
 import { SCHEMA } from '@shell/config/types';
 
 const COUNTS_FLUSH_TIMEOUT = 5000;
@@ -6,7 +5,6 @@ const SCHEMA_FLUSH_TIMEOUT = 2500;
 
 const state = {
   store:      '', // Store name
-  load:       undefined, // Load callback to load a resource into the store
   counts:     [], // Buffer of count resources recieved in a given window
   countTimer: undefined, // Tiemr to flush the count buffer
   flushTimer: undefined, // Timer to flush the schema chaneg queue
@@ -61,21 +59,32 @@ state.flushTimer = setTimeout(flush, SCHEMA_FLUSH_TIMEOUT);
 
 // Callback to the store's load function (in the main thread) to process a load
 function load(data) {
-  if (state.load) {
-    state.load(data);
-  }
+  self.postMessage({ load: data });
 }
 
-// Web Worker API
-const fns = {
-  initWorker(storeName, loadFn) {
+const workerActions = {
+  onmessage: (e) => {
+    /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
+    // good enough for now considering that we never send more than one message action at a time right now */
+    const messageActions = Object.keys(e?.data);
+
+    messageActions.forEach((action) => {
+      if (workerActions[action]) {
+        workerActions[action](e?.data[action]);
+      } else {
+        console.warn('no associated action for:', action); // eslint-disable-line no-console
+      }
+    });
+  },
+  initWorker: ({ storeName }) => {
     state.store = storeName;
-    state.load = loadFn;
   },
 
-  destroyWorker() {
+  destroyWorker: () => {
     clearTimeout(state.countTimer);
     clearTimeout(state.flushTimer);
+
+    self.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
 
     // Web worker global function to terminate the web worker
     close();
@@ -98,7 +107,7 @@ const fns = {
   },
 
   // Called to load schema
-  loadSchema(schemas) {
+  loadSchemas: (schemas) => {
     schemas.forEach((schema) => {
       // These properties are added to the object, but aren't on the raw object, so remove them
       // otherwise our comparison will show changes when there aren't any
@@ -107,16 +116,17 @@ const fns = {
 
       state.schemas[schema.id] = hashObj(schema);
     });
+    // console.log(JSON.parse(JSON.stringify(state.resources.schemas)));
   },
 
   // Called when schema is updated
-  updateSchema(schema) {
+  updateSchema: (schema) => {
     // Add the schema to the queue to be checked to see if the schema really changed
     state.queue.push(schema);
   },
 
   // Remove the cached schema
-  removeSchema(id) {
+  removeSchema: (id) => {
     // Remove anything in the queue related to the schema - we don't want to send any pending updates later for a schema that has been removed
     state.queue = state.queue.filter(schema => schema.id !== id);
 
@@ -125,5 +135,4 @@ const fns = {
   }
 };
 
-// Expose the Web Worker API - see: https://github.com/GoogleChromeLabs/comlink
-Comlink.expose(fns);
+onmessage = workerActions.onmessage; // bind everything to the worker's onmessage handler via the workerAction

@@ -1,5 +1,5 @@
 import { findBy } from '@shell/utils/array';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import { HCI_ALLOWED_SETTINGS, HCI_SETTING } from '../config/settings';
 import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
@@ -59,15 +59,15 @@ export default class HciSetting extends HarvesterResource {
   }
 
   get errMessage() {
+    const configuredCondition = findBy((this?.status?.conditions || []), 'type', 'configured') || {};
+
     if (this.metadata?.state?.error === true) {
       return this.metadata.state.message;
+    } else if (configuredCondition?.status === 'False') {
+      return configuredCondition.message;
     } else {
       return false;
     }
-  }
-
-  get configuredCondition() {
-    return findBy((this?.status?.conditions || []), 'type', 'configured') || {};
   }
 
   get valueOrDefaultValue() {

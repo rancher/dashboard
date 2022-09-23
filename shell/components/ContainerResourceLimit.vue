@@ -47,6 +47,20 @@ export default {
     };
   },
 
+  watch: {
+    value() {
+      const {
+        limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
+      } = this.value;
+
+      this.limitsCpu = limitsCpu;
+      this.limitsMemory = limitsMemory;
+      this.requestsCpu = requestsCpu;
+      this.requestsMemory = requestsMemory;
+      this.limitsGpu = limitsGpu;
+    }
+  },
+
   computed: {
     detailTopColumns() {
       return [

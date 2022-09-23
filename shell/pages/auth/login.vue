@@ -3,6 +3,7 @@ import { removeObject } from '@shell/utils/array';
 import { USERNAME } from '@shell/config/cookies';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
+import LocaleSelector from '@shell/components/LocaleSelector';
 import BrandImage from '@shell/components/BrandImage';
 import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
@@ -30,7 +31,7 @@ export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector
   },
 
   async asyncData({ route, redirect, store }) {
@@ -164,7 +165,7 @@ export default {
 
     kubectlCmd() {
       return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
-    }
+    },
 
   },
 
@@ -393,6 +394,9 @@ export default {
               {{ nonLocalPrompt }}
             </a>
           </div>
+          <div class="locale-elector">
+            <LocaleSelector mode="login" />
+          </div>
         </template>
       </div>
 
@@ -434,5 +438,10 @@ export default {
         }
       }
     }
+  }
+
+  .locale-elector {
+    position: absolute;
+    bottom: 30px;
   }
 </style>

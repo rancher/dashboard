@@ -1,0 +1,775 @@
+harvester:
+  modal:
+    backup:
+      success: '已启动备份 { backUpName }。'
+      addBackup: 添加备份
+    restore:
+      success: '{ name } 还原创建成功。'
+      title: 备份还原
+      selectBackup: 选择备份
+      message:
+        backup: 请选择需要还原的备份。
+    createTemplate:
+      title: '生成模板'
+      name: '名称'
+      description: '描述'
+      message:
+        tip: 请输入模板名称。
+        success: '模板 { templateName } 创建成功。'
+        failed: '生成模板失败。'
+    cloneVM:
+      title: 克隆虚拟机
+      name: 新虚拟机名称
+      type: 克隆数据卷
+      action:
+        create: 创建
+        clone: 克隆
+      message:
+        tip: 请输入虚拟机名称!
+        success: '虚拟机 { name } 克隆成功.'
+        failed: '克隆虚拟机失败!' 
+    exportImage:
+      title: 导出镜像
+      name: 名称
+      namespace: 命名空间
+      message:
+        success: '镜像 { name } 创建成功。'
+    migration:
+      failedMessage: 最新迁移失败。
+      title: 迁移
+      fields:
+        nodeName:
+          label: 目标节点
+          placeholder: 选择目标节点
+    ejectCDROM:
+      title: 弹出 CDROM
+      warnTip: 如果你弹出卷，虚拟机将重启。
+      operationTip: '选择要删除的卷：'
+      delete: 删除
+    bundle:
+      title: 生成 Support Bundle
+      url: Issue URL
+      description: 描述
+      requiredDesc: 描述是必填项。
+      titleDescription: 收集 Harvester 系统日志，用于定位问题和获取支持。
+    hotplug:
+      success: '卷 { diskName } 已挂载到 { vm }。'
+      title: 添加卷
+    hotunplug:
+      success: '卷 { name } 拔出成功。'
+  action:
+    createVM: 创建虚拟机
+    start: 启动
+    restart: 重启
+    softreboot: 安全重启
+    stop: 停止
+    pause: 暂停
+    deepClone: 克隆
+    shallowClone: 克隆模版
+    unpause: 取消暂停
+    ejectCDROM: 弹出 CDROM
+    launchFormTemplate: 从模板启动实例
+    modifyTemplate: 修改模板（创建新版本）
+    setDefaultVersion: 设置默认版本
+    addTemplateVersion: 添加模板版本
+    backup: 备份
+    restore: 还原
+    restoreNewVM: 还原新的虚拟机
+    restoreExistingVM: 替换现有虚拟机
+    migrate: 迁移
+    abortMigration: 中止迁移
+    createTemplate: 生成模板
+    enableMaintenance: 开启维护模式
+    disableMaintenance: 关闭维护模式
+    cordon: 封锁
+    uncordon: 解除封锁
+    addHotplug: 添加卷
+    exportImage: 导出镜像
+    viewlogs: 查看日志
+    cancelExpand: 取消展开
+  tableHeaders:
+    size: 大小
+    progress: 进度
+    message: 消息
+    phase: 阶段
+    attachedVM: 挂载的虚拟机
+    fingerprint: 唯一标识
+    value: 值
+    actions: 操作
+    readyToUse: 可用
+    backupTarget: 备份路径
+    targetVm: 目标虚拟机
+    hostIp: 主机 IP
+    vm:
+      ipAddress: IP 地址
+      node: 节点
+      defaultVersion: 默认版本
+    network:
+      type: 类型
+      vlan: Vlan ID
+  tab:
+    volume: 卷
+    network: 网络
+    advanced: 高级选项
+    accessCredentials: 凭证管理
+  fields:
+    version: 版本
+    name: 名称
+    type: 类型
+    image: 镜像
+    size: 大小
+    volume: 卷
+    network: 网络
+    model: 模式
+    macAddress: MAC 地址
+    port: 端口
+    protocol: 协议
+    remove: 删除
+    PhysicalNic: 物理网卡
+    cpu: CPU
+    memory: 内存
+    virtualName: 虚拟机名称
+    promiscuous: Promiscuous
+    ipv4Address: IPv4 地址
+    filterLabels: 标签过滤
+  generic:
+    close: 关闭
+    open: 打开
+    showMore: 显示更多
+    hideMore: 隐藏更多
+    memory: 内存
+    cpu: CPU
+    storage: 存储
+    noFileChosen: 没有选择任何文件
+
+  validation:
+    custom:
+      tooLongName: '"Name" 的长度不能超过{max}个字符。'
+    vm:
+      name: '"名称"是必填项。'
+      memory: '"内存"是必填项。'
+      network:
+        error: '网络 {prefix}：{message}'
+        name: '"网络名称"是必填项。'
+        macFormat: 'MAC 地址格式不正确。'
+        duplicatedName: '网络名称重复。'
+        duplicatedPortName: '端口名重复。'
+        duplicatedPortNumber: '端口号重复。'
+      volume:
+        error: '卷 {prefix}：{message}'
+        duplicatedName: '卷名称重复。'
+        type: '"类型"是必填项。'
+        size: '"大小"是必填项。'
+        image: '"镜像"是必填项。'
+        volume: '"卷"是必填项。'
+        docker: '"Docker 镜像"是必填项。'
+        needImageOrExisting: '至少需要一个镜像卷或已存在的根磁盘卷。'
+    image:
+      ruleTip: 'URL 后缀不支持。仅支持后缀为 .img，.iso，.qcow，.qcow2或.raw的镜像文件。'
+      ruleFileTip: '文件后缀不支持。仅支持后缀为 .img，.iso，.qcow，.qcow2或.raw的镜像文件。'
+
+  dashboard:
+    label: 仪表板
+    header: "Harvester 集群：{cluster}"
+    hardwareResourceGauge:
+      cpu: CPU
+      memory: 内存
+      storage: 存储
+    sections:
+      events:
+        label: 事件
+      vmMetrics:
+        label: 虚拟机指标
+    upgrade:
+      upgradeApp: 升级软件
+      upgrade: 升级
+      upgradeTip: 请选择目标升级版本
+      currentVersion: 当前版本
+      versionLabel: 可用的兼容版本
+      upgradeNode: 升级节点
+      upgradeSysService: 升级系统服务
+
+    version: 版本
+  host:
+    console: 控制台
+    label: 主机
+    inconsistentIP: "主机 IP 不一致，当前 IP：{currentIP}，初始 IP：{initIP}"
+    promote:
+      none: ' '
+      running: 角色升级中
+      failed: 角色升级失败
+      unknown: 角色升级中断
+      promoteRestart: 角色升级重启中
+      promoteSucceed: 角色升级完成
+    tabs:
+      network: 网络
+      overview: 概述
+      basics: 基本信息
+      instance: 虚拟机
+      monitor: 监控数据
+      disk: 磁盘
+      labels: 标签
+    detail:
+      title:
+        network: 网络配置
+      hostIP: 主机 IP
+      role: 角色
+      os: 操作系统
+      create: 创建时间
+      update: 上次更新时间
+      customName: 自定义名称
+      consoleUrl: 控制台地址
+      more: 更多信息
+      uuid: UUID
+      containerRuntime: 容器运行时
+      kernel: 内核
+      management: 管理节点
+      compute: 计算节点
+      storage: 存储
+      nic: 物理网卡
+      notRecommended: '不推荐'
+      networkType: 类型
+    enableMaintenance:
+      title: 开启维护模式
+      protip: 该操作会将此节点上的所有虚拟机迁移到其他节点。
+    cordon:
+      title: 封锁
+      protip: 此操作会将节点 { node } 标记为不可调度。
+    disk:
+      add: 添加磁盘
+      path:
+        label: 路径
+      storageReserved:
+        label: 预留存储空间
+      allowScheduling:
+        label: 调度
+      evictionRequested:
+        label: 驱逐请求
+      forceFormatted:
+        label: 强制格式化
+        toolTip: 强制格式化将会清空磁盘数据。请确保你已对对数据进行备份，以免丢失。
+        yes: 是（Ext4 文件系统）
+      description:
+        label: 描述
+      lastFormattedAt:
+        info: 此磁盘已被强制格式化。
+      notification:
+        success: '已更新主机“{name}”配置。'
+      error: 主机有未就绪或不可调度的磁盘。
+      fileSystem:
+        info: 当前文件系统为 {system}，你可以手动格式化。
+
+  virtualMachine:
+    label: 虚拟机
+    osType: 操作系统类型
+    instance:
+      singleInstance:
+      multipleInstance:
+      single:
+        label: 单个实例
+        nameLabel: 名称
+        host:
+          label: 主机名
+          placeholder: 默认为虚拟机名称。
+      multiple:
+        label: 多个实例
+        nameNsDescription: 每个实例的名称前缀
+        count: 数量
+        countTip: 范围：1-10
+        nameLabel: 名称前缀
+        host:
+          label: 主机名前缀
+          placeholder: 默认为虚拟机名称。
+    useTemplate:
+      label: "使用虚拟机模板："
+      template:
+        label: 模板
+      version:
+        label: 版本
+    console:
+      novnc: 在 Web VNC 中打开
+      serial: 在串行控制台中打开
+    promptRemove:
+      title: '选择要删除的卷：'
+      deleteAll: 删除全部
+    unplug:
+      title: '是否确认要拔出卷 {name} ？'
+      actionLabel: 拔出
+      detachVolume:
+        拔出卷
+    restartTip: |-
+      {restart, select,
+        true {重启}
+        other {启动}
+      }虚拟机以使配置更改生效。
+    runStrategy: 运行策略
+    restartNow: |-
+      {restart, select,
+        true {现在重启}
+        other {现在启动}
+      }
+    createSSHKey: 创建 SSH 密钥
+    installAgent: 安装访客代理
+    enableUsb: 启用 USB Tablet
+    usbTip: 提供绝对指针设备，有助于在 VNC 中获得一致的鼠标光标位置。
+    sshTitle: 添加 SSH 公钥
+    imageTip: 创建虚拟机所需的.iso，.img，.qcow2或.raw外部镜像地址
+    efiEnabled: EFI 模式下启动
+    secureBoot: 安全启动
+    volume:
+      dragTip: 拖放卷或使用卷的箭头来更改引导顺序。
+      volumeTip: 虚拟机仅包含一个 cd-rom 卷。你可能想要添加额外的磁盘卷。
+      macTip: "访客系统内显示的 MAC 地址"
+      volumeUpdate: '卷 { name } 设置成功。'
+      type: 类型
+      size: 大小
+      edit: 编辑
+      bus:  Bus
+      bootOrder: 引导顺序
+      volume: 卷
+      dockerImage: Docker 镜像
+      addVolume: 添加卷
+      addExistingVolume: 添加现有卷
+      addVmImage: 添加虚拟机镜像
+      addContainer: 添加容器
+      setFirst: 设置为根卷
+      saveVolume: 更新卷
+      title:
+        vmImage: 镜像卷
+        existingVolume: 现有卷
+        volume: 卷
+        container: 容器
+      unmount:
+        title: 是否确认？
+        message: 是否确认卸载此卷？
+    network:
+      title: 网络
+      addNetwork: 添加网络
+      addPort:  添加端口
+    cloudConfig:
+      title: Cloud Config
+      createTemplateTitle: '创建 { name }。'
+      createNew: 创建...
+      cloudInit:
+        label: Cloud Init
+        placeholder: 选择模板
+      user:
+        label: 用户数据模板
+        title: "用户数据："
+        tip: "你可以指定用户数据，以在启动时配置实例或运行配置脚本。如果一次启动多个实例，所有预留实均能使用用户数据。<a href='https://cloudinit.readthedocs.io/en/latest/topics/examples.html' target='_blank'>了解更多</a>"
+      network:
+        label: 网络数据模板
+        title: "网络数据："
+        tip: "通过分配子网配置，创建虚拟设备（bonds，bridges，Vlan）路由和 DNS 配置，来自定义实例的网络接口。<a href='https://cloudinit.readthedocs.io/en/latest/topics/network-config-format-v1.html' target='_blank'>了解更多</a>"
+    scheduling:
+      affinity:
+        anyNode: '在任何可用节点上运行虚拟机'
+        schedulingRules: '在匹配调度规则的节点上运行虚拟机'
+        specificNode: 在指定节点上运行虚拟机 -（不支持热迁移）
+    accessCredentials:
+      resetPwd:
+        label: 添加密码凭证
+      injectSSH:
+        label: 添加 SSH 密钥凭证
+        users: 选择用户
+        addUser: 添加用户
+      tips: 要启用访问凭证，你需要安装 qemu-guest-agent。更新凭证内容后无需重启，而添加凭证后需要重启虚拟机。删除凭证后，需要进入虚拟机手动修改密码/删除 SSH 密钥。
+      userTips: 添加的用户需要存在，否则凭证不会生效。
+      duplicatedUser: 用户已存在。
+      invalidUser: 无效的用户名
+    input:
+      name: 名称
+      memory: 内存
+      image: 镜像
+      sshKey: SSH 密钥
+      sshKeyValue: SSH 密钥
+      MachineType: 主机类型
+      username: 用户名
+      password: 密码
+      reservedMemory: 预留内存
+    machineTypeTip: '指定要模拟的处理器架构。要查看支持的体系结构列表，请运行：qemu-system-x86_64 -cpu ?'
+    detail:
+      tabs:
+        overview: 概述
+        details: 详情
+        environment: 环境
+        events: 事件
+        migration: 迁移
+        console: 控制台
+        networkInterfaces: 网络接口
+        disks: 磁盘
+        networks: 网络
+        basics: 基本信息
+        configurations: 配置
+        inventory: 清单
+        hostBasic: 基本属性
+        instance: 虚拟机
+        monitor: 监控数据
+        keypairs: SSH 密钥
+        cloudConfig: Cloud Config
+        metrics: 虚拟机指标
+      details:
+        title:
+          vmDetails: 虚拟机详情
+          requirements: 调度和资源要求
+          services: 服务
+          users: 已登录用户
+        name: 名称
+        namespace: 命名空间
+        created: 创建时间
+        hostname: 主机名
+        node: 节点
+        ipAddress: IP 地址
+        status: 状态
+        pod: Pod
+        labels: 标签
+        bootOrder: 引导顺序
+        annotations: 注释
+        CDROMs: CD-ROM
+        description: 描述
+        operatingSystem: 操作系统
+        template: 模板
+        kernelRelease: 内核版本
+        owner: 所有者
+        workloadProfile: 工作负载配置文件
+        nodeSelector: 节点选择器
+        flavor: 规格
+        tolerations: 容忍
+        dedicatedResources: 专用资源
+        down: 虚拟机未启动
+        affinityRules: 亲和性规则
+        sourceNode: 源节点
+        targetNode: 目标节点
+        started: 开始时间
+        ended: 结束时间
+      notAvailable: 不可用
+      GuestAgentNotInstalled: 未安装 GuestAgent
+      noOwner: 没有所有者
+      events:
+        from: 生成自
+        down: 过去一小时没有事件
+      console:
+        down: 此虚拟机已关闭。请启动虚拟机以访问其控制台。
+        shortKeys: 快捷键
+
+  volume:
+    label: 卷
+    tabs:
+      basics: 基本信息
+    size: 大小
+    source: 源
+    sourceOptions:
+      new: 创建
+      vmImage: 虚拟机镜像
+    image: 镜像
+
+  image:
+    label: 镜像
+    tabs:
+      basics: 基本信息
+    url: URL
+    size: 大小
+    urlTip: '支持被 <a href="https://www.qemu.org/docs/master/system/images.html#disk-image-file-formats" target="_blank">qemu</a> 支持的 <code>raw</code> 和 <code>qcow2</code> 镜像格式。可引导的 ISO 镜像也是类似 <code>raw</code> 格式的镜像。'
+    fileName: 文件名称
+    uploadFile: 上传文件
+    source: 源
+    sourceType:
+      download: URL
+      upload: 文件
+    warning:
+      uploading: |-
+        {count, plural,
+        =1 {正在上传一个镜像。请不要刷新或关闭前页面。}
+        other {正在上传{count}个镜像。请不要刷新或关闭前页面。}
+        }
+
+  vmTemplate:
+    label: 模板
+    tabs:
+      basics: 基本信息
+    nameNsDescription:
+      name: 模板名称
+    tips:
+      notExistImage:
+        title: 镜像 {name} 不存在。
+        message: 请选择一个新的镜像。
+      notExistNode:
+        title: 节点 {name} 不存在。
+        message: 请选择一个新的节点。
+
+  upgradePage:
+    upgradeApp: 升级软件
+    upgrade: 升级
+    upgradeTip: 请选择目标升级版本
+    currentVersion: 当前版本
+    versionLabel: 可用的兼容版本
+    upgradeNode: 升级节点
+    upgradeSysService: 升级系统服务
+    upgradeImage: 下载升级镜像
+    osUpgrade: 操作系统升级
+    uploadNew: 上传新镜像
+    selectExisting: 选择现有镜像
+    createRepository: 创建升级仓库
+    succeeded: 成功
+    pending: 等待
+    repoInfo:
+      upgradeStatus: 升级状态
+      os: 操作系统
+      kubernetes: Kubernetes
+      monitoringChart: Monitoring Chart
+      harvesterChart: Harvester Chart
+      success: 成功
+      fail:  失败
+      ongoing: 进行中
+    dismissMessage: 忽略
+    upgradeInfo:
+      warning: 警告
+      doc: 在升级到新 Harvester 版本之前，你必须为集群执行所需的<a href="https://docs.harvesterhci.io/v1.0/upgrade/automatic/" target="_blank">升级前检查</a>。仅完成适用于环境的任务即可。
+      tip: 如果没有执行这些检查，升级可能会失败，而且你可能会遇到需要手动修复的已知问题。
+      moreNotes: 有关发行说明的详情，请访问 -
+
+  backup:
+    label: 备份
+    createText: 还原备份
+    title: 还原虚拟机
+    backupTargetTip: 用于访问备份存储的端点。支持 NFS 和 S3。
+    message:
+      noSetting:
+        prefix: 在创建新备份之前, 必须在
+        middle: '设置'
+        suffix: 中配置备份目标。
+      errorTip:
+        prefix: 非法的备份目标
+        middle: 设置
+        suffix: "。错误信息： "
+      viewSetting:
+        prefix: 点击
+        middle: 此处
+        suffix: 查看备份配置。
+    restore:
+      backup: 备份
+      deletePreviousVolumes: 删除先前的卷
+      createNew: 创建
+      replaceExisting: 替换现有
+      virtualMachineName: 虚拟机名称
+    matchTarget: 当前备份目标与现有目标不匹配。
+
+  network:
+    label: 网络
+    tabs:
+      basics: 基本信息
+      layer3Network: 路由
+    message:
+      vlanInactive: 'VLAN 网络在 {name} 主机上处于非活动状态'
+      premise:
+        prefix: '你需要先进行网络'
+        middle: '设置'
+        suffix: '然后才能创建新网络。'
+      viewSetting:
+        prefix: 点击
+        middle: 此处
+        suffix: 查看默认集群网络配置。
+      errorTip:
+        prefix: 非法的物理网卡
+        middle: 设置
+        suffix: "。错误信息： "
+    layer3Network:
+      mode:
+        label: 模式
+        auto: 自动（DHCP）
+        manual: 手动
+      serverIPAddr:
+        label: DHCP 服务器 IP
+      gateway:
+        label: 网关
+        placeholder: 例如：172.16.0.1
+      cidr:
+        label: CIDR
+        placeholder: 例如：172.16.0.1/24
+  sshKey:
+    label: SSH 密钥
+    keypair: SSH 密钥
+    tabs:
+      basics: 基本信息
+
+  setting:
+    label: 设置
+    validation:
+      physicalNIC: 默认物理网卡
+    placeholder:
+      accessKeyId: 指定你的访问密钥 ID
+      secretAccessKey: 指定你的密文访问密钥
+      cert: 上传自签名 SSL 证书
+    vlanChangeTip: 新修改的默认网络接口仅在新增节点生效，不在现有节点生效。
+    defaultPhysicalNIC: 默认网络接口
+    percentTip: 括号内的数值代表所有主机上的网络接口的分布比例。如果选择了一个小于100%的接口，用户需要手动指定 VLAN 网络配置失败的主机上的网络接口。
+    message:
+      ca:
+        prefix: '点击'
+        middle: '此处'
+        suffix: '添加自定义证书。'
+    sslCertificates:
+      publicCertificate: 公共证书
+      privateKey: 私钥
+      ca: CA
+    vmForceDeletionPolicy:
+      period: 周期
+    supportBundleImage:
+      imagePullPolicy: 镜像拉取策略
+      repo: 仓库
+      tag: 标签
+
+    upgrade:
+      selectExitImage: 请选择要升级的操作系统镜像。
+      imageUrl: 请输入有效的图片网址。
+      chooseFile: 请选择上传图片。
+      checksum: 校验和
+    harvesterMonitoring:
+      label: Harvester Monitoring
+      section:
+        prometheus: Prometheus 配置
+        prometheusNodeExporter: Prometheus Node Exporter 配置
+      tips:
+        scrape: 每次采集数据的间隔时间
+        evaluation: 每次评估规则的间隔时间
+        retention: 监控数据保留时间
+        retentionSize: 监控数据最大占用存储
+  cloudTemplate:
+    label: Cloud Config 模板
+    templateType: 模板类型
+    userData: 用户数据
+    networkData: 网络数据
+
+ 
+
+  support:
+    title: Harvester 支持
+    kubeconfig:
+      title: 下载 KubeConfig
+      titleDescription: 下载 Kubeconfig 用于调试。
+
+  namespace:
+    label: 命名空间
+
+  projectNamespace:
+    label: 项目/命名空间
+
+  service:
+    title: 附加配置
+    ipam:
+      label: IPAM
+    healthCheckPort:
+      label: 健康检查端口
+    healthCheckSuccessThreshold:
+      label: 健康检查成功阙值
+      description: 如果探针连续检测到某个地址的成功次数达到成功阈值，后端服务器就可以开始转发流量。
+    healthCheckFailureThreshold:
+      label: 健康检查失败阈值
+      description: 如果健康检查失败的数量达到失败阈值，后端服务器将停止转发流量。
+    healthCheckPeriod:
+      label: 健康检查周期
+    healthCheckTimeout:
+      label: 健康检查超时
+    healthCheckEnabled:
+      label: 健康检查
+
+  vip:
+    namespace:
+      label: 命名空间
+    cidr:
+      label: CIDR
+      invalid: '"CIRD" 无效。'
+    add:
+      label: 添加 IP 池
+
+  sslParameters:
+    protocols:
+      label: 协议
+    ciphers:
+      label: 密码
+
+advancedSettings:
+  descriptions:
+    'harv-vlan': VLAN 网络的默认网络接口名称。
+    'harv-backup-target': 用于存储虚拟机备份的自定义备份目标。
+    'harv-log-level': 配置 Harvester server 日志级别。默认级别为 info。
+    'harv-server-version': Harvester server 版本。
+    'harv-upgrade-checker-enabled': 是否启用 Harvester 升级检查。默认值为 true。
+    'harv-upgrade-checker-url': 默认 Harvester 升级检查 URL。只有当 <code>upgrade-checker-enabled</code>  设置为 true 时可使用。
+    'harv-ui-source': 配置加载 UI 资源方式。
+    'harv-ui-index': 'UI 的 HTML 索引位置。'
+    'harv-cluster-registration-url': 用于多集群管理的注册 URL。
+    'harv-http-proxy': '用于 Harvester 访问外部服务的 HTTP 代理。'
+    'harv-additional-ca': '用于 TLS 验证的自定义 CA 根证书。'
+    'harv-overcommit-config': '资源超额配置。'
+    'harv-vip-pools': '使用 CIDR 配置 VIP 的全局或命名空间 IP 地址池。'
+    'harv-support-bundle-timeout': 'Support Bundle 超时配置（单位：分钟），你可以使用 0 来禁用超时。'
+    'harv-vm-force-reset-policy': 配置当虚拟机卡在停机的节点上时的强制重置动作。
+    'harv-ssl-parameters': 用于 TLS 验证的自定义 SSL 参数。
+    'harv-support-bundle-namespaces': 指定支持包要收集的其他命名空间中的资源。
+    'harv-auto-disk-provision-paths': 指定 Harvester 将自动添加为虚拟机存储的磁盘（使用 glob 模式）。
+    'harv-support-bundle-image': Support Bundle 镜像配置。前往 <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a> 查看更多版本。
+    'harv-release-download-url': 此设置用于配置<code>升级版本下载</code>的 URL 地址。Harvester 将从该 URL 托管的 (<code>$URL</code>/<code>$VERSION</code>/version.yaml) 文件中获取 ISO URL 和校验和值。
+    'harvester-monitoring': 指定 Harvester 内置的 Prometheus 将使用的监控配置。
+
+typeLabel:
+  kubevirt.io.virtualmachine: |-
+    {count, plural,
+      one { 虚拟机 }
+      other { 虚拟机 }
+    }
+  harvesterhci.io.virtualmachineimage: |-
+    {count, plural,
+      one { 镜像 }
+      other { 镜像 }
+    }
+  harvesterhci.io.keypair: |-
+    {count, plural,
+      one { SSH 密钥 }
+      other { SSH 密钥 }
+    }
+  harvesterhci.io.host: |-
+    {count, plural,
+      one { 主机 }
+      other { 主机 }
+    }
+  k8s.cni.cncf.io.networkattachmentdefinition: |-
+    {count, plural,
+      one { 网络附加定义 }
+      other { 网络附加定义 }
+    }
+  harvesterhci.io.networkattachmentdefinition: |-
+    {count, plural,
+      one { 网络 }
+      other { 网络 }
+    }
+  harvesterhci.io.volume: |-
+    {count, plural,
+      one { 卷 }
+      other { 卷 }
+    }
+  harvesterhci.io.user:  |-
+    {count, plural,
+      one { 用户 }
+      other { 用户 }
+    }
+  harvesterhci.io.setting:  |-
+    {count, plural,
+      one { 设置 }
+      other { 设置 }
+    }
+  harvesterhci.io.virtualmachinetemplateversion: |-
+    {count, plural,
+      one { 模板 }
+      other { 模板 }
+    }
+  harvesterhci.io.virtualmachinebackup: |-
+    {count, plural,
+      one { 备份 }
+      other { 备份 }
+    }
+  harvesterhci.io.cloudtemplate: |-
+    {count, plural,
+      one { Cloud Config 模板 }
+      other { Cloud Config 模板 }
+    }

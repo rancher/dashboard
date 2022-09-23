@@ -11,8 +11,9 @@ import {
 } from '@shell/utils/units';
 import { REASON } from '@shell/config/table-headers';
 import {
-  EVENT, METRIC, NODE, HCI, SERVICE, PVC, LONGHORN, POD, COUNT, NETWORK_ATTACHMENT
+  EVENT, METRIC, NODE, SERVICE, PVC, LONGHORN, POD, COUNT, NETWORK_ATTACHMENT
 } from '@shell/config/types';
+import { HCI } from '../types';
 import ResourceSummary, { resourceCounts, colorToCountName } from '@shell/components/ResourceSummary';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import HardwareResourceGauge from '@shell/components/HardwareResourceGauge';
@@ -22,8 +23,8 @@ import DashboardMetrics from '@shell/components/DashboardMetrics';
 import metricPoller from '@shell/mixins/metric-poller';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import { isEmpty } from '@shell/utils/object';
-import HarvesterUpgrade from '../../components/HarvesterUpgrade';
-import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
+import HarvesterUpgrade from '../components/HarvesterUpgrade';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
 dayjs.extend(utc);
 dayjs.extend(minMax);
@@ -309,25 +310,18 @@ export default {
     },
 
     storageUsage() {
-      let out = 0;
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNodes = this.$store.getters[`${ inStore }/all`](LONGHORN.NODES) || [];
 
-      (this.longhornNode || []).forEach((node) => {
-        const diskStatus = node?.status?.diskStatus || {};
-
-        Object.values(diskStatus).map((disk) => {
-          if (disk?.conditions?.Schedulable?.status === 'True' && disk?.storageAvailable && disk?.storageMaximum) {
-            out += (disk.storageMaximum - disk.storageAvailable);
-          }
-        });
-      });
-
-      return out;
+      return longhornNodes.filter(node => node.spec?.allowScheduling).reduce((total, node) => {
+        return total + node.used;
+      }, 0);
     },
 
     storageReservedTotal() {
       let out = 0;
 
-      (this.longhornNode || []).forEach((node) => {
+      (this.longhornNode || []).filter(node => node.spec?.allowScheduling).forEach((node) => {
         const disks = node?.spec?.disks || {};
 
         Object.values(disks).map((disk) => {

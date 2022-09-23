@@ -67,11 +67,17 @@ export default {
 
   async fetch() {
     await this.reloadModel();
+
+    if ( this.value?.graphEndpoint ) {
+      this.setInitialEndpoint(this.value.graphEndpoint);
+    }
   },
 
   data() {
     return {
       endpoint:          'standard',
+      oldEndpoint:        false,
+
       // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
       // override the steve authconfig with a norman config the applicationSecret is lost
       applicationSecret: this.value.applicationSecret
@@ -143,9 +149,6 @@ export default {
       handler() {
         this.model.accessMode = this.model.accessMode || 'unrestricted';
         this.model.rancherUrl = this.model.rancherUrl || this.replyUrl;
-        if (this.endpoint !== 'custom') {
-          this.setEndpoints(this.endpoint);
-        }
 
         if (this.model.applicationSecret) {
           this.$set(this, 'applicationSecret', this.model.applicationSecret);
@@ -158,16 +161,32 @@ export default {
   methods: {
     setEndpoints(endpoint) {
       if (this.editConfig || !this.model.enabled) {
-        Object.keys(ENDPOINT_MAPPING[endpoint]).forEach((key) => {
+        const endpointType = this.oldEndpoint && endpoint !== 'custom' ? OLD_ENDPOINTS : ENDPOINT_MAPPING;
+
+        Object.keys(endpointType[endpoint]).forEach((key) => {
           this.$set(
             this.model,
             key,
-            ENDPOINT_MAPPING[endpoint][key].replace(
+            endpointType[endpoint][key].replace(
               TENANT_ID_TOKEN,
               this.model.tenantId
             )
           );
         });
+      }
+    },
+
+    setInitialEndpoint(endpoint) {
+      const newEndpointKey = Object.keys(ENDPOINT_MAPPING).find(key => ENDPOINT_MAPPING[key].graphEndpoint === endpoint);
+      const oldEndpointKey = Object.keys(OLD_ENDPOINTS).find(key => OLD_ENDPOINTS[key].graphEndpoint === endpoint);
+
+      if ( newEndpointKey ) {
+        this.endpoint = newEndpointKey;
+      } else if ( oldEndpointKey ) {
+        this.endpoint = oldEndpointKey;
+        this.oldEndpoint = true;
+      } else {
+        this.endpoint = 'custom';
       }
     },
 

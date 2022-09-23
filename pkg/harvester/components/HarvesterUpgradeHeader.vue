@@ -1,5 +1,6 @@
 <script>
-import { HCI, NODE } from '@shell/config/types';
+import { NODE } from '@shell/config/types';
+import { HCI } from '../types';
 import { allHash } from '@shell/utils/promise';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import PercentageBar from '@shell/components/PercentageBar';
@@ -133,7 +134,7 @@ export default {
               </div>
 
               <div class="col span-6">
-                {{ t('product.harvester') }}: <span class="text-muted">{{ repoInfo.release.harvester }}</span>
+                {{ t('harvester.productLabel') }}: <span class="text-muted">{{ repoInfo.release.harvester }}</span>
               </div>
             </div>
 

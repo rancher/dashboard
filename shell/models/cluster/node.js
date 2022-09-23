@@ -153,6 +153,14 @@ export default class ClusterNode extends SteveModel {
   }
 
   get cpuUsage() {
+    /*
+      With EKS nodes that have been migrated from norman,
+      cpu/memory usage is by the annotation `management.cattle.io/pod-requests`
+    */
+    if ( this.isFromNorman && this.provider === 'eks' ) {
+      return parseSi(this.podRequests.cpu || '0');
+    }
+
     return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.cpu || '0');
   }
 
@@ -165,6 +173,10 @@ export default class ClusterNode extends SteveModel {
   }
 
   get ramUsage() {
+    if ( this.isFromNorman && this.provider === 'eks' ) {
+      return parseSi(this.podRequests.memory || '0');
+    }
+
     return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.memory || '0');
   }
 
@@ -190,6 +202,10 @@ export default class ClusterNode extends SteveModel {
 
   get podConsumed() {
     return this.pods.length;
+  }
+
+  get podRequests() {
+    return JSON.parse(this.metadata.annotations['management.cattle.io/pod-requests'] || '{}');
   }
 
   get isPidPressureOk() {
@@ -368,14 +384,13 @@ export default class ClusterNode extends SteveModel {
   }
 
   get canDelete() {
-    const provider = this.$rootGetters['currentCluster'].provisioner.toLowerCase();
     const cloudProviders = [
       'aks', 'azureaks', 'azurekubernetesservice',
       'eks', 'amazoneks',
       'gke', 'googlegke'
     ];
 
-    return !cloudProviders.includes(provider);
+    return !cloudProviders.includes(this.provider);
   }
 
   // You need to preload CAPI.MACHINEs to use this
@@ -388,6 +403,14 @@ export default class ClusterNode extends SteveModel {
     }
 
     return null;
+  }
+
+  get isFromNorman() {
+    return (this.$rootGetters['currentCluster'].metadata.labels || {})['cattle.io/creator'] === 'norman';
+  }
+
+  get provider() {
+    return this.$rootGetters['currentCluster'].provisioner.toLowerCase();
   }
 }
 

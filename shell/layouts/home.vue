@@ -7,6 +7,7 @@ import { mapPref, DEV } from '@shell/store/prefs';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
+import { mapState } from 'vuex';
 
 export default {
 
@@ -29,7 +30,10 @@ export default {
     };
   },
 
-  computed: { dev: mapPref(DEV) },
+  computed: {
+    dev: mapPref(DEV),
+    ...mapState(['managementReady']),
+  },
 
   methods: {
     toggleTheme() {
@@ -47,7 +51,7 @@ export default {
     <AzureWarning />
 
     <div class="dashboard-content">
-      <Header :simple="true" />
+      <Header v-if="managementReady" :simple="true" />
 
       <main>
         <nuxt class="outlet" />

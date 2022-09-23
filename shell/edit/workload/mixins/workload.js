@@ -43,6 +43,7 @@ import { removeObject } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import formRulesGenerator from '@shell/utils/validators/formRules';
+import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -102,6 +103,15 @@ export default {
       type:    String,
       default: 'create',
     },
+
+    createOption: {
+      default: (text) => {
+        if (text) {
+          return { metadata: { name: text } };
+        }
+      },
+      type: Function
+    },
   },
 
   async fetch() {
@@ -148,21 +158,42 @@ export default {
 
     if (!this.value.spec) {
       this.value.spec = {};
+      if (this.value.type === WORKLOAD_TYPES.POD) {
+        const podContainers = [{
+          imagePullPolicy: 'Always',
+          name:            `container-0`,
+        }];
+
+        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] } } };
+
+        this.$set(this.value, 'spec', podSpec);
+      }
+    }
+
+    if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
+      const podSpec = { ...this.value.spec };
+
+      this.$set(this.value.spec, 'template', { spec: podSpec });
     }
 
     const spec = this.value.spec;
+    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+
+    let containers = podTemplateSpec.containers || [];
     let container;
-    const podTemplateSpec =
-      type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
-    let containers = podTemplateSpec.containers;
+
+    if (this.mode === _VIEW && this.value.type === 'pod' ) {
+      podTemplateSpec = spec;
+    }
 
     if (
       this.mode === _CREATE ||
       this.mode === _VIEW ||
-      (!createSidecar && !this.value.hasSidecars)
+      (!createSidecar && !this.value.hasSidecars) // hasSideCars = containers.length > 1 || initContainers.length;
     ) {
       container = containers[0];
     } else {
+      // This means that there are no containers.
       if (!podTemplateSpec.initContainers) {
         podTemplateSpec.initContainers = [];
       }
@@ -176,13 +207,15 @@ export default {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
         });
+
         containers = podTemplateSpec.initContainers;
       }
-      if (createSidecar) {
+      if (createSidecar || this.value.type === 'pod') {
         container = {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
         };
+
         containers.push(container);
       } else {
         container = containers[0];
@@ -217,13 +250,22 @@ export default {
       fvFormRuleSets:      [{
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
-      fvReportedValidationPaths: ['spec']
+      fvReportedValidationPaths: ['spec'],
+
     };
   },
 
   computed: {
     tabErrors() {
       return { general: this.fvGetPathErrors(['image'])?.length > 0 };
+    },
+
+    defaultTab() {
+      if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
+        return 'container-0';
+      }
+
+      return this.allContainers.length ? this.allContainers[0].name : '';
     },
 
     isEdit() {
@@ -249,6 +291,10 @@ export default {
 
     isDeployment() {
       return this.type === WORKLOAD_TYPES.DEPLOYMENT;
+    },
+
+    isPod() {
+      return this.value.type === WORKLOAD_TYPES.POD;
     },
 
     isStatefulSet() {
@@ -428,6 +474,12 @@ export default {
       } else {
         return this.allSecrets;
       }
+    },
+
+    imagePullNamespacedSecrets() {
+      const namespace = this.value?.metadata?.namespace;
+
+      return this.allSecrets.filter(secret => secret.metadata.namespace === namespace && (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
     },
 
     namespacedConfigMaps() {
@@ -882,7 +934,7 @@ export default {
       }
     },
     nvidiaIsValid(nvidiaGpuLimit) {
-      if (!Number.isInteger(nvidiaGpuLimit)) {
+      if ( !Number.isInteger(parseInt(nvidiaGpuLimit)) ) {
         return false;
       }
       if (nvidiaGpuLimit === undefined) {

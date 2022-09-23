@@ -7,7 +7,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
 import { get } from '@shell/utils/object';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import { sortBy } from '@shell/utils/sort';
 import { saferDump } from '@shell/utils/create-yaml';
 import { InterfaceOption } from '../config/harvester-map';
@@ -133,63 +133,61 @@ export default {
 </script>
 
 <template>
-  <div>
-    <CruResource
-      :done-route="doneRoute"
-      :resource="value"
+  <CruResource
+    :done-route="doneRoute"
+    :resource="value"
+    :mode="mode"
+    :errors="errors"
+    :generate-yaml="generateYaml"
+    :apply-hooks="applyHooks"
+    @finish="save"
+  >
+    <NameNsDescription :value="value" :namespaced="true" :mode="mode" />
+
+    <ResourceTabs
+      v-model="value"
+      class="mt-15"
+      :need-conditions="false"
+      :need-related="false"
+      :side-tabs="true"
       :mode="mode"
-      :errors="errors"
-      :generate-yaml="generateYaml"
-      :apply-hooks="applyHooks"
-      @finish="save"
     >
-      <NameNsDescription :value="value" :namespaced="true" :mode="mode" />
+      <Tab name="basic" :label="t('harvester.volume.tabs.basics')" :weight="3" class="bordered-table">
+        <LabeledSelect
+          v-model="source"
+          :label="t('harvester.volume.source')"
+          :options="sourceOption"
+          :disabled="!isCreate"
+          required
+          :mode="mode"
+          class="mb-20"
+          @input="update"
+        />
 
-      <ResourceTabs
-        v-model="value"
-        class="mt-15"
-        :need-conditions="false"
-        :need-related="false"
-        :side-tabs="true"
-        :mode="mode"
-      >
-        <Tab name="basic" :label="t('harvester.volume.tabs.basics')" :weight="3" class="bordered-table">
-          <LabeledSelect
-            v-model="source"
-            :label="t('harvester.volume.source')"
-            :options="sourceOption"
-            :disabled="!isCreate"
-            required
-            :mode="mode"
-            class="mb-20"
-            @input="update"
-          />
+        <LabeledSelect
+          v-if="isVMImage"
+          v-model="imageId"
+          :label="t('harvester.volume.image')"
+          :options="imageOption"
+          :disabled="!isCreate"
+          required
+          :mode="mode"
+          class="mb-20"
+          @input="update"
+        />
 
-          <LabeledSelect
-            v-if="isVMImage"
-            v-model="imageId"
-            :label="t('harvester.volume.image')"
-            :options="imageOption"
-            :disabled="!isCreate"
-            required
-            :mode="mode"
-            class="mb-20"
-            @input="update"
-          />
-
-          <UnitInput
-            v-model="storage"
-            :label="t('harvester.volume.size')"
-            :input-exponent="3"
-            :output-modifier="true"
-            :increment="1024"
-            :mode="mode"
-            required
-            class="mb-20"
-            @input="update"
-          />
-        </Tab>
-      </ResourceTabs>
-    </CruResource>
-  </div>
+        <UnitInput
+          v-model="storage"
+          :label="t('harvester.volume.size')"
+          :input-exponent="3"
+          :output-modifier="true"
+          :increment="1024"
+          :mode="mode"
+          required
+          class="mb-20"
+          @input="update"
+        />
+      </Tab>
+    </ResourceTabs>
+  </CruResource>
 </template>

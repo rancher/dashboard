@@ -1,9 +1,8 @@
 import { clone } from '@shell/utils/object';
-import { HCI } from '@shell/config/types';
-import HarvesterResource from './harvester';
-import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
+import { HCI } from '../../types';
+import HarvesterResource from '../harvester';
+import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
 
-// FIXME: Harvester Request for team to validate navigation (list, create, etc) for this resource type
 export default class HciConfigMap extends HarvesterResource {
   get detailLocation() {
     const detailLocation = clone(this._detailLocation);
@@ -19,7 +18,7 @@ export default class HciConfigMap extends HarvesterResource {
     delete detailLocation.params.namespace;
     delete detailLocation.params.id;
     detailLocation.params.resource = HCI.CLOUD_TEMPLATE;
-    detailLocation.name = `${ HARVESTER_PRODUCT }-cluster-product-resource`;
+    detailLocation.name = `${ HARVESTER_PRODUCT }-c-cluster-resource`;
 
     return detailLocation;
   }

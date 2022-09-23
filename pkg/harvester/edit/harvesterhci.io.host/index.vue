@@ -11,7 +11,8 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { HCI, LONGHORN } from '@shell/config/types';
+import { LONGHORN } from '@shell/config/types';
+import { HCI } from '../../types';
 import { allHash } from '@shell/utils/promise';
 import { formatSi } from '@shell/utils/units';
 import { findBy } from '@shell/utils/array';
@@ -239,7 +240,9 @@ export default {
       let forceFormatted = true;
       const systems = ['ext4', 'XFS'];
 
-      if (lastFormattedAt) {
+      if (disk.childParts?.length > 0) {
+        forceFormatted = true;
+      } else if (lastFormattedAt) {
         forceFormatted = false;
       } else if (systems.includes(disk?.status?.deviceStatus?.fileSystem?.type)) {
         forceFormatted = false;
@@ -359,7 +362,7 @@ export default {
             value:    d.id,
             action:   this.addDisk,
             kind:     !parentDevice ? 'group' : '',
-            disabled: !!(d.childParts.length > 0 || isChildAdded),
+            disabled: !!isChildAdded,
             group:    parentDevice || devPath,
             isParent: !!parentDevice,
           };

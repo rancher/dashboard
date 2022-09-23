@@ -1,7 +1,8 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
-import { CONFIG_MAP, SCHEMA, HCI } from '@shell/config/types';
+import { CONFIG_MAP, SCHEMA } from '@shell/config/types';
+import { HCI } from '../types';
 import { NAME, AGE, NAMESPACE } from '@shell/config/table-headers';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 

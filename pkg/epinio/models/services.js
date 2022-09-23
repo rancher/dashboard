@@ -1,5 +1,5 @@
 import { createEpinioRoute } from '@pkg/utils/custom-routing';
-import { EPINIO_TYPES } from '~/pkg/epinio/types';
+import { EPINIO_TYPES } from '../types';
 import EpinioNamespacedResource from './epinio-namespaced-resource';
 
 export default class EpinioServiceModel extends EpinioNamespacedResource {
@@ -88,6 +88,6 @@ export default class EpinioServiceModel extends EpinioNamespacedResource {
   }
 
   async remove() {
-    await this.delete(true); // TODO: RC wire in somehow
+    await this.delete(true);
   }
 }
