@@ -109,6 +109,7 @@ export default {
     top: 0;
     right: 0;
     width: 100%;
+    display: none;
 
     @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
       width: 350px;
