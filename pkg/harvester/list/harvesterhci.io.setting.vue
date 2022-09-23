@@ -3,7 +3,8 @@ import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { DEV } from '@shell/store/prefs';
-import { HCI, MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
+import { HCI } from '../types';
 import { allHash } from '@shell/utils/promise';
 import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '../config/settings';
 
@@ -81,7 +82,16 @@ export default {
       initSettings.push(s);
     });
 
-    this.initSettings = initSettings;
+    this.initSettings = initSettings.sort((a, b) => {
+      if (a.id < b.id) {
+        return -1;
+      }
+      if (a.id > b.id) {
+        return 1;
+      }
+
+      return 0;
+    });
   },
 
   data() {

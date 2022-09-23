@@ -8,7 +8,8 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ModalWithCard from '@shell/components/ModalWithCard';
 
-import { PVC, HCI } from '@shell/config/types';
+import { PVC } from '@shell/config/types';
+import { HCI } from '../../../types';
 import { clone } from '@shell/utils/object';
 import { removeObject } from '@shell/utils/array';
 import { randomStr } from '@shell/utils/string';
@@ -123,9 +124,8 @@ export default {
         const rows = neu.map((V) => {
           if (!this.isCreate && V.source !== SOURCE_TYPE.CONTAINER && !V.newCreateId) {
             V.to = {
-              name:   `${ HARVESTER_PRODUCT }-c-cluster-product-resource-namespace-id`,
+              name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-namespace-id`,
               params: {
-                product:   'harvester',
                 resource:  HCI.VOLUME,
                 namespace: this.namespace,
                 id:        V.realName

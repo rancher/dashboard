@@ -1,5 +1,6 @@
 import pickBy from 'lodash/pickBy';
-import { HCI, LONGHORN, POD, NODE } from '@shell/config/types';
+import { LONGHORN, POD, NODE } from '@shell/config/types';
+import { HCI } from '../../types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { clone } from '@shell/utils/object';
 import findLast from 'lodash/findLast';
@@ -10,6 +11,7 @@ import {
 import { parseSi } from '@shell/utils/units';
 import HarvesterResource from '../harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
+import { findBy } from '@shell/utils/array';
 
 const ALLOW_SYSTEM_LABEL_KEYS = [
   'topology.kubernetes.io/zone',
@@ -61,6 +63,20 @@ export default class HciNode extends HarvesterResource {
 
   get confirmRemove() {
     return true;
+  }
+
+  get consoleUrl() {
+    const url = this.metadata?.annotations?.[HCI_ANNOTATIONS.HOST_CONSOLE_URL];
+
+    if (!url) {
+      return false;
+    }
+
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `http://${ url }`;
+    }
+
+    return url;
   }
 
   get filteredSystemLabels() {
@@ -177,7 +193,7 @@ export default class HciNode extends HarvesterResource {
   }
 
   cordon() {
-    this.doAction('cordon', {});
+    this.doActionGrowl('cordon', {});
   }
 
   uncordon() {
@@ -240,6 +256,10 @@ export default class HciNode extends HarvesterResource {
     const diskSpec = longhornNode?.spec?.disks || {};
 
     const longhornDisks = Object.keys(diskStatus).map((key) => {
+      const conditions = diskStatus[key]?.conditions || [];
+      const readyCondition = findBy(conditions, 'type', 'Ready') || {};
+      const schedulableCondition = findBy(conditions, 'type', 'Schedulable') || {};
+
       return {
         ...diskSpec[key],
         ...diskStatus[key],
@@ -248,8 +268,8 @@ export default class HciNode extends HarvesterResource {
         storageAvailable:      diskStatus[key]?.storageAvailable,
         storageMaximum:        diskStatus[key]?.storageMaximum,
         storageScheduled:      diskStatus[key]?.storageScheduled,
-        readyCondiction:       diskStatus[key]?.conditions?.Ready || {},
-        schedulableCondiction: diskStatus[key]?.conditions?.Schedulable || {}
+        readyCondition,
+        schedulableCondition,
       };
     });
 

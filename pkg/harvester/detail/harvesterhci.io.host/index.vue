@@ -2,9 +2,8 @@
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import metricPoller from '@shell/mixins/metric-poller';
-import {
-  METRIC, NODE, HCI, LONGHORN, POD
-} from '@shell/config/types';
+import { METRIC, NODE, LONGHORN, POD } from '@shell/config/types';
+import { HCI } from '../../types';
 import { allHash } from '@shell/utils/promise';
 import { formatSi } from '@shell/utils/units';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';

@@ -24,7 +24,6 @@ export const HCI_SETTING = {
   RELEASE_DOWNLOAD_URL:             'release-download-url'
 };
 
-// harvester Settings ID
 export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.BACKUP_TARGET]: { kind: 'json', from: 'import' },
   [HCI_SETTING.LOG_LEVEL]:     {

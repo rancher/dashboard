@@ -131,8 +131,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail
-
+  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail, importDialog
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -217,7 +216,7 @@ export function DSL(store, product, module = 'type-map') {
     headers(type, headers) {
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
-        if (process.client && header.getValue) {
+        if (header.getValue) {
           header.value = header.getValue;
         }
 
@@ -1090,24 +1089,11 @@ export const getters = {
     };
   },
 
-  hasCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
+  hasCustomPromptRemove(state, getters, rootState) {
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
 
-      const cache = state.cache.promptRemove;
-
-      if ( cache[type] !== undefined ) {
-        return cache[type];
-      }
-
-      try {
-        require.resolve(`@shell/promptRemove/${ type }`);
-        cache[type] = true;
-      } catch (e) {
-        cache[type] = false;
-      }
-
-      return cache[type];
+      return hasCustom(state, rootState, 'promptRemove', key, () => require.resolve(`@shell/promptRemove/${ key }`));
     };
   },
 
@@ -1122,6 +1108,12 @@ export const getters = {
   importComponent(state, getters) {
     return (path) => {
       return importEdit(path);
+    };
+  },
+
+  importDialog(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'dialog', getters.componentFor(rawType, subType), importDialog);
     };
   },
 
@@ -1143,11 +1135,9 @@ export const getters = {
     };
   },
 
-  importCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
-
-      return importCustomPromptRemove(type);
+  importCustomPromptRemove(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'promptRemove', getters.componentFor(rawType, subType), importCustomPromptRemove);
     };
   },
 
@@ -1554,7 +1544,7 @@ export const mutations = {
     let obj = { ...options, match };
 
     if ( idx >= 0 ) {
-      obj = Object.assign(obj, state.typeOptions[idx]);
+      obj = Object.assign(state.typeOptions[idx], obj);
       state.typeOptions.splice(idx, 1, obj);
     } else {
       const obj = Object.assign({}, options, { match });

@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,
@@ -34,7 +34,13 @@ export default class HciVmImage extends HarvesterResource {
         enabled:    canCreateVM,
         icon:       'icon icon-fw icon-spinner',
         label:      this.t('harvester.action.createVM'),
-        disabled:   !this.isReady, // FIXME: Harvester does this still work as expected?
+        disabled:   !this.isReady,
+      },
+      {
+        action:     'download',
+        enabled:    this.links?.download,
+        icon:       'icon icon-download',
+        label:      this.t('asyncButton.download.action'),
       },
       ...out
     ];
@@ -236,5 +242,9 @@ export default class HciVmImage extends HarvesterResource {
       },
       ...out
     ];
+  }
+
+  download() {
+    window.location.href = this.links.download;
   }
 }

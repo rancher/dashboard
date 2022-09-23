@@ -5,7 +5,8 @@ import MessageLink from '@shell/components/MessageLink';
 import ResourceTable from '@shell/components/ResourceTable';
 
 import { NAME, AGE, NAMESPACE } from '@shell/config/table-headers';
-import { HCI, NETWORK_ATTACHMENT, SCHEMA } from '@shell/config/types';
+import { NETWORK_ATTACHMENT, SCHEMA } from '@shell/config/types';
+import { HCI } from '../types';
 
 import { findBy } from '@shell/utils/array';
 import { allHash } from '@shell/utils/promise';

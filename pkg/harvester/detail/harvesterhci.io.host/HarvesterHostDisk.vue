@@ -2,6 +2,7 @@
 import LabelValue from '@shell/components/LabelValue';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
+import HarvesterDisk from '../../mixins/harvester-disk';
 
 export default {
   components: {
@@ -9,6 +10,10 @@ export default {
     BadgeState,
     Banner,
   },
+
+  mixins: [
+    HarvesterDisk,
+  ],
 
   props:      {
     value: {
@@ -48,14 +53,6 @@ export default {
         label: this.t('generic.no'),
         value: false,
       }];
-    },
-
-    readyCondiction() {
-      return this.value?.conditions?.Ready || {};
-    },
-
-    schedulableCondiction() {
-      return this.value?.conditions?.Schedulable || {};
     },
 
     provisionPhase() {
@@ -106,16 +103,16 @@ export default {
           <div class="pull-right">
             Conditions:
             <BadgeState
-              v-tooltip="readyCondiction.message"
-              :color="readyCondiction.status === 'True' ? 'bg-success' : 'bg-error' "
-              :icon="readyCondiction.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
+              v-tooltip="readyCondition.message"
+              :color="readyCondition.status === 'True' ? 'bg-success' : 'bg-error' "
+              :icon="readyCondition.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
               label="Ready"
               class="mr-10 ml-10 state"
             />
             <BadgeState
-              v-tooltip="schedulableCondiction.message"
-              :color="schedulableCondiction.status === 'True' ? 'bg-success' : 'bg-error' "
-              :icon="schedulableCondiction.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
+              v-tooltip="schedulableCondition.message"
+              :color="schedulableCondition.status === 'True' ? 'bg-success' : 'bg-error' "
+              :icon="schedulableCondition.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
               label="Schedulable"
               class="mr-10 state"
             />

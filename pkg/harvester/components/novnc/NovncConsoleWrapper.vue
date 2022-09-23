@@ -2,7 +2,7 @@
 import KeyTable from '@novnc/novnc/core/input/keysym';
 import NovncConsole from './NovncConsole';
 import NovncConsoleItem from './NovncConsoleItem';
-import { HCI } from '@shell/config/types';
+import { HCI } from '../../types';
 
 const SHORT_KEYS = {
   ControlLeft: {

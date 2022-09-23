@@ -2,7 +2,7 @@ import { mapGetters } from 'vuex';
 import {
   COUNT, MANAGEMENT, POD, WORKLOAD_TYPES, WORKLOAD, SECRET
 } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
+import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
@@ -33,6 +33,8 @@ export default {
       } catch (e) {
         console.warn('ui-performance setting contains invalid data'); // eslint-disable-line no-console
       }
+    } else {
+      perfConfig = DEFAULT_PERF_SETTING;
     }
 
     return {

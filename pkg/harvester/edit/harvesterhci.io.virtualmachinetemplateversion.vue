@@ -15,7 +15,7 @@ import CpuMemory from './kubevirt.io.virtualmachine/VirtualMachineCpuMemory';
 import CloudConfig from './kubevirt.io.virtualmachine/VirtualMachineCloudConfig';
 import SSHKey from './kubevirt.io.virtualmachine/VirtualMachineSSHKey';
 
-import { HCI } from '@shell/config/types';
+import { HCI } from '../types';
 import { randomStr } from '@shell/utils/string';
 import { RunStrategys } from '../config/harvester-map';
 import { _CONFIG, _EDIT, _VIEW } from '@shell/config/query-params';

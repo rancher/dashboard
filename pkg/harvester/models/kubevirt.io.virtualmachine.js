@@ -1,7 +1,8 @@
 import Vue from 'vue';
 import { load } from 'js-yaml';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
-import { POD, NODE, HCI, PVC } from '@shell/config/types';
+import { POD, NODE, PVC } from '@shell/config/types';
+import { HCI } from '../types';
 import { findBy } from '@shell/utils/array';
 import { parseSi } from '@shell/utils/units';
 import { get } from '@shell/utils/object';
@@ -80,6 +81,12 @@ const IgnoreMessages = ['pod has unbound immediate PersistentVolumeClaims'];
 export default class VirtVm extends HarvesterResource {
   get availableActions() {
     const out = super._availableActions;
+
+    const clone = out.find(action => action.action === 'goToClone');
+
+    if (clone) {
+      clone.action = 'goToCloneVM';
+    }
 
     return [
       {
@@ -242,6 +249,23 @@ export default class VirtVm extends HarvesterResource {
         interfaces[i].macAddress = '';
       }
     }
+
+    // delete, spec?.dataSource:  The original data should not be saved when clone template
+    let volumeClaimTemplate = [];
+
+    try {
+      volumeClaimTemplate = JSON.parse(this.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]);
+    } catch (e) {}
+
+    const deleteDataSource = volumeClaimTemplate.map((volume) => {
+      if (volume?.spec?.dataSource) {
+        delete volume.spec.dataSource;
+      }
+
+      return volume;
+    });
+
+    this.metadata.annotations[HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE] = JSON.stringify(deleteDataSource);
   }
 
   restartVM() {
@@ -312,6 +336,13 @@ export default class VirtVm extends HarvesterResource {
 
   pauseVM() {
     this.doActionGrowl('pause', {});
+  }
+
+  goToCloneVM(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'CloneVmDialog'
+    });
   }
 
   unpauseVM() {

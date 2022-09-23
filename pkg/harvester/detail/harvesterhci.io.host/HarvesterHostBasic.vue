@@ -3,7 +3,8 @@ import LabelValue from '@shell/components/LabelValue';
 import { Banner } from '@components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { LONGHORN, METRIC, HCI } from '@shell/config/types';
+import { LONGHORN, METRIC } from '@shell/config/types';
+import { HCI } from '../../types';
 import HarvesterCPUUsed from '../../formatters/HarvesterCPUUsed';
 import HarvesterMemoryUsed from '../../formatters/HarvesterMemoryUsed';
 import HarvesterStorageUsed from '../../formatters/HarvesterStorageUsed';
@@ -116,50 +117,12 @@ export default {
       return out;
     },
 
-    storageUsage() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
-      let out = 0;
-
-      const diskStatus = longhornNode?.status?.diskStatus || {};
-
-      Object.values(diskStatus).map((disk) => {
-        if (disk?.storageAvailable && disk?.storageMaximum) {
-          out += disk.storageMaximum - disk.storageAvailable;
-        }
-      });
-
-      return out;
-    },
-
-    storageTotal() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const longhornNode = this.$store.getters[`${ inStore }/byId`](LONGHORN.NODES, `longhorn-system/${ this.value.id }`);
-      let out = 0;
-
-      const diskStatus = longhornNode?.status?.diskStatus || {};
-
-      Object.values(diskStatus).map((disk) => {
-        if (disk?.storageMaximum) {
-          out += disk.storageMaximum;
-        }
-      });
-
-      return out;
-    },
-
     cpuUnits() {
       return 'C';
     },
 
     memoryUnits() {
       const exponent = exponentNeeded(this.memoryTotal, 1024);
-
-      return `${ UNITS[exponent] }iB`;
-    },
-
-    storageUnits() {
-      const exponent = exponentNeeded(this.storageTotal, 1024);
 
       return `${ UNITS[exponent] }iB`;
     },

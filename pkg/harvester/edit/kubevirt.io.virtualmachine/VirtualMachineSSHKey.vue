@@ -6,7 +6,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ModalWithCard from '@shell/components/ModalWithCard';
 
-import { HCI } from '@shell/config/types';
+import { HCI } from '../../types';
 import { clone } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
 

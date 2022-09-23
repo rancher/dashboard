@@ -1,11 +1,12 @@
 {
   "name": "epinio",
   "description": "Application Development Engine for Kubernetes",
+  "icon": "https://raw.githubusercontent.com/rancher/dashboard/0b6cbe93e9ed3292294da178f119a500cc494db9/pkg/epinio/assets/logo-epinio.svg",
   "version": "0.6.2",
   "private": false,
   "rancher": true,
   "license": "Apache-2.0",
-  "author": "SUSE",  
+  "author": "SUSE",
   "scripts": {
     "dev": "./node_modules/.bin/nuxt dev",
     "nuxt": "./node_modules/.bin/nuxt"

@@ -1,7 +1,8 @@
 import jsyaml from 'js-yaml';
 import isEqual from 'lodash/isEqual';
 import { clone } from '@shell/utils/object';
-import { HCI, SECRET } from '@shell/config/types';
+import { SECRET } from '@shell/config/types';
+import { HCI } from '../../types';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { OS } from './index';
 
@@ -110,11 +111,25 @@ export default {
       return !!spec?.template?.spec?.domain?.firmware?.bootloader?.efi?.secureBoot;
     },
 
-    getSecretCloudData(spec, type) {
+    getCloudInitNoCloud(spec) {
       const secret = this.getSecret(spec);
+      let userData = secret?.decodedData?.userdata;
+      let networkData = secret?.decodedData?.networkdata;
 
-      const userData = secret?.decodedData?.userdata;
-      const networkData = secret?.decodedData?.networkdata;
+      const cloudInitNoCloud = spec?.template?.spec?.volumes?.find( (V) => {
+        return V.name === 'cloudinitdisk';
+      })?.cloudInitNoCloud || {};
+
+      // If the value is not found inside the secret, the data may be written directly in the yaml
+      if (cloudInitNoCloud?.userData) {
+        userData = cloudInitNoCloud.userData;
+        this.saveUserDataAsClearText = true;
+      }
+
+      if (cloudInitNoCloud?.networkData) {
+        networkData = cloudInitNoCloud.networkData;
+        this.saveNetworkDataAsClearText = true;
+      }
 
       return { userData, networkData };
     },
@@ -213,7 +228,7 @@ export default {
 
     mergeAllSSHs(spec) {
       const keys = this.getSSHFromAnnotation(spec);
-      const { userScript: userData } = this.getSecretCloudData(spec);
+      const { userScript: userData } = this.getCloudInitNoCloud(spec);
 
       if (!keys?.length < 0 && !userData) {
         return [];

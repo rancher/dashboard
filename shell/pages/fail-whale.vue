@@ -11,7 +11,7 @@ export default {
   data() {
     const store = this.$store;
 
-    if ( process.client && !store.state.error && !store.state.cameFromError) {
+    if (!store.state.error && !store.state.cameFromError) {
       store.commit('cameFromError');
       this.$router.replace('/');
     }

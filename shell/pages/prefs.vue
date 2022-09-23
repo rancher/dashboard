@@ -11,11 +11,12 @@ import {
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
+import LocaleSelector from '@shell/components/LocaleSelector';
 
 export default {
   layout:     'plain',
   components: {
-    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference
+    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector
   },
   mixins:     [BackRoute],
   computed:   {
@@ -137,7 +138,7 @@ export default {
         this.hideDesc = val;
       }
     },
-  },
+  }
 };
 </script>
 
@@ -146,6 +147,13 @@ export default {
     <BackLink :link="backLink" />
     <h1 v-t="'prefs.title'" />
 
+    <h4 v-t="'prefs.language'" />
+    <div class="row">
+      <div class="col span-4">
+        <LocaleSelector />
+      </div>
+    </div>
+    <hr />
     <h4 v-t="'prefs.theme.label'" />
     <div>
       <ButtonGroup v-model="theme" :options="themeOptions" />
@@ -159,8 +167,11 @@ export default {
       <LandingPagePreference />
     </div>
     <hr />
-    <h4 v-t="'prefs.formatting'" />
-    <div class="row">
+    <h4 v-t="'prefs.displaySettings.title'" />
+    <p class="set-landing-leadin">
+      {{ t('prefs.displaySettings.detail', {}, raw=true) }}
+    </p>
+    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model="dateFormat"
@@ -175,7 +186,9 @@ export default {
           :options="timeOptions"
         />
       </div>
+    </div>
 
+    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model.number="perPage"
@@ -186,9 +199,6 @@ export default {
           placeholder="Select a row count"
         />
       </div>
-    </div>
-
-    <div class="row mt-20">
       <div class="col span-4">
         <LabeledSelect
           v-model.number="menuMaxClusters"
@@ -207,7 +217,7 @@ export default {
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
         <p class="wrap-text">
-          {{ t('prefs.advancedTooltip', {}, raw=true) }}
+          {{ t('prefs.advancedTooltip') }}
         </p>
         <br>
         <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />

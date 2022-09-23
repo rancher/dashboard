@@ -4,7 +4,8 @@ import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import HarvesterSupportBundle from '../../../../dialog/HarvesterSupportBundle';
 import CommunityLinks from '@shell/components/CommunityLinks';
-import { SCHEMA, HCI } from '@shell/config/types';
+import { SCHEMA } from '@shell/config/types';
+import { HCI } from '../../../../types';
 
 export default {
   layout: 'home',

@@ -1,6 +1,7 @@
 import { ClusterNotFoundError } from '@shell/utils/error';
 import { SETTING } from '@shell/config/settings';
-import { COUNT, NAMESPACE, MANAGEMENT, HCI } from '@shell/config/types';
+import { COUNT, NAMESPACE, MANAGEMENT } from '@shell/config/types';
+import { HCI } from '../../types';
 import { allHash } from '@shell/utils/promise';
 import { NAMESPACE_FILTERS } from '@shell/store/prefs';
 import { NAMESPACE_FILTER_ALL_USER as ALL_USER } from '@shell/utils/namespace-filter';

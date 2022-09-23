@@ -16,7 +16,7 @@ import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import {
-  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
+  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
 } from '@shell/config/types';
 import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
@@ -29,6 +29,7 @@ import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
+import { getProductFromRoute } from '@shell/middleware/authenticated';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -51,15 +52,19 @@ export default {
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
 
+  // Note - This will not run on route change
   data() {
     return {
-      groups:         [],
-      gettingGroups:  false,
-      wantNavSync:    false,
+      groups:                        [],
+      gettingGroups:                 false,
+      wantNavSync:                   false,
     };
   },
 
-  middleware: ['authenticated'],
+  // Note - These will run on route change
+  middleware: [
+    'authenticated'
+  ],
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
@@ -98,7 +103,7 @@ export default {
     },
 
     allSchemas() {
-      const managementReady = this.$store.getters['managementReady'];
+      const managementReady = this.managementReady;
       const product = this.$store.getters['currentProduct'];
 
       if ( !managementReady || !product ) {
@@ -117,7 +122,7 @@ export default {
     },
 
     counts() {
-      const managementReady = this.$store.getters['managementReady'];
+      const managementReady = this.managementReady;
       const product = this.$store.getters['currentProduct'];
 
       if ( !managementReady || !product ) {
@@ -143,13 +148,11 @@ export default {
     },
 
     displayVersion() {
-      let { displayVersion } = getVersionInfo(this.$store);
-
-      if (this.isVirtualProduct && this.isSingleProduct) {
-        const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
-
-        displayVersion = setting?.value || 'unknown';
+      if (this.isSingleProduct?.getVersionInfo) {
+        return this.isSingleProduct?.getVersionInfo(this.$store);
       }
+
+      const { displayVersion } = getVersionInfo(this.$store);
 
       return displayVersion;
     },
@@ -185,26 +188,36 @@ export default {
      * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
      */
     clusterAndRouteReady() {
-      return this.clusterReady && this.clusterId === this.$route?.params?.cluster;
+      return this.clusterReady &&
+        this.clusterId === this.$route?.params?.cluster &&
+        this.currentProduct?.name === getProductFromRoute(this.$route);
     },
 
   },
 
   watch: {
-    counts() {
-      this.queueUpdate();
+    counts(a, b) {
+      if ( a !== b ) {
+        this.queueUpdate();
+      }
     },
 
-    allSchemas() {
-      this.queueUpdate();
+    allSchemas(a, b) {
+      if ( a !== b ) {
+        this.queueUpdate();
+      }
     },
 
-    allNavLinks() {
-      this.queueUpdate();
+    allNavLinks(a, b) {
+      if ( a !== b ) {
+        this.queueUpdate();
+      }
     },
 
-    favoriteTypes() {
-      this.queueUpdate();
+    favoriteTypes(a, b) {
+      if ( !isEqual(a, b) ) {
+        this.queueUpdate();
+      }
     },
 
     locale(a, b) {

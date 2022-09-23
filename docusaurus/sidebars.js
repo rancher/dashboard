@@ -21,7 +21,7 @@ const sidebars = {
   tutorialSidebar: [
     {
       type:  'category',
-      label: 'Getting Stated',
+      label: 'Getting Started',
       items: ['getting-started/concepts', 'getting-started/development_environment', 'getting-started/ui-walkthrough'],
     },
     {

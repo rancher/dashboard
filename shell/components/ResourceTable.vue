@@ -116,7 +116,12 @@ export default {
     getCustomDetailLink: {
       type:    Function,
       default: null
-    }
+    },
+
+    ignoreFilter: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -197,7 +202,7 @@ export default {
       const isAll = this.$store.getters['isAllNamespaces'];
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources)) {
+      if ( !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources) || this.ignoreFilter) {
         return this.rows || [];
       }
 

@@ -54,7 +54,7 @@ export class PluginRoutes {
 
             break;
           } else {
-            // Need to updare the previous item so that when it is removed, it restores the correct route
+            // Need to update the previous item so that when it is removed, it restores the correct route
             const previous = info[index - 1];
 
             previous.route = savedRoute.route;
@@ -66,6 +66,14 @@ export class PluginRoutes {
       }
     });
 
+    // Remove routes from pluginRoutes, update matcher (to avoid dupes when re-adding plugin routes)
+    this.pluginRoutes = this.pluginRoutes.filter(pR => !plugin.routes.find((r: any) => pR === r.route));
+    this.updateMatcher([], [
+      ...this.pluginRoutes,
+      ...(this.router.options.routes || [])
+    ]);
+
+    // Restore appropriate routes
     if (restore.length > 0) {
       this.addRoutes(null, restore);
     }
@@ -76,7 +84,6 @@ export class PluginRoutes {
       ...this.pluginRoutes,
       ...(this.router.options.routes || [])
     ];
-    let replaced = 0;
 
     // Need to take into account if routes are being replaced
     // Despite what the docs say, routes are not replaced, so we use a workaround
@@ -112,16 +119,23 @@ export class PluginRoutes {
         }
 
         allRoutes.splice(existing, 1);
-        replaced++;
       }
     });
 
-    const newRouter: Router = replaced > 0 ? new Router({
+    this.updateMatcher(routes, allRoutes);
+  }
+
+  private updateMatcher(newRoutes: RouteInfo[], allRoutes: RouteConfig[]) {
+    // Note - Always use a new router and replace the existing router's matching
+    // Using the existing router and adding routes to it will force nuxt middleware (specifically authenticated on default layout) to
+    // execute many times (nuxt middleware boils down to router.beforeEach). This issue was seen refreshing in a harvester cluster with a
+    // dynamically loaded cluster
+    const newRouter: Router = new Router({
       mode:   'history',
       routes: allRoutes
-    }) : this.router;
+    });
 
-    routes.forEach((r: any) => {
+    newRoutes.forEach((r: any) => {
       if (r.parent) {
         newRouter.addRoute(r.parent, r.route);
       } else {
@@ -129,14 +143,8 @@ export class PluginRoutes {
       }
       this.pluginRoutes.push(r.route);
     });
-    if (replaced > 0) {
-      // Typing is incorrect
-      (this.router as any).matcher = (newRouter as any).matcher;
-    }
 
-    // If we replaced any routes, then we should reload on uninstall
-    if (plugin) {
-      plugin.reloadOnUninstall = replaced > 0;
-    }
+    // Typing is incorrect
+    (this.router as any).matcher = (newRouter as any).matcher;
   }
 }
