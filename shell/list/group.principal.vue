@@ -10,13 +10,11 @@ import { MODE, _EDIT } from '@shell/config/query-params';
 import { mapState } from 'vuex';
 import { BLANK_CLUSTER } from '@shell/store';
 import { allHash } from '@shell/utils/promise';
-import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
     AsyncButton, ResourceTable, Masthead, Loading
   },
-  mixins: [ResourceFetch],
   props:  {
     resource: {
       type:     String,
@@ -26,21 +24,6 @@ export default {
     schema: {
       type:     Object,
       required: true,
-    },
-
-    loadResources: {
-      type:    Array,
-      default: () => []
-    },
-
-    loadIndeterminate: {
-      type:    Boolean,
-      default: false
-    },
-
-    incrementalLoadingIndicator: {
-      type:    Boolean,
-      default: false
     },
   },
   async fetch() {
@@ -117,7 +100,11 @@ export default {
       // type's `getInstance` fn as it hasn't been registered (`instanceMethods` in type-map file is empty)
       await applyProducts(this.$store);
 
-      this.rows = await this.$fetchType(NORMAN.SPOOFED.GROUP_PRINCIPAL);
+      // Force spoofed type getInstances to execute again
+      this.rows = await this.$store.dispatch('management/findAll', {
+        type: NORMAN.SPOOFED.GROUP_PRINCIPAL,
+        opt:  { force }
+      }, { root: true });
     }
   },
 
@@ -130,9 +117,6 @@ export default {
     <Masthead
       :schema="schema"
       :resource="resource"
-      :show-incremental-loading-indicator="incrementalLoadingIndicator"
-      :load-resources="loadResources"
-      :load-indeterminate="loadIndeterminate"
     >
       <template slot="extraActions">
         <AsyncButton
