@@ -26,37 +26,11 @@ export default {
       },
     },
 
-    namespace: {
-      type:    String,
-      default: null,
-    },
-
     container: {
       type:     Object,
       default: () => {
         return {};
       },
-    },
-
-    savePvcHookName: {
-      type:     String,
-      required: true,
-    },
-
-    // namespaced configmaps and secrets
-    configMaps: {
-      type:    Array,
-      default: () => [],
-    },
-
-    secrets: {
-      type:    Array,
-      default: () => [],
-    },
-
-    registerBeforeHook: {
-      type:    Function,
-      default: null,
     },
   },
 
@@ -89,7 +63,7 @@ export default {
 
       return this.value.volumes.filter(vol => !containerVolumes.includes(vol.name)).map((item) => {
         return {
-          label:  item.name,
+          label:  `${ item.name } (${ this.headerFor(item) })`,
           action: this.selectVolume,
           value:  item.name
         };
@@ -202,12 +176,18 @@ export default {
       this.container.volumeMounts.push({ name });
     },
 
-    volumeType(vol) {
-      const type = Object.keys(vol).filter(
-        key => typeof vol[key] === 'object'
+    headerFor(value) {
+      const type = Object.keys(value).filter(
+        key => typeof value[key] === 'object'
       )[0];
 
-      return type;
+      if (
+        this.$store.getters['i18n/exists'](`workload.storage.subtypes.${ type }`)
+      ) {
+        return this.t(`workload.storage.subtypes.${ type }`);
+      } else {
+        return type;
+      }
     },
 
     openPopover() {
@@ -232,7 +212,7 @@ export default {
     >
       <!-- Custom/default storage volume form -->
       <template #default="props">
-        <h3>Volume: {{ props.row.value.name }}</h3>
+        <h3>{{ props.row.value.name }} ({{ headerFor(props.row.value) }})</h3>
         <Mount
           :container="container"
           :name="props.row.value.name"
