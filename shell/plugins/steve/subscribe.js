@@ -1,7 +1,7 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { COUNT, MANAGEMENT, SCHEMA } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
+import { COUNT, SCHEMA } from '@shell/config/types';
+import { getPerformanceSetting } from '@shell/config/settings';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
@@ -130,6 +130,10 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
   }
 }
 
+function growlsDisabled(rootGetters) {
+  return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
+}
+
 export const actions = {
   subscribe(ctx, opt) {
     const {
@@ -156,7 +160,9 @@ export const actions = {
       socket.setAutoReconnect(true);
       socket.setUrl(url);
     } else {
-      socket = new Socket(`${ state.config.baseUrl }/subscribe`);
+      const maxTries = growlsDisabled(rootGetters) ? null : 3;
+
+      socket = new Socket(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
 
       commit('setSocket', socket);
       socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -188,7 +194,7 @@ export const actions = {
       });
     }
 
-    socket.connect(get(opt, 'metadata'));
+    socket.connect(get(opt, 'metadata') );
   },
 
   unsubscribe({ commit, getters, state }) {
@@ -403,12 +409,7 @@ export const actions = {
     const socket = event.currentTarget;
     const tries = event?.detail?.tries; // have to pull it off of the event because the socket's tries is already reset to 0
     const t = rootGetters['i18n/t'];
-    const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
-    let disableGrowl = true;
-
-    if ( perfSetting?.value ) {
-      disableGrowl = JSON.parse(perfSetting.value).disableWebsocketNotification !== false;
-    }
+    const disableGrowl = growlsDisabled(rootGetters);
 
     this.$socket = socket;
 
@@ -466,12 +467,7 @@ export const actions = {
     state.queueTimer = null;
 
     // determine if websocket notifications are disabled
-    const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
-    let disableGrowl = true;
-
-    if ( perfSetting?.value ) {
-      disableGrowl = JSON.parse(perfSetting.value).disableWebsocketNotification !== false;
-    }
+    const disableGrowl = growlsDisabled(rootGetters);
 
     if (!disableGrowl) {
       const dateFormat = escapeHtml( rootGetters['prefs/get'](DATE_FORMAT));
