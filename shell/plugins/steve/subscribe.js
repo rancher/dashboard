@@ -156,7 +156,15 @@ export const actions = {
       socket.setAutoReconnect(true);
       socket.setUrl(url);
     } else {
-      socket = new Socket(`${ state.config.baseUrl }/subscribe`);
+      const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+      let disableGrowl = true;
+
+      if ( perfSetting?.value ) {
+        disableGrowl = JSON.parse(perfSetting.value).disableWebsocketNotification !== false;
+      }
+      const maxTries = disableGrowl ? null : 3;
+
+      socket = new Socket(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
 
       commit('setSocket', socket);
       socket.addEventListener(EVENT_CONNECTED, (e) => {
