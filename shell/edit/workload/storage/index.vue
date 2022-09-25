@@ -32,13 +32,6 @@ export default {
       default: null,
     },
 
-    container: {
-      type:     Object,
-      default: () => {
-        return {};
-      },
-    },
-
     savePvcHookName: {
       type:     String,
       required: true,
@@ -72,10 +65,7 @@ export default {
   data() {
     this.initializeStorage();
 
-    return {
-      pvcs:           [],
-      storageVolumes: this.value.volumes,
-    };
+    return { pvcs: [] };
   },
 
   computed: {
@@ -143,9 +133,6 @@ export default {
      * Initialize missing values for the container
      */
     initializeStorage() {
-      if (!this.container.volumeMounts) {
-        //   this.$set(this.container, 'volumeMounts', []);
-      }
       if (!this.value.volumes) {
         this.$set(this.value, 'volumes', []);
       }
@@ -157,26 +144,26 @@ export default {
     removeVolume(volume) {
       const removeName = volume.row.value.name;
 
-      this.storageVolumes = this.storageVolumes.filter(({ name }) => name !== removeName);
+      this.value.volumes = this.value.volumes.filter(({ name }) => name !== removeName);
     },
 
     addVolume(type) {
       const name = `vol-${ randomStr(5).toLowerCase() }`;
 
       if (type === 'createPVC') {
-        this.storageVolumes.push({
+        this.value.volumes.push({
           _type:                 'createPVC',
           persistentVolumeClaim: {},
           name,
         });
       } else if (type === 'csi') {
-        this.storageVolumes.push({
+        this.value.volumes.push({
           _type: type,
           csi:   { volumeAttributes: {} },
           name,
         });
       } else {
-        this.storageVolumes.push({
+        this.value.volumes.push({
           _type:  type,
           [type]: {},
           name,
@@ -262,8 +249,8 @@ export default {
   <div>
     <!-- Storage Volumes -->
     <ArrayListGrouped
-      :key="storageVolumes.length"
-      v-model="storageVolumes"
+      :key="value.volumes.length"
+      v-model="value.volumes"
       :mode="mode"
       @remove="removeVolume"
     >

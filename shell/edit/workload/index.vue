@@ -233,7 +233,6 @@ export default {
                 :mode="mode"
                 :secrets="namespacedSecrets"
                 :config-maps="namespacedConfigMaps"
-                :container="container"
                 :save-pvc-hook-name="savePvcHookName"
                 @removePvcForm="clearPvcFormState"
               />
