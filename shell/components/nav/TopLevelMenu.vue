@@ -98,7 +98,7 @@ export default {
 
       const out = search ? this.clusters.filter(item => item.label.toLowerCase().includes(search)) : this.clusters;
 
-      const sorted = sortBy(out, ['ready:desc', 'label']);
+      const sorted = sortBy(out, ['name:desc', 'label']);
 
       return sorted;
     },
