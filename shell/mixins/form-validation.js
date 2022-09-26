@@ -13,6 +13,8 @@ export default {
        * rootObject (optional): redirects the path to the object passed here,
        * translationKey (optional): defines the displaykey, overrides displaykeys that may otherwise be passed into the translation
        *
+       * NOTE: path of type 'value.value' will be only 'value'
+       *
        * Example:
        * {
        *   path:  'container.image',
