@@ -5,7 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import KeyValue from '@shell/components/form/KeyValue';
 
 import { isEmpty } from '@shell/utils/object';
-import { HOSTNAME, HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HOSTNAME } from '@shell/config/labels-annotations';
 
 export default {
   components: {
@@ -81,8 +81,6 @@ export default {
       switch (this.selectNode) {
       case 'all':
         delete this.value?.nodeSelector;
-
-        Object.assign(this.value, { nodeSelector: { [HCI_LABELS_ANNOTATIONS.MANAGED]: 'true' } });
 
         break;
       case 'nodeSelector':

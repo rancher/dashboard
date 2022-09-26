@@ -37,5 +37,4 @@ export const HCI = {
   HOST_REQUEST:                 'management.cattle.io/pod-requests',
   STORAGE_CLASS:                'harvesterhci.io/storageClassName',
   PCI_DEVICE:                   'pcidevices.harvesterhci.io',
-  MANAGED:                      'harvesterhci.io/managed',
 };
