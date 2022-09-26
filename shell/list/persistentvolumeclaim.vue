@@ -25,18 +25,25 @@ export default {
     // Fetch storage classes so we can determine if a PVC can be expanded
     this.$store.dispatch(`${ inStore }/findAll`, { type: STORAGE_CLASS });
 
-    this.rows = await this.$fetchType(this.resource);
+    await this.$fetchType(this.resource);
   },
 
-  data() {
-    return { rows: [] };
-  }
+  computed: {
+    rows() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/all`](this.resource);
+    },
+    loading() {
+      return this.rows.length ? false : this.$fetchState.pending;
+    },
+  },
 };
 </script>
 
 <template>
   <ResourceTable
-    :loading="$fetchState.pending"
+    :loading="loading"
     :schema="schema"
     :rows="rows"
   />

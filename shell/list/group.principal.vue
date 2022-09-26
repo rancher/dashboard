@@ -15,7 +15,7 @@ export default {
   components: {
     AsyncButton, ResourceTable, Masthead, Loading
   },
-  props:  {
+  props: {
     resource: {
       type:     String,
       required: true,

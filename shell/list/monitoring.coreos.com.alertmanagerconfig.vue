@@ -1,16 +1,13 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import { MONITORING } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListApps',
-  components: {
-    Banner, Loading, ResourceTable
-  },
+  components: { Banner, ResourceTable },
   mixins:     [ResourceFetch],
-  props:  {
+  props:      {
     resource: {
       type:     String,
       required: true,
@@ -25,27 +22,34 @@ export default {
   async fetch() {
     try {
       await this.$store.dispatch('cluster/findAll', { type: MONITORING.ALERTMANAGERCONFIG });
-      this.rows = await this.$fetchType(this.resource);
+      await this.$fetchType(this.resource);
     } catch (err) {
       throw new Error(err);
     }
   },
 
-  data() {
-    return { rows: null };
+  computed: {
+    rows() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/all`](this.resource);
+    },
+    loading() {
+      return this.rows.length ? false : this.$fetchState.pending;
+    },
   },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else-if="rows.length > 0">
+  <div v-if="rows.length || loading">
     <Banner color="info">
       {{ t('monitoring.alertmanagerConfig.description') }}
     </Banner>
     <ResourceTable
       :schema="schema"
       :rows="rows"
+      :loading="loading"
     />
   </div>
 

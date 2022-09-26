@@ -1,6 +1,5 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import Tag from '@shell/components/Tag';
 import { Banner } from '@components/Banner';
 import {
@@ -20,7 +19,6 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListNode',
   components: {
-    Loading,
     ResourceTable,
     Tag,
     Banner
@@ -58,16 +56,11 @@ export default {
       this.$store.dispatch('cluster/findAll', { type: POD });
     }
 
-    const res = await allHash(hash);
-
-    this.kubeNodes = res.kubeNodes;
+    await allHash(hash);
   },
 
   data() {
-    return {
-      kubeNodes:   null,
-      canViewPods: false,
-    };
+    return { canViewPods: false };
   },
 
   beforeDestroy() {
@@ -78,6 +71,14 @@ export default {
   },
 
   computed: {
+    kubeNodes() {
+      const inStore = this.$store.getters['currentStore'](NODE);
+
+      return this.$store.getters[`${ inStore }/all`](NODE);
+    },
+    loading() {
+      return this.kubeNodes.length ? false : this.$fetchState.pending;
+    },
     hasWindowsNodes() {
       return (this.kubeNodes || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
     },
@@ -141,8 +142,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Banner
       v-if="hasWindowsNodes"
       color="info"
@@ -154,6 +154,7 @@ export default {
       :headers="headers"
       :rows="kubeNodes"
       :sub-rows="true"
+      :loading="loading"
       v-on="$listeners"
     >
       <template #sub-row="{fullColspan, row}">

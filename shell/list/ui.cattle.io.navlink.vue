@@ -18,7 +18,12 @@ export default {
     },
   },
 
-  computed: { ...mapGetters(['clusterId']) }
+  computed: {
+    ...mapGetters(['clusterId']),
+    loading() {
+      return this.rows.length ? false : this.$fetchState?.pending;
+    }
+  }
 };
 </script>
 
@@ -26,6 +31,7 @@ export default {
   <ResourceTable
     :schema="schema"
     :rows="rows"
+    :loading="loading"
   >
     <template #cell:to="{row}">
       <template v-if="row.spec && row.spec.toService">

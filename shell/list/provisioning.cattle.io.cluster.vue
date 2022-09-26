@@ -68,7 +68,6 @@ export default {
     const res = await allHash(hash);
 
     this.mgmtClusters = res.mgmtClusters;
-    this.rancherClusters = res.rancherClusters;
   },
 
   data() {
@@ -76,31 +75,39 @@ export default {
       resource:        CAPI.RANCHER_CLUSTER,
       schema:          this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       mgmtClusters:    [],
-      rancherClusters: [],
     };
   },
 
   computed: {
     rows() {
+      const inStore = this.$store.getters['currentStore'](CAPI.RANCHER_CLUSTER);
+      const rancherClusters = this.$store.getters[`${ inStore }/all`](CAPI.RANCHER_CLUSTER);
+
       // If Harvester feature is enabled, hide Harvester Clusters
       if (this.harvesterEnabled) {
-        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rancherClusters), this.$store);
+        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(rancherClusters), this.$store);
       }
 
       // Otherwise, show Harvester clusters - these will be shown with a warning
-      return filterHiddenLocalCluster(this.rancherClusters, this.$store);
+      return filterHiddenLocalCluster(rancherClusters, this.$store);
+    },
+
+    loading() {
+      return this.rows.length ? false : this.$fetchState.pending;
     },
 
     hiddenHarvesterCount() {
       const product = this.$store.getters['currentProduct'];
       const isExplorer = product?.name === EXPLORER;
+      const inStore = this.$store.getters['currentStore'](CAPI.RANCHER_CLUSTER);
+      const rancherClusters = this.$store.getters[`${ inStore }/all`](CAPI.RANCHER_CLUSTER);
 
       // Don't show Harvester banner message on the cluster management page or if Harvester if not enabled
       if (!isExplorer || !this.harvesterEnabled) {
         return 0;
       }
 
-      return this.rancherClusters.length - filterOnlyKubernetesClusters(this.rancherClusters).length;
+      return rancherClusters.length - filterOnlyKubernetesClusters(rancherClusters).length;
     },
 
     createLocation() {
@@ -133,6 +140,13 @@ export default {
     harvesterEnabled: mapFeature(HARVESTER_FEATURE),
   },
 
+  $loadingResources() {
+    return {
+      loadResources:     [CAPI.RANCHER_CLUSTER],
+      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
+    };
+  },
+
   mounted() {
     window.c = this;
   },
@@ -163,7 +177,7 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" :namespaced="false" :loading="$fetchState.pending">
+    <ResourceTable :schema="schema" :rows="rows" :namespaced="false" :loading="loading">
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>

@@ -26,6 +26,9 @@ export default {
   },
 
   computed: {
+    loading() {
+      return this.rows.length ? false : this.$fetchState?.pending;
+    },
     headers() {
       const out = [
         STATE,
@@ -57,6 +60,7 @@ export default {
     :schema="schema"
     :headers="headers"
     :rows="rows"
+    :loading="loading"
     key-field="_key"
     v-on="$listeners"
   >

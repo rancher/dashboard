@@ -3,7 +3,6 @@ import { mapState, mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
@@ -15,7 +14,6 @@ export default {
     AsyncButton,
     Banner,
     Card,
-    Loading,
     ResourceTable,
     LabeledInput
   },
@@ -33,7 +31,7 @@ export default {
   },
 
   async fetch() {
-    this.rows = await this.$fetchType(this.resource);
+    await this.$fetchType(this.resource);
 
     this.serverUrlSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
 
@@ -53,7 +51,6 @@ export default {
 
   data() {
     return {
-      rows:             null,
       update:           [],
       updateMode:       'activate',
       error:            null,
@@ -71,6 +68,16 @@ export default {
     ...mapState('action-menu', ['showPromptUpdate', 'toUpdate']),
     ...mapGetters({ t: 'i18n/t' }),
 
+    rows() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/all`](this.resource);
+    },
+
+    loading() {
+      return this.rows.length ? false : this.$fetchState.pending;
+    },
+
     filteredRows() {
       return this.rows.filter(x => x.name !== 'fleet');
     },
@@ -84,6 +91,13 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT');
     },
+  },
+
+  $loadingResources() {
+    return {
+      loadResources:     [this.resource],
+      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
+    };
   },
 
   watch: {
@@ -185,12 +199,12 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <ResourceTable
       :schema="schema"
       :rows="filteredRows"
       :row-actions="enableRowActions"
+      :loading="loading"
     >
       <template slot="cell:name" slot-scope="scope">
         <div class="feature-name">

@@ -3,14 +3,12 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { NORMAN } from '@shell/config/types';
 import { NAME } from '@shell/config/product/auth';
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
     AsyncButton,
-    Loading,
     ResourceTable,
     Masthead
   },
@@ -37,7 +35,7 @@ export default {
 
     await store.dispatch(`rancher/findAll`, { type: NORMAN.USER });
 
-    this.allUsers = await this.$fetchType(resource);
+    await this.$fetchType(resource);
 
     this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
       .then(res => !!res?.actions?.refreshauthprovideraccess);
@@ -58,12 +56,25 @@ export default {
       // Provided by fetch later
       rows:             null,
       canRefreshAccess: false,
+    };
+  },
 
-      allUsers: null,
+  $loadingResources() {
+    return {
+      loadResources:     [this.resource],
+      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
     };
   },
 
   computed: {
+    allUsers() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/all`](this.resource);
+    },
+    loading() {
+      return this.allUsers.length ? false : this.$fetchState.pending;
+    },
     headers() {
       return this.$store.getters['type-map/headersFor'](this.schema);
     },
@@ -111,8 +122,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Masthead
       :schema="schema"
       :resource="resource"
@@ -133,7 +143,7 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="users" :group-by="groupBy" />
+    <ResourceTable :schema="schema" :rows="users" :group-by="groupBy" :loading="loading" />
   </div>
 </template>
 

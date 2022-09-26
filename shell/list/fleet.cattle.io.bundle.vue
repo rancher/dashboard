@@ -1,7 +1,6 @@
 <script>
 import { FLEET } from '@shell/config/types';
 import { Banner } from '@components/Banner';
-import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import {
@@ -13,11 +12,9 @@ import { isHarvesterCluster } from '@shell/utils/cluster';
 
 export default {
   name:       'ListBundle',
-  components: {
-    Banner, Loading, ResourceTable
-  },
+  components: { Banner, ResourceTable },
   mixins:     [ResourceFetch],
-  props:  {
+  props:      {
     schema: {
       type:     Object,
       required: true,
@@ -25,18 +22,24 @@ export default {
   },
 
   async fetch() {
-    this.allBundles = await this.$fetchType(FLEET.BUNDLE);
+    await this.$fetchType(FLEET.BUNDLE);
     this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
   },
 
   data() {
-    return {
-      allFleet:   [],
-      allBundles: [],
-    };
+    return { allFleet: [] };
   },
 
   computed: {
+    allBundles() {
+      const inStore = this.$store.getters['currentStore'](FLEET.BUNDLE);
+
+      return this.$store.getters[`${ inStore }/all`](FLEET.BUNDLE);
+    },
+    loading() {
+      return this.allBundles.length ? false : this.$fetchState.pending;
+    },
+
     harvesterClusters() {
       const harvester = {};
 
@@ -85,25 +88,31 @@ export default {
       return out;
     },
   },
+
+  // override with relevant info for the loading indicator since this doesn't use it's own masthead
+  $loadingResources() {
+    return {
+      loadResources:     [FLEET.BUNDLE],
+      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
+    };
+  },
 };
 </script>
 
 <template>
   <div>
-    <Loading v-if="$fetchState.pending" />
-    <div v-else>
-      <Banner v-if="hidden" color="info" :label="t('fleet.bundles.harvester', {count: hidden} )" />
-      <ResourceTable
-        :schema="schema"
-        :headers="headers"
-        :rows="bundles"
-      >
-        <template #cell:deploymentsReady="{row}">
-          <span v-if="row.status.summary.desiredReady != row.status.summary.ready" class="text-warning">
-            {{ row.status.summary.ready }}/{{ row.status.summary.desiredReady }}</span>
-          <span v-else>{{ row.status.summary.desiredReady }}</span>
-        </template>
-      </ResourceTable>
-    </div>
+    <Banner v-if="hidden" color="info" :label="t('fleet.bundles.harvester', {count: hidden} )" />
+    <ResourceTable
+      :schema="schema"
+      :headers="headers"
+      :rows="bundles"
+      :loading="loading"
+    >
+      <template #cell:deploymentsReady="{row}">
+        <span v-if="row.status.summary.desiredReady != row.status.summary.ready" class="text-warning">
+          {{ row.status.summary.ready }}/{{ row.status.summary.desiredReady }}</span>
+        <span v-else>{{ row.status.summary.desiredReady }}</span>
+      </template>
+    </ResourceTable>
   </div>
 </template>

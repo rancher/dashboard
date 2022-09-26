@@ -1,11 +1,10 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import { LOGGING } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListApps',
-  components: { Loading, ResourceTable },
+  components: { ResourceTable },
   mixins:     [ResourceFetch],
   props:      {
     resource: {
@@ -24,18 +23,23 @@ export default {
       await this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUT });
       await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
     } catch (e) {}
-    const rows = await this.$fetchType(LOGGING.FLOW);
 
-    this.rows = rows;
+    await this.$fetchType(LOGGING.FLOW);
   },
 
-  data() {
-    return { rows: [] };
+  computed: {
+    rows() {
+      const inStore = this.$store.getters['currentStore'](LOGGING.FLOW);
+
+      return this.$store.getters[`${ inStore }/all`](LOGGING.FLOW);
+    },
+    loading() {
+      return this.rows.length ? false : this.$fetchState.pending;
+    },
   },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="schema" :rows="rows" />
+  <ResourceTable :schema="schema" :rows="rows" :loading="loading" />
 </template>

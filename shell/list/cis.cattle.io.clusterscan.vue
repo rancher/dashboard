@@ -1,12 +1,11 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import { get } from '@shell/utils/object';
 import { AGE } from '@shell/config/table-headers';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
-  components: { Loading, ResourceTable },
+  components: { ResourceTable },
   mixins:     [ResourceFetch],
   props:      {
     resource: {
@@ -21,14 +20,15 @@ export default {
   },
 
   async fetch() {
-    this.rows = await this.$fetchType(this.resource);
-  },
-
-  data() {
-    return { rows: null };
+    await this.$fetchType(this.resource);
   },
 
   computed: {
+    rows() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/all`](this.resource);
+    },
     // warning state and scheduling added in the same version of cis so a check for one is a check for the other
     hasWarningState() {
       const specSchema = this.$store.getters['cluster/schemaFor'](get(this.schema, 'resourceFields.spec.type') || '');
@@ -54,12 +54,20 @@ export default {
       } else {
         return headersFromSchema;
       }
-    }
+    },
+
+    loading() {
+      return this.rows.length ? false : this.$fetchState.pending;
+    },
   },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" />
+  <ResourceTable
+    :schema="schema"
+    :rows="rows"
+    :headers="headers"
+    :loading="loading"
+  />
 </template>

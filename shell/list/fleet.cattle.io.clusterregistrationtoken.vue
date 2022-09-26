@@ -1,18 +1,15 @@
 <script>
 import { FLEET } from '@shell/config/types';
 import { Banner } from '@components/Banner';
-import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListClusterGroup',
-  components: {
-    Banner, Loading, ResourceTable
-  },
+  components: { Banner, ResourceTable },
   mixins:     [ResourceFetch],
-  props:  {
+  props:      {
     schema: {
       type:     Object,
       required: true,
@@ -20,18 +17,23 @@ export default {
   },
 
   async fetch() {
-    this.allTokens = await this.$fetchType(FLEET.TOKEN);
+    await this.$fetchType(FLEET.TOKEN);
     this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
   },
 
   data() {
-    return {
-      allFleet:  null,
-      allTokens: null,
-    };
+    return { allFleet: [] };
   },
 
   computed: {
+    allTokens() {
+      const inStore = this.$store.getters['currentStore'](FLEET.TOKEN);
+
+      return this.$store.getters[`${ inStore }/all`](FLEET.TOKEN);
+    },
+    loading() {
+      return this.allTokens.length ? false : this.$fetchState.pending;
+    },
     harvesterClusters() {
       const harvester = {};
 
@@ -62,21 +64,26 @@ export default {
     hidden() {
       return this.allTokens.length - this.tokens.length;
     }
-  }
+  },
+  // override with relevant info for the loading indicator since this doesn't use it's own masthead
+  $loadingResources() {
+    return {
+      loadResources:     [FLEET.TOKEN],
+      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
+    };
+  },
 };
 </script>
 
 <template>
   <div>
-    <Loading v-if="$fetchState.pending" />
-    <div v-else>
-      <Banner v-if="hidden" color="info" :label="t('fleet.tokens.harvester', {count: hidden} )" />
-      <ResourceTable
-        v-bind="$attrs"
-        :schema="schema"
-        :rows="tokens"
-      >
-      </ResourceTable>
-    </div>
+    <Banner v-if="hidden" color="info" :label="t('fleet.tokens.harvester', {count: hidden} )" />
+    <ResourceTable
+      v-bind="$attrs"
+      :schema="schema"
+      :rows="tokens"
+      :loading="loading"
+    >
+    </ResourceTable>
   </div>
 </template>

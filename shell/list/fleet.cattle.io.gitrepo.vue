@@ -1,14 +1,12 @@
 <script>
 import FleetRepos from '@shell/components/fleet/FleetRepos';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import Loading from '@shell/components/Loading';
 import { FLEET } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListGitRepo',
   components: {
-    Loading,
     FleetRepos,
     Masthead,
   },
@@ -46,18 +44,24 @@ export default {
     await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
     await store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
 
-    this.rows = await this.$fetchType(this.resource);
+    await this.$fetchType(this.resource);
   },
 
-  data() {
-    return { rows: null };
+  computed: {
+    rows() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/all`](this.resource);
+    },
+    loading() {
+      return this.rows.length ? false : this.$fetchState.pending;
+    },
   },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Masthead
       :schema="schema"
       :resource="resource"
@@ -69,6 +73,7 @@ export default {
     <FleetRepos
       :rows="rows"
       :schema="schema"
+      :loading="loading"
     />
   </div>
 </template>

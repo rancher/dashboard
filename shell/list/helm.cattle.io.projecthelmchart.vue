@@ -1,5 +1,4 @@
 <script>
-import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { Banner } from '@components/Banner';
@@ -8,7 +7,7 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
-    Loading, ResourceTable, Masthead, Banner
+    ResourceTable, Masthead, Banner
   },
   mixins: [ResourceFetch],
   props:  {
@@ -29,9 +28,8 @@ export default {
   },
   async fetch() {
     this.projectHelmChartSchema = this.$store.getters['cluster/schemaFor'](HELM.PROJECTHELMCHART);
+    await this.$fetchType(HELM.PROJECTHELMCHART);
 
-    this.projectHelmCharts = await this.$fetchType(HELM.PROJECTHELMCHART);
-    this.pending = false;
     this.$store.dispatch('type-map/configureType', { match: HELM.PROJECTHELMCHART, isCreatable: true });
     this.headers = this.$store.getters['type-map/headersFor'](this.projectHelmChartSchema).map((header) => {
       if (header.name === 'name') {
@@ -48,14 +46,20 @@ export default {
   },
   data() {
     return {
-      resource:                  HELM.PROJECTHELMCHART,
-      projectHelmChartSchema:      null,
-      projectHelmCharts:           [],
-      pending:                   true,
-      headers:                null
+      resource:               HELM.PROJECTHELMCHART,
+      projectHelmChartSchema: null,
+      headers:                null,
     };
   },
   computed: {
+    projectHelmCharts() {
+      const inStore = this.$store.getters['currentStore'](HELM.PROJECTHELMCHART);
+
+      return this.$store.getters[`${ inStore }/all`](HELM.PROJECTHELMCHART);
+    },
+    loading() {
+      return this.projectHelmCharts.length ? false : this.$fetchState.pending;
+    },
     canCreateProjectHelmChart() {
       return !!(this?.projectHelmChartSchema?.collectionMethods || []).find(method => method.toLowerCase() === 'post');
     }
@@ -75,32 +79,30 @@ export default {
       is-creatable
     />
     <Banner color="info" :label="t('monitoring.projectMonitoring.list.banner')" />
-    <Loading v-if="pending" />
-    <div v-else>
-      <!-- ToDo: figure out how to get this centered in the empty space -->
-      <div v-if="projectHelmCharts.length === 0" class="empty-list">
-        <div class="message">
-          <i class="icon icon-monitoring icon-10x icon-grey"></i>
-          <div class="text-large">
-            {{ t('monitoring.projectMonitoring.list.empty.message') }}
-          </div>
-          <div v-if="canCreateProjectHelmChart" class="text-large">
-            {{ t('monitoring.projectMonitoring.list.empty.canCreate') }}
-          </div>
-          <div v-else class="text-large">
-            {{ t('monitoring.projectMonitoring.list.empty.cannotCreate') }}
-          </div>
+    <!-- ToDo: figure out how to get this centered in the empty space -->
+    <div v-if="projectHelmCharts.length === 0 && !loading" class="empty-list">
+      <div class="message">
+        <i class="icon icon-monitoring icon-10x icon-grey"></i>
+        <div class="text-large">
+          {{ t('monitoring.projectMonitoring.list.empty.message') }}
+        </div>
+        <div v-if="canCreateProjectHelmChart" class="text-large">
+          {{ t('monitoring.projectMonitoring.list.empty.canCreate') }}
+        </div>
+        <div v-else class="text-large">
+          {{ t('monitoring.projectMonitoring.list.empty.cannotCreate') }}
         </div>
       </div>
-      <div v-else>
-        <ResourceTable
-          :rows="projectHelmCharts"
-          :headers="headers"
-          :schema="projectHelmChartSchema"
-          key-field="_key"
-          :groupable="false"
-        />
-      </div>
+    </div>
+    <div v-else>
+      <ResourceTable
+        :rows="projectHelmCharts"
+        :headers="headers"
+        :schema="projectHelmChartSchema"
+        :loading="loading"
+        key-field="_key"
+        :groupable="false"
+      />
     </div>
   </div>
 </template>

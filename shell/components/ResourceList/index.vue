@@ -43,8 +43,8 @@ export default {
       if (component?.$loadingResources) {
         const { loadResources, loadIndeterminate } = component?.$loadingResources(this.$route, this.$store);
 
-        this.loadResources = loadResources;
-        this.loadIndeterminate = loadIndeterminate;
+        this.loadResources = loadResources || [resource];
+        this.loadIndeterminate = loadIndeterminate || false;
       }
     }
 
@@ -55,7 +55,7 @@ export default {
         return;
       }
 
-      this.rows = await this.$fetchType(resource);
+      await this.$fetchType(resource);
     }
   },
 
@@ -71,13 +71,10 @@ export default {
 
     const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;
 
-    const existingData = getters[`${ inStore }/all`](resource) || [];
-
     return {
       inStore,
       schema,
       hasListComponent,
-      hasData:           existingData.length > 0,
       showMasthead:      showMasthead === undefined ? true : showMasthead,
       resource,
       // manual refresh
@@ -85,7 +82,6 @@ export default {
       watch:             false,
       force:             false,
       // Provided by fetch later
-      rows:              [],
       customTypeDisplay: null,
       // incremental loading
       loadResources:     [resource],
@@ -94,6 +90,11 @@ export default {
   },
 
   computed: {
+    rows() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/all`](this.resource);
+    },
     headers() {
       if ( this.hasListComponent || !this.schema ) {
         // Custom lists figure out their own headers
@@ -108,7 +109,7 @@ export default {
     },
 
     loading() {
-      return this.hasData ? false : this.$fetchState.pending;
+      return this.rows.length ? false : this.$fetchState.pending;
     },
 
     showIncrementalLoadingIndicator() {
@@ -147,6 +148,7 @@ export default {
       <component
         :is="listComponent"
         :incremental-loading-indicator="showIncrementalLoadingIndicator"
+        :rows="rows"
         v-bind="$data"
       />
     </div>

@@ -19,6 +19,10 @@ export default {
   computed: {
     ...mapGetters(['currentProduct']),
 
+    loading() {
+      return this.rows.length ? false : this.$fetchState?.pending;
+    },
+
     filterRow() {
       if (this.currentProduct.hideSystemResources) {
         return this.rows.filter( (N) => {
@@ -28,7 +32,11 @@ export default {
         return this.rows;
       }
     },
-  }
+  },
+
+  $loadingResources() {
+    return { loadIndeterminate: true };
+  },
 };
 </script>
 
@@ -39,6 +47,7 @@ export default {
     :groupable="false"
     :schema="schema"
     key-field="_key"
+    :loading="loading"
     v-on="$listeners"
   />
 </template>
