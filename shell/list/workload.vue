@@ -76,6 +76,12 @@ export default {
       return schema;
     },
 
+    loading() {
+      const { params:{ resource:type } } = this.$route;
+
+      return this.$store.getters['cluster/loading'](type) || this.$fetchState.pending;
+    },
+
     rows() {
       const out = [];
 
@@ -151,5 +157,5 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="rows" :overflow-y="true" />
+  <ResourceTable :loading="loading" :schema="schema" :rows="rows" :overflow-y="true" />
 </template>

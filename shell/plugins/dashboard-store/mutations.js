@@ -15,6 +15,7 @@ function registerType(state, type) {
       revision:     0, // The highest known resourceVersion from the server for this type
       generation:   0, // Updated every time something is loaded for this type
       loadCounter:  0, // Used to cancel incremental loads if the page changes during load
+      loading:      false,
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -71,6 +72,7 @@ export function load(state, { data, ctx, existing }) {
     entry = replace(existing, data);
     addObject(cache.list, entry);
     cache.map.set(id, entry);
+    cache.loading = false;
     // console.log('### Mutation added from existing proxy', type, id);
   } else {
     entry = cache.map.get(id);
@@ -84,6 +86,7 @@ export function load(state, { data, ctx, existing }) {
       entry = classify(ctx, data);
       addObject(cache.list, entry);
       cache.map.set(id, entry);
+      cache.loading = false;
       // console.log('### Mutation', type, id);
 
       // If there is a limit to the number of resources we can store for this type then
@@ -102,8 +105,11 @@ export function load(state, { data, ctx, existing }) {
     if ( cache ) {
       addObject(cache.list, entry);
       cache.map.set(id, entry);
+      cache.loading = false;
     }
   }
+
+  cache.loading = false;
 
   return entry;
 }
@@ -183,7 +189,17 @@ export function batchMutation(state, { ctx, batch }) {
       cache.map.set(proxies[i][keyField], proxies[i]);
     }
     cache.haveAll = true;
+    cache.loading = false;
   });
+}
+
+export function loading(state, { type }) {
+  const cache = registerType(state, type);
+
+  cache.loading = true;
+  cache.haveAll = true;
+
+  return [];
 }
 
 export function loadAll(state, {
@@ -213,6 +229,7 @@ export function loadAll(state, {
   clear(cache.list);
   cache.map.clear();
   cache.generation++;
+  cache.loading = false;
 
   addObjects(cache.list, proxies);
 
@@ -260,6 +277,8 @@ export default {
   },
 
   batchMutation,
+
+  loading,
 
   loadAll,
 

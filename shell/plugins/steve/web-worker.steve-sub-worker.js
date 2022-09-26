@@ -6,6 +6,8 @@ import Socket, {
   EVENT_CONNECT_ERROR,
   EVENT_DISCONNECT_ERROR,
 } from '@shell/utils/socket';
+import axios from 'axios'; // we'll need this to get resourcelists
+import { get } from 'lodash';
 
 const watchStatuses = {
   PENDING:    'pending', // created but not requested of the socket yet
@@ -73,6 +75,53 @@ const resourceActions = {
     state.resources.counts.hashes['count'] = hashObj(counts[0]); // there's always only 1 index in the array for counts since we treat the whole thing as a single object...
     state.resources.counts.collection['count'] = counts[0]; // there's always only 1 index in the array for counts since we treat the whole thing as a single object...
   },
+  loadResources: ({ data }) => {
+    const { resourceType, revision, data: resources = [] } = data;
+
+    state.resources[resourceType].revision = revision;
+
+    resources.forEach((resource) => {
+      state.resources[resourceType].hashes[resource.id] = hashObj(resource);
+      state.resources[resourceType].collection[resource.id] = resource;
+    });
+
+    resourceActions.mutatePayload(resourceType, true); // marked for immediate sending
+  },
+  setupResourceRequest: ({ type, opt, pagination }) => {
+    state.resources[type] = {
+      hashes:           {},
+      collection:       {},
+      revision:         undefined,
+      requestOpt:       opt,
+      lastFullSyncTime: undefined,
+      pagination:       { // only used if pagination provided in request message, otherwise we send back the whole thing with pagination metadata full of nulls
+        currentPage:     pagination?.currentPage,
+        pageSize:        pagination?.pageSize,
+        sortBy:          pagination?.sortBy,
+        currentPageHash: undefined
+      }
+    };
+    resourceActions.getFullResourceList(type);
+  },
+  getFullResourceList: (resourceType) => {
+    state.resources[resourceType].lastFullSyncTime = Date.now();
+    axios({ ...clone(state.resources[resourceType].requestOpt), headers: { Accept: 'application/json' } })
+      .then((res) => {
+        resourceActions.loadResources(res);
+        // ToDo: need some logic to stop a watch on a resource and rewatch it with the correct revision if it's gotten out of sync
+        socketActions.watch({ resourceType, resourceVersion: state.resources[resourceType].revision });
+      });
+  },
+  fullResourceSync: () => {
+    Object.keys(state.resources)
+      .filter(resourceType => state.resources[resourceType].revision && state.resources[resourceType].requestOpt) // if the revision or request opt don't exist then no full sync is possible or required
+      .filter(resourceType => Date.now - state.resources[resourceType].lastFullSyncTime > 260000) // every 4 minutes
+      .forEach((resourceType) => {
+        resourceActions.getFullResourceList(resourceType); // fire and forget so we don't hold up the maintenance interval
+      });
+    // we do this every 4 minutes on active resources, under normal circumstances this could cause multiple requests because we don't
+    // find and cancel old requests before sending new ones but if we haven't gotten a response in 5 minutes then it's timed out anyways
+  },
   'resource.change': ({ data, resourceType }) => {
     const id = data.id;
     const messageHash = hashObj(data);
@@ -116,11 +165,42 @@ const resourceActions = {
     socketActions.stopped(resourceType);
   },
   ping:             () => {}, // we catch a bunch of pings, nothing to do with them right now.
-  mutatePayload:    (resourceType) => {
-    const resourcePayload = Object.keys(state.resources[resourceType].collection)
-      .map(id => (clone(state.resources[resourceType].collection[id]))); // reconstruct the full resource array
+  mutatePayload:    (resourceType, immediate = false) => {
+    // ToDo: metadata.name is not always the default sortBy by resource...
+    const sortBy = state.resources?.pagination?.sortBy || resourceType === 'metadata.name';
+    const fullResourceList = Object.keys(state.resources[resourceType].collection)
+      .map(id => (clone(state.resources[resourceType].collection[id]))) // reconstruct the full resource array
+      .sort((a, b) => get(a, sortBy, a.id).localeCompare(get(b, sortBy, b.id))); // sort it
 
-    state.worker.outgoingPayload[resourceType] = resourcePayload;
+    let resourcePayload;
+
+    // All the page construction goes here...
+    if (state.resources[resourceType]?.pagination?.currentPage || state.resources[resourceType]?.pagination?.pageSize) {
+      const { pageSize = 100, currentPage = 1 } = state.resources[resourceType]?.pagination;
+      const indexFrom = pageSize * (currentPage - 1);
+      const indexTo = indexFrom + pageSize;
+      const page = [];
+
+      for (let i = indexFrom; i <= indexTo; i++) {
+        page.push(fullResourceList[i]);
+      }
+
+      const pageHash = hashObj(page);
+
+      if (state.resources[resourceType]?.pagination?.currentPageHash !== pageHash) {
+        state.resources[resourceType].pagination.currentPageHash = pageHash;
+        resourcePayload = [...page];
+      }
+    } else {
+      // we already know we mutated the resource array so we can just send it
+      resourcePayload = [...fullResourceList];
+    }
+
+    if (immediate) {
+      workerActions.sendPayload({ [resourceType]: resourcePayload });
+    } else {
+      state.worker.outgoingPayload[resourceType] = resourcePayload;
+    }
 
     state.worker.lastPayloadMutationTime = Date.now();
     // setting the outgoingPayload will effectively schedule the mutation to be sent to the UI via the
@@ -318,6 +398,9 @@ const workerActions = {
       state.worker.lastSentPayloadTime = Date.now();
       state.worker.outgoingPayload = {};
     }
+  },
+  requestResourceList: (opt) => {
+    resourceActions.setupResourceRequest(opt);
   }
 };
 

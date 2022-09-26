@@ -300,5 +300,15 @@ export default {
     }
 
     return 0;
+  },
+
+  loading: (state, getters) => (type) => {
+    const normalizedType = getters.normalizeType(type);
+
+    if (!!state.types[normalizedType]) {
+      return state.types[normalizedType].loading;
+    }
+
+    return false;
   }
 };

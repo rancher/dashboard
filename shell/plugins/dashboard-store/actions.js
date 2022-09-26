@@ -1,6 +1,6 @@
 import merge from 'lodash/merge';
 
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, POD } from '@shell/config/types';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
 import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
@@ -131,6 +131,7 @@ export default {
     const {
       getters, commit, dispatch, rootGetters
     } = ctx;
+    const storeName = getters.storeName;
 
     opt = opt || {};
     type = getters.normalizeType(type);
@@ -176,6 +177,16 @@ export default {
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
     opt.depaginate = typeOptions?.depaginate;
+
+    if (type === POD && this.$workers[storeName]) {
+      const worker = this.$workers[storeName];
+
+      worker.postMessage({ requestResourceList: { type, opt } });
+
+      commit('loading', { type });
+
+      return getters.all(type);
+    }
 
     let skipHaveAll = false;
 

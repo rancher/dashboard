@@ -55,6 +55,7 @@ export default {
 
         addObject(cache.list, entry);
         cache.map.set(entry.id, entry);
+        cache.loading = false;
       });
     }
 
@@ -108,6 +109,7 @@ export default {
 
         addObject(cache.list, resource);
         cache.map.set(resource.id, resource);
+        cache.loading = false;
       }
     }
   },
