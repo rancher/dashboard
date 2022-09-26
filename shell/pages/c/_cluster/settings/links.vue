@@ -154,7 +154,7 @@ export default {
           :as-map="false"
           :key-label="t('customLinks.settings.keyLabel')"
           :value-label="t('customLinks.settings.valueLabel')"
-          :add-label="t('labels.addLabel')"
+          :add-label="t('labels.addLink')"
           :mode="mode"
           :read-allowed="false"
           :protip="false"

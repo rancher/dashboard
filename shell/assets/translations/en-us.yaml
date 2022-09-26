@@ -6201,6 +6201,7 @@ customLinks:
   label: Home Links
   description: 'Links to display on the home page.'
   restoreDefaults: 'Restore Defaults'
+  addLink: Add Link
   settings:
     keyLabel: Display Text
     valueLabel: URL

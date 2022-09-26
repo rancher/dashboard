@@ -99,7 +99,10 @@ export default {
         </h2>
       </template>
       <div v-for="(value, name) in options" :key="name" class="support-link">
-        <a :href="value" rel="noopener noreferrer nofollow" :target="!value.startsWith('/') ? '_blank': null"> {{ getLabel(name) }} </a>
+        <n-link v-if="value.startsWith('/') " :to="value">
+          {{ getLabel(name) }}
+        </n-link>
+        <a v-else :href="value" rel="noopener noreferrer nofollow" target="_blank"> {{ getLabel(name) }} </a>
       </div>
       <slot />
       <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
