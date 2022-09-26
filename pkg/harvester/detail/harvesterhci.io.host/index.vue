@@ -19,6 +19,8 @@ import VlanStatus from './VlanStatus';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import HarvesterKsmtuned from './HarvesterKsmtuned.vue';
 
+const LONGHORN_SYSTEM = 'longhorn-system';
+
 export default {
   name: 'DetailHost',
 
@@ -159,6 +161,13 @@ export default {
 
       return vlanStatuses.filter(s => s?.status?.node === nodeId) || [];
     },
+
+    longhornNode() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNodes = this.$store.getters[`${ inStore }/all`](LONGHORN.NODES);
+
+      return longhornNodes.find(node => node.id === `${ LONGHORN_SYSTEM }/${ this.value.id }`);
+    },
   },
 
   methods: {
@@ -249,7 +258,7 @@ export default {
       </Tab>
 
       <Tab
-        name="disk"
+        name="ksmtuned"
         :weight="0"
         :show-header="false"
         :label="t('harvester.host.tabs.ksmtuned')"
