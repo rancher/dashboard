@@ -466,7 +466,7 @@ export default {
           </template>
         </ArrayListGrouped>
       </Tab>
-      <Tab name="Ksmtuned" :weight="80" :label="t('harvester.host.tabs.ksmtuned')">
+      <Tab name="Ksmtuned" :weight="70" :label="t('harvester.host.tabs.ksmtuned')">
         <HarvesterKsmtuned :mode="mode" :node="value" :register-before-hook="registerBeforeHook" />
       </Tab>
       <Tab name="labels" label-key="harvester.host.tabs.labels">
