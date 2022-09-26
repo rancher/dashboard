@@ -149,31 +149,33 @@ export default {
 <template>
   <div>
     <BackLink :link="backLink" />
-    <h1 v-t="'prefs.title'" />
-
-    <h4 v-t="'prefs.language'" />
-    <div class="row">
-      <div class="col span-4">
-        <LocaleSelector />
+    <h1 v-t="'prefs.title'" class="mb-20" />
+    <!-- Language -->
+    <div class="mt-10 mb-10">
+      <h4 v-t="'prefs.language'" />
+      <div class="row">
+        <div class="col span-4">
+          <LocaleSelector />
+        </div>
       </div>
     </div>
-    <hr />
     <!-- Theme -->
-    <h4 v-t="'prefs.theme.label'" class="mt-20" />
-    <div>
+    <div class="mt-10 mb-10">
+      <hr />
+      <h4 v-t="'prefs.theme.label'" />
       <ButtonGroup v-model="theme" :options="themeOptions" />
-    </div>
-    <div class="mt-10">
-      <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
+      <div class="mt-10">
+        <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
+      </div>
     </div>
     <!-- Login landing page -->
-    <div v-if="!isSingleProduct">
+    <div v-if="!isSingleProduct" class="mt-10 mb-10">
       <hr />
       <h4 v-t="'prefs.landing.label'" />
       <LandingPagePreference />
     </div>
     <!-- Display Settings -->
-    <div>
+    <div class="mt-10 mb-10">
       <hr />
       <h4 v-t="'prefs.displaySettings.title'" />
       <p class="set-landing-leadin">
@@ -220,7 +222,7 @@ export default {
       </div>
     </div>
     <!-- Advanced Features -->
-    <div class="col adv-features">
+    <div class="col adv-features mt-10 mb-10">
       <hr />
       <h4 v-t="'prefs.advFeatures.title'" />
       <Checkbox v-model="viewInApi" :label="t('prefs.advFeatures.viewInApi', {}, true)" class="mt-10" />
@@ -234,13 +236,13 @@ export default {
       <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-20" />
     </div>
     <!-- YAML editor key mapping -->
-    <div class="col">
+    <div class="col mt-10 mb-10">
       <hr />
       <h4 v-t="'prefs.keymap.label'" />
       <ButtonGroup v-model="keymap" :options="keymapOptions" />
     </div>
     <!-- Helm Charts -->
-    <div v-if="!isSingleProduct" class="col mb-40">
+    <div v-if="!isSingleProduct" class="col mt-10 mb-40">
       <hr />
       <h4 v-t="'prefs.helm.label'" />
       <ButtonGroup v-model="showPreRelease" :options="helmOptions" />

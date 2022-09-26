@@ -3,7 +3,7 @@ import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
-import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
+import { mapPref, THEME_SHORTCUT, NO_LOCALE_SHORTCUT } from '@shell/store/prefs';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
@@ -31,13 +31,17 @@ export default {
   },
 
   computed: {
-    themeShortcut: mapPref(THEME_SHORTCUT),
+    themeShortcut:    mapPref(THEME_SHORTCUT),
+    noLocaleShortcut: mapPref(NO_LOCALE_SHORTCUT),
     ...mapState(['managementReady']),
   },
 
   methods: {
     toggleTheme() {
       this.$store.dispatch('prefs/toggleTheme');
+    },
+    toggleNoneLocale() {
+      this.$store.dispatch('i18n/toggleNone');
     },
   }
 
@@ -60,6 +64,7 @@ export default {
     <FixedBanner :footer="true" />
     <GrowlManager />
     <button v-if="themeShortcut" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
+    <button v-if="noLocaleShortcut" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
   </div>
 </template>
 
