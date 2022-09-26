@@ -1,3 +1,5 @@
+import { classify } from '@shell/plugins/dashboard-store/classify';
+import lookup from '@shell/plugins/lookup';
 const GITHUB_BASE_API = 'https://api.github.com';
 
 const fetchGithubAPI = async(endpoint) => {
@@ -16,6 +18,15 @@ const fetchGithubAPI = async(endpoint) => {
   }
 
   return await response.json();
+};
+
+export const getters = {
+  classify: (state, getters, rootState) => (obj) => {
+    console.log('🚀 ~ file: github.js ~ line 25 ~ state', state);
+    console.log('🚀 ~ file: github.js ~ line 25 ~ rootState', rootState);
+
+    return lookup('github', obj.type, undefined, rootState);
+  }
 };
 
 export const actions = {
@@ -78,12 +89,21 @@ export const actions = {
     return res;
   },
 
-  async fetchCommits({ commit, dispatch }, { repo, username, branch }) {
+  async fetchCommits(ctx, { repo, username, branch }) {
+    console.log('🚀 ~ file: github.js ~ line 93 ~ fetchCommits ~ ctx', ctx);
+    const { dispatch } = ctx;
     const res = await dispatch('apiList', {
       username, endpoint: 'commits', repo, branch
     });
 
-    return res;
+    const ob = res.map((data) => {
+      return classify(ctx, {
+        ...data,
+        type: 'github-commits'
+      });
+    });
+
+    return ob;
   },
   async search({ dispatch }, { repo, username, branch }) {
     const res = await dispatch('apiList', {
