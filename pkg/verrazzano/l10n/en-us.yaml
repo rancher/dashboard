@@ -1,3 +1,7 @@
+nav:
+  group:
+    verrazzano: Verrazzano
+
 typeLabel:
   clusters.verrazzano.io.multiclusterapplicationconfiguration: |-
     {count, plural,

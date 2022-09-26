@@ -19,6 +19,7 @@ export function init($plugin: any, store: any) {
     basicType,
     virtualType,
     headers,
+    mapGroup
   } = $plugin.DSL(store, $plugin.name);
 
   product({
@@ -76,6 +77,18 @@ export function init($plugin: any, store: any) {
       params: { resource: 'core.oam.dev.component' }
     }
   });
+
+  // assign these Kubernetes API groups to the name "Verrazzano".
+  // they will appear under "More Resources / Verrazzano" in the cluster nav.
+
+  const VERRAZZANO_GROUP = 'verrazzano';
+
+  mapGroup('clusters.verrazzano.io', VERRAZZANO_GROUP);
+  mapGroup('core.oam.dev', VERRAZZANO_GROUP);
+  mapGroup('oam.verrazzano.io', VERRAZZANO_GROUP);
+  mapGroup('install.verrazzano.io', VERRAZZANO_GROUP);
+  mapGroup('coherence.oracle.com', VERRAZZANO_GROUP);
+  mapGroup('weblogic.oracle', VERRAZZANO_GROUP);
 
   basicType([
     'apps',
