@@ -184,7 +184,7 @@ product:
   settings: Global Settings
   clusterManagement: Cluster Management
   monitoring: Monitoring
-  mcapps: Multi-cluster Apps
+  mcapps: Global Configuration
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
@@ -800,7 +800,8 @@ catalog:
         enableLegacy:
           prompt: You will need to enable Legacy Features to edit this App
           goto: Go to Feature Flag settings
-        navigate: Navigate to {legacyType} Apps
+        navigate: Navigate to Legacy Apps
+        mcmNotSupported: Legacy Multi-cluster Apps can not be managed through this UI
         category:
           legacy: Legacy
           mcm: Multi-cluster
@@ -2067,6 +2068,7 @@ glance:
   installMonitoring: Install Monitoring
   v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
+  eventsTable: Full events list
 
 clusterBadge:
   addLabel: Add Cluster Badge
@@ -2448,6 +2450,11 @@ landing:
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
   whatsNewLink: "What's new in 2.6"
   learnMore: Learn More
+  gettingStarted:
+    title: Getting Started
+    body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find your favorite features in the Dashboard UI.
+  support: Support
+  deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25. You have one or more PodSecurityPolicy resource(s) in this cluster.
   community:
     title: Community Support
     docs: Docs
@@ -5527,6 +5534,7 @@ workload:
     apps.statefulset: StatefulSets manage stateful applications and provide guarantees about the ordering and uniqueness of the pods created. Recommended for workloads with persistent storage or strict identity, quorum, or upgrade order requirements.
     batch.cronjob: CronJobs create Jobs, which then run Pods, on a repeating schedule. The schedule is expressed in standard Unix cron format, and uses the timezone of the Kubernetes control plane (typically UTC).
     batch.job: Jobs create one or more pods to reliably perform a one-time task by running a pod until it exits successfully. Failed pods are automatically replaced until the specified number of completed runs has been reached. Jobs can also run multiple pods in parallel or function as a batch work queue.
+    pod: Pods are the smallest deployable units of computing that you can create and manage in Kubernetes. A Pod is a group of one or more containers, with shared storage and network resources, and a specification for how to run the containers.
   upgrading:
     activeDeadlineSeconds:
       label: Pod Active Deadline

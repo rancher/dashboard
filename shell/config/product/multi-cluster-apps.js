@@ -21,17 +21,6 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:       'legacy.apps',
-    name:           'mc-apps',
-    group:          'Root',
-    namespaced:     false,
-    weight:         112,
-    icon:           'folder',
-    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'apps' } },
-    exact:          true
-  });
-
-  virtualType({
     labelKey:       'legacy.catalogs',
     name:           'mc-catalogs',
     group:          'Root',
@@ -65,7 +54,6 @@ export function init(store) {
   });
 
   basicType([
-    'mc-apps',
     'mc-catalogs',
     'global-dns-entries',
     'global-dns-providers',

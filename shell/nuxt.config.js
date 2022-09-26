@@ -580,6 +580,7 @@ export default function(dir, _appConfig) {
       path.join(NUXT_SHELL, 'plugins/back-button'),
       { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/formatters'), ssr: false }, // Populate formatters cache for sorted table
     ],
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options
