@@ -295,4 +295,7 @@ export default {
   max-height: 100%;
   height: 100%;
 }
+.info-box {
+  flex-grow: 0;
+}
 </style>
