@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@components/Banner';
+import { Banner } from '@/pkg/rancher-components/src/components/Banner';
 import { MANAGEMENT } from '@shell/config/types';
 import { fetchOrCreateSetting, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
@@ -82,10 +82,11 @@ export default {
   },
   data() {
     return {
-      uiCustomLinks: {},
-      bannerVal:     {},
-      value:         {},
-      errors:        [],
+      uiCustomLinks:      {},
+      bannerVal:          {},
+      value:              {},
+      errors:             [],
+      showRestoredBanner: false
     };
   },
   computed: {
@@ -113,6 +114,12 @@ export default {
       const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_LINKS;
 
       this.value = this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks]);
+
+      this.showRestoredBanner = true;
+
+      setTimeout(() => {
+        this.showRestoredBanner = false;
+      }, 10000);
     },
 
     deprecateIssueLinks() {
@@ -141,7 +148,10 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <h1 class="mb-20">
+    <Banner v-if="showRestoredBanner" :color="'success'" label="Default restored" :closable="true" :label-key="'customLinks.restoreSuccess'" />
+    <h1
+      class="mb-20"
+    >
       {{ t("customLinks.label") }}
     </h1>
     <div>
@@ -154,7 +164,7 @@ export default {
           :as-map="false"
           :key-label="t('customLinks.settings.keyLabel')"
           :value-label="t('customLinks.settings.valueLabel')"
-          :add-label="t('labels.addLink')"
+          :add-label="t('customLinks.addLink')"
           :mode="mode"
           :read-allowed="false"
           :protip="false"

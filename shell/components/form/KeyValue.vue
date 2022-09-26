@@ -12,6 +12,8 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
 
 export default {
+  name: 'KeyValue',
+
   components: {
     Select,
     TextAreaAutoGrow,
