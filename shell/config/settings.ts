@@ -6,7 +6,7 @@ import { Store } from 'vuex';
 interface GlobalSettingRuleset {
   name: string,
   key?: string | number,
-  arg?: string | number
+  arg?: string | number | (string | number)[]
 }
 
 interface GlobalSetting {
@@ -97,14 +97,9 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:       'integer',
     ruleSet: [
       {
-        name: 'minValue',
+        name: 'betweenValues',
         key:  'Password',
-        arg:  2
-      },
-      {
-        name: 'maxValue',
-        key:  'Password',
-        arg:  256
+        arg:  [2, 256]
       }
     ],
   },
