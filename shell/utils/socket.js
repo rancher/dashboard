@@ -181,6 +181,10 @@ export default class Socket extends EventTarget {
     }
   }
 
+  isConnecting() {
+    return this.state === STATE_CONNECTING || this.state === STATE_RECONNECTING;
+  }
+
   isConnected() {
     return this.state === STATE_CONNECTED;
   }

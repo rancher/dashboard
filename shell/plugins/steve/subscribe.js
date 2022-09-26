@@ -26,7 +26,7 @@ const MINIMUM_TIME_NOTIFIED = 3000;
 
 // We only create a worker for the cluster store
 export function createWorker(store, ctx) {
-  const { getters } = ctx;
+  const { getters, state } = ctx;
   const storeName = getters.storeName;
 
   store.$workers = store.$workers || {};
@@ -36,8 +36,12 @@ export function createWorker(store, ctx) {
   }
 
   const workerActions = {
-    load: (resource) => {
-      queueChange(ctx, resource, true, 'Change');
+    batchChanges:     (batch) => {
+      state.queue.push({
+        action: 'dispatch',
+        event:  'batchChanges',
+        body:   { ...batch }
+      });
     },
     destroyWorker: () => {
       delete this.$workers[storeName];
@@ -156,7 +160,11 @@ export const actions = {
       socket.setAutoReconnect(true);
       socket.setUrl(url);
     } else {
+      // At some point, once we have all resources listening in workers then we can get rid of this socket
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);
+      if (this.$workers[getters.storeName] && state.config.baseUrl) {
+        this.$workers[getters.storeName].postMessage({ connect: state.config.baseUrl });
+      }
 
       commit('setSocket', socket);
       socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -313,6 +321,12 @@ export const actions = {
 
     if ( selector ) {
       msg.selector = selector;
+    }
+
+    if (getters.storeName === 'cluster' && this.$workers[getters.storeName] && (msg?.resourceType === 'count' || msg.resourceType === 'schema')) {
+      this.$workers[getters.storeName].postMessage({ watch: msg });
+
+      return;
     }
 
     return dispatch('send', msg);

@@ -476,6 +476,15 @@ export default {
     });
   },
 
+  batchChanges(ctx, batch) {
+    const { commit } = ctx;
+
+    commit('batchMutation', {
+      ctx,
+      batch
+    });
+  },
+
   loadAll(ctx, { type, data }) {
     const { commit } = ctx;
 

@@ -158,6 +158,34 @@ export function remove(state, obj, getters) {
   }
 }
 
+export function batchMutation(state, { ctx, batch }) {
+  const { getters } = ctx;
+  const resourcesTypes = Object.keys(batch);
+
+  // ToDo: technically I'm mutating the state a number of times equal to iterations here... I'd like to do it all at once...
+  resourcesTypes.forEach((resourceKey) => {
+    const resourceType = batch[resourceKey][0].type;
+    const proxies = batch[resourceKey].map((row) => {
+      // Ternary adds fields to schemas before we classify them otherwise it goes boom
+      const correctedRow = resourceType === SCHEMA ? {
+        ...row, _id: normalizeType(row.id), _group: normalizeType(row.attributes?.group)
+      } : row;
+
+      return classify(ctx, correctedRow);
+    });
+    const cache = registerType(state, resourceType);
+    const keyField = getters.keyFieldForType(resourceType);
+
+    cache.map.clear();
+    cache.generation++;
+    cache.list = proxies;
+    for ( let i = 0 ; i < proxies.length ; i++ ) {
+      cache.map.set(proxies[i][keyField], proxies[i]);
+    }
+    cache.haveAll = true;
+  });
+}
+
 export function loadAll(state, {
   type,
   data,
@@ -230,6 +258,8 @@ export default {
 
     cache.haveSelector[selector] = true;
   },
+
+  batchMutation,
 
   loadAll,
 
