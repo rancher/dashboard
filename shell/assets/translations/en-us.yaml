@@ -1650,7 +1650,7 @@ cluster:
       label: Default Pod Security Policy
     enableNetworkPolicy:
       label: Project Network Isolation
-      warning: Per default the ingress controller will not be able to route requests to pods on other nodes.
+      warning: Per default, the ingress controller will not be able to route requests to pods on other nodes.
     workNode:
       label: Worker Nodes
     controlPlaneConcurrency:
