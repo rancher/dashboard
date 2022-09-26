@@ -2454,6 +2454,7 @@ landing:
     title: Getting Started
     body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find your favorite features in the Dashboard UI.
   support: Support
+  deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25. You have one or more PodSecurityPolicy resource(s) in this cluster.
   community:
     title: Community Support
     docs: Docs
