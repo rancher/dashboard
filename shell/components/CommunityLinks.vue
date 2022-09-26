@@ -95,11 +95,11 @@ export default {
     <SimpleBox :pref="pref" :pref-key="prefKey">
       <template #title>
         <h2>
-          {{ t('customLinks.displayTitle') }} <i class="icon icon-external-link" />
+          {{ t('customLinks.displayTitle') }}
         </h2>
       </template>
       <div v-for="(value, name) in options" :key="name" class="support-link">
-        <a :href="value" rel="noopener noreferrer nofollow" target="_blank"> {{ getLabel(name) }} </a>
+        <a :href="value" rel="noopener noreferrer nofollow" :target="!value.startsWith('/') ? '_blank': null"> {{ getLabel(name) }} </a>
       </div>
       <slot />
       <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
