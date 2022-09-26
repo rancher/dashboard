@@ -17,6 +17,7 @@ export default {
     TypeDescription,
     Loading
   },
+
   props:      {
     schema: {
       type:     Object,
@@ -25,6 +26,8 @@ export default {
   },
 
   async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
     const hash = await allHash({
       hciClusters:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.CLUSTER }),
       mgmtClusters: this.$store.dispatch(`${ inStore }/findAll`, { type: MANAGEMENT.CLUSTER })
