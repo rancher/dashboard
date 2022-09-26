@@ -1788,6 +1788,12 @@ export default {
             </div>
           </div>
 
+          <div v-if="serverConfig.cni === 'cilium' && value.spec.enableNetworkPolicy" class="row">
+            <div class="col span-12">
+              <Banner color="info" :label="t('cluster.rke2.enableNetworkPolicy.warning')" />
+            </div>
+          </div>
+
           <div class="spacer" />
 
           <div v-if="serverArgs.disable" class="row">
