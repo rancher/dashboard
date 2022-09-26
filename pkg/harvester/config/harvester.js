@@ -49,6 +49,7 @@ export function init($plugin, store) {
     configureType,
     virtualType,
     weightGroup,
+    weightType,
   } = $plugin.DSL(store, PRODUCT_NAME);
 
   const isSingleVirtualCluster = process.env.rancherEnv === PRODUCT_NAME;
@@ -207,7 +208,7 @@ export function init($plugin, store) {
     group:      'root',
     name:       HCI.IMAGE,
     namespaced: true,
-    weight:     99,
+    weight:     198,
     route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params: { resource: HCI.IMAGE }
@@ -434,10 +435,20 @@ export function init($plugin, store) {
 
   basicType(
     [
-      TEMPLATE,
       HCI.BACKUP,
       HCI.SNAPSHOT,
       HCI.VM_SNAPSHOT,
+    ],
+    'backupAndSnapshot'
+  );
+
+  weightGroup('networks', 300, true);
+  weightType(NAMESPACE, 299, true);
+  weightGroup('backupAndSnapshot', 289, true);
+
+  basicType(
+    [
+      TEMPLATE,
       HCI.SSH,
       HCI.CLOUD_TEMPLATE,
       HCI.STORAGE,
@@ -505,7 +516,7 @@ export function init($plugin, store) {
     name:       HCI.VLAN_CONFIG,
     ifHaveType: HCI.VLAN_CONFIG,
     namespaced: false,
-    weight:     190,
+    weight:     189,
     route:      {
       name:     `${ PRODUCT_NAME }-c-cluster-resource`,
       params:   { resource: HCI.VLAN_CONFIG }
@@ -528,7 +539,7 @@ export function init($plugin, store) {
     labelKey:   'harvester.network.label',
     name:       HCI.NETWORK_ATTACHMENT,
     namespaced: true,
-    weight:     189,
+    weight:     188,
     route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params: { resource: HCI.NETWORK_ATTACHMENT }
