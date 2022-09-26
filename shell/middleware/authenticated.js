@@ -331,6 +331,9 @@ export default async function({
         return next(newLocation);
       }
     }
+    // ToDo:
+    // The above two if statements should be if/else'd together with a follow-up else just in case neither case is true
+    // (I don't know how likely it is but we want to code defensively) otherwise it seems like 'loadManagement' would never run
 
     // Ensure that the activeNamespaceCache is updated given the change of context either from or to a place where it uses workspaces
     // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave

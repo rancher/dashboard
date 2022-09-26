@@ -134,6 +134,18 @@ export default {
             />
           </div>
         </div>
+        <!-- Web Worker handles Schemas and Counts websocket subscriptions  -->
+        <div class="mt-40">
+          <h2>{{ t('performance.advancedWorker.label') }}</h2>
+          <p>{{ t('performance.advancedWorker.description') }}</p>
+          <Banner color="error" label-key="performance.advancedWorker.banner" />
+          <Checkbox
+            v-model="value.advancedWorker"
+            :label="t('performance.advancedWorker.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
+        </div>
       </div>
     </div>
     <template v-for="err in errors">

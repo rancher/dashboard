@@ -1,15 +1,16 @@
 import { SCHEMA } from '@shell/config/types';
 
-const COUNTS_FLUSH_TIMEOUT = 5000;
+const COUNT_FLUSH_TIMEOUT = 5000;
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 
 const state = {
+  id:         Math.trunc(Math.random() * 1000000),
   store:      '', // Store name
-  counts:     [], // Buffer of count resources recieved in a given window
+  count:      [], // Buffer of count resources recieved in a given window
   countTimer: undefined, // Tiemr to flush the count buffer
   flushTimer: undefined, // Timer to flush the schema chaneg queue
   queue:      [], // Schema change queue
-  schemas:    {} // Map of schema id to hash to track when a schema actually changes
+  schema:     {} // Map of schema id to hash to track when a schema actually changes
 };
 
 // Quick, simple hash function
@@ -34,11 +35,11 @@ function hashObj(obj) {
 function flush() {
   state.queue.forEach((schema) => {
     const hash = hashObj(schema);
-    const existing = state.schemas[schema.id];
+    const existing = state.schema[schema.id];
 
     if (!existing || (existing && existing !== hash)) {
       // console.log(`${ schema.id } CHANGED  ${ hash } > ${ existing }`);
-      state.schemas[schema.id] = hash;
+      state.schema[schema.id] = hash;
 
       const msg = {
         data:          schema,
@@ -72,12 +73,22 @@ const workerActions = {
       if (workerActions[action]) {
         workerActions[action](e?.data[action]);
       } else {
-        console.warn('no associated action for:', action); // eslint-disable-line no-console
+        console.warn('no associated action for:', action, e); // eslint-disable-line no-console
       }
     });
   },
   initWorker: ({ storeName }) => {
     state.store = storeName;
+  },
+
+  toggleAdvancedWorker: () => {
+    clearTimeout(state.countTimer);
+    clearTimeout(state.flushTimer);
+
+    self.postMessage({ toggleAdvancedWorker: { store: state.store } }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
+
+    // Web worker global function to terminate the web worker
+    close();
   },
 
   destroyWorker: () => {
@@ -90,33 +101,32 @@ const workerActions = {
     close();
   },
 
-  // Debounce counts messages so we only process at most 1 every 5 seconds
-  countsUpdate(resource) {
-    state.counts.push(resource);
+  // Debounce count messages so we only process at most 1 every 5 seconds
+  countUpdate(resource) {
+    state.count.push(resource);
 
     if (!state.countTimer) {
       state.countTimer = setTimeout(() => {
-        const last = state.counts.pop();
+        const last = state.count.pop();
 
-        state.counts = [];
+        state.count = [];
         state.countTimer = null;
 
         load(last);
-      }, COUNTS_FLUSH_TIMEOUT);
+      }, COUNT_FLUSH_TIMEOUT);
     }
   },
 
   // Called to load schema
-  loadSchemas: (schemas) => {
+  loadSchema: (schemas) => {
     schemas.forEach((schema) => {
       // These properties are added to the object, but aren't on the raw object, so remove them
       // otherwise our comparison will show changes when there aren't any
       delete schema._id;
       delete schema._group;
 
-      state.schemas[schema.id] = hashObj(schema);
+      state.schema[schema.id] = hashObj(schema);
     });
-    // console.log(JSON.parse(JSON.stringify(state.resources.schemas)));
   },
 
   // Called when schema is updated
@@ -131,7 +141,7 @@ const workerActions = {
     state.queue = state.queue.filter(schema => schema.id !== id);
 
     // Delete the schema from the map, so if it comes back we don't ignore it if the hash is the same
-    delete state.schemas[id];
+    delete state.schema[id];
   }
 };
 

@@ -459,10 +459,25 @@ export const getters = {
 };
 
 export const mutations = {
+  // Only runs on login and logout
   managementChanged(state, { ready, isMultiCluster, isRancher }) {
     state.managementReady = ready;
     state.isMultiCluster = isMultiCluster;
     state.isRancher = isRancher;
+    const uiPerformanceSettings = state?.management?.types[MANAGEMENT.SETTING]?.list
+      .find(setting => setting.id === SETTING.UI_PERFORMANCE);
+
+    const workers = Object.keys(this.$workers || {}).map(workerStore => this.$workers[workerStore]);
+    const newWorkerMode = JSON.parse(uiPerformanceSettings.value).advancedWorker ? 'advanced' : 'basic';
+
+    // Seems to only run when the management cluster is originally finished loading and not every time it's mutated
+    workers.forEach((worker) => {
+      const existingWorkerMode = worker.mode;
+
+      if (newWorkerMode !== existingWorkerMode) {
+        worker.postMessage({ toggleAdvancedWorker: true });
+      }
+    });
   },
 
   clusterReady(state, ready) {

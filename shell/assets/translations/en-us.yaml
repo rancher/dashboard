@@ -6087,6 +6087,12 @@ performance:
     description: |-
       When checked, websocket notifications will not appear when the UI detects a disconnection.
     checkboxLabel: Disable websocket notifications
+  advancedWorker:
+    banner: This setting is experimental and may be removed or updated in future versions.
+    label: Websocket Subscriptions and Processing in Webworker
+    description: |-
+      When enabled, websocket subscriptions for cluster schemas and counts will be created in a webworker. Updates to these resources will be cached and updates will be batched reducing overhead in the UI thread.
+    checkboxLabel: Enable webworker processing for websocket subscriptions (cluster schemas and counts)
 
 banner:
   label: Fixed Banners

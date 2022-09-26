@@ -1,6 +1,6 @@
 import merge from 'lodash/merge';
 
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, POD } from '@shell/config/types';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
 import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
@@ -131,6 +131,8 @@ export default {
     const {
       getters, commit, dispatch, rootGetters
     } = ctx;
+    const storeName = getters.storeName;
+    const worker = this?.$workers[storeName];
 
     opt = opt || {};
     type = getters.normalizeType(type);
@@ -176,6 +178,22 @@ export default {
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
     opt.depaginate = typeOptions?.depaginate;
+
+    if (type === POD && worker.mode === 'advanced') {
+      const data = await worker.postMessageAndWait({ type, opt });
+
+      if (data instanceof Error) {
+        console.warn(data);
+      } else {
+        commit('loadAll', {
+          ctx,
+          type,
+          data: data[type].list
+        });
+      }
+
+      return getters.all(type);
+    }
 
     let skipHaveAll = false;
 
@@ -473,6 +491,15 @@ export default {
     commit('loadMulti', {
       data,
       ctx,
+    });
+  },
+
+  batchChanges(ctx, batch) {
+    const { commit } = ctx;
+
+    commit('batchMutation', {
+      ctx,
+      batch
     });
   },
 

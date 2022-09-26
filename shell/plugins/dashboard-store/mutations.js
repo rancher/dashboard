@@ -3,6 +3,7 @@ import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA } from '@shell/config/types';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { classify } from '@shell/plugins/dashboard-store/classify';
+import { clone } from '@shell/utils/object';
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -158,6 +159,46 @@ export function remove(state, obj, getters) {
   }
 }
 
+export function batchMutation(state, { ctx, batch }) {
+  const { getters } = ctx;
+  const resourcesTypes = Object.keys(batch);
+  const mutatedTypes = {};
+
+  resourcesTypes.forEach((resourceKey) => {
+    const resourceType = batch[resourceKey].list[0].type;
+    const keyField = getters.keyFieldForType(resourceType);
+    // ToDo: I can probably do this without clone... registerType is probably unecessary here
+    const mutatedType = clone(registerType(state, resourceType));
+
+    // Vue.set(state.types, resourceType, mutatedType);
+
+    mutatedType.generation++;
+    mutatedType.haveAll = true;
+    mutatedType.list = batch[resourceKey].list.map((row) => {
+      // Ternary adds fields to schemas before we classify them otherwise it goes boom
+      const correctedRow = resourceType === SCHEMA ? {
+        ...row, _id: normalizeType(row.id), _group: normalizeType(row.attributes?.group)
+      } : row;
+
+      return classify(ctx, correctedRow);
+    });
+    mutatedType.map = new Map(mutatedType.list.map((type) => {
+      return [type[keyField], type];
+    }));
+
+    mutatedTypes[resourceType] = mutatedType;
+  });
+  const combinedTypes = {
+    ...state.types,
+    ...mutatedTypes
+  };
+
+  // ToDo: test to make sure this is actually reactive...
+  // ToDo: only need to call this if the key doesn't already exist in vue
+  // tested with existing type, once fetching is in place will need to test again for new types
+  Vue.set(state, 'types', combinedTypes);
+}
+
 export function loadAll(state, {
   type,
   data,
@@ -230,6 +271,8 @@ export default {
 
     cache.haveSelector[selector] = true;
   },
+
+  batchMutation,
 
   loadAll,
 

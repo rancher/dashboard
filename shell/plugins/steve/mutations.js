@@ -1,5 +1,5 @@
 import { addObject, removeObject } from '@shell/utils/array';
-import { NAMESPACE, POD, SCHEMA } from '@shell/config/types';
+import { NAMESPACE, POD, SCHEMA, COUNT } from '@shell/config/types';
 import {
   forgetType,
   resetStore,
@@ -41,6 +41,7 @@ export default {
     const proxies = loadAll(state, {
       type, data, ctx, skipHaveAll
     });
+    const worker = (this.$workers || {})[ctx.getters.storeName];
 
     // If we loaded a set of pods, then update the podsByNamespace cache
     if (type === POD) {
@@ -59,13 +60,14 @@ export default {
     }
 
     // Notify the web worker of the initial load of schemas
-    if (type === SCHEMA) {
-      const worker = (this.$workers || {})[ctx.getters.storeName];
+    if (type === SCHEMA && worker) {
+      // Store raw json objects, not the proxies
+      worker.postMessage({ loadSchema: data });
+    }
 
-      if (worker) {
-        // Store raw json objects, not the proxies
-        worker.postMessage({ loadSchemas: data });
-      }
+    // Notify the web worker of the initial load of counts
+    if (type === COUNT && worker?.mode === 'advanced') {
+      worker.postMessage({ loadCount: data });
     }
   },
 

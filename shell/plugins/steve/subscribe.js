@@ -16,7 +16,9 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 
 // eslint-disable-next-line
-import webworker from './web-worker.steve-sub-worker.js';
+import basicWorkerConstructor from './web-worker.basic.js';
+// eslint-disable-next-line
+import advancedWorkerConstructor from './web-worker.advanced.js';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -24,10 +26,20 @@ export const NO_SCHEMA = 'NO_SCHEMA';
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
+// ToDo: test creating a cluster with both workers
+
 // We only create a worker for the cluster store
 export function createWorker(store, ctx) {
-  const { getters } = ctx;
+  const {
+    getters, state, rootGetters, dispatch
+  } = ctx;
+  const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
   const storeName = getters.storeName;
+  let advancedWorker = false;
+
+  if ( perfSetting?.value ) {
+    advancedWorker = JSON.parse(perfSetting.value).advancedWorker !== false;
+  }
 
   store.$workers = store.$workers || {};
 
@@ -36,23 +48,122 @@ export function createWorker(store, ctx) {
   }
 
   const workerActions = {
-    load: (resource) => {
+    requests:     {},
+    load:     (resource) => {
       queueChange(ctx, resource, true, 'Change');
     },
+    batchChanges:     (batch) => {
+      console.log('batchChanges', new Date().toLocaleTimeString());
+      state.queue.push({
+        action: 'dispatch',
+        event:  'batchChanges',
+        body:   { ...batch }
+      });
+    },
     destroyWorker: () => {
-      delete this.$workers[storeName];
+      if (store.$workers) {
+        delete store.$workers[storeName];
+      }
+    },
+    awaitedResponse: ({ requestHash, payload }) => {
+      state.queue.push({
+        action: 'dispatch',
+        event:  'batchChanges',
+        body:   { ...payload }
+      });
+      workerActions.requests[requestHash].resolves(payload);
+      delete workerActions.requests[requestHash];
+    },
+    toggleAdvancedWorker: async(workerState) => {
+      const switchTo = store.$workers[storeName]?.mode === 'advanced' ? 'basic' : 'advanced';
+
+      delete store.$workers[storeName];
+      const worker = switchTo === 'advanced' ? new advancedWorkerConstructor() : new basicWorkerConstructor();
+
+      worker.mode = switchTo;
+      worker.store = storeName;
+      if (worker.mode === 'advanced') {
+        worker.postMessageAndWait = function(msg) {
+          const payload = JSON.parse(JSON.stringify({
+            type: msg.type,
+            opt:  { url: msg.opt.url }
+          }));
+          const requestHash = JSON.stringify(payload);
+
+          if (workerActions.requests[requestHash]) {
+            return new Error('duplicate request is already active');
+          }
+
+          workerActions.requests[requestHash] = {
+            resolves: undefined, reject: undefined, promise: undefined
+          };
+
+          workerActions.requests[requestHash].promise = new Promise((resolve, reject) => {
+            workerActions.requests[requestHash].resolves = resolve;
+            workerActions.requests[requestHash].reject = reject;
+
+            worker.postMessage({
+              waitingForResponse: {
+                requestHash,
+                msg: payload
+              }
+            });
+          });
+
+          return workerActions.requests[requestHash].promise;
+        };
+      }
+
+      store.$workers[storeName] = worker;
+
+      store.$workers[storeName].onmessage = (e) => {
+        /* on the off chance there's more than one key in the message, we handle them in the order that they "keys" method provides which is
+        // good enough for now considering that we never send more than one message action at a time right now */
+        const messageActions = Object.keys(e?.data);
+
+        messageActions.forEach((action) => {
+          workerActions[action](e?.data[action]);
+        });
+      };
+
+      if (switchTo === 'basic') {
+        worker.postMessage({ initWorker: { storeName } });
+        if (storeName !== 'cluster' || rootGetters['clusterReady']) {
+          const resourceQueries = [];
+
+          for (const resource of workerState.resources) {
+            resourceQueries.push(dispatch('findAll', {
+              type: resource, force: true, forceWatch: true
+            }));
+          }
+          await Promise.all(resourceQueries);
+        }
+      } else {
+        worker.postMessage({ initWorker: { storeName } });
+        console.dir('switching to advanced worker!!!'); // eslint-disable-line no-console
+        console.dir(state.started); // eslint-disable-line no-console
+        // ToDo: get a list of current watches via: state.started
+        // ToDo: unsubscribe to each resource in UI thread (commit(`${storeName}/resetSubscriptions`)?)
+        // ToDo: run loadSchemas and loadCount again
+        // ToDo: assuming that restarting a watch involves a full sync within the worker,
+      }
     }
   };
 
   if (!store.$workers[storeName]) {
-    const worker = new webworker();
+    // on initial page load, this occurs before we have performance settings so we have to correct it on connection later
+    // const worker = advancedWorker ? new advancedWorkerConstructor() : new basicWorkerConstructor();
+    const worker = advancedWorker ? new basicWorkerConstructor() : new basicWorkerConstructor();
+
+    worker.mode = advancedWorker ? 'advanced' : 'basic';
+    worker.store = storeName;
 
     store.$workers[storeName] = worker;
 
     worker.postMessage({ initWorker: { storeName } });
 
     store.$workers[storeName].onmessage = (e) => {
-      /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
+      /* on the off chance there's more than one key in the message, we handle them in the order that they "keys" method provides which is
       // good enough for now considering that we never send more than one message action at a time right now */
       const messageActions = Object.keys(e?.data);
 
@@ -136,6 +247,8 @@ export const actions = {
       state, commit, dispatch, getters, rootGetters
     } = ctx;
 
+    const worker = this.$workers[getters.storeName];
+
     if (rootGetters['isSingleProduct']?.disableSteveSockets) {
       return;
     }
@@ -157,6 +270,9 @@ export const actions = {
       socket.setUrl(url);
     } else {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);
+      if (worker?.mode === 'advanced' && state.config.baseUrl) {
+        this.$workers[getters.storeName].postMessage({ connect: state.config.baseUrl });
+      }
 
       commit('setSocket', socket);
       socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -261,6 +377,7 @@ export const actions = {
     state, dispatch, getters, rootGetters
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+    const worker = this?.$workers[getters.storeName];
 
     let {
       // eslint-disable-next-line prefer-const
@@ -313,6 +430,17 @@ export const actions = {
 
     if ( selector ) {
       msg.selector = selector;
+    }
+
+    if (
+      worker?.store === 'cluster' &&
+      worker?.mode === 'advanced' &&
+      (msg?.resourceType === 'count' || msg.resourceType === 'schema')
+    ) {
+      dispatch('send', { ...msg, stop: true });
+      this.$workers[getters.storeName].postMessage({ watch: msg });
+
+      return;
     }
 
     return dispatch('send', msg);
@@ -602,14 +730,27 @@ export const actions = {
     const data = msg.data;
     const type = data.type;
 
+    if (type === MANAGEMENT.SETTING) {
+      const workers = Object.keys(this.$workers || {}).map(workerStore => this.$workers[workerStore]);
+      const newWorkerMode = JSON.parse(data.value).advancedWorker ? 'advanced' : 'basic';
+
+      workers.forEach((worker) => {
+        const existingWorkerMode = worker.mode;
+
+        if (newWorkerMode !== existingWorkerMode) {
+          worker.postMessage({ toggleAdvancedWorker: true });
+        }
+      });
+    }
+
     // Debounce count changes so we send at most 1 every 5 seconds
     if (type === COUNT) {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
-        worker.postMessage({ countsUpdate: msg });
+        worker.postMessage({ countUpdate: msg });
 
-        // No further processing - let the web worker debounce the counts
+        // No further processing - let the web worker debounce the count
         return;
       }
     }
