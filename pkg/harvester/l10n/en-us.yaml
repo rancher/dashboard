@@ -274,11 +274,11 @@ harvester:
       title: Cordon
       protip: This operation will mark the node { node } as unschedulable.
     ksmtuned:
-      run: Run
+      run: Run Strategy
       configure: Configure
       mode: Mode
       modeLink: Mode <a href="https://docs.harvesterhci.io/v1.0/host/host/#enable-ksmtuned" target="_blank"><i class="icon icon-info" /></a>
-      thresCoef: ThresCoef
+      thresCoef: Threshold Coefficient
       modeOption:
         standard: Standard
         high: High-Perfomanace
@@ -287,7 +287,7 @@ harvester:
         title: Ksmtuned Parameters
         boost: Boost
         decay: Decay
-        sleepMsec: Sleep Milliseconds
+        sleepMsec: Sleep Time(millisecond)
         minPages: Minimum Pages
         maxPages: Maximum Pages
         description:
