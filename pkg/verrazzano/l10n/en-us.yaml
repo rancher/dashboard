@@ -882,6 +882,7 @@ verrazzano:
     ### verrazzano.common.headers###
     ################################
     headers:
+      definitionName: Definition Name
       workloadKind: Workload Kind
 
     ##################################

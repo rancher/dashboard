@@ -13,6 +13,13 @@ export const WORKLOAD_KIND = {
   width:    100,
 };
 
+export const DEFINITION_NAME_KIND = {
+  name:     'definitionName',
+  labelKey: 'verrazzano.common.headers.definitionName',
+  value:    'spec.definitionRef.name',
+  sort:     ['definitionName']
+};
+
 export function init($plugin: any, store: any) {
   const {
     product,
@@ -98,6 +105,10 @@ export function init($plugin: any, store: any) {
   ]);
 
   headers('core.oam.dev.component', [STATE, NAME, WORKLOAD_KIND, AGE]);
+
+  headers('core.oam.dev.scopedefinition', [STATE, NAME, DEFINITION_NAME_KIND]);
+  headers('core.oam.dev.traitdefinition', [STATE, NAME, DEFINITION_NAME_KIND]);
+  headers('core.oam.dev.workloaddefinition', [STATE, NAME, DEFINITION_NAME_KIND]);
 
   // configureType(MANAGEMENT.SETTING, {
   //   isCreatable: false,
