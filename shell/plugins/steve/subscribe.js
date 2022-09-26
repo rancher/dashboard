@@ -36,6 +36,7 @@ export function createWorker(store, ctx) {
   }
 
   const workerActions = {
+    requests:     {},
     batchChanges:     (batch) => {
       state.queue.push({
         action: 'dispatch',
@@ -45,11 +46,50 @@ export function createWorker(store, ctx) {
     },
     destroyWorker: () => {
       delete this.$workers[storeName];
+    },
+    awaitedResponse: ({ requestHash, payload }) => {
+      state.queue.push({
+        action: 'dispatch',
+        event:  'batchChanges',
+        body:   { ...payload }
+      });
+      workerActions.requests[requestHash].resolves(payload);
+      delete workerActions.requests[requestHash];
     }
   };
 
   if (!store.$workers[storeName]) {
     const worker = new webworker();
+
+    worker.postMessageAndWait = function(msg) {
+      const payload = JSON.parse(JSON.stringify({
+        type: msg.type,
+        opt:  { url: msg.opt.url }
+      }));
+      const requestHash = JSON.stringify(payload);
+
+      if (workerActions.requests[requestHash]) {
+        return new Error('duplicate request is already active');
+      }
+
+      workerActions.requests[requestHash] = {
+        resolves: undefined, reject: undefined, promise: undefined
+      };
+
+      workerActions.requests[requestHash].promise = new Promise((resolve, reject) => {
+        workerActions.requests[requestHash].resolves = resolve;
+        workerActions.requests[requestHash].reject = reject;
+
+        worker.postMessage({
+          waitingForResponse: {
+            requestHash,
+            msg: payload
+          }
+        });
+      });
+
+      return workerActions.requests[requestHash].promise;
+    };
 
     store.$workers[storeName] = worker;
 
