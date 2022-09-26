@@ -45,7 +45,7 @@ export default {
     })) : [];
     this.canReset = this.setting?.canReset || !!this.value.default;
     this.fvFormRuleSets = this.setting?.ruleSet ? [{
-      path:  'value.value',
+      path:  'value',
       rules: this.setting.ruleSet.map(({ name }) => name)
     }] : [];
   },
@@ -141,7 +141,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-enum"
           :label="t('advancedSettings.edit.value')"
-          :rules="fvGetAndReportPathRules('value.value')"
+          :rules="fvGetAndReportPathRules('value')"
           :localized-label="true"
           :mode="mode"
           :required="true"
@@ -153,7 +153,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-boolean"
           name="settings_value"
-          :rules="fvGetAndReportPathRules('value.value')"
+          :rules="fvGetAndReportPathRules('value')"
           :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
           :options="['true', 'false']"
         />
@@ -163,7 +163,7 @@ export default {
           v-model="value.value"
           data-testid="input-setting-json"
           :required="true"
-          :rules="fvGetAndReportPathRules('value.value')"
+          :rules="fvGetAndReportPathRules('value')"
           :min-height="254"
         />
       </div>
@@ -174,7 +174,7 @@ export default {
           :label="t('advancedSettings.edit.value')"
           :mode="mode"
           type="number"
-          :rules="fvGetAndReportPathRules('value.value')"
+          :rules="fvGetAndReportPathRules('value')"
           :required="true"
         />
       </div>
@@ -185,7 +185,7 @@ export default {
           :localized-label="true"
           :required="true"
           :mode="mode"
-          :rules="fvGetAndReportPathRules('value.value')"
+          :rules="fvGetAndReportPathRules('value')"
           :label="t('advancedSettings.edit.value')"
         />
       </div>

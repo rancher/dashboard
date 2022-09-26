@@ -62,7 +62,7 @@ describe('management.cattle.io.setting should', () => {
         ...requiredSetup()
       });
       const expectation = [{
-        path:  'value.value',
+        path:  'value',
         rules: ['minValue', 'maxValue']
       }];
 
