@@ -69,15 +69,15 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
 
   const maxValue: ValidatorFactory = (max: string) => (val: string | number) => Number(val) > Number(max) ? t('validation.maxValue', { key, max }) : undefined;
 
-  const betweenValues: ValidatorFactory = ([min, max]: string[]) => (val: string | number) => minValue(min) || maxValue(max) ? t('validation.betweenValues', {
+  const betweenValues: ValidatorFactory = ([min, max]: string[]) => (val: string | number) => minValue(min)(val) || maxValue(max)(val) ? t('validation.betweenValues', {
     key, min, max
   }) : undefined;
 
-  const minLength: ValidatorFactory = (min: string) => (val: string | number) => Number(val) < Number(min) ? t('validation.minLength', { key, min }) : undefined;
+  const minLength: ValidatorFactory = (min: string) => (val: string) => val.length < Number(min) ? t('validation.minLength', { key, min }) : undefined;
 
-  const maxLength: ValidatorFactory = (max: string) => (val: string | number) => Number(val) > Number(max) ? t('validation.maxLength', { key, max }) : undefined;
+  const maxLength: ValidatorFactory = (max: string) => (val: string) => val.length > Number(max) ? t('validation.maxLength', { key, max }) : undefined;
 
-  const betweenLengths: ValidatorFactory = ([min, max]: string[]) => (val: string | number) => minLength(min) || maxLength(max) ? t('validation.betweenLengths', {
+  const betweenLengths: ValidatorFactory = ([min, max]: string[]) => (val: string) => minLength(min)(val) || maxLength(max)(val) ? t('validation.betweenLengths', {
     key, min, max
   }) : undefined;
 

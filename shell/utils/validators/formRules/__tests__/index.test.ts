@@ -1034,14 +1034,14 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
-  describe.skip.each([
+  describe.each([
     ['minValue', 2, [3], [1]],
     ['maxValue', 256, [1], [300]],
-    ['betweenValue', [2, 256], [3], [1, 300]],
+    ['betweenValues', [2, 256], [3], [1, 300]],
     ['minLength', 2, ['test'], ['x']],
     ['maxLength', 10, ['x'], ['wrong value']],
-    ['betweenLength', [2, 10], ['test'], ['x', 'wrong value']],
-  ])('%p should', (rule, argument, correctValues, wrongValues) => {
+    ['betweenLengths', [2, 10], ['test'], ['x', 'wrong value']],
+  ])('%p with parameter %p should', (rule, argument, correctValues, wrongValues) => {
     it.each(wrongValues as [])('return error for value %p', (wrong) => {
       const formRuleResult = (formRules as any)[rule](argument)(wrong);
 
