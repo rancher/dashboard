@@ -5,7 +5,6 @@ import {
   mapPref,
   FAVORITE_TYPES,
   AFTER_LOGIN_ROUTE,
-  NO_LOCALE_SHORTCUT,
   THEME_SHORTCUT
 } from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
@@ -61,9 +60,10 @@ export default {
   // Note - This will not run on route change
   data() {
     return {
-      groups:                        [],
-      gettingGroups:                 false,
-      wantNavSync:                   false,
+      noLocaleShortcut: process.env.dev || false,
+      groups:           [],
+      gettingGroups:    false,
+      wantNavSync:      false,
     };
   },
 
@@ -85,7 +85,6 @@ export default {
     },
 
     themeShortcut:    mapPref(THEME_SHORTCUT),
-    noLocaleShortcut: mapPref(NO_LOCALE_SHORTCUT),
     favoriteTypes:    mapPref(FAVORITE_TYPES),
 
     pageActions() {

@@ -8,7 +8,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import LandingPagePreference from '@shell/components/LandingPagePreference';
 import {
   mapPref, THEME, KEYMAP, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE, MENU_MAX_CLUSTERS,
-  VIEW_IN_API, ALL_NAMESPACES, NO_LOCALE_SHORTCUT, THEME_SHORTCUT
+  VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
@@ -24,7 +24,6 @@ export default {
     keymap:           mapPref(KEYMAP),
     viewInApi:        mapPref(VIEW_IN_API),
     allNamespaces:    mapPref(ALL_NAMESPACES),
-    noLocaleShortcut: mapPref(NO_LOCALE_SHORTCUT),
     themeShortcut:    mapPref(THEME_SHORTCUT),
     dateFormat:       mapPref(DATE_FORMAT),
     timeFormat:       mapPref(TIME_FORMAT),
@@ -230,8 +229,6 @@ export default {
       <Checkbox v-model="allNamespaces" :label="t('prefs.advFeatures.allNamespaces', {}, true)" class="mt-20" />
       <br />
       <Checkbox v-model="themeShortcut" :label="t('prefs.advFeatures.themeShortcut', {}, true)" class="mt-20" />
-      <br />
-      <Checkbox v-model="noLocaleShortcut" :label="t('prefs.advFeatures.noLocaleShortcut', {}, true)" class="mt-20" />
       <br />
       <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-20" />
     </div>

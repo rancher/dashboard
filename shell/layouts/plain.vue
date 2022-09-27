@@ -1,5 +1,5 @@
 <script>
-import { mapPref, THEME_SHORTCUT, NO_LOCALE_SHORTCUT } from '@shell/store/prefs';
+import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import Header from '@shell/components/nav/Header';
 import PromptRemove from '@shell/components/PromptRemove';
@@ -33,14 +33,12 @@ export default {
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
-      name: this.$route.name,
+      name:             this.$route.name,
+      noLocaleShortcut: process.env.dev || false,
     };
   },
 
-  computed: {
-    themeShortcut:    mapPref(THEME_SHORTCUT),
-    noLocaleShortcut: mapPref(NO_LOCALE_SHORTCUT)
-  },
+  computed: { themeShortcut: mapPref(THEME_SHORTCUT) },
 
   methods: {
     toggleTheme() {

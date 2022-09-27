@@ -3683,7 +3683,6 @@ prefs:
     viewInApi: Enable "View in API"
     allNamespaces: Show system Namespaces managed by Rancher (not intended for editing or deletion)
     themeShortcut: Enable Dark/Light Theme keyboard shortcut toggle (shift+T)
-    noLocaleShortcut: Enable Language Selection keyboard shortcut toggle (shift+L)
   hideDesc:
     label: Hide All Type Descriptions
   helm:
