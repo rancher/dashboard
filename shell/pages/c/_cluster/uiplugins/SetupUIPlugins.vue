@@ -188,14 +188,18 @@ export default {
     >
       <template v-slot:message>
         <h2>
-            {{ t('plugins.setup.title') }}
+          {{ t('plugins.setup.title') }}
         </h2>
         <div v-if="!loading">
           <div v-if="!haveCharts">
-            <p>{{ t('plugins.setup.prompt.cant') }}</P>
+            <p>
+              {{ t('plugins.setup.prompt.cant') }}
+            </p>
           </div>
           <div v-else>
-            <p>{{ t('plugins.setup.prompt.can') }}</P>
+            <p>
+              {{ t('plugins.setup.prompt.can') }}
+            </p>
             <AsyncButton
               mode="enable"
               :manual="true"
