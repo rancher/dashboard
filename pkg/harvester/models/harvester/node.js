@@ -11,7 +11,7 @@ import {
 import { parseSi } from '@shell/utils/units';
 import HarvesterResource from '../harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
-import { findBy } from '@shell/utils/array';
+import { findBy, isArray } from '@shell/utils/array';
 
 const ALLOW_SYSTEM_LABEL_KEYS = [
   'topology.kubernetes.io/zone',
@@ -257,8 +257,16 @@ export default class HciNode extends HarvesterResource {
 
     const longhornDisks = Object.keys(diskStatus).map((key) => {
       const conditions = diskStatus[key]?.conditions || [];
-      const readyCondition = findBy(conditions, 'type', 'Ready') || {};
-      const schedulableCondition = findBy(conditions, 'type', 'Schedulable') || {};
+      let readyCondition = {};
+      let schedulableCondition = {};
+
+      if (isArray(conditions)) {
+        readyCondition = findBy(conditions, 'type', 'Ready') || {};
+        schedulableCondition = findBy(conditions, 'type', 'Schedulable') || {};
+      } else {
+        readyCondition = conditions.Ready;
+        schedulableCondition = conditions.Schedulable;
+      }
 
       return {
         ...diskSpec[key],

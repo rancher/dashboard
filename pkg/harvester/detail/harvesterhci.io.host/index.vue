@@ -1,18 +1,25 @@
 <script>
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
+import InfoBox from '@shell/components/InfoBox';
+import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
+
 import metricPoller from '@shell/mixins/metric-poller';
 import { METRIC, NODE, LONGHORN, POD } from '@shell/config/types';
 import { HCI } from '../../types';
 import { allHash } from '@shell/utils/promise';
 import { formatSi } from '@shell/utils/units';
-import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { findBy } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
+
 import Basic from './HarvesterHostBasic';
 import Instance from './VirtualMachineInstance';
 import Disk from './HarvesterHostDisk';
-import Network from './HarvesterHostNetwork';
+import VlanStatus from './VlanStatus';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import HarvesterKsmtuned from './HarvesterKsmtuned.vue';
+
+const LONGHORN_SYSTEM = 'longhorn-system';
 
 export default {
   name: 'DetailHost',
@@ -24,7 +31,10 @@ export default {
     Instance,
     ArrayListGrouped,
     Disk,
-    Network,
+    InfoBox,
+    VlanStatus,
+    LabeledSelect,
+    HarvesterKsmtuned,
   },
   mixins: [metricPoller],
 
@@ -43,8 +53,8 @@ export default {
       pods:          this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
     };
 
-    if (this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK)) {
-      hash.hostNetworks = this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK });
+    if (this.$store.getters['harvester/schemaFor'](HCI.VLAN_STATUS)) {
+      hash.hostNetworks = this.$store.dispatch('harvester/findAll', { type: HCI.VLAN_STATUS });
     }
 
     if (this.$store.getters['harvester/schemaFor'](HCI.BLOCK_DEVICE)) {
@@ -136,36 +146,28 @@ export default {
       return longhornDisks;
     },
 
-    network() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const networks = this.$store.getters[`${ inStore }/all`](HCI.NODE_NETWORK);
-
-      return findBy(networks, 'spec.nodeName', this.value.id) || {};
-    },
-
-    networkLinks() {
-      const networkLinkStatus = this.network?.status?.networkLinkStatus || {};
-
-      const out = Object.keys(networkLinkStatus).map((key) => {
-        const obj = networkLinkStatus[key] || {};
-
-        return {
-          ...obj,
-          name:        key,
-          promiscuous: obj.promiscuous ? 'true' : 'false',
-        };
-      });
-
-      return out;
-    },
-
     hasBlockDevicesSchema() {
       return !!this.$store.getters['harvester/schemaFor'](HCI.BLOCK_DEVICE);
     },
 
     hasHostNetworksSchema() {
-      return !!this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK);
-    }
+      return !!this.$store.getters['harvester/schemaFor'](HCI.VLAN_STATUS);
+    },
+
+    vlanStatuses() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const nodeId = this.value.id;
+      const vlanStatuses = this.$store.getters[`${ inStore }/all`](HCI.VLAN_STATUS);
+
+      return vlanStatuses.filter(s => s?.status?.node === nodeId) || [];
+    },
+
+    longhornNode() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const longhornNodes = this.$store.getters[`${ inStore }/all`](LONGHORN.NODES);
+
+      return longhornNodes.find(node => node.id === `${ LONGHORN_SYSTEM }/${ this.value.id }`);
+    },
   },
 
   methods: {
@@ -191,7 +193,11 @@ export default {
   <div>
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
       <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="4" class="bordered-table">
-        <Basic v-model="value" :metrics="metrics" :mode="mode" :host-network-resource="hostNetworkResource" />
+        <Basic
+          v-model="value"
+          :metrics="metrics"
+          :mode="mode"
+        />
       </Tab>
       <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="3" class="bordered-table">
         <Instance :node="value" />
@@ -203,18 +209,15 @@ export default {
         :weight="2"
         class="bordered-table"
       >
-        <ArrayListGrouped
-          v-model="networkLinks"
-          :mode="mode"
-          :can-remove="false"
+        <InfoBox
+          v-for="vlan in vlanStatuses"
+          :key="vlan.id"
         >
-          <template #default="props">
-            <Network
-              :value="props.row.value"
-              :mode="mode"
-            />
-          </template>
-        </ArrayListGrouped>
+          <VlanStatus
+            :value="vlan"
+            :mode="mode"
+          />
+        </InfoBox>
       </Tab>
       <Tab
         v-if="hasBlockDevicesSchema"
@@ -222,6 +225,22 @@ export default {
         :weight="1"
         :label="t('harvester.host.tabs.disk')"
       >
+        <div
+          v-if="longhornNode"
+          class="row mb-20"
+        >
+          <div class="col span-12">
+            <LabeledSelect
+              v-model="longhornNode.spec.tags"
+              :mode="mode"
+              :multiple="true"
+              :taggable="true"
+              :options="[]"
+              :label="t('harvester.host.tags.label')"
+              :searchable="true"
+            />
+          </div>
+        </div>
         <ArrayListGrouped
           v-model="newDisks"
           :mode="mode"
@@ -236,6 +255,15 @@ export default {
             />
           </template>
         </ArrayListGrouped>
+      </Tab>
+
+      <Tab
+        name="ksmtuned"
+        :weight="0"
+        :show-header="false"
+        :label="t('harvester.host.tabs.ksmtuned')"
+      >
+        <HarvesterKsmtuned :mode="mode" :node="value" />
       </Tab>
     </Tabbed>
   </div>

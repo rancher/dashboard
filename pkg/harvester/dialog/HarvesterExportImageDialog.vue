@@ -8,7 +8,8 @@ import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { NAMESPACE } from '@shell/config/types';
+import { NAMESPACE, STORAGE_CLASS } from '@shell/config/types';
+import { allHash } from '@shell/utils/promise';
 
 export default {
   name: 'HarvesterExportImageDialog',
@@ -24,13 +25,26 @@ export default {
     }
   },
 
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    const hash = { storages: this.$store.dispatch(`${ inStore }/findAll`, { type: STORAGE_CLASS }) };
+
+    await allHash(hash);
+
+    const defaultStorage = this.$store.getters[`${ inStore }/all`](STORAGE_CLASS).find(s => s.isDefault);
+
+    this.$set(this, 'storageClassName', defaultStorage?.metadata?.name || 'longhorn');
+  },
+
   data() {
     const namespace = this.$store.getters['defaultNamespace'] || '';
 
     return {
-      name:      '',
+      name:             '',
       namespace,
-      errors:       []
+      storageClassName: '',
+      errors:           []
     };
   },
 
@@ -58,20 +72,41 @@ export default {
     },
 
     disableSave() {
-      return !(this.name && this.namespace);
-    }
+      return !(this.name && this.namespace && this.storageClassName);
+    },
+
+    storageClassOptions() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const storages = this.$store.getters[`${ inStore }/all`](STORAGE_CLASS);
+
+      const out = storages.filter(s => !s.parameters?.backingImage).map((s) => {
+        const label = s.isDefault ? `${ s.name } (${ this.t('generic.default') })` : s.name;
+
+        return {
+          label,
+          value: s.name,
+        };
+      }) || [];
+
+      return out;
+    },
   },
 
   methods: {
     close() {
       this.name = '';
       this.namespace = '';
+      this.storageClassName = '';
       this.$emit('close');
     },
 
     async save(buttonCb) {
       try {
-        const res = await this.actionResource.doAction('export', { displayName: this.name, namespace: this.namespace });
+        const res = await this.actionResource.doAction('export', {
+          displayName:      this.name,
+          namespace:        this.namespace,
+          storageClassName: this.storageClassName,
+        });
 
         if (res._status === 200 || res._status === 204) {
           this.$store.dispatch('growl/success', {
@@ -117,6 +152,14 @@ export default {
       <LabeledInput
         v-model="name"
         :label="t('harvester.modal.exportImage.name')"
+        required
+      />
+
+      <LabeledSelect
+        v-model="storageClassName"
+        :options="storageClassOptions"
+        :label="t('harvester.storage.storageClass.label')"
+        class="mt-20"
         required
       />
     </template>

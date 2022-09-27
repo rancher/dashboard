@@ -39,11 +39,30 @@ export default {
     const resource = params.resource;
 
     return {
-      rows:     [],
-      settings: [],
+      rows:                 [],
+      settings:             [],
       resource,
-      to:       `${ HCI.SETTING }/backup-target?mode=edit`
+      to:                   `${ HCI.SETTING }/backup-target?mode=edit`,
     };
+  },
+
+  created() {
+    this.testConnect();
+  },
+
+  methods: {
+    async testConnect() {
+      try {
+        await this.$store.dispatch('harvester/request', { url: 'v1/harvester/backuptarget/healthz' });
+      } catch (err) {
+        if (err?._status === 400 || err?._status === 503) {
+          this.$store.dispatch('growl/error', {
+            title:   this.t('harvester.notification.title.error'),
+            message: err.errors[0]
+          }, { root: true });
+        }
+      }
+    }
   },
 
   computed: {
@@ -75,6 +94,10 @@ export default {
         },
         AGE
       ];
+    },
+
+    filterdRows() {
+      return this.rows.filter(R => R.spec?.type !== 'snapshot');
     },
 
     backupTargetResource() {
@@ -129,23 +152,24 @@ export default {
       </MessageLink>
     </Banner>
 
-    <Banner
-      v-else-if="canUpdate"
-      color="info"
-    >
-      <MessageLink
-        :to="to"
-        prefix-label="harvester.backup.message.viewSetting.prefix"
-        middle-label="harvester.backup.message.viewSetting.middle"
-        suffix-label="harvester.backup.message.viewSetting.suffix"
-      />
-    </Banner>
+    <div v-else-if="canUpdate">
+      <Banner
+        color="info"
+      >
+        <MessageLink
+          :to="to"
+          prefix-label="harvester.backup.message.viewSetting.prefix"
+          middle-label="harvester.backup.message.viewSetting.middle"
+          suffix-label="harvester.backup.message.viewSetting.suffix"
+        />
+      </Banner>
+    </div>
 
     <ResourceTable
       v-bind="$attrs"
       :headers="headers"
       :groupable="true"
-      :rows="rows"
+      :rows="filterdRows"
       :schema="schema"
       key-field="_key"
       default-sort-by="age"
@@ -167,6 +191,5 @@ export default {
         </td>
       </template>
     </resourcetable>
-  </div>
   </div>
 </template>

@@ -6,6 +6,7 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'LabeledSelect',
@@ -92,6 +93,7 @@ export default {
       type:    Boolean,
       default: true
     },
+
   },
 
   data() {
@@ -102,6 +104,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     hasLabel() {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
@@ -115,6 +118,11 @@ export default {
 
       return this.getOptionLabel(this.value);
     },
+
+    // update placeholder text to inform user they can add their own opts when none are found
+    showTagPrompts() {
+      return !this.options.length && this.$attrs.taggable;
+    }
   },
 
   methods: {
@@ -270,10 +278,16 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
-      @option:selected="$emit('selecting', $event)"
+      @option:selecting="$emit('selecting', $event)"
+      @option:deselecting="$emit('deselecting', $event)"
     >
       <template #option="option">
-        <template v-if="option.kind === 'group'">
+        <template v-if="showTagPrompts">
+          <div class="only-user-opts">
+            {{ t('labeledSelect.pressEnter', {input:getOptionLabel(option.label)}) }}
+          </div>
+        </template>
+        <template v-else-if="option.kind === 'group'">
           <div class="vs__option-kind-group">
             <b>{{ getOptionLabel(option) }}</b>
             <div v-if="option.badge">
@@ -288,6 +302,9 @@ export default {
           {{ getOptionLabel(option) }}
           <i v-if="option.error" class="icon icon-warning pull-right" style="font-size: 20px;" />
         </div>
+      </template>
+      <template v-if="showTagPrompts" v-slot:no-options="{ searching }">
+        <span v-if="!searching">{{ t('labeledSelect.startTyping') }}</span>
       </template>
       <!-- Pass down templates provided by the caller -->
       <template v-for="(_, slot) of $scopedSlots" #[slot]="scope">
@@ -392,6 +409,7 @@ export default {
 
   &.taggable {
     ::v-deep .vs__selected-options {
+
       padding: 3px 0;
       .vs__selected {
         border-color: var(--accent-btn);
@@ -422,6 +440,9 @@ export default {
 
   ::v-deep .v-select:not(.vs--single) {
     .vs__selected-options {
+      flex-grow: 0;
+      flex-basis: 0%;
+      flex-wrap: nowrap;
       padding: 5px 0;
     }
   }
@@ -485,5 +506,12 @@ export default {
     margin-top: 1px;
     padding: 0 10px;
   }
+}
+
+.vs__dropdown-menu .vs__dropdown-option .only-user-opts{
+    color: var(--dropdown-text);
+    background-color: var(--dropdown-bg);
+    margin: 0px calc(-#{$input-padding-sm}/2);
+    padding: 3px 20px;
 }
 </style>

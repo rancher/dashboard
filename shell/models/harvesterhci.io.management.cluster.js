@@ -11,7 +11,10 @@ export default class HciCluster extends ProvCluster {
 
   applyDefaults() {
     if ( !this.spec ) {
-      Vue.set(this, 'spec', { agentEnvVars: [] });
+      Vue.set(this, 'spec', {
+        agentEnvVars:           [],
+        storageClassParameters: {},
+      });
       Vue.set(this, 'metadata', { namespace: DEFAULT_WORKSPACE });
     }
   }

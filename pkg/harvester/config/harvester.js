@@ -1,3 +1,4 @@
+import { _EDIT, MODE } from '@shell/config/query-params';
 import {
   NODE,
   CONFIG_MAP,
@@ -6,25 +7,37 @@ import {
   MANAGEMENT,
   PVC,
   NETWORK_ATTACHMENT,
+  MONITORING,
+  LOGGING,
+  STORAGE_CLASS,
 } from '@shell/config/types';
-import { HCI } from '../types';
+import { HCI, VOLUME_SNAPSHOT } from '../types';
 import {
   STATE,
   NAME_UNLINKED,
   NAME as NAME_COL,
   AGE,
-  NAMESPACE as NAMESPACE_COL
+  NAMESPACE as NAMESPACE_COL,
+  LOGGING_OUTPUT_PROVIDERS,
+  OUTPUT,
+  CLUSTER_OUTPUT,
+  CONFIGURED_PROVIDERS
 } from '@shell/config/table-headers';
 
 import {
   IMAGE_DOWNLOAD_SIZE,
   FINGERPRINT,
-  IMAGE_PROGRESS
+  IMAGE_PROGRESS,
+  SNAPSHOT_TARGET_VOLUME,
 } from './table-headers';
 
 import { IF_HAVE } from '@shell/store/type-map';
 
 const TEMPLATE = HCI.VM_VERSION;
+const MONITORING_GROUP = 'Monitoring & Logging::Monitoring';
+const LOGGING_GROUP = 'Monitoring & Logging::Logging';
+const MONITORING_CONFIGURATION = 'monitoring-configuration';
+const LOGGING_CONFIGURATION = 'logging-configuration';
 
 export const PRODUCT_NAME = 'harvester';
 
@@ -34,7 +47,9 @@ export function init($plugin, store) {
     basicType,
     headers,
     configureType,
-    virtualType
+    virtualType,
+    weightGroup,
+    weightType,
   } = $plugin.DSL(store, PRODUCT_NAME);
 
   const isSingleVirtualCluster = process.env.rancherEnv === PRODUCT_NAME;
@@ -193,7 +208,7 @@ export function init($plugin, store) {
     group:      'root',
     name:       HCI.IMAGE,
     namespaced: true,
-    weight:     99,
+    weight:     198,
     route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params: { resource: HCI.IMAGE }
@@ -230,13 +245,213 @@ export function init($plugin, store) {
     });
   }
 
+  basicType([
+    MONITORING_CONFIGURATION,
+    HCI.ALERTMANAGERCONFIG
+  ], MONITORING_GROUP);
+
+  basicType([
+    LOGGING_CONFIGURATION,
+    HCI.CLUSTER_FLOW,
+    HCI.CLUSTER_OUTPUT,
+    HCI.FLOW,
+    HCI.OUTPUT,
+  ], LOGGING_GROUP);
+
+  weightGroup('Monitoring', 2, true);
+  weightGroup('Logging', 1, true);
+
+  virtualType({
+    ifHaveType:    MANAGEMENT.MANAGED_CHART,
+    labelKey:     'harvester.monitoring.configuration.label',
+    name:         MONITORING_CONFIGURATION,
+    namespaced:   true,
+    weight:       88,
+    route:        {
+      name:      `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
+      params:    {
+        resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: 'rancher-monitoring'
+      },
+      query: { [MODE]: _EDIT }
+    },
+    exact: false,
+  });
+
+  virtualType({
+    ifHaveType:    MANAGEMENT.MANAGED_CHART,
+    labelKey:     'harvester.monitoring.configuration.label',
+    name:         LOGGING_CONFIGURATION,
+    namespaced:   true,
+    weight:       88,
+    route:        {
+      name:      `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
+      params:    {
+        resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: 'rancher-logging'
+      },
+      query: { [MODE]: _EDIT }
+    },
+    exact: false,
+  });
+
+  headers(HCI.ALERTMANAGERCONFIG, [
+    STATE,
+    NAME_COL,
+    NAMESPACE_COL,
+    {
+      name:      'receivers',
+      labelKey:  'tableHeaders.receivers',
+      formatter: 'ReceiverIcons',
+      value:     'name'
+    },
+  ]);
+
+  configureType(HCI.ALERTMANAGERCONFIG, {
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.ALERTMANAGERCONFIG },
+    },
+    resource:       MONITORING.ALERTMANAGERCONFIG,
+    resourceDetail: HCI.ALERTMANAGERCONFIG,
+    resourceEdit:   HCI.ALERTMANAGERCONFIG
+  });
+
+  virtualType({
+    ifHaveType:    MONITORING.ALERTMANAGERCONFIG,
+    labelKey:     'harvester.monitoring.alertmanagerConfig.label',
+    name:         HCI.ALERTMANAGERCONFIG,
+    namespaced:   true,
+    weight:       87,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.ALERTMANAGERCONFIG }
+    },
+    exact: false,
+  });
+
+  configureType(HCI.CLUSTER_FLOW, {
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.CLUSTER_FLOW },
+    },
+    resource:       LOGGING.CLUSTER_FLOW,
+    resourceDetail: HCI.CLUSTER_FLOW,
+    resourceEdit:   HCI.CLUSTER_FLOW
+  });
+
+  virtualType({
+    ifHaveType:    LOGGING.CLUSTER_FLOW,
+    labelKey:     'harvester.logging.clusterFlow.label',
+    name:         HCI.CLUSTER_FLOW,
+    namespaced:   true,
+    weight:       79,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.CLUSTER_FLOW }
+    },
+    exact: false,
+  });
+
+  configureType(HCI.CLUSTER_OUTPUT, {
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.CLUSTER_OUTPUT },
+    },
+    resource:       LOGGING.CLUSTER_OUTPUT,
+    resourceDetail: HCI.CLUSTER_OUTPUT,
+    resourceEdit:   HCI.CLUSTER_OUTPUT
+  });
+
+  virtualType({
+    ifHaveType:    LOGGING.CLUSTER_OUTPUT,
+    labelKey:     'harvester.logging.clusterOutput.label',
+    name:         HCI.CLUSTER_OUTPUT,
+    namespaced:   true,
+    weight:       78,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.CLUSTER_OUTPUT }
+    },
+    exact: false,
+  });
+
+  configureType(HCI.FLOW, {
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.FLOW },
+    },
+    resource:       LOGGING.FLOW,
+    resourceDetail: HCI.FLOW,
+    resourceEdit:   HCI.FLOW
+  });
+
+  virtualType({
+    ifHaveType:    LOGGING.FLOW,
+    labelKey:     'harvester.logging.flow.label',
+    name:         HCI.FLOW,
+    namespaced:   true,
+    weight:       77,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.FLOW }
+    },
+    exact: false,
+  });
+
+  configureType(HCI.OUTPUT, {
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.OUTPUT },
+    },
+    resource:       LOGGING.OUTPUT,
+    resourceDetail: HCI.OUTPUT,
+    resourceEdit:   HCI.OUTPUT
+  });
+
+  virtualType({
+    ifHaveType:    LOGGING.OUTPUT,
+    labelKey:     'harvester.logging.output.label',
+    name:         HCI.OUTPUT,
+    namespaced:   true,
+    weight:       76,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.OUTPUT }
+    },
+    exact: false,
+  });
+
+  headers(HCI.FLOW, [STATE, NAME_COL, NAMESPACE_COL, OUTPUT, CLUSTER_OUTPUT, CONFIGURED_PROVIDERS, AGE]);
+  headers(HCI.OUTPUT, [STATE, NAME_COL, NAMESPACE_COL, LOGGING_OUTPUT_PROVIDERS, AGE]);
+  headers(HCI.CLUSTER_FLOW, [STATE, NAME_COL, NAMESPACE_COL, CLUSTER_OUTPUT, CONFIGURED_PROVIDERS, AGE]);
+  headers(HCI.CLUSTER_OUTPUT, [STATE, NAME_COL, NAMESPACE_COL, LOGGING_OUTPUT_PROVIDERS, AGE]);
+
+  basicType(
+    [
+      HCI.VLAN_CONFIG,
+      HCI.NETWORK_ATTACHMENT,
+    ],
+    'networks'
+  );
+
+  basicType(
+    [
+      HCI.BACKUP,
+      HCI.SNAPSHOT,
+      HCI.VM_SNAPSHOT,
+    ],
+    'backupAndSnapshot'
+  );
+
+  weightGroup('networks', 300, true);
+  weightType(NAMESPACE, 299, true);
+  weightGroup('backupAndSnapshot', 289, true);
+
   basicType(
     [
       TEMPLATE,
-      HCI.NETWORK_ATTACHMENT,
-      HCI.BACKUP,
       HCI.SSH,
       HCI.CLOUD_TEMPLATE,
+      HCI.STORAGE,
       HCI.SETTING
     ],
     'advanced'
@@ -285,6 +500,30 @@ export function init($plugin, store) {
     exact: false
   });
 
+  headers(HCI.VLAN_CONFIG, [
+    STATE,
+    NAME_COL,
+    {
+      name:     'clusterNetwork',
+      labelKey: 'harvester.network.clusterNetwork.label',
+      value:    'spec.clusterNetwork',
+      sort:     'spec.clusterNetwork',
+    },
+    AGE
+  ]);
+  virtualType({
+    labelKey:   'harvester.vlanConfig.title',
+    name:       HCI.VLAN_CONFIG,
+    ifHaveType: HCI.VLAN_CONFIG,
+    namespaced: false,
+    weight:     189,
+    route:      {
+      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:   { resource: HCI.VLAN_CONFIG }
+    },
+    exact: false,
+  });
+
   configureType(NETWORK_ATTACHMENT, { isEditable: false, showState: false });
   configureType(HCI.NETWORK_ATTACHMENT, {
     location: {
@@ -300,10 +539,56 @@ export function init($plugin, store) {
     labelKey:   'harvester.network.label',
     name:       HCI.NETWORK_ATTACHMENT,
     namespaced: true,
-    weight:     189,
+    weight:     188,
     route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params: { resource: HCI.NETWORK_ATTACHMENT }
+    },
+    exact: false
+  });
+
+  configureType(HCI.SNAPSHOT, {
+    isCreatable: false,
+    location:    {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:  { resource: HCI.SNAPSHOT },
+    },
+    resource:       VOLUME_SNAPSHOT,
+    resourceDetail: HCI.SNAPSHOT,
+    resourceEdit:   HCI.SNAPSHOT,
+  });
+  headers(HCI.SNAPSHOT, [STATE, NAME_COL, NAMESPACE_COL, SNAPSHOT_TARGET_VOLUME, AGE]);
+  virtualType({
+    labelKey:     'harvester.snapshot.label',
+    name:         HCI.SNAPSHOT,
+    namespaced:   true,
+    weight:       190,
+    route:        {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:    { resource: HCI.SNAPSHOT }
+    },
+    exact: false,
+  });
+
+  configureType(HCI.VM_SNAPSHOT, {
+    showListMasthead: false,
+    location:         {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.VM_SNAPSHOT }
+    },
+    resource:       HCI.BACKUP,
+    resourceDetail: HCI.VM_SNAPSHOT,
+    resourceEdit:   HCI.VM_SNAPSHOT
+  });
+
+  virtualType({
+    labelKey:   'harvester.vmSnapshot.label',
+    name:       HCI.VM_SNAPSHOT,
+    namespaced: true,
+    weight:     191,
+    route:      {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.VM_SNAPSHOT }
     },
     exact: false
   });
@@ -357,5 +642,62 @@ export function init($plugin, store) {
       params: { resource: HCI.SETTING }
     },
     exact: false
+  });
+
+  configureType(HCI.STORAGE, {
+    location: {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.STORAGE }
+    },
+    resource:       STORAGE_CLASS,
+    resourceDetail: HCI.STORAGE,
+    resourceEdit:   HCI.STORAGE,
+  });
+  virtualType({
+    labelKey:   'harvester.storage.title',
+    group:      'root',
+    ifHaveType: STORAGE_CLASS,
+    name:       HCI.STORAGE,
+    namespaced: false,
+    weight:     79,
+    route:      {
+      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:   { resource: HCI.STORAGE }
+    },
+    exact: false,
+  });
+
+  basicType([HCI.PCI_DEVICE], 'advanced');
+
+  virtualType({
+    label:      'PCI Devices',
+    group:      'advanced',
+    name:       HCI.PCI_DEVICE,
+    namespaced:  false,
+    route:      {
+      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:   { resource: HCI.PCI_DEVICE }
+    },
+    exact: false,
+  });
+
+  configureType(HCI.PCI_DEVICE, {
+    hiddenNamespaceGroupButton: true,
+    listGroups:                 [
+      {
+        icon:       'icon-list-grouped',
+        value:      'description',
+        field:      'groupByDevice',
+        hideColumn: 'description',
+        tooltipKey: 'resourceTable.groupBy.device'
+      },
+      {
+        icon:       'icon-cluster',
+        value:      'node',
+        field:      'groupByNode',
+        hideColumn: 'node',
+        tooltipKey: 'resourceTable.groupBy.node'
+      }
+    ]
   });
 }

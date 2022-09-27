@@ -58,6 +58,24 @@ harvester:
       title: Add Volume
     hotunplug:
       success: 'Volume { name } is detach successfully.'
+    snapshot:
+      title: Take Snapshot
+      name: Name
+      message:
+        success: 'Take Snapshot { name } successfully.'
+    pvcClone:
+      title: Clone Volume
+      name: Name
+      message:
+        success: 'New Volume { name } cloned successfully.'
+    restoreSnapshot:
+      title: Restore Snapshot
+      name: 'New Volume Name'
+      success: 'New Volume { name } restored successfully.'
+    vmSnapshot:
+      title: Take VM Snapshot
+      name: Name
+      success: 'Take VM Snapshot { name } successfully.'
   notification:
     title:
       succeed: Succeed
@@ -94,6 +112,9 @@ harvester:
     exportImage: Export Image
     viewlogs: View Logs
     cancelExpand: Cancel Expand
+    snapshot: Take Snapshot
+    pvcClone: Clone Volume
+    vmSnapshot: Take Snapshot
   tableHeaders:
     size: Size
     progress: Progress
@@ -114,11 +135,14 @@ harvester:
     network:
       type: Type
       vlan: Vlan ID
+    snapshotTargetVolume: Original Volume
+    volumeSnapshotCounts: Snapshot Counts
   tab:
     volume: Volumes
     network: Networks
     advanced: Advanced Options
     accessCredentials: Access Credentials
+    pciDevices: PCI Devices
   fields:
     version: Version
     name: Name
@@ -139,6 +163,19 @@ harvester:
     promiscuous: Promiscuous
     ipv4Address: IPv4 Address
     filterLabels: Filter Labels
+  pci:
+    available: Available Devices
+    compatibleNodes: Compatible Nodes
+    impossibleSelection: 'There are no hosts with all of the selected devices.'
+    howToUseDevice: 'Use the table below to enable PCI passthrough on each device you want to use in this VM.'
+    showCompatibility: Show device compatibility matrix
+    hideCompatibility: Hide device compatibility matrix
+    claimError: Error enabling passthrough on {name}
+    unclaimError: Error disabling passthrough on {name}
+    cantUnclaim: You cannot disable passthrough on a device claimed by another user.
+    enableGroup: Enable Group
+    disableGroup: Disable Group
+    labelRequired: "This rule should not be manually altered: it ensures that the PCI devices selected for this virtual machine are available on the VM's host."
   generic:
     close: Close
     open: Open
@@ -170,6 +207,7 @@ harvester:
         image: '"Image" is required!'
         volume: '"Volume" is required!'
         docker: '"Docker Image" is required!'
+        storageClass: '"Storage Class" is required!'
         needImageOrExisting: 'At least an image volume or an existing root-disk volume is required!'
     image:
       ruleTip: 'The URL you have entered ends in an extension that we do not support. We only accept image files that end in .img, .iso, .qcow, .qcow2, .raw.'
@@ -206,8 +244,9 @@ harvester:
       basics: Basics
       instance: Virtual Machines
       monitor: Monitor Data
-      disk: Disks
+      disk: Storage
       labels: Labels
+      ksmtuned: Ksmtuned
     detail:
       title:
         network: Network Configuration
@@ -234,6 +273,38 @@ harvester:
     cordon:
       title: Cordon
       protip: This operation will mark the node { node } as unschedulable.
+    ksmtuned:
+      run: Run Strategy
+      configure: Configure
+      mode: Mode
+      modeLink: Mode <a href="https://docs.harvesterhci.io/v1.0/host/host/#enable-ksmtuned" target="_blank"><i class="icon icon-info" /></a>
+      thresCoef: Threshold Coefficient
+      modeOption:
+        standard: Standard
+        high: High-Perfomanace
+        customized: Customized
+      parameters: 
+        title: Ksmtuned Parameters
+        boost: Boost
+        decay: Decay
+        sleepMsec: Sleep Time(millisecond)
+        minPages: Minimum Pages
+        maxPages: Maximum Pages
+        description:
+          boost: The number of scanned pages is incremented each time, and if the available memory is less than the ThresCoef.
+          decay: The number of scanned pages is decremented each time, and if the available memory is greater than the ThresCoef.
+          sleepMsec: The interval between each detection, is calculated by the formula for the interval between two scans.
+          minPages: The minimum number of pages per scan, also the configuration for the first run.
+          maxPages: Maximum number of pages per scan.
+      statistics:
+        title: Statistics <a href="https://www.kernel.org/doc/html/latest/admin-guide/mm/ksm.html#ksm-daemon-sysfs-interface" target="_blank"><i class="icon icon-info" /></a>
+        sharing: Sharing
+        shared: Shared
+        unshared: Unshared
+        volatile: Volatile
+        fullScans: Full Scans
+        stableNodeChains: Stable Node Chains
+        stableNodeDups: Stable Node Dups
     disk:
       add: Add Disk
       path:
@@ -257,6 +328,10 @@ harvester:
       error: Host has unready or unschedulable disks.
       fileSystem:
         info: Current file system is {system}, You can format it manually.
+      tags:
+        label: Disk Tags
+    tags:
+      label: Host Tags
 
   virtualMachine:
     label: Virtual Machines
@@ -455,8 +530,11 @@ harvester:
     label: Volumes
     tabs:
       basics: Basics
+      snapshots: Snapshots
+      datasource: Data Source
     size: Size
     source: Source
+    kind: Kind
     sourceOptions:
       new: New
       vmImage: VM Image
@@ -528,7 +606,7 @@ harvester:
       moreNotes: For more details about the release notes, please visit - 
 
   backup:
-    label: Backups
+    label: VM Backups
     createText: Restore Backup
     title: Restore Virtual Machine
     backupTargetTip: The endpoint used to access the backupstore. NFS and S3 are supported.
@@ -545,6 +623,11 @@ harvester:
         prefix: Click
         middle: here
         suffix: to view the backup config.
+      testConnect:
+        actionLabel: Test connection
+        waitingLabel: Testing connection...
+        successLabel: Connection tested
+        successMessage: 'Harvester can successfully connect to the endpoint {endpoint}'
     restore:
       backup: Backup
       deletePreviousVolumes: Delete Previous Volumes
@@ -554,24 +637,17 @@ harvester:
     matchTarget: The current backup target does not match the existing one.
 
   network:
-    label: Networks
+    label: VLANs
     tabs:
       basics: Basics
       layer3Network: Route
-    message:
-      vlanInactive: 'VLAN network is inactive at {name} host'
-      premise:
-        prefix: 'You must configure a network in'
-        middle: 'Settings'
-        suffix: 'before creating a new network.'
-      viewSetting:
-        prefix: Click
-        middle: here
-        suffix: to view default cluster network config.
-      errorTip:
-        prefix: Physical NIC value in
-        middle: Setting
-        suffix: "is invalid, error: "
+    clusterNetwork:
+      label: Cluster Network
+      create: Create a New Cluster Network
+      toolTip: Define your custom cluster scope network name
+      createPlaceholder: Input a new Cluster Network name
+      selectOrCreatePlaceholder: Select or Create a new Cluster Network
+      selectPlaceholder: Select a Cluster Network
     layer3Network:
       mode:
         label: Mode
@@ -617,6 +693,25 @@ harvester:
       imagePullPolicy: Pull Policy
       repo: Repository
       tag: Tag
+    containerdRegistry:
+      mirrors:
+        mirrors: Mirrors
+        registryName: RegistryName
+        endpoints: Endpoints
+        rewrite:
+          rewrite: Rewrite
+          addRewrite: Add Rewrite
+        addMirror: Add Mirror
+      configs:
+        configs: Configs
+        registryEDQNorIP: Registry FDQN or IP
+        registryPlaceholder: myregistry.local:5000
+        username: UserName
+        password: Password
+        auth: Auth
+        identityToken: IdentityToken
+        insecureSkipVerify: InsecureSkipVerify
+        addConfig: Add Config
 
     upgrade:
       selectExitImage: Please select the OS image to upgrade.
@@ -626,8 +721,10 @@ harvester:
     harvesterMonitoring:
       label: Harvester Monitoring
       section:
-        prometheus: Prometheus Configuration
-        prometheusNodeExporter: Prometheus Node Exporter Configuration
+        prometheus: Prometheus
+        prometheusNodeExporter: Prometheus Node Exporter
+        grafana: Grafana
+        alertmanager: Alertmanager
       tips:
         scrape: Interval between consecutive scrapes
         evaluation: Interval between consecutive evaluations
@@ -684,6 +781,100 @@ harvester:
       label: Protocols
     ciphers:
       label: Ciphers
+  
+  monitoring:
+    configuration:
+      label: Configuration
+    alertmanagerConfig:
+      label: Alertmanager Configs
+      diabledTips:
+        prefix: 'You must enable'
+        middle: 'Alertmanager'
+        suffix: 'before creating a new config.'
+
+  logging:
+    configuration:
+      section:
+        fluentbit: Fluentbit
+        fluentd: Fluentd
+    clusterFlow:
+      label: Cluster Flow
+    clusterOutput:
+      label: Cluster Output
+    flow:
+      label: Flow
+    output:
+      label: Output
+
+  snapshot:
+    label: Volume Snapshots
+    targetVolume: Original Volume
+    size: Size
+    image: Image
+
+  vmSnapshot:
+    label: VM Snapshots
+    createText: Restore Snapshot
+    snapshot: Snapshot
+
+  storage:
+    label: Storage
+    useDefault: Use the default storage
+    migratable:
+      label: Migratable
+    numberOfReplicas:
+      label: Number Of Replicas
+    staleReplicaTimeout:
+      label: Stale Replica Timeout
+    nodeSelector:
+      label: Host Selector
+    diskSelector:
+      label: Disk Selector
+    storageClass:
+      label: Storage Class
+    title: Storage Classes
+    customize:
+      volumeBindingMode:
+        later: Bind and provision a persistent volume once a VM using the PersistentVolumeClaim is created
+    parameters:
+      numberOfReplicas:
+        label: Number Of Replicas
+      staleReplicaTimeout:
+        label: Stale Replica Timeout
+      diskSelector:
+        label: Disk Selector
+      nodeSelector:
+        label: Node Selector
+      migratable:
+        label: Migratable
+
+  vlanConfig:
+    title: Network Configs
+    titles:
+      nodeSelector: Node Selector
+      uplink: Uplink
+      bondOptions: Bond Options
+    scheduling:
+      affinity:
+        allNodes: Select all nodes
+        specificNode: Select specific node
+        schedulingRules: Select node(s) matching rules
+    uplink:
+      nics:
+        label: NICs
+        addLabel: Add NIC
+      linkAttributes:
+        mtu: 
+          label: MTU
+      bondOptions:
+        mode:
+          label: Mode
+        miimon:
+          label: Miimon
+
+  vlanStatus:
+    vlanConfig:
+      label: Network Config
 
 advancedSettings:
   descriptions:
@@ -695,6 +886,7 @@ advancedSettings:
     'harv-upgrade-checker-url': Default Harvester upgrade check url. Only used when the <code>upgrade-checker-enabled</code>  is equal to true.
     'harv-ui-source': Config how to load the UI source.
     'harv-ui-index': 'HTML index location for the UI.'
+    'harv-ui-plugin-index': 'JS index location for the harvester plugin UI.'
     'harv-cluster-registration-url': Registration URL for mutil-cluster management.
     'harv-http-proxy': 'HTTP proxy for Harvester to access external services.'
     'harv-additional-ca': 'Custom CA root certificates for TLS validation.'
@@ -707,7 +899,6 @@ advancedSettings:
     'harv-auto-disk-provision-paths': Specify the disks(using glob pattern) that Harvester will automatically add as VM storage.
     'harv-support-bundle-image': Support bundle image configuration. Find different versions in <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a>.
     'harv-release-download-url': This setting allows you to configure the <code>upgrade release download</code> URL address. Harvester will get the ISO URL and checksum value from the (<code>$URL</code>/<code>$VERSION</code>/version.yaml) file hosted by the configured URL.
-    'harvester-monitoring': Specifies the monitoring configuration that the Harvester's built-in Prometheus will use.
 
 typeLabel:
   kubevirt.io.virtualmachine: |-
@@ -732,13 +923,13 @@ typeLabel:
     }
   k8s.cni.cncf.io.networkattachmentdefinition: |-
     {count, plural,
-      one { Network Attachment Definition }
-      other { Network Attachment Definitions }
+      one { VLAN }
+      other { VLANs }
     }
   harvesterhci.io.networkattachmentdefinition: |-
     {count, plural,
-      one { Network }
-      other { Networks }
+      one { VLAN }
+      other { VLANs }
     }
   harvesterhci.io.volume: |-
     {count, plural,
@@ -762,11 +953,62 @@ typeLabel:
     }
   harvesterhci.io.virtualmachinebackup: |-
     {count, plural,
-      one { Backup }
-      other { Backups }
+      one { VM Backup }
+      other { VM Backups }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,
       one { Cloud Config Template }
       other { Cloud Config Templates }
+    }
+  harvesterhci.io.volumesnapshot: |-
+    {count, plural,
+      one { Volume Snapshot }
+      other { Volume Snapshots }
+    }
+  harvesterhci.io.vmsnapshot: |-
+    {count, plural,
+      one { VM Snapshot }
+      other { VM Snapshots }
+    }
+  network.harvesterhci.io.vlanconfig: |-
+    {count, plural,
+      one { Network Config }
+      other { Network Configs }
+    }
+  harvesterhci.io.monitoring.alertmanagerconfig: |-
+    {count, plural,
+      one { Alertmanager Config }
+      other { Alertmanager Configs }
+    }
+  harvesterhci.io.logging.clusterflow: |-
+    {count, plural,
+      one { Cluster Flow }
+      other { Cluster Flows }
+    }
+  harvesterhci.io.logging.clusteroutput: |-
+    {count, plural,
+      one { Cluster Output }
+      other { Cluster Outputs }
+    }
+  harvesterhci.io.logging.flow: |-
+    {count, plural,
+      one { Flow }
+      other { Flows }
+    }
+  harvesterhci.io.logging.output: |-
+    {count, plural,
+      one { Output }
+      other { Outputs }
+    }
+  harvesterhci.io.storage: |-
+    {count, plural,
+      one { Storage Class }
+      other { Storage Classes }
+    }
+
+  devices.harvesterhci.io.pcidevice: |-
+    {count, plural,
+      one { PCI Device }
+      other { PCI Devices }
     }

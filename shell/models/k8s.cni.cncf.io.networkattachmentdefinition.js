@@ -22,7 +22,7 @@ export default class NetworkAttachmentDef extends SteveModel {
         cniVersion:  '0.3.1',
         name:        '',
         type:        'bridge',
-        bridge:      'harvester-br0',
+        bridge:      '',
         promiscMode: true,
         vlan:        '',
         ipam:        {}

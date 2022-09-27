@@ -7,12 +7,15 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 
+import Storage from './Storage';
+
 export default {
   components: {
     CopyToClipboardText,
     Tab,
     Tabbed,
-    LabelValue
+    LabelValue,
+    Storage,
   },
 
   props: {
@@ -58,7 +61,12 @@ export default {
 
 <template>
   <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-    <Tab name="detail" :label="t('harvester.virtualMachine.detail.tabs.basics')" class="bordered-table">
+    <Tab
+      name="detail"
+      :label="t('harvester.virtualMachine.detail.tabs.basics')"
+      class="bordered-table"
+      :weight="99"
+    >
       <div class="row">
         <div class="col span-12">
           <LabelValue
@@ -107,6 +115,16 @@ export default {
           </div>
         </div>
       </div>
+    </Tab>
+    <Tab
+      name="storage"
+      :label="t('harvester.storage.label')"
+      :weight="89"
+      class="bordered-table"
+    >
+      <Storage
+        v-model="value.spec.storageClassParameters"
+      />
     </Tab>
   </Tabbed>
 </template>

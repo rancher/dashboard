@@ -20,6 +20,7 @@ import CpuMemory from './VirtualMachineCpuMemory';
 import CloudConfig from './VirtualMachineCloudConfig';
 import NodeScheduling from '@shell/components/form/NodeScheduling';
 import AccessCredentials from './VirtualMachineAccessCredentials';
+import PciDevices from './VirtualMachinePciDevices/index';
 
 import { clear } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
@@ -54,6 +55,7 @@ export default {
     NodeScheduling,
     AccessCredentials,
     Reserved,
+    PciDevices
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -497,10 +499,16 @@ export default {
       </Tab>
 
       <Tab name="nodeScheduling" :label="t('workload.container.titles.nodeScheduling')" :weight="-3">
-        <NodeScheduling :mode="mode" :value="spec.template.spec" :nodes="nodesIdOptions" />
+        <template #default="{active}">
+          <NodeScheduling :key="active" :mode="mode" :value="spec.template.spec" :nodes="nodesIdOptions" />
+        </template>
       </Tab>
 
-      <Tab v-if="isEdit" :label="t('harvester.tab.accessCredentials')" name="accessCredentials" :weight="-4">
+      <Tab :label="t('harvester.tab.pciDevices')" name="pciDevices" :weight="-4">
+        <PciDevices :mode="mode" :value="spec.template.spec" />
+      </Tab>
+
+      <Tab v-if="isEdit" :label="t('harvester.tab.accessCredentials')" name="accessCredentials" :weight="-5">
         <AccessCredentials v-model="accessCredentials" :mode="mode" :resource="value" :is-qemu-installed="isQemuInstalled" />
       </Tab>
 

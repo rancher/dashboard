@@ -5,6 +5,7 @@ import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
 import { RadioGroup, RadioButton } from '@components/Form/Radio';
 import HarvesterDisk from '../../mixins/harvester-disk';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
   components: {
@@ -14,6 +15,7 @@ export default {
     Banner,
     RadioGroup,
     RadioButton,
+    LabeledSelect,
   },
 
   mixins: [
@@ -146,6 +148,17 @@ export default {
     />
     <div v-if="!value.isNew">
       <div class="row">
+        <div class="col span-12">
+          <LabeledSelect
+            v-model="value.tags"
+            :mode="mode"
+            :multiple="true"
+            :taggable="true"
+            :options="[]"
+            :label="t('harvester.host.disk.tags.label')"
+            :searchable="true"
+          />
+        </div>
         <div class="col span-12">
           <div class="pull-right">
             Conditions:

@@ -12,7 +12,7 @@ import { randomStr } from '@shell/utils/string';
 import { base64Decode } from '@shell/utils/crypto';
 import { formatSi, parseSi } from '@shell/utils/units';
 import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '../../config/harvester-map';
-import { _CLONE } from '@shell/config/query-params';
+import { _CLONE, _CREATE, _VIEW } from '@shell/config/query-params';
 import {
   PVC, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP, NETWORK_ATTACHMENT
 } from '@shell/config/types';
@@ -30,6 +30,9 @@ export const OS = [{
   label: 'Linux',
   value: 'linux'
 }, {
+  label: 'SUSE Linux Enterprise',
+  value: 'SLEs'
+}, {
   label: 'Debian',
   value: 'debian'
 }, {
@@ -38,9 +41,6 @@ export const OS = [{
 }, {
   label: 'Gentoo',
   value: 'gentoo'
-}, {
-  label: 'Mandriva',
-  value: 'mandriva'
 }, {
   label: 'Oracle',
   value: 'oracle'
@@ -51,14 +51,8 @@ export const OS = [{
   label: 'openSUSE',
   value: 'openSUSE',
 }, {
-  label: 'Turbolinux',
-  value: 'turbolinux'
-}, {
   label: 'Ubuntu',
   value: 'ubuntu'
-}, {
-  label: 'Xandros',
-  value: 'xandros'
 }, {
   label: 'Other Linux',
   match: ['centos'],
@@ -136,7 +130,8 @@ export default {
       secureBoot:                 false,
       userDataTemplateId:         '',
       saveUserDataAsClearText:    false,
-      saveNetworkDataAsClearText: false
+      saveNetworkDataAsClearText: false,
+      immutableMode:              this.realMode === _CREATE ? _CREATE : _VIEW,
     };
   },
 
@@ -186,10 +181,6 @@ export default {
       } catch (e) {
         return {};
       }
-    },
-
-    customDefaultStorageClass() {
-      return this.storageClassSetting.storageClass;
     },
 
     customVolumeMode() {
@@ -462,6 +453,7 @@ export default {
     },
 
     parseVM() {
+      this.userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });
       this.parseOther();
       this.parseAccessCredentials();
       this.parseNetworkRows(this.networkRows);
@@ -525,7 +517,7 @@ export default {
         this.secretName = this.generateSecretName(this.secretNamePrefix);
       }
 
-      if (!disks.find( D => D.name === 'cloudinitdisk')) {
+      if (!disks.find( D => D.name === 'cloudinitdisk') && (this.userData || this.networkData)) {
         if (!this.isWindows) {
           disks.push({
             name: 'cloudinitdisk',
@@ -819,7 +811,7 @@ export default {
 
       switch (R.source) {
       case SOURCE_TYPE.NEW:
-        out.spec.storageClassName = R.storageClassName || this.customDefaultStorageClass || this.defaultStorageClass;
+        out.spec.storageClassName = R.storageClassName;
         break;
       case SOURCE_TYPE.IMAGE: {
         const image = this.images.find( I => R.image === I.id);
@@ -827,7 +819,7 @@ export default {
         if (image) {
           out.spec.storageClassName = `longhorn-${ image.metadata.name }`;
           out.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: image.id };
-        } else if (this.resource === HCI.VM_VERSION) {
+        } else {
           out.metadata.annotations = { [HCI_ANNOTATIONS.IMAGE_ID]: '' };
         }
 
@@ -1043,7 +1035,11 @@ export default {
 
       let secret = this.getSecret(vm.spec);
 
-      const userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });
+      // const userData = this.getUserData({ osType: this.osType, installAgent: this.installAgent });
+      if (!secret && this.isEdit && this.secretRef) {
+        // When editing the vm, if the userData and networkData are deleted, we also need to clean up the secret values
+        secret = this.secretRef;
+      }
 
       if (!secret || this.needNewSecret) {
         secret = await this.$store.dispatch('harvester/create', {
@@ -1059,16 +1055,10 @@ export default {
 
       try {
         if (secret) {
-          if (!this.saveUserDataAsClearText) {
-            secret.setData('userdata', userData);
-          }
-
-          if (!this.saveNetworkDataAsClearText) {
-            secret.setData('networkdata', this.networkScript);
-          }
-
           // If none of the data comes from the secret, then no data needs to be saved to the secret
           if (!this.saveUserDataAsClearText || !this.saveNetworkDataAsClearText) {
+            secret.setData('userdata', this.userData || '');
+            secret.setData('networkdata', this.networkScript || '');
             await secret.save();
           }
         }

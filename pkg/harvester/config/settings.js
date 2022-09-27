@@ -1,8 +1,10 @@
 export const HCI_SETTING = {
   BACKUP_TARGET:                    'backup-target',
+  CONTAINERD_REGISTRY:              'containerd-registry',
   LOG_LEVEL:                        'log-level',
   SERVER_VERSION:                   'server-version',
   UI_INDEX:                         'ui-index',
+  UI_PLUGIN_INDEX:                  'ui-plugin-index',
   UPGRADE_CHECKER_ENABLED:          'upgrade-checker-enabled',
   UPGRADE_CHECKER_URL:              'upgrade-checker-url',
   VLAN:                             'vlan',
@@ -20,7 +22,6 @@ export const HCI_SETTING = {
   SSL_PARAMETERS:                   'ssl-parameters',
   SUPPORT_BUNDLE_NAMESPACES:        'support-bundle-namespaces',
   AUTO_DISK_PROVISION_PATHS:        'auto-disk-provision-paths',
-  RANCHER_MONITORING:               'fleet-local/rancher-monitoring',
   RELEASE_DOWNLOAD_URL:             'release-download-url'
 };
 
@@ -45,18 +46,19 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.SUPPORT_BUNDLE_IMAGE]:             { kind: 'json', from: 'import' },
   [HCI_SETTING.VM_FORCE_RESET_POLICY]:            { kind: 'json', from: 'import' },
   [HCI_SETTING.SSL_CERTIFICATES]:                 { kind: 'json', from: 'import' },
-  [HCI_SETTING.VIP]:                      {
+  [HCI_SETTING.VIP]:                              {
     kind: 'json', from: 'import', canReset: true
   },
   [HCI_SETTING.SSL_PARAMETERS]:                   {
     kind: 'json', from: 'import', canReset: true
   },
-  [HCI_SETTING.SUPPORT_BUNDLE_NAMESPACES]: { from: 'import', canReset: true },
-  [HCI_SETTING.AUTO_DISK_PROVISION_PATHS]: { canReset: true },
-  [HCI_SETTING.RANCHER_MONITORING]:                {
-    kind: 'custom', from: 'import', canReset: true, customFormatter: 'json', alias: 'harvester-monitoring'
-  },
-  [HCI_SETTING.RELEASE_DOWNLOAD_URL]: { kind: 'url' },
+  [HCI_SETTING.SUPPORT_BUNDLE_NAMESPACES]:        { from: 'import', canReset: true },
+  [HCI_SETTING.AUTO_DISK_PROVISION_PATHS]:        { canReset: true },
+  [HCI_SETTING.RELEASE_DOWNLOAD_URL]:             { kind: 'url' },
+  [HCI_SETTING.UI_PLUGIN_INDEX]:                  { kind: 'url' },
+  [HCI_SETTING.CONTAINERD_REGISTRY]:              {
+    kind: 'json', from: 'import', canReset: true
+  }
 };
 
 export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {

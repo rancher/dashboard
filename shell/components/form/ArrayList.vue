@@ -93,7 +93,12 @@ export default {
       type:      Array,
       // we only want functions in the rules array
       validator: rules => rules.every(rule => ['function'].includes(typeof rule))
-    }
+    },
+
+    required: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -229,6 +234,7 @@ export default {
       <slot name="title">
         <h3>
           {{ title }}
+          <span v-if="required" class="required">*</span>
           <i v-if="showProtip" v-tooltip="protip" class="icon icon-info" />
         </h3>
       </slot>
@@ -369,5 +375,9 @@ export default {
       float: right;
       padding: 5px 0;
     }
+  }
+
+  .required {
+    color: var(--error);
   }
 </style>

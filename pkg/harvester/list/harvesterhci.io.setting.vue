@@ -6,10 +6,13 @@ import { DEV } from '@shell/store/prefs';
 import { MANAGEMENT } from '@shell/config/types';
 import { HCI } from '../types';
 import { allHash } from '@shell/utils/promise';
-import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING } from '../config/settings';
+import AsyncButton from '@shell/components/AsyncButton';
+import { HCI_ALLOWED_SETTINGS, HCI_SINGLE_CLUSTER_ALLOWED_SETTING, HCI_SETTING } from '../config/settings';
 
 export default {
-  components: { Banner, Loading },
+  components: {
+    AsyncButton, Banner, Loading
+  },
 
   async fetch() {
     const isDev = this.$store.getters['prefs/get'](DEV);
@@ -21,10 +24,6 @@ export default {
       hash.settings = this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
     }
 
-    if (this.$store.getters['harvester/schemaFor'](HCI.CLUSTER_NETWORK)) {
-      hash.clusterNetwork = this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK });
-    }
-
     if (this.$store.getters['harvester/schemaFor'](MANAGEMENT.MANAGED_CHART)) {
       hash.managedcharts = this.$store.dispatch('harvester/findAll', { type: MANAGEMENT.MANAGED_CHART });
     }
@@ -32,10 +31,6 @@ export default {
     const rows = await allHash(hash);
 
     let allRows = [];
-
-    if (rows.clusterNetwork) {
-      allRows.push(...rows.clusterNetwork);
-    }
 
     const monitoring = (rows.managedcharts || []).find(c => c.id === 'fleet-local/rancher-monitoring');
 
@@ -95,7 +90,10 @@ export default {
   },
 
   data() {
-    return { initSettings: [] };
+    return {
+      initSettings: [],
+      HCI_SETTING,
+    };
   },
 
   computed: {
@@ -151,6 +149,29 @@ export default {
           setting.hide = !setting.hide;
         }
       });
+    },
+
+    async testConnect(buttonDone, value) {
+      try {
+        const healthz = await this.$store.dispatch('harvester/request', { url: 'v1/harvester/backuptarget/healthz' });
+        const settingValue = JSON.parse(value);
+
+        if (healthz?._status === 200) {
+          this.$store.dispatch('growl/success', {
+            title:   this.t('harvester.notification.title.succeed'),
+            message: this.t('harvester.backup.message.testConnect.successMessage', { endpoint: settingValue?.endpoint })
+          }, { root: true });
+        }
+        buttonDone(true);
+      } catch (err) {
+        if (err?._status === 400 || err?._status === 503) {
+          this.$store.dispatch('growl/error', {
+            title:   this.t('harvester.notification.title.error'),
+            message: err?.errors[0]
+          }, { root: true });
+        }
+        buttonDone(false);
+      }
     }
   }
 };
@@ -183,12 +204,7 @@ export default {
         </div>
       </div>
       <div value>
-        <div v-if="setting.hide">
-          <button class="btn btn-sm role-primary" @click="toggleHide(setting)">
-            {{ t('advancedSettings.show') }} {{ setting.id }}
-          </button>
-        </div>
-        <div v-else class="settings-value">
+        <div v-if="!setting.hide" class="settings-value">
           <pre v-if="setting.kind === 'json'">{{ setting.json }}</pre>
           <pre v-else-if="setting.kind === 'multiline'">{{ setting.data.value || setting.data.default }}</pre>
           <pre v-else-if="setting.kind === 'enum'">{{ t(setting.enum) }}</pre>
@@ -196,10 +212,27 @@ export default {
           <pre v-else-if="setting.data.value || setting.data.default">{{ setting.data.value || setting.data.default }}</pre>
           <pre v-else class="text-muted">&lt;{{ t('advancedSettings.none') }}&gt;</pre>
         </div>
-        <div v-if="setting.canHide && !setting.hide" class="mt-5">
-          <button class="btn btn-sm role-primary" @click="toggleHide(setting)">
+
+        <div class="mt-5">
+          <button v-if="setting.hide" class="btn btn-sm role-primary" @click="toggleHide(setting)">
+            {{ t('advancedSettings.show') }} {{ setting.id }}
+          </button>
+
+          <button v-if="setting.canHide && !setting.hide" class="btn btn-sm role-primary" @click="toggleHide(setting)">
             {{ t('advancedSettings.hide') }} {{ setting.id }}
           </button>
+
+          <AsyncButton
+            v-if="setting.id === HCI_SETTING.BACKUP_TARGET"
+            class="backupButton"
+            mode="apply"
+            size="sm"
+            :delay="0"
+            :action-label="t('harvester.backup.message.testConnect.actionLabel')"
+            :waiting-label="t('harvester.backup.message.testConnect.waitingLabel')"
+            :success-label="t('harvester.backup.message.testConnect.successLabel')"
+            @click="(buttonCb) => testConnect(buttonCb, setting.data.value)"
+          />
         </div>
       </div>
       <Banner v-if="setting.data.errMessage" color="error mt-5" class="settings-banner">

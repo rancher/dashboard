@@ -5,7 +5,7 @@ import InputOrDisplay from '@shell/components/InputOrDisplay';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
-import { PVC } from '@shell/config/types';
+import { PVC, STORAGE_CLASS } from '@shell/config/types';
 import { formatSi, parseSi } from '@shell/utils/units';
 import { VOLUME_TYPE, InterfaceOption } from '../../../../config/harvester-map';
 
@@ -61,6 +61,21 @@ export default {
 
     isDisabled() {
       return !this.value.newCreateId && this.isEdit && this.isVirtualType;
+    },
+
+    storageClassOptions() {
+      const storages = this.$store.getters[`harvester/all`](STORAGE_CLASS) || [];
+
+      const out = storages.filter(s => !s.parameters?.backingImage).map((s) => {
+        const label = s.isDefault ? `${ s.name } (${ this.t('generic.default') })` : s.name;
+
+        return {
+          label,
+          value: s.name,
+        };
+      }) || [];
+
+      return out;
     },
   },
 
@@ -146,6 +161,26 @@ export default {
 
     <div class="row mb-20">
       <div
+        data-testid="input-hav-storage"
+        class="col span-6"
+      >
+        <InputOrDisplay
+          :name="t('harvester.storage.storageClass.label')"
+          :value="value.storageClassName"
+          :mode="mode"
+        >
+          <LabeledSelect
+            v-model="value.storageClassName"
+            :options="storageClassOptions"
+            :label="t('harvester.storage.storageClass.label')"
+            :mode="mode"
+            :disabled="isEdit"
+            :required="validateRequired"
+            @input="update"
+          />
+        </InputOrDisplay>
+      </div>
+      <div
         class="col span-6"
         data-testid="input-hev-size"
       >
@@ -167,7 +202,9 @@ export default {
           />
         </InputOrDisplay>
       </div>
+    </div>
 
+    <div class="row mb-20">
       <div
         data-testid="input-hev-bus"
         class="col span-3"

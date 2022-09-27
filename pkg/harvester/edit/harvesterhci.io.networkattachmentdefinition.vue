@@ -5,9 +5,12 @@ import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
-import { HCI } from '@shell/config/labels-annotations';
+import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import { allHash } from '@shell/utils/promise';
+import { HCI } from '../types';
 
 const AUTO = 'auto';
 const MANUAL = 'manual';
@@ -20,6 +23,7 @@ export default {
     LabeledInput,
     NameNsDescription,
     RadioGroup,
+    LabeledSelect,
   },
 
   mixins: [CreateEditView],
@@ -34,7 +38,11 @@ export default {
   data() {
     const config = JSON.parse(this.value.spec.config);
     const annotations = this.value?.metadata?.annotations || {};
-    const layer3Network = JSON.parse(annotations[HCI.NETWORK_ROUTE] || '{}');
+    const layer3Network = JSON.parse(annotations[HCI_LABELS_ANNOTATIONS.NETWORK_ROUTE] || '{}');
+
+    if ((config.bridge || '').endsWith('-br')) {
+      config.bridge = config.bridge.slice(0, -3);
+    }
 
     return {
       config,
@@ -46,6 +54,12 @@ export default {
         gateway:      layer3Network.gateway || '',
       },
     };
+  },
+
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    await allHash({ clusterNetworks: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.CLUSTER_NETWORK }) });
   },
 
   created() {
@@ -64,6 +78,18 @@ export default {
         value: MANUAL,
       }];
     },
+
+    clusterNetworkOptions() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const clusterNetworks = this.$store.getters[`${ inStore }/all`](HCI.CLUSTER_NETWORK) || [];
+
+      return clusterNetworks.map((n) => {
+        return {
+          label: n.id,
+          value: n.id,
+        };
+      });
+    },
   },
 
   methods: {
@@ -72,6 +98,10 @@ export default {
 
       if (!this.config.vlan) {
         errors.push(this.$store.getters['i18n/t']('validation.required', { key: this.t('tableHeaders.networkVlan') }));
+      }
+
+      if (!this.config.bridge) {
+        errors.push(this.$store.getters['i18n/t']('validation.required', { key: this.t('harvester.network.clusterNetwork.label') }));
       }
 
       if (this.layer3Network.mode === MANUAL) {
@@ -90,7 +120,7 @@ export default {
         return false;
       }
 
-      this.value.setAnnotation(HCI.NETWORK_ROUTE, JSON.stringify(this.layer3Network));
+      this.value.setAnnotation(HCI_LABELS_ANNOTATIONS.NETWORK_ROUTE, JSON.stringify(this.layer3Network));
 
       await this.save(buttonCb);
     },
@@ -104,10 +134,13 @@ export default {
     },
 
     updateBeforeSave() {
-      this.value.setLabel(HCI.NETWORK_TYPE, this.type);
+      this.value.setLabel(HCI_LABELS_ANNOTATIONS.NETWORK_TYPE, this.type);
       this.config.name = this.value.metadata.name;
-      this.value.spec.config = JSON.stringify(this.config);
-    }
+      this.value.spec.config = JSON.stringify({
+        ...this.config,
+        bridge: `${ this.config.bridge }-br`,
+      });
+    },
   }
 };
 </script>
@@ -148,6 +181,22 @@ export default {
           :mode="mode"
           @input="input"
         />
+
+        <div class="row">
+          <div
+            class="col span-12"
+          >
+            <LabeledSelect
+              v-model="config.bridge"
+              class="mb-20"
+              :label="t('harvester.network.clusterNetwork.label')"
+              required
+              :options="clusterNetworkOptions"
+              :mode="mode"
+              :placeholder="t('harvester.network.clusterNetwork.selectPlaceholder')"
+            />
+          </div>
+        </div>
       </Tab>
       <Tab
         name="layer3Network"

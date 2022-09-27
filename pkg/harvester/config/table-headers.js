@@ -25,3 +25,12 @@ export const FINGERPRINT = {
   labelKey:  'tableHeaders.fingerprint',
   value:     'status.fingerPrint',
 };
+
+// The column of target volume on snapshot list page
+export const SNAPSHOT_TARGET_VOLUME = {
+  name:      'TargetVolume',
+  labelKey:  'harvester.tableHeaders.snapshotTargetVolume',
+  value:     'spec.source.persistentVolumeClaimName',
+  sort:      'spec.source.persistentVolumeClaimName',
+  formatter: 'SnapshotTargetVolume',
+};

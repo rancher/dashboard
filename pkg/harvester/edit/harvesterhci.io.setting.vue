@@ -100,7 +100,7 @@ export default {
       const t = this.$store.getters['i18n/t'];
 
       // Validate the JSON if the setting is a json value
-      if (this.setting.kind === 'json') {
+      if (this.setting.kind === 'json' && this.value.default) {
         try {
           JSON.parse(this.value.value);
           this.errors = [];
@@ -120,26 +120,7 @@ export default {
         ev.srcElement.blur();
       }
 
-      if (this.value.id === HCI_SETTING.RANCHER_MONITORING) {
-        this.$set(
-          this.value.spec.values.prometheus,
-          'prometheusSpec',
-          Object.assign(
-            this.value.spec.values.prometheus.prometheusSpec,
-            this.value.defaultValue.prometheus,
-            {}
-          )
-        );
-        this.$set(
-          this.value.spec.values,
-          'prometheus-node-exporter',
-          Object.assign(
-            this.value.spec.values['prometheus-node-exporter'],
-            this.value.defaultValue['prometheus-node-exporter'],
-            {}
-          )
-        );
-      } else if (this.value.id === HCI_SETTING.VLAN) {
+      if (this.value.id === HCI_SETTING.VLAN) {
         this.value.enable = false;
         if (this.value.config) {
           this.value.config.defaultPhysicalNIC = '';

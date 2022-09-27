@@ -23,4 +23,19 @@ export const HCI = {
   HOST:               'harvesterhci.io.host',
   VERSION:            'harvesterhci.io.version',
   MANAGED_CHART:      'harvesterhci.io.managedchart',
+  SNAPSHOT:           'harvesterhci.io.volumesnapshot',
+  VM_SNAPSHOT:        'harvesterhci.io.vmsnapshot',
+  ALERTMANAGERCONFIG: 'harvesterhci.io.monitoring.alertmanagerconfig',
+  CLUSTER_FLOW:       'harvesterhci.io.logging.clusterflow',
+  CLUSTER_OUTPUT:     'harvesterhci.io.logging.clusteroutput',
+  FLOW:               'harvesterhci.io.logging.flow',
+  OUTPUT:             'harvesterhci.io.logging.output',
+  STORAGE:            'harvesterhci.io.storage',
+  KSTUNED:            'node.harvesterhci.io.ksmtuned',
+  PCI_DEVICE:         'devices.harvesterhci.io.pcidevice',
+  PCI_CLAIM:          'devices.harvesterhci.io.pcideviceclaim',
+  VLAN_CONFIG:        'network.harvesterhci.io.vlanconfig',
+  VLAN_STATUS:        'network.harvesterhci.io.vlanstatus',
 };
+
+export const VOLUME_SNAPSHOT = 'snapshot.storage.k8s.io.volumesnapshot';

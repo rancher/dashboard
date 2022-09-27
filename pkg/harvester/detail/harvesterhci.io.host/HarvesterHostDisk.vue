@@ -3,12 +3,14 @@ import LabelValue from '@shell/components/LabelValue';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
 import HarvesterDisk from '../../mixins/harvester-disk';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
   components: {
     LabelValue,
     BadgeState,
     Banner,
+    LabeledSelect,
   },
 
   mixins: [
@@ -99,6 +101,17 @@ export default {
     />
     <div v-if="!value.isNew">
       <div class="row">
+        <div class="col span-12">
+          <LabeledSelect
+            v-model="value.tags"
+            :mode="mode"
+            :multiple="true"
+            :taggable="true"
+            :options="[]"
+            :label="t('harvester.host.disk.tags.label')"
+            :searchable="true"
+          />
+        </div>
         <div class="col span-12">
           <div class="pull-right">
             Conditions:

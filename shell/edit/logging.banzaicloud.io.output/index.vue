@@ -163,10 +163,10 @@ export default {
         :namespaced="value.type !== LOGGING.CLUSTER_OUTPUT"
       />
       <Banner v-if="selectedProviders.length > 1" color="info">
-        This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.
+        {{ t('logging.output.tips.singleProvider') }}
       </Banner>
       <Banner v-else-if="!value.allProvidersSupported" color="info">
-        This output is configured with providers we don't support yet. You can view or edit the YAML.
+        {{ t('logging.output.tips.multipleProviders') }}
       </Banner>
       <Tabbed v-else ref="tabbed" :side-tabs="true" @changed="tabChanged($event)">
         <Tab name="Output" label="Output" :weight="2">

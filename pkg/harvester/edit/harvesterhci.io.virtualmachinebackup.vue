@@ -48,7 +48,7 @@ export default {
 
   data() {
     const restoreMode = this.$route.query?.restoreMode;
-    const backupName = this.$route.query?.backupName;
+    const backupName = this.$route.query?.resourceName;
 
     const restoreResource = clone(createObject);
 
@@ -72,7 +72,7 @@ export default {
       return choices.filter( (T) => {
         const hasVM = this.restoreNewVm || T.attachVmExisting;
 
-        return hasVM && T?.status?.readyToUse;
+        return hasVM && T?.status?.readyToUse && T.spec?.type !== 'snapshot';
       }).map( (T) => {
         return {
           label: T.metadata.name,

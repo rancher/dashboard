@@ -57,6 +57,24 @@ harvester:
       title: 添加卷
     hotunplug:
       success: '卷 { name } 拔出成功。'
+    snapshot:
+      title: 生成快照
+      name: 名称
+      message:
+        success: '快照 { name } 生成成功。'
+    pvcClone:
+      title: 克隆卷
+      name: 名称
+      message:
+        success: '{ name } 克隆成功。'
+    restoreSnapshot:
+      success: '{ name } 还原创建成功。'
+      title: 快照还原
+      name: '名称'
+    vmSnapshot:
+      title: 生成 VM 快照
+      name: 名称
+      success: 'VM 快照 { name } 生成成功。'
   action:
     createVM: 创建虚拟机
     start: 启动
@@ -87,6 +105,9 @@ harvester:
     exportImage: 导出镜像
     viewlogs: 查看日志
     cancelExpand: 取消展开
+    snapshot: 生成快照
+    pvcClone: 克隆卷
+    vmSnapshot: 生成 VM 快照
   tableHeaders:
     size: 大小
     progress: 进度
@@ -107,6 +128,8 @@ harvester:
     network:
       type: 类型
       vlan: Vlan ID
+    snapshotTargetVolume: 原始卷
+    volumeSnapshotCounts: 快照数量
   tab:
     volume: 卷
     network: 网络
@@ -456,8 +479,11 @@ harvester:
     label: 卷
     tabs:
       basics: 基本信息
+      snapshots: 快照
+      datasource: 数据源
     size: 大小
     source: 源
+    kind: 类型 
     sourceOptions:
       new: 创建
       vmImage: 虚拟机镜像
@@ -560,7 +586,6 @@ harvester:
       basics: 基本信息
       layer3Network: 路由
     message:
-      vlanInactive: 'VLAN 网络在 {name} 主机上处于非活动状态'
       premise:
         prefix: '你需要先进行网络'
         middle: '设置'
@@ -627,8 +652,10 @@ harvester:
     harvesterMonitoring:
       label: Harvester Monitoring
       section:
-        prometheus: Prometheus 配置
-        prometheusNodeExporter: Prometheus Node Exporter 配置
+        prometheus: Prometheus
+        prometheusNodeExporter: Prometheus Node Exporter
+        grafana: Grafana
+        alertmanager: Alertmanager
       tips:
         scrape: 每次采集数据的间隔时间
         evaluation: 每次评估规则的间隔时间
@@ -688,6 +715,25 @@ harvester:
     ciphers:
       label: 密码
 
+  snapshot:
+    label: 快照
+    targetVolume: 原始卷
+    size: 大小
+    image: 镜像
+
+  vmSnapshot:
+    label: VM 快照
+    createText: 还原快照
+    snapshot: 快照
+
+  monitoring:
+    alertmanagerConfig:
+      label: Alertmanager Configs
+      diabledTips:
+        prefix: '你需要先启用'
+        middle: 'Alertmanager'
+        suffix: '然后才能创建新配置'
+
 advancedSettings:
   descriptions:
     'harv-vlan': VLAN 网络的默认网络接口名称。
@@ -698,6 +744,7 @@ advancedSettings:
     'harv-upgrade-checker-url': 默认 Harvester 升级检查 URL。只有当 <code>upgrade-checker-enabled</code>  设置为 true 时可使用。
     'harv-ui-source': 配置加载 UI 资源方式。
     'harv-ui-index': 'UI 的 HTML 索引位置。'
+    'harv-ui-plugin-index': 'Harvester 插件的 JS 文件索引位置'
     'harv-cluster-registration-url': 用于多集群管理的注册 URL。
     'harv-http-proxy': '用于 Harvester 访问外部服务的 HTTP 代理。'
     'harv-additional-ca': '用于 TLS 验证的自定义 CA 根证书。'
@@ -710,7 +757,6 @@ advancedSettings:
     'harv-auto-disk-provision-paths': 指定 Harvester 将自动添加为虚拟机存储的磁盘（使用 glob 模式）。
     'harv-support-bundle-image': Support Bundle 镜像配置。前往 <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a> 查看更多版本。
     'harv-release-download-url': 此设置用于配置<code>升级版本下载</code>的 URL 地址。Harvester 将从该 URL 托管的 (<code>$URL</code>/<code>$VERSION</code>/version.yaml) 文件中获取 ISO URL 和校验和值。
-    'harvester-monitoring': 指定 Harvester 内置的 Prometheus 将使用的监控配置。
 
 typeLabel:
   kubevirt.io.virtualmachine: |-
@@ -765,11 +811,26 @@ typeLabel:
     }
   harvesterhci.io.virtualmachinebackup: |-
     {count, plural,
-      one { 备份 }
-      other { 备份 }
+      one { 虚拟机备份 }
+      other { 虚拟机备份 }
     }
   harvesterhci.io.cloudtemplate: |-
     {count, plural,
       one { Cloud Config 模板 }
       other { Cloud Config 模板 }
+    }
+  harvesterhci.io.volumesnapshot: |-
+    {count, plural,
+      one { 卷快照 }
+      other { 卷快照 }
+    }
+  harvesterhci.io.vmsnapshot: |-
+    {count, plural,
+      one { VM 快照 }
+      other { VM 快照 }
+    }
+  harvesterhci.io.monitoring.alertmanagerconfig: |-
+    {count, plural,
+      one { Alertmanager Config }
+      other { Alertmanager Configs }
     }

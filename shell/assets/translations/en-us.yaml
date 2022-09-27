@@ -23,6 +23,7 @@ generic:
   id: ID
   ignored: Ignored
   invalidCron: Invalid cron schedule
+  inProgress: In Progress
   imagePullPolicy:
     always: Always
     ifNotPresent: IfNotPresent
@@ -93,6 +94,7 @@ generic:
   deprecated: Deprecated
   placeholder: "e.g. {text}"
   moreInfo: More Info
+  basic: Basic
 
 locale:
   en-us: English
@@ -135,6 +137,8 @@ nav:
     apps: Apps
     clusterProvisioning: Cluster Provisioning
     core: Core
+    networks: Networks
+    backupAndSnapshot: Backup & Snapshot
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -2432,6 +2436,10 @@ labels:
   annotations:
     title: Annotations
 
+labeledSelect:
+  startTyping: Start typing to define an item
+  pressEnter: Press enter to add "{input}"
+
 landing:
   clusters:
     title: Clusters
@@ -2639,6 +2647,9 @@ logging:
       certificate: Connection
       labels: Labels
       configuration: Configuration
+    tips:
+      singleProvider: This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.
+      multipleProviders: This output is configured with providers we don't support yet. You can view or edit the YAML.
   outputProviders:
     elasticsearch: Elasticsearch
     splunkHec: Splunk
@@ -4129,6 +4140,7 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
     node: Group by Node
+    device: Group by Device
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
@@ -5015,6 +5027,7 @@ validation:
   required: '"{key}" is required'
   invalid: '"{key}" is invalid'
   requiredOrOverride: '"{key}" is required or must allow override'
+  arrayCountRequired: "At least {count} {key} {count, plural, =1 {is} other {are}} required, and {key} can not be empty."
   roleTemplate:
     roleTemplateRules:
       missingVerb: You must specify at least one verb for each resource grant
