@@ -47,10 +47,7 @@ export default async(context) => {
         const plugin = resource.spec?.plugin;
 
         if (plugin) {
-          const id = `${ plugin.name }-${ plugin.version }`;
-          const url = `http://127.0.0.1:4500/${ id }/${ id }.umd.min.js`;
-
-          hash[plugin.name] = $plugin.loadAsync(id, url);
+          hash[plugin.name] = $plugin.loadAsyncByNameAndVersion(plugin.name, plugin.version);
         }
       });
     }

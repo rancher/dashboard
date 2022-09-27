@@ -5,7 +5,8 @@ import { mapGetters } from 'vuex';
 import { DEV } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, SCHEMA } from '@shell/config/types';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 import ActionMenu from '@shell/components/ActionMenu';
 import Tabbed from '@shell/components/Tabbed/index.vue';
@@ -15,10 +16,9 @@ import UninstallDialog from './UninstallDialog.vue';
 import InstallDialog from './InstallDialog.vue';
 import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
-
-const PLUGIN_CHART_ANNOTATION = 'uiplugin.cattle.io';
-
-const PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
+import SetupUIPlugins from './SetupUIPlugins';
+import RemoveUIPlugins from './RemoveUIPlugins';
+import { isUIPlugin, uiPluginHasAnnotation, UI_PLUGIN_NAMESPACE } from '@/shell/config/uiplugins';
 
 export default {
   components: {
@@ -30,7 +30,10 @@ export default {
     Tab,
     Tabbed,
     UninstallDialog,
+    SetupUIPlugins,
+    RemoveUIPlugins,
   },
+
   data() {
     const menuActions = [];
     const isDeveloper = this.$store.getters['prefs/get'](DEV);
@@ -38,7 +41,16 @@ export default {
     if (isDeveloper) {
       menuActions.push({
         action:  'devLoad',
-        label:   this.t('plugins.actions.developerLoad'),
+        label:   this.t('plugins.devloper.label'),
+        enabled: true
+      });
+      menuActions.push( { divider: true });
+    }
+
+    if (this.hasPluginCRD) {
+      menuActions.push({
+        action:  'removePluginSupport',
+        label:   this.t('plugins.setup.remove.label'),
         enabled: true
       });
     }
@@ -63,7 +75,7 @@ export default {
   async fetch() {
     const hash = {};
 
-    if (this.$store.getters['management/schemaFor'](UI_PLUGIN)) {
+    if (this.hasPluginCRD) {
       hash.plugins = this.$store.dispatch('management/findAll', { type: UI_PLUGIN });
     }
 
@@ -87,6 +99,14 @@ export default {
   computed: {
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
+
+    // Is the Plugin CRD available ?
+    hasPluginCRD() {
+      const schemas = this.$store.getters[`management/all`](SCHEMA);
+      const crd = schemas.find(s => s.id === UI_PLUGIN);
+
+      return !!crd;
+    },
 
     list() {
       const all = this.available;
@@ -117,7 +137,10 @@ export default {
     },
 
     available() {
-      let all = this.charts.filter(c => !!c.versions.find(v => v.annotations && v.annotations[PLUGIN_CHART_ANNOTATION] === 'true'));
+      let all = this.charts.filter(c => isUIPlugin(c));
+
+      // Filter out hidden charts
+      all = all.filter(c => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'));
 
       all = all.map((chart) => {
         const item = {
@@ -128,11 +151,17 @@ export default {
           displayVersion: chart.versions?.length > 0 ? chart.versions[0].version : '',
           installed:      false,
           builtin:        false,
+          experimental:   uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true'),
+          certified:      uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER),
         };
 
         this.latest = chart.versions[0];
         item.versions = [...chart.versions];
         item.chart = chart;
+
+        if (this.latest) {
+          chart.icon = chart.icon || this.latest.annotations['catalog.cattle.io/iconm'];
+        }
 
         if (this.installing[item.name]) {
           item.installing = this.installing[item.name];
@@ -205,10 +234,15 @@ export default {
   },
 
   watch: {
+    // hasPluginCRD(neu, old) {
+    //   console.log('PLUGIN CRD!!!');
+    //   console.log(neu);
+    //   console.log(old);
+    // },
     helmOps(neu) {
       // Get Helm operations for UI plugins and order by date
       let pluginOps = neu.filter((op) => {
-        return op.namespace === PLUGIN_NAMESPACE;
+        return op.namespace === UI_PLUGIN_NAMESPACE;
       });
 
       pluginOps = sortBy(pluginOps, 'metadata.creationTimestamp', true);
@@ -247,25 +281,32 @@ export default {
       neu.forEach((plugin) => {
         const existing = installed.find(p => !p.removed && p.name === plugin.name);
 
-        if (!existing) {
-          const id = `${ plugin.name }-${ plugin.version }`;
-          const url = `http://127.0.0.1:4500/${ id }/${ id }.umd.min.js`;
-
-          console.info(`Load Plugin ${ id } ${ url }`); // eslint-disable-line no-console
-
-          this.$plugin.loadAsync(id, url).catch((e) => {
-            console.error(`Failed to load plugin ${ id }`); // eslint-disable-line no-console
+        if (!existing && plugin.isCached) {
+          this.$plugin.loadAsyncByNameAndVersion(plugin.name, plugin.version).catch((e) => {
+            console.error(`Failed to load plugin ${ plugin.name } (${ plugin.version })`); // eslint-disable-line no-console
           });
 
           this.updatePluginInstallStatus(plugin.name, false);
         }
       });
     },
-
   },
+
+  // Forget the types when we leave the page
+  beforeDestroy() {
+    this.$store.dispatch('cluster/forgetType', UI_PLUGIN);
+    this.$store.dispatch('cluster/forgetType', CATALOG.OPERATION);
+    this.$store.dispatch('cluster/forgetType', CATALOG.APP);
+    this.$store.dispatch('cluster/forgetType', CATALOG.CLUSTER_REPO);
+  },
+
   methods:    {
     filterChanged(f) {
       this.view = f.selectedName;
+    },
+
+    removePluginSupport() {
+      this.$refs.removeUIPlugins.showDialog();
     },
 
     // Developer Load is in the action menu
@@ -334,7 +375,7 @@ export default {
     <div class="plugin-header">
       <h2>{{ t('plugins.title') }}</h2>
       <button
-        v-if="hasMenuActions"
+        v-if="hasPluginCRD && hasMenuActions"
         ref="actions"
         aria-haspopup="true"
         type="button"
@@ -344,7 +385,7 @@ export default {
         <i class="icon icon-actions" />
       </button>
       <ActionMenu
-        v-if="hasMenuActions"
+        v-if="hasPluginCRD && hasMenuActions"
         :custom-actions="menuActions"
         :open="menuOpen"
         :use-custom-target-element="true"
@@ -352,95 +393,111 @@ export default {
         :custom-target-event="menuTargetEvent"
         @close="setMenu(false)"
         @devLoad="showDeveloperLoaddDialog"
+        @removePluginSupport="removePluginSupport"
       />
     </div>
 
     <PluginInfoPanel ref="infoPanel" />
 
-    <Tabbed ref="tabs" :tabs-only="true" @changed="filterChanged">
-      <Tab name="installed" label-key="plugins.tabs.installed" :weight="20" />
-      <Tab name="available" label-key="plugins.tabs.available" :weight="19" />
-      <Tab name="updates" label-key="plugins.tabs.updates" :weight="18" :badge="updates.length" />
-      <Tab name="all" label-key="plugins.tabs.all" :weight="17" />
-    </Tabbed>
-    <div v-if="loading" class="data-loading">
-      <i class="icon-spin icon icon-spinner" />
-      <t k="generic.loading" :raw="true" />
+    <div v-if="!hasPluginCRD">
+      <div v-if="loading" class="data-loading">
+        <i class="icon-spin icon icon-spinner" />
+        <t k="generic.loading" :raw="true" />
+      </div>
+      <SetupUIPlugins v-else class="setup-message" />
     </div>
-    <div v-else class="plugin-list" :class="{'v-margin': !list.length}">
-      <IconMessage
-        v-if="list.length === 0"
-        :vertical="true"
-        :subtle="true"
-        icon="icon-gear"
-        :message="emptyMessage"
-      />
-      <template v-else>
-        <div v-for="plugin in list" :key="plugin.name" class="plugin" @click="showPluginDetail(plugin)">
-          <div class="plugin-icon">
-            <img v-if="plugin.icon" :src="plugin.icon" class="icon plugin-icon-img" />
-            <i v-else class="icon icon-apps"></i>
-          </div>
-          <div class="plugin-metadata">
-            <div class="plugin-name">
-              {{ plugin.name }}
+    <div v-else>
+      <Tabbed ref="tabs" :tabs-only="true" @changed="filterChanged">
+        <Tab name="installed" label-key="plugins.tabs.installed" :weight="20" />
+        <Tab name="available" label-key="plugins.tabs.available" :weight="19" />
+        <Tab name="updates" label-key="plugins.tabs.updates" :weight="18" :badge="updates.length" />
+        <Tab name="all" label-key="plugins.tabs.all" :weight="17" />
+      </Tabbed>
+      <div v-if="loading" class="data-loading">
+        <i class="icon-spin icon icon-spinner" />
+        <t k="generic.loading" :raw="true" />
+      </div>
+      <div v-else class="plugin-list" :class="{'v-margin': !list.length}">
+        <IconMessage
+          v-if="list.length === 0"
+          :vertical="true"
+          :subtle="true"
+          icon="icon-gear"
+          :message="emptyMessage"
+        />
+        <template v-else>
+          <div v-for="plugin in list" :key="plugin.name" class="plugin" @click="showPluginDetail(plugin)">
+            <div class="plugin-icon">
+              <img v-if="plugin.icon" :src="plugin.icon" class="icon plugin-icon-img" />
+              <i v-else class="icon icon-apps"></i>
             </div>
-            <div>{{ plugin.description }}</div>
-            <div v-if="plugin.builtin" class="plugin-builtin">
-              {{ t('plugins.actions.builtin') }}
-            </div>
-            <div class="plugin-version">
-              <div v-if="plugin.installing" class="plugin-installing">
-                <i class="version-busy icon icon-spin icon-spinner" />
-                <div v-if="plugin.installing='install'">
-                  {{ t('plugins.labels.installing') }}
+            <div class="plugin-metadata">
+              <div class="plugin-name">
+                {{ plugin.name }}
+              </div>
+              <div>{{ plugin.description }}</div>
+              <div v-if="plugin.builtin" class="plugin-builtin">
+                {{ t('plugins.actions.builtin') }}
+              </div>
+              <div class="plugin-version">
+                <div v-if="plugin.installing" class="plugin-installing">
+                  <i class="version-busy icon icon-spin icon-spinner" />
+                  <div v-if="plugin.installing='install'">
+                    {{ t('plugins.labels.installing') }}
+                  </div>
+                  <div v-else>
+                    {{ t('plugins.labels.uninstalling') }}
+                  </div>
+                </div>
+                <span v-else>
+                  <span>{{ plugin.displayVersion }}</span>
+                  <span v-if="plugin.upgrade" v-tooltip="t('plugins.upgradeAvailable')"> -> {{ plugin.upgrade }}</span>
+                </span>
+              </div>
+              <div class="plugin-spacer" />
+              <div class="plugin-actions">
+                <div v-if="plugin.error" v-tooltip="t('plugins.loadError')" class="plugin-error">
+                  <i class="icon icon-warning" />
+                </div>
+                <div v-if="plugin.helmError" v-tooltip="t('plugins.helmError')" class="plugin-error">
+                  <i class="icon icon-warning" />
+                </div>
+
+                <div class="plugin-spacer" />
+
+                <div v-if="plugin.installing">
+                  <!-- Don't show any buttons -->
+                </div>
+                <div v-else-if="plugin.installed">
+                  <button v-if="!plugin.builtin" class="btn role-secondary" @click="showUninstallDialog(plugin, $event)">
+                    {{ t('plugins.uninstall.label') }}
+                  </button>
                 </div>
                 <div v-else>
-                  {{ t('plugins.labels.uninstalling') }}
+                  <button class="btn role-secondary" @click="showInstallDialog(plugin, $event)">
+                    {{ t('plugins.install.label') }}
+                  </button>
                 </div>
-              </div>
-              <span v-else>
-                <span>{{ plugin.displayVersion }}</span>
-                <span v-if="plugin.upgrade" v-tooltip="t('plugins.upgradeAvailable')"> -> {{ plugin.upgrade }}</span>
-              </span>
-            </div>
-            <div class="plugin-spacer" />
-            <div class="plugin-actions">
-              <div v-if="plugin.error" v-tooltip="t('plugins.loadError')" class="plugin-error">
-                <i class="icon icon-warning" />
-              </div>
-              <div v-if="plugin.helmError" v-tooltip="t('plugins.helmError')" class="plugin-error">
-                <i class="icon icon-warning" />
-              </div>
-
-              <div class="plugin-spacer" />
-
-              <div v-if="plugin.installing">
-                <!-- Don't show any buttons -->
-              </div>
-              <div v-else-if="plugin.installed">
-                <button v-if="!plugin.builtin" class="btn role-secondary" @click="showUninstallDialog(plugin, $event)">
-                  {{ t('plugins.uninstall.label') }}
-                </button>
-              </div>
-              <div v-else>
-                <button class="btn role-secondary" @click="showInstallDialog(plugin, $event)">
-                  {{ t('plugins.install.label') }}
-                </button>
               </div>
             </div>
           </div>
-        </div>
-      </template>
+        </template>
+      </div>
     </div>
 
     <InstallDialog ref="installDialog" @closed="didInstall" @update="updatePluginInstallStatus" />
     <UninstallDialog ref="uninstallDialog" @closed="didUninstall" @update="updatePluginInstallStatus" />
     <DeveloperInstallDialog ref="developerInstallDialog" @closed="didInstall" />
+    <RemoveUIPlugins ref="removeUIPlugins" />
   </div>
 </template>
 
 <style lang="scss" scoped>
+
+  .setup-message {
+    margin-top: 100px;
+  }
+
   .data-loading {
     align-items: center;
     display: flex;
@@ -453,6 +510,8 @@ export default {
 
   .plugin-list {
     display: flex;
+    flex-wrap: wrap;
+
     > .plugin:not(:last-child) {
       margin-right: 20px;
     }
@@ -463,19 +522,6 @@ export default {
   }
   .plugins {
     display: inherit;
-  }
-
-  .plugin-add-dialog, .plugin-install-dialog {
-    padding: 10px;
-
-    .dialog-buttons {
-      display: flex;
-      justify-content: flex-end;
-
-      > *:not(:last-child) {
-        margin-right: 10px;
-      }
-    }
   }
 
   .plugin-header {
@@ -493,7 +539,8 @@ export default {
     display: flex;
     border: 1px solid var(--border);
     padding: 10px;
-    width: 320px;
+    width: calc(33% - 20px);
+    margin-bottom: 20px;
     cursor: pointer;
 
     .plugin-icon {
@@ -578,28 +625,6 @@ export default {
         line-height: 20px;
         min-height: 20px;
         padding: 0 5px;
-      }
-    }
-  }
-
-  .fields {
-    display: flex;
-  }
-
-  .custom {
-    button {
-      margin-top: 10px;
-    }
-  }
-
-  .plugin-install-dialog {
-    h4 {
-      font-weight: bold;
-    }
-
-    .install-info {
-      p {
-        margin-bottom: 10px;
       }
     }
   }

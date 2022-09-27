@@ -43,6 +43,7 @@ generic:
       info: Info
       warning: Warning
       error: Error
+  ok: OK
   overview: Overview
   plusMore: "+ {n} more"
   readFromFile: Read from File
@@ -3673,9 +3674,9 @@ plugins:
       url: Plugin URL
       name: Plugin module name
       persist: Persist plugin by creating custom resource
-    info:
-      versions: Versions
-      versionError: Could not load version information
+  info:
+    versions: Versions
+    versionError: Could not load version information
   empty:
     all: No UI Plugins either installed nor available
     available: No UI Plugins available
@@ -3691,11 +3692,32 @@ plugins:
   title: UI Plugins
   install:
     label: Install
+    title: Install UI Plugin {name}
+    prompt: "Are you sure that you want to install this UI Plugin?"
+    warnNotCertified: Please ensure that you are aware of the risks of installing UI Plugins from untrusted authors
+
   uninstall:
     label: Uninstall
     title: "Uninstall UI Plugin:"
     prompt: "Are you sure that you want to uninstall this UI Plugin?"
   upgradeAvailable: A newer version of this UI Plugin is available
+  setup:
+    title: UI Plugin Support is not enabled
+    prompt:
+      cant: Automatic installation is not available - required Helm Charts could not be found
+      can: You need to install the Plugin Operator
+    install:
+      title: Enable UI Plugin Support?
+      prompt: This will install the Helm charts to enable Rancher UI Plugin support
+      airgap: Un-check if your Rancher installation is air-gapped
+
+    remove:
+      label: Disable UI Plugin Support
+      title: Disable UI Plugin Support?
+      prompt: This will un-install the Helm charts that enable Rancher UI Plugin support
+      registry:
+        title: Remove the Rancher UI Plugins Repository
+        prompt: Remove the default UI Plugins Repository
 
 prefs:
   title: Preferences

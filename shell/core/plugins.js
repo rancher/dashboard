@@ -36,6 +36,20 @@ export default function({
     },
 
     // Load a plugin from a UI package
+    // ********************************************************************************************************
+    // TODO: THIS NEEDS TO BE UPDATED BEFORE RELEASE
+    // ********************************************************************************************************
+    loadAsyncByNameAndVersion(name, version) {
+      const id = `${ name }-${ version }`;
+      const base = `/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy`;
+      const url = `${ base }/${ name }/${ version }/plugin/${ id }.umd.min.js`;
+
+      // const url = `${ base }/${ id }/${ id }.umd.min.js`;
+
+      return this.loadAsync(id, url);
+    },
+
+    // Load a plugin from a UI package
     loadAsync(id, mainFile) {
       return new Promise((resolve, reject) => {
         const moduleUrl = mainFile;

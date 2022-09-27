@@ -3,8 +3,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
-
-const PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
+import { UI_PLUGIN_NAMESPACE } from '@/shell/config/uiplugins';
 
 export default {
   components: {
@@ -79,8 +78,7 @@ export default {
         charts:    [chart],
         // timeout:   this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
         // wait:      this.cmdOptions.wait === true,
-        namespace: PLUGIN_NAMESPACE,
-        // projectId: this.project,
+        namespace: UI_PLUGIN_NAMESPACE,
       };
 
       const action = 'install';
@@ -101,9 +99,6 @@ export default {
         type: CATALOG.OPERATION,
         id:   operationId
       });
-
-      // console.log(operation); // eslint-disable-line no-console
-      // this.$emit(plugin.name, false);
     }
   }
 };
@@ -117,12 +112,12 @@ export default {
   >
     <div v-if="plugin" class="plugin-install-dialog">
       <h4 class="mt-10">
-        Install UI Plugin: {{ plugin.name }}
+        {{ t('plugins.install.title', { name: plugin.name }) }}
       </h4>
       <div class="custom mt-10">
         <div class="dialog-panel">
-          <p>Are you sure that you want to install this UI Plugin?</p>
-          <p>Please ensure that you are aware of the risks of installing UI Plugins from untrusted authors.</p>
+          <p>{{ t('plugins.install.prompt') }}</p>
+          <p>{{ t('plugins.install.warnNotCertified') }}</p>
           <div v-if="showAdvanced">
             <a class="toggle-advanced" @click="advanced = !advanced">Advanced <i v-if="advanced" class="icon icon-chevron-up" /><i v-if="!advanced" class="icon icon-chevron-down" /></a>
             <div v-if="advanced">
@@ -137,7 +132,7 @@ export default {
         </div>
         <div class="dialog-buttons">
           <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">
-            Cancel
+            {{ t('generic.cancel') }}
           </button>
           <AsyncButton
             mode="install"
