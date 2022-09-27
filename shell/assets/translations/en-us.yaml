@@ -1085,7 +1085,7 @@ cluster:
         help: The default region to use when creating clusters.  Also contacted to verify that this credential works.
         label: Default Region
       secretKey:
-        label: SecretKey
+        label: Secret Key
         placeholder: Your AWS Secret Key
     azure:
       clientId:
