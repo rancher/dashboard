@@ -372,9 +372,11 @@ export default {
         <input
           v-if="needsConfirm"
           id="confirm"
+          ref="inputRef"
           v-model="confirmName"
           :data-testid="componentTestid + '-input'"
           type="text"
+          autofocus
         />
         <div class="text-warning mb-10 mt-10">
           {{ warning }}
