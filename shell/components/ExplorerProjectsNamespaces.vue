@@ -4,7 +4,6 @@ import ResourceTable from '@shell/components/ResourceTable';
 import { STATE, AGE, NAME } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
-import Loading from '@shell/components/Loading';
 import { PROJECT_ID } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
@@ -15,7 +14,7 @@ import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 export default {
   name:       'ListProjectNamespace',
   components: {
-    Loading, Masthead, MoveModal, ResourceTable
+    Masthead, MoveModal, ResourceTable
   },
 
   props: {
@@ -302,8 +301,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending || !currentCluster" />
-  <div v-else class="project-namespaces">
+  <div class="project-namespaces">
     <Masthead
       :schema="projectSchema"
       :type-display="t('projectNamespaces.label')"
@@ -321,6 +319,7 @@ export default {
       :rows="filteredRows"
       :groupable="true"
       :sort-generation-fn="sortGenerationFn"
+      :loading="$fetchState.pending || !currentCluster"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
       v-on="$listeners"
