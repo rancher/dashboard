@@ -221,7 +221,7 @@ export default {
     >
       <template>
         <p>
-          <p>{{ t('plugins.setup.install.prompt') }}
+          {{ t('plugins.setup.install.prompt') }}
         </p>
         <div v-if="!hasRancherUIPluginsRepo" class="mt-20">
           <Checkbox v-model="addRepo" :primary="true" label="Add the Rancher UI Plugins Repository" />
