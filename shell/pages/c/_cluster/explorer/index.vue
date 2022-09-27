@@ -25,7 +25,7 @@ import {
   CATALOG,
   POD,
 } from '@shell/config/types';
-import { mapPref, CLUSTER_TOOLS_TIP } from '@shell/store/prefs';
+import { mapPref, CLUSTER_TOOLS_TIP, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
 import { haveV1Monitoring, monitoringStatus } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -173,7 +173,8 @@ export default {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
 
-    hideClusterToolsTip: mapPref(CLUSTER_TOOLS_TIP),
+    hideClusterToolsTip:      mapPref(CLUSTER_TOOLS_TIP),
+    hidePspDeprecationBanner: mapPref(PSP_DEPRECATION_BANNER),
 
     hasV1Monitoring() {
       return haveV1Monitoring(this.$store.getters);
@@ -402,8 +403,10 @@ export default {
       </div>
     </header>
     <Banner
-      v-if="displayPspDeprecationBanner"
+      v-if="displayPspDeprecationBanner && !hidePspDeprecationBanner"
+      :closable="true"
       color="warning"
+      @close="hidePspDeprecationBanner = true"
     >
       <t k="landing.deprecatedPsp" :raw="true" />
     </Banner>
@@ -432,6 +435,14 @@ export default {
         <label>{{ t('glance.created') }}: </label>
         <span><LiveDate :value="currentCluster.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></span>
       </div>
+      <p
+        v-if="displayPspDeprecationBanner && hidePspDeprecationBanner"
+        v-tooltip="t('landing.deprecatedPsp')"
+        class="alt-psp-deprecation-info"
+      >
+        <span>{{ t('landing.psps') }}</span>
+        <i class="icon icon-warning" />
+      </p>
       <div :style="{'flex':1}" />
       <div v-if="!monitoringStatus.v2 && !monitoringStatus.v1">
         <n-link :to="{name: 'c-cluster-explorer-tools'}" class="monitoring-install">
@@ -566,6 +577,16 @@ export default {
 
 .cluster-tools-tip {
   margin-top: 0;
+}
+
+.alt-psp-deprecation-info {
+  display: flex;
+  align-items: center;
+  color: var(--warning);
+
+  span {
+    margin-right: 4px;
+  }
 }
 
 .monitoring-install {
