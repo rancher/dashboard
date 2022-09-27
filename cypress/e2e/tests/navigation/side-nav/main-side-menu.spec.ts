@@ -21,12 +21,6 @@ describe('Side Menu: main', () => {
     burgerMenuPo.clusters().should('exist');
   });
 
-  it('Can display the localization menu', () => {
-    const burgerMenuPo = new BurgerMenuPo();
-
-    burgerMenuPo.localization().should('exist');
-  });
-
   it('Can display at least one menu category label', () => {
     const burgerMenuPo = new BurgerMenuPo();
 
