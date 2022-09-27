@@ -112,6 +112,8 @@ export default {
             :searchable="true"
           />
         </div>
+      </div>
+      <div class="row mt-10">
         <div class="col span-12">
           <div class="pull-right">
             Conditions:
