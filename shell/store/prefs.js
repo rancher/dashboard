@@ -15,6 +15,7 @@ export const create = function(name, def, opt = {}) {
   const asCookie = opt.asCookie === true;
   const asUserPreference = opt.asUserPreference !== false;
   const options = opt.options;
+  const inheritFrom = opt.inheritFrom;
 
   definitions[name] = {
     def,
@@ -22,6 +23,7 @@ export const create = function(name, def, opt = {}) {
     parseJSON,
     asCookie,
     asUserPreference,
+    inheritFrom, // if value is not defined on server, we can default it to another pref
     mangleRead:  opt.mangleRead, // Alter the value read from the API (to match old Rancher expectations)
     mangleWrite: opt.mangleWrite, // Alter the value written back to the API (ditto)
   };
@@ -91,7 +93,13 @@ export const TIME_FORMAT = create('time-format', 'h:mm:ss a', {
 });
 
 export const TIME_ZONE = create('time-zone', 'local');
+// DEV will be deprecated on v2.7.0, but is needed so that we can grab the value for the new settings that derived from it
+// such as: VIEW_IN_API, ALL_NAMESPACES, NO_LOCALE_SHORTCUT, THEME_SHORTCUT
 export const DEV = create('dev', false, { parseJSON });
+export const VIEW_IN_API = create('view-in-api', false, { parseJSON, inheritFrom: DEV });
+export const ALL_NAMESPACES = create('all-namespaces', false, { parseJSON, inheritFrom: DEV });
+export const NO_LOCALE_SHORTCUT = create('no-locale-shortcut', false, { parseJSON, inheritFrom: DEV });
+export const THEME_SHORTCUT = create('theme-shortcut', false, { parseJSON, inheritFrom: DEV });
 export const LAST_VISITED = create('last-visited', 'home', { parseJSON });
 export const SEEN_WHATS_NEW = create('seen-whatsnew', '', { parseJSON });
 export const READ_WHATS_NEW = create('read-whatsnew', '', { parseJSON });
@@ -430,6 +438,10 @@ export const actions = {
     for (const key in definitions) {
       const definition = definitions[key];
       let value = clone(server.data[key]);
+
+      if (value === undefined && definition.inheritFrom) {
+        value = clone(server.data[definition.inheritFrom]);
+      }
 
       if ( value === undefined || key === ignoreKey) {
         continue;

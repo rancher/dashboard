@@ -1,5 +1,5 @@
 <script>
-import { mapPref, DEV } from '@shell/store/prefs';
+import { mapPref, THEME_SHORTCUT, NO_LOCALE_SHORTCUT } from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import Header from '@shell/components/nav/Header';
 import PromptRemove from '@shell/components/PromptRemove';
@@ -37,12 +37,18 @@ export default {
     };
   },
 
-  computed: { dev: mapPref(DEV) },
+  computed: {
+    themeShortcut:    mapPref(THEME_SHORTCUT),
+    noLocaleShortcut: mapPref(NO_LOCALE_SHORTCUT)
+  },
 
   methods: {
     toggleTheme() {
       this.$store.dispatch('prefs/toggleTheme');
-    }
+    },
+    toggleNoneLocale() {
+      this.$store.dispatch('i18n/toggleNone');
+    },
   }
 };
 </script>
@@ -62,7 +68,8 @@ export default {
         <ActionMenu />
         <PromptRemove />
         <AssignTo />
-        <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
+        <button v-if="themeShortcut" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
+        <button v-if="noLocaleShortcut" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
       </main>
     </div>
 
