@@ -1,11 +1,14 @@
 <script>
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
+import { LabeledInput } from '@components/Form/LabeledInput';
 
 import { mapGetters } from 'vuex';
 
 export default {
-  components: { LabeledSelect, Checkbox },
+  components: {
+    LabeledSelect, Checkbox, LabeledInput
+  },
 
   props:      {
     podSpec: {
