@@ -339,7 +339,6 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    ifHaveType:    LOGGING.CLUSTER_FLOW,
     labelKey:     'harvester.logging.clusterFlow.label',
     name:         HCI.CLUSTER_FLOW,
     namespaced:   true,
@@ -362,7 +361,6 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    ifHaveType:    LOGGING.CLUSTER_OUTPUT,
     labelKey:     'harvester.logging.clusterOutput.label',
     name:         HCI.CLUSTER_OUTPUT,
     namespaced:   true,
@@ -385,7 +383,6 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    ifHaveType:    LOGGING.FLOW,
     labelKey:     'harvester.logging.flow.label',
     name:         HCI.FLOW,
     namespaced:   true,
@@ -408,7 +405,6 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    ifHaveType:    LOGGING.OUTPUT,
     labelKey:     'harvester.logging.output.label',
     name:         HCI.OUTPUT,
     namespaced:   true,

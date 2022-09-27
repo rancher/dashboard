@@ -155,7 +155,17 @@ export default {
           return true;
         }
 
-        return output.namespace === this.value.namespace;
+        const isEqualNs = output.namespace === this.value.namespace;
+
+        if (!this.isHarvester) {
+          return isEqualNs;
+        }
+
+        if (this.loggingType === FLOW_AUDIT) {
+          return output.loggingType === FLOW_AUDIT && isEqualNs;
+        }
+
+        return output.loggingType !== FLOW_AUDIT && isEqualNs;
       }).map((x) => {
         return { label: x.metadata.name, value: x.metadata.name };
       });
@@ -170,7 +180,17 @@ export default {
 
       return this.allClusterOutputs
         .filter((clusterOutput) => {
-          return clusterOutput.namespace === 'cattle-logging-system';
+          const isEqualNs = clusterOutput.namespace === 'cattle-logging-system';
+
+          if (!this.isHarvester) {
+            return isEqualNs;
+          }
+
+          if (this.loggingType === FLOW_AUDIT) {
+            return clusterOutput.loggingType === FLOW_AUDIT && isEqualNs;
+          }
+
+          return clusterOutput.loggingType !== FLOW_AUDIT && isEqualNs;
         })
         .map((clusterOutput) => {
           return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };

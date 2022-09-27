@@ -66,7 +66,7 @@ export default {
     </div>
 
     <h3>
-      Limit to specific nodes
+      {{ !isHarvester ? 'Limit to specific nodes' : value.select ? 'Include Nodes' : 'Exclude Nodes' }}
     </h3>
     <div class="row">
       <div class="col span-12">

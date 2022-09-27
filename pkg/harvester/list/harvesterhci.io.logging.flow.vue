@@ -1,5 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
+import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading';
 import { SCHEMA, LOGGING } from '@shell/config/types';
 import { HCI } from '../types';
@@ -16,25 +17,27 @@ const schema = {
 
 export default {
   name:       'ListApps',
-  components: { Loading, ResourceTable },
+  components: {
+    Loading, ResourceTable, Banner
+  },
 
   async fetch() {
-    try {
-      await this.$store.dispatch('harvester/findAll', { type: LOGGING.OUTPUT });
-      await this.$store.dispatch('harvester/findAll', { type: LOGGING.CLUSTER_OUTPUT });
-    } catch (e) {}
-    const rows = await this.$store.dispatch('harvester/findAll', { type: LOGGING.FLOW });
-    const flowSchema = this.$store.getters['harvester/schemaFor'](LOGGING.FLOW);
+    this.listSchema = this.$store.getters['harvester/schemaFor'](LOGGING.FLOW);
 
-    if (!flowSchema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
-      this.$store.dispatch('type-map/configureType', { match: HCI.FLOW, isCreatable: false });
+    if (this.listSchema) {
+      try {
+        await this.$store.dispatch('harvester/findAll', { type: LOGGING.OUTPUT });
+        await this.$store.dispatch('harvester/findAll', { type: LOGGING.CLUSTER_OUTPUT });
+      } catch (e) {}
+
+      this.rows = await this.$store.dispatch('harvester/findAll', { type: LOGGING.FLOW });
     }
 
-    this.rows = rows;
+    this.$store.dispatch('type-map/configureType', { match: HCI.FLOW, isCreatable: this.listSchema && this.listSchema?.collectionMethods.find(x => x.toLowerCase() === 'post') });
   },
 
   data() {
-    return { rows: [] };
+    return { rows: [], listSchema: null };
   },
 
   computed: {
@@ -51,5 +54,8 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="schema" :rows="rows" />
+  <ResourceTable v-else-if="listSchema" :schema="schema" :rows="rows" />
+  <Banner v-else color="warning">
+    {{ t('harvester.generic.noSchema', {schema: schema.id}) }}
+  </Banner>
 </template>

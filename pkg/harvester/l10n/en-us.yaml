@@ -194,6 +194,7 @@ harvester:
     cpu: CPU
     storage: Storage
     noFileChosen: No file chosen
+    noSchema: "Can not find the custom resource definition: {schema}."
 
   validation:
     custom:

@@ -1,5 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
+import Banner from '@components/Banner/Banner.vue';
 import Loading from '@shell/components/Loading';
 import { SCHEMA, LOGGING } from '@shell/config/types';
 import { HCI } from '../types';
@@ -16,19 +17,22 @@ const schema = {
 
 export default {
   name:       'ListApps',
-  components: { Loading, ResourceTable },
+  components: {
+    Loading, ResourceTable, Banner
+  },
 
   async fetch() {
-    this.rows = await this.$store.dispatch('harvester/findAll', { type: LOGGING.CLUSTER_OUTPUT });
-    const clusterOutputSchema = this.$store.getters['harvester/schemaFor'](LOGGING.CLUSTER_OUTPUT);
+    this.listSchema = this.$store.getters['harvester/schemaFor'](LOGGING.CLUSTER_OUTPUT);
 
-    if (!clusterOutputSchema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
-      this.$store.dispatch('type-map/configureType', { match: HCI.CLUSTER_OUTPUT, isCreatable: false });
+    if (this.listSchema) {
+      this.rows = await this.$store.dispatch('harvester/findAll', { type: LOGGING.CLUSTER_OUTPUT });
     }
+
+    this.$store.dispatch('type-map/configureType', { match: HCI.CLUSTER_OUTPUT, isCreatable: this.listSchema && this.listSchema?.collectionMethods.find(x => x.toLowerCase() === 'post') });
   },
 
   data() {
-    return { rows: null };
+    return { rows: [], listSchema: null };
   },
 
   computed: {
@@ -45,5 +49,8 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else-if="rows" :schema="schema" :rows="rows" :ignore-filter="true" :groupable="false" />
+  <ResourceTable v-else-if="listSchema" :schema="schema" :rows="rows" :ignore-filter="true" :groupable="false" />
+  <Banner v-else color="warning">
+    {{ t('harvester.generic.noSchema', {schema: schema.id}) }}
+  </Banner>
 </template>
