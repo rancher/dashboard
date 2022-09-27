@@ -36,11 +36,13 @@ export function createWorker(store, ctx) {
   }
 
   const workerActions = {
-    load: (resource) => {
-      queueChange(ctx, resource, true, 'Change');
+    load: (msg) => {
+      queueChange(ctx, msg, true, 'Change');
     },
     destroyWorker: () => {
-      delete this.$workers[storeName];
+      if (this.$workers[storeName]) {
+        delete this.$workers[storeName];
+      }
     }
   };
 
@@ -620,7 +622,7 @@ export const actions = {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
       if (worker) {
-        worker.postMessage({ updateSchema: data });
+        worker.postMessage({ updateSchema: msg });
 
         // No further processing - let the web worker check the schema updates
         return;

@@ -32,19 +32,14 @@ function hashObj(obj) {
 }
 
 function flush() {
-  state.queue.forEach((schema) => {
+  state.queue.forEach((msg) => {
+    const schema = msg.data;
     const hash = hashObj(schema);
     const existing = state.schemas[schema.id];
 
     if (!existing || (existing && existing !== hash)) {
       // console.log(`${ schema.id } CHANGED  ${ hash } > ${ existing }`);
       state.schemas[schema.id] = hash;
-
-      const msg = {
-        data:          schema,
-        resourceType:  SCHEMA,
-        type:          'resource.change'
-      };
 
       load(msg);
     }
@@ -120,15 +115,15 @@ const workerActions = {
   },
 
   // Called when schema is updated
-  updateSchema: (schema) => {
+  updateSchema: (msg) => {
     // Add the schema to the queue to be checked to see if the schema really changed
-    state.queue.push(schema);
+    state.queue.push(msg);
   },
 
   // Remove the cached schema
   removeSchema: (id) => {
     // Remove anything in the queue related to the schema - we don't want to send any pending updates later for a schema that has been removed
-    state.queue = state.queue.filter(schema => schema.id !== id);
+    state.queue = state.queue.filter(schema => schema.data?.id !== id);
 
     // Delete the schema from the map, so if it comes back we don't ignore it if the hash is the same
     delete state.schemas[id];
