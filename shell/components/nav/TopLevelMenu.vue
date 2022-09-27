@@ -3,7 +3,7 @@ import BrandImage from '@shell/components/BrandImage';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
-import { CAPI, MANAGEMENT } from '@shell/config/types';
+import { CAPI, MANAGEMENT, SCHEMA } from '@shell/config/types';
 import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
@@ -47,6 +47,12 @@ export default {
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct']),
     ...mapGetters('type-map', ['activeProducts']),
     ...mapGetters({ features: 'features/get' }),
+
+    allSchemas() {
+      const inStore = this.$store.getters['currentStore'](SCHEMA);
+
+      return this.$store.getters[`${ inStore }/all`](SCHEMA);
+    },
 
     value: {
       get() {
@@ -184,6 +190,11 @@ export default {
     $route() {
       this.shown = false;
     },
+
+    allSchemas(neu) {
+      console.log(neu?.length);
+      console.log(neu);
+    }
   },
 
   mounted() {

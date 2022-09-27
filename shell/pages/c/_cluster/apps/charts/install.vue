@@ -446,9 +446,9 @@ export default {
           return true;
         }
 
-        if ( x.hidden && !this.showHidden ) {
-          return false;
-        }
+        // if ( x.hidden && !this.showHidden ) {
+        //   return false;
+        // }
 
         if ( x.deprecated && !this.showDeprecated ) {
           return false;

@@ -1,5 +1,3 @@
-import { SCHEMA } from '@shell/config/types';
-
 const COUNTS_FLUSH_TIMEOUT = 5000;
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 
