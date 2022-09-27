@@ -682,7 +682,8 @@ export function init($plugin, store) {
   });
 
   configureType(HCI.PCI_DEVICE, {
-    listGroups: [
+    hiddenNamespaceGroupButton: true,
+    listGroups:                 [
       {
         icon:       'icon-list-grouped',
         value:      'description',
