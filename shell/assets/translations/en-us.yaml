@@ -1526,7 +1526,7 @@ cluster:
             =5 {}
             =6 { Clusters should have an odd number of nodes. }
             =7 {}
-            other { More than 7 etcd nods is not recommended. }
+            other { More than 7 etcd nodes is not recommended. }
           }
         worker: |-
           {count, plural,
