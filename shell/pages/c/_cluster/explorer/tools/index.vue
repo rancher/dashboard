@@ -127,7 +127,7 @@ export default {
         charts = sortBy(charts, ['certifiedSort', 'chartNameDisplay']);
       }
 
-      const chartsWithApps = charts.map((chart) => {
+      let chartsWithApps = charts.map((chart) => {
         return {
           chart,
           app: this.installedAppForChart[chart.id],
@@ -136,9 +136,9 @@ export default {
 
       // V1 Legacy support
       if (this.legacyEnabled) {
-        this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-monitoring', 'rancher-monitoring', 'cluster-monitoring');
-        this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-istio', 'rancher-istio', 'cluster-istio');
-        this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-logging', 'rancher-logging', 'rancher-logging');
+        chartsWithApps = this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-monitoring', 'rancher-monitoring', 'cluster-monitoring', false);
+        chartsWithApps = this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-istio', 'rancher-istio', 'cluster-istio', true);
+        chartsWithApps = this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-logging', 'rancher-logging', 'rancher-logging', true);
       }
 
       return chartsWithApps;
@@ -231,7 +231,7 @@ export default {
       return versions;
     },
 
-    checkLegacyApp(chartsWithApps, v1Apps, v1ChartName, v2ChartName, v1AppName) {
+    checkLegacyApp(chartsWithApps, v1Apps, v1ChartName, v2ChartName, v1AppName, showOnlyIfInstalled) {
       const v1 = chartsWithApps.find(a => a.chart.chartName === v1ChartName);
       const v2 = chartsWithApps.find(a => a.chart.chartName === v2ChartName);
 
@@ -251,6 +251,9 @@ export default {
               v1.app.upgradeAvailable = latest;
             }
           }
+        } else if (showOnlyIfInstalled) {
+          // Remove the v1 chart if it is not already installed for charts which we no longer support
+          chartsWithApps = chartsWithApps.filter(c => c !== v1);
         }
 
         if (v2) {
@@ -262,6 +265,8 @@ export default {
           }
         }
       }
+
+      return chartsWithApps;
     }
   }
 };
