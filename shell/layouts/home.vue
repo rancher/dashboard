@@ -3,7 +3,7 @@ import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import GrowlManager from '@shell/components/GrowlManager';
-import { mapPref, THEME_SHORTCUT, NO_LOCALE_SHORTCUT } from '@shell/store/prefs';
+import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
@@ -26,13 +26,13 @@ export default {
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
-      name: this.$route.name
+      name:             this.$route.name,
+      noLocaleShortcut: process.env.dev || false
     };
   },
 
   computed: {
-    themeShortcut:    mapPref(THEME_SHORTCUT),
-    noLocaleShortcut: mapPref(NO_LOCALE_SHORTCUT),
+    themeShortcut: mapPref(THEME_SHORTCUT),
     ...mapState(['managementReady']),
   },
 
