@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@/pkg/rancher-components/src/components/Banner';
+import Banner from '@components/Banner/Banner.vue';
 import { MANAGEMENT } from '@shell/config/types';
 import { fetchOrCreateSetting, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
