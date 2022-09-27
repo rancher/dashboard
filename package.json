@@ -6,7 +6,7 @@
   "author": "SUSE",
   "private": true,
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "workspaces": [
     "pkg/rancher-components"
