@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NAMESPACE_FILTERS, DEV } from '@shell/store/prefs';
+import { NAMESPACE_FILTERS, ALL_NAMESPACES } from '@shell/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@shell/utils/array';
@@ -322,8 +322,8 @@ export default {
 
   methods: {
     filterNamespaces(namespaces) {
-      if (this.$store.getters['prefs/get'](DEV)) {
-        // If developer tools are turned on in the user preferences,
+      if (this.$store.getters['prefs/get'](ALL_NAMESPACES)) {
+        // If all namespaces options are turned on in the user preferences,
         // return all namespaces including system namespaces and RBAC
         // management namespaces.
         return namespaces;

@@ -18,7 +18,7 @@ export default class FleetBundle extends SteveModel {
   }
 
   get lastUpdateTime() {
-    return this.status.conditions[0].lastUpdateTime;
+    return this.status?.conditions?.[0].lastUpdateTime;
   }
 
   get bundleType() {

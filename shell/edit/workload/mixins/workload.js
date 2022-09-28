@@ -149,7 +149,6 @@ export default {
   },
 
   data() {
-    let defaultTab;
     let type = this.$route.params.resource;
     const createSidecar = !!this.$route.query.sidecar;
     const isInitContainer = !!this.$route.query.init;
@@ -166,16 +165,10 @@ export default {
           name:            `container-0`,
         }];
 
-        defaultTab = 'container-0';
-
         const podSpec = { template: { spec: { containers: podContainers, initContainers: [] } } };
 
         this.$set(this.value, 'spec', podSpec);
       }
-    }
-
-    if (this.mode === _CREATE) {
-      defaultTab = 'container-0';
     }
 
     if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
@@ -215,7 +208,6 @@ export default {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
         });
-        defaultTab = 'container-0';
 
         containers = podTemplateSpec.initContainers;
       }
@@ -224,8 +216,6 @@ export default {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
         };
-
-        defaultTab = 'container-0';
 
         containers.push(container);
       } else {
@@ -262,7 +252,6 @@ export default {
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
       fvReportedValidationPaths: ['spec'],
-      defaultTab
 
     };
   },
@@ -270,6 +259,14 @@ export default {
   computed: {
     tabErrors() {
       return { general: this.fvGetPathErrors(['image'])?.length > 0 };
+    },
+
+    defaultTab() {
+      if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
+        return 'container-0';
+      }
+
+      return this.allContainers.length ? this.allContainers[0].name : '';
     },
 
     isEdit() {
