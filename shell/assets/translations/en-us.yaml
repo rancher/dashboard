@@ -2451,9 +2451,6 @@ landing:
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
   whatsNewLink: "What's new in 2.6"
   learnMore: Learn More
-  gettingStarted:
-    title: Getting Started
-    body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find your favorite features in the Dashboard UI.
   support: Support
   psps: PSPs
   deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25. You have one or more PodSecurityPolicy resource(s) in this cluster.
@@ -6009,7 +6006,6 @@ advancedSettings:
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-index and ui-dashboard-index settings. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'
-    'ui-issues': "Use a url address to send new 'File an Issue' reports instead of sending users to the Github issues page."
     'telemetry-opt': 'Telemetry reporting opt-in.'
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
@@ -6143,11 +6139,6 @@ branding:
     custom: Define a Custom Theme
   uiPL:
     label: Private Label
-  uiIssues:
-    label: Support Links
-    issuesUrl: Issue Reporting URL
-    invalidUrl: The issue reporting value must be a complete URL, including protocol.
-    communityLinks: Show Rancher community support links
   color:
     label: Primary Color
     tip: You can override the primary color used throughout the UI with a custom color of your choice.
@@ -6208,6 +6199,23 @@ resourceQuota:
     namespace: 'This Namespace:'
     available: 'Available:'
     max: 'Total:'
+customLinks: 
+  displayTitle: Links
+  label: Home Links
+  description: 'Links to display on the home page.'
+  restoreDefaults: 'Restore Defaults'
+  addLink: Add Link
+  restoreSuccess: Default URLs have been restored.
+  settings:
+    keyLabel: Display Text
+    valueLabel: URL
+  defaults: 
+    docs:       Docs
+    forums:     Forums
+    slack:      Slack
+    issues:     File an Issue
+    getStarted: Get Started
+    commercialSupport: Commercial Support
 
 
 
