@@ -13,6 +13,9 @@ export const UI_PLUGIN_CHARTS = [
   UI_PLUGIN_OPERATOR_CRD_CHART_NAME,
 ];
 
+// Expected chart repo name for the UI Plugins operator
+export const UI_PLUGIN_OPERATOR_REPO_NAME = 'rancher-charts';
+
 // Info for the Helm Chart Repository that we will add
 export const UI_PLUGINS_REPO_NAME = 'rancher-ui-plugins';
 

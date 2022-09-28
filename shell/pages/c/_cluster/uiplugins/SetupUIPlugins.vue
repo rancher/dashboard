@@ -9,6 +9,7 @@ import { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
 import {
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHARTS,
+  UI_PLUGIN_OPERATOR_REPO_NAME,
   UI_PLUGINS_REPO_NAME,
   UI_PLUGINS_REPO_URL,
   UI_PLUGINS_REPO_BRANCH,
@@ -29,7 +30,7 @@ export default {
     const found = [];
 
     UI_PLUGIN_CHARTS.forEach((c) => {
-      const f = charts.find(chart => chart.repoName === UI_PLUGINS_REPO_NAME & chart.chartName === c);
+      const f = charts.find(chart => chart.repoName === UI_PLUGIN_OPERATOR_REPO_NAME & chart.chartName === c);
 
       if (f) {
         found.push(f);

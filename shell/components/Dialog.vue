@@ -17,7 +17,7 @@ export default {
 
     mode: {
       type:    String,
-      default: 'install'
+      default: '',
     }
   },
 
