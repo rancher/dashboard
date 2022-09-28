@@ -469,7 +469,7 @@ export default {
       }
 
       this.spec.template.spec.domain.cpu.cores = this.cpu;
-      this.spec.template.spec.domain.resources.limits.cpu = this.cpu;
+      this.spec.template.spec.domain.resources.limits.cpu = this.cpu ? this.cpu.toString() : this.cpu;
       this.spec.template.spec.domain.resources.limits.memory = this.memory;
 
       // parse reserved memory

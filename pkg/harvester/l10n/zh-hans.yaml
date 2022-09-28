@@ -1,3 +1,8 @@
+asyncButton:
+  restart:
+    title: 重启VM
+    tip: 现在重新启动虚拟机以使配置更改生效。
+    cancel: 仅保存
 harvester:
   modal:
     backup:

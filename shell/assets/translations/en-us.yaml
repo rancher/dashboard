@@ -691,10 +691,6 @@ asyncButton:
     action: Generate
     success: Generated
     waiting: Generating&hellip;
-  restart:
-    action: Save & Restart
-    success: Restarted
-    waiting: Restarting&hellip;
 
 backupRestoreOperator:
   backupFilename: Backup Filename

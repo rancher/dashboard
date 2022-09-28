@@ -338,10 +338,6 @@ export default {
       delete this.cloneVM?.metadata;
       delete this.cloneVM?.__clone;
 
-      const cpu = cloneDeepNewVM.spec.template.spec.domain.resources.limits.cpu;
-
-      cloneDeepNewVM.spec.template.spec.domain.resources.limits.cpu = cpu.toString();
-
       const oldVM = JSON.parse(JSON.stringify(this.cloneVM));
       const newVM = JSON.parse(JSON.stringify(cloneDeepNewVM));
 

@@ -959,4 +959,8 @@ export default class VirtVm extends HarvesterResource {
 
     return qemu?.status === 'True';
   }
+
+  get warnDeletionMessage() {
+    return this.t('harvester.volume.promptRemove.tips');
+  }
 }

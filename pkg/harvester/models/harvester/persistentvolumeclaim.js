@@ -223,4 +223,8 @@ export default class HciPv extends HarvesterResource {
 
     return imageId ? 'image' : 'data';
   }
+
+  get warnDeletionMessage() {
+    return this.t('harvester.volume.promptRemove.tips');
+  }
 }
