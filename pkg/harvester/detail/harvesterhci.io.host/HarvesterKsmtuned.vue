@@ -52,6 +52,18 @@ export default {
 
     showRunInformation() {
       return this.ksmtuned.spec.run === 'run';
+    },
+
+    mergeNodesText() {
+      return this.ksmtuned.spec?.mergeAcrossNodes ? this.t('harvester.host.ksmtuned.enable') : this.t('harvester.host.ksmtuned.disable');
+    },
+
+    ksmdPhase() {
+      return this.ksmtuned?.status?.ksmdPhase;
+    },
+
+    ksmdPhaseTextColor() {
+      return this.ksmdPhase === 'Running' ? 'text-success' : 'text-warning';
     }
   },
 };
@@ -75,6 +87,10 @@ export default {
         </div>
         <div class="col span-4">
           <LabelValue :name="t('harvester.host.ksmtuned.mode')" :value="modeText" />
+        </div>
+
+        <div class="col span-4">
+          <LabelValue :name="t('harvester.host.ksmtuned.enableMergeNodes')" :value="mergeNodesText" />
         </div>
       </div>
 
@@ -111,18 +127,26 @@ export default {
         <h3><t k="harvester.host.ksmtuned.statistics.title" :raw="true" /></h3>
         <div class="row mb-20">
           <div class="col span-4">
+            <LabelValue :name="t('harvester.host.ksmtuned.ksmStatus')">
+              <template #value>
+                <span :class="ksmdPhaseTextColor">{{ ksmdPhase }}</span>
+              </template>
+            </LabelValue>
+          </div>
+
+          <div class="col span-4">
             <LabelValue :name="t('harvester.host.ksmtuned.statistics.sharing')" :value="ksmtuned.status.sharing" />
           </div>
           <div class="col span-4">
             <LabelValue :name="t('harvester.host.ksmtuned.statistics.shared')" :value="ksmtuned.status.shared" />
           </div>
-
-          <div class="col span-4">
-            <LabelValue :name="t('harvester.host.ksmtuned.statistics.unshared')" :value="ksmtuned.status.unshared" />
-          </div>
         </div>
 
         <div class="row mb-20">
+          <div class="col span-4">
+            <LabelValue :name="t('harvester.host.ksmtuned.statistics.unshared')" :value="ksmtuned.status.unshared" />
+          </div>
+
           <div class="col span-4">
             <LabelValue :name="t('harvester.host.ksmtuned.statistics.volatile')" :value="ksmtuned.status.volatile" />
           </div>
@@ -130,15 +154,15 @@ export default {
           <div class="col span-4">
             <LabelValue :name="t('harvester.host.ksmtuned.statistics.fullScans')" :value="ksmtuned.status.fullScans" />
           </div>
-
-          <div class="col span-4">
-            <LabelValue :name="t('harvester.host.ksmtuned.statistics.stableNodeChains')" :value="ksmtuned.status.stableNodeChains" />
-          </div>
         </div>
 
         <div class="row mb-20">
           <div class="col span-4">
             <LabelValue :name="t('harvester.host.ksmtuned.statistics.stableNodeDups')" :value="ksmtuned.status.stableNodeDups" />
+          </div>
+
+          <div class="col span-4">
+            <LabelValue :name="t('harvester.host.ksmtuned.statistics.stableNodeChains')" :value="ksmtuned.status.stableNodeChains" />
           </div>
         </div>
       </div>

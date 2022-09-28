@@ -286,8 +286,12 @@ harvester:
       run: Run Strategy
       configure: Configure
       mode: Mode
-      modeLink: Mode <a href="https://docs.harvesterhci.io/v1.0/host/host/#enable-ksmtuned" target="_blank"><i class="icon icon-info" /></a>
+      modeLink: Mode <a href="https://docs.harvesterhci.io/next/host/#ksmtuned-mode" target="_blank"><i class="icon icon-info" /></a>
       thresCoef: Threshold Coefficient
+      enableMergeNodes: Enable Merge Across Nodes
+      enable: Enable
+      disable: Disable
+      ksmStatus: KSM Status
       modeOption:
         standard: Standard
         high: High-Perfomanace

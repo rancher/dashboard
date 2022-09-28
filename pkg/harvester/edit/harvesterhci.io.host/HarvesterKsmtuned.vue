@@ -3,6 +3,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import { RadioGroup } from '@components/Form/Radio';
+import { Checkbox } from '@components/Form/Checkbox';
 import { HCI } from '../../types';
 
 export const ksmtunedMode = [{
@@ -30,7 +31,7 @@ export const ksmtunedRunOption = [{
 export default {
   name:       'HarvesterKsmtuned',
   components: {
-    LabeledInput, LabeledSelect, RadioGroup, UnitInput
+    Checkbox, LabeledInput, LabeledSelect, RadioGroup, UnitInput
   },
 
   props: {
@@ -59,16 +60,18 @@ export default {
       return node.id === this.node.id;
     });
 
+    this.enableMergeAcrossNodes = !!this.ksmtuned.spec?.mergeAcrossNodes;
     this.spec = this.ksmtuned.spec;
   },
 
   data() {
     return {
-      ksmtuned:             {},
-      spec:                 {},
-      thresCoef:            30,
+      ksmtuned:               {},
+      spec:                   {},
+      thresCoef:              30,
       ksmtunedMode,
-      ksmtunedRunOption
+      ksmtunedRunOption,
+      enableMergeAcrossNodes: true
     };
   },
 
@@ -88,6 +91,7 @@ export default {
 
   methods: {
     async saveKsmtuned() {
+      this.spec.mergeAcrossNodes = this.enableMergeAcrossNodes ? 1 : 0;
       this.$set(this.ksmtuned, 'spec', this.spec);
 
       await this.ksmtuned.save().catch((reason) => {
@@ -116,34 +120,28 @@ export default {
     />
 
     <template v-if="showKsmt">
-      <div class="row">
-        <div class="col span-12">
-          <UnitInput
-            v-model="spec.thresCoef"
-            v-int-number
-            :label="t('harvester.host.ksmtuned.thresCoef')"
-            suffix="%"
-            :delay="0"
-            required
-            :mode="mode"
-            class="mb-20"
-          />
-        </div>
-      </div>
+      <UnitInput
+        v-model="spec.thresCoef"
+        v-int-number
+        :label="t('harvester.host.ksmtuned.thresCoef')"
+        suffix="%"
+        :delay="0"
+        required
+        :mode="mode"
+        class="mb-20"
+      />
 
-      <div class="row">
-        <div class="col span-12">
-          <h3>
-            <t k="harvester.host.ksmtuned.modeLink" :raw="true" />
-          </h3>
-          <RadioGroup
-            v-model="spec.mode"
-            class="mb-20"
-            :name="t('harvester.host.ksmtuned.mode')"
-            :options="ksmtunedMode"
-          />
-        </div>
-      </div>
+      <Checkbox v-model="enableMergeAcrossNodes" :mode="mode" class="check mb-20" type="checkbox" :label="t('harvester.host.ksmtuned.enableMergeNodes')" />
+
+      <h3>
+        <t k="harvester.host.ksmtuned.modeLink" :raw="true" />
+      </h3>
+      <RadioGroup
+        v-model="spec.mode"
+        class="mb-20"
+        :name="t('harvester.host.ksmtuned.mode')"
+        :options="ksmtunedMode"
+      />
 
       <template v-if="isCustomizedMode">
         <div class="row">
