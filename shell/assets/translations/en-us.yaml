@@ -1192,6 +1192,9 @@ cluster:
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
+      cloudProvider: 
+        incompatible:
+          You cannot select the Harvester cloud provider as the current Harvester version is not compatible with the selected RKE2 Kubernetes version, click <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">here</a> to see which Kubernetes versions are supported.
     clusterWarning: |-
       There {count, plural,
       =1 {is 1 Harvester cluster that is not shown}
