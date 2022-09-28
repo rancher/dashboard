@@ -81,7 +81,6 @@ export default {
       } catch {}
     } else {
       // Some resources like vlan and network go out to a non-standard location (edit/<resource>/<id>.vue). For example
-      // 'edit/network.harvesterhci.io.clusternetwork/vlan.vue'
       // 'edit/harvesterhci.io.managedchart/rancher-monitoring.vue'
       const resource = this.$route.params.resource;
       const name = this.value.metadata.name;

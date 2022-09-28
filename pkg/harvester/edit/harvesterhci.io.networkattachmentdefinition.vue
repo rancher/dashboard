@@ -59,7 +59,10 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
-    await allHash({ clusterNetworks: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.CLUSTER_NETWORK }) });
+    await allHash({
+      clusterNetworks: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.CLUSTER_NETWORK }),
+      configs:         this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.VLAN_CONFIG }),
+    });
   },
 
   created() {
@@ -82,11 +85,15 @@ export default {
     clusterNetworkOptions() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const clusterNetworks = this.$store.getters[`${ inStore }/all`](HCI.CLUSTER_NETWORK) || [];
+      const configs = this.$store.getters[`${ inStore }/all`](HCI.VLAN_CONFIG) || [];
 
       return clusterNetworks.map((n) => {
+        const disabled = !configs.find(config => config?.spec?.clusterNetwork === n.id);
+
         return {
-          label: n.id,
+          label: disabled ? `${ n.id } (${ this.t('fleet.fleetSummary.state.notReady') })` : n.id,
           value: n.id,
+          disabled,
         };
       });
     },

@@ -7,7 +7,6 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import ArrayList from '@shell/components/form/ArrayList';
-import Vue from 'vue';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
 
@@ -41,15 +40,18 @@ export default {
   },
 
   data() {
-    return {
-      createClusterNetwork: false,
-      type:                 'vlan',
-    };
+    return { type: 'vlan' };
   },
 
   created() {
     if (this.registerBeforeHook) {
       this.registerBeforeHook(this.validate);
+    }
+
+    const clusterNetwork = this.$route.query.clusterNetwork;
+
+    if (clusterNetwork) {
+      set(this.value, 'spec.clusterNetwork', clusterNetwork);
     }
   },
 
@@ -65,14 +67,7 @@ export default {
         };
       });
 
-      return [{
-        label: this.t('harvester.network.clusterNetwork.create'),
-        value: null,
-      }, {
-        label:    'divider',
-        disabled: true,
-        kind:     'divider'
-      }, ...out];
+      return out;
     },
 
     nodeOptions() {
@@ -137,19 +132,13 @@ export default {
         'balance-alb',
       ];
     },
+
+    doneLocationOverride() {
+      return this.value.doneOverride;
+    },
   },
 
   methods: {
-    selectClusterNetwork(e) {
-      if (!e || e.value === null) {
-        this.createClusterNetwork = true;
-
-        Vue.nextTick(() => this.$refs.clusterNetwork.focus());
-      } else {
-        this.createClusterNetwork = false;
-      }
-    },
-
     validate() {
       const errors = [];
 
@@ -207,46 +196,17 @@ export default {
         name="basic"
         :label="t('generic.basic')"
       >
-        <div class="row">
-          <div
-            v-if="createClusterNetwork"
-            class="col span-6"
-          >
-            <LabeledInput
-              ref="clusterNetwork"
-              v-model="value.spec.clusterNetwork"
-              :label="t('harvester.network.clusterNetwork.label')"
-              :mode="mode"
-              required
-              :placeholder="t('harvester.network.clusterNetwork.createPlaceholder')"
-            />
-            <button
-              aria="Cancel create"
-              @click="() => {
-                createClusterNetwork = false;
-                value.spec.clusterNetwork = '';
-              }"
-            >
-              <i
-                v-tooltip="t('generic.cancel')"
-                class="icon icon-lg icon-close align-value"
-              />
-            </button>
-          </div>
-          <div
-            v-else
-            class="col span-6"
-          >
+        <div class="row mt-10">
+          <div class="col span-6">
             <LabeledSelect
               v-model="value.spec.clusterNetwork"
-              class="mb-20"
               :label="t('harvester.network.clusterNetwork.label')"
               required
               :options="clusterNetworkOptions"
               :mode="mode"
               :tooltip="t('harvester.network.clusterNetwork.toolTip')"
               :placeholder="t('harvester.network.clusterNetwork.selectOrCreatePlaceholder')"
-              @selecting="selectClusterNetwork"
+              :disabled="true"
             />
           </div>
           <div class="col span-6">
@@ -254,7 +214,6 @@ export default {
               :value="type"
               label="Type"
               :options="typeOptions"
-              class="mb-20"
               :disabled="true"
             />
           </div>

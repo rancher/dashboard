@@ -653,7 +653,7 @@ harvester:
     matchTarget: The current backup target does not match the existing one.
 
   network:
-    label: VLANs
+    label: Networks
     tabs:
       basics: Basics
       layer3Network: Route
@@ -846,7 +846,10 @@ harvester:
         label: Migratable
 
   vlanConfig:
-    title: Network Configs
+    title: Networks Configs
+    groupBy:
+      clusterNetwork: Group by Cluster Network
+    createNetworkConfig: Create Network Config
     titles:
       nodeSelector: Node Selector
       uplink: Uplink
@@ -872,6 +875,12 @@ harvester:
   vlanStatus:
     vlanConfig:
       label: Network Config
+  
+  clusterNetwork:
+    title: Cluster Networks/Configs
+    create:
+      button:
+        label: Create Cluster Network
 
 advancedSettings:
   descriptions:
@@ -918,15 +927,10 @@ typeLabel:
       one { Host }
       other { Hosts }
     }
-  k8s.cni.cncf.io.networkattachmentdefinition: |-
-    {count, plural,
-      one { VLAN }
-      other { VLANs }
-    }
   harvesterhci.io.networkattachmentdefinition: |-
     {count, plural,
-      one { VLAN }
-      other { VLANs }
+      one { Network }
+      other { Networks }
     }
   harvesterhci.io.volume: |-
     {count, plural,
@@ -1003,7 +1007,6 @@ typeLabel:
       one { Storage Class }
       other { Storage Classes }
     }
-
   devices.harvesterhci.io.pcidevice: |-
     {count, plural,
       one { PCI Device }
@@ -1013,4 +1016,9 @@ typeLabel:
     {count, plural,
       one { Volume }
       other { Volumes }
+    }
+  network.harvesterhci.io.clusternetwork: |-
+    {count, plural,
+      one { Cluster Network }
+      other { Cluster Networks }
     }

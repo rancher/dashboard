@@ -423,7 +423,7 @@ export function init($plugin, store) {
 
   basicType(
     [
-      HCI.VLAN_CONFIG,
+      HCI.CLUSTER_NETWORK,
       HCI.NETWORK_ATTACHMENT,
     ],
     'networks'
@@ -496,26 +496,28 @@ export function init($plugin, store) {
     exact: false
   });
 
-  headers(HCI.VLAN_CONFIG, [
-    STATE,
-    NAME_COL,
-    {
-      name:     'clusterNetwork',
-      labelKey: 'harvester.network.clusterNetwork.label',
-      value:    'spec.clusterNetwork',
-      sort:     'spec.clusterNetwork',
-    },
-    AGE
-  ]);
+  configureType(HCI.VLAN_CONFIG, {
+    listGroups: [
+      {
+        icon:       'icon-list-grouped',
+        value:      'clusterNetwork',
+        field:      'groupByClusterNetwork',
+        hideColumn: 'clusterNetwork',
+        tooltipKey: 'harvester.vlanConfig.groupBy.clusterNetwork'
+      },
+    ]
+  });
+
+  configureType(HCI.CLUSTER_NETWORK, { showListMasthead: false });
   virtualType({
-    labelKey:   'harvester.vlanConfig.title',
-    name:       HCI.VLAN_CONFIG,
-    ifHaveType: HCI.VLAN_CONFIG,
+    labelKey:   'harvester.clusterNetwork.title',
+    name:       HCI.CLUSTER_NETWORK,
+    ifHaveType: HCI.CLUSTER_NETWORK,
     namespaced: false,
     weight:     189,
     route:      {
       name:     `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:   { resource: HCI.VLAN_CONFIG }
+      params:   { resource: HCI.CLUSTER_NETWORK }
     },
     exact: false,
   });
