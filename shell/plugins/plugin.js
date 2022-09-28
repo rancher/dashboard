@@ -25,12 +25,30 @@ export default async(context) => {
   let loadPlugins = true;
 
   // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
-  if (context.route?.path === '/safeMode') {
+  if (context.route?.path?.endsWith('/safeMode')) {
     loadPlugins = false;
     console.warn('Safe Mode - plugins will not be loaded'); // eslint-disable-line no-console
   }
 
   const { store, $plugin } = context;
+
+  // try {
+  //   const res = await store.dispatch('management/request', {
+  //     url:     `/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy/index.json`,
+  //     timeout: 5000,
+  //     headers: { accept: 'application/json' }
+  //   });
+
+  //   if (res && res.Entries) {
+  //     console.log(res.Entries);
+
+  //     // TODO
+  //   }
+
+  //   console.log(res);
+  // } catch (e) {
+  //   console.error('Could not load UI Plugin list', e); // eslint-disable-line no-console
+  // }
 
   // TODO: Gate on dev for now until backend API complete
   if (process.env.dev) {
