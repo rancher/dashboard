@@ -12,7 +12,7 @@ import {
   UI_PLUGINS_REPO_NAME,
   UI_PLUGINS_REPO_URL,
   UI_PLUGINS_REPO_BRANCH,
-} from '@/shell/config/uiplugins';
+} from '@shell/config/uiplugins';
 
 export default {
   components: {

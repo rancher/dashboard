@@ -3,7 +3,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { UI_PLUGIN_NAMESPACE } from '@/shell/config/uiplugins';
+import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
   components: {

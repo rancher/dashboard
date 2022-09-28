@@ -18,7 +18,7 @@ import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins';
 import RemoveUIPlugins from './RemoveUIPlugins';
-import { isUIPlugin, uiPluginHasAnnotation, UI_PLUGIN_NAMESPACE } from '@/shell/config/uiplugins';
+import { isUIPlugin, uiPluginHasAnnotation, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
   components: {

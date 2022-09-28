@@ -7,7 +7,7 @@ import {
   UI_PLUGIN_CHARTS,
   UI_PLUGINS_REPO_NAME,
   UI_PLUGINS_REPO_URL,
-} from '@/shell/config/uiplugins';
+} from '@shell/config/uiplugins';
 
 export default {
   components: {
