@@ -35,26 +35,6 @@ export default {
   },
 
   data() {
-    const menuActions = [];
-    const isDeveloper = this.$store.getters['prefs/get'](DEV);
-
-    if (isDeveloper) {
-      menuActions.push({
-        action:  'devLoad',
-        label:   this.t('plugins.devloper.label'),
-        enabled: true
-      });
-      menuActions.push( { divider: true });
-    }
-
-    if (this.hasPluginCRD) {
-      menuActions.push({
-        action:  'removePluginSupport',
-        label:   this.t('plugins.setup.remove.label'),
-        enabled: true
-      });
-    }
-
     return {
       view:              '',
       charts:            [],
@@ -66,7 +46,6 @@ export default {
       menuTargetElement: null,
       menuTargetEvent:   null,
       menuOpen:          false,
-      menuActions,
     };
   },
 
@@ -99,6 +78,30 @@ export default {
   computed: {
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
+
+    menuActions() {
+      const menuActions = [];
+      const isDeveloper = this.$store.getters['prefs/get'](DEV);
+
+      if (isDeveloper) {
+        menuActions.push({
+          action:  'devLoad',
+          label:   this.t('plugins.devloper.label'),
+          enabled: true
+        });
+        menuActions.push( { divider: true });
+      }
+
+      if (this.hasPluginCRD) {
+        menuActions.push({
+          action:  'removePluginSupport',
+          label:   this.t('plugins.setup.remove.label'),
+          enabled: true
+        });
+      }
+
+      return menuActions;
+    },
 
     // Is the Plugin CRD available ?
     hasPluginCRD() {
