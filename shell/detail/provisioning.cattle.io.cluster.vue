@@ -93,7 +93,7 @@ export default {
       fetchOne.snapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
-    if ( this.value.isImported || this.value.isCustom || this.value.isAKS || this.value.isEKS ) {
+    if ( this.value.isImported || this.value.isCustom || this.value.isHostedKubernetesProvider ) {
       fetchOne.clusterToken = this.value.getOrCreateToken();
     }
 
@@ -322,7 +322,7 @@ export default {
     },
 
     showEksNodeGroupWarning() {
-      if ( this.value.isEKS ) {
+      if ( this.value.provisioner === 'EKS' ) {
         const desiredTotal = this.value.eksNodeGroups.filter(g => g.desiredSize === 0);
 
         if ( desiredTotal.length === this.value.eksNodeGroups.length ) {
@@ -451,7 +451,7 @@ export default {
         return true;
       }
 
-      if ( ( this.value.isAKS || this.value.isEKS ) && !this.isClusterReady ) {
+      if ( this.value.isHostedKubernetesProvider && !this.isClusterReady ) {
         return true;
       }
 
