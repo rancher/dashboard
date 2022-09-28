@@ -33,7 +33,7 @@ export default async(context) => {
   const { store, $plugin } = context;
 
   // TODO: Gate on dev for now until backend API complete
-  if (process.env.dev) {}
+  if (process.env.dev) {
     // TODO: This will use the Rancher endpoint to get the list of plugins
     // For now, this will only work if the user can access the plugins schema
     // but allows for dev/testing until the backend endpoint is in place
