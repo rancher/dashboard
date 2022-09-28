@@ -22,7 +22,8 @@ export const HCI_SETTING = {
   SSL_PARAMETERS:                   'ssl-parameters',
   SUPPORT_BUNDLE_NAMESPACES:        'support-bundle-namespaces',
   AUTO_DISK_PROVISION_PATHS:        'auto-disk-provision-paths',
-  RELEASE_DOWNLOAD_URL:             'release-download-url'
+  RELEASE_DOWNLOAD_URL:             'release-download-url',
+  CCM_CSI_VERSION:                  'harvester-csi-ccm-versions',
 };
 
 export const HCI_ALLOWED_SETTINGS = {
