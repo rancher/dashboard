@@ -1612,7 +1612,7 @@ cluster:
     rancherkubernetesengine: RKE
     rke2: RKE2
     rke: RKE1
-    rkeWindows: Windows
+    rkeWindows: Windows (RKE1 only)
     s3: S3-Compatible
     softlayer: IBM Cloud
     tencenttke: Tencent TKE
