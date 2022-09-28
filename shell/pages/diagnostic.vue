@@ -52,7 +52,7 @@ export default {
 
         topTenForResponseTime = topTenForResponseTime.concat(sortedCount);
         topTenForResponseTime = sortBy(topTenForResponseTime, 'count:desc');
-        topTenForResponseTime = topTenForResponseTime.splice(0, 10);
+        topTenForResponseTime = topTenForResponseTime.splice(0, 15);
 
         topTenForResponseTime.forEach((item, i) => {
           topTenForResponseTime[i].id = finalCounts[index].id;
@@ -74,8 +74,7 @@ export default {
       language,
       cookieEnabled,
       hardwareConcurrency,
-      deviceMemory,
-      memory,
+      deviceMemory
     } = window?.navigator;
 
     const systemInformation = {
@@ -103,16 +102,16 @@ export default {
       systemInformation.system.value.concat(', ', this.t('about.diagnostic.systemInformation.deviceMemory', { deviceMemory }));
     }
 
-    if ( memory?.jsHeapSizeLimit ) {
-      systemInformation.jsMemory.value.concat(this.t('about.diagnostic.systemInformation.memJsHeapLimit', { jsHeapSizeLimit: memory.jsHeapSizeLimit }));
+    if ( window?.performance?.memory?.jsHeapSizeLimit ) {
+      systemInformation.jsMemory.value += this.t('about.diagnostic.systemInformation.memJsHeapLimit', { jsHeapSizeLimit: window?.performance?.memory?.jsHeapSizeLimit });
     }
 
-    if ( memory?.totalJSHeapSize ) {
-      systemInformation.jsMemory.value.concat(', ', this.t('about.diagnostic.systemInformation.memTotalJsHeapSize', { totalJSHeapSize: memory.totalJSHeapSize }));
+    if ( window?.performance?.memory?.totalJSHeapSize ) {
+      systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memTotalJsHeapSize', { totalJSHeapSize: window?.performance?.memory?.totalJSHeapSize }) }`;
     }
 
-    if ( memory?.usedJSHeapSize ) {
-      systemInformation.jsMemory.value.concat(', ', this.t('about.diagnostic.systemInformation.memUsedJsHeapSize', { usedJSHeapSize: memory.usedJSHeapSize }));
+    if ( window?.performance?.memory?.usedJSHeapSize ) {
+      systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memUsedJsHeapSize', { usedJSHeapSize: window?.performance?.memory?.usedJSHeapSize }) }`;
     }
 
     // scroll logs container to the bottom
@@ -132,6 +131,12 @@ export default {
   watch: {
     latestLogs() {
       this.scrollLogsToBottom();
+    }
+  },
+
+  computed: {
+    clusterCount() {
+      return this.finalCounts?.length;
     }
   },
 
@@ -335,7 +340,7 @@ export default {
     <!-- Resources -->
     <div class="mb-40">
       <h2 class="mb-20">
-        {{ t('about.diagnostic.resourceCounts.subtitle') }}
+        {{ t('about.diagnostic.resourceCounts.subtitle', { clusterCount }) }}
       </h2>
       <div class="resources-count-container">
         <table
@@ -444,6 +449,10 @@ table {
           align-items: center;
           justify-content: space-between;
       }
+    }
+
+    tbody {
+      border-bottom: 1px solid var(--sortable-table-top-divider);
     }
   }
 

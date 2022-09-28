@@ -255,7 +255,7 @@ about:
     logs: 
       subtitle: Latest Logs
     resourceCounts: 
-      subtitle: Resource Counts
+      subtitle: Resource Counts by Cluster ({clusterCount} clusters)
     modal:
       title: Response times have not yet been generated.
       body: Generate response times to offer more specific information.
