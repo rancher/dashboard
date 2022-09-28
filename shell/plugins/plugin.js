@@ -32,28 +32,31 @@ export default async(context) => {
 
   const { store, $plugin } = context;
 
-  // TODO: This will use the Rancher endpoint to get the list of plugins
-  // For now, this will only work if the user can access the plugins schema
-  // but allows for dev/testing until the backend endpoint is in place
-  try {
-    const res = await store.dispatch('management/request', {
-      url:     `/v1/${ UI_PLUGIN }`,
-      timeout: 5000,
-      headers: { accept: 'application/json' }
-    });
-
-    if (loadPlugins && res && res.data) {
-      (res.data || []).forEach((resource) => {
-        const plugin = resource.spec?.plugin;
-
-        if (plugin) {
-          hash[plugin.name] = $plugin.loadAsyncByNameAndVersion(plugin.name, plugin.version);
-        }
+  // TODO: Gate on dev for now until backend API complete
+  if (process.env.dev) {}
+    // TODO: This will use the Rancher endpoint to get the list of plugins
+    // For now, this will only work if the user can access the plugins schema
+    // but allows for dev/testing until the backend endpoint is in place
+    try {
+      const res = await store.dispatch('management/request', {
+        url:     `/v1/${ UI_PLUGIN }`,
+        timeout: 5000,
+        headers: { accept: 'application/json' }
       });
+
+      if (loadPlugins && res && res.data) {
+        (res.data || []).forEach((resource) => {
+          const plugin = resource.spec?.plugin;
+
+          if (plugin) {
+            hash[plugin.name] = $plugin.loadAsyncByNameAndVersion(plugin.name, plugin.version);
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Could not load UI Plugins'); // eslint-disable-line no-console
+      console.log(e); // eslint-disable-line no-console
     }
-  } catch (e) {
-    console.error('Could not load UI Plugins'); // eslint-disable-line no-console
-    console.log(e); // eslint-disable-line no-console
   }
 
   // Load all of the plugins
