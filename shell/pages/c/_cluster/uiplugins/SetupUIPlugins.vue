@@ -216,7 +216,7 @@ export default {
     </IconMessage>
     <Dialog
       name="confirm-uiplugins-setup"
-      title="{{ t('plugins.setup.install.title') }}"
+      :title="t('plugins.setup.install.title')"
       @closed="dialogClosed"
     >
       <template>

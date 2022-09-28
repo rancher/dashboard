@@ -94,7 +94,7 @@ export default {
 <template>
   <Dialog
     name="confirm-uiplugins-remove"
-    title="{{ t('plugins.setup.remove.title') }}"
+    :title="t('plugins.setup.remove.title')"
     mode="disable"
     @okay="doRemove"
   >
