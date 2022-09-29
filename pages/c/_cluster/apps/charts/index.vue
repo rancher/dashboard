@@ -1,23 +1,23 @@
 <script>
-import AsyncButton from '@shell/components/AsyncButton';
-import Loading from '@shell/components/Loading';
-import { Banner } from '@components/Banner';
-import Carousel from '@shell/components/Carousel';
-import ButtonGroup from '@shell/components/ButtonGroup';
-import SelectIconGrid from '@shell/components/SelectIconGrid';
-import TypeDescription from '@shell/components/TypeDescription';
+import AsyncButton from '@/components/AsyncButton';
+import Loading from '@/components/Loading';
+import Banner from '@/components/Banner';
+import Carousel from '@/components/Carousel';
+import ButtonGroup from '@/components/ButtonGroup';
+import SelectIconGrid from '@/components/SelectIconGrid';
+import TypeDescription from '@/components/TypeDescription';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN, OPERATING_SYSTEM
-} from '@shell/config/query-params';
-import { lcFirst } from '@shell/utils/string';
-import { sortBy } from '@shell/utils/sort';
+} from '@/config/query-params';
+import { lcFirst } from '@/utils/string';
+import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
-import { Checkbox } from '@components/Form/Checkbox';
-import Select from '@shell/components/form/Select';
-import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
-import { removeObject, addObject, findBy } from '@shell/utils/array';
-import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
-import { CATALOG } from '@shell/config/labels-annotations';
+import Checkbox from '@/components/form/Checkbox';
+import Select from '@/components/form/Select';
+import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@/store/prefs';
+import { removeObject, addObject, findBy } from '@/utils/array';
+import { compatibleVersionsFor, filterAndArrangeCharts } from '@/store/catalog';
+import { CATALOG } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -46,13 +46,13 @@ export default {
 
   data() {
     return {
-      allRepos:            null,
-      category:            null,
-      operatingSystem:     null,
-      searchQuery:         null,
-      showDeprecated:      null,
-      showHidden:          null,
-      chartMode:           this.$store.getters['prefs/get'](SHOW_CHART_MODE),
+      allRepos:             null,
+      category:             null,
+      operatingSystem:      null,
+      searchQuery:          null,
+      showDeprecated:       null,
+      showHidden:           null,
+      chartMode:            this.$store.getters['prefs/get'](SHOW_CHART_MODE),
       chartOptions:    [
         {
           label:       'Browse',
@@ -67,10 +67,41 @@ export default {
   },
 
   computed: {
+
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
     hideRepos: mapPref(HIDE_REPOS),
+
+    viewOptions() {
+      const out = [];
+
+      if ( this.hasDetail ) {
+        out.push({
+          labelKey: 'resourceDetail.masthead.detail',
+          value:    'detail',
+        });
+      }
+
+      if ( this.hasEdit ) {
+        out.push({
+          labelKey: 'resourceDetail.masthead.config',
+          value:    'config',
+        });
+      }
+
+      if ( !out.length ) {
+        // If there's only YAML, return nothing and the button group will be hidden entirely
+        return null;
+      }
+
+      out.push({
+        labelKey: 'resourceDetail.masthead.yaml',
+        value:    'yaml',
+      });
+
+      return out;
+    },
 
     repoOptions() {
       let nextColor = 0;
@@ -155,10 +186,8 @@ export default {
 
     filteredCharts() {
       const enabledCharts = (this.enabledCharts || []);
-      const clusterProvider = this.currentCluster.status.provider || 'other';
 
       return filterAndArrangeCharts(enabledCharts, {
-        clusterProvider,
         category:         this.category,
         searchQuery:      this.searchQuery,
         showDeprecated:   this.showDeprecated,
@@ -170,11 +199,9 @@ export default {
     },
 
     getFeaturedCharts() {
-      const allCharts = (this.filteredCharts || []);
+      const newArray = (this.filteredCharts || []);
 
-      const featuredCharts = allCharts.filter(value => value.featured).sort((a, b) => a.featured - b.featured);
-
-      return featuredCharts.slice(0, 5);
+      return newArray.slice(0, 5);
     },
 
     categories() {
@@ -210,7 +237,6 @@ export default {
     showCarousel() {
       return this.chartMode === 'featured' && this.getFeaturedCharts.length;
     }
-
   },
 
   watch: {
@@ -327,6 +353,7 @@ export default {
         btnCb(false);
       }
     },
+
   },
 };
 </script>
@@ -347,13 +374,12 @@ export default {
         />
       </div>
     </header>
-    <div v-if="showCarousel">
-      <h3>Featured Charts</h3>
-      <Carousel
-        :sliders="getFeaturedCharts"
-        @clicked="(row) => selectChart(row)"
-      />
-    </div>
+    <Carousel
+      v-if="showCarousel"
+      :sliders="getFeaturedCharts"
+      @clicked="(row) => selectChart(row)"
+    />
+
     <TypeDescription resource="chart" />
     <div class="left-right-split">
       <Select

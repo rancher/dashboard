@@ -1,21 +1,15 @@
 import Vue from 'vue';
-import { MANAGEMENT, STEVE } from '@shell/config/types';
-import { clone } from '@shell/utils/object';
-import { SETTING } from '@shell/config/settings';
+import { MANAGEMENT, STEVE } from '@/config/types';
+import { clone } from '@/utils/object';
+import { SETTING } from '@/config/settings';
 
 const definitions = {};
-/**
- * Key/value of prefrences are stored before login here and cookies due lack of access permission.
- * Once user is logged in while setting asUserPreference, update stored before login Key/value to the backend in loadServer function.
- */
-let prefsBeforeLogin = {};
 
 export const create = function(name, def, opt = {}) {
   const parseJSON = opt.parseJSON === true;
   const asCookie = opt.asCookie === true;
   const asUserPreference = opt.asUserPreference !== false;
   const options = opt.options;
-  const inheritFrom = opt.inheritFrom;
 
   definitions[name] = {
     def,
@@ -23,7 +17,6 @@ export const create = function(name, def, opt = {}) {
     parseJSON,
     asCookie,
     asUserPreference,
-    inheritFrom, // if value is not defined on server, we can default it to another pref
     mangleRead:  opt.mangleRead, // Alter the value read from the API (to match old Rancher expectations)
     mangleWrite: opt.mangleWrite, // Alter the value written back to the API (ditto)
   };
@@ -66,7 +59,7 @@ export const THEME = create('theme', 'auto', {
 export const PREFERS_SCHEME = create('pcs', '', { asCookie, asUserPreference: false });
 export const LOCALE = create('locale', 'en-us', { asCookie });
 export const KEYMAP = create('keymap', 'sublime', { options: ['sublime', 'emacs', 'vim'] });
-export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100], parseJSON });
+export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100, 250, 500, 1000], parseJSON });
 export const LOGS_WRAP = create('logs-wrap', true, { parseJSON });
 export const LOGS_TIME = create('logs-time', true, { parseJSON });
 export const LOGS_RANGE = create('logs-range', '30 minutes', { parseJSON });
@@ -94,12 +87,7 @@ export const TIME_FORMAT = create('time-format', 'h:mm:ss a', {
 });
 
 export const TIME_ZONE = create('time-zone', 'local');
-// DEV will be deprecated on v2.7.0, but is needed so that we can grab the value for the new settings that derived from it
-// such as: VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT
 export const DEV = create('dev', false, { parseJSON });
-export const VIEW_IN_API = create('view-in-api', false, { parseJSON, inheritFrom: DEV });
-export const ALL_NAMESPACES = create('all-namespaces', false, { parseJSON, inheritFrom: DEV });
-export const THEME_SHORTCUT = create('theme-shortcut', false, { parseJSON, inheritFrom: DEV });
 export const LAST_VISITED = create('last-visited', 'home', { parseJSON });
 export const SEEN_WHATS_NEW = create('seen-whatsnew', '', { parseJSON });
 export const READ_WHATS_NEW = create('read-whatsnew', '', { parseJSON });
@@ -112,9 +100,6 @@ export const PROVISIONER = create('provisioner', _RKE1, { options: [_RKE1, _RKE2
 
 // Promo for Cluster Tools feature on Cluster Dashboard page
 export const CLUSTER_TOOLS_TIP = create('hide-cluster-tools-tip', false, { parseJSON });
-
-// Promo for Pod Security Policies (PSPs) being deprecated on kube version 1.25 on Cluster Dashboard page
-export const PSP_DEPRECATION_BANNER = create('hide-psp-deprecation-banner', false, { parseJSON });
 
 // Maximum number of clusters to show in the slide-in menu
 export const MENU_MAX_CLUSTERS = create('menu-max-clusters', 4, { options: [2, 3, 4, 5, 6, 7, 8, 9, 10], parseJSON });
@@ -179,13 +164,7 @@ export const getters = {
     return definition.options.slice();
   },
 
-  theme: (state, getters, rootState, rootGetters) => {
-    const setting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.THEME);
-
-    if (setting?.value) {
-      return setting?.value;
-    }
-
+  theme: (state, getters) => {
     let theme = getters['get'](THEME);
     const pcs = getters['get'](PREFERS_SCHEME);
 
@@ -259,7 +238,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async set({ dispatch, commit, rootGetters }, opt) {
+  async set({ dispatch, commit }, opt) {
     let { key, value } = opt; // eslint-disable-line prefer-const
     const definition = definitions[key];
     let server;
@@ -280,15 +259,6 @@ export const actions = {
     }
 
     if ( definition.asUserPreference ) {
-      const checkLogin = rootGetters['auth/loggedIn'];
-
-      // Check for login status
-      if (!checkLogin) {
-        prefsBeforeLogin[key] = value;
-
-        return;
-      }
-
       try {
         server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
 
@@ -398,9 +368,7 @@ export const actions = {
     }
   },
 
-  async loadServer( {
-    state, dispatch, commit, rootState, rootGetters
-  }, ignoreKey) {
+  async loadServer({ state, dispatch, commit }, ignoreKey) {
     let server = { data: {} };
 
     try {
@@ -426,25 +394,9 @@ export const actions = {
       return;
     }
 
-    // if prefsBeforeLogin has values from login page, update the backend
-    if (Object.keys(prefsBeforeLogin).length > 0) {
-      Object.keys(prefsBeforeLogin).forEach((key) => {
-        server.data[key] = prefsBeforeLogin[key];
-      });
-
-      await server.save({ redirectUnauthorized: false });
-
-      // Clear prefsBeforeLogin, as we have now saved theses
-      prefsBeforeLogin = {};
-    }
-
     for (const key in definitions) {
       const definition = definitions[key];
       let value = clone(server.data[key]);
-
-      if (value === undefined && definition.inheritFrom) {
-        value = clone(server.data[definition.inheritFrom]);
-      }
 
       if ( value === undefined || key === ignoreKey) {
         continue;
@@ -493,7 +445,7 @@ export const actions = {
         if (brandSetting && brandSetting.value && brandSetting.value !== '') {
           const brand = brandSetting.value;
 
-          const brandMeta = require(`~shell/assets/brand/${ brand }/metadata.json`);
+          const brandMeta = require(`~/assets/brand/${ brand }/metadata.json`);
           const hasStylesheet = brandMeta.hasStylesheet === 'true';
 
           if (hasStylesheet) {

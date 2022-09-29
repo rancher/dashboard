@@ -95,7 +95,7 @@ export const CATALOG = {
   DEPLOYED_OS:   'catalog.cattle.io/deploys-on-os',
 
   MIGRATED: 'apps.cattle.io/migrated',
-  MANAGED:  'catalog.cattle.io/managed'
+  MANAGED:  'catalog.cattle.io/managed',
 };
 
 export const FLEET = {
