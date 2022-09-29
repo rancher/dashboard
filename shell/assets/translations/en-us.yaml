@@ -752,8 +752,6 @@ backupRestoreOperator:
     useDefault: Use the default storage location configured during installation
   targetBackup: Target Backup
 
-
-
 catalog:
   app:
     managed: Managed
@@ -767,6 +765,13 @@ catalog:
         busy: The related resources will appear when {app} is fully installed.
       values: Values YAML
   chart:
+    registry:
+      label: Container Registry
+      tooltip: By default, container images are pulled from the Cluster Container Registry in the cluster configuration, and the Global Container Registry is used as a fallback. To use images from a non-default registry, enter a custom container registry here.
+      custom:
+        checkBoxLabel: Use Custom Container Registry for Rancher system images
+        inputLabel: Custom Container Registry
+        placeholder: Registry domain and ports, ex. registry.io:5000
     header:
       charts: Charts
     info:

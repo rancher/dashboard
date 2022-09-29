@@ -5,13 +5,13 @@ import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
 import { mapGetters } from 'vuex';
-
 import { Banner } from '@components/Banner';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
 import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledTooltip } from '@components/LabeledTooltip';
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -24,7 +24,7 @@ import Wizard from '@shell/components/Wizard';
 import TypeDescription from '@shell/components/TypeDescription';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
-import { CATALOG, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { CATALOG, MANAGEMENT, DEFAULT_WORKSPACE, CAPI } from '@shell/config/types';
 import {
   CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@shell/config/query-params';
@@ -61,6 +61,7 @@ export default {
     Checkbox,
     LabeledInput,
     LabeledSelect,
+    LabeledTooltip,
     LazyImage,
     Loading,
     NameNsDescription,
@@ -93,10 +94,43 @@ export default {
 
     this.errors = [];
 
-    this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.SETTING,
-      id:   'system-default-registry'
-    });
+    const getRegistry = async() => {
+      const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+
+      if (hasPermissionToSeeProvCluster) {
+        const clusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+        const clusterName = this.$store.getters['currentCluster'].spec.displayName;
+        const clusterResourceId = `fleet-default/${ clusterName }`;
+
+        this.clusterData = clusters.filter((cluster) => {
+          return cluster.id === clusterResourceId;
+        })[0];
+
+        if (this.clusterData.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
+          const agentConfig = this.clusterData.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+
+          // If a cluster scoped registry exists,
+          // it should be used by default.
+          const clusterRegistry = agentConfig?.['system-default-registry'] || '';
+
+          if (clusterRegistry) {
+            return clusterRegistry;
+          }
+        }
+      }
+
+      // Use the global registry as a fallback.
+      // If it is an empty string, the container
+      // runtime will pull images from docker.io.
+      const globalRegistry = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.SETTING,
+        id:   'system-default-registry'
+      });
+
+      return globalRegistry.value;
+    };
+
+    this.defaultRegistrySetting = await getRegistry();
 
     this.serverUrlSetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -260,16 +294,20 @@ export default {
         /* For an new app, start empty. */
         userValues = {};
       }
-
       /*
         Remove global values if they are identical to
         the currently available information about the cluster
         and Rancher settings.
-
         Immediately before the Helm chart is installed or
         upgraded, the global values are re-added.
       */
       this.removeGlobalValuesFrom(userValues);
+
+      /*
+        Refer to the developer docs at docs/developer/helm-chart-apps.md
+        for details on what values are injected and where they come from.
+      */
+      this.addGlobalValuesTo(userValues);
 
       /*
         The merge() method is used to merge two or more objects
@@ -300,7 +338,6 @@ export default {
     /* Look for annotation to say this app is a legacy migrated app (we look in either place for now) */
     this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
   },
-
   data() {
     /* Helm CLI options that are not persisted on the back end,
     but are used for the final install/upgrade operation. */
@@ -317,13 +354,15 @@ export default {
     };
 
     return {
-      defaultRegistrySetting: null,
+      defaultRegistrySetting: '',
       serverUrlSetting:       null,
       chartValues:            null,
+      clusterRegistry:        '',
       originalYamlValues:     null,
       previousYamlValues:     null,
       errors:                 null,
       existing:               null,
+      globalRegistry:         '',
       forceNamespace:         null,
       loadedVersion:          null,
       loadedVersionValues:    null,
@@ -335,22 +374,23 @@ export default {
       valuesYaml:             '',
       project:                null,
       migratedApp:            false,
-
+      clusterData:            null,
       defaultCmdOpts,
-      customCmdOpts: { ...defaultCmdOpts },
+      customCmdOpts:          { ...defaultCmdOpts },
 
       nameDisabled: false,
 
-      preFormYamlOption:   VALUES_STATE.YAML,
-      formYamlOption:      VALUES_STATE.YAML,
-      showDiff:            false,
-      showValuesComponent: true,
-      showQuestions:       true,
-      showSlideIn:         false,
-      shownReadmeWindows:  [],
-      componentHasTabs:    false,
-      showCommandStep:     false,
-      isNamespaceNew:      false,
+      preFormYamlOption:       VALUES_STATE.YAML,
+      formYamlOption:          VALUES_STATE.YAML,
+      showDiff:                false,
+      showValuesComponent:     true,
+      showQuestions:           true,
+      showSlideIn:             false,
+      shownReadmeWindows:      [],
+      componentHasTabs:        false,
+      showCommandStep:         false,
+      showCustomRegistryInput: false,
+      isNamespaceNew:          false,
 
       stepBasic: {
         name:           'basics',
@@ -887,6 +927,49 @@ export default {
       }
     },
 
+    removeGlobalValuesFrom(values) {
+      if ( !values ) {
+        return;
+      }
+      const cluster = this.$store.getters['currentCluster'];
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+      const serverUrl = this.serverUrlSetting?.value || '';
+      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
+      const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
+      const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
+
+      if ( values.global?.cattle ) {
+        deleteIfEqual(values.global.cattle, 'clusterId', cluster?.id);
+        deleteIfEqual(values.global.cattle, 'clusterName', cluster?.nameDisplay);
+        deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
+        deleteIfEqual(values.global.cattle, 'url', serverUrl);
+        deleteIfEqual(values.global.cattle, 'rkePathPrefix', pathPrefix);
+        deleteIfEqual(values.global.cattle, 'rkeWindowsPathPrefix', windowsPathPrefix);
+        if ( isWindows ) {
+          deleteIfEqual(values.global.cattle.windows, 'enabled', true);
+        }
+      }
+      if ( values.global?.cattle?.windows && !Object.keys(values.global.cattle.windows).length ) {
+        delete values.global.cattle.windows;
+      }
+      if ( values.global?.cattle && !Object.keys(values.global.cattle).length ) {
+        delete values.global.cattle;
+      }
+      if ( values.global ) {
+        deleteIfEqual(values.global, 'systemDefaultRegistry', defaultRegistry);
+      }
+      if ( !Object.keys(values.global || {}).length ) {
+        delete values.global;
+      }
+
+      return values;
+      function deleteIfEqual(obj, key, val) {
+        if ( get(obj, key) === val ) {
+          delete obj[key];
+        }
+      }
+    },
+
     addGlobalValuesTo(values) {
       let global = values.global;
 
@@ -905,7 +988,7 @@ export default {
       const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
       const systemProjectId = projects.find(p => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
-      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
@@ -913,8 +996,8 @@ export default {
 
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
-      setIfNotSet(cattle, 'systemDefaultRegistry', defaultRegistry);
-      setIfNotSet(global, 'systemDefaultRegistry', defaultRegistry);
+      set(cattle, 'systemDefaultRegistry', this.defaultRegistrySetting);
+      set(global, 'systemDefaultRegistry', this.defaultRegistrySetting);
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
       setIfNotSet(cattle, 'url', serverUrl);
       setIfNotSet(cattle, 'rkePathPrefix', pathPrefix);
@@ -929,56 +1012,6 @@ export default {
       function setIfNotSet(obj, key, val) {
         if ( typeof get(obj, key) === 'undefined' ) {
           set(obj, key, val);
-        }
-      }
-    },
-
-    removeGlobalValuesFrom(values) {
-      if ( !values ) {
-        return;
-      }
-
-      const cluster = this.$store.getters['currentCluster'];
-      const defaultRegistry = this.defaultRegistrySetting?.value || '';
-      const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
-      const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
-      const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
-
-      if ( values.global?.cattle ) {
-        deleteIfEqual(values.global.cattle, 'clusterId', cluster?.id);
-        deleteIfEqual(values.global.cattle, 'clusterName', cluster?.nameDisplay);
-        deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
-        deleteIfEqual(values.global.cattle, 'url', serverUrl);
-        deleteIfEqual(values.global.cattle, 'rkePathPrefix', pathPrefix);
-        deleteIfEqual(values.global.cattle, 'rkeWindowsPathPrefix', windowsPathPrefix);
-
-        if ( isWindows ) {
-          deleteIfEqual(values.global.cattle.windows, 'enabled', true);
-        }
-      }
-
-      if ( values.global?.cattle?.windows && !Object.keys(values.global.cattle.windows).length ) {
-        delete values.global.cattle.windows;
-      }
-
-      if ( values.global?.cattle && !Object.keys(values.global.cattle).length ) {
-        delete values.global.cattle;
-      }
-
-      if ( values.global ) {
-        deleteIfEqual(values.global, 'systemDefaultRegistry', defaultRegistry);
-      }
-
-      if ( !Object.keys(values.global || {}).length ) {
-        delete values.global;
-      }
-
-      return values;
-
-      function deleteIfEqual(obj, key, val) {
-        if ( get(obj, key) === val ) {
-          delete obj[key];
         }
       }
     },
@@ -1016,12 +1049,6 @@ export default {
         the default chart values.
       */
       const values = diff(fromChart, this.chartValues);
-
-      /*
-        Refer to the developer docs at docs/developer/helm-chart-apps.md
-        for details on what values are injected and where they come from.
-      */
-      this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
 
@@ -1147,13 +1174,16 @@ export default {
         charts that may not be CRD charts but are also meant to be installed at
         the same time.
       */
+
       for ( const dependency of more ) {
+        const globalValues = values.global;
+
         out.charts.unshift({
           chartName:   dependency.name,
           version:     dependency.version,
           releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
           projectId:   this.project,
-          values:      this.addGlobalValuesTo({ global: values.global }),
+          values:      this.addGlobalValuesTo({ global: { ...globalValues } }), // Use spread operator to avoid modifying original input
           annotations: {
             ...migratedAnnotations,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: dependency.repoType,
@@ -1288,41 +1318,57 @@ export default {
               </LabeledSelect>
             </div>
           </div>
-          <NameNsDescription
-            v-if="chart"
-            v-model="value"
-            :description-hidden="true"
-            :mode="mode"
-            :name-disabled="nameDisabled"
-            :name-required="false"
-            :name-ns-hidden="!showNameEditor"
-            :force-namespace="forceNamespace"
-            :namespace-new-allowed="namespaceNewAllowed"
-            :extra-columns="showProject ? ['project'] : []"
-            :show-spacer="false"
-            :horizontal="false"
-            @isNamespaceNew="isNamespaceNew = $event"
-          >
-            <template v-if="showProject" #project>
-              <LabeledSelect
-                v-model="project"
-                :disabled="!namespaceIsNew"
-                :label="t('catalog.install.project')"
-                option-key="id"
-                :options="projectOpts"
-                :tooltip="!namespaceIsNew ? t('catalog.install.namespaceIsInProject', {namespace: value.metadata.namespace}, true) : ''"
-                :hover-tooltip="!namespaceIsNew"
-                :status="'info'"
+          <div v-if="chart">
+            <NameNsDescription
+              v-model="value"
+              :description-hidden="true"
+              :mode="mode"
+              :name-disabled="nameDisabled"
+              :name-required="false"
+              :name-ns-hidden="!showNameEditor"
+              :force-namespace="forceNamespace"
+              :namespace-new-allowed="namespaceNewAllowed"
+              :extra-columns="showProject ? ['project'] : []"
+              :show-spacer="false"
+              :horizontal="false"
+              @isNamespaceNew="isNamespaceNew = $event"
+            >
+              <template v-if="showProject" #project>
+                <LabeledSelect
+                  v-model="project"
+                  :disabled="!namespaceIsNew"
+                  :label="t('catalog.install.project')"
+                  option-key="id"
+                  :options="projectOpts"
+                  :tooltip="!namespaceIsNew ? t('catalog.install.namespaceIsInProject', {namespace: value.metadata.namespace}, true) : ''"
+                  :hover-tooltip="!namespaceIsNew"
+                  :status="'info'"
+                />
+              </template>
+            </NameNsDescription>
+            <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
+
+            <div style="display: block; max-width: 500px;" class="mt-10">
+              <Checkbox
+                v-model="showCustomRegistryInput"
+                class="mb-20"
+                :label="t('catalog.chart.registry.custom.checkBoxLabel')"
+                :tooltip="t('catalog.chart.registry.tooltip')"
               />
-            </template>
-          </NameNsDescription>
+              <LabeledInput
+                v-if="showCustomRegistryInput"
+                v-model="chartValues.global.cattle.systemDefaultRegistry"
+                label-key="catalog.chart.registry.custom.inputLabel"
+                placeholder-key="catalog.chart.registry.custom.placeholder"
+                :min-height="30"
+              />
+            </div>
+          </div>
           <div class="step__values__controls--spacer" style="flex:1">
 &nbsp;
           </div>
           <Banner v-if="isNamespaceNew" color="info" v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) ">
           </Banner>
-
-          <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
         </div>
       </template>
       <template #clusterTplVersion>
@@ -1557,7 +1603,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
   $title-height: 50px;
   $padding: 5px;
   $slideout-width: 35%;
