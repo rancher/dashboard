@@ -1,5 +1,4 @@
 <script>
-import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
 import {
   mapPref,
@@ -24,7 +23,7 @@ import {
   COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
 } from '@shell/config/types';
 import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
-import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
+import { addObjects, replaceWith, addObject } from '@shell/utils/array';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
@@ -39,7 +38,6 @@ import { getProductFromRoute } from '@shell/middleware/authenticated';
 const SET_LOGIN_ACTION = 'set-as-login';
 
 export default {
-
   components: {
     PromptRemove,
     PromptRestore,
@@ -61,7 +59,6 @@ export default {
   data() {
     return {
       noLocaleShortcut: process.env.dev || false,
-      groups:           [],
       gettingGroups:    false,
       wantNavSync:      false,
     };
@@ -76,6 +73,10 @@ export default {
     ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
+    ...mapGetters({
+      locale:           'i18n/selectedLocaleLabel',
+      availableLocales: 'i18n/availableLocales',
+    }),
     ...mapGetters('type-map', ['activeProducts']),
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
@@ -101,7 +102,7 @@ export default {
       if (canSetAsHome) {
         pageActions.push({
           labelKey: 'nav.header.setLoginPage',
-          action:   SET_LOGIN_ACTION
+          action:   SET_LOGIN_ACTION,
         });
       }
 
@@ -199,166 +200,23 @@ export default {
         this.currentProduct?.name === getProductFromRoute(this.$route);
     },
 
-  },
+    currentType() {
+      return this.$route.params.resource || '';
+    },
 
-  watch: {
-    counts(a, b) {
-      if ( a !== b ) {
-        this.queueUpdate();
+    groups() {
+      if (!this.clusterReady || !this.allSchemas || !this.counts || !this.locale || !this.currentProduct) {
+        // Referencing these computed properties
+        // to trigger the nav tree to be recomputed if they change.
+        return [];
       }
-    },
-
-    allSchemas(a, b) {
-      if ( a !== b ) {
-        this.queueUpdate();
-      }
-    },
-
-    allNavLinks(a, b) {
-      if ( a !== b ) {
-        this.queueUpdate();
-      }
-    },
-
-    favoriteTypes(a, b) {
-      if ( !isEqual(a, b) ) {
-        this.queueUpdate();
-      }
-    },
-
-    locale(a, b) {
-      if ( !isEqual(a, b) ) {
-        this.getGroups();
-      }
-    },
-
-    productId(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
-    clusterId(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Store the last visited route when the cluster changes
-        this.setClusterAsLastRoute();
-      }
-    },
-
-    namespaceMode(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
-    namespaces(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
-    clusterReady(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
-    product(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
-    async currentProduct(a, b) {
-      if ( !isEqual(a, b) ) {
-        if (a.inStore !== b.inStore || a.inStore !== 'cluster' ) {
-          const route = {
-            name:   'c-cluster-product',
-            params: {
-              cluster: this.clusterId,
-              product: a.name,
-            }
-          };
-
-          await this.$store.dispatch('prefs/setLastVisited', route);
-        }
-      }
-    },
-
-    $route(a, b) {
-      this.$nextTick(() => this.syncNav());
-    },
-
-  },
-
-  async created() {
-    this.queueUpdate = debounce(this.getGroups, 500);
-
-    this.getGroups();
-
-    await this.$store.dispatch('prefs/setLastVisited', this.$route);
-  },
-
-  mounted() {
-    // Sync the navigation tree on fresh load
-    this.$nextTick(() => this.syncNav());
-  },
-
-  methods: {
-    async setClusterAsLastRoute() {
-      const route = {
-        name:   this.$route.name,
-        params: {
-          ...this.$route.params,
-          cluster: this.clusterId,
-        }
-      };
-
-      await this.$store.dispatch('prefs/setLastVisited', route);
-    },
-    handlePageAction(action) {
-      if (action.action === SET_LOGIN_ACTION) {
-        this.afterLoginRoute = this.getLoginRoute();
-        // Mark release notes as seen, so that the login route is honoured
-        markSeenReleaseNotes(this.$store);
-      }
-    },
-
-    getLoginRoute() {
-      return {
-        name:   this.$route.name,
-        params: this.$route.params
-      };
-    },
-
-    collapseAll() {
-      this.$refs.groups.forEach((grp) => {
-        grp.isExpanded = false;
-      });
-    },
-
-    getGroups() {
-      if ( this.gettingGroups ) {
-        return;
-      }
-      this.gettingGroups = true;
-
-      if ( !this.clusterReady ) {
-        clear(this.groups);
-        this.gettingGroups = false;
-
-        return;
-      }
-
       const clusterId = this.$store.getters['clusterId'];
       const currentProduct = this.$store.getters['productId'];
       const currentType = this.$route.params.resource || '';
       let namespaces = null;
+
+      // Always show cluster-level types, regardless of the namespace filter
+      const namespaceMode = 'both';
 
       if ( !this.$store.getters['isAllNamespaces'] ) {
         const namespacesObject = this.$store.getters['namespaces']();
@@ -366,8 +224,6 @@ export default {
         namespaces = Object.keys(namespacesObject);
       }
 
-      // Always show cluster-level types, regardless of the namespace filter
-      const namespaceMode = 'both';
       const out = [];
       const loadProducts = this.isExplorer ? [EXPLORER] : [];
       const productMap = this.activeProducts.reduce((acc, p) => {
@@ -385,14 +241,13 @@ export default {
       // This should already have come into the list from above, but in case it hasn't...
       addObject(loadProducts, currentProduct);
 
-      for ( const productId of loadProducts ) {
+      for (const productId of loadProducts) {
         const modes = [BASIC];
 
         if ( productId === NAVLINKS ) {
           // Navlinks produce their own top-level nav items so don't need to show it as a product.
           continue;
         }
-
         if ( productId === EXPLORER ) {
           modes.push(FAVORITE);
           modes.push(USED);
@@ -401,17 +256,32 @@ export default {
         for ( const mode of modes ) {
           const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
 
-          const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
+          // Because the "clusterId", "namespaces" and "namespaceMode"
+          // computed properties are dependencies of "groups", the nav tree will be
+          // recomputed if they change.
+          const more = this.$store.getters['type-map/getTree'](
+            productId,
+            mode,
+            types,
+            clusterId,
+            namespaceMode,
+            namespaces,
+            currentType
+          );
 
-          if ( productId === EXPLORER || !this.isExplorer ) {
+          if (productId === EXPLORER || !this.isExplorer) {
             addObjects(out, more);
           } else {
             const root = more.find(x => x.name === 'root');
             const other = more.filter(x => x.name !== 'root');
 
             const group = {
-              name:     productId,
-              label:    this.$store.getters['i18n/withFallback'](`product.${ productId }`, null, ucFirst(productId)),
+              name:  productId,
+              label: this.$store.getters['i18n/withFallback'](
+                `product.${ productId }`,
+                null,
+                ucFirst(productId),
+              ),
               children: [...(root?.children || []), ...other],
               weight:   productMap[productId]?.weight || 0,
             };
@@ -466,9 +336,9 @@ export default {
                     params: {
                       cluster: this.clusterId,
                       group:   groupSlug,
-                    }
+                    },
                   },
-                }
+                },
               ],
               weight: -100,
             });
@@ -485,10 +355,85 @@ export default {
         }
 
         addObjects(out, toAdd);
+
+        return out;
       }
 
-      replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
-      this.gettingGroups = false;
+      replaceWith(out, ...sortBy(out, ['weight:desc', 'label']));
+
+      return out;
+    },
+  },
+
+  watch: {
+    clusterId(a, b) {
+      if (!isEqual(a, b)) {
+        // Store the last visited route when the cluster changes
+        this.setClusterAsLastRoute();
+      }
+    },
+
+    async currentProduct(a, b) {
+      if (!isEqual(a, b)) {
+        if (a.inStore !== b.inStore || a.inStore !== 'cluster') {
+          const route = {
+            name:   'c-cluster-product',
+            params: {
+              cluster: this.clusterId,
+              product: a.name,
+            },
+          };
+
+          await this.$store.dispatch('prefs/setLastVisited', route);
+        }
+      }
+    },
+
+    $route(a, b) {
+      this.$nextTick(() => this.syncNav());
+    },
+  },
+
+  async created() {
+    await this.$store.dispatch('prefs/setLastVisited', this.$route);
+  },
+
+  mounted() {
+    // Sync the navigation tree on fresh load
+    this.$nextTick(() => this.syncNav());
+  },
+
+  methods: {
+    async setClusterAsLastRoute() {
+      const route = {
+        name:   this.$route.name,
+        params: {
+          ...this.$route.params,
+          cluster: this.clusterId,
+        },
+      };
+
+      await this.$store.dispatch('prefs/setLastVisited', route);
+    },
+    handlePageAction(action) {
+      if (action.action === SET_LOGIN_ACTION) {
+        this.afterLoginRoute = this.getLoginRoute();
+        // Mark release notes as seen, so that the login route is honoured
+        markSeenReleaseNotes(this.$store);
+      }
+    },
+
+    getLoginRoute() {
+      return {
+        name:   this.$route.name,
+        params: this.$route.params,
+      };
+    },
+
+    collapseAll() {
+      this.$refs.groups.forEach((grp) => {
+        grp.isExpanded = false;
+      });
     },
 
     toggleNoneLocale() {
@@ -502,7 +447,7 @@ export default {
     groupSelected(selected) {
       this.$refs.groups.forEach((grp) => {
         if (grp.canCollapse) {
-          grp.isExpanded = (grp.group.name === selected.name);
+          grp.isExpanded = grp.group.name === selected.name;
         }
       });
     },
@@ -519,7 +464,6 @@ export default {
       if ( !clusterId ) {
         return;
       }
-
       const cluster = await this.$store.dispatch('management/find', {
         type: MANAGEMENT.CLUSTER,
         id:   clusterId,
@@ -566,7 +510,7 @@ export default {
     switchLocale(locale) {
       this.$store.dispatch('i18n/switchTo', locale);
     },
-  }
+  },
 };
 </script>
 
@@ -606,14 +550,12 @@ export default {
           >
             {{ t('nav.support', {hasSupport: true}) }}
           </nuxt-link>
-
           <span
             v-tooltip="{content: displayVersion, placement: 'top'}"
             class="clip version text-muted"
           >
             {{ displayVersion }}
           </span>
-
           <span v-if="isSingleProduct">
             <v-popover
               popover-class="localeSelector"
@@ -626,7 +568,6 @@ export default {
               >
                 {{ locale }}
               </a>
-
               <template slot="popover">
                 <ul class="list-unstyled dropdown" style="margin: -1px;">
                   <li
@@ -679,7 +620,6 @@ export default {
       overflow-y: auto;
     }
   }
-
 </style>
 <style lang="scss">
   .dashboard-root{
