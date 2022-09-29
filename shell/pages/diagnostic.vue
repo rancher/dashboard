@@ -469,7 +469,7 @@ table {
 
   th {
     background-color: var(--sortable-table-top-divider);
-    border-bottom: 1px solid var(--sortable-table-top-divider);
+    border-bottom: 1px solid var(--sortable-table-header-bg);
   }
 
   a {
@@ -535,6 +535,18 @@ table {
     grid-template-rows: 1fr;
     align-content: center;
     font-weight: normal;
+  }
+
+  tbody tr, tbody tr th {
+    background-color: var(--sortable-table-header-bg);
+  }
+
+  tbody tr th {
+    border-bottom: 1px solid var(--sortable-table-top-divider);
+  }
+
+  tbody tr:hover {
+    background-color: var(--sortable-table-top-divider);
   }
 }
 </style>
