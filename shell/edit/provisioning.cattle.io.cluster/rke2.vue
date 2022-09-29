@@ -14,7 +14,8 @@ import {
   NORMAN,
   SCHEMA,
   DEFAULT_WORKSPACE,
-  SECRET
+  SECRET,
+  HCI,
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -311,7 +312,8 @@ export default {
       clusterIsAlreadyCreated:     !!this.value.id,
       fvFormRuleSets:              [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
-      }]
+      }],
+      harvesterVersionRange: {},
     };
   },
 
@@ -499,7 +501,7 @@ export default {
         const isExternal = opt === 'external';
         let disabled = false;
 
-        if (this.isHarvesterExternalCredential && isPreferred) {
+        if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
           disabled = true;
         }
 
@@ -850,6 +852,33 @@ export default {
     isHarvesterExternalCredential() {
       return this.credential?.harvestercredentialConfig?.clusterType === 'external';
     },
+
+    isHarvesterIncompatible() {
+      let ccmRke2Version = (this.chartVersions['harvester-cloud-provider'] || {})['version'];
+      let csiRke2Version = (this.chartVersions['harvester-csi-driver'] || {})['version'];
+
+      const ccmVersion = this.harvesterVersionRange?.['harvester-cloud-provider'];
+      const csiVersion = this.harvesterVersionRange?.['harvester-csi-provider'];
+
+      if ((ccmRke2Version || '').endsWith('00')) {
+        ccmRke2Version = ccmRke2Version.slice(0, -2);
+      }
+
+      if ((csiRke2Version || '').endsWith('00')) {
+        csiRke2Version = csiRke2Version.slice(0, -2);
+      }
+
+      if (ccmVersion && csiVersion) {
+        if (semver.satisfies(ccmRke2Version, ccmVersion) &&
+            semver.satisfies(csiRke2Version, csiVersion)) {
+          return false;
+        } else {
+          return true;
+        }
+      } else {
+        return false;
+      }
+    },
   },
 
   watch: {
@@ -867,7 +896,10 @@ export default {
     credentialId(val) {
       if ( val ) {
         this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
-        this.setHarvesterDefaultCloudProvider();
+
+        if (this.isHarvesterDriver) {
+          this.setHarvesterVersionRange();
+        }
       } else {
         this.credential = null;
       }
@@ -1562,11 +1594,35 @@ export default {
     get,
 
     setHarvesterDefaultCloudProvider() {
-      if (this.isHarvesterDriver && this.mode === _CREATE && this.agentConfig['cloud-provider-name'] === undefined && !this.isHarvesterExternalCredential) {
+      if (this.isHarvesterDriver &&
+        this.mode === _CREATE &&
+        !this.agentConfig['cloud-provider-name'] &&
+        !this.isHarvesterExternalCredential &&
+        !this.isHarvesterIncompatible
+      ) {
         this.agentConfig['cloud-provider-name'] = HARVESTER;
       } else {
         this.agentConfig['cloud-provider-name'] = '';
       }
+    },
+
+    async setHarvesterVersionRange() {
+      const clusterId = this.credential?.decodedData?.clusterId;
+      const clusterType = this.credential?.decodedData?.clusterType;
+
+      if (clusterId && clusterType === 'imported') {
+        const url = `/k8s/clusters/${ clusterId }/v1`;
+        const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.SETTING }s` });
+
+        const version = (res?.data || []).find(s => s.id === 'harvester-csi-ccm-versions');
+
+        if (version) {
+          this.harvesterVersionRange = JSON.parse(version.value || version.default || '{}');
+        } else {
+          this.harvesterVersionRange = {};
+        }
+      }
+      this.setHarvesterDefaultCloudProvider();
     },
   },
 };
@@ -1686,6 +1742,14 @@ export default {
         <Tab name="basic" label-key="cluster.tabs.basic" :weight="11" @active="refreshYamls">
           <Banner v-if="!haveArgInfo" color="warning" label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor." />
           <Banner v-if="showk8s21LegacyWarning" color="warning" :label="t('cluster.legacyWarning')" />
+          <Banner
+            v-if="isHarvesterDriver && isHarvesterIncompatible && showCloudProvider"
+            color="warning"
+          >
+            <span
+              v-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
+            />
+          </Banner>
           <div class="row mb-10">
             <div class="col span-6">
               <LabeledSelect
