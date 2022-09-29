@@ -14,12 +14,12 @@
     "nuxt": "./node_modules/.bin/nuxt"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "@vue/cli-plugin-typescript": "^4.5.15"
+    "@vue/cli-plugin-babel": "4.5.15",
+    "@vue/cli-service": "4.5.15",
+    "@vue/cli-plugin-typescript": "4.5.15"
   },
   "browserslist": [
     "> 1%",

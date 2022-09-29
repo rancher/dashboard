@@ -65,6 +65,7 @@ export const CATALOG = {
   EXPERIMENTAL:  'catalog.cattle.io/experimental',
   NAMESPACE:     'catalog.cattle.io/namespace',
   RELEASE_NAME:  'catalog.cattle.io/release-name',
+  FEATURED:      'catalog.cattle.io/featured',
 
   REQUIRES_GVK:     'catalog.cattle.io/requires-gvr',
   PROVIDES:         'catalog.cattle.io/provides-gvr',

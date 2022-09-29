@@ -23,8 +23,7 @@ export default {
         'footer.docs':   'https://docs.harvesterhci.io/latest/',
         'footer.forums': 'https://forums.rancher.com/c/harvester/',
         'footer.slack':  'https://slack.rancher.io',
-        'footer.issue':
-          'https://github.com/harvester/harvester/issues/new/choose'
+        'footer.issue':  'https://github.com/harvester/harvester/issues/new/choose'
       }
     };
   },

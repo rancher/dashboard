@@ -15,6 +15,7 @@ export const create = function(name, def, opt = {}) {
   const asCookie = opt.asCookie === true;
   const asUserPreference = opt.asUserPreference !== false;
   const options = opt.options;
+  const inheritFrom = opt.inheritFrom;
 
   definitions[name] = {
     def,
@@ -22,6 +23,7 @@ export const create = function(name, def, opt = {}) {
     parseJSON,
     asCookie,
     asUserPreference,
+    inheritFrom, // if value is not defined on server, we can default it to another pref
     mangleRead:  opt.mangleRead, // Alter the value read from the API (to match old Rancher expectations)
     mangleWrite: opt.mangleWrite, // Alter the value written back to the API (ditto)
   };
@@ -92,7 +94,12 @@ export const TIME_FORMAT = create('time-format', 'h:mm:ss a', {
 });
 
 export const TIME_ZONE = create('time-zone', 'local');
+// DEV will be deprecated on v2.7.0, but is needed so that we can grab the value for the new settings that derived from it
+// such as: VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT
 export const DEV = create('dev', false, { parseJSON });
+export const VIEW_IN_API = create('view-in-api', false, { parseJSON, inheritFrom: DEV });
+export const ALL_NAMESPACES = create('all-namespaces', false, { parseJSON, inheritFrom: DEV });
+export const THEME_SHORTCUT = create('theme-shortcut', false, { parseJSON, inheritFrom: DEV });
 export const LAST_VISITED = create('last-visited', 'home', { parseJSON });
 export const SEEN_WHATS_NEW = create('seen-whatsnew', '', { parseJSON });
 export const READ_WHATS_NEW = create('read-whatsnew', '', { parseJSON });
@@ -105,6 +112,9 @@ export const PROVISIONER = create('provisioner', _RKE1, { options: [_RKE1, _RKE2
 
 // Promo for Cluster Tools feature on Cluster Dashboard page
 export const CLUSTER_TOOLS_TIP = create('hide-cluster-tools-tip', false, { parseJSON });
+
+// Promo for Pod Security Policies (PSPs) being deprecated on kube version 1.25 on Cluster Dashboard page
+export const PSP_DEPRECATION_BANNER = create('hide-psp-deprecation-banner', false, { parseJSON });
 
 // Maximum number of clusters to show in the slide-in menu
 export const MENU_MAX_CLUSTERS = create('menu-max-clusters', 4, { options: [2, 3, 4, 5, 6, 7, 8, 9, 10], parseJSON });
@@ -431,6 +441,10 @@ export const actions = {
     for (const key in definitions) {
       const definition = definitions[key];
       let value = clone(server.data[key]);
+
+      if (value === undefined && definition.inheritFrom) {
+        value = clone(server.data[definition.inheritFrom]);
+      }
 
       if ( value === undefined || key === ignoreKey) {
         continue;

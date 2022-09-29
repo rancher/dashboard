@@ -55,6 +55,7 @@ export const SETTING = {
   COMMUNITY_LINKS:                      'ui-community-links',
   FAVICON:                              'ui-favicon',
   UI_PERFORMANCE:                       'ui-performance',
+  UI_CUSTOM_LINKS:                      'ui-custom-links',
   /**
    * Allow the backend to force a light/dark theme. Used in non-rancher world and results in the theme used
    * both pre and post log in. If not present defaults to the usual process
@@ -104,7 +105,7 @@ export const DEFAULT_PERF_SETTING = {
     enabled:   false,
     threshold: 1500,
   },
-  disableWebsocketNotification: false
+  disableWebsocketNotification: true
 };
 
 export const fetchOrCreateSetting = async(store, id, val, save = true) => {
@@ -134,4 +135,22 @@ export const setSetting = async(store, id, val) => {
   await setting.save();
 
   return setting;
+};
+
+export const getPerformanceSetting = (rootGetters) => {
+  const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+  let perfConfig = {};
+
+  if (perfSetting && perfSetting.value) {
+    try {
+      perfConfig = JSON.parse(perfSetting.value);
+    } catch (e) {
+      console.warn('ui-performance setting contains invalid data'); // eslint-disable-line no-console
+    }
+  }
+
+  // Start with the default and overwrite the values from the setting - ensures we have defaults for newly added options
+  perfConfig = Object.assign(DEFAULT_PERF_SETTING, perfConfig);
+
+  return perfConfig;
 };

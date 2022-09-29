@@ -517,6 +517,7 @@ function addChart(ctx, map, chart, repo) {
       chartName:            chart.name,
       chartNameDisplay:     chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
       chartDescription:     chart.description,
+      featured:             chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
       repoKey:              repo._key,
       versions:             [],
       categories:           filterCategories(chart.keywords),

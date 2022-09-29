@@ -1,11 +1,10 @@
 <script>
 import BrandImage from '@shell/components/BrandImage';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
-import LocaleSelector from '@shell/components/LocaleSelector';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
-import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
+import { mapPref, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
@@ -20,9 +19,7 @@ const UI_COMMIT = process.env.COMMIT || UNKNOWN;
 
 export default {
 
-  components: {
-    BrandImage, ClusterProviderIcon, LocaleSelector
-  },
+  components: { BrandImage, ClusterProviderIcon },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -101,12 +98,10 @@ export default {
 
       const out = search ? this.clusters.filter(item => item.label.toLowerCase().includes(search)) : this.clusters;
 
-      const sorted = sortBy(out, ['ready:desc', 'label']);
+      const sorted = sortBy(out, ['name:desc', 'label']);
 
       return sorted;
     },
-
-    dev: mapPref(DEV),
 
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
 
@@ -349,7 +344,6 @@ export default {
               v-html="displayVersion"
             />
           </div>
-          <LocaleSelector></LocaleSelector>
         </div>
       </div>
     </transition>

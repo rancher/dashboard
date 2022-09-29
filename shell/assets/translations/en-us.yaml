@@ -184,7 +184,7 @@ product:
   settings: Global Settings
   clusterManagement: Cluster Management
   monitoring: Monitoring
-  mcapps: Multi-cluster Apps
+  mcapps: Global Configuration
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
@@ -800,7 +800,8 @@ catalog:
         enableLegacy:
           prompt: You will need to enable Legacy Features to edit this App
           goto: Go to Feature Flag settings
-        navigate: Navigate to {legacyType} Apps
+        navigate: Navigate to Legacy Apps
+        mcmNotSupported: Legacy Multi-cluster Apps can not be managed through this UI
         category:
           legacy: Legacy
           mcm: Multi-cluster
@@ -1084,7 +1085,7 @@ cluster:
         help: The default region to use when creating clusters.  Also contacted to verify that this credential works.
         label: Default Region
       secretKey:
-        label: SecretKey
+        label: Secret Key
         placeholder: Your AWS Secret Key
     azure:
       clientId:
@@ -1191,6 +1192,9 @@ cluster:
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
+      cloudProvider: 
+        incompatible:
+          You cannot select the Harvester cloud provider as the current Harvester version is not compatible with the selected RKE2 Kubernetes version, click <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">here</a> to see which Kubernetes versions are supported.
     clusterWarning: |-
       There {count, plural,
       =1 {is 1 Harvester cluster that is not shown}
@@ -1525,7 +1529,7 @@ cluster:
             =5 {}
             =6 { Clusters should have an odd number of nodes. }
             =7 {}
-            other { More than 7 etcd nods is not recommended. }
+            other { More than 7 etcd nodes is not recommended. }
           }
         worker: |-
           {count, plural,
@@ -1611,7 +1615,7 @@ cluster:
     rancherkubernetesengine: RKE
     rke2: RKE2
     rke: RKE1
-    rkeWindows: Windows
+    rkeWindows: Windows (RKE1 only)
     s3: S3-Compatible
     softlayer: IBM Cloud
     tencenttke: Tencent TKE
@@ -1650,6 +1654,7 @@ cluster:
       label: Default Pod Security Policy
     enableNetworkPolicy:
       label: Project Network Isolation
+      warning: Per default, the ingress controller will not be able to route requests to pods on other nodes.
     workNode:
       label: Worker Nodes
     controlPlaneConcurrency:
@@ -2067,6 +2072,7 @@ glance:
   installMonitoring: Install Monitoring
   v1MonitoringInstalled: V1 Monitoring Installed
   clusterInfo: Cluster Information
+  eventsTable: Full events list
 
 clusterBadge:
   addLabel: Add Cluster Badge
@@ -2448,10 +2454,9 @@ landing:
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
   whatsNewLink: "What's new in 2.6"
   learnMore: Learn More
-  gettingStarted:
-    title: Getting Started
-    body: Take a look at the the quick getting started guide. For Cluster Manager users, learn more about where you can find your favorite features in the Dashboard UI.
   support: Support
+  psps: PSPs
+  deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25. You have one or more PodSecurityPolicy resource(s) in this cluster.
   community:
     title: Community Support
     docs: Docs
@@ -3648,6 +3653,7 @@ prefs:
     auto: Auto
     dark: Dark
     autoDetail: Auto uses OS preference if available, or dark from {pm} to {am}
+  language: Language
   landing:
     label: Login Landing Page
     vue: Cluster Explorer
@@ -3672,12 +3678,13 @@ prefs:
     sublime: 'Normal human'
     emacs: 'Emacs'
     vim: 'Vim'
-  advanced: Advanced
-  advancedTooltip: Enables 'View in API' option and keyboard shortcut to toggle light or dark theme (shift+t). This setting also reveals namespaces that are managed by Rancher and are not meant to be manually edited or deleted.
-  dev:
-    label: Enable Developer Tools & Features
+  advFeatures:
+    title: Advanced Features
+    viewInApi: Enable "View in API"
+    allNamespaces: Show system Namespaces managed by Rancher (not intended for editing or deletion)
+    themeShortcut: Enable Dark/Light Theme keyboard shortcut toggle (shift+T)
   hideDesc:
-    label: Hide All Type Description Boxes
+    label: Hide All Type Descriptions
   helm:
     'true': Include Prerelease Versions
     'false': Show Releases Only
@@ -3966,6 +3973,18 @@ rbac:
       noContext:
         label: No Context
   globalRoles:
+    notBound: 'No users bound <i class="icon icon-checkmark" style="margin-left: 5px"></i>'
+    unableToCheck: Unable to check if any user is bound to the role(s). Please try again.
+    waiting: |-
+      {count, plural,
+        =1 { Checking if there are any users bound to this role <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+        other { Checking if there are any users bound to these roles <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+      }
+    usersBound: |-
+      {count, plural,
+        =1 { Caution: There is 1 user bound to the role(s) about to be deleted. Do you want to proceed? }
+        other { Caution: There are {count} users bound to the role(s) about to be deleted. Do you want to proceed? }
+      }
     types:
       global:
         label: Global Permissions
@@ -5518,6 +5537,7 @@ workload:
     apps.statefulset: StatefulSets manage stateful applications and provide guarantees about the ordering and uniqueness of the pods created. Recommended for workloads with persistent storage or strict identity, quorum, or upgrade order requirements.
     batch.cronjob: CronJobs create Jobs, which then run Pods, on a repeating schedule. The schedule is expressed in standard Unix cron format, and uses the timezone of the Kubernetes control plane (typically UTC).
     batch.job: Jobs create one or more pods to reliably perform a one-time task by running a pod until it exits successfully. Failed pods are automatically replaced until the specified number of completed runs has been reached. Jobs can also run multiple pods in parallel or function as a batch work queue.
+    pod: Pods are the smallest deployable units of computing that you can create and manage in Kubernetes. A Pod is a group of one or more containers, with shared storage and network resources, and a specification for how to run the containers.
   upgrading:
     activeDeadlineSeconds:
       label: Pod Active Deadline
@@ -5984,12 +6004,11 @@ advancedSettings:
     'engine-supported-range': 'Semver range for supported Docker engine versions.  Versions which do not satisfy this range will be marked unsupported in the UI.'
     'ingress-ip-domain': 'Wildcard DNS domain to use for automatically generated Ingress hostnames. <ingress-name>.<namespace-name>.<ip address of ingress controller> will be added to the domain.'
     'server-url': 'Default {appName} install url. Must be HTTPS. All nodes in your cluster must be able to reach this.'
-    'system-default-registry': 'Private registry to be used for all system Docker images.'
+    'system-default-registry': 'Global container registry for Rancher system images. If no value is specified, the default registry for the container runtime is used. For Docker and containerd, the default is `docker.io`.'
     'ui-index': 'HTML index location for the Cluster Manager UI.'
     'ui-dashboard-index': 'HTML index location for the {appName} UI.'
     'ui-offline-preferred': 'Controls whether UI assets are served locally by the server container or from the remote URL defined in the ui-index and ui-dashboard-index settings. The `Dynamic` option will use local assets in production builds of {appName}.'
     'ui-pl': 'Private-Label company name.'
-    'ui-issues': "Use a url address to send new 'File an Issue' reports instead of sending users to the Github issues page."
     'telemetry-opt': 'Telemetry reporting opt-in.'
     'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
     'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
@@ -6123,11 +6142,6 @@ branding:
     custom: Define a Custom Theme
   uiPL:
     label: Private Label
-  uiIssues:
-    label: Support Links
-    issuesUrl: Issue Reporting URL
-    invalidUrl: The issue reporting value must be a complete URL, including protocol.
-    communityLinks: Show Rancher community support links
   color:
     label: Primary Color
     tip: You can override the primary color used throughout the UI with a custom color of your choice.
@@ -6188,6 +6202,23 @@ resourceQuota:
     namespace: 'This Namespace:'
     available: 'Available:'
     max: 'Total:'
+customLinks: 
+  displayTitle: Links
+  label: Home Links
+  description: 'Links to display on the home page.'
+  restoreDefaults: 'Restore Defaults'
+  addLink: Add Link
+  restoreSuccess: Default URLs have been restored.
+  settings:
+    keyLabel: Display Text
+    valueLabel: URL
+  defaults: 
+    docs:       Docs
+    forums:     Forums
+    slack:      Slack
+    issues:     File an Issue
+    getStarted: Get Started
+    commercialSupport: Commercial Support
 
 
 
@@ -6253,16 +6284,12 @@ legacy:
   alerts: Alerts
   apps: Apps
   catalogs: Catalogs
-  cis-scans: CIS Scans
   configMaps: Config Maps
   configuration: Configuration
   globalDnsEntries: Global DNS Entries
   globalDnsProviders: Global DNS Providers
-  istio: Istio
-  logging: Logging
   notifiers: Notifiers
   monitoring: Monitoring
-  pipelines: Pipelines
   psps: Pod Security Policies
   secrets: Secrets
 

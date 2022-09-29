@@ -122,7 +122,7 @@
 // )
 import { AGE, NAME, NAMESPACE as NAMESPACE_COL, STATE } from '@shell/config/table-headers';
 import { COUNT, SCHEMA, MANAGEMENT, NAMESPACE } from '@shell/config/types';
-import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
+import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
 } from '@shell/utils/array';
@@ -802,7 +802,7 @@ export const getters = {
       const module = findBy(state.products, 'name', product).inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
       const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
-      const isDev = rootGetters['prefs/get'](DEV);
+      const isDev = rootGetters['prefs/get'](VIEW_IN_API);
       const isBasic = mode === BASIC;
 
       const out = {};
@@ -1215,7 +1215,7 @@ export const getters = {
   activeProducts(state, getters, rootState, rootGetters) {
     const knownTypes = {};
     const knownGroups = {};
-    const isDev = rootGetters['prefs/get'](DEV);
+    const isDev = rootGetters['prefs/get'](VIEW_IN_API);
 
     if ( state.schemaGeneration < 0 ) {
       // This does nothing, but makes activeProducts depend on schemaGeneration

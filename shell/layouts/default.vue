@@ -1,7 +1,12 @@
 <script>
 import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
-import { mapPref, DEV, FAVORITE_TYPES, AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
+import {
+  mapPref,
+  FAVORITE_TYPES,
+  AFTER_LOGIN_ROUTE,
+  THEME_SHORTCUT
+} from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import GrowlManager from '@shell/components/GrowlManager';
 import WindowManager from '@shell/components/nav/WindowManager';
@@ -55,9 +60,10 @@ export default {
   // Note - This will not run on route change
   data() {
     return {
-      groups:                        [],
-      gettingGroups:                 false,
-      wantNavSync:                   false,
+      noLocaleShortcut: process.env.dev || false,
+      groups:           [],
+      gettingGroups:    false,
+      wantNavSync:      false,
     };
   },
 
@@ -78,8 +84,8 @@ export default {
       return this.$store.getters['activeNamespaceCache'];
     },
 
-    dev:            mapPref(DEV),
-    favoriteTypes:  mapPref(FAVORITE_TYPES),
+    themeShortcut:    mapPref(THEME_SHORTCUT),
+    favoriteTypes:    mapPref(FAVORITE_TYPES),
 
     pageActions() {
       const pageActions = [];
@@ -647,8 +653,8 @@ export default {
         <PromptRestore />
         <AssignTo />
         <PromptModal />
-        <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
-        <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
+        <button v-if="noLocaleShortcut" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
+        <button v-if="themeShortcut" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
         <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
         <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
       </main>

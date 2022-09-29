@@ -48,6 +48,7 @@ describe('component: HarvesterEditExisting', () => {
   });
 
   // TODO: #6179: Restore this test when the input is allowed to edit
+  // eslint-disable-next-line jest/no-disabled-tests
   it.skip.each([
     'size',
   ])('should emit an update on %p input and blur', (field) => {

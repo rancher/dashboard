@@ -6,7 +6,6 @@ import IndentedPanel from '@shell/components/IndentedPanel';
 import SortableTable from '@shell/components/SortableTable';
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks';
-import SimpleBox from '@shell/components/SimpleBox';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI } from '@shell/config/types';
@@ -18,7 +17,6 @@ import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenRelease
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
-import { SETTING } from '@shell/config/settings';
 import { BLANK_CLUSTER } from '@shell/store';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 
@@ -34,7 +32,6 @@ export default {
     SortableTable,
     BadgeState,
     CommunityLinks,
-    SimpleBox,
     SingleClusterInfo,
   },
 
@@ -114,10 +111,6 @@ export default {
       return this.homePageCards?.setLoginPage;
     },
 
-    showSidePanel() {
-      return this.showCommercialSupport || this.showCommunityLinks;
-    },
-
     clusterHeaders() {
       return [
         STATE,
@@ -168,24 +161,6 @@ export default {
         //   label:  this.t('landing.clusters.explorer')
         // }
       ];
-    },
-
-    showCommercialSupport() {
-      const canEditSettings = (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
-
-      const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED) || {};
-
-      return !this.homePageCards.commercialSupportTip && hasSupport.value !== 'true' && canEditSettings;
-    },
-
-    showCommunityLinks() {
-      const uiIssuesSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_ISSUES) || {};
-      const communityLinksSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.COMMUNITY_LINKS) || {};
-
-      const hasSomethingToShow = communityLinksSetting?.value !== 'false' || !!( uiIssuesSetting.value && uiIssuesSetting.value !== '');
-      const hiddenByPreference = this.homePageCards.communitySupportTip === true;
-
-      return hasSomethingToShow && !hiddenByPreference;
     },
 
     ...mapGetters(['currentCluster', 'defaultClusterId']),
@@ -289,26 +264,9 @@ export default {
         </div>
       </div>
 
-      <div class="row">
-        <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel }" class="col">
-          <SimpleBox
-            id="migration"
-            class="panel"
-            :title="t('landing.gettingStarted.title')"
-            :pref="HIDE_HOME_PAGE_CARDS"
-            pref-key="migrationTip"
-          >
-            <div class="getting-started">
-              <span>
-                {{ t('landing.gettingStarted.body') }}
-              </span>
-              <nuxt-link :to="{name: 'docs-doc', params: {doc: 'getting-started'}}" class="getting-started-btn">
-                {{ t('landing.learnMore') }}
-              </nuxt-link>
-            </div>
-          </SimpleBox>
-
-          <div v-if="!showSetLoginBanner" class="mt-5 mb-10 row">
+      <div class="row home-panels">
+        <div class="col main-panel">
+          <div v-if="!showSetLoginBanner" class="mb-10 row">
             <div class="col span-12">
               <Banner color="set-login-page" :closable="true" @close="closeSetLoginBanner()">
                 <div>{{ t('landing.landingPrefs.title') }}</div>
@@ -316,7 +274,6 @@ export default {
               </Banner>
             </div>
           </div>
-
           <div class="row panel">
             <div v-if="mcm" class="col span-12">
               <SortableTable
@@ -392,22 +349,30 @@ export default {
             </div>
           </div>
         </div>
-        <div v-if="showSidePanel" class="col span-3">
-          <CommunityLinks v-if="showCommunityLinks" :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
-          <SimpleBox v-if="showCommercialSupport" :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
-            <nuxt-link :to="{ path: 'support'}">
-              {{ t('landing.commercial.body') }}
-            </nuxt-link>
-          </SimpleBox>
-        </div>
+        <CommunityLinks class="col span-3 side-panel" />
       </div>
     </IndentedPanel>
   </div>
 </template>
 <style lang='scss' scoped>
+  .home-panels {
+    display: flex;
+    align-items: stretch;
+    .col {
+      margin: 0
+    }
+    .main-panel {
+      flex: auto;
+    }
+
+    .side-panel {
+      margin-left: 1.75%;
+    }
+  }
+
   .banner.info.whats-new, .banner.set-login-page {
     border: 0;
-    margin-top: 10px;
+    margin-top: 0;
     display: flex;
     align-items: center;
     flex-direction: row;

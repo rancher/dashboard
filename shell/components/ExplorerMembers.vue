@@ -1,7 +1,6 @@
 <script>
 import { MANAGEMENT, NORMAN, VIRTUAL_TYPES } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@shell/config/table-headers';
 import { canViewClusterPermissionsEditor } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
@@ -17,7 +16,6 @@ export default {
 
   components: {
     Banner,
-    Loading,
     Masthead,
     ResourceTable
   },
@@ -96,8 +94,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending || !currentCluster" />
-  <div v-else>
+  <div>
     <Masthead
       :schema="schema"
       :resource="resource"
@@ -116,6 +113,7 @@ export default {
       :rows="filteredClusterRoleTemplateBindings"
       :groupable="false"
       :namespaced="false"
+      :loading="$fetchState.pending || !currentCluster"
       sub-search="subSearch"
       :sub-fields="['nameDisplay']"
     />
