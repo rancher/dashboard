@@ -22,7 +22,7 @@ describe('Cluster Manager', () => {
         cy.getId('name-ns-description-name').type(clusterName);
         cy.getId('rke2-custom-create-save').click();
 
-        cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterName }#registration`);
+        cy.url().should('include', `${ clusterManagerPath }/fail-me!/${ clusterName }#registration`);
       });
 
       it('can create new imported generic cluster', () => {
