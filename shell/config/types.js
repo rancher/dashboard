@@ -80,7 +80,6 @@ export const WORKLOAD_TYPES = {
   STATEFUL_SET:           'apps.statefulset',
   REPLICA_SET:            'apps.replicaset',
   REPLICATION_CONTROLLER: 'replicationcontroller',
-  POD:                    'pod'
 };
 
 const {

@@ -1,6 +1,5 @@
 <script>
 import { PVC } from '@shell/config/types';
-import { removeObjects, addObjects } from '@shell/utils/array';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import Mount from '@shell/edit/workload/storage/Mount';
 import { _VIEW } from '@shell/config/query-params';
@@ -31,13 +30,6 @@ export default {
     namespace: {
       type:    String,
       default: null,
-    },
-
-    container: {
-      type:     Object,
-      default: () => {
-        return {};
-      },
     },
 
     savePvcHookName: {
@@ -73,10 +65,7 @@ export default {
   data() {
     this.initializeStorage();
 
-    return {
-      pvcs:           [],
-      storageVolumes: this.getStorageVolumes(),
-    };
+    return { pvcs: [] };
   },
 
   computed: {
@@ -94,7 +83,7 @@ export default {
      * Generated list of volumes
      */
     volumeTypeOptions() {
-      const excludedFiles = ['index', 'Mount', 'PVC'];
+      const excludedFiles = ['index', 'Mount', 'PVC', 'ContainerMountPaths'];
       const defaultVolumeTypes = [
         'csi',
         'configMap',
@@ -125,43 +114,28 @@ export default {
     },
   },
 
-  watch: {
-    storageVolumes(neu, old) {
-      removeObjects(this.value.volumes, old);
-      addObjects(this.value.volumes, neu);
-      const names = neu.reduce((all, each) => {
-        all.push(each.name);
+  // watch: {
+  //   storageVolumes(neu, old) {
+  //     removeObjects(this.value.volumes, old);
+  //     addObjects(this.value.volumes, neu);
+  //     const names = neu.reduce((all, each) => {
+  //       all.push(each.name);
 
-        return all;
-      }, []);
+  //       return all;
+  //     }, []);
 
-      this.container.volumeMounts = this.container.volumeMounts.filter(mount => names.includes(mount.name));
-    }
-  },
+  //     this.container.volumeMounts = this.container.volumeMounts.filter(mount => names.includes(mount.name));
+  //   }
+  // },
 
   methods: {
     /**
      * Initialize missing values for the container
      */
     initializeStorage() {
-      if (!this.container.volumeMounts) {
-        this.$set(this.container, 'volumeMounts', []);
-      }
       if (!this.value.volumes) {
         this.$set(this.value, 'volumes', []);
       }
-    },
-
-    /**
-     * Get existing paired storage volumes
-     */
-    getStorageVolumes() {
-      // Extract volume mounts to map storage volumes
-      const { volumeMounts = [] } = this.container;
-      const names = volumeMounts.map(({ name }) => name);
-
-      // Extract storage volumes to allow mutation, if matches mount map
-      return this.value.volumes.filter(volume => names.includes(volume.name));
     },
 
     /**
@@ -170,33 +144,33 @@ export default {
     removeVolume(volume) {
       const removeName = volume.row.value.name;
 
-      this.storageVolumes = this.storageVolumes.filter(({ name }) => name !== removeName);
+      this.value.volumes = this.value.volumes.filter(({ name }) => name !== removeName);
     },
 
     addVolume(type) {
       const name = `vol-${ randomStr(5).toLowerCase() }`;
 
       if (type === 'createPVC') {
-        this.storageVolumes.push({
+        this.value.volumes.push({
           _type:                 'createPVC',
           persistentVolumeClaim: {},
           name,
         });
       } else if (type === 'csi') {
-        this.storageVolumes.push({
+        this.value.volumes.push({
           _type: type,
           csi:   { volumeAttributes: {} },
           name,
         });
       } else {
-        this.storageVolumes.push({
+        this.value.volumes.push({
           _type:  type,
           [type]: {},
           name,
         });
       }
 
-      this.container.volumeMounts.push({ name });
+      // this.container.volumeMounts.push({ name });
     },
 
     volumeType(vol) {
@@ -275,8 +249,8 @@ export default {
   <div>
     <!-- Storage Volumes -->
     <ArrayListGrouped
-      :key="storageVolumes.length"
-      v-model="storageVolumes"
+      :key="value.volumes.length"
+      v-model="value.volumes"
       :mode="mode"
       @remove="removeVolume"
     >
@@ -307,19 +281,19 @@ export default {
           </div>
         </div>
 
-        <!-- Mount point list to be mapped to volume -->
+        <!-- Mount point list to be mapped to volume
         <Mount
           :container="container"
           :name="props.row.value.name"
           :mode="mode"
-        />
+        /> -->
       </template>
 
       <!-- Add Storage Volume -->
       <template #add>
         <ButtonDropdown
           v-if="!isView"
-          id="add-volume"
+          id="select-volume"
           :button-label="t('workload.storage.addVolume')"
           :dropdown-options="volumeTypeOptions"
           size="sm"
