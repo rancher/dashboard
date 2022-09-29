@@ -96,7 +96,6 @@ export const CATALOG = {
 
   MIGRATED: 'apps.cattle.io/migrated',
   MANAGED:  'catalog.cattle.io/managed',
-  FEATURED:  'catalog.cattle.io/featured'
 };
 
 export const FLEET = {

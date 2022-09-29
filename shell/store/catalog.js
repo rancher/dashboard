@@ -526,7 +526,6 @@ function addChart(ctx, map, chart, repo) {
       targetNamespace:      chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
       targetName:           chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
       scope:                chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
-      featured:             chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
       provides:             [],
       windowsIncompatible:  !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows'),
       deploysOnWindows:     (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows')
