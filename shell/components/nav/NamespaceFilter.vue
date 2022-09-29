@@ -435,14 +435,23 @@ export default {
       }
     },
     inputKeyHandler(e) {
-      if (e.keyCode === KEY.DOWN ) {
+      switch (e.keyCode) {
+      case KEY.DOWN:
         e.preventDefault();
         e.stopPropagation();
         this.down(true);
-      } else if (e.keyCode === KEY.TAB) {
+        break;
+      case KEY.TAB:
         // Tab out of the input box
         this.close();
         e.target.blur();
+        break;
+      case KEY.CR:
+        if (this.filtered.length === 1) {
+          this.selectOption(this.filtered[0]);
+          this.filter = '';
+        }
+        break;
       }
     },
     mouseOver(event) {
@@ -696,7 +705,10 @@ export default {
           :key="opt.id"
           tabindex="0"
           class="ns-option"
-          :class="{'ns-selected': opt.selected}"
+          :class="{
+            'ns-selected': opt.selected,
+            'ns-single-match': filtered.length === 1 && !opt.selected,
+          }"
           :data-testid="`namespaces-option-${i}`"
           @click="selectOption(opt)"
           @mouseover="mouseOver($event)"
@@ -860,24 +872,31 @@ export default {
             }
           }
         }
-      &.ns-selected:not(:hover) {
-        .ns-item {
-          > * {
-            color: var(--dropdown-hover-bg);
-          }
-        }
-      }
-      &.ns-selected {
-        &:hover,&:focus {
+        &.ns-selected:not(:hover) {
           .ns-item {
             > * {
-              background-color: var(--dropdown-hover-bg);
+              color: var(--dropdown-hover-bg);
+            }
+          }
+        }
+        &.ns-selected {
+          &:hover,&:focus {
+            .ns-item {
+              > * {
+                background-color: var(--dropdown-hover-bg);
+                color: var(--dropdown-hover-text);
+              }
+            }
+          }
+        }
+        &.ns-single-match {
+          .ns-item {
+            background-color: var(--dropdown-hover-bg);
+            > * {
               color: var(--dropdown-hover-text);
             }
           }
         }
-      }
-
       }
     }
 
