@@ -6146,6 +6146,7 @@ action:
   runNow: Run Now
   suspend: Suspend
   resume: Resume
+  forceUpdate: Force Update Machine Plan
 unit:
   sec: secs
   min: mins
@@ -7012,3 +7013,6 @@ formScheduling:
     title: Tolerations
     add: Add Toleration
     workloadTitle: Tolerations for {workload} pod
+forceUpdateMachinePlan:
+  attemptingToUpdate: "You are attempting to force the update of the machine-plan"
+  error: Error in force updating machine plan

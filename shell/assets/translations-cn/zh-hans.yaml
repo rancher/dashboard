@@ -6274,6 +6274,7 @@ action:
   runNow: 立即运行
   suspend: 暂停
   resume: 重新开始
+  forceUpdate: 强制更新 Machine Plan
 unit:
   sec: 秒
   min: 分钟
@@ -7382,3 +7383,6 @@ formScheduling:
     title: 调度容忍
     add: 添加调度容忍
     workloadTitle: "{workload} Pod 的容忍"
+forceUpdateMachinePlan:
+  attemptingToUpdate: "你正在试图强制更新 machine-plan"
+  error: 强制更新 machine-plan 时出错

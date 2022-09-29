@@ -85,11 +85,22 @@ export default class CapiMachine extends SteveModel {
       bulkable:   true
     };
 
+    const canForceUpdate = this.stateObj.name !== 'running';
+    const forceUpdate = {
+      action:     'forceUpdate',
+      bulkAction: 'forceUpdate',
+      label:      this.t('action.forceUpdate'),
+      icon:       'icon icon-history',
+      enabled:    !!canForceUpdate,
+      bulkable:   true
+    };
+
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, downloadKeys);
     insertAt(out, 0, openSsh);
     insertAt(out, 0, scaleDown);
     insertAt(out, 0, forceRemove);
+    insertAt(out, 0, forceUpdate);
 
     return out;
   }
@@ -131,6 +142,14 @@ export default class CapiMachine extends SteveModel {
       resources,
       component:  'ScaleMachineDownDialog',
       modalWidth: '450px'
+    });
+  }
+
+  forceUpdate(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component:  'ForceUpdateMachinePlanDialog',
+      modalWidth: '350px'
     });
   }
 
