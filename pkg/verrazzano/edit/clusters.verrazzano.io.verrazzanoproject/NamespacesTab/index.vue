@@ -113,9 +113,12 @@ export default {
             :value="chosenNamespace"
             :mode="mode"
             :required="true"
+            :searchable="true"
+            :taggable="true"
             :options="unusedNamespaces"
             option-label="metadata.name"
-            :reduce="namespace => namespace.metadata.name"
+            :reduce="namespace => namespace ? namespace.metadata.name : namespace"
+            :create-option="name => ({ metadata: { name: name } })"
             :label="t('verrazzano.common.fields.namespace')"
             @input="setChosenNamespace($event)"
           />
