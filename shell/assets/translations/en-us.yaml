@@ -5477,6 +5477,8 @@ workload:
     addClaim: Add Claim
     addMount: Add Mount
     addVolume: Add Volume
+    selectVolume: Select Volume
+    noVolumes: Volumes will appear here after they are added in the Pod tab
     certificate: Certificate
     csi:
       diskName: Disk Name
