@@ -38,4 +38,8 @@ export default class HciVlanConfig extends HarvesterResource {
       }
     };
   }
+
+  get typeDisplay() {
+    return 'VLAN';
+  }
 }

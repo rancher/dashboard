@@ -46,6 +46,13 @@ export default {
           value:    'spec.clusterNetwork',
           sort:     'spec.clusterNetwork',
         },
+        {
+          name:     'type',
+          labelKey: 'tableHeaders.type',
+          value:    'typeDisplay',
+          getValue: row => row.typeDisplay,
+          sort:     ['typeDisplay'],
+        },
         AGE,
       ];
     },
@@ -101,7 +108,7 @@ export default {
     rowsWithFakeClusterNetworks() {
       const fakeRows = this.clusterNetworkWithoutConfigs.map((network) => {
         return {
-          groupByLabel:          `${ ('resourceTable.groupLabel.notInAProject') }-${ network.id }`,
+          groupByLabel:          network.id,
           isFake:                true,
           mainRowKey:            network.id,
           nameDisplay:           network.id,
@@ -200,7 +207,7 @@ export default {
 
             <div class="right">
               <n-link
-                v-if="isClusterNetworkCreatable"
+                v-if="isClusterNetworkCreatable && group.key !== 'mgmt'"
                 class="btn btn-sm role-secondary mr-5"
                 :to="createVlanConfigLocation(group)"
               >
@@ -219,8 +226,8 @@ export default {
         </template>
         <template v-for="clusterNetwork in clusterNetworkWithoutConfigs" v-slot:[slotName(clusterNetwork.id)]>
           <tr :key="clusterNetwork.id" class="main-row">
-            <td class="empty text-center" colspan="5">
-              {{ t('projectNamespaces.noNamespaces') }}
+            <td class="empty text-center" colspan="12">
+              {{ clusterNetwork.id === 'mgmt' ? t('harvester.clusterNetwork.mgmt') : t('harvester.clusterNetwork.clusterNetwork') }}
             </td>
           </tr>
         </template>
@@ -250,7 +257,7 @@ export default {
     }
 
     SPAN {
-      color: #000 !important;
+      color: var(--body-text) !important;
     }
   }
 }

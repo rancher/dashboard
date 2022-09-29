@@ -20,4 +20,12 @@ export default class HciClusterNetwork extends HarvesterResource {
       }
     };
   }
+
+  get canDelete() {
+    return this._canDelete && this.id !== 'mgmt';
+  }
+
+  get canUpdate() {
+    return this.hasLink('update') && this.$rootGetters['type-map/optionsFor'](this.type).isEditable && this.id !== 'mgmt';
+  }
 }

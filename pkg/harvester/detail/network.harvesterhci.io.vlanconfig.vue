@@ -46,13 +46,6 @@ export default {
           search:    ['internalIp'],
           value:     'internalIp',
         },
-        {
-          name:          'diskState',
-          labelKey:      'tableHeaders.diskState',
-          value:         'diskState',
-          formatter:     'HarvesterDiskState',
-          width:         130,
-        },
         AGE,
       ];
     },
@@ -80,7 +73,7 @@ export default {
   >
     <Tab
       name="node"
-      label-key="harvester.host.label"
+      label-key="harvester.vlanConfig.title.host"
       :weight="99"
     >
       <SortableTable

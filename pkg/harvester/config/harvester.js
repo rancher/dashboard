@@ -505,7 +505,8 @@ export function init($plugin, store) {
         hideColumn: 'clusterNetwork',
         tooltipKey: 'harvester.vlanConfig.groupBy.clusterNetwork'
       },
-    ]
+    ],
+    hiddenNamespaceGroupButton: true,
   });
 
   configureType(HCI.CLUSTER_NETWORK, { showListMasthead: false });

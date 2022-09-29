@@ -1,19 +1,17 @@
 <script>
 import CruResource from '@shell/components/CruResource';
-import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import ArrayList from '@shell/components/form/ArrayList';
+import LabelValue from '@shell/components/LabelValue';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
 
-import { allHash } from '@shell/utils/promise';
 import { NODE } from '@shell/config/types';
 import { set } from '@shell/utils/object';
-import { HCI } from '../../types';
 import { uniq } from '@shell/utils/array';
 
 import NodeSelector from './NodeSelector';
@@ -21,7 +19,6 @@ import NodeSelector from './NodeSelector';
 export default {
   components: {
     CruResource,
-    Loading,
     NameNsDescription,
     LabeledInput,
     LabeledSelect,
@@ -29,15 +26,10 @@ export default {
     Tab,
     NodeSelector,
     ArrayList,
+    LabelValue,
   },
 
   mixins: [CreateEditView],
-
-  async fetch() {
-    const inStore = this.$store.getters['currentProduct'].inStore;
-
-    await allHash({ clusterNetworks: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.CLUSTER_NETWORK }) });
-  },
 
   data() {
     return { type: 'vlan' };
@@ -56,20 +48,6 @@ export default {
   },
 
   computed: {
-    clusterNetworkOptions() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const clusterNetworks = this.$store.getters[`${ inStore }/all`](HCI.CLUSTER_NETWORK) || [];
-
-      const out = clusterNetworks.map((n) => {
-        return {
-          label: n.id,
-          value: n.id,
-        };
-      });
-
-      return out;
-    },
-
     nodeOptions() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const nodes = this.$store.getters[`${ inStore }/all`](NODE);
@@ -110,15 +88,6 @@ export default {
       set(value) {
         set(this.value, 'spec.uplink.bondOptions.miimon', value);
       },
-    },
-
-    // TODO: It's a temporary modifications, for now only support VLAN.
-    // Will be support SR-IOV in the future and feel free change the design
-    typeOptions() {
-      return [{
-        label: 'VLAN',
-        value: 'vlan',
-      }];
     },
 
     bondOptions() {
@@ -169,14 +138,12 @@ export default {
         return Promise.resolve();
       }
     },
-  }
+  },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
   <CruResource
-    v-else
     :resource="value"
     :mode="mode"
     :errors="errors"
@@ -192,35 +159,6 @@ export default {
       :side-tabs="true"
     >
       <Tab
-        :weight="99"
-        name="basic"
-        :label="t('generic.basic')"
-      >
-        <div class="row mt-10">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="value.spec.clusterNetwork"
-              :label="t('harvester.network.clusterNetwork.label')"
-              required
-              :options="clusterNetworkOptions"
-              :mode="mode"
-              :tooltip="t('harvester.network.clusterNetwork.toolTip')"
-              :placeholder="t('harvester.network.clusterNetwork.selectOrCreatePlaceholder')"
-              :disabled="true"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledSelect
-              :value="type"
-              label="Type"
-              :options="typeOptions"
-              :disabled="true"
-            />
-          </div>
-        </div>
-      </Tab>
-
-      <Tab
         name="nodeSelector"
         :label="t('harvester.vlanConfig.titles.nodeSelector')"
         :weight="89"
@@ -235,19 +173,25 @@ export default {
       <Tab
         name="upLink"
         :label="t('harvester.vlanConfig.titles.uplink')"
-        :weight="79"
+        :weight="99"
+        :show-header="false"
       >
         <div class="row mt-10">
           <div class="col span-6">
-            <LabeledInput
-              v-model.number="mtu"
-              :label="t('harvester.vlanConfig.uplink.linkAttributes.mtu.label')"
-              :mode="mode"
-              type="number"
+            <LabelValue
+              :name="t('harvester.network.clusterNetwork.label')"
+              :value="value.spec.clusterNetwork"
+            />
+          </div>
+          <div class="col span-6">
+            <LabelValue
+              name="Type"
+              value="VLAN"
             />
           </div>
         </div>
-        <div class="row mt-10">
+
+        <div class="row mt-20">
           <div class="col span-12">
             <ArrayList
               v-model="value.spec.uplink.nics"
@@ -277,6 +221,20 @@ export default {
             <LabeledInput
               v-model.number="miimon"
               :label="t('harvester.vlanConfig.uplink.bondOptions.miimon.label')"
+              :mode="mode"
+              type="number"
+            />
+          </div>
+        </div>
+
+        <h3 class="mt-20">
+          {{ t('harvester.vlanConfig.titles.attributes') }}
+        </h3>
+        <div class="row mt-10">
+          <div class="col span-6">
+            <LabeledInput
+              v-model.number="mtu"
+              :label="t('harvester.vlanConfig.uplink.linkAttributes.mtu.label')"
               :mode="mode"
               type="number"
             />

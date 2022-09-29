@@ -314,4 +314,12 @@ export default class HciNode extends HarvesterResource {
 
     return nodes.length > 1;
   }
+
+  get vlanStatuses() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const nodeId = this.value.id;
+    const vlanStatuses = this.$rootGetters[`${ inStore }/all`](HCI.VLAN_STATUS);
+
+    return vlanStatuses.filter(s => s?.status?.node === nodeId) || [];
+  }
 }

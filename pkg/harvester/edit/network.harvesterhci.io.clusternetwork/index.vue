@@ -25,6 +25,35 @@ export default {
       return this.value.doneOverride;
     }
   },
+
+  created() {
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(this.validate);
+    }
+  },
+
+  methods: {
+    validate() {
+      const errors = [];
+
+      const name = this.value?.metadata?.name;
+
+      if (!name) {
+        errors.push(this.t('validation.required', { key: this.t('generic.name') }, true));
+      } else if (name.length > 12) {
+        errors.push(this.t('validation.stringLength.max', {
+          key:   this.t('generic.name'),
+          count: 12,
+        }, true));
+      }
+
+      if (errors.length > 0) {
+        return Promise.reject(errors);
+      } else {
+        return Promise.resolve();
+      }
+    },
+  },
 };
 </script>
 
