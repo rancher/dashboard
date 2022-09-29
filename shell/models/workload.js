@@ -218,7 +218,7 @@ export default class Workload extends WorkloadService {
         path:           'metadata.name',
         required:       true,
         translationKey: 'generic.name',
-        type:           'dnsLabel',
+        type:           'subDomain',
       },
       {
         nullable:       false,
