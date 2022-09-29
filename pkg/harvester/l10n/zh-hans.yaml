@@ -1,9 +1,10 @@
 asyncButton:
   restart:
-    title: 重启VM
-    tip: 现在重新启动虚拟机以使配置更改生效。
-    cancel: 仅保存
+    action: 保存并重启
+    success: 已重启
+    waiting: 正在重启&hellip;
 harvester:
+  productLabel: 'Harvester'
   modal:
     backup:
       success: '已启动备份 { backUpName }。'
@@ -30,9 +31,9 @@ harvester:
         create: 创建
         clone: 克隆
       message:
-        tip: 请输入虚拟机名称!
-        success: '虚拟机 { name } 克隆成功.'
-        failed: '克隆虚拟机失败!' 
+        tip: 请输入虚拟机名称。
+        success: '虚拟机 { name } 克隆成功。'
+        failed: '虚拟机克隆失败！'
     exportImage:
       title: 导出镜像
       name: 名称
@@ -73,17 +74,23 @@ harvester:
       message:
         success: '{ name } 克隆成功。'
     restoreSnapshot:
-      success: '{ name } 还原创建成功。'
-      title: 快照还原
-      name: '名称'
+      title: 还原快照
+      name: '新卷名称'
+      success: '{ name } 已成功还原。'
     vmSnapshot:
       title: 生成 VM 快照
       name: 名称
       success: 'VM 快照 { name } 生成成功。'
     restart:
-      title: 重启VM
-      tip: 现在重新启动虚拟机以使配置更改生效。
-      cancel: 仅保存
+      title: 重启 VM
+      tip: 立即重启 VM 以使配置更改生效。
+      cancel: 保存
+  notification:
+    title:
+      succeed: 成功
+      info: 信息
+      warning: 警告
+      error: 错误
   action:
     createVM: 创建虚拟机
     start: 启动
@@ -92,7 +99,7 @@ harvester:
     stop: 停止
     pause: 暂停
     deepClone: 克隆
-    shallowClone: 克隆模版
+    shallowClone: 克隆模板
     unpause: 取消暂停
     ejectCDROM: 弹出 CDROM
     launchFormTemplate: 从模板启动实例
@@ -144,6 +151,7 @@ harvester:
     network: 网络
     advanced: 高级选项
     accessCredentials: 凭证管理
+    pciDevices: PCI 设备
   fields:
     version: 版本
     name: 名称
@@ -164,6 +172,19 @@ harvester:
     promiscuous: Promiscuous
     ipv4Address: IPv4 地址
     filterLabels: 标签过滤
+  pci:
+    available: 可用设备
+    compatibleNodes: 兼容节点
+    impossibleSelection: '没有具有所选设备的主机。'
+    howToUseDevice: '使用下表，在你想在这个 VM 中使用的每个设备上启用 PCI 透传'
+    showCompatibility: 显示设备兼容性矩阵
+    hideCompatibility: 隐藏设备兼容性矩阵
+    claimError: 在 {name} 上启用透传时出错
+    unclaimError: 在 {name} 上禁用透传时出错
+    cantUnclaim: 不能在其他用户声明的设备上禁用透传。
+    enableGroup: 启用组
+    disableGroup: 禁用组
+    labelRequired: "不要手动更改此规则：此规则确保为该虚拟机选择的 PCI 设备在 VM 的主机上可用。"
   generic:
     close: 关闭
     open: 打开
@@ -195,6 +216,7 @@ harvester:
         image: '"镜像"是必填项。'
         volume: '"卷"是必填项。'
         docker: '"Docker 镜像"是必填项。'
+        storageClass: '“存储类”是必填项。'
         needImageOrExisting: '至少需要一个镜像卷或已存在的根磁盘卷。'
     image:
       ruleTip: 'URL 后缀不支持。仅支持后缀为 .img，.iso，.qcow，.qcow2或.raw的镜像文件。'
@@ -212,14 +234,6 @@ harvester:
         label: 事件
       vmMetrics:
         label: 虚拟机指标
-    upgrade:
-      upgradeApp: 升级软件
-      upgrade: 升级
-      upgradeTip: 请选择目标升级版本
-      currentVersion: 当前版本
-      versionLabel: 可用的兼容版本
-      upgradeNode: 升级节点
-      upgradeSysService: 升级系统服务
 
     version: 版本
   host:
@@ -239,8 +253,9 @@ harvester:
       basics: 基本信息
       instance: 虚拟机
       monitor: 监控数据
-      disk: 磁盘
+      disk: 存储
       labels: 标签
+      ksmtuned: Ksmtuned
     detail:
       title:
         network: 网络配置
@@ -267,6 +282,38 @@ harvester:
     cordon:
       title: 封锁
       protip: 此操作会将节点 { node } 标记为不可调度。
+    ksmtuned:
+      run: 运行策略
+      configure: 配置
+      mode: 模式
+      modeLink: 模式 <a href="https://docs.harvesterhci.io/v1.0/host/host/#enable-ksmtuned" target="_blank"><i class="icon icon-info" /></a>
+      thresCoef: 阈值系数
+      modeOption:
+        standard: 标准
+        high: 高性能
+        customized: 自定义
+      parameters: 
+        title: Ksmtuned 参数
+        boost: Boost
+        decay: Decay
+        sleepMsec: 睡眠时间（毫秒）
+        minPages: 最小页数
+        maxPages: 最大页数
+        description:
+          boost: 如果可用内存小于阈值系数，那么每次扫描的页数会递增。
+          decay: 如果可用内存大于阈值系数，那么每次扫描的页数会递减。
+          sleepMsec: 两次扫描之间的间隔（最小值为 10ms），由公式（睡眠毫秒 * 16 * 1024 * 1024/总内存）计算得出。
+          minPages: 每次扫描的最小页数，也是第一次运行的配置。
+          maxPages: 每次扫描的最大页数。
+      statistics:
+        title: 统计 <a href="https://www.kernel.org/doc/html/latest/admin-guide/mm/ksm.html#ksm-daemon-sysfs-interface" target="_blank"><i class="icon icon-info" /></a>
+        sharing: 共享
+        shared: 共享
+        unshared: 未共享
+        volatile: 易失
+        fullScans: 全量扫描
+        stableNodeChains: 稳定的节点链
+        stableNodeDups: 稳定节点重复
     disk:
       add: 添加磁盘
       path:
@@ -290,6 +337,10 @@ harvester:
       error: 主机有未就绪或不可调度的磁盘。
       fileSystem:
         info: 当前文件系统为 {system}，你可以手动格式化。
+      tags:
+        label: 磁盘标签
+    tags:
+      label: 主机标签
 
   virtualMachine:
     label: 虚拟机
@@ -492,11 +543,13 @@ harvester:
       datasource: 数据源
     size: 大小
     source: 源
-    kind: 类型 
+    kind: 类型
     sourceOptions:
       new: 创建
       vmImage: 虚拟机镜像
     image: 镜像
+    promptRemove:
+      tips: "警告：卷的快照将随卷一起删除。"
 
   image:
     label: 镜像
@@ -564,7 +617,7 @@ harvester:
       moreNotes: 有关发行说明的详情，请访问 -
 
   backup:
-    label: 备份
+    label: 虚拟机备份
     createText: 还原备份
     title: 还原虚拟机
     backupTargetTip: 用于访问备份存储的端点。支持 NFS 和 S3。
@@ -581,6 +634,11 @@ harvester:
         prefix: 点击
         middle: 此处
         suffix: 查看备份配置。
+      testConnect:
+        actionLabel: 测试连接
+        waitingLabel: 正在测试连接...
+        successLabel: 连接已测试
+        successMessage: 'Harvester 可以成功连接到端点 {endpoint}'
     restore:
       backup: 备份
       deletePreviousVolumes: 删除先前的卷
@@ -590,23 +648,17 @@ harvester:
     matchTarget: 当前备份目标与现有目标不匹配。
 
   network:
-    label: 网络
+    label: VLAN
     tabs:
       basics: 基本信息
       layer3Network: 路由
-    message:
-      premise:
-        prefix: '你需要先进行网络'
-        middle: '设置'
-        suffix: '然后才能创建新网络。'
-      viewSetting:
-        prefix: 点击
-        middle: 此处
-        suffix: 查看默认集群网络配置。
-      errorTip:
-        prefix: 非法的物理网卡
-        middle: 设置
-        suffix: "。错误信息： "
+    clusterNetwork:
+      label: 集群网络
+      create: 创建新的集群网络
+      toolTip: 定义你的自定义集群网络名称
+      createPlaceholder: 输入新的集群网络名称
+      selectOrCreatePlaceholder: 选择或创建新的集群网络
+      selectPlaceholder: 选择集群网络
     layer3Network:
       mode:
         label: 模式
@@ -652,6 +704,25 @@ harvester:
       imagePullPolicy: 镜像拉取策略
       repo: 仓库
       tag: 标签
+    containerdRegistry:
+      mirrors:
+        mirrors: Mirror
+        registryName: RegistryName
+        endpoints: 端点
+        rewrite:
+          rewrite: 重写
+          addRewrite: 添加重写
+        addMirror: 添加 Mirror
+      configs:
+        configs: Configs
+        registryEDQNorIP: 镜像仓库 FDQN 或 IP
+        registryPlaceholder: myregistry.local:5000
+        username: 用户名
+        password: 密码
+        auth: 认证
+        identityToken: IdentityToken
+        insecureSkipVerify: InsecureSkipVerify
+        addConfig: 添加配置
 
     upgrade:
       selectExitImage: 请选择要升级的操作系统镜像。
@@ -675,9 +746,7 @@ harvester:
     templateType: 模板类型
     userData: 用户数据
     networkData: 网络数据
-
  
-
   support:
     title: Harvester 支持
     kubeconfig:
@@ -704,9 +773,33 @@ harvester:
       label: 协议
     ciphers:
       label: 密码
+  
+  monitoring:
+    configuration:
+      label: 配置
+    alertmanagerConfig:
+      label: Alertmanager 配置
+      diabledTips:
+        prefix: '你必须先启用'
+        middle: 'Alertmanager'
+        suffix: '然后才能创建新配置。'
+
+  logging:
+    configuration:
+      section:
+        fluentbit: Fluentbit
+        fluentd: Fluentd
+    clusterFlow:
+      label: Cluster Flow
+    clusterOutput:
+      label: Cluster Output
+    flow:
+      label: Flow
+    output:
+      label: 输出
 
   snapshot:
-    label: 快照
+    label: 卷快照
     targetVolume: 原始卷
     size: 大小
     image: 镜像
@@ -716,13 +809,64 @@ harvester:
     createText: 还原快照
     snapshot: 快照
 
-  monitoring:
-    alertmanagerConfig:
-      label: Alertmanager Configs
-      diabledTips:
-        prefix: '你需要先启用'
-        middle: 'Alertmanager'
-        suffix: '然后才能创建新配置'
+  storage:
+    label: 存储
+    useDefault: 使用默认存储
+    migratable:
+      label: 可迁移
+    numberOfReplicas:
+      label: 副本数量
+    staleReplicaTimeout:
+      label: 过时副本超时
+    nodeSelector:
+      label: 主机选择器
+    diskSelector:
+      label: 磁盘选择器
+    storageClass:
+      label: 存储类
+    title: 存储类
+    customize:
+      volumeBindingMode:
+        later: 创建了使用 PVC 的 VM 之后，再绑定并配置一个持久卷
+    parameters:
+      numberOfReplicas:
+        label: 副本数量
+      staleReplicaTimeout:
+        label: 过时副本超时
+      diskSelector:
+        label: 磁盘选择器
+      nodeSelector:
+        label: 节点选择器
+      migratable:
+        label: 可迁移
+
+  vlanConfig:
+    title: 网络配置
+    titles:
+      nodeSelector: 节点选择器
+      uplink: Uplink
+      bondOptions: Bond 选项
+    scheduling:
+      affinity:
+        allNodes: 选择所有节点
+        specificNode: 选择特定节点
+        schedulingRules: 选择节点匹配规则
+    uplink:
+      nics:
+        label: NIC
+        addLabel: 添加 NIC
+      linkAttributes:
+        mtu: 
+          label: MTU
+      bondOptions:
+        mode:
+          label: 模式
+        miimon:
+          label: Miimon
+
+  vlanStatus:
+    vlanConfig:
+      label: 网络配置
 
 advancedSettings:
   descriptions:
@@ -771,13 +915,13 @@ typeLabel:
     }
   k8s.cni.cncf.io.networkattachmentdefinition: |-
     {count, plural,
-      one { 网络附加定义 }
-      other { 网络附加定义 }
+      one { VLAN }
+      other { VLAN }
     }
   harvesterhci.io.networkattachmentdefinition: |-
     {count, plural,
-      one { 网络 }
-      other { 网络 }
+      one { VLAN }
+      other { VLAN }
     }
   harvesterhci.io.volume: |-
     {count, plural,
@@ -819,8 +963,49 @@ typeLabel:
       one { VM 快照 }
       other { VM 快照 }
     }
+  network.harvesterhci.io.vlanconfig: |-
+    {count, plural,
+      one { 网络配置 }
+      other { 网络配置 }
+    }
   harvesterhci.io.monitoring.alertmanagerconfig: |-
     {count, plural,
-      one { Alertmanager Config }
-      other { Alertmanager Configs }
+      one { Alertmanager 配置 }
+      other { Alertmanager 配置 }
+    }
+  harvesterhci.io.logging.clusterflow: |-
+    {count, plural,
+      one { Cluster Flow }
+      other { Cluster Flow }
+    }
+  harvesterhci.io.logging.clusteroutput: |-
+    {count, plural,
+      one { Cluster Output }
+      other { Cluster Output }
+    }
+  harvesterhci.io.logging.flow: |-
+    {count, plural,
+      one { Flow }
+      other { Flow }
+    }
+  harvesterhci.io.logging.output: |-
+    {count, plural,
+      one { Output }
+      other { Output }
+    }
+  harvesterhci.io.storage: |-
+    {count, plural,
+      one { 存储类 }
+      other { 存储类 }
+    }
+
+  devices.harvesterhci.io.pcidevice: |-
+    {count, plural,
+      one { PCI 设备 }
+      other { PCI 设备 }
+    }
+  persistentvolumeclaim: |-
+    {count, plural,
+      one { 卷 }
+      other { 卷 }
     }

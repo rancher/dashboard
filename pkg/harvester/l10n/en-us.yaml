@@ -123,7 +123,7 @@ harvester:
     cancelExpand: Cancel Expand
     snapshot: Take Snapshot
     pvcClone: Clone Volume
-    vmSnapshot: Take Snapshot
+    vmSnapshot: Take VM Snapshot
   tableHeaders:
     size: Size
     progress: Progress
@@ -302,13 +302,13 @@ harvester:
         title: Ksmtuned Parameters
         boost: Boost
         decay: Decay
-        sleepMsec: Sleep Time(millisecond)
+        sleepMsec: Sleep Time (Millisecond)
         minPages: Minimum Pages
         maxPages: Maximum Pages
         description:
-          boost: The number of scanned pages is incremented each time, and if the available memory is less than the ThresCoef.
-          decay: The number of scanned pages is decremented each time, and if the available memory is greater than the ThresCoef.
-          sleepMsec: The interval between each detection, is calculated by the formula for the interval between two scans.
+          boost: The number of scanned pages is incremented each time if the available memory is less than the threshold coefficient.
+          decay: The number of scanned pages is decremented each time if the available memory is greater than the threshold coefficient.
+          sleepMsec: The interval between two scans (the minimum value is 10ms), which is calculated by the formula (Sleep Milliseconds * 16 * 1024 * 1024/Total Memory).
           minPages: The minimum number of pages per scan, also the configuration for the first run.
           maxPages: Maximum number of pages per scan.
       statistics:
