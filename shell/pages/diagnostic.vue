@@ -340,7 +340,7 @@ export default {
     <!-- Resources -->
     <div class="mb-40">
       <h2 class="mb-20">
-        {{ t('about.diagnostic.resourceCounts.subtitle', { clusterCount }) }}
+        {{ t('about.diagnostic.resourceCounts', { count: clusterCount }) }}
       </h2>
       <div class="resources-count-container">
         <table

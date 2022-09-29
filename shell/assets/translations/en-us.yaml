@@ -254,8 +254,11 @@ about:
       memUsedJsHeapSize: "Used Heap Size: {usedJSHeapSize}" 
     logs: 
       subtitle: Latest Logs
-    resourceCounts: 
-      subtitle: Resource Counts by Cluster ({clusterCount} clusters)
+    resourceCounts: |-
+      {count, plural,
+        one { Resource Counts by Cluster ({count} cluster)}
+        other { Resource Counts by Cluster ({count} clusters)}
+      }
     modal:
       title: Response times have not yet been generated.
       body: Generate response times to offer more specific information.
