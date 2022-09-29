@@ -24,6 +24,8 @@ env:
   CYPRESS_API_URL: http://139.59.134.103:1234/
   TEST_RUN_ID: ${{github.run_number}}-${{github.run_attempt}}-${{github.event.pull_request.title || github.event.head_commit.message}}
   CYPRESS_coverage: true
+  ELECTRON_EXTRA_LAUNCH_ARGS: --disable-gpu
+  LIBVA_DRIVER_NAME: --disable-software-rasterizer
 
 jobs:
   e2e-test:
