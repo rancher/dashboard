@@ -1,7 +1,9 @@
 <script>
+import Tag from '@shell/components/Tag';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import InfoBox from '@shell/components/InfoBox';
+import LabelValue from '@shell/components/LabelValue';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 
 import metricPoller from '@shell/mixins/metric-poller';
@@ -16,7 +18,6 @@ import Basic from './HarvesterHostBasic';
 import Instance from './VirtualMachineInstance';
 import Disk from './HarvesterHostDisk';
 import VlanStatus from './VlanStatus';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
 import HarvesterKsmtuned from './HarvesterKsmtuned.vue';
 
 const LONGHORN_SYSTEM = 'longhorn-system';
@@ -27,13 +28,14 @@ export default {
   components: {
     Tabbed,
     Tab,
+    Tag,
     Basic,
     Instance,
     ArrayListGrouped,
     Disk,
     InfoBox,
     VlanStatus,
-    LabeledSelect,
+    LabelValue,
     HarvesterKsmtuned,
   },
   mixins: [metricPoller],
@@ -230,15 +232,17 @@ export default {
           class="row mb-20"
         >
           <div class="col span-12">
-            <LabeledSelect
-              v-model="longhornNode.spec.tags"
-              :mode="mode"
-              :multiple="true"
-              :taggable="true"
-              :options="[]"
-              :label="t('harvester.host.tags.label')"
-              :searchable="true"
-            />
+            <LabelValue
+              :name="t('harvester.host.tags.label')"
+            >
+              <template #value>
+                <div class="mt-5">
+                  <Tag v-for="(prop, key) in longhornNode.spec.tags" :key="key + prop" class="mr-5">
+                    {{ prop }}
+                  </Tag>
+                </div>
+              </template>
+            </LabelValue>
           </div>
         </div>
         <ArrayListGrouped
