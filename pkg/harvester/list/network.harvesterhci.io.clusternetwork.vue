@@ -41,12 +41,6 @@ export default {
         STATE,
         NAME,
         {
-          name:     'clusterNetwork',
-          labelKey: 'harvester.network.clusterNetwork.label',
-          value:    'spec.clusterNetwork',
-          sort:     'spec.clusterNetwork',
-        },
-        {
           name:     'type',
           labelKey: 'tableHeaders.type',
           value:    'typeDisplay',
@@ -119,10 +113,6 @@ export default {
 
       return [...this.rows, ...fakeRows];
     },
-
-    filteredRows() {
-      return this.groupPreference === 'clusterNetwork' ? this.rowsWithFakeClusterNetworks : this.rows;
-    },
   },
 
   methods: {
@@ -192,11 +182,15 @@ export default {
         :create-button-label="t('harvester.clusterNetwork.create.button.label')"
       />
       <ResourceTable
-        :rows="filteredRows"
+        :rows="rowsWithFakeClusterNetworks"
         :headers="headers"
         :groupable="true"
         :schema="vlanConfigSchema"
+        group-by="groupByClusterNetwork"
       >
+        <template #header-middle>
+          <div />
+        </template>
         <template #group-by="{group}">
           <div class="group-bar">
             <div class="group-tab">

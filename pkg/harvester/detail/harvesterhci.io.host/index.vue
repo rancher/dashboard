@@ -205,7 +205,7 @@ export default {
         <Instance :node="value" />
       </Tab>
       <Tab
-        v-if="hasHostNetworksSchema"
+        v-if="hasHostNetworksSchema && vlanStatuses.length > 0"
         name="network"
         :label="t('harvester.host.tabs.network')"
         :weight="2"

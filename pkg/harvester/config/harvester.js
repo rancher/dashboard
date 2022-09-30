@@ -496,18 +496,7 @@ export function init($plugin, store) {
     exact: false
   });
 
-  configureType(HCI.VLAN_CONFIG, {
-    listGroups: [
-      {
-        icon:       'icon-list-grouped',
-        value:      'clusterNetwork',
-        field:      'groupByClusterNetwork',
-        hideColumn: 'clusterNetwork',
-        tooltipKey: 'harvester.vlanConfig.groupBy.clusterNetwork'
-      },
-    ],
-    hiddenNamespaceGroupButton: true,
-  });
+  configureType(HCI.VLAN_CONFIG, { hiddenNamespaceGroupButton: true });
 
   configureType(HCI.CLUSTER_NETWORK, { showListMasthead: false });
   virtualType({

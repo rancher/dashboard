@@ -848,8 +848,6 @@ harvester:
 
   vlanConfig:
     title: Network Configs
-    groupBy:
-      clusterNetwork: Group by Cluster Network
     createNetworkConfig: Create Network Config
     titles:
       nodeSelector: Node Selector
