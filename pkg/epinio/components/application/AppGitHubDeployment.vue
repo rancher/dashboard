@@ -7,17 +7,11 @@ export default {
     gitSource:      { default: null, type: Object },
     commitPosition:     {
       default: null,
-      type:    {
-        text:     { default: null, type: String },
-        position:  { default: null, type: Number },
-      }
+      type:    Object
     },
     gitDeployment:  {
       default: null,
-      type:    {
-        deployedCommit: { default: null, type: String },
-        commitsArray:    { default: null, type: Array },
-      }
+      type:    Object
     },
   },
   methods: {

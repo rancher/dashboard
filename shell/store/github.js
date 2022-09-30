@@ -22,9 +22,7 @@ const fetchGithubAPI = async(endpoint) => {
 
 export const getters = {
   classify: (state, getters, rootState) => (obj) => {
-    console.log('🚀 ~ file: github.js ~ line 25 ~ state', state);
-    console.log('🚀 ~ file: github.js ~ line 25 ~ rootState', rootState);
-
+    // TODO: Handle classify
     return lookup('github', obj.type, undefined, rootState);
   }
 };
@@ -90,20 +88,20 @@ export const actions = {
   },
 
   async fetchCommits(ctx, { repo, username, branch }) {
-    console.log('🚀 ~ file: github.js ~ line 93 ~ fetchCommits ~ ctx', ctx);
     const { dispatch } = ctx;
     const res = await dispatch('apiList', {
       username, endpoint: 'commits', repo, branch
     });
 
+    // TODO: Handle classify
     const ob = res.map((data) => {
-      return classify(ctx, {
-        ...data,
-        type: 'github-commits'
-      });
+      // return classify(ctx, {
+      //   ...data,
+      //   type: 'github-commits'
+      // });
     });
 
-    return ob;
+    return res;
   },
   async search({ dispatch }, { repo, username, branch }) {
     const res = await dispatch('apiList', {
