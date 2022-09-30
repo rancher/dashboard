@@ -63,12 +63,12 @@ export default {
       }
 
       // Custom links set from settings
-      if (this.uiCustomLinks?.value) {
+      if (!!this.uiCustomLinks?.value) {
         try {
           const customLinks = JSON.parse(this.uiCustomLinks.value);
 
           if (Array.isArray(customLinks)) {
-            return JSON.parse(this.uiCustomLinks.value).reduce((prev, curr) => {
+            return customLinks.reduce((prev, curr) => {
               prev[curr.key] = curr.value;
 
               return prev;
