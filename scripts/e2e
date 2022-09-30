@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 ID="$(echo ${TEST_RUN_ID:-`date +%s`} | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
-command="CYPRESS_coverage=true CYPRESS_API_URL='http://139.59.134.103:1234' cy2 run --browser chrome --record --key rancher-dashboard --parallel --ci-build-id ${ID}"
-
 echo "$ID"
-echo "$command"
-eval "$command"
+
+CYPRESS_coverage=true CYPRESS_API_URL='http://139.59.134.103:1234' cy2 run --browser chrome --record --key rancher-dashboard --parallel --ci-build-id "$ID"
