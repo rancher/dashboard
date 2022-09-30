@@ -348,6 +348,16 @@ export default {
 
     hasDescription() {
       return !!this.currentCluster?.spec?.description;
+    },
+
+    allEventsLink() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  'explorer',
+          resource: 'event',
+        }
+      };
     }
   },
 
@@ -487,7 +497,7 @@ export default {
       <Tabbed @changed="tabChange">
         <Tab name="cluster-events" :label="t('clusterIndexPage.sections.events.label')" :weight="2">
           <span class="events-table-link">
-            <n-link :to="{name: 'c-cluster-explorer-event'}">
+            <n-link :to="allEventsLink">
               <span>{{ t('glance.eventsTable') }}</span>
             </n-link>
           </span>
