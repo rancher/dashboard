@@ -103,6 +103,7 @@ export default {
       <div class="row">
         <div class="col span-12">
           <LabelValue
+            v-if="value.tags.length"
             :name="t('harvester.host.disk.tags.label')"
           >
             <template #value>

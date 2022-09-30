@@ -233,6 +233,7 @@ export default {
         >
           <div class="col span-12">
             <LabelValue
+              v-if="longhornNode.spec.tags.length"
               :name="t('harvester.host.tags.label')"
             >
               <template #value>
