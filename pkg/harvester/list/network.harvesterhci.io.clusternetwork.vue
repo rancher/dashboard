@@ -121,7 +121,7 @@ export default {
     },
 
     filteredRows() {
-      return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeClusterNetworks;
+      return this.groupPreference === 'clusterNetwork' ? this.rowsWithFakeClusterNetworks : this.rows;
     },
   },
 
