@@ -224,7 +224,8 @@ export default {
       const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
 
       const filtered = namespaces.filter( this.namespaceFilter || ((namespace) => {
-        let out;
+        // By default, include the namespace in the dropdown.
+        let out = true;
 
         if (this.currentProduct?.hideSystemResources) {
           // Filter out the namespace
@@ -237,12 +238,7 @@ export default {
           out = out && !!namespace.links.update;
         }
 
-        if (out) {
-          return out;
-        }
-
-        // By default, include the namespace in the dropdown.
-        return true;
+        return out;
       }));
 
       const withLabels = filtered.map(this.namespaceMapper || ((obj) => {
