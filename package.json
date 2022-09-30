@@ -43,6 +43,7 @@
     "e2e:dev": "START_SERVER_AND_TEST_INSECURE=1 server-test start:dev https-get://localhost:8005 cy:run:sorry",
     "e2e:pre-prod": "yarn docker:local:stop && yarn docker:local:start && DEV_PORTS=true yarn build",
     "e2e:prod": "START_SERVER_AND_TEST_INSECURE=1 server-test start:prod https-get://localhost:8005 cy:run:sorry",
+    "coverage": "npx nyc merge coverage coverage/coverage.json",
     "storybook": "yarn run install-storybook && start-storybook -p 6006",
     "build-storybook": "yarn run install-storybook && build-storybook",
     "install-storybook": "./scripts/storybook-install",
@@ -131,6 +132,7 @@
     "@babel/plugin-proposal-optional-chaining": "7.14.5",
     "@babel/plugin-proposal-private-property-in-object": "7.14.5",
     "@babel/preset-typescript": "7.16.7",
+    "@cypress/code-coverage": "3.10.0",
     "@cypress/vue": "4.0.0",
     "@cypress/webpack-dev-server": "2.0.0",
     "@nuxt/types": "2.14.6",
@@ -155,6 +157,7 @@
     "babel-eslint": "10.1.0",
     "babel-jest": "27.5.1",
     "babel-loader": "8.2.4",
+    "babel-plugin-istanbul": "6.1.1",
     "babel-preset-vue": "2.0.2",
     "core-js": "3.21.1",
     "css-loader": "4.3.0",
@@ -190,9 +193,9 @@
     "yarn": "1.22.18"
   },
   "nyc": {
-    "extension": [
-      ".js",
-      ".vue"
-    ]
+    "reporter": [
+      "json"
+    ],
+    "report-dir": "coverage/e2e"
   }
 }
