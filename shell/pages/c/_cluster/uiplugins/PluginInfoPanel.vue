@@ -1,8 +1,9 @@
 <script>
 import ChartReadme from '@shell/components/ChartReadme';
+import { Banner } from '@components/Banner';
 
 export default {
-  components: { ChartReadme },
+  components: { Banner, ChartReadme },
 
   data() {
     return {
@@ -85,16 +86,28 @@ export default {
             </div>
           </div>
         </h2>
-        <p>{{ info.description }}</p>
+        <p class="plugin-description">
+          {{ info.description }}
+        </p>
+        <div>
+          <Banner v-if="!info.certified" color="warning" :label="t('plugins.descriptions.third-party')" class="mt-10" />
+          <Banner v-if="info.experimental" color="warning" :label="t('plugins.descriptions.experimental')" class="mt-10" />
+        </div>
+
         <h3 v-if="info.versions">
           {{ t('plugins.info.versions') }}
         </h3>
-        <ul>
-          <li v-for="v in info.versions" :key="v.version">
-            <a class="version-link" @click="loadPluginVersionInfo(v.version)">{{ v.version }}</a>
-            <span v-if="v.version === infoVersion">(shown)</span>
-          </li>
-        </ul>
+        <div class="plugin-versions mb-10">
+          <div v-for="v in info.versions" :key="v.version">
+            <a
+              class="version-link"
+              :class="{'version-active': v.version === infoVersion}"
+              @click="loadPluginVersionInfo(v.version)"
+            >
+              {{ v.version }}
+            </a>
+          </div>
+        </div>
 
         <div v-if="versionError">
           {{ t('plugins.info.versionError') }}
@@ -149,8 +162,25 @@ export default {
         margin-top: 10px;
       }
 
+      .plugin-versions {
+        display: flex;
+      }
+
+      .plugin-description {
+        font-size: 15px;
+      }
+
       .version-link {
         cursor: pointer;
+        border: 1px solid var(--link);
+        padding: 2px 8px;
+        border-radius: 5px;
+        user-select: none;
+
+        &.version-active {
+          color: var(--link-text);
+          background: var(--link);
+        }
       }
 
       &__header {

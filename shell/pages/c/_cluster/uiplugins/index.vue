@@ -465,10 +465,10 @@ export default {
                 </span>
               </div>
               <div class="plugin-badges">
-                <div v-if="!plugin.certified">
+                <div v-if="!plugin.certified" v-tooltip="t('plugins.descriptions.third-party')">
                   {{ t('plugins.labels.third-party') }}
                 </div>
-                <div v-if="plugin.experimental">
+                <div v-if="plugin.experimental" v-tooltip="t('plugins.descriptions.experimental')">
                   {{ t('plugins.labels.experimental') }}
                 </div>
               </div>

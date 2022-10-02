@@ -3662,6 +3662,10 @@ plugins:
     third-party: Third-Party
     installing: Installing ...
     uninstalling: Uninstalling ...
+  descriptions:
+    experimental: This UI Plugin is marked as experimental
+    third-party: This UI plugin is provided by a Third-Party
+
   error:
     title: Error loading plugin
     message: Could not load plugin code
