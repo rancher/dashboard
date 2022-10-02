@@ -12,6 +12,7 @@ import ActionMenu from '@shell/components/ActionMenu';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import IconMessage from '@shell/components/IconMessage.vue';
+import LazyImage from '@shell/components/LazyImage';
 import UninstallDialog from './UninstallDialog.vue';
 import InstallDialog from './InstallDialog.vue';
 import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
@@ -26,6 +27,7 @@ export default {
     DeveloperInstallDialog,
     IconMessage,
     InstallDialog,
+    LazyImage,
     PluginInfoPanel,
     Tab,
     Tabbed,
@@ -46,6 +48,7 @@ export default {
       menuTargetElement: null,
       menuTargetEvent:   null,
       menuOpen:          false,
+      defaultIcon:       require('~shell/assets/images/generic-plugin.svg'),
     };
   },
 
@@ -425,8 +428,18 @@ export default {
         <template v-else>
           <div v-for="plugin in list" :key="plugin.name" class="plugin" @click="showPluginDetail(plugin)">
             <div class="plugin-icon">
-              <img v-if="plugin.icon" :src="plugin.icon" class="icon plugin-icon-img" />
-              <i v-else class="icon icon-apps"></i>
+              <LazyImage
+                v-if="plugin.icon"
+                :initial-src="defaultIcon"
+                :error-src="defaultIcon"
+                :src="plugin.icon"
+                class="icon plugin-icon-img"
+              />
+              <img
+                v-else
+                :src="defaultIcon"
+                class="icon lugin-icon-img"
+              />
             </div>
             <div class="plugin-metadata">
               <div class="plugin-name">
