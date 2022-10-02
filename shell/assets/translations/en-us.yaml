@@ -3759,6 +3759,7 @@ prefs:
     viewInApi: Enable "View in API"
     allNamespaces: Show system Namespaces managed by Rancher (not intended for editing or deletion)
     themeShortcut: Enable Dark/Light Theme keyboard shortcut toggle (shift+T)
+    pluginDeveloper: Enable UI Plugin Developer features
   hideDesc:
     label: Hide All Type Descriptions
   helm:

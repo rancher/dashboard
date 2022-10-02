@@ -2,7 +2,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 
-import { DEV } from '@shell/store/prefs';
+import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
 import { CATALOG, UI_PLUGIN, SCHEMA } from '@shell/config/types';
@@ -76,15 +76,16 @@ export default {
     this.loading = false;
   },
   computed: {
+    pluginDeveloper: mapPref(PLUGIN_DEVELOPER),
+
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
 
     menuActions() {
       const menuActions = [];
-      //const isDeveloper = this.$store.getters['prefs/get'](DEV);
-      const isDeveloper = true;
 
-      if (isDeveloper) {
+      // Only show Developer Load action if the user has this enabled in preferences
+      if (this.pluginDeveloper) {
         menuActions.push({
           action:  'devLoad',
           label:   this.t('plugins.developer.label'),
