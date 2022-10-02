@@ -336,7 +336,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async load(ctx, { force, reset, storeName } = {}) {
+  async load(ctx, { force, reset } = {}) {
     const {
       state, getters, rootGetters, commit, dispatch
     } = ctx;
@@ -346,11 +346,7 @@ export const actions = {
     // Fetching list of cluster templates? This is fine (in management store)
     // Installing a cluster template? This isn't fine (in cluster store as per installing app, but if there is no cluster we need to default to management)
 
-    let inStore = storeName;
-
-    if (!inStore) {
-      inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
-    }
+    const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
 
     if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {
       promises.cluster = dispatch(`${ inStore }/findAll`, { type: CATALOG.CLUSTER_REPO }, { root: true });

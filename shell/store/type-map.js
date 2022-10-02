@@ -1741,8 +1741,8 @@ function ifHave(getters, option) {
   }
 }
 
-// TODO: Could list a larger set of resources that typically only an admin user would have
-function isAdminUser(getters) {
+// Could list a larger set of resources that typically only an admin user would have
+export function isAdminUser(getters) {
   const canEditSettings = (getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
   const canEditFeatureFlags = (getters['management/schemaFor'](MANAGEMENT.FEATURE)?.resourceMethods || []).includes('PUT');
 

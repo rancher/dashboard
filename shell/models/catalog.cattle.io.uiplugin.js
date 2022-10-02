@@ -23,4 +23,12 @@ export default class UIPlugin extends SteveModel {
   get isCached() {
     return !this.willBeCached || (this.willBeCached && this.status?.cacheState === CACHED_STATUS);
   }
+
+  get pluginMetadata() {
+    return this.spec?.plugin?.metadata || {};
+  }
+
+  get isDeveloper() {
+    return this.pluginMetadata?.developer === 'true';
+  }
 }

@@ -3,6 +3,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { UI_PLUGIN } from '@shell/config/types';
+import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
   components: {
@@ -72,26 +73,54 @@ export default {
         const parts = url.split('/');
         const n = parts[parts.length - 1];
 
+        // Split on '.'
         name = n.split('.')[0];
       }
 
-      // TODO: Not working
+      // Try and parse version number from the name
+      let version = '0.0.1';
+      let crdName = name;
+
+      const parts = name.split('-');
+
+      if (parts.length === 2) {
+        crdName = parts[0];
+        version = parts[1];
+      }
+
       if (this.persist) {
-        // Create the custom resource to presist this plugin
-        // TODO: Add no-cache by default
         const pluginCR = await this.$store.dispatch('management/create', {
           type:     UI_PLUGIN,
-          metadata: { name },
-          spec:     { plugin: { name } }
+          metadata: {
+            name,
+            namespace: UI_PLUGIN_NAMESPACE
+          },
+          spec:     {
+            plugin: {
+              name:     crdName,
+              version,
+              endpoint: url,
+              noCache:  true,
+              metadata: {
+                developer: 'true',
+                direct:    'true'
+              }
+            }
+          }
         });
 
-        await pluginCR.save();
+        try {
+          await pluginCR.save({ url: `/v1/${ UI_PLUGIN }`, method: 'POST' });
+        } catch (e) {
+          console.error('Could not create CRD for plugin', e); // eslint-disable-line no-console
+          btnCb(false);
+        }
       }
 
       this.$plugin.loadAsync(name, url).then(() => {
         this.closeDialog(true);
         this.$store.dispatch('growl/success', {
-          title:   this.t('plugin.success.title', { name }),
+          title:   this.t('plugins.success.title', { name }),
           message: this.t('plugins.success.message'),
           timeout: 3000,
         }, { root: true });

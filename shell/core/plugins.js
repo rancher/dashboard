@@ -2,6 +2,7 @@ import { productsLoaded } from '@shell/store/type-map';
 import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
+import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 
 const MODEL_TYPE = 'models';
 
@@ -36,15 +37,12 @@ export default function({
     },
 
     // Load a plugin from a UI package
-    // ********************************************************************************************************
-    // TODO: THIS NEEDS TO BE UPDATED BEFORE RELEASE
-    // ********************************************************************************************************
-    loadAsyncByNameAndVersion(name, version) {
+    loadAsyncByNameAndVersion(name, version, url) {
       const id = `${ name }-${ version }`;
-      const base = `/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy`;
-      const url = `${ base }/${ name }/${ version }/plugin/${ id }.umd.min.js`;
 
-      // const url = `${ base }/${ id }/${ id }.umd.min.js`;
+      if (!url) {
+        url = `${ UI_PLUGIN_BASE_URL }/${ name }/${ version }/plugin/${ id }.umd.min.js`;
+      }
 
       return this.loadAsync(id, url);
     },

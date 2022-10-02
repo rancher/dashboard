@@ -1,9 +1,8 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG } from '@shell/config/types';
-import { sortBy } from '@shell/utils/sort';
 
-const PLUGIN_NAMESPACE = 'cattle-ui-plugin-system';
+import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
   components: { AsyncButton },
@@ -27,39 +26,23 @@ export default {
 
       const plugin = this.plugin;
 
-      // TODO: Delete the CR if there is one and there is no Helm Chart
-      if (plugin.uiplugin) {
+      // Delete the CR if this is a developer plugin (there is no Helm App, so need to remove the CRD ourselves)
+      if (plugin.uiplugin?.isDeveloper) {
         // Delete the custom resource
-        // await plugin.uiplugin.remove();
+        await plugin.uiplugin.remove();
       }
 
       // Find the app for this plugin
       const apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
 
       const pluginApp = apps.find((app) => {
-        return app.namespace === PLUGIN_NAMESPACE && app.name === plugin.name;
+        return app.namespace === UI_PLUGIN_NAMESPACE && app.name === plugin.name;
       });
 
       if (pluginApp) {
         await pluginApp.remove();
 
-        // This starts the removal of the helm chart for the plugin
-        const helmOps = await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
-
-        let pluginOps = helmOps.filter((op) => {
-          return op.namespace === PLUGIN_NAMESPACE && op.status?.releaseName === plugin.name && op.status?.action === 'uninstall';
-        });
-
-        // console.log('Plugin ops');
-        // console.log(pluginOps);
-
-        // Sort them so that the newest is first - this will be the latest uninstall operation for the plugin
-        pluginOps = sortBy(pluginOps, 'metadata.creationTimestamp', true);
-
-        if (pluginOps.length > 0) {
-          // TODO
-          // We don't do anything with this op?
-        }
+        await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
       }
 
       // Unload the plugin code
@@ -87,7 +70,7 @@ export default {
         </div>
         <div class="dialog-buttons">
           <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">
-            Cancel
+            {{ t('generic.cancel') }}
           </button>
           <AsyncButton
             mode="uninstall"

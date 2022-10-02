@@ -81,12 +81,13 @@ export default {
 
     menuActions() {
       const menuActions = [];
-      const isDeveloper = this.$store.getters['prefs/get'](DEV);
+      //const isDeveloper = this.$store.getters['prefs/get'](DEV);
+      const isDeveloper = true;
 
       if (isDeveloper) {
         menuActions.push({
           action:  'devLoad',
-          label:   this.t('plugins.devloper.label'),
+          label:   this.t('plugins.developer.label'),
           enabled: true
         });
         menuActions.push( { divider: true });
@@ -163,7 +164,7 @@ export default {
         item.chart = chart;
 
         if (this.latest) {
-          chart.icon = chart.icon || this.latest.annotations['catalog.cattle.io/iconm'];
+          item.icon = chart.icon || this.latest.annotations['catalog.cattle.io/ui-icon'];
         }
 
         if (this.installing[item.name]) {
@@ -171,6 +172,26 @@ export default {
         }
 
         return item;
+      });
+
+      // Check that all of the loaded plugins are represented
+      this.uiplugins.forEach((p) => {
+        const chart = all.find(c => c.name === p.name);
+
+        if (!chart) {
+          // A pluign is loaded, but there is no chart, so add an item so that it shows up
+          const item = {
+            name:           p.name,
+            description:    p.metadata?.description,
+            id:             p.id,
+            versions:       [],
+            displayVersion: p.metadata?.version || '-',
+            installed:      true,
+            builtin:        !!p.builtin,
+          };
+
+          all.push(item);
+        }
       });
 
       // Go through the CRs for the plugins and wire them into the catalog
@@ -194,26 +215,6 @@ export default {
         }
       });
 
-      // Check that all of the loaded plugins are represented
-      this.uiplugins.forEach((p) => {
-        const chart = all.find(c => c.name === p.name);
-
-        if (!chart) {
-          // A pluign is loaded, but there is no chart, so add an item so that it shows up
-          const item = {
-            name:           p.name,
-            description:    p.metadata?.description,
-            id:             p.id,
-            versions:       [],
-            displayVersion: p.metadata?.version || '-',
-            installed:      true,
-            builtin:        !!p.builtin,
-          };
-
-          all.push(item);
-        }
-      });
-
       // Merge in the plugin load errors
       Object.keys(this.uiErrors).forEach((e) => {
         const chart = all.find(c => c.name === e);
@@ -232,16 +233,12 @@ export default {
         }
       });
 
-      return all;
+      // Sort by name
+      return sortBy(all, 'name', false);
     },
   },
 
   watch: {
-    // hasPluginCRD(neu, old) {
-    //   console.log('PLUGIN CRD!!!');
-    //   console.log(neu);
-    //   console.log(old);
-    // },
     helmOps(neu) {
       // Get Helm operations for UI plugins and order by date
       let pluginOps = neu.filter((op) => {
@@ -274,11 +271,7 @@ export default {
       });
     },
 
-    // TDOO: This is called first off, so we install the plugins again?
-    // TODO: Better way to load new plugins when installation has completed?
-    plugins(neu, old) {
-      console.log('Plugins have changed!!!'); // eslint-disable-line no-console
-
+    plugins(neu) {
       const installed = this.$store.getters['uiplugins/plugins'];
 
       neu.forEach((plugin) => {
@@ -440,7 +433,7 @@ export default {
               </div>
               <div>{{ plugin.description }}</div>
               <div v-if="plugin.builtin" class="plugin-builtin">
-                {{ t('plugins.actions.builtin') }}
+                {{ t('plugins.labels.builtin') }}
               </div>
               <div class="plugin-version">
                 <div v-if="plugin.installing" class="plugin-installing">
@@ -456,6 +449,14 @@ export default {
                   <span>{{ plugin.displayVersion }}</span>
                   <span v-if="plugin.upgrade" v-tooltip="t('plugins.upgradeAvailable')"> -> {{ plugin.upgrade }}</span>
                 </span>
+              </div>
+              <div class="plugin-badges">
+                <div v-if="!plugin.certified">
+                  {{ t('plugins.labels.third-party') }}
+                </div>
+                <div v-if="plugin.experimental">
+                  {{ t('plugins.labels.experimental') }}
+                </div>
               </div>
               <div class="plugin-spacer" />
               <div class="plugin-actions">
@@ -577,6 +578,19 @@ export default {
     .plugin-name {
       font-size: 16px;
       font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .plugin-badges {
+      display: flex;
+
+      > div {
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 2px 8px;
+        margin-right: 10px;
+        font-size: 12px;
+      }
     }
 
     .plugin-version {

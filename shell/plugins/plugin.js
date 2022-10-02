@@ -1,7 +1,6 @@
 // This plugin loads any UI Plugins at app load time
 import { allHashSettled } from '@shell/utils/promise';
-
-import { UI_PLUGIN } from '@shell/config/types';
+import { shouldLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 
 const META_NAME_PREFIX = 'app-autoload-';
 
@@ -20,75 +19,54 @@ export default async(context) => {
     }
   });
 
-  // Discover all of the UI Plugins CRs
-
+  // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
   let loadPlugins = true;
 
-  // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
   if (context.route?.path?.endsWith('/safeMode')) {
     loadPlugins = false;
     console.warn('Safe Mode - plugins will not be loaded'); // eslint-disable-line no-console
   }
 
-  const { store, $plugin } = context;
+  if (loadPlugins) {
+    const { store, $plugin } = context;
 
-  // try {
-  //   const res = await store.dispatch('management/request', {
-  //     url:     `/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy/index.json`,
-  //     timeout: 5000,
-  //     headers: { accept: 'application/json' }
-  //   });
-
-  //   if (res && res.Entries) {
-  //     console.log(res.Entries);
-
-  //     // TODO
-  //   }
-
-  //   console.log(res);
-  // } catch (e) {
-  //   console.error('Could not load UI Plugin list', e); // eslint-disable-line no-console
-  // }
-
-  // TODO: Gate on dev for now until backend API complete
-  if (process.env.dev) {
-    // TODO: This will use the Rancher endpoint to get the list of plugins
-    // For now, this will only work if the user can access the plugins schema
-    // but allows for dev/testing until the backend endpoint is in place
+    // Fetch list of installed plugins from endpoint
     try {
       const res = await store.dispatch('management/request', {
-        url:     `/v1/${ UI_PLUGIN }`,
-        timeout: 5000,
+        url:     `${ UI_PLUGIN_BASE_URL }/index.json`,
         headers: { accept: 'application/json' }
       });
 
-      if (loadPlugins && res && res.data) {
-        (res.data || []).forEach((resource) => {
-          const plugin = resource.spec?.plugin;
+      if (res && res.Entries) {
+        Object.values(res.Entries).forEach((plugin) => {
+          if (shouldLoadPlugin(plugin)) {
+            let url;
 
-          if (plugin) {
-            hash[plugin.name] = $plugin.loadAsyncByNameAndVersion(plugin.name, plugin.version);
+            if (plugin?.metadata?.['direct'] === 'true') {
+              url = plugin.endpoint;
+            }
+
+            hash[plugin.name] = $plugin.loadAsyncByNameAndVersion(plugin.name, plugin.version, url);
           }
         });
       }
     } catch (e) {
-      console.error('Could not load UI Plugins'); // eslint-disable-line no-console
-      console.log(e); // eslint-disable-line no-console
+      console.error('Could not load UI Plugin list', e); // eslint-disable-line no-console
     }
+
+    // Load all of the plugins
+    const pluginLoads = await allHashSettled(hash);
+
+    // Some pluigns may have failed to load - store this
+    Object.keys(pluginLoads).forEach((name) => {
+      const res = pluginLoads[name];
+
+      if (res?.status === 'rejected') {
+        console.error(`Failed to load plugin: ${ name }`); // eslint-disable-line no-console
+
+        // Record error in the uiplugins store, so that we can show this to the user
+        context.store.dispatch('uiplugins/setError', { name, error: true });
+      }
+    });
   }
-
-  // Load all of the plugins
-  const pluginLoads = await allHashSettled(hash);
-
-  // Some pluigns may have failed to load - store this
-  Object.keys(pluginLoads).forEach((name) => {
-    const res = pluginLoads[name];
-
-    if (res?.status === 'rejected') {
-      console.error(`Failed to load plugin: ${ name }`); // eslint-disable-line no-console
-
-      // Record error in the uiplugins store, so that we can show this to the user
-      context.store.dispatch('uiplugins/setError', { name, error: true });
-    }
-  });
 };
