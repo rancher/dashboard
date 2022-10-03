@@ -65,9 +65,10 @@ export default {
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
+      let pClusters = null;
 
       if (this.hasProvCluster) {
-        const pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
+        pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
         const available = pClusters.reduce((p, c) => {
           p[c.mgmt] = true;
 
@@ -81,10 +82,12 @@ export default {
       }
 
       return kubeClusters.map((x) => {
+        const pCluster = pClusters?.find(c => c.mgmt.id === x.id);
+
         return {
           id:              x.id,
           label:           x.nameDisplay,
-          ready:           x.isReady,
+          ready:           x.isReady && !pCluster?.hasError,
           osLogo:          x.providerOsLogo,
           providerNavLogo: x.providerMenuLogo,
           badge:           x.badge,
@@ -166,7 +169,7 @@ export default {
   watch: {
     $route() {
       this.shown = false;
-    },
+    }
   },
 
   mounted() {
