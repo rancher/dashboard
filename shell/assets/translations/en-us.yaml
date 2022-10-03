@@ -3680,6 +3680,7 @@ plugins:
       name: Plugin module name
       persist: Persist plugin by creating custom resource
   info:
+    detail: Detail
     versions: Versions
     versionError: Could not load version information
   empty:
@@ -3708,7 +3709,7 @@ plugins:
   rollback:
     label: Rollback
     title: Rollback UI Plugin {name}
-    prompt: "Are you sure that you want to update this UI Plugin?"
+    prompt: "Are you sure that you want to rollback this UI Plugin?"
   uninstall:
     label: Uninstall
     title: "Uninstall UI Plugin: {name}"

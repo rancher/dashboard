@@ -4,12 +4,14 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import Banner from '@components/Banner/Banner.vue';
 
 // Note: This dialog handles installation and update of a plugin
 
 export default {
   components: {
     AsyncButton,
+    Banner,
     LabeledSelect,
   },
 
@@ -49,6 +51,7 @@ export default {
   methods: {
     showDialog(plugin, mode) {
       this.plugin = plugin;
+      this.mode = mode;
 
       // Default to latest version on install (this is default on the plugin)
       this.version = plugin.displayVersion;
@@ -153,19 +156,13 @@ export default {
     :scrollable="true"
   >
     <div v-if="plugin" class="plugin-install-dialog">
-      <h4 v-if="update" class="mt-10">
-        {{ t('plugins.update.title', { name: plugin.name }) }}
-      </h4>
-      <h4 v-else class="mt-10">
-        {{ t('plugins.install.title', { name: plugin.name }) }}
+      <h4 class="mt-10">
+        {{ t(`plugins.${ mode }.title`, { name: plugin.name }) }}
       </h4>
       <div class="custom mt-10">
         <div class="dialog-panel">
-          <p v-if="!update">
-            {{ t('plugins.install.prompt') }}
-          </p>
-          <p v-else>
-            {{ t('plugins.update.prompt') }}
+          <p>
+            {{ t(`plugins.${ mode }.prompt`) }}
           </p>
           <p v-if="!plugin.certified">
             {{ t('plugins.install.warnNotCertified') }}

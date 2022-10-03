@@ -1,9 +1,10 @@
 <script>
 import ChartReadme from '@shell/components/ChartReadme';
 import { Banner } from '@components/Banner';
+import LazyImage from '@shell/components/LazyImage';
 
 export default {
-  components: { Banner, ChartReadme },
+  components: { Banner, ChartReadme, LazyImage },
 
   data() {
     return {
@@ -12,6 +13,7 @@ export default {
       infoVersion:  undefined,
       versionInfo:  undefined,
       versionError: undefined,
+      defaultIcon:  require('~shell/assets/images/generic-plugin.svg'),
     };
   },
 
@@ -78,17 +80,37 @@ export default {
     <div v-if="showSlideIn" class="glass" @click="hide()" />
     <div class="slideIn" :class="{'hide': false, 'slideIn__show': showSlideIn}">
       <div v-if="info">
-        <h2 class="slideIn__header">
-          {{ info.name }}
-          <div class="slideIn__header__buttons">
-            <div class="slideIn__header__button" @click="showSlideIn = false">
-              <i class="icon icon-close" />
+        <div class="plugin-header">
+          <div class="plugin-icon">
+            <LazyImage
+              v-if="info.icon"
+              :initial-src="defaultIcon"
+              :error-src="defaultIcon"
+              :src="info.icon"
+              class="icon plugin-icon-img"
+            />
+            <img
+              v-else
+              :src="defaultIcon"
+              class="icon plugin-icon-img"
+            />
+          </div>
+          <div class="plugin-title">
+            <h2 class="slideIn__header">
+              {{ info.name }}
+            </h2>
+            <p class="plugin-description">
+              {{ info.description }}
+            </p>
+          </div>
+          <div class="plugin-close">
+            <div class="slideIn__header__buttons">
+              <div class="slideIn__header__button" @click="showSlideIn = false">
+                <i class="icon icon-close" />
+              </div>
             </div>
           </div>
-        </h2>
-        <p class="plugin-description">
-          {{ info.description }}
-        </p>
+        </div>
         <div>
           <Banner v-if="!info.certified" color="warning" :label="t('plugins.descriptions.third-party')" class="mt-10" />
           <Banner v-if="info.experimental" color="warning" :label="t('plugins.descriptions.experimental')" class="mt-10" />
@@ -113,6 +135,9 @@ export default {
           {{ t('plugins.info.versionError') }}
         </div>
         <div v-else>
+          <h3>
+            {{ t('plugins.info.detail') }}
+          </h3>
           <ChartReadme v-if="versionInfo" :version-info="versionInfo" />
         </div>
       </div>
@@ -158,8 +183,31 @@ export default {
       transition: right .5s ease;
 
       h3 {
-        font-size: 16px;
-        margin-top: 10px;
+        font-size: 14px;
+        margin: 15px 0 10px 0;
+        opacity: 0.7;
+        text-transform: uppercase;
+      }
+
+      .plugin-header {
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        padding-bottom: 20px;
+
+        .plugin-title {
+          flex: 1;
+        }
+      }
+
+      .plugin-icon {
+        font-size: 40px;
+        margin-right:10px;
+        color: #888;
+
+        .plugin-icon-img {
+          height: 40px;
+          width: 40px;
+        }
       }
 
       .plugin-versions {
@@ -176,6 +224,7 @@ export default {
         padding: 2px 8px;
         border-radius: 5px;
         user-select: none;
+        margin-right: 5px;
 
         &.version-active {
           color: var(--link-text);

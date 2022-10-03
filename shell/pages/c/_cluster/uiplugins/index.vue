@@ -441,7 +441,7 @@ export default {
               <img
                 v-else
                 :src="defaultIcon"
-                class="icon lugin-icon-img"
+                class="icon plugin-icon-img"
               />
             </div>
             <div class="plugin-metadata">
