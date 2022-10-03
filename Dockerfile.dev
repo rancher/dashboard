@@ -1,7 +1,9 @@
-FROM node:12
+FROM node:16
 
+RUN yarn global add verdaccio
 RUN mkdir /src
 WORKDIR /src
 
+EXPOSE 4873
 EXPOSE 8005
 CMD ["scripts/dev"]

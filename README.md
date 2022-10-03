@@ -27,7 +27,7 @@ API=https://your-rancher yarn dev
 ```
 
 
-## Other Building <odes
+## Other Building codes
 ```bash
 # Build for standalone use within Rancher
 # (These are done on commit/tag via Drone)
@@ -44,13 +44,15 @@ yarn start
 docker build -f Dockerfile.dev -t dashboard:dev .
 docker run -v $(pwd):/src \
   -v dashboard_node:/src/node_modules \
-  -p 8005:8005 \
+  -v verdaccio:/src/verdaccio \
+  --net host \
   -e API=https://your-rancher \
   dashboard:dev
 # The first time will take *forever* installing node_modules into the volume; it will be faster next time.
 # Goto https://localhost:8005
+# You may log into container via  'docker exec -it <container-name> bash' in another console terminal, to run cmd like verdaccio.
 
-# Developing against a standalone "Steve" API on a Mac
+# Developing against a standalone "Steve" API on a Mac,
 git clone https://github.com/rancher/steve.git
 cd steve
 make run-host
@@ -59,11 +61,14 @@ cd dashboard
 docker build -f Dockerfile.dev -t rancher/dashboard:dev .
 docker run -v $(pwd):/src \
   -v dashboard_node:/src/node_modules \
-  -p 8005:8005 \
+  -v verdaccio:/src/verdaccio \
+  --net host \
   -e API=http://172.17.0.1:8989 \
   rancher/dashboard:dev
 # The first time will take *forever* installing node_modules into the volume; it will be faster next time.
 # Goto https://localhost:8005
+# You may log into container via  'docker exec -it <container-name> bash' in another console terminal, to run cmd like verdaccio.
+
 ```
 
 # What is it?
