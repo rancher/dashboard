@@ -314,12 +314,12 @@ export default {
       this.$refs.developerInstallDialog.showDialog();
     },
 
-    showInstallDialog(plugin, ev) {
+    showInstallDialog(plugin, mode, ev) {
       ev.target?.blur();
       ev.preventDefault();
       ev.stopPropagation();
 
-      this.$refs.installDialog.showDialog(plugin);
+      this.$refs.installDialog.showDialog(plugin, mode);
     },
 
     showUninstallDialog(plugin, ev) {
@@ -343,6 +343,9 @@ export default {
       if (plugin) {
         // Change the view to installed if we started installing a plugin
         this.$refs.tabs?.select('installed');
+
+        // Clear the load error, if there was one previously
+        this.$store.dispatch('uiplugins/setError', { name: plugin.name, error: false });
       }
     },
 
@@ -486,13 +489,19 @@ export default {
                 <div v-if="plugin.installing">
                   <!-- Don't show any buttons -->
                 </div>
-                <div v-else-if="plugin.installed">
+                <div v-else-if="plugin.installed" class="plugin-buttons">
                   <button v-if="!plugin.builtin" class="btn role-secondary" @click="showUninstallDialog(plugin, $event)">
                     {{ t('plugins.uninstall.label') }}
                   </button>
+                  <button v-if="plugin.upgrade" class="btn role-secondary" @click="showInstallDialog(plugin, 'update', $event)">
+                    {{ t('plugins.update.label') }}
+                  </button>
+                  <button v-if="!plugin.upgrade && plugin.versions.length > 1" class="btn role-secondary" @click="showInstallDialog(plugin, 'rollback', $event)">
+                    {{ t('plugins.rollback.label') }}
+                  </button>
                 </div>
-                <div v-else>
-                  <button class="btn role-secondary" @click="showInstallDialog(plugin, $event)">
+                <div v-else class="plugin-buttons">
+                  <button class="btn role-secondary" @click="showInstallDialog(plugin, 'install', $event)">
                     {{ t('plugins.install.label') }}
                   </button>
                 </div>
@@ -580,6 +589,12 @@ export default {
       display: flex;
       flex: 1;
       flex-direction: column;
+
+      .plugin-buttons {
+        > button:not(:first-child) {
+          margin-left: 5px;
+        }
+      }
     }
 
     .plugin-builtin {

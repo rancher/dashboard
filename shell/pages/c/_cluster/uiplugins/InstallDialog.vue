@@ -5,6 +5,8 @@ import { CATALOG } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
+// Note: This dialog handles installation and update of a plugin
+
 export default {
   components: {
     AsyncButton,
@@ -15,14 +17,15 @@ export default {
     return {
       plugin:   undefined,
       busy:     false,
-      advanced: false,
       version:  '',
+      update:   false,
+      mode:      '',
     };
   },
 
   computed: {
-    showAdvanced() {
-      return this.plugin?.versions.length > 0;
+    showVersionSelector() {
+      return this.plugin?.versions.length > 1;
     },
 
     versionOptions() {
@@ -36,16 +39,46 @@ export default {
           value: version.version,
         };
       });
+    },
+
+    buttonMode() {
+      return this.update ? 'update' : 'install';
     }
   },
 
   methods: {
-    showDialog(plugin) {
+    showDialog(plugin, mode) {
       this.plugin = plugin;
+
+      // Default to latest version on install (this is default on the plugin)
       this.version = plugin.displayVersion;
+
+      if (mode === 'update') {
+        // Update to latest version, so take the first version
+        if (plugin.versions.length > 0) {
+          this.version = plugin.versions[0].version;
+        }
+      } else if (mode === 'rollback') {
+        // Find the newest version once we remove the current version
+        const versionNames = plugin.versions.filter(v => v.version !== plugin.displayVersion);
+
+        if (versionNames.length > 0) {
+          this.version = versionNames[0].version;
+        }
+      }
+
+      // Make sure we have the version available
+      const versionChart = plugin.versions?.find(v => v.version === this.version);
+
+      if (!versionChart) {
+        this.version = plugin.versions[0].version;
+      }
+
       this.busy = false;
+      this.update = mode !== 'install';
       this.$modal.show('installPluginDialog');
     },
+
     closeDialog(result) {
       this.$modal.hide('installPluginDialog');
       this.$emit('closed', result);
@@ -58,7 +91,15 @@ export default {
 
       this.$emit(plugin.name, 'install');
 
-      const version = plugin.versions[0];
+      // Find the version that the user wants to install
+      const version = plugin.versions?.find(v => v.version === this.version);
+
+      if (!version) {
+        this.busy = false;
+
+        return;
+      }
+
       const repoType = version.repoType;
       const repoName = version.repoName;
       const repo = this.$store.getters['catalog/repo']({ repoType, repoName });
@@ -81,7 +122,8 @@ export default {
         namespace: UI_PLUGIN_NAMESPACE,
       };
 
-      const action = 'install';
+      // Helm action
+      const action = this.update ? 'upgrade' : 'install';
 
       // const name = plugin.chart.chartName;
 
@@ -111,23 +153,32 @@ export default {
     :scrollable="true"
   >
     <div v-if="plugin" class="plugin-install-dialog">
-      <h4 class="mt-10">
+      <h4 v-if="update" class="mt-10">
+        {{ t('plugins.update.title', { name: plugin.name }) }}
+      </h4>
+      <h4 v-else class="mt-10">
         {{ t('plugins.install.title', { name: plugin.name }) }}
       </h4>
       <div class="custom mt-10">
         <div class="dialog-panel">
-          <p>{{ t('plugins.install.prompt') }}</p>
-          <p>{{ t('plugins.install.warnNotCertified') }}</p>
-          <div v-if="showAdvanced">
-            <a class="toggle-advanced" @click="advanced = !advanced">Advanced <i v-if="advanced" class="icon icon-chevron-up" /><i v-if="!advanced" class="icon icon-chevron-down" /></a>
-            <div v-if="advanced">
-              <LabeledSelect
-                v-model="version"
-                label="Install Version"
-                :options="versionOptions"
-                class="version-selector"
-              />
-            </div>
+          <p v-if="!update">
+            {{ t('plugins.install.prompt') }}
+          </p>
+          <p v-else>
+            {{ t('plugins.update.prompt') }}
+          </p>
+          <p v-if="!plugin.certified">
+            {{ t('plugins.install.warnNotCertified') }}
+          </p>
+          <LabeledSelect
+            v-if="showVersionSelector"
+            v-model="version"
+            label-key="plugins.install.version"
+            :options="versionOptions"
+            class="version-selector mt-10"
+          />
+          <div v-else>
+            {{ t('plugins.install.version') }} {{ version }}
           </div>
         </div>
         <div class="dialog-buttons">
@@ -135,7 +186,7 @@ export default {
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton
-            mode="install"
+            :mode="buttonMode"
             @click="install"
           />
         </div>
