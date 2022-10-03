@@ -40,7 +40,9 @@ export function createWorker(store, ctx) {
       queueChange(ctx, resource, true, 'Change');
     },
     destroyWorker: () => {
-      delete this.$workers[storeName];
+      if (store.$workers) {
+        delete store.$workers[storeName];
+      }
     }
   };
 
