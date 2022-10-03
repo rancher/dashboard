@@ -66,7 +66,9 @@ export default {
       </h4>
       <div class="mt-10 dialog-panel">
         <div class="dialog-info">
-          <p>{{ t('plugins.uninstall.prompt')}}</p>
+          <p>
+            {{ t('plugins.uninstall.prompt') }}
+          </p>
         </div>
         <div class="dialog-buttons">
           <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">
