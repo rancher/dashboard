@@ -63,12 +63,20 @@ export default {
       }
 
       // Custom links set from settings
-      if (this.uiCustomLinks) {
-        return JSON.parse(this.uiCustomLinks.value).reduce((prev, curr) => {
-          prev[curr.key] = curr.value;
+      if (!!this.uiCustomLinks?.value) {
+        try {
+          const customLinks = JSON.parse(this.uiCustomLinks.value);
 
-          return prev;
-        }, {});
+          if (Array.isArray(customLinks)) {
+            return customLinks.reduce((prev, curr) => {
+              prev[curr.key] = curr.value;
+
+              return prev;
+            }, {});
+          }
+        } catch (e) {
+          console.error('Could not parse custom links setting', e); // eslint-disable-line no-console
+        }
       }
 
       // Fallback
