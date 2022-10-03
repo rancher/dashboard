@@ -10,8 +10,6 @@ import { findBy } from '@shell/utils/array';
 import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '~/shell/config/version';
 
-const KEY_REGEX = /^[0-9a-fA-F]{16}$/;
-
 export default {
   layout: 'home',
 
