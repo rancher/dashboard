@@ -164,9 +164,7 @@ export default {
           <p>
             {{ t(`plugins.${ mode }.prompt`) }}
           </p>
-          <p v-if="!plugin.certified">
-            {{ t('plugins.install.warnNotCertified') }}
-          </p>
+          <Banner v-if="!plugin.certified" color="warning" :label="t('plugins.install.warnNotCertified')" />
           <LabeledSelect
             v-if="showVersionSelector"
             v-model="version"

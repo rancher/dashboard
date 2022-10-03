@@ -4,7 +4,11 @@ import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
 
 export default {
-  components: { Banner, ChartReadme, LazyImage },
+  components: {
+    Banner,
+    ChartReadme,
+    LazyImage
+  },
 
   data() {
     return {
