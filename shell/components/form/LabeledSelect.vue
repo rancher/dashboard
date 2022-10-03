@@ -398,7 +398,6 @@ export default {
         height: 20px;
         min-height: unset !important;
         padding: 0 0 0 7px !important;
-        white-space: nowrap;
 
         > button {
           height: 20px;
