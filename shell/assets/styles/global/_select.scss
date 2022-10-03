@@ -163,11 +163,6 @@
         width: auto;
       }
     }
-
-    .vs__selected {
-      flex-basis: 0%;
-      white-space: nowrap;
-    }
   }
 
   &:not(.view):not(.disabled) {
