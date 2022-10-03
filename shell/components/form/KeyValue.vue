@@ -228,7 +228,7 @@ export default {
     rows() {
       const rows = [];
 
-      if ( this.asMap ) {
+      if ( this.asMap || !Array.isArray(this.value) ) {
         const input = this.value || {};
 
         Object.keys(input).forEach((key) => {
