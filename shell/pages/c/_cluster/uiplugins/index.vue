@@ -567,6 +567,7 @@ export default {
     border: 1px solid var(--border);
     padding: 10px;
     width: calc(33% - 20px);
+    max-width: 540px;
     margin-bottom: 20px;
     cursor: pointer;
 
@@ -623,11 +624,9 @@ export default {
     }
 
     .plugin-version {
-      // border: 1px solid var(--primary);
       align-items: center;
       display: inline-flex;
       font-size: 12px;
-      // padding: 2px 5px;
       border-radius: 4px;
       margin: 5px 0;
 
@@ -674,4 +673,22 @@ export default {
       }
     }
   }
+
+  @media screen and (max-width: 1200px) {
+    .plugin-list {
+      .plugin {
+        width: calc(50% - 20px);
+      }
+    }
+  }
+
+  @media screen and (max-width: 960px) {
+    .plugin-list {
+      .plugin {
+        margin-right: 0 !important;
+        width: 100%;
+      }
+    }
+  }  
+
 </style>
