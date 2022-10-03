@@ -3715,6 +3715,9 @@ plugins:
     title: "Uninstall UI Plugin: {name}"
     prompt: "Are you sure that you want to uninstall this UI Plugin?"
   upgradeAvailable: A newer version of this UI Plugin is available
+  safeMode:
+    title: UI Plugins Safe Mode
+    message: UI Plugins were not loaded
   setup:
     title: UI Plugin Support is not enabled
     prompt:
@@ -3725,8 +3728,6 @@ plugins:
       prompt: This will install the Helm charts to enable Rancher UI Plugin support
       airgap: Un-check if your Rancher installation is air-gapped
       addRancherRepo: Add the Rancher UI Plugins Repository
-    
-
     remove:
       label: Disable UI Plugin Support
       title: Disable UI Plugin Support?

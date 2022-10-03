@@ -22,7 +22,7 @@ export default async(context) => {
   // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
   let loadPlugins = true;
 
-  if (context.route?.path?.endsWith('/safeMode')) {
+  if (context.route?.path.endsWith('/safeMode')) {
     loadPlugins = false;
     console.warn('Safe Mode - plugins will not be loaded'); // eslint-disable-line no-console
   }
@@ -37,8 +37,10 @@ export default async(context) => {
         headers: { accept: 'application/json' }
       });
 
-      if (res && res.Entries) {
-        Object.values(res.Entries).forEach((plugin) => {
+      if (res) {
+        const entries = res.entries || res.Entries || {};
+
+        Object.values(entries).forEach((plugin) => {
           if (shouldLoadPlugin(plugin)) {
             let url;
 
