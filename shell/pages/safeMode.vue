@@ -8,7 +8,7 @@ export default {
       store.dispatch('growl/success', {
         title:   t('plugins.safeMode.title'),
         message: t('plugins.safeMode.message')
-      }, { root: true });    
+      }, { root: true });
     }, 1000);
 
     return redirect(dashboardHome);
