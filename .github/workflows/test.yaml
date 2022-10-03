@@ -142,6 +142,7 @@ jobs:
         run: |
           ls
           yarn coverage
+          ls coverage
 
       - name: Upload unit test coverage to Codecov
         uses: codecov/codecov-action@v3
