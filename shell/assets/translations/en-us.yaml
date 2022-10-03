@@ -3711,7 +3711,7 @@ plugins:
     prompt: "Are you sure that you want to update this UI Plugin?"
   uninstall:
     label: Uninstall
-    title: "Uninstall UI Plugin:"
+    title: "Uninstall UI Plugin: {name}"
     prompt: "Are you sure that you want to uninstall this UI Plugin?"
   upgradeAvailable: A newer version of this UI Plugin is available
   setup:

@@ -62,11 +62,11 @@ export default {
   >
     <div v-if="plugin" class="plugin-install-dialog">
       <h4 class="mt-10">
-        Uninstall UI Plugin: {{ plugin.name }}
+        {{ t('plugins.uninstall.title', { name: plugin.name }) }}
       </h4>
       <div class="mt-10 dialog-panel">
         <div class="dialog-info">
-          <p>Are you sure that you want to uninstall this UI Plugin?</p>
+          <p>{{ t('plugins.uninstall.prompt')}}</p>
         </div>
         <div class="dialog-buttons">
           <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">
