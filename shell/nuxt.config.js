@@ -604,12 +604,9 @@ export default function(dir, _appConfig) {
       '/g/':             proxyOpts('https://127.0.0.1:8000'),
       '/n/':             proxyOpts('https://127.0.0.1:8000'),
       '/p/':             proxyOpts('https://127.0.0.1:8000'),
-      '/rancherversion': proxyOpts(api), // Rancher version endpoint
       '/assets':         proxyOpts('https://127.0.0.1:8000'),
       '/translations':   proxyOpts('https://127.0.0.1:8000'),
       '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
-      // Plugin dev
-      '/verdaccio/':     proxyOpts('http://127.0.0.1:4873/-'),
 
     },
 
@@ -619,7 +616,7 @@ export default function(dir, _appConfig) {
         key:  fs.readFileSync(path.resolve(dir, SHELL, 'server/server.key')),
         cert: fs.readFileSync(path.resolve(dir, SHELL, 'server/server.crt'))
       } : null),
-      port:      (devPorts ? 8005 : 80),
+      port:      (devPorts ? 8005 : 80),git@github.com:Shavindra/dashboard.git
       host:      '0.0.0.0',
     },
 
