@@ -225,7 +225,7 @@ export default {
           {{ t('plugins.setup.install.prompt') }}
         </p>
         <div v-if="!hasRancherUIPluginsRepo" class="mt-20">
-          <Checkbox v-model="addRepo" :primary="true" label="Add the Rancher UI Plugins Repository" />
+          <Checkbox v-model="addRepo" :primary="true" label-key="plugins.setup.install.addRancherRepo" />
           <div class="checkbox-info">
             {{ t('plugins.setup.install.airgap') }}
           </div>

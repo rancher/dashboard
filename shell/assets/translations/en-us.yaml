@@ -3723,6 +3723,8 @@ plugins:
       title: Enable UI Plugin Support?
       prompt: This will install the Helm charts to enable Rancher UI Plugin support
       airgap: Un-check if your Rancher installation is air-gapped
+      addRancherRepo: Add the Rancher UI Plugins Repository
+    
 
     remove:
       label: Disable UI Plugin Support
