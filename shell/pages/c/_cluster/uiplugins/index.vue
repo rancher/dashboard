@@ -560,6 +560,12 @@ export default {
       flex: 1;
       margin-bottom: 0;
     }
+
+    .btn.actions {
+      line-height: 32px;
+      min-height: 32px;
+      padding: 10px;
+    }
   }
 
   .plugin {

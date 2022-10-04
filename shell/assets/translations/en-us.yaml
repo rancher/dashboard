@@ -3707,6 +3707,7 @@ plugins:
     installed: Installed
     updates: Updates
   title: UI Plugins
+  version: "Version: {version}"
   install:
     label: Install
     title: Install UI Plugin {name}

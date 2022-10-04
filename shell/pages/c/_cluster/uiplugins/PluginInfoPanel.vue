@@ -120,7 +120,7 @@ export default {
           <Banner v-if="info.experimental" color="warning" :label="t('plugins.descriptions.experimental')" class="mt-10" />
         </div>
 
-        <h3 v-if="info.versions">
+        <h3 v-if="info.versions.length">
           {{ t('plugins.info.versions') }}
         </h3>
         <div class="plugin-versions mb-10">
@@ -138,11 +138,16 @@ export default {
         <div v-if="versionError">
           {{ t('plugins.info.versionError') }}
         </div>
-        <div v-else>
+        <div v-if="versionInfo">
           <h3>
             {{ t('plugins.info.detail') }}
           </h3>
           <ChartReadme v-if="versionInfo" :version-info="versionInfo" />
+        </div>
+        <div v-if="!info.versions.length">
+          <h3>
+            {{ t('plugins.version', { version: info.displayVersion }) }}
+          </h3>
         </div>
       </div>
     </div>
