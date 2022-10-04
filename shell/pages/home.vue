@@ -311,7 +311,7 @@ export default {
                 <template #col:name="{row}">
                   <td>
                     <span v-if="row.mgmt">
-                      <n-link v-if="row.mgmt.isReady" :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}">
+                      <n-link v-if="row.mgmt.isReady && !row.hasError" :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}">
                         {{ row.nameDisplay }}
                       </n-link>
                       <span v-else>{{ row.nameDisplay }}</span>

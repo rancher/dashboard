@@ -25,12 +25,8 @@ export default {
       return this.row?.detailLocation;
     },
 
-    clusterHasIssues() {
-      return this.row.status?.conditions?.some(condition => condition.error === true);
-    },
-
     statusErrorConditions() {
-      if (this.clusterHasIssues) {
+      if (this.row.hasError) {
         return this.row?.status.conditions.filter(condition => condition.error === true);
       }
 
@@ -38,7 +34,7 @@ export default {
     },
 
     formattedConditions() {
-      if (this.clusterHasIssues) {
+      if (this.row.hasError) {
         const filteredConditions = this.statusErrorConditions;
         const formattedTooltip = [];
 
@@ -69,7 +65,7 @@ export default {
       class="template-upgrade-icon icon-alert icon"
     />
     <i
-      v-if="clusterHasIssues"
+      v-if="row.hasError"
       v-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
       class="conditions-alert-icon icon-error icon-lg"
     />

@@ -766,4 +766,8 @@ export default class ProvCluster extends SteveModel {
       await this.$dispatch('ws.resource.remove', { data: this });
     }
   }
+
+  get hasError() {
+    return this.status?.conditions?.some(condition => condition.error === true);
+  }
 }
