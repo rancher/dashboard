@@ -197,12 +197,10 @@ export default class ProvCluster extends SteveModel {
     return super.canEditYaml;
   }
 
-  get isAKS() {
-    return this.provisioner === 'AKS';
-  }
+  get isHostedKubernetesProvider() {
+    const providers = ['AKS', 'EKS', 'GKE'];
 
-  get isEKS() {
-    return this.provisioner === 'EKS';
+    return providers.includes(this.provisioner);
   }
 
   get isImported() {
