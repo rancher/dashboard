@@ -92,7 +92,7 @@
     "jsdiff": "1.1.1",
     "jsdom-global": "3.0.2",
     "jsonpath-plus": "6.0.1",
-    "jsrsasign": "10.2.0",
+    "jsrsasign": "10.5.25",
     "jszip": "3.7.0",
     "lodash": "4.17.21",
     "marked": "4.0.17",
