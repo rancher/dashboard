@@ -18,6 +18,7 @@ import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/s
 import { removeObject, addObject, findBy } from '@shell/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
+import { isUIPlugin } from '@shell/config/uiplugins';
 
 export default {
   components: {
@@ -146,6 +147,10 @@ export default {
         }
 
         if ( this.hideRepos.includes(c.repoKey) ) {
+          return false;
+        }
+
+        if (isUIPlugin(c)) {
           return false;
         }
 

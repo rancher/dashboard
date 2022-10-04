@@ -61,6 +61,11 @@ export const getters = {
     return [...clustered, ...namespaced];
   },
 
+  // Raw charts
+  rawCharts(state) {
+    return state.charts;
+  },
+
   repo(state, getters) {
     return ({ repoType, repoName }) => {
       const ary = (repoType === 'cluster' ? state.clusterRepos : state.namespacedRepos);
@@ -340,6 +345,7 @@ export const actions = {
     // Installing an app? This is fine (in cluster store)
     // Fetching list of cluster templates? This is fine (in management store)
     // Installing a cluster template? This isn't fine (in cluster store as per installing app, but if there is no cluster we need to default to management)
+
     const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
 
     if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {

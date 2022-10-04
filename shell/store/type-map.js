@@ -168,6 +168,7 @@ export const IF_HAVE = {
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
   NEUVECTOR_NAMESPACE:      'neuvector-namespace',
+  ADMIN:                    'admin-user',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -1732,9 +1733,20 @@ function ifHave(getters, option) {
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
     return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);
   }
+  case IF_HAVE.ADMIN: {
+    return isAdminUser(getters);
+  }
   default:
     return false;
   }
+}
+
+// Could list a larger set of resources that typically only an admin user would have
+export function isAdminUser(getters) {
+  const canEditSettings = (getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
+  const canEditFeatureFlags = (getters['management/schemaFor'](MANAGEMENT.FEATURE)?.resourceMethods || []).includes('PUT');
+
+  return canEditSettings && canEditFeatureFlags;
 }
 
 // Is V1 Istio installed?
