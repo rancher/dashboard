@@ -1,14 +1,17 @@
 <script>
 import { CAPI } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
+import PromptModal from '@shell/components/PromptModal';
 import { downloadFile } from '@shell/utils/download';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { sortBy } from '@shell/utils/sort';
-import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
-  layout:     'plain',
-  components: { AsyncButton, Checkbox },
+  name:   'Diagnostic',
+  layout: 'plain',
+
+  components: { AsyncButton, PromptModal },
+
   async fetch() {
     const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     const readyClusters = provClusters.filter(c => c.mgmt?.isReady);
@@ -20,9 +23,11 @@ export default {
     clusterForCounts.forEach((cluster, i) => {
       finalCounts.push({
         id:             cluster.id,
+        name:           cluster.metadata?.name,
+        namespace:      cluster.metadata?.namespace,
         capiId:         cluster.mgmt?.id,
         counts:         null,
-        isTableVisible: i === 0
+        isTableVisible: !!(i === 0 && clusterForCounts.length === 1)
       });
       promises.push(this.$store.dispatch('management/request', { url: `/k8s/clusters/${ cluster.mgmt?.id }/v1/counts` }));
     });
@@ -47,7 +52,7 @@ export default {
 
         topTenForResponseTime = topTenForResponseTime.concat(sortedCount);
         topTenForResponseTime = sortBy(topTenForResponseTime, 'count:desc');
-        topTenForResponseTime = topTenForResponseTime.splice(0, 10);
+        topTenForResponseTime = topTenForResponseTime.splice(0, 15);
 
         topTenForResponseTime.forEach((item, i) => {
           topTenForResponseTime[i].id = finalCounts[index].id;
@@ -63,58 +68,50 @@ export default {
   },
 
   data() {
+    const {
+      userAgent,
+      userAgentData,
+      language,
+      cookieEnabled,
+      hardwareConcurrency,
+      deviceMemory
+    } = window?.navigator;
+
     const systemInformation = {
-      browserUserAgent: {
-        label: this.t('about.diagnostic.systemInformation.browserUserAgent'),
-        value: window?.navigator?.userAgent
+      browser: {
+        label: this.t('about.diagnostic.systemInformation.browser'),
+        value: this.t('about.diagnostic.systemInformation.browserInfo', {
+          userAgent, language, cookieEnabled
+        })
       },
-      browserLanguage: {
-        label: this.t('about.diagnostic.systemInformation.browserLanguage'),
-        value: window?.navigator?.language
+      system: {
+        label: this.t('about.diagnostic.systemInformation.system'),
+        value: this.t('about.diagnostic.systemInformation.hardwareConcurrency', { hardwareConcurrency })
       },
-      cookieEnabled: {
-        label: this.t('about.diagnostic.systemInformation.cookieEnabled'),
-        value: window?.navigator?.cookieEnabled
-      },
-      hardwareConcurrency: {
-        label: this.t('about.diagnostic.systemInformation.hardwareConcurrency'),
-        value: window?.navigator?.hardwareConcurrency
-      },
+      jsMemory: {
+        label: this.t('about.diagnostic.systemInformation.jsMemory'),
+        value: ''
+      }
     };
 
-    if (window?.navigator?.userAgentData?.platform) {
-      systemInformation.os = {
-        label: this.t('about.diagnostic.systemInformation.os'),
-        value: window?.navigator?.userAgentData?.platform
-      };
+    if ( userAgentData?.platform ) {
+      systemInformation.system.value = systemInformation.system.value.concat(', ', this.t('about.diagnostic.systemInformation.os', { platform: userAgentData.platform }));
     }
 
-    if (window?.navigator?.deviceMemory) {
-      systemInformation.deviceMemory = {
-        label: this.t('about.diagnostic.systemInformation.deviceMemory'),
-        value: window?.navigator?.deviceMemory
-      };
+    if ( deviceMemory ) {
+      systemInformation.system.value = systemInformation.system.value.concat(', ', this.t('about.diagnostic.systemInformation.deviceMemory', { deviceMemory }));
     }
 
-    if (window?.performance?.memory?.jsHeapSizeLimit) {
-      systemInformation.memJsHeapLimit = {
-        label: this.t('about.diagnostic.systemInformation.memJsHeapLimit'),
-        value: window?.performance?.memory?.jsHeapSizeLimit
-      };
+    if ( window?.performance?.memory?.jsHeapSizeLimit ) {
+      systemInformation.jsMemory.value += this.t('about.diagnostic.systemInformation.memJsHeapLimit', { jsHeapSizeLimit: window?.performance?.memory?.jsHeapSizeLimit });
     }
 
-    if (window?.performance?.memory?.totalJSHeapSize) {
-      systemInformation.memTotalJsHeapSize = {
-        label: this.t('about.diagnostic.systemInformation.memTotalJsHeapSize'),
-        value: window?.performance?.memory?.totalJSHeapSize
-      };
+    if ( window?.performance?.memory?.totalJSHeapSize ) {
+      systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memTotalJsHeapSize', { totalJSHeapSize: window?.performance?.memory?.totalJSHeapSize }) }`;
     }
 
-    if (window?.performance?.memory?.usedJSHeapSize) {
-      systemInformation.memUsedJsHeapSize = {
-        label: this.t('about.diagnostic.systemInformation.memUsedJsHeapSize'),
-        value: window?.performance?.memory?.usedJSHeapSize
-      };
+    if ( window?.performance?.memory?.usedJSHeapSize ) {
+      systemInformation.jsMemory.value += `, ${ this.t('about.diagnostic.systemInformation.memUsedJsHeapSize', { usedJSHeapSize: window?.performance?.memory?.usedJSHeapSize }) }`;
     }
 
     // scroll logs container to the bottom
@@ -123,22 +120,26 @@ export default {
     return {
       systemInformation,
       topTenForResponseTime: null,
+      responseTimes:         null,
       finalCounts:           null,
       includeResponseTimes:  true,
       storeMapping:          this.$store?._modules?.root?.state,
       latestLogs:            console.logs // eslint-disable-line no-console
     };
   },
+
   watch: {
     latestLogs() {
       this.scrollLogsToBottom();
     }
   },
+
   computed: {
-    name() {
-      return this.data;
+    clusterCount() {
+      return this.finalCounts?.length;
     }
   },
+
   methods: {
     scrollLogsToBottom() {
       this.$nextTick(() => {
@@ -147,12 +148,14 @@ export default {
         logsContainer.scrollTop = logsContainer.scrollHeight;
       });
     },
+
     generateKey(data) {
       const randomize = Math.random() * 10000;
 
       return `key_${ randomize }_${ data }`;
     },
-    async downloadData(btnCb) {
+
+    downloadData(btnCb) {
       const date = new Date().toLocaleDateString();
       const time = new Date().toLocaleTimeString();
       const fileName = `rancher-diagnostic-data-${ date }-${ time.replaceAll(':', '_') }.json`;
@@ -160,25 +163,45 @@ export default {
         systemInformation: this.systemInformation,
         logs:              this.latestLogs,
         storeMapping:      this.parseStoreData(this.storeMapping),
-        resourceCounts:    this.finalCounts
+        resourceCounts:    this.finalCounts,
+        responseTimes:     this.responseTimes
       };
-
-      if (this.includeResponseTimes) {
-        const responseTimes = await this.gatherResponseTimes();
-
-        data.responseTimes = responseTimes;
-      }
 
       downloadFile(fileName, JSON.stringify(data), 'application/json')
         .then(() => btnCb(true))
         .catch(() => btnCb(false));
     },
+
+    setResourceResponseTiming(responseTimes) {
+      responseTimes?.forEach((res) => {
+        if ( res.outcome === 'success' ) {
+          const cluster = this.finalCounts.find(c => c.capiId === res.item.capiId);
+          const countIndex = cluster?.counts?.findIndex(c => c.resource === res.item.resource);
+
+          if ( (countIndex && countIndex !== -1) || countIndex === 0 ) {
+            this.$set(cluster?.counts[countIndex], 'durationMs', res.durationMs);
+          }
+        }
+      });
+    },
+
+    sumResourceCount(counts) {
+      return counts.reduce((a, b) => (a + b.count), 0);
+    },
+
+    nodeCount(counts) {
+      const resource = counts.findIndex(c => c.resource === 'node');
+
+      return counts[resource]?.count;
+    },
+
     toggleTable(area) {
       const itemIndex = this.finalCounts.findIndex(item => item.id === area);
 
       this.finalCounts[itemIndex].isTableVisible = !this.finalCounts[itemIndex].isTableVisible;
     },
-    async gatherResponseTimes() {
+
+    async gatherResponseTimes(btnCb) {
       return await Promise.all(this.topTenForResponseTime.map((item) => {
         const t = Date.now();
 
@@ -190,11 +213,14 @@ export default {
             outcome: 'error', item, durationMs: Date.now() - t
           }));
       })).then((responseTimes) => {
-        return responseTimes;
-      });
+        this.responseTimes = responseTimes;
+        this.setResourceResponseTiming(responseTimes);
+        btnCb(true);
+      }).catch(() => btnCb(false));
     },
+
     parseStoreData(rootStore) {
-      // clear potencial sensitive data
+      // clear potential sensitive data
       const disallowedDataKeys = [
         'aws',
         'digitalocean',
@@ -252,6 +278,21 @@ export default {
       });
 
       return cleanRootStore;
+    },
+
+    promptDownload(btnCb) {
+      const resources = [{ downloadData: this.downloadData, gatherResponseTimes: this.gatherResponseTimes }];
+
+      if ( !this.responseTimes ) {
+        this.$store.dispatch('management/promptModal', {
+          component: 'DiagnosticTimingsDialog',
+          resources
+        })
+          .then(() => btnCb(true))
+          .catch(() => btnCb(false));
+      } else {
+        this.downloadData(btnCb);
+      }
     }
   },
 };
@@ -260,27 +301,25 @@ export default {
 <template>
   <div>
     <div class="title-block mt-20 mb-40">
-      <h1
-        v-t="'about.diagnostic.title'"
-        class="mt-20 mb-40"
-      />
       <div>
-        <Checkbox
-          v-model="includeResponseTimes"
-          v-tooltip.left="t('about.diagnostic.checkboxTooltip')"
-          :label="t('about.diagnostic.checkboxLabel')"
+        <AsyncButton
+          mode="timing"
+          class="mr-20"
+          @click="gatherResponseTimes"
         />
         <AsyncButton
           mode="diagnostic"
-          @click="downloadData"
+          @click="promptDownload"
         />
       </div>
     </div>
+
+    <!-- System info -->
     <div class="mb-40">
       <h2 class="mb-20">
         {{ t('about.diagnostic.systemInformation.subtitle') }}
       </h2>
-      <table>
+      <table class="full-width">
         <thead>
           <tr>
             <th>Type</th>
@@ -289,12 +328,71 @@ export default {
         </thead>
         <tbody>
           <tr v-for="(item, objKey) in systemInformation" :key="objKey">
-            <td>{{ item.label }}</td>
-            <td>{{ item.value }}</td>
+            <template v-if="item.value.length">
+              <td>{{ item.label }}</td>
+              <td>{{ item.value }}</td>
+            </template>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <!-- Resources -->
+    <div class="mb-40">
+      <h2 class="mb-20">
+        {{ t('about.diagnostic.resourceCounts', { count: clusterCount }) }}
+      </h2>
+      <div class="resources-count-container">
+        <table
+          v-for="cluster in finalCounts"
+          :key="cluster.id"
+          class="full-width"
+        >
+          <thead @click="toggleTable(cluster.id)">
+            <th colspan="4">
+              <div class="cluster-row">
+                <span>Cluster: <b>{{ cluster.name }}</b></span>
+                <span>Namespace: <b>{{ cluster.namespace }}</b></span>
+                <span>Total Resources: <b>{{ sumResourceCount(cluster.counts) }}</b></span>
+                <span>Nodes: <b>{{ nodeCount(cluster.counts) }}</b></span>
+                <i
+                  class="icon"
+                  :class="{
+                    'icon-chevron-down': !cluster.isTableVisible,
+                    'icon-chevron-up': cluster.isTableVisible
+                  }"
+                ></i>
+              </div>
+            </th>
+          </thead>
+          <tbody v-show="cluster.isTableVisible">
+            <tr>
+              <th>
+                Resource
+              </th>
+              <th>
+                Count
+              </th>
+              <th>
+                Resource Timing (ms)
+              </th>
+            </tr>
+
+            <tr v-for="item in cluster.counts" :key="item.resource">
+              <template v-if="item.count > 0">
+                <td scope="row">
+                  {{ item.resource }}
+                </td>
+                <td>{{ item.count }}</td>
+                <td>{{ item.durationMs || '-' }}</td>
+              </template>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Logs -->
     <div class="mb-40">
       <h2 class="mb-20">
         {{ t('about.diagnostic.logs.subtitle') }}
@@ -313,46 +411,15 @@ export default {
         </li>
       </ul>
     </div>
-    <div class="mb-40">
-      <h2 class="mb-20">
-        {{ t('about.diagnostic.resourceCounts.subtitle') }}
-      </h2>
-      <div class="resources-count-container">
-        <table
-          v-for="cluster in finalCounts"
-          :key="cluster.id"
-          class="full-width"
-        >
-          <thead @click="toggleTable(cluster.id)">
-            <th colspan="2">
-              <div>
-                <span>{{ cluster.id }}</span>
-                <i
-                  class="icon"
-                  :class="{
-                    'icon-chevron-down': !cluster.isTableVisible,
-                    'icon-chevron-up': cluster.isTableVisible
-                  }"
-                ></i>
-              </div>
-            </th>
-          </thead>
-          <tbody v-show="cluster.isTableVisible">
-            <tr v-for="item in cluster.counts" :key="item.resource">
-              <td>{{ item.resource }}</td>
-              <td>{{ item.count }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+
+    <PromptModal />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .title-block {
   display: flex;
-  justify-content: space-between;
+  justify-content: right;
   align-items: center;
 
   h1 {
@@ -383,6 +450,10 @@ table {
           justify-content: space-between;
       }
     }
+
+    tbody {
+      border-bottom: 1px solid var(--sortable-table-top-divider);
+    }
   }
 
   tr > td:first-of-type {
@@ -398,7 +469,7 @@ table {
 
   th {
     background-color: var(--sortable-table-top-divider);
-    border-bottom: 1px solid var(--sortable-table-top-divider);
+    border-bottom: 1px solid var(--sortable-table-header-bg);
   }
 
   a {
@@ -458,11 +529,24 @@ table {
 }
 
 .resources-count-container {
-  table:nth-child(even) {
-    th {
-      background-color: rgb(239, 239, 239);
-      color: #000;
-    }
+  .cluster-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) 20px;
+    grid-template-rows: 1fr;
+    align-content: center;
+    font-weight: normal;
+  }
+
+  tbody tr, tbody tr th {
+    background-color: var(--sortable-table-header-bg);
+  }
+
+  tbody tr th {
+    border-bottom: 1px solid var(--sortable-table-top-divider);
+  }
+
+  tbody tr:hover {
+    background-color: var(--sortable-table-top-divider);
   }
 }
 </style>

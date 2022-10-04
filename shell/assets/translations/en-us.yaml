@@ -244,19 +244,26 @@ about:
     checkboxLabel: Make additional requests
     systemInformation: 
       subtitle: System Information
-      os: OS
-      browserUserAgent: Browser User Agent
-      browserLanguage: Browser Language
-      cookieEnabled: Cookies Enabled 
-      deviceMemory: Device Memory 
-      hardwareConcurrency: Hardware Concurrency 
-      memJsHeapLimit: Memory JS Heap Size limit 
-      memTotalJsHeapSize: Memory Total JS Heap Size 
-      memUsedJsHeapSize: Memory Used JS Heap Size 
+      browser: Browser
+      browserInfo: "User Agent: {userAgent}, Language: {language}, Cookies Enabled: {cookieEnabled}"
+      system: System
+      jsMemory: Javascript Memory
+      deviceMemory: "Device Memory: {deviceMemory}"
+      hardwareConcurrency: "Hardware Concurrency: {hardwareConcurrency}"
+      os: "OS: {platform}"
+      memJsHeapLimit: "Heap Size limit: {jsHeapSizeLimit}"
+      memTotalJsHeapSize: "Total Heap Size: {totalJSHeapSize}"
+      memUsedJsHeapSize: "Used Heap Size: {usedJSHeapSize}" 
     logs: 
       subtitle: Latest Logs
-    resourceCounts: 
-      subtitle: Resource Counts
+    resourceCounts: |-
+      {count, plural,
+        one { Resource Counts by Cluster ({count} cluster)}
+        other { Resource Counts by Cluster ({count} clusters)}
+      }
+    modal:
+      title: Response times have not yet been generated.
+      body: Generate response times to offer more specific information.
 
 accountAndKeys:
   title: Account and API Keys
@@ -566,7 +573,7 @@ asyncButton:
     waiting: Deactivating&hellip;
     success: Deactivated
   diagnostic:
-    action: Download Data
+    action: Download Diagnostic Package
     success: Saving
     waiting: Downloading&hellip;
   done:
@@ -647,6 +654,10 @@ asyncButton:
     action: Snapshot Now
     waiting: Snapshot Initiated&hellip;
     success: Snapshot Creating
+  timing:
+    action: Generate Response Times
+    waiting: Generating&hellip;
+    success: Response Times Generated
   uninstall:
     action: Uninstall
     success: Uninstalled
