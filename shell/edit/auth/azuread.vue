@@ -182,12 +182,10 @@ export default {
       const oldEndpointKey = Object.keys(OLD_ENDPOINTS).find(key => OLD_ENDPOINTS[key].graphEndpoint === endpoint);
 
       if ( oldEndpointKey ) {
-        this.endpoint = oldEndpointKey;
+        this.endpoint = this.determineEndpointKeyType(OLD_ENDPOINTS);
         this.oldEndpoint = true;
-      } else if ( newEndpointKey ) {
-        this.endpoint = newEndpointKey;
       } else {
-        this.endpoint = 'custom';
+        this.endpoint = newEndpointKey;
       }
     },
 
