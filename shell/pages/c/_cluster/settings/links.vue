@@ -80,6 +80,7 @@ export default {
 
     this.value = JSON.parse(sValue);
   },
+
   data() {
     return {
       uiCustomLinks:      {},
@@ -98,22 +99,17 @@ export default {
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
 
-    defaultLinks: {
-      get(issueLink) {
-        if ( issueLink ) {
-          return this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, issueLink, ...DEFAULT_CUSTOM_LINKS]);
-        }
+    defaultLinks() {
+      const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_LINKS;
 
-        return this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...DEFAULT_CUSTOM_LINKS]);
-      }
+      return this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks]);
     }
 
   },
   methods: {
     useDefaults() {
-      const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_LINKS;
-
-      this.value = this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks]);
+      this.value = this.defaultLinks;
+      this.$refs.customLinkList.useDefaults();
 
       this.showRestoredBanner = true;
 
@@ -160,7 +156,9 @@ export default {
       </label>
       <div class="ui-links-setting mt-20">
         <KeyValue
+          ref="customLinkList"
           v-model="value"
+          :default-value="defaultLinks"
           :as-map="false"
           :key-label="t('customLinks.settings.keyLabel')"
           :value-label="t('customLinks.settings.valueLabel')"
