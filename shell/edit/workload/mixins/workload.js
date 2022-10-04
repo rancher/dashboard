@@ -9,6 +9,7 @@ import {
   PVC,
   SERVICE_ACCOUNT,
   CAPI,
+  POD,
 } from '@shell/config/types';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -36,6 +37,7 @@ import CruResource from '@shell/components/CruResource';
 import Command from '@shell/components/form/Command';
 import LifecycleHooks from '@shell/components/form/LifecycleHooks';
 import Storage from '@shell/edit/workload/storage';
+import ContainerMountPaths from '@shell/edit/workload/storage/ContainerMountPaths.vue';
 import Labels from '@shell/components/form/Labels';
 import { RadioGroup } from '@components/Form/Radio';
 import { UI_MANAGED } from '@shell/config/labels-annotations';
@@ -89,6 +91,7 @@ export default {
     Upgrading,
     VolumeClaimTemplate,
     WorkloadPorts,
+    ContainerMountPaths
   },
 
   mixins: [CreateEditView],
@@ -158,7 +161,7 @@ export default {
 
     if (!this.value.spec) {
       this.value.spec = {};
-      if (this.value.type === WORKLOAD_TYPES.POD) {
+      if (this.value.type === POD) {
         const podContainers = [{
           imagePullPolicy: 'Always',
           name:            `container-0`,
@@ -294,7 +297,7 @@ export default {
     },
 
     isPod() {
-      return this.value.type === WORKLOAD_TYPES.POD;
+      return this.value.type === POD;
     },
 
     isStatefulSet() {

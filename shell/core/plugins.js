@@ -2,6 +2,7 @@ import { productsLoaded } from '@shell/store/type-map';
 import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
+import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 
 const MODEL_TYPE = 'models';
 
@@ -33,6 +34,17 @@ export default function({
       };
 
       return internal;
+    },
+
+    // Load a plugin from a UI package
+    loadAsyncByNameAndVersion(name, version, url) {
+      const id = `${ name }-${ version }`;
+
+      if (!url) {
+        url = `${ UI_PLUGIN_BASE_URL }/${ name }/${ version }/plugin/${ id }.umd.min.js`;
+      }
+
+      return this.loadAsync(id, url);
     },
 
     // Load a plugin from a UI package

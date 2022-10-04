@@ -16,23 +16,26 @@ module.exports = {
     '@components/(.*)': '<rootDir>/pkg/rancher-components/src/components/$1',
   },
   transform: {
-    // process js with `babel-jest`
-    '^.+\\.js$':   '<rootDir>/node_modules/babel-jest',
-    // process `*.vue` files with `vue-jest`
-    '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue2-jest',
-    // process `*.ts` files with `ts-jest`
-    '^.+\\.tsx?$': 'ts-jest'
+    '^.+\\.js$':   '<rootDir>/node_modules/babel-jest', // process js with `babel-jest`
+    '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue2-jest', // process `*.vue` files with `vue-jest`
+    '^.+\\.tsx?$': 'ts-jest' // process `*.ts` files with `ts-jest`
   },
   snapshotSerializers: ['<rootDir>/node_modules/jest-serializer-vue'],
   collectCoverage:     false,
   collectCoverageFrom: [
     '<rootDir>/shell/**/*.{vue,ts,js}',
     '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
-    // '!<rootDir>/components/RancherProviderIcon.vue',
+    '!<rootDir>/shell/scripts/',
   ],
-  modulePathIgnorePatterns: ['<rootDir>/cypress/'],
-  coverageDirectory:        '<rootDir>/coverage',
-  coverageReporters:        ['html', 'text'],
+  modulePathIgnorePatterns: [
+    '<rootDir>/cypress/',
+    '<rootDir>/scripts/',
+    '<rootDir>/docusaurus/',
+    '<rootDir>/stories/',
+    '<rootDir>/shell/scripts/',
+  ],
+  coverageDirectory:        '<rootDir>/coverage/unit',
+  coverageReporters:        ['json', 'text-summary'],
   globals:                  { 'ts-jest': { isolatedModules: true } },
   preset:                   'ts-jest'
 };

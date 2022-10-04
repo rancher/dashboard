@@ -121,7 +121,7 @@ export default {
     },
 
     isPod() {
-      return this.value.type === WORKLOAD_TYPES.POD;
+      return this.value.type === POD;
     },
 
     podSchema() {
@@ -141,7 +141,7 @@ export default {
         return this.value.spec.jobTemplate.spec.template.spec;
       }
 
-      if ( this.value.type === WORKLOAD_TYPES.POD ) {
+      if ( this.value.type === POD ) {
         return this.value;
       }
 

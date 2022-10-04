@@ -17,7 +17,6 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { setFavIcon } from '@shell/utils/favicon';
 
 const Color = require('color');
-const parse = require('url-parse');
 
 export default {
   layout: 'authenticated',
@@ -29,12 +28,10 @@ export default {
   async fetch() {
     const hash = await allHash({
       uiPLSetting:            this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
-      uiIssuesSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES }),
       uiLogoDarkSetting:      fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
       uiLogoLightSetting:     fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
       uiColorSetting:         fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
       uiLinkColorSetting:     fetchOrCreateSetting(this.$store, SETTING.LINK_COLOR, ''),
-      uiCommunitySetting:     fetchOrCreateSetting(this.$store, SETTING.COMMUNITY_LINKS, 'true'),
       uiFaviconSetting:       fetchOrCreateSetting(this.$store, SETTING.FAVICON, ''),
     });
 
@@ -75,8 +72,6 @@ export default {
       vendor:      getVendor(),
       uiPLSetting: {},
 
-      uiIssuesSetting: {},
-
       uiLogoDarkSetting:  {},
       uiLogoDark:         '',
       uiLogoLightSetting: {},
@@ -93,8 +88,6 @@ export default {
       uiLinkColorSetting: {},
       uiLinkColor:        null,
       customizeLinkColor: false,
-
-      uiCommunitySetting: {},
 
       errors: [],
 
@@ -134,22 +127,7 @@ export default {
       this.errors.push(e);
     },
 
-    validateUrl(url) {
-      const parsed = parse(url, {});
-
-      if (!parsed.protocol) {
-        this.errors.push(this.t('branding.uiIssues.invalidUrl'));
-
-        return false;
-      }
-
-      return true;
-    },
-
     async save(btnCB) {
-      if (this.uiIssuesSetting.value && !this.validateUrl(this.uiIssuesSetting.value)) {
-        return btnCB(false);
-      }
       this.uiPLSetting.value = this.uiPLSetting.value.replaceAll(/[\<>&=#()"]/gm, '');
 
       if (this.customizeLogo) {
@@ -183,12 +161,10 @@ export default {
       try {
         await Promise.all([
           this.uiPLSetting.save(),
-          this.uiIssuesSetting.save(),
           this.uiLogoDarkSetting.save(),
           this.uiLogoLightSetting.save(),
           this.uiColorSetting.save(),
           this.uiLinkColorSetting.save(),
-          this.uiCommunitySetting.save(),
           this.uiFaviconSetting.save()
         ]);
         if (this.uiPLSetting.value !== this.vendor) {
@@ -219,22 +195,6 @@ export default {
           <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" :mode="mode" :maxlength="100" />
         </div>
       </div>
-
-      <h3 class="mt-20 mb-5 pb-5">
-        {{ t('branding.uiIssues.label') }}
-      </h3>
-      <label class="text-label">
-        {{ t(`advancedSettings.descriptions.${ 'ui-issues' }`, {}, true) }}
-      </label>
-      <div :style="{'align-items':'center'}" class="row mt-10">
-        <div class="col span-6 pb-5">
-          <LabeledInput v-model="uiIssuesSetting.value" :label="t('branding.uiIssues.issuesUrl')" :mode="mode" />
-        </div>
-        <div class="col span-6">
-          <Checkbox :value="uiCommunitySetting.value === 'true'" :label="t('branding.uiIssues.communityLinks')" :mode="mode" @input="e=>$set(uiCommunitySetting, 'value', e.toString())" />
-        </div>
-      </div>
-
       <h3 class="mt-20 mb-5 pb-5">
         {{ t('branding.logos.label') }}
       </h3>

@@ -40,19 +40,25 @@ export default {
 
     serviceOptions() {
       if (this.cluster.isRke2) {
-        return [
+        const options = [
           'admin',
           'api-server',
           'controller-manager',
           'scheduler',
-          'rke2-controller',
-          'rke2-server',
           'cloud-controller',
           'etcd',
           'auth-proxy',
           'kubelet',
           'kube-proxy'
         ];
+
+        if ( this.cluster.isK3s ) {
+          options.push('k3s-controller', 'k3s-server');
+        } else {
+          options.push('rke2-controller', 'rke2-server');
+        }
+
+        return options.sort();
       }
       // For RKE1 clusters, Norman provides the list of service options:
       // type RotateCertificateInput struct {

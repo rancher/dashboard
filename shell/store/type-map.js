@@ -122,7 +122,7 @@
 // )
 import { AGE, NAME, NAMESPACE as NAMESPACE_COL, STATE } from '@shell/config/table-headers';
 import { COUNT, SCHEMA, MANAGEMENT, NAMESPACE } from '@shell/config/types';
-import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
+import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
 } from '@shell/utils/array';
@@ -168,6 +168,7 @@ export const IF_HAVE = {
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
   NEUVECTOR_NAMESPACE:      'neuvector-namespace',
+  ADMIN:                    'admin-user',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -802,7 +803,7 @@ export const getters = {
       const module = findBy(state.products, 'name', product).inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
       const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
-      const isDev = rootGetters['prefs/get'](DEV);
+      const isDev = rootGetters['prefs/get'](VIEW_IN_API);
       const isBasic = mode === BASIC;
 
       const out = {};
@@ -1215,7 +1216,7 @@ export const getters = {
   activeProducts(state, getters, rootState, rootGetters) {
     const knownTypes = {};
     const knownGroups = {};
-    const isDev = rootGetters['prefs/get'](DEV);
+    const isDev = rootGetters['prefs/get'](VIEW_IN_API);
 
     if ( state.schemaGeneration < 0 ) {
       // This does nothing, but makes activeProducts depend on schemaGeneration
@@ -1732,9 +1733,20 @@ function ifHave(getters, option) {
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
     return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);
   }
+  case IF_HAVE.ADMIN: {
+    return isAdminUser(getters);
+  }
   default:
     return false;
   }
+}
+
+// Could list a larger set of resources that typically only an admin user would have
+export function isAdminUser(getters) {
+  const canEditSettings = (getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
+  const canEditFeatureFlags = (getters['management/schemaFor'](MANAGEMENT.FEATURE)?.resourceMethods || []).includes('PUT');
+
+  return canEditSettings && canEditFeatureFlags;
 }
 
 // Is V1 Istio installed?

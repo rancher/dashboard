@@ -4,7 +4,7 @@ import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
-import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
+import { mapPref, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
@@ -98,12 +98,10 @@ export default {
 
       const out = search ? this.clusters.filter(item => item.label.toLowerCase().includes(search)) : this.clusters;
 
-      const sorted = sortBy(out, ['ready:desc', 'label']);
+      const sorted = sortBy(out, ['name:desc', 'label']);
 
       return sorted;
     },
-
-    dev: mapPref(DEV),
 
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
 
@@ -122,22 +120,7 @@ export default {
     configurationApps() {
       const options = this.options;
 
-      const items = options.filter(opt => opt.category === 'configuration');
-
-      // Add plugin page
-      // Ony when developing for now
-      if (process.env.dev) {
-        items.push({
-          label:   'Plugins',
-          inStore: 'management',
-          icon:    'icon-gear',
-          value:   'plugins',
-          weight:  1,
-          to:      { name: 'plugins' },
-        });
-      }
-
-      return items;
+      return options.filter(opt => opt.category === 'configuration');
     },
 
     options() {

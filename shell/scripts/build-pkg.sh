@@ -4,6 +4,20 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
 SHELL_DIR=$BASE_DIR/shell/
 EXIT_CODE=0
+FORMATS="umd-min"
+
+while getopts "df:" opt; do
+  case $opt in
+    d)
+      FORMATS="umd"
+      ;;
+    f)
+      FORMATS=$OPTARG
+      ;;      
+  esac
+done
+
+shift $((OPTIND-1))
 
 # Use shell folder in node modules when we have @rancher/shell installed as a node module
 # rather than the use-case of the mono-repo with the shell folder at the top-level
@@ -25,6 +39,7 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
   echo "Building UI Package $1"
   echo "  Package name:    ${NAME}"
   echo "  Package version: ${VERSION}"
+  echo "  Output formats:  ${FORMATS}"
   rm -rf ${PKG_DIST}
   mkdir -p ${PKG_DIST}
 
@@ -51,7 +66,7 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
     echo ${COMMIT} > ${PKG_DIST}/version
   fi
 
-  ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${NAME} --target lib ${FILE} --dest ${PKG_DIST} --formats umd-min --filename ${NAME}
+  ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${NAME} --target lib ${FILE} --dest ${PKG_DIST} --formats ${FORMATS} --filename ${NAME}
   EXIT_CODE=$?
   cp -f ./package.json ${PKG_DIST}/package.json
   node ${SCRIPT_DIR}/pkgfile.js ${PKG_DIST}/package.json

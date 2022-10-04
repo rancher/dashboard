@@ -2,6 +2,8 @@
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
+import Carousel from '@shell/components/Carousel';
+import ButtonGroup from '@shell/components/ButtonGroup';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import TypeDescription from '@shell/components/TypeDescription';
 import {
@@ -12,15 +14,18 @@ import { sortBy } from '@shell/utils/sort';
 import { mapGetters } from 'vuex';
 import { Checkbox } from '@components/Form/Checkbox';
 import Select from '@shell/components/form/Select';
-import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@shell/store/prefs';
+import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
 import { removeObject, addObject, findBy } from '@shell/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
+import { isUIPlugin } from '@shell/config/uiplugins';
 
 export default {
   components: {
     AsyncButton,
     Banner,
+    Carousel,
+    ButtonGroup,
     Loading,
     Checkbox,
     Select,
@@ -48,6 +53,17 @@ export default {
       searchQuery:         null,
       showDeprecated:      null,
       showHidden:          null,
+      chartMode:           this.$store.getters['prefs/get'](SHOW_CHART_MODE),
+      chartOptions:    [
+        {
+          label:       'Browse',
+          value:       'browse',
+        },
+        {
+          label: 'Featured',
+          value: 'featured'
+        }
+      ]
     };
   },
 
@@ -134,6 +150,10 @@ export default {
           return false;
         }
 
+        if (isUIPlugin(c)) {
+          return false;
+        }
+
         return true;
       });
     },
@@ -152,6 +172,14 @@ export default {
         hideTypes:        [CATALOG._CLUSTER_TPL],
         showPrerelease:   this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
+    },
+
+    getFeaturedCharts() {
+      const allCharts = (this.filteredCharts || []);
+
+      const featuredCharts = allCharts.filter(value => value.featured).sort((a, b) => a.featured - b.featured);
+
+      return featuredCharts.slice(0, 5);
     },
 
     categories() {
@@ -183,6 +211,10 @@ export default {
 
       return out;
     },
+
+    showCarousel() {
+      return this.chartMode === 'featured' && this.getFeaturedCharts.length;
+    }
 
   },
 
@@ -313,7 +345,20 @@ export default {
           {{ t('catalog.charts.header') }}
         </h1>
       </div>
+      <div class="actions-container">
+        <ButtonGroup
+          v-model="chartMode"
+          :options="chartOptions"
+        />
+      </div>
     </header>
+    <div v-if="showCarousel">
+      <h3>Featured Charts</h3>
+      <Carousel
+        :sliders="getFeaturedCharts"
+        @clicked="(row) => selectChart(row)"
+      />
+    </div>
     <TypeDescription resource="chart" />
     <div class="left-right-split">
       <Select

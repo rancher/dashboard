@@ -41,7 +41,7 @@ export default {
       let resourceToCheck;
       let propToMatch;
       let numberOfRolesWithBinds = 0;
-      let numberUniqueUsersWithBinds = 0;
+      const uniqueUsersWithBinds = new Set();
 
       this.info = this.t('rbac.globalRoles.waiting', { count: rolesToRemove.length });
 
@@ -75,14 +75,14 @@ export default {
 
               if (uniqueUsers.length) {
                 numberOfRolesWithBinds++;
-                numberUniqueUsersWithBinds += uniqueUsers.length;
+                uniqueUsers.forEach(user => uniqueUsersWithBinds.add(user));
               }
             }
           });
 
-          if (numberOfRolesWithBinds && numberUniqueUsersWithBinds) {
+          if (numberOfRolesWithBinds && uniqueUsersWithBinds.size) {
             this.info = '';
-            this.warning = this.t('rbac.globalRoles.usersBound', { count: numberUniqueUsersWithBinds });
+            this.warning = this.t('rbac.globalRoles.usersBound', { count: uniqueUsersWithBinds.size });
           } else {
             this.info = this.t('rbac.globalRoles.notBound', null, true);
           }

@@ -38,6 +38,11 @@ export default {
     noContent: {
       type:    Boolean,
       default: false,
+    },
+
+    tabsOnly: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -207,7 +212,7 @@ export default {
 </script>
 
 <template>
-  <div :class="{'side-tabs': !!sideTabs }">
+  <div :class="{'side-tabs': !!sideTabs, 'tabs-only': tabsOnly }">
     <ul
       ref="tablist"
       role="tablist"
@@ -233,6 +238,7 @@ export default {
           @click.prevent="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
+          <span v-if="tab.badge" class="tab-badge">{{ tab.badge }}</span>
           <i v-if="hasIcon(tab)" v-tooltip="t('validation.tab')" class="conditions-alert-icon icon-error icon-lg" />
         </a>
       </li>
@@ -326,6 +332,15 @@ export default {
         color: var(--error);
       }
     }
+
+    .tab-badge {
+      margin-left: 5px;
+      background-color: var(--link);
+      color: #fff;
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-size: 11px;
+    }
   }
 }
 
@@ -334,6 +349,19 @@ export default {
 
   &.no-content {
     padding: 0 0 3px 0;
+  }
+}
+
+.tabs-only {
+  margin-bottom: 20px;
+
+  .tab-container {
+    display: none;
+  }
+
+  .tabs {
+    border: 0;
+    border-bottom: 2px solid var(--border);
   }
 }
 

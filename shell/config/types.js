@@ -80,7 +80,6 @@ export const WORKLOAD_TYPES = {
   STATEFUL_SET:           'apps.statefulset',
   REPLICA_SET:            'apps.replicaset',
   REPLICATION_CONTROLLER: 'replicationcontroller',
-  POD:                    'pod'
 };
 
 const {
@@ -100,6 +99,9 @@ export const CATALOG = {
   APP:            'catalog.cattle.io.app',
   REPO:           'catalog.cattle.io.repo',
 };
+
+// UI Plugin type
+export const UI_PLUGIN = 'catalog.cattle.io.uiplugin';
 
 export const HELM = { PROJECTHELMCHART: 'helm.cattle.io.projecthelmchart' };
 
@@ -271,6 +273,7 @@ export const HCI = {
   CLUSTER:   'harvesterhci.io.management.cluster',
   DASHBOARD: 'harvesterhci.io.dashboard',
   IMAGE:     'harvesterhci.io.virtualmachineimage',
+  SETTING:   'harvesterhci.io.setting',
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

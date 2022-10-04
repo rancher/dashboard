@@ -7,6 +7,8 @@ import { SETTING } from '@shell/config/settings';
 import { mapGetters } from 'vuex';
 
 export default {
+  name: 'CommunityLinks',
+
   components: { SimpleBox },
 
   props: {
@@ -21,12 +23,27 @@ export default {
   mixins: [Closeable],
 
   async fetch() {
-    this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
-    this.communitySetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.COMMUNITY_LINKS });
+    // If user already have custom links and uiIssueSetting Doc URL set
+    // This should already be in the uiCustomLinks
+    try {
+      this.uiCustomLinks = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
+    } catch (err) {
+
+    }
+
+    // Fallback:
+    // NB: this.uiIssueSetting is deprecated now.
+    if (!this.uiCustomLinks) {
+      try {
+        this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
+      } catch (err) {
+
+      }
+    }
   },
 
   data() {
-    return { uiIssuesSetting: null, communitySetting: null };
+    return { uiCustomLinks: null, uiIssuesSetting: null };
   },
 
   computed: {
@@ -35,25 +52,42 @@ export default {
       'selectedLocaleLabel'
     ]),
 
+    hasOptions() {
+      return !!Object.keys(this.options).length || !!Object.keys(this.$slots).length;
+    },
+
     options() {
+      // Link options are provided
       if (Object.keys(this.linkOptions).length > 0) {
         return this.linkOptions;
       }
 
-      if (this.communitySetting?.value === 'false') {
-        return options(this.uiIssuesSetting?.value, true);
+      // Custom links set from settings
+      if (!!this.uiCustomLinks?.value) {
+        try {
+          const customLinks = JSON.parse(this.uiCustomLinks.value);
+
+          if (Array.isArray(customLinks)) {
+            return customLinks.reduce((prev, curr) => {
+              prev[curr.key] = curr.value;
+
+              return prev;
+            }, {});
+          }
+        } catch (e) {
+          console.error('Could not parse custom links setting', e); // eslint-disable-line no-console
+        }
       }
 
-      return options(this.uiIssuesSetting?.value);
+      // Fallback
+      return options(false, this.uiIssuesSetting?.value);
     },
-
-    title() {
-      const hasCustomizedFileIssueLink = this.uiIssuesSetting?.value;
-
-      return hasCustomizedFileIssueLink ? 'landing.support' : 'landing.community.title';
-    }
   },
   methods: {
+    getLabel(label) {
+      return this.$store.getters['i18n/withFallback'](`customLinks.defaults.${ label }`, null, label);
+    },
+
     show() {
       this.$modal.show('wechat-modal');
     },
@@ -65,12 +99,20 @@ export default {
 </script>
 
 <template>
-  <div>
-    <SimpleBox :title="t(title)" :pref="pref" :pref-key="prefKey">
+  <div v-if="hasOptions">
+    <SimpleBox :pref="pref" :pref-key="prefKey">
+      <template #title>
+        <h2>
+          {{ t('customLinks.displayTitle') }}
+        </h2>
+      </template>
       <div v-for="(value, name) in options" :key="name" class="support-link">
-        <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
+        <n-link v-if="value.startsWith('/') " :to="value">
+          {{ getLabel(name) }}
+        </n-link>
+        <a v-else :href="value" rel="noopener noreferrer nofollow" target="_blank"> {{ getLabel(name) }} </a>
       </div>
-
+      <slot />
       <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
         <a class="link" @click="show">
           {{ t('footer.wechat.title') }}
@@ -97,8 +139,17 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-  .support-link:not(:first-child) {
-    margin-top: 15px;
+  h2 {
+    display: flex;
+    align-items: center;
+
+    i {
+      font-size: 12px;
+      margin-left: 5px;
+    }
+  }
+  .support-link:not(:last-child) {
+    margin-bottom: 15px;
   }
 
   .wechat-modal {

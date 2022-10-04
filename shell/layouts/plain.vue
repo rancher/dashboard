@@ -1,5 +1,5 @@
 <script>
-import { mapPref, DEV } from '@shell/store/prefs';
+import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import Header from '@shell/components/nav/Header';
 import PromptRemove from '@shell/components/PromptRemove';
@@ -33,16 +33,20 @@ export default {
   data() {
     return {
       // Assume home pages have routes where the name is the key to use for string lookup
-      name: this.$route.name,
+      name:             this.$route.name,
+      noLocaleShortcut: process.env.dev || false,
     };
   },
 
-  computed: { dev: mapPref(DEV) },
+  computed: { themeShortcut: mapPref(THEME_SHORTCUT) },
 
   methods: {
     toggleTheme() {
       this.$store.dispatch('prefs/toggleTheme');
-    }
+    },
+    toggleNoneLocale() {
+      this.$store.dispatch('i18n/toggleNone');
+    },
   }
 };
 </script>
@@ -62,7 +66,8 @@ export default {
         <ActionMenu />
         <PromptRemove />
         <AssignTo />
-        <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
+        <button v-if="themeShortcut" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
+        <button v-if="noLocaleShortcut" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
       </main>
     </div>
 

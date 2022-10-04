@@ -116,7 +116,7 @@ export default class HciCluster extends ProvCluster {
     let pkgUrl;
 
     if (uiInfo['ui-source'] === 'bundled' ) { // offline bundled
-      pkgUrl = `k8s/clusters/${ clusterId }/v1/harvester/plugin-assets/${ fileName }`;
+      pkgUrl = `/k8s/clusters/${ clusterId }/v1/harvester/plugin-assets/${ fileName }`;
     } else if (uiInfo['ui-source'] === 'external') {
       if (uiInfo['ui-plugin-index']) {
         pkgUrl = uiInfo['ui-plugin-index'];

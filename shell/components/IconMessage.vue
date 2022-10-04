@@ -21,12 +21,16 @@ export default {
       type:    String,
       default: null
     },
+    subtle: {
+      type:     Boolean,
+      default: false,
+    }
   },
 };
 </script>
 
 <template>
-  <div class="message-icon" :class="{'vertical': vertical}">
+  <div class="message-icon" :class="{'vertical': vertical, 'subtle': subtle}">
     <i class="icon" :class="{ [icon]: true, [iconState]: !!iconState}" />
     <div class="message">
       <slot name="message">
@@ -45,6 +49,10 @@ export default {
   .vertical {
     flex-direction: column;
     width: 100%;
+  }
+
+  .subtle {
+    opacity: 0.7;
   }
 
   .message-icon {
