@@ -95,11 +95,11 @@ export default {
     };
 
     if ( userAgentData?.platform ) {
-      systemInformation.system.value.concat(', ', this.t('about.diagnostic.systemInformation.os', { platform: userAgentData.platform }));
+      systemInformation.system.value = systemInformation.system.value.concat(', ', this.t('about.diagnostic.systemInformation.os', { platform: userAgentData.platform }));
     }
 
     if ( deviceMemory ) {
-      systemInformation.system.value.concat(', ', this.t('about.diagnostic.systemInformation.deviceMemory', { deviceMemory }));
+      systemInformation.system.value = systemInformation.system.value.concat(', ', this.t('about.diagnostic.systemInformation.deviceMemory', { deviceMemory }));
     }
 
     if ( window?.performance?.memory?.jsHeapSizeLimit ) {
