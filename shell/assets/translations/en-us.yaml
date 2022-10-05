@@ -1580,10 +1580,10 @@ cluster:
       noResults: No results found
   privateRegistry:
     systemDefaultRegistry:
-      label: Registry hostname for {vendor} images
+      label: Registry hostname for {vendor} System Container Images
     mode:
-      public: Pull images for {vendor} from public DockerHub
-      private: Pull images for {vendor} from a private registry
+      public: Use default global registry for {vendor} System Container Images
+      private: Use specified private registry for {vendor} System Container Images
       advanced: Configure advanced containerd mirroring and registry authentication options
   provider:
     aliyunecs: Aliyun ECS
