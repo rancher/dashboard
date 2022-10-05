@@ -131,7 +131,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail, importDialog
+  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveChart, resolveDetail, importDialog
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -361,6 +361,7 @@ export const state = function() {
       groupLabel:       {},
       ignore:           {},
       list:             {},
+      chart:            {},
       detail:           {},
       edit:             {},
       componentFor:     {},
@@ -1056,6 +1057,14 @@ export const getters = {
     };
   },
 
+  hasCustomChart(state, getters, rootState) {
+    return (rawType) => {
+      const key = getters.componentFor(rawType);
+
+      return hasCustom(state, rootState, 'chart', key, key => resolveChart(key));
+    };
+  },
+
   hasCustomDetail(state, getters, rootState) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
@@ -1121,6 +1130,12 @@ export const getters = {
   importList(state, getters, rootState) {
     return (rawType) => {
       return loadExtension(rootState, 'list', getters.componentFor(rawType), importList);
+    };
+  },
+
+  importChart(state, getters, rootState) {
+    return (rawType) => {
+      return loadExtension(rootState, 'chart', getters.componentFor(rawType), importChart);
     };
   },
 

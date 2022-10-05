@@ -758,8 +758,10 @@ export default {
 
       // Load a values component for the UI if it is named in the Helm chart.
       if ( component ) {
-        if ( this.$store.getters['catalog/haveComponent'](component) ) {
-          this.valuesComponent = this.$store.getters['catalog/importComponent'](component);
+        const hasChartComponent = this.$store.getters['type-map/hasCustomChart'](component);
+
+        if ( hasChartComponent ) {
+          this.valuesComponent = this.$store.getters['type-map/importChart'](component);
           const loaded = await this.valuesComponent();
 
           this.showValuesComponent = true;

@@ -255,19 +255,13 @@ export const getters = {
 
   haveComponent() {
     return (name) => {
-      try {
-        require.resolve(`@shell/chart/${ name }`);
-
-        return true;
-      } catch (e) {
-        return false;
-      }
+      return getters['type-map/hasCustomChart'](name);
     };
   },
 
   importComponent(state, getters) {
     return (name) => {
-      return importChart(name);
+      return getters['type-map/importChart'](name);
     };
   },
 

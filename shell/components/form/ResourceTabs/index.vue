@@ -85,7 +85,11 @@ export default {
     showConditions() {
       const inStore = this.$store.getters['currentStore'](this.value.type);
 
-      return this.isView && this.needConditions && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
+      if ( this.$store.getters[`${ inStore }/schemaFor`](this.value.type) ) {
+        return this.isView && this.needConditions && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
+      }
+
+      return false;
     },
     showEvents() {
       return this.isView && this.needEvents && this.hasEvents && (this.events.length || this.alwaysShowEvents);
