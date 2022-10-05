@@ -339,7 +339,7 @@ export default Vue.extend<Data, any, any, any>({
       case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
         return !!this.container.url;
       case APPLICATION_SOURCE_TYPE.GIT_URL:
-        return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value;
+        return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value && !!this.gitUrl.validGitUrl;
       case APPLICATION_SOURCE_TYPE.GIT_HUB:
         return !!this.github.usernameOrOrg && !!this.github.url && !!this.github.commit;
       }
