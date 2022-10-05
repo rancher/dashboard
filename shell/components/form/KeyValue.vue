@@ -266,10 +266,12 @@ export default {
   created() {
     this.queueUpdate = debounce(this.update, 500);
   },
+  watch: {
+    defaultValue(neu) {
+      this.rows = this.getRows(neu);
+    }
+  },
   methods: {
-    useDefaults() {
-      this.rows = this.getRows(this.defaultValue);
-    },
     getRows(value) {
       const rows = [];
 
