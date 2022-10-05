@@ -104,6 +104,14 @@ export class Plugin implements IPlugin {
     this.routes.push({ parent, route });
   }
 
+  setHomePage(component: any) {
+    this.addRoute({
+      name: 'home',
+      path: '/home',
+      component
+    });
+  }
+
   addUninstallHook(hook: Function) {
     this.uninstallHooks.push(hook);
   }

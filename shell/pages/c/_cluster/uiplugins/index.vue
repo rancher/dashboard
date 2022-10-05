@@ -1,7 +1,6 @@
 <script>
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
@@ -167,6 +166,9 @@ export default {
         item.versions = [...chart.versions];
         item.chart = chart;
 
+        // TODO: Filter the versions, leaving only those that are compatible with this Rancher
+        // TODO
+
         if (this.latest) {
           item.icon = chart.icon || this.latest.annotations['catalog.cattle.io/ui-icon'];
         }
@@ -177,6 +179,9 @@ export default {
 
         return item;
       });
+
+      // Remove charts with no installable versions
+      all = all.filter(c => c.versions.length > 0);
 
       // Check that all of the loaded plugins are represented
       this.uiplugins.forEach((p) => {
@@ -200,22 +205,35 @@ export default {
 
       // Go through the CRs for the plugins and wire them into the catalog
       this.plugins.forEach((p) => {
-        if (!p.removed) {
-          const chart = all.find(c => c.name === p.name);
+        const chart = all.find(c => c.name === p.name);
 
-          if (chart) {
-            chart.installed = true;
-            chart.uiplugin = p;
-            chart.displayVersion = p.version;
+        if (chart) {
+          chart.installed = true;
+          chart.uiplugin = p;
+          chart.displayVersion = p.version;
 
-            // Can't do this here
-            chart.installing = this.installing[chart.name];
+          // Can't do this here
+          chart.installing = this.installing[chart.name];
 
-            // Check for upgrade
-            if (chart.versions.length && p.version !== chart.versions[0].version) {
-              chart.upgrade = chart.versions[0].version;
-            }
+          // Check for upgrade
+          if (chart.versions.length && p.version !== chart.versions[0].version) {
+            chart.upgrade = chart.versions[0].version;
           }
+        } else {
+          // No chart, so add a card for the plugin based on its Custom resource being present
+          const item = {
+            name:           p.name,
+            description:    p.description || '-',
+            id:             `${ p.name }-${ p.version }`,
+            versions:       [],
+            displayVersion: p.version || '-',
+            installed:      true,
+            installing:     false,
+            builtin:        false,
+            uiplugin:       p,
+          };
+
+          all.push(item);
         }
       });
 
@@ -275,14 +293,14 @@ export default {
       });
     },
 
-    plugins(neu) {
+    plugins(neu, old) {
       const installed = this.$store.getters['uiplugins/plugins'];
 
       neu.forEach((plugin) => {
         const existing = installed.find(p => !p.removed && p.name === plugin.name);
 
         if (!existing && plugin.isCached) {
-          this.$plugin.loadAsyncByNameAndVersion(plugin.name, plugin.version).catch((e) => {
+          this.$plugin.loadPluginAsync(plugin.plugin).catch((e) => {
             console.error(`Failed to load plugin ${ plugin.name } (${ plugin.version })`); // eslint-disable-line no-console
           });
 

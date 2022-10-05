@@ -44,13 +44,7 @@ export default async(context) => {
 
         Object.values(entries).forEach((plugin) => {
           if (shouldLoadPlugin(plugin)) {
-            let url;
-
-            if (plugin?.metadata?.['direct'] === 'true') {
-              url = plugin.endpoint;
-            }
-
-            hash[plugin.name] = $plugin.loadAsyncByNameAndVersion(plugin.name, plugin.version, url);
+            hash[plugin.name] = $plugin.loadPluginAsync(plugin);
           }
         });
       }

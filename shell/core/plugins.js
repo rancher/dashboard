@@ -37,11 +37,18 @@ export default function({
     },
 
     // Load a plugin from a UI package
-    loadAsyncByNameAndVersion(name, version, url) {
+    loadPluginAsync(plugin) {
+      const { name, version } = plugin;
       const id = `${ name }-${ version }`;
+      let url;
 
-      if (!url) {
-        url = `${ UI_PLUGIN_BASE_URL }/${ name }/${ version }/plugin/${ id }.umd.min.js`;
+      if (plugin?.metadata?.direct === 'true') {
+        url = plugin.endpoint;
+      } else {
+        // See if the plugin has a main metadata property set
+        const main = plugin?.metadata?.main || `${ id }.umd.min.js`;
+
+        url = `${ UI_PLUGIN_BASE_URL }/${ name }/${ version }/plugin/${ main }`;
       }
 
       return this.loadAsync(id, url);

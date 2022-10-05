@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { CATALOG } from '@shell/config/types';
+import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import Banner from '@components/Banner/Banner.vue';
@@ -15,13 +15,21 @@ export default {
     LabeledSelect,
   },
 
+  async fetch() {
+    this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'system-default-registry'
+    });
+  },
+
   data() {
     return {
-      plugin:   undefined,
-      busy:     false,
-      version:  '',
-      update:   false,
-      mode:      '',
+      defaultRegistrySetting: null,
+      plugin:                 undefined,
+      busy:                   false,
+      version:                '',
+      update:                 false,
+      mode:                   '',
     };
   },
 
@@ -117,6 +125,13 @@ export default {
         },
         values: {}
       };
+
+      // Pass in the system default registry property if set
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+
+      if (defaultRegistry) {
+        chart.values.global = { cattle: { systemDefaultRegistry: defaultRegistry } };
+      }
 
       const input = {
         charts:    [chart],
