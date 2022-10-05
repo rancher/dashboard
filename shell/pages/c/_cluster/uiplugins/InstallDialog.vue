@@ -155,6 +155,13 @@ export default {
         values: {}
       };
 
+      // Pass in the system default registry property if set
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+
+      if (defaultRegistry) {
+        chart.values.global = { cattle: { systemDefaultRegistry: defaultRegistry } };
+      }
+
       // Pass in the system default registry property if set - only if the image is in the rancher org
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
 
