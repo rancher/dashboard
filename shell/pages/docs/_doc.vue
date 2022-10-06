@@ -301,10 +301,12 @@ export default {
 
       thead > tr > th {
         background-color: var(--sortable-table-header-bg);
+        line-height: 1.75em;
       }
 
       tbody > tr.table-group > td {
-        background-color: var(--sortable-table-selected-bg);
+        background-color: var(--sortable-table-header-bg);
+        font-weight: bold;
       }
 
       thead, tbody {

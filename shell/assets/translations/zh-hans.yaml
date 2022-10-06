@@ -111,7 +111,7 @@ nav:
   shell: Kubectl Shell
   shellShortcut: Kubectl Shell {key}
   support: |-
-    {hasSupport, select,
+    {hasSubscriptionSupport, select,
       true {支持}
       other {获取支持}
     }
@@ -191,7 +191,6 @@ product:
   mcapps: 多集群应用
   neuvector: NeuVector
   harvesterManager: 虚拟化管理
-  harvester: Harvester
   rancher: Rancher
 
 suffix:
@@ -1500,6 +1499,7 @@ cluster:
     warning: '此集群包含此表单不完全支持的 machineSelectorConfig。使用 YAML 编辑器管理完整配置。'
     os: '你正在将 {newOS} worker 节点添加到具有一个或多个 {existingOS} worker 节点的集群。你可能需要升级或删除某些已安装的应用。'
     rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">文档</a>。'
+    desiredNodeGroupWarning: 没有可用于运行 Cluster Agent 的节点。要让集群变为 Active 状态，至少需要有 1 个可用的节点。
 
   rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
 
@@ -1557,7 +1557,7 @@ cluster:
     autoReplace:
       label: 自动替换
       toolTip: 如果大于 0，则在此期间无法访问的节点将被自动删除和替换。
-      unit: "分钟"
+      unit: "秒"
   managementTimeout: 集群变成可用。可能已创建了集群。建议在创建另一个集群之前检查集群页面。
   memberRoles:
     removeMessage: '注意：删除用户不会删除其项目权限。'
@@ -3657,7 +3657,9 @@ prefs:
     label: 登录页面
     vue: 集群浏览器
     ember: Cluster Manager
-  formatting: 格式
+  displaySettings:
+    title: 显示设置
+    detail: 更改在 UI 中显示信息的方式。
   clusterToShow:
     label: 在侧边栏显示的集群数量
     value: |-
@@ -3867,7 +3869,7 @@ promptRemove:
   confirmName: "在下方输入 <b>{nameToMatch}</b> 以确认："
   deleteAssociatedNamespaces: "同时删除此项目中的命名空间："
   willDeleteAssociatedNamespaces: "项目中的所有命名空间也都会被删除："
-  confirmRelatedResource: "删除 {type} 将删除这个特定 {type} 上的所有资源，这是不可恢复的，您确定要继续删除 {names} 吗？"
+  confirmRelatedResource: "删除 {type} 将删除这个 {type} 上的所有资源，此过程不可逆。你确定要继续删除 {names} 吗？"
 
 promptRemoveApp:
   removeCrd: "删除与此应用关联的 CRD"
@@ -4389,6 +4391,9 @@ setup:
   welcome: 欢迎使用 {vendor}！
 
 sortableTable:
+  bulkActions:
+    collapsed:
+      label: 操作
   actionAvailability:
     selected: "已选择 {actionable} 项"
     some: "影响 {total} 项中的 {actionable} 项"
@@ -5596,6 +5601,8 @@ harvesterManager:
     none: 不存在 Harvester 集群
     learnMore: 访问 <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester 网站</a> 或阅读 <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester 官方文档</a>，以了解更多关于 Harvester 的信息。
     description: Harvester 是一个采用企业级开源技术，包括Kubernetes、Kubevirt和Longhorn，为裸金属服务器打造的现代超融合基础设施（HCI）解决方案。
+  plugins:
+    loadError: 加载 Harvester 插件时出错
 
 ##############################
 # Model Properties
@@ -6083,6 +6090,7 @@ advancedSettings:
     invalidJSON: 无效的 JSON - 请先检查并修改你输入的值，然后再保存。
   descriptions:
     'cacerts': "验证服务器证书所需的 CA 证书。"
+    'password-min-length': '定义用户密码所需的最少字符数。'
     'cluster-defaults': '创建新集群时覆盖 RKE 默认值。'
     'engine-install-url': '默认的 Docker 引擎安装 URL（用于大多数主机驱动）。'
     'engine-iso-url': '默认操作系统安装 URL（用于 vSphere 驱动）。'
@@ -6161,24 +6169,27 @@ featureFlags:
 performance:
   label: UI 性能设置
   settingName: 性能
-  description: |-
-    性能设置允许你在需要处理大量集群资源时配置 UI 的行为。设置仅适用于以下资源：Pod、Deployment、CronJob、DaemonSet、Job、StatefulSet、ReplicaSet、Replication Controller、Workload 和 Secret。
-  banner: 这些设置是实验性的，可能会在后续版本中删除或更新。
   incrementalLoad:
     label: 增量加载
     setting: 你可以配置一个阈值，高于该阈值时则使用增量加载。
     description: |-
-      启用后，资源会更快出现，但可能需要更长的时间来加载整个资源集。
+      启用后，资源会更快出现，但可能需要更长的时间来加载整个资源集。此设置仅适用于以下资源：Pod、Deployment、CronJob、DaemonSet、Job、StatefulSet、ReplicaSet、Replication Controller、Workload 和 Secret。
     checkboxLabel: 启用增量加载
     inputLabel: 资源阈值
   manualRefresh:
+    banner: 此设置是实验性的，可能会在后续版本中删除或更新。
     label: 手动刷新
     setting: 你可以配置一个阈值，高于该阈值时则启用手动刷新。
     buttonTooltip: 刷新列表
     description: |-
-      启用后，列表数据不会自动更新，用户必须手动刷新列表视图。
+      启用后，列表数据不会自动更新，用户必须手动刷新列表视图。此设置仅适用于以下资源：Pod、Deployment、CronJob、DaemonSet、Job、StatefulSet、ReplicaSet、Replication Controller、Workload 和 Secret。
     checkboxLabel: 启用列表数据的手动刷新
     inputLabel: 资源阈值
+  websocketNotification:
+    label: WebSocket 通知
+    description: |-
+      启用后，UI 检测到断开连接时不会出现 WebSocket 通知。
+    checkboxLabel: 禁用 WebSocket 通知
 
 banner:
   label: 固定横幅
@@ -6339,7 +6350,7 @@ support:
       text: 无论你使用的 Rancher Labs 产品、Kubernetes、Docker 还是底层基础架构出现问题，我们都会努力找到问题的根本原因。
     four:
       title: 自由创新
-      text: 基于我们与各 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新
+      text: 基于我们与众多 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新。
 
 embedding:
   retry: 重试

@@ -131,7 +131,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail, importDialog
+  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveChart, resolveDetail, importDialog
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -168,6 +168,7 @@ export const IF_HAVE = {
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
   NEUVECTOR_NAMESPACE:      'neuvector-namespace',
+  ADMIN:                    'admin-user',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -360,6 +361,7 @@ export const state = function() {
       groupLabel:       {},
       ignore:           {},
       list:             {},
+      chart:            {},
       detail:           {},
       edit:             {},
       componentFor:     {},
@@ -1055,6 +1057,14 @@ export const getters = {
     };
   },
 
+  hasCustomChart(state, getters, rootState) {
+    return (rawType) => {
+      const key = getters.componentFor(rawType);
+
+      return hasCustom(state, rootState, 'chart', key, key => resolveChart(key));
+    };
+  },
+
   hasCustomDetail(state, getters, rootState) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
@@ -1120,6 +1130,12 @@ export const getters = {
   importList(state, getters, rootState) {
     return (rawType) => {
       return loadExtension(rootState, 'list', getters.componentFor(rawType), importList);
+    };
+  },
+
+  importChart(state, getters, rootState) {
+    return (rawType) => {
+      return loadExtension(rootState, 'chart', getters.componentFor(rawType), importChart);
     };
   },
 
@@ -1732,9 +1748,20 @@ function ifHave(getters, option) {
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
     return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);
   }
+  case IF_HAVE.ADMIN: {
+    return isAdminUser(getters);
+  }
   default:
     return false;
   }
+}
+
+// Could list a larger set of resources that typically only an admin user would have
+export function isAdminUser(getters) {
+  const canEditSettings = (getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
+  const canEditFeatureFlags = (getters['management/schemaFor'](MANAGEMENT.FEATURE)?.resourceMethods || []).includes('PUT');
+
+  return canEditSettings && canEditFeatureFlags;
 }
 
 // Is V1 Istio installed?

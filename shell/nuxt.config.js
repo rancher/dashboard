@@ -185,8 +185,6 @@ export default function(dir, _appConfig) {
 
   // Serve up the dist-pkg folder under /pkg
   serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
-  // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
-  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
   // Add the standard dashboard server middleware after the middleware added to serve up UI packages
   serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
 
@@ -555,7 +553,7 @@ export default function(dir, _appConfig) {
     plugins: [
       // Extensions
       path.relative(dir, path.join(SHELL, 'core/plugins.js')),
-      path.relative(dir, path.join(SHELL, 'core/plugins-loader.js')),
+      path.relative(dir, path.join(SHELL, 'core/plugins-loader.js')), // Load builtin plugins
 
       // Third-party
       path.join(NUXT_SHELL, 'plugins/axios'),
@@ -579,10 +577,10 @@ export default function(dir, _appConfig) {
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
       path.join(NUXT_SHELL, 'plugins/replaceall'),
       path.join(NUXT_SHELL, 'plugins/back-button'),
-      { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false }, // Load dyanmic plugins
       { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/formatters'), ssr: false }, // Populate formatters cache for sorted table
-      { src: path.join(NUXT_SHELL, 'plugins/version'), ssr: false }
+      { src: path.join(NUXT_SHELL, 'plugins/version'), ssr: false },
     ],
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options
@@ -596,7 +594,6 @@ export default function(dir, _appConfig) {
       '/v3-public':      proxyOpts(api), // Rancher Unauthed API
       '/api-ui':         proxyOpts(api), // Browser API UI
       '/meta':           proxyMetaOpts(api), // Browser API UI
-      '/rancherversion': proxyOpts(api), // Rancher version endpoint
       '/v1-*':           proxyOpts(api), // SAML, KDM, etc
       // These are for Ember embedding
       '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
@@ -604,11 +601,13 @@ export default function(dir, _appConfig) {
       '/g/':             proxyOpts('https://127.0.0.1:8000'),
       '/n/':             proxyOpts('https://127.0.0.1:8000'),
       '/p/':             proxyOpts('https://127.0.0.1:8000'),
+      '/rancherversion': proxyOpts(api), // Rancher version endpoint
       '/assets':         proxyOpts('https://127.0.0.1:8000'),
       '/translations':   proxyOpts('https://127.0.0.1:8000'),
       '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
       // Plugin dev
       '/verdaccio/':     proxyOpts('http://127.0.0.1:4873/-'),
+
     },
 
     // Nuxt server

@@ -1,6 +1,7 @@
 <script>
 import day from 'dayjs';
 import { mapGetters } from 'vuex';
+import { isAdminUser } from '@shell/store/type-map';
 import BackLink from '@shell/components/BackLink';
 import BackRoute from '@shell/mixins/back-link';
 import ButtonGroup from '@shell/components/ButtonGroup';
@@ -8,7 +9,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import LandingPagePreference from '@shell/components/LandingPagePreference';
 import {
   mapPref, THEME, KEYMAP, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE, MENU_MAX_CLUSTERS,
-  VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT
+  VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT, PLUGIN_DEVELOPER
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
@@ -19,8 +20,11 @@ export default {
   components: {
     BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector
   },
-  mixins:     [BackRoute],
-  computed:   {
+  mixins: [BackRoute],
+  data() {
+    return { admin: isAdminUser(this.$store.getters) };
+  },
+  computed: {
     keymap:           mapPref(KEYMAP),
     viewInApi:        mapPref(VIEW_IN_API),
     allNamespaces:    mapPref(ALL_NAMESPACES),
@@ -31,6 +35,7 @@ export default {
     hideDesc:         mapPref(HIDE_DESC),
     showPreRelease:   mapPref(SHOW_PRE_RELEASE),
     menuMaxClusters:  mapPref(MENU_MAX_CLUSTERS),
+    pluginDeveloper:  mapPref(PLUGIN_DEVELOPER),
 
     ...mapGetters(['isSingleProduct']),
 
@@ -231,6 +236,10 @@ export default {
       <Checkbox v-model="themeShortcut" :label="t('prefs.advFeatures.themeShortcut', {}, true)" class="mt-20" />
       <br />
       <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-20" />
+      <template v-if="admin">
+        <br />
+        <Checkbox v-model="pluginDeveloper" :label="t('prefs.advFeatures.pluginDeveloper', {}, true)" class="mt-20" />
+      </template>
     </div>
     <!-- YAML editor key mapping -->
     <div class="col mt-10 mb-10">

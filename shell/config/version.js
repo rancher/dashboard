@@ -5,5 +5,5 @@ export function isRancherPrime() {
 }
 
 export function setIsRancherPrime(v) {
-  _isRancherPrime = v.isRancherPrime === 'True';
+  _isRancherPrime = v.RancherPrime.toLowerCase() === 'true';
 }
