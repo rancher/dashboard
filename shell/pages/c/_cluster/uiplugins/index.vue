@@ -4,7 +4,7 @@ import { mapGetters } from 'vuex';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, SCHEMA } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, SERVICE } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 import ActionMenu from '@shell/components/ActionMenu';
@@ -47,6 +47,7 @@ export default {
       menuTargetElement: null,
       menuTargetEvent:   null,
       menuOpen:          false,
+      hasService:        false,
       defaultIcon:       require('~shell/assets/images/generic-plugin.svg'),
     };
   },
@@ -56,7 +57,9 @@ export default {
   async fetch() {
     const hash = {};
 
-    if (this.hasPluginCRD) {
+    const isSetup = await this.updateInstallStatus();
+
+    if (isSetup) {
       hash.plugins = this.$store.dispatch('management/findAll', { type: UI_PLUGIN });
     }
 
@@ -77,6 +80,7 @@ export default {
 
     this.loading = false;
   },
+
   computed: {
     pluginDeveloper: mapPref(PLUGIN_DEVELOPER),
 
@@ -96,7 +100,7 @@ export default {
         menuActions.push( { divider: true });
       }
 
-      if (this.hasPluginCRD) {
+      if (this.hasService) {
         menuActions.push({
           action:  'removePluginSupport',
           label:   this.t('plugins.setup.remove.label'),
@@ -105,14 +109,6 @@ export default {
       }
 
       return menuActions;
-    },
-
-    // Is the Plugin CRD available ?
-    hasPluginCRD() {
-      const schemas = this.$store.getters[`management/all`](SCHEMA);
-      const crd = schemas.find(s => s.id === UI_PLUGIN);
-
-      return !!crd;
     },
 
     list() {
@@ -319,6 +315,26 @@ export default {
   },
 
   methods:    {
+    async updateInstallStatus() {
+      let hasService;
+
+      try {
+        const service = await this.$store.dispatch('management/find', {
+          type:  SERVICE,
+          id:   `${ UI_PLUGIN_NAMESPACE }/ui-plugin-operator`,
+          opt:  { force: true },
+        });
+
+        hasService = !!service;
+      } catch (e) {
+        hasService = false;
+      }
+
+      Vue.set(this, 'hasService', hasService);
+
+      return hasService;
+    },
+
     filterChanged(f) {
       this.view = f.selectedName;
     },
@@ -396,7 +412,7 @@ export default {
     <div class="plugin-header">
       <h2>{{ t('plugins.title') }}</h2>
       <button
-        v-if="hasPluginCRD && hasMenuActions"
+        v-if="hasService && hasMenuActions"
         ref="actions"
         aria-haspopup="true"
         type="button"
@@ -406,7 +422,7 @@ export default {
         <i class="icon icon-actions" />
       </button>
       <ActionMenu
-        v-if="hasPluginCRD && hasMenuActions"
+        v-if="hasService && hasMenuActions"
         :custom-actions="menuActions"
         :open="menuOpen"
         :use-custom-target-element="true"
@@ -420,12 +436,12 @@ export default {
 
     <PluginInfoPanel ref="infoPanel" />
 
-    <div v-if="!hasPluginCRD">
+    <div v-if="!hasService">
       <div v-if="loading" class="data-loading">
         <i class="icon-spin icon icon-spinner" />
         <t k="generic.loading" :raw="true" />
       </div>
-      <SetupUIPlugins v-else class="setup-message" />
+      <SetupUIPlugins v-else class="setup-message" @done="updateInstallStatus" />
     </div>
     <div v-else>
       <Tabbed ref="tabs" :tabs-only="true" @changed="filterChanged">
@@ -533,7 +549,7 @@ export default {
     <InstallDialog ref="installDialog" @closed="didInstall" @update="updatePluginInstallStatus" />
     <UninstallDialog ref="uninstallDialog" @closed="didUninstall" @update="updatePluginInstallStatus" />
     <DeveloperInstallDialog ref="developerInstallDialog" @closed="didInstall" />
-    <RemoveUIPlugins ref="removeUIPlugins" />
+    <RemoveUIPlugins ref="removeUIPlugins" @done="updateInstallStatus" />
   </div>
 </template>
 

@@ -3706,7 +3706,7 @@ plugins:
     available: Available
     installed: Installed
     updates: Updates
-  title: Rancher Extensions
+  title: Extensions
   version: "Version: {version}"
   install:
     label: Install
@@ -3731,22 +3731,22 @@ plugins:
     title: Extensions Safe Mode
     message: Extensions were not loaded
   setup:
-    title: Rancher Extension support is not enabled
+    title: Extension support is not enabled
     prompt:
       cant: Automatic installation is not available - required Helm Charts could not be found
       can: You need to install the Extension Operator
     install:
-      title: Enable Rancher Extension Support?
-      prompt: This will install the Helm charts to enable Rancher Extension support
-      airgap: Un-check if your Rancher installation is air-gapped
+      title: Enable Extension Support?
+      prompt: This will install the Helm charts to enable Extension support
+      airgap: The Rancher Extensions Repository provides extensions published by Rancher. Un-check if your Rancher installation is air-gapped
       addRancherRepo: Add the Rancher Extension Repository
     remove:
       label: Disable Extension Support
-      title: Disable Rancher Extension Support?
+      title: Disable Extension Support?
       prompt: This will un-install the Helm charts that enable Rancher Extension support
       registry:
         title: Remove the Rancher Extensions Repository
-        prompt: Remove the default Extensions Repository
+        prompt: The Rancher Extensions Repository provides extensions published by Rancher
 
 prefs:
   title: Preferences
