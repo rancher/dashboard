@@ -3743,7 +3743,7 @@ plugins:
     remove:
       label: Disable Extension Support
       title: Disable Extension Support?
-      prompt: This will un-install the Helm charts that enable Rancher Extension support
+      prompt: This will un-install the Helm charts that enable Extension support
       registry:
         title: Remove the Rancher Extensions Repository
         prompt: The Rancher Extensions Repository provides extensions published by Rancher
