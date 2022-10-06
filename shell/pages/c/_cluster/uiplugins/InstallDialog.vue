@@ -169,10 +169,11 @@ export default {
           id:   operationId
         });
       } catch (e) {
+        console.log(e);
         this.$store.dispatch('growl/error', {
           title:   this.t('plugins.error.generic'),
-          e,
-          timeout: 5000
+          message: e.message ? e.message : e,
+          timeout: 10000
         }, { root: true });
 
         this.closeDialog(plugin);
