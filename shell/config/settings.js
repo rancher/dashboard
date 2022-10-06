@@ -87,7 +87,7 @@ export const ALLOWED_SETTINGS = {
     kind:    'enum',
     options: ['dynamic', 'true', 'false']
   },
-  [SETTING.BRAND]:                          {},
+  [SETTING.BRAND]:                          { canReset: true },
   [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]:   { kind: 'boolean' },
   [SETTING.TELEMETRY]:                    {
     kind:    'enum',
