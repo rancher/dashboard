@@ -76,11 +76,11 @@ From there we can customize anything from what columns are shown and in what for
 
 ## Developer Docs
 
-For information on APIs, the layout of the codebase, Vuex stores, localization and more, see the [developer docs.](./docs/developer)
+For information on APIs, the layout of the codebase, Vuex stores, localization and more, see the [developer docs.](./docusaurus/docs)
 
 ## Contributing
 
-For developers, after reading through the introduction on this page, head over to our [Getting Started](./docs/developer/getting-started) guide to learn more.
+For developers, after reading through the introduction on this page, head over to our [Getting Started](./docusaurus/docs/getting-started) guide to learn more.
 
 License
 =======
