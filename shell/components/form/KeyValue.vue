@@ -268,7 +268,10 @@ export default {
   },
   watch: {
     defaultValue(neu) {
-      this.rows = this.getRows(neu);
+      if (Array.isArray(neu)) {
+        this.rows = this.getRows(neu);
+        this.$emit('input', neu);
+      }
     }
   },
   methods: {
