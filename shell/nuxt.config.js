@@ -582,6 +582,7 @@ export default function(dir, _appConfig) {
       { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false }, // Load dyanmic plugins
       { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/formatters'), ssr: false }, // Populate formatters cache for sorted table
+      { src: path.join(NUXT_SHELL, 'plugins/version'), ssr: false },
     ],
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options
@@ -603,9 +604,13 @@ export default function(dir, _appConfig) {
       '/g/':             proxyOpts('https://127.0.0.1:8000'),
       '/n/':             proxyOpts('https://127.0.0.1:8000'),
       '/p/':             proxyOpts('https://127.0.0.1:8000'),
+      '/rancherversion': proxyOpts(api), // Rancher version endpoint
       '/assets':         proxyOpts('https://127.0.0.1:8000'),
       '/translations':   proxyOpts('https://127.0.0.1:8000'),
       '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
+      // Plugin dev
+      '/verdaccio/':     proxyOpts('http://127.0.0.1:4873/-'),
+
     },
 
     // Nuxt server

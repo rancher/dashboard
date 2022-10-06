@@ -8,6 +8,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import KeyValue from '@shell/components/form/KeyValue';
 import { allHash } from '@shell/utils/promise';
 import { mapGetters } from 'vuex';
+import { isRancherPrime } from '@shell/config/version';
 
 const DEFAULT_CUSTOM_LINKS = [
   {
@@ -64,6 +65,7 @@ export default {
       });
 
       this.uiIssuesSetting = uiIssuesSetting;
+
       this.uiCommunitySetting = uiCommunitySetting;
     } catch {}
 
@@ -83,6 +85,7 @@ export default {
 
   data() {
     return {
+      isRancherPrime:     isRancherPrime(),
       uiCustomLinks:      {},
       defaultValues:      undefined,
       bannerVal:          {},
