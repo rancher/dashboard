@@ -64,10 +64,6 @@ export default {
         uiCommunitySetting: this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.COMMUNITY_LINKS })
       });
 
-      // const response = await version({ $axios: this.$axios });
-
-      // console.log(response);
-
       this.uiIssuesSetting = uiIssuesSetting;
 
       this.uiCommunitySetting = uiCommunitySetting;
