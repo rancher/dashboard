@@ -121,6 +121,8 @@ export default {
         showTypes:        [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
       });
 
+      charts = charts.filter(c => c.sideLabel !== 'Experimental');
+
       //  If legacy support is enabled, show V1 charts for some V1 Cluster tools
       if (this.legacyEnabled) {
         charts = charts.concat(this.legacyCharts);
