@@ -171,7 +171,7 @@ export const setSetting = async(store: Store<any>, id: string, val: string): Pro
   return setting;
 };
 
-export const getPerformanceSetting = (rootGetters) => {
+export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string, arg1: string) => any>) => {
   const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
   let perfConfig = {};
 
