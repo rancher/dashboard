@@ -80,9 +80,11 @@ export default {
 
     this.value = JSON.parse(sValue);
   },
+
   data() {
     return {
       uiCustomLinks:      {},
+      defaultValues:      undefined,
       bannerVal:          {},
       value:              {},
       errors:             [],
@@ -97,23 +99,12 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
-
-    defaultLinks: {
-      get(issueLink) {
-        if ( issueLink ) {
-          return this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, issueLink, ...DEFAULT_CUSTOM_LINKS]);
-        }
-
-        return this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...DEFAULT_CUSTOM_LINKS]);
-      }
-    }
-
   },
   methods: {
     useDefaults() {
       const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_LINKS;
 
-      this.value = this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks]);
+      this.defaultValues = this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks]);
 
       this.showRestoredBanner = true;
 
@@ -161,6 +152,7 @@ export default {
       <div class="ui-links-setting mt-20">
         <KeyValue
           v-model="value"
+          :default-value="defaultValues"
           :as-map="false"
           :key-label="t('customLinks.settings.keyLabel')"
           :value-label="t('customLinks.settings.valueLabel')"
