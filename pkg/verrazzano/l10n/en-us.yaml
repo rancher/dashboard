@@ -1,3 +1,9 @@
+# Fix VZ-7314 and override the vendor name being displays with a link to the Rancher charts.
+catalog:
+  repo:
+    name:
+      rancher-charts: Rancher
+
 nav:
   group:
     verrazzano: Verrazzano
