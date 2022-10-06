@@ -125,9 +125,17 @@ export default {
     <IndentedPanel>
       <div class="content mt-20">
         <div class="promo col main-panel">
-          <div v-if="hasSubscriptionSupport" class="box mb-20 box-primary">
+          <div class="box mb-20 box-primary">
             <h2>{{ t('support.suse.access.title') }}</h2>
-            <div>
+            <div v-if="!hasSubscriptionSupport" class="external support-links mt-20">
+              <div class="support-link">
+                <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
+              </div>
+              <div class="support-link">
+                <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }}</a>
+              </div>
+            </div>
+            <div v-else>
               <p class="pb-10">
                 {{ hasAWSSupport ? t("support.suse.access.aws.text") : t("support.suse.access.text") }}
               </p>
@@ -146,16 +154,7 @@ export default {
             </div>
           </div>
         </div>
-        <CommunityLinks :link-options="options" :is-support-page="true" class="community col side-panel span-3">
-          <div v-if="!hasSubscriptionSupport" class="external support-links" :class="{ 'mt-15': !!options}">
-            <div class="support-link">
-              <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
-            </div>
-            <div class="support-link">
-              <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }}</a>
-            </div>
-          </div>
-        </CommunityLinks>
+        <CommunityLinks :link-options="options" :is-support-page="true" class="community col side-panel span-3" />
       </div>
     </IndentedPanel>
   </div>
