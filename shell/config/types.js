@@ -51,6 +51,7 @@ export const NAMESPACE = 'namespace';
 export const NODE = 'node';
 export const NETWORK_POLICY = 'networking.k8s.io.networkpolicy';
 export const POD = 'pod';
+export const PSP = 'policy.podsecuritypolicy';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
