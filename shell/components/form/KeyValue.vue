@@ -24,6 +24,10 @@ export default {
       type:     [Array, Object],
       default: null,
     },
+    defaultValue: {
+      type:     [Array, Object],
+      default: null,
+    },
     // If the user supplies this array, then it indicates which keys should be shown as binary
     binaryValueKeys: {
       type:    [Array, Object],
@@ -224,12 +228,58 @@ export default {
       type:    Boolean
     }
   },
+  data() {
+    const rows = this.getRows(this.value);
+
+    return { rows };
+  },
+
   computed: {
-    rows() {
+
+    isView() {
+      return this.mode === _VIEW;
+    },
+    containerStyle() {
+      const gap = this.canRemove ? ' 50px' : '';
+      const size = 2 + this.extraColumns.length;
+
+      return `grid-template-columns: repeat(${ size }, 1fr)${ gap };`;
+    },
+    usedKeyOptions() {
+      return this.rows.map(row => row[this.keyName]);
+    },
+    filteredKeyOptions() {
+      if (this.keyOptionUnique) {
+        return this.keyOptions
+          .filter(option => !this.usedKeyOptions.includes(option.value));
+      }
+
+      return this.keyOptions;
+    },
+    /**
+     * Prevent removal if expressly not allowed and not in view mode
+     */
+    canRemove() {
+      return !this.isView && this.removeAllowed;
+    }
+  },
+  created() {
+    this.queueUpdate = debounce(this.update, 500);
+  },
+  watch: {
+    defaultValue(neu) {
+      if (Array.isArray(neu)) {
+        this.rows = this.getRows(neu);
+        this.$emit('input', neu);
+      }
+    }
+  },
+  methods: {
+    getRows(value) {
       const rows = [];
 
       if ( this.asMap ) {
-        const input = this.value || {};
+        const input = value || {};
 
         Object.keys(input).forEach((key) => {
           let value = input[key];
@@ -249,7 +299,7 @@ export default {
           });
         });
       } else {
-        const input = this.value || [];
+        const input = value || [];
 
         for ( const row of input ) {
           let value = row[this.valueName] || '';
@@ -287,37 +337,7 @@ export default {
 
       return rows;
     },
-    isView() {
-      return this.mode === _VIEW;
-    },
-    containerStyle() {
-      const gap = this.canRemove ? ' 50px' : '';
-      const size = 2 + this.extraColumns.length;
 
-      return `grid-template-columns: repeat(${ size }, 1fr)${ gap };`;
-    },
-    usedKeyOptions() {
-      return this.rows.map(row => row[this.keyName]);
-    },
-    filteredKeyOptions() {
-      if (this.keyOptionUnique) {
-        return this.keyOptions
-          .filter(option => !this.usedKeyOptions.includes(option.value));
-      }
-
-      return this.keyOptions;
-    },
-    /**
-     * Prevent removal if expressly not allowed and not in view mode
-     */
-    canRemove() {
-      return !this.isView && this.removeAllowed;
-    }
-  },
-  created() {
-    this.queueUpdate = debounce(this.update, 500);
-  },
-  methods: {
     add(key = '', value = '') {
       const obj = {
         ...this.defaultAddData,
