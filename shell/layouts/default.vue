@@ -604,7 +604,7 @@ export default {
             :to="supportLink"
             class="pull-right"
           >
-            {{ t('nav.support', {hasSupport: true}) }}
+            {{ t('nav.support', {hasSubscriptionSupport: true}) }}
           </nuxt-link>
 
           <span

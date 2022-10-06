@@ -12,6 +12,7 @@ import { getVersionInfo } from '@shell/utils/version';
 import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { isRancherPrime } from '@shell/config/version';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -161,8 +162,8 @@ export default {
       return (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
     },
 
-    hasSupport() {
-      return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
+    hasSubscriptionSupport() {
+      return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
     },
   },
 
@@ -321,7 +322,7 @@ export default {
         <div class="footer">
           <div v-if="canEditSettings" @click="hide()">
             <nuxt-link :to="{name: 'support'}">
-              {{ t('nav.support', {hasSupport}) }}
+              {{ t('nav.support', {hasSubscriptionSupport}) }}
             </nuxt-link>
           </div>
           <div @click="hide()">
