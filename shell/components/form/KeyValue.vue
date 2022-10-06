@@ -278,8 +278,8 @@ export default {
     getRows(value) {
       const rows = [];
 
-      if ( this.asMap ) {
-        const input = value || {};
+      if ( this.asMap || !Array.isArray(this.value) ) {
+        const input = this.value || {};
 
         Object.keys(input).forEach((key) => {
           let value = input[key];
