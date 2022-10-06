@@ -608,6 +608,7 @@ export default function(dir, _appConfig) {
       '/translations':   proxyOpts('https://127.0.0.1:8000'),
       '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
 
+
     },
 
     // Nuxt server
