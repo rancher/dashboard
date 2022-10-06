@@ -28,7 +28,7 @@ const creatableTypes = [
   'VerrazzanoWebLogicWorkload',
   'ContainerizedWorkload',
   'ConfigMap',
-  'Secret',
+  // 'Secret',
   'Deployment',
   'Service',
 ];

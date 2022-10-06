@@ -1494,29 +1494,29 @@ verrazzano:
   ###################################
   typeDescriptions:
     VerrazzanoCoherenceWorkload:
-      description: Description for Verrazzano Coherence Workload
-      docLink: https://www.oracle.com
+      description: Component that contains the configuration information for a Coherence workload within Verrazzano.
+      docLink: https://verrazzano.io/latest/docs/reference/api/oam/workloads/#verrazzanocoherenceworkload
     VerrazzanoHelidonWorkload:
-      description: Description for Verrazzano Helidon Workload
-      docLink: https://www.oracle.com
+      description: Component that contains the configuration information for a Helidon workload within Verrazzano.
+      docLink: https://verrazzano.io/latest/docs/reference/api/oam/workloads/#verrazzanohelidonworkload
     VerrazzanoWebLogicWorkload:
-      description: Description for Verrazzano WebLogic Workload
-      docLink: https://www.oracle.com
+      description: Component that contains the configuration information for a WebLogic Domain workload within Verrazzano.
+      docLink: https://verrazzano.io/latest/docs/reference/api/oam/workloads/#verrazzanoweblogicworkload
     ContainerizedWorkload:
-      description: Description for Containerized Workload
-      docLink: https://www.oracle.com
+      description: Component that contains the configuration information for an OAM Containerized workload within Verrazzano.
+      docLink: https://github.com/oam-dev/spec/blob/v0.2.1/core/workloads/containerized_workload/containerized_workload.md
     ConfigMap:
-      description: Description for Config Map
-      docLink: https://www.oracle.com
+      description: Component wrapper for a ConfigMap.
+      docLink: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#configmap-v1-core
     Secret:
-      description: Description for Secret
-      docLink: https://www.oracle.com
+      description: Component wrapper for a Secret.
+      docLink: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#secret-v1-core
     Deployment:
-      description: Description for Deployment
-      docLink: https://www.oracle.com
+      description: Component wrapper for a Deployment.
+      docLink: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#deployment-v1-apps
     Service:
-      description: Description for Service
-      docLink: https://www.oracle.com
+      description: Component wrapper for a Service.
+      docLink: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#service-v1-core
 
   ########################
   ### verrazzano.types ###
