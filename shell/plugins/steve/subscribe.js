@@ -1,7 +1,7 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { COUNT, SCHEMA } from '@shell/config/types';
-import { getPerformanceSetting } from '@shell/config/settings';
+import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,

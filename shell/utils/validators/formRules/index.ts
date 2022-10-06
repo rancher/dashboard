@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import has from 'lodash/has';
 // import uniq from 'lodash/uniq';
 import cronstrue from 'cronstrue';
-import { Translation } from '~/types/t';
+import { Translation } from '@shell/types/t';
 
 // import uniq from 'lodash/uniq';
 export type Validator = (val: any, arg?: any) => undefined | string;
