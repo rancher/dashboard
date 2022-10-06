@@ -200,6 +200,8 @@ export default function(dir, _appConfig) {
     process.env.DRONE_VERSION ||
     require('./package.json').version;
 
+  const prime = process.env.PRIME;
+
   const dev = (process.env.NODE_ENV !== 'production');
   const devPorts = dev || process.env.DEV_PORTS === 'true';
   const pl = process.env.PL || STANDARD;
@@ -664,6 +666,49 @@ export default function(dir, _appConfig) {
       onError,
       onProxyRes,
     };
+  }
+
+  // Intercept the /rancherversion API call wnad modify the 'RancherPrime' value
+  // if configured to do so by the environment variable PRIME
+  function proxyPrimeOpts(target) {
+    const opts = proxyOpts(target);
+
+    // Don't intercept if the PRIME environment variable is not set
+    if (!prime?.length) {
+      return opts;
+    }
+
+    opts.onProxyRes = (proxyRes, req, res) => {
+      const _end = res.end;
+      let body = '';
+
+      proxyRes.on( 'data', (data) => {
+        data = data.toString('utf-8');
+        body += data;
+      });
+
+      res.write = () => {};
+
+      res.end = () => {
+        let output = body;
+
+        try {
+          const out = JSON.parse(body);
+
+          out.RancherPrime = prime;
+          output = JSON.stringify(out);
+        } catch (err) {}
+
+        res.setHeader('content-length', output.length );
+        res.setHeader('content-type', 'application/json' );
+        res.setHeader('transfer-encoding', '');
+        res.setHeader('cache-control', 'no-cache');
+        res.writeHead(proxyRes.statusCode);
+        _end.apply(res, [output]);
+      };
+    };
+
+    return opts;
   }
 
   function onProxyRes(proxyRes, req, res) {
