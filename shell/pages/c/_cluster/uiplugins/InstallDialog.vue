@@ -169,7 +169,6 @@ export default {
           id:   operationId
         });
       } catch (e) {
-        console.log(e);
         this.$store.dispatch('growl/error', {
           title:   this.t('plugins.error.generic'),
           message: e.message ? e.message : e,
