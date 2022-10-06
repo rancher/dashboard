@@ -23,7 +23,5 @@ export default {
 </script>
 
 <template>
-  <div>
-    <Workload v-bind="$props" />
-  </div>
+  <Workload v-bind="$props" />
 </template>

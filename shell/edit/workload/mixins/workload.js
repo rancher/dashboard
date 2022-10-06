@@ -167,8 +167,6 @@ export default {
           name:            `container-0`,
         }];
 
-        console.log('VALUE', this.value);
-
         const metadata = { ...this.value.metadata };
 
         const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
@@ -176,8 +174,6 @@ export default {
         this.$set(this.value, 'spec', podSpec);
       }
     }
-
-    console.log('VALUE', this);
 
     if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
       const podSpec = { ...this.value.spec };
