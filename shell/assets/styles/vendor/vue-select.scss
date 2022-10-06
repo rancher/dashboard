@@ -103,7 +103,7 @@
   }
 
   &.vs__dropdown-option--highlight {
-    color: var(--dropdown-hover-text);
+    color: var(--dropdown-active-text);
     background: var(--dropdown-hover-bg);
 
     a {

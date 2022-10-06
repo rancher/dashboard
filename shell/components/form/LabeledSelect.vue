@@ -154,6 +154,7 @@ export default {
       if (!option) {
         return;
       }
+
       if (this.$attrs['get-option-label']) {
         return this.$attrs['get-option-label'](option);
       }
@@ -275,7 +276,7 @@ export default {
       <template #option="option">
         <template v-if="option.kind === 'group'">
           <div class="vs__option-kind-group">
-            <b>{{ getOptionLabel(option) }}</b>
+            <b>{{ getOptionLabel(option) }} test</b>
             <div v-if="option.badge">
               {{ option.badge }}
             </div>
@@ -283,6 +284,11 @@ export default {
         </template>
         <template v-else-if="option.kind === 'divider'">
           <hr />
+        </template>
+        <template v-else-if="option.kind === 'link'">
+          <a>
+            {{ option.label }}
+          </a>
         </template>
         <div v-else @mousedown="(e) => onClickOption(option, e)">
           {{ getOptionLabel(option) }}
