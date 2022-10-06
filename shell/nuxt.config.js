@@ -606,9 +606,7 @@ export default function(dir, _appConfig) {
       '/rancherversion': proxyOpts(api), // Rancher version endpoint
       '/assets':         proxyOpts('https://127.0.0.1:8000'),
       '/translations':   proxyOpts('https://127.0.0.1:8000'),
-      '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
-      // Plugin dev
-      '/verdaccio/':     proxyOpts('http://127.0.0.1:4873/-'),
+      '/engines-dist':   proxyOpts('https://127.0.0.1:8000')
 
     },
 
