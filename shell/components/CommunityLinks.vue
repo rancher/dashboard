@@ -68,41 +68,27 @@ export default {
 
       // Custom links set from settings
       if (!!this.uiCustomLinks?.value) {
-<<<<<<< HEAD
         try {
-          const customLinks = JSON.parse(this.uiCustomLinks.value);
+          const val = JSON.parse(this.uiCustomLinks.value);
 
-          if (Array.isArray(customLinks)) {
-            return customLinks.reduce((prev, curr) => {
-              prev[curr.key] = curr.value;
+          const arr = Array.isArray(val) ? val : Object.keys(val);
 
+          return arr.reduce((prev, curr) => {
+          // Skip default support link in support page
+            if (this.isSupportPage && curr.value === '/support') {
               return prev;
-            }, {});
-          }
+            }
+            prev[curr.key] = curr.value;
+
+            return prev;
+          }, {});
         } catch (e) {
           console.error('Could not parse custom links setting', e); // eslint-disable-line no-console
         }
-=======
-        const val = JSON.parse(this.uiCustomLinks.value);
+      } // Fallback
 
-        const arr = Array.isArray(val) ? val : Object.keys({});
-
-        return arr.reduce((prev, curr) => {
-          // Skip default support link in support page
-          if (this.isSupportPage && curr.value === '/support') {
-            return prev;
-          }
-
-          prev[curr.key] = curr.value;
-
-          return prev;
-        }, {});
->>>>>>> 7c39a4901 (Implement Rancher Prime endpoint.)
-      }
-
-      // Fallback
       return options(false, this.uiIssuesSetting?.value);
-    },
+    }
   },
   methods: {
     getLabel(label) {

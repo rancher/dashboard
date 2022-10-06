@@ -8,7 +8,7 @@ import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { addParam } from '@shell/utils/url';
-import { isRancherPrime } from '~/shell/config/version';
+import { isRancherPrime } from '@shell/config/version';
 
 export default {
   layout: 'home',
@@ -98,10 +98,6 @@ export default {
       return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig`;
     },
 
-    hasSupport() {
-      return isRancherPrime();
-    },
-
     options() {
       if (!this.uiIssuesSetting?.value) {
         return;
@@ -112,7 +108,7 @@ export default {
     },
 
     title() {
-      return this.hasSupport ? 'support.suse.title' : 'support.community.title';
+      return this.hasSubscriptionSupport ? 'support.suse.title' : 'support.community.title';
     },
 
     sccLink() {
@@ -128,7 +124,7 @@ export default {
 
     <IndentedPanel>
       <div class="content mt-20">
-        <div class="promo">
+        <div class="promo col main-panel">
           <div v-if="hasSubscriptionSupport" class="box mb-20 box-primary">
             <h2>{{ t('support.suse.access.title') }}</h2>
             <div>
@@ -150,29 +146,36 @@ export default {
             </div>
           </div>
         </div>
-        <div class="community">
-          <CommunityLinks :link-options="options" :is-support-page="true">
-            <div v-if="!hasSupport" class="external support-links" :class="{ 'mt-15': !!options}">
-              <div class="support-link">
-                <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
-              </div>
-              <div class="support-link">
-                <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }}</a>
-              </div>
+        <CommunityLinks :link-options="options" :is-support-page="true" class="community col side-panel span-3">
+          <div v-if="!hasSubscriptionSupport" class="external support-links" :class="{ 'mt-15': !!options}">
+            <div class="support-link">
+              <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
             </div>
-          </CommunityLinks>
-        </div>
+            <div class="support-link">
+              <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }}</a>
+            </div>
+          </div>
+        </CommunityLinks>
       </div>
     </IndentedPanel>
   </div>
 </template>
 <style lang="scss" scoped>
 .content {
-  display: grid;
-  grid-column-gap: 20px;
-  grid-row-gap: 20px;
-  grid-template-columns: 70% 30%;
-}
+
+    display: flex;
+    align-items: stretch;
+    .col {
+      margin: 0
+    }
+    .main-panel {
+      flex: auto;
+    }
+
+    .side-panel {
+      margin-left: 1.75%;
+    }
+  }
 
 .toggle-support {
     height: 100%;
@@ -185,16 +188,6 @@ export default {
       display: flex;
       justify-content: space-between;
     }
-}
-
-.community {
-  border-left: 1px solid var(--border);
-  padding-left: 20px;
-  > h2 {
-    font-size: 18px;
-    font-weight: 300;
-    margin-bottom: 20px;
-  }
 }
 
 .support-link:not(:first-child) {
