@@ -111,6 +111,19 @@ export default {
         return;
       }
 
+      // See if there is already a plugin with this name
+      let exists = false;
+
+      try {
+        const app = await this.$store.dispatch('management/find', {
+          type:  CATALOG.APP,
+          id:   `${ UI_PLUGIN_NAMESPACE }/${ plugin.chart.chartName }`,
+          opt:  { force: true },
+        });
+
+        exists = !!app;
+      } catch (e) {}
+
       const repoType = version.repoType;
       const repoName = version.repoName;
       const repo = this.$store.getters['catalog/repo']({ repoType, repoName });
@@ -141,24 +154,29 @@ export default {
       };
 
       // Helm action
-      const action = this.update ? 'upgrade' : 'install';
+      const action = (exists || this.update) ? 'upgrade' : 'install';
 
-      // const name = plugin.chart.chartName;
+      try {
+        const res = await repo.doAction(action, input);
+        const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
-      // const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
-      const res = await repo.doAction(action, input);
-      const operationId = `${ res.operationNamespace }/${ res.operationName }`;
+        this.closeDialog(plugin);
 
-      // Vue.set(this.installing, this.selected.chart.chartName, operationId);
+        await repo.waitForOperation(operationId);
 
-      this.closeDialog(plugin);
+        await this.$store.dispatch(`management/find`, {
+          type: CATALOG.OPERATION,
+          id:   operationId
+        });
+      } catch (e) {
+        this.$store.dispatch('growl/error', {
+          title:   this.t('plugins.error.generic'),
+          e,
+          timeout: 5000
+        }, { root: true });
 
-      await repo.waitForOperation(operationId);
-
-      await this.$store.dispatch(`management/find`, {
-        type: CATALOG.OPERATION,
-        id:   operationId
-      });
+        this.closeDialog(plugin);
+      }
     }
   }
 };

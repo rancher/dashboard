@@ -3679,6 +3679,7 @@ plugins:
   error:
     title: Error loading extension
     message: Could not load extension code
+    generic: Extension error
   success:
     title: Loaded extension {name}
     message: Extension was loaded successfully

@@ -40,7 +40,15 @@ export default {
       });
 
       if (pluginApp) {
-        await pluginApp.remove();
+        try {
+          await pluginApp.remove();
+        } catch (e) {
+          this.$store.dispatch('growl/error', {
+            title:   this.t('plugins.error.generic'),
+            e,
+            timeout: 5000
+          }, { root: true });
+        }
 
         await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
       }

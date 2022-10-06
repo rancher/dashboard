@@ -308,10 +308,10 @@ export default {
 
   // Forget the types when we leave the page
   beforeDestroy() {
-    this.$store.dispatch('cluster/forgetType', UI_PLUGIN);
-    this.$store.dispatch('cluster/forgetType', CATALOG.OPERATION);
-    this.$store.dispatch('cluster/forgetType', CATALOG.APP);
-    this.$store.dispatch('cluster/forgetType', CATALOG.CLUSTER_REPO);
+    this.$store.dispatch('management/forgetType', UI_PLUGIN);
+    this.$store.dispatch('management/forgetType', CATALOG.OPERATION);
+    this.$store.dispatch('management/forgetType', CATALOG.APP);
+    this.$store.dispatch('management/forgetType', CATALOG.CLUSTER_REPO);
   },
 
   methods:    {
@@ -459,7 +459,7 @@ export default {
           v-if="list.length === 0"
           :vertical="true"
           :subtle="true"
-          icon="icon-gear"
+          icon="icon-extension"
           :message="emptyMessage"
         />
         <template v-else>
