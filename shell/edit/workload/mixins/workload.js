@@ -210,7 +210,17 @@ export default {
           [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
           [PVC]:             { applyTo: [{ var: 'pvcs' }] },
           [SERVICE_ACCOUNT]: { applyTo: [{ var: 'namespacedServiceNames' }] },
-          [SECRET]:          { applyTo: [{ var: 'namespacedSecrets' }] },
+          [SECRET]:          {
+            applyTo: [
+              { var: 'namespacedSecrets' },
+              {
+                var:         'imagePullNamespacedSecrets',
+                parsingFunc: (data) => {
+                  return data.filter(secret => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+                }
+              }
+            ]
+          },
           [NODE]:            {
             applyTo: [
               { var: 'allNodeObjects' },
@@ -239,6 +249,7 @@ export default {
       allNodes:                    null,
       allNodeObjects:              [],
       namespacedSecrets:           [],
+      imagePullNamespacedSecrets:  [],
       allServices:                 [],
       headlessServices:            [],
       name:                        this.value?.metadata?.name || null,

@@ -1,5 +1,4 @@
 <script>
-import { removeObjects, addObjects } from '@shell/utils/array';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import Mount from '@shell/edit/workload/storage/Mount';
 import { _VIEW } from '@shell/config/query-params';
@@ -65,7 +64,7 @@ export default {
   data() {
     this.initializeStorage();
 
-    return { storageVolumes: this.getStorageVolumes() };
+    return {};
   },
 
   computed: {
