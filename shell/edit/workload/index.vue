@@ -4,7 +4,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 
 export default {
-  name:       'WorkloadDeployments',
+  name:       'Workload',
   mixins:     [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
   props:      {
     value: {

@@ -3,6 +3,7 @@ import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/reso
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
+import { merge } from 'lodash';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -186,12 +187,10 @@ export default class Pod extends WorkloadService {
 
     this.spec = {
       ...this.spec,
-      metadata: {
-        ...this.metadata,
-        ...metadata
-      },
       ...spec
     };
+
+    this.metadata = merge(this.metadata, metadata);
 
     delete this.spec.template;
 
