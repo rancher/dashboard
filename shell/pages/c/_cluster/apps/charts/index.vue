@@ -345,7 +345,7 @@ export default {
           {{ t('catalog.charts.header') }}
         </h1>
       </div>
-      <div class="actions-container">
+      <div v-if="getFeaturedCharts.length > 0" class="actions-container">
         <ButtonGroup
           v-model="chartMode"
           :options="chartOptions"
