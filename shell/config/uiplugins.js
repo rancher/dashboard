@@ -29,10 +29,19 @@ export const UI_PLUGINS_REPO_NAME = 'rancher-ui-plugins';
 export const UI_PLUGINS_REPO_URL = 'https://github.com/rancher/ui-plugin-charts';
 export const UI_PLUGINS_REPO_BRANCH = 'main';
 
+// Chart annotations
+export const UI_PLUGIN_CHART_ANNOTATIONS = {
+  RANCHER_VERSION:    'catalog.cattle.io/rancher-version',
+  EXTENSIONS_VERSION: 'catalog.cattle.io/ui-extenstions-version',
+  EXTENSIONS_HOST:    'catalog.cattle.io/ui-extenstions-host',
+};
+
 // Plugin Metadata properties
-const UI_PLUGIN_METADATA_EXTENSION_API_VERSION = 'extVersion';
-const UI_PLUGIN_METADATA_HOST = 'host';
-const UI_PLUGIN_METADATA_RANCHER_VERSION = 'rancherVersion';
+export const UI_PLUGIN_METADATA = {
+  RANCHER_VERSION:    'rancherVersion',
+  EXTENSION_VERSION:  'extVersion',
+  EXTENSIONS_HOST:    'host',
+};
 
 export function isUIPlugin(chart) {
   return !!chart?.versions.find((v) => {
@@ -54,14 +63,14 @@ export function shouldNotLoadPlugin(plugin, rancherVersion) {
   }
 
   // Plugin specified a required extension API version
-  const requiredAPI = plugin.metadata?.[UI_PLUGIN_METADATA_EXTENSION_API_VERSION];
+  const requiredAPI = plugin.metadata?.[UI_PLUGIN_METADATA.EXTENSION_VERSION];
 
   if (requiredAPI && !semver.satisfies(UI_PLUGIN_API_VERSION, requiredAPI)) {
     return 'plugins.error.api';
   }
 
   // Host application
-  const requiredHost = plugin.metadata?.[UI_PLUGIN_METADATA_HOST];
+  const requiredHost = plugin.metadata?.[UI_PLUGIN_METADATA.EXTENSIONS_HOST];
 
   if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
     return 'plugins.error.host';
@@ -69,7 +78,7 @@ export function shouldNotLoadPlugin(plugin, rancherVersion) {
 
   // Rancher version
   if (rancherVersion) {
-    const requiredRancherVersion = plugin.metadata?.[UI_PLUGIN_METADATA_RANCHER_VERSION];
+    const requiredRancherVersion = plugin.metadata?.[UI_PLUGIN_METADATA.RANCHER_VERSION];
 
     if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
       return 'plugins.error.version';
@@ -77,4 +86,32 @@ export function shouldNotLoadPlugin(plugin, rancherVersion) {
   }
 
   return false;
+}
+
+// Can a chart version be used for this Rancher (based on the annotations on the chart)?
+export function isSupportedChartVersion(chartVersion, rancherVersion) {
+  // Plugin specified a required extension API version
+  const requiredAPI = chartVersion.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+
+  if (requiredAPI && !semver.satisfies(UI_PLUGIN_API_VERSION, requiredAPI)) {
+    return false;
+  }
+
+  // Host application
+  const requiredHost = chartVersion.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST];
+
+  if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
+    return false;
+  }
+
+  // Rancher version
+  if (rancherVersion) {
+    const requiredRancherVersion = chartVersion.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION];
+
+    if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
+      return false;
+    }
+  }
+
+  return true;
 }

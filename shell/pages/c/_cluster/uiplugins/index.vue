@@ -18,7 +18,7 @@ import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins';
 import RemoveUIPlugins from './RemoveUIPlugins';
-import { isUIPlugin, uiPluginHasAnnotation, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import { isUIPlugin, uiPluginHasAnnotation, isSupportedChartVersion, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -164,8 +164,8 @@ export default {
         item.versions = [...chart.versions];
         item.chart = chart;
 
-        // TODO: Filter the versions, leaving only those that are compatible with this Rancher
-        // TODO
+        // Filter the versions, leaving only those that are compatible with this Rancher
+        item.versions = item.versions.filter(version => isSupportedChartVersion(version));
 
         if (this.latest) {
           item.icon = chart.icon || this.latest.annotations['catalog.cattle.io/ui-icon'];
