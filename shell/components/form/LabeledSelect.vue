@@ -276,6 +276,7 @@ export default {
       <template #option="option">
         <template v-if="option.kind === 'group'">
           <div class="vs__option-kind-group">
+            <b>{{ getOptionLabel(option) }}</b>
             <div v-if="option.badge">
               {{ option.badge }}
             </div>
