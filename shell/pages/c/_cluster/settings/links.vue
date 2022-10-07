@@ -9,43 +9,59 @@ import KeyValue from '@shell/components/form/KeyValue';
 import { allHash } from '@shell/utils/promise';
 import { mapGetters } from 'vuex';
 import { isRancherPrime } from '@shell/config/version';
+import KeyValueView from '@shell/components/KeyValueView';
+import { Checkbox } from '@components/Form/Checkbox';
 
 const DEFAULT_CUSTOM_LINKS = [
   {
-    order: 1,
-    key:   'customLinks.defaults.docs',
-    value: 'https://rancher.com/docs/rancher/v2.6/en'
+    order:    1,
+    key:      'customLinks.defaults.docs',
+    value:    'https://rancher.com/docs/rancher/v2.6/en',
+    enabled: true,
+    default:  true
   },
   {
-    order: 2,
-    key:   'customLinks.defaults.forums',
-    value: 'https://forums.rancher.com/'
+    order:    2,
+    key:      'customLinks.defaults.forums',
+    value:    'https://forums.rancher.com/',
+    enabled: true,
+    default:  true
+  },
+  {
+    order:    3,
+    key:      'customLinks.defaults.slack',
+    value:    'https://slack.rancher.io/',
+    enabled: true,
+    default:  true
 
   },
   {
-    order: 3,
-    key:   'customLinks.defaults.slack',
-    value: 'https://slack.rancher.io/'
-  },
-  {
-    order: 5,
-    key:   'customLinks.defaults.getStarted',
-    value: '/docs/getting-started'
+    order:    5,
+    key:      'customLinks.defaults.getStarted',
+    value:    '/docs/getting-started',
+    enabled: true,
+    default:  true
+
   }
 
 ];
 
 const DEFAULT_SUPPORT_LINK = {
-  order: 4,
-  key:   'customLinks.defaults.issues',
-  value: 'https://github.com/rancher/dashboard/issues/new'
+  order:    4,
+  key:      'customLinks.defaults.issues',
+  value:    'https://github.com/rancher/dashboard/issues/new',
+  enabled: true,
+  default:  true
+
 };
 
 const COMMUNITY_LINKS = [
   {
-    order: 99,
-    key:   'customLinks.defaults.commercialSupport',
-    value: '/support'
+    order:    99,
+    key:      'customLinks.defaults.commercialSupport',
+    value:    '/support',
+    enabled: true,
+    default:  true
   }
 ];
 
@@ -56,6 +72,8 @@ export default {
     Loading,
     AsyncButton,
     Banner,
+    KeyValueView,
+    Checkbox
   },
   async fetch() {
     try {
@@ -65,7 +83,6 @@ export default {
       });
 
       this.uiIssuesSetting = uiIssuesSetting;
-
       this.uiCommunitySetting = uiCommunitySetting;
     } catch {}
 
@@ -78,18 +95,16 @@ export default {
       await this.deprecateIssueLinks();
     } catch {}
 
-    const sValue = this.uiCustomLinks?.value || JSON.stringify(this.multiWithFallback([...DEFAULT_CUSTOM_LINKS]));
-
-    this.value = JSON.parse(sValue);
+    this.value = JSON.parse(this.uiCustomLinks.value);
   },
 
   data() {
     return {
+      defaultsDisabled:    true,
       isRancherPrime:     isRancherPrime(),
       uiCustomLinks:      {},
-      defaultValues:      undefined,
       bannerVal:          {},
-      value:              {},
+      value:              [],
       errors:             [],
       showRestoredBanner: false
     };
@@ -102,18 +117,40 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
+
+    allValues() {
+      return [...this.defaultLinks, ...this.customLinks];
+    },
+
+    customLinks: {
+      get() {
+        return this.value.filter(item => !item.default);
+      },
+
+      set(neu) {
+        this.$set(this, 'value', [...this.defaultLinks, ...neu]);
+      }
+
+    },
+    defaultLinks: {
+      get() {
+        const defaults = this.value.filter(item => !!item.default);
+
+        return defaults.length ? defaults : this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...COMMUNITY_LINKS]);
+      },
+
+      set(neu) {
+        this.$set(this, 'value', [...neu, ...this.customLinks]);
+      }
+    }
   },
   methods: {
-    useDefaults() {
-      const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_LINKS;
 
-      this.defaultValues = this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks]);
+    showhide(row, i, e) {
+      const value = this.defaultLinks[i];
 
-      this.showRestoredBanner = true;
-
-      setTimeout(() => {
-        this.showRestoredBanner = false;
-      }, 10000);
+      this.$set(this.value, i, { ...value, enabled: !value.enabled });
+      this.defaultLinks[i] = this.value[i];
     },
 
     deprecateIssueLinks() {
@@ -126,7 +163,7 @@ export default {
     },
 
     async save(btnCB) {
-      this.uiCustomLinks.value = JSON.stringify(this.value);
+      this.uiCustomLinks.value = JSON.stringify(this.allValues);
       this.errors = [];
       try {
         await this.uiCustomLinks.save();
@@ -153,27 +190,61 @@ export default {
         {{ t(`customLinks.description`, {}, true) }}
       </label>
       <div class="ui-links-setting mt-20">
-        <KeyValue
-          v-model="value"
-          :default-value="defaultValues"
+        <KeyValueView
+          v-model="defaultLinks"
+          :title="'Default Links'"
           :as-map="false"
           :key-label="t('customLinks.settings.keyLabel')"
           :value-label="t('customLinks.settings.valueLabel')"
           :add-label="t('customLinks.addLink')"
-          :mode="mode"
           :read-allowed="false"
           :protip="false"
-        />
+          :mode="mode"
+          :has-action="true"
+        >
+          <template #key="{row, i}">
+            <div
+              class="kv-item key"
+              :index="i"
+            >
+              {{ row.key }}
+            </div>
+          </template>
+          <template #value="{row, i}">
+            <div
+              class="kv-item key"
+              :index="i"
+            >
+              {{ row.value }}
+            </div>
+          </template>
+          <template #rowaction="{row, i}">
+            <div class="action">
+              <Checkbox v-model="row.enabled" label="Show" @input="showhide(row, i, $event)" />
+            </div>
+          </template>
+        </KeyValueView>
       </div>
+    </div>
+    <div class="mt-20">
+      <KeyValue
+        v-model="customLinks"
+        :title="'Custom Links'"
+        :as-map="false"
+        :key-label="t('customLinks.settings.keyLabel')"
+        :value-label="t('customLinks.settings.valueLabel')"
+        :add-label="t('customLinks.addLink')"
+        :read-allowed="false"
+        :protip="false"
+        :mode="mode"
+      >
+      </KeyValue>
     </div>
     <template v-for="err in errors">
       <Banner :key="err" color="error" :label="err" />
     </template>
     <div v-if="mode === 'edit'" class="mt-20">
       <AsyncButton class="pull-right" mode="apply" @click="save" />
-      <button class="pull-right btn role-secondary mr-10" @click="useDefaults">
-        {{ t('customLinks.restoreDefaults') }}
-      </button>
     </div>
   </div>
 </template>
@@ -197,7 +268,10 @@ export default {
     text-decoration: underline;
   }
 }
-.input {
-  max-width: 25%;
+.action {
+  display: flex;
+  input {
+    margin-right: 5px;
+  }
 }
 </style>
