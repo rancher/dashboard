@@ -263,7 +263,7 @@ export default {
         out.push({
           label: this.t('namespace.createNamespace'),
           value: '',
-          kind:  'link'
+          kind:  'highlighted'
         });
       }
       out.push({

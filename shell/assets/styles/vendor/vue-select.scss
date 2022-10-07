@@ -103,13 +103,8 @@
   }
 
   &.vs__dropdown-option--highlight {
-    color: var(--dropdown-active-text);
+    color: var(--dropdown-hover-text);
     background: var(--dropdown-hover-bg);
-
-    a {
-      color: var(--dropdown-hover-text);
-      text-decoration: none;
-    }
   }
 }
 

@@ -285,10 +285,10 @@ export default {
         <template v-else-if="option.kind === 'divider'">
           <hr />
         </template>
-        <template v-else-if="option.kind === 'link'">
-          <a>
+        <template v-else-if="option.kind === 'highlighted'">
+          <div class="option-kind-highlighted">
             {{ option.label }}
-          </a>
+          </div>
         </template>
         <div v-else @mousedown="(e) => onClickOption(option, e)">
           {{ getOptionLabel(option) }}
@@ -492,4 +492,23 @@ export default {
     padding: 0 10px;
   }
 }
+
+// Styling for option highlighted
+.vs__dropdown-option {
+  > .option-kind-highlighted {
+    color: var(--dropdown-highlight-text);
+
+    &:hover {
+      color: var(--dropdown-hover-text);
+    }
+  }
+
+  &.vs__dropdown-option--selected,
+  &.vs__dropdown-option--highlight {
+    > .option-kind-highlighted {
+      color: var(--dropdown-hover-text);
+    }
+  }
+}
+
 </style>
