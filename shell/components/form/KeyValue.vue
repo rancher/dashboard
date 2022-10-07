@@ -96,6 +96,10 @@ export default {
         return this.$store.getters['i18n/t']('keyValue.keyPlaceholder');
       },
     },
+    disableAll: {
+      type:    Boolean,
+      default: false,
+    },
     separatorLabel: {
       type:    String,
       default: '',
@@ -401,7 +405,7 @@ export default {
     update() {
       let out;
 
-      if ( this.asMap ) {
+      if ( this.asMap || !Array.isArray(this.value) ) {
         out = {};
         const keyName = this.keyName;
         const valueName = this.valueName;
@@ -553,7 +557,7 @@ export default {
               v-else
               ref="key"
               v-model="row[keyName]"
-              :disabled="isView || !keyEditable"
+              :disabled="isView || !keyEditable || disableAll"
               :placeholder="keyPlaceholder"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
@@ -583,12 +587,13 @@ export default {
               :placeholder="valuePlaceholder"
               :min-height="40"
               :spellcheck="false"
+              :disabled="isView || disableAll"
               @input="queueUpdate"
             />
             <input
               v-else
               v-model="row[valueName]"
-              :disabled="isView"
+              :disabled="isView || disableAll"
               :type="valueConcealed ? 'password' : 'text'"
               :placeholder="valuePlaceholder"
               autocorrect="off"

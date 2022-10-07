@@ -73,7 +73,7 @@ export default {
 
           const arr = Array.isArray(val) ? val : Object.keys(val);
 
-          return arr.reduce((prev, curr) => {
+          return arr.filter(item => item.enabled !== false).reduce((prev, curr) => {
           // Skip default support link in support page
             if (this.isSupportPage && curr.value === '/support') {
               return prev;
