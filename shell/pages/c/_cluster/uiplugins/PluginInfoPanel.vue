@@ -83,7 +83,7 @@ export default {
   <div class="plugin-info-panel">
     <div v-if="showSlideIn" class="glass" @click="hide()" />
     <div class="slideIn" :class="{'hide': false, 'slideIn__show': showSlideIn}">
-      <div v-if="info">
+      <div v-if="info" class="plugin-info-content">
         <div class="plugin-header">
           <div class="plugin-icon">
             <LazyImage
@@ -138,10 +138,10 @@ export default {
         <div v-if="versionError">
           {{ t('plugins.info.versionError') }}
         </div>
-        <div v-if="versionInfo">
-          <h3>
-            {{ t('plugins.info.detail') }}
-          </h3>
+        <h3 v-if="versionInfo" >
+          {{ t('plugins.info.detail') }}
+        </h3>
+        <div v-if="versionInfo" class="plugin-info-detail">
           <ChartReadme v-if="versionInfo" :version-info="versionInfo" />
         </div>
         <div v-if="!info.versions.length">
@@ -190,6 +190,16 @@ export default {
       padding: 10px;
 
       transition: right .5s ease;
+
+      .plugin-info-content {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+
+        .plugin-info-detail {
+          overflow: scroll;
+        }
+      }
 
       h3 {
         font-size: 14px;
