@@ -40,8 +40,6 @@ export const gcActions = {
 
   gcResetStores({ dispatch, getters }) {
     getters.gcStores.forEach(([storeName, storeState]) => {
-      console.warn('root gcResetStores', '', storeName); // TODO: RC LOG
-
       dispatch(`${ storeName }/gcResetStore`);
     });
   },
@@ -51,14 +49,10 @@ export const gcActions = {
    */
   garbageCollect({ rootState, dispatch, getters }, ignoreTypes) {
     if (!gc.gcEnabledSetting({ rootState })) {
-      console.warn('root garbageCollect', 'IGNORING (disabled)');// TODO: RC LOG
-
       return;
     }
 
     getters.gcStores.forEach(([storeName, storeState]) => {
-      console.warn('root garbageCollect', '', storeName);// TODO: RC LOG
-
       dispatch(`${ storeName }/garbageCollect`, ignoreTypes);
     });
   }

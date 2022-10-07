@@ -1,20 +1,16 @@
 import { SETTING } from '@shell/config/settings';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
-import { GC_DEFAULTS } from './gc-types';
+import { GC_DEFAULTS, GC_PREFERENCES } from './gc-types';
 
 class GarbageCollect {
-  private static ENABLE_DEBUG_LOGGING = true; // TODO: RC PR
+  private static ENABLE_DEBUG_LOGGING = false;
 
   /**
    * Don't run GC if it's been run within 5 seconds
    */
   private static GC_RE_RUN_GAP = 1000 * 5;
 
-  private cachedGcPrefs: {
-    enabled: boolean,
-    ageThreshold: number,
-    countThreshold: number
-  } = GC_DEFAULTS;
+  private cachedGcPrefs: GC_PREFERENCES = GC_DEFAULTS;
 
   private cachedGcPrefsStamp: string = '';
 
@@ -98,6 +94,24 @@ class GarbageCollect {
     return true;
   }
 
+  gcEnabledInterval(pseudoCtx: any) {
+    const { rootState } = pseudoCtx;
+
+    // Don't use a getter... as we'll end up triggering ourselves again
+    const uiPerfGarbageCollection = this.getUiPerfGarbageCollection(rootState);
+
+    return uiPerfGarbageCollection?.enabledInterval;
+  }
+
+  gcEnabledRoute(pseudoCtx: any) {
+    const { rootState } = pseudoCtx;
+
+    // Don't use a getter... as we'll end up triggering ourselves again
+    const uiPerfGarbageCollection = this.getUiPerfGarbageCollection(rootState);
+
+    return uiPerfGarbageCollection?.enabledOnNavigate;
+  }
+
   // ------------- GC (actual) ---------------------
 
   /**
@@ -132,7 +146,7 @@ class GarbageCollect {
       if (!uiPerfGarbageCollection) {
         return ;
       }
-      const maxAge = uiPerfGarbageCollection.ageThreshold;
+      const maxAge = uiPerfGarbageCollection.ageThreshold * 1000;
       const maxCount = uiPerfGarbageCollection.countThreshold;
 
       this.debugLog(`Max Age: ${ maxAge }. Max Count: ${ maxCount }`);// , 'Cache', this.lastAccessedCache
@@ -200,7 +214,7 @@ class GarbageCollect {
     }
 
     if (Object.keys(gcd).length > 0) {
-      console.info('Garbage Collected Resources', gcd);
+      console.info('Garbage Collected Resources', gcd); // eslint-disable-line no-console
     }
 
     this.debugLog(`------ Finished ------`);
@@ -256,7 +270,7 @@ class GarbageCollect {
     }
     delete this.lastAccessedCache[store][type];
 
-    this.debugLog('Forgetting Store:', store, type);
+    this.debugLog('Forgetting Type:', store, type);
   }
 }
 

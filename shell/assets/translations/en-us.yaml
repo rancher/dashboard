@@ -6193,15 +6193,21 @@ performance:
     checkboxLabel: Disable websocket notifications
   gc:
     label: Resource Garbage Collection
-    description: The UI will cache kuberentes resources locally to avoid having to re-fetch them. In some cases this can lead to a large amount of data stored in the browser. Enable this setting to periodically remove them TODO RC only applie sto
+    description: The UI will cache kuberentes resources locally to avoid having to re-fetch them. In some cases this can lead to a large amount of data stored in the browser. Enable this setting to periodically remove them.
     banner: This setting is experimental and may be removed or updated in future versions.
     checkboxLabel: Enable Garbage Collection
     age:
-      description: You can configure an age above which a resource type will be garbage collected
-      inputLabel: Age Threshold
+      description: "Resource types that haven't been accessed within this timeframe will be considered for garbage collection."
+      inputLabel: Timeframe Threshold
     count:
-      description: You can configure a threshold above which a resource type will be garbage collected
+      description: The number of resources for a type must exceed this amount for the type to considered for garbage collection.
       inputLabel: Resource Threshold
+    interval:
+      description: Run garbage collection this often (set to 0 to disable).
+      inputLabel: Run every
+    route:
+      description: Run garbage collection on page change
+      inputLabel: Page Change
 
 banner:
   label: Fixed Banners

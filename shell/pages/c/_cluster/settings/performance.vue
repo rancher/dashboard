@@ -7,6 +7,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import UnitInput from '@shell/components/form/UnitInput';
 
 export default {
   layout:     'authenticated',
@@ -16,6 +17,7 @@ export default {
     AsyncButton,
     Banner,
     LabeledInput,
+    UnitInput
   },
 
   async fetch() {
@@ -63,9 +65,12 @@ export default {
 
       try {
         await this.uiPerfSetting.save();
+
         if (this.value.garbageCollection.enabled) {
+          // Cater for functionality that we get when the app loads
           this.$store.dispatch('gcStartIntervals', { root: true });
         } else {
+          // Opposite from above, stop the functionality that was started on load (or when toggled on)
           this.$store.dispatch('gcStopIntervals', { root: true });
           if (this.gcStartedEnabled) {
             // If we're disabling garbage collection we should reset any gc state we have stored. This avoids stale data if we enable it again
@@ -163,15 +168,34 @@ export default {
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.garbageCollection.enabled }">
-              {{ t('performance.gc.age.description') }}
+              {{ t('performance.gc.interval.description', {}, true) }}
             </p>
-            <LabeledInput
-              v-model.number="value.garbageCollection.ageThreshold"
+            <UnitInput
+              v-model="value.garbageCollection.enabledInterval"
+              :suffix="t('suffix.seconds', { count: value.garbageCollection.enabledInterval })"
+              :label="t('performance.gc.interval.inputLabel')"
+              :disabled="!value.garbageCollection.enabled"
+              min="30"
+              class="input"
+            />
+            <Checkbox
+              v-model="value.garbageCollection.enabledOnNavigate"
+              :class="{ 'text-muted': !value.garbageCollection.enabled }"
+              :label="t('performance.gc.route.description')"
+              class="mt-10 mb-20"
+              :disabled="!value.garbageCollection.enabled"
+              :primary="true"
+            />
+            <p :class="{ 'text-muted': !value.garbageCollection.enabled }">
+              {{ t('performance.gc.age.description', {}, true) }}
+            </p>
+            <UnitInput
+              v-model="value.garbageCollection.ageThreshold"
+              :suffix="t('suffix.seconds', { count: value.garbageCollection.ageThreshold })"
               :label="t('performance.gc.age.inputLabel')"
               :disabled="!value.garbageCollection.enabled"
+              min="30"
               class="input"
-              type="number"
-              min="0"
             />
             <p class="mt-20" :class="{ 'text-muted': !value.garbageCollection.enabled }">
               {{ t('performance.gc.count.description') }}

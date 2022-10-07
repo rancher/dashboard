@@ -1,5 +1,19 @@
-export const GC_DEFAULTS = {
-  enabled:        false,
-  ageThreshold:   1000 * 10, // Ten seconds // TODO: RC PR
-  countThreshold: 5, // TODO: RC PR
+export type GC_PREFERENCES = {
+  enabled: boolean,
+  enabledInterval: number,
+  enabledOnNavigate: boolean,
+  ageThreshold: number,
+  countThreshold: number
+}
+
+export const GC_DEFAULTS: GC_PREFERENCES = {
+  enabled: false,
+
+  // When GC Runs
+  enabledInterval:    1 * 60 * 5,
+  enabledOnNavigate:  true,
+
+  // How GC handles resources when GC'ing
+  ageThreshold:   1 * 60 * 2,
+  countThreshold:  500,
 };

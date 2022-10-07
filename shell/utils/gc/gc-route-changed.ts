@@ -19,11 +19,6 @@ function getResourceFromRoute(to: any) {
  */
 class GarbageCollectRouteChanged {
   /**
-  * Execute GC when the route changes
-  */
-  private static GC_RUN_ON_ROUTE_CHANGE = true;
-
-  /**
    * A logged in route has changed
    * 1) Track the time this occurred to ensure any resources fetched afterwards are not GCd
    * 2) Kick off a GC
@@ -32,19 +27,14 @@ class GarbageCollectRouteChanged {
     gc.gcUpdateRouteChanged();
     // commit(`gcRouteChanged`);
 
-    if (!gc.gcEnabledSetting(ctx) || !GarbageCollectRouteChanged.GC_RUN_ON_ROUTE_CHANGE || to.name === 'auth-logout') {
-      // Convenience, no point GC'ing if we've just lost all types
-      console.warn('root gcRouteChanged', 'IGNORING (disabled)');// TODO: RC LOG
-
+    if (!gc.gcEnabledSetting(ctx) || !gc.gcEnabledRoute(ctx) || to.name === 'auth-logout') {
+      // (auth-logout convenience, no point GC'ing if we've just lost all types)
       return;
     }
 
     const resource = getResourceFromRoute(to);
     const ignoreTYpes = !!resource ? { [resource]: true } : {};
 
-    console.warn('resource from route:', resource, to); // TODO: RC LOG
-
-    // gc.garbageCollect(ctx, ignoreTYpes, this.lastRouteChange);
     ctx.dispatch('garbageCollect', ignoreTYpes); // gc.garbageCollect is per store, so dispatch via central point
   }
 }
