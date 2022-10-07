@@ -124,7 +124,7 @@ export default class WorkloadService extends SteveModel {
       return containers;
     }
 
-    if ( this.type === POD ) {
+    if ( this.spec.containers ) {
       return this.spec.containers;
     }
 
@@ -141,7 +141,7 @@ export default class WorkloadService extends SteveModel {
       return initContainers;
     }
 
-    if ( this.type === POD ) {
+    if (this.spec.initContainers) {
       return this.spec.initContainers;
     }
 

@@ -175,6 +175,8 @@ export default {
       }
     }
 
+    // EDIT view for POD
+    // Transform it from POD world to workload
     if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
       const podSpec = { ...this.value.spec };
       const metadata = { ...this.value.metadata };
@@ -605,6 +607,7 @@ export default {
   },
 
   created() {
+    console.log('CREATED');
     this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
     this.registerBeforeHook(this.getPorts, 'getPorts');
 
@@ -691,6 +694,7 @@ export default {
         template = this.spec.template;
       }
 
+      // WORKLOADS
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
