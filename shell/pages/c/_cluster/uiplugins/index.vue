@@ -20,6 +20,8 @@ import SetupUIPlugins from './SetupUIPlugins';
 import RemoveUIPlugins from './RemoveUIPlugins';
 import { isUIPlugin, uiPluginHasAnnotation, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
+const MAX_DESCRIPTION_LENGTH = 200;
+
 export default {
   components: {
     ActionMenu,
@@ -248,6 +250,13 @@ export default {
 
         if (chart) {
           chart.helmError = !!this.errors[e];
+        }
+      });
+
+      // Clamp the lengths of the descriptions
+      all.forEach((plugin) => {
+        if (plugin.description && plugin.description.length > MAX_DESCRIPTION_LENGTH) {
+          plugin.description = `${ plugin.description.substr(0, MAX_DESCRIPTION_LENGTH) } ...`;
         }
       });
 
