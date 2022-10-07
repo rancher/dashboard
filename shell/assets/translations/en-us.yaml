@@ -3700,7 +3700,7 @@ plugins:
     versions: Versions
     versionError: Could not load version information
   empty:
-    all: No Extensions are either installed nor available
+    all: Extensions are neither installed or available
     available: No Extensions available
     installed: No Extensions installed
     updates: No updates available for installed Extensions
