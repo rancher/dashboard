@@ -22,6 +22,8 @@ import { isUIPlugin, uiPluginHasAnnotation, isSupportedChartVersion, UI_PLUGIN_N
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
+const MAX_DESCRIPTION_LENGTH = 200;
+
 export default {
   components: {
     ActionMenu,
