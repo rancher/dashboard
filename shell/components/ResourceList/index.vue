@@ -90,11 +90,6 @@ export default {
   },
 
   computed: {
-    rows() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-
-      return this.$store.getters[`${ inStore }/all`](this.resource);
-    },
     headers() {
       if ( this.hasListComponent || !this.schema ) {
         // Custom lists figure out their own headers
@@ -106,10 +101,6 @@ export default {
 
     groupBy() {
       return this.$store.getters['type-map/groupByFor'](this.schema);
-    },
-
-    loading() {
-      return this.rows.length ? false : this.$fetchState.pending;
     },
 
     showIncrementalLoadingIndicator() {

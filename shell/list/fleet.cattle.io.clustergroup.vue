@@ -23,12 +23,14 @@ export default {
       type:     Array,
       required: true,
     },
+
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
   computed: {
-    loading() {
-      return this.rows.length ? false : this.$fetchState?.pending;
-    },
     headers() {
       const out = [
         STATE,

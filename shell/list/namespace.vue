@@ -6,6 +6,10 @@ export default {
   name:       'ListNamespace',
   components: { ResourceTable },
   props:      {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
@@ -14,14 +18,14 @@ export default {
       type:     Array,
       required: true,
     },
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
   computed: {
     ...mapGetters(['currentProduct']),
-
-    loading() {
-      return this.rows.length ? false : this.$fetchState?.pending;
-    },
 
     filterRow() {
       if (this.currentProduct.hideSystemResources) {

@@ -26,6 +26,10 @@ export default {
   mixins: [metricPoller, ResourceFetch],
 
   props: {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
@@ -71,16 +75,8 @@ export default {
   },
 
   computed: {
-    kubeNodes() {
-      const inStore = this.$store.getters['currentStore'](NODE);
-
-      return this.$store.getters[`${ inStore }/all`](NODE);
-    },
-    loading() {
-      return this.kubeNodes.length ? false : this.$fetchState.pending;
-    },
     hasWindowsNodes() {
-      return (this.kubeNodes || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
+      return (this.rows || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
     },
     tableGroup: mapPref(GROUP_RESOURCES),
 
@@ -152,7 +148,7 @@ export default {
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
-      :rows="kubeNodes"
+      :rows="rows"
       :sub-rows="true"
       :loading="loading"
       v-on="$listeners"

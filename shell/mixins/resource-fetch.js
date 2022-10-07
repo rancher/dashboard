@@ -50,7 +50,17 @@ export default {
     }
   },
 
-  computed: { ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }) },
+  computed: {
+    ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
+    rows() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/all`](this.resource);
+    },
+    loading() {
+      return this.rows.length ? false : this.$fetchState.pending;
+    },
+  },
   watch:    {
     refreshFlag(neu) {
       // this is where the data assignment will trigger the update of the list view...

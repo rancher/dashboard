@@ -7,20 +7,24 @@ export default {
   name:       'ListMgmtClusters',
   components: { ResourceTable },
   mixins:     [ResourceFetch],
+
+  props: {
+    resource: {
+      type:     String,
+      required: true,
+    },
+    schema: {
+      type:     Object,
+      required: true,
+    },
+  },
+
   async fetch() {
-    await this.$fetchType(this.$attrs.resource);
+    await this.$fetchType(this.resource);
   },
   computed: {
-    loading() {
-      return this.rows?.length ? false : this.$fetchState.pending;
-    },
-    inStore() {
-      return this.$store.getters['currentProduct'].inStore;
-    },
-    rows() {
-      const all = this.$store.getters[`${ this.inStore }/all`](MANAGEMENT.CLUSTER);
-
-      return filterOnlyKubernetesClusters(all);
+    filteredRows() {
+      return filterOnlyKubernetesClusters(this.rows);
     }
   },
   // override with relevant info for the loading indicator since this doesn't use it's own masthead
@@ -34,5 +38,5 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :schema="$attrs.schema" :rows="rows" :headers="$attrs.headers" :group-by="$attrs.groupBy" :loading="loading" />
+  <ResourceTable :schema="schema" :rows="filteredRows" :headers="$attrs.headers" :group-by="$attrs.groupBy" :loading="loading" />
 </template>

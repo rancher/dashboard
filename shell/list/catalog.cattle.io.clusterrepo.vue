@@ -16,12 +16,11 @@ export default {
       type:     Array,
       required: true,
     },
-  },
-  computed: {
-    loading() {
-      return this.rows.length ? false : this.$fetchState?.pending;
-    }
-  },
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
+  }
 };
 </script>
 

@@ -11,6 +11,11 @@ export default {
   },
   mixins: [ResourceFetch],
   props:  {
+    resource: {
+      type:     String,
+      required: true,
+    },
+
     loadResources: {
       type:    Array,
       default: () => []
@@ -46,20 +51,11 @@ export default {
   },
   data() {
     return {
-      resource:               HELM.PROJECTHELMCHART,
       projectHelmChartSchema: null,
       headers:                null,
     };
   },
   computed: {
-    projectHelmCharts() {
-      const inStore = this.$store.getters['currentStore'](HELM.PROJECTHELMCHART);
-
-      return this.$store.getters[`${ inStore }/all`](HELM.PROJECTHELMCHART);
-    },
-    loading() {
-      return this.projectHelmCharts.length ? false : this.$fetchState.pending;
-    },
     canCreateProjectHelmChart() {
       return !!(this?.projectHelmChartSchema?.collectionMethods || []).find(method => method.toLowerCase() === 'post');
     }
@@ -80,7 +76,7 @@ export default {
     />
     <Banner color="info" :label="t('monitoring.projectMonitoring.list.banner')" />
     <!-- ToDo: figure out how to get this centered in the empty space -->
-    <div v-if="projectHelmCharts.length === 0 && !loading" class="empty-list">
+    <div v-if="rows.length === 0 && !loading" class="empty-list">
       <div class="message">
         <i class="icon icon-monitoring icon-10x icon-grey"></i>
         <div class="text-large">
@@ -96,7 +92,7 @@ export default {
     </div>
     <div v-else>
       <ResourceTable
-        :rows="projectHelmCharts"
+        :rows="rows"
         :headers="headers"
         :schema="projectHelmChartSchema"
         :loading="loading"

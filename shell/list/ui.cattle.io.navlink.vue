@@ -16,14 +16,14 @@ export default {
       type:     Array,
       required: true,
     },
+
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
-  computed: {
-    ...mapGetters(['clusterId']),
-    loading() {
-      return this.rows.length ? false : this.$fetchState?.pending;
-    }
-  }
+  computed: { ...mapGetters(['clusterId']) }
 };
 </script>
 

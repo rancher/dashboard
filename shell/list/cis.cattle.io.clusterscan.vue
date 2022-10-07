@@ -24,11 +24,6 @@ export default {
   },
 
   computed: {
-    rows() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-
-      return this.$store.getters[`${ inStore }/all`](this.resource);
-    },
     // warning state and scheduling added in the same version of cis so a check for one is a check for the other
     hasWarningState() {
       const specSchema = this.$store.getters['cluster/schemaFor'](get(this.schema, 'resourceFields.spec.type') || '');
@@ -54,10 +49,6 @@ export default {
       } else {
         return headersFromSchema;
       }
-    },
-
-    loading() {
-      return this.rows.length ? false : this.$fetchState.pending;
     },
   },
 };

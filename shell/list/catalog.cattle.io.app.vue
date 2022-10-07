@@ -24,17 +24,6 @@ export default {
 
     await this.$fetchType(this.resource);
   },
-
-  computed: {
-    rows() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-
-      return this.$store.getters[`${ inStore }/all`](this.resource);
-    },
-    loading() {
-      return this.rows.length ? false : this.$fetchState.pending;
-    },
-  },
 };
 </script>
 

@@ -26,18 +26,7 @@ export default {
     } catch (err) {
       throw new Error(err);
     }
-  },
-
-  computed: {
-    rows() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-
-      return this.$store.getters[`${ inStore }/all`](this.resource);
-    },
-    loading() {
-      return this.rows.length ? false : this.$fetchState.pending;
-    },
-  },
+  }
 };
 </script>
 

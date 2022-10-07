@@ -25,18 +25,7 @@ export default {
     } catch (e) {}
 
     await this.$fetchType(LOGGING.FLOW);
-  },
-
-  computed: {
-    rows() {
-      const inStore = this.$store.getters['currentStore'](LOGGING.FLOW);
-
-      return this.$store.getters[`${ inStore }/all`](LOGGING.FLOW);
-    },
-    loading() {
-      return this.rows.length ? false : this.$fetchState.pending;
-    },
-  },
+  }
 };
 </script>
 

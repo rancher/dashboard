@@ -68,16 +68,6 @@ export default {
     ...mapState('action-menu', ['showPromptUpdate', 'toUpdate']),
     ...mapGetters({ t: 'i18n/t' }),
 
-    rows() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-
-      return this.$store.getters[`${ inStore }/all`](this.resource);
-    },
-
-    loading() {
-      return this.rows.length ? false : this.$fetchState.pending;
-    },
-
     filteredRows() {
       return this.rows.filter(x => x.name !== 'fleet');
     },

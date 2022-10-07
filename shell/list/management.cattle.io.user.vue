@@ -14,6 +14,11 @@ export default {
   },
   mixins: [ResourceFetch],
   props:  {
+    resource: {
+      type:     String,
+      required: true,
+    },
+
     loadResources: {
       type:    Array,
       default: () => []
@@ -31,11 +36,10 @@ export default {
   },
   async fetch() {
     const store = this.$store;
-    const resource = this.resource;
 
     await store.dispatch(`rancher/findAll`, { type: NORMAN.USER });
 
-    await this.$fetchType(resource);
+    await this.$fetchType(this.resource);
 
     this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
       .then(res => !!res?.actions?.refreshauthprovideraccess);
@@ -43,18 +47,11 @@ export default {
 
   data() {
     const getters = this.$store.getters;
-    const params = { ...this.$route.params };
 
-    const resource = params.resource;
-
-    const schema = getters[`management/schemaFor`](resource);
+    const schema = getters[`management/schemaFor`](this.resource);
 
     return {
       schema,
-      resource,
-
-      // Provided by fetch later
-      rows:             null,
       canRefreshAccess: false,
     };
   },
@@ -67,14 +64,6 @@ export default {
   },
 
   computed: {
-    allUsers() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-
-      return this.$store.getters[`${ inStore }/all`](this.resource);
-    },
-    loading() {
-      return this.allUsers.length ? false : this.$fetchState.pending;
-    },
     headers() {
       return this.$store.getters['type-map/headersFor'](this.schema);
     },
@@ -84,7 +73,7 @@ export default {
     },
 
     users() {
-      if ( !this.allUsers ) {
+      if ( !this.rows ) {
         return [];
       }
 
@@ -92,7 +81,7 @@ export default {
       // 1) Only show system users in explorer/users and not in auth/users
       // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)
       const params = { ...this.$route.params };
-      const requiredUsers = params.product === NAME ? this.allUsers.filter(a => !a.isSystem) : this.allUsers;
+      const requiredUsers = params.product === NAME ? this.rows.filter(a => !a.isSystem) : this.rows;
 
       requiredUsers.forEach((r) => {
         r.canRefreshAccess = this.canRefreshAccess;

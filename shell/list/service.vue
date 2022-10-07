@@ -8,6 +8,18 @@ export default {
   name:       'ListService',
   components: { ResourceTable },
   mixins:     [ResourceFetch],
+  props:      {
+    resource: {
+      type:     String,
+      required: true,
+    },
+
+    schema: {
+      type:     Object,
+      required: true,
+    },
+  },
+
   // fetch nodes before loading this page, as they may be referenced in the Target table column
   async fetch() {
     const store = this.$store;
@@ -22,30 +34,19 @@ export default {
       }
     } catch {}
 
-    const hash = { rows: this.$fetchType(this.$attrs.resource) };
+    const hash = { rows: this.$fetchType(this.resource) };
 
     if (hasNodes) {
       hash.nodes = store.dispatch(`${ inStore }/findAll`, { type: NODE });
     }
     await allHash(hash);
-  },
-
-  computed: {
-    rows() {
-      const inStore = this.$store.getters['currentStore'](this.$attrs.resource);
-
-      return this.$store.getters[`${ inStore }/all`](this.$attrs.resource);
-    },
-    loading() {
-      return this.rows.length ? false : this.$fetchState.pending;
-    },
-  },
+  }
 };
 </script>
 
 <template>
   <ResourceTable
-    :schema="$attrs.schema"
+    :schema="schema"
     :rows="rows"
     :headers="$attrs.headers"
     :group-by="$attrs.groupBy"

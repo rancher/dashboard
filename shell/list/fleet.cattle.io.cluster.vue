@@ -10,6 +10,10 @@ export default {
   components: { Banner, FleetClusters },
   mixins:     [ResourceFetch],
   props:      {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
@@ -27,16 +31,8 @@ export default {
   },
 
   computed: {
-    allFleet() {
-      const inStore = this.$store.getters['currentStore'](FLEET.CLUSTER);
-
-      return this.$store.getters[`${ inStore }/all`](FLEET.CLUSTER);
-    },
-    loading() {
-      return this.allFleet.length ? false : this.$fetchState.pending;
-    },
     allClusters() {
-      const out = this.allFleet.slice();
+      const out = this.rows.slice();
 
       const known = {};
 
@@ -53,7 +49,7 @@ export default {
       return out;
     },
 
-    rows() {
+    filteredRows() {
       return this.fleetClusters.filter(c => !isHarvesterCluster(c));
     },
 
@@ -62,7 +58,7 @@ export default {
     },
 
     hiddenHarvesterCount() {
-      return this.fleetClusters.length - this.rows.length;
+      return this.fleetClusters.length - this.filteredRows.length;
     },
   },
   // override with relevant info for the loading indicator since this doesn't use it's own masthead
@@ -79,7 +75,7 @@ export default {
   <div>
     <Banner v-if="hiddenHarvesterCount" color="info" :label="t('fleet.clusters.harvester', {count: hiddenHarvesterCount} )" />
     <FleetClusters
-      :rows="rows"
+      :rows="filteredRows"
       :schema="schema"
       :loading="loading"
     />

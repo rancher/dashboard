@@ -15,6 +15,10 @@ export default {
   components: { Banner, ResourceTable },
   mixins:     [ResourceFetch],
   props:      {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
@@ -31,15 +35,6 @@ export default {
   },
 
   computed: {
-    allBundles() {
-      const inStore = this.$store.getters['currentStore'](FLEET.BUNDLE);
-
-      return this.$store.getters[`${ inStore }/all`](FLEET.BUNDLE);
-    },
-    loading() {
-      return this.allBundles.length ? false : this.$fetchState.pending;
-    },
-
     harvesterClusters() {
       const harvester = {};
 
@@ -55,7 +50,7 @@ export default {
     bundles() {
       const harvester = this.harvesterClusters;
 
-      return this.allBundles.filter((bundle) => {
+      return this.rows.filter((bundle) => {
         const targets = bundle.spec?.targets || [];
 
         // Filter out any bundle that has one target whose cluster is a harvester cluster
@@ -68,7 +63,7 @@ export default {
     },
 
     hidden() {
-      return this.allBundles.length - this.bundles.length;
+      return this.rows.length - this.bundles.length;
     },
 
     headers() {

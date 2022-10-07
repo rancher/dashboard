@@ -27,58 +27,43 @@ export default {
       }
     } catch {}
 
+    let resources;
+
     this.loadHeathResources();
 
     if ( this.allTypes ) {
-      await Promise.all(this.allowedResources.map((allowed) => {
-        return this.$fetchType(allowed, this.allowedResources);
+      const allowedResources = [];
+
+      Object.values(WORKLOAD_TYPES).forEach((type) => {
+        // You may not have RBAC to see some of the types
+        if (this.$store.getters['cluster/schemaFor'](type) ) {
+          allowedResources.push(type);
+        }
+      });
+
+      resources = await Promise.all(allowedResources.map((allowed) => {
+        return this.$fetchType(allowed, allowedResources);
       }));
     } else {
       const type = this.$route.params.resource;
 
       if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        await this.$fetchType(type);
+        const resource = await this.$fetchType(type);
+
+        resources = [resource];
       }
     }
+
+    this.resources = resources;
   },
+
   data() {
-    const allowedResources = [];
-
-    Object.values(WORKLOAD_TYPES).forEach((type) => {
-      // You may not have RBAC to see some of the types
-      if (this.$store.getters['cluster/schemaFor'](type) ) {
-        allowedResources.push(type);
-      }
-    });
-
-    return { allowedResources };
+    return { resources: [] };
   },
 
   computed: {
     allTypes() {
       return this.$route.params.resource === schema.id;
-    },
-
-    resources() {
-      if (this.allTypes) {
-        const resources = [];
-
-        this.allowedResources.forEach((type) => {
-          const resource = this.$store.getters['cluster/all'](type);
-
-          resources.push(resource);
-        });
-
-        return resources;
-      } else {
-        const inStore = this.$store.getters['currentStore'](this.$route.params.resource);
-
-        return [this.$store.getters[`${ inStore }/all`](this.$route.params.resource)];
-      }
-    },
-
-    loading() {
-      return this.resources.length ? false : this.$fetchState.pending;
     },
 
     schema() {
@@ -91,7 +76,7 @@ export default {
       return schema;
     },
 
-    rows() {
+    filteredRows() {
       const out = [];
 
       for ( const typeRows of this.resources ) {
@@ -166,5 +151,5 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :loading="loading" :schema="schema" :rows="rows" :overflow-y="true" />
+  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="filteredRows" :overflow-y="true" />
 </template>

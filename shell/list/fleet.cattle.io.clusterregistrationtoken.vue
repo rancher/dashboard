@@ -10,6 +10,10 @@ export default {
   components: { Banner, ResourceTable },
   mixins:     [ResourceFetch],
   props:      {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
@@ -26,14 +30,6 @@ export default {
   },
 
   computed: {
-    allTokens() {
-      const inStore = this.$store.getters['currentStore'](FLEET.TOKEN);
-
-      return this.$store.getters[`${ inStore }/all`](FLEET.TOKEN);
-    },
-    loading() {
-      return this.allTokens.length ? false : this.$fetchState.pending;
-    },
     harvesterClusters() {
       const harvester = {};
 
@@ -48,7 +44,7 @@ export default {
     tokens() {
       const harvester = this.harvesterClusters;
 
-      return this.allTokens.filter((token) => {
+      return this.rows.filter((token) => {
         const refs = token.metadata?.ownerReferences || [];
 
         for (const owner of refs) {
@@ -62,7 +58,7 @@ export default {
     },
 
     hidden() {
-      return this.allTokens.length - this.tokens.length;
+      return this.rows.length - this.tokens.length;
     }
   },
   // override with relevant info for the loading indicator since this doesn't use it's own masthead
