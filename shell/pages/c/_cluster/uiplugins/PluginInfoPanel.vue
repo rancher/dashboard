@@ -116,6 +116,7 @@ export default {
           </div>
         </div>
         <div>
+          <Banner v-if="info.error" color="error" :label="info.error" class="mt-10" />
           <Banner v-if="!info.certified" color="warning" :label="t('plugins.descriptions.third-party')" class="mt-10" />
           <Banner v-if="info.experimental" color="warning" :label="t('plugins.descriptions.experimental')" class="mt-10" />
         </div>

@@ -26,6 +26,7 @@ import {
   setBrand,
   setVendor
 } from '@shell/config/private-label';
+import loadPlugins from '@shell/plugins/plugin';
 
 export default {
   name:       'Login',
@@ -254,6 +255,15 @@ export default {
         } else {
           this.$cookies.remove(USERNAME);
         }
+
+        // User logged with local login - we don't do any redirect/reload, so the boot-time plugin will not run again to laod the plugins
+        // so we manually load them here - other SSO auth providers bounce out and back to the Dashboard, so on the bounce-back
+        // the plugins will load via the boot-time plugin
+        await loadPlugins({
+          app:     this.$store.app,
+          store:   this.$store,
+          $plugin: this.$store.$plugin
+        });
 
         if (this.firstLogin || user[0]?.mustChangePassword) {
           this.$store.dispatch('auth/setInitialPass', this.password);

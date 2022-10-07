@@ -17,9 +17,9 @@ export default function({
   let _lastLoaded = 0;
 
   // Track which plugin loaded what, so we can unload stuff
-  const plugins = {};
+  let plugins = {};
 
-  const pluginRoutes = new PluginRoutes(app.router);
+  let pluginRoutes = new PluginRoutes(app.router);
 
   inject('plugin', {
     // Plugins should not use these - but we will pass them in for now as a 2nd argument
@@ -157,6 +157,23 @@ export default function({
         console.error(`Error loading plugin ${ plugin.name }`); // eslint-disable-line no-console
         console.error(e); // eslint-disable-line no-console
       }
+    },
+
+    async logout() {
+      const all = Object.keys(plugins);
+
+      for (let i = 0; i < all.length; i++) {
+        const name = all[i];
+
+        try {
+          await this.removePlugin(name);
+        } catch (e) {
+          console.error('Error removing plugin', e); // eslint-disable-line no-console
+        }
+      }
+
+      plugins = {};
+      pluginRoutes = new PluginRoutes(app.router);
     },
 
     // Remove the plugin

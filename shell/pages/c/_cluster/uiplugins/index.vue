@@ -240,7 +240,13 @@ export default {
         const chart = all.find(c => c.name === e);
 
         if (chart) {
-          chart.error = !!this.uiErrors[e];
+          const error = this.uiErrors[e];
+
+          if (error && typeof error === 'string') {
+            chart.error = this.t(this.uiErrors[e]);
+          } else {
+            chart.error = false;
+          }
         }
       });
 
@@ -520,9 +526,11 @@ export default {
               </div>
               <div class="plugin-spacer" />
               <div class="plugin-actions">
-                <div v-if="plugin.error" v-tooltip="t('plugins.loadError')" class="plugin-error">
-                  <i class="icon icon-warning" />
-                </div>
+                <template v-if="plugin.error">
+                  <div v-tooltip="plugin.error" class="plugin-error">
+                    <i class="icon icon-warning" />
+                  </div>
+                </template>
                 <div v-if="plugin.helmError" v-tooltip="t('plugins.helmError')" class="plugin-error">
                   <i class="icon icon-warning" />
                 </div>

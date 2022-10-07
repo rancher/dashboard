@@ -2,6 +2,7 @@ import semver from 'semver';
 
 // Version of the plugin API supported
 export const UI_PLUGIN_API_VERSION = '1.0.0';
+export const UI_PLUGIN_HOST_APP = 'rancher-manager';
 
 export const UI_PLUGIN_BASE_URL = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy';
 
@@ -29,7 +30,9 @@ export const UI_PLUGINS_REPO_URL = 'https://github.com/rancher/ui-plugin-charts'
 export const UI_PLUGINS_REPO_BRANCH = 'main';
 
 // Plugin Metadata properties
-const UI_PLUGIN_METADATA_API_VERSION = 'apiVersion';
+const UI_PLUGIN_METADATA_EXTENSION_API_VERSION = 'extVersion';
+const UI_PLUGIN_METADATA_HOST = 'host';
+const UI_PLUGIN_METADATA_RANCHER_VERSION = 'rancherVersion';
 
 export function isUIPlugin(chart) {
   return !!chart?.versions.find((v) => {
@@ -44,17 +47,34 @@ export function uiPluginHasAnnotation(chart, name, value) {
 }
 
 // Should we load a plugin, based on the metadata returned by the backend?
-export function shouldLoadPlugin(plugin) {
+// Returns error key string or false
+export function shouldNotLoadPlugin(plugin, rancherVersion) {
   if (!plugin.name || !plugin.version || !plugin.endpoint) {
-    return false;
+    return 'plugins.error.generic';
   }
 
-  // Plugin specified a required API version
-  const requiredAPI = plugin.metadata?.[UI_PLUGIN_METADATA_API_VERSION];
+  // Plugin specified a required extension API version
+  const requiredAPI = plugin.metadata?.[UI_PLUGIN_METADATA_EXTENSION_API_VERSION];
 
-  if (requiredAPI) {
-    return semver.satisfies(UI_PLUGIN_API_VERSION, requiredAPI);
+  if (requiredAPI && !semver.satisfies(UI_PLUGIN_API_VERSION, requiredAPI)) {
+    return 'plugins.error.api';
   }
 
-  return true;
+  // Host application
+  const requiredHost = plugin.metadata?.[UI_PLUGIN_METADATA_HOST];
+
+  if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
+    return 'plugins.error.host';
+  }
+
+  // Rancher version
+  if (rancherVersion) {
+    const requiredRancherVersion = plugin.metadata?.[UI_PLUGIN_METADATA_RANCHER_VERSION];
+
+    if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
+      return 'plugins.error.version';
+    }
+  }
+
+  return false;
 }
