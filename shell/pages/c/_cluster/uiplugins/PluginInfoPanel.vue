@@ -198,7 +198,7 @@ export default {
         overflow: hidden;
 
         .plugin-info-detail {
-          overflow: scroll;
+          overflow: auto;
         }
       }
 

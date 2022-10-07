@@ -431,7 +431,7 @@ export default {
         ref="actions"
         aria-haspopup="true"
         type="button"
-        class="btn actions"
+        class="btn actions role-secondary"
         @click="setMenu"
       >
         <i class="icon icon-actions" />
