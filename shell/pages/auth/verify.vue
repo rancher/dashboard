@@ -65,7 +65,7 @@ export default {
         // Load plugins
         await loadPlugins({
           app:     store.app,
-          store:   store,
+          store,
           $plugin: store.$plugin
         });
 
