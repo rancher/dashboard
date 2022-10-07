@@ -6,7 +6,7 @@ export default class CheckboxInputPo extends ComponentPo {
     return new CheckboxInputPo(
       self
         .find('.checkbox-outer-container')
-        .contains(`${ label } `)
+        .contains(label)
         .parent()
     );
   }

@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.default.json",
+  "compilerOptions": {
+    "types": [
+      "@types/node",
+      "@types/jest",
+      "@nuxt/types"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    ".nuxt",
+    "dist",
+    "dist-pkg",
+    "cypress",
+    "shell/creators",
+    "shell/scripts",
+    "cypress",
+    "./cypress.config.ts",
+    "docusaurus",
+    "script/standalone",
+    "**/*.spec.ts"
+  ]
+}

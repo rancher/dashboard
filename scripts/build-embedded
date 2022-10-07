@@ -21,7 +21,7 @@ DIR=${GIT_TAG:-$COMMIT_BRANCH}
 OUTPUT_DIR=dist/${DIR}-embedded
 
 echo "Building..."
-NUXT_ENV_commit=${COMMIT} NUXT_ENV_version=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard' yarn run build
+COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard' yarn run build
 
 if [ -v EMBED_PKG ]; then
     echo "Build and embed plugin from: $EMBED_PKG"
