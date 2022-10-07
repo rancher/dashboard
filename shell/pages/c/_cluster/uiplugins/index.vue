@@ -62,7 +62,9 @@ export default {
     const isSetup = await this.updateInstallStatus();
 
     if (isSetup) {
-      hash.plugins = this.$store.dispatch('management/findAll', { type: UI_PLUGIN });
+      if (this.$store.getters['management/schemaFor'](UI_PLUGIN)) {
+        hash.plugins = this.$store.dispatch('management/findAll', { type: UI_PLUGIN });
+      }
     }
 
     hash.load = await this.$store.dispatch('catalog/load');
