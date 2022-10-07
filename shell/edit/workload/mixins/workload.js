@@ -273,7 +273,7 @@ export default {
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
       fvReportedValidationPaths: ['spec'],
-
+      isNamespaceNew:            false,
     };
   },
 
@@ -529,13 +529,25 @@ export default {
   },
 
   watch: {
-    'value.metadata.namespace': {
-      async handler(neu) {
-        this.secondaryResourceData.namespace = neu;
-        this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
-        this.servicesOwned = await this.value.getServicesOwned();
+    async 'value.metadata.namespace'(neu) {
+      if (this.isNamespaceNew) {
+        // we don't need to re-fetch namespace specific (or non-namespace specific) resources when the namespace hasn't been created yet
+        return;
+      }
+      this.secondaryResourceData.namespace = neu;
+      // Fetch resources that are namespace specific, we don't need to re-fetch non-namespaced resources on namespace change
+      this.resourceManagerFetchSecondaryResources(this.secondaryResourceData, true);
+
+      this.servicesOwned = await this.value.getServicesOwned();
+    },
+
+    isNamespaceNew(neu, old) {
+      if (!old && neu) {
+        // As the namespace is new any resource that's been fetched with a namespace is now invalid
+        this.resourceManagerClearSecondaryResources(this.secondaryResourceData, true);
       }
     },
+
     type(neu, old) {
       const template =
         old === WORKLOAD_TYPES.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;

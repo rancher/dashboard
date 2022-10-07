@@ -21,8 +21,9 @@ export default {
     * @param {String} resourceData.data[TYPE].applyTo[x].var - The 'this' property name that should be populated with the data fetched
     * @param {Boolean} resourceData.data[TYPE].applyTo[x].classify - Whether the data fetched should have a model applied to it
     * @param {Function} resourceData.data[TYPE].applyTo[x].parsingFunc - Optional parsing function if the fetched data needs to be parsed
+    * @param {Boolean} onlyNamespaced - Only fetch namespaced resources
     */
-    async resourceManagerFetchSecondaryResources(resourceData) {
+    async resourceManagerFetchSecondaryResources(resourceData, onlyNamespaced = false) {
       const requests = {};
       const namespace = resourceData.namespace;
 
@@ -39,6 +40,9 @@ export default {
             parts.splice(parts.length - 2, 0, `api`);
             parts.splice(parts.length - 1, 0, `namespaces/${ namespace }`);
             url = parts.join('/');
+          } else if (onlyNamespaced) {
+            // Type isn't namespaced and we've been requested to only fetch namespaced types
+            return;
           }
 
           requests[type] = this.$store.dispatch('cluster/request', { url });
@@ -56,13 +60,12 @@ export default {
           const status = hash[type].status;
           // if it's namespaced, we get the data on 'items' prop, for non-namespaced it's  'data' prop...
           const requestData = hash[type].value.items || hash[type].value.data || hash[type].value;
+          const schema = this.$store.getters['cluster/schemaFor'](type);
 
           if (status === 'fulfilled' && resourceData.data[type] && resourceData.data[type].applyTo?.length) {
             for (let y = 0; y < resourceData.data[type].applyTo.length; y++) {
               const apply = resourceData.data[type].applyTo[y];
               let resources = requestData;
-
-              const schema = this.$store.getters['cluster/schemaFor'](type);
 
               if (schema?.attributes?.namespaced) {
                 // The resources returned when requesting namespaced types do not contain id, type and links properties.
@@ -94,5 +97,30 @@ export default {
         this.isLoadingSecondaryResources = false;
       }
     },
+
+    /**
+     * Clear the cached secondary resources
+     *
+     * @param {*} resourceData See resourceManagerFetchSecondaryResources
+     * @param {*} onlyNamespaced Clear only namespaced resources
+     */
+    resourceManagerClearSecondaryResources(resourceData, onlyNamespaced = false) {
+      Object.keys(resourceData.data).forEach((type) => {
+        const schema = this.$store.getters['cluster/schemaFor'](type);
+
+        if (schema) {
+          if (!schema?.attributes?.namespaced && onlyNamespaced) {
+            // resource isn't namespaced and we're only interested in namespaced resources
+            return;
+          }
+
+          for (let y = 0; y < resourceData.data[type].applyTo.length; y++) {
+            const apply = resourceData.data[type].applyTo[y];
+
+            this[apply.var] = [];
+          }
+        }
+      });
+    }
   },
 };

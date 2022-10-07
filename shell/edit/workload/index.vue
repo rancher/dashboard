@@ -56,6 +56,7 @@ export default {
         :mode="mode"
         :rules="{name: fvGetAndReportPathRules('metadata.name'), namespace: fvGetAndReportPathRules('metadata.namespace'), description: []}"
         @change="name=value.metadata.name"
+        @isNamespaceNew="isNamespaceNew = $event"
       />
       <div v-if="isCronJob || isReplicable || isStatefulSet || containerOptions.length > 1" class="row mb-20">
         <div v-if="isCronJob" class="col span-3">
