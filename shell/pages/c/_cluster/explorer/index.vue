@@ -24,6 +24,7 @@ import {
   COUNT,
   CATALOG,
   POD,
+  PSP,
 } from '@shell/config/types';
 import { mapPref, CLUSTER_TOOLS_TIP, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
 import { haveV1Monitoring, monitoringStatus } from '@shell/utils/monitoring';
@@ -125,7 +126,6 @@ export default {
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts,
       selectedTab:                 'cluster-events',
-      displayPspDeprecationBanner: false
     };
   },
 
@@ -139,31 +139,23 @@ export default {
     this.$store.dispatch('cluster/forgetType', MANAGEMENT.NODE);
   },
 
-  watch: {
-    // we need to hook up this API call to a watcher because the page logic is based on a getter
-    // this seems reasonable, so that we don't disrupt the optimal loading times of the page
-    currentCluster: {
-      async handler(neu, old) {
-        if (neu && (!old || old.id !== neu.id)) {
-          const major = neu.status?.version?.major ? parseInt(neu.status?.version?.major) : 0;
-          const minor = neu.status?.version?.minor ? parseInt(neu.status?.version?.minor) : 0;
-
-          if (major === 1 && minor >= 21 && minor < 25) {
-            const psps = await this.$store.dispatch('cluster/request', { url: `/k8s/clusters/${ neu.id }/v1/policy.podsecuritypolicies` });
-
-            if (psps && psps.data && psps.data.length) {
-              this.displayPspDeprecationBanner = true;
-            }
-          }
-        }
-      },
-      immediate: true
-    },
-  },
-
   computed: {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
+
+    displayPspDeprecationBanner() {
+      const cluster = this.currentCluster;
+      const major = cluster.status?.version?.major ? parseInt(cluster.status?.version?.major) : 0;
+      const minor = cluster.status?.version?.minor ? parseInt(cluster.status?.version?.minor) : 0;
+
+      if (major === 1 && minor >= 21 && minor < 25) {
+        const clusterCounts = this.$store.getters[`cluster/all`](COUNT)?.[0]?.counts;
+
+        return !!clusterCounts?.[PSP]?.summary?.count;
+      }
+
+      return false;
+    },
 
     nodes() {
       return this.$store.getters['cluster/all'](NODE);
