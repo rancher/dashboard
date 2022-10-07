@@ -85,7 +85,7 @@ export default {
 
   $loadingResources() {
     return {
-      loadResources:     [this.resource],
+      loadResources:     [MANAGEMENT.FEATURE],
       loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
     };
   },

@@ -75,7 +75,7 @@ export default {
       return this.$store.getters[`${ inStore }/all`](NAMESPACE);
     },
     loading() {
-      return this.namespaces.length ? false : this.$fetchState.pending;
+      return !this.currentCluster || this.namespaces.length ? false : this.$fetchState.pending;
     },
     showIncrementalLoadingIndicator() {
       return this.perfConfig?.incrementalLoading?.enabled;

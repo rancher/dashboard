@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { NAME } from '@shell/config/product/auth';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
@@ -58,7 +58,7 @@ export default {
 
   $loadingResources() {
     return {
-      loadResources:     [this.resource],
+      loadResources:     [MANAGEMENT.USER],
       loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
     };
   },
