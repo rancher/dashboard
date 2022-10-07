@@ -377,7 +377,6 @@ export default {
 
   // Tabbed component within a tabbed component
   .tab-container & {
-    margin: -20px;
     box-shadow: unset;
   }
 
