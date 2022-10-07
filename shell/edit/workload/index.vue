@@ -94,7 +94,7 @@ export default {
       <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" :default-tab="defaultTab" @changed="changed">
         <Tab
           v-for="(tab, i) in allContainers"
-          :key="i+tab.name"
+          :key="i"
           :label="tab.name"
           :name="tab.name"
           :weight="tab.weight"
@@ -110,7 +110,7 @@ export default {
               <div>
                 <div :style="{'align-items':'center'}" class="row mb-20">
                   <div class="col span-6">
-                    <LabeledInput v-model="container.name" :mode="mode" :label="t('workload.container.containerName')" />
+                    <LabeledInput v-model="allContainers[0].name" :mode="mode" :label="t('workload.container.containerName')" />
                   </div>
                   <div class="col span-6">
                     <RadioGroup
@@ -127,7 +127,7 @@ export default {
                 <div class="row mb-20">
                   <div class="col span-6">
                     <LabeledInput
-                      v-model.trim="container.image"
+                      v-model.trim="allContainers[0].image"
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
