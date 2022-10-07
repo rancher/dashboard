@@ -138,7 +138,7 @@ export default {
         <div v-if="versionError">
           {{ t('plugins.info.versionError') }}
         </div>
-        <h3 v-if="versionInfo" >
+        <h3 v-if="versionInfo">
           {{ t('plugins.info.detail') }}
         </h3>
         <div v-if="versionInfo" class="plugin-info-detail">
