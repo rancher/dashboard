@@ -185,7 +185,6 @@ export default {
           Object.assign(this.value, res);
         }
       } else {
-        console.log('ACTUALLY SAVE', this.value);
         await this.value.save();
       }
     }

@@ -607,7 +607,6 @@ export default {
   },
 
   created() {
-    console.log('CREATED');
     this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
     this.registerBeforeHook(this.getPorts, 'getPorts');
 
