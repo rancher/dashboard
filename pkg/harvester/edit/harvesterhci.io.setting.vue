@@ -43,6 +43,7 @@ export default {
     }
 
     this.value.value = this.value.value || this.value.default || '';
+    const oldValue = this.value.value;
 
     const isHarvester = this.value?.type?.includes('harvesterhci');
 
@@ -58,10 +59,11 @@ export default {
       editHelp:           t(`advancedSettings.editHelp.${ this.value.id }`),
       enumOptions,
       canReset,
-      errors:             [],
-      hasCustomComponent: false,
-      customComponent:    null,
-      customSettingComponents
+      errors:               [],
+      hasCustomComponent:   false,
+      customComponent:      null,
+      customSettingComponents,
+      oldValue
     };
   },
 
@@ -95,7 +97,7 @@ export default {
   },
 
   methods: {
-    saveSettings(done) {
+    async saveSettings(done) {
       const t = this.$store.getters['i18n/t'];
 
       // Validate the JSON if the setting is a json value
@@ -110,7 +112,25 @@ export default {
         }
       }
 
+      if (this.value.metadata.name === HCI_SETTING.CLUSTER_REGISTRATION_URL && this.value.value && this.value.value !== this.oldValue) {
+        await this.clusterRegistrationUrlTip();
+      }
+
       this.save(done);
+    },
+
+    clusterRegistrationUrlTip() {
+      return new Promise((resolve) => {
+        this.$store.dispatch('harvester/promptModal', {
+          component: 'MessageBox',
+          callback:  (action) => {
+            if (action === 'ok') {
+              resolve();
+            }
+          },
+          contentKey: 'harvester.setting.clusterRegistrationUrl.message'
+        }, { root: true });
+      });
     },
 
     useDefault(ev) {

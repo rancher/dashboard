@@ -741,6 +741,9 @@ harvester:
         evaluation: 每次评估规则的间隔时间
         retention: 监控数据保留时间
         retentionSize: 监控数据最大占用存储
+    clusterRegistrationUrl:
+      message: 要完全取消导入的 Harvester 集群，也请通过<code>虚拟化管理</code>页面在 Rancher 仪表板 UI 上删除它。
+
   cloudTemplate:
     label: Cloud Config 模板
     templateType: 模板类型

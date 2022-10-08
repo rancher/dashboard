@@ -1,8 +1,12 @@
+generic:
+  tip: Tip
+
 asyncButton:
   restart:
     action: Save & Restart
     success: Restarted
     waiting: Restarting&hellip;
+
 harvester:
   productLabel: 'Harvester'
   modal:
@@ -747,6 +751,8 @@ harvester:
         evaluation: Interval between consecutive evaluations
         retention: How long to retain metrics
         retentionSize: Maximum size of metrics
+    clusterRegistrationUrl:
+      message: To completely unset the imported Harvester cluster, please also remove it on the Rancher dashboard UI via the <code> Virtualization Management </code> page.
   cloudTemplate:
     label: Cloud Config Templates
     templateType: Template Type
