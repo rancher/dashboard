@@ -111,7 +111,7 @@ nav:
   shell: Kubectl Shell
   shellShortcut: Kubectl Shell {key}
   support: |-
-    {hasSubscriptionSupport, select,
+    {hasSupport, select,
       true {支持}
       other {获取支持}
     }

@@ -162,7 +162,7 @@ export default {
       return (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
     },
 
-    hasSubscriptionSupport() {
+    hasSupport() {
       return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
     },
   },
@@ -322,7 +322,7 @@ export default {
         <div class="footer">
           <div v-if="canEditSettings" @click="hide()">
             <nuxt-link :to="{name: 'support'}">
-              {{ t('nav.support', {hasSubscriptionSupport}) }}
+              {{ t('nav.support', {hasSupport}) }}
             </nuxt-link>
           </div>
           <div @click="hide()">

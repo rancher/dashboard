@@ -72,7 +72,7 @@ export default {
       return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
     },
 
-    hasSubscriptionSupport() {
+    hasSupport() {
       return this.hasAWSSupport || isRancherPrime();
     },
 
@@ -108,7 +108,7 @@ export default {
     },
 
     title() {
-      return this.hasSubscriptionSupport ? 'support.suse.title' : 'support.community.title';
+      return this.hasSupport ? 'support.suse.title' : 'support.community.title';
     },
 
     sccLink() {
@@ -127,7 +127,7 @@ export default {
         <div class="promo col main-panel">
           <div class="box mb-20 box-primary">
             <h2>{{ t('support.suse.access.title') }}</h2>
-            <div v-if="!hasSubscriptionSupport" class="external support-links mt-20">
+            <div v-if="!hasSupport" class="external support-links mt-20">
               <div class="support-link">
                 <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
               </div>
