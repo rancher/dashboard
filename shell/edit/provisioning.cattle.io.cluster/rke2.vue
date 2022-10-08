@@ -1222,32 +1222,40 @@ export default {
         return;
       }
 
-      const clusterId = get(this.credential, 'decodedData.clusterId') || '';
+      try {
+        const clusterId = get(this.credential, 'decodedData.clusterId') || '';
 
-      this.applyChartValues(this.value.spec.rkeConfig);
+        this.applyChartValues(this.value.spec.rkeConfig);
 
-      const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
+        const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
 
-      if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
-        const namespace = this.machinePools?.[0]?.config?.vmNamespace;
+        if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
+          const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
-        const res = await this.$store.dispatch('management/request', {
-          url:                  `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
-          method:               'POST',
-          data:                 {
-            clusterRoleName:    'harvesterhci.io:cloudprovider',
-            namespace,
-            serviceAccountName: this.value.metadata.name,
-          },
-        });
+          const res = await this.$store.dispatch('management/request', {
+            url:                  `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
+            method:               'POST',
+            data:                 {
+              clusterRoleName:    'harvesterhci.io:cloudprovider',
+              namespace,
+              serviceAccountName: this.value.metadata.name,
+            },
+          });
 
-        const kubeconfig = res.data;
+          const kubeconfig = res.data;
 
-        const harvesterKubeconfigSecret = await this.createKubeconfigSecret(kubeconfig);
+          const harvesterKubeconfigSecret = await this.createKubeconfigSecret(kubeconfig);
 
-        set(this.agentConfig, 'cloud-provider-config', `secret://fleet-default:${ harvesterKubeconfigSecret?.metadata?.name }`);
-        set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.clusterName`, this.value.metadata.name);
-        set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, '/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
+          set(this.agentConfig, 'cloud-provider-config', `secret://fleet-default:${ harvesterKubeconfigSecret?.metadata?.name }`);
+          set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.clusterName`, this.value.metadata.name);
+          set(this.chartValues, `${ HARVESTER_CLOUD_PROVIDER }.cloudConfigPath`, '/var/lib/rancher/rke2/etc/config-files/cloud-provider-config');
+        }
+      } catch (err) {
+        this.errors.push(err);
+
+        btnCb(false);
+
+        return;
       }
 
       await this.save(btnCb);
