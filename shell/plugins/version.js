@@ -1,10 +1,21 @@
-import { setIsRancherPrime } from '@shell/config/version';
-export default function({ $axios }) {
-  try {
-    // const response = await $axios.get('/rancherversion');
+/**
+ * Fetch version metadata from backend /rancherversion API and store it
+ *
+ * This metadata does not change for an installation of Rancher
+ */
 
-    // setIsRancherPrime(response.data);
+import { setVersionData } from '@shell/config/version';
+
+export default async function({ store }) {
+  try {
+    const response = await store.dispatch('rancher/request', {
+      url:                  '/rancherversion',
+      method:               'get',
+      redirectUnauthorized: false
+    });
+
+    setVersionData(response);
   } catch (e) {
-    console.log('Failed to fetch Ranhcer Version', e); // eslint-disable-line no-console
+    console.warn('Failed to fetch Rancher versio metadata', e); // eslint-disable-line no-console
   }
 }

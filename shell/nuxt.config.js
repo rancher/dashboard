@@ -604,7 +604,6 @@ export default function(dir, _appConfig) {
       '/g/':             proxyOpts('https://127.0.0.1:8000'),
       '/n/':             proxyOpts('https://127.0.0.1:8000'),
       '/p/':             proxyOpts('https://127.0.0.1:8000'),
-      '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
       '/assets':         proxyOpts('https://127.0.0.1:8000'),
       '/translations':   proxyOpts('https://127.0.0.1:8000'),
       '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
