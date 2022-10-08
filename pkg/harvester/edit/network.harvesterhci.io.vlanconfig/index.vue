@@ -135,6 +135,18 @@ export default {
       if (errors.length > 0) {
         return Promise.reject(uniq(errors));
       } else {
+        const miimon = this.value?.spec?.uplink?.bondOptions?.miimon;
+
+        if (!miimon && miimon !== 0) {
+          delete this.value?.spec?.uplink?.bondOptions?.miimon;
+        }
+
+        const mtu = this.value?.spec?.uplink?.linkAttributes?.mtu;
+
+        if (!mtu && mtu !== 0 ) {
+          delete this.value?.spec?.uplink?.linkAttributes?.mtu;
+        }
+
         return Promise.resolve();
       }
     },
