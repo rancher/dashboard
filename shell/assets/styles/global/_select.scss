@@ -165,6 +165,12 @@
     }
   }
 
+  .vs--multiple {
+    .vs__selected {
+      flex-basis: 0%;
+    }
+  }
+
   &:not(.view):not(.disabled) {
     background-color: var(--input-bg);
     border: solid var(--border-width) var(--input-border);
