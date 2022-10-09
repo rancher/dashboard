@@ -605,6 +605,8 @@ export default function(dir, _appConfig) {
       '/engines-dist': proxyOpts('https://127.0.0.1:8000'),
       // Plugin dev
       '/verdaccio/':   proxyOpts('http://127.0.0.1:4873/-'),
+
+      '/c/*/vlansubnet': proxyOpts('https://127.0.0.1:8000'),
     },
 
     // Nuxt server

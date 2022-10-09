@@ -173,6 +173,8 @@ nav:
   failWhale:
     reload: 重新加载
     separator: 或者
+  vlanSubnet:
+    label: 扁平网络
 
 product:
   apps: 应用

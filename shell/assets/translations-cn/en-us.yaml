@@ -169,6 +169,8 @@ nav:
   failWhale:
     reload: Reload
     separator: or
+  vlanSubnet:
+    label: Flat Network
 
 product:
   apps: Apps
