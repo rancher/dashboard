@@ -253,7 +253,7 @@ harvester:
       basics: 基本信息
       instance: 虚拟机
       monitor: 监控数据
-      disk: 存储
+      storage: 存储
       labels: 标签
       ksmtuned: Ksmtuned
     detail:

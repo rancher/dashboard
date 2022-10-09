@@ -401,7 +401,7 @@ export default {
         v-if="hasBlockDevicesSchema"
         name="disk"
         :weight="80"
-        :label="t('harvester.host.tabs.disk')"
+        :label="t('harvester.host.tabs.storage')"
       >
         <div
           v-if="longhornNode"
