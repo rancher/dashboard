@@ -28,6 +28,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
   computed: {
@@ -89,13 +94,14 @@ export default {
 
 <template>
   <div>
-    <FleetIntro v-if="noRows" />
+    <FleetIntro v-if="noRows && !loading" />
     <ResourceTable
       v-if="!noRows"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
       :rows="rows"
+      :loading="loading"
       key-field="_key"
       v-on="$listeners"
     >

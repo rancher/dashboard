@@ -76,7 +76,7 @@ export default {
       return schema;
     },
 
-    rows() {
+    filteredRows() {
       const out = [];
 
       for ( const typeRows of this.resources ) {
@@ -151,5 +151,5 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="rows" :overflow-y="true" />
+  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="filteredRows" :overflow-y="true" />
 </template>

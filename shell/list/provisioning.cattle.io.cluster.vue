@@ -8,17 +8,35 @@ import { MODE, _IMPORT } from '@shell/config/query-params';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
     Banner, ResourceTable, Masthead
   },
+  mixins: [ResourceFetch],
+  props:  {
+    loadResources: {
+      type:    Array,
+      default: () => []
+    },
+
+    loadIndeterminate: {
+      type:    Boolean,
+      default: false
+    },
+
+    incrementalLoadingIndicator: {
+      type:    Boolean,
+      default: false
+    },
+  },
 
   async fetch() {
     const hash = {
+      rancherClusters: this.$fetchType(CAPI.RANCHER_CLUSTER),
       normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
       mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
     };
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
@@ -50,7 +68,6 @@ export default {
     const res = await allHash(hash);
 
     this.mgmtClusters = res.mgmtClusters;
-    this.rancherClusters = res.rancherClusters;
   },
 
   data() {
@@ -58,19 +75,18 @@ export default {
       resource:        CAPI.RANCHER_CLUSTER,
       schema:          this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
       mgmtClusters:    [],
-      rancherClusters: [],
     };
   },
 
   computed: {
-    rows() {
+    filteredRows() {
       // If Harvester feature is enabled, hide Harvester Clusters
       if (this.harvesterEnabled) {
-        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rancherClusters), this.$store);
+        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rows), this.$store);
       }
 
       // Otherwise, show Harvester clusters - these will be shown with a warning
-      return filterHiddenLocalCluster(this.rancherClusters, this.$store);
+      return filterHiddenLocalCluster(this.rows, this.$store);
     },
 
     hiddenHarvesterCount() {
@@ -82,7 +98,7 @@ export default {
         return 0;
       }
 
-      return this.rancherClusters.length - filterOnlyKubernetesClusters(this.rancherClusters).length;
+      return this.rows.length - filterOnlyKubernetesClusters(this.rows).length;
     },
 
     createLocation() {
@@ -115,6 +131,13 @@ export default {
     harvesterEnabled: mapFeature(HARVESTER_FEATURE),
   },
 
+  $loadingResources() {
+    return {
+      loadResources:     [CAPI.RANCHER_CLUSTER],
+      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
+    };
+  },
+
   mounted() {
     window.c = this;
   },
@@ -130,6 +153,9 @@ export default {
       :resource="resource"
       :create-location="createLocation"
       component-testid="cluster-manager-list"
+      :show-incremental-loading-indicator="incrementalLoadingIndicator"
+      :load-resources="loadResources"
+      :load-indeterminate="loadIndeterminate"
     >
       <template v-if="canImport" slot="extraActions">
         <n-link
@@ -142,7 +168,7 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" :namespaced="false" :loading="$fetchState.pending">
+    <ResourceTable :schema="schema" :rows="filteredRows" :namespaced="false" :loading="loading">
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>

@@ -368,16 +368,19 @@ export default {
       immediate: true
     },
 
-    isManualRefreshLoading(neu, old) {
-      this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+    isManualRefreshLoading: {
+      handler(neu, old) {
+        this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
 
-      // setTimeout is needed so that this is pushed further back on the JS computing queue
-      // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
-      if (old && !neu) {
-        this.manualRefreshTimer = setTimeout(() => {
-          this.watcherUpdateLiveAndDelayed(neu, old);
-        }, 1000);
-      }
+        // setTimeout is needed so that this is pushed further back on the JS computing queue
+        // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
+        if (old && !neu) {
+          this.manualRefreshTimer = setTimeout(() => {
+            this.watcherUpdateLiveAndDelayed(neu, old);
+          }, 1000);
+        }
+      },
+      immediate: true
     }
   },
 

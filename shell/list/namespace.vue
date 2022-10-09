@@ -6,6 +6,10 @@ export default {
   name:       'ListNamespace',
   components: { ResourceTable },
   props:      {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
@@ -13,6 +17,10 @@ export default {
     rows: {
       type:     Array,
       required: true,
+    },
+    loading: {
+      type:     Boolean,
+      required: false,
     },
   },
 
@@ -28,7 +36,11 @@ export default {
         return this.rows;
       }
     },
-  }
+  },
+
+  $loadingResources() {
+    return { loadIndeterminate: true };
+  },
 };
 </script>
 
@@ -39,6 +51,7 @@ export default {
     :groupable="false"
     :schema="schema"
     key-field="_key"
+    :loading="loading"
     v-on="$listeners"
   />
 </template>
