@@ -1,5 +1,4 @@
 <script>
-import { options } from '~/shell/config/home-links';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import CommunityLinks from '@shell/components/CommunityLinks';
@@ -98,15 +97,6 @@ export default {
       return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig`;
     },
 
-    options() {
-      if (!this.uiIssuesSetting?.value) {
-        return;
-      }
-
-      // Load defaults for suppoet page
-      return options(true, this.uiIssuesSetting?.value);
-    },
-
     title() {
       return this.hasSupport ? 'support.suse.title' : 'support.community.title';
     },
@@ -154,7 +144,7 @@ export default {
             </div>
           </div>
         </div>
-        <CommunityLinks :link-options="options" :is-support-page="true" class="community col side-panel span-3" />
+        <CommunityLinks :is-support-page="true" class="community col side-panel span-3" />
       </div>
     </IndentedPanel>
   </div>

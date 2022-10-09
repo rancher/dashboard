@@ -49,6 +49,21 @@ export default {
     },
 
     options() {
+      // Use linkOptions if provided - used by Harvester
+      if (this.linmOptions && Object.keys(this.linkOptions).length) {
+        const options = [];
+
+        Object.keys(this.linkOptions).forEach((key) => {
+          options.push({
+            key,
+            label: this.t(key),
+            value: this.linkOptions[key]
+          });
+        });
+
+        return options;
+      }
+
       // Combine the links
       const all = [];
 
