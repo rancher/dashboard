@@ -1,5 +1,5 @@
 <script>
-import { options } from '@shell/config/footer';
+import { options } from '~/shell/config/home-links';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import CommunityLinks from '@shell/components/CommunityLinks';

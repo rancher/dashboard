@@ -6310,13 +6310,16 @@ resourceQuota:
 customLinks: 
   displayTitle: Links
   label: Home Links
-  description: 'Links to display on the home page.'
+  description: 'Configure the links to display on the home page. You can define your own custom links as well as show or hide default links.'
   restoreDefaults: 'Restore Defaults'
   addLink: Add Link
   restoreSuccess: Default URLs have been restored.
   settings:
+    default: Default Links
+    custom: Custom Links
     keyLabel: Display Text
     valueLabel: URL
+    showLabel: Show
   defaults: 
     docs:       Docs
     forums:     Forums

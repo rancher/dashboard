@@ -67,22 +67,17 @@ export default {
       type:    Boolean,
       default: false,
     },
-
-    hasAction: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   computed: {
     threeColumns() {
-      return this.hasAction || !!this.$slots['rowaction'];
+      return this.showRemove;
     },
 
     rows() {
       const out = [];
 
-      if ( this.asMap || !Array.isArray(this.value)) {
+      if ( this.asMap ) {
         Object.keys(this.value || {}).forEach((key) => {
           const value = this.value[key];
 
@@ -97,7 +92,6 @@ export default {
           const value = row[this.valueName];
 
           out.push({
-            ...row,
             key,
             ...this.displayProps(value),
           });
@@ -177,7 +171,7 @@ export default {
       </div>
 
       <template v-for="(row,i) in rows">
-        <div :key="i+'key'" class="kv-item key" :class="{'disabled': row.disabled}">
+        <div :key="i+'key'" class="kv-item key">
           <slot
             name="key"
             :row="row"
@@ -187,14 +181,13 @@ export default {
           </slot>
         </div>
 
-        <div :key="i+'value'" class="kv-item value" :class="{'disabled': row.disabled}">
+        <div :key="i+'value'" class="kv-item value">
           <slot name="value" :row="row">
             <span v-if="row.binary">{{ t('detailText.binary', {n: row.byteSize}) }}</span>
             <span v-else-if="row.empty">{{ t('detailText.empty') }}</span>
             <span v-else>{{ row.value }}</span>
           </slot>
         </div>
-        <slot name="rowaction" :row="row" :i="i" />
       </template>
     </div>
   </div>
@@ -208,13 +201,13 @@ export default {
   .kv-container{
     display: grid;
     align-items: center;
-    grid-template-columns: 1fr 1fr 50px ;
+    grid-template-columns: auto 1fr;
     column-gap: $column-gutter;
 
     &.extra-column {
-       grid-template-columns: 1fr 1fr 50px;
+       grid-template-columns: 1fr 1fr 100px;
        &.view{
-       grid-template-columns: auto 1fr 50px;
+       grid-template-columns: auto 1fr 100px;
 
        }
     }

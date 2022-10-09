@@ -1,10 +1,11 @@
 <script>
-import { options } from '@shell/config/footer';
 import SimpleBox from '@shell/components/SimpleBox';
 import Closeable from '@shell/mixins/closeable';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { mapGetters } from 'vuex';
+import { isRancherPrime } from '@shell/config/version';
+import { fetchLinks } from '@shell/config/home-links';
 
 export default {
   name: 'CommunityLinks',
@@ -27,31 +28,14 @@ export default {
   mixins: [Closeable],
 
   async fetch() {
-    // If user already have custom links and uiIssueSetting Doc URL set
-    // This should already be in the uiCustomLinks
-    try {
-      this.uiCustomLinks = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
-    } catch (err) {
-
-    }
-
-    // Fallback:
-    // NB: this.uiIssueSetting is deprecated now.
-    if (!this.uiCustomLinks) {
-      try {
-        this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
-      } catch (err) {
-
-      }
-    }
+    this.links = await fetchLinks(this.$store, this.hasSupport, this.isSupportPage, str => this.t(str));
   },
 
   data() {
-    return { uiCustomLinks: null, uiIssuesSetting: null };
+    return { links: {} };
   },
 
   computed: {
-
     ...mapGetters('i18n', [
       'selectedLocaleLabel'
     ]),
@@ -60,41 +44,26 @@ export default {
       return !!Object.keys(this.options).length || !!Object.keys(this.$slots).length;
     },
 
+    hasSupport() {
+      return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
+    },
+
     options() {
-      // Link options are provided
-      if (Object.keys(this.linkOptions).length > 0) {
-        return this.linkOptions;
+      // Combine the links
+      const all = [];
+
+      if (this.links.custom) {
+        all.push(...this.links.custom);
       }
 
-      // Custom links set from settings
-      if (!!this.uiCustomLinks?.value) {
-        try {
-          const val = JSON.parse(this.uiCustomLinks.value);
+      if (this.links.defaults) {
+        all.push(...this.links.defaults.filter(link => link.enabled));
+      }
 
-          const arr = Array.isArray(val) ? val : Object.keys(val);
-
-          return arr.filter(item => item.enabled !== false).reduce((prev, curr) => {
-          // Skip default support link in support page
-            if (this.isSupportPage && curr.value === '/support') {
-              return prev;
-            }
-            prev[curr.key] = curr.value;
-
-            return prev;
-          }, {});
-        } catch (e) {
-          console.error('Could not parse custom links setting', e); // eslint-disable-line no-console
-        }
-      } // Fallback
-
-      return options(false, this.uiIssuesSetting?.value);
+      return all;
     }
   },
   methods: {
-    getLabel(label) {
-      return this.$store.getters['i18n/withFallback'](`customLinks.defaults.${ label }`, null, label);
-    },
-
     show() {
       this.$modal.show('wechat-modal');
     },
@@ -113,11 +82,11 @@ export default {
           {{ t('customLinks.displayTitle') }}
         </h2>
       </template>
-      <div v-for="(value, name) in options" :key="name" class="support-link">
-        <n-link v-if="value.startsWith('/') " :to="value">
-          {{ getLabel(name) }}
+      <div v-for="link in options" :key="link.label" class="support-link">
+        <n-link v-if="link.value.startsWith('/') " :to="link.value">
+          {{ link.label }}
         </n-link>
-        <a v-else :href="value" rel="noopener noreferrer nofollow" target="_blank"> {{ getLabel(name) }} </a>
+        <a v-else :href="link.value" rel="noopener noreferrer nofollow" target="_blank"> {{ link.label }} </a>
       </div>
       <slot />
       <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
