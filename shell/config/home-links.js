@@ -134,7 +134,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
   } catch (e) {
     console.warn('Could not parse legacy link settings', e); // eslint-disable-line no-console
   }
-  
+
   return ensureSupportLink(links, hasSupport, isSupportPage, t);
 }
 
