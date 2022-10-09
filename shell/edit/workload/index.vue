@@ -56,6 +56,7 @@ export default {
         :mode="mode"
         :rules="{name: fvGetAndReportPathRules('metadata.name'), namespace: fvGetAndReportPathRules('metadata.namespace'), description: []}"
         @change="name=value.metadata.name"
+        @isNamespaceNew="isNamespaceNew = $event"
       />
       <div v-if="isCronJob || isReplicable || isStatefulSet || containerOptions.length > 1" class="row mb-20">
         <div v-if="isCronJob" class="col span-3">
@@ -169,7 +170,13 @@ export default {
               <div class="spacer" />
               <div>
                 <h3>{{ t('workload.container.titles.command') }}</h3>
-                <Command v-model="allContainers[i]" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
+                <Command
+                  v-model="allContainers[i]"
+                  :secrets="namespacedSecrets"
+                  :config-maps="namespacedConfigMaps"
+                  :mode="mode"
+                  :loading="isLoadingSecondaryResources"
+                />
               </div>
               <ServiceNameSelect
                 :value="podTemplateSpec.serviceAccountName"
@@ -178,6 +185,7 @@ export default {
                 :select-placeholder="t('workload.serviceAccountName.label')"
                 :options="namespacedServiceNames"
                 option-label="metadata.name"
+                :loading="isLoadingSecondaryResources"
                 @input="updateServiceAccount"
               />
               <div class="spacer" />
@@ -234,6 +242,8 @@ export default {
                 :secrets="namespacedSecrets"
                 :config-maps="namespacedConfigMaps"
                 :save-pvc-hook-name="savePvcHookName"
+                :loading="isLoadingSecondaryResources"
+                :namespaced-pvcs="pvcs"
                 @removePvcForm="clearPvcFormState"
               />
             </Tab>
@@ -265,10 +275,10 @@ export default {
               </template>
             </Tab>
             <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling" :weight="tabWeightMap['podScheduling']">
-              <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" />
+              <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" :loading="isLoadingSecondaryResources" />
             </Tab>
             <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="tabWeightMap['nodeScheduling']">
-              <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
+              <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" :loading="isLoadingSecondaryResources" />
             </Tab>
             <Tab :label="t('workload.container.titles.upgrading')" name="upgrading" :weight="tabWeightMap['upgrading']">
               <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />

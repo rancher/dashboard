@@ -342,7 +342,7 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', this.namespaces && !this.namespaces.find(n => n.value === val));
+        this.$emit('isNamespaceNew', !val || (this.namespaces && !this.namespaces.find(n => n.value === val)));
       }
 
       if (this.namespaceKey) {
@@ -361,10 +361,12 @@ export default {
       if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
         this.$parent.$emit('createNamespace', true);
+        this.$emit('isNamespaceNew', true);
         Vue.nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
         this.$parent.$emit('createNamespace', false);
+        this.$emit('isNamespaceNew', false);
       }
     }
   },

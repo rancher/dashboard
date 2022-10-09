@@ -1,5 +1,4 @@
 <script>
-import { PVC } from '@shell/config/types';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import Mount from '@shell/edit/workload/storage/Mount';
 import { _VIEW } from '@shell/config/query-params';
@@ -47,36 +46,30 @@ export default {
       type:    Array,
       default: () => [],
     },
+    namespacedPvcs: {
+      type:    Array,
+      default: () => [],
+    },
 
     registerBeforeHook: {
       type:    Function,
       default: null,
     },
-  },
-
-  async fetch() {
-    if ( this.$store.getters['cluster/schemaFor'](PVC) ) {
-      this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
-    } else {
-      this.pvcs = [];
-    }
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
     this.initializeStorage();
 
-    return { pvcs: [] };
+    return {};
   },
 
   computed: {
     isView() {
       return this.mode === _VIEW;
-    },
-
-    namespacedPVCs() {
-      const namespace = this.namespace || this.$store.getters['defaultNamespace'];
-
-      return this.pvcs.filter(pvc => pvc.metadata.namespace === namespace);
     },
 
     /**
@@ -110,7 +103,7 @@ export default {
     },
 
     pvcNames() {
-      return this.namespacedPVCs.map(pvc => pvc.metadata.name);
+      return this.namespacedPvcs.map(pvc => pvc.metadata.name);
     },
   },
 
@@ -270,6 +263,7 @@ export default {
             :pvcs="pvcNames"
             :register-before-hook="registerBeforeHook"
             :save-pvc-hook-name="savePvcHookName"
+            :loading="loading"
             @removePvcForm="removePvcForm"
           />
           <div v-else-if="isView">

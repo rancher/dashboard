@@ -31,7 +31,11 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    }
+    },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -177,6 +181,7 @@ export default {
             :options="nodes || []"
             :mode="mode"
             :multiple="false"
+            :loading="loading"
             @input="update"
           />
         </div>
