@@ -21,7 +21,7 @@ const DEFAULT_LINKS = [
   },
   {
     key:     'issues',
-    value:   'https://github.com/rancher/dashboard/issues/new',
+    value:   'https://github.com/rancher/dashboard/issues/new/choose',
     enabled: true,
   },
   {
