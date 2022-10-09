@@ -5,10 +5,12 @@ import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
+
 export default {
   name:       'HarvesterPvcCloneDialog',
   components: {
-    AsyncButton, Banner, Card, LabeledInput
+    AsyncButton, Banner, Card, LabeledInput, Checkbox
   },
   props:      {
     resources: {
@@ -19,6 +21,7 @@ export default {
   data() {
     return {
       name:      '',
+      cloneData: true,
       errors:       []
     };
   },
@@ -28,7 +31,7 @@ export default {
       return this.resources[0];
     },
     disableSave() {
-      return !this.name;
+      return this.cloneData && !this.name;
     }
   },
   methods: {
@@ -37,13 +40,21 @@ export default {
       this.$emit('close');
     },
     async save(buttonCb) {
+      if (!this.cloneData) {
+        this.resources[0].goToClone();
+        buttonCb(false);
+        this.close();
+
+        return;
+      }
+
       try {
         const res = await this.actionResource.doAction('clone', { name: this.name });
 
         if (res._status === 200 || res._status === 204) {
           this.$store.dispatch('growl/success', {
             title:   this.t('harvester.notification.title.succeed'),
-            message: this.t('harvester.modal.pvcClone.message.success', { name: this.name })
+            message: this.t('harvester.modal.volumeClone.message.success', { name: this.name })
           }, { root: true });
           this.close();
           buttonCb(true);
@@ -67,12 +78,16 @@ export default {
 <template>
   <Card :show-highlight-border="false">
     <template #title>
-      {{ t('harvester.modal.pvcClone.title') }}
+      {{ t('harvester.modal.volumeClone.title') }}
     </template>
     <template #body>
+      <Checkbox v-model="cloneData" class="mb-10" label-key="harvester.modal.cloneVM.type" />
+
       <LabeledInput
+        v-show="cloneData"
         v-model="name"
-        :label="t('harvester.modal.pvcClone.name')"
+        class="mb-20"
+        :label="t('harvester.modal.volumeClone.name')"
         required
       />
     </template>

@@ -68,7 +68,7 @@ harvester:
       name: 名称
       message:
         success: '快照 { name } 生成成功。'
-    pvcClone:
+    volumeClone:
       title: 克隆卷
       name: 名称
       message:

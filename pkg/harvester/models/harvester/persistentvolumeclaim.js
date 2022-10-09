@@ -27,6 +27,13 @@ export default class HciPv extends HarvesterResource {
   }
 
   get availableActions() {
+    const out = super._availableActions;
+    const clone = out.find(action => action.action === 'goToClone');
+
+    if (clone) {
+      clone.action = 'goToCloneVolume';
+    }
+
     return [
       {
         action:  'exportImage',
@@ -46,13 +53,7 @@ export default class HciPv extends HarvesterResource {
         icon:       'icon icon-backup',
         label:      this.t('harvester.action.snapshot'),
       },
-      {
-        action:     'pvcClone',
-        enabled:    this.hasAction('clone'),
-        icon:       'icon icon-copy',
-        label:      this.t('harvester.action.pvcClone'),
-      },
-      ...super._availableActions
+      ...out
     ];
   }
 
@@ -74,10 +75,10 @@ export default class HciPv extends HarvesterResource {
     });
   }
 
-  pvcClone(resources = this) {
+  goToCloneVolume(resources = this) {
     this.$dispatch('promptModal', {
       resources,
-      component: 'PvcCloneDialog'
+      component: 'VolumeCloneDialog'
     });
   }
 

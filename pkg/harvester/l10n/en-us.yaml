@@ -68,7 +68,7 @@ harvester:
       name: Name
       message:
         success: 'Take Snapshot { name } successfully.'
-    pvcClone:
+    volumeClone:
       title: Clone Volume
       name: Name
       message:
