@@ -11,12 +11,13 @@ import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
-import filtering from './filtering';
+import filtering, { ADV_FILTER_ALL_COLS_VALUE, ADV_FILTER_ALL_COLS_LABEL } from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
 
@@ -27,18 +28,20 @@ export const FORMATTERS = {};
 
 export const COLUMN_BREAKPOINTS = {
   /**
-   * Only show column if at tablet width or wider
-   */
+     * Only show column if at tablet width or wider
+     */
   TABLET:  'tablet',
   /**
-   * Only show column if at laptop width or wider
-   */
+     * Only show column if at laptop width or wider
+     */
   LAPTOP:  'laptop',
   /**
-   * Only show column if at desktop width or wider
-   */
+     * Only show column if at desktop width or wider
+     */
   DESKTOP: 'desktop'
 };
+
+const DEFAULT_ADV_FILTER_COLS_VALUE = ADV_FILTER_ALL_COLS_VALUE;
 
 // @TODO:
 // Fixed header/scrolling
@@ -53,7 +56,7 @@ export const COLUMN_BREAKPOINTS = {
 export default {
   name:       'SortableTable',
   components: {
-    THead, Checkbox, AsyncButton, ActionDropdown
+    THead, Checkbox, AsyncButton, ActionDropdown, LabeledSelect
   },
   mixins: [
     filtering,
@@ -99,6 +102,16 @@ export default {
       // Field to group rows by, row[groupBy] must be something that can be a map key
       type:    String,
       default: null
+    },
+    group: {
+      // group value
+      type:    String,
+      default: () => ''
+    },
+    groupOptions: {
+      // available options for grouping
+      type:    Array,
+      default: () => []
     },
     groupRef: {
       // Object to provide as the reference for rendering the grouping row
@@ -182,16 +195,16 @@ export default {
     },
 
     /**
-     * Show the divider between the thead and tbody.
-     */
+       * Show the divider between the thead and tbody.
+       */
     topDivider: {
       type:    Boolean,
       default: true
     },
 
     /**
-     * Show the dividers between rows
-     */
+       * Show the dividers between rows
+       */
     bodyDividers: {
       type:    Boolean,
       default: false
@@ -207,66 +220,66 @@ export default {
     },
 
     /**
-     * If pagination of the data is enabled or not
-     */
+       * If pagination of the data is enabled or not
+       */
     paging: {
       type:    Boolean,
       default: false,
     },
 
     /**
-     * What translation key to use for displaying the '1 - 10 of 100 Things' pagination info
-     */
+       * What translation key to use for displaying the '1 - 10 of 100 Things' pagination info
+       */
     pagingLabel: {
       type:    String,
       default: 'sortableTable.paging.generic'
     },
 
     /**
-     * Additional params to pass to the pagingLabel translation
-     */
+       * Additional params to pass to the pagingLabel translation
+       */
     pagingParams: {
       type:    Object,
       default: null,
     },
 
     /**
-     * Allows you to override the default preference of the number of
-     * items to display per page. This is used by ./paging.js if you're
-     * looking for a reference.
-     */
+       * Allows you to override the default preference of the number of
+       * items to display per page. This is used by ./paging.js if you're
+       * looking for a reference.
+       */
     rowsPerPage: {
       type:    Number,
       default: null, // Default comes from the user preference
     },
 
     /**
-     * Allows you to override the default translation text of no rows view
-     */
+       * Allows you to override the default translation text of no rows view
+       */
     noRowsKey: {
       type:    String,
       default: 'sortableTable.noRows'
     },
 
     /**
-     * Allows you to hide the no rows messaging.
-     */
+       * Allows you to hide the no rows messaging.
+       */
     showNoRows: {
       type:    Boolean,
       default: true
     },
 
     /**
-     * Allows you to override the default translation text of no search data view
-     */
+       * Allows you to override the default translation text of no search data view
+       */
     noDataKey: {
       type:    String,
       default: 'sortableTable.noData'
     },
 
     /**
-     * Allows you to override showing the THEAD section.
-     */
+       * Allows you to override showing the THEAD section.
+       */
     showHeaders: {
       type:    Boolean,
       default: true
@@ -278,33 +291,55 @@ export default {
     },
 
     /**
-     * Allows you to link to a custom detail page for data that
-     * doesn't have a class model. For example, a receiver configuration
-     * block within an AlertmanagerConfig resource.
-     */
+       * Allows you to link to a custom detail page for data that
+       * doesn't have a class model. For example, a receiver configuration
+       * block within an AlertmanagerConfig resource.
+       */
     getCustomDetailLink: {
       type:    Function,
       default: null
     },
 
     /**
-     * Inherited global identifier prefix for tests
-     * Define a term based on the parent component to avoid conflicts on multiple components
-     */
+       * Inherited global identifier prefix for tests
+       * Define a term based on the parent component to avoid conflicts on multiple components
+       */
     componentTestid: {
       type:    String,
       default: 'sortable-table'
-    }
+    },
+    hasAdvancedFiltering: {
+      type:    Boolean,
+      default: false
+    },
+
+    advFilterHideLabelsAsCols: {
+      type:    Boolean,
+      default: false
+    },
+
+    advFilterPreventFilteringLabels: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
     return {
-      currentPhase:        ASYNC_BUTTON_STATES.WAITING,
-      expanded:            {},
-      searchQuery:         '',
-      eventualSearchQuery: '',
-      actionOfInterest:    null,
-      loadingDelay:        false,
+      currentPhase:                ASYNC_BUTTON_STATES.WAITING,
+      expanded:                    {},
+      searchQuery:                 '',
+      eventualSearchQuery:         '',
+      actionOfInterest:            null,
+      loadingDelay:                false,
+      columnOptions:               [],
+      colOptionsWatcher:           null,
+      advancedFilteringVisibility: false,
+      advancedFilteringValues:     [],
+      advFilterSearchTerm:         null,
+      advFilterSelectedProp:       DEFAULT_ADV_FILTER_COLS_VALUE,
+      advFilterSelectedLabel:      ADV_FILTER_ALL_COLS_LABEL,
+      column:                      null,
     };
   },
 
@@ -318,6 +353,20 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main.on('scroll', this._onScroll);
+
+    this.updateLiveAndDelayed();
+
+    // check if user clicked outside the advanced filter box
+    document.addEventListener('click', this.onClickOutside);
+
+    // register watcher to watch rows for columnOptions
+    if (this.hasAdvancedFiltering) {
+      this.columnOptions = this.setColsOptions();
+
+      this.colOptionsWatcher = this.$watch('rows', function() {
+        this.columnOptions = this.setColsOptions();
+      });
+    }
   },
 
   beforeDestroy() {
@@ -331,6 +380,13 @@ export default {
     const $main = $('main');
 
     $main.off('scroll', this._onScroll);
+
+    document.removeEventListener('click', this.onClickOutside);
+
+    // unregister register watcher for rows
+    if (this.hasAdvancedFiltering) {
+      this.colOptionsWatcher();
+    }
   },
 
   watch: {
@@ -398,6 +454,18 @@ export default {
     initalLoad() {
       return !!(!this.loading && !this._didinit && this.rows?.length);
     },
+    advFilterSelectOptions() {
+      return this.columnOptions.filter(c => c.isFilter && !c.preventFiltering);
+    },
+
+    advGroupOptions() {
+      return this.groupOptions.map((item) => {
+        return {
+          label: this.t(item.tooltipKey),
+          value: item.value
+        };
+      });
+    },
 
     fullColspan() {
       let span = 0;
@@ -433,10 +501,10 @@ export default {
 
     showHeaderRow() {
       return this.search ||
-        this.tableActions ||
-        this.$slots['header-left']?.length ||
-        this.$slots['header-middle']?.length ||
-        this.$slots['header-right']?.length;
+          this.tableActions ||
+          this.$slots['header-left']?.length ||
+          this.$slots['header-middle']?.length ||
+          this.$slots['header-right']?.length;
     },
 
     columns() {
@@ -464,6 +532,22 @@ export default {
 
           out.splice(out.indexOf(variable), 1, neu);
         }
+      }
+
+      // handle cols visibility and filtering if there is advanced filtering
+      if (this.hasAdvancedFiltering) {
+        this.columnOptions.forEach((advCol) => {
+          if (advCol.isTableOption) {
+            const index = out.findIndex(col => col.name === advCol.name);
+
+            if (index !== -1) {
+              out[index].isColVisible = advCol.isColVisible;
+              out[index].isFilter = advCol.isFilter;
+            } else {
+              out.push(advCol);
+            }
+          }
+        });
       }
 
       return out;
@@ -825,6 +909,162 @@ export default {
         event,
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
+    },
+
+    // advanced filtering methods
+    setColsOptions() {
+      let opts = [];
+      const rowLabels = [];
+      const headerProps = [];
+
+      // Filter out any columns that are too heavy to show for large page sizes
+      const filteredHeaders = this.headers.slice().filter(c => (!c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage)));
+
+      // add table cols from config (headers)
+      filteredHeaders.forEach((prop) => {
+        const name = prop.name;
+        const label = prop.labelKey ? this.t(`${ prop.labelKey }`) : prop.label;
+        const isFilter = !!((!Object.keys(prop).includes('search') || prop.search));
+        let sortVal = prop.sort;
+        let value = null;
+
+        if (prop.sort && prop.valueProp) {
+          if (typeof prop.sort === 'string') {
+            sortVal = prop.sort.includes(':') ? [prop.sort.split(':')[0]] : [prop.sort];
+          }
+
+          if (!sortVal.includes(prop.valueProp)) {
+            value = JSON.stringify(sortVal.concat([prop.valueProp]));
+          } else {
+            value = JSON.stringify([prop.valueProp]);
+          }
+        } else if (prop.valueProp) {
+          value = JSON.stringify([prop.valueProp]);
+        } else {
+          value = null;
+        }
+
+        headerProps.push({
+          name,
+          label,
+          value,
+          isFilter,
+          isTableOption: true,
+          isColVisible:  true
+        });
+      });
+
+      // add labels as table cols
+      if (this.rows.length) {
+        this.rows.forEach((row) => {
+          if (row.metadata?.labels && Object.keys(row.metadata?.labels).length) {
+            Object.keys(row.metadata?.labels).forEach((label) => {
+              const res = {
+                name:             label,
+                label,
+                value:            `metadata.labels.${ label }`,
+                isFilter:         true,
+                isTableOption:    true,
+                isColVisible:     false,
+                isLabel:          true,
+                preventFiltering: this.advFilterPreventFilteringLabels,
+                preventColToggle: this.advFilterHideLabelsAsCols
+              };
+
+              if (!rowLabels.filter(row => row.label === label).length) {
+                rowLabels.push(res);
+              }
+            });
+          }
+        });
+      }
+
+      opts = headerProps.concat(rowLabels);
+
+      // add find on all cols option...
+      if (opts.length) {
+        opts.unshift({
+          name:          ADV_FILTER_ALL_COLS_LABEL,
+          label:         ADV_FILTER_ALL_COLS_LABEL,
+          value:         ADV_FILTER_ALL_COLS_VALUE,
+          isFilter:      true,
+          isTableOption: false
+        });
+      }
+
+      return opts;
+    },
+    toggleAdvancedFiltering() {
+      this.advancedFilteringVisibility = !this.advancedFilteringVisibility;
+    },
+    addAdvancedFilter() {
+      const colors = ['success', 'info', 'warning', 'error'];
+      let nextColor = colors[0];
+
+      if (this.advancedFilteringValues.length) {
+        const currLastColor = this.advancedFilteringValues[this.advancedFilteringValues.length - 1].color;
+        const currLastColorIndex = colors.findIndex(c => c === currLastColor);
+
+        if (currLastColorIndex === colors.length - 1) {
+          nextColor = colors[0];
+        } else {
+          nextColor = colors[currLastColorIndex + 1];
+        }
+      }
+
+      if (this.advFilterSelectedProp && this.advFilterSearchTerm) {
+        this.advancedFilteringValues.push({
+          prop:  this.advFilterSelectedProp,
+          value: this.advFilterSearchTerm,
+          label: this.advFilterSelectedLabel,
+          color: nextColor
+        });
+
+        this.eventualSearchQuery = this.advancedFilteringValues;
+
+        this.advancedFilteringVisibility = false;
+        this.advFilterSelectedProp = DEFAULT_ADV_FILTER_COLS_VALUE;
+        this.advFilterSelectedLabel = ADV_FILTER_ALL_COLS_LABEL;
+        this.advFilterSearchTerm = null;
+      }
+    },
+    clearAllAdvancedFilters() {
+      this.advancedFilteringValues = [];
+      this.eventualSearchQuery = this.advancedFilteringValues;
+
+      this.advancedFilteringVisibility = false;
+      this.advFilterSelectedProp = DEFAULT_ADV_FILTER_COLS_VALUE;
+      this.advFilterSelectedLabel = ADV_FILTER_ALL_COLS_LABEL;
+      this.advFilterSearchTerm = null;
+    },
+    colSelected(col) {
+      this.advFilterSelectedLabel = col.label;
+    },
+    clearAdvancedFilter(index) {
+      this.advancedFilteringValues.splice(index, 1);
+      this.eventualSearchQuery = this.advancedFilteringValues;
+    },
+    onClickOutside(event) {
+      const advFilterBox = this.$refs['advanced-filter-group'];
+
+      if (!advFilterBox || advFilterBox.contains(event.target)) {
+        return;
+      }
+      this.advancedFilteringVisibility = false;
+    },
+
+    // cols visibility
+    changeColVisibility(colData) {
+      const index = this.columnOptions.findIndex(col => col.label === colData.label);
+
+      if (index !== -1) {
+        this.columnOptions[index].isColVisible = colData.value;
+      }
+    },
+
+    // group value
+    handleGroupValueChange(val) {
+      this.$emit('group-value-change', val);
     }
   }
 };
@@ -834,7 +1074,11 @@ export default {
   <div ref="container">
     <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
       <slot name="title" />
-      <div v-if="showHeaderRow" class="fixed-header-actions" :class="{button: !!$slots['header-button']}">
+      <div
+        v-if="showHeaderRow"
+        class="fixed-header-actions"
+        :class="{button: !!$slots['header-button'], 'advanced-filtering': hasAdvancedFiltering}"
+      >
         <div :class="bulkActionsClass" class="bulk">
           <slot name="header-left">
             <template v-if="tableActions">
@@ -890,7 +1134,7 @@ export default {
             </template>
           </slot>
         </div>
-        <div v-if="isTooManyItemsToAutoUpdate || $slots['header-middle'] && $slots['header-middle'].length" class="middle">
+        <div v-if="isTooManyItemsToAutoUpdate || ($slots['header-middle'] && $slots['header-middle'].length && !hasAdvancedFiltering)" class="middle">
           <slot name="header-middle" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
@@ -900,11 +1144,69 @@ export default {
             @click="debouncedRefreshTableData"
           />
         </div>
+        <div v-else-if="hasAdvancedFiltering" class="middle">
+          <ul class="advanced-filters-applied">
+            <li
+              v-for="(filter, i) in advancedFilteringValues"
+              :key="i"
+              :class="filter.color"
+            >
+              <span class="label">{{ `"${filter.value}" ${ t('sortableTable.in') } ${filter.label}` }}</span>
+              <span class="cross" @click="clearAdvancedFilter(i)">&#10005;</span>
+              <div class="bg"></div>
+            </li>
+          </ul>
+        </div>
 
-        <div v-if="search || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
+        <div v-if="search || hasAdvancedFiltering || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
           <slot name="header-right" />
+          <div v-if="hasAdvancedFiltering" ref="advanced-filter-group" class="advanced-filter-group">
+            <button class="btn role-primary" @click="toggleAdvancedFiltering">
+              {{ t('sortableTable.addFilter') }}
+            </button>
+            <div v-show="advancedFilteringVisibility" class="advanced-filter-container">
+              <input
+                ref="advancedSearchQuery"
+                v-model="advFilterSearchTerm"
+                type="search"
+                class="advanced-search-box"
+                placeholder="Filter for..."
+              >
+              <div class="middle-block">
+                <span>{{ t('sortableTable.in') }}</span>
+                <LabeledSelect
+                  v-model="advFilterSelectedProp"
+                  class="filter-select"
+                  :clearable="true"
+                  :options="advFilterSelectOptions"
+                  :disabled="false"
+                  :searchable="false"
+                  mode="edit"
+                  :multiple="false"
+                  :taggable="false"
+                  placeholder="Select a column"
+                  @selecting="colSelected"
+                />
+              </div>
+              <div class="bottom-block">
+                <button
+                  class="btn role-secondary"
+                  :disabled="!advancedFilteringValues.length"
+                  @click="clearAllAdvancedFilters"
+                >
+                  {{ t('sortableTable.resetFilters') }}
+                </button>
+                <button
+                  class="btn role-primary"
+                  @click="addAdvancedFilter"
+                >
+                  {{ t('sortableTable.add') }}
+                </button>
+              </div>
+            </div>
+          </div>
           <input
-            v-if="search"
+            v-else-if="search"
             ref="searchQuery"
             v-model="eventualSearchQuery"
             type="search"
@@ -920,7 +1222,12 @@ export default {
         v-if="showHeaders"
         :label-for="labelFor"
         :columns="columns"
+        :group="group"
+        :group-options="advGroupOptions"
+        :has-advanced-filtering="hasAdvancedFiltering"
+        :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
         :table-actions="tableActions"
+        :table-cols-options="columnOptions"
         :row-actions="rowActions"
         :sub-expand-column="subExpandColumn"
         :row-actions-width="rowActionsWidth"
@@ -933,6 +1240,8 @@ export default {
         :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
+        @col-visibility-change="changeColVisibility"
+        @group-value-change="handleGroupValueChange"
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
@@ -968,24 +1277,24 @@ export default {
           </tr>
         </slot>
       </tbody>
-      <tbody v-for="group in displayRows" v-else :key="group.key" :class="{ group: groupBy }">
-        <slot v-if="groupBy" name="group-row" :group="group" :fullColspan="fullColspan">
+      <tbody v-for="groupedRows in displayRows" v-else :key="groupedRows.key" :class="{ group: groupBy }">
+        <slot v-if="groupBy" name="group-row" :group="groupedRows" :fullColspan="fullColspan">
           <tr class="group-row">
             <td :colspan="fullColspan">
-              <slot name="group-by" :group="group.grp">
+              <slot name="group-by" :group="groupedRows.grp">
                 <div v-trim-whitespace class="group-tab">
-                  {{ group.ref }}
+                  {{ groupedRows.ref }}
                 </div>
               </slot>
             </td>
           </tr>
         </slot>
-        <template v-for="(row, i) in group.rows">
+        <template v-for="(row, i) in groupedRows.rows">
           <slot name="main-row" :row="row.row">
             <slot :name="'main-row:' + (row.row.mainRowKey || i)" :full-colspan="fullColspan">
               <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
-              because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
-              the value of :class changes. -->
+                because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
+                the value of :class changes. -->
               <tr
                 :key="row.key"
                 class="main-row"
@@ -1023,6 +1332,7 @@ export default {
                     :rowKey="row.key"
                   >
                     <td
+                      v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.col.isColVisible)"
                       :key="col.col.name"
                       :data-title="col.col.label"
                       :data-testid="`sortable-cell-${ i }-${ j }`"
@@ -1165,382 +1475,494 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
-  // Remove colors from multi-action buttons in the table
-  td {
-    .actions.role-multi-action {
-      background-color: transparent;
-      border: none;
-      font-size: 18px;
-      &:hover, &:focus {
-        background-color: var(--accent-btn);
-        box-shadow: none;
-      }
-    }
+  <style lang="scss" scoped>
+  .advanced-filter-group {
+    position: relative;
+    .advanced-filter-container {
+      position: absolute;
+      top: 38px;
+      right: 0;
+      width: 300px;
+      border: 1px solid var(--primary);
+      background-color: #FFF;
+      padding: 20px;
+      z-index: 2;
 
-    // Aligns with COLUMN_BREAKPOINTS
-    @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
-      // HIDE column on sizes below 480px
-      &.tablet, &.laptop, &.desktop {
-        display: none;
-      }
-    }
-    @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
-      // HIDE column on sizes below 992px
-      &.laptop, &.desktop {
-        display: none;
-      }
-    }
-    @media only screen and (max-width: map-get($breakpoints, '--viewport-12')) {
-      // HIDE column on sizes below 1281px
-      &.desktop {
-        display: none;
-      }
-    }
-  }
-
-  // Loading indicator row
-  tr td div.data-loading {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    padding: 20px 0;
-    > i {
-      font-size: 20px;
-      height: 20px;
-      margin-right: 5px;
-      width: 20px;
-    }
-  }
-
-  .search-box {
-    height: 40px;
-  }
-</style>
-
-<style lang="scss">
-//
-// Important: Almost all selectors in here need to be ">"-ed together so they
-// apply only to the current table, not one nested inside another table.
-//
-
-$group-row-height: 40px;
-$group-separation: 40px;
-$divider-height: 1px;
-
-$separator: 20;
-$remove: 100;
-$spacing: 10px;
-
-.sortable-table {
-  border-collapse: collapse;
-  min-width: 400px;
-  border-radius: 5px 5px 0 0;
-  outline: 1px solid var(--border);
-  overflow: hidden;
-  background: var(--sortable-table-bg);
-  border-radius: 4px;
-
-  &.overflow-x {
-    overflow-x: visible;
-  }
-  &.overflow-y {
-    overflow-y: visible;
-  }
-
-  td {
-    padding: 8px 5px;
-    border: 0;
-
-    &:first-child {
-      padding-left: 10px;
-    }
-
-    &:last-child {
-      padding-right: 10px;
-    }
-
-    &.row-check {
-      padding-top: 12px;
-    }
-  }
-
-  tbody {
-    tr {
-      border-bottom: 1px solid var(--sortable-table-top-divider);
-      background-color: var(--sortable-table-row-bg);
-
-      &.main-row.has-sub-row {
-        border-bottom: 0;
-      }
-
-      // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
-      &.main-row:not(.row-selected):hover + .sub-row {
-        background-color: var(--sortable-table-hover-bg);
-      }
-
-      &:last-of-type {
-        border-bottom: 0;
-      }
-
-      &:hover, &.sub-row-hovered {
-        background-color: var(--sortable-table-hover-bg);
-      }
-
-      &.state-description > td {
-        font-size: 13px;
-        padding-top: 0;
-        overflow-wrap: anywhere;
-      }
-    }
-
-    tr.active-row {
-      color: var(--sortable-table-header-bg);
-    }
-
-    tr.row-selected {
-      background: var(--sortable-table-selected-bg);
-    }
-
-    .no-rows {
-      td {
-        padding: 30px 0;
-        text-align: center;
-      }
-    }
-
-    .no-rows, .no-results {
-      &:hover {
-        background-color: var(--body-bg);
-      }
-    }
-
-    &.group {
-      &:before {
-        content: "";
-        display: block;
-        height: 20px;
-        background-color: transparent;
-      }
-    }
-
-    tr.group-row {
-      background-color: initial;
-
-      &:first-child {
-        border-bottom: 2px solid var(--sortable-table-row-bg);
-      }
-
-      &:not(:first-child) {
+      .middle-block {
+        display: flex;
+        align-items: center;
         margin-top: 20px;
-      }
 
-      td {
-        padding: 0;
+        span {
+          margin-right: 20px;
+        }
 
-        &:first-of-type {
-          border-left: 1px solid var(--sortable-table-accent-bg);
+        button {
+          margin-left: 20px;
         }
       }
 
-      .group-tab {
-        @include clearfix;
-        height: $group-row-height;
-        line-height: $group-row-height;
-        padding: 0 10px;
-        border-radius: 4px 4px 0px 0px;
-        background-color: var(--sortable-table-row-bg);
-        position: relative;
-        top: 1px;
-        display: inline-block;
-        z-index: z-index('tableGroup');
-        min-width: $group-row-height * 1.8;
-
-        > SPAN {
-          color: var(--sortable-table-group-label);
-        }
+      .bottom-block {
+        display: flex;
+        align-items: center;
+        margin-top: 40px;
+        justify-content: space-between;
       }
+    }
+  }
 
-      .group-tab:after {
-        height: $group-row-height;
-        width: 70px;
-        border-radius: 5px 5px 0px 0px;
-        background-color: var(--sortable-table-row-bg);
-        content: "";
+  .advanced-filters-applied {
+    display: inline-flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+
+    li {
+      margin: 0 20px 10px 0;
+      padding: 2px 5px;
+      border: 1px solid;
+      display: flex;
+      align-items: center;
+      position: relative;
+
+      .bg {
         position: absolute;
-        right: -15px;
-        top: 0px;
-        transform: skewX(40deg);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+       opacity: 0.2;
         z-index: -1;
       }
+
+      &.success {
+        border-color: var(--success);
+
+        .bg {
+          background-color: var(--success);
+        }
+      }
+      &.warning {
+        border-color: var(--warning);
+
+        .bg {
+          background-color: var(--warning);
+        }
+      }
+      &.info {
+        border-color: var(--info);
+
+        .bg {
+          background-color: var(--info);
+        }
+      }
+      &.error {
+        border-color: var(--error);
+
+        .bg {
+          background-color: var(--error);
+        }
+      }
+
+      .label {
+        margin-right: 10px;
+        font-size: 11px;
+      }
+     .cross {
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+      }
     }
   }
-}
+  </style>
 
-.for-inputs{
-  & TABLE.sortable-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: $spacing;
+  <style lang="scss" scoped>
+    // Remove colors from multi-action buttons in the table
+    td {
+      .actions.role-multi-action {
+        background-color: transparent;
+        border: none;
+        font-size: 18px;
+        &:hover, &:focus {
+          background-color: var(--accent-btn);
+          box-shadow: none;
+        }
+      }
 
-  >TBODY>TR>TD, >THEAD>TR>TH {
-    padding-right: $spacing;
-    padding-bottom: $spacing;
-
-    &:last-of-type {
-      padding-right: 0;
-    }
-  }
-
-  >TBODY>TR:first-of-type>TD {
-    padding-top: $spacing;
-  }
-
-  >TBODY>TR:last-of-type>TD {
-    padding-bottom: 0;
-  }
-}
-
-  &.edit, &.create, &.clone {
-    TABLE.sortable-table>THEAD>TR>TH {
-    border-color: transparent;
-    }
-  }
-}
-
-.sortable-table-header {
-  position: relative;
-  z-index: z-index('fixedTableHeader');
-
-  &.titled {
-    display: flex;
-    align-items: center;
-  }
-}
-.fixed-header-actions.button{
-  grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
-}
-
-.fixed-header-actions {
-  padding: 0 0 20px 0;
-  width: 100%;
-  z-index: z-index('fixedTableHeader');
-  background: transparent;
-  display: grid;
-  grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
-  grid-column-gap: 10px;
-
-  .bulk {
-    grid-area: bulk;
-    margin-top: 1px;
-
-    $gap: 10px;
-
-    & > BUTTON {
-      display: none; // Handled dynamically
-    }
-
-    & > BUTTON:not(:last-of-type) {
-      margin-right: $gap;
-    }
-
-    .action-availability {
-      display: none; // Handled dynamically
-      margin-left: $gap;
-      vertical-align: middle;
-      margin-top: 2px;
-    }
-
-    .dropdown-button {
-      $disabled-color: var(--disabled-text);
-      $disabled-cursor: not-allowed;
-      li.disabled {
-        color: $disabled-color;
-        cursor: $disabled-cursor;
-
-        &:hover {
-          color: $disabled-color;
-          background-color: unset;
-          cursor: $disabled-cursor;
+      // Aligns with COLUMN_BREAKPOINTS
+      @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
+        // HIDE column on sizes below 480px
+        &.tablet, &.laptop, &.desktop {
+          display: none;
+        }
+      }
+      @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
+        // HIDE column on sizes below 992px
+        &.laptop, &.desktop {
+          display: none;
+        }
+      }
+      @media only screen and (max-width: map-get($breakpoints, '--viewport-12')) {
+        // HIDE column on sizes below 1281px
+        &.desktop {
+          display: none;
         }
       }
     }
 
-    .bulk-action  {
-      .icon {
-        vertical-align: -10%;
+    // Loading indicator row
+    tr td div.data-loading {
+      align-items: center;
+      display: flex;
+      justify-content: center;
+      padding: 20px 0;
+      > i {
+        font-size: 20px;
+        height: 20px;
+        margin-right: 5px;
+        width: 20px;
+      }
+    }
+
+    .search-box {
+      height: 40px;
+    }
+  </style>
+
+  <style lang="scss">
+  //
+  // Important: Almost all selectors in here need to be ">"-ed together so they
+  // apply only to the current table, not one nested inside another table.
+  //
+
+  $group-row-height: 40px;
+  $group-separation: 40px;
+  $divider-height: 1px;
+
+  $separator: 20;
+  $remove: 100;
+  $spacing: 10px;
+
+  .filter-select .vs__selected-options .vs__selected {
+    text-align: left;
+  }
+
+  .sortable-table {
+    border-collapse: collapse;
+    min-width: 400px;
+    border-radius: 5px 5px 0 0;
+    outline: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--sortable-table-bg);
+    border-radius: 4px;
+
+    &.overflow-x {
+      overflow-x: visible;
+    }
+    &.overflow-y {
+      overflow-y: visible;
+    }
+
+    td {
+      padding: 8px 5px;
+      border: 0;
+
+      &:first-child {
+        padding-left: 10px;
+      }
+
+      &:last-child {
+        padding-right: 10px;
+      }
+
+      &.row-check {
+        padding-top: 12px;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid var(--sortable-table-top-divider);
+        background-color: var(--sortable-table-row-bg);
+
+        &.main-row.has-sub-row {
+          border-bottom: 0;
+        }
+
+        // if a main-row is hovered also hover it's sibling sub row. note - the reverse is handled in selection.js
+        &.main-row:not(.row-selected):hover + .sub-row {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        &:last-of-type {
+          border-bottom: 0;
+        }
+
+        &:hover, &.sub-row-hovered {
+          background-color: var(--sortable-table-hover-bg);
+        }
+
+        &.state-description > td {
+          font-size: 13px;
+          padding-top: 0;
+          overflow-wrap: anywhere;
+        }
+      }
+
+      tr.active-row {
+        color: var(--sortable-table-header-bg);
+      }
+
+      tr.row-selected {
+        background: var(--sortable-table-selected-bg);
+      }
+
+      .no-rows {
+        td {
+          padding: 30px 0;
+          text-align: center;
+        }
+      }
+
+      .no-rows, .no-results {
+        &:hover {
+          background-color: var(--body-bg);
+        }
+      }
+
+      &.group {
+        &:before {
+          content: "";
+          display: block;
+          height: 20px;
+          background-color: transparent;
+        }
+      }
+
+      tr.group-row {
+        background-color: initial;
+
+        &:first-child {
+          border-bottom: 2px solid var(--sortable-table-row-bg);
+        }
+
+        &:not(:first-child) {
+          margin-top: 20px;
+        }
+
+        td {
+          padding: 0;
+
+          &:first-of-type {
+            border-left: 1px solid var(--sortable-table-accent-bg);
+          }
+        }
+
+        .group-tab {
+          @include clearfix;
+          height: $group-row-height;
+          line-height: $group-row-height;
+          padding: 0 10px;
+          border-radius: 4px 4px 0px 0px;
+          background-color: var(--sortable-table-row-bg);
+          position: relative;
+          top: 1px;
+          display: inline-block;
+          z-index: z-index('tableGroup');
+          min-width: $group-row-height * 1.8;
+
+          > SPAN {
+            color: var(--sortable-table-group-label);
+          }
+        }
+
+        .group-tab:after {
+          height: $group-row-height;
+          width: 70px;
+          border-radius: 5px 5px 0px 0px;
+          background-color: var(--sortable-table-row-bg);
+          content: "";
+          position: absolute;
+          right: -15px;
+          top: 0px;
+          transform: skewX(40deg);
+          z-index: -1;
+        }
       }
     }
   }
 
-  .middle {
-    grid-area: middle;
-    white-space: nowrap;
+  .for-inputs{
+    & TABLE.sortable-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: $spacing;
 
-    .icon.icon-backup.animate {
-      animation-name: spin;
-      animation-duration: 1000ms;
-      animation-iteration-count: infinite;
-      animation-timing-function: linear;
+    >TBODY>TR>TD, >THEAD>TR>TH {
+      padding-right: $spacing;
+      padding-bottom: $spacing;
+
+      &:last-of-type {
+        padding-right: 0;
+      }
     }
 
-    @keyframes spin {
-      from {
-        transform:rotate(0deg);
-      }
-      to {
-        transform:rotate(360deg);
+    >TBODY>TR:first-of-type>TD {
+      padding-top: $spacing;
+    }
+
+    >TBODY>TR:last-of-type>TD {
+      padding-bottom: 0;
+    }
+  }
+
+    &.edit, &.create, &.clone {
+      TABLE.sortable-table>THEAD>TR>TH {
+      border-color: transparent;
       }
     }
   }
 
-  .search {
-    grid-area: search;
-    text-align: right;
-    justify-content: flex-end;
+  .sortable-table-header {
+    position: relative;
+    z-index: z-index('fixedTableHeader');
+
+    &.titled {
+      display: flex;
+      align-items: center;
+    }
+  }
+  .fixed-header-actions.button{
+    grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 350px);
   }
 
-  .bulk-actions-dropdown {
-    display: none; // Handled dynamically
+  .fixed-header-actions {
+    padding: 0 0 20px 0;
+    width: 100%;
+    z-index: z-index('fixedTableHeader');
+    background: transparent;
+    display: grid;
+    grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
+    grid-column-gap: 10px;
 
-    .dropdown-button {
-      background-color: var(--primary);
+    &.advanced-filtering {
+      grid-template-columns: [bulk] auto [middle] minmax(min-content, auto) [search] minmax(min-content, auto);
+    }
 
-      &:hover {
-        background-color: var(--primary-hover-bg);
-        color: var(--primary-hover-text);
+    .bulk {
+      grid-area: bulk;
+
+      $gap: 10px;
+
+      & > BUTTON {
+        display: none; // Handled dynamically
       }
 
-      > *, .icon-chevron-down {
-        color: var(--primary-text);
+      & > BUTTON:not(:last-of-type) {
+        margin-right: $gap;
       }
 
-      .button-divider {
-        border-color: var(--primary-text);
+      .action-availability {
+        display: none; // Handled dynamically
+        margin-left: $gap;
+        vertical-align: middle;
+        margin-top: 2px;
       }
 
-      &.disabled {
-        border-color: var(--disabled-bg);
+      .dropdown-button {
+        $disabled-color: var(--disabled-text);
+        $disabled-cursor: not-allowed;
+        li.disabled {
+          color: $disabled-color;
+          cursor: $disabled-cursor;
 
-        .icon-chevron-down {
-          color: var(--disabled-text) !important;
+          &:hover {
+            color: $disabled-color;
+            background-color: unset;
+            cursor: $disabled-cursor;
+          }
+        }
+      }
+
+      .bulk-action  {
+        .icon {
+          vertical-align: -10%;
+        }
+      }
+    }
+
+    .middle {
+      grid-area: middle;
+      white-space: nowrap;
+
+      .icon.icon-backup.animate {
+        animation-name: spin;
+        animation-duration: 1000ms;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+      }
+
+      @keyframes spin {
+        from {
+          transform:rotate(0deg);
+        }
+        to {
+          transform:rotate(360deg);
+        }
+      }
+    }
+
+    .search {
+      grid-area: search;
+      text-align: right;
+      justify-content: flex-end;
+    }
+
+    .bulk-actions-dropdown {
+      display: none; // Handled dynamically
+
+      .dropdown-button {
+        background-color: var(--primary);
+
+        &:hover {
+          background-color: var(--primary-hover-bg);
+          color: var(--primary-hover-text);
+        }
+
+        > *, .icon-chevron-down {
+          color: var(--primary-text);
         }
 
         .button-divider {
-          border-color: var(--disabled-text);
+          border-color: var(--primary-text);
+        }
+
+        &.disabled {
+          border-color: var(--disabled-bg);
+
+          .icon-chevron-down {
+            color: var(--disabled-text) !important;
+          }
+
+          .button-divider {
+            border-color: var(--disabled-text);
+          }
         }
       }
     }
   }
-}
 
-.paging {
-  margin-top: 10px;
-  text-align: center;
+  .paging {
+    margin-top: 10px;
+    text-align: center;
 
-  SPAN {
-    display: inline-block;
-    min-width: 200px;
+    SPAN {
+      display: inline-block;
+      min-width: 200px;
+    }
   }
-}
-</style>
+  </style>

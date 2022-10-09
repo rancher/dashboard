@@ -122,6 +122,18 @@ export default {
       type:    Boolean,
       default: false
     },
+    hasAdvancedFiltering: {
+      type:    Boolean,
+      default: false
+    },
+    advFilterHideLabelsAsCols: {
+      type:    Boolean,
+      default: false
+    },
+    advFilterPreventFilteringLabels: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -356,7 +368,12 @@ export default {
 
     handleActionButtonClick(event) {
       this.$emit('clickedActionButton', event);
+    },
+
+    handleGroupValueChange(val) {
+      this._group = val;
     }
+
   }
 };
 </script>
@@ -369,6 +386,8 @@ export default {
     :rows="filteredRows"
     :loading="loading"
     :group-by="computedGroupBy"
+    :group="group"
+    :group-options="groupOptions"
     :search="search"
     :paging="true"
     :paging-params="pagingParams"
@@ -378,9 +397,13 @@ export default {
     :overflow-x="overflowX"
     :overflow-y="overflowY"
     :get-custom-detail-link="getCustomDetailLink"
+    :has-advanced-filtering="hasAdvancedFiltering"
+    :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
+    :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
     @clickedActionButton="handleActionButtonClick"
+    @group-value-change="handleGroupValueChange"
     v-on="$listeners"
   >
     <template v-if="showGrouping" #header-middle>

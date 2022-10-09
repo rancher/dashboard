@@ -1,6 +1,9 @@
 import { get } from '@shell/utils/object';
 import { addObject, addObjects, isArray, removeAt } from '@shell/utils/array';
 
+export const ADV_FILTER_ALL_COLS_VALUE = 'allcols';
+export const ADV_FILTER_ALL_COLS_LABEL = 'All Columns';
+
 export default {
   data() {
     return {
@@ -29,6 +32,56 @@ export default {
     }),
     */
     filteredRows() {
+      // PROP hasAdvancedFiltering comes from SortableTable (careful changing data var there...)
+      if (!this.hasAdvancedFiltering) {
+        return this.handleFiltering();
+      } else {
+        return this.handleAdvancedFiltering();
+      }
+    },
+  },
+
+  methods: {
+    // TODO: handle subSearch and subFields, if needed... not entirely sure...
+    handleAdvancedFiltering() {
+      this.subMatches = null;
+      const out = (this.arrangedRows || []).slice();
+
+      if (this.searchQuery.length) {
+        const res = out.filter((row) => {
+          return this.searchQuery.every((f) => {
+            if (f.prop === ADV_FILTER_ALL_COLS_VALUE) {
+              // advFilterSelectOptions comes from SortableTable component
+              const allCols = this.advFilterSelectOptions.slice(1);
+              let searchFields = [];
+
+              allCols.forEach((col) => {
+                if (col.value.includes('[') && col.value.includes(']')) {
+                  searchFields = searchFields.concat(JSON.parse(col.value));
+                } else {
+                  searchFields.push(col.value);
+                }
+              });
+
+              return handleStringSearch(searchFields, [f.value], row);
+            } else {
+              if (f.prop.includes('[') && f.prop.includes(']')) {
+                return handleStringSearch(JSON.parse(f.prop), [f.value], row);
+              }
+
+              return handleStringSearch([f.prop], [f.value], row);
+            }
+          });
+        });
+
+        return res;
+      }
+
+      // return arrangedRows array if we don't have anything to search for...
+      return out;
+    },
+
+    handleFiltering() {
       const searchText = (this.searchQuery || '').trim().toLowerCase();
       let out;
 
@@ -61,20 +114,7 @@ export default {
         let hits = 0;
         let mainFound = true;
 
-        for ( let j = 0 ; j < searchTokens.length ; j++ ) {
-          let expect = true;
-          let token = searchTokens[j];
-
-          if ( token.substr(0, 1) === '!' ) {
-            expect = false;
-            token = token.substr(1);
-          }
-
-          if ( token && matches(searchFields, token, row) !== expect ) {
-            mainFound = false;
-            break;
-          }
-        }
+        mainFound = handleStringSearch(searchFields, searchTokens, row);
 
         if ( subFields && subSearch) {
           const subRows = row[subSearch] || [];
@@ -82,20 +122,7 @@ export default {
           for ( let k = subRows.length - 1 ; k >= 0 ; k-- ) {
             let subFound = true;
 
-            for ( let l = 0 ; l < searchTokens.length ; l++ ) {
-              let expect = true;
-              let token = searchTokens[l];
-
-              if ( token.substr(0, 1) === '!' ) {
-                expect = false;
-                token = token.substr(1);
-              }
-
-              if ( matches(subFields, token, subRows[k]) !== expect ) {
-                subFound = false;
-                break;
-              }
-            }
+            subFound = handleStringSearch(subFields, searchTokens, row);
 
             if ( subFound ) {
               hits++;
@@ -114,7 +141,7 @@ export default {
       this.previousResult = out;
 
       return out;
-    },
+    }
   },
 
   watch: {
@@ -149,6 +176,24 @@ function columnsToSearchField(columns) {
 }
 
 const ipLike = /^[0-9a-f\.:]+$/i;
+
+function handleStringSearch(searchFields, searchTokens, row) {
+  for ( let j = 0 ; j < searchTokens.length ; j++ ) {
+    let expect = true;
+    let token = searchTokens[j];
+
+    if ( token.substr(0, 1) === '!' ) {
+      expect = false;
+      token = token.substr(1);
+    }
+
+    if ( token && matches(searchFields, token, row) !== expect ) {
+      return false;
+    }
+
+    return true;
+  }
+}
 
 function matches(fields, token, item) {
   for ( let field of fields ) {

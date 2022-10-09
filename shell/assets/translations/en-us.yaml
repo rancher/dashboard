@@ -191,6 +191,7 @@ product:
   harvesterManager: Virtualization Management
   rancher: Rancher
   uiplugins: Extensions
+  elemental: OS Management
 
 suffix:
   percent: "%"
@@ -1566,6 +1567,9 @@ cluster:
       label: Roles
     labels:
       label: Kubernetes Node Labels
+    noAccessBanner: "You do not have access to see this machine pool's configuration."
+    configNotFound: "We could not find this machine pool's configuration. We recommend that you create a new cluster with the desired configuration."
+    noPoolsDisclaimer: You do not have any machine pools defined, click the plus to add one.
     autoReplace:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
@@ -1642,6 +1646,7 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+    machineinventoryselectortemplate: Elemental Cluster
   providerTag:
     rke2:
       harvester: '{tag}'
@@ -4246,8 +4251,10 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
     node: Group by Node
+    cluster: Group by Cluster
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
+    notInACluster: Not in a Cluster
     namespace: "<span>Namespace:</span> {name}"
     notInAMachinePool: "Not In A Deployment"
     machinePool: "<span>Pool:</span> {name}"
@@ -4537,6 +4544,14 @@ sortableTable:
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
+  in: in
+  addFilter: Add Filter
+  resetFilters: Reset
+  add: Add
+  tableHeader:
+    noFilter: This column cannot be filtered by
+    groupBy: Group by
+    show: Show
 
 storageClass:
   actions:
@@ -4843,6 +4858,7 @@ tableHeaders:
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
+  cluster: Cluster
   clusters: Clusters
   clustersReady: Clusters Ready
   clusterGroups: Cluster Groups
