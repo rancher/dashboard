@@ -23,6 +23,7 @@ generic:
   id: ID
   ignored: 忽略
   invalidCron: 无效的 cron 调度
+  inProgress: 进行中
   imagePullPolicy:
     always: 总是
     ifNotPresent: 如果不存在
@@ -93,6 +94,7 @@ generic:
   deprecated: 已弃用
   placeholder: "例如：{text}"
   moreInfo: 更多信息
+  basic: 基本信息
 
 locale:
   en-us: English
@@ -139,6 +141,8 @@ nav:
     Policy: 策略
     Scheduling: 调度
     Storage: 存储
+    networks: 网络
+    backupAndSnapshot: 备份和快照
   ns:
     all: 所有命名空间
     clusterLevel: 集群资源
@@ -191,7 +195,6 @@ product:
   mcapps: 多集群应用
   neuvector: NeuVector
   harvesterManager: 虚拟化管理
-  harvester: Harvester
   rancher: Rancher
 
 suffix:
@@ -1204,6 +1207,9 @@ cluster:
     warning:
       label: 这是一个 Harvester 集群 - 请启用 Harvester 功能开关以对其进行管理。
       state: 警告
+      cloudProvider: 
+        incompatible:
+          由于当前的 Harvester 版本与所选的 RKE2 Kubernetes 版本不兼容，因此你无法选择 Harvester cloud provider。请单击 <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">此处</a>查看支持的 Kubernetes 版本。
     clusterWarning: |-
       还有 {count, plural,
       =1 {1个 Harvester 集群未显示}
@@ -1500,6 +1506,7 @@ cluster:
     warning: '此集群包含此表单不完全支持的 machineSelectorConfig。使用 YAML 编辑器管理完整配置。'
     os: '你正在将 {newOS} worker 节点添加到具有一个或多个 {existingOS} worker 节点的集群。你可能需要升级或删除某些已安装的应用。'
     rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">文档</a>。'
+    desiredNodeGroupWarning: 没有可用于运行 Cluster Agent 的节点。要让集群变为 Active 状态，至少需要有 1 个可用的节点。
 
   rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
 
@@ -1557,7 +1564,7 @@ cluster:
     autoReplace:
       label: 自动替换
       toolTip: 如果大于 0，则在此期间无法访问的节点将被自动删除和替换。
-      unit: "分钟"
+      unit: "秒"
   managementTimeout: 集群变成可用。可能已创建了集群。建议在创建另一个集群之前检查集群页面。
   memberRoles:
     removeMessage: '注意：删除用户不会删除其项目权限。'
@@ -2111,9 +2118,15 @@ graphOptions:
 
 growl:
   clearAll: 清除全部通知
-  disconnected: 
-    message: "与 {url} 的连接意外断开 {time}，正在重试..."
+  disconnectError: 
+    message: "与 {url} 的连接在 {time} 意外断开，重连 {tries} 次后断开连接。请检查你的网络连接并重新加载页面。"
     title: Websocket 断开连接
+  connectError: 
+    message: "与 {url} 的连接在 {time} 意外断开，重连次数为 #{tries}。"
+    title: Websocket 重新连接
+  reconnected: 
+    message: "在尝试第 #{tries} 次时恢复了与 {url} 的连接。"
+    title: Websocket 已重新连接
 
 hpa:
   detail:
@@ -2441,6 +2454,10 @@ labels:
   annotations:
     title: 注释
 
+labeledSelect:
+  startTyping: 输入以定义一个项
+  pressEnter: 按回车以添加 “{input}”
+
 landing:
   clusters:
     title: 集群
@@ -2648,6 +2665,9 @@ logging:
       certificate: 连接
       labels: 标签
       configuration: 配置
+    tips:
+      singleProvider: 此输出配置了多个提供程序。目前，我们仅支持为输出配置单个提供程序。你可以查看或编辑 YAML。
+      multipleProviders: 此输出配置了不受支持的提供程序。你可以查看或编辑 YAML。
   outputProviders:
     elasticsearch: Elasticsearch
     splunkHec: Splunk
@@ -3657,11 +3677,14 @@ prefs:
     auto: 自动
     dark: 深色
     autoDetail: 自动模式使用系统设置，或在{pm}点到次日{am}点间自动切换到深色模式。
+  language: 语言
   landing:
     label: 登录页面
     vue: 集群浏览器
     ember: Cluster Manager
-  formatting: 格式
+  displaySettings:
+    title: 显示设置
+    detail: 更改在 UI 中显示信息的方式。
   clusterToShow:
     label: 在侧边栏显示的集群数量
     value: |-
@@ -3871,7 +3894,7 @@ promptRemove:
   confirmName: "在下方输入 <b>{nameToMatch}</b> 以确认："
   deleteAssociatedNamespaces: "同时删除此项目中的命名空间："
   willDeleteAssociatedNamespaces: "项目中的所有命名空间也都会被删除："
-  confirmRelatedResource: "删除 {type} 将删除这个特定 {type} 上的所有资源，这是不可恢复的，您确定要继续删除 {names} 吗？"
+  confirmRelatedResource: "删除 {type} 将删除这个 {type} 上的所有资源，此过程不可逆。你确定要继续删除 {names} 吗？"
 
 promptRemoveApp:
   removeCrd: "删除与此应用关联的 CRD"
@@ -3973,6 +3996,18 @@ rbac:
       noContext:
         label: 没有内容
   globalRoles:
+    notBound: '没有绑定的用户 <i class="icon icon-checkmark" style="margin-left: 5px"></i>'
+    unableToCheck: 无法检查是否存在绑定了该角色的用户，请重试。
+    waiting: |-
+      {count, plural,
+        =1 { 检查是否存在绑定了该角色的用户 <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+        other { 检查是否存在绑定了这些角色的用户 <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+      }
+    usersBound: |-
+      {count, plural,
+        =1 { 注意：有 1 个用户绑定了即将被删除的角色，是否继续操作？}
+        other { 注意：有 {count} 个用户绑定了即将被删除的角色，是否继续操作？}
+      }
     types:
       global:
         label: 全局权限
@@ -4123,6 +4158,7 @@ resourceTable:
     namespace: 按命名空间分组
     project: 按项目分组
     node: 按节点分组
+    device: 按设备分组
   groupLabel:
     cluster: "<span>集群：</span> {name}"
     namespace: "<span>命名空间：</span> {name}"
@@ -4393,6 +4429,9 @@ setup:
   welcome: 欢迎使用 {vendor}！
 
 sortableTable:
+  bulkActions:
+    collapsed:
+      label: 操作
   actionAvailability:
     selected: "已选择 {actionable} 项"
     some: "影响 {total} 项中的 {actionable} 项"
@@ -4786,13 +4825,13 @@ tableHeaders:
   publicPorts: 公共端口
   ram: 内存（RAM）
   rbac:
-    create: 创建
-    delete: 删除
-    get: 查询
-    list: 列出
-    patch: 修改
-    update: 更新
-    watch: 监视
+    create: Create
+    delete: Delete
+    get: Get
+    list: List
+    patch: Patch
+    update: Update
+    watch: Watch
   ready: 就绪
   reason: 原因
   receivers: 接收器
@@ -5035,6 +5074,7 @@ validation:
   required: '"{key}" 是必填项。'
   invalid: '无效的 "{key}"'
   requiredOrOverride: '"{key}" 是必填项，或必须允许覆盖。'
+  arrayCountRequired: "至少需要 {count} 个 {key}，而且 {key} 不能为空。"
   roleTemplate:
     roleTemplateRules:
       missingVerb: 你必须为每个授予资源指定至少一个动作。
@@ -5491,6 +5531,8 @@ workload:
     addClaim: 添加声明
     addMount: 添加挂载
     addVolume: 添加卷
+    selectVolume: 选择卷
+    noVolumes: 在 Pod 选项卡中添加卷后，卷将显示在此处
     certificate: 证书
     csi:
       diskName: 磁盘名称
@@ -5600,6 +5642,8 @@ harvesterManager:
     none: 不存在 Harvester 集群
     learnMore: 访问 <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester 网站</a> 或阅读 <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester 官方文档</a>，以了解更多关于 Harvester 的信息。
     description: Harvester 是一个采用企业级开源技术，包括Kubernetes、Kubevirt和Longhorn，为裸金属服务器打造的现代超融合基础设施（HCI）解决方案。
+  plugins:
+    loadError: 加载 Harvester 插件时出错
 
 ##############################
 # Model Properties
@@ -6087,6 +6131,7 @@ advancedSettings:
     invalidJSON: 无效的 JSON - 请先检查并修改你输入的值，然后再保存。
   descriptions:
     'cacerts': "验证服务器证书所需的 CA 证书。"
+    'password-min-length': '定义用户密码所需的最少字符数。'
     'cluster-defaults': '创建新集群时覆盖 RKE 默认值。'
     'engine-install-url': '默认的 Docker 引擎安装 URL（用于大多数主机驱动）。'
     'engine-iso-url': '默认操作系统安装 URL（用于 vSphere 驱动）。'
@@ -6166,24 +6211,27 @@ featureFlags:
 performance:
   label: UI 性能设置
   settingName: 性能
-  description: |-
-    性能设置允许你在需要处理大量集群资源时配置 UI 的行为。设置仅适用于以下资源：Pod、Deployment、CronJob、DaemonSet、Job、StatefulSet、ReplicaSet、Replication Controller、Workload 和 Secret。
-  banner: 这些设置是实验性的，可能会在后续版本中删除或更新。
   incrementalLoad:
     label: 增量加载
     setting: 你可以配置一个阈值，高于该阈值时则使用增量加载。
     description: |-
-      启用后，资源会更快出现，但可能需要更长的时间来加载整个资源集。
+      启用后，资源会更快出现，但可能需要更长的时间来加载整个资源集。此设置仅适用于以下资源：Pod、Deployment、CronJob、DaemonSet、Job、StatefulSet、ReplicaSet、Replication Controller、Workload 和 Secret。
     checkboxLabel: 启用增量加载
     inputLabel: 资源阈值
   manualRefresh:
+    banner: 此设置是实验性的，可能会在后续版本中删除或更新。
     label: 手动刷新
     setting: 你可以配置一个阈值，高于该阈值时则启用手动刷新。
     buttonTooltip: 刷新列表
     description: |-
-      启用后，列表数据不会自动更新，用户必须手动刷新列表视图。
+      启用后，列表数据不会自动更新，用户必须手动刷新列表视图。此设置仅适用于以下资源：Pod、Deployment、CronJob、DaemonSet、Job、StatefulSet、ReplicaSet、Replication Controller、Workload 和 Secret。
     checkboxLabel: 启用列表数据的手动刷新
     inputLabel: 资源阈值
+  websocketNotification:
+    label: WebSocket 通知
+    description: |-
+      启用后，UI 检测到断开连接时不会出现 WebSocket 通知。
+    checkboxLabel: 禁用 WebSocket 通知
 
 banner:
   label: 固定横幅
@@ -6349,7 +6397,7 @@ support:
       text: 无论你使用的 Rancher Labs 产品、Kubernetes、Docker 还是底层基础架构出现问题，我们都会努力找到问题的根本原因。
     four:
       title: 自由创新
-      text: 基于我们与各 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新
+      text: 基于我们与众多 Kubernetes 供应商、操作系统和开源软件认证的兼容性，实现自主创新。
 
 embedding:
   retry: 重试
