@@ -1,4 +1,5 @@
 harvester:
+  productLabel: 'Harvester'
   modal:
     backup:
       success: '已启动备份 { backUpName }。'
@@ -46,6 +47,12 @@ harvester:
       title: 添加卷
     hotunplug:
       success: '卷 { name } 拔出成功。'
+  notification:
+    title:
+      succeed: 成功
+      info: 信息
+      warning: 警告
+      error: 错误
   action:
     createVM: 创建虚拟机
     start: 启动
@@ -167,17 +174,10 @@ harvester:
         label: 事件
       vmMetrics:
         label: 虚拟机指标
-    upgrade:
-      upgradeApp: 升级软件
-      upgrade: 升级
-      upgradeTip: 请选择目标升级版本
-      currentVersion: 当前版本
-      versionLabel: 可用的兼容版本
-      upgradeNode: 升级节点
-      upgradeSysService: 升级系统服务
 
     version: 版本
   host:
+    console: 控制台
     label: 主机
     inconsistentIP: "主机 IP 不一致，当前 IP：{currentIP}，初始 IP：{initIP}"
     promote:
@@ -625,9 +625,7 @@ harvester:
     templateType: 模板类型
     userData: 用户数据
     networkData: 网络数据
-
  
-
   support:
     title: Harvester 支持
     kubeconfig:
