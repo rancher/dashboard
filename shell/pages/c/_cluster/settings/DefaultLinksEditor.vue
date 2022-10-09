@@ -5,6 +5,8 @@ import { _VIEW } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
+  name: 'DefaultLinksEditor',
+
   components: { Checkbox },
 
   props: {
