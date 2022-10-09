@@ -3,25 +3,6 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { allHash } from '@shell/utils/promise';
 
-// Need to take care of legacy settings if the new custom setting is not set
-
-// Deprecated
-export function options(isSupport, issuesUrl) {
-  const links = {
-    docs:        DOCS_BASE,
-    forums:     'https://forums.rancher.com/',
-    slack:      'https://slack.rancher.io',
-    issues:     !!issuesUrl ? issuesUrl : 'https://github.com/rancher/dashboard/issues/new',
-    getStarted: '/docs/getting-started'
-  };
-
-  if (!isSupport) {
-    links['commercialSupport'] = '/support';
-  }
-
-  return links;
-}
-
 const DEFAULT_LINKS = [
   {
     key:     'docs',
