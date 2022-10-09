@@ -97,16 +97,20 @@ export default class extends SteveModel {
     return this.patch(data, {}, true, true);
   }
 
-  setDefault() {
-    const allStorageClasses = this.$rootGetters['cluster/all'](STORAGE_CLASS) || [];
+  async setDefault() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const allStorageClasses = this.$rootGetters[`${ inStore }/all`](STORAGE_CLASS) || [];
 
-    allStorageClasses.forEach(storageClass => storageClass.resetDefault());
+    for (const storageClass of allStorageClasses) {
+      await storageClass.resetDefault();
+    }
+
     this.updateDefault(true);
   }
 
-  resetDefault() {
+  async resetDefault() {
     if (this.isDefault) {
-      this.updateDefault(false);
+      await this.updateDefault(false);
     }
   }
 
