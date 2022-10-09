@@ -16,6 +16,6 @@ export default async function({ store }) {
 
     setVersionData(response);
   } catch (e) {
-    console.warn('Failed to fetch Rancher versio metadata', e); // eslint-disable-line no-console
+    console.warn('Failed to fetch Rancher version metadata', e); // eslint-disable-line no-console
   }
 }
