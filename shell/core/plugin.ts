@@ -45,6 +45,10 @@ export class Plugin implements IPlugin {
     this.name = this._metadata.name || this.id;
   }
 
+  get version() {
+    return this._metadata.version;
+  }
+
   get validators() {
     return this._validators;
   }
