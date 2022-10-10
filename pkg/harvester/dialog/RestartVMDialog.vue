@@ -11,34 +11,25 @@ export default {
     Banner,
   },
   props:      {
-    resources: {
-      type:     Array,
+    vm: {
+      type:     Object,
       required: true
-    }
+    },
   },
   data() {
-    return { errors: [] };
+    return { errors: [], resolve: null };
   },
-  computed: {
-    ...mapGetters({ t: 'i18n/t' }),
-    config() {
-      return this.resources[0];
-    },
-    applyAction() {
-      return this.config.applyAction;
-    },
-    cancelAction() {
-      return this.config.cancelAction;
-    },
-  },
-  methods: {
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  methods:  {
     close() {
-      this.cancelAction();
+      this.resolve();
       this.$emit('close');
     },
-    async apply(buttonDone) {
+    apply(buttonDone) {
       try {
-        await this.applyAction(buttonDone);
+        this.vm.doActionGrowl('restart', {});
+        buttonDone(true);
+        this.resolve();
         this.close();
       } catch (err) {
         console.error(err); // eslint-disable-line
@@ -51,30 +42,39 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-restore" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('harvester.modal.restart.title')" />
+  <modal
+    class="restart-modal"
+    name="restartDialog"
+    :width="600"
+    height="auto"
+    :click-to-close="false"
+    @closed="close"
+  >
+    <Card class="prompt-restore" :show-highlight-border="false">
+      <h4 slot="title" class="text-default-text" v-html="t('harvester.modal.restart.title')" />
 
-    <template slot="body">
-      <slot name="body">
-        <div class="pl-10 pr-10" v-html="t('harvester.modal.restart.tip')">
+      <template slot="body">
+        <slot name="body">
+          <div class="pl-10 pr-10" v-html="t('harvester.modal.restart.tip')">
+          </div>
+        </slot>
+      </template>
+
+      <div slot="actions" class="bottom">
+        <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+        <div class="buttons">
+          <button class="btn role-secondary mr-10" @click="close">
+            {{ t('harvester.modal.restart.cancel') }}
+          </button>
+
+          <AsyncButton
+            mode="restart"
+            @click="apply"
+          />
         </div>
-      </slot>
-    </template>
-
-    <div slot="actions" class="bottom">
-      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
-      <div class="buttons">
-        <button class="btn role-secondary mr-10" @click="close">
-          {{ t('harvester.modal.restart.cancel') }}
-        </button>
-
-        <AsyncButton
-          mode="restart"
-          @click="apply"
-        />
       </div>
-    </div>
-  </Card>
+    </Card>
+  </modal>
 </template>
 <style lang='scss' scoped>
   .prompt-restore {

@@ -20,6 +20,7 @@ import CloudConfig from './VirtualMachineCloudConfig';
 import NodeScheduling from '@shell/components/form/NodeScheduling';
 import AccessCredentials from './VirtualMachineAccessCredentials';
 import PciDevices from './VirtualMachinePciDevices/index';
+import RestartVMDialog from '../../dialog/RestartVMDialog';
 
 import { clear } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
@@ -53,7 +54,8 @@ export default {
     NodeScheduling,
     AccessCredentials,
     Reserved,
-    PciDevices
+    PciDevices,
+    RestartVMDialog
   },
 
   mixins: [CreateEditView, VM_MIXIN],
@@ -346,19 +348,8 @@ export default {
       }
 
       return new Promise((resolve) => {
-        this.$store.dispatch('harvester/promptModal', {
-          component: 'RestartVMDialog',
-          resources: {
-            applyAction: (buttonDone) => {
-              this.value.doActionGrowl('restart', {});
-              buttonDone(true);
-              resolve();
-            },
-            cancelAction: () => {
-              resolve();
-            },
-          },
-        }, { root: true });
+        this.$modal.show('restartDialog');
+        this.$refs.restartDialog.resolve = resolve;
       });
     },
 
@@ -632,6 +623,8 @@ export default {
         />
       </Tab>
     </Tabbed>
+
+    <RestartVMDialog ref="restartDialog" :vm="value" />
   </CruResource>
 </template>
 
