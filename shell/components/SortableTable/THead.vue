@@ -310,6 +310,7 @@ export default {
         border: 1px solid var(--primary);
         background-color: #FFF;
         padding: 20px;
+        z-index: 1;
 
         .table-options-grouping {
           display: flex;

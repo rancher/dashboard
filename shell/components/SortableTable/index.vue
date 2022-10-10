@@ -926,20 +926,21 @@ export default {
         const label = prop.labelKey ? this.t(`${ prop.labelKey }`) : prop.label;
         const isFilter = !!((!Object.keys(prop).includes('search') || prop.search));
         let sortVal = prop.sort;
+        const valueProp = prop.valueProp || prop.value;
         let value = null;
 
-        if (prop.sort && prop.valueProp) {
+        if (prop.sort && valueProp) {
           if (typeof prop.sort === 'string') {
             sortVal = prop.sort.includes(':') ? [prop.sort.split(':')[0]] : [prop.sort];
           }
 
-          if (!sortVal.includes(prop.valueProp)) {
-            value = JSON.stringify(sortVal.concat([prop.valueProp]));
+          if (!sortVal.includes(valueProp)) {
+            value = JSON.stringify(sortVal.concat([valueProp]));
           } else {
-            value = JSON.stringify([prop.valueProp]);
+            value = JSON.stringify([valueProp]);
           }
-        } else if (prop.valueProp) {
-          value = JSON.stringify([prop.valueProp]);
+        } else if (valueProp) {
+          value = JSON.stringify([valueProp]);
         } else {
           value = null;
         }
@@ -1001,6 +1002,7 @@ export default {
       const colors = ['success', 'info', 'warning', 'error'];
       let nextColor = colors[0];
 
+      // set color for the next filter applied if there's already one applied on the UI...
       if (this.advancedFilteringValues.length) {
         const currLastColor = this.advancedFilteringValues[this.advancedFilteringValues.length - 1].color;
         const currLastColorIndex = colors.findIndex(c => c === currLastColor);
@@ -1012,6 +1014,7 @@ export default {
         }
       }
 
+      // set new advanced filter
       if (this.advFilterSelectedProp && this.advFilterSearchTerm) {
         this.advancedFilteringValues.push({
           prop:  this.advFilterSelectedProp,
