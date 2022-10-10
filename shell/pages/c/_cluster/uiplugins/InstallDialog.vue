@@ -159,7 +159,9 @@ export default {
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
 
       if (isRancherImage && defaultRegistry) {
-        chart.values.global = { cattle: { systemDefaultRegistry: defaultRegistry } };
+        chart.values.global = chart.values.global || {};
+        chart.values.global.cattle = chart.values.global.cattle || {};
+        chart.values.global.cattle.systemDefaultRegistry = defaultRegistry;
       }
 
       const input = {
