@@ -35,6 +35,12 @@ export default {
       default: true,
     },
 
+    // Remove padding and box-shadow
+    flat: {
+      type:    Boolean,
+      default: false,
+    },
+
     noContent: {
       type:    Boolean,
       default: false,
@@ -251,7 +257,13 @@ export default {
       </ul>
       <slot name="tab-row-extras" />
     </ul>
-    <div :class="{ 'tab-container': !!tabs.length || !!sideTabs, 'no-content': noContent }">
+    <div
+      :class="{
+        'tab-container': !!tabs.length || !!sideTabs,
+        'no-content': noContent,
+        'tab-container--flat': !!flat,
+      }"
+    >
       <slot />
     </div>
   </div>
@@ -335,6 +347,15 @@ export default {
   &.no-content {
     padding: 0 0 3px 0;
   }
+
+  // Example case: Tabbed component within a tabbed component
+  &--flat {
+    padding: 0;
+
+    .side-tabs {
+      box-shadow: unset;
+    }
+  }
 }
 
 .side-tabs {
@@ -345,12 +366,6 @@ export default {
 
   .tab-container {
     padding: 20px;
-  }
-
-  // Tabbed component within a tabbed component
-  .tab-container & {
-    margin: -20px;
-    box-shadow: unset;
   }
 
   & .tabs {
