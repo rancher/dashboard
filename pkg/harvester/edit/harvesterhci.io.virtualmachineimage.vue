@@ -127,40 +127,8 @@ export default {
   watch: {
     'value.spec.url'(neu) {
       const url = neu.trim();
-      const suffixName = url.split('/').pop();
-      const fileSuffix = suffixName.split('.').pop().toLowerCase();
 
-      this.value.spec.url = url;
-      if (VM_IMAGE_FILE_FORMAT.includes(fileSuffix)) {
-        Object.keys(this.value.labels).forEach((key, idx) => {
-          if (key === HCI_ANNOTATIONS.IMAGE_SUFFIX) {
-            this.$refs.labels.remove(idx);
-          }
-        });
-        if (fileSuffix === 'iso') {
-          this.$refs.labels.add(HCI_ANNOTATIONS.IMAGE_SUFFIX, fileSuffix);
-        } else {
-          this.$refs.labels.add(HCI_ANNOTATIONS.IMAGE_SUFFIX, rawORqcow2);
-        }
-
-        if (!this.value.spec.displayName) {
-          this.$refs.nd.changeNameAndNamespace({
-            text:     suffixName,
-            selected: this.value.metadata.namespace,
-          });
-        }
-      }
-
-      const os = this.getOSType(url);
-
-      if (os) {
-        Object.keys(this.value.labels).forEach((key, idx) => {
-          if (key === HCI_ANNOTATIONS.OS_TYPE) {
-            this.$refs.labels.remove(idx);
-          }
-        });
-        this.$refs.labels.add(HCI_ANNOTATIONS.OS_TYPE, os.value);
-      }
+      this.setImageLabels(url);
     },
 
     'value.spec.sourceType'() {
@@ -200,10 +168,48 @@ export default {
       }
     },
 
+    setImageLabels(str) {
+      const suffixName = str?.split('/')?.pop() || str;
+
+      const fileSuffix = suffixName?.split('.')?.pop()?.toLowerCase();
+
+      if (VM_IMAGE_FILE_FORMAT.includes(fileSuffix)) {
+        const labelValue = fileSuffix === 'iso' ? fileSuffix : rawORqcow2;
+
+        this.addLabel(HCI_ANNOTATIONS.IMAGE_SUFFIX, labelValue);
+
+        if (!this.value.spec.displayName) {
+          this.$refs.nd.changeNameAndNamespace({
+            text:     suffixName,
+            selected: this.value.metadata.namespace,
+          });
+        }
+      }
+
+      const os = this.getOSType(str);
+
+      if (os) {
+        this.addLabel(HCI_ANNOTATIONS.OS_TYPE, os.value);
+      }
+    },
+
+    addLabel(labelKey, value) {
+      const rows = this.$refs.labels.rows;
+
+      rows.map((label, idx) => {
+        if (label.key === labelKey) {
+          this.$refs.labels.remove(idx);
+        }
+      });
+      this.$refs.labels.add(labelKey, value);
+    },
+
     handleFileUpload() {
       const file = this.$refs.file.files[0];
 
       this.file = file;
+
+      this.setImageLabels(file?.name);
 
       if (!this.value.spec.displayName) {
         this.$refs.nd.changeNameAndNamespace({
@@ -211,6 +217,8 @@ export default {
           selected: this.value.metadata.namespace,
         });
       }
+
+      this.setImageLabels();
     },
 
     selectFile() {
@@ -245,21 +253,20 @@ export default {
       this.$refs.key.focus();
     },
 
-    getOSType(url) {
-      if (!url) {
+    getOSType(str) {
+      if (!str) {
         return;
       }
 
       return OS.find( (os) => {
         if (os.match) {
-          return os.match.find(matchValue => url.toLowerCase().includes(matchValue)) ? os.value : false;
+          return os.match.find(matchValue => str.toLowerCase().includes(matchValue)) ? os.value : false;
         } else {
-          return url.toLowerCase().includes(os.value.toLowerCase()) ? os.value : false;
+          return str.toLowerCase().includes(os.value.toLowerCase()) ? os.value : false;
         }
       });
     }
   },
-
 };
 </script>
 
