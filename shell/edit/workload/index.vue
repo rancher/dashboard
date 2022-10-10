@@ -110,7 +110,7 @@ export default {
               <div>
                 <div :style="{'align-items':'center'}" class="row mb-20">
                   <div class="col span-6">
-                    <LabeledInput v-model="allContainers[0].name" :mode="mode" :label="t('workload.container.containerName')" />
+                    <LabeledInput v-model="allContainers[i].name" :mode="mode" :label="t('workload.container.containerName')" />
                   </div>
                   <div class="col span-6">
                     <RadioGroup
@@ -127,7 +127,7 @@ export default {
                 <div class="row mb-20">
                   <div class="col span-6">
                     <LabeledInput
-                      v-model.trim="allContainers[0].image"
+                      v-model.trim="allContainers[i].image"
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
@@ -136,7 +136,7 @@ export default {
                   </div>
                   <div class="col span-6">
                     <LabeledSelect
-                      v-model="container.imagePullPolicy"
+                      v-model="allContainers[i].imagePullPolicy"
                       :label="t('workload.container.imagePullPolicy')"
                       :options="pullPolicyOptions"
                       :mode="mode"
