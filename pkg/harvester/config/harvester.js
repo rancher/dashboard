@@ -688,4 +688,26 @@ export function init($plugin, store) {
       }
     ]
   });
+
+  configureType(HCI.ADD_ONS, {
+    hiddenNamespaceGroupButton: true,
+    isCreatable:                false,
+    isRemovable:                false,
+    showState:                  false,
+  });
+
+  basicType([HCI.ADD_ONS], 'advanced');
+
+  virtualType({
+    label:      'Addons',
+    group:      'advanced',
+    name:       HCI.ADD_ONS,
+    ifHaveType: HCI.ADD_ONS,
+    namespaced: true,
+    route:      {
+      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
+      params:   { resource: HCI.ADD_ONS }
+    },
+    exact: false,
+  });
 }

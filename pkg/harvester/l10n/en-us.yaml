@@ -890,6 +890,14 @@ harvester:
         label: Create Cluster Network
     clusterNetwork: There are no network configs defined.
     mgmt: mgmt is a built-in cluster management network and does not support any additional network configurations.
+  
+  addons:
+    descriptions:
+      'vm-import-controller': vm-import-controller is an addon to help migrate VM workloads from other source clusters to an existing Harvester cluster.
+    vmImport:
+      titles:
+        basic: Basic
+        pvc: Volume
 
 advancedSettings:
   descriptions:

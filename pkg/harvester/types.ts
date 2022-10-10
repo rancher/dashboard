@@ -36,6 +36,7 @@ export const HCI = {
   PCI_CLAIM:          'devices.harvesterhci.io.pcideviceclaim',
   VLAN_CONFIG:        'network.harvesterhci.io.vlanconfig',
   VLAN_STATUS:        'network.harvesterhci.io.vlanstatus',
+  ADD_ONS:            'harvesterhci.io.addon',
 };
 
 export const VOLUME_SNAPSHOT = 'snapshot.storage.k8s.io.volumesnapshot';
