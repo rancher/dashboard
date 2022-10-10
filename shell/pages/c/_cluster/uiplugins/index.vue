@@ -51,6 +51,7 @@ export default {
       menuOpen:          false,
       hasService:        false,
       defaultIcon:       require('~shell/assets/images/generic-plugin.svg'),
+      reloadRequired:    false,
     };
   },
 
@@ -317,17 +318,21 @@ export default {
     plugins(neu, old) {
       const installed = this.$store.getters['uiplugins/plugins'];
 
+      let changes = 0;
+
       neu.forEach((plugin) => {
         const existing = installed.find(p => !p.removed && p.name === plugin.name && p.version === plugin.version);
 
         if (!existing && plugin.isCached) {
-          this.$plugin.loadPluginAsync(plugin.plugin).catch((e) => {
-            console.error(`Failed to load plugin ${ plugin.name } (${ plugin.version })`); // eslint-disable-line no-console
-          });
+          changes++;
 
           this.updatePluginInstallStatus(plugin.name, false);
         }
       });
+
+      if (changes > 0 ) {
+        Vue.set(this, 'reloadRequired', true);
+      }
     },
   },
 
@@ -427,6 +432,10 @@ export default {
         this.menuTargetElement = undefined;
         this.menuTargetEvent = undefined;
       }
+    },
+
+    reload() {
+      this.$router.go();
     }
   }
 };
@@ -436,6 +445,15 @@ export default {
   <div class="plugins">
     <div class="plugin-header">
       <h2>{{ t('plugins.title') }}</h2>
+      <div v-if="reloadRequired" class="plugin-reload-banner mr-20">
+        <i class="icon icon-checkmark mr-10" />
+        <span>
+          {{ t('plugins.reload') }}
+        </span>
+        <button class="ml-10 btn btn-sm role-primary" @click="reload()">
+          {{ t('generic.reload') }}
+        </button>
+      </div>
       <button
         v-if="hasService && hasMenuActions"
         ref="actions"
@@ -596,6 +614,30 @@ export default {
     }
   }
 
+  .plugin-reload-banner {
+    align-items: center;
+    background-color: var(--success-banner-bg);
+    display: flex;
+    padding: 0 10px;
+    border-radius: 5px;
+    min-height: 36px;
+
+    > i {
+      color: var(--success);
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    > button {
+      line-height: 30px;
+      min-height: 30px;
+    }
+  }
+
+  .plugin-complete {
+    font-size: 18px;
+  }
+
   .plugin-list {
     display: flex;
     flex-wrap: wrap;
@@ -623,9 +665,9 @@ export default {
     }
 
     .btn.actions {
-      line-height: 32px;
-      min-height: 32px;
-      padding: 10px;
+      line-height: 36px;
+      min-height: 36px;
+      padding: 0 10px;
     }
   }
 

@@ -48,6 +48,7 @@ generic:
   plusMore: "+ {n} more"
   readFromFile: Read from File
   readFromFolder: Read from Folder
+  reload: Reload
   register: Register
   remove: Remove
   resource: |-
@@ -3732,6 +3733,7 @@ plugins:
     title: "Uninstall Extension: {name}"
     prompt: "Are you sure that you want to uninstall this Extension?"
   upgradeAvailable: A newer version of this Extension is available
+  reload: Extensions changed - reload required
   safeMode:
     title: Extensions Safe Mode
     message: Extensions were not loaded
