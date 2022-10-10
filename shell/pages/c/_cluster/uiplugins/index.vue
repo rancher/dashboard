@@ -310,7 +310,7 @@ export default {
       const installed = this.$store.getters['uiplugins/plugins'];
 
       neu.forEach((plugin) => {
-        const existing = installed.find(p => !p.removed && p.name === plugin.name);
+        const existing = installed.find(p => !p.removed && p.name === plugin.name && p.version === plugin.version);
 
         if (!existing && plugin.isCached) {
           this.$plugin.loadPluginAsync(plugin.plugin).catch((e) => {
