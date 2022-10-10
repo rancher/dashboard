@@ -1096,10 +1096,6 @@ export default {
           entry.config = await entry.config.save();
         }
 
-        if ( !entry.pool.hostnamePrefix ) {
-          entry.pool.hostnamePrefix = `${ prefix }-`;
-        }
-
         finalPools.push(entry.pool);
       }
 
