@@ -195,16 +195,16 @@ export default {
     },
 
     /**
-       * Show the divider between the thead and tbody.
-       */
+     * Show the divider between the thead and tbody.
+     */
     topDivider: {
       type:    Boolean,
       default: true
     },
 
     /**
-       * Show the dividers between rows
-       */
+     * Show the dividers between rows
+     */
     bodyDividers: {
       type:    Boolean,
       default: false
