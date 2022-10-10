@@ -12,9 +12,9 @@ class GarbageCollectInterval {
   * If GC is disabled or running return early
   */
   gcStartIntervals(ctx: any) {
-    const interval = gc.gcEnabledInterval(ctx);
+    const { enabled, interval } = gc.gcEnabledInterval(ctx);
 
-    if (!gc.gcEnabledSetting(ctx) || !interval) {
+    if (!gc.gcEnabledSetting(ctx) || !enabled) {
       return;
     }
 

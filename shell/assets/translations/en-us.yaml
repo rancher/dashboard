@@ -6196,18 +6196,24 @@ performance:
     description: The UI will cache kuberentes resources locally to avoid having to re-fetch them. In some cases this can lead to a large amount of data stored in the browser. Enable this setting to periodically remove them.
     banner: This setting is experimental and may be removed or updated in future versions.
     checkboxLabel: Enable Garbage Collection
-    age:
-      description: "Resource types that haven't been accessed within this timeframe will be considered for garbage collection."
-      inputLabel: Timeframe Threshold
-    count:
-      description: The number of resources for a type must exceed this amount for the type to considered for garbage collection.
-      inputLabel: Resource Threshold
-    interval:
-      description: Run garbage collection this often (set to 0 to disable).
-      inputLabel: Run every
-    route:
-      description: Run garbage collection on page change
-      inputLabel: Page Change
+    whenRun:
+      description: Update when garbage collection runs
+      intervalCheckBox:
+        label: Run garbage collection periodically
+      interval:
+        inputLabel: Run every
+      route:
+        description: Run garbage collection on page change
+        inputLabel: Page Change
+    howRun:
+      description: Update how garbage collection runs
+      age:
+        description: "Resource types musn't have been accessed within this period to be considered for garbage collection."
+        inputLabel: Resource Age
+      count:
+        description: Resource types must exceed this amount to be considered for garbage collection.
+        inputLabel: Resource Count
+
 
 banner:
   label: Fixed Banners

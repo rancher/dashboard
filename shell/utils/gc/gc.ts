@@ -100,7 +100,10 @@ class GarbageCollect {
     // Don't use a getter... as we'll end up triggering ourselves again
     const uiPerfGarbageCollection = this.getUiPerfGarbageCollection(rootState);
 
-    return uiPerfGarbageCollection?.enabledInterval;
+    return {
+      enabled:  uiPerfGarbageCollection?.enabledInterval,
+      interval: uiPerfGarbageCollection?.interval || 0
+    };
   }
 
   gcEnabledRoute(pseudoCtx: any) {

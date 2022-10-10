@@ -25,6 +25,23 @@ export const gcGetters = {
 };
 
 export const gcActions = {
+  gcPreferencesUpdated({ dispatch }, { previouslyEnabled, newPreferences }) {
+    // Always stop the interval
+    // - GC Disabled, so it needs to stop
+    // - GC Enabled, we need to pick up new settings
+    dispatch('gcStopIntervals', { root: true });
+
+    if (newPreferences.enabled) {
+      // Cater for functionality that we get when the app loads
+      dispatch('gcStartIntervals', { root: true });
+    } else if (previouslyEnabled) {
+      // If we're going from enabled --> disabled we should reset any gc state we have stored. This avoids...
+      // - Last accessed times are stored
+      // - GC disabled so we don't update last accessed times
+      // - GC enabled and we have stale accessed times in the store
+      dispatch('gcResetStores', { root: true });
+    }
+  },
 
   gcRouteChanged(ctx, to) {
     gcRoute.gcRouteChanged(ctx, to);
