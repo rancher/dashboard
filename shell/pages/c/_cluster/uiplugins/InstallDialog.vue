@@ -111,6 +111,22 @@ export default {
         return;
       }
 
+      // is the image used by the chart in the rancher org?
+      let isRancherImage = false;
+
+      try {
+        const chartVersionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
+          repoType:    version.repoType,
+          repoName:    version.repoName,
+          chartName:   plugin.chart.chartName,
+          versionName: this.version,
+        });
+
+        const image = chartVersionInfo?.values?.image?.repository || '';
+
+        isRancherImage = image.startsWith('rancher/');
+      } catch (e) {}
+
       // See if there is already a plugin with this name
       let exists = false;
 
@@ -139,10 +155,10 @@ export default {
         values: {}
       };
 
-      // Pass in the system default registry property if set
+      // Pass in the system default registry property if set - only if the image is in the rancher org
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
 
-      if (defaultRegistry) {
+      if (isRancherImage && defaultRegistry) {
         chart.values.global = { cattle: { systemDefaultRegistry: defaultRegistry } };
       }
 
