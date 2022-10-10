@@ -902,7 +902,9 @@ export default {
 
       // Allow time for addonNames to update... then fetch any missing addons
       this.$nextTick(() => this.initAddons());
-      this.initServerAgentArgs();
+      if (this.mode === _CREATE) {
+        this.initServerAgentArgs();
+      }
     },
 
     showCni(neu) {
