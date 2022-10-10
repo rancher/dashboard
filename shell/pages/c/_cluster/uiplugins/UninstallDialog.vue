@@ -55,9 +55,6 @@ export default {
         await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
       }
 
-      // Unload the plugin code
-      this.$plugin.removePlugin(plugin.name);
-
       this.closeDialog(plugin);
     }
   }

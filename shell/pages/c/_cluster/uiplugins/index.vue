@@ -320,6 +320,11 @@ export default {
 
       let changes = 0;
 
+      // Did the user remove an extension
+      if (neu?.length < installed.length) {
+        changes++;
+      }
+
       neu.forEach((plugin) => {
         const existing = installed.find(p => !p.removed && p.name === plugin.name && p.version === plugin.version);
 
