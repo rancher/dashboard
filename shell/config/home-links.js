@@ -87,29 +87,25 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
       uiCommunitySetting: store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.COMMUNITY_LINKS })
     });
 
-    let hasCustomIssueLink = false;
+    // Should we show the default set of links?
+    if (uiCommunitySetting?.value === 'false') {
+      // Hide all of the default links
+      links.defaults.forEach(link => (link.enabled = false));
+    }
 
-    // DO we have a custom 'File an issue' link ?
+    // Do we have a custom 'File an issue' link ?
     if (uiIssuesSetting?.value) {
       links.custom.push({
         label: t ? t('customLinks.defaults.issues') : 'Issues',
         value: uiIssuesSetting.value
       });
 
-      hasCustomIssueLink = true;
-
       // Hide the default 'File an issue' link
-      links.defaults = links.defaults.filter(link => link.key !== 'issues');
-    }
+      const issueLink = links.defaults?.find(link => link.key === 'issues');
 
-    // Should we show the default set of links?
-    if (uiCommunitySetting?.value === 'false') {
-      // Hide all of the default links
-      links.defaults = [];
-
-      // If there was no custom link for the 'File an issue' link, then make sure we have the default one
-      if (!hasCustomIssueLink) {
-        links.defaults = [DEFAULT_LINKS.find(link => link.key === 'issues')];
+      if (issueLink) {
+        issueLink.enabled = false;
+        issueLink.readOnly = true;
       }
     }
   } catch (e) {
