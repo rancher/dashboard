@@ -155,10 +155,10 @@ export default {
         values: {}
       };
 
-      // Pass in the system default registry property if set
+      // Pass in the system default registry property if set - only if the image is in the rancher org
       const defaultRegistry = this.defaultRegistrySetting?.value || '';
 
-      if (defaultRegistry) {
+      if (isRancherImage && defaultRegistry) {
         chart.values.global = { cattle: { systemDefaultRegistry: defaultRegistry } };
       }
 
