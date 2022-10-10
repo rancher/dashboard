@@ -141,6 +141,7 @@ export default {
         return this.value.spec.jobTemplate.spec.template.spec;
       }
 
+      // This is for viewing
       if ( this.value.type === POD ) {
         return this.value;
       }

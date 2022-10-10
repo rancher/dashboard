@@ -143,16 +143,21 @@ export default {
           name:            `container-0`,
         }];
 
-        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] } } };
+        const metadata = { ...this.value.metadata };
+
+        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
 
         this.$set(this.value, 'spec', podSpec);
       }
     }
 
+    // EDIT view for POD
+    // Transform it from POD world to workload
     if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
       const podSpec = { ...this.value.spec };
+      const metadata = { ...this.value.metadata };
 
-      this.$set(this.value.spec, 'template', { spec: podSpec });
+      this.$set(this.value.spec, 'template', { spec: podSpec, metadata });
     }
 
     const spec = this.value.spec;
@@ -346,13 +351,13 @@ export default {
           }
 
           return this.spec.jobTemplate.metadata.labels;
-        } else {
-          if (!this.spec.template.metadata) {
-            this.$set(this.spec.template, 'metadata', { labels: {} });
-          }
-
-          return this.spec.template.metadata.labels;
         }
+
+        if (!this.spec.template.metadata) {
+          this.$set(this.spec.template, 'metadata', { labels: {} });
+        }
+
+        return this.spec.template.metadata.labels;
       },
       set(neu) {
         if (this.isCronJob) {
@@ -371,13 +376,12 @@ export default {
           }
 
           return this.spec.jobTemplate.metadata.annotations;
-        } else {
-          if (!this.spec.template.metadata) {
-            this.$set(this.spec.template, 'metadata', { annotations: {} });
-          }
-
-          return this.spec.template.metadata.annotations;
         }
+        if (!this.spec.template.metadata) {
+          this.$set(this.spec.template, 'metadata', { annotations: {} });
+        }
+
+        return this.spec.template.metadata.annotations;
       },
       set(neu) {
         if (this.isCronJob) {
@@ -679,6 +683,7 @@ export default {
         template = this.spec.template;
       }
 
+      // WORKLOADS
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
