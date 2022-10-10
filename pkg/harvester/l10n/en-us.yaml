@@ -883,7 +883,7 @@ harvester:
       button:
         label: Create Cluster Network
     clusterNetwork: There are no network configs defined.
-    mgmt: mgmt is a built-in cluster network and does not support creating/updating network configs.
+    mgmt: mgmt is a built-in cluster management network and does not support any additional network configurations.
 
 advancedSettings:
   descriptions:
