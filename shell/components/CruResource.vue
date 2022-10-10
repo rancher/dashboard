@@ -2,7 +2,7 @@
 import isEmpty from 'lodash/isEmpty';
 import { createYaml } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
@@ -329,10 +329,18 @@ export default {
 
     async createNamespaceIfNeeded() {
       const inStore = this.$store.getters['currentStore'](this.resource);
+      const newNamespaceName = get(this.resource, this.namespaceKey);
+      let namespaceAlreadyExists = false;
 
-      if (this.createNamespace) {
+      try {
+        // This is in a try-catch block because the call to fetch
+        // a namespace throws an error if the namespace is not found.
+        namespaceAlreadyExists = !!(await this.$store.dispatch(`${ inStore }/find`, { type: NAMESPACE, id: newNamespaceName }));
+      } catch {}
+
+      if (this.createNamespace && !namespaceAlreadyExists) {
         try {
-          const newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: get(this.resource, this.namespaceKey) }, { root: true });
+          const newNamespace = await this.$store.dispatch(`${ inStore }/createNamespace`, { name: newNamespaceName }, { root: true });
 
           newNamespace.applyDefaults();
           await newNamespace.save();

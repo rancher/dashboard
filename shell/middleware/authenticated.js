@@ -10,10 +10,10 @@ import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
 import { ClusterNotFoundError } from '@shell/utils/error';
 import { get } from '@shell/utils/object';
-import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
-import { BACK_TO } from '@shell/config/local-storage';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
+import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
+import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
+import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
 
 const getPackageFromRoute = (route) => {
@@ -28,7 +28,7 @@ const getPackageFromRoute = (route) => {
 
 let beforeEachSetup = false;
 
-function getProduct(to) {
+export function getProductFromRoute(to) {
   let product = to.params?.product;
 
   if ( !product ) {
@@ -43,7 +43,7 @@ function getProduct(to) {
 }
 
 function setProduct(store, to) {
-  let product = getProduct(to);
+  let product = getProductFromRoute(to);
 
   if ( !product ) {
     product = EXPLORER;
@@ -66,7 +66,7 @@ function setProduct(store, to) {
 }
 
 export default async function({
-  route, app, store, redirect, $cookies, req, isDev, from, $plugin
+  route, app, store, redirect, $cookies, req, isDev, from, $plugin, next
 }) {
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
@@ -245,10 +245,8 @@ export default async function({
       window.location.href = backTo;
     }
   }
-
   // Load stuff
   await applyProducts(store, $plugin);
-
   // Setup a beforeEach hook once to keep track of the current product
   if ( !beforeEachSetup ) {
     beforeEachSetup = true;
@@ -276,10 +274,10 @@ export default async function({
     let clusterId = get(route, 'params.cluster');
 
     const pkg = getPackageFromRoute(route);
-    const product = getProduct(route);
+    const product = getProductFromRoute(route);
 
     const oldPkg = getPackageFromRoute(from);
-    const oldProduct = getProduct(from);
+    const oldProduct = getProductFromRoute(from);
 
     // Leave an old pkg where we weren't before?
     const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find(p => p.name === oldPkg) : null;
@@ -316,6 +314,24 @@ export default async function({
       });
     }
 
+    if (!route.matched?.length) {
+      // If there are no matching routes we could be trying to nav to a page belonging to a dynamic plugin which needs loading
+      await Promise.all([
+        ...always,
+      ]);
+
+      // If a plugin claims the route and is loaded correctly we'll get a route back
+      const newLocation = await dynamicPluginLoader.check({ route, store });
+
+      // If we have a new location, double check that it's actually valid
+      const resolvedRoute = newLocation ? store.app.router.resolve(newLocation) : null;
+
+      if (resolvedRoute?.route.matched.length) {
+        // Note - don't use `redirect` or `store.app.route` (breaks feature by failing to run middleware in default layout)
+        return next(newLocation);
+      }
+    }
+
     // Ensure that the activeNamespaceCache is updated given the change of context either from or to a place where it uses workspaces
     // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
     if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
@@ -327,49 +343,37 @@ export default async function({
       });
     }
 
-    if (product === VIRTUAL || route.name === `c-cluster-${ VIRTUAL }` || route.name?.startsWith(`c-cluster-${ VIRTUAL }-`)) {
-      setProduct(store, route);
-      const res = [
-        ...always,
-        store.dispatch('loadVirtual', {
-          id: clusterId,
-          oldProduct,
-        }),
-      ];
+    // Always run loadCluster, it handles 'unload' as well
+    // Run them in parallel
+    await Promise.all([
+      ...always,
+      store.dispatch('loadCluster', {
+        id:     clusterId,
+        oldPkg: oldPkgPlugin,
+        newPkg: newPkgPlugin,
+        product,
+        oldProduct,
+      })
+    ]);
 
-      await Promise.all(res);
-    } else {
-      // Always run loadCluster, it handles 'unload' as well
-      // Run them in parallel
-      await Promise.all([
-        ...always,
-        store.dispatch('loadCluster', {
-          id:     clusterId,
-          oldPkg: oldPkgPlugin,
-          newPkg: newPkgPlugin,
-          product,
-          oldProduct,
-        })]);
+    if (!clusterId) {
+      clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
+      const isSingleProduct = store.getters['isSingleProduct'];
 
-      if (!clusterId) {
-        clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
-        const isSingleProduct = store.getters['isSingleProduct'];
+      if (isSingleProduct?.afterLoginRoute) {
+        const value = {
+          name:   'c-cluster-product',
+          ...isSingleProduct.afterLoginRoute,
+          params: {
+            cluster: clusterId,
+            ...isSingleProduct.afterLoginRoute?.params
+          },
+        };
 
-        if (isSingleProduct?.afterLoginRoute) {
-          const value = {
-            name:   'c-cluster-product',
-            ...isSingleProduct.afterLoginRoute,
-            params: {
-              cluster: clusterId,
-              ...isSingleProduct.afterLoginRoute?.params
-            },
-          };
-
-          await store.dispatch('prefs/set', {
-            key: AFTER_LOGIN_ROUTE,
-            value,
-          });
-        }
+        await store.dispatch('prefs/set', {
+          key: AFTER_LOGIN_ROUTE,
+          value,
+        });
       }
     }
   } catch (e) {

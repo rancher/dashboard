@@ -44,10 +44,11 @@ export default {
     }
   },
   async fetch() {
+    const ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
     const hash = await allHash({
       secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
       services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      ingressClasses: this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }),
+      ingressClasses: ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
     });
 
     this.allServices = hash.services;
@@ -64,7 +65,7 @@ export default {
           path: 'metadata.name', rules: ['required', 'hostname'], translationKey: 'nameNsDescription.name.label'
         },
         {
-          path: 'spec.rules.host', rules: ['hostname'], translationKey: 'ingress.rules.requestHost.label'
+          path: 'spec.rules.host', rules: ['wildcardHostname'], translationKey: 'ingress.rules.requestHost.label'
         },
         {
           path: 'spec.rules.http.paths.path', rules: ['absolutePath'], translationKey: 'ingress.rules.path.label'
@@ -82,7 +83,7 @@ export default {
         {
           path: 'spec.defaultBackend.service.port.number', rules: ['required', 'requiredInt', 'portNumber'], translationKey: 'ingress.defaultBackend.port.label'
         },
-        { path: 'spec.tls.hosts', rules: ['required', 'hostname'] }
+        { path: 'spec.tls.hosts', rules: ['required', 'wildcardHostname'] }
       ],
       fvReportedValidationPaths: ['spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.name']
     };

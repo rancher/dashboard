@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-BASE_DIR="$( cd $SCRIPT_DIR && cd ../.. & pwd)"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+BASE_DIR="$(
+  cd $SCRIPT_DIR && cd ../.. &
+  pwd
+)"
 SHELL_DIR=$BASE_DIR/shell/
-PUBLISH_ARGS="--no-git-tag-version --access public"
+PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
 
 echo "Publishing Shell Packages"
 
@@ -18,10 +21,10 @@ mkdir -p ${PKG_DIST}
 rm -rf ${PKG_DIST}/app
 rm -rf ${PKG_DIST}/pkg
 
-pushd ${SHELL_DIR} > /dev/null
+pushd ${SHELL_DIR} >/dev/null
 
-PKG_VERSION=`node -p "require('./package.json').version"`
-popd > /dev/null
+PKG_VERSION=$(node -p "require('./package.json').version")
+popd >/dev/null
 
 echo "Publishing version: $PKG_VERSION"
 
@@ -39,7 +42,7 @@ function publish() {
   FOLDER=$2
 
   echo "Publishing ${NAME} from ${FOLDER}"
-  pushd ${FOLDER} > /dev/null
+  pushd ${FOLDER} >/dev/null
 
   # For now, copy the rancher components into the shell and ship them with it
   if [ "$NAME" == "Shell" ]; then
@@ -50,11 +53,7 @@ function publish() {
 
   yarn publish . --new-version ${PKG_VERSION} ${PUBLISH_ARGS}
   RET=$?
-
-  # Remove the rancher-components folder if we created it
-  rm -rf ${SHELL_DIR}/rancher-components
-
-  popd > /dev/null
+  popd >/dev/null
 
   if [ $RET -ne 0 ]; then
     echo "Error publishing package ${NAME}"

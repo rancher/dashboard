@@ -82,15 +82,17 @@ export default {
   <div class="growl-container" @mouseenter="mouseEnter" @mouseleave="mouseLeave">
     <div class="growl-list">
       <div v-for="growl in stack" :key="growl.id" :class="{'growl': true, ['bg-'+growl.color]: true}">
-        <i class="close hand icon icon-close" @click="close(growl)" />
-        <div class="growl-message">
+        <div class="growl-message" :class="{'growl-center': !growl.message}">
           <div class="icon-container">
             <i :class="{icon: true, ['icon-'+growl.icon]: true}" />
           </div>
           <div class="growl-text">
             <div>{{ growl.title }}</div>
-            <p>{{ growl.message }}</p>
+            <p v-if="growl.message">
+              {{ growl.message }}
+            </p>
           </div>
+          <i class="close hand icon icon-close" @click="close(growl)" />
         </div>
       </div>
     </div>
@@ -127,16 +129,20 @@ export default {
     word-break: break-all;
 
     .close {
-      position: absolute;
-      top: 0;
-      right: 0;
       padding: 5px;
       font-size: 24px;
     }
 
+    .icon-container {
+      align-self: center;
+    }
+
     .growl-message {
       display: flex;
-      align-items: center;
+
+      &.growl-center {
+        align-items: center;
+      }
     }
 
     .growl-text {
@@ -147,7 +153,10 @@ export default {
 
       > div {
         font-size: 16px;
-        margin-bottom: 5px;
+      }
+
+      > P {
+        margin-top: 5px;
       }
     }
 

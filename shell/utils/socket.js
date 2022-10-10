@@ -31,6 +31,8 @@ export default class Socket extends EventTarget {
   hasBeenOpen = false;
   hasReconnected = false;
   protocol = null;
+  maxTries = null;
+  tries = 0;
 
   // "Private"
   socket = null;
@@ -38,17 +40,19 @@ export default class Socket extends EventTarget {
   framesReceived = 0;
   frameTimer;
   reconnectTimer;
-  tries = 0;
   disconnectCbs = [];
   disconnectedAt = 0;
   closingId = 0;
 
-  constructor(url, autoReconnect = true, frameTimeout = null, protocol = null) {
+  constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null) {
     super();
 
     this.setUrl(url);
     this.autoReconnect = autoReconnect;
     this.protocol = protocol;
+    // maxTries = null === never stop trying to reconnect
+    // allow maxTries to be defined on individual sockets bc not all will clearly warn the user that we've stopped trying
+    this.maxTries = maxTries;
 
     if ( frameTimeout !== null ) {
       this.frameTimeout = frameTimeout;
@@ -57,10 +61,10 @@ export default class Socket extends EventTarget {
 
   setUrl(url) {
     if ( !url.match(/wss?:\/\//) ) {
-      url = window.location.origin.replace(/^http/, 'ws') + url;
+      url = self.location.origin.replace(/^http/, 'ws') + url;
     }
 
-    if ( window.location.protocol === 'https:' && url.startsWith(INSECURE) ) {
+    if ( self.location.protocol === 'https:' && url.startsWith(INSECURE) ) {
       url = SECURE + url.substr(INSECURE.length);
     }
 
@@ -74,6 +78,10 @@ export default class Socket extends EventTarget {
       return;
     }
 
+    if (this.state !== STATE_RECONNECTING) {
+      this.state = STATE_CONNECTING;
+    }
+
     Object.assign(this.metadata, metadata);
 
     const id = sockId++;
@@ -82,6 +90,8 @@ export default class Socket extends EventTarget {
     console.log(`Socket connecting (id=${ id }, url=${ `${ url.replace(/\?.*/, '') }...` })`); // eslint-disable-line no-console
 
     let socket;
+
+    this.tries++;
 
     if ( this.protocol ) {
       socket = new WebSocket(url, this.protocol);
@@ -209,11 +219,11 @@ export default class Socket extends EventTarget {
     this._log('opened');
     const now = (new Date()).getTime();
 
-    const at = this.disconnectedAt;
-    let after = 0;
+    const atTime = this.disconnectedAt;
+    let afterMilliseconds = 0;
 
-    if ( at ) {
-      after = now - at;
+    if ( atTime ) {
+      afterMilliseconds = now - atTime;
     }
 
     if ( this.hasBeenOpen ) {
@@ -225,7 +235,8 @@ export default class Socket extends EventTarget {
     this.framesReceived = 0;
     this.disconnectedAt = 0;
 
-    this.dispatchEvent(new CustomEvent(EVENT_CONNECTED, { detail: { tries: this.tries, after } }));
+    this.dispatchEvent(new CustomEvent(EVENT_CONNECTED, { detail: { tries: this.tries, afterMilliseconds } }));
+    this.tries = 0;
     this._resetWatchdog();
     clearTimeout(this.reconnectTimer);
   }
@@ -291,18 +302,26 @@ export default class Socket extends EventTarget {
       this.dispatchEvent(e);
       warningShown = true;
     } else if ( this.autoReconnect ) {
-      if (this.tries === 0) {
-        const e = new CustomEvent(EVENT_DISCONNECT_ERROR);
+      this.state = STATE_RECONNECTING;
+
+      if (this.maxTries && this.tries > 1 && this.tries <= this.maxTries) {
+        // dispatch an event which will trigger a growl from steve-plugin sockets warning users that we've lost connection and are attemping to reconnect
+        const e = new CustomEvent(EVENT_CONNECT_ERROR);
 
         this.dispatchEvent(e);
       }
-      this.state = STATE_RECONNECTING;
-      this.tries++;
-      const delay = Math.max(1000, Math.min(1000 * this.tries, 30000));
 
-      this.reconnectTimer = setTimeout(() => {
-        this.connect();
-      }, delay);
+      if (this.maxTries && this.tries > this.maxTries) {
+        this.state = STATE_DISCONNECTED;
+        // dispatch an event which will trigger a growl from steve-plugin sockets warning users that we've given up trying to reconnect
+        this.dispatchEvent(new CustomEvent(EVENT_DISCONNECT_ERROR));
+      } else {
+        const delay = Math.max(1000, Math.min(1000 * this.tries, 30000));
+
+        this.reconnectTimer = setTimeout(() => {
+          this.connect();
+        }, delay);
+      }
     } else {
       this.state = STATE_DISCONNECTED;
     }
@@ -315,10 +334,12 @@ export default class Socket extends EventTarget {
   }
 
   _log(...args) {
-    args.unshift('Socket');
+    const message = JSON.parse(JSON.stringify([...args]));
 
-    args.push(`(state=${ this.state }, id=${ this.socket ? this.socket.sockId : 0 })`);
+    message.unshift('Socket');
 
-    console.log(args.join(' ')); // eslint-disable-line no-console
+    message.push(`(state=${ this.state }, id=${ this.socket ? this.socket.sockId : 0 })`);
+
+    console.log(message.join(' ')); // eslint-disable-line no-console
   }
 }

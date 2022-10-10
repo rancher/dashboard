@@ -26,6 +26,7 @@ describe('component: Upgrading', () => {
   });
 
   // TODO: #6179: Integrate test with component fix, as the scope is not to check the value of the input
+  // eslint-disable-next-line jest/no-disabled-tests
   it.skip.each([
     ['surge', 'maxSurge', '%'],
     ['unavailable', 'maxUnavailable', '%'],

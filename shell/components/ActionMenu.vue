@@ -155,10 +155,10 @@ export default {
         // If the action menu state is controlled with Vuex,
         // use the target element and the target event
         // to position the menu.
-        this.style = fitOnScreen(menu, event || elem, {
+        this.style = fitOnScreen(menu, elem || event, {
           overlapX:  true,
-          fudgeX:    elem ? 4 : 0,
-          fudgeY:    elem ? 4 : 0,
+          fudgeX:    elem ? -2 : 0,
+          fudgeY:    elem ? 20 : 0,
           positionX: (elem ? AUTO : CENTER),
           positionY: AUTO,
         });

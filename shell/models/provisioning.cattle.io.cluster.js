@@ -36,6 +36,17 @@ export default class ProvCluster extends SteveModel {
       },
     ].filter(x => !!x.content);
 
+    // RKE Template details
+    const rkeTemplate = this.rkeTemplate;
+
+    if (rkeTemplate) {
+      out.push({
+        label:     this.t('cluster.detail.rkeTemplate'),
+        formatter: 'RKETemplateName',
+        content:   rkeTemplate,
+      });
+    }
+
     if (!this.machineProvider) {
       out.splice(1, 1);
 
@@ -186,12 +197,10 @@ export default class ProvCluster extends SteveModel {
     return super.canEditYaml;
   }
 
-  get isAKS() {
-    return this.provisioner === 'AKS';
-  }
+  get isHostedKubernetesProvider() {
+    const providers = ['AKS', 'EKS', 'GKE'];
 
-  get isEKS() {
-    return this.provisioner === 'EKS';
+    return providers.includes(this.provisioner);
   }
 
   get isImported() {
@@ -219,11 +228,15 @@ export default class ProvCluster extends SteveModel {
   get isImportedK3s() {
     // As of Rancher v2.6.7, this returns false for imported K3s clusters,
     // in which this.provisioner is `k3s`.
-    return this.isImported && this.mgmt?.status?.provider === 'k3s';
+    return this.isImported && this.isK3s;
   }
 
   get isImportedRke2() {
     return this.isImported && this.mgmt?.status?.provider?.startsWith('rke2');
+  }
+
+  get isK3s() {
+    return this.mgmt?.status?.provider === 'k3s';
   }
 
   get isRke2() {
@@ -256,6 +269,10 @@ export default class ProvCluster extends SteveModel {
 
   get isReady() {
     return !!this.mgmt?.isReady;
+  }
+
+  get eksNodeGroups() {
+    return this.mgmt?.spec?.eksConfig?.nodeGroups;
   }
 
   waitForProvisioner(timeout, interval) {
@@ -476,8 +493,13 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.generateKubeConfig();
   }
 
-  copyKubeConfig() {
-    return this.mgmt?.copyKubeConfig();
+  async copyKubeConfig() {
+    await this.mgmt?.copyKubeConfig();
+
+    this.$dispatch('growl/success', {
+      title:   this.t('cluster.copiedConfig'),
+      timeout: 3000,
+    }, { root: true });
   }
 
   downloadKubeConfig() {
@@ -592,6 +614,62 @@ export default class ProvCluster extends SteveModel {
     return this._stateObj;
   }
 
+  get rkeTemplate() {
+    if (!this.isRke1 || !this.mgmt) {
+      // Not an RKE! cluster or no management cluster available
+      return false;
+    }
+
+    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
+      // Cluster does not use an RKE template
+      return false;
+    }
+
+    const clusterTemplateName = this.mgmt.spec.clusterTemplateName.replace(':', '/');
+    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
+    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find(t => t.id === clusterTemplateName);
+    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find(t => t.spec.enabled && t.id === clusterTemplateRevisionName);
+
+    if (!template || !revision) {
+      return false;
+    }
+
+    return {
+      displayName: `${ template.spec?.displayName }/${ revision.spec?.displayName }`,
+      upgrade:     this.rkeTemplateUpgrade,
+      template,
+      revision,
+    };
+  }
+
+  get rkeTemplateUpgrade() {
+    if (!this.isRke1 || !this.mgmt) {
+      // Not an RKE! cluster or no management cluster available
+      return false;
+    }
+
+    if (!this.mgmt.spec?.clusterTemplateRevisionName) {
+      // Cluster does not use an RKE template
+      return false;
+    }
+
+    const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
+
+    // Get all of the template revisions for this template
+    const revisions = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).filter(t => t.spec.enabled && t.spec.clusterTemplateName === this.mgmt.spec.clusterTemplateName);
+
+    if (revisions.length <= 1) {
+      // Only one template revision
+      return false;
+    }
+
+    revisions.sort((a, b) => {
+      return parseInt(a.metadata.resourceVersion, 10) - parseInt(b.metadata.resourceVersion, 10);
+    }).reverse();
+
+    return revisions[0].id !== clusterTemplateRevisionName ? revisions[0].spec?.displayName : false;
+  }
+
   get _stateObj() {
     if (!this.isRke2) {
       return this.mgmt?.stateObj || this.metadata?.state;
@@ -687,5 +765,9 @@ export default class ProvCluster extends SteveModel {
     if ( res?._status === 204 ) {
       await this.$dispatch('ws.resource.remove', { data: this });
     }
+  }
+
+  get hasError() {
+    return this.status?.conditions?.some(condition => condition.error === true);
   }
 }

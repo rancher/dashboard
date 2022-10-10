@@ -23,6 +23,10 @@ export default {
       type:     Array,
       required: true
     },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
     /**
      * Container spec
      */
@@ -107,6 +111,7 @@ export default {
         :all-secrets="secrets"
         :all-config-maps="configMaps"
         :mode="mode"
+        :loading="loading"
         @remove="removeRow(i)"
         @input="updateRow"
       />

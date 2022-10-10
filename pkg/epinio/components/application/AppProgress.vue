@@ -9,7 +9,7 @@ import { STATE, DESCRIPTION } from '@shell/config/table-headers';
 import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication } from '../../types';
 import { EpinioAppSource } from '../../components/application/AppSource.vue';
 import { EpinioAppBindings } from '../../components/application/AppConfiguration.vue';
-import EpinioNamespace from '~/pkg/epinio/models/namespaces';
+import EpinioNamespace from '../../models/namespaces';
 
 interface Data {
   running: boolean;
@@ -188,7 +188,6 @@ export default Vue.extend<Data, any, any, any>({
 
       for (const action of enabledActions) {
         try {
-          // TODO: RC bind to SI action
           await action.execute({ source: this.source });
         } catch (err) {
           Vue.set(this, 'running', false);

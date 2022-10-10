@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import ResourceTable from '@shell/components/ResourceTable';
 import Link from '@shell/components/formatter/Link';
 import Shortened from '@shell/components/formatter/Shortened';
@@ -29,10 +28,14 @@ export default {
       type:     Object,
       required: true,
     },
+
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
     filteredRows() {
       if (!this.rows) {
         return [];
@@ -91,13 +94,14 @@ export default {
 
 <template>
   <div>
-    <FleetIntro v-if="noRows" />
+    <FleetIntro v-if="noRows && !loading" />
     <ResourceTable
       v-if="!noRows"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
       :rows="rows"
+      :loading="loading"
       key-field="_key"
       v-on="$listeners"
     >

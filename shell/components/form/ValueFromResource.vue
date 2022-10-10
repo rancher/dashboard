@@ -34,7 +34,11 @@ export default {
     namespaced: {
       type:    Boolean,
       default: true
-    }
+    },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -300,6 +304,7 @@ export default {
           :get-option-key="opt=>opt.id|| opt"
           :mode="mode"
           :label="sourceLabel"
+          :loading="loading"
         />
       </div>
       <div v-if="type!=='secretRef' && type!== 'configMapRef'">
@@ -310,6 +315,7 @@ export default {
           :mode="mode"
           option-label="label"
           :label="t('workload.container.command.fromResource.key.label')"
+          :loading="loading"
           @input="updateRow"
         />
       </div>

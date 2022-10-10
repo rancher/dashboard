@@ -3,6 +3,7 @@
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
+import { BLANK_CLUSTER } from '@shell/store';
 
 export default {
   async fetch() {
@@ -24,7 +25,10 @@ export default {
       authConfig:      null,
       authConfigRoute: {
         name:   'c-cluster-auth-config-id',
-        params: { id: 'azuread' }
+        params: {
+          cluster: this.$route.params.cluster || BLANK_CLUSTER,
+          id:      'azuread'
+        }
       }
     };
   },

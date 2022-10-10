@@ -18,6 +18,7 @@ export interface PackageMetadata {
 export type VuexStoreObject = { [key: string]: any }
 export type CoreStoreSpecifics = { state: () => VuexStoreObject, getters: VuexStoreObject, mutations: VuexStoreObject, actions: VuexStoreObject }
 export type CoreStoreConfig = { namespace: string, baseUrl?: string, modelBaseClass?: string, supportsStream?: boolean, isClusterStore?: boolean }
+export type CoreStoreInit = (store: any, ctx: any) => void;
 export type RegisterStore = () => (store: any) => void
 export type UnregisterStore = (store: any) => void
 
@@ -57,6 +58,11 @@ export interface IPlugin {
   metadata: PackageMetadata;
 
   /**
+   * Validators used in the same manner as shell/utils/custom-validators
+   */
+  validators: {[key: string]: Function};
+
+  /**
    * Add a module contains localisations for a specific locale
    */
   addL10n(locale: string, fn: Function): void;
@@ -91,7 +97,7 @@ export interface IPlugin {
    * actions, will eventually call a `request` action which will make the raw http request. This is a pkg specific feature so needs the
    * `request` action needs to be supplied in the `storeSpecifics`
    */
-  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig): void;
+  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig, init?: CoreStoreInit): void;
 
   /**
    * Add hooks that will execute when a user navigates

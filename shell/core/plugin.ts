@@ -1,6 +1,6 @@
 import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
-import { IPlugin } from './types';
+import { CoreStoreInit, IPlugin } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
   PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
@@ -23,6 +23,8 @@ export class Plugin implements IPlugin {
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
 
+  public _validators: {[key:string]: Function } = {}
+
   // Is this a built-in plugin (bundled with the application)
   public builtin = false;
 
@@ -41,6 +43,14 @@ export class Plugin implements IPlugin {
   set metadata(value) {
     this._metadata = value;
     this.name = this._metadata.name || this.id;
+  }
+
+  get validators() {
+    return this._validators;
+  }
+
+  set validators(vals: {[key:string]: Function }) {
+    this._validators = vals;
   }
 
   // Track which products the plugin creates
@@ -104,13 +114,14 @@ export class Plugin implements IPlugin {
     });
   }
 
-  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig) {
+  addDashboardStore(storeName: string, storeSpecifics: CoreStoreSpecifics, config: CoreStoreConfig, init?: CoreStoreInit) {
     this.stores.push({
       storeName,
       register: () => {
         return coreStore(
           this.storeFactory(storeSpecifics, config),
           config,
+          init,
         );
       },
       unregister: (store: any) => {
@@ -167,7 +178,8 @@ export class Plugin implements IPlugin {
     const nparts = name.split('/');
 
     // Support components in a sub-folder - component_name/index.vue (and ignore other componnets in that folder)
-    if (nparts.length === 2) {
+    // Allow store-scoped models via sub-folder - pkgname/models/storename/type will be registered as storename/type to avoid overwriting shell/models/type
+    if (nparts.length === 2 && type !== 'models') {
       if (nparts[1] !== 'index') {
         return;
       }

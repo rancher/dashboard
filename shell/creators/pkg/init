@@ -137,6 +137,9 @@ if (!isNodeModulesShell) {
     tsconfig.compilerOptions.paths[p] = updateArray(tsconfig.compilerOptions.paths[p]);
   });
 
+  // Update typeRoots
+  tsconfig.compilerOptions.typeRoots = updateArray(tsconfig.compilerOptions.typeRoots);
+
   fs.writeFileSync(path.join(pkgFolder, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
   console.log('  Updated tsconfig.json for shell folder location');
 }

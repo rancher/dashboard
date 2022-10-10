@@ -632,10 +632,6 @@ export default {
       return { name: 'c-cluster-legacy-project' };
     },
 
-    mcmRoute() {
-      return { name: 'c-cluster-mcapps' };
-    },
-
     windowsIncompatible() {
       if (this.chart?.windowsIncompatible) {
         return this.t('catalog.charts.windowsIncompatible');
@@ -740,12 +736,6 @@ export default {
 
     window.scrollTop = 0;
 
-    // For easy access debugging...
-    if ( typeof window !== 'undefined' ) {
-      window.v = this.value;
-      window.c = this;
-    }
-
     this.preFormYamlOption = this.valuesComponent || this.hasQuestions ? VALUES_STATE.FORM : VALUES_STATE.YAML;
   },
 
@@ -768,8 +758,10 @@ export default {
 
       // Load a values component for the UI if it is named in the Helm chart.
       if ( component ) {
-        if ( this.$store.getters['catalog/haveComponent'](component) ) {
-          this.valuesComponent = this.$store.getters['catalog/importComponent'](component);
+        const hasChartComponent = this.$store.getters['type-map/hasCustomChart'](component);
+
+        if ( hasChartComponent ) {
+          this.valuesComponent = this.$store.getters['type-map/importChart'](component);
           const loaded = await this.valuesComponent();
 
           this.showValuesComponent = true;
@@ -1543,7 +1535,7 @@ export default {
       </div>
 
       <Banner color="warning" class="description">
-        <span>
+        <span v-if="!mcapp">
           {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>
         <template v-if="!legacyEnabled">
@@ -1552,9 +1544,12 @@ export default {
             {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
           </nuxt-link>
         </template>
+        <template v-else-if="mcapp">
+          <span v-html="t('catalog.install.error.legacy.mcmNotSupported')" />
+        </template>
         <template v-else>
-          <nuxt-link :to="mcapp ? mcmRoute : legacyAppRoute">
-            <span v-html="t('catalog.install.error.legacy.navigate', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true)" />
+          <nuxt-link :to="legacyAppRoute">
+            <span v-html="t('catalog.install.error.legacy.navigate')" />
           </nuxt-link>
         </template>
       </Banner>

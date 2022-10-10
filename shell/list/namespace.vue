@@ -6,6 +6,10 @@ export default {
   name:       'ListNamespace',
   components: { ResourceTable },
   props:      {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
@@ -14,23 +18,29 @@ export default {
       type:     Array,
       required: true,
     },
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
+    ...mapGetters(['currentProduct']),
 
     filterRow() {
-      if (this.isVirtualCluster) {
+      if (this.currentProduct.hideSystemResources) {
         return this.rows.filter( (N) => {
-          const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(N.metadata.name);
-
-          return !N.isSystem && !N.isFleetManaged && !isSettingSystemNamespace;
+          return !N.isSystem && !N.isFleetManaged;
         });
       } else {
         return this.rows;
       }
     },
-  }
+  },
+
+  $loadingResources() {
+    return { loadIndeterminate: true };
+  },
 };
 </script>
 
@@ -41,6 +51,7 @@ export default {
     :groupable="false"
     :schema="schema"
     key-field="_key"
+    :loading="loading"
     v-on="$listeners"
   />
 </template>

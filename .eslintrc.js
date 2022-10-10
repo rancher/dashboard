@@ -1,5 +1,5 @@
 module.exports = {
-  root: true,
+  // root: true,
   env:  {
     browser: true,
     node:    true
@@ -180,6 +180,10 @@ module.exports = {
       // Unnecessary Jest lint rules from full recommendation
       rules:   { 'jest/prefer-expect-assertions': 'off' },
       extends: ['plugin:jest/all']
+    },
+    {
+      files:   ['docusaurus/**/*.{js,ts}'],
+      rules:   { 'no-use-before-define': 'off' },
     },
   ]
 };

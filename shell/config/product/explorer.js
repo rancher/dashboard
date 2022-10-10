@@ -58,6 +58,7 @@ export function init(store) {
     'namespaces',
     NODE,
     VIRTUAL_TYPES.CLUSTER_MEMBERS,
+    EVENT,
   ], 'cluster');
   basicType([
     SERVICE,
@@ -142,6 +143,7 @@ export function init(store) {
   configureType(NORMAN.PROJECT_ROLE_TEMPLATE_BINDING, { depaginate: true });
 
   configureType(EVENT, { limit: 500 });
+  weightType(EVENT, -1, true);
 
   // Allow Pods to be grouped by node
   configureType(POD, {
@@ -158,13 +160,12 @@ export function init(store) {
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
-  configureType('workload', {
-    displayName: 'Workload',
+  configureType(WORKLOAD, {
+    displayName: store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 1 }).trim(),
     location:    {
       name:    'c-cluster-product-resource',
-      params:  { resource: 'workload' },
+      params:  { resource: WORKLOAD },
     },
-    resource: WORKLOAD_TYPES.DEPLOYMENT
   });
 
   headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);

@@ -1,10 +1,11 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListApps',
-  components: { Loading, ResourceTable },
+  components: { ResourceTable },
+  mixins:     [ResourceFetch],
 
   props: {
     resource: {
@@ -21,18 +22,18 @@ export default {
   async fetch() {
     await this.$store.dispatch('catalog/load');
 
-    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
-  },
-
-  data() {
-    return { rows: null };
+    await this.$fetchType(this.resource);
   },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else class="apps" :schema="schema" :rows="rows">
+  <ResourceTable
+    class="apps"
+    :schema="schema"
+    :rows="rows"
+    :loading="loading"
+  >
     <template #cell:upgrade="{row}">
       <span v-if="row.upgradeAvailable" class="badge-state bg-warning hand" @click="row.goToUpgrade(row.upgradeAvailable)">
         {{ row.upgradeAvailable }}
