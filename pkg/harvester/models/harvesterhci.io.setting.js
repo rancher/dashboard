@@ -54,10 +54,6 @@ export default class HciSetting extends HarvesterResource {
     });
   }
 
-  get backupTargetIsEmpty() {
-    return !this.value;
-  }
-
   get errMessage() {
     const configuredCondition = findBy((this?.status?.conditions || []), 'type', 'configured') || {};
 

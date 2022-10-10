@@ -31,6 +31,12 @@ export default {
 
     this.rows = hash.rows;
     this.settings = hash.settings;
+    const backupTargetResource = hash.settings.find( O => O.id === 'backup-target');
+    const isEmpty = this.getBackupTargetValueIsEmpty(backupTargetResource);
+
+    if (!isEmpty) {
+      this.testConnect();
+    }
   },
 
   data() {
@@ -46,10 +52,6 @@ export default {
     };
   },
 
-  created() {
-    this.testConnect();
-  },
-
   methods: {
     async testConnect() {
       try {
@@ -62,6 +64,20 @@ export default {
           }, { root: true });
         }
       }
+    },
+
+    getBackupTargetValueIsEmpty(resource) {
+      let out = true;
+
+      if (resource?.value) {
+        try {
+          const valueJson = JSON.parse(resource?.value);
+
+          out = !valueJson.type;
+        } catch (e) {}
+      }
+
+      return out;
     }
   },
 
@@ -105,7 +121,7 @@ export default {
     },
 
     isEmptyValue() {
-      return this.backupTargetResource.backupTargetIsEmpty;
+      return this.getBackupTargetValueIsEmpty(this.backupTargetResource);
     },
 
     canUpdate() {
