@@ -100,7 +100,7 @@ export default {
 
       const plugin = this.plugin;
 
-      this.$emit(plugin.name, 'install');
+      this.$emit('update', plugin.name, 'install');
 
       // Find the version that the user wants to install
       const version = plugin.versions?.find(v => v.version === this.version);

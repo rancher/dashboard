@@ -82,6 +82,11 @@ export default {
 
     this.charts = Object.values(c);
 
+    // If there are no plugins installed, default to the catalog view
+    if (this.plugins.length === 0) {
+      this.$refs.tabs?.select('available');
+    }
+
     this.loading = false;
   },
 
@@ -504,15 +509,9 @@ export default {
                 {{ t('plugins.labels.builtin') }}
               </div>
               <div class="plugin-version">
-                <div v-if="plugin.installing" class="plugin-installing">
-                  <i class="version-busy icon icon-spin icon-spinner" />
-                  <div v-if="plugin.installing='install'">
-                    {{ t('plugins.labels.installing') }}
-                  </div>
-                  <div v-else>
-                    {{ t('plugins.labels.uninstalling') }}
-                  </div>
-                </div>
+                <span v-if="plugin.installing === 'uninstall'" class="plugin-installing">
+                  -
+                </span>
                 <span v-else>
                   <span>{{ plugin.displayVersion }}</span>
                   <span v-if="plugin.upgrade" v-tooltip="t('plugins.upgradeAvailable')"> -> {{ plugin.upgrade }}</span>
@@ -539,8 +538,14 @@ export default {
 
                 <div class="plugin-spacer" />
 
-                <div v-if="plugin.installing">
-                  <!-- Don't show any buttons -->
+                <div v-if="plugin.installing" class="plugin-installing">
+                  <i class="version-busy icon icon-spin icon-spinner" />
+                  <div v-if="plugin.installing ==='install'">
+                    {{ t('plugins.labels.installing') }}
+                  </div>
+                  <div v-else>
+                    {{ t('plugins.labels.uninstalling') }}
+                  </div>
                 </div>
                 <div v-else-if="plugin.installed" class="plugin-buttons">
                   <button v-if="!plugin.builtin" class="btn role-secondary" @click="showUninstallDialog(plugin, $event)">
@@ -695,15 +700,15 @@ export default {
         height: 16px;
         width: 16px;
       }
+    }
 
-      .plugin-installing {
-        align-items: center;
-        display: flex;
+    .plugin-installing {
+      align-items: center;
+      display: flex;
 
-        > div {
-          font-size: 14px;
-          margin-left: 5px;
-        }
+      > div {
+        font-size: 14px;
+        margin-left: 5px;
       }
     }
 

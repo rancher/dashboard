@@ -26,6 +26,8 @@ export default {
 
       const plugin = this.plugin;
 
+      this.$emit('update', plugin.name, 'uninstall');
+
       // Delete the CR if this is a developer plugin (there is no Helm App, so need to remove the CRD ourselves)
       if (plugin.uiplugin?.isDeveloper) {
         // Delete the custom resource
