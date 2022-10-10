@@ -2,6 +2,9 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
 import Login from '@shell/mixins/login';
+import AESEncrypt from '@shell/utils/aes-encrypt';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 export default {
   components: { LabeledInput, AsyncButton },
@@ -15,7 +18,13 @@ export default {
   },
 
   data() {
-    return { username: '', password: '' };
+    return {
+      username: '', password: '', disabledEncryption: null
+    };
+  },
+
+  created() {
+    this.disabledEncryption = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PWD_ENCRYPT);
   },
 
   methods: {
@@ -26,7 +35,7 @@ export default {
           provider: this.name,
           body:     {
             username: this.username,
-            password: this.password
+            password: this.encryptPassword(this.password)
           }
         });
 
@@ -37,6 +46,14 @@ export default {
         buttonCb(false);
       }
     },
+
+    encryptPassword(password) {
+      if (this.disabledEncryption?.value === 'true') {
+        return password;
+      }
+
+      return AESEncrypt(password.trim());
+    }
   },
 };
 </script>

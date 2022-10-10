@@ -3,8 +3,10 @@ import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
-import { NORMAN } from '@shell/config/types';
+import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { SETTING } from '@shell/config/settings';
+import AESEncrypt from '@shell/utils/aes-encrypt';
 
 // Component handles three use cases
 // 1) isChange - Current user is changing their own password
@@ -36,6 +38,10 @@ export default {
       this.username = user?.username;
     }
     this.userChangeOnLogin = this.mustChangePassword;
+
+    const disabledEncryption = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PWD_ENCRYPT);
+
+    this.disabledEncryption = disabledEncryption;
   },
   data(ctx) {
     return {
@@ -51,6 +57,7 @@ export default {
         confirmP:          '',
         userChangeOnLogin: false,
       },
+      disabledEncryption: null,
     };
   },
   computed:   {
@@ -242,7 +249,7 @@ export default {
         type:       NORMAN.USER,
         actionName: 'setpassword',
         resource:   user,
-        body:          { newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP },
+        body:          { newPassword: this.isRandomGenerated ? this.encryptPassword(this.form.genP) : this.encryptPassword(this.form.newP) },
       });
     },
 
@@ -252,8 +259,8 @@ export default {
           type:       NORMAN.USER,
           actionName: 'changepassword',
           body:          {
-            currentPassword: this.form.currentP,
-            newPassword:     this.isRandomGenerated ? this.form.genP : this.form.newP
+            currentPassword: this.encryptPassword(this.form.currentP),
+            newPassword:     this.isRandomGenerated ? this.encryptPassword(this.form.genP) : this.encryptPassword(this.form.newP)
           },
         });
       } catch (err) {
@@ -289,6 +296,14 @@ export default {
         }
         throw err;
       }
+    },
+
+    encryptPassword(password) {
+      if (this.disabledEncryption?.value === 'true') {
+        return password;
+      }
+
+      return AESEncrypt(password.trim());
     },
   },
 };

@@ -8,6 +8,8 @@ import CruResource from '@shell/components/CruResource';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import Loading from '@shell/components/Loading';
+import { SETTING } from '@shell/config/settings';
+import AESEncrypt from '@shell/utils/aes-encrypt';
 
 export default {
   components: {
@@ -19,6 +21,8 @@ export default {
 
   data() {
     const showGlobalRoles = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.GLOBAL_ROLE);
+
+    const disabledEncryption = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PWD_ENCRYPT);
 
     return {
       showGlobalRoles,
@@ -36,6 +40,7 @@ export default {
         roles:        !showGlobalRoles,
         rolesChanged:     false,
       },
+      disabledEncryption,
     };
   },
 
@@ -130,7 +135,7 @@ export default {
         enabled:            true,
         mustChangePassword: this.form.password.userChangeOnLogin,
         name:               this.form.displayName,
-        password:           this.form.password.password,
+        password:           this.encryptPassword(this.form.password.password),
         username:           this.form.username
       });
 
@@ -174,6 +179,14 @@ export default {
       if (this.$refs.grb) {
         await this.$refs.grb.save(userId);
       }
+    },
+
+    encryptPassword(password) {
+      if (this.disabledEncryption?.value === 'true') {
+        return password;
+      }
+
+      return AESEncrypt(password.trim());
     }
   }
 };
