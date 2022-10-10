@@ -83,9 +83,9 @@ export default {
 
       const parts = name.split('-');
 
-      if (parts.length === 2) {
-        crdName = parts[0];
-        version = parts[1];
+      if (parts.length >= 2) {
+        version = parts.pop();
+        crdName = parts.join('-');
       }
 
       if (this.persist) {

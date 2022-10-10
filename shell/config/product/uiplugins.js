@@ -9,7 +9,7 @@ export function init(store) {
   product({
     ifHave:              IF_HAVE.ADMIN, // Only admins can see the UI Plugin Custom Resource by default
     inStore:             'management',
-    icon:                'gear',
+    icon:                'extension',
     removable:           false,
     showClusterSwitcher: false,
     category:            'configuration',

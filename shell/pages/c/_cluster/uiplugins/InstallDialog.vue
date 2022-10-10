@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { CATALOG } from '@shell/config/types';
+import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import Banner from '@components/Banner/Banner.vue';
@@ -15,13 +15,21 @@ export default {
     LabeledSelect,
   },
 
+  async fetch() {
+    this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'system-default-registry'
+    });
+  },
+
   data() {
     return {
-      plugin:   undefined,
-      busy:     false,
-      version:  '',
-      update:   false,
-      mode:      '',
+      defaultRegistrySetting: null,
+      plugin:                 undefined,
+      busy:                   false,
+      version:                '',
+      update:                 false,
+      mode:                   '',
     };
   },
 
@@ -92,7 +100,7 @@ export default {
 
       const plugin = this.plugin;
 
-      this.$emit(plugin.name, 'install');
+      this.$emit('update', plugin.name, 'install');
 
       // Find the version that the user wants to install
       const version = plugin.versions?.find(v => v.version === this.version);
@@ -102,6 +110,35 @@ export default {
 
         return;
       }
+
+      // is the image used by the chart in the rancher org?
+      let isRancherImage = false;
+
+      try {
+        const chartVersionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
+          repoType:    version.repoType,
+          repoName:    version.repoName,
+          chartName:   plugin.chart.chartName,
+          versionName: this.version,
+        });
+
+        const image = chartVersionInfo?.values?.image?.repository || '';
+
+        isRancherImage = image.startsWith('rancher/');
+      } catch (e) {}
+
+      // See if there is already a plugin with this name
+      let exists = false;
+
+      try {
+        const app = await this.$store.dispatch('management/find', {
+          type:  CATALOG.APP,
+          id:   `${ UI_PLUGIN_NAMESPACE }/${ plugin.chart.chartName }`,
+          opt:  { force: true },
+        });
+
+        exists = !!app;
+      } catch (e) {}
 
       const repoType = version.repoType;
       const repoName = version.repoName;
@@ -118,6 +155,15 @@ export default {
         values: {}
       };
 
+      // Pass in the system default registry property if set - only if the image is in the rancher org
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+
+      if (isRancherImage && defaultRegistry) {
+        chart.values.global = chart.values.global || {};
+        chart.values.global.cattle = chart.values.global.cattle || {};
+        chart.values.global.cattle.systemDefaultRegistry = defaultRegistry;
+      }
+
       const input = {
         charts:    [chart],
         // timeout:   this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
@@ -126,24 +172,29 @@ export default {
       };
 
       // Helm action
-      const action = this.update ? 'upgrade' : 'install';
+      const action = (exists || this.update) ? 'upgrade' : 'install';
 
-      // const name = plugin.chart.chartName;
+      try {
+        const res = await repo.doAction(action, input);
+        const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
-      // const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
-      const res = await repo.doAction(action, input);
-      const operationId = `${ res.operationNamespace }/${ res.operationName }`;
+        this.closeDialog(plugin);
 
-      // Vue.set(this.installing, this.selected.chart.chartName, operationId);
+        await repo.waitForOperation(operationId);
 
-      this.closeDialog(plugin);
+        await this.$store.dispatch(`management/find`, {
+          type: CATALOG.OPERATION,
+          id:   operationId
+        });
+      } catch (e) {
+        this.$store.dispatch('growl/error', {
+          title:   this.t('plugins.error.generic'),
+          message: e.message ? e.message : e,
+          timeout: 10000
+        }, { root: true });
 
-      await repo.waitForOperation(operationId);
-
-      await this.$store.dispatch(`management/find`, {
-        type: CATALOG.OPERATION,
-        id:   operationId
-      });
+        this.closeDialog(plugin);
+      }
     }
   }
 };

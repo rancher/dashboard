@@ -48,6 +48,7 @@ generic:
   plusMore: "+ {n} more"
   readFromFile: Read from File
   readFromFolder: Read from Folder
+  reload: Reload
   register: Register
   remove: Remove
   resource: |-
@@ -189,7 +190,7 @@ product:
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
-  uiplugins: UI Plugins
+  uiplugins: Extensions
 
 suffix:
   percent: "%"
@@ -3665,7 +3666,7 @@ persistentVolumeClaim:
   status:
     label: Status
 
-# UI Plugins
+# Rancher Extensions
 plugins:
   labels:
     builtin: Built-in
@@ -3674,78 +3675,85 @@ plugins:
     installing: Installing ...
     uninstalling: Uninstalling ...
   descriptions:
-    experimental: This UI Plugin is marked as experimental
-    third-party: This UI plugin is provided by a Third-Party
+    experimental: This Extension is marked as experimental
+    third-party: This Extension is provided by a Third-Party
   error:
-    title: Error loading plugin
-    message: Could not load plugin code
+    title: Error loading extension
+    message: Could not load extension code
+    generic: Extension error
+    api: This Extension is not compatible with the Extensions API
+    host: This Extension is not compatible with this application
+    version: This Extension is not compatible with this version of Rancher
+    load: An error occurred loading the code for this Extension
   success:
-    title: Loaded plugin {name}
-    message: Plugin was loaded successfully
+    title: Loaded extension {name}
+    message: Extension was loaded successfully
   developer:
     label: Developer Load
-    title: Developer Load Plugin
-    prompt: Load a plugin from a URL
+    title: Developer Load Extension
+    prompt: Load an extension from a URL
     fields:
-      url: Plugin URL
-      name: Plugin module name
-      persist: Persist plugin by creating custom resource
+      url: Extension URL
+      name: Extension module name
+      persist: Persist extension by creating custom resource
   info:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
   empty:
-    all: No UI Plugins either installed nor available
-    available: No UI Plugins available
-    installed: No UI Plugins installed
-    updates: No UI Plugin updates available
-  loadError: An error occurred loading the code for this plugin
-  helmError: "An error occurred installing the plugin via Helm"
+    all: Extensions are neither installed or available
+    available: No Extensions available
+    installed: No Extensions installed
+    updates: No updates available for installed Extensions
+  loadError: An error occurred loading the code for this extension
+  helmError: "An error occurred installing the extension via Helm"
   tabs:
     all: All
     available: Available
     installed: Installed
     updates: Updates
-  title: UI Plugins
+  title: Extensions
+  version: "Version: {version}"
   install:
     label: Install
-    title: Install UI Plugin {name}
-    prompt: "Are you sure that you want to install this UI Plugin?"
+    title: Install Extension {name}
+    prompt: "Are you sure that you want to install this Extension?"
     version: Version
-    warnNotCertified: Please ensure that you are aware of the risks of installing UI Plugins from untrusted authors
+    warnNotCertified: Please ensure that you are aware of the risks of installing Extensions from untrusted authors
   update:
     label: Update
-    title: Update UI Plugin {name}
-    prompt: "Are you sure that you want to update this UI Plugin?"
+    title: Update Extension {name}
+    prompt: "Are you sure that you want to update this Extension?"
   rollback:
     label: Rollback
-    title: Rollback UI Plugin {name}
-    prompt: "Are you sure that you want to rollback this UI Plugin?"
+    title: Rollback Extension {name}
+    prompt: "Are you sure that you want to rollback this Extension?"
   uninstall:
     label: Uninstall
-    title: "Uninstall UI Plugin: {name}"
-    prompt: "Are you sure that you want to uninstall this UI Plugin?"
-  upgradeAvailable: A newer version of this UI Plugin is available
+    title: "Uninstall Extension: {name}"
+    prompt: "Are you sure that you want to uninstall this Extension?"
+  upgradeAvailable: A newer version of this Extension is available
+  reload: Extensions changed - reload required
   safeMode:
-    title: UI Plugins Safe Mode
-    message: UI Plugins were not loaded
+    title: Extensions Safe Mode
+    message: Extensions were not loaded
   setup:
-    title: UI Plugin Support is not enabled
+    title: Extension support is not enabled
     prompt:
       cant: Automatic installation is not available - required Helm Charts could not be found
-      can: You need to install the Plugin Operator
+      can: You need to install the Extension Operator
     install:
-      title: Enable UI Plugin Support?
-      prompt: This will install the Helm charts to enable Rancher UI Plugin support
-      airgap: Un-check if your Rancher installation is air-gapped
-      addRancherRepo: Add the Rancher UI Plugins Repository
+      title: Enable Extension Support?
+      prompt: This will install the Helm charts to enable Extension support
+      airgap: The Rancher Extensions Repository provides extensions published by Rancher. Un-check if your Rancher installation is air-gapped
+      addRancherRepo: Add the Rancher Extension Repository
     remove:
-      label: Disable UI Plugin Support
-      title: Disable UI Plugin Support?
-      prompt: This will un-install the Helm charts that enable Rancher UI Plugin support
+      label: Disable Extension Support
+      title: Disable Extension Support?
+      prompt: This will un-install the Helm charts that enable Extension support
       registry:
-        title: Remove the Rancher UI Plugins Repository
-        prompt: Remove the default UI Plugins Repository
+        title: Remove the Rancher Extensions Repository
+        prompt: The Rancher Extensions Repository provides extensions published by Rancher
 
 prefs:
   title: Preferences
@@ -3785,7 +3793,7 @@ prefs:
     viewInApi: Enable "View in API"
     allNamespaces: Show system Namespaces managed by Rancher (not intended for editing or deletion)
     themeShortcut: Enable Dark/Light Theme keyboard shortcut toggle (shift+T)
-    pluginDeveloper: Enable UI Plugin Developer features
+    pluginDeveloper: Enable Extension developer features
   hideDesc:
     label: Hide All Type Descriptions
   helm:

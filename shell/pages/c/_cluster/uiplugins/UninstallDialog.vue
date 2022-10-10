@@ -26,6 +26,8 @@ export default {
 
       const plugin = this.plugin;
 
+      this.$emit('update', plugin.name, 'uninstall');
+
       // Delete the CR if this is a developer plugin (there is no Helm App, so need to remove the CRD ourselves)
       if (plugin.uiplugin?.isDeveloper) {
         // Delete the custom resource
@@ -40,13 +42,18 @@ export default {
       });
 
       if (pluginApp) {
-        await pluginApp.remove();
+        try {
+          await pluginApp.remove();
+        } catch (e) {
+          this.$store.dispatch('growl/error', {
+            title:   this.t('plugins.error.generic'),
+            message: e.message ? e.message : e,
+            timeout: 10000
+          }, { root: true });
+        }
 
         await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
       }
-
-      // Unload the plugin code
-      this.$plugin.removePlugin(plugin.name);
 
       this.closeDialog(plugin);
     }

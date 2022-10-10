@@ -79,14 +79,9 @@ export default {
 
       await new Promise(resolve => setTimeout(resolve, 5000));
 
-      btnCb(true);
+      this.$emit('done');
 
-      this.$router.push(
-        {
-          path:  this.$route.path,
-          force: true,
-        },
-      );
+      btnCb(true);
     },
   }
 };
