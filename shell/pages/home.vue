@@ -296,13 +296,13 @@ export default {
                   <div class="table-heading">
                     <n-link
                       :to="importLocation"
-                      class="btn btn-sm role-primary"
+                      class="btn role-primary"
                     >
                       {{ t('cluster.importAction') }}
                     </n-link>
                     <n-link
                       :to="createLocation"
-                      class="btn btn-sm role-primary"
+                      class="btn role-primary"
                     >
                       {{ t('generic.create') }}
                     </n-link>
