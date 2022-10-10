@@ -28,16 +28,16 @@ export const FORMATTERS = {};
 
 export const COLUMN_BREAKPOINTS = {
   /**
-     * Only show column if at tablet width or wider
-     */
+   * Only show column if at tablet width or wider
+   */
   TABLET:  'tablet',
   /**
-     * Only show column if at laptop width or wider
-     */
+   * Only show column if at laptop width or wider
+   */
   LAPTOP:  'laptop',
   /**
-     * Only show column if at desktop width or wider
-     */
+   * Only show column if at desktop width or wider
+   */
   DESKTOP: 'desktop'
 };
 
@@ -220,66 +220,66 @@ export default {
     },
 
     /**
-       * If pagination of the data is enabled or not
-       */
+     * If pagination of the data is enabled or not
+     */
     paging: {
       type:    Boolean,
       default: false,
     },
 
     /**
-       * What translation key to use for displaying the '1 - 10 of 100 Things' pagination info
-       */
+     * What translation key to use for displaying the '1 - 10 of 100 Things' pagination info
+     */
     pagingLabel: {
       type:    String,
       default: 'sortableTable.paging.generic'
     },
 
     /**
-       * Additional params to pass to the pagingLabel translation
-       */
+     * Additional params to pass to the pagingLabel translation
+     */
     pagingParams: {
       type:    Object,
       default: null,
     },
 
     /**
-       * Allows you to override the default preference of the number of
-       * items to display per page. This is used by ./paging.js if you're
-       * looking for a reference.
-       */
+     * Allows you to override the default preference of the number of
+     * items to display per page. This is used by ./paging.js if you're
+     * looking for a reference.
+     */
     rowsPerPage: {
       type:    Number,
       default: null, // Default comes from the user preference
     },
 
     /**
-       * Allows you to override the default translation text of no rows view
-       */
+     * Allows you to override the default translation text of no rows view
+     */
     noRowsKey: {
       type:    String,
       default: 'sortableTable.noRows'
     },
 
     /**
-       * Allows you to hide the no rows messaging.
-       */
+     * Allows you to hide the no rows messaging.
+     */
     showNoRows: {
       type:    Boolean,
       default: true
     },
 
     /**
-       * Allows you to override the default translation text of no search data view
-       */
+     * Allows you to override the default translation text of no search data view
+     */
     noDataKey: {
       type:    String,
       default: 'sortableTable.noData'
     },
 
     /**
-       * Allows you to override showing the THEAD section.
-       */
+     * Allows you to override showing the THEAD section.
+     */
     showHeaders: {
       type:    Boolean,
       default: true
@@ -291,19 +291,19 @@ export default {
     },
 
     /**
-       * Allows you to link to a custom detail page for data that
-       * doesn't have a class model. For example, a receiver configuration
-       * block within an AlertmanagerConfig resource.
-       */
+     * Allows you to link to a custom detail page for data that
+     * doesn't have a class model. For example, a receiver configuration
+     * block within an AlertmanagerConfig resource.
+     */
     getCustomDetailLink: {
       type:    Function,
       default: null
     },
 
     /**
-       * Inherited global identifier prefix for tests
-       * Define a term based on the parent component to avoid conflicts on multiple components
-       */
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
     componentTestid: {
       type:    String,
       default: 'sortable-table'
@@ -501,10 +501,10 @@ export default {
 
     showHeaderRow() {
       return this.search ||
-          this.tableActions ||
-          this.$slots['header-left']?.length ||
-          this.$slots['header-middle']?.length ||
-          this.$slots['header-right']?.length;
+        this.tableActions ||
+        this.$slots['header-left']?.length ||
+        this.$slots['header-middle']?.length ||
+        this.$slots['header-right']?.length;
     },
 
     columns() {

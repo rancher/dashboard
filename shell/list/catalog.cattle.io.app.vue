@@ -28,17 +28,12 @@ export default {
 </script>
 
 <template>
-<<<<<<< HEAD
   <ResourceTable
     class="apps"
     :schema="schema"
     :rows="rows"
     :loading="loading"
   >
-=======
-  <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else class="apps" :schema="schema" :rows="rows" :has-advanced-filtering="true">
->>>>>>> a7c927f9d (add all changes regarding advanced filtering)
     <template #cell:upgrade="{row}">
       <span v-if="row.upgradeAvailable" class="badge-state bg-warning hand" @click="row.goToUpgrade(row.upgradeAvailable)">
         {{ row.upgradeAvailable }}
