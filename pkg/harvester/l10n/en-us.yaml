@@ -289,7 +289,7 @@ harvester:
         other {Start}
       } the virtual machine now to take effect of the configuration changes.
     runStrategy: Run Strategy
-    restartNow:  |-
+    restartNow: |-
       {restart, select,
         true {Restart}
         other {Start}
