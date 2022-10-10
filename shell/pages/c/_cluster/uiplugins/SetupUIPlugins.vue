@@ -47,17 +47,23 @@ export default {
       }
     }
 
+    this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'system-default-registry'
+    });    
+
     this.loading = false;
   },
 
   data() {
     return {
-      loading:                 true,
-      haveCharts:              false,
-      installCharts:           [],
-      errors:                  [],
-      addRepo:                 true,
-      buttonState:             ASYNC_BUTTON_STATES.ACTION,
+      loading:                true,
+      haveCharts:             false,
+      installCharts:          [],
+      errors:                 [],
+      addRepo:                true,
+      buttonState:            ASYNC_BUTTON_STATES.ACTION,
+      defaultRegistrySetting: null,
     };
   },
 
@@ -87,6 +93,13 @@ export default {
         },
         values: {}
       };
+
+      // Pass in the system default registry property if set
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+
+      if (defaultRegistry) {
+        chart.values.global = { cattle: { systemDefaultRegistry: defaultRegistry } };
+      }      
 
       const input = {
         charts:    [chart],
