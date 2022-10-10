@@ -298,7 +298,10 @@ export default {
           Vue.set(this.errors, plugin.name, error);
 
           if (active) {
-            this.updatePluginInstallStatus(plugin.name, op.status.action);
+            // Can use the status directly, apart from upgrade, which maps to install
+            const status = op.status.action === 'upgrade' ? 'install' : op.status.action;
+
+            this.updatePluginInstallStatus(plugin.name, status);
           } else if (op.status.action === 'uninstall') {
             // Uninstall has finished
             this.updatePluginInstallStatus(plugin.name, false);
