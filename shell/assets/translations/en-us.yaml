@@ -608,7 +608,7 @@ asyncButton:
     waiting: Importing&hellip;
   install:
     action: Install
-    success: Installing
+    success: Installed
     waiting: Installing&hellip;
   load:
     action: Load
@@ -6361,7 +6361,7 @@ resourceQuota:
   servicesLoadBalancers: Services Load Balancers
   servicesNodePorts: Service Node Ports
   namespaceLimit:
-    label: Limit
+    label: Namespace Limit
   projectLimit:
     label: Project Limit
     cpuPlaceholder: e.g. 2000
