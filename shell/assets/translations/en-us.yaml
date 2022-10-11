@@ -767,10 +767,10 @@ catalog:
   chart:
     registry:
       label: Container Registry
-      tooltip: By default, container images are pulled from the Cluster Container Registry in the cluster configuration, and the Global Container Registry is used as a fallback. To use images from a non-default registry, enter a custom container registry here.
+      tooltip: Container images are pulled from the Cluster Container or, failing that, the System Container Registry Setting. To change this default behaviour enter or update the registry here
       custom:
-        checkBoxLabel: Use Custom Container Registry for {vendor} System Container Images
-        inputLabel: Custom Container Registry
+        checkBoxLabel: Container Registry for {vendor} System Container Images
+        inputLabel: Container Registry
         placeholder: Registry domain and ports, ex. registry.io:5000
     header:
       charts: Charts

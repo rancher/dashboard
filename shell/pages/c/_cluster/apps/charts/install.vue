@@ -94,7 +94,12 @@ export default {
 
     this.errors = [];
 
-    this.defaultRegistrySetting = await this.getRegistry();
+    // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
+    if (this.showCustomRegistry) {
+      this.clusterRegistry = await this.getClusterRegistry();
+      this.globalRegistry = await this.getGlobalRegistry();
+      this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
+    }
 
     this.serverUrlSetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -270,12 +275,6 @@ export default {
       this.removeGlobalValuesFrom(userValues);
 
       /*
-        Refer to the developer docs at docs/developer/helm-chart-apps.md
-        for details on what values are injected and where they come from.
-      */
-      this.addGlobalValuesTo(userValues);
-
-      /*
         The merge() method is used to merge two or more objects
         starting with the left-most to the right-most to create a
         parent mapping object. When two keys are the same, the
@@ -296,6 +295,14 @@ export default {
       this.loadedVersionValues = this.versionInfo?.values || {};
       this.loadedVersion = this.version?.key;
     }
+
+    if (this.showCustomRegistry) {
+      const existingRegistry = this.chartValues.global.systemDefaultRegistry || this.chartValues.global.cattle.systemDefaultRegistry;
+
+      this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
+      this.showCustomRegistryInput = this.applyCustomRegistry;
+    }
+
     /* Check if chart exists and if required values exist */
     this.updateStepOneReady();
 
@@ -322,6 +329,7 @@ export default {
 
     return {
       defaultRegistrySetting: '',
+      customRegistrySetting:  '',
       serverUrlSetting:       null,
       chartValues:            null,
       clusterRegistry:        '',
@@ -652,6 +660,23 @@ export default {
       }
 
       return null;
+    },
+
+    /**
+     * Check if the chart contains `systemDefaultRegistry` properties. If not we shouldn't apply the setting (or show the UI for them)
+     */
+    showCustomRegistry() {
+      const global = this.versionInfo?.values?.global || {};
+
+      return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
+    },
+
+    /**
+     * True if we should apply/save the custom registry value. This should be false if matching the global registry
+     * (we shouldn't save the global registry to avoid issues on upgrade where we might confused it with a custom one)
+     */
+    applyCustomRegistry() {
+      return this.customRegistrySetting !== this.globalRegistry;
     }
   },
 
@@ -751,7 +776,7 @@ export default {
   },
 
   methods: {
-    async getRegistry() {
+    async getClusterRegistry() {
       const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
       if (hasPermissionToSeeProvCluster) {
@@ -771,13 +796,13 @@ export default {
           const clusterRegistry = agentConfig?.['system-default-registry'] || '';
 
           if (clusterRegistry) {
-            console.warn('getRegistry', 'clusterRegistry', clusterRegistry);
-
             return clusterRegistry;
           }
         }
       }
+    },
 
+    async getGlobalRegistry() {
       // Use the global registry as a fallback.
       // If it is an empty string, the container
       // runtime will pull images from docker.io.
@@ -958,8 +983,15 @@ export default {
 
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
-      set(cattle, 'systemDefaultRegistry', this.defaultRegistrySetting);
-      set(global, 'systemDefaultRegistry', this.defaultRegistrySetting);
+      if (this.showCustomRegistry) {
+        // If this is the current global registry leave it blank. This avoids the scenario on upgrade where a previous global registry that's
+        // been updated is confused with a custom user registry
+        const registry = this.applyCustomRegistry ? this.customRegistrySetting : '';
+
+        set(cattle, 'systemDefaultRegistry', registry);
+        set(global, 'systemDefaultRegistry', registry);
+      }
+
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
       setIfNotSet(cattle, 'url', serverUrl);
       setIfNotSet(cattle, 'rkePathPrefix', pathPrefix);
@@ -1061,6 +1093,12 @@ export default {
         the default chart values.
       */
       const values = diff(fromChart, this.chartValues);
+
+      /*
+        Refer to the developer docs at docs/developer/helm-chart-apps.md
+        for details on what values are injected and where they come from.
+      */
+      this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
 
@@ -1187,14 +1225,12 @@ export default {
         the same time.
       */
       for ( const dependency of more ) {
-        const globalValues = values.global;
-
         out.charts.unshift({
           chartName:   dependency.name,
           version:     dependency.version,
           releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
           projectId:   this.project,
-          values:      this.addGlobalValuesTo({ global: { ...globalValues } }), // Use spread operator to avoid modifying original input
+          values:      values.global,
           annotations: {
             ...migratedAnnotations,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: dependency.repoType,
@@ -1359,16 +1395,17 @@ export default {
           <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
 
           <Checkbox
+            v-if="showCustomRegistry"
             v-model="showCustomRegistryInput"
             class="mb-20"
             :label="t('catalog.chart.registry.custom.checkBoxLabel')"
             :tooltip="t('catalog.chart.registry.tooltip')"
           />
-          <div class="row">
+          <div v-if="showCustomRegistry" class="row">
             <div class="col span-6">
               <LabeledInput
                 v-if="showCustomRegistryInput"
-                v-model="chartValues.global.cattle.systemDefaultRegistry"
+                v-model="customRegistrySetting"
                 label-key="catalog.chart.registry.custom.inputLabel"
                 placeholder-key="catalog.chart.registry.custom.placeholder"
                 :min-height="30"
