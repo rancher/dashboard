@@ -94,43 +94,7 @@ export default {
 
     this.errors = [];
 
-    const getRegistry = async() => {
-      const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
-
-      if (hasPermissionToSeeProvCluster) {
-        const clusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-        const clusterName = this.$store.getters['currentCluster'].spec.displayName;
-        const clusterResourceId = `fleet-default/${ clusterName }`;
-
-        this.clusterData = clusters.filter((cluster) => {
-          return cluster.id === clusterResourceId;
-        })[0];
-
-        if (this.clusterData.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
-          const agentConfig = this.clusterData.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
-
-          // If a cluster scoped registry exists,
-          // it should be used by default.
-          const clusterRegistry = agentConfig?.['system-default-registry'] || '';
-
-          if (clusterRegistry) {
-            return clusterRegistry;
-          }
-        }
-      }
-
-      // Use the global registry as a fallback.
-      // If it is an empty string, the container
-      // runtime will pull images from docker.io.
-      const globalRegistry = await this.$store.dispatch('management/find', {
-        type: MANAGEMENT.SETTING,
-        id:   'system-default-registry'
-      });
-
-      return globalRegistry.value;
-    };
-
-    this.defaultRegistrySetting = await getRegistry();
+    this.defaultRegistrySetting = await this.getRegistry();
 
     this.serverUrlSetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -787,6 +751,44 @@ export default {
   },
 
   methods: {
+    async getRegistry() {
+      const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+
+      if (hasPermissionToSeeProvCluster) {
+        const clusterName = this.$store.getters['currentCluster'].spec.displayName;
+        const clusterResourceId = `fleet-default/${ clusterName }`;
+
+        this.clusterData = await this.$store.dispatch('management/find', {
+          type: CAPI.RANCHER_CLUSTER,
+          id:   clusterResourceId
+        });
+
+        if (this.clusterData.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
+          const agentConfig = this.clusterData.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+
+          // If a cluster scoped registry exists,
+          // it should be used by default.
+          const clusterRegistry = agentConfig?.['system-default-registry'] || '';
+
+          if (clusterRegistry) {
+            console.warn('getRegistry', 'clusterRegistry', clusterRegistry);
+
+            return clusterRegistry;
+          }
+        }
+      }
+
+      // Use the global registry as a fallback.
+      // If it is an empty string, the container
+      // runtime will pull images from docker.io.
+      const globalRegistry = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.SETTING,
+        id:   'system-default-registry'
+      });
+
+      return globalRegistry.value;
+    },
+
     updateValue(value) {
       if (this.$refs.yaml) {
         this.$refs.yaml.updateValue(value);
@@ -1327,43 +1329,43 @@ export default {
               </LabeledSelect>
             </div>
           </div>
-          <div v-if="chart">
-            <NameNsDescription
-              v-model="value"
-              :description-hidden="true"
-              :mode="mode"
-              :name-disabled="nameDisabled"
-              :name-required="false"
-              :name-ns-hidden="!showNameEditor"
-              :force-namespace="forceNamespace"
-              :namespace-new-allowed="namespaceNewAllowed"
-              :extra-columns="showProject ? ['project'] : []"
-              :show-spacer="false"
-              :horizontal="false"
-              @isNamespaceNew="isNamespaceNew = $event"
-            >
-              <template v-if="showProject" #project>
-                <LabeledSelect
-                  v-model="project"
-                  :disabled="!namespaceIsNew"
-                  :label="t('catalog.install.project')"
-                  option-key="id"
-                  :options="projectOpts"
-                  :tooltip="!namespaceIsNew ? t('catalog.install.namespaceIsInProject', {namespace: value.metadata.namespace}, true) : ''"
-                  :hover-tooltip="!namespaceIsNew"
-                  :status="'info'"
-                />
-              </template>
-            </NameNsDescription>
-            <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
-
-            <div style="display: block; max-width: 500px;" class="mt-10">
-              <Checkbox
-                v-model="showCustomRegistryInput"
-                class="mb-20"
-                :label="t('catalog.chart.registry.custom.checkBoxLabel')"
-                :tooltip="t('catalog.chart.registry.tooltip')"
+          <NameNsDescription
+            v-model="value"
+            :description-hidden="true"
+            :mode="mode"
+            :name-disabled="nameDisabled"
+            :name-required="false"
+            :name-ns-hidden="!showNameEditor"
+            :force-namespace="forceNamespace"
+            :namespace-new-allowed="namespaceNewAllowed"
+            :extra-columns="showProject ? ['project'] : []"
+            :show-spacer="false"
+            :horizontal="false"
+            @isNamespaceNew="isNamespaceNew = $event"
+          >
+            <template v-if="showProject" #project>
+              <LabeledSelect
+                v-model="project"
+                :disabled="!namespaceIsNew"
+                :label="t('catalog.install.project')"
+                option-key="id"
+                :options="projectOpts"
+                :tooltip="!namespaceIsNew ? t('catalog.install.namespaceIsInProject', {namespace: value.metadata.namespace}, true) : ''"
+                :hover-tooltip="!namespaceIsNew"
+                :status="'info'"
               />
+            </template>
+          </NameNsDescription>
+          <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
+
+          <Checkbox
+            v-model="showCustomRegistryInput"
+            class="mb-20"
+            :label="t('catalog.chart.registry.custom.checkBoxLabel')"
+            :tooltip="t('catalog.chart.registry.tooltip')"
+          />
+          <div class="row">
+            <div class="col span-6">
               <LabeledInput
                 v-if="showCustomRegistryInput"
                 v-model="chartValues.global.cattle.systemDefaultRegistry"
