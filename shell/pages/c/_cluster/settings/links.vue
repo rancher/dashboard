@@ -37,8 +37,6 @@ export default {
   computed: {
     ...mapGetters({ multiWithFallback: 'i18n/multiWithFallback' }),
 
-    // TODO: NEED TO SUPPOT MODRE FOR THE DEFAULT LINKS CONTROL
-
     mode() {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
