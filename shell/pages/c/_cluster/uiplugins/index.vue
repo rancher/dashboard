@@ -200,6 +200,7 @@ export default {
           const item = {
             name:           p.name,
             description:    p.metadata?.description,
+            icon:           p.metadata?.icon,
             id:             p.id,
             versions:       [],
             displayVersion: p.metadata?.version || '-',
@@ -319,11 +320,11 @@ export default {
 
     plugins(neu, old) {
       const installed = this.$store.getters['uiplugins/plugins'];
-
+      const shouldHaveLoaded = (installed || []).filter(p => !this.uiErrors[p.name] && !p.builtin);
       let changes = 0;
 
       // Did the user remove an extension
-      if (neu?.length < installed.length) {
+      if (neu?.length < shouldHaveLoaded.length) {
         changes++;
       }
 
@@ -331,7 +332,9 @@ export default {
         const existing = installed.find(p => !p.removed && p.name === plugin.name && p.version === plugin.version);
 
         if (!existing && plugin.isCached) {
-          changes++;
+          if (!this.uiErrors[plugin.name]) {
+            changes++;
+          }
 
           this.updatePluginInstallStatus(plugin.name, false);
         }
@@ -533,9 +536,6 @@ export default {
                 {{ plugin.name }}
               </div>
               <div>{{ plugin.description }}</div>
-              <div v-if="plugin.builtin" class="plugin-builtin">
-                {{ t('plugins.labels.builtin') }}
-              </div>
               <div class="plugin-version">
                 <span v-if="plugin.installing === 'uninstall'" class="plugin-installing">
                   -
@@ -545,7 +545,12 @@ export default {
                   <span v-if="plugin.upgrade" v-tooltip="t('plugins.upgradeAvailable')"> -> {{ plugin.upgrade }}</span>
                 </span>
               </div>
-              <div class="plugin-badges">
+              <div v-if="plugin.builtin" class="plugin-badges">
+                <div class="plugin-builtin">
+                  {{ t('plugins.labels.builtin') }}
+                </div>
+              </div>
+              <div v-else class="plugin-badges">
                 <div v-if="!plugin.certified" v-tooltip="t('plugins.descriptions.third-party')">
                   {{ t('plugins.labels.third-party') }}
                 </div>

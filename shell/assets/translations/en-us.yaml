@@ -3677,6 +3677,7 @@ plugins:
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
+    built-in: This Extension is built-in
   error:
     title: Error loading extension
     message: Could not load extension code
