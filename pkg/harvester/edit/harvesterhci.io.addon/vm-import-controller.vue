@@ -48,6 +48,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    mode: {
+      type:     String,
+      required: true
+    },
   },
 
   async fetch() {
@@ -113,8 +118,6 @@ export default {
     'valuesContent.pvcClaim.enabled'(value) {
       if (value) {
         this.setDefaultClassName();
-
-        this.update();
       }
     },
   },
@@ -132,6 +135,7 @@ export default {
         v-model="value.spec.enabled"
         class="mb-20"
         name="model"
+        :mode="mode"
         :options="[true,false]"
         :labels="[t('generic.enabled'), t('generic.disabled')]"
       />
@@ -177,43 +181,42 @@ export default {
             />
           </div>
         </div>
-      </div>
-    </Tab>
-    <Tab
-      v-if="value.spec.enabled"
-      name="pvc"
-      :label="t('harvester.addons.vmImport.titles.pvc')"
-      :weight="89"
-    >
-      <RadioGroup
-        v-model="valuesContent.pvcClaim.enabled"
-        class="mb-20"
-        name="model"
-        :options="[true,false]"
-        :labels="[t('generic.enabled'), t('generic.disabled')]"
-        @input="update"
-      />
 
-      <div v-if="valuesContent.pvcClaim.enabled">
-        <div class="row mt-10">
-          <div class="col span-6">
-            <LabeledInput
-              v-model="valuesContent.pvcClaim.size"
-              :label="t('harvester.volume.size')"
-              :required="true"
-              :mode="mode"
-              @input="update"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="valuesContent.pvcClaim.storageClassName"
-              :options="storageClassOptions"
-              :label="t('harvester.storage.storageClass.label')"
-              :mode="mode"
-              class="mb-20"
-              @input="update"
-            />
+        <br />
+        <h2>{{ t('harvester.addons.vmImport.titles.pvc') }}</h2>
+        <div v-if="value.spec.enabled">
+          <RadioGroup
+            v-model="valuesContent.pvcClaim.enabled"
+            class="mb-20"
+            name="model"
+            :mode="mode"
+            :options="[true,false]"
+            :labels="[t('generic.enabled'), t('generic.disabled')]"
+            @input="update"
+          />
+
+          <div v-if="valuesContent.pvcClaim.enabled">
+            <div class="row mt-10">
+              <div class="col span-6">
+                <LabeledInput
+                  v-model="valuesContent.pvcClaim.size"
+                  :label="t('harvester.volume.size')"
+                  :required="true"
+                  :mode="mode"
+                  @input="update"
+                />
+              </div>
+              <div class="col span-6">
+                <LabeledSelect
+                  v-model="valuesContent.pvcClaim.storageClassName"
+                  :options="storageClassOptions"
+                  :label="t('harvester.storage.storageClass.label')"
+                  :mode="mode"
+                  class="mb-20"
+                  @input="update"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

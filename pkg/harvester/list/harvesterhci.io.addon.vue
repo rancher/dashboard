@@ -6,6 +6,8 @@ import { allHash } from '@shell/utils/promise';
 import { HCI } from '../types';
 import { STATE, NAME } from '@shell/config/table-headers';
 
+const WHITE_ADDONS = ['vm-import-controller'];
+
 export default {
   name: 'ListHarvesterAddons',
 
@@ -26,7 +28,7 @@ export default {
 
       const addons = this.$store.getters[`${ inStore }/all`](HCI.ADD_ONS);
 
-      return addons;
+      return addons.filter(addon => WHITE_ADDONS.includes(addon.metadata.name));
     },
 
     headers() {
@@ -59,8 +61,17 @@ export default {
     <Loading v-if="$fetchState.pending" />
     <ResourceTable
       :rows="rows"
+      :groupable="false"
+      :namespaced="false"
       :schema="schema"
       :headers="headers"
     />
   </div>
 </template>
+
+<style lang="scss" scoped>
+::v-deep .sortable-table TD .badge-state {
+    max-width: 250px;
+    text-overflow: clip;
+  }
+</style>

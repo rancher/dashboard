@@ -36,6 +36,7 @@ export default {
     <component
       :is="currentComponent"
       :value="value"
+      :mode="mode"
     />
   </CruResource>
 </template>
