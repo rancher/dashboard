@@ -297,7 +297,7 @@ export default {
     }
 
     if (this.showCustomRegistry) {
-      const existingRegistry = this.chartValues.global.systemDefaultRegistry || this.chartValues.global.cattle.systemDefaultRegistry;
+      const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
       this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
       this.showCustomRegistryInput = this.applyCustomRegistry;
@@ -349,7 +349,6 @@ export default {
       valuesYaml:             '',
       project:                null,
       migratedApp:            false,
-      clusterData:            null,
       defaultCmdOpts,
       customCmdOpts:          { ...defaultCmdOpts },
 
@@ -780,16 +779,14 @@ export default {
       const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
       if (hasPermissionToSeeProvCluster) {
-        const clusterName = this.$store.getters['currentCluster'].spec.displayName;
-        const clusterResourceId = `fleet-default/${ clusterName }`;
-
-        this.clusterData = await this.$store.dispatch('management/find', {
+        const mgmCluster = this.$store.getters['currentCluster'];
+        const provCluster = await this.$store.dispatch('management/find', {
           type: CAPI.RANCHER_CLUSTER,
-          id:   clusterResourceId
+          id:   mgmCluster.provClusterId
         });
 
-        if (this.clusterData.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
-          const agentConfig = this.clusterData.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+        if (provCluster.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
+          const agentConfig = provCluster.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
 
           // If a cluster scoped registry exists,
           // it should be used by default.
