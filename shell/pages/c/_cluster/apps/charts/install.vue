@@ -294,10 +294,12 @@ export default {
         /* For an new app, start empty. */
         userValues = {};
       }
+
       /*
         Remove global values if they are identical to
         the currently available information about the cluster
         and Rancher settings.
+
         Immediately before the Helm chart is installed or
         upgraded, the global values are re-added.
       */
@@ -338,6 +340,7 @@ export default {
     /* Look for annotation to say this app is a legacy migrated app (we look in either place for now) */
     this.migratedApp = (this.existing?.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.MIGRATED] === 'true');
   },
+
   data() {
     /* Helm CLI options that are not persisted on the back end,
     but are used for the final install/upgrade operation. */
@@ -927,49 +930,6 @@ export default {
       }
     },
 
-    removeGlobalValuesFrom(values) {
-      if ( !values ) {
-        return;
-      }
-      const cluster = this.$store.getters['currentCluster'];
-      const defaultRegistry = this.defaultRegistrySetting?.value || '';
-      const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
-      const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
-      const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
-
-      if ( values.global?.cattle ) {
-        deleteIfEqual(values.global.cattle, 'clusterId', cluster?.id);
-        deleteIfEqual(values.global.cattle, 'clusterName', cluster?.nameDisplay);
-        deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
-        deleteIfEqual(values.global.cattle, 'url', serverUrl);
-        deleteIfEqual(values.global.cattle, 'rkePathPrefix', pathPrefix);
-        deleteIfEqual(values.global.cattle, 'rkeWindowsPathPrefix', windowsPathPrefix);
-        if ( isWindows ) {
-          deleteIfEqual(values.global.cattle.windows, 'enabled', true);
-        }
-      }
-      if ( values.global?.cattle?.windows && !Object.keys(values.global.cattle.windows).length ) {
-        delete values.global.cattle.windows;
-      }
-      if ( values.global?.cattle && !Object.keys(values.global.cattle).length ) {
-        delete values.global.cattle;
-      }
-      if ( values.global ) {
-        deleteIfEqual(values.global, 'systemDefaultRegistry', defaultRegistry);
-      }
-      if ( !Object.keys(values.global || {}).length ) {
-        delete values.global;
-      }
-
-      return values;
-      function deleteIfEqual(obj, key, val) {
-        if ( get(obj, key) === val ) {
-          delete obj[key];
-        }
-      }
-    },
-
     addGlobalValuesTo(values) {
       let global = values.global;
 
@@ -1012,6 +972,56 @@ export default {
       function setIfNotSet(obj, key, val) {
         if ( typeof get(obj, key) === 'undefined' ) {
           set(obj, key, val);
+        }
+      }
+    },
+
+    removeGlobalValuesFrom(values) {
+      if ( !values ) {
+        return;
+      }
+
+      const cluster = this.$store.getters['currentCluster'];
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+      const serverUrl = this.serverUrlSetting?.value || '';
+      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
+      const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
+      const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
+
+      if ( values.global?.cattle ) {
+        deleteIfEqual(values.global.cattle, 'clusterId', cluster?.id);
+        deleteIfEqual(values.global.cattle, 'clusterName', cluster?.nameDisplay);
+        deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
+        deleteIfEqual(values.global.cattle, 'url', serverUrl);
+        deleteIfEqual(values.global.cattle, 'rkePathPrefix', pathPrefix);
+        deleteIfEqual(values.global.cattle, 'rkeWindowsPathPrefix', windowsPathPrefix);
+
+        if ( isWindows ) {
+          deleteIfEqual(values.global.cattle.windows, 'enabled', true);
+        }
+      }
+
+      if ( values.global?.cattle?.windows && !Object.keys(values.global.cattle.windows).length ) {
+        delete values.global.cattle.windows;
+      }
+
+      if ( values.global?.cattle && !Object.keys(values.global.cattle).length ) {
+        delete values.global.cattle;
+      }
+
+      if ( values.global ) {
+        deleteIfEqual(values.global, 'systemDefaultRegistry', defaultRegistry);
+      }
+
+      if ( !Object.keys(values.global || {}).length ) {
+        delete values.global;
+      }
+
+      return values;
+
+      function deleteIfEqual(obj, key, val) {
+        if ( get(obj, key) === val ) {
+          delete obj[key];
         }
       }
     },
@@ -1174,7 +1184,6 @@ export default {
         charts that may not be CRD charts but are also meant to be installed at
         the same time.
       */
-
       for ( const dependency of more ) {
         const globalValues = values.global;
 
@@ -1603,7 +1612,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   $title-height: 50px;
   $padding: 5px;
   $slideout-width: 35%;
