@@ -1227,7 +1227,7 @@ export default {
           version:     dependency.version,
           releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
           projectId:   this.project,
-          values:      values.global,
+          values:      this.addGlobalValuesTo({ global: values.global }),
           annotations: {
             ...migratedAnnotations,
             [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: dependency.repoType,
