@@ -2,7 +2,7 @@ import { DEFAULT_PROJECT, SYSTEM_PROJECT } from '@shell/config/labels-annotation
 import { MANAGEMENT, NAMESPACE, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import isEmpty from 'lodash/isEmpty';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 function clearUnusedResourceQuotas(spec, types) {
   types.forEach((type) => {

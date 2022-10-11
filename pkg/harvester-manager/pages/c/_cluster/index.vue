@@ -1,5 +1,5 @@
 <script>
-import { NAME } from '@shell/config/product/harvester-manager';
+import { NAME } from '~/pkg/harvester-manager/config/harvester-manager';
 import { HCI } from '@shell/config/types';
 
 export default {
