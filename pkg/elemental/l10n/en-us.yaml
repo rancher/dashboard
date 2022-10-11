@@ -79,7 +79,7 @@ elemental:
   machineRegistration:
     edit:
       imageSetup: Setting up an OS image
-      imageInstructionsDownload: Download the instructions and machine registration file
+      downloadMachineRegistrationFile: 'Download the machine registration file and follow the set of instructions on how to prepare your ISO image <a target="_blank" rel="noopener noreferrer nofollow" style="text-decoration: underline" href="https://rancher.github.io/elemental/quickstart/#preparing-the-iso">here</a>.'
     create:
       registrationToken: Registration Token
       registrationURL: 
@@ -87,10 +87,13 @@ elemental:
         label: Registration URL
       configuration: Configuration
       cloudConfiguration: Cloud Configuration
+      labelsAndAnnotations: Labels And Annotations
       readFromFile: Read from File
       name:
         label: Name
         placeholder: Enter a name
+      machineReg: Machine Registration
+      machineInv: Machine Inventories
   clusterGroup:
     selector:
       label: Machine Inventory Selector Template

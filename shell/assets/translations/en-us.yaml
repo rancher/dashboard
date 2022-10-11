@@ -1646,7 +1646,7 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
-    machineinventoryselectortemplate: Elemental Cluster
+    machineinventoryselectortemplate: Elemental
   providerTag:
     rke2:
       harvester: '{tag}'

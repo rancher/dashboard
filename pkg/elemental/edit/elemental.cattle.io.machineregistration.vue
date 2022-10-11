@@ -5,7 +5,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import { Banner } from '@components/Banner';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
-import Labels from '@shell/components/form/Labels';
+import KeyValue from '@shell/components/form/KeyValue';
 import DetailText from '@shell/components/DetailText';
 import AsyncButton from '@shell/components/AsyncButton';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -14,13 +14,25 @@ import jsyaml from 'js-yaml';
 import { saferDump } from '@shell/utils/create-yaml';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { downloadFile, generateZip } from '@shell/utils/download';
-import IsoBluildInstructions from '../utils/iso-build-instructions.md';
+import { downloadFile } from '@shell/utils/download';
+
+import Tabbed from '@shell/components/Tabbed/index.vue';
+import Tab from '@shell/components/Tabbed/Tab.vue';
 
 export default {
   name:       'MachineRegistrationEditView',
   components: {
-    Loading, CruResource, YamlEditor, Labels, Banner, FileSelector, DetailText, AsyncButton, NameNsDescription
+    Loading,
+    CruResource,
+    YamlEditor,
+    KeyValue,
+    Banner,
+    FileSelector,
+    DetailText,
+    AsyncButton,
+    NameNsDescription,
+    Tabbed,
+    Tab
   },
   mixins:     [CreateEditView],
   props:      {
@@ -35,7 +47,7 @@ export default {
   },
   data() {
     return {
-      cloudConfig:  typeof this.value.spec.cloudConfig === 'string' ? this.value.spec.cloudConfig : saferDump(this.value.spec.cloudConfig),
+      cloudConfig:  typeof this.value.spec.config === 'string' ? this.value.spec.config : saferDump(this.value.spec.config),
       yamlErrors:   null
     };
   },
@@ -45,7 +57,7 @@ export default {
         try {
           const parsed = jsyaml.load(neu);
 
-          this.value.spec.cloudConfig = parsed;
+          this.value.spec.config = parsed;
           this.yamlErrors = null;
         } catch (e) {
           this.yamlErrors = exceptionToErrorsArray(e);
@@ -55,6 +67,9 @@ export default {
     }
   },
   computed: {
+    registrationUrl() {
+      return this.value?.status?.registrationURL || '';
+    },
     isCreate() {
       return this.mode === _CREATE;
     },
@@ -112,23 +127,12 @@ export default {
         return { error: e };
       }
     },
-    async downloadZip(btnCb) {
+    async download(btnCb) {
       const machineReg = await this.getMachineRegistrationData();
 
       if (machineReg.data) {
-        const zipData = {};
-        const instructionsData = {
-          data:     new Blob([IsoBluildInstructions.body], { type: 'text/markdown; charset=UTF-8' }),
-          fileName: 'instructions.md'
-        };
-
-        zipData[machineReg.fileName] = machineReg.data;
-        zipData[instructionsData.fileName] = instructionsData.data;
-
         try {
-          const zip = await generateZip(zipData);
-
-          downloadFile('generate_iso_image.zip', zip, 'application/zip');
+          downloadFile(machineReg.fileName, machineReg.data, 'text/markdown; charset=UTF-8');
           btnCb(true);
         } catch (error) {
           btnCb(false);
@@ -161,7 +165,8 @@ export default {
       <div class="col span-8">
         <h3>{{ t('elemental.machineRegistration.create.registrationURL.title') }}</h3>
         <DetailText
-          :value="value.status.registrationURL"
+          v-show="registrationUrl"
+          :value="registrationUrl"
           :label="t('elemental.machineRegistration.create.registrationURL.label')"
         />
       </div>
@@ -172,7 +177,10 @@ export default {
     >
       <div class="col span-12">
         <h3>{{ t('elemental.machineRegistration.edit.imageSetup') }}</h3>
-        <p>{{ t('elemental.machineRegistration.edit.imageInstructionsDownload') }} <AsyncButton class="ml-10" mode="download" @click="downloadZip" /></p>
+        <p>
+          <span v-html="t('elemental.machineRegistration.edit.downloadMachineRegistrationFile', {}, true)"></span>
+          <AsyncButton class="ml-10" mode="download" @click="download" />
+        </p>
       </div>
     </div>
     <div
@@ -207,12 +215,70 @@ export default {
       </div>
     </div>
     <div class="row mb-40">
-      <div class="col span-6">
-        <Labels
-          :value="value"
-          :mode="mode"
-          :display-side-by-side="false"
-        />
+      <div class="col span-12">
+        <h3 class="mt-10">
+          {{ t('elemental.machineRegistration.create.labelsAndAnnotations') }}
+        </h3>
+        <Tabbed>
+          <Tab label-key="elemental.machineRegistration.create.machineInv" name="machine-inventory" :weight="3">
+            <div class="row">
+              <div class="col span-6">
+                <KeyValue
+                  key="labels"
+                  :value="value.machineInventoryLabels"
+                  :add-label="t('labels.addLabel')"
+                  :mode="mode"
+                  :title="t('labels.labels.title')"
+                  :read-allowed="false"
+                  :value-can-be-empty="true"
+                  @input="value.setLabels($event, 'machineInventoryLabels', true)"
+                />
+              </div>
+              <div class="spacer"></div>
+              <div class="col span-6">
+                <KeyValue
+                  key="annotations"
+                  :value="value.machineInventoryAnnotations"
+                  :add-label="t('labels.addAnnotation')"
+                  :mode="mode"
+                  :title="t('labels.annotations.title')"
+                  :read-allowed="false"
+                  :value-can-be-empty="true"
+                  @input="value.setAnnotations($event, 'machineInventoryAnnotations', true)"
+                />
+              </div>
+            </div>
+          </Tab>
+          <Tab label-key="elemental.machineRegistration.create.machineReg" name="machine-reg" :weight="2">
+            <div class="row">
+              <div class="col span-6">
+                <KeyValue
+                  key="labels"
+                  :value="value.labels"
+                  :add-label="t('labels.addLabel')"
+                  :mode="mode"
+                  :title="t('labels.labels.title')"
+                  :read-allowed="false"
+                  :value-can-be-empty="true"
+                  @input="value.setLabels($event)"
+                />
+              </div>
+              <div class="spacer"></div>
+              <div class="col span-6">
+                <KeyValue
+                  key="annotations"
+                  :value="value.annotations"
+                  :add-label="t('labels.addAnnotation')"
+                  :mode="mode"
+                  :title="t('labels.annotations.title')"
+                  :read-allowed="false"
+                  :value-can-be-empty="true"
+                  @input="value.setAnnotations($event)"
+                />
+              </div>
+            </div>
+          </Tab>
+        </Tabbed>
       </div>
     </div>
   </CruResource>

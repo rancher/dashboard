@@ -48,13 +48,12 @@ export default {
       slot="extraActions"
     >
       <button
-        v-tooltip="t('elemental.machineInventory.import')"
         :disabled="!importEnabled"
         type="button"
         class="btn role-primary"
         @click="openImport()"
       >
-        <i class="icon icon-upload icon-lg"></i>
+        <span>{{ t('elemental.machineInventory.import') }}</span>
       </button>
       <modal
         class="import-modal"

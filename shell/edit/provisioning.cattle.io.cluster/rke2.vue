@@ -412,7 +412,7 @@ export default {
       const showK3s = allValidK3sVersions.length && !existingRke2;
       const out = [];
 
-      if ( showRke2 && !this.isElementalCluster ) {
+      if ( showRke2 ) {
         if ( showK3s ) {
           out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
         }
