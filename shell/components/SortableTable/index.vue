@@ -1487,7 +1487,7 @@ export default {
       right: 0;
       width: 300px;
       border: 1px solid var(--primary);
-      background-color: #FFF;
+      background-color: var(--default);
       padding: 20px;
       z-index: 2;
 
