@@ -365,8 +365,11 @@ export default {
 
   // Example case: Tabbed component within a tabbed component
   &--flat {
-    box-shadow: unset;
     padding: 0;
+
+    .side-tabs {
+      box-shadow: unset;
+    }
   }
 }
 
