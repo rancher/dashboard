@@ -1,17 +1,13 @@
 <script>
-import { options } from '@shell/config/footer';
 import BannerGraphic from '@shell/components/BannerGraphic';
-import AsyncButton from '@shell/components/AsyncButton';
 import IndentedPanel from '@shell/components/IndentedPanel';
-import { Card } from '@components/Card';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
-import { getVendor, setBrand } from '@shell/config/private-label';
+import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { addParam } from '@shell/utils/url';
-
-const KEY_REGEX = /^[0-9a-fA-F]{16}$/;
+import { isRancherPrime } from '@shell/config/version';
 
 export default {
   layout: 'home',
@@ -19,8 +15,6 @@ export default {
   components: {
     BannerGraphic,
     IndentedPanel,
-    AsyncButton,
-    Card,
     CommunityLinks
   },
 
@@ -50,7 +44,6 @@ export default {
     if ( this.$store.getters['management/canList'](CATALOG.APP) ) {
       this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
     }
-    this.supportSetting = await fetchOrCreateSetting('has-support', 'false');
     this.brandSetting = await fetchOrCreateSetting(SETTING.BRAND, '');
     this.serverUrlSetting = await fetchOrCreateSetting(SETTING.SERVER_URL, '');
     this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
@@ -61,7 +54,6 @@ export default {
       apps:                 [],
       vendor:               getVendor(),
       supportKey:           '',
-      supportSetting:       null,
       brandSetting:         null,
       uiIssuesSetting:      null,
       serverSetting:        null,
@@ -77,6 +69,10 @@ export default {
   computed: {
     cspAdapter() {
       return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
+    },
+
+    hasSupport() {
+      return this.hasAWSSupport || isRancherPrime();
     },
 
     hasAWSSupport() {
@@ -101,26 +97,8 @@ export default {
       return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig`;
     },
 
-    hasSupport() {
-      // NB: This is temporary until API implemented
-      return false;
-    },
-
-    options() {
-      if (!this.uiIssuesSetting?.value) {
-        return;
-      }
-
-      // Load defaults for suppoet page
-      return options(true, this.uiIssuesSetting?.value);
-    },
-
     title() {
       return this.hasSupport ? 'support.suse.title' : 'support.community.title';
-    },
-
-    validSupportKey() {
-      return !!this.supportKey.match(KEY_REGEX);
     },
 
     sccLink() {
@@ -128,47 +106,6 @@ export default {
     }
   },
 
-  methods: {
-    async addSubscription(done) {
-      try {
-        this.supportSetting.value = 'true';
-        this.brandSetting.value = 'suse';
-        await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
-        setBrand('suse');
-        done(true);
-        this.$modal.hide('toggle-support');
-      } catch {
-        done(false);
-      }
-    },
-
-    async removeSubscription(done) {
-      try {
-        this.supportSetting.value = 'false';
-        this.brandSetting.value = '';
-        await Promise.all([this.supportSetting.save(), this.brandSetting.save()]);
-        setBrand('');
-        done(true);
-        this.$modal.hide('toggle-support');
-      } catch {
-        done(false);
-      }
-    },
-
-    showDialog(isAdd) {
-      this.isRemoveDialog = isAdd;
-      this.supportKey = '';
-      this.$modal.show('toggle-support');
-    },
-
-    dialogOpened() {
-      const input = this.$refs.subscriptionIDInput;
-
-      if (input) {
-        input.focus();
-      }
-    },
-  }
 };
 </script>
 <template>
@@ -177,10 +114,18 @@ export default {
 
     <IndentedPanel>
       <div class="content mt-20">
-        <div class="promo">
+        <div class="promo col main-panel">
           <div class="box mb-20 box-primary">
             <h2>{{ t('support.suse.access.title') }}</h2>
-            <div>
+            <div v-if="!hasSupport" class="external support-links mt-20">
+              <div class="support-link">
+                <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
+              </div>
+              <div class="support-link">
+                <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }}</a>
+              </div>
+            </div>
+            <div v-else>
               <p class="pb-10">
                 {{ hasAWSSupport ? t("support.suse.access.aws.text") : t("support.suse.access.text") }}
               </p>
@@ -198,74 +143,28 @@ export default {
               <div>{{ t(`${key}.text`) }}</div>
             </div>
           </div>
-
-          <div v-if="!hasSupport" class="register row">
-            <div>
-              {{ t('support.subscription.haveSupport') }}
-            </div>
-            <button class="ml-5 btn role-secondary btn-sm" type="button" @click="showDialog(false)">
-              {{ t('support.subscription.addSubscription') }}
-            </button>
-          </div>
-          <div v-if="hasSupport && !hasAWSSupport" class="register row">
-            <a class="remove-link" @click="showDialog(true)">
-              {{ t('support.subscription.removeSubscription') }}
-            </a>
-          </div>
         </div>
-        <div class="community">
-          <CommunityLinks :link-options="options">
-            <div v-if="!hasSupport" class="external support-links" :class="{ 'mt-15': !!options}">
-              <div class="support-link">
-                <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
-              </div>
-              <div class="support-link">
-                <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }}</a>
-              </div>
-            </div>
-          </CommunityLinks>
-        </div>
+        <CommunityLinks :is-support-page="true" class="community col side-panel span-3" />
       </div>
     </IndentedPanel>
-    <modal
-      name="toggle-support"
-      height="auto"
-      :width="340"
-      @opened="dialogOpened"
-    >
-      <Card :show-highlight-border="false" class="toggle-support">
-        <template #title>
-          {{ isRemoveDialog? t('support.subscription.removeTitle') : t('support.subscription.addTitle') }}
-        </template>
-        <template #body>
-          <div v-if="isRemoveDialog" class="mt-20">
-            {{ t('support.subscription.removeBody') }}
-          </div>
-          <div v-else class="mt-20">
-            <p class="pb-10">
-              {{ t('support.subscription.addLabel') }}
-            </p>
-            <input ref="subscriptionIDInput" v-model="supportKey" />
-          </div>
-        </template>
-        <template #actions>
-          <button type="button" class="btn role-secondary" @click="$modal.hide('toggle-support')">
-            {{ t('generic.cancel') }}
-          </button>
-          <AsyncButton v-if="!isRemoveDialog" :disabled="!validSupportKey" class="pull-right" @click="addSubscription" />
-          <AsyncButton v-else :action-label="t('generic.remove')" class="pull-right" @click="removeSubscription" />
-        </template>
-      </Card>
-    </modal>
   </div>
 </template>
 <style lang="scss" scoped>
 .content {
-  display: grid;
-  grid-column-gap: 20px;
-  grid-row-gap: 20px;
-  grid-template-columns: 70% 30%;
-}
+
+    display: flex;
+    align-items: stretch;
+    .col {
+      margin: 0
+    }
+    .main-panel {
+      flex: auto;
+    }
+
+    .side-panel {
+      margin-left: 1.75%;
+    }
+  }
 
 .toggle-support {
     height: 100%;
@@ -278,16 +177,6 @@ export default {
       display: flex;
       justify-content: space-between;
     }
-}
-
-.community {
-  border-left: 1px solid var(--border);
-  padding-left: 20px;
-  > h2 {
-    font-size: 18px;
-    font-weight: 300;
-    margin-bottom: 20px;
-  }
 }
 
 .support-link:not(:first-child) {

@@ -12,6 +12,7 @@ import { getVersionInfo } from '@shell/utils/version';
 import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { isRancherPrime } from '@shell/config/version';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -162,7 +163,7 @@ export default {
     },
 
     hasSupport() {
-      return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
+      return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
     },
   },
 
