@@ -60,6 +60,15 @@ const TAB_WEIGHT_MAP = {
 };
 
 const GPU_KEY = 'nvidia.com/gpu';
+const DUAL_NETWORK_CARD = '[{"name":"static-macvlan-cni-attach","interface":"eth1"}]';
+const MACVLAN_SERVICE = 'macvlan.panda.io/macvlanService';
+const MACVLAN_ANNOTATION_MAP = {
+  network:  'k8s.v1.cni.cncf.io/networks',
+  network0: 'v1.multus-cni.io/default-network',
+  ip:       'macvlan.pandaria.cattle.io/ip',
+  mac:      'macvlan.pandaria.cattle.io/mac',
+  subnet:   'macvlan.pandaria.cattle.io/subnet'
+};
 
 export default {
   name:       'CruWorkload',
@@ -304,12 +313,17 @@ export default {
       return this.type === WORKLOAD_TYPES.STATEFUL_SET;
     },
 
+    enabledVlansubnet() {
+      return this.podTemplateSpec?.vlansubnet?.allowVlansubnet;
+    },
+
     // if this is a cronjob, grab pod spec from within job template spec
     podTemplateSpec: {
       get() {
         return this.isCronJob ? this.spec.jobTemplate.spec.template.spec : this.spec?.template?.spec;
       },
       set(neu) {
+        this.updateStaticPod(neu);
         if (this.isCronJob) {
           this.$set(this.spec.jobTemplate.spec.template, 'spec', neu);
         } else {
@@ -607,6 +621,7 @@ export default {
     this.registerBeforeHook(this.getPorts, 'getPorts');
 
     this.registerAfterHook(this.saveService, 'saveService');
+    this.initStaticPod(this.podTemplateSpec, this.podAnnotations);
   },
 
   methods: {
@@ -697,6 +712,9 @@ export default {
         if (!template.metadata) {
           template.metadata = { labels: this.value.workloadSelector };
         } else {
+          if (!template.metadata?.labels ) {
+            template.metadata.labels = {};
+          }
           Object.assign(template.metadata.labels, this.value.workloadSelector);
         }
       }
@@ -916,6 +934,90 @@ export default {
       }
       this.isInitContainer = neu;
     },
+
+    updateStaticPod(neu) {
+      const annotationsForm = neu.vlansubnet || {};
+      const annotations = this.podAnnotations || {};
+      const props = Object.values(MACVLAN_ANNOTATION_MAP);
+      const propMap = Object.assign({}, MACVLAN_ANNOTATION_MAP);
+
+      if (!annotationsForm?.allowVlansubnet) {
+        const form = {};
+
+        Object.keys(annotations).forEach((a) => {
+          if (props.includes(a) < 0) {
+            form[a] = annotations[a];
+          }
+        });
+        form[MACVLAN_SERVICE] = 'disable';
+
+        this.podAnnotations = Object.assign({}, form);
+
+        return;
+      }
+
+      const { network, subnet } = annotationsForm;
+
+      if (annotationsForm?.allowVlansubnet && network && subnet) {
+        const form = {};
+
+        Object.keys(annotationsForm).forEach((a) => {
+          if ( a === 'allowVlansubnet') {
+            return;
+          }
+
+          if (a === 'network') {
+            form[propMap[`${ annotationsForm[a] === DUAL_NETWORK_CARD ? a : `${ a }0` }`]] = annotationsForm[a];
+          } else if (a === 'ip' || a === 'mac') {
+            if (!annotationsForm[a]) {
+              form[propMap[a]] = 'auto';
+            } else {
+              const v = annotationsForm[a].split(/,|，/);
+
+              form[propMap[a]] = v.join('-');
+            }
+          } else {
+            form[propMap[a]] = annotationsForm[a];
+          }
+        });
+
+        if (annotations) {
+          delete annotations[MACVLAN_SERVICE];
+          delete annotations[MACVLAN_ANNOTATION_MAP.network];
+          delete annotations[MACVLAN_ANNOTATION_MAP.network0];
+        }
+
+        this.podAnnotations = Object.assign({}, annotations || {}, form);
+      }
+    },
+
+    initStaticPod(podTemplateSpec, podAnnotations) {
+      const {
+        [MACVLAN_ANNOTATION_MAP.network]: network, [MACVLAN_ANNOTATION_MAP.network0]: network0, [MACVLAN_ANNOTATION_MAP.ip]:ip, [MACVLAN_ANNOTATION_MAP.subnet]:subnet, [MACVLAN_ANNOTATION_MAP.mac]:mac
+      } = podAnnotations || {};
+      let neu = {};
+
+      if ((network || network0) && subnet) {
+        neu = {
+          allowVlansubnet: true,
+          network:         network || network0,
+          ip:              ip === 'auto' || !ip ? '' : ip.split('-').join(','),
+          mac:             mac === 'auto' || !mac ? '' : mac.split('-').join(','),
+          subnet,
+        };
+      } else {
+        neu = {
+          allowVlansubnet: false,
+          ip,
+          mac,
+          subnet,
+          network,
+        };
+      }
+
+      podTemplateSpec.vlansubnet = neu;
+    },
+
     clearPvcFormState(hookName) {
       // On the `closePvcForm` event, remove the
       // before save hook to prevent the PVC from

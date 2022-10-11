@@ -5364,6 +5364,21 @@ workload:
     subdomain:
       label: Subdomain
       placeholder: e.g. web
+    vlansubnet:
+      label: Flat Network
+      tip: "The upgrade strategy has been changed to: stop the old Pod and start the new Pod"
+      network:
+        label: Interface
+        placeholder: Select a Inetwork...
+      ip:
+        label: IP
+        placeholder: "e.g. 192.168.1.100,Multiple ips are connected by commas"
+      mac:
+        label: MAC
+        placeholder: "e.g. 0a:00:27:00:00:00, Multiple MACs are connected by commas"
+      subnet:
+        label: Subnet
+        placeholder: "Please choose a MacvlanSubnet"
   normanWarning: It looks like this workload was created in the legacy Rancher UI. You may need to manually delete any services that were automatically created for it.
   validation:
     containers: Containers

@@ -5397,6 +5397,21 @@ workload:
     subdomain:
       label: 子域
       placeholder: 例如：web
+    vlansubnet:
+      ip:
+        label: IP
+        placeholder: '例如: 192.168.1.100，多個 IP 用逗號連接'
+      label: 扁平網絡
+      mac:
+        label: MAC
+        placeholder: '例如: 0a:00:27:00:00:00，多個 MAC 用逗號連接'
+      network:
+        label: Interface
+        placeholder: 請選擇...
+      subnet:
+        label: Subnet
+        placeholder: 請選擇一個 MacvlanSubnet
+      tip: '因扁平網絡使用方式限制，Pod 縮放/升級策略已改爲: 先停止舊 Pod，再啓動新 Pod'
   normanWarning: 這個工作負載似乎是在舊版 Rancher UI 中創建的。你可能需要手動刪除爲其自動創建的服務。
   validation:
     containers: 容器

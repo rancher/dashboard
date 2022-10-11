@@ -260,7 +260,14 @@ export default {
             </Tab>
             <Tab :label="t('workload.container.titles.upgrading')" name="upgrading" :weight="tabWeightMap['upgrading']">
               <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
-              <Upgrading v-else v-model="spec" :mode="mode" :type="type" :no-deployment-spec="true" />
+              <Upgrading
+                v-else
+                v-model="spec"
+                :mode="mode"
+                :type="type"
+                :no-deployment-spec="true"
+                :enabled-vlansubnet="enabledVlansubnet"
+              />
             </Tab>
             <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
               <div>
@@ -273,7 +280,7 @@ export default {
               </div>
             </Tab>
             <Tab :label="t('workload.container.titles.networking')" name="networking" :weight="tabWeightMap['networking']">
-              <Networking v-model="podTemplateSpec" :mode="mode" />
+              <Networking v-model="podTemplateSpec" :mode="mode" :namespace="value.metadata.namespace" />
             </Tab>
             <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates" :weight="tabWeightMap['volumeClaimTemplates']">
               <VolumeClaimTemplate v-model="spec" :mode="mode" />

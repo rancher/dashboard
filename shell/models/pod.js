@@ -159,6 +159,11 @@ export default class Pod extends WorkloadService {
       });
     }
 
+    out.push({
+      label:         'Macvlan IP',
+      content:       this.displayMacvlanIp,
+    });
+
     return out;
   }
 
@@ -196,5 +201,63 @@ export default class Pod extends WorkloadService {
     delete this.spec.template;
 
     return this._save(...arguments);
+  }
+
+  get macvlanIpv6() {
+    const annotations = this.metadata?.annotations || {};
+    const networkStatusStr = annotations?.['k8s.v1.cni.cncf.io/networks-status'];
+
+    if (!networkStatusStr) {
+      return '';
+    }
+    let networkStatus;
+
+    try {
+      networkStatus = JSON.parse(networkStatusStr);
+    } catch (err) {
+      return '';
+    }
+    if (networkStatus) {
+      const macvlan = networkStatus.find(n => n.interface === 'eth1');
+
+      return `${ (macvlan && macvlan.ips && macvlan.ips[1]) || '' }`;
+    }
+
+    return '';
+  }
+
+  get displayMacvlanIp() {
+    const macvlanIpWithoutType = this.macvlanIpWithoutType;
+    const macvlanIpv6 = this.macvlanIpv6;
+    let divide = '';
+
+    if (macvlanIpWithoutType && macvlanIpv6) {
+      divide = ` / `;
+    }
+
+    return `${ macvlanIpWithoutType }${ divide }${ macvlanIpv6 }`;
+  }
+
+  get macvlanIpWithoutType() {
+    const annotations = this.metadata?.annotations || {};
+    const networkStatusStr = annotations && annotations['k8s.v1.cni.cncf.io/networks-status'];
+
+    if (!networkStatusStr) {
+      return '';
+    }
+    let networkStatus;
+
+    try {
+      networkStatus = JSON.parse(networkStatusStr);
+    } catch (err) {
+      return '';
+    }
+    if (networkStatus) {
+      const macvlan = networkStatus.find(n => n.interface === 'eth1');
+
+      return `${ (macvlan && macvlan.ips && macvlan.ips[0]) || '' }`;
+    }
+
+    return '';
   }
 }
