@@ -109,8 +109,7 @@ export default {
         :read-allowed="false"
         :protip="false"
         :mode="mode"
-      >
-      </KeyValue>
+      />
     </div>
     <div class="ui-links-setting mt-20">
       <DefaultLinksEditor

@@ -49,7 +49,9 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
     const uiLinksSetting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
 
     uiLinks = JSON.parse(uiLinksSetting.value);
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Could not parse custom link settings', e); // eslint-disable-line no-console
+  }
 
   // If uiLinks is set and has the correct version, then we are okay, otherwise we need to migrate from the old settings
   if (uiLinks?.version === CUSTOM_LINKS_VERSION) {
