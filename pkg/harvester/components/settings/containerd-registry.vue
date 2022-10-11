@@ -81,9 +81,14 @@ export default {
     });
 
     const configs = configsKeys.map((key) => {
+      if (!originValue.Configs[key]?.Auth) {
+        originValue.Configs[key].Auth = originConfig.Auth;
+      }
+
       return {
         key,
-        value: originValue.Configs[key]
+        value: originValue.Configs[key],
+        idx:   randomStr(5).toLowerCase()
       };
     });
 
@@ -131,6 +136,12 @@ export default {
 
             if (mirror.value.Endpoints.length === 0) {
               errors.push(this.t('validation.required', { key: this.t('harvester.setting.containerdRegistry.mirrors.endpoints') }, true));
+            }
+          });
+
+          this.configs.forEach((config) => {
+            if (!config.key) {
+              errors.push(this.t('validation.required', { key: this.t('harvester.setting.containerdRegistry.configs.registryEDQNorIP') }, true));
             }
           });
         } catch (e) {
@@ -214,7 +225,7 @@ export default {
   <div>
     <h3>{{ t('harvester.setting.containerdRegistry.mirrors.mirrors') }}</h3>
     <div>
-      <InfoBox v-for="mirror in mirrors" :key="mirror.idx" class="box">
+      <InfoBox v-for="mirror, idx in mirrors" :key="mirror.idx" class="box">
         <button type="button" class="role-link btn btn-sm remove" @click="remove('mirrors', idx)">
           <i class="icon icon-2x icon-x" />
         </button>
@@ -271,7 +282,7 @@ export default {
 
     <h3>{{ t('harvester.setting.containerdRegistry.configs.configs') }}</h3>
     <div>
-      <InfoBox v-for="config in configs" :key="config.idx" class="box">
+      <InfoBox v-for="config, idx in configs" :key="config.idx" class="box">
         <button type="button" class="role-link btn btn-sm remove" @click="remove('configs', idx)">
           <i class="icon icon-2x icon-x" />
         </button>
