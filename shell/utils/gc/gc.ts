@@ -31,7 +31,7 @@ class GarbageCollect {
   private getUiPerfGarbageCollection = (rootState: any) => {
     const uiPerfSetting = rootState.management.types[MANAGEMENT.SETTING].list.find((s: any) => s.id === SETTING.UI_PERFORMANCE);
 
-    if (!uiPerfSetting) {
+    if (!uiPerfSetting || !uiPerfSetting.value) {
       // Could be in the process of logging out
       return undefined;
     }

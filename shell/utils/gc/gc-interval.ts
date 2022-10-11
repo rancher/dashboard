@@ -30,6 +30,7 @@ class GarbageCollectInterval {
   gcStopIntervals() {
     if (this.gcInterval) {
       clearInterval(this.gcInterval);
+      delete this.gcInterval;
     }
   }
 }
