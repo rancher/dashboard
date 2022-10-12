@@ -1137,15 +1137,8 @@ export default {
             </template>
           </slot>
         </div>
-        <div v-if="isTooManyItemsToAutoUpdate || ($slots['header-middle'] && $slots['header-middle'].length && !hasAdvancedFiltering)" class="middle">
+        <div v-if="!hasAdvancedFiltering && ($slots['header-middle'] && $slots['header-middle'].length)" class="middle">
           <slot name="header-middle" />
-          <AsyncButton
-            v-if="isTooManyItemsToAutoUpdate"
-            v-tooltip="t('performance.manualRefresh.buttonTooltip')"
-            mode="refresh"
-            :current-phase="currentPhase"
-            @click="debouncedRefreshTableData"
-          />
         </div>
         <div v-else-if="hasAdvancedFiltering" class="middle">
           <ul class="advanced-filters-applied">
@@ -1161,8 +1154,15 @@ export default {
           </ul>
         </div>
 
-        <div v-if="search || hasAdvancedFiltering || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
+        <div v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
           <slot name="header-right" />
+          <AsyncButton
+            v-if="isTooManyItemsToAutoUpdate"
+            v-tooltip="t('performance.manualRefresh.buttonTooltip')"
+            mode="refresh"
+            :current-phase="currentPhase"
+            @click="debouncedRefreshTableData"
+          />
           <div v-if="hasAdvancedFiltering" ref="advanced-filter-group" class="advanced-filter-group">
             <button class="btn role-primary" @click="toggleAdvancedFiltering">
               {{ t('sortableTable.addFilter') }}
@@ -1481,6 +1481,7 @@ export default {
   <style lang="scss" scoped>
   .advanced-filter-group {
     position: relative;
+    margin-left: 10px;
     .advanced-filter-container {
       position: absolute;
       top: 38px;
@@ -1633,6 +1634,8 @@ export default {
 
     .search-box {
       height: 40px;
+      margin-left: 10px;
+      min-width: 180px;
     }
   </style>
 

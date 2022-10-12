@@ -94,7 +94,7 @@ export default class CapiMachineDeployment extends SteveModel {
 
   // use this pool's definition in the cluster's rkeConfig to scale, not this.spec.replicas
   get inClusterSpec() {
-    const machineConfigName = this.template.metadata.annotations['rke.cattle.io/cloned-from-name'];
+    const machineConfigName = this.template?.metadata?.annotations['rke.cattle.io/cloned-from-name'];
     const machinePools = this.cluster.spec.rkeConfig.machinePools;
 
     return machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
