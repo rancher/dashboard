@@ -1,7 +1,29 @@
 ---
+title: What's New in 2.7
+---
+
+## New in 2.7.0
+
+### Rancher Extensions
+
+- You can now connect other projects to the Rancher Manager Dashboard. 
+
+---
 title: What's New in 2.6
 ---
 
+## New in 2.6.9
+
+### Bug fixes
+
+- 
+
+
+## New in 2.6.8
+
+### Bug fixes
+
+- 
 
 ## New in 2.6.7
 
