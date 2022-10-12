@@ -6,7 +6,8 @@ title: What's New in 2.7
 
 ### Rancher Extensions
 
-- You can now connect other projects to the Rancher Manager Dashboard. 
+- You can now connect other apps to the Rancher Manager Dashboard to leverage a single UI. This relies on feature charts that would be manageable via a catalog.
+
 
 ---
 title: What's New in 2.6
@@ -14,16 +15,13 @@ title: What's New in 2.6
 
 ## New in 2.6.9
 
-### Bug fixes
-
-- 
+- Alerts within the UI regarding network connectivity are now off by default with a toggle to enable them. This is to address usability uncovered as part of disconnected web sockets.
 
 
 ## New in 2.6.8
 
-### Bug fixes
+- 2.6.8 was released to address a bug found whereby Fleet was uninstalling components upon upgrading from 2.6.6 to 2.6.7. Monitoring and Longhorn will be remain installed now upon upgrade.
 
-- 
 
 ## New in 2.6.7
 
