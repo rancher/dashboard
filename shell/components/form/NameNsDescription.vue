@@ -361,10 +361,7 @@ export default {
       this.createNamespace = false;
       this.$parent.$emit('createNamespace', false);
       this.namespace = '';
-
-      if (this.namespace === '') {
-        this.namespace = this.$store.getters['defaultNamespace'];
-      }
+      this.namespace = this.$store.getters['defaultNamespace'];
     },
 
     selectNamespace(e) {
