@@ -35,9 +35,10 @@ export default {
       default: () => ({})
     },
 
+    // no credentials are required for elemental machine pools
     credentialId: {
-      type:     String,
-      required: true,
+      type:    String,
+      default: null
     },
 
     mode: {
@@ -219,7 +220,8 @@ export default {
       :machine-pools="machinePools"
       @error="e=>errors = e"
     />
-    <Banner v-else color="info" label="You do not have access to see this machine pool's configuration." />
+    <Banner v-else-if="value.configMissing" color="error" label-key="cluster.machinePool.configNotFound" />
+    <Banner v-else color="info" label-key="cluster.machinePool.noAccessBanner" />
 
     <AdvancedSection :mode="mode" class="advanced">
       <portal-target :name="'advanced-' + uuid" multiple />

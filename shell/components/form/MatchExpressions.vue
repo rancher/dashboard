@@ -5,9 +5,10 @@ import { mapGetters } from 'vuex';
 import { isArray, removeObject } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
 import { convert, simplify } from '@shell/utils/selector';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
-  components: { Select },
+  components: { Select, LabeledSelect },
   props:      {
     // Array of actual match expressions
     // or k8s selector Object of {matchExpressions, matchLabels}
@@ -38,6 +39,12 @@ export default {
     showRemove: {
       type:    Boolean,
       default: true
+    },
+
+    // if options are passed for keys, then the key's input will become a select
+    keysSelectOptions: {
+      type:    Array,
+      default: () => []
     }
   },
 
@@ -194,11 +201,12 @@ export default {
         <div v-if="isView">
           {{ row.key }}
         </div>
-        <input
+        <input v-else-if="!keysSelectOptions || !keysSelectOptions.length" v-model="row.key" :mode="mode" @input="update" />
+        <LabeledSelect
           v-else
           v-model="row.key"
           :mode="mode"
-          @input="update"
+          :options="keysSelectOptions"
         />
       </div>
       <div
