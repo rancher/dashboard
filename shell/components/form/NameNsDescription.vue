@@ -390,7 +390,7 @@ export default {
         ref="namespace"
         v-model="namespace"
         :label="t('namespace.label')"
-        :placeholder="t('namespace.selectOrCreate')"
+        :placeholder="t('namespace.createNamespace')"
         :disabled="namespaceReallyDisabled"
         :mode="mode"
         :min-height="30"
