@@ -48,6 +48,7 @@ generic:
   plusMore: "+ {n} more"
   readFromFile: Read from File
   readFromFolder: Read from Folder
+  reload: Reload
   register: Register
   remove: Remove
   resource: |-
@@ -189,7 +190,7 @@ product:
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
-  uiplugins: UI Plugins
+  uiplugins: Extensions
   elemental: OS Management
 
 suffix:
@@ -1650,7 +1651,7 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
-    machineinventoryselectortemplate: Elemental
+    machineinventoryselectortemplate: Elemental Cluster
   providerTag:
     rke2:
       harvester: '{tag}'
@@ -3675,7 +3676,7 @@ persistentVolumeClaim:
   status:
     label: Status
 
-# UI Plugins
+# Rancher Extensions
 plugins:
   labels:
     builtin: Built-in
@@ -3688,19 +3689,24 @@ plugins:
     third-party: This Extension is provided by a Third-Party
     built-in: This Extension is built-in
   error:
-    title: Error loading plugin
-    message: Could not load plugin code
+    title: Error loading extension
+    message: Could not load extension code
+    generic: Extension error
+    api: This Extension is not compatible with the Extensions API
+    host: This Extension is not compatible with this application
+    version: This Extension is not compatible with this version of Rancher
+    load: An error occurred loading the code for this Extension
   success:
-    title: Loaded plugin {name}
-    message: Plugin was loaded successfully
+    title: Loaded extension {name}
+    message: Extension was loaded successfully
   developer:
     label: Developer Load
-    title: Developer Load Plugin
-    prompt: Load a plugin from a URL
+    title: Developer Load Extension
+    prompt: Load an extension from a URL
     fields:
-      url: Plugin URL
-      name: Plugin module name
-      persist: Persist plugin by creating custom resource
+      url: Extension URL
+      name: Extension module name
+      persist: Persist extension by creating custom resource
   info:
     detail: Detail
     versions: Versions
@@ -3718,46 +3724,48 @@ plugins:
     available: Available
     installed: Installed
     updates: Updates
-  title: UI Plugins
+  title: Extensions
+  version: "Version: {version}"
   install:
     label: Install
-    title: Install UI Plugin {name}
-    prompt: "Are you sure that you want to install this UI Plugin?"
+    title: Install Extension {name}
+    prompt: "Are you sure that you want to install this Extension?"
     version: Version
-    warnNotCertified: Please ensure that you are aware of the risks of installing UI Plugins from untrusted authors
+    warnNotCertified: Please ensure that you are aware of the risks of installing Extensions from untrusted authors
   update:
     label: Update
-    title: Update UI Plugin {name}
-    prompt: "Are you sure that you want to update this UI Plugin?"
+    title: Update Extension {name}
+    prompt: "Are you sure that you want to update this Extension?"
   rollback:
     label: Rollback
-    title: Rollback UI Plugin {name}
-    prompt: "Are you sure that you want to rollback this UI Plugin?"
+    title: Rollback Extension {name}
+    prompt: "Are you sure that you want to rollback this Extension?"
   uninstall:
     label: Uninstall
-    title: "Uninstall UI Plugin: {name}"
-    prompt: "Are you sure that you want to uninstall this UI Plugin?"
-  upgradeAvailable: A newer version of this UI Plugin is available
+    title: "Uninstall Extension: {name}"
+    prompt: "Are you sure that you want to uninstall this Extension?"
+  upgradeAvailable: A newer version of this Extension is available
+  reload: Extensions changed - reload required
   safeMode:
-    title: UI Plugins Safe Mode
-    message: UI Plugins were not loaded
+    title: Extensions Safe Mode
+    message: Extensions were not loaded
   setup:
-    title: UI Plugin Support is not enabled
+    title: Extension support is not enabled
     prompt:
       cant: Automatic installation is not available - required Helm Charts could not be found
-      can: You need to install the Plugin Operator
+      can: You need to install the Extension Operator
     install:
-      title: Enable UI Plugin Support?
-      prompt: This will install the Helm charts to enable Rancher UI Plugin support
-      airgap: Un-check if your Rancher installation is air-gapped
-      addRancherRepo: Add the Rancher UI Plugins Repository
+      title: Enable Extension Support?
+      prompt: This will install the Helm charts to enable Extension support
+      airgap: The Rancher Extensions Repository provides extensions published by Rancher. Un-check if your Rancher installation is air-gapped
+      addRancherRepo: Add the Rancher Extension Repository
     remove:
-      label: Disable UI Plugin Support
-      title: Disable UI Plugin Support?
-      prompt: This will un-install the Helm charts that enable Rancher UI Plugin support
+      label: Disable Extension Support
+      title: Disable Extension Support?
+      prompt: This will un-install the Helm charts that enable Extension support
       registry:
-        title: Remove the Rancher UI Plugins Repository
-        prompt: Remove the default UI Plugins Repository
+        title: Remove the Rancher Extensions Repository
+        prompt: The Rancher Extensions Repository provides extensions published by Rancher
 
 prefs:
   title: Preferences
@@ -3797,7 +3805,7 @@ prefs:
     viewInApi: Enable "View in API"
     allNamespaces: Show system Namespaces managed by Rancher (not intended for editing or deletion)
     themeShortcut: Enable Dark/Light Theme keyboard shortcut toggle (shift+T)
-    pluginDeveloper: Enable UI Plugin Developer features
+    pluginDeveloper: Enable Extension developer features
   hideDesc:
     label: Hide All Type Descriptions
   helm:
@@ -4526,7 +4534,7 @@ setup:
     dockerSuffix: ""
     helmPrefix: 'For a Helm installation, run:'
     helmSuffix: ""
-  eula: I agree to the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">terms and conditions</a> for using {name}.
+  eula: By checking the box, you accept the <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">End User License Agreement & Terms & Conditions</a>
   newPassword: New Password
   newUserSetPassword: The first order of business is to set a strong password. We suggest using this random one generated just for you, but enter your own if you like.
   serverUrl:
@@ -4534,7 +4542,7 @@ setup:
     skip: Skip
     tip: What URL should be used for this {vendor} installation? All the nodes in your clusters will need to be able to reach this.
   setPassword: The first order of business is to set a strong password for the default <code>{username}</code> user. We suggest using this random one generated just for you, but enter your own if you like.
-  telemetry: Allow collection of <a href="{docsBase}/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">anonymous statistics</a> to help us improve {name}.
+  telemetry: Allow collection of <a href="{docsBase}/faq/telemetry/" target="_blank" rel="noopener noreferrer nofollow">anonymous statistics</a> to help us improve {name}
   useManual: Set a specific password to use
   useRandom: Use a randomly generated password
   welcome: Welcome to {vendor}!
@@ -6217,7 +6225,7 @@ performance:
     label: Incremental Loading
     setting: You can configure the threshold above which incremental loading will be used.
     description: |-
-      When enabled, resources will appear more quickly, but it may take slightly longer to load the entire set of resources. This setting only applies to the following resources: Pods, Deployments, Cron Jobs, Daemon Sets, Jobs, Stateful Sets, Replica Sets, Replication Controllers, Workloads and Secrets.
+      When enabled, resources will appear more quickly, but it may take slightly longer to load the entire set of resources. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable incremental loading
     inputLabel: Resource Threshold
   manualRefresh:
@@ -6226,7 +6234,7 @@ performance:
     setting: You can configure a threshold above which manual refresh will be enabled.
     buttonTooltip: Refresh list
     description: |-
-      When enabled, list data will not auto-update but instead the user must manually trigger a list-view refresh. This setting only applies to the following resources: Pods, Deployments, Cron Jobs, Daemon Sets, Jobs, Stateful Sets, Replica Sets, Replication Controllers, Workloads and Secrets.
+      When enabled, list data will not auto-update but instead the user must manually trigger a list-view refresh. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable manual refresh of data for lists
     inputLabel: Resource Threshold
   websocketNotification:
@@ -6234,6 +6242,29 @@ performance:
     description: |-
       When checked, websocket notifications will not appear when the UI detects a disconnection.
     checkboxLabel: Disable websocket notifications
+  gc:
+    label: Resource Garbage Collection
+    description: The UI will cache kuberentes resources locally to avoid having to re-fetch them. In some cases this can lead to a large amount of data stored in the browser. Enable this setting to periodically remove them.
+    banner: This setting is experimental and may be removed or updated in future versions.
+    checkboxLabel: Enable Garbage Collection
+    whenRun:
+      description: Update when garbage collection runs
+      intervalCheckBox:
+        label: Run garbage collection periodically
+      interval:
+        inputLabel: Run every
+      route:
+        description: Run garbage collection on page change
+        inputLabel: Page Change
+    howRun:
+      description: Update how garbage collection runs
+      age:
+        description: "Resource types musn't have been accessed within this period to be considered for garbage collection."
+        inputLabel: Resource Age
+      count:
+        description: Resource types must exceed this amount to be considered for garbage collection.
+        inputLabel: Resource Count
+
 
 banner:
   label: Fixed Banners
@@ -6353,13 +6384,16 @@ resourceQuota:
 customLinks: 
   displayTitle: Links
   label: Home Links
-  description: 'Links to display on the home page.'
+  description: 'Configure the links to display on the home page. You can define your own custom links as well as show or hide default links.'
   restoreDefaults: 'Restore Defaults'
   addLink: Add Link
   restoreSuccess: Default URLs have been restored.
   settings:
+    default: Default Links
+    custom: Custom Links
     keyLabel: Display Text
     valueLabel: URL
+    showLabel: Show
   defaults: 
     docs:       Docs
     forums:     Forums
