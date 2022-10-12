@@ -308,7 +308,7 @@ export default {
       .table-options-container {
         width: 320px;
         border: 1px solid var(--primary);
-        background-color: var(--default);
+        background-color: var(--body-bg);
         padding: 20px;
         z-index: 1;
 
