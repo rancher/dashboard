@@ -148,19 +148,9 @@ export default {
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
     >
-<<<<<<< HEAD
-=======
-      <template v-slot:header>
-        <ResourceLoadingIndicator
-          v-if="showIncrementalLoadingIndicator"
-          :resources="loadResources"
-          :indeterminate="loadIndeterminate"
-        />
-      </template>
       <template slot="extraActions">
         <slot name="extraActions"></slot>
       </template>
->>>>>>> a7c927f9d (add all changes regarding advanced filtering)
     </Masthead>
     <div v-if="hasListComponent">
       <component
