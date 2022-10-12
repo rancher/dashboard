@@ -1,4 +1,5 @@
 import merge from 'lodash/merge';
+import capitalize from 'lodash/capitalize';
 
 import { SCHEMA } from '@shell/config/types';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
@@ -438,6 +439,15 @@ export default {
 
   load(ctx, { data, existing }) {
     const { getters, commit } = ctx;
+    const headWarnings = data?._headers?.['x-api-warnings'];
+
+    if (headWarnings) {
+      ctx.dispatch('growl/warning', {
+        title:   `${ capitalize(data?.type) }: ${ data?.metadata.name }`,
+        message: headWarnings,
+        timeout: 0,
+      }, { root: true });
+    }
 
     let type = normalizeType(data.type);
 
