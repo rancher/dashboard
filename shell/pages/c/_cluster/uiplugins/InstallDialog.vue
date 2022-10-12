@@ -208,7 +208,7 @@ export default {
   >
     <div v-if="plugin" class="plugin-install-dialog">
       <h4 class="mt-10">
-        {{ t(`plugins.${ mode }.title`, { name: plugin.name }) }}
+        {{ t(`plugins.${ mode }.title`, { name: plugin.label }) }}
       </h4>
       <div class="custom mt-10">
         <div class="dialog-panel">
