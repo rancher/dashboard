@@ -357,6 +357,16 @@ export default {
       this.namespace = e.selected;
     },
 
+    cancelCreateNamespace(e) {
+      this.createNamespace = false;
+      this.$parent.$emit('createNamespace', false);
+      this.namespace = '';
+
+      if (this.namespace === '') {
+        this.namespace = this.$store.getters['defaultNamespace'];
+      }
+    },
+
     selectNamespace(e) {
       if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
@@ -393,10 +403,7 @@ export default {
       />
       <button
         aria="Cancel create"
-        @click="() => {
-          createNamespace = false
-          $parent.$emit('createNamespace', false)
-        }"
+        @click="cancelCreateNamespace"
       >
         <i
           v-tooltip="t('generic.cancel')"
@@ -489,7 +496,6 @@ button {
     padding-top: 7px;
   }
 }
-
 .row {
   &.name-ns-description {
     max-height: $input-height;
