@@ -112,7 +112,7 @@ export default {
         }
       }
 
-      if (this.value.metadata.name === HCI_SETTING.CLUSTER_REGISTRATION_URL && this.value.value && this.value.value !== this.oldValue) {
+      if (this.value.metadata.name === HCI_SETTING.CLUSTER_REGISTRATION_URL && this.oldValue && this.value.value !== this.oldValue) {
         await this.clusterRegistrationUrlTip();
       }
 
