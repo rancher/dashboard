@@ -159,6 +159,10 @@ export default class CapiMachineDeployment extends SteveModel {
     return notOnlyOfRole(this, this.cluster.machines);
   }
 
+  canScaleUpPool() {
+    return true;
+  }
+
   get stateParts() {
     const out = [
       {
