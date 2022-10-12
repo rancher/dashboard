@@ -284,6 +284,16 @@ export default {
       */
       this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
 
+      if (this.showCustomRegistry) {
+        const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
+
+        delete this.chartValues?.global?.systemDefaultRegistry;
+        delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
+
+        this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
+        this.showCustomRegistryInput = !!this.customRegistrySetting;
+      }
+
       /* Serializes an object as a YAML document */
       this.valuesYaml = saferDump(this.chartValues);
 
@@ -294,13 +304,6 @@ export default {
 
       this.loadedVersionValues = this.versionInfo?.values || {};
       this.loadedVersion = this.version?.key;
-    }
-
-    if (this.showCustomRegistry) {
-      const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
-
-      this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
-      this.showCustomRegistryInput = this.applyCustomRegistry;
     }
 
     /* Check if chart exists and if required values exist */
@@ -1013,7 +1016,6 @@ export default {
       }
 
       const cluster = this.$store.getters['currentCluster'];
-      const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
@@ -1022,7 +1024,6 @@ export default {
       if ( values.global?.cattle ) {
         deleteIfEqual(values.global.cattle, 'clusterId', cluster?.id);
         deleteIfEqual(values.global.cattle, 'clusterName', cluster?.nameDisplay);
-        deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
         deleteIfEqual(values.global.cattle, 'url', serverUrl);
         deleteIfEqual(values.global.cattle, 'rkePathPrefix', pathPrefix);
         deleteIfEqual(values.global.cattle, 'rkeWindowsPathPrefix', windowsPathPrefix);
@@ -1038,10 +1039,6 @@ export default {
 
       if ( values.global?.cattle && !Object.keys(values.global.cattle).length ) {
         delete values.global.cattle;
-      }
-
-      if ( values.global ) {
-        deleteIfEqual(values.global, 'systemDefaultRegistry', defaultRegistry);
       }
 
       if ( !Object.keys(values.global || {}).length ) {
