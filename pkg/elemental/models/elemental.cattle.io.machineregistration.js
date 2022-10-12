@@ -13,7 +13,7 @@ const DEFAULT_CREATION_YAML = `cloud-config:
     passwd: root
 elemental:
   install:
-    powerOff: true
+    poweroff: true
     device: /dev/nvme0n1`;
 
 export default class MachineRegistration extends ElementalResource {
