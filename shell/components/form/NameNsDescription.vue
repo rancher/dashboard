@@ -360,7 +360,6 @@ export default {
     cancelCreateNamespace(e) {
       this.createNamespace = false;
       this.$parent.$emit('createNamespace', false);
-      this.namespace = '';
       this.namespace = this.$store.getters['defaultNamespace'];
     },
 
