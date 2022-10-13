@@ -190,6 +190,10 @@ harvester:
     enableGroup: Enable Group
     disableGroup: Disable Group
     labelRequired: "This rule should not be manually altered: it ensures that the PCI devices selected for this virtual machine are available on the VM's host."
+    goSetting:
+      prefix: pcidevices-controller addon is not enabled, click
+      middle: here
+      suffix: to enable it to manage your PCI devices.
   generic:
     close: Close
     open: Open
@@ -894,6 +898,7 @@ harvester:
   addons:
     descriptions:
       'vm-import-controller': vm-import-controller is an addon to help migrate VM workloads from other source clusters to an existing Harvester cluster.
+      'pcidevices-controller': pcidevices-controller is an addon to help discover PCI devices for nodes in your cluster and allow users to prepare devices for PCI Passthrough, for use with Harvester VM and guest Clusters.
     vmImport:
       titles:
         basic: Basic

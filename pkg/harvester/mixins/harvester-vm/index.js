@@ -92,12 +92,17 @@ export default {
       vmims:             this.$store.dispatch('harvester/findAll', { type: HCI.VMIM }),
       vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
       secrets:           this.$store.dispatch('harvester/findAll', { type: SECRET }),
+      addons:            this.$store.dispatch('harvester/findAll', { type: HCI.ADD_ONS }),
     };
 
     if (this.$store.getters['harvester/schemaFor'](NODE)) {
       hash.nodes = this.$store.dispatch('harvester/findAll', { type: NODE });
     }
-    await allHash(hash);
+    const res = await allHash(hash);
+
+    const hasPCISchema = this.$store.getters['harvester/schemaFor'](HCI.PCI_DEVICE);
+
+    this.enabledPCI = res.addons.find(addon => addon.name === 'pcidevices-controller')?.spec?.enabled === true && hasPCISchema;
   },
 
   data() {
@@ -132,6 +137,7 @@ export default {
       userDataTemplateId:         '',
       saveUserDataAsClearText:    false,
       saveNetworkDataAsClearText: false,
+      enabledPCI:                 false,
       immutableMode:              this.realMode === _CREATE ? _CREATE : _VIEW,
     };
   },

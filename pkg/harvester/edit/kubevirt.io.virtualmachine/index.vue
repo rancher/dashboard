@@ -508,7 +508,7 @@ export default {
         </template>
       </Tab>
 
-      <Tab :label="t('harvester.tab.pciDevices')" name="pciDevices" :weight="-4">
+      <Tab v-if="enabledPCI" :label="t('harvester.tab.pciDevices')" name="pciDevices" :weight="-4">
         <PciDevices :mode="mode" :value="spec.template.spec" />
       </Tab>
 

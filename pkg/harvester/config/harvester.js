@@ -670,6 +670,7 @@ export function init($plugin, store) {
   });
 
   configureType(HCI.PCI_DEVICE, {
+    isCreatable:                false,
     hiddenNamespaceGroupButton: true,
     listGroups:                 [
       {

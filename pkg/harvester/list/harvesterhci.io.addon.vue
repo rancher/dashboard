@@ -6,8 +6,6 @@ import { allHash } from '@shell/utils/promise';
 import { HCI } from '../types';
 import { STATE, NAME } from '@shell/config/table-headers';
 
-const WHITE_ADDONS = ['vm-import-controller'];
-
 export default {
   name: 'ListHarvesterAddons',
 
@@ -28,7 +26,7 @@ export default {
 
       const addons = this.$store.getters[`${ inStore }/all`](HCI.ADD_ONS);
 
-      return addons.filter(addon => WHITE_ADDONS.includes(addon.metadata.name));
+      return addons;
     },
 
     headers() {
