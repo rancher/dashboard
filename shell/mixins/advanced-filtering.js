@@ -78,8 +78,9 @@ export default {
   },
 
   watch: {
-    advancedFilteringValues(neu, old) {
-      this.watcherUpdateLiveAndDelayed(neu, old);
+    advancedFilteringValues() {
+      // passing different dummy args to make sure update is triggered
+      this.watcherUpdateLiveAndDelayed(true, false);
     },
   },
 
