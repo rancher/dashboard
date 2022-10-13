@@ -453,7 +453,7 @@ export default {
       <Tab
         v-if="showHarvesterAddOnConfig"
         name="add-on-config"
-        :label="t('harvester.service.title')"
+        :label="t('servicesPage.harvester.title')"
         :weight="-1"
       >
         <HarvesterServiceAddOnConfig
