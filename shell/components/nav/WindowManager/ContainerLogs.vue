@@ -64,6 +64,12 @@ export default {
     url: {
       type:    String,
       default: null,
+    },
+
+    // The container in the pod to initially show
+    initialContainer: {
+      type:    String,
+      default: null,
     }
   },
 
