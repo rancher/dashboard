@@ -135,4 +135,10 @@ export default class extends SteveModel {
 
     return out;
   }
+
+  cleanForNew() {
+    this.$dispatch(`cleanForNew`, this);
+
+    delete this?.metadata?.annotations?.[STORAGE.DEFAULT_STORAGE_CLASS];
+  }
 }
