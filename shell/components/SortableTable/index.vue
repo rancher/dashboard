@@ -11,13 +11,14 @@ import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
-import filtering, { ADV_FILTER_ALL_COLS_VALUE, ADV_FILTER_ALL_COLS_LABEL } from './filtering';
+import filtering from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import AdvancedFiltering from '@shell/mixins/advanced-filtering';
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
 
@@ -41,8 +42,6 @@ export const COLUMN_BREAKPOINTS = {
   DESKTOP: 'desktop'
 };
 
-const DEFAULT_ADV_FILTER_COLS_VALUE = ADV_FILTER_ALL_COLS_VALUE;
-
 // @TODO:
 // Fixed header/scrolling
 
@@ -65,6 +64,7 @@ export default {
     grouping,
     selection,
     actions,
+    AdvancedFiltering,
     // For table performance debugging - uncomment and uncomment the corresponding import
     // tableDebug,
   ],
@@ -102,16 +102,6 @@ export default {
       // Field to group rows by, row[groupBy] must be something that can be a map key
       type:    String,
       default: null
-    },
-    group: {
-      // group value
-      type:    String,
-      default: () => ''
-    },
-    groupOptions: {
-      // available options for grouping
-      type:    Array,
-      default: () => []
     },
     groupRef: {
       // Object to provide as the reference for rendering the grouping row
@@ -308,20 +298,6 @@ export default {
       type:    String,
       default: 'sortable-table'
     },
-    hasAdvancedFiltering: {
-      type:    Boolean,
-      default: false
-    },
-
-    advFilterHideLabelsAsCols: {
-      type:    Boolean,
-      default: false
-    },
-
-    advFilterPreventFilteringLabels: {
-      type:    Boolean,
-      default: false
-    },
   },
 
   data() {
@@ -332,14 +308,6 @@ export default {
       eventualSearchQuery:         '',
       actionOfInterest:            null,
       loadingDelay:                false,
-      columnOptions:               [],
-      colOptionsWatcher:           null,
-      advancedFilteringVisibility: false,
-      advancedFilteringValues:     [],
-      advFilterSearchTerm:         null,
-      advFilterSelectedProp:       DEFAULT_ADV_FILTER_COLS_VALUE,
-      advFilterSelectedLabel:      ADV_FILTER_ALL_COLS_LABEL,
-      column:                      null,
     };
   },
 
@@ -353,20 +321,6 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main.on('scroll', this._onScroll);
-
-    this.updateLiveAndDelayed();
-
-    // check if user clicked outside the advanced filter box
-    document.addEventListener('click', this.onClickOutside);
-
-    // register watcher to watch rows for columnOptions
-    if (this.hasAdvancedFiltering) {
-      this.columnOptions = this.setColsOptions();
-
-      this.colOptionsWatcher = this.$watch('rows', function() {
-        this.columnOptions = this.setColsOptions();
-      });
-    }
   },
 
   beforeDestroy() {
@@ -380,13 +334,6 @@ export default {
     const $main = $('main');
 
     $main.off('scroll', this._onScroll);
-
-    document.removeEventListener('click', this.onClickOutside);
-
-    // unregister register watcher for rows
-    if (this.hasAdvancedFiltering) {
-      this.colOptionsWatcher();
-    }
   },
 
   watch: {
@@ -453,18 +400,6 @@ export default {
 
     initalLoad() {
       return !!(!this.loading && !this._didinit && this.rows?.length);
-    },
-    advFilterSelectOptions() {
-      return this.columnOptions.filter(c => c.isFilter && !c.preventFiltering);
-    },
-
-    advGroupOptions() {
-      return this.groupOptions.map((item) => {
-        return {
-          label: this.t(item.tooltipKey),
-          value: item.value
-        };
-      });
     },
 
     fullColspan() {
@@ -536,18 +471,9 @@ export default {
 
       // handle cols visibility and filtering if there is advanced filtering
       if (this.hasAdvancedFiltering) {
-        this.columnOptions.forEach((advCol) => {
-          if (advCol.isTableOption) {
-            const index = out.findIndex(col => col.name === advCol.name);
+        const cols = this.handleColsVisibilyAndFiltering(out);
 
-            if (index !== -1) {
-              out[index].isColVisible = advCol.isColVisible;
-              out[index].isFilter = advCol.isFilter;
-            } else {
-              out.push(advCol);
-            }
-          }
-        });
+        return cols;
       }
 
       return out;
@@ -909,165 +835,6 @@ export default {
         event,
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
-    },
-
-    // advanced filtering methods
-    setColsOptions() {
-      let opts = [];
-      const rowLabels = [];
-      const headerProps = [];
-
-      // Filter out any columns that are too heavy to show for large page sizes
-      const filteredHeaders = this.headers.slice().filter(c => (!c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage)));
-
-      // add table cols from config (headers)
-      filteredHeaders.forEach((prop) => {
-        const name = prop.name;
-        const label = prop.labelKey ? this.t(`${ prop.labelKey }`) : prop.label;
-        const isFilter = !!((!Object.keys(prop).includes('search') || prop.search));
-        let sortVal = prop.sort;
-        const valueProp = prop.valueProp || prop.value;
-        let value = null;
-
-        if (prop.sort && valueProp) {
-          if (typeof prop.sort === 'string') {
-            sortVal = prop.sort.includes(':') ? [prop.sort.split(':')[0]] : [prop.sort];
-          }
-
-          if (!sortVal.includes(valueProp)) {
-            value = JSON.stringify(sortVal.concat([valueProp]));
-          } else {
-            value = JSON.stringify([valueProp]);
-          }
-        } else if (valueProp) {
-          value = JSON.stringify([valueProp]);
-        } else {
-          value = null;
-        }
-
-        headerProps.push({
-          name,
-          label,
-          value,
-          isFilter,
-          isTableOption: true,
-          isColVisible:  true
-        });
-      });
-
-      // add labels as table cols
-      if (this.rows.length) {
-        this.rows.forEach((row) => {
-          if (row.metadata?.labels && Object.keys(row.metadata?.labels).length) {
-            Object.keys(row.metadata?.labels).forEach((label) => {
-              const res = {
-                name:             label,
-                label,
-                value:            `metadata.labels.${ label }`,
-                isFilter:         true,
-                isTableOption:    true,
-                isColVisible:     false,
-                isLabel:          true,
-                preventFiltering: this.advFilterPreventFilteringLabels,
-                preventColToggle: this.advFilterHideLabelsAsCols
-              };
-
-              if (!rowLabels.filter(row => row.label === label).length) {
-                rowLabels.push(res);
-              }
-            });
-          }
-        });
-      }
-
-      opts = headerProps.concat(rowLabels);
-
-      // add find on all cols option...
-      if (opts.length) {
-        opts.unshift({
-          name:          ADV_FILTER_ALL_COLS_LABEL,
-          label:         ADV_FILTER_ALL_COLS_LABEL,
-          value:         ADV_FILTER_ALL_COLS_VALUE,
-          isFilter:      true,
-          isTableOption: false
-        });
-      }
-
-      return opts;
-    },
-    toggleAdvancedFiltering() {
-      this.advancedFilteringVisibility = !this.advancedFilteringVisibility;
-    },
-    addAdvancedFilter() {
-      const colors = ['success', 'info', 'warning', 'error'];
-      let nextColor = colors[0];
-
-      // set color for the next filter applied if there's already one applied on the UI...
-      if (this.advancedFilteringValues.length) {
-        const currLastColor = this.advancedFilteringValues[this.advancedFilteringValues.length - 1].color;
-        const currLastColorIndex = colors.findIndex(c => c === currLastColor);
-
-        if (currLastColorIndex === colors.length - 1) {
-          nextColor = colors[0];
-        } else {
-          nextColor = colors[currLastColorIndex + 1];
-        }
-      }
-
-      // set new advanced filter
-      if (this.advFilterSelectedProp && this.advFilterSearchTerm) {
-        this.advancedFilteringValues.push({
-          prop:  this.advFilterSelectedProp,
-          value: this.advFilterSearchTerm,
-          label: this.advFilterSelectedLabel,
-          color: nextColor
-        });
-
-        this.eventualSearchQuery = this.advancedFilteringValues;
-
-        this.advancedFilteringVisibility = false;
-        this.advFilterSelectedProp = DEFAULT_ADV_FILTER_COLS_VALUE;
-        this.advFilterSelectedLabel = ADV_FILTER_ALL_COLS_LABEL;
-        this.advFilterSearchTerm = null;
-      }
-    },
-    clearAllAdvancedFilters() {
-      this.advancedFilteringValues = [];
-      this.eventualSearchQuery = this.advancedFilteringValues;
-
-      this.advancedFilteringVisibility = false;
-      this.advFilterSelectedProp = DEFAULT_ADV_FILTER_COLS_VALUE;
-      this.advFilterSelectedLabel = ADV_FILTER_ALL_COLS_LABEL;
-      this.advFilterSearchTerm = null;
-    },
-    colSelected(col) {
-      this.advFilterSelectedLabel = col.label;
-    },
-    clearAdvancedFilter(index) {
-      this.advancedFilteringValues.splice(index, 1);
-      this.eventualSearchQuery = this.advancedFilteringValues;
-    },
-    onClickOutside(event) {
-      const advFilterBox = this.$refs['advanced-filter-group'];
-
-      if (!advFilterBox || advFilterBox.contains(event.target)) {
-        return;
-      }
-      this.advancedFilteringVisibility = false;
-    },
-
-    // cols visibility
-    changeColVisibility(colData) {
-      const index = this.columnOptions.findIndex(col => col.label === colData.label);
-
-      if (index !== -1) {
-        this.columnOptions[index].isColVisible = colData.value;
-      }
-    },
-
-    // group value
-    handleGroupValueChange(val) {
-      this.$emit('group-value-change', val);
     }
   }
 };
@@ -1140,31 +907,29 @@ export default {
         <div v-if="!hasAdvancedFiltering && ($slots['header-middle'] && $slots['header-middle'].length)" class="middle">
           <slot name="header-middle" />
         </div>
-        <div v-else-if="hasAdvancedFiltering" class="middle">
-          <ul class="advanced-filters-applied">
+
+        <div v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
+          <ul v-if="hasAdvancedFiltering" class="advanced-filters-applied">
             <li
               v-for="(filter, i) in advancedFilteringValues"
               :key="i"
-              :class="filter.color"
             >
               <span class="label">{{ `"${filter.value}" ${ t('sortableTable.in') } ${filter.label}` }}</span>
               <span class="cross" @click="clearAdvancedFilter(i)">&#10005;</span>
               <div class="bg"></div>
             </li>
           </ul>
-        </div>
-
-        <div v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
           <slot name="header-right" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
             v-tooltip="t('performance.manualRefresh.buttonTooltip')"
+            class="manual-refresh"
             mode="refresh"
             :current-phase="currentPhase"
             @click="debouncedRefreshTableData"
           />
           <div v-if="hasAdvancedFiltering" ref="advanced-filter-group" class="advanced-filter-group">
-            <button class="btn role-primary" @click="toggleAdvancedFiltering">
+            <button class="btn role-primary" @click="advancedFilteringVisibility = !advancedFilteringVisibility;">
               {{ t('sortableTable.addFilter') }}
             </button>
             <div v-show="advancedFilteringVisibility" class="advanced-filter-container">
@@ -1173,7 +938,7 @@ export default {
                 v-model="advFilterSearchTerm"
                 type="search"
                 class="advanced-search-box"
-                placeholder="Filter for..."
+                :placeholder="t('sortableTable.filterFor')"
               >
               <div class="middle-block">
                 <span>{{ t('sortableTable.in') }}</span>
@@ -1187,8 +952,8 @@ export default {
                   mode="edit"
                   :multiple="false"
                   :taggable="false"
-                  placeholder="Select a column"
-                  @selecting="colSelected"
+                  :placeholder="t('sortableTable.selectCol')"
+                  @selecting="(col) => advFilterSelectedLabel = col.label"
                 />
               </div>
               <div class="bottom-block">
@@ -1244,7 +1009,7 @@ export default {
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
         @col-visibility-change="changeColVisibility"
-        @group-value-change="handleGroupValueChange"
+        @group-value-change="(val) => $emit('group-value-change', val)"
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
@@ -1479,6 +1244,10 @@ export default {
 </template>
 
   <style lang="scss" scoped>
+
+  .manual-refresh {
+    height: 40px;
+  }
   .advanced-filter-group {
     position: relative;
     margin-left: 10px;
@@ -1532,6 +1301,38 @@ export default {
       align-items: center;
       position: relative;
 
+      &:nth-child(1n) {
+        border-color: var(--success);
+
+        .bg {
+          background-color: var(--success);
+        }
+      }
+
+      &:nth-child(2n) {
+        border-color: var(--warning);
+
+        .bg {
+          background-color: var(--warning);
+        }
+      }
+
+      &:nth-child(3n + 1) {
+        border-color: var(--info);
+
+        .bg {
+          background-color: var(--info);
+        }
+      }
+
+      &:nth-child(4n) {
+        border-color: var(--error);
+
+        .bg {
+          background-color: var(--error);
+        }
+      }
+
       .bg {
         position: absolute;
         top: 0;
@@ -1540,35 +1341,6 @@ export default {
         height: 100%;
        opacity: 0.2;
         z-index: -1;
-      }
-
-      &.success {
-        border-color: var(--success);
-
-        .bg {
-          background-color: var(--success);
-        }
-      }
-      &.warning {
-        border-color: var(--warning);
-
-        .bg {
-          background-color: var(--warning);
-        }
-      }
-      &.info {
-        border-color: var(--info);
-
-        .bg {
-          background-color: var(--info);
-        }
-      }
-      &.error {
-        border-color: var(--error);
-
-        .bg {
-          background-color: var(--error);
-        }
       }
 
       .label {
@@ -1582,61 +1354,59 @@ export default {
       }
     }
   }
-  </style>
 
-  <style lang="scss" scoped>
-    // Remove colors from multi-action buttons in the table
-    td {
-      .actions.role-multi-action {
-        background-color: transparent;
-        border: none;
-        font-size: 18px;
-        &:hover, &:focus {
-          background-color: var(--accent-btn);
-          box-shadow: none;
-        }
-      }
-
-      // Aligns with COLUMN_BREAKPOINTS
-      @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
-        // HIDE column on sizes below 480px
-        &.tablet, &.laptop, &.desktop {
-          display: none;
-        }
-      }
-      @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
-        // HIDE column on sizes below 992px
-        &.laptop, &.desktop {
-          display: none;
-        }
-      }
-      @media only screen and (max-width: map-get($breakpoints, '--viewport-12')) {
-        // HIDE column on sizes below 1281px
-        &.desktop {
-          display: none;
-        }
+  // Remove colors from multi-action buttons in the table
+  td {
+    .actions.role-multi-action {
+      background-color: transparent;
+      border: none;
+      font-size: 18px;
+      &:hover, &:focus {
+        background-color: var(--accent-btn);
+        box-shadow: none;
       }
     }
 
-    // Loading indicator row
-    tr td div.data-loading {
-      align-items: center;
-      display: flex;
-      justify-content: center;
-      padding: 20px 0;
-      > i {
-        font-size: 20px;
-        height: 20px;
-        margin-right: 5px;
-        width: 20px;
+    // Aligns with COLUMN_BREAKPOINTS
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-4')) {
+      // HIDE column on sizes below 480px
+      &.tablet, &.laptop, &.desktop {
+        display: none;
       }
     }
-
-    .search-box {
-      height: 40px;
-      margin-left: 10px;
-      min-width: 180px;
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-9')) {
+      // HIDE column on sizes below 992px
+      &.laptop, &.desktop {
+        display: none;
+      }
     }
+    @media only screen and (max-width: map-get($breakpoints, '--viewport-12')) {
+      // HIDE column on sizes below 1281px
+      &.desktop {
+        display: none;
+      }
+    }
+  }
+
+  // Loading indicator row
+  tr td div.data-loading {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    > i {
+      font-size: 20px;
+      height: 20px;
+      margin-right: 5px;
+      width: 20px;
+    }
+  }
+
+  .search-box {
+    height: 40px;
+    margin-left: 10px;
+    min-width: 180px;
+  }
   </style>
 
   <style lang="scss">

@@ -4546,6 +4546,8 @@ sortableTable:
   search: Filter
   in: in
   addFilter: Add Filter
+  filterFor: Filter for...
+  selectCol: Select a column
   resetFilters: Reset
   add: Add
   tableHeader:
