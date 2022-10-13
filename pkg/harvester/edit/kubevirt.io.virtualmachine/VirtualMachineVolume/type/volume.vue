@@ -174,7 +174,7 @@ export default {
             :options="storageClassOptions"
             :label="t('harvester.storage.storageClass.label')"
             :mode="mode"
-            :disabled="isEdit"
+            :disabled="isDisabled"
             :required="validateRequired"
             @input="update"
           />
