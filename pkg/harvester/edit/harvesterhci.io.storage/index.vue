@@ -173,7 +173,7 @@ export default {
     <NameNsDescription
       :namespaced="false"
       :value="value"
-      :mode="modeOverride"
+      :mode="mode"
       :register-before-hook="registerBeforeHook"
     />
     <LabeledSelect
@@ -213,7 +213,7 @@ export default {
               v-model="value.allowVolumeExpansion"
               name="allowVolumeExpansion"
               :label="t('storageClass.customize.allowVolumeExpansion.label')"
-              :mode="mode"
+              :mode="modeOverride"
               :options="allowVolumeExpansionOptions"
             />
           </div>
