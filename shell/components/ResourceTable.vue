@@ -371,7 +371,7 @@ export default {
     },
 
     handleGroupValueChange(val) {
-      this._group = val;
+      this.group = val;
     }
 
   }

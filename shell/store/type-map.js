@@ -217,7 +217,7 @@ export function DSL(store, product, module = 'type-map') {
     headers(type, headers) {
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
-        if (process.client && header.getValue) {
+        if (header.getValue) {
           // we need to store the .value prop for the advanced filtering
           header.valueProp = header.value;
           header.value = header.getValue;
