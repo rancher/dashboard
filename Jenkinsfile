@@ -76,12 +76,20 @@ pipeline {
 
         stage('Call Downstream Job') {
             when {
+                // Trigger upstream build WHEN new changes for Rancher Dashboard are committed to the release branch, OR the user demands it
                 anyOf {
-                    branch 'oracle/release/2.6.8'
+                    allOf {
+                        branch 'oracle/release/2.6.8'
+                        expression {
+                            currentBuild.changeSets.size() > 0
+                        }
+                    }
                     expression { return params.TRIGGER_UPSTREAM }
                 }
             }
             steps {
+                archiveArtifacts artifacts: "dist/${env.TAR_FILE_NAME}"
+
                 build job: "Build from Source/rancher/oracle%2Frelease%2F${params.RANCHER_UPSTREAM_VERSION}",
                     propagate: false,
                     wait: false,
