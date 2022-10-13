@@ -709,7 +709,7 @@ export default {
       </Tab>
 
       <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
-        <Banner color="warning" :label="t('cluster.import.warningBanner')" />
+        <Banner v-if="!value.isCustom" color="warning" :label="t('cluster.import.warningBanner')" />
         <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
