@@ -366,7 +366,7 @@ export default {
             v-model="row._ipam"
             :mode="mode"
             :options="ipamOptions"
-            :label="t('harvester.service.ipam.label')"
+            :label="t('servicesPage.harvester.ipam.label')"
             :disabled="mode === 'edit'"
             @input="queueUpdate"
           />
@@ -376,7 +376,7 @@ export default {
             v-model="rows[ipamIndex]._ipam"
             :mode="mode"
             :options="ipamOptions"
-            :label="t('harvester.service.ipam.label')"
+            :label="t('servicesPage.harvester.ipam.label')"
             :disabled="true"
             @input="queueUpdate"
           />
