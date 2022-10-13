@@ -70,9 +70,13 @@ const creatorPkgData = fs.readFileSync(path.join(__dirname, 'package.json'));
 const creatorPkg = JSON.parse(creatorPkgData);
 
 pkg.dependencies['@rancher/shell'] = `^${ creatorPkg.version }`;
-pkg.dependencies['core-js'] = '^3.20.3';
-pkg.dependencies['css-loader'] = '4.3.0';
-pkg.dependencies['@types/lodash'] = '^4.14.185';
+
+// Rest of dependencies are in the _pkgs property of package.json - copy then across
+if (creatorPkg._pkgs) {
+  Object.keys(creatorPkg._pkgs).forEach((pkg) => {
+    pkg.dependencies[pkg] = creatorPkg._pkgs[pkg];
+  });
+}
 
 fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null, 2));
 

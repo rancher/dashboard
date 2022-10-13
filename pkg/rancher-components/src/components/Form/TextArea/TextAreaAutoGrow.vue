@@ -1,16 +1,15 @@
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { VueConstructor } from 'vue';
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
-declare module 'vue/types/vue' {
-  /* eslint-disable no-unused-vars */
-  interface Vue {
-    queueResize(): void;
-  }
+interface TextAreaResize {
+  queueResize(): void;
 }
 
-export default Vue.extend({
+export default (
+  Vue as VueConstructor<Vue & TextAreaResize>
+).extend({
   inheritAttrs: false,
 
   props: {

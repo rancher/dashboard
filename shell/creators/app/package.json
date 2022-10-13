@@ -13,6 +13,11 @@
   "engines": {
     "node": ">=12"
   },
+  "_requires": [
+    "core-js",
+    "css-loader",
+    "@types/lodash"
+  ],
   "dependencies": {
     "fs-extra": "^10.0.0"
   }

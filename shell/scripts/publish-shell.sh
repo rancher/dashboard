@@ -6,7 +6,13 @@ BASE_DIR="$(
   pwd
 )"
 SHELL_DIR=$BASE_DIR/shell/
+TMP_DIR=$BASE_DIR/tmp
 PUBLISH_ARGS="--no-git-tag-version --access public $PUBLISH_ARGS"
+
+if [ ! -d "${BASE_DIR}/node_modules" ]; then
+  echo "You need to run 'yarn install' first"
+  exit 1
+fi
 
 echo "Publishing Shell Packages"
 
@@ -42,17 +48,27 @@ function publish() {
   FOLDER=$2
 
   echo "Publishing ${NAME} from ${FOLDER}"
-  pushd ${FOLDER} >/dev/null
+
+  echo "Making a copy for publishing"
+  rm -rf ${TMP_DIR}/publish
+  mkdir -p ${TMP_DIR}/publish
+
+  cp -R ${FOLDER} ${TMP_DIR}/publish
+
+  pushd ${TMP_DIR}/publish >/dev/null
 
   # For now, copy the rancher components into the shell and ship them with it
   if [ "$NAME" == "Shell" ]; then
     echo "Adding Rancher Components"
-    rm -rf ${SHELL_DIR}/rancher-components
-    cp -R ${BASE_DIR}/pkg/rancher-components/src/components ${SHELL_DIR}/rancher-components/
+    cp -R ${BASE_DIR}/pkg/rancher-components/src/components ./rancher-components/
   fi
+
+  # Make a note of dependency versions, if required
+  node ${SCRIPT_DIR}/record-deps.js
 
   yarn publish . --new-version ${PKG_VERSION} ${PUBLISH_ARGS}
   RET=$?
+
   popd >/dev/null
 
   if [ $RET -ne 0 ]; then
@@ -67,7 +83,11 @@ ${SCRIPT_DIR}/typegen.sh
 # Publish the packages - don't tag the git repo and don't auto-increment the version number
 publish "Shell" ${SHELL_DIR}
 
-publish "Application creator" ${PKG_DIST}/app
-publish "Package creator" ${PKG_DIST}/pkg
+publish "Application creator" ${PKG_DIST}/app/
+publish "Package creator" ${PKG_DIST}/pkg/
+
+rm -f ${TMP_DIR}
 
 echo "Done"
+
+

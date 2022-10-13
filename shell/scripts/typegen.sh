@@ -12,7 +12,12 @@ mkdir -p ${SHELL_DIR}/tmp
 echo "Generating ..."
 
 # utils
-./node_modules/.bin/tsc shell/utils/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/utils/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils > /dev/null
+
+# config
+
+${BASE_DIR}/node_modules/.bin/tsc shell/config/query-params.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+
 #./node_modules/.bin/tsc shell/plugins/dashboard-store/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store > /dev/null
 
 # Go through all of the folders and combine by wrapping with 'declare module'
@@ -45,7 +50,8 @@ function processDir() {
       processDir $entry $basePkg/$filename
     else
       if [[ $filename == *.d.ts ]]; then
-        local name=${filename::-5}        
+        # We use convoluted mechanism here to ensure this works on mac with bash 3.x
+        local name=$(echo $filename | rev | cut -c6- | rev)
 
         echo -e "\n// ${basePkg}/${name}\n" >> ${INDEX}
         echo "declare module '${basePkg}/${name}' {" >> ${INDEX}
