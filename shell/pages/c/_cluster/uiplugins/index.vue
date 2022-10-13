@@ -6,7 +6,7 @@ import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
 import { CATALOG, UI_PLUGIN, SERVICE } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
-
+import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import ActionMenu from '@shell/components/ActionMenu';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
@@ -18,7 +18,14 @@ import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins';
 import RemoveUIPlugins from './RemoveUIPlugins';
-import { isUIPlugin, uiPluginHasAnnotation, isSupportedChartVersion, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import {
+  isUIPlugin,
+  uiPluginAnnotation,
+  uiPluginHasAnnotation,
+  isSupportedChartVersion,
+  UI_PLUGIN_NAMESPACE,
+  UI_PLUGIN_CHART_ANNOTATIONS
+} from '@shell/config/uiplugins';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -100,17 +107,25 @@ export default {
     menuActions() {
       const menuActions = [];
 
+      // Add link to go to the Repos view of the local cluster
+      menuActions.push({
+        action:  'manageRepos',
+        label:   this.t('plugins.manageRepos'),
+        enabled: true
+      });
+
       // Only show Developer Load action if the user has this enabled in preferences
       if (this.pluginDeveloper) {
+        menuActions.push( { divider: true });
         menuActions.push({
           action:  'devLoad',
           label:   this.t('plugins.developer.label'),
           enabled: true
         });
-        menuActions.push( { divider: true });
       }
 
       if (this.hasService) {
+        menuActions.push( { divider: true });
         menuActions.push({
           action:  'removePluginSupport',
           label:   this.t('plugins.setup.remove.label'),
@@ -156,8 +171,11 @@ export default {
       all = all.filter(c => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'));
 
       all = all.map((chart) => {
+        // Label can be overridden by chart annotation
+        const label = uiPluginAnnotation(UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
         const item = {
           name:           chart.chartNameDisplay,
+          label,
           description:    chart.chartDescription,
           id:             chart.id,
           versions:       [],
@@ -197,7 +215,9 @@ export default {
           // A pluign is loaded, but there is no chart, so add an item so that it shows up
           const item = {
             name:           p.name,
+            label:          p.name,
             description:    p.metadata?.description,
+            icon:           p.metadata?.icon,
             id:             p.id,
             versions:       [],
             displayVersion: p.metadata?.version || '-',
@@ -229,6 +249,7 @@ export default {
           // No chart, so add a card for the plugin based on its Custom resource being present
           const item = {
             name:           p.name,
+            label:          p.name,
             description:    p.description || '-',
             id:             `${ p.name }-${ p.version }`,
             versions:       [],
@@ -317,11 +338,11 @@ export default {
 
     plugins(neu, old) {
       const installed = this.$store.getters['uiplugins/plugins'];
-
+      const shouldHaveLoaded = (installed || []).filter(p => !this.uiErrors[p.name] && !p.builtin);
       let changes = 0;
 
       // Did the user remove an extension
-      if (neu?.length < installed.length) {
+      if (neu?.length < shouldHaveLoaded.length) {
         changes++;
       }
 
@@ -329,7 +350,9 @@ export default {
         const existing = installed.find(p => !p.removed && p.name === plugin.name && p.version === plugin.version);
 
         if (!existing && plugin.isCached) {
-          changes++;
+          if (!this.uiErrors[plugin.name]) {
+            changes++;
+          }
 
           this.updatePluginInstallStatus(plugin.name, false);
         }
@@ -441,6 +464,17 @@ export default {
 
     reload() {
       this.$router.go();
+    },
+
+    manageRepos() {
+      this.$router.push({
+        name:   'c-cluster-product-resource',
+        params: {
+          cluster:  'local',
+          product:  APP_PRODUCT,
+          resource: CATALOG.CLUSTER_REPO
+        }
+      });
     }
   }
 };
@@ -479,6 +513,7 @@ export default {
         @close="setMenu(false)"
         @devLoad="showDeveloperLoaddDialog"
         @removePluginSupport="removePluginSupport"
+        @manageRepos="manageRepos"
       />
     </div>
 
@@ -528,12 +563,9 @@ export default {
             </div>
             <div class="plugin-metadata">
               <div class="plugin-name">
-                {{ plugin.name }}
+                {{ plugin.label }}
               </div>
               <div>{{ plugin.description }}</div>
-              <div v-if="plugin.builtin" class="plugin-builtin">
-                {{ t('plugins.labels.builtin') }}
-              </div>
               <div class="plugin-version">
                 <span v-if="plugin.installing === 'uninstall'" class="plugin-installing">
                   -
@@ -543,7 +575,12 @@ export default {
                   <span v-if="plugin.upgrade" v-tooltip="t('plugins.upgradeAvailable')"> -> {{ plugin.upgrade }}</span>
                 </span>
               </div>
-              <div class="plugin-badges">
+              <div v-if="plugin.builtin" class="plugin-badges">
+                <div class="plugin-builtin">
+                  {{ t('plugins.labels.builtin') }}
+                </div>
+              </div>
+              <div v-else class="plugin-badges">
                 <div v-if="!plugin.certified" v-tooltip="t('plugins.descriptions.third-party')">
                   {{ t('plugins.labels.third-party') }}
                 </div>

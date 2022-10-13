@@ -34,6 +34,7 @@ export const UI_PLUGIN_CHART_ANNOTATIONS = {
   RANCHER_VERSION:    'catalog.cattle.io/rancher-version',
   EXTENSIONS_VERSION: 'catalog.cattle.io/ui-extenstions-version',
   EXTENSIONS_HOST:    'catalog.cattle.io/ui-extenstions-host',
+  DISPLAY_NAME:       'catalog.cattle.io/display-name',
 };
 
 // Plugin Metadata properties
@@ -41,6 +42,7 @@ export const UI_PLUGIN_METADATA = {
   RANCHER_VERSION:    'rancherVersion',
   EXTENSION_VERSION:  'extVersion',
   EXTENSIONS_HOST:    'host',
+  DISPLAY_NAME:       'displayName',
 };
 
 export function isUIPlugin(chart) {
@@ -53,6 +55,17 @@ export function uiPluginHasAnnotation(chart, name, value) {
   return !!chart?.versions.find((v) => {
     return v.annotations && v.annotations[name] === value;
   });
+}
+
+/**
+ * Get value of the annotation from teh latest version for a chart
+ */
+export function uiPluginAnnotation(chart, name) {
+  if (chart?.versions?.length > 0) {
+    return chart.versions[0].annotations?.[name];
+  }
+
+  return undefined;
 }
 
 // Should we load a plugin, based on the metadata returned by the backend?

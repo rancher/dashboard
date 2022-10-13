@@ -3677,6 +3677,7 @@ plugins:
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
+    built-in: This Extension is built-in
   error:
     title: Error loading extension
     message: Could not load extension code
@@ -3707,6 +3708,7 @@ plugins:
     updates: No updates available for installed Extensions
   loadError: An error occurred loading the code for this extension
   helmError: "An error occurred installing the extension via Helm"
+  manageRepos: Manage Repositories
   tabs:
     all: All
     available: Available
