@@ -752,8 +752,6 @@ backupRestoreOperator:
     useDefault: Use the default storage location configured during installation
   targetBackup: Target Backup
 
-
-
 catalog:
   app:
     managed: Managed
@@ -767,6 +765,13 @@ catalog:
         busy: The related resources will appear when {app} is fully installed.
       values: Values YAML
   chart:
+    registry:
+      label: Container Registry
+      tooltip: Container images are pulled from the Cluster Container or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
+      custom:
+        checkBoxLabel: Container Registry for Rancher System Container Images
+        inputLabel: Container Registry
+        placeholder: Registry domain and ports, ex. registry.io:5000
     header:
       charts: Charts
     info:
@@ -1581,10 +1586,10 @@ cluster:
       noResults: No results found
   privateRegistry:
     systemDefaultRegistry:
-      label: Registry hostname for {vendor} System Container Images
+      label: Registry hostname for Rancher System Container Images
     mode:
-      public: Use default global registry for {vendor} System Container Images
-      private: Use specified private registry for {vendor} System Container Images
+      public: Use default global registry for Rancher System Container Images
+      private: Use specified private registry for Rancher System Container Images
       advanced: Configure advanced containerd mirroring and registry authentication options
   provider:
     aliyunecs: Aliyun ECS
