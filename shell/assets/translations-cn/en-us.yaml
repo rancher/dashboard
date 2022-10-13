@@ -137,6 +137,7 @@ nav:
     apps: Apps
     clusterProvisioning: Cluster Provisioning
     core: Core
+    imageRepo: Image Repo
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -171,6 +172,10 @@ nav:
     separator: or
   vlanSubnet:
     label: Flat Network
+  imageRepo:
+    config: Configuration
+    logs: Logs
+    projects: Image Management
 
 product:
   apps: Apps

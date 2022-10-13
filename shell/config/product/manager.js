@@ -115,6 +115,56 @@ export function init(store) {
     'rke-node-templates'
   ], 'RKE1Configuration');
 
+  // image repo start
+  virtualType({
+    label:      'Configuration',
+    labelKey:   'nav.imageRepo.config',
+    name:       'image-repo-config',
+    group:      'Root',
+    namespaced: false,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'image-repo-config' } },
+    exact:      false,
+    weight:     100,
+  });
+
+  virtualType({
+    showMenuFun(state, getters, rootState, rootGetters) {
+      return rootState.auth?.isAdmin || rootState.auth?.me?.annotations?.['management.harbor.pandaria.io/synccomplete'] === 'true';
+    },
+    label:      'Image Management',
+    labelKey:   'nav.imageRepo.projects',
+    name:       'image-repo-projects',
+    group:      'Root',
+    namespaced: false,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'image-repo-projects' } },
+    exact:      false,
+    weight:     99,
+  });
+
+  virtualType({
+    showMenuFun(state, getters, rootState, rootGetters) {
+      return rootState.auth?.isAdmin || rootState.auth?.me?.annotations?.['management.harbor.pandaria.io/synccomplete'] === 'true';
+    },
+    label:      'Logs',
+    labelKey:   'nam.imageRepo.logs',
+    name:       'image-repo-logs',
+    group:      'Root',
+    namespaced: false,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'image-repo-logs' } },
+    exact:      false,
+    weight:     98,
+  });
+
+  basicType([
+    'image-repo-config',
+    'image-repo-projects',
+    'image-repo-logs',
+  ], 'imageRepo');
+  // image repo end
+
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);
   weightType(CAPI.MACHINE, 1, true);

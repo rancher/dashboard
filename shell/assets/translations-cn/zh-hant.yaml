@@ -141,6 +141,7 @@ nav:
     Policy: 策略
     Scheduling: 調度
     Storage: 存儲
+    imageRepo: 鏡像倉庫
   ns:
     all: 所有命名空間
     clusterLevel: 集羣資源
@@ -175,6 +176,10 @@ nav:
     separator: 或者
   vlanSubnet:
     label: 扁平網絡
+  imageRepo:
+    config: Harbor 配置
+    logs: 日誌
+    projects: 鏡像管理
 
 product:
   apps: 應用
