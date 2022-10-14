@@ -58,22 +58,7 @@ export default {
   mounted() {
     // register watcher to watch rows for columnOptions
     if (this.hasAdvancedFiltering) {
-      // check if user clicked outside the advanced filter box
-      window.addEventListener('click', this.onClickOutside);
-
-      this.columnOptions = this.setColsOptions();
-      this.colOptionsWatcher = this.$watch('rows', function() {
-        this.columnOptions = this.setColsOptions();
-      });
-    }
-  },
-
-  beforeDestroy() {
-    if (this.hasAdvancedFiltering) {
-      // unregister click event
-      window.removeEventListener('click', this.onClickOutside);
-      // unregister watcher for rows
-      this.colOptionsWatcher();
+      this.updateColsOptions();
     }
   },
 
@@ -82,6 +67,18 @@ export default {
       // passing different dummy args to make sure update is triggered
       this.watcherUpdateLiveAndDelayed(true, false);
     },
+    advancedFilteringVisibility(neu) {
+      if (neu) {
+        // check if user clicked outside the advanced filter box
+        window.addEventListener('click', this.onClickOutside);
+
+        // update filtering options and toggable cols every time dropdown is open
+        this.updateColsOptions();
+      } else {
+        // unregister click event
+        window.removeEventListener('click', this.onClickOutside);
+      }
+    }
   },
 
   computed: {
@@ -170,7 +167,7 @@ export default {
               const res = {
                 name:             label,
                 label,
-                value:            `metadata.labels.${ label }`,
+                value:            label,
                 isFilter:         true,
                 isTableOption:    true,
                 isColVisible:     false,
@@ -239,6 +236,9 @@ export default {
         return;
       }
       this.advancedFilteringVisibility = false;
+    },
+    updateColsOptions() {
+      this.columnOptions = this.setColsOptions();
     },
 
     // cols visibility

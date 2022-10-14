@@ -555,7 +555,7 @@ export default {
           group.rows.push(rowData);
 
           this.columns.forEach((c) => {
-            const value = c.delayLoading ? undefined : this.valueFor(row, c);
+            const value = c.delayLoading ? undefined : this.valueFor(row, c, c.isLabel);
             let component;
             let formatted = value;
             let needRef = false;
@@ -710,9 +710,13 @@ export default {
       return ucFirst(col.name);
     },
 
-    valueFor(row, col) {
+    valueFor(row, col, isLabel) {
       if (typeof col.value === 'function') {
         return col.value(row);
+      }
+
+      if (isLabel) {
+        return row.metadata.labels[col.value];
       }
 
       // Use to debug table columns using expensive value getters
@@ -1010,6 +1014,7 @@ export default {
         @on-sort-change="changeSort"
         @col-visibility-change="changeColVisibility"
         @group-value-change="(val) => $emit('group-value-change', val)"
+        @update-cols-options="updateColsOptions"
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->

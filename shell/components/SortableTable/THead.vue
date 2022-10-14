@@ -91,6 +91,25 @@ export default {
       tableColsMenuPosition:      null
     };
   },
+
+  watch: {
+    advancedFilteringValues() {
+      // passing different dummy args to make sure update is triggered
+      this.watcherUpdateLiveAndDelayed(true, false);
+    },
+    tableColsOptionsVisibility(neu) {
+      if (neu) {
+        // check if user clicked outside the table cols options box
+        window.addEventListener('click', this.onClickOutside);
+
+        // update filtering options and toggable cols every time dropdown is open
+        this.$emit('update-cols-options');
+      } else {
+        // unregister click event
+        window.removeEventListener('click', this.onClickOutside);
+      }
+    }
+  },
   computed: {
     isAll: {
       get() {
@@ -172,15 +191,7 @@ export default {
         value
       });
     },
-  },
-  mounted() {
-    // check if user clicked outside the table options menu
-    document.addEventListener('click', this.onClickOutside);
-  },
-
-  beforeDestroy() {
-    document.removeEventListener('click', this.onClickOutside);
-  },
+  }
 
 };
 </script>
