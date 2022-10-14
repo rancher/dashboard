@@ -109,6 +109,10 @@ export default class CloudCredential extends NormanModel {
   get providerDisplay() {
     const provider = (this.provider || '').toLowerCase();
 
+    if (provider === 'aliyun') {
+      return this.$rootGetters['i18n/withFallback'](`cluster.provider.alibaba`, null, provider);
+    }
+
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, provider);
   }
 

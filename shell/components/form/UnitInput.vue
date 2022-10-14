@@ -38,6 +38,11 @@ export default {
       default: 0,
     },
 
+    maxPrecision: {
+      type:    Number,
+      default: 2,
+    },
+
     /**
      * Combines with inputExponent to make displayed unit.
      * Use 'suffix' if the input's units are strictly for display
@@ -164,6 +169,7 @@ export default {
           addSuffix:        false,
           maxExponent:      this.inputExponent,
           minExponent:      this.inputExponent,
+          maxPrecision:     this.maxPrecision,
         });
       }
 

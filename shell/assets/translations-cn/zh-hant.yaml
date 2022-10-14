@@ -1290,6 +1290,104 @@ cluster:
   machineConfig:
     banner:
       updateInfo: 創建一個池用來更新主機配置
+    aliyunecs:
+      resourceGroup:
+        label: 資源組
+        all: 賬號全部資源
+      region:
+        label: 區域
+        placeholder: 區域
+      zone:
+        label: 可用區
+        prompt: 選擇可用區...
+      vpcId:
+        label: 專有網絡
+        prompt: 選擇專有網絡...
+        default: 默認專有網絡
+      vswitchId:
+        label: 交換機
+        prompt: 選擇交換機...
+        default: 默認交換機
+      privateIp:
+        label: 私有IP
+        placeholder: 專用網絡中的私有 IP
+      privateAddressOnly:
+        label: 僅私網IP
+      internetChargeType:
+        label: 帶寬計費模式
+        prompt: 選擇計費模式...
+      internetChargeTypes:
+        payByTraffic: 按使用流量計費
+        payByBandwidth: 按固定帶寬計費
+      instanceDescription:
+        label: 實例描述
+        placeholder: 該實例的描述
+      instanceType: 
+        label: 實例類型
+      imageId:
+        label: 系統鏡像
+        placeholder: 系統鏡像
+      internetMaxBandwidth:
+        label: 最大網絡帶寬
+        placeholder: 1到200
+        suffix: Mbps
+      aliyunSLB:
+        label: 阿里雲SLB ID
+        placeholder: 阿里雲SLB ID
+      systemDiskCategory:
+        label: 系統盤種類
+      systemDiskSize:
+        label: 系統磁盤大小
+        placeholder: "容量範圍: {min} ~ {max}"
+        suffix: GB
+      diskCategory:
+        label: 數據盤種類
+      diskSize:
+        label: 數據磁盤大小
+        placeholder: "容量範圍: {min} ~ {max}"
+        suffix: GB
+      ioOptimized:
+        label: 是否為I/O優化實例
+      upgradeKernel:
+        label: 升級內核
+      disk:
+        cloud: 普通雲盤
+        ephemeralSsd: 本地SSD盤
+        efficiency: 高效雲盤
+        ssd: SSD 雲盤
+        essd: ESSD 雲盤
+        auto: ESSD AutoPL 雲盤
+      diskFs:
+        label: diskFs
+      securityGroup:
+        mode:
+          custom: 選擇一個現有的安全組：
+          default: 標準：自動創建並使用一個 "{defaultGroup}"; 安全組
+        title: 安全組
+        vpcId: （先選擇一個專有網絡）
+      tagTitle: ECS 標籤
+      instanceChargeType:
+        label: 實例付費模式
+        prePaid: 包年包月
+        postPaid: 按量付費
+        spotStrategy: 搶佔式實例
+      periodUnit: 
+        label: 購買資源的時長
+        placeholder: 選擇購買資源時長...
+        week: 周
+        month: 個月
+        year: 年
+        half: 半
+      spotDuration:
+        label: 搶佔式實例使用時長
+        default: 設定實例使用1小時
+        none: 無確定使用時長
+      spotStrategy:
+        label: 搶佔式實例單台實例規格上限價
+        spotAsPriceGo: 使用自動出價
+        spotWithPriceLimit: 設置單台上限價
+        info: 使用自動出價,以按量付費實例規格價格為上限，資源供需關係變化時，實例會被自動釋放，請做好數據備份工作。設定您的最高價（每實例/小時）,當市場價格高於您的出價或者資源供需關係變化時，實例會被自動釋放，請做好數據備份工作。
+        suffix: ￥/小時
     aws:
       sizeLabel: |-
         {apiName}: {cpu, plural,

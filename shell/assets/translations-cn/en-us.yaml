@@ -1278,6 +1278,104 @@ cluster:
   machineConfig:
     banner:
       updateInfo: Create a new pool to update machine configs
+    aliyunecs:
+      resourceGroup:
+        label: Resource Group
+        all: "Accounts all Resources"
+      region:
+        label: Region
+        placeholder: Region
+      zone:
+        label: Available Zone
+        prompt: Choose a Available Zone...
+      vpcId:
+        label: VPC
+        prompt: Choose a VPC...
+        default: Default VPC
+      vswitchId:
+        label: VSwitch
+        prompt: Choose a VSwitch...
+        default: Default VSwitch
+      privateIp:
+        label: Private IP
+        placeholder: Private IP in Private Network
+      privateAddressOnly:
+        label: Private Address Only
+      internetChargeType:
+        label: Bandwidth Billing
+        prompt: Choose Bandwidth Billing...
+      internetChargeTypes:
+        payByTraffic: "Pay-By-Traffic"
+        payByBandwidth: "Pay-By-Bandwidth"
+      instanceDescription:
+        label: Instance Description
+        placeholder: Instance Description
+      instanceType: 
+        label: Instance Type
+      imageId:
+        label: System image
+        placeholder: System image
+      internetMaxBandwidth:
+        label: Internet Max Bandwidth
+        placeholder: 1 to 200
+        suffix: Mbps
+      aliyunSLB:
+        label: Aliyun SLB ID
+        placeholder: Aliyun SLB ID
+      systemDiskCategory:
+        label: System Disk Category
+      systemDiskSize:
+        label: System Disk Size
+        placeholder: "Disk Capacity: {min} ~ {max}"
+        suffix: GB
+      diskCategory:
+        label: Data Disk Category
+      diskSize:
+        label: Data Disk Size
+        placeholder: "Disk Capacity: {min} ~ {max}"
+        suffix: GB
+      ioOptimized:
+        label: I/O Optimize Instance
+      upgradeKernel:
+        label: Upgrade Kernel
+      disk:
+        cloud: Ordinary Disk
+        ephemeralSsd: Local SSD Disk
+        efficiency: Ultra Disk
+        ssd: SSD Disk
+        essd: ESSD Disk
+        auto: ESSD AutoPL Disk
+      diskFs:
+        label: diskFs
+      securityGroup:
+        mode:
+          custom: 'Choose one existing security groups:'
+          default: 'Standard: Automatically create and use a "{defaultGroup}"; security group'
+        title: Security Group
+        vpcId: (select a VPC first)
+      tagTitle: ECS Tag
+      instanceChargeType:
+        label: Billing Method
+        prePaid: Subscription
+        postPaid: Pay-as-you-go
+        spotStrategy: Preemptible Instance
+      periodUnit: 
+        label: Duration
+        placeholder: Choose Duration...
+        week: Week
+        month: Month
+        year: Year
+        half: Half
+
+      spotDuration:
+        label: Use Duration
+        default: One Hour
+        none: None
+      spotStrategy:
+        label: Maximum Price for Instance Type
+        spotWithPriceLimit: Set Maximum Price
+        spotAsPriceGo: Use Automatic Bid
+        suffix: ￥/ hour
     aws:
       sizeLabel: |-
         {apiName}: {cpu, plural,
