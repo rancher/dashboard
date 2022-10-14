@@ -115,6 +115,10 @@ export default {
       return POD;
     },
 
+    hasKeySelectOptions() {
+      return !!this.keysSelectOptions?.length;
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 
@@ -201,7 +205,7 @@ export default {
         <div v-if="isView">
           {{ row.key }}
         </div>
-        <input v-else-if="!keysSelectOptions?.length" v-model="row.key" :mode="mode" @input="update" />
+        <input v-else-if="!hasKeySelectOptions" v-model="row.key" :mode="mode" @input="update" />
         <LabeledSelect
           v-else
           v-model="row.key"
