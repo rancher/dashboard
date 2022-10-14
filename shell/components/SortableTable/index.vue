@@ -17,8 +17,8 @@ import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
+import AdvancedFiltering from './advanced-filtering';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import AdvancedFiltering from '@shell/mixins/advanced-filtering';
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
 
@@ -716,7 +716,7 @@ export default {
       }
 
       if (isLabel) {
-        return row.metadata.labels[col.value];
+        return row.metadata.labels[col.label];
       }
 
       // Use to debug table columns using expensive value getters
@@ -1306,7 +1306,7 @@ export default {
       align-items: center;
       position: relative;
 
-      &:nth-child(1n) {
+      &:nth-child(4n+1) {
         border-color: var(--success);
 
         .bg {
@@ -1314,7 +1314,7 @@ export default {
         }
       }
 
-      &:nth-child(2n) {
+      &:nth-child(4n+2) {
         border-color: var(--warning);
 
         .bg {
@@ -1322,7 +1322,7 @@ export default {
         }
       }
 
-      &:nth-child(3n + 1) {
+      &:nth-child(4n+3) {
         border-color: var(--info);
 
         .bg {
@@ -1330,7 +1330,7 @@ export default {
         }
       }
 
-      &:nth-child(4n) {
+      &:nth-child(4n+4) {
         border-color: var(--error);
 
         .bg {

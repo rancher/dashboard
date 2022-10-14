@@ -368,10 +368,6 @@ export default {
 
     handleActionButtonClick(event) {
       this.$emit('clickedActionButton', event);
-    },
-
-    handleGroupValueChange(val) {
-      this.group = val;
     }
 
   }
@@ -403,7 +399,7 @@ export default {
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
     @clickedActionButton="handleActionButtonClick"
-    @group-value-change="handleGroupValueChange"
+    @group-value-change="group = $event"
     v-on="$listeners"
   >
     <template v-if="showGrouping" #header-middle>

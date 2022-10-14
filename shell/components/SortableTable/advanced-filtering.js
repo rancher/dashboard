@@ -1,4 +1,4 @@
-import { ADV_FILTER_ALL_COLS_VALUE, ADV_FILTER_ALL_COLS_LABEL } from '@shell/components/SortableTable/filtering';
+import { ADV_FILTER_ALL_COLS_VALUE, ADV_FILTER_ALL_COLS_LABEL } from './filtering';
 
 const DEFAULT_ADV_FILTER_COLS_VALUE = ADV_FILTER_ALL_COLS_VALUE;
 
@@ -56,8 +56,8 @@ export default {
   },
 
   mounted() {
-    // register watcher to watch rows for columnOptions
     if (this.hasAdvancedFiltering) {
+      // trigger to first populate the cols options for filters
       this.updateColsOptions();
     }
   },
@@ -132,6 +132,7 @@ export default {
         let sortVal = prop.sort;
         const valueProp = prop.valueProp || prop.value;
         let value = null;
+        let isColVisible = true;
 
         if (prop.sort && valueProp) {
           if (typeof prop.sort === 'string') {
@@ -149,13 +150,22 @@ export default {
           value = null;
         }
 
+        // maintain current visibility of cols if they exist already
+        if (this.columnOptions?.length) {
+          const opt = this.columnOptions.find(colOpt => colOpt.name === name && colOpt.label === label);
+
+          if (opt) {
+            isColVisible = opt.isColVisible;
+          }
+        }
+
         headerProps.push({
           name,
           label,
           value,
           isFilter,
           isTableOption: true,
-          isColVisible:  true
+          isColVisible
         });
       });
 
@@ -167,7 +177,7 @@ export default {
               const res = {
                 name:             label,
                 label,
-                value:            label,
+                value:            `metadata.labels.${ label }`,
                 isFilter:         true,
                 isTableOption:    true,
                 isColVisible:     false,
@@ -175,6 +185,15 @@ export default {
                 preventFiltering: this.advFilterPreventFilteringLabels,
                 preventColToggle: this.advFilterHideLabelsAsCols
               };
+
+              // maintain current visibility of cols if they exist already
+              if (this.columnOptions?.length) {
+                const opt = this.columnOptions.find(colOpt => colOpt.name === label && colOpt.label === label);
+
+                if (opt) {
+                  res.isColVisible = opt.isColVisible;
+                }
+              }
 
               if (!rowLabels.filter(row => row.label === label).length) {
                 rowLabels.push(res);

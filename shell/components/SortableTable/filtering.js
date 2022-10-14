@@ -3,6 +3,7 @@ import { addObject, addObjects, isArray, removeAt } from '@shell/utils/array';
 
 export const ADV_FILTER_ALL_COLS_VALUE = 'allcols';
 export const ADV_FILTER_ALL_COLS_LABEL = 'All Columns';
+const LABEL_IDENTIFIER = ':::islabel';
 
 export default {
   data() {
@@ -32,7 +33,7 @@ export default {
     }),
     */
     filteredRows() {
-      // PROP hasAdvancedFiltering comes from SortableTable (careful changing data var there...)
+      // PROP hasAdvancedFiltering comes from Advanced Filtering mixin (careful changing data var there...)
       if (!this.hasAdvancedFiltering) {
         return this.handleFiltering();
       } else {
@@ -42,16 +43,17 @@ export default {
   },
 
   methods: {
-    // TODO: handle subSearch and subFields, if needed... not entirely sure...
     handleAdvancedFiltering() {
       this.subMatches = null;
-      const out = (this.arrangedRows || []).slice();
 
       if (this.searchQuery.length) {
+        const out = (this.arrangedRows || []).slice();
+
         const res = out.filter((row) => {
           return this.searchQuery.every((f) => {
             if (f.prop === ADV_FILTER_ALL_COLS_VALUE) {
-              // advFilterSelectOptions comes from SortableTable component
+              // advFilterSelectOptions comes from Advanced Filtering mixin
+              // remove the All Columns option from the list so that we don't iterate over it
               const allCols = this.advFilterSelectOptions.slice(1);
               let searchFields = [];
 
@@ -59,7 +61,11 @@ export default {
                 if (col.value.includes('[') && col.value.includes(']')) {
                   searchFields = searchFields.concat(JSON.parse(col.value));
                 } else {
-                  searchFields.push(col.value);
+                  // this means we are on the presence of a label, which should be dealt
+                // carefully because of object path such row.metadata.labels."app.kubernetes.io/managed-by
+                  const value = col.isLabel ? `${ col.label }${ LABEL_IDENTIFIER }` : col.value;
+
+                  searchFields.push(value);
                 }
               });
 
@@ -69,7 +75,15 @@ export default {
                 return handleStringSearch(JSON.parse(f.prop), [f.value], row);
               }
 
-              return handleStringSearch([f.prop], [f.value], row);
+              let prop = f.prop;
+
+              // this means we are on the presence of a label, which should be dealt
+              // carefully because of object path such row.metadata.labels."app.kubernetes.io/managed-by"
+              if (f.prop.includes('metadata.labels')) {
+                prop = `${ f.label }${ LABEL_IDENTIFIER }`;
+              }
+
+              return handleStringSearch([prop], [f.value], row);
             }
           });
         });
@@ -78,7 +92,7 @@ export default {
       }
 
       // return arrangedRows array if we don't have anything to search for...
-      return out;
+      return this.arrangedRows;
     },
 
     handleFiltering() {
@@ -206,6 +220,8 @@ function matches(fields, token, item) {
 
     if (typeof field === 'function') {
       val = field(item);
+    } else if (field.includes(LABEL_IDENTIFIER)) {
+      val = item.metadata.labels[field.replace(LABEL_IDENTIFIER, '')];
     } else {
       const idx = field.indexOf(':');
 
