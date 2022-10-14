@@ -35,6 +35,8 @@ import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
+import { BOTTOM } from '@shell/utils/position';
+import { DraggableZone } from '@components/Utils/DraggableZone';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -52,7 +54,8 @@ export default {
     WindowManager,
     FixedBanner,
     AwsComplianceBanner,
-    AzureWarning
+    AzureWarning,
+    DraggableZone,
   },
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
@@ -64,6 +67,8 @@ export default {
       groups:           [],
       gettingGroups:    false,
       wantNavSync:      false,
+      unwatchPin:       undefined,
+      wmPin:            null,
     };
   },
 
@@ -199,6 +204,10 @@ export default {
         this.currentProduct?.name === getProductFromRoute(this.$route);
     },
 
+    pinClass() {
+      return `pin-${ this.wmPin }`;
+    },
+
   },
 
   watch: {
@@ -307,6 +316,18 @@ export default {
   mounted() {
     // Sync the navigation tree on fresh load
     this.$nextTick(() => this.syncNav());
+
+    this.wmPin = window.localStorage.getItem('wm-pin') || BOTTOM;
+
+    // two-way binding this.wmPin <-> draggableZone.pin
+    this.$refs.draggableZone.pin = this.wmPin;
+    this.unwatchPin = this.$watch('$refs.draggableZone.pin', (pin) => {
+      this.wmPin = pin;
+    });
+  },
+
+  unmounted() {
+    this.unwatchPin();
   },
 
   methods: {
@@ -321,6 +342,7 @@ export default {
 
       await this.$store.dispatch('prefs/setLastVisited', route);
     },
+
     handlePageAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
         this.afterLoginRoute = this.getLoginRoute();
@@ -578,6 +600,7 @@ export default {
     <div
       v-if="managementReady"
       class="dashboard-content"
+      :class="{[pinClass]: true}"
     >
       <Header />
       <nav
@@ -709,12 +732,23 @@ export default {
       >
         <nuxt class="outlet" />
       </main>
-      <div class="wm">
+      <div
+        v-if="$refs.draggableZone"
+        class="wm"
+        :class="{
+          'drag-end': !$refs.draggableZone.drag.active,
+          'drag-start': $refs.draggableZone.drag.active,
+        }"
+        draggable="true"
+        @dragstart="$refs.draggableZone.onDragStart($event)"
+        @dragend="$refs.draggableZone.onDragEnd($event)"
+      >
         <WindowManager />
       </div>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <DraggableZone ref="draggableZone" />
   </div>
 </template>
 <style lang="scss" scoped>
@@ -729,7 +763,7 @@ export default {
 
 </style>
 <style lang="scss">
-  .dashboard-root{
+  .dashboard-root {
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -742,13 +776,30 @@ export default {
     overflow-y: auto;
     min-height: 0px;
 
-    grid-template-areas:
-      "header  header"
-      "nav      main"
-      "wm       wm";
+    &.pin-right {
+      grid-template-areas:
+        "header  header  header"
+        "nav      main     wm";
+      grid-template-rows:    var(--header-height) auto;
+      grid-template-columns: var(--nav-width)     auto var(--wm-width, 0px);
+    }
 
-    grid-template-columns: var(--nav-width)     auto;
-    grid-template-rows:    var(--header-height) auto  var(--wm-height, 0px);
+    &.pin-bottom {
+      grid-template-areas:
+        "header  header"
+        "nav       main"
+        "wm         wm";
+      grid-template-rows:    var(--header-height) auto  var(--wm-height, 0px);
+      grid-template-columns: var(--nav-width)     auto;
+    }
+
+    &.pin-left {
+      grid-template-areas:
+        "header  header  header"
+        "wm       nav     main";
+      grid-template-rows:    var(--header-height) auto;
+      grid-template-columns: var(--wm-width, 0px) var(--nav-width) auto;
+    }
 
     > HEADER {
       grid-area: header;
@@ -868,5 +919,15 @@ export default {
         text-decoration: none;
       }
     }
+  }
+
+  .drag-start {
+    z-index: 1000;
+    opacity: 0.5;
+    transition: opacity .3s ease;
+  }
+
+  .drag-end {
+    opacity: 1;
   }
 </style>
