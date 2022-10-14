@@ -110,7 +110,7 @@ export default {
       <tr v-if="rancherVersion">
         <td>
           <a href="https://github.com/rancher/rancher" target="_blank" rel="nofollow noopener noreferrer">
-            {{ appName }}
+            {{ t("about.versions.rancher") }}
           </a>
         </td><td>{{ rancherVersion.value }}</td>
       </tr>
