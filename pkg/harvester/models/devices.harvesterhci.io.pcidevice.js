@@ -49,6 +49,14 @@ export default class PCIDevice extends SteveModel {
     return out;
   }
 
+  get canYaml() {
+    return false;
+  }
+
+  get canDelete() {
+    return false;
+  }
+
   get passthroughClaim() {
     const passthroughClaims = this.$getters['all'](HCI.PCI_CLAIM) || [];
 

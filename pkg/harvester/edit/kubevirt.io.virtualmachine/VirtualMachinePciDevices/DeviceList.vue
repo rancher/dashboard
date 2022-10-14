@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { HCI } from '../../../types';
-import { STATE, NAME } from '@shell/config/table-headers';
+import { STATE, SIMPLE_NAME } from '@shell/config/table-headers';
 export default {
   name: 'ListPciDevices',
 
@@ -29,7 +29,7 @@ export default {
     const isSingleProduct = this.$store.getters['isSingleProduct'];
     const headers = [
       { ...STATE },
-      NAME,
+      SIMPLE_NAME,
       {
         name:          'description',
         labelKey:      'tableHeaders.description',
