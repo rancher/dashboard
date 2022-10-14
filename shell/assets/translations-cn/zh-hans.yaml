@@ -1098,6 +1098,13 @@ cluster:
       option:
         new: 创建...
         none: 选择凭证
+    aliyun:
+      accessKey:
+        label: 访问密钥
+        placeholder: 你的阿里云访问密钥
+      secretKey:
+        label: SecretKey
+        placeholder: 你的阿里云密文密钥
     aws:
       accessKey:
         label: 访问密钥
@@ -1584,6 +1591,8 @@ cluster:
       private: 从私有仓库中为 {vendor} 拉取镜像
       advanced: 配置高级容器 Mirror 和仓库验证选项
   provider:
+    ackoperatorsetting: Alibaba ACK
+    alibaba: Alibaba
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK
     aliyun:  Alibaba ACK

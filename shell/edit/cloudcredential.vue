@@ -231,6 +231,10 @@ export default {
     },
 
     typeDisplay(type, driver) {
+      if (driver === 'aliyun') {
+        return this.$store.getters['i18n/withFallback'](`cluster.provider.alibaba`, null, driver);
+      }
+
       return this.$store.getters['i18n/withFallback'](`cluster.provider."${ driver }"`, null, driver);
     },
 

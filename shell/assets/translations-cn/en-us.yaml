@@ -1085,6 +1085,13 @@ cluster:
       option:
         new: Create new...
         none: Select a credential...
+    aliyun:
+      accessKey:
+        label: Access Key
+        placeholder: Your Aliyun Access Key
+      secretKey:
+        label: SecretKey
+        placeholder: Your Aliyun Secret Key
     aws:
       accessKey:
         label: Access Key
@@ -1572,6 +1579,8 @@ cluster:
       private: Pull images for {vendor} from a private registry
       advanced: Configure advanced containerd mirroring and registry authentication options
   provider:
+    ackoperatorsetting: Alibaba ACK
+    alibaba: Alibaba
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK
     aliyun:  Alibaba ACK

@@ -55,10 +55,12 @@ const driverMap = {
   oci:                             'oracle',
   opentelekomcloudcontainerengine: 'otc',
   oraclecontainerengine:           'oracle',
+  aliyunecs:                       'aliyun',
 };
 
 // Map a driver component back to the cloud credential field name their data has to be stored in
 const driverToFieldMap = {
+  aliyun: 'aliyunecs',
   aws:    'amazonec2',
   gcp:    'google',
   oracle: 'oci',
