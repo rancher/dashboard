@@ -172,7 +172,7 @@ export default {
         }
       });
 
-      return out.map((o) => {
+      return out.filter(o => !map[o.name].masterIndex).map((o) => {
         let label = '';
 
         if (map[o.name].down === 0) {
