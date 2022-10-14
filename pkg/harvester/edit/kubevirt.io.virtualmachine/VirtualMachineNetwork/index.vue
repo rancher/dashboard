@@ -3,6 +3,7 @@ import InfoBox from '@shell/components/InfoBox';
 import Base from './base';
 
 import { NETWORK_ATTACHMENT } from '@shell/config/types';
+import { HCI as HCI_ANNOTATIONS } from '../../../config/labels-annotations';
 import { sortBy } from '@shell/utils/sort';
 import { clone } from '@shell/utils/object';
 import { randomStr } from '@shell/utils/string';
@@ -39,7 +40,9 @@ export default {
     },
 
     networkOption() {
-      const choices = this.$store.getters['harvester/all'](NETWORK_ATTACHMENT);
+      const choices = this.$store.getters['harvester/all'](NETWORK_ATTACHMENT).filter((row) => {
+        return !row.metadata?.annotations?.[HCI_ANNOTATIONS.STORAGE_NETWORK];
+      });
 
       const out = sortBy(
         choices.map((N) => {

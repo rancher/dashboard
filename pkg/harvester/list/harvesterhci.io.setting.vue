@@ -72,7 +72,7 @@ export default {
         data: settingsMap[setting],
       };
 
-      s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline' || s.customFormatter === 'json');
+      s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline' || s.customFormatter === 'json' || s.data.customFormatter === 'json');
       s.hasActions = !s.readOnly || isDev;
       initSettings.push(s);
     });
@@ -208,7 +208,7 @@ export default {
           <pre v-if="setting.kind === 'json'">{{ setting.json }}</pre>
           <pre v-else-if="setting.kind === 'multiline'">{{ setting.data.value || setting.data.default }}</pre>
           <pre v-else-if="setting.kind === 'enum'">{{ t(setting.enum) }}</pre>
-          <pre v-else-if="setting.kind === 'custom' && setting.custom"> {{ setting.custom }}</pre>
+          <pre v-else-if="setting.kind === 'custom' && setting.custom">{{ setting.custom }}</pre>
           <pre v-else-if="setting.data.value || setting.data.default">{{ setting.data.value || setting.data.default }}</pre>
           <pre v-else class="text-muted">&lt;{{ t('advancedSettings.none') }}&gt;</pre>
         </div>

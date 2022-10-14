@@ -5,6 +5,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 
 import { NAME, AGE, NAMESPACE } from '@shell/config/table-headers';
 import { NETWORK_ATTACHMENT, SCHEMA } from '@shell/config/types';
+import { HCI as HCI_ANNOTATIONS } from '../config/labels-annotations';
 import { HCI } from '../types';
 
 import { allHash } from '@shell/utils/promise';
@@ -89,6 +90,11 @@ export default {
       return notReadyCrd.map( O => O.linkMessage);
     },
 
+    filterRows() {
+      return this.rows.filter((row) => {
+        return !row.metadata?.annotations?.[HCI_ANNOTATIONS.STORAGE_NETWORK];
+      });
+    }
   },
 
   typeDisplay() {
@@ -119,7 +125,7 @@ export default {
       default-sort-by="age"
       :schema="schema"
       :groupable="true"
-      :rows="rows"
+      :rows="filterRows"
       key-field="_key"
       v-on="$listeners"
     />

@@ -54,6 +54,34 @@ export default class HciSetting extends HarvesterResource {
     });
   }
 
+  get customValue() {
+    if (this.metadata.name === HCI_SETTING.STORAGE_NETWORK) {
+      try {
+        return JSON.stringify(JSON.parse(this.value), null, 2);
+      } catch (e) {}
+    }
+
+    return false;
+  }
+
+  get customFormatter() {
+    if (this.metadata.name === HCI_SETTING.STORAGE_NETWORK) {
+      try {
+        JSON.stringify(JSON.parse(this.value), null, 2);
+
+        return 'json';
+      } catch (e) {
+
+      }
+    }
+
+    return false;
+  }
+
+  get backupTargetIsEmpty() {
+    return !this.value;
+  }
+
   get errMessage() {
     const configuredCondition = findBy((this?.status?.conditions || []), 'type', 'configured') || {};
 
