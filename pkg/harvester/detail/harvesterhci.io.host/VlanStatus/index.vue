@@ -7,6 +7,7 @@ import { _CREATE } from '@shell/config/query-params';
 import { findBy } from '@shell/utils/array';
 
 import LinkStatus from './LinkStatus';
+import { HCI } from '../../../types';
 
 export default {
   name: 'HarvesterHostNetwork',
@@ -37,6 +38,17 @@ export default {
 
     readyCondition() {
       return findBy(this.conditions, 'type', 'ready') || {};
+    },
+
+    linkStatus() {
+      const linkMonitorId = this.value?.status?.linkMonitor;
+      const nodeName = this.value?.status?.node;
+
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const linkMonitors = this.$store.getters[`${ inStore }/all`](HCI.LINK_MONITOR);
+      const linkMonitor = (linkMonitors.filter(l => l.id === linkMonitorId) || [])[0] || {};
+
+      return linkMonitor?.status?.linkStatus?.[nodeName] || [];
     },
   },
 };
@@ -75,7 +87,7 @@ export default {
     <div class="row mt-20">
       <div class="col span-12">
         <ArrayListGrouped
-          v-model="value.status.linkStatus"
+          v-model="linkStatus"
           :mode="mode"
           :can-remove="false"
         >

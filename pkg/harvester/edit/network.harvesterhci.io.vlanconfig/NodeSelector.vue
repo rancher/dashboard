@@ -1,11 +1,13 @@
 <script>
 import { mapGetters } from 'vuex';
+
 import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import KeyValue from '@shell/components/form/KeyValue';
 
-import { isEmpty } from '@shell/utils/object';
 import { HOSTNAME } from '@shell/config/labels-annotations';
+import { findBy } from '@shell/utils/array';
+import { HCI } from '../../types';
 
 export default {
   components: {
@@ -72,6 +74,29 @@ export default {
 
       return out;
     },
+
+    nics() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const linkMonitor = this.$store.getters[`${ inStore }/byId`](HCI.LINK_MONITOR, 'nic') || {};
+      const linkStatus = linkMonitor?.status?.linkStatus || {};
+
+      const out = [];
+
+      Object.keys(linkStatus).map((nodeName) => {
+        const nics = linkStatus[nodeName] || [];
+
+        nics.map((nic) => {
+          if (!findBy(out, 'name', nic.name) && !nic.masterIndex) {
+            out.push({
+              ...nic,
+              nodeName,
+            });
+          }
+        });
+      });
+
+      return out;
+    },
   },
 
   methods: {
@@ -97,8 +122,9 @@ export default {
       default:
         delete this.value.nodeSelector;
       }
+
+      this.$emit('updateMatchingNICs');
     },
-    isEmpty
   },
 };
 </script>

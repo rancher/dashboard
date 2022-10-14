@@ -874,6 +874,9 @@ harvester:
       nics:
         label: NICs
         addLabel: Add NIC
+        placeholder: Select a NIC that is available on all the selected nodes
+        validate:
+          available: NIC "{nic}" is not available on the selected nodes
       linkAttributes:
         mtu: 
           label: MTU
@@ -882,6 +885,14 @@ harvester:
           label: Mode
         miimon:
           label: Miimon
+    nodeSelector:
+      matchingNics:
+        matchesSome: |-
+          {matched, plural,
+            =0 {Matches 0 of {total, number} NIC.}
+            =1 {Matches 1 of {total, number} NICs: "{sample}"}
+            other {Matches {matched, number} of {total, number} existing NICs, including "{sample}"}
+          }
 
   vlanStatus:
     vlanConfig:

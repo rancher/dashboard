@@ -67,6 +67,10 @@ export default {
       hash.longhornNodes = this.$store.dispatch('harvester/findAll', { type: LONGHORN.NODES });
     }
 
+    if (this.$store.getters['harvester/schemaFor'](HCI.LINK_MONITOR)) {
+      hash.linkMonitors = this.$store.dispatch('harvester/findAll', { type: HCI.LINK_MONITOR });
+    }
+
     const res = await allHash(hash);
     const hostNetworkResource = (res.hostNetworks || []).find( O => this.value.id === O.attachNodeName);
 
