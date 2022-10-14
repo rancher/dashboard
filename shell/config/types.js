@@ -30,6 +30,7 @@ export const NORMAN = {
   ROLE_TEMPLATE:                 'roleTemplate',
   TOKEN:                         'token',
   USER:                          'user',
+  OPERATOR_SETTINGS:             'operatorsettings',
 };
 
 // Public (via Norman)

@@ -24,6 +24,7 @@ export const KONTAINER_TO_DRIVER = {
   aliyunkubernetescontainerservice: 'aliyun',
   baiducloudcontainerengine:        'baidu',
   opentelekomcloudcontainerengine:  'otccce',
+  ack:                              'aliyunv2'
 };
 
 // And the Import page has even shorter ones that don't match kontainer or create...
@@ -31,6 +32,7 @@ export const DRIVER_TO_IMPORT = {
   googlegke: 'gke',
   amazoneks: 'eks',
   azureaks:  'aks',
+  aliyun:    'ack',
 };
 
 export default class KontainerDriver extends HybridModel {
