@@ -73,7 +73,7 @@ export default {
   >
     <Tab
       name="node"
-      label-key="harvester.vlanConfig.title.host"
+      label-key="harvester.vlanConfig.titles.host"
       :weight="99"
     >
       <SortableTable
