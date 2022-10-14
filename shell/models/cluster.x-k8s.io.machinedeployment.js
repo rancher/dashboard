@@ -163,6 +163,10 @@ export default class CapiMachineDeployment extends SteveModel {
     return true;
   }
 
+  get showScalePool() {
+    return this.canScaleDownPool() || this.canScaleUpPool();
+  }
+
   get stateParts() {
     const out = [
       {

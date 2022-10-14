@@ -201,7 +201,7 @@ export default {
         <div v-if="isView">
           {{ row.key }}
         </div>
-        <input v-else-if="!keysSelectOptions || !keysSelectOptions.length" v-model="row.key" :mode="mode" @input="update" />
+        <input v-else-if="!keysSelectOptions?.length" v-model="row.key" :mode="mode" @input="update" />
         <LabeledSelect
           v-else
           v-model="row.key"
