@@ -191,7 +191,6 @@ product:
   harvesterManager: Virtualization Management
   rancher: Rancher
   uiplugins: Extensions
-  elemental: OS Management
 
 suffix:
   percent: "%"

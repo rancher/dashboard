@@ -1,3 +1,6 @@
+product:
+  elemental: OS Management
+
 typeLabel:
   elemental:  |-
     {count, plural,
