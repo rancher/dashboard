@@ -239,6 +239,7 @@ export default {
   },
 
   loadCluster: async( { dispatch, commit, rootGetters }: any, { id }: any ) => {
+    await dispatch(`loadSchemas`);
     await dispatch(`findAll`, { type: EPINIO_TYPES.NAMESPACE });
     dispatch(`findAll`, { type: EPINIO_TYPES.APP }); // This is used often, get a kick start
     await dispatch('cleanNamespaces', null, { root: true });

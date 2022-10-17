@@ -253,6 +253,8 @@ export default function(dir, _appConfig) {
   }
   const rancherEnv = process.env.RANCHER_ENV || 'web';
 
+  const excludeNuxtPlugins = (process.env.EXCLUDES_NUXT_PLUGINS || '').split(',');
+
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
 
   const config = {
@@ -584,6 +586,10 @@ export default function(dir, _appConfig) {
       { src: path.join(NUXT_SHELL, 'plugins/formatters'), ssr: false }, // Populate formatters cache for sorted table
       { src: path.join(NUXT_SHELL, 'plugins/version'), ssr: false }, // Makes a fetch to the backend to get version metadata
     ],
+
+    extendPlugins: (plugins) => {
+      return plugins.filter(({ src }) => !excludeNuxtPlugins.find(p => src?.endsWith(p)));
+    },
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options
     proxy: {
