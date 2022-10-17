@@ -82,7 +82,7 @@ fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null,
 
 // Copy base files
 files.forEach((file) => {
-  const src = path.join(__dirname, file);
+  const src = path.join(__dirname, 'files', file);
   const dest = path.join(appFolder, file);
 
   if (!fs.existsSync(dest)) {

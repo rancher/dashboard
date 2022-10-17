@@ -15,8 +15,20 @@ echo "Generating ..."
 ${BASE_DIR}/node_modules/.bin/tsc shell/utils/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/utils > /dev/null
 
 # config
-
 ${BASE_DIR}/node_modules/.bin/tsc shell/config/query-params.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/config/table-headers.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/config/types.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/config > /dev/null
+
+# store
+${BASE_DIR}/node_modules/.bin/tsc shell/store/features.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/store > /dev/null
+
+# plugins
+${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/normalize.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
+${BASE_DIR}/node_modules/.bin/tsc shell/plugins/dashboard-store/resource-class.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store/ > /dev/null
+
+
+# mkixins
+${BASE_DIR}/node_modules/.bin/tsc shell/mixins/create-edit-view/index.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/mixins/create-edit-view > /dev/null
 
 #./node_modules/.bin/tsc shell/plugins/dashboard-store/*.js --declaration --allowJs --emitDeclarationOnly --outDir ${SHELL_DIR}/tmp/plugins/dashboard-store > /dev/null
 
@@ -53,8 +65,13 @@ function processDir() {
         # We use convoluted mechanism here to ensure this works on mac with bash 3.x
         local name=$(echo $filename | rev | cut -c6- | rev)
 
-        echo -e "\n// ${basePkg}/${name}\n" >> ${INDEX}
-        echo "declare module '${basePkg}/${name}' {" >> ${INDEX}
+        local module=${basePkg}/${name}
+        if [ "${name}" == "index" ]; then
+          module=${basePkg}
+        fi
+
+        echo -e "\n// ${module}\n" >> ${INDEX}
+        echo "declare module '${module}' {" >> ${INDEX}
         cat $entry >> ${INDEX}
         echo -e "}" >> ${INDEX}
       fi

@@ -26,6 +26,7 @@ PKG_DIST=$BASE_DIR/dist-pkg/creators
 mkdir -p ${PKG_DIST}
 rm -rf ${PKG_DIST}/app
 rm -rf ${PKG_DIST}/pkg
+rm -rf ${PKG_DIST}/update
 
 pushd ${SHELL_DIR} >/dev/null
 
@@ -36,31 +37,42 @@ echo "Publishing version: $PKG_VERSION"
 
 cp -R ${SHELL_DIR}/creators/app ${PKG_DIST}
 cp -R ${SHELL_DIR}/creators/pkg ${PKG_DIST}
+cp -R ${SHELL_DIR}/creators/update ${PKG_DIST}
 
 sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/app/package.json
 sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/pkg/package.json
+sed -i.bak -e "s/\"0.0.0/"\"$PKG_VERSION"/g" ${PKG_DIST}/update/package.json
 
 rm ${PKG_DIST}/app/package.json.bak
 rm ${PKG_DIST}/pkg/package.json.bak
+rm ${PKG_DIST}/update/package.json.bak
 
 function publish() {
   NAME=$1
   FOLDER=$2
 
   echo "Publishing ${NAME} from ${FOLDER}"
-
-  echo "Making a copy for publishing"
-  rm -rf ${TMP_DIR}/publish
-  mkdir -p ${TMP_DIR}/publish
-
-  cp -R ${FOLDER} ${TMP_DIR}/publish
-
-  pushd ${TMP_DIR}/publish >/dev/null
+  pushd ${FOLDER} >/dev/null
 
   # For now, copy the rancher components into the shell and ship them with it
-  if [ "$NAME" == "Shell" ]; then
+  if [ "$NAME" == "+Shell" ]; then
     echo "Adding Rancher Components"
     cp -R ${BASE_DIR}/pkg/rancher-components/src/components ./rancher-components/
+  fi
+
+  if [ "$NAME" == "Update" ]; then
+    # Add files from the app and pkg creators to the update package
+    mkdir -p ./app
+    mkdir -p ./pkg
+    cp -R ${BASE_DIR}/shell/creators/app/* ./app
+    cp -R ${BASE_DIR}/shell/creators/pkg/* ./pkg
+    # Remove index.ts from pkg files, as we don't want to replace that
+    rm -f ./pkg/files/index.ts
+
+    # Update the package.json for the app
+    cd app
+    node ${SCRIPT_DIR}/record-deps.js
+    cd ..
   fi
 
   # Make a note of dependency versions, if required
@@ -82,11 +94,9 @@ ${SCRIPT_DIR}/typegen.sh
 
 # Publish the packages - don't tag the git repo and don't auto-increment the version number
 publish "Shell" ${SHELL_DIR}
-
 publish "Application creator" ${PKG_DIST}/app/
 publish "Package creator" ${PKG_DIST}/pkg/
-
-rm -f ${TMP_DIR}
+publish "Update" ${PKG_DIST}/update/
 
 echo "Done"
 
