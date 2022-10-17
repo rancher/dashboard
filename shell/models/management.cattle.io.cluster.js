@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { CATALOG, CLUSTER_BADGE } from '@shell/config/labels-annotations';
-import { NODE, FLEET, MANAGEMENT } from '@shell/config/types';
+import { NODE, FLEET, MANAGEMENT, CAPI } from '@shell/config/types';
 import { insertAt } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
@@ -429,5 +429,13 @@ export default class MgmtCluster extends HybridModel {
 
   get nodes() {
     return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+  }
+
+  get provClusterId() {
+    const verb = this.isLocal ? 'to' : 'from';
+    const from = `${ verb }Type`;
+    const id = `${ verb }Id`;
+
+    return this.metadata.relationships.find(r => r[from] === CAPI.RANCHER_CLUSTER)?.[id];
   }
 }
