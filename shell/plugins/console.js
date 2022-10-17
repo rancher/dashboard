@@ -1,12 +1,17 @@
 /* eslint-disable no-console */
-export default (context) => {
-  const logTypes = ['log', 'error', 'info', 'warn'];
+export default () => {
+  const logTypes = ['warn', 'error'];
   const MAX_LOGS_STORED = 400;
 
-  console.logLog = console.log.bind(console);
-  console.errorLog = console.error.bind(console);
-  console.infoLog = console.info.bind(console);
+  if (!process.env.dev) {
+    console.logLog = console.log.bind(console);
+    console.infoLog = console.info.bind(console);
+    logTypes.push('log');
+    logTypes.push('info');
+  }
+
   console.warnLog = console.warn.bind(console);
+  console.errorLog = console.error.bind(console);
   console.logs = [];
 
   logTypes.forEach((type) => {

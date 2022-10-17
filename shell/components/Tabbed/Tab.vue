@@ -36,6 +36,11 @@ export default {
       type:    Boolean,
       default: false
     },
+    badge: {
+      default:  0,
+      required: false,
+      type:     Number
+    },
   },
 
   data() {

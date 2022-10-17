@@ -53,6 +53,10 @@ export function resolveList(key) {
   return undefined;
 }
 
+export function resolveChart(key) {
+  return undefined;
+}
+
 export function resolveEdit(key) {
   return undefined;
 }

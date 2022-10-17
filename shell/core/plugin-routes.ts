@@ -16,6 +16,7 @@ type RouteInstallHistory = {
 
 export class PluginRoutes {
   router: Router;
+  pluginRoutes: RouteConfig[] = [];
 
   replacedRoutes: RouteInstallHistory = {};
 
@@ -53,7 +54,7 @@ export class PluginRoutes {
 
             break;
           } else {
-            // Need to updare the previous item so that when it is removed, it restores the correct route
+            // Need to update the previous item so that when it is removed, it restores the correct route
             const previous = info[index - 1];
 
             previous.route = savedRoute.route;
@@ -65,14 +66,24 @@ export class PluginRoutes {
       }
     });
 
+    // Remove routes from pluginRoutes, update matcher (to avoid dupes when re-adding plugin routes)
+    this.pluginRoutes = this.pluginRoutes.filter(pR => !plugin.routes.find((r: any) => pR === r.route));
+    this.updateMatcher([], [
+      ...this.pluginRoutes,
+      ...(this.router.options.routes || [])
+    ]);
+
+    // Restore appropriate routes
     if (restore.length > 0) {
       this.addRoutes(null, restore);
     }
   }
 
   public addRoutes(plugin: any, routes: RouteInfo[]) {
-    const appRoutes = this.router.options.routes || [];
-    let replaced = 0;
+    const allRoutes = [
+      ...this.pluginRoutes,
+      ...(this.router.options.routes || [])
+    ];
 
     // Need to take into account if routes are being replaced
     // Despite what the docs say, routes are not replaced, so we use a workaround
@@ -82,18 +93,18 @@ export class PluginRoutes {
       let existing: any;
 
       if (r.parent) {
-        const pExisting = appRoutes.findIndex((route: any) => route.name === r.parent) as any;
+        const pExisting = allRoutes.findIndex((route: any) => route.name === r.parent) as any;
         const path = `${ pExisting.path }${ r.route.path }`;
 
         // TODO: Validate
-        existing = appRoutes.findIndex((route: any) => route.path === path);
+        existing = allRoutes.findIndex((route: any) => route.path === path);
       } else {
         // no parent route
-        existing = appRoutes.findIndex((route: any) => route.name === r.route.name);
+        existing = allRoutes.findIndex((route: any) => route.name === r.route.name);
       }
 
       if (existing >= 0) {
-        const existingRoute = appRoutes[existing];
+        const existingRoute = allRoutes[existing];
 
         // Store the route so we can restore it on uninstall
         if (plugin && existingRoute?.name) {
@@ -107,32 +118,33 @@ export class PluginRoutes {
           });
         }
 
-        appRoutes.splice(existing, 1);
-        replaced++;
+        allRoutes.splice(existing, 1);
       }
     });
 
-    const newRouter: Router = replaced > 0 ? new Router({
-      mode:   'history',
-      routes: appRoutes
-    }) : this.router;
+    this.updateMatcher(routes, allRoutes);
+  }
 
-    routes.forEach((r: any) => {
+  private updateMatcher(newRoutes: RouteInfo[], allRoutes: RouteConfig[]) {
+    // Note - Always use a new router and replace the existing router's matching
+    // Using the existing router and adding routes to it will force nuxt middleware (specifically authenticated on default layout) to
+    // execute many times (nuxt middleware boils down to router.beforeEach). This issue was seen refreshing in a harvester cluster with a
+    // dynamically loaded cluster
+    const newRouter: Router = new Router({
+      mode:   'history',
+      routes: allRoutes
+    });
+
+    newRoutes.forEach((r: any) => {
       if (r.parent) {
         newRouter.addRoute(r.parent, r.route);
       } else {
         newRouter.addRoute(r.route);
       }
+      this.pluginRoutes.push(r.route);
     });
 
-    if (replaced > 0) {
-      // Typing is incorrect
-      (this.router as any).matcher = (newRouter as any).matcher;
-    }
-
-    // If we replaced any routes, then we should reload on uninstall
-    if (plugin) {
-      plugin.reloadOnUninstall = replaced > 0;
-    }
+    // Typing is incorrect
+    (this.router as any).matcher = (newRouter as any).matcher;
   }
 }

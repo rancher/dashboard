@@ -10,7 +10,10 @@
     "dist-pkg",
     "cypress",
     "shell/creators",
+    "shell/scripts",
     "cypress",
-    "./cypress.config.ts"
+    "./cypress.config.ts",
+    "docusaurus",
+    "script/standalone"
   ]
 }

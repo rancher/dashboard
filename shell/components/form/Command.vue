@@ -36,6 +36,10 @@ export default {
         return {};
       },
     },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -200,6 +204,7 @@ export default {
       :config-maps="configMaps"
       :secrets="secrets"
       :value="value"
+      :loading="loading"
     />
   </div>
 </template>

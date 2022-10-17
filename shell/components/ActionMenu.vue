@@ -63,6 +63,15 @@ export default {
       type:    PointerEvent,
       default: null
     },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'action-menu'
+    }
   },
 
   data() {
@@ -146,10 +155,10 @@ export default {
         // If the action menu state is controlled with Vuex,
         // use the target element and the target event
         // to position the menu.
-        this.style = fitOnScreen(menu, event || elem, {
+        this.style = fitOnScreen(menu, elem || event, {
           overlapX:  true,
-          fudgeX:    elem ? 4 : 0,
-          fudgeY:    elem ? 4 : 0,
+          fudgeX:    elem ? -2 : 0,
+          fudgeY:    elem ? 20 : 0,
           positionX: (elem ? AUTO : CENTER),
           positionY: AUTO,
         });
@@ -224,10 +233,11 @@ export default {
     <div class="background" @click="hide" @contextmenu.prevent></div>
     <ul class="list-unstyled menu" :style="style">
       <li
-        v-for="opt in menuOptions"
+        v-for="(opt, i) in menuOptions"
         :key="opt.action"
         :disabled="opt.disabled"
         :class="{divider: opt.divider}"
+        :data-testid="componentTestid + '-' + i + '-item'"
         @click="execute(opt, $event)"
       >
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />

@@ -1,10 +1,9 @@
 <script>
 import { mapGetters } from 'vuex';
-import { NAMESPACE_FILTERS, DEV } from '@shell/store/prefs';
+import { NAMESPACE_FILTERS, ALL_NAMESPACES } from '@shell/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@shell/utils/array';
-
 import {
   NAMESPACE_FILTER_SPECIAL as SPECIAL,
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
@@ -29,7 +28,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster', 'isMultiVirtualCluster', 'currentProduct']),
+    ...mapGetters(['currentProduct']),
 
     hasFilter() {
       return this.filter.length > 0;
@@ -97,7 +96,7 @@ export default {
         });
       }
 
-      if (!this.isVirtualCluster) {
+      if (!this.currentProduct?.hideSystemResources) {
         out = [
           {
             id:    ALL,
@@ -137,12 +136,16 @@ export default {
 
       namespaces = this.filterNamespaces(namespaces);
 
-      if (this.$store.getters['isRancher'] || this.isMultiVirtualCluster) {
+      // isRancher = mgmt schemas are loaded and there's a project schema
+      if (this.$store.getters['isRancher']) {
         const cluster = this.$store.getters['currentCluster'];
         let projects = this.$store.getters['management/all'](
           MANAGEMENT.PROJECT
         );
 
+        projects = projects.filter((p) => {
+          return this.currentProduct?.hideSystemResources ? !p.isSystem && p.spec.clusterName === cluster.id : p.spec.clusterName === cluster.id;
+        });
         projects = sortBy(filterBy(projects, 'spec.clusterName', cluster.id), [
           'nameDisplay',
         ]);
@@ -319,8 +322,8 @@ export default {
 
   methods: {
     filterNamespaces(namespaces) {
-      if (this.$store.getters['prefs/get'](DEV)) {
-        // If developer tools are turned on in the user preferences,
+      if (this.$store.getters['prefs/get'](ALL_NAMESPACES)) {
+        // If all namespaces options are turned on in the user preferences,
         // return all namespaces including system namespaces and RBAC
         // management namespaces.
         return namespaces;

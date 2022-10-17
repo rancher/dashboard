@@ -37,6 +37,8 @@ describe('Rancher setup', () => {
       .should('eq', true);
     rancherSetupAuthVerify.submit();
 
+    cy.location('pathname', { timeout: 15000 }).should('include', '/home');
+
     // TODO: This assertion is commented as it started to fail after rebasing and cannot be corrected as it's not possible to run Rancher locally
     // cy.wait('@firstLoginReq').then((login) => {
     //   expect(login.response?.statusCode).to.equal(200);

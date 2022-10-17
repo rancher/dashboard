@@ -7,6 +7,7 @@ import {
 } from '@shell/config/types';
 import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
+import { BLANK_CLUSTER } from '@shell/store';
 
 export const NAME = 'manager';
 
@@ -28,6 +29,14 @@ export function init(store) {
     icon:                'cluster-management',
     removable:           false,
     showClusterSwitcher: false,
+    to:                   {
+      name:   'c-cluster-product-resource',
+      params: {
+        cluster:  BLANK_CLUSTER,
+        product:  NAME,
+        resource: CAPI.RANCHER_CLUSTER
+      }
+    },
   });
 
   virtualType({
@@ -110,8 +119,6 @@ export function init(store) {
   weightType(CAPI.MACHINE_SET, 2, true);
   weightType(CAPI.MACHINE, 1, true);
   weightType(CATALOG.CLUSTER_REPO, 0, true);
-
-  configureType(CATALOG.CLUSTER_REPO, { showListMasthead: false });
 
   basicType([
     CAPI.MACHINE_DEPLOYMENT,

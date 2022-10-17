@@ -13,7 +13,7 @@ import Select from '@shell/components/form/Select';
 import day from 'dayjs';
 
 import { escapeHtml, escapeRegex } from '@shell/utils/string';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 
 import Socket, {
   EVENT_CONNECTED,

@@ -4,6 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
 import { set } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
+import { _CREATE } from '@shell/config/query-params';
 
 export default {
   components: {
@@ -23,7 +24,7 @@ export default {
   },
 
   data() {
-    if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
+    if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) && this.mode === _CREATE ) {
       set(this.value, 'spec.localClusterAuthEndpoint', {
         enabled: false,
         caCerts: '',

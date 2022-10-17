@@ -24,8 +24,9 @@ import {
   COUNT,
   CATALOG,
   POD,
+  PSP,
 } from '@shell/config/types';
-import { mapPref, CLUSTER_TOOLS_TIP } from '@shell/store/prefs';
+import { mapPref, CLUSTER_TOOLS_TIP, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
 import { haveV1Monitoring, monitoringStatus } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -111,12 +112,12 @@ export default {
 
     return {
       nodeHeaders,
-      constraints:         [],
-      events:              [],
-      nodeMetrics:         [],
-      showClusterMetrics: false,
-      showK8sMetrics:     false,
-      showEtcdMetrics:    false,
+      constraints:                 [],
+      events:                      [],
+      nodeMetrics:                 [],
+      showClusterMetrics:          false,
+      showK8sMetrics:              false,
+      showEtcdMetrics:             false,
       CLUSTER_METRICS_DETAIL_URL,
       CLUSTER_METRICS_SUMMARY_URL,
       K8S_METRICS_DETAIL_URL,
@@ -124,7 +125,7 @@ export default {
       ETCD_METRICS_DETAIL_URL,
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts,
-      selectedTab:         'cluster-events',
+      selectedTab:                 'cluster-events',
     };
   },
 
@@ -142,6 +143,20 @@ export default {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
 
+    displayPspDeprecationBanner() {
+      const cluster = this.currentCluster;
+      const major = cluster.status?.version?.major ? parseInt(cluster.status?.version?.major) : 0;
+      const minor = cluster.status?.version?.minor ? parseInt(cluster.status?.version?.minor) : 0;
+
+      if (major === 1 && minor >= 21 && minor < 25) {
+        const clusterCounts = this.$store.getters[`cluster/all`](COUNT)?.[0]?.counts;
+
+        return !!clusterCounts?.[PSP]?.summary?.count;
+      }
+
+      return false;
+    },
+
     nodes() {
       return this.$store.getters['cluster/all'](NODE);
     },
@@ -150,7 +165,8 @@ export default {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
 
-    hideClusterToolsTip: mapPref(CLUSTER_TOOLS_TIP),
+    hideClusterToolsTip:      mapPref(CLUSTER_TOOLS_TIP),
+    hidePspDeprecationBanner: mapPref(PSP_DEPRECATION_BANNER),
 
     hasV1Monitoring() {
       return haveV1Monitoring(this.$store.getters);
@@ -324,6 +340,16 @@ export default {
 
     hasDescription() {
       return !!this.currentCluster?.spec?.description;
+    },
+
+    allEventsLink() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  'explorer',
+          resource: 'event',
+        }
+      };
     }
   },
 
@@ -379,6 +405,14 @@ export default {
       </div>
     </header>
     <Banner
+      v-if="displayPspDeprecationBanner && !hidePspDeprecationBanner"
+      :closable="true"
+      color="warning"
+      @close="hidePspDeprecationBanner = true"
+    >
+      <t k="landing.deprecatedPsp" :raw="true" />
+    </Banner>
+    <Banner
       v-if="!hideClusterToolsTip"
       :closable="true"
       class="cluster-tools-tip"
@@ -403,6 +437,14 @@ export default {
         <label>{{ t('glance.created') }}: </label>
         <span><LiveDate :value="currentCluster.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></span>
       </div>
+      <p
+        v-if="displayPspDeprecationBanner && hidePspDeprecationBanner"
+        v-tooltip="t('landing.deprecatedPsp')"
+        class="alt-psp-deprecation-info"
+      >
+        <span>{{ t('landing.psps') }}</span>
+        <i class="icon icon-warning" />
+      </p>
       <div :style="{'flex':1}" />
       <div v-if="!monitoringStatus.v2 && !monitoringStatus.v1">
         <n-link :to="{name: 'c-cluster-explorer-tools'}" class="monitoring-install">
@@ -446,6 +488,11 @@ export default {
     <div class="mt-30">
       <Tabbed @changed="tabChange">
         <Tab name="cluster-events" :label="t('clusterIndexPage.sections.events.label')" :weight="2">
+          <span class="events-table-link">
+            <n-link :to="allEventsLink">
+              <span>{{ t('glance.eventsTable') }}</span>
+            </n-link>
+          </span>
           <EventsTable />
         </Tab>
         <Tab v-if="hasMonitoring" name="cluster-alerts" :label="t('clusterIndexPage.sections.alerts.label')" :weight="1">
@@ -534,6 +581,16 @@ export default {
   margin-top: 0;
 }
 
+.alt-psp-deprecation-info {
+  display: flex;
+  align-items: center;
+  color: var(--warning);
+
+  span {
+    margin-right: 4px;
+  }
+}
+
 .monitoring-install {
   display: flex;
   margin-left: 10px;
@@ -546,6 +603,12 @@ export default {
   &:focus {
     outline: 0;
   }
+}
+
+.events-table-link {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
 
 .k8s-component-status {

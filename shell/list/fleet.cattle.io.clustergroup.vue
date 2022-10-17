@@ -23,6 +23,11 @@ export default {
       type:     Array,
       required: true,
     },
+
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
   computed: {
@@ -57,6 +62,7 @@ export default {
     :schema="schema"
     :headers="headers"
     :rows="rows"
+    :loading="loading"
     key-field="_key"
     v-on="$listeners"
   >
