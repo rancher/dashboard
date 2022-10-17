@@ -6,17 +6,29 @@ Because of this, we extend the [Cypress best practices](https://docs.cypress.io/
 
 ## Initial Setup
 
-For the cypress test runner to consume the UI, you should specify the environment variables:
+For the cypress test runner to consume the UI, you should specify the environment variables. This may change based on the type of tests you may want to run.
+
+### Setup for remote tests
+
+For tests against a deployed Rancher, e.g. on Digital Ocean:
+
+### Setup for local tests
+
+NOTE: Local setup of Rancher do not work on Mac with M1 chips.
 
 - Local authentication credentials
   - `TEST_USERNAME`, default `admin`
   - `TEST_PASSWORD`, user password or custom during first Rancher run
-  - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` password (do not pick `admin`)
+  - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` user password (do not pick `admin` as password as it generates issues)
 - `TEST_BASE_URL` // URL used by Cypress to run the tests, default `https://localhost:8005`
 - `TEST_SKIP_SETUP` // Avoid to execute bootstrap setup tests for already initialized Rancher instances
-- Dashboard
-  - `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
-  - `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
+
+### Setup for dashboard purposes ONLY
+
+If you want your tests to be tracked on Cypress dashboards you will have to enable the following:
+
+- `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
+- `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
 
 ## Development with watch/dev
 
