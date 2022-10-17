@@ -14,6 +14,20 @@ export default {
   },
   mixins: [ResourceFetch],
 
+  props: {
+    hasAdvancedFiltering: {
+      type:    Boolean,
+      default: false
+    },
+    advFilterHideLabelsAsCols: {
+      type:    Boolean,
+      default: false
+    },
+    advFilterPreventFilteringLabels: {
+      type:    Boolean,
+      default: false
+    },
+  },
   async fetch() {
     const store = this.$store;
     const resource = this.resource;
@@ -134,6 +148,9 @@ export default {
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
     >
+      <template slot="extraActions">
+        <slot name="extraActions"></slot>
+      </template>
     </Masthead>
     <div v-if="hasListComponent">
       <component
@@ -150,21 +167,24 @@ export default {
       :loading="loading"
       :headers="headers"
       :group-by="groupBy"
+      :has-advanced-filtering="hasAdvancedFiltering"
+      :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
+      :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
     />
   </div>
 </template>
 
-<style lang="scss" scoped>
-  .header {
-    position: relative;
-  }
-  H2 {
-    position: relative;
-    margin: 0 0 20px 0;
-  }
-  .right-action {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-  }
-</style>
+  <style lang="scss" scoped>
+    .header {
+      position: relative;
+    }
+    H2 {
+      position: relative;
+      margin: 0 0 20px 0;
+    }
+    .right-action {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+  </style>
