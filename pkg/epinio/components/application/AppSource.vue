@@ -31,8 +31,8 @@ interface GitUrl {
 
 type GithubAPIData = {
   repos: any[],
-      branches: any[],
-      commits: any[]
+  branches: any[],
+  commits: any[]
 }
 export interface GitHub {
   usernameOrOrg?: string,
