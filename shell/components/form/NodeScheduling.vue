@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 import { _VIEW } from '@shell/config/query-params';
 import { isEmpty } from '@shell/utils/object';
 import { HOSTNAME } from '@shell/config/labels-annotations';
@@ -31,7 +31,11 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    }
+    },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -177,6 +181,7 @@ export default {
             :options="nodes || []"
             :mode="mode"
             :multiple="false"
+            :loading="loading"
             @input="update"
           />
         </div>

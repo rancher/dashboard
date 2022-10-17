@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+
+const fs = require('fs-extra');
+const path = require('path');
+
+console.log(__dirname);
+
+const dir = path.resolve('.');
+
+console.log('Syncing shell dependencies');
+
+const topFile = path.join(dir, 'package.json');
+const shellFile = path.join(dir, 'shell', 'package.json');
+
+console.log(topFile);
+console.log(shellFile);
+
+const mainPkg = JSON.parse(fs.readFileSync(topFile));
+
+console.log(mainPkg.version);
+
+const shellPkg = JSON.parse(fs.readFileSync(shellFile));
+
+console.log(shellPkg.version);
+
+Object.keys(shellPkg.dependencies).forEach(k => {
+  const version = mainPkg.dependencies[k] || mainPkg.devDependencies[k];
+  const current = shellPkg.dependencies[k];
+
+  if (version) {
+    console.log(`Syncing ${ k } -> ${ version } was ${ current }`);
+    shellPkg.dependencies[k] = version;
+  }
+});
+
+fs.writeFileSync(shellFile, JSON.stringify(shellPkg, undefined, 2));
+

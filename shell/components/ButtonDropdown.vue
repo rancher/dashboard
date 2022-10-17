@@ -194,6 +194,10 @@ export default {
     @search:focus="onFocus"
     @input="$emit('click-action', $event)"
   >
+    <template slot="no-options">
+      <slot name="no-options"></slot>
+    </template>
+
     <template #selected-option="option">
       <button
         tabindex="-1"

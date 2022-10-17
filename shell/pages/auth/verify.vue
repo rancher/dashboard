@@ -2,6 +2,8 @@
 import { GITHUB_CODE, GITHUB_NONCE, BACK_TO } from '@shell/config/query-params';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
+import loadPlugins from '@shell/plugins/plugin';
+
 const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
 
 function reply(err, code) {
@@ -59,6 +61,13 @@ export default {
 
       if ( res._status === 200) {
         const backTo = route.query[BACK_TO] || '/';
+
+        // Load plugins
+        await loadPlugins({
+          app:     store.app,
+          store,
+          $plugin: store.$plugin
+        });
 
         redirect(backTo);
       } else {

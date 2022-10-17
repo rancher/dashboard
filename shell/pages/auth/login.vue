@@ -3,6 +3,7 @@ import { removeObject } from '@shell/utils/array';
 import { USERNAME } from '@shell/config/cookies';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
+import LocaleSelector from '@shell/components/LocaleSelector';
 import BrandImage from '@shell/components/BrandImage';
 import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
@@ -25,12 +26,13 @@ import {
   setBrand,
   setVendor
 } from '@shell/config/private-label';
+import loadPlugins from '@shell/plugins/plugin';
 
 export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector
   },
 
   async asyncData({ route, redirect, store }) {
@@ -164,7 +166,7 @@ export default {
 
     kubectlCmd() {
       return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
-    }
+    },
 
   },
 
@@ -253,6 +255,15 @@ export default {
         } else {
           this.$cookies.remove(USERNAME);
         }
+
+        // User logged with local login - we don't do any redirect/reload, so the boot-time plugin will not run again to laod the plugins
+        // so we manually load them here - other SSO auth providers bounce out and back to the Dashboard, so on the bounce-back
+        // the plugins will load via the boot-time plugin
+        await loadPlugins({
+          app:     this.$store.app,
+          store:   this.$store,
+          $plugin: this.$store.$plugin
+        });
 
         if (this.firstLogin || user[0]?.mustChangePassword) {
           this.$store.dispatch('auth/setInitialPass', this.password);
@@ -393,6 +404,9 @@ export default {
               {{ nonLocalPrompt }}
             </a>
           </div>
+          <div class="locale-elector">
+            <LocaleSelector mode="login" />
+          </div>
         </template>
       </div>
 
@@ -434,5 +448,10 @@ export default {
         }
       }
     }
+  }
+
+  .locale-elector {
+    position: absolute;
+    bottom: 30px;
   }
 </style>

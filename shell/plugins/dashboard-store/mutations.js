@@ -3,18 +3,19 @@ import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA } from '@shell/config/types';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { classify } from '@shell/plugins/dashboard-store/classify';
+import garbageCollect from '@shell/utils/gc/gc';
 
 function registerType(state, type) {
   let cache = state.types[type];
 
   if ( !cache ) {
     cache = {
-      list:         [],
-      haveAll:      false,
-      haveSelector: {},
-      revision:     0, // The highest known resourceVersion from the server for this type
-      generation:   0, // Updated every time something is loaded for this type
-      loadCounter:  0, // Used to cancel incremental loads if the page changes during load
+      list:             [],
+      haveAll:          false,
+      haveSelector:     {},
+      revision:         0, // The highest known resourceVersion from the server for this type
+      generation:       0, // Updated every time something is loaded for this type
+      loadCounter:      0, // Used to cancel incremental loads if the page changes during load
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -120,6 +121,8 @@ export function forgetType(state, type) {
     cache.map.clear();
     delete state.types[type];
 
+    garbageCollect.gcResetType(state, type);
+
     return true;
   }
 }
@@ -131,27 +134,31 @@ export function resetStore(state, commit) {
   for ( const type of Object.keys(state.types) ) {
     commit(`${ state.config.namespace }/forgetType`, type);
   }
+
+  garbageCollect.gcResetStore(state);
 }
 
 export function remove(state, obj, getters) {
-  let type = normalizeType(obj.type);
-  const keyField = getters[`${ state.config.namespace }/keyFieldForType`](type);
-  const id = obj[keyField];
+  if (obj) {
+    let type = normalizeType(obj.type);
+    const keyField = getters[`${ state.config.namespace }/keyFieldForType`](type);
+    const id = obj[keyField];
 
-  let entry = state.types[type];
-
-  if ( entry ) {
-    removeObject(entry.list, obj);
-    entry.map.delete(id);
-  }
-
-  if ( obj.baseType ) {
-    type = normalizeType(obj.baseType);
-    entry = state.types[type];
+    let entry = state.types[type];
 
     if ( entry ) {
       removeObject(entry.list, obj);
       entry.map.delete(id);
+    }
+
+    if ( obj.baseType ) {
+      type = normalizeType(obj.baseType);
+      entry = state.types[type];
+
+      if ( entry ) {
+        removeObject(entry.list, obj);
+        entry.map.delete(id);
+      }
     }
   }
 }
@@ -289,7 +296,9 @@ export default {
   },
 
   remove(state, obj) {
-    remove(state, obj, this.getters);
+    if (obj) {
+      remove(state, obj, this.getters);
+    }
   },
 
   reset(state) {
@@ -304,5 +313,6 @@ export default {
     if (typeData) {
       typeData.loadCounter++;
     }
-  }
+  },
+
 };

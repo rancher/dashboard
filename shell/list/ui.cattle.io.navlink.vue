@@ -16,6 +16,11 @@ export default {
       type:     Array,
       required: true,
     },
+
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
   },
 
   computed: { ...mapGetters(['clusterId']) }
@@ -26,6 +31,7 @@ export default {
   <ResourceTable
     :schema="schema"
     :rows="rows"
+    :loading="loading"
   >
     <template #cell:to="{row}">
       <template v-if="row.spec && row.spec.toService">

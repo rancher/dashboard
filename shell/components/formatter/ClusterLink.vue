@@ -25,12 +25,8 @@ export default {
       return this.row?.detailLocation;
     },
 
-    clusterHasIssues() {
-      return this.row.status?.conditions?.some(condition => condition.error === true);
-    },
-
     statusErrorConditions() {
-      if (this.clusterHasIssues) {
+      if (this.row.hasError) {
         return this.row?.status.conditions.filter(condition => condition.error === true);
       }
 
@@ -38,7 +34,7 @@ export default {
     },
 
     formattedConditions() {
-      if (this.clusterHasIssues) {
+      if (this.row.hasError) {
         const filteredConditions = this.statusErrorConditions;
         const formattedTooltip = [];
 
@@ -64,7 +60,12 @@ export default {
     </n-link>
     <span v-else>{{ value }}</span>
     <i
-      v-if="clusterHasIssues"
+      v-if="row.rkeTemplateUpgrade"
+      v-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
+      class="template-upgrade-icon icon-alert icon"
+    />
+    <i
+      v-if="row.hasError"
       v-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
       class="conditions-alert-icon icon-error icon-lg"
     />
@@ -92,5 +93,13 @@ export default {
   }
   .mytooltip ul {
     outline: 1px dashed red;
+  }
+  .template-upgrade-icon {
+    border: 1px solid var(--warning);
+    border-radius: 50%;
+    color: var(--warning);
+    margin-left: 4px;
+    font-size: 14px;
+    padding: 2px;
   }
 </style>

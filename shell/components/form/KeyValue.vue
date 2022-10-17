@@ -12,6 +12,8 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
 
 export default {
+  name: 'KeyValue',
+
   components: {
     Select,
     TextAreaAutoGrow,
@@ -19,6 +21,10 @@ export default {
   },
   props: {
     value: {
+      type:     [Array, Object],
+      default: null,
+    },
+    defaultValue: {
       type:     [Array, Object],
       default: null,
     },
@@ -223,68 +229,13 @@ export default {
     }
   },
   data() {
-    const rows = [];
-
-    if ( this.asMap ) {
-      const input = this.value || {};
-
-      Object.keys(input).forEach((key) => {
-        let value = input[key];
-        const decodedValue = base64Decode(input[key]);
-        const asciiValue = asciiLike(decodedValue);
-
-        if ( this.handleBase64 && asciiValue) {
-          value = base64Decode(value);
-        }
-
-        rows.push({
-          key,
-          value,
-          binary:    this.displayValuesAsBinary || (this.handleBase64 && !asciiValue),
-          canEncode: this.handleBase64 && asciiValue,
-          supported: true,
-        });
-      });
-    } else {
-      const input = this.value || [];
-
-      for ( const row of input ) {
-        let value = row[this.valueName] || '';
-        const decodedValue = base64Decode(row[this.valueName]);
-        const asciiValue = asciiLike(decodedValue);
-
-        if ( this.handleBase64 && asciiValue) {
-          value = base64Decode(value);
-        }
-        const entry = {
-          [this.keyName]:   row[this.keyName] || '',
-          [this.valueName]: value,
-          binary:           this.displayValuesAsBinary || (this.handleBase64 && !asciiValue),
-          canEncode:        this.handleBase64 && asciiValue,
-          supported:        this.supported(row),
-        };
-
-        this.preserveKeys?.map((k) => {
-          if ( typeof row[k] !== 'undefined' ) {
-            entry[k] = row[k];
-          }
-        });
-        rows.push(entry);
-      }
-    }
-    if ( !rows.length && this.initialEmptyRow ) {
-      rows.push({
-        [this.keyName]:   '',
-        [this.valueName]: '',
-        binary:           false,
-        canEncode:        this.handleBase64,
-        supported:        true
-      });
-    }
+    const rows = this.getRows(this.value);
 
     return { rows };
   },
+
   computed: {
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -315,7 +266,78 @@ export default {
   created() {
     this.queueUpdate = debounce(this.update, 500);
   },
+  watch: {
+    defaultValue(neu) {
+      if (Array.isArray(neu)) {
+        this.rows = this.getRows(neu);
+        this.$emit('input', neu);
+      }
+    }
+  },
   methods: {
+    getRows(value) {
+      const rows = [];
+
+      if ( this.asMap ) {
+        const input = value || {};
+
+        Object.keys(input).forEach((key) => {
+          let value = input[key];
+          const decodedValue = base64Decode(input[key]);
+          const asciiValue = asciiLike(decodedValue);
+
+          if ( this.handleBase64 && asciiValue) {
+            value = base64Decode(value);
+          }
+
+          rows.push({
+            key,
+            value,
+            binary:    this.displayValuesAsBinary || (this.handleBase64 && !asciiValue),
+            canEncode: this.handleBase64 && asciiValue,
+            supported: true,
+          });
+        });
+      } else {
+        const input = value || [];
+
+        for ( const row of input ) {
+          let value = row[this.valueName] || '';
+          const decodedValue = base64Decode(row[this.valueName]);
+          const asciiValue = asciiLike(decodedValue);
+
+          if ( this.handleBase64 && asciiValue) {
+            value = base64Decode(value);
+          }
+          const entry = {
+            [this.keyName]:   row[this.keyName] || '',
+            [this.valueName]: value,
+            binary:           this.displayValuesAsBinary || (this.handleBase64 && !asciiValue),
+            canEncode:        this.handleBase64 && asciiValue,
+            supported:        this.supported(row),
+          };
+
+          this.preserveKeys?.map((k) => {
+            if ( typeof row[k] !== 'undefined' ) {
+              entry[k] = row[k];
+            }
+          });
+          rows.push(entry);
+        }
+      }
+      if ( !rows.length && this.initialEmptyRow ) {
+        rows.push({
+          [this.keyName]:   '',
+          [this.valueName]: '',
+          binary:           false,
+          canEncode:        this.handleBase64,
+          supported:        true
+        });
+      }
+
+      return rows;
+    },
+
     add(key = '', value = '') {
       const obj = {
         ...this.defaultAddData,

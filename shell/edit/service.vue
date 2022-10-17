@@ -22,7 +22,7 @@ import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOn
 import { clone } from '@shell/utils/object';
 import { POD, CAPI } from '@shell/config/types';
 import { matching } from '@shell/utils/selector';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Port } from '@shell/utils/validators/formRules';
@@ -198,7 +198,8 @@ export default {
   },
 
   watch: {
-    'value.spec.selector': 'updateMatchingPods',
+    'value.metadata.namespace': 'updateMatchingPods',
+    'value.spec.selector':      'updateMatchingPods',
     'value.spec.sessionAffinity'(val) {
       if (val === 'ClientIP') {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
@@ -240,21 +241,22 @@ export default {
 
   methods: {
     updateMatchingPods: throttle(function() {
-      const { allPods, value: { spec: { selector = { } } } } = this;
+      const { value: { spec: { selector = { } } } } = this;
+      const allInNamespace = this.allPods.filter(pod => pod.metadata.namespace === this.value?.metadata?.namespace);
 
       if (isEmpty(selector)) {
         this.matchingPods = {
           matched: 0,
-          total:   allPods.length,
+          total:   allInNamespace.length,
           none:    true,
           sample:  null,
         };
       } else {
-        const match = matching(allPods, selector);
+        const match = matching(allInNamespace, selector);
 
         this.matchingPods = {
           matched: match.length,
-          total:   allPods.length,
+          total:   allInNamespace.length,
           none:    match.length === 0,
           sample:  match[0] ? match[0].nameDisplay : null,
         };
@@ -453,7 +455,7 @@ export default {
       <Tab
         v-if="showHarvesterAddOnConfig"
         name="add-on-config"
-        :label="t('harvester.service.title')"
+        :label="t('servicesPage.harvester.title')"
         :weight="-1"
       >
         <HarvesterServiceAddOnConfig

@@ -49,6 +49,15 @@ export default {
     hidePreviewButtons: {
       type:     Boolean,
       default:  false,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'yaml-editor'
     }
   },
 
@@ -216,6 +225,7 @@ export default {
       :class="{fill: true, scrolling: scrolling}"
       :value="curValue"
       :options="cmOptions"
+      :data-testid="componentTestid + '-code-mirror'"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"

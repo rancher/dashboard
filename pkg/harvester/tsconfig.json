@@ -1,0 +1,78 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "jsx": "preserve",
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "preserveSymlinks": true,
+    "typeRoots": [
+      "../../node_modules",
+      "../../shell/types"
+    ],
+    "types": [
+      "node",
+      "webpack-env",
+      "@types/node",
+      "@types/jest",
+      "@nuxt/types",
+      "rancher"
+    ],
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ],
+    "paths": {
+      "@shell/core/*": [
+        "../../shell/core/*"
+      ],
+      "@shell/config/*": [
+        "../../shell/config/*"
+      ],
+      "@shell/components/*": [
+        "../../shell/components/*"
+      ],
+      "@shell/store/*": [
+        "../../shell/store/*"
+      ],
+      "@shell/plugins/*": [
+        "../../shell/plugins/*"
+      ],
+      "@shell/utils/*": [
+        "../../shell/utils/*"
+      ],
+      "@shell/models/*": [
+        "../../shell/models/*"
+      ],
+      "@shell/mixins/*": [
+        "../../shell/mixins/*"
+      ],
+      "@shell/pages/*": [
+        "../../shell/pages/*"
+      ],
+      "@pkg/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts",
+    "**/*.tsx",
+    "**/*.vue",
+    "../../shell/core/types.ts",
+    "../../vue-shim.d.ts",
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

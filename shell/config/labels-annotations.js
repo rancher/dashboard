@@ -65,6 +65,7 @@ export const CATALOG = {
   EXPERIMENTAL:  'catalog.cattle.io/experimental',
   NAMESPACE:     'catalog.cattle.io/namespace',
   RELEASE_NAME:  'catalog.cattle.io/release-name',
+  FEATURED:      'catalog.cattle.io/featured',
 
   REQUIRES_GVK:     'catalog.cattle.io/requires-gvr',
   PROVIDES:         'catalog.cattle.io/provides-gvr',
@@ -94,7 +95,7 @@ export const CATALOG = {
   DEPLOYED_OS:   'catalog.cattle.io/deploys-on-os',
 
   MIGRATED: 'apps.cattle.io/migrated',
-  MANAGED:  'catalog.cattle.io/managed'
+  MANAGED:  'catalog.cattle.io/managed',
 };
 
 export const FLEET = {
