@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Script lives in shell/scripts, so work out top-level dir from there
-const topDir = path.resolve(__dirname, '..', '..')
+const topDir = path.resolve(__dirname, '..', '..');
 const dir = process.cwd();
 
 // Read the package.json file
@@ -17,10 +17,10 @@ if (mainPkg._requires) {
   // Map each one to the same version as the main package
   const out = {};
 
-  mainPkg._requires.forEach(name => {
+  mainPkg._requires.forEach((name) => {
     let ver = topPkg.dependencies?.[name] || topPkg.devDependencies?.[name];
 
-    if (name === '@rancher/components') { 
+    if (name === '@rancher/components') {
       const componentsPkgFile = path.join(topDir, 'pkg', 'rancher-components', 'package.json');
       const componentsPkg = JSON.parse(fs.readFileSync(componentsPkgFile));
 
