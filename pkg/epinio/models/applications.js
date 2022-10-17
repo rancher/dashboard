@@ -170,7 +170,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return this.$getters['all'](EPINIO_TYPES.SERVICE_INSTANCE)
       .filter((s) => {
         return s.metadata.namespace === this.metadata.namespace &&
-          this.serviceConfigurations?.find(sc => sc.configuration?.boundapps?.includes(this.metadata.name));
+          s.boundapps?.includes(this.metadata.name);
       });
   }
 
