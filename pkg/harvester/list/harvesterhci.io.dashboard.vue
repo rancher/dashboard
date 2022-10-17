@@ -71,7 +71,8 @@ const RESOURCES = [{
       name:   `${ HARVESTER_PRODUCT }-c-cluster-resource`,
       params: { resource: HCI.NETWORK_ATTACHMENT }
     },
-    name: HCI.NETWORK_ATTACHMENT,
+    name:            HCI.NETWORK_ATTACHMENT,
+    filterNamespace: ['harvester-system']
   }
 },
 {
