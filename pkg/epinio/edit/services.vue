@@ -60,7 +60,6 @@ export default Vue.extend<Data, any, any, any>({
       errors:                 [],
       failedWaitingForDeploy: false,
       selectedApps:           this.value.boundapps || [],
-      newBinds:               false,
     };
   },
 
@@ -101,6 +100,9 @@ export default Vue.extend<Data, any, any, any>({
       return this.catalogServiceOpts.length === 0;
     },
 
+    newBinds() {
+      return !isEqual(sortBy(this.selectedApps), sortBy(this.value.boundapps));
+    }
   },
 
   methods: {
@@ -138,16 +140,6 @@ export default Vue.extend<Data, any, any, any>({
     'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
     },
-    selectedApps: {
-      handler(val, _) {
-        if (!isEqual(sortBy(val), sortBy(this.value.boundapps))) {
-          this.newBinds = true;
-        } else {
-          this.newBinds = false;
-        }
-      },
-      deep: true
-    }
   }
 
 });
