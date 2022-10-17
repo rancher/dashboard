@@ -8,10 +8,11 @@ import { epinioExceptionToErrorsArray } from '../utils/errors';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { EpinioCatalogServiceResource, EPINIO_TYPES } from '../types';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
-import { sortBy } from '@shell/utils/sort';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
 import { mapGetters } from 'vuex';
+import isEqual from 'lodash/isEqual';
+import sortBy from 'lodash/sortBy';
 
 export const EPINIO_SERVICE_PARAM = 'service';
 
@@ -58,7 +59,7 @@ export default Vue.extend<Data, any, any, any>({
     return {
       errors:                 [],
       failedWaitingForDeploy: false,
-      selectedApps:           this.value.boundapps || []
+      selectedApps:           this.value.boundapps || [],
     };
   },
 
@@ -66,6 +67,10 @@ export default Vue.extend<Data, any, any, any>({
     ...mapGetters({ t: 'i18n/t' }),
 
     validationPassed() {
+      if (this.isEdit && this.newBinds) {
+        return true;
+      }
+
       if (!this.value.catalog_service) {
         return false;
       }
@@ -95,6 +100,9 @@ export default Vue.extend<Data, any, any, any>({
       return this.catalogServiceOpts.length === 0;
     },
 
+    newBinds() {
+      return !isEqual(sortBy(this.selectedApps), sortBy(this.value.boundapps));
+    }
   },
 
   methods: {
@@ -131,7 +139,7 @@ export default Vue.extend<Data, any, any, any>({
   watch: {
     'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
-    }
+    },
   }
 
 });
