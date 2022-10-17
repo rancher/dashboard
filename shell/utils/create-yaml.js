@@ -186,10 +186,13 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     if ( !field ) {
       if (data[key]) {
         try {
-          const cleaned = cleanUp(data);
+          // TODO do?
+          // const cleaned = cleanUp(data);
+          const cleaned = data;
           const parsedData = jsyaml.dump(cleaned[key]);
 
           if ( typeof data[key] === 'object' || Array.isArray(data[key]) ) {
+            console.log('key: ', key, 'parsedData: ', parsedData);
             out += `\n${ indent(parsedData.trim()) }`;
           } else {
             out += ` ${ parsedData.trim() }`;
@@ -212,7 +215,9 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     if ( mapOf ) {
       if (data[key]) {
         try {
-          const cleaned = cleanUp(data);
+          // TODO do?
+          // const cleaned = cleanUp(data);
+          const cleaned = data;
           const parsedData = jsyaml.dump(cleaned[key]);
 
           out += `\n${ indent(parsedData.trim()) }`;
@@ -238,7 +243,9 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     if ( arrayOf ) {
       if (data[key]) {
         try {
-          const cleaned = cleanUp(data);
+          // TODO do?
+          // const cleaned = cleanUp(data);
+          const cleaned = data;
 
           if ( cleaned?.[key] ) {
             const parsedData = jsyaml.dump(cleaned[key]);
