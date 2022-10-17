@@ -29,10 +29,18 @@ interface GitUrl {
   branch: string
 }
 
-interface GitHub {
+type GithubAPIData = {
+  repos: any[],
+  branches: any[],
+  commits: any[]
+}
+export interface GitHub {
   usernameOrOrg?: string,
-  url: string
+  repo: string,
   commit: string,
+  branch: string,
+  url: string,
+  sourceData: GithubAPIData
 }
 
 interface BuilderImage {
@@ -122,8 +130,15 @@ export default Vue.extend<Data, any, any, any>({
 
       github: {
         usernameOrOrg: this.source?.github.usernameOrOrg || '',
-        url:           this.source?.github.url || '',
+        repo:           this.source?.github.repo || '',
         commit:        this.source?.github.commit || '',
+        branch:        this.source?.github.branch || '',
+        url:           this.source?.github.url || '',
+        sourceData:    this.source?.github.sourceData || {
+          repos:    [],
+          branches: [],
+          commits:  []
+        }
       },
 
       builderImage: {
@@ -153,11 +168,12 @@ export default Vue.extend<Data, any, any, any>({
       APPLICATION_SOURCE_TYPE
     };
   },
-
   mounted() {
     if (!this.appChart) {
       Vue.set(this, 'appChart', this.appCharts[0].value);
     }
+
+    this.$emit('valid', false);
     this.update();
   },
 
@@ -280,20 +296,30 @@ export default Vue.extend<Data, any, any, any>({
 
       this.update();
     },
-    githubData({ repo, selectedAccOrOrg, commit }: {
-      commit: string,
+    githubData({
+      repo, selectedAccOrOrg, branch, commitSha, sourceData
+    }: {
+      commitSha: string,
       selectedAccOrOrg: string,
       repo: string,
+      branch: string,
+      sourceData: GithubAPIData
     }) {
-      const url = `https://github.com/${ selectedAccOrOrg }/${ repo }`;
+      if (!!selectedAccOrOrg && !!repo && !!commitSha && !!branch) {
+        const url = `https://github.com/${ selectedAccOrOrg }/${ repo }`;
 
-      if (url.length && selectedAccOrOrg.length) {
         this.github.usernameOrOrg = selectedAccOrOrg;
         this.github.url = url;
-        this.github.commit = commit;
+        this.github.commit = commitSha;
+        this.github.branch = branch;
+        this.github.repo = repo;
+        this.github.sourceData = sourceData;
 
         this.update();
         this.$emit('valid', true);
+      } else {
+        this.update();
+        this.$emit('valid', false);
       }
     }
   },
@@ -463,7 +489,9 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
-      <GithubPicker @githubData="githubData" />
+      <KeepAlive>
+        <GithubPicker :selection="source.github" @githubData="githubData" />
+      </KeepAlive>
     </template>
     <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30 source">
       <template>
