@@ -707,7 +707,7 @@ harvester:
     containerdRegistry:
       mirrors:
         mirrors: Mirror
-        registryName: RegistryName
+        registryName: Registry Name
         endpoints: 端点
         rewrite:
           rewrite: 重写
@@ -720,7 +720,7 @@ harvester:
         username: 用户名
         password: 密码
         auth: 认证
-        identityToken: IdentityToken
+        identityToken: Identity Token
         insecureSkipVerify: InsecureSkipVerify
         addConfig: 添加配置
 

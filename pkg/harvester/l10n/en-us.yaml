@@ -380,9 +380,9 @@ harvester:
     useTemplate:
       label: "Use VM Template:"
       template:
-        label: template
+        label: Template
       version:
-        label: version
+        label: Version
     console:
       novnc: Open in Web VNC
       serial: Open in Serial Console
@@ -730,7 +730,7 @@ harvester:
     containerdRegistry:
       mirrors:
         mirrors: Mirrors
-        registryName: RegistryName
+        registryName: Registry Name
         endpoints: Endpoints
         rewrite:
           rewrite: Rewrite
@@ -740,10 +740,10 @@ harvester:
         configs: Configs
         registryEDQNorIP: Registry FDQN or IP
         registryPlaceholder: myregistry.local:5000
-        username: UserName
+        username: Username
         password: Password
         auth: Auth
-        identityToken: IdentityToken
+        identityToken: Identity Token
         insecureSkipVerify: InsecureSkipVerify
         addConfig: Add Config
 
