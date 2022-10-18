@@ -1451,6 +1451,8 @@ export default {
     td {
       padding: 8px 5px;
       border: 0;
+      word-break: break-all;
+      word-wrap: break-word;
 
       &:first-child {
         padding-left: 10px;

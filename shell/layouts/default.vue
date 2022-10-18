@@ -436,14 +436,23 @@ export default {
           const groupSlug = obj.normalizedGroup;
 
           const entry = {
-            name:        `link-${ obj._key }`,
+            name:        obj.isIframe ? `link-${ obj._key }-${ encodeURIComponent(obj.iframeSrc) }` : `link-${ obj._key }`,
             link:        obj.link,
             target:      obj.actualTarget,
             label:       obj.labelDisplay,
             sideLabel:   obj.spec.sideLabel,
             iconSrc:     obj.spec.iconSrc,
             description: obj.spec.description,
+            isIframe:    obj.isIframe
           };
+
+          if (obj.isIframe) {
+            entry.route = {
+              name:   'c-cluster-explorer-navLinks-page',
+              params: { cluster: this.clusterId, page: obj.name },
+              query:  { link: obj.iframeSrc }
+            };
+          }
 
           // If there's a spec.group (groupLabel), all entries with that name go under one nav group
           if ( groupSlug ) {

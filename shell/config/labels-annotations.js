@@ -114,13 +114,15 @@ export const SNAPSHOT = { CLUSTER_NAME: 'rke.cattle.io/cluster-name' };
 export const ISTIO = { AUTO_INJECTION: 'istio-injection' };
 
 const CATTLE_REGEX = /cattle\.io\//;
+const PANDARIA_REGEX = /pandaria\.io\//;
 
 export const LABELS_TO_IGNORE_REGEX = [
   CATTLE_REGEX
 ];
 
 export const ANNOTATIONS_TO_IGNORE_REGEX = [
-  CATTLE_REGEX
+  CATTLE_REGEX,
+  PANDARIA_REGEX
 ];
 
 export const ANNOTATIONS_TO_FOLD = [

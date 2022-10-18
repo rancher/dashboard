@@ -71,7 +71,12 @@ export default {
     componentTestid: {
       type:    String,
       default: 'select-icon-grid'
-    }
+    },
+
+    iframeSrcField: {
+      type:    String,
+      default: 'iframeSrc'
+    },
   },
 
   methods: {
@@ -86,6 +91,15 @@ export default {
         return;
       }
 
+      if (row.isIframe) {
+        this.$router.push({
+          page:    'iframe',
+          name:   'c-cluster-explorer-navLinks-page',
+          params: { cluster: this.$route.params.cluster },
+          query:  { link: row.iframeSrc }
+        });
+      }
+
       this.$emit('clicked', row, idx);
     },
     capitalize
@@ -96,10 +110,10 @@ export default {
 <template>
   <div v-if="rows.length" class="grid">
     <div
-      :is="asLink ? 'a' : 'div'"
+      :is="asLink && !r.isIframe ? 'a' : 'div'"
       v-for="(r, idx) in rows"
       :key="get(r, keyField)"
-      :href="asLink ? get(r, linkField) : null"
+      :href="asLink ? get(r, !r.isIframe ? linkField : iframeSrcField) : null"
       :target="get(r, targetField)"
       :rel="rel"
       class="item"

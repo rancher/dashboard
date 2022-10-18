@@ -1,7 +1,7 @@
 <script>
 import { isNull, isUndefined } from 'lodash';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { SERVICE } from '@shell/config/types';
+import { SERVICE, UI } from '@shell/config/types';
 import { PROTOCOLS } from '@shell/config/schema';
 import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -11,12 +11,16 @@ import NameNsDescription, { normalizeName } from '@shell/components/form/NameNsD
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledInputSugget from '@shell/components/form/LabeledInputSugget';
+import Labels from '@shell/components/form/Labels';
 
 const LINK_TYPE_URL = 'url';
 const LINK_TYPE_SERVICE = 'service';
 const LINK_TARGET_NAMED = 'LINK_TARGET_NAMED';
 const LINK_TARGET_BLANK = '_blank';
 const LINK_TARGET_SELF = '_self';
+const LINK_TARGET_IFRAME = '_iframe';
+const NAVLINK_IFRAME = 'navlink.pandaria.io/iframe';
 
 export default {
   mixins:     [CreateEditView],
@@ -28,7 +32,9 @@ export default {
     Tabbed,
     Tab,
     FileImageSelector,
-    LabeledSelect
+    LabeledSelect,
+    LabeledInputSugget,
+    Labels,
   },
   data() {
     return {
@@ -40,6 +46,10 @@ export default {
         {
           value: LINK_TARGET_SELF,
           label: this.t('navLink.tabs.target.option.self'),
+        },
+        {
+          value: LINK_TARGET_IFRAME,
+          label: this.t('navLink.tabs.target.option.iframe'),
         },
         {
           value: LINK_TARGET_NAMED,
@@ -62,6 +72,7 @@ export default {
       protocolsOptions:  PROTOCOLS,
       services:         [],
       currentService:   null,
+      groupNameChoices: null,
     };
   },
   props:      {
@@ -112,6 +123,25 @@ export default {
         label: id, id, name, namespace
       }) );
     },
+    allNavLinks() {
+      if ( !this.$store.getters['cluster/schemaFor'](UI.NAV_LINK) ) {
+        return [];
+      }
+
+      return this.$store.getters['cluster/all'](UI.NAV_LINK);
+    },
+
+    allGroups() {
+      const arr = [];
+
+      this.allNavLinks.forEach((item) => {
+        if (item.spec?.group) {
+          arr.push(item.spec.group);
+        }
+      });
+
+      return Array.from(new Set(arr)).sort();
+    },
   },
   async fetch() {
     this.services = await this.$store
@@ -124,10 +154,18 @@ export default {
      * @param {string} value
      */
     setTargetValue(value) {
+      if (this.value.metadata?.labels?.[NAVLINK_IFRAME]) {
+        delete this.value.metadata.labels[NAVLINK_IFRAME];
+      }
+
       switch (value) {
       case LINK_TARGET_SELF:
       case LINK_TARGET_BLANK:
         this.$set(this.value.spec, 'target', value);
+        break;
+      case LINK_TARGET_IFRAME:
+        this.value.spec.target = LINK_TARGET_SELF;
+        this.value.metadata.labels[NAVLINK_IFRAME] = 'true';
         break;
       default:
         this.$set(this.value.spec, 'target', this.targetName);
@@ -144,7 +182,7 @@ export default {
       switch (value) {
       case LINK_TARGET_SELF:
       case LINK_TARGET_BLANK:
-        this.currentTarget = value;
+        this.currentTarget = this.value.isIframe ? LINK_TARGET_IFRAME : value;
         break;
       default:
         this.currentTarget = LINK_TARGET_NAMED;
@@ -248,6 +286,12 @@ export default {
         throw (errors.join('\n'));
       }
     },
+
+    updateGroupNameChoices(neu) {
+      this.$set(this, 'groupNameChoices', this.allGroups.filter((item) => {
+        return item.includes(neu);
+      }));
+    },
   },
   created() {
     this.setDefaultValues();
@@ -292,6 +336,7 @@ export default {
       <Tab
         name="link"
         :label="t('navLink.tabs.link.label')"
+        :weight="99"
       >
         <div class="row mb-20">
           <div class="col span-6">
@@ -362,6 +407,7 @@ export default {
       <Tab
         name="target"
         :label="t('navLink.tabs.target.label')"
+        :weight="98"
       >
         <div class="row mb-20">
           <div class="col span-6">
@@ -389,14 +435,18 @@ export default {
       <Tab
         name="group"
         :label="t('navLink.tabs.group.label')"
+        :weight="97"
       >
         <div class="row mb-20">
           <div class="col span-6">
-            <LabeledInput
+            <LabeledInputSugget
               v-model="value.spec.group"
+              :placeholder="t('navLink.tabs.group.group.placeholder')"
               :mode="mode"
+              :text-label="t('navLink.tabs.group.group.label')"
+              :options="groupNameChoices || allGroups"
               :tooltip="t('navLink.tabs.group.group.tooltip')"
-              :label="t('navLink.tabs.group.group.label')"
+              @input="updateGroupNameChoices"
             />
           </div>
           <div class="col span-6">
@@ -424,6 +474,19 @@ export default {
             />
           </div>
         </div>
+      </Tab>
+
+      <Tab
+        name="labels"
+        label-key="generic.labelsAndAnnotations"
+        :weight="96"
+      >
+        <Labels
+          default-section-class="mt-20"
+          :value="value"
+          :mode="mode"
+          :display-side-by-side="false"
+        />
       </Tab>
     </Tabbed>
   </CruResource>

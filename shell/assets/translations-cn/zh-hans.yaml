@@ -3325,11 +3325,12 @@ navLink:
           label: Scheme
           placeholder: '例如：http'
     target:
-      label: 窗口目标
+      label: 链接打开方式
       option:
-        blank: 新窗口
-        self: 替换窗口
-        named: 自定义命名窗口
+        blank: 新窗口打开
+        named: 自定义跳转方式
+        iframe: 使用 Iframe
+        self: 当前窗口打开
       namedValue:
         label: 窗口名称
     group:
@@ -3337,12 +3338,13 @@ navLink:
       group:
         label: 组名称
         tooltip: 将链接分配给组
+        placeholder: 请输入组名称
       sideLabel:
         label: 链接标签
       description:
         label: 链接描述
       iconSrc:
-        label: 添加镜像
+        label: 添加图片
 networkpolicy:
   egress:
     label: Egress 规则

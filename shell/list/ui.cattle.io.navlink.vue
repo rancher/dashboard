@@ -43,6 +43,12 @@ export default {
           <i class="icon icon-external-link" />
         </a>
       </template>
+      <template v-else-if="row.isIframe">
+        <n-link :to="row.link">
+          {{ row.iframeSrc.replace(/^https:\/\//,'') }}
+          <i class="icon icon-external-link" />
+        </n-link>
+      </template>
       <template v-else-if="row.link">
         <a :href="row.link" :target="row.actualTarget" rel="noopener noreferrer nofollow">
           {{ row.link.replace(/^https:\/\//,'') }}
