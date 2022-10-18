@@ -1,3 +1,4 @@
+import YAML from 'yaml';
 import jsyaml from 'js-yaml';
 import isEqual from 'lodash/isEqual';
 import { clone } from '@shell/utils/object';
@@ -35,6 +36,32 @@ export const SSH_EXISTING_TYPE = {
 
 export default {
   methods: {
+    hasCloudConfigComment(userScript) {
+      // Check that userData contains: #cloud-config
+      const userDataDoc = userScript ? YAML.parseDocument(userScript) : YAML.parseDocument({});
+      const items = userDataDoc?.contents?.items || [];
+
+      let exist = false;
+
+      if (userDataDoc?.comment === 'cloud-config' || userDataDoc?.comment?.includes('cloud-config\n')) {
+        exist = true;
+      }
+
+      if (userDataDoc?.commentBefore === 'cloud-config' || userDataDoc?.commentBefore?.includes('cloud-config\n')) {
+        exist = true;
+      }
+
+      items.map((item) => {
+        const key = item.key;
+
+        if (key?.commentBefore === 'cloud-config' || key?.commentBefore?.includes('cloud-config\n')) {
+          exist = true;
+        }
+      });
+
+      return exist;
+    },
+
     getSSHValue(id) {
       const sshs = this.$store.getters['harvester/all'](HCI.SSH) || [];
 
