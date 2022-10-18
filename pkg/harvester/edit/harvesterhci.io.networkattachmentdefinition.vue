@@ -44,9 +44,11 @@ export default {
       config.bridge = config.bridge.slice(0, -3);
     }
 
+    const type = this.value.vlanType || 'L2VlanNetwork' ;
+
     return {
       config,
-      type:          'L2VlanNetwork',
+      type,
       layer3Network: {
         mode:         layer3Network.mode || AUTO,
         serverIPAddr: layer3Network.serverIPAddr || '',
@@ -94,13 +96,25 @@ export default {
         };
       });
     },
+
+    networkType() {
+      return ['L2VlanNetwork', 'UntaggedNetwork'];
+    },
+
+    isUntaggedNetwork() {
+      if (this.isView) {
+        return this.value.vlanType === 'UntaggedNetwork';
+      }
+
+      return this.type === 'UntaggedNetwork';
+    }
   },
 
   methods: {
     async saveNetwork(buttonCb) {
       const errors = [];
 
-      if (!this.config.vlan) {
+      if (!this.config.vlan && !this.isUntaggedNetwork) {
         errors.push(this.$store.getters['i18n/t']('validation.required', { key: this.t('tableHeaders.networkVlan') }));
       }
 
@@ -138,8 +152,12 @@ export default {
     },
 
     updateBeforeSave() {
-      this.value.setLabel(HCI_LABELS_ANNOTATIONS.NETWORK_TYPE, this.type);
       this.config.name = this.value.metadata.name;
+
+      if (this.isUntaggedNetwork) {
+        delete this.config.vlan;
+      }
+
       this.value.spec.config = JSON.stringify({
         ...this.config,
         bridge: `${ this.config.bridge }-br`,
@@ -163,18 +181,19 @@ export default {
       v-model="value"
       :mode="mode"
     />
-
     <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
       <Tab name="basics" :label="t('harvester.network.tabs.basics')" :weight="99" class="bordered-table">
-        <LabeledInput
+        <LabeledSelect
           v-model="type"
           class="mb-20"
+          :options="networkType"
+          :mode="mode"
           :label="t('harvester.fields.type')"
-          :disabled="true"
           required
         />
 
         <LabeledInput
+          v-if="!isUntaggedNetwork"
           v-model.number="config.vlan"
           v-int-number
           class="mb-20"
@@ -203,6 +222,7 @@ export default {
         </div>
       </Tab>
       <Tab
+        v-if="!isUntaggedNetwork"
         name="layer3Network"
         :label="t('harvester.network.tabs.layer3Network')"
         :weight="98"

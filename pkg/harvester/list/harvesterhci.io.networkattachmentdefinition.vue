@@ -63,6 +63,12 @@ export default {
           labelKey: 'tableHeaders.networkType'
         },
         {
+          name:      'clusterNetwork',
+          value:     'clusterNetwork',
+          sort:      'clusterNetwork',
+          labelKey:  'harvester.network.clusterNetwork.label'
+        },
+        {
           name:     'vlan',
           value:    'vlanId',
           sort:     'spec.config',
@@ -72,7 +78,7 @@ export default {
           name:          'connectivity',
           value:         'connectivity',
           labelKey:      'tableHeaders.routeConnectivity',
-          formatter:     'BadgeStateFormatter',
+          formatter:     'NetworkRouteConnectivity',
           formatterOpts: { arbitrary: true },
           width:         130,
         },

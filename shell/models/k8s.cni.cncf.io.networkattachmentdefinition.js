@@ -44,14 +44,19 @@ export default class NetworkAttachmentDef extends SteveModel {
     return this.parseConfig.ipam?.type === 'static';
   }
 
-  get vlanType() {
-    const type = this.parseConfig.type;
+  get clusterNetwork() {
+    return this?.metadata?.labels?.[HCI.CLUSTER_NETWORK];
+  }
 
-    return type === 'bridge' ? 'L2VlanNetwork' : type;
+  get vlanType() {
+    const labels = this.metadata?.labels || {};
+    const type = labels[HCI.NETWORK_TYPE];
+
+    return type;
   }
 
   get vlanId() {
-    return this.parseConfig.vlan;
+    return this.vlanType === 'UntaggedNetwork' ? 'N/A' : this.parseConfig.vlan;
   }
 
   get customValidationRules() {
@@ -73,6 +78,10 @@ export default class NetworkAttachmentDef extends SteveModel {
     const annotations = this.metadata?.annotations || {};
     const route = annotations[HCI.NETWORK_ROUTE];
     let config = {};
+
+    if (this.vlanType === 'UntaggedNetwork') {
+      return 'N/A';
+    }
 
     try {
       config = JSON.parse(route || '{}');

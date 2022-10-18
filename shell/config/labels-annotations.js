@@ -134,6 +134,7 @@ export const HCI = {
   NETWORK_ROUTE:       'network.harvesterhci.io/route',
   IMAGE_NAME:          'harvesterhci.io/image-name',
   NETWORK_TYPE:        'network.harvesterhci.io/type',
+  CLUSTER_NETWORK:     'network.harvesterhci.io/clusternetwork',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
