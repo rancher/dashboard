@@ -187,11 +187,10 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       out = 'type:';
     }
 
-    // if a property on data is not listed in the schema, just convert it to yaml, add indents where needed, and return
+    // if a key on data is not listed in the schema's resourceFields, just convert it to yaml, add indents where needed, and return
     if ( !field ) {
       if (data[key]) {
         try {
-          // TODO should we do this?
           const cleaned = cleanUp(data);
           const parsedData = jsyaml.dump(cleaned[key]);
 
@@ -220,7 +219,6 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       // if key is defined in data, convert the value to yaml, add newline+indent and add to output yaml string
       if (data[key]) {
         try {
-          // TODO should we do this?
           const cleaned = cleanUp(data);
           const parsedData = jsyaml.dump(cleaned[key]);
 
@@ -230,21 +228,17 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
         }
       }
 
-      // add a commented-out example for simple values regardless of whether or not data is already defined for the field
       if ( SIMPLE_TYPES.includes(mapOf) ) {
         out += `\n#  key: ${ mapOf }`;
       } else {
         // If not a simple type ie some sort of object/array, recusively build out commented fields (note data = null here) per the type's (mapOf's) schema
         const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
-        const indented = indent(chunk);
+        let indented = indent(chunk);
 
-        // TODO why are we only doing this for things indented exactly four spaces?
         // convert "#    foo" to "#foo"
-        // indented = indented.replace(/^(#)?\s\s\s\s/, '$1');
+        indented = indented.replace(/^(#)?\s\s\s\s/, '$1');
 
-        // TODO what happens here if chunk = '' ?
-        // DOES createYaml ever return an empty string?
-        out += `\n  ${ indented }`;
+        out += `\n${ indented }`;
       }
 
       return out;
@@ -254,7 +248,6 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     if ( arrayOf ) {
       if (data[key]) {
         try {
-          // TODO should we do this?
           const cleaned = cleanUp(data);
 
           if ( cleaned?.[key] ) {
@@ -273,7 +266,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
         const chunk = createYaml(schemas, arrayOf, null, false, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
         let indented = indent(chunk, 2);
 
-        // turn "#        foo" into "#  - foo" when at least two whitespace characters between "#" and "foo"
+        // turn "#        foo" into "#  - foo"
         indented = indented.replace(/^(#)?\s*\s\s([^\s])/, '$1  - $2');
 
         out += `\n${ indented }`;
@@ -300,7 +293,6 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       return out;
     }
 
-    // TODO is this really a Logging exception or can we generalize this more?
     /**
      * .spec is the type used for the Logging chart Output and ClusterOutput resource spec.
      * Without this Output and ClusterOutput specs are empty.
@@ -325,7 +317,6 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     if ( subDef) {
       let chunk;
 
-      // if the schema for this subtype has resourceFields defined, create a yaml with anything defined in data + additional resourceFields as comments
       if (subDef?.resourceFields && !isEmpty(subDef?.resourceFields)) {
         chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
       } else if (data[key]) {

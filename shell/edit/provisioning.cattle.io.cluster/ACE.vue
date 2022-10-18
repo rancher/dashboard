@@ -4,7 +4,6 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
 import { set } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
-import { _CREATE } from '@shell/config/query-params';
 
 export default {
   components: {
