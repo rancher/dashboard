@@ -1,5 +1,6 @@
 <script>
 import { isEmpty, throttle } from 'lodash';
+import Vue from 'vue';
 
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -10,6 +11,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import ArrayListSelect from '@shell/components/form/ArrayListSelect';
 import LabelValue from '@shell/components/LabelValue';
 import Loading from '@shell/components/Loading';
+import { Banner } from '@components/Banner';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
 
@@ -35,6 +37,7 @@ export default {
     ArrayListSelect,
     LabelValue,
     Loading,
+    Banner,
   },
 
   mixins: [CreateEditView],
@@ -42,10 +45,19 @@ export default {
   data() {
     const originNics = clone(this.value?.spec?.uplink?.nics || []);
 
+    const matchingNodes = {
+      matched: 0,
+      matches: [],
+      none:    true,
+      sample:  null,
+      total:   0,
+    };
+
     return {
       type:      'vlan',
       matchNICs: [],
       originNics,
+      matchingNodes,
     };
   },
 
@@ -72,6 +84,7 @@ export default {
     await allHash(hash);
 
     this.updateMatchingNICs();
+    this.updateMatchingNodes();
   },
 
   computed: {
@@ -281,6 +294,52 @@ export default {
 
       return nics.filter(n => map[n.name] === commonNodes.length);
     },
+
+    updateMatchingNodes: throttle(function() {
+      const selector = this.value?.spec?.nodeSelector || {};
+      const allNodes = this.nodes || [];
+
+      if (isEmpty(selector)) {
+        this.matchingNodes = {
+          matched: allNodes.length,
+          total:   allNodes.length,
+          none:    false,
+          sample:  allNodes[0] ? allNodes[0].nameDisplay : null,
+        };
+      } else if (selector[HOSTNAME] && Object.keys(selector).length === 1) {
+        const matchNode = allNodes.find(n => n.id === selector[HOSTNAME]);
+
+        this.matchingNodes = {
+          matched: 1,
+          total:   allNodes.length,
+          none:    false,
+          sample:  matchNode ? matchNode.nameDisplay : null,
+        };
+      } else {
+        const match = matching(allNodes, selector);
+
+        this.matchingNodes = {
+          matched: match.length,
+          total:   allNodes.length,
+          none:    match.length === 0,
+          sample:  match[0] ? match[0].nameDisplay : null,
+        };
+      }
+    }, 250, { leading: true }),
+  },
+
+  watch: {
+    nicOptions(options) {
+      const nics = this.value.spec?.uplink?.nics || [];
+
+      nics.map((n, idx) => {
+        const option = options.find(option => option.value === n);
+
+        if ((option && option?.disabled) || !option) {
+          Vue.set(nics, idx, '');
+        }
+      });
+    },
   },
 };
 </script>
@@ -308,12 +367,24 @@ export default {
         :label="t('harvester.vlanConfig.titles.nodeSelector')"
         :weight="99"
       >
-        <NodeSelector
-          :mode="mode"
-          :value="value.spec"
-          :nodes="nodeOptions"
-          @updateMatchingNICs="updateMatchingNICs"
-        />
+        <div class="row">
+          <div class="col span-12">
+            <Banner :color="(matchingNodes.none ? 'warning' : 'success')">
+              <span v-html="t('harvester.vlanConfig.nodeSelector.matchingNodes.matchesSome', matchingNodes)" />
+            </Banner>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col span-12">
+            <NodeSelector
+              :mode="mode"
+              :value="value.spec"
+              :nodes="nodeOptions"
+              @updateMatchingNICs="updateMatchingNICs"
+              @updateMatchingNodes="updateMatchingNodes"
+            />
+          </div>
+        </div>
       </Tab>
 
       <Tab

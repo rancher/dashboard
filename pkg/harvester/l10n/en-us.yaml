@@ -895,12 +895,12 @@ harvester:
         miimon:
           label: Miimon
     nodeSelector:
-      matchingNics:
+      matchingNodes:
         matchesSome: |-
           {matched, plural,
-            =0 {Matches 0 of {total, number} NIC.}
-            =1 {Matches 1 of {total, number} NICs: "{sample}"}
-            other {Matches {matched, number} of {total, number} existing NICs, including "{sample}"}
+            =0 {Matches 0 of {total, number} Nodes.}
+            =1 {Matches 1 of {total, number} Nodes: "{sample}"}
+            other {Matches {matched, number} of {total, number} existing Nodes, including "{sample}"}
           }
 
   vlanStatus:

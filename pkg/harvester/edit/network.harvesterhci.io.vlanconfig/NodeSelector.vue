@@ -124,6 +124,7 @@ export default {
       }
 
       this.$emit('updateMatchingNICs');
+      this.$emit('updateMatchingNodes');
     },
   },
 };
