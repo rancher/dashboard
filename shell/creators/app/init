@@ -73,8 +73,8 @@ pkg.dependencies['@rancher/shell'] = `^${ creatorPkg.version }`;
 
 // Rest of dependencies are in the _pkgs property of package.json - copy then across
 if (creatorPkg._pkgs) {
-  Object.keys(creatorPkg._pkgs).forEach((pkg) => {
-    pkg.dependencies[pkg] = creatorPkg._pkgs[pkg];
+  Object.keys(creatorPkg._pkgs).forEach((pkgName) => {
+    pkg.dependencies[pkgName] = creatorPkg._pkgs[pkgName];
   });
 }
 

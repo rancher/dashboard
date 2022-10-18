@@ -7,7 +7,7 @@
   "private": false,
   "bin": "./init",
   "files": [
-    "*.*",
+    "**/*.*",
     "init"
   ],
   "engines": {
