@@ -192,7 +192,13 @@ export default {
           :taggable="true"
           :multiple="true"
           :mode="mode"
-        />
+        >
+          <template #no-options="{ searching }">
+            <span v-if="!searching" class="text-muted">
+              {{ t('harvester.storage.parameters.nodeSelector.no-options', null, true) }}
+            </span>
+          </template>
+        </LabeledSelect>
       </div>
       <div class="col span-6">
         <LabeledSelect
@@ -202,7 +208,13 @@ export default {
           :taggable="true"
           :multiple="true"
           :mode="mode"
-        />
+        >
+          <template #no-options="{ searching }">
+            <span v-if="!searching" class="text-muted">
+              {{ t('harvester.storage.parameters.diskSelector.no-options', null, true) }}
+            </span>
+          </template>
+        </LabeledSelect>
       </div>
     </div>
     <div class="row mt-10">

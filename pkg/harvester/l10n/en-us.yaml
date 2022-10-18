@@ -860,8 +860,10 @@ harvester:
         label: Stale Replica Timeout
       diskSelector:
         label: Disk Selector
+        no-options: No available tags, please add in the `Host > Storage` page
       nodeSelector:
         label: Node Selector
+        no-options: No available tags, please add in the `Host > Storage` page
       migratable:
         label: Migratable
 
