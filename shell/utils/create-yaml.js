@@ -1,7 +1,7 @@
 import { indent as _indent } from '@shell/utils/string';
 import { addObject, findBy, removeObject, removeObjects } from '@shell/utils/array';
 import jsyaml from 'js-yaml';
-import { cleanUp } from '@shell/utils/object';
+import { cleanUp, isEmpty } from '@shell/utils/object';
 
 export const SIMPLE_TYPES = [
   'string',
@@ -114,7 +114,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     }
   }
 
-  // Mark any fields that are passed in as data as regular so they're not commented out
+  // Include all fields in schema's resourceFields as comments
   const commentFields = Object.keys(schema.resourceFields || {});
 
   commentFields.forEach((key) => {
@@ -123,12 +123,14 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     }
   });
 
+  // add any fields defined in data as uncommented fields in yaml
   for ( const key in data ) {
     if ( typeof data[key] !== 'undefined' ) {
       addObject(regularFields, key);
     }
   }
 
+  // ACTIVELY_REMOVE are fields that should be removed even if they are defined in data
   for ( const entry of ACTIVELY_REMOVE ) {
     const parts = entry.split(/\./);
     const key = parts[parts.length - 1];
@@ -139,6 +141,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     }
   }
 
+  // NEVER_ADD are fields that should not be added as comments, but may added as regular fields if already defined in data
   for ( const entry of NEVER_ADD ) {
     const parts = entry.split(/\./);
     const key = parts[parts.length - 1];
@@ -149,6 +152,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     }
   }
 
+  // do not include commented fields if already defined in data
   removeObjects(commentFields, regularFields);
 
   const regular = regularFields.map(k => stringifyField(k));
@@ -183,16 +187,15 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       out = 'type:';
     }
 
+    // if a property on data is not listed in the schema, just convert it to yaml, add indents where needed, and return
     if ( !field ) {
       if (data[key]) {
         try {
-          // TODO do?
-          // const cleaned = cleanUp(data);
-          const cleaned = data;
+          // TODO should we do this?
+          const cleaned = cleanUp(data);
           const parsedData = jsyaml.dump(cleaned[key]);
 
           if ( typeof data[key] === 'object' || Array.isArray(data[key]) ) {
-            console.log('key: ', key, 'parsedData: ', parsedData);
             out += `\n${ indent(parsedData.trim()) }`;
           } else {
             out += ` ${ parsedData.trim() }`;
@@ -212,12 +215,13 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
     const arrayOf = typeRef('array', type);
     const referenceTo = typeRef('reference', type);
 
+    // type == map[mapOf]
     if ( mapOf ) {
+      // if key is defined in data, convert the value to yaml, add newline+indent and add to output yaml string
       if (data[key]) {
         try {
-          // TODO do?
-          // const cleaned = cleanUp(data);
-          const cleaned = data;
+          // TODO should we do this?
+          const cleaned = cleanUp(data);
           const parsedData = jsyaml.dump(cleaned[key]);
 
           out += `\n${ indent(parsedData.trim()) }`;
@@ -226,26 +230,32 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
         }
       }
 
+      // add a commented-out example for simple values regardless of whether or not data is already defined for the field
       if ( SIMPLE_TYPES.includes(mapOf) ) {
         out += `\n#  key: ${ mapOf }`;
       } else {
+        // If not a simple type ie some sort of object/array, recusively build out commented fields (note data = null here) per the type's (mapOf's) schema
         const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
-        let indented = indent(chunk, 2);
+        const indented = indent(chunk);
 
-        indented = indented.replace(/^(#)?\s\s\s\s/, '$1');
+        // TODO why are we only doing this for things indented exactly four spaces?
+        // convert "#    foo" to "#foo"
+        // indented = indented.replace(/^(#)?\s\s\s\s/, '$1');
 
+        // TODO what happens here if chunk = '' ?
+        // DOES createYaml ever return an empty string?
         out += `\n  ${ indented }`;
       }
 
       return out;
     }
 
+    // type == array[arrayOf]
     if ( arrayOf ) {
       if (data[key]) {
         try {
-          // TODO do?
-          // const cleaned = cleanUp(data);
-          const cleaned = data;
+          // TODO should we do this?
+          const cleaned = cleanUp(data);
 
           if ( cleaned?.[key] ) {
             const parsedData = jsyaml.dump(cleaned[key]);
@@ -263,6 +273,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
         const chunk = createYaml(schemas, arrayOf, null, false, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
         let indented = indent(chunk, 2);
 
+        // turn "#        foo" into "#  - foo" when at least two whitespace characters between "#" and "foo"
         indented = indented.replace(/^(#)?\s*\s\s([^\s])/, '$1  - $2');
 
         out += `\n${ indented }`;
@@ -289,6 +300,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       return out;
     }
 
+    // TODO is this really a Logging exception or can we generalize this more?
     /**
      * .spec is the type used for the Logging chart Output and ClusterOutput resource spec.
      * Without this Output and ClusterOutput specs are empty.
@@ -310,8 +322,22 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
 
     const subDef = findBy(schemas, 'id', type);
 
-    if ( subDef ) {
-      const chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
+    if ( subDef) {
+      let chunk;
+
+      // if the schema for this subtype has resourceFields defined, create a yaml with anything defined in data + additional resourceFields as comments
+      if (subDef?.resourceFields && !isEmpty(subDef?.resourceFields)) {
+        chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
+      } else if (data[key]) {
+        // if there are no fields defined on the schema but there are in the data, just format data as yaml and add to output yaml
+        try {
+          const parsed = jsyaml.dump(data[key]);
+
+          chunk = parsed.trim();
+        } catch (e) {
+          console.error(`Error: Unale to parse data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
+        }
+      }
 
       out += `\n${ indent(chunk) }`;
     } else {

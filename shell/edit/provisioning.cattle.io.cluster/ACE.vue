@@ -24,7 +24,7 @@ export default {
   },
 
   data() {
-    if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) && this.mode === _CREATE ) {
+    if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
       set(this.value, 'spec.localClusterAuthEndpoint', {
         enabled: false,
         caCerts: '',
