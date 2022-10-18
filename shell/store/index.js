@@ -73,7 +73,7 @@ const getActiveNamespaces = (state, getters) => {
   }
 
   const inStore = product?.inStore;
-  const clusterId = getters['currentCluster']?.id;
+  const clusterId = getters['clusterId'];
 
   if ( !clusterId || !inStore ) {
     updateActiveNamespaceCache(state, out);
@@ -137,7 +137,7 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
   let cacheKey = '';
 
   for (const key in activeNamespaceCache) {
-    // I though array.join would be faster than string concatenation, but in places like this where the array must first be constructed it's
+    // I thought array.join would be faster than string concatenation, but in places like this where the array must first be constructed it's
     // slower.
     cacheKey += key + activeNamespaceCache[key];
   }
@@ -473,7 +473,9 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
-  updateNamespaces(state, { filters, all }) {
+  updateNamespaces(state, getters) {
+    const { filters, all } = getters;
+
     state.namespaceFilters = filters.filter(x => !!x);
 
     if ( all ) {
