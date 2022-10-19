@@ -9,11 +9,13 @@ import { uniq } from '@shell/utils/array';
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
+import { LabeledInput } from '@components/Form/LabeledInput';
+
 export default {
   name: 'PromptRemove',
 
   components: {
-    Card, Checkbox, AsyncButton
+    Card, Checkbox, AsyncButton, LabeledInput
   },
   props: {
     /**
@@ -369,10 +371,11 @@ export default {
             </div>
           </template>
         </div>
-        <input
+        <LabeledInput
           v-if="needsConfirm"
           id="confirm"
           v-model="confirmName"
+          v-focus
           :data-testid="componentTestid + '-input'"
           type="text"
         />
