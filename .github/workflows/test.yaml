@@ -71,7 +71,7 @@ jobs:
           path: coverage-artifacts/**/*
           
       - name: Upload screenshots
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
@@ -149,7 +149,7 @@ jobs:
           node-version: '14.x'
 
       - name: Download Coverage Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 
