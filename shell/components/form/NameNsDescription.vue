@@ -20,6 +20,7 @@ export function normalizeName(str) {
 }
 
 export default {
+  name:       'NameNsDescripiton',
   components: {
     LabeledInput,
     LabeledSelect
