@@ -50,7 +50,6 @@ export default {
       @select-type="selectType"
       @error="e=>errors = e"
     >
-      <!-- <pre>{{ JSON.stringify(allContainers, null, 2) }}</pre> -->
       <NameNsDescription
         :value="value"
         :mode="mode"

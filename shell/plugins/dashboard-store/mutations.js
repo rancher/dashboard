@@ -4,6 +4,7 @@ import { SCHEMA } from '@shell/config/types';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import garbageCollect from '@shell/utils/gc/gc';
+// import { changeset } from '@shell/utils/object';
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -16,6 +17,9 @@ function registerType(state, type) {
       revision:         0, // The highest known resourceVersion from the server for this type
       generation:       0, // Updated every time something is loaded for this type
       loadCounter:      0, // Used to cancel incremental loads if the page changes during load
+      pageSize:     0, // this should always be supplied by prefs and defaults to 100, we specify 0 here because 100 isn't defined in a config anywhere
+      currentPage:  1, // not too big a stretch to say that we should always at least start on page 1
+      total:        0,
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -163,6 +167,84 @@ export function remove(state, obj, getters) {
   }
 }
 
+export function loadPage(state, {
+  type,
+  data,
+  ctx
+}) {
+  const { getters } = ctx;
+
+  if (!data) {
+    return;
+  }
+  const list = data?.list || [];
+
+  const keyField = getters.keyFieldForType(type);
+
+  const proxies = list.map((x) => {
+    return classify(ctx, x);
+  });
+  const cache = registerType(state, type);
+
+  clear(cache.list);
+  cache.map.clear();
+  cache.generation++;
+  cache.haveAll = false;
+  cache.total = data.total;
+
+  addObjects(cache.list, proxies);
+
+  for ( let i = 0 ; i < proxies.length ; i++ ) {
+    cache.map.set(proxies[i][keyField], proxies[i]);
+  }
+
+  return proxies;
+}
+
+export function updateResourceParams(state, { ctx, params }) {
+  const { type, page, listLength } = params;
+
+  const resource = registerType(state, type);
+
+  // ToDo: clean this up, turn it into a cleaner mutation
+  if (page) {
+    resource.page = page;
+  }
+  if (listLength) {
+    resource.listLength = listLength;
+  }
+  resource.haveAll = false;
+}
+
+export function batchMutation(state, { ctx, batch }) {
+  const { getters } = ctx;
+  const resourcesTypes = Object.keys(batch);
+
+  // ToDo: technically I'm mutating the state a number of times equal to iterations here... I'd like to do it all at once...
+  resourcesTypes.forEach((resourceKey) => {
+    const resourceType = batch[resourceKey]?.list[0]?.type;
+    const proxies = batch[resourceKey]?.list.map((row) => {
+      // Ternary adds fields to schemas before we classify them otherwise it goes boom
+      const correctedRow = resourceType === SCHEMA ? {
+        ...row, _id: normalizeType(row.id), _group: normalizeType(row.attributes?.group)
+      } : row;
+
+      return classify(ctx, correctedRow);
+    });
+    const cache = registerType(state, resourceType);
+
+    const keyField = getters.keyFieldForType(resourceType);
+
+    cache.map.clear();
+    cache.generation++;
+    cache.total = batch[resourceKey]?.total;
+    cache.list = proxies;
+    for ( let i = 0 ; i < proxies.length ; i++ ) {
+      cache.map.set(proxies[i][keyField], proxies[i]);
+    }
+  });
+}
+
 export function loadAll(state, {
   type,
   data,
@@ -208,6 +290,7 @@ export function loadAll(state, {
 export default {
   registerType,
   load,
+  updateResourceParams,
 
   applyConfig(state, config) {
     if ( !state.config ) {
@@ -235,6 +318,10 @@ export default {
 
     cache.haveSelector[selector] = true;
   },
+
+  batchMutation,
+
+  loadPage,
 
   loadAll,
 

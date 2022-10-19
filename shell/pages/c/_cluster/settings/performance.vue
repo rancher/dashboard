@@ -55,10 +55,42 @@ export default {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
-    },
+    }
   },
 
   methods: {
+    modalConfig(field) {
+      // "Enabled" here refers to the triggering event and not just the current value of the field
+      const advancedWorkerEnabled = field === 'advancedWorker' && this.value.advancedWorker;
+      const incrementalLoadingEnabled = field === 'incrementalLoading' && this.value.incrementalLoading?.enabled;
+      const applyAction = () => {
+        this.value.advancedWorker = advancedWorkerEnabled;
+        this.value.incrementalLoading.enabled = incrementalLoadingEnabled;
+      };
+      const cancelAction = () => {
+        if (advancedWorkerEnabled) {
+          this.value.advancedWorker = false;
+        } else if (incrementalLoadingEnabled) {
+          this.value.incrementalLoading.enabled = false;
+        }
+      };
+
+      return {
+        applyAction,
+        cancelAction,
+        applyMode:    'enable',
+        title:        this.t(`performance.${ field }.confirmationModal.title`),
+        body:         this.t(`performance.${ field }.confirmationModal.body`, null, { raw: true })
+      };
+    },
+    promptReconcileFetchOptions(field) {
+      if (this.value.advancedWorker && this.value.incrementalLoading?.enabled) {
+        this.$store.dispatch('management/promptModal', {
+          component: 'GenericPrompt',
+          resources: [this.modalConfig(field)]
+        });
+      }
+    },
     async save(btnCB) {
       this.uiPerfSetting.value = JSON.stringify(this.value);
       this.errors = [];
@@ -103,18 +135,19 @@ export default {
         </div>
         <!-- Incremental Loading -->
         <div class="mt-40">
-          <h2>{{ t('performance.incrementalLoad.label') }}</h2>
-          <p>{{ t('performance.incrementalLoad.description') }}</p>
+          <h2>{{ t('performance.incrementalLoading.label') }}</h2>
+          <p>{{ t('performance.incrementalLoading.description') }}</p>
           <Checkbox
             v-model="value.incrementalLoading.enabled"
             :mode="mode"
             :label="t('performance.incrementalLoad.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
+            @input="() => promptReconcileFetchOptions('incrementalLoading')"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.incrementalLoading.enabled }">
-              {{ t('performance.incrementalLoad.setting') }}
+              {{ t('performance.incrementalLoading.setting') }}
             </p>
             <LabeledInput
               v-model="value.incrementalLoading.threshold"
@@ -153,6 +186,20 @@ export default {
               min="0"
             />
           </div>
+        </div>
+        <!-- Web Worker handles Schemas and Counts websocket subscriptions  -->
+        <div class="mt-40">
+          <h2>{{ t('performance.advancedWorker.label') }}</h2>
+          <p>{{ t('performance.advancedWorker.description') }}</p>
+          <Banner color="error" label-key="performance.advancedWorker.banner" />
+          <!-- ToDo: should look into saving this into a cookie at some point -->
+          <Checkbox
+            v-model="value.advancedWorker"
+            :label="t('performance.advancedWorker.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+            @input="() => promptReconcileFetchOptions('advancedWorker')"
+          />
         </div>
         <!-- Enable GC of resources from store -->
         <div class="mt-40">

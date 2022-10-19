@@ -22,6 +22,8 @@ const GC_IGNORE_TYPES = {
 
 export default {
   urlOptions: () => (url, opt) => {
+    let newUrl = url;
+
     opt = opt || {};
 
     // Filter
@@ -36,7 +38,7 @@ export default {
         }
 
         vals.forEach((val) => {
-          url += `${ (url.includes('?') ? '&' : '?') + encodeURIComponent(key) }=${ encodeURIComponent(val) }`;
+          newUrl += `${ (newUrl.includes('?') ? '&' : '?') + encodeURIComponent(key) }=${ encodeURIComponent(val) }`;
         });
       });
     }
@@ -46,7 +48,7 @@ export default {
     const limit = opt.limit;
 
     if ( limit ) {
-      url += `${ url.includes('?') ? '&' : '?' }limit=${ limit }`;
+      newUrl += `${ newUrl.includes('?') ? '&' : '?' }limit=${ limit }`;
     }
     // End: Limit
 
@@ -54,17 +56,17 @@ export default {
     const sortBy = opt.sortBy;
 
     if ( sortBy ) {
-      url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURIComponent(sortBy) }`;
+      newUrl += `${ newUrl.includes('?') ? '&' : '?' }sort=${ encodeURIComponent(sortBy) }`;
     }
 
     const orderBy = opt.sortOrder;
 
     if ( orderBy ) {
-      url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURIComponent(orderBy) }`;
+      newUrl += `${ newUrl.includes('?') ? '&' : '?' }order=${ encodeURIComponent(orderBy) }`;
     }
     // End: Sort
 
-    return url;
+    return newUrl;
   },
 
   defaultModel: state => (obj) => {

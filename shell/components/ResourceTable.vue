@@ -134,6 +134,22 @@ export default {
       type:    Boolean,
       default: false
     },
+    setPageFn: {
+      type:    Function,
+      default: null,
+    },
+    setSearchFn: {
+      type:    Function,
+      default: null,
+    },
+    setSortFn: {
+      type:    Function,
+      default: null,
+    },
+    listLength: {
+      type:    Number,
+      default: null
+    }
   },
 
   data() {
@@ -211,10 +227,11 @@ export default {
     },
 
     filteredRows() {
+      // ToDo: this is how I get the namespaces...
       const isAll = this.$store.getters['isAllNamespaces'];
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources) || this.ignoreFilter) {
+      if ( !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources) || this.ignoreFilter || this.setSearchFn) {
         return this.rows || [];
       }
 
@@ -380,6 +397,7 @@ export default {
     v-bind="$attrs"
     :headers="_headers"
     :rows="filteredRows"
+    :list-length="listLength"
     :loading="loading"
     :group-by="computedGroupBy"
     :group="group"
@@ -388,6 +406,9 @@ export default {
     :paging="true"
     :paging-params="pagingParams"
     :paging-label="pagingLabel"
+    :set-page-fn="setPageFn"
+    :set-search-fn="setSearchFn"
+    :set-sort-fn="setSortFn"
     :row-actions="rowActions"
     :table-actions="_showBulkActions"
     :overflow-x="overflowX"

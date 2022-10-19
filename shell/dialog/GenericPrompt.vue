@@ -26,6 +26,9 @@ export default {
     applyAction() {
       return this.config.applyAction;
     },
+    cancelAction() {
+      return this.config.cancelAction;
+    },
     applyMode() {
       return this.config.applyMode || 'create';
     },
@@ -51,6 +54,17 @@ export default {
         this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
+    },
+
+    async cancel(buttonDone) {
+      try {
+        await this.cancelAction(buttonDone);
+        this.close();
+      } catch (err) {
+        console.error(err); // eslint-disable-line
+        this.errors = exceptionToErrorsArray(err);
+        buttonDone(false);
+      }
     }
   }
 };
@@ -70,7 +84,13 @@ export default {
     <div slot="actions" class="bottom">
       <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
       <div class="buttons">
-        <button class="btn role-secondary mr-10" @click="close">
+        <AsyncButton
+          v-if="cancelAction"
+          class="btn role-secondary mr-10"
+          mode="cancel"
+          @click="cancel"
+        />
+        <button v-else class="btn role-secondary mr-10" @click="close">
           {{ t('generic.cancel') }}
         </button>
 

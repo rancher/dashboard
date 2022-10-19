@@ -1,5 +1,5 @@
 import { addObject, removeObject } from '@shell/utils/array';
-import { NAMESPACE, POD, SCHEMA } from '@shell/config/types';
+import { NAMESPACE, POD, SCHEMA, COUNT } from '@shell/config/types';
 import {
   forgetType,
   resetStore,
@@ -7,7 +7,7 @@ import {
   load,
   remove
 } from '@shell/plugins/dashboard-store/mutations';
-import { keyForSubscribe } from '@shell/plugins/steve/subscribe';
+import { keyForSubscribe, waitForWorker } from '@shell/plugins/steve/subscribe';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
 
@@ -42,6 +42,8 @@ export default {
       type, data, ctx, skipHaveAll
     });
 
+    const worker = (this.$workers || {})[ctx.getters.storeName];
+
     // If we loaded a set of pods, then update the podsByNamespace cache
     if (type === POD) {
       // Clear the entire cache - this is a fresh load
@@ -59,13 +61,17 @@ export default {
     }
 
     // Notify the web worker of the initial load of schemas
-    if (type === SCHEMA) {
+    if (type === SCHEMA && worker) {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
-      if (worker) {
-        // Store raw json objects, not the proxies
-        worker.postMessage({ loadSchemas: data });
-      }
+      waitForWorker(worker).then(() => {
+        worker.postMessage({ loadSchema: data });
+      });
+    }
+
+    // Notify the web worker of the initial load of counts
+    if (type === COUNT && worker?.mode === 'advanced') {
+      worker.postMessage({ loadCount: data });
     }
   },
 

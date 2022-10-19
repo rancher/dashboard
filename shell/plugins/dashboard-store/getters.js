@@ -225,6 +225,28 @@ export default {
     return false;
   },
 
+  page: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry ) {
+      return entry.page;
+    }
+
+    return undefined;
+  },
+
+  listLength: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry ) {
+      return entry.total;
+    }
+
+    return undefined;
+  },
+
   haveSelector: (state, getters) => (type, selector) => {
     type = getters.normalizeType(type);
     const entry = state.types[type];
@@ -246,7 +268,7 @@ export default {
 
   urlFor: (state, getters) => (type, id, opt) => {
     opt = opt || {};
-    type = getters.normalizeType(type);
+    type = normalizeType(type);
     let url = opt.url;
 
     if ( !url ) {

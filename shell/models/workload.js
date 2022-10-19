@@ -528,6 +528,9 @@ export default class Workload extends WorkloadService {
   }
 
   get pods() {
+    if (this.extraFields) {
+      return this.extraFields?.pods;
+    }
     const relationships = this.metadata?.relationships || [];
     const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
 
@@ -575,6 +578,9 @@ export default class Workload extends WorkloadService {
   }
 
   get jobs() {
+    if (this.extraFields) {
+      return this.extraFields?.jobs;
+    }
     if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
       return undefined;
     }

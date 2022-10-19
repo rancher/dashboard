@@ -208,6 +208,39 @@ export function sortBy(ary, keys, desc) {
   });
 }
 
+/* returns a sort function that'll sort by multiple fields
+// makes the following assumptions:
+// * Never more then 2 sort fields
+// * First sort field is always ascending (because it's actually a grouping)
+// * Second sort field could either be ascending or descending
+*/
+export function multiSorter(sortFields) {
+  const sortFieldsArray = sortFields.split(',');
+  const allAscSort = !sortFieldsArray.some(str => str[0] === '-');
+
+  if (allAscSort) {
+    return (lowerIndex, upperIndex) => {
+      const lowerIndexString = sortFieldsArray.map(str => get(lowerIndex, str)).join('/');
+      const upperIndexString = sortFieldsArray.map(str => get(upperIndex, str)).join('/');
+
+      return lowerIndexString.localeCompare(upperIndexString);
+    };
+  }
+
+  return (lowerIndex, upperIndex) => {
+    if (sortFieldsArray.length > 1 && get(lowerIndex, sortFieldsArray[0]) === get(upperIndex, sortFieldsArray[0])) {
+      // we already know the secondary sortField is descending so we just need to strip out the minus sign
+      const correctedSortField = sortFieldsArray[1].substring(1);
+
+      return get(upperIndex, correctedSortField).localeCompare(get(lowerIndex, correctedSortField));
+    }
+    const sortDesc = sortFieldsArray[0][0] === '-';
+    const correctedSortField = sortDesc ? sortFieldsArray[0].substring(1) : sortFieldsArray[0];
+
+    return get(sortDesc ? upperIndex : lowerIndex, correctedSortField).localeCompare(get(sortDesc ? lowerIndex : upperIndex, correctedSortField));
+  };
+}
+
 // Turn foo1-bar2 into foo0000000001-bar0000000002 so that the numbers sort numerically
 const splitRegex = /([^\d]+)/;
 const notNumericRegex = /^[0-9]+$/;

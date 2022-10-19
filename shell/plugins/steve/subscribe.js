@@ -1,7 +1,9 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { COUNT, SCHEMA } from '@shell/config/types';
-import { getPerformanceSetting } from '@shell/config/settings';
+import { COUNT, SCHEMA, MANAGEMENT } from '@shell/config/types';
+import { SETTING, getPerformanceSetting } from '@shell/config/settings';
+import storeWorker from './worker/index.js';
+
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
@@ -15,18 +17,47 @@ import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 
-// eslint-disable-next-line
-import webworker from './web-worker.steve-sub-worker.js';
-
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
+const waitFor = (testFn) => {
+  return new Promise((resolve) => {
+    if (testFn()) {
+      resolve(this);
+    }
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+      throw new Error('worker could not load, timed out at 5 minutes');
+    }, 3000000); // timeout set to 5 minutes (!)
+    const interval = setInterval(() => {
+      if ( testFn() ) {
+        clearInterval(interval);
+        clearTimeout(timeout);
+        resolve(this);
+      }
+    }, 500);
+  });
+};
+
+export const waitForWorker = (worker) => {
+  const workerReady = () => worker?.ready;
+
+  return waitFor(workerReady);
+};
+
+const waitForManagement = (store) => {
+  const managementReady = () => store.state?.managementReady;
+
+  return waitFor(managementReady);
+};
+
 // We only create a worker for the cluster store
-export function createWorker(store, ctx) {
-  const { getters } = ctx;
+export async function createWorker(store, ctx) {
+  const { getters, rootGetters, dispatch } = ctx;
   const storeName = getters.storeName;
 
   store.$workers = store.$workers || {};
@@ -35,33 +66,18 @@ export function createWorker(store, ctx) {
     return;
   }
 
-  const workerActions = {
-    load: (resource) => {
-      queueChange(ctx, resource, true, 'Change');
-    },
-    destroyWorker: () => {
-      if (store.$workers) {
-        delete store.$workers[storeName];
-      }
-    }
-  };
+  // ToDo: waiting for management handles the 90% use case, either need to manually toggle or refresh the page if the actual setting changes via websocket
+  await waitForManagement(store);
+  const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+  const advancedWorker = JSON.parse(perfSetting?.value || {}).advancedWorker !== false;
 
   if (!store.$workers[storeName]) {
-    const worker = new webworker();
+    const workerMode = advancedWorker ? 'advanced' : 'basic';
+    const worker = storeWorker(workerMode, { storeName, dispatch });
 
     store.$workers[storeName] = worker;
 
     worker.postMessage({ initWorker: { storeName } });
-
-    store.$workers[storeName].onmessage = (e) => {
-      /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
-      // good enough for now considering that we never send more than one message action at a time right now */
-      const messageActions = Object.keys(e?.data);
-
-      messageActions.forEach((action) => {
-        workerActions[action](e?.data[action]);
-      });
-    };
   }
 }
 
@@ -137,6 +153,15 @@ function growlsDisabled(rootGetters) {
 }
 
 export const actions = {
+  destroyWorker({ getters }) {
+    if (this.$workers) {
+      delete this.$workers[getters.storeName];
+    }
+  },
+  load(ctx, resource) {
+    queueChange(ctx, resource, true, 'Change');
+  },
+
   subscribe(ctx, opt) {
     const {
       state, commit, dispatch, getters, rootGetters
@@ -165,6 +190,9 @@ export const actions = {
       const maxTries = growlsDisabled(rootGetters) ? null : 3;
 
       socket = new Socket(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
+      if (this.$workers[getters.storeName] && state.config.baseUrl) {
+        this.$workers[getters.storeName].postMessage({ connect: state.config.baseUrl });
+      }
 
       commit('setSocket', socket);
       socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -274,6 +302,12 @@ export const actions = {
       // eslint-disable-next-line prefer-const
       type, selector, id, revision, namespace, stop, force
     } = params;
+
+    if (['count', 'schema'].includes(type) && this.$workers[getters.storeName]?.mode === 'advanced') {
+      state.debugSocket && console.info('Will not Watch (type is being watched in advanced worker)', JSON.stringify(params)); // eslint-disable-line no-console
+
+      return;
+    }
 
     type = getters.normalizeType(type);
 
@@ -512,7 +546,7 @@ export const actions = {
         }, { root: true });
       } else {
         // if the error is not a connect error or disconnect error, the socket never worked: log whether the current browser is safari
-        console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
+        state.debugSocket && console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
       }
     }
   },
@@ -535,12 +569,12 @@ export const actions = {
     }
   },
 
-  'ws.ping'({ getters, dispatch }, msg) {
+  'ws.ping'({ state, getters, dispatch }, msg) {
     if ( getters.storeName === 'management' ) {
       const version = msg?.data?.version || null;
 
       dispatch('updateServerVersion', version, { root: true });
-      console.info(`Ping [${ getters.storeName }] from ${ version || 'unknown version' }`); // eslint-disable-line no-console
+      state.debugSocket && console.info(`Ping [${ getters.storeName }] from ${ version || 'unknown version' }`); // eslint-disable-line no-console
     }
   },
 
@@ -554,8 +588,10 @@ export const actions = {
     });
   },
 
-  'ws.resource.error'({ getters, commit, dispatch }, msg) {
-    console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
+  'ws.resource.error'({
+    state, getters, commit, dispatch
+  }, msg) {
+    state.debugSocket && console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
 
     const err = msg.data?.error?.toLowerCase();
 
@@ -604,7 +640,7 @@ export const actions = {
     if (type === COUNT) {
       const worker = (this.$workers || {})[ctx.getters.storeName];
 
-      if (worker) {
+      if (worker && worker.mode === 'basic') {
         worker.postMessage({ countsUpdate: msg });
 
         // No further processing - let the web worker debounce the counts
@@ -710,7 +746,7 @@ export const mutations = {
     if ( existing ) {
       removeObject(state.started, existing);
     } else {
-      console.warn("Tried to remove a watch that doesn't exist", obj); // eslint-disable-line no-console
+      state.debugSocket && console.warn("Tried to remove a watch that doesn't exist", obj); // eslint-disable-line no-console
     }
   },
 

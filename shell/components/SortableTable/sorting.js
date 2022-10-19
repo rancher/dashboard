@@ -1,5 +1,6 @@
 import { sortBy } from '@shell/utils/sort';
 import { addObject } from '@shell/utils/array';
+import { isArray } from 'lodash';
 
 export default {
   computed: {
@@ -31,6 +32,10 @@ export default {
 
     arrangedRows() {
       let key;
+
+      if (this.setSortFn) {
+        return this.rows;
+      }
 
       if ( this.sortGenerationFn ) {
         key = `${ this.sortGenerationFn.apply(this) }/${ this.rows.length }/${ this.descending }/${ this.sortFields.join(',') }`;
@@ -94,11 +99,28 @@ export default {
 
   methods: {
     changeSort(sort, desc) {
+      if (this.setSortFn) {
+        const realSort = this.headers.find(header => header.name === sort).sort || '';
+        const realDesc = realSort.includes(':desc') ? !desc : desc;
+        let correctedSort = realSort;
+
+        // ToDo: these if blocks are some hot garbage but they'll have to do for now...
+        if (realSort === 'creationTimestamp:desc' || realSort === 'namespace') { // ToDo: everybody hates one-off cases
+          correctedSort = `metadata.${ realSort.replace(':desc', '') }`;
+        }
+        if (isArray(realSort)) {
+          correctedSort = realSort[0].replace('$.', '').replace('[', '.').replace(']', '');
+        }
+
+        this.setSortFn(`${ realDesc ? '-' : '' }${ correctedSort }`);
+      }
       this.sortBy = sort;
       this.descending = desc;
 
       // Always go back to the first page when the sort is changed
-      this.setPage(1);
+      if (!this.setSortFn) {
+        this.setPage(1);
+      }
     },
   },
 };

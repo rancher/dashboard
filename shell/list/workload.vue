@@ -1,7 +1,10 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
+// import { WORKLOAD_TYPES, SCHEMA, NODE } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { quickHashObj } from '@shell/utils/crypto';
+import cloneDeep from 'lodash/cloneDeep';
 
 const schema = {
   id:         'workload',
@@ -31,7 +34,7 @@ export default {
 
     this.loadHeathResources();
 
-    if ( this.allTypes ) {
+    if ( this.allTypes && !this.perfConfig.advancedWorker ) {
       const allowedResources = [];
 
       Object.values(WORKLOAD_TYPES).forEach((type) => {
@@ -44,6 +47,13 @@ export default {
       resources = await Promise.all(allowedResources.map((allowed) => {
         return this.$fetchType(allowed, allowedResources);
       }));
+    } else if (this.allTypes) {
+      // ToDo: this'll work with advanced worker, gotta go back and make sure basic still works (it currently wouldn't...)
+      const res = await this.$store.dispatch('cluster/findPage', {
+        type: 'workload', opt: this.resourceQuery, schema
+      });
+
+      resources = [res];
     } else {
       const type = this.$route.params.resource;
 
@@ -93,6 +103,16 @@ export default {
 
       return out;
     },
+
+    listLength() {
+      const { params: { resource: type } } = this.$route;
+
+      // if (type !== schema.id) {
+      return this.$store.getters['cluster/listLength'](type);
+      // }
+
+      // return undefined;
+    }
   },
 
   // All of the resources that we will load that we need for the loading indicator
@@ -117,7 +137,7 @@ export default {
   methods: {
     loadHeathResources() {
       // Fetch these in the background to populate workload health
-      if ( this.allTypes ) {
+      if ( this.allTypes && !this.perfConfig?.advancedWorker) {
         this.$store.dispatch('cluster/findAll', { type: POD });
         this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
       } else {
@@ -125,15 +145,29 @@ export default {
 
         if (type === WORKLOAD_TYPES.JOB) {
           // Ignore job (we're fetching this anyway, plus they contain their own state)
-          return;
-        }
 
-        if (type === WORKLOAD_TYPES.CRON_JOB) {
-          this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
-        } else {
-          this.$store.dispatch('cluster/findAll', { type: POD });
+        }
+        if (!this.perfConfig?.advancedWorker) {
+          if (type === WORKLOAD_TYPES.CRON_JOB) {
+            this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+          } else {
+            this.$store.dispatch('cluster/findAll', { type: POD });
+          }
         }
       }
+    },
+    setPage(num) {
+      const currentResourceQueryHash = quickHashObj(this.resourceQuery);
+      const resourceQueryClone = cloneDeep(this.resourceQuery);
+
+      resourceQueryClone.page = num;
+      if (currentResourceQueryHash !== quickHashObj(resourceQueryClone)) {
+        this.resourceQuery = { ...resourceQueryClone };
+      }
+
+      const { params:{ resource:type } } = this.$route;
+
+      this.$store.dispatch('cluster/updateResourceParams', { type, page: num });
     }
   },
 
@@ -151,5 +185,14 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="filteredRows" :overflow-y="true" />
+  <div>
+    <ResourceTable
+      :loading="$fetchState.pending"
+      :schema="schema"
+      :rows="filteredRows"
+      :overflow-y="true"
+      :set-page-fn="setPage"
+      :list-length="listLength"
+    />
+  </div>
 </template>

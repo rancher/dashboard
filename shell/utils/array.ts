@@ -11,6 +11,35 @@ export function removeObject<T>(ary: T[], obj: T): T[] {
   return ary;
 }
 
+// this is a function that returns a filter function for use in the advanced worker
+// ToDo: turns out I only need multiple fields and namespace filtering, I can take out the exclusion nonsense and multiple values per field
+export const multiFieldFilter:Function = (searches: {field: String, string: String, exact?: Boolean}[]) => (resource: Object) => {
+  let inclusionToken = false;
+  let inclusions = 0;
+  let exclusions = 0;
+
+  for (const search of searches.filter(search => search.string)) {
+    const searchTokens = search.string.split(', ');
+    const exact = search.exact || false;
+    const fieldValue = get(resource, search.field).trim().toLowerCase();
+
+    for (const token of searchTokens) {
+      const exclusionToken = token[0] === '!';
+
+      inclusionToken = !exclusionToken || inclusionToken;
+      const searchString = (exclusionToken ? token.substring(1) : token).trim().toLowerCase();
+
+      if (!exclusionToken && exact ? fieldValue === searchString : fieldValue.includes(searchString)) { // ToDo: there's almost certainly a cleaner way to write this...
+        inclusions++;
+      } else if (exclusionToken && exact ? fieldValue === searchString : fieldValue.includes(searchString)) {
+        exclusions++;
+      }
+    }
+  }
+
+  return (inclusions > 0 || inclusionToken === false) && exclusions === 0;
+};
+
 export function removeObjects<T>(ary: T[], objs: T[]): T[] {
   let i;
   let indexes = [];

@@ -2,6 +2,7 @@ import merge from 'lodash/merge';
 
 import { SCHEMA } from '@shell/config/types';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
+import { ROWS_PER_PAGE } from '@shell/store/prefs';
 import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
@@ -76,6 +77,12 @@ export default {
     throw new Error('Not Implemented');
   },
 
+  updateResourceParams(ctx, params) {
+    const { commit } = ctx;
+
+    commit('updateResourceParams', { ctx, params });
+  },
+
   loadSchemas,
 
   // Load a page of data for a given type
@@ -126,6 +133,45 @@ export default {
 
       return Promise.reject(e);
     }
+  },
+
+  async findPage(ctx, { type, opt, schema }) {
+    const { getters, rootGetters, commit } = ctx;
+    const storeName = getters.storeName;
+    const currentPage = opt.page || 1; // ToDo: default back to the getter and then 1;
+    const pageSize = opt.pageSize || parseInt(rootGetters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
+    const sortBy = opt.sortBy || 'nameSort';
+    const search = opt.search || null;
+    const url = !schema ? getters.urlFor(type, null, {}) : null;
+    const worker = this?.$workers[storeName] || {};
+
+    // ToDo: mutate the store back to loading and set the currentPage and pageSize (if different);
+    const data = await worker.postMessageAndWait({
+      type,
+      opt: {
+        url,
+        pagination: {
+          currentPage, pageSize, sortBy, search
+        },
+        schema
+      }
+    });
+    const resourceType = Object.keys(data)[0]; // there should only ever be one key on this object
+    const resourceList = data[resourceType];
+
+    commit('loadPage', {
+      ctx,
+      type: resourceType,
+      data: resourceList
+    });
+
+    // if (data instanceof Error) {
+    //   console.warn(data); // eslint-disable-line no-console
+    // } else {
+    //   // ToDo: commit page to the store with a custom mutation
+    // }
+
+    return getters.all(type);
   },
 
   async findAll(ctx, { type, opt }) {
@@ -480,6 +526,15 @@ export default {
     commit('loadMulti', {
       data,
       ctx,
+    });
+  },
+
+  batchChanges(ctx, batch) {
+    const { commit } = ctx;
+
+    commit('batchMutation', {
+      ctx,
+      batch
     });
   },
 

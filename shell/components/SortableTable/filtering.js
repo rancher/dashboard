@@ -1,5 +1,6 @@
 import { get } from '@shell/utils/object';
 import { addObject, addObjects, isArray, removeAt } from '@shell/utils/array';
+import { debounce } from 'lodash';
 
 export const ADV_FILTER_ALL_COLS_VALUE = 'allcols';
 export const ADV_FILTER_ALL_COLS_LABEL = 'All Columns';
@@ -97,7 +98,15 @@ export default {
 
     handleFiltering() {
       const searchText = (this.searchQuery || '').trim().toLowerCase();
+
       let out;
+
+      if (this.setSearchFn) {
+        this.subMatches = null;
+        debounce(this.setSearchFn, 300)(searchText);
+
+        return this.arrangedRows;
+      }
 
       if ( searchText && this.previousResult && searchText.startsWith(this.previousFilter) ) {
         // If the new search is an addition to the last one, we can start with the same set of results as last time
@@ -118,9 +127,9 @@ export default {
       }
 
       const searchFields = this.searchFields;
-      const searchTokens = searchText.split(/\s*[, ]\s*/);
-      const subSearch = this.subSearch;
-      const subFields = this.subFields;
+      const searchTokens = searchText.split(/\s*[, ]\s*/); // ToDo: if any token is good then return row // ToDo: use can prepend a "!" to make a token exclusive // ToDo: I should be able rip this out now...
+      const subSearch = this.subSearch; // ToDo: breakdown what this is... doesn't look like this is actually used...
+      const subFields = this.subFields; // ditto, passed to resourceTable by ExplorerMembers.vue but then not passed anywhere else or used
       const subMatches = {};
 
       for ( let i = out.length - 1 ; i >= 0 ; i-- ) {

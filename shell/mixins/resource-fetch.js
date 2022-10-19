@@ -1,6 +1,7 @@
 import { mapGetters } from 'vuex';
-import { COUNT, MANAGEMENT } from '@shell/config/types';
+import { COUNT, MANAGEMENT, POD, WORKLOAD_TYPES } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
+import { ROWS_PER_PAGE } from '@shell/store/prefs';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
@@ -21,6 +22,8 @@ export default {
       perfConfig = DEFAULT_PERF_SETTING;
     }
 
+    const pageSize = this.$store.getters['prefs/get'](ROWS_PER_PAGE);
+
     return {
       perfConfig,
       init:                       false,
@@ -34,6 +37,12 @@ export default {
       // incremental loading vars
       incremental:                0,
       fetchedResourceType:        [],
+      resourceQuery:              {
+        page:     1,
+        pageSize,
+        sortBy:   'nameSort',
+        search:   []
+      }
     };
   },
   beforeDestroy() {
@@ -67,6 +76,12 @@ export default {
       if (this.init && neu) {
         this.$fetch();
       }
+    },
+    resourceQuery: {
+      handler() {
+        this.$fetch();
+      },
+      deep: true
     }
   },
   methods:  {
@@ -84,6 +99,9 @@ export default {
         if (this.isTooManyItemsToAutoUpdate) {
           this.hasManualRefresh = true;
         }
+      }
+      if (this.perfConfig?.advancedWorker && (type === POD || Object.values(WORKLOAD_TYPES).includes(type))) {
+        return this.$store.dispatch(`${ inStore }/findPage`, { type, opt: this.resourceQuery });
       }
 
       if (!this.fetchedResourceType.includes(type)) {
@@ -121,8 +139,11 @@ export default {
       const incrementalLoadingEnabled = this.perfConfig?.incrementalLoading?.enabled;
       const incrementalLoadingThreshold = parseInt(this.perfConfig?.incrementalLoading?.threshold || '0', 10);
 
+      // advanced worker settings config
+      // const advancedWorkerEnabled = this.perfConfig?.advancedWorker;
+
       // other vars
-      this.multipleResources = multipleResources;
+      this.multipleResources = multipleResources; // different types of resources
       const resourceName = type;
       const inStore = this.$store.getters['currentStore'](resourceName);
       let resourceCount = 0;

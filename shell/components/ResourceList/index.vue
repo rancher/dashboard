@@ -4,6 +4,8 @@ import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { quickHashObj } from '@shell/utils/crypto';
+import { cloneDeep } from 'lodash';
 
 export default {
   components: {
@@ -119,6 +121,65 @@ export default {
 
     showIncrementalLoadingIndicator() {
       return this.perfConfig?.incrementalLoading?.enabled;
+    },
+    listLength() {
+      const { params: { resource: type } } = this.$route;
+
+      return this.$store.getters['cluster/listLength'](type);
+
+      // return undefined;
+    }
+  },
+
+  methods: {
+    setPage(num) {
+      const currentResourceQueryHash = quickHashObj(this.resourceQuery);
+      const resourceQueryClone = cloneDeep(this.resourceQuery);
+
+      resourceQueryClone.page = num;
+      if (currentResourceQueryHash !== quickHashObj(resourceQueryClone)) {
+        this.resourceQuery = { ...resourceQueryClone };
+      }
+    },
+    setSearch(search, field = 'metadata.name') {
+      const currentResourceQueryHash = quickHashObj(this.resourceQuery);
+      const resourceQueryClone = cloneDeep(this.resourceQuery);
+      const isAll = this.$store.getters['isAllNamespaces'];
+
+      // const isAll = true;
+      resourceQueryClone.search = [];
+
+      if (search) {
+        resourceQueryClone.search.push({ field, string: search });
+      }
+      if (!isAll) {
+        // const includedNamespaces = this.$store.getters['namespaces']();
+        const includedNamespaces = {};
+        const namespaceArray = Object.keys(includedNamespaces);
+
+        resourceQueryClone.search.push({
+          field: 'metadata.namespace', string: namespaceArray.join(', '), exact: true
+        });
+      }
+      if (currentResourceQueryHash !== quickHashObj(resourceQueryClone)) {
+        this.resourceQuery = {
+          ...resourceQueryClone,
+          page: 1
+        };
+      }
+    },
+    setSort(sortBy) {
+      const currentResourceQueryHash = quickHashObj(this.resourceQuery);
+      let resourceQueryClone = cloneDeep(this.resourceQuery);
+
+      resourceQueryClone = {
+        ...resourceQueryClone,
+        page: 1,
+        sortBy
+      };
+      if (currentResourceQueryHash !== quickHashObj(resourceQueryClone)) {
+        this.resourceQuery = { ...resourceQueryClone };
+      }
     }
   },
 
@@ -170,6 +231,10 @@ export default {
       :has-advanced-filtering="hasAdvancedFiltering"
       :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
       :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
+      :set-page-fn="setPage"
+      :set-search-fn="setSearch"
+      :set-sort-fn="setSort"
+      :list-length="listLength"
     />
   </div>
 </template>

@@ -8,6 +8,25 @@ import Sha1 from './browserSha1';
 const NORMAL = 'normal';
 const URL = 'url';
 
+// Quick, simple, non-secure hash function
+export function quickHash(str) {
+  let hash = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+
+    hash = (hash << 5) - hash + char;
+    hash &= hash;
+  }
+
+  return new Uint32Array([hash])[0].toString(36);
+}
+
+// Quick, simple hash function to generate hash for an object
+export function quickHashObj(obj) {
+  return quickHash(JSON.stringify(obj, null, 2));
+}
+
 export function base64Encode(string, alphabet = NORMAL) {
   let buf;
 

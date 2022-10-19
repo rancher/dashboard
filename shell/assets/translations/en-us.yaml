@@ -676,6 +676,10 @@ asyncButton:
     action: Generate
     success: Generated
     waiting: Generating&hellip;
+  cancel:
+    action: Cancel
+    success: Cancelled
+    waiting: Cancellinging&hellip;
 
 backupRestoreOperator:
   backupFilename: Backup Filename
@@ -6224,13 +6228,16 @@ featureFlags:
 performance:
   label: UI Performance Settings
   settingName: Performance
-  incrementalLoad:
+  incrementalLoading:
     label: Incremental Loading
     setting: You can configure the threshold above which incremental loading will be used.
     description: |-
       When enabled, resources will appear more quickly, but it may take slightly longer to load the entire set of resources. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable incremental loading
     inputLabel: Resource Threshold
+    confirmationModal:
+      title: Enabling incremental loading will disable the advanced worker.
+      body: Advanced worker resource fetching and incremental loading are currently incompatible. Future releases of the experimental advanced worker may support incremental loading.
   manualRefresh:
     banner: This setting is experimental and may be removed or updated in future versions.
     label: Manual Refresh
@@ -6245,6 +6252,15 @@ performance:
     description: |-
       When checked, websocket notifications will not appear when the UI detects a disconnection.
     checkboxLabel: Disable websocket notifications
+  advancedWorker:
+    banner: This setting is experimental and may be removed or updated in future versions.
+    label: Websocket Subscriptions and Processing in Webworker
+    description: |-
+      When enabled, websocket subscriptions for cluster schemas and counts will be created in a webworker. Updates to these resources will be cached and updates will be batched reducing overhead in the UI thread.
+    checkboxLabel: Enable webworker processing for websocket subscriptions (cluster schemas and counts)
+    confirmationModal:
+      title: Enabling advanced worker will disable incremental loading.
+      body: Advanced worker resource fetching and incremental loading are currently incompatible. Future releases of the experimental advanced worker may support incremental loading.
   gc:
     label: Resource Garbage Collection
     description: The UI will cache kuberentes resources locally to avoid having to re-fetch them. In some cases this can lead to a large amount of data stored in the browser. Enable this setting to periodically remove them.

@@ -298,6 +298,26 @@ export default {
       type:    String,
       default: 'sortable-table'
     },
+
+    setPageFn: {
+      type:    Function,
+      default: null,
+    },
+
+    setSearchFn: {
+      type:    Function,
+      default: null,
+    },
+
+    setSortFn: {
+      type:    Function,
+      default: null,
+    },
+
+    listLength: {
+      type:    Number,
+      default: null
+    }
   },
 
   data() {
@@ -354,9 +374,6 @@ export default {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
     namespaces(neu, old) {
-      this.watcherUpdateLiveAndDelayed(neu, old);
-    },
-    page(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
 
@@ -1073,7 +1090,7 @@ export default {
                 because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
                 the value of :class changes. -->
               <tr
-                :key="row.key"
+                :key="`${row.key}${(row.row.mainRowKey || i)}`"
                 class="main-row"
                 :data-testid="componentTestid + '-' + i + '-row'"
                 :class="{ 'has-sub-row': row.showSubRow}"

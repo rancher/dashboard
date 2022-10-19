@@ -40,6 +40,12 @@ export default {
     showCount() {
       return typeof this.type.count !== 'undefined';
     },
+
+    listLength() {
+      return this.$store.getters['cluster/listLength'](this.type.name.toLowerCase());
+
+      // return undefined;
+    }
   },
 
   methods: {
@@ -88,7 +94,7 @@ export default {
       <span v-else class="label" :class="{'no-icon': !type.icon}" v-html="type.labelDisplay || type.label" />
       <span v-if="showFavorite || showCount" class="count">
         <Favorite v-if="showFavorite" :resource="type.name" />
-        {{ type.count }}
+        {{ listLength || type.count }}
       </span>
     </a>
   </n-link>
