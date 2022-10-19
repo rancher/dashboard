@@ -201,6 +201,7 @@ export default {
   >
     <NameNsDescription
       v-model="value"
+      :name-editable="true"
       :mode="mode"
       :namespaced="false"
       description-key="spec.description"
