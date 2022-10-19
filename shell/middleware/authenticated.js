@@ -29,6 +29,16 @@ const getPackageFromRoute = (route) => {
 
 let beforeEachSetup = false;
 
+const LEGACY_ROUTE_TO_PRODUCT = {
+  // cluster
+  'c-cluster-legacy-auditLog-page':   'explorer',
+  'c-cluster-legacy-vlansubnet-page': 'explorer',
+
+  // project
+  // 'c-cluster-legacy-auditLog-page':      'explorer',
+  'c-cluster-legacy-resourceQuota-page': 'explorer',
+};
+
 export function getProductFromRoute(to) {
   let product = to.params?.product;
 
@@ -36,6 +46,12 @@ export function getProductFromRoute(to) {
     const match = to.name?.match(/^c-cluster-([^-]+)/);
 
     if ( match ) {
+      if (match[1] === 'legacy' && to.name && LEGACY_ROUTE_TO_PRODUCT[to.name]) {
+        product = LEGACY_ROUTE_TO_PRODUCT[to.name];
+
+        return product;
+      }
+
       product = match[1];
     }
   }
