@@ -768,7 +768,7 @@ catalog:
   chart:
     registry:
       label: Container Registry
-      tooltip: Container images are pulled from the Cluster Container or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
+      tooltip: Container images are pulled from the Cluster Container Registry or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
       custom:
         checkBoxLabel: Container Registry for Rancher System Container Images
         inputLabel: Container Registry

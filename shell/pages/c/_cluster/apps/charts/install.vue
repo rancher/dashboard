@@ -799,6 +799,19 @@ export default {
             return clusterRegistry;
           }
         }
+        if (provCluster.isRke1) {
+          // For RKE1 clusters, the cluster scoped private registry is on the management
+          // cluster, not the provisioning cluster.
+          const rke1Registries = mgmCluster.spec.rancherKubernetesEngineConfig.privateRegistries;
+
+          if (rke1Registries?.length > 0) {
+            const defaultRegistry = rke1Registries.find((registry) => {
+              return registry.isDefault;
+            });
+
+            return defaultRegistry.url;
+          }
+        }
       }
     },
 
