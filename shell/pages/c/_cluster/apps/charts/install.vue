@@ -673,13 +673,6 @@ export default {
       return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
     },
 
-    /**
-     * True if we should apply/save the custom registry value. This should be false if matching the global registry
-     * (we shouldn't save the global registry to avoid issues on upgrade where we might confused it with a custom one)
-     */
-    applyCustomRegistry() {
-      return this.customRegistrySetting !== this.globalRegistry;
-    }
   },
 
   watch: {
@@ -997,12 +990,8 @@ export default {
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
       if (this.showCustomRegistry) {
-        // If this is the current global registry leave it blank. This avoids the scenario on upgrade where a previous global registry that's
-        // been updated is confused with a custom user registry
-        const registry = this.applyCustomRegistry ? this.customRegistrySetting : '';
-
-        set(cattle, 'systemDefaultRegistry', registry);
-        set(global, 'systemDefaultRegistry', registry);
+        set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
+        set(global, 'systemDefaultRegistry', this.customRegistrySetting);
       }
 
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
