@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 export default {
   props: {
     /**
@@ -16,15 +17,31 @@ export default {
     },
     /**
  * {
- * [node name]: [devices]
+ *  [node name]: [devices]
+ * }
  */
     devicesByNode: {
       type:     Object,
       required: true
+    },
+
+    /**
+ * {
+ *  [deviceCRD.status.resourceName]: {
+ *      count: number of this device in use by other vms
+ *      usedBy: [names of all vms using this device]
+ *    }
+ * }
+ */
+
+    devicesInUse: {
+      type:    Object,
+      default: () => {}
     }
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     allNodeNames() {
       return Object.keys(this.devicesByNode);
     },
@@ -48,6 +65,28 @@ export default {
 
       return allNodesWithDevice.includes(nodeName);
     },
+
+    vmsUsingDevice(id) {
+      const resourceName = this.uniqueDevices[id].deviceCRDs[0].status?.resourceName;
+
+      return this.devicesInUse[resourceName]?.usedBy || null;
+    },
+
+    noneAvailable(id) {
+      const resourceName = this.uniqueDevices[id].deviceCRDs[0].status?.resourceName;
+
+      const count = this.devicesInUse[resourceName]?.count || 0;
+
+      return count === this.uniqueDevices[id].deviceCRDs.length;
+    },
+
+    deviceTooltip(id) {
+      if (this.vmsUsingDevice(id)) {
+        return `${ this.deviceDescription(id) }<br/>${ this.t('harvester.pci.tooltip', { numVMs: this.vmsUsingDevice(id).length }) }`;
+      }
+
+      return this.deviceDescription(id);
+    }
   }
 };
 </script>
@@ -61,14 +100,14 @@ export default {
       </div>
     </div>
     <div v-for="deviceId in allDeviceIds" :key="deviceId" class="device-col">
-      <div v-tooltip="deviceDescription(deviceId)" class="compat-cell device-label">
+      <div v-tooltip="deviceTooltip(deviceId)" class="compat-cell device-label" :class="{'text-muted': noneAvailable(deviceId)}">
         {{ deviceId }}
       </div>
       <div
         v-for="nodeName in allNodeNames"
         :key="nodeName"
         class="compat-cell"
-        :class="{'has-device': nodeHasDevice(nodeName, deviceId) }"
+        :class="{'has-device': nodeHasDevice(nodeName, deviceId)}"
       />
     </div>
   </div>
@@ -95,7 +134,7 @@ export default {
     padding: 0px 10px 0px 10px;
 
     &.has-device {
-        background-color: var(--accent-btn);
+        background-color: var(--info-banner-bg);
     }
 }
 

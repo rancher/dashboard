@@ -191,9 +191,14 @@ harvester:
     disableGroup: Disable Group
     labelRequired: "This rule should not be manually altered: it ensures that the PCI devices selected for this virtual machine are available on the VM's host."
     goSetting:
-      prefix: pcidevices-controller addon is not enabled, click
+      prefix: The pcidevices-controller addon is not enabled, click
       middle: here
       suffix: to enable it to manage your PCI devices.
+    tooltip: |-
+        {numVMs, plural,
+        =0 {There are {numVMs} other virtual machines already using this device.}
+        =1 {There is {numVMs} other virtual machine already using this device.}
+        }
   generic:
     close: Close
     open: Open

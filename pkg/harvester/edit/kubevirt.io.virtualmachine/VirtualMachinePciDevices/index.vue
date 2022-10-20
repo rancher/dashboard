@@ -8,7 +8,7 @@ import CompatibilityMatrix from './CompatibilityMatrix';
 import DeviceList from './DeviceList';
 
 import remove from 'lodash/remove';
-import { set } from '@shell/utils/object';
+import { get, set } from '@shell/utils/object';
 
 export default {
   name:       'VirtualMachinePCIDevices',
@@ -27,6 +27,11 @@ export default {
     value: {
       type:    Object,
       default: () => {}
+    },
+
+    vm: {
+      type:    Object,
+      default: () => {}
     }
   },
 
@@ -35,6 +40,8 @@ export default {
       // claims fetched here so synchronous pciDevice model property works
       pciDevices: this.$store.dispatch('harvester/findAll', { type: HCI.PCI_DEVICE }),
       claims:     this.$store.dispatch('harvester/findAll', { type: HCI.PCI_CLAIM }),
+      vms:        this.$store.dispatch(`harvester/findAll`, { type: HCI.VM })
+
     };
 
     const res = await allHash(hash);
@@ -42,12 +49,20 @@ export default {
     for (const key in res) {
       this[key] = res[key];
     }
+    this.selectedDevices = (this.value?.domain?.devices?.hostDevices || []).map(({ deviceName, name }) => {
+      for (const deviceId in this.uniqueDevices) {
+        if (this.uniqueDevices[deviceId].deviceCRDs.some(device => device?.status?.resourceName === deviceName)) {
+          return deviceId;
+        }
+      }
+    });
   },
 
   data() {
     return {
       pciDevices:      [],
       claims:          [],
+      vms:             [],
       selectedDevices: [],
       pciDeviceSchema: this.$store.getters['harvester/schemaFor'](HCI.PCI_DEVICE),
       showMatrix:      false,
@@ -76,6 +91,34 @@ export default {
       return this.pciDevices.filter((device) => {
         return device.isEnabled && device.claimedByMe;
       }) || [];
+    },
+
+    // find devices in use by other VMs and sum the number of each device already in use
+    devicesInUse() {
+      const inUse = this.vms.reduce((inUse, vm) => {
+        // dont count devices in this vm as 'disabled' if they're just being used in the vm currently being edited
+        if (vm.metadata.name === this.vm?.metadata?.name) {
+          return inUse;
+        }
+        const devices = get(vm, 'spec.template.spec.domain.devices.hostDevices');
+
+        devices.forEach((device) => {
+          const count = parseInt(device.name.match(/[0-9]+/g)[0] || '0');
+
+          if (!inUse[device.deviceName]) {
+            inUse[device.deviceName] = { count, usedBy: [vm.metadata.name] };
+          } else {
+            inUse[device.deviceName].count = inUse[device.deviceName].count + count;
+            if (!inUse[device.deviceName].usedBy.includes(vm.metadata.name)) {
+              inUse[device.deviceName].usedBy.push(vm.metadata.name);
+            }
+          }
+        });
+
+        return inUse;
+      }, {});
+
+      return inUse;
     },
 
     // pciDevice is one per device per node - if multiple nodes have device or multiple devices on a node there will be duplicate deviceID vendorID
@@ -139,11 +182,14 @@ export default {
     deviceOpts() {
       return Object.keys(this.uniqueDevices).map((deviceId) => {
         const device = this.uniqueDevices[deviceId].deviceCRDs[0];
+        const numberOfDeviceEnabled = this.uniqueDevices[deviceId].deviceCRDs.length;
+        const numberOfDeviceInUse = this.devicesInUse[device?.status?.resourceName]?.count || 0;
 
         return {
           resourceName: device?.status?.resourceName,
           value:        deviceId,
-          label:        deviceId
+          label:        deviceId,
+          disabled:     numberOfDeviceInUse === numberOfDeviceEnabled
         };
       });
     },
@@ -205,7 +251,7 @@ export default {
       </button>
       <div v-if="showMatrix" class="row mt-20">
         <div class="col span-12">
-          <CompatibilityMatrix :unique-devices="uniqueDevices" :devices-by-node="devicesByNode" />
+          <CompatibilityMatrix :unique-devices="uniqueDevices" :devices-by-node="devicesByNode" :devices-in-use="devicesInUse" />
         </div>
       </div>
     </template>

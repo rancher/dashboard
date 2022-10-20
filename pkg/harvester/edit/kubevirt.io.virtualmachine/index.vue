@@ -509,7 +509,7 @@ export default {
       </Tab>
 
       <Tab v-if="enabledPCI" :label="t('harvester.tab.pciDevices')" name="pciDevices" :weight="-4">
-        <PciDevices :mode="mode" :value="spec.template.spec" />
+        <PciDevices :mode="mode" :value="spec.template.spec" :vm="value" />
       </Tab>
 
       <Tab v-if="isEdit" :label="t('harvester.tab.accessCredentials')" name="accessCredentials" :weight="-5">
