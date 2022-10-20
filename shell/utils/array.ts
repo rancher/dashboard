@@ -11,6 +11,10 @@ export function removeObject<T>(ary: T[], obj: T): T[] {
   return ary;
 }
 
+export function noTestsForthis(inp: String): String {
+  return `§noTestsForthis ${ inp }`;
+}
+
 export function removeObjects<T>(ary: T[], objs: T[]): T[] {
   let i;
   let indexes = [];
