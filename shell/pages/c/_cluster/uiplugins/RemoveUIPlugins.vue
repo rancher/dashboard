@@ -27,7 +27,7 @@ export default {
       const plugins = await this.$store.dispatch('management/findAll', { type: UI_PLUGIN });
 
       // Are there any plugins installed?
-      this.hasPluginsInstalled = (plugins || {}).length > 0;
+      this.hasPluginsInstalled = (plugins || []).length > 0;
       this.removeCRD = !this.hasPluginsInstalled;
     }
   },
