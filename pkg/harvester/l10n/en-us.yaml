@@ -297,7 +297,7 @@ harvester:
       run: Run Strategy
       configure: Configure
       mode: Mode
-      modeLink: Mode <a href="https://docs.harvesterhci.io/next/host/#ksmtuned-mode" target="_blank"><i class="icon icon-info" /></a>
+      modeLink: Mode <a href="https://docs.harvesterhci.io/v1.1/host/#ksmtuned-mode" target="_blank"><i class="icon icon-info" /></a>
       thresCoef: Threshold Coefficient
       enableMergeNodes: Enable Merge Across Nodes
       enable: Enable
@@ -401,7 +401,7 @@ harvester:
         other {Start}
       } the virtual machine now to take effect of the configuration changes.
     runStrategy: Run Strategy
-    restartNow:  |-
+    restartNow: |-
       {restart, select,
         true {Restart}
         other {Start}

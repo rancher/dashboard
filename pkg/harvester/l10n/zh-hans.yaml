@@ -1,8 +1,12 @@
+generic:
+  tip: 提示
+
 asyncButton:
   restart:
     action: 保存并重启
     success: 已重启
     waiting: 正在重启&hellip;
+
 harvester:
   productLabel: 'Harvester'
   modal:
@@ -146,6 +150,7 @@ harvester:
       vlan: Vlan ID
     snapshotTargetVolume: 原始卷
     volumeSnapshotCounts: 快照数量
+    networkState: 网络状态
   tab:
     volume: 卷
     network: 网络
@@ -185,6 +190,10 @@ harvester:
     enableGroup: 启用组
     disableGroup: 禁用组
     labelRequired: "不要手动更改此规则：此规则确保为该虚拟机选择的 PCI 设备在 VM 的主机上可用。"
+    goSetting:
+      prefix: pcidevices-controller 插件未启用，单击
+      middle: 此处
+      suffix: 使它能够管理你的 PCI 设备。
     noPCIPermission: 请联系系统管理员启用 PCI 设备。
   generic:
     close: 关闭
@@ -195,6 +204,7 @@ harvester:
     cpu: CPU
     storage: 存储
     noFileChosen: 没有选择任何文件
+    noSchema: "找不到自定义资源定义：{schema}。"
 
   validation:
     custom:
@@ -287,8 +297,12 @@ harvester:
       run: 运行策略
       configure: 配置
       mode: 模式
-      modeLink: 模式 <a href="https://docs.harvesterhci.io/v1.0/host/host/#enable-ksmtuned" target="_blank"><i class="icon icon-info" /></a>
+      modeLink: 模式 <a href="https://docs.harvesterhci.io/v1.1/host/#ksmtuned-mode" target="_blank"><i class="icon icon-info" /></a>
       thresCoef: 阈值系数
+      enableMergeNodes: 启用跨节点合并
+      enable: 启用
+      disable: 禁用
+      ksmStatus: KSM 状态
       modeOption:
         standard: 标准
         high: 高性能
@@ -649,7 +663,7 @@ harvester:
     matchTarget: 当前备份目标与现有目标不匹配。
 
   network:
-    label: VLAN
+    label: 网络
     tabs:
       basics: 基本信息
       layer3Network: 路由
@@ -699,6 +713,15 @@ harvester:
       publicCertificate: 公共证书
       privateKey: 私钥
       ca: CA
+    storageNetwork:
+      range:
+        placeholder: 例如：172.16.0.1/24
+        label: IP 范围
+        invalid: '范围无效。'
+      clusterNetwork: 集群网络
+      vlan: VLAN ID
+      warning: '警告：<br/>如果要更改存储网络，你需要在应用此设置之前关闭所有虚拟机。<br/>用户必须确保配置了集群网络，VLAN 配置能覆盖所有节点，而且所有节点的网络正常。'
+      tip: IP 范围格式是 IPv4 CIDR，而且是集群节点数的 4 倍。
     vmForceDeletionPolicy:
       period: 周期
     supportBundleImage:
@@ -708,7 +731,7 @@ harvester:
     containerdRegistry:
       mirrors:
         mirrors: Mirror
-        registryName: Registry Name
+        registryName: 镜像仓库名称
         endpoints: 端点
         rewrite:
           rewrite: 重写
@@ -721,7 +744,7 @@ harvester:
         username: 用户名
         password: 密码
         auth: 认证
-        identityToken: Identity Token
+        identityToken: 身份令牌
         insecureSkipVerify: InsecureSkipVerify
         addConfig: 添加配置
 
@@ -744,7 +767,6 @@ harvester:
         retentionSize: 监控数据最大占用存储
     clusterRegistrationUrl:
       message: 要完全取消导入的 Harvester 集群，也请通过<code>虚拟化管理</code>页面在 Rancher 仪表板 UI 上删除它。
-
   cloudTemplate:
     label: Cloud Config 模板
     templateType: 模板类型
@@ -800,7 +822,7 @@ harvester:
     flow:
       label: Flow
     output:
-      label: 输出
+      label: Output
 
   snapshot:
     label: 卷快照
@@ -839,17 +861,22 @@ harvester:
         label: 过时副本超时
       diskSelector:
         label: 磁盘选择器
+        no-options: 没有可用的标签，请前往 `主机 > 存储` 页面进行添加。
       nodeSelector:
         label: 节点选择器
+        no-options: 没有可用的标签，请前往 `主机 > 存储` 页面进行添加。
       migratable:
         label: 可迁移
 
   vlanConfig:
     title: 网络配置
+    createNetworkConfig: 创建网络配置
     titles:
       nodeSelector: 节点选择器
       uplink: Uplink
       bondOptions: Bond 选项
+      attributes: 属性
+      host: 选定的主机
     scheduling:
       affinity:
         allNodes: 选择所有节点
@@ -859,6 +886,9 @@ harvester:
       nics:
         label: NIC
         addLabel: 添加 NIC
+        placeholder: 选择在所有选定节点上都可用的 NIC
+        validate:
+          available: NIC "{nic}" 在所选节点上不可用
       linkAttributes:
         mtu: 
           label: MTU
@@ -867,10 +897,35 @@ harvester:
           label: 模式
         miimon:
           label: Miimon
+    nodeSelector:
+      matchingNodes:
+        matchesSome: |-
+          {matched, plural,
+            =0 {匹配 {total, number} 个节点中的 0 个}
+            =1 {匹配 {total, number} 个节点中的 1 个："{sample}"}
+            other {匹配 {total, number} 个节点中的 {matched, number} 个，包括 "{sample}"}
+          }
 
   vlanStatus:
     vlanConfig:
       label: 网络配置
+  
+  clusterNetwork:
+    title: 集群网络/配置
+    create:
+      button:
+        label: 创建集群网络
+    clusterNetwork: 没有定义的网络配置。
+    mgmt: mgmt 是一个内置的集群管理网络，它不支持其它网络配置。
+  
+  addons:
+    descriptions:
+      'vm-import-controller': vm-import-controller 是一个插件，用于将其他集群的 VM 工作负载迁移到现有的 Harvester 集群。
+      'pcidevices-controller': pcidevices-controller 是一个插件，用于发现集群中节点的 PCI 设备，能让用户为 PCI 透传准备设备，以便与 Harvester VM 和 Guest 集群一起使用。
+    vmImport:
+      titles:
+        basic: 基本信息
+        pvc: 卷
 
 advancedSettings:
   descriptions:
@@ -891,8 +946,8 @@ advancedSettings:
     'harv-support-bundle-timeout': 'Support Bundle 超时配置（单位：分钟），你可以使用 0 来禁用超时。'
     'harv-vm-force-reset-policy': 配置当虚拟机卡在停机的节点上时的强制重置动作。
     'harv-ssl-parameters': 用于 TLS 验证的自定义 SSL 参数。
+    'harv-storage-network': 'Longhorn 存储网络设置。'
     'harv-support-bundle-namespaces': 指定支持包要收集的其他命名空间中的资源。
-    'harv-storage-network': 'Longhorn 存储网络设置.'
     'harv-auto-disk-provision-paths': 指定 Harvester 将自动添加为虚拟机存储的磁盘（使用 glob 模式）。
     'harv-support-bundle-image': Support Bundle 镜像配置。前往 <a href="https://hub.docker.com/r/rancher/support-bundle-kit/tags" target="_blank">rancher/support-bundle-kit</a> 查看更多版本。
     'harv-release-download-url': 此设置用于配置<code>升级版本下载</code>的 URL 地址。Harvester 将从该 URL 托管的 (<code>$URL</code>/<code>$VERSION</code>/version.yaml) 文件中获取 ISO URL 和校验和值。
@@ -918,15 +973,10 @@ typeLabel:
       one { 主机 }
       other { 主机 }
     }
-  k8s.cni.cncf.io.networkattachmentdefinition: |-
-    {count, plural,
-      one { VLAN }
-      other { VLAN }
-    }
   harvesterhci.io.networkattachmentdefinition: |-
     {count, plural,
-      one { VLAN }
-      other { VLAN }
+      one { 网络 }
+      other { 网络 }
     }
   harvesterhci.io.volume: |-
     {count, plural,
@@ -1003,7 +1053,6 @@ typeLabel:
       one { 存储类 }
       other { 存储类 }
     }
-
   devices.harvesterhci.io.pcidevice: |-
     {count, plural,
       one { PCI 设备 }
@@ -1013,4 +1062,9 @@ typeLabel:
     {count, plural,
       one { 卷 }
       other { 卷 }
+    }
+  network.harvesterhci.io.clusternetwork: |-
+    {count, plural,
+      one { 集群网络 }
+      other { 集群网络 }
     }
