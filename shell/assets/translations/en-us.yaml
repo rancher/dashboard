@@ -4907,6 +4907,7 @@ tableHeaders:
   condition: Condition
   customVerbs: Custom Verbs
   description: Description
+  duration: Duration
   expires: Expires
   providers: Providers
   cpu: CPU

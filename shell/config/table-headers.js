@@ -254,6 +254,13 @@ export const DESCRIPTION = {
   width:    300,
 };
 
+export const DURATION = {
+  name:     'duration',
+  labelKey: 'tableHeaders.duration',
+  value:    'duration.value',
+  sort:     'duration.seconds',
+};
+
 export const IMAGE = {
   name:     'image',
   labelKey: 'tableHeaders.image',
