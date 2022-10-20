@@ -48,6 +48,7 @@ jobs:
           yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
           GREP_TAGS: '@adminUser'
           TEST_USERNAME: admin
@@ -95,6 +96,7 @@ jobs:
           yarn test:ci
           mkdir -p coverage-artifacts/coverage
           cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
+          cp -r coverage/unit/ coverage-artifacts/coverage/unit/
 
       - name: Upload coverage
         uses: actions/upload-artifact@v3
