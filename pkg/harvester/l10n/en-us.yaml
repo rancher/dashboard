@@ -724,7 +724,7 @@ harvester:
         invalid: '"Range" is invalid.'
       clusterNetwork: Cluster Network
       vlan: VLAN ID
-      warning: 'WARNING: <br/> Any change to storage-network requires shutting down all VMs before applying this setting.'
+      warning: 'WARNING: <br/> Any change to storage-network requires shutting down all VMs before applying this setting. <br/> Users have to ensure the Cluster Network is configured and VLAN Config will cover all nodes and ensure the network connectivity is working and expected in all nodes.'
       tip: IP Range should be IPv4 CIDR format and 4 times the number of your cluster nodes.
     vmForceDeletionPolicy:
       period: Period
