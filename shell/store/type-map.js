@@ -121,7 +121,13 @@
 //   continueOnMatch
 // )
 import { AGE, NAME, NAMESPACE as NAMESPACE_COL, STATE } from '@shell/config/table-headers';
-import { COUNT, SCHEMA, MANAGEMENT, NAMESPACE } from '@shell/config/types';
+import {
+  CATALOG,
+  COUNT,
+  SCHEMA,
+  MANAGEMENT,
+  NAMESPACE
+} from '@shell/config/types';
 import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
@@ -1762,8 +1768,11 @@ function ifHave(getters, option) {
 export function isAdminUser(getters) {
   const canEditSettings = (getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
   const canEditFeatureFlags = (getters['management/schemaFor'](MANAGEMENT.FEATURE)?.resourceMethods || []).includes('PUT');
+  const canInstallApps = (getters['management/schemaFor'](CATALOG.APP)?.resourceMethods || []).includes('PUT');
+  const canAddRepos = (getters['management/schemaFor'](CATALOG.CLUSTER_REPO)?.resourceMethods || []).includes('PUT');
+  const canPutHelmOperations = (getters['management/schemaFor'](CATALOG.OPERATION)?.resourceMethods || []).includes('PUT');
 
-  return canEditSettings && canEditFeatureFlags;
+  return canEditSettings && canEditFeatureFlags && canInstallApps && canAddRepos && canPutHelmOperations;
 }
 
 // Is V1 Istio installed?
