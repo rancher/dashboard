@@ -804,7 +804,7 @@ export default {
           // cluster, not the provisioning cluster.
           const rke1Registries = mgmCluster.spec.rancherKubernetesEngineConfig.privateRegistries;
 
-          if (rke1Registries.length > 0) {
+          if (rke1Registries?.length > 0) {
             const defaultRegistry = rke1Registries.find((registry) => {
               return registry.isDefault;
             });
