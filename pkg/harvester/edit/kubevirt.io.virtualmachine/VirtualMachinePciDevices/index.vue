@@ -100,15 +100,13 @@ export default {
         if (vm.metadata.name === this.vm?.metadata?.name) {
           return inUse;
         }
-        const devices = get(vm, 'spec.template.spec.domain.devices.hostDevices');
+        const devices = get(vm, 'spec.template.spec.domain.devices.hostDevices') || [];
 
         devices.forEach((device) => {
-          const count = parseInt(device.name.match(/[0-9]+/g)[0] || '0');
-
           if (!inUse[device.deviceName]) {
-            inUse[device.deviceName] = { count, usedBy: [vm.metadata.name] };
+            inUse[device.deviceName] = { count: 1, usedBy: [vm.metadata.name] };
           } else {
-            inUse[device.deviceName].count = inUse[device.deviceName].count + count;
+            inUse[device.deviceName].count = inUse[device.deviceName].count + 1;
             if (!inUse[device.deviceName].usedBy.includes(vm.metadata.name)) {
               inUse[device.deviceName].usedBy.push(vm.metadata.name);
             }
@@ -182,13 +180,16 @@ export default {
     deviceOpts() {
       return Object.keys(this.uniqueDevices).map((deviceId) => {
         const device = this.uniqueDevices[deviceId].deviceCRDs[0];
+        // .deviceCRDs is an array of every instance of this device enabled by this user: deviceCRDs.length == how many of this device have been enabled by the user
         const numberOfDeviceEnabled = this.uniqueDevices[deviceId].deviceCRDs.length;
+        // how many times this device is listed in other VM spec
         const numberOfDeviceInUse = this.devicesInUse[device?.status?.resourceName]?.count || 0;
 
         return {
           resourceName: device?.status?.resourceName,
           value:        deviceId,
           label:        deviceId,
+          // if the number of this device in use by other VMs is equal to the total number available, the device cannot be added to this VM
           disabled:     numberOfDeviceInUse === numberOfDeviceEnabled
         };
       });
