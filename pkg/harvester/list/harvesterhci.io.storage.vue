@@ -31,10 +31,19 @@ export default {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
     await allHash({ storages: this.$store.dispatch(`${ inStore }/findAll`, { type: STORAGE_CLASS }) });
+
+    const storageSchema = this.$store.getters[`${ inStore }/schemaFor`](STORAGE_CLASS);
+
+    if ( storageSchema && !storageSchema?.collectionMethods.find(x => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
+      this.$store.dispatch('type-map/configureType', { match: HCI.STORAGE, isCreatable: false });
+    }
   },
 
   data() {
-    return { schema };
+    return {
+      schema,
+      STORAGE_CLASS,
+    };
   },
 
   computed: {

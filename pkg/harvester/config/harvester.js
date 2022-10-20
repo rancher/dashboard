@@ -640,6 +640,7 @@ export function init($plugin, store) {
     resource:       STORAGE_CLASS,
     resourceDetail: HCI.STORAGE,
     resourceEdit:   HCI.STORAGE,
+    isCreatable:    true,
   });
   virtualType({
     labelKey:   'harvester.storage.title',
