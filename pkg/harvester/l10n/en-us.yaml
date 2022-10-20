@@ -194,11 +194,7 @@ harvester:
       prefix: The pcidevices-controller addon is not enabled, click
       middle: here
       suffix: to enable it to manage your PCI devices.
-    tooltip: |-
-        {numVMs, plural,
-        =0 {There are {numVMs} other virtual machines already using this device.}
-        =1 {There is {numVMs} other virtual machine already using this device.}
-        }
+    noPCIPermission: Please contact system admin to enable the PCI devices first.
   generic:
     close: Close
     open: Open

@@ -28,6 +28,7 @@ export default {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
     this.hasSchema = this.$store.getters[`${ inStore }/schemaFor`](HCI.PCI_DEVICE);
+    this.hasAddonSchema = this.$store.getters[`${ inStore }/schemaFor`](HCI.ADD_ONS);
 
     if (this.hasSchema) {
       try {
@@ -74,6 +75,11 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
+  <div v-else-if="!hasAddonSchema">
+    <Banner color="warning">
+      {{ t('harvester.pci.noPCIPermission') }}
+    </Banner>
+  </div>
   <DeviceList v-else-if="hasSchema && enabledPCI" :rows="rows" :schema="schema" />
   <div v-else>
     <Banner color="warning">

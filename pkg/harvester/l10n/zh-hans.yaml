@@ -185,6 +185,7 @@ harvester:
     enableGroup: 启用组
     disableGroup: 禁用组
     labelRequired: "不要手动更改此规则：此规则确保为该虚拟机选择的 PCI 设备在 VM 的主机上可用。"
+    noPCIPermission: 请联系系统管理员启用 PCI 设备。
   generic:
     close: 关闭
     open: 打开
