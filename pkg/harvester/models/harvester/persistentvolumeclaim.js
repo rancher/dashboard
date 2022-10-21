@@ -204,10 +204,10 @@ export default class HciPv extends HarvesterResource {
     const snapshots = this.$rootGetters['harvester/all'](VOLUME_SNAPSHOT);
 
     return snapshots.filter((snapshot) => {
-      const volumeName = snapshot.spec?.source?.persistentVolumeClaimName;
-      const snapClass = snapshot.spec?.volumeSnapshotClassName;
+      const volumeId = `${ snapshot.metadata?.namespace }/${ snapshot.spec?.source?.persistentVolumeClaimName }`;
+      const kind = snapshot.metadata?.ownerReferences?.[0]?.kind;
 
-      return volumeName === this.metadata?.name && !['longhorn', 'vxflexos-backupclass'].includes(snapClass);
+      return volumeId === this.id && kind === 'PersistentVolumeClaim';
     });
   }
 

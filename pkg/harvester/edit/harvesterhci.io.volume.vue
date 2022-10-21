@@ -112,14 +112,6 @@ export default {
       );
     },
 
-    associatedSnapshots() {
-      return this.snapshots.filter((snapshot) => {
-        const ownerReferences = snapshot.metadata?.ownerReferences?.[0];
-
-        return ownerReferences.name === this.value.metadata?.name && ownerReferences.kind === 'PersistentVolumeClaim';
-      });
-    },
-
     snapshotHeaders() {
       return [
         STATE,
@@ -280,7 +272,7 @@ export default {
           v-bind="$attrs"
           :headers="snapshotHeaders"
           default-sort-by="age"
-          :rows="associatedSnapshots"
+          :rows="value.relatedVolumeSnapshotCounts"
           key-field="_key"
           v-on="$listeners"
         />
