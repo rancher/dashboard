@@ -61,14 +61,12 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.UI_PLUGIN_INDEX]:                  { kind: 'url' },
   [HCI_SETTING.CONTAINERD_REGISTRY]:              {
     kind: 'json', from: 'import', canReset: true
-  }
-};
-
-export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = {
+  },
   [HCI_SETTING.UI_SOURCE]: {
     kind:    'enum',
     options: ['auto', 'external', 'bundled']
   },
-  [HCI_SETTING.UI_INDEX]:                 { kind: 'url' },
-  [HCI_SETTING.CLUSTER_REGISTRATION_URL]: { kind: 'url' },
+  [HCI_SETTING.UI_INDEX]: { kind: 'url' },
 };
+
+export const HCI_SINGLE_CLUSTER_ALLOWED_SETTING = { [HCI_SETTING.CLUSTER_REGISTRATION_URL]: { kind: 'url' } };

@@ -40,10 +40,7 @@ export default {
   },
 
   data() {
-    return {
-      schema,
-      STORAGE_CLASS,
-    };
+    return { schema };
   },
 
   computed: {
