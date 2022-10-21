@@ -210,11 +210,5 @@
     "nth-check": ">=2.0.1",
     "follow-redirects": ">=1.14.7",
     "merge": ">=2.1.1"
-  },
-  "nyc": {
-    "reporter": [
-      "json"
-    ],
-    "report-dir": "coverage/e2e"
   }
 }
