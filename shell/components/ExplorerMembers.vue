@@ -78,7 +78,7 @@ export default {
     ...mapGetters(['currentCluster']),
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings.filter(
-        b => b.clusterName === this.$store.getters['currentCluster'].id
+        b => b?.clusterName === this.$store.getters['currentCluster'].id
       );
     },
     canManageMembers() {
