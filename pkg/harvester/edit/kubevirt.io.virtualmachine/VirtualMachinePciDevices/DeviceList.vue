@@ -78,11 +78,11 @@ export default {
 
   methods: {
     enableGroup(rows = []) {
-      rows.forEach((row) => {
-        if (!row.passthroughClaim) {
-          row.enablePassthrough();
-        }
-      });
+      const row = rows[0];
+
+      if (row) {
+        row.enablePassthroughBulk(rows);
+      }
     },
     disableGroup(rows = []) {
       rows.forEach((row) => {

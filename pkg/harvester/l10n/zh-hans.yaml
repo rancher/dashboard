@@ -1056,7 +1056,7 @@ typeLabel:
   devices.harvesterhci.io.pcidevice: |-
     {count, plural,
       one { PCI 设备 }
-      other { PCI 设备 }
+      other { PCI 设备 (实验功能) }
     }
   persistentvolumeclaim: |-
     {count, plural,

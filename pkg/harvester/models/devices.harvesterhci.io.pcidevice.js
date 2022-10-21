@@ -31,11 +31,12 @@ export default class PCIDevice extends SteveModel {
 
     out.push(
       {
-        action:     'enablePassthrough',
+        action:     'enablePassthroughBulk',
         enabled:    !this.isEnabling,
         icon:       'icon icon-fw icon-dot',
         label:      'Enable Passthrough',
-        bulkable: true
+        bulkable:   true,
+        bulkAction: 'enablePassthroughBulk'
       },
       {
         action:     'disablePassthrough',
@@ -121,42 +122,11 @@ export default class PCIDevice extends SteveModel {
   }
 
   // 'enable' passthrough creates the passthrough claim CRD -
-  async enablePassthrough() {
-    // isSingleProduct == this is a standalone Harvester cluster
-    const isSingleProduct = this.$rootGetters['isSingleProduct'];
-    let userName = 'admin';
-
-    // if this is imported Harvester, there may be users other than 'admin
-    if (!isSingleProduct) {
-      userName = this.$rootGetters['auth/v3User']?.username;
-    }
-
-    const pt = await this.$dispatch(`create`, {
-      type:     HCI.PCI_CLAIM,
-      metadata: {
-        name:            this.metadata.name,
-        ownerReferences: [{
-          apiVersion: 'devices.harvesterhci.io/v1beta1',
-          kind:       'PCIDevice',
-          name:       this.metadata.name,
-          uid:        this.metadata.uid,
-        }]
-      },
-      spec:     {
-        address:  this.status.address,
-        nodeName:   this.status.nodeName,
-        userName
-      }
-    } );
-
-    try {
-      await pt.save();
-    } catch (err) {
-      this.$dispatch('growl/fromError', {
-        title: this.$rootGetters['i18n/t']('harvester.pci.claimError', { name: escapeHtml(this.metadata.name) }),
-        err,
-      }, { root: true });
-    }
+  enablePassthroughBulk(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'EnablePassthrough'
+    });
   }
 
   // 'disable' passthrough deletes claim

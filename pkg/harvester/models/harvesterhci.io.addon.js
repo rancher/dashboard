@@ -1,4 +1,5 @@
 import HarvesterResource from './harvester';
+import { HCI as HCI_ANNOTATIONS } from '../config/labels-annotations';
 
 export default class HciAddonConfig extends HarvesterResource {
   get stateColor() {
@@ -29,5 +30,11 @@ export default class HciAddonConfig extends HarvesterResource {
     }
 
     return out;
+  }
+
+  get displayName() {
+    const isExperimental = this.metadata?.labels?.[HCI_ANNOTATIONS.ADDON_EXPERIMENTAL] === 'true';
+
+    return isExperimental ? `${ this.metadata.name } (${ this.t('generic.experimental') })` : this.metadata.name;
   }
 }

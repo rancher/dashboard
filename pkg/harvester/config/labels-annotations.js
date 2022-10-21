@@ -38,4 +38,5 @@ export const HCI = {
   STORAGE_CLASS:                'harvesterhci.io/storageClassName',
   PCI_DEVICE:                   'pcidevices.harvesterhci.io',
   STORAGE_NETWORK:              'storage-network.settings.harvesterhci.io',
+  ADDON_EXPERIMENTAL:           'addon.harvesterhci.io/experimental',
 };

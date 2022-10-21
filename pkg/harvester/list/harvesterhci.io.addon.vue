@@ -17,7 +17,7 @@ export default {
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
-    await allHash({ storages: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.ADD_ONS }) });
+    await allHash({ addons: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.ADD_ONS }) });
   },
 
   computed: {
