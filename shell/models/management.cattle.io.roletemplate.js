@@ -4,6 +4,7 @@ import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import Role from './rbac.authorization.k8s.io.role';
+import { AS, MODE, _CLONE, _UNFLAG } from '~/shell/config/query-params';
 
 export const CATTLE_API_GROUP = '.cattle.io';
 
@@ -54,6 +55,8 @@ export const VERBS = [
   'update',
   'watch',
 ];
+
+export const CREATE_VERBS = new Set(['PUT', 'blocked-PUT']);
 
 export default class RoleTemplate extends SteveDescriptionModel {
   get customValidationRules() {
@@ -157,6 +160,26 @@ export default class RoleTemplate extends SteveDescriptionModel {
 
       return norman;
     })();
+  }
+
+  get canCreate() {
+    const schema = this.$getters['schemaFor'](this.type);
+
+    return schema?.resourceMethods.find(verb => CREATE_VERBS.has(verb));
+  }
+
+  goToClone(moreQuery = {}) {
+    const location = this.detailLocation;
+
+    location.query = {
+      ...location.query,
+      [MODE]:      _CLONE,
+      [AS]:        _UNFLAG,
+      roleContext: this.subtype,
+      ...moreQuery
+    };
+
+    this.currentRouter().push(location);
   }
 
   async save() {
