@@ -241,7 +241,8 @@ export const SCOPED_RESOURCES = {
     },
     'cis.cattle.io': {
       resources: [
-        'ClusterScans'
+        'ClusterScans',
+        'ClusterScanReports'
       ]
     },
     'constraints.gatekeeper.sh': {
