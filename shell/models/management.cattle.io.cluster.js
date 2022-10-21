@@ -432,7 +432,12 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get provClusterId() {
-    const verb = this.isLocal ? 'to' : 'from';
+    const isRKE1 = !!this.spec?.rancherKubernetesEngineConfig;
+    // Note: RKE1 provisioning cluster IDs are in a different format. For example,
+    // RKE2 cluster IDs include the name - fleet-default/cluster-name - whereas an RKE1
+    // cluster has the less human readable management cluster ID in it: fleet-default/c-khk48
+
+    const verb = this.isLocal || isRKE1 ? 'to' : 'from';
     const from = `${ verb }Type`;
     const id = `${ verb }Id`;
 
