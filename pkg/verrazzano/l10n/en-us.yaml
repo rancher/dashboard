@@ -889,6 +889,7 @@ verrazzano:
     ################################
     headers:
       definitionName: Definition Name
+      cluster: Cluster
       workloadKind: Workload Kind
 
     ##################################
