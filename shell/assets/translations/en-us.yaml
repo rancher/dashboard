@@ -3767,7 +3767,9 @@ plugins:
       registry:
         title: Remove the Rancher Extensions Repository
         prompt: The Rancher Extensions Repository provides extensions published by Rancher
-
+      crd:
+        title: Remove the Rancher Extensions Custom Resource Definition
+        prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
 prefs:
   title: Preferences
   theme:

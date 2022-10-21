@@ -567,7 +567,7 @@ export default {
               </div>
               <div>{{ plugin.description }}</div>
               <div class="plugin-version">
-                <span v-if="plugin.installing === 'uninstall'" class="plugin-installing">
+                <span v-if="plugin.installing" class="plugin-installing">
                   -
                 </span>
                 <span v-else>
