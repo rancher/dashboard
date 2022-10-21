@@ -37,8 +37,7 @@ export default {
   },
   methods: {
     update(e) {
-      this.ingressClassName = e && typeof e === 'object' ? e.value : e;
-
+      this.ingressClassName = e.value !== undefined ? e.value : e.label;
       if (this.ingressClassName) {
         set(this.value, 'spec.ingressClassName', this.ingressClassName);
       } else {
@@ -53,11 +52,12 @@ export default {
     <LabeledSelect
       v-model="ingressClassName"
       :taggable="true"
+      :searchable="true"
       :mode="mode"
       :label="t('ingress.ingressClass.label')"
       :options="ingressClassOptions"
       option-label="label"
-      @input="update"
+      @selecting="update"
     />
   </div>
 </template>
