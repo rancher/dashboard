@@ -195,7 +195,7 @@ harvester:
       middle: here
       suffix: to enable it to manage your PCI devices.
     noPCIPermission: Please contact system admin to enable the PCI devices first.
-    enablePassthroughWarrning: Please be careful not to use host-owned PCI devices(e.g., management and VLAN NICs). Incorrect device allocation may cause damage to your cluster, including node failure.
+    enablePassthroughWarrning: Please be careful not to use host-owned PCI devices (e.g., management and VLAN NICs). Incorrect device allocation may cause damage to your cluster, including node failure.
   generic:
     close: Close
     open: Open
