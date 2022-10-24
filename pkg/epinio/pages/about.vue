@@ -27,8 +27,8 @@ export default {
       const gitUrl = `https://github.com/epinio/epinio/releases/download`;
 
       return [
-        this.createOSOption('about.os.mac', 'icon-apple', `${ gitUrl }/${ this.version?.displayVersion }/${ this.appName.toLowerCase() }-darwin-arm64`, null),
-        this.createOSOption('about.os.linux', 'icon-linux', `${ gitUrl }/${ this.version?.displayVersion }/${ this.appName.toLowerCase() }-linux-arm64`, this.downloadLinuxImages),
+        this.createOSOption('about.os.mac', 'icon-apple', `${ gitUrl }/${ this.version?.displayVersion }/${ this.appName.toLowerCase() }-darwin-x86_64`, null),
+        this.createOSOption('about.os.linux', 'icon-linux', `${ gitUrl }/${ this.version?.displayVersion }/${ this.appName.toLowerCase() }-linux-x86_64`, this.downloadLinuxImages),
         this.createOSOption('about.os.windows', 'icon-windows', `${ gitUrl }/${ this.version?.displayVersion }/${ this.appName.toLowerCase() }-windows-x86_64.zip`)
       ];
     },
