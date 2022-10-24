@@ -88,7 +88,7 @@ export default {
     />
 
     <template #body>
-      {{ t('harvester.pci.enablePassthroughWarrning') }}
+      {{ t('harvester.pci.enablePassthroughWarning') }}
     </template>
 
     <div slot="actions" class="actions">
