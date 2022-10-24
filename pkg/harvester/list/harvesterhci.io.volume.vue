@@ -22,11 +22,18 @@ export default {
   components: { Loading, ResourceTable },
 
   async fetch() {
-    const hash = await allHash({
+    const _hash = {
       pvcs:      this.$store.dispatch('harvester/findAll', { type: PVC }),
       vms:       this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
-      snapshots: this.$store.dispatch('harvester/findAll', { type: VOLUME_SNAPSHOT }),
-    });
+    };
+
+    const volumeSnapshotSchema = this.$store.getters['harvester/schemaFor'](VOLUME_SNAPSHOT);
+
+    if (volumeSnapshotSchema) {
+      _hash.snapshots = this.$store.dispatch('harvester/findAll', { type: VOLUME_SNAPSHOT });
+    }
+
+    const hash = await allHash(_hash);
 
     const pvcSchema = this.$store.getters['harvester/schemaFor'](PVC);
 
