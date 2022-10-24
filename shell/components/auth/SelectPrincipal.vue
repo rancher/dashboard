@@ -201,3 +201,12 @@ export default {
     }
   }
 </style>
+<style lang="scss">
+  .vs__dropdown-menu {
+    width: 0%;
+    * {
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+</style>
