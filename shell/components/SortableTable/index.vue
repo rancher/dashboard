@@ -1181,6 +1181,8 @@ export default {
             :full-colspan="fullColspan"
             :row="row.row"
             :sub-matches="subMatches"
+            :onRowMouseEnter="onRowMouseEnter"
+            :onRowMouseLeave="onRowMouseLeave"
           >
             <tr
               v-if="row.row.stateDescription"
