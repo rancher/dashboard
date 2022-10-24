@@ -293,6 +293,7 @@ export default {
       }],
       fvReportedValidationPaths: ['spec'],
       isNamespaceNew:            false,
+      allPods:                   [],
     };
   },
 

@@ -127,7 +127,7 @@ export default {
                 <h3>{{ t('workload.container.titles.image') }}</h3>
                 <div class="row mb-20">
                   <div class="col span-6">
-                    <LabeledInput
+                    <LabeledInputSugget
                       v-model.trim="allContainers[i].image"
                       :mode="mode"
                       :text-label="t('workload.container.image')"
