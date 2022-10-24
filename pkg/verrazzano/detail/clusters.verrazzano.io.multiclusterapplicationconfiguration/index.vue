@@ -137,10 +137,12 @@ export default {
               } else if (msg.name === 'resource.create') {
                 const newPod = ClusteredPodFactory.call(this, msg.data, cluster);
 
-                if (newPod?.metadata?.labels['app.oam.dev/name'] === appName && newPod?.metadata?.namespace === this.namespace) {
-                  this.allPods[newPod.metadata.namespace]?.push(newPod);
+                if (!this.allPods[newPod.metadata.namespace]?.find(p => p.id === newPod.id)) {
+                  if (newPod?.metadata?.labels['app.oam.dev/name'] === appName && newPod?.metadata?.namespace === this.namespace) {
+                    this.allPods[newPod.metadata.namespace]?.push(newPod);
 
-                  this.resetPods();
+                    this.resetPods();
+                  }
                 }
               } else if (msg.name === 'resource.remove') {
                 const id = msg.data?.id;
