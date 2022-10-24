@@ -95,11 +95,9 @@ export default {
     this.errors = [];
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
-    if (this.showCustomRegistry) {
-      this.clusterRegistry = await this.getClusterRegistry();
-      this.globalRegistry = await this.getGlobalRegistry();
-      this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
-    }
+    this.clusterRegistry = await this.getClusterRegistry();
+    this.globalRegistry = await this.getGlobalRegistry();
+    this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
 
     this.serverUrlSetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -284,15 +282,13 @@ export default {
       */
       this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
 
-      if (this.showCustomRegistry) {
-        const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
+      const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
-        delete this.chartValues?.global?.systemDefaultRegistry;
-        delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
+      delete this.chartValues?.global?.systemDefaultRegistry;
+      delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
-        this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
-        this.showCustomRegistryInput = !!this.customRegistrySetting;
-      }
+      this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
+      this.showCustomRegistryInput = !!this.customRegistrySetting;
 
       /* Serializes an object as a YAML document */
       this.valuesYaml = saferDump(this.chartValues);
@@ -664,15 +660,6 @@ export default {
       return null;
     },
 
-    /**
-     * Check if the chart contains `systemDefaultRegistry` properties. If not we shouldn't apply the setting (or show the UI for them)
-     */
-    showCustomRegistry() {
-      const global = this.versionInfo?.values?.global || {};
-
-      return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
-    },
-
   },
 
   watch: {
@@ -989,10 +976,8 @@ export default {
 
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
-      if (this.showCustomRegistry) {
-        set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
-        set(global, 'systemDefaultRegistry', this.customRegistrySetting);
-      }
+      set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
+      set(global, 'systemDefaultRegistry', this.customRegistrySetting);
 
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
       setIfNotSet(cattle, 'url', serverUrl);
@@ -1391,13 +1376,12 @@ export default {
           <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
 
           <Checkbox
-            v-if="showCustomRegistry"
             v-model="showCustomRegistryInput"
             class="mb-20"
             :label="t('catalog.chart.registry.custom.checkBoxLabel')"
             :tooltip="t('catalog.chart.registry.tooltip')"
           />
-          <div v-if="showCustomRegistry" class="row">
+          <div class="row">
             <div class="col span-6">
               <LabeledInput
                 v-if="showCustomRegistryInput"
