@@ -5,7 +5,7 @@ import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { _VIEW, _EDIT } from '@shell/config/query-params';
+import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
@@ -224,15 +224,21 @@ export default {
       const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
 
       const filtered = namespaces.filter( this.namespaceFilter || ((namespace) => {
+        // By default, include the namespace in the dropdown.
+        let out = true;
+
         if (this.currentProduct?.hideSystemResources) {
           // Filter out the namespace
           // if it is a system namespace or if it is managed by
           // Fleet.
-          return !namespace.isSystem && !namespace.isFleetManaged;
+          out = !namespace.isSystem && !namespace.isFleetManaged;
         }
 
-        // By default, include the namespace in the dropdown.
-        return true;
+        if (this.mode === _CREATE) {
+          out = out && !!namespace.links.update;
+        }
+
+        return out;
       }));
 
       const withLabels = filtered.map(this.namespaceMapper || ((obj) => {
@@ -336,7 +342,7 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', this.namespaces && !this.namespaces.find(n => n.value === val));
+        this.$emit('isNamespaceNew', !val || (this.namespaces && !this.namespaces.find(n => n.value === val)));
       }
 
       if (this.namespaceKey) {
@@ -355,10 +361,12 @@ export default {
       if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
         this.$parent.$emit('createNamespace', true);
+        this.$emit('isNamespaceNew', true);
         Vue.nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
         this.$parent.$emit('createNamespace', false);
+        this.$emit('isNamespaceNew', false);
       }
     }
   },

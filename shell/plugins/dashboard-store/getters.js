@@ -9,10 +9,11 @@ import Resource from '@shell/plugins/dashboard-store/resource-class';
 import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
+import garbageCollect from '@shell/utils/gc/gc';
 
 export default {
 
-  all: (state, getters) => (type) => {
+  all: (state, getters, rootState) => (type) => {
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -22,10 +23,14 @@ export default {
       mutations.registerType(state, type);
     }
 
+    garbageCollect.gcUpdateLastAccessed({
+      state, getters, rootState
+    }, type);
+
     return state.types[type].list;
   },
 
-  matching: (state, getters) => (type, selector, namespace) => {
+  matching: (state, getters, rootState) => (type, selector, namespace) => {
     let all = getters['all'](type);
 
     // Filter first by namespace if one is provided, since this is efficient
@@ -33,16 +38,24 @@ export default {
       all = all.filter(obj => obj.namespace === namespace);
     }
 
+    garbageCollect.gcUpdateLastAccessed({
+      state, getters, rootState
+    }, type);
+
     return all.filter((obj) => {
       return matches(obj, selector);
     });
   },
 
-  byId: (state, getters) => (type, id) => {
+  byId: (state, getters, rootState) => (type, id) => {
     type = getters.normalizeType(type);
     const entry = state.types[type];
 
     if ( entry ) {
+      garbageCollect.gcUpdateLastAccessed({
+        state, getters, rootState
+      }, type);
+
       return entry.map.get(id);
     }
   },
@@ -300,5 +313,9 @@ export default {
     }
 
     return 0;
+  },
+
+  gcIgnoreTypes: () => {
+    return {};
   }
 };

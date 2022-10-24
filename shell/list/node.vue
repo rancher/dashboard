@@ -1,6 +1,5 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import Tag from '@shell/components/Tag';
 import { Banner } from '@components/Banner';
 import {
@@ -16,18 +15,21 @@ import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/components/SortableTable/index.vue';
-
+import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListNode',
   components: {
-    Loading,
     ResourceTable,
     Tag,
     Banner
   },
-  mixins: [metricPoller],
+  mixins: [metricPoller, ResourceFetch],
 
   props: {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
@@ -35,7 +37,7 @@ export default {
   },
 
   async fetch() {
-    const hash = { kubeNodes: this.$store.dispatch('cluster/findAll', { type: NODE }) };
+    const hash = { kubeNodes: this.$fetchType(NODE) };
 
     this.canViewPods = this.$store.getters[`cluster/schemaFor`](POD);
 
@@ -58,16 +60,11 @@ export default {
       this.$store.dispatch('cluster/findAll', { type: POD });
     }
 
-    const res = await allHash(hash);
-
-    this.kubeNodes = res.kubeNodes;
+    await allHash(hash);
   },
 
   data() {
-    return {
-      kubeNodes:   null,
-      canViewPods: false,
-    };
+    return { canViewPods: false };
   },
 
   beforeDestroy() {
@@ -79,7 +76,7 @@ export default {
 
   computed: {
     hasWindowsNodes() {
-      return (this.kubeNodes || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
+      return (this.rows || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
     },
     tableGroup: mapPref(GROUP_RESOURCES),
 
@@ -141,8 +138,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Banner
       v-if="hasWindowsNodes"
       color="info"
@@ -152,8 +148,9 @@ export default {
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
-      :rows="kubeNodes"
+      :rows="rows"
       :sub-rows="true"
+      :loading="loading"
       v-on="$listeners"
     >
       <template #sub-row="{fullColspan, row}">

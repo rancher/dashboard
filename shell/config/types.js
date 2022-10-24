@@ -51,6 +51,7 @@ export const NAMESPACE = 'namespace';
 export const NODE = 'node';
 export const NETWORK_POLICY = 'networking.k8s.io.networkpolicy';
 export const POD = 'pod';
+export const PSP = 'policy.podsecuritypolicy';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
@@ -80,7 +81,6 @@ export const WORKLOAD_TYPES = {
   STATEFUL_SET:           'apps.statefulset',
   REPLICA_SET:            'apps.replicaset',
   REPLICATION_CONTROLLER: 'replicationcontroller',
-  POD:                    'pod'
 };
 
 const {
@@ -100,6 +100,9 @@ export const CATALOG = {
   APP:            'catalog.cattle.io.app',
   REPO:           'catalog.cattle.io.repo',
 };
+
+// UI Plugin type
+export const UI_PLUGIN = 'catalog.cattle.io.uiplugin';
 
 export const HELM = { PROJECTHELMCHART: 'helm.cattle.io.projecthelmchart' };
 
@@ -271,6 +274,7 @@ export const HCI = {
   CLUSTER:   'harvesterhci.io.management.cluster',
   DASHBOARD: 'harvesterhci.io.dashboard',
   IMAGE:     'harvesterhci.io.virtualmachineimage',
+  SETTING:   'harvesterhci.io.setting',
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

@@ -4,7 +4,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 
 export default {
-  name:       'WorkloadDeployments',
+  name:       'Workload',
   mixins:     [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
   props:      {
     value: {
@@ -56,6 +56,7 @@ export default {
         :mode="mode"
         :rules="{name: fvGetAndReportPathRules('metadata.name'), namespace: fvGetAndReportPathRules('metadata.namespace'), description: []}"
         @change="name=value.metadata.name"
+        @isNamespaceNew="isNamespaceNew = $event"
       />
       <div v-if="isCronJob || isReplicable || isStatefulSet || containerOptions.length > 1" class="row mb-20">
         <div v-if="isCronJob" class="col span-3">
@@ -91,10 +92,10 @@ export default {
           />
         </div>
       </div>
-      <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" :default-tab="defaultTab" @changed="changed">
+      <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" :default-tab="defaultTab" :flat="true" @changed="changed">
         <Tab
           v-for="(tab, i) in allContainers"
-          :key="i+tab.name"
+          :key="i"
           :label="tab.name"
           :name="tab.name"
           :weight="tab.weight"
@@ -110,7 +111,7 @@ export default {
               <div>
                 <div :style="{'align-items':'center'}" class="row mb-20">
                   <div class="col span-6">
-                    <LabeledInput v-model="container.name" :mode="mode" :label="t('workload.container.containerName')" />
+                    <LabeledInput v-model="allContainers[i].name" :mode="mode" :label="t('workload.container.containerName')" />
                   </div>
                   <div class="col span-6">
                     <RadioGroup
@@ -126,8 +127,8 @@ export default {
                 <h3>{{ t('workload.container.titles.image') }}</h3>
                 <div class="row mb-20">
                   <div class="col span-6">
-                    <LabeledInputSugget
-                      v-model.trim="container.image"
+                    <LabeledInput
+                      v-model.trim="allContainers[i].image"
                       :mode="mode"
                       :text-label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
@@ -140,7 +141,7 @@ export default {
                   </div>
                   <div class="col span-6">
                     <LabeledSelect
-                      v-model="container.imagePullPolicy"
+                      v-model="allContainers[i].imagePullPolicy"
                       :label="t('workload.container.imagePullPolicy')"
                       :options="pullPolicyOptions"
                       :mode="mode"
@@ -184,7 +185,13 @@ export default {
               <div class="spacer" />
               <div>
                 <h3>{{ t('workload.container.titles.command') }}</h3>
-                <Command v-model="allContainers[i]" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
+                <Command
+                  v-model="allContainers[i]"
+                  :secrets="namespacedSecrets"
+                  :config-maps="namespacedConfigMaps"
+                  :mode="mode"
+                  :loading="isLoadingSecondaryResources"
+                />
               </div>
               <ServiceNameSelect
                 :value="podTemplateSpec.serviceAccountName"
@@ -193,6 +200,7 @@ export default {
                 :select-placeholder="t('workload.serviceAccountName.label')"
                 :options="namespacedServiceNames"
                 option-label="metadata.name"
+                :loading="isLoadingSecondaryResources"
                 @input="updateServiceAccount"
               />
               <div class="spacer" />
@@ -211,6 +219,19 @@ export default {
             </Tab>
             <Tab :label="t('workload.container.titles.securityContext')" name="securityContext" :weight="tabWeightMap['securityContext']">
               <Security v-model="allContainers[i].securityContext" :mode="mode" />
+            </Tab>
+            <Tab :label="t('workload.storage.title')" name="storage" :weight="tabWeightMap['storage']">
+              <ContainerMountPaths
+                v-model="podTemplateSpec"
+                :namespace="value.metadata.namespace"
+                :register-before-hook="registerBeforeHook"
+                :mode="mode"
+                :secrets="namespacedSecrets"
+                :config-maps="namespacedConfigMaps"
+                :container="allContainers[i]"
+                :save-pvc-hook-name="savePvcHookName"
+                @removePvcForm="clearPvcFormState"
+              />
             </Tab>
           </Tabbed>
         </Tab>
@@ -242,8 +263,9 @@ export default {
                 :mode="mode"
                 :secrets="namespacedSecrets"
                 :config-maps="namespacedConfigMaps"
-                :container="container"
                 :save-pvc-hook-name="savePvcHookName"
+                :loading="isLoadingSecondaryResources"
+                :namespaced-pvcs="pvcs"
                 @removePvcForm="clearPvcFormState"
               />
             </Tab>
@@ -275,10 +297,10 @@ export default {
               </template>
             </Tab>
             <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling" :weight="tabWeightMap['podScheduling']">
-              <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" />
+              <PodAffinity :mode="mode" :value="podTemplateSpec" :nodes="allNodeObjects" :loading="isLoadingSecondaryResources" />
             </Tab>
             <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="tabWeightMap['nodeScheduling']">
-              <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
+              <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" :loading="isLoadingSecondaryResources" />
             </Tab>
             <Tab :label="t('workload.container.titles.upgrading')" name="upgrading" :weight="tabWeightMap['upgrading']">
               <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />

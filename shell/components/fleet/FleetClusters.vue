@@ -16,6 +16,11 @@ export default {
       type:    Object,
       default: null,
     },
+
+    loading: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -80,6 +85,7 @@ export default {
     :schema="schema"
     :headers="headers"
     :rows="rows"
+    :loading="loading"
     key-field="_key"
     v-on="$listeners"
   >

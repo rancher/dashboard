@@ -170,8 +170,6 @@ export function init(store) {
   weightType(CAPI.MACHINE, 1, true);
   weightType(CATALOG.CLUSTER_REPO, 0, true);
 
-  configureType(CATALOG.CLUSTER_REPO, { showListMasthead: false });
-
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,

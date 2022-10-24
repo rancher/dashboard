@@ -60,6 +60,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    loading: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -134,6 +138,7 @@ export default {
         :option-label="optionLabel"
         :placement="$attrs.placement ? $attrs.placement : null"
         :v-bind="$attrs"
+        :loading="loading"
         @input="changeSelected"
       />
       <button

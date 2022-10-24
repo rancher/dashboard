@@ -185,8 +185,6 @@ export default function(dir, _appConfig) {
 
   // Serve up the dist-pkg folder under /pkg
   serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
-  // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
-  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
   // Add the standard dashboard server middleware after the middleware added to serve up UI packages
   serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
 
@@ -201,6 +199,8 @@ export default function(dir, _appConfig) {
     process.env.DRONE_TAG ||
     process.env.DRONE_VERSION ||
     require('./package.json').version;
+
+  const prime = process.env.PRIME;
 
   const dev = (process.env.NODE_ENV !== 'production');
   const devPorts = dev || process.env.DEV_PORTS === 'true';
@@ -496,7 +496,8 @@ export default function(dir, _appConfig) {
         plugins: [
           // TODO: Browser support
           // ['@babel/plugin-transform-modules-commonjs'],
-          ['@babel/plugin-proposal-private-property-in-object', { loose: true }]
+          ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
+          'babel-plugin-istanbul'
         ],
       }
     },
@@ -554,7 +555,7 @@ export default function(dir, _appConfig) {
     plugins: [
       // Extensions
       path.relative(dir, path.join(SHELL, 'core/plugins.js')),
-      path.relative(dir, path.join(SHELL, 'core/plugins-loader.js')),
+      path.relative(dir, path.join(SHELL, 'core/plugins-loader.js')), // Load builtin plugins
 
       // Third-party
       path.join(NUXT_SHELL, 'plugins/axios'),
@@ -578,33 +579,34 @@ export default function(dir, _appConfig) {
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
       path.join(NUXT_SHELL, 'plugins/replaceall'),
       path.join(NUXT_SHELL, 'plugins/back-button'),
-      { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false }, // Load dyanmic plugins
       { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/formatters'), ssr: false }, // Populate formatters cache for sorted table
+      { src: path.join(NUXT_SHELL, 'plugins/version'), ssr: false }, // Makes a fetch to the backend to get version metadata
     ],
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options
     proxy: {
-      '/k8s':          proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-      '/pp':           proxyWsOpts(api), // For (epinio) standalone API
-      '/api':          proxyWsOpts(api), // Management k8s API
-      '/apis':         proxyWsOpts(api), // Management k8s API
-      '/v1':           proxyWsOpts(api), // Management Steve API
-      '/v3':           proxyWsOpts(api), // Rancher API
-      '/v3-public':    proxyOpts(api), // Rancher Unauthed API
-      '/api-ui':       proxyOpts(api), // Browser API UI
-      '/meta':         proxyMetaOpts(api), // Browser API UI
-      '/v1-*':         proxyOpts(api), // SAML, KDM, etc
+      '/k8s':            proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+      '/pp':             proxyWsOpts(api), // For (epinio) standalone API
+      '/api':            proxyWsOpts(api), // Management k8s API
+      '/apis':           proxyWsOpts(api), // Management k8s API
+      '/v1':             proxyWsOpts(api), // Management Steve API
+      '/v3':             proxyWsOpts(api), // Rancher API
+      '/v3-public':      proxyOpts(api), // Rancher Unauthed API
+      '/api-ui':         proxyOpts(api), // Browser API UI
+      '/meta':           proxyMetaOpts(api), // Browser API UI
+      '/v1-*':           proxyOpts(api), // SAML, KDM, etc
+      '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
       // These are for Ember embedding
-      '/c/*/edit':     proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-      '/k/':           proxyOpts('https://127.0.0.1:8000'),
-      '/g/':           proxyOpts('https://127.0.0.1:8000'),
-      '/n/':           proxyOpts('https://127.0.0.1:8000'),
-      '/p/':           proxyOpts('https://127.0.0.1:8000'),
-      '/assets':       proxyOpts('https://127.0.0.1:8000'),
-      '/translations': proxyOpts('https://127.0.0.1:8000'),
-      '/engines-dist': proxyOpts('https://127.0.0.1:8000'),
-      // Plugin dev
-      '/verdaccio/':   proxyOpts('http://127.0.0.1:4873/-'),
+      '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
+      '/k/':             proxyOpts('https://127.0.0.1:8000'),
+      '/g/':             proxyOpts('https://127.0.0.1:8000'),
+      '/n/':             proxyOpts('https://127.0.0.1:8000'),
+      '/p/':             proxyOpts('https://127.0.0.1:8000'),
+      '/assets':         proxyOpts('https://127.0.0.1:8000'),
+      '/translations':   proxyOpts('https://127.0.0.1:8000'),
+      '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
 
       '/c/*/vlansubnet':    proxyOpts('https://127.0.0.1:8000'),
       '/custom-extension/': proxyOpts('https://127.0.0.1:8000'),
@@ -664,6 +666,49 @@ export default function(dir, _appConfig) {
       onError,
       onProxyRes,
     };
+  }
+
+  // Intercept the /rancherversion API call wnad modify the 'RancherPrime' value
+  // if configured to do so by the environment variable PRIME
+  function proxyPrimeOpts(target) {
+    const opts = proxyOpts(target);
+
+    // Don't intercept if the PRIME environment variable is not set
+    if (!prime?.length) {
+      return opts;
+    }
+
+    opts.onProxyRes = (proxyRes, req, res) => {
+      const _end = res.end;
+      let body = '';
+
+      proxyRes.on( 'data', (data) => {
+        data = data.toString('utf-8');
+        body += data;
+      });
+
+      res.write = () => {};
+
+      res.end = () => {
+        let output = body;
+
+        try {
+          const out = JSON.parse(body);
+
+          out.RancherPrime = prime;
+          output = JSON.stringify(out);
+        } catch (err) {}
+
+        res.setHeader('content-length', output.length );
+        res.setHeader('content-type', 'application/json' );
+        res.setHeader('transfer-encoding', '');
+        res.setHeader('cache-control', 'no-cache');
+        res.writeHead(proxyRes.statusCode);
+        _end.apply(res, [output]);
+      };
+    };
+
+    return opts;
   }
 
   function onProxyRes(proxyRes, req, res) {

@@ -171,7 +171,7 @@ describe('fx: parse', () => {
       ['!some.prefix/key-bar_baz '],
       ['! some.prefix/key-bar_baz '],
       [' !  some.prefix/key-bar_baz '],
-    ])('should parse expression %p to selector %p', (expression) => {
+    ])('should parse expression %p to selector %p using prefixes', (expression) => {
       const expected = {
         key:      'some.prefix/key-bar_baz',
         operator: 'DoesNotExist',

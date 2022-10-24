@@ -53,10 +53,16 @@ console.log('');
 console.log(`Serving packages:`);
 console.log('');
 fs.readdirSync(pkgs).forEach((f) => {
-  const main = `${ f }.umd.min.js`;
+  let main = `${ f }.umd.min.js`;
 
   if (fs.existsSync(path.join(pkgs, f, main))) {
     console.log(`  ${ f } available at: ${ base }/${ f }/${ main }`);
+  } else {
+    main = `${ f }.umd.js`;
+
+    if (fs.existsSync(path.join(pkgs, f, main))) {
+      console.log(`  ${ f } available at: ${ base }/${ f }/${ main }`);
+    }
   }
 });
 

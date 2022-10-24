@@ -10,7 +10,6 @@ const DEFAULTS = {
   force:                           false, // Show; true = Delete standalone pods, false = fail if there are any
   gracePeriod:                     -1, // Show; Pod shut down time, negative value uses pod default
   ignoreDaemonSets:                true, // Hide; true = work, false = never work because there's always daemonSets
-  ignoreErrors:                    false, // Hide; profit?
   skipWaitForDeleteTimeoutSeconds: 0, // Hide; If the pod deletion time is older than this > 0, don't wait, for some reason
   timeout:                         120, // Show; Give up after this many seconds
 };

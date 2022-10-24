@@ -84,6 +84,12 @@ export default {
       const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
 
       resources.forEach(({ status, metadata }) => {
+        if (!status) {
+          out[STATES_ENUM.UNKNOWN].count += 1;
+
+          return;
+        }
+
         const k = status?.summary.ready > 0 && status?.summary.desiredReady === status.summary.ready;
 
         if (k) {

@@ -9,7 +9,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
-import { DEV } from '@shell/store/prefs';
+import { VIEW_IN_API } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
 import { downloadFile, generateZip } from '@shell/utils/download';
@@ -966,7 +966,7 @@ export default class Resource {
   }
 
   get canViewInApi() {
-    return this.hasLink('self') && this.$rootGetters['prefs/get'](DEV);
+    return this.hasLink('self') && this.$rootGetters['prefs/get'](VIEW_IN_API);
   }
 
   get canYaml() {

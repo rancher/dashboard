@@ -1,4 +1,5 @@
 <script>
+import isEqual from 'lodash/isEqual';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
@@ -177,17 +178,30 @@ export default {
     },
 
     setInitialEndpoint(endpoint) {
-      const newEndpointKey = Object.keys(ENDPOINT_MAPPING).find(key => ENDPOINT_MAPPING[key].graphEndpoint === endpoint);
+      const newEndpointKey = this.determineEndpointKeyType(ENDPOINT_MAPPING);
       const oldEndpointKey = Object.keys(OLD_ENDPOINTS).find(key => OLD_ENDPOINTS[key].graphEndpoint === endpoint);
 
-      if ( newEndpointKey ) {
-        this.endpoint = newEndpointKey;
-      } else if ( oldEndpointKey ) {
-        this.endpoint = oldEndpointKey;
+      if ( oldEndpointKey ) {
+        this.endpoint = this.determineEndpointKeyType(OLD_ENDPOINTS);
         this.oldEndpoint = true;
       } else {
-        this.endpoint = 'custom';
+        this.endpoint = newEndpointKey;
       }
+    },
+
+    determineEndpointKeyType(endpointTypes) {
+      let out = 'custom';
+
+      for ( const [endpointKey, endpointKeyValues] of Object.entries(endpointTypes) ) {
+        const mappedValues = Object.values(endpointKeyValues).map(endpoint => endpoint.replace(TENANT_ID_TOKEN, this.model?.tenantId));
+        const valuesToCheck = Object.keys(endpointKeyValues).map(key => this.value[key]);
+
+        if ( isEqual(mappedValues, valuesToCheck) ) {
+          out = endpointKey;
+        }
+      }
+
+      return out;
     },
 
     getNewApplicationSecret() {

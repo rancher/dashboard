@@ -5,13 +5,13 @@ import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
 import { mapGetters } from 'vuex';
-
 import { Banner } from '@components/Banner';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
 import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledTooltip } from '@components/LabeledTooltip';
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -24,7 +24,7 @@ import Wizard from '@shell/components/Wizard';
 import TypeDescription from '@shell/components/TypeDescription';
 import ChartMixin from '@shell/mixins/chart';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
-import { CATALOG, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { CATALOG, MANAGEMENT, DEFAULT_WORKSPACE, CAPI } from '@shell/config/types';
 import {
   CHART, FROM_CLUSTER, FROM_TOOLS, HIDE_SIDE_NAV, NAMESPACE, REPO, REPO_TYPE, VERSION, _FLAGGED
 } from '@shell/config/query-params';
@@ -61,6 +61,7 @@ export default {
     Checkbox,
     LabeledInput,
     LabeledSelect,
+    LabeledTooltip,
     LazyImage,
     Loading,
     NameNsDescription,
@@ -93,10 +94,12 @@ export default {
 
     this.errors = [];
 
-    this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.SETTING,
-      id:   'system-default-registry'
-    });
+    // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
+    if (this.showCustomRegistry) {
+      this.clusterRegistry = await this.getClusterRegistry();
+      this.globalRegistry = await this.getGlobalRegistry();
+      this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
+    }
 
     this.serverUrlSetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -281,6 +284,16 @@ export default {
       */
       this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
 
+      if (this.showCustomRegistry) {
+        const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
+
+        delete this.chartValues?.global?.systemDefaultRegistry;
+        delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
+
+        this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
+        this.showCustomRegistryInput = !!this.customRegistrySetting;
+      }
+
       /* Serializes an object as a YAML document */
       this.valuesYaml = saferDump(this.chartValues);
 
@@ -292,6 +305,7 @@ export default {
       this.loadedVersionValues = this.versionInfo?.values || {};
       this.loadedVersion = this.version?.key;
     }
+
     /* Check if chart exists and if required values exist */
     this.updateStepOneReady();
 
@@ -317,13 +331,16 @@ export default {
     };
 
     return {
-      defaultRegistrySetting: null,
+      defaultRegistrySetting: '',
+      customRegistrySetting:  '',
       serverUrlSetting:       null,
       chartValues:            null,
+      clusterRegistry:        '',
       originalYamlValues:     null,
       previousYamlValues:     null,
       errors:                 null,
       existing:               null,
+      globalRegistry:         '',
       forceNamespace:         null,
       loadedVersion:          null,
       loadedVersionValues:    null,
@@ -335,22 +352,22 @@ export default {
       valuesYaml:             '',
       project:                null,
       migratedApp:            false,
-
       defaultCmdOpts,
-      customCmdOpts: { ...defaultCmdOpts },
+      customCmdOpts:          { ...defaultCmdOpts },
 
       nameDisabled: false,
 
-      preFormYamlOption:   VALUES_STATE.YAML,
-      formYamlOption:      VALUES_STATE.YAML,
-      showDiff:            false,
-      showValuesComponent: true,
-      showQuestions:       true,
-      showSlideIn:         false,
-      shownReadmeWindows:  [],
-      componentHasTabs:    false,
-      showCommandStep:     false,
-      isNamespaceNew:      false,
+      preFormYamlOption:       VALUES_STATE.YAML,
+      formYamlOption:          VALUES_STATE.YAML,
+      showDiff:                false,
+      showValuesComponent:     true,
+      showQuestions:           true,
+      showSlideIn:             false,
+      shownReadmeWindows:      [],
+      componentHasTabs:        false,
+      showCommandStep:         false,
+      showCustomRegistryInput: false,
+      isNamespaceNew:          false,
 
       stepBasic: {
         name:           'basics',
@@ -632,10 +649,6 @@ export default {
       return { name: 'c-cluster-legacy-project' };
     },
 
-    mcmRoute() {
-      return { name: 'c-cluster-mcapps' };
-    },
-
     windowsIncompatible() {
       if (this.chart?.windowsIncompatible) {
         return this.t('catalog.charts.windowsIncompatible');
@@ -649,7 +662,17 @@ export default {
       }
 
       return null;
-    }
+    },
+
+    /**
+     * Check if the chart contains `systemDefaultRegistry` properties. If not we shouldn't apply the setting (or show the UI for them)
+     */
+    showCustomRegistry() {
+      const global = this.versionInfo?.values?.global || {};
+
+      return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
+    },
+
   },
 
   watch: {
@@ -748,6 +771,55 @@ export default {
   },
 
   methods: {
+    async getClusterRegistry() {
+      const hasPermissionToSeeProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
+
+      if (hasPermissionToSeeProvCluster) {
+        const mgmCluster = this.$store.getters['currentCluster'];
+        const provCluster = await this.$store.dispatch('management/find', {
+          type: CAPI.RANCHER_CLUSTER,
+          id:   mgmCluster.provClusterId
+        });
+
+        if (provCluster.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
+          const agentConfig = provCluster.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+
+          // If a cluster scoped registry exists,
+          // it should be used by default.
+          const clusterRegistry = agentConfig?.['system-default-registry'] || '';
+
+          if (clusterRegistry) {
+            return clusterRegistry;
+          }
+        }
+        if (provCluster.isRke1) {
+          // For RKE1 clusters, the cluster scoped private registry is on the management
+          // cluster, not the provisioning cluster.
+          const rke1Registries = mgmCluster.spec.rancherKubernetesEngineConfig.privateRegistries;
+
+          if (rke1Registries?.length > 0) {
+            const defaultRegistry = rke1Registries.find((registry) => {
+              return registry.isDefault;
+            });
+
+            return defaultRegistry.url;
+          }
+        }
+      }
+    },
+
+    async getGlobalRegistry() {
+      // Use the global registry as a fallback.
+      // If it is an empty string, the container
+      // runtime will pull images from docker.io.
+      const globalRegistry = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.SETTING,
+        id:   'system-default-registry'
+      });
+
+      return globalRegistry.value;
+    },
+
     updateValue(value) {
       if (this.$refs.yaml) {
         this.$refs.yaml.updateValue(value);
@@ -762,8 +834,10 @@ export default {
 
       // Load a values component for the UI if it is named in the Helm chart.
       if ( component ) {
-        if ( this.$store.getters['catalog/haveComponent'](component) ) {
-          this.valuesComponent = this.$store.getters['catalog/importComponent'](component);
+        const hasChartComponent = this.$store.getters['type-map/hasCustomChart'](component);
+
+        if ( hasChartComponent ) {
+          this.valuesComponent = this.$store.getters['type-map/importChart'](component);
           const loaded = await this.valuesComponent();
 
           this.showValuesComponent = true;
@@ -907,7 +981,7 @@ export default {
       const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
       const systemProjectId = projects.find(p => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
-      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
@@ -915,8 +989,11 @@ export default {
 
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
-      setIfNotSet(cattle, 'systemDefaultRegistry', defaultRegistry);
-      setIfNotSet(global, 'systemDefaultRegistry', defaultRegistry);
+      if (this.showCustomRegistry) {
+        set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
+        set(global, 'systemDefaultRegistry', this.customRegistrySetting);
+      }
+
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
       setIfNotSet(cattle, 'url', serverUrl);
       setIfNotSet(cattle, 'rkePathPrefix', pathPrefix);
@@ -941,7 +1018,6 @@ export default {
       }
 
       const cluster = this.$store.getters['currentCluster'];
-      const defaultRegistry = this.defaultRegistrySetting?.value || '';
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
@@ -950,7 +1026,6 @@ export default {
       if ( values.global?.cattle ) {
         deleteIfEqual(values.global.cattle, 'clusterId', cluster?.id);
         deleteIfEqual(values.global.cattle, 'clusterName', cluster?.nameDisplay);
-        deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
         deleteIfEqual(values.global.cattle, 'url', serverUrl);
         deleteIfEqual(values.global.cattle, 'rkePathPrefix', pathPrefix);
         deleteIfEqual(values.global.cattle, 'rkeWindowsPathPrefix', windowsPathPrefix);
@@ -966,10 +1041,6 @@ export default {
 
       if ( values.global?.cattle && !Object.keys(values.global.cattle).length ) {
         delete values.global.cattle;
-      }
-
-      if ( values.global ) {
-        deleteIfEqual(values.global, 'systemDefaultRegistry', defaultRegistry);
       }
 
       if ( !Object.keys(values.global || {}).length ) {
@@ -1291,7 +1362,6 @@ export default {
             </div>
           </div>
           <NameNsDescription
-            v-if="chart"
             v-model="value"
             :description-hidden="true"
             :mode="mode"
@@ -1318,13 +1388,31 @@ export default {
               />
             </template>
           </NameNsDescription>
+          <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
+
+          <Checkbox
+            v-if="showCustomRegistry"
+            v-model="showCustomRegistryInput"
+            class="mb-20"
+            :label="t('catalog.chart.registry.custom.checkBoxLabel')"
+            :tooltip="t('catalog.chart.registry.tooltip')"
+          />
+          <div v-if="showCustomRegistry" class="row">
+            <div class="col span-6">
+              <LabeledInput
+                v-if="showCustomRegistryInput"
+                v-model="customRegistrySetting"
+                label-key="catalog.chart.registry.custom.inputLabel"
+                placeholder-key="catalog.chart.registry.custom.placeholder"
+                :min-height="30"
+              />
+            </div>
+          </div>
           <div class="step__values__controls--spacer" style="flex:1">
 &nbsp;
           </div>
           <Banner v-if="isNamespaceNew" color="info" v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) ">
           </Banner>
-
-          <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
         </div>
       </template>
       <template #clusterTplVersion>
@@ -1537,7 +1625,7 @@ export default {
       </div>
 
       <Banner color="warning" class="description">
-        <span>
+        <span v-if="!mcapp">
           {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>
         <template v-if="!legacyEnabled">
@@ -1546,9 +1634,12 @@ export default {
             {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
           </nuxt-link>
         </template>
+        <template v-else-if="mcapp">
+          <span v-html="t('catalog.install.error.legacy.mcmNotSupported')" />
+        </template>
         <template v-else>
-          <nuxt-link :to="mcapp ? mcmRoute : legacyAppRoute">
-            <span v-html="t('catalog.install.error.legacy.navigate', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true)" />
+          <nuxt-link :to="legacyAppRoute">
+            <span v-html="t('catalog.install.error.legacy.navigate')" />
           </nuxt-link>
         </template>
       </Banner>

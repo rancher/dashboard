@@ -1,5 +1,5 @@
+import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
-import { MONITORING } from '@shell/config/types';
 
 export function computeDashboardUrl(embedUrl, clusterId, params) {
   const url = parseUrl(embedUrl);
@@ -21,7 +21,7 @@ export function computeDashboardUrl(embedUrl, clusterId, params) {
 }
 
 export async function dashboardExists(store, clusterId, embedUrl, storeName = 'cluster') {
-  if (!isMonitoringInstalled(store.getters, storeName)) {
+  if ( !haveV2Monitoring(store.getters) ) {
     return false;
   }
 
@@ -80,8 +80,4 @@ export async function failedProposals(dispatch, clusterId) {
   const response = await queryGrafana(dispatch, clusterId, 'sum(etcd_server_proposals_failed_total)', { start, end }, 30);
 
   return response.data.result[0]?.values?.[0]?.[1] || 0;
-}
-
-function isMonitoringInstalled(getters, storeName = 'cluster') {
-  return !!getters[`${ storeName }/schemaFor`](MONITORING.SERVICEMONITOR);
 }

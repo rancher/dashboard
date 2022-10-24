@@ -4,19 +4,20 @@ import ResourceTable from '@shell/components/ResourceTable';
 import { STATE, AGE, NAME } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
-import Loading from '@shell/components/Loading';
 import { PROJECT_ID } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { mapPref, GROUP_RESOURCES, DEV } from '@shell/store/prefs';
+import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListProjectNamespace',
   components: {
-    Loading, Masthead, MoveModal, ResourceTable
+    Masthead, MoveModal, ResourceTable
   },
+  mixins: [ResourceFetch],
 
   props: {
     createProjectLocationOverride: {
@@ -43,14 +44,15 @@ export default {
       return;
     }
 
-    this.namespaces = await this.$store.dispatch(`${ inStore }/findAll`, { type: NAMESPACE });
+    await this.$fetchType(NAMESPACE);
     this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } });
   },
 
   data() {
     return {
+      loadResources:                [NAMESPACE],
+      loadIndeterminate:            true,
       schema:                       null,
-      namespaces:                   [],
       projects:                     [],
       projectSchema:                null,
       MANAGEMENT,
@@ -67,6 +69,17 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster', 'currentProduct']),
+    namespaces() {
+      const inStore = this.$store.getters['currentStore'](NAMESPACE);
+
+      return this.$store.getters[`${ inStore }/all`](NAMESPACE);
+    },
+    loading() {
+      return !this.currentCluster || this.namespaces.length ? false : this.$fetchState.pending;
+    },
+    showIncrementalLoadingIndicator() {
+      return this.perfConfig?.incrementalLoading?.enabled;
+    },
     isNamespaceCreatable() {
       return (this.schema?.collectionMethods || []).includes('POST');
     },
@@ -184,8 +197,8 @@ export default {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
-      if (this.$store.getters['prefs/get'](DEV)) {
-        // If developer tools are turned on in the user preferences,
+      if (this.$store.getters['prefs/get'](ALL_NAMESPACES)) {
+        // If all namespaces options are turned on in the user preferences,
         // return all namespaces including system namespaces and RBAC
         // management namespaces.
         return this.activeNamespaces;
@@ -302,8 +315,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending || !currentCluster" />
-  <div v-else class="project-namespaces">
+  <div class="project-namespaces">
     <Masthead
       :schema="projectSchema"
       :type-display="t('projectNamespaces.label')"
@@ -311,6 +323,9 @@ export default {
       :favorite-resource="VIRTUAL_TYPES.PROJECT_NAMESPACES"
       :create-location="createProjectLocation"
       :create-button-label="t('projectNamespaces.createProject')"
+      :show-incremental-loading-indicator="showIncrementalLoadingIndicator"
+      :load-resources="loadResources"
+      :load-indeterminate="loadIndeterminate"
     />
     <ResourceTable
       ref="table"
@@ -321,6 +336,7 @@ export default {
       :rows="filteredRows"
       :groupable="true"
       :sort-generation-fn="sortGenerationFn"
+      :loading="loading"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
       v-on="$listeners"

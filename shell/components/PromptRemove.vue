@@ -266,7 +266,7 @@ export default {
         await this.refreshSpoofedTypes(spoofedTypes);
         this.done();
       } catch (err) {
-        this.error = err;
+        this.error = err.message || err;
         btnCB(false);
       }
     },
@@ -278,7 +278,7 @@ export default {
         await this.refreshSpoofedTypes(spoofedTypes);
         this.done();
       } catch (err) {
-        this.error = err;
+        this.error = err.message || err;
         btnCB(false);
       }
     },

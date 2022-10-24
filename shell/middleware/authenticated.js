@@ -234,6 +234,8 @@ export default async function({
         }
       }
     }
+
+    store.dispatch('gcStartIntervals');
   }
 
   if (!process.server) {
@@ -245,6 +247,10 @@ export default async function({
       window.location.href = backTo;
     }
   }
+
+  // GC should be notified of route change before any find/get request is made that might be used for that page
+  store.dispatch('gcRouteChanged', route);
+
   // Load stuff
   await applyProducts(store, $plugin);
   // Setup a beforeEach hook once to keep track of the current product
