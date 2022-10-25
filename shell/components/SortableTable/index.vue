@@ -716,7 +716,11 @@ export default {
       }
 
       if (isLabel) {
-        return row.metadata.labels[col.label];
+        if (row.metadata?.labels && row.metadata?.labels[col.label]) {
+          return row.metadata?.labels[col.label];
+        }
+
+        return '';
       }
 
       // Use to debug table columns using expensive value getters
