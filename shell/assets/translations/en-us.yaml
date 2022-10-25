@@ -4904,6 +4904,9 @@ storageClass:
       placeholder: e.g. storageos-secret
   no-provisioner:
     title: Local Storage (Unsupported)
+  deprecated: 
+    title: (Deprecated)
+    warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
 
 tableHeaders:
   accessKey: Access Key

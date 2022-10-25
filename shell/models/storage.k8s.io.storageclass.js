@@ -9,14 +9,16 @@ export const PROVISIONER_OPTIONS = [
     supported: true
   },
   {
-    labelKey:  'storageClass.azure-disk.title',
-    value:     'kubernetes.io/azure-disk',
-    supported: true
+    labelKey:   'storageClass.azure-disk.title',
+    value:      'kubernetes.io/azure-disk',
+    supported:  true,
+    deprecated: true
   },
   {
-    labelKey:  'storageClass.azure-file.title',
-    value:     'kubernetes.io/azure-file',
-    supported: true
+    labelKey:   'storageClass.azure-file.title',
+    value:      'kubernetes.io/azure-file',
+    supported:  true,
+    deprecated: true,
   },
   {
     labelKey: 'storageClass.rbd.title',
@@ -27,9 +29,10 @@ export const PROVISIONER_OPTIONS = [
     value:    'kubernetes.io/glusterfs',
   },
   {
-    labelKey:  'storageClass.gce-pd.title',
-    value:     'kubernetes.io/gce-pd',
-    supported: true
+    labelKey:   'storageClass.gce-pd.title',
+    value:      'kubernetes.io/gce-pd',
+    supported:  true,
+    deprecated: true,
   },
   {
     labelKey: 'storageClass.no-provisioner.title',
@@ -41,8 +44,9 @@ export const PROVISIONER_OPTIONS = [
     supported: true
   },
   {
-    labelKey: 'storageClass.cinder.title',
-    value:    'kubernetes.io/cinder',
+    labelKey:   'storageClass.cinder.title',
+    value:      'kubernetes.io/cinder',
+    deprecated: true,
   },
   {
     labelKey: 'storageClass.portworx-volume.title',
@@ -61,9 +65,10 @@ export const PROVISIONER_OPTIONS = [
     value:    'kubernetes.io/storageos',
   },
   {
-    labelKey:  'storageClass.vsphere-volume.title',
-    value:     'kubernetes.io/vsphere-volume',
-    supported: true
+    labelKey:   'storageClass.vsphere-volume.title',
+    value:      'kubernetes.io/vsphere-volume',
+    supported:  true,
+    deprecated: true
   }
 ];
 

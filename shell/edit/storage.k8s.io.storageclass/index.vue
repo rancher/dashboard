@@ -5,11 +5,13 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import ArrayList from '@shell/components/form/ArrayList';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
+import Banner from '@components/Banner/Banner.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { PROVISIONER_OPTIONS } from '@shell/models/storage.k8s.io.storageclass';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
+import { CSI_DRIVER } from '@shell/config/types';
 
 export default {
   name: 'StorageClass',
@@ -22,9 +24,16 @@ export default {
     RadioGroup,
     Tab,
     Tabbed,
+    Banner
   },
 
   mixins: [CreateEditView],
+
+  async fetch() {
+    if (this.$store.getters['cluster/schemaFor'](CSI_DRIVER)) {
+      this.csiDrivers = await this.$store.dispatch('cluster/findAll', { type: CSI_DRIVER });
+    }
+  },
 
   data() {
     const reclaimPolicyOptions = [
@@ -71,6 +80,7 @@ export default {
       volumeBindingModeOptions,
       mountOptions: [],
       provisioner:  PROVISIONER_OPTIONS[0].value,
+      csiDrivers:   [],
     };
   },
 
@@ -86,7 +96,16 @@ export default {
     },
 
     provisioners() {
-      return PROVISIONER_OPTIONS.filter(provisioner => this.showUnsupportedStorage || provisioner.supported);
+      const csiOptions = this.csiDrivers.map(driver => driver.metadata.name);
+      const out = [...csiOptions, ...PROVISIONER_OPTIONS.filter(provisioner => this.showUnsupportedStorage || provisioner.supported)].sort();
+
+      return out;
+    },
+
+    provisionerIsDeprecated() {
+      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === this.value.provisioner);
+
+      return provisionerOpt && provisionerOpt.deprecated !== undefined;
     }
   },
 
@@ -120,6 +139,22 @@ export default {
           delete this.value.parameters[key];
         }
       });
+    },
+    provisionerLabel(provisioner) {
+      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === provisioner);
+
+      return provisionerOpt?.labelKey ? this.t(provisionerOpt.labelKey) : '';
+    },
+    getOptionLabel(opt) {
+      if (opt.labelKey) {
+        if (opt.deprecated) {
+          return `${ this.t(opt.labelKey) } ${ this.t('storageClass.deprecated.title') }`;
+        }
+
+        return this.t(opt.labelKey);
+      }
+
+      return opt.label;
     }
   }
 };
@@ -143,18 +178,29 @@ export default {
       :mode="modeOverride"
       :register-before-hook="registerBeforeHook"
     />
+
     <LabeledSelect
       :value="value.provisioner"
       label="Provisioner"
       :options="provisioners"
       :localized-label="true"
-      option-label="labelKey"
+      :get-option-label="getOptionLabel"
       :mode="modeOverride"
       :searchable="true"
       :taggable="true"
       class="mb-20"
       @input="updateProvisioner($event)"
     />
+    <Banner
+      v-if="provisionerIsDeprecated"
+      color="warning"
+    >
+      <t
+        k="storageClass.deprecated.warning"
+        raw
+        :provisioner="provisionerLabel(value.provisioner)"
+      />
+    </Banner>
     <Tabbed :side-tabs="true">
       <Tab
         name="parameters"
