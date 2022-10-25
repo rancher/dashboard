@@ -95,6 +95,7 @@ export default {
           <p>{{ t('performance.websocketNotification.description') }}</p>
           <Checkbox
             v-model="value.disableWebsocketNotification"
+            :mode="mode"
             :label="t('performance.websocketNotification.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
@@ -106,6 +107,7 @@ export default {
           <p>{{ t('performance.incrementalLoad.description') }}</p>
           <Checkbox
             v-model="value.incrementalLoading.enabled"
+            :mode="mode"
             :label="t('performance.incrementalLoad.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
@@ -116,6 +118,7 @@ export default {
             </p>
             <LabeledInput
               v-model="value.incrementalLoading.threshold"
+              :mode="mode"
               :label="t('performance.incrementalLoad.inputLabel')"
               :disabled="!value.incrementalLoading.enabled"
               class="input"
@@ -131,6 +134,7 @@ export default {
           <Banner color="error" label-key="performance.manualRefresh.banner" />
           <Checkbox
             v-model="value.manualRefresh.enabled"
+            :mode="mode"
             :label="t('performance.manualRefresh.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
@@ -141,6 +145,7 @@ export default {
             </p>
             <LabeledInput
               v-model.number="value.manualRefresh.threshold"
+              :mode="mode"
               :label="t('performance.manualRefresh.inputLabel')"
               :disabled="!value.manualRefresh.enabled"
               class="input"
@@ -156,6 +161,7 @@ export default {
           <Banner color="error" label-key="performance.gc.banner" />
           <Checkbox
             v-model="value.garbageCollection.enabled"
+            :mode="mode"
             :label="t('performance.gc.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
@@ -165,6 +171,7 @@ export default {
             <div class="ml-20 mb-10">
               <Checkbox
                 v-model="value.garbageCollection.enabledInterval"
+                :mode="mode"
                 :class="{ 'text-muted': !value.garbageCollection.enabled }"
                 :label="t('performance.gc.whenRun.intervalCheckBox.label')"
                 class="mt-10 mb-10"
@@ -174,6 +181,7 @@ export default {
               <div class="ml-20">
                 <UnitInput
                   v-model="value.garbageCollection.interval"
+                  :mode="mode"
                   :suffix="t('suffix.seconds', { count: value.garbageCollection.interval })"
                   :label="t('performance.gc.whenRun.interval.inputLabel')"
                   :disabled="!value.garbageCollection.enabled || !value.garbageCollection.enabledInterval"
@@ -183,6 +191,7 @@ export default {
               </div>
               <Checkbox
                 v-model="value.garbageCollection.enabledOnNavigate"
+                :mode="mode"
                 :class="{ 'text-muted': !value.garbageCollection.enabled }"
                 :label="t('performance.gc.whenRun.route.description')"
                 class="mt-20 mb-10"
@@ -197,6 +206,7 @@ export default {
               </p>
               <UnitInput
                 v-model="value.garbageCollection.ageThreshold"
+                :mode="mode"
                 :suffix="t('suffix.seconds', { count: value.garbageCollection.ageThreshold })"
                 :label="t('performance.gc.howRun.age.inputLabel')"
                 :disabled="!value.garbageCollection.enabled"
@@ -208,6 +218,7 @@ export default {
               </p>
               <LabeledInput
                 v-model.number="value.garbageCollection.countThreshold"
+                :mode="mode"
                 :label="t('performance.gc.howRun.count.inputLabel')"
                 :disabled="!value.garbageCollection.enabled"
                 class="input"
