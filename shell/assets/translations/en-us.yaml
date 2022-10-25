@@ -1285,6 +1285,8 @@ cluster:
           other {{storageSize, number} {storageUnit} {storageType}}
         }
     azure:
+      acceleratedNetworking:
+        label: Enable Accelerated Networking
       availabilitySet:
         label: Availability Set (unmanaged)
       dns:

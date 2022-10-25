@@ -3,7 +3,6 @@ import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
-import merge from 'lodash/merge';
 import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -20,33 +19,34 @@ export const azureEnvironments = [
 ];
 
 const defaultConfig = {
-  availabilitySet:   'docker-machine',
-  clientId:          '',
-  clientSecret:      '',
-  customData:        '',
-  diskSize:          '30',
-  dns:               '',
-  environment:       'AzurePublicCloud',
-  faultDomainCount:  '3',
-  image:             'canonical:UbuntuServer:18.04-LTS:latest',
-  location:          'westus',
-  managedDisks:      false,
-  noPublicIp:        false,
-  nsg:               null,
-  privateIpAddress:  null,
-  resourceGroup:     'docker-machine',
-  size:              'Standard_D2_v2',
-  sshUser:           'docker-user',
-  staticPublicIp:    false,
-  storageType:       'Standard_LRS',
-  subnet:            'docker-machine',
-  subnetPrefix:      '192.168.0.0/16',
-  subscriptionId:    '',
-  tenantId:          '',
-  updateDomainCount: '5',
-  usePrivateIp:      false,
-  vnet:              'docker-machine-vnet',
-  openPort:          [
+  acceleratedNetworking: false,
+  availabilitySet:       'docker-machine',
+  clientId:              '',
+  clientSecret:          '',
+  customData:            '',
+  diskSize:              '30',
+  dns:                   '',
+  environment:           'AzurePublicCloud',
+  faultDomainCount:      '3',
+  image:                 'canonical:UbuntuServer:18.04-LTS:latest',
+  location:              'westus',
+  managedDisks:          false,
+  noPublicIp:            false,
+  nsg:                   null,
+  privateIpAddress:      null,
+  resourceGroup:         'docker-machine',
+  size:                  'Standard_D2_v2',
+  sshUser:               'docker-user',
+  staticPublicIp:        false,
+  storageType:           'Standard_LRS',
+  subnet:                'docker-machine',
+  subnetPrefix:          '192.168.0.0/16',
+  subscriptionId:        '',
+  tenantId:              '',
+  updateDomainCount:     '5',
+  usePrivateIp:          false,
+  vnet:                  'docker-machine-vnet',
+  openPort:              [
     '6443/tcp',
     '2379/tcp',
     '2380/tcp',
@@ -175,7 +175,11 @@ export default {
 
   created() {
     if (this.mode === 'create') {
-      merge(this.value, this.defaultConfig);
+      for (const key in this.defaultConfig) {
+        if (this.value[key] === undefined) {
+          this.$set(this.value, key, this.defaultConfig[key]);
+        }
+      }
 
       this.value.nsg = `rancher-managed-${ randomStr(8) }`;
     }
@@ -360,6 +364,13 @@ export default {
             :disabled="!value.usePrivateIp"
           />
         </div>
+      </div>
+      <div class="row mt-20">
+        <Checkbox
+          v-model="value.acceleratedNetworking"
+          :mode="mode"
+          :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
+        />
       </div>
       <div class="row mt-20">
         <div class="col span-6">
