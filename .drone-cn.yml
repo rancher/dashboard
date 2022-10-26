@@ -1,0 +1,96 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: test
+    image: node:14
+    commands:
+      - scripts/ci
+
+    when:
+      event:
+        - pull_request
+
+  - name: build-embedded
+    pull: default
+    image: node:14
+    commands:
+      # - scripts/ci-test
+      - scripts/build-embedded
+    when:
+      event:
+        - tag
+
+  - name: upload-embedded
+    pull: default
+    image: plugins/s3
+    settings:
+      bucket: pandaria-dashboard-ui
+      region: ap-southeast-2
+      acl: public-read
+      access_key:
+        from_secret: aws_access_id
+      secret_key:
+        from_secret: aws_access_secret
+      source: dist/${DRONE_TAG}.tar.gz
+      strip_prefix: dist/
+      target: release-2.7-cn/
+    when:
+      event:
+        - tag
+
+  - name: build-hosted
+    pull: default
+    image: node:14
+    commands:
+      - ./scripts/build-hosted
+    when:
+      ref:
+        - "refs/heads/release-*"
+      event:
+        - push
+
+  - name: upload-hosted
+    pull: default
+    image: amazon/aws-cli:2.7.9
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: aws_access_id
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: aws_access_secret
+      AWS_DEFAULT_REGION: ap-southeast-2
+      DRONE_BRANCH: ${DRONE_BRANCH}
+    commands:
+      - aws s3 sync --delete --acl public-read dist/${DRONE_BRANCH}/ s3://pandaria-dashboard-ui/dashboard/${DRONE_BRANCH}
+    when:
+      ref:
+        - "refs/heads/release-*"
+      event:
+        - push
+
+  - name: build-docker-image
+    image: plugins/docker
+    settings:
+      build_args:
+        - BRANCH=${DRONE_BRANCH}
+        - TAG=${DRONE_TAG}
+      dockerfile: image-scripts/Dockerfile
+      tag: ${DRONE_TAG}
+      repo: cnrancher/dashboard
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+
+    when:
+      event:
+        - tag
+
+node:
+  instance: agent-amd64
