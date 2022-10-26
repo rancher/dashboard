@@ -1,3 +1,5 @@
+import { isMatch } from 'lodash';
+
 const { baseUrl } = Cypress.config();
 const namespace = 'fleet-default';
 const type = 'provisioning.cattle.io.cluster';
@@ -17,6 +19,14 @@ describe('Cluster Manager', () => {
     describe('given custom selection', () => {
       it('can create new cluster', () => {
         cy.intercept('POST', `/v1/${ type }s`).as('createRequest');
+        const request = {
+          type,
+          metadata: {
+            namespace,
+            name: clusterName
+          },
+        };
+
         cy.userPreferences();
         cy.visit(clusterManagerPath);
         cy.getId('cluster-manager-list-create').click();
@@ -26,9 +36,7 @@ describe('Cluster Manager', () => {
         cy.getId('rke2-custom-create-save').click();
 
         cy.wait('@createRequest').then((intercept) => {
-          expect(intercept.request.body).to.nested.include({ type });
-          expect(intercept.request.body).to.nested.include({ 'metadata.namespace': namespace });
-          expect(intercept.request.body).to.nested.include({ 'metadata.name': clusterName });
+          expect(isMatch(intercept.request.body, request)).to.be.true;
           cy.url().should('include', `${ clusterManagerPath }/${ namespace }/${ clusterName }#registration`);
         });
       });
