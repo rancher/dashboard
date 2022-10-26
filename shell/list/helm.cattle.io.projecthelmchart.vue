@@ -72,7 +72,7 @@ export default {
       :show-incremental-loading-indicator="incrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
-      is-creatable
+      :is-creatable="canCreateProjectHelmChart"
     />
     <Banner color="info" :label="t('monitoring.projectMonitoring.list.banner')" />
     <!-- ToDo: figure out how to get this centered in the empty space -->
