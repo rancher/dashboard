@@ -6,7 +6,11 @@ title: What's New in 2.7
 
 ### Rancher Extensions
 
-- You can now bring your own apps' UI and integrate it with the Rancher Dashboard to leverage a single UI. This relies on feature charts that would be manageable via a catalog. 
+- You can now bring your own apps' UI and integrate it with the Rancher Dashboard to leverage a single UI. Admins may now make changes and enhancements to their UI functionality as desired independent of Rancher Manager releases. This relies on feature charts that would be manageable via a catalog. 
+
+### OCI Support for Helm for Fleet
+
+- Authentication for OCI-based registries is now supported. Note that the structure of the fleet.yaml is the same and the credentials are provided as a Kubernetes secret, which is described in the Private Helm Repo box in the Repo Structure docs.
 
 ---
 title: What's New in 2.6
