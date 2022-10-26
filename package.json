@@ -72,6 +72,7 @@
     "cron-validator": "1.2.0",
     "cronstrue": "1.95.0",
     "cross-env": "6.0.3",
+    "crypto-js": "^4.1.1",
     "d3": "7.3.0",
     "d3-selection": "1.4.1",
     "dagre-d3": "0.6.4",
