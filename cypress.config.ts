@@ -28,6 +28,7 @@ export default defineConfig({
   defaultCommandTimeout:  60000,
   trashAssetsBeforeRuns: true,
   retries:               2,
+  experimentalStudio:     true,
   env:                    {
     baseUrl,
     coverage:             false,
