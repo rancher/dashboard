@@ -14,7 +14,7 @@ title: What's New in 2.6
 
 ## New in 2.6.9
 
-- Alerts within the UI regarding network connectivity are now off by default with a toggle to enable them. This is to address usability uncovered as part of disconnected web sockets.
+- Alerts within the UI regarding network connectivity are now off by default with a toggle to enable them. This will address usability concerns when web sockets are disconnected.
 
 
 ## New in 2.6.8
