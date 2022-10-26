@@ -372,7 +372,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
           instances:      this.configuration.instances,
           configurations: this.configuration.configurations,
           environment:    this.configuration.environment,
-          routes:         this.configuration.routes,
+          routes:         this.configuration.routes.length ? this.configuration.routes : null,
         }
       }
     });
