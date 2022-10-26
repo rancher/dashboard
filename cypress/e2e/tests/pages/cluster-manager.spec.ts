@@ -1,6 +1,8 @@
 const { baseUrl } = Cypress.config();
-const clusterManagerPath = `${ baseUrl }/c/local/manager/provisioning.cattle.io.cluster`;
-const clusterRequestBase = `${ baseUrl }/v1/provisioning.cattle.io.clusters/fleet-default`;
+const namespace = 'fleet-default';
+const type = 'provisioning.cattle.io.cluster';
+const clusterManagerPath = `${ baseUrl }/c/local/manager/${ type }`;
+const clusterRequestBase = `${ baseUrl }/v1/${ type }s/${ namespace }`;
 const timestamp = +new Date();
 const clusterNamePartial = `e2e-test-create`;
 const clusterName = `${ clusterNamePartial }-${ timestamp }`;
@@ -14,6 +16,7 @@ describe('Cluster Manager', () => {
   describe('using RKE2', () => {
     describe('given custom selection', () => {
       it('can create new cluster', () => {
+        cy.intercept('POST', `/v1/${ type }s`).as('createRequest');
         cy.userPreferences();
         cy.visit(clusterManagerPath);
         cy.getId('cluster-manager-list-create').click();
@@ -22,17 +25,33 @@ describe('Cluster Manager', () => {
         cy.getId('name-ns-description-name').type(clusterName);
         cy.getId('rke2-custom-create-save').click();
 
-        cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterName }#registration`);
+        cy.wait('@createRequest').then((intercept) => {
+          expect(intercept.request.body).to.nested.include({ type });
+          expect(intercept.request.body).to.nested.include({ 'metadata.namespace': namespace });
+          expect(intercept.request.body).to.nested.include({ 'metadata.name': clusterName });
+          cy.url().should('include', `${ clusterManagerPath }/${ namespace }/${ clusterName }#registration`);
+        });
       });
 
       it('can create new imported generic cluster', () => {
+        cy.intercept('POST', `/v1/${ type }s`).as('importRequest');
         cy.visit(clusterManagerPath);
         cy.getId('cluster-manager-list-import').click();
         cy.getId('cluster-manager-create-grid-1-0').click();
         cy.getId('name-ns-description-name').type(clusterNameImport);
         cy.getId('cluster-manager-import-save').click();
 
-        cy.url().should('include', `${ clusterManagerPath }/fleet-default/${ clusterNameImport }#registration`);
+        cy.wait('@importRequest').then((intercept) => {
+          expect(intercept.request.body).to.deep.equal({
+            type,
+            metadata: {
+              namespace,
+              name: clusterNameImport
+            },
+            spec: {}
+          });
+          cy.url().should('include', `${ clusterManagerPath }/${ namespace }/${ clusterNameImport }#registration`);
+        });
       });
 
       it('can navigate to local cluster explore product', () => {
@@ -77,7 +96,7 @@ describe('Cluster Manager', () => {
         cy.getId('rke2-custom-create-save').click();
 
         cy.wait('@saveRequest').then(() => {
-          cy.visit(`${ clusterManagerPath }/fleet-default/${ clusterName }?mode=edit#basic`);
+          cy.visit(`${ clusterManagerPath }/${ namespace }/${ clusterName }?mode=edit#basic`);
           cy.getId('name-ns-description-description').find('input').should('have.value', clusterName);
         });
       });
