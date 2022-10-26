@@ -41,6 +41,7 @@ export default {
         rolesChanged:     false,
       },
       disabledEncryption,
+      passwordStrength: 0
     };
   },
 
@@ -122,6 +123,9 @@ export default {
     },
 
     async createUser() {
+      if (this.passwordStrength < 2) {
+        throw new Error(this.t('changePassword.errors.strengthError'));
+      }
       // Ensure username is unique (this does not happen in the backend)
       const users = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
 
@@ -205,7 +209,7 @@ export default {
     class="create-edit"
     @finish="save"
   >
-    <div class="credentials">
+    <div class="credentials mb-10">
       <h2> {{ t("user.edit.credentials.label") }}</h2>
       <div class="row">
         <div class="col span-4">
@@ -247,6 +251,7 @@ export default {
         :mode="mode"
         :must-change-password="value.mustChangePassword"
         @valid="validation.password = $event"
+        @strengthChange="passwordStrength = $event"
       />
     </div>
     <div v-if="showGlobalRoles" class="global-permissions">

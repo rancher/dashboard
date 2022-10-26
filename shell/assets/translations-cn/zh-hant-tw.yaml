@@ -974,6 +974,14 @@ changePassword:
     failedToChange: 無法修改密碼
     failedDeleteKey: 無法刪除單個 API 密鑰
     failedDeleteKeys: 無法刪除多個 API 密鑰
+    strengthError: 密碼強度弱
+  strength:
+    best: 強
+    good: 中
+    label: 密碼強度
+    tooltip1: 密碼必須至少包含 {length} 個字符
+    tooltip2: 至少包括數字、大寫字母、小寫字母、符號中的兩個類型
+    weak: 弱
 chartHeading:
   overview: 概述
   poweredBy: "Powered by:"

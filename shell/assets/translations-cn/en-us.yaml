@@ -962,6 +962,14 @@ changePassword:
     failedToChange: Failed to change password
     failedDeleteKey: Failed to delete key
     failedDeleteKeys: Failed to delete keys
+    strengthError: Weak password strength
+  strength:
+    best: best
+    good: good
+    label: Password strength
+    tooltip1: Password must contain at least {length} characters
+    tooltip2: Include at least two types of numbers, uppercase letters, lowercase letters, and symbols
+    weak: weak
 chartHeading:
   overview: Overview
   poweredBy: "Powered by:"

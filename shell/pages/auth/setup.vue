@@ -14,6 +14,7 @@ import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Password from '@shell/components/form/Password';
+import PasswordStrength from '@shell/components/PasswordStrength';
 import { applyProducts } from '@shell/store/type-map';
 import AESEncrypt from '@shell/utils/aes-encrypt';
 
@@ -76,7 +77,7 @@ export default {
   },
 
   components: {
-    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password
+    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password, PasswordStrength
   },
 
   async asyncData({ route, req, store }) {
@@ -171,6 +172,7 @@ export default {
       errors: [],
 
       disabledEncryption,
+      passwordStrength: 0
     };
   },
 
@@ -217,6 +219,12 @@ export default {
 
   methods: {
     async save(buttonCb) {
+      if (this.mustChangePassword && this.passwordStrength < 2) {
+        buttonCb(false);
+        this.errors = [this.t('changePassword.errors.strengthError')];
+
+        return;
+      }
       const promises = [];
 
       try {
@@ -349,6 +357,7 @@ export default {
               :label="t('setup.confirmPassword')"
               :required="true"
             />
+            <PasswordStrength :password="password" @strengthChange="passwordStrength = $event"></PasswordStrength>
           </template>
 
           <template v-if="isFirstLogin">

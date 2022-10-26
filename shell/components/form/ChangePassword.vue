@@ -3,6 +3,7 @@ import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import Password from '@shell/components/form/Password';
+import PasswordStrength from '@shell/components/PasswordStrength';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { _CREATE, _EDIT } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
@@ -14,7 +15,7 @@ import AESEncrypt from '@shell/utils/aes-encrypt';
 // 3) isEdit - New password is for an existing user
 export default {
   components: {
-    Checkbox, Banner, Password
+    Checkbox, Banner, Password, PasswordStrength
   },
   props: {
     mode: {
@@ -58,6 +59,7 @@ export default {
         userChangeOnLogin: false,
       },
       disabledEncryption: null,
+      passwordStrength:   0,
     };
   },
   computed:   {
@@ -233,6 +235,10 @@ export default {
     },
 
     async save(user) {
+      if (this.passwordStrength < 2) {
+        this.errorMessages = [this.t('changePassword.errors.strengthError')];
+        throw new Error(this.t('changePassword.errors.strengthError'));
+      }
       if (this.isChange) {
         await this.changePassword();
         if (this.form.deleteKeys) {
@@ -305,6 +311,11 @@ export default {
 
       return AESEncrypt(password.trim());
     },
+
+    handlePasswordStrength(v) {
+      this.passwordStrength = v;
+      this.$emit('strengthChange', v);
+    }
   },
 };
 </script>
@@ -377,6 +388,11 @@ export default {
         </div>
       </div>
       <Checkbox v-if="isChange" v-model="isRandomGenerated" label-key="changePassword.generatePassword.label" class="mt-10 type" />
+      <div :class="{row: !isChange}">
+        <div :class="{col: !isChange, 'span-4': !isChange}">
+          <PasswordStrength class="mt-10" :password="isRandomGenerated ? passwordGen: passwordNew" @strengthChange="handlePasswordStrength"></PasswordStrength>
+        </div>
+      </div>
     </div>
     <div v-if="errorMessages && errorMessages.length" class="text-error" :class="{'row': isCreateEdit}">
       <div :class="{'col': isCreateEdit, 'span-8': isCreateEdit}">
@@ -398,7 +414,6 @@ export default {
     }
 
     &.create, &.edit {
-      height: 185px;
       .form {
         .fields {
           display: flex;

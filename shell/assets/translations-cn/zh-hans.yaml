@@ -974,6 +974,14 @@ changePassword:
     failedToChange: 无法修改密码
     failedDeleteKey: 无法删除单个 API 密钥
     failedDeleteKeys: 无法删除多个 API 密钥
+    strengthError: 密码强度弱
+  strength:
+    best: 强
+    good: 中
+    label: 密码强度
+    tooltip1: 密码必须至少包含 {length} 个字符
+    tooltip2: 至少包括数字、大写字母、小写字母、符号中的两个类型
+    weak: 弱
 chartHeading:
   overview: 概述
   poweredBy: "Powered by:"
