@@ -19,6 +19,7 @@
     "autoscroll",
     "cacerts",
     "chainable",
+    "clusterroletemplatebindings",
     "Codecov",
     "epinio",
     "hevi",
