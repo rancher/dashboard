@@ -40,6 +40,7 @@ import { isEmpty } from '@shell/utils/object';
 import ConfigBadge from './ConfigBadge';
 import EventsTable from './EventsTable';
 import { fetchClusterResources } from './explorer-utils';
+import ConnectMode from './ConnectMode.vue';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -71,6 +72,7 @@ export default {
     EmberPage,
     ConfigBadge,
     EventsTable,
+    ConnectMode,
   },
 
   mixins: [metricPoller],
@@ -338,6 +340,10 @@ export default {
       return !!this.currentCluster?.badge;
     },
 
+    showConnectMode() {
+      return this.currentCluster?.id !== 'local';
+    },
+
     hasDescription() {
       return !!this.currentCluster?.spec?.description;
     },
@@ -387,6 +393,13 @@ export default {
     // Events/Alerts tab changed
     tabChange(neu) {
       this.selectedTab = neu?.selectedName;
+    },
+
+    editConnectMode() {
+      this.$store.dispatch('cluster/promptModal', {
+        resources: [this.currentCluster],
+        component: 'EditConnectModeDialog'
+      });
     }
   },
 };
@@ -446,6 +459,11 @@ export default {
         <i class="icon icon-warning" />
       </p>
       <div :style="{'flex':1}" />
+      <div v-if="showConnectMode">
+        <a href="javascript: void(0);" class="edit-connect-mode" @click="editConnectMode">
+          <i class="icon icon-edit" /> <span>{{ t('clusterConnectMode.connectMode.label') }}</span>
+        </a>
+      </div>
       <div v-if="!monitoringStatus.v2 && !monitoringStatus.v1">
         <n-link :to="{name: 'c-cluster-explorer-tools'}" class="monitoring-install">
           <i class="icon icon-gear" />
@@ -498,6 +516,9 @@ export default {
         <Tab v-if="hasMonitoring" name="cluster-alerts" :label="t('clusterIndexPage.sections.alerts.label')" :weight="1">
           <AlertTable v-if="selectedTab === 'cluster-alerts'" />
         </Tab>
+        <Tab v-if="showConnectMode" name="cluster-connect-mode" :label="t('clusterConnectMode.title')" :weight="0">
+          <ConnectMode :cluster="currentCluster" />
+        </Tab>
       </Tabbed>
     </div>
     <Tabbed v-if="hasMetricsTabs" class="mt-30">
@@ -545,7 +566,7 @@ export default {
   padding: 20px 0px;
   display: flex;
 
-  &>*:not(:nth-last-child(-n+2)) {
+  &>*:not(:nth-last-child(-n+3)) {
     margin-right: 40px;
 
     & SPAN {

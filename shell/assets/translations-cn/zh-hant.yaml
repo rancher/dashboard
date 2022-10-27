@@ -6789,3 +6789,29 @@ plugins:
     title: 更新擴展 {name}
   upgradeAvailable: 此擴展有可用的版本更新
   version: 版本：{version}
+clusterConnectMode:
+  actions:
+    restartConfirm: 您確定保存連接模式並重啓 {name} 集羣控制器嗎？
+    saveAndRestart: 保存並重啓
+    yes: 確定
+  apiEndpoint:
+    label: API Endpoint
+    overrideLabel: Override API Endpoints
+    placeholder: 例如：https://10.43.0.1:443
+    required: API Endpoint 不能爲空
+  connectMode:
+    label: 連接模式
+  connectStatus:
+    address: Address
+    apiEndpoint: API Endpoint
+    driver: Driver
+    host: Host
+    label: 連接狀態
+    provider: Provider
+    timeout: Timeout
+  detail: 查看集羣連接模式和 API Endpoints
+  testConnect:
+    error: 測試失敗
+    label: 測試
+    success: 測試成功
+  title: 集羣連接模式

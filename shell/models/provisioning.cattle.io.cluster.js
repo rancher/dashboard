@@ -104,6 +104,12 @@ export default class ProvCluster extends SteveModel {
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
       {
+        action:     'editConnectMode',
+        label:      this.$rootGetters['i18n/t']('clusterConnectMode.connectMode.label'),
+        icon:       'icon icon-edit',
+        enabled:    !isLocal && this.mgmt,
+      },
+      {
         action:     'openShell',
         label:      this.$rootGetters['i18n/t']('nav.shell'),
         icon:       'icon icon-terminal',
@@ -769,6 +775,13 @@ export default class ProvCluster extends SteveModel {
     if ( res?._status === 204 ) {
       await this.$dispatch('ws.resource.remove', { data: this });
     }
+  }
+
+  editConnectMode() {
+    this.$dispatch('promptModal', {
+      resources:  [this.mgmt],
+      component: 'EditConnectModeDialog'
+    });
   }
 
   get hasError() {
