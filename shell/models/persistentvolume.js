@@ -112,11 +112,8 @@ export const LONGHORN_DRIVER = 'driver.longhorn.io';
 export const LONGHORN_PLUGIN = VOLUME_PLUGINS.find(plugin => plugin.value === 'longhorn');
 
 export default class PV extends SteveModel {
-  // display value for a table column
+  // plugin display value table
   get source() {
-    // if (this.isLonghorn) {
-    //   return this.t(LONGHORN_PLUGIN.labelKey);
-    // }
     const csiDriver = this.spec?.csi?.driver;
 
     if (csiDriver) {

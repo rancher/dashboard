@@ -3451,8 +3451,20 @@ persistentVolume:
       label: Controller Publish Secret Namespace
       placeholder: e.g. default
     drivers:
-      driver-longhorn-io: Longhorn (CSI)
-      driver-harvesterhci-io: Harvester (CSI)
+      disk-csi-azure-com: Azure Disk (CSI)
+      file-csi-azure-com: Azure File (CSI)
+      driver-longhorn-io: Longhorn
+      driver-harvesterhci-io: Harvester
+      nfs-csi-k8s-io: NFS (CSI)
+      ebs-csi-aws-com: AWS Elastic Block Store (CSI)
+      rbd-csi-ceph-com: Ceph RBD (CSI)
+      org-gluster-glusterfs: GlusterFS (CSI)
+      pd-csi-storage-gke-io: GCE Persistent Disk (CSI)
+      cinder-csi-openstack-org: Cinder (CSI)
+      pxd-portworx-com: Portworx (CSI)
+      quobyte-csi: Quobyte (CSI)
+      storageos: StorageOS (CSI)
+      csi-vsphere-vmware-com: vSphere (CSI)
   cephfs:
     label: Ceph Filesystem (Unsupported)
     path:

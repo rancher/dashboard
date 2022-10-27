@@ -2,10 +2,16 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import KeyValue from '@shell/components/form/KeyValue';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { CSI_DRIVER } from '@shell/config/types';
+import { set } from '@shell/utils/object';
 
 export default {
   components: {
-    KeyValue, LabeledInput, RadioGroup
+    KeyValue,
+    LabeledInput,
+    RadioGroup,
+    LabeledSelect
   },
   props: {
     value: {
@@ -17,6 +23,18 @@ export default {
       required: true,
     },
   },
+
+  fetch() {
+    if (this.$store.getters['cluster/schemaFor'](CSI_DRIVER)) {
+      this.$store.dispatch('cluster/findAll', { type: CSI_DRIVER }).then((drivers) => {
+        this.csiDrivers = drivers;
+        this.loadingDrivers = false;
+      });
+    } else {
+      this.loadingDrivers = false;
+    }
+  },
+
   data() {
     const readOnlyOptions = [
       {
@@ -36,20 +54,54 @@ export default {
     this.$set(this.value.spec.csi, 'controllerExpandSecretRef', this.value.spec.csi.controllerExpandSecretRef || {});
     this.$set(this.value.spec.csi, 'controllerPublishSecretRef', this.value.spec.csi.controllerPublishSecretRef || {});
 
-    return { readOnlyOptions };
+    return {
+      readOnlyOptions,
+      loadingDrivers: true,
+      csiDrivers:     [],
+    };
   },
+
+  computed: {
+    driverOptions() {
+      return this.csiDrivers.map((driver) => {
+        return {
+          value: driver.metadata.name,
+          label:  this.$store.getters['i18n/withFallback'](`persistentVolume.csi.drivers.${ driver.metadata.name.replaceAll('.', '-') }`, null, driver.metadata.name)
+        };
+      });
+    }
+  },
+  methods: {
+    selectDriver(e) {
+      set(this.value, 'spec.csi.driver', e.value ? e.value : e.label);
+    }
+  }
 };
 </script>
 
 <template>
   <div>
+    {{ value.spec.csi }}
     <div class="row mb-20">
       <div class="col span-6">
+<<<<<<< HEAD
         <LabeledInput
           v-model="value.spec.csi.driver"
           :mode="mode"
           :label="t('persistentVolume.csi.driver.label')"
           :placeholder="t('persistentVolume.csi.driver.placeholder')"
+=======
+        <LabeledSelect
+          :value="value.spec.csi.driver"
+          :loading="loadingDrivers"
+          :options="driverOptions"
+          :mode="mode"
+          :label="t('persistentVolume.csi.driver.label')"
+          :placeholder="t('persistentVolume.csi.driver.placeholder')"
+          searchable
+          taggable
+          @selecting="selectDriver"
+>>>>>>> add csi driver translations, add driver dropdown to pv create
         />
       </div>
       <div class="col span-6">

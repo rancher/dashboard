@@ -2,6 +2,8 @@ import { STORAGE } from '@shell/config/labels-annotations';
 import { STORAGE_CLASS } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
+// These are storage class drivers w/ custom components
+// all but longhorn are in-tree plugins
 export const PROVISIONER_OPTIONS = [
   {
     labelKey:  'storageClass.aws-ebs.title',
@@ -76,7 +78,7 @@ export default class extends SteveModel {
   get provisionerDisplay() {
     const option = PROVISIONER_OPTIONS.find(o => o.value === this.provisioner);
 
-    return option ? this.t(option.labelKey) : this.provisioner;
+    return option ? this.t(option.labelKey) : this.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ this.provisioner.replaceAll('.', '-') }`, null, this.provisioner);
   }
 
   get isDefault() {

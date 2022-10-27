@@ -12,6 +12,7 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { PROVISIONER_OPTIONS } from '@shell/models/storage.k8s.io.storageclass';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
 import { CSI_DRIVER } from '@shell/config/types';
+import { LONGHORN_DRIVER } from '@shell/models/persistentvolume';
 
 export default {
   name: 'StorageClass',
@@ -79,7 +80,6 @@ export default {
       allowVolumeExpansionOptions,
       volumeBindingModeOptions,
       mountOptions: [],
-      provisioner:  PROVISIONER_OPTIONS[0].value,
       csiDrivers:   [],
     };
   },
@@ -95,9 +95,34 @@ export default {
       return this.value.provisioner;
     },
 
+    // PROVISIONER_OPTIONS are provs with custom components: all the in-tree types + longhorn
+    // CSI drivers are third party provisioner options - this.csiDrivers is a list of the ones that are currently installed on this cluster
     provisioners() {
-      const csiOptions = this.csiDrivers.map(driver => driver.metadata.name);
-      const out = [...csiOptions, ...PROVISIONER_OPTIONS.filter(provisioner => this.showUnsupportedStorage || provisioner.supported)].sort();
+      const dropdownOptions = [];
+      const provisionerOptionsDrivers = [];
+
+      PROVISIONER_OPTIONS.forEach((opt) => {
+        provisionerOptionsDrivers.push(opt.value);
+        if (this.showUnsupportedStorage || opt.supported) {
+          dropdownOptions.push({
+            value:      opt.value,
+            label:      this.t(opt.labelKey),
+            deprecated: opt.deprecated
+          });
+        }
+      });
+
+      this.csiDrivers.forEach((driver) => {
+        // if a csiDriver is in PROVISIONER_OPTIONS, it's already in the dropdown list; dont add again
+        if (driver.metadata.name === LONGHORN_DRIVER || provisionerOptionsDrivers.includes(driver.metadata.name)) {
+          return;
+        }
+        dropdownOptions.push({
+          value: driver.metadata.name,
+          label: this.$store.getters['i18n/withFallback'](`persistentVolume.csi.drivers.${ driver.metadata.name.replaceAll('.', '-') }`, null, driver.metadata.name)
+        });
+      });
+      const out = dropdownOptions.sort((a, b) => a.label.toLowerCase() > b.label.toLowerCase() ? 1 : -1);
 
       return out;
     },
@@ -107,6 +132,7 @@ export default {
 
       return provisionerOpt && provisionerOpt.deprecated !== undefined;
     }
+
   },
 
   watch: {
@@ -143,15 +169,11 @@ export default {
     provisionerLabel(provisioner) {
       const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === provisioner);
 
-      return provisionerOpt?.labelKey ? this.t(provisionerOpt.labelKey) : '';
+      return provisionerOpt?.labelKey ? this.t(provisionerOpt.labelKey) : provisioner;
     },
     getOptionLabel(opt) {
-      if (opt.labelKey) {
-        if (opt.deprecated) {
-          return `${ this.t(opt.labelKey) } ${ this.t('storageClass.deprecated.title') }`;
-        }
-
-        return this.t(opt.labelKey);
+      if (opt.deprecated) {
+        return `${ opt.label } ${ this.t('storageClass.deprecated.title') }`;
       }
 
       return opt.label;
