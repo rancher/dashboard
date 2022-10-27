@@ -36,7 +36,8 @@ describe('Cluster Manager', () => {
         cy.getId('rke2-custom-create-save').click();
 
         cy.wait('@createRequest').then((intercept) => {
-          expect(isMatch(intercept.request.body, request)).to.be.true;
+          // Issue with linter https://github.com/cypress-io/eslint-plugin-cypress/issues/3
+          expect(isMatch(intercept.request.body, request)).to.equal(true);
           cy.url().should('include', `${ clusterManagerPath }/${ namespace }/${ clusterName }#registration`);
         });
       });
