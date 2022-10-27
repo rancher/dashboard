@@ -4,7 +4,7 @@ const { baseUrl } = Cypress.config();
 const namespace = 'fleet-default';
 const type = 'provisioning.cattle.io.cluster';
 const clusterManagerPath = `${ baseUrl }/c/local/manager/${ type }`;
-const clusterRequestBase = `${ baseUrl }/v1/${ type }s/${ namespace }`;
+const clusterRefreshPath = `${ baseUrl }/v1/management.cattle.io.fleetworkspaces`;
 const timestamp = +new Date();
 const clusterNamePartial = `e2e-test-create`;
 const clusterName = `${ clusterNamePartial }-${ timestamp }`;
@@ -107,7 +107,7 @@ describe('Cluster Manager', () => {
       });
 
       it('can delete cluster', () => {
-        cy.intercept('DELETE', `${ clusterRequestBase }/${ clusterName }`).as('deleteRequest');
+        cy.intercept('GET', clusterRefreshPath).as('refreshRequest');
 
         cy.visit(clusterManagerPath);
         // Click action menu button for the cluster row within the table matching given name
@@ -118,9 +118,8 @@ describe('Cluster Manager', () => {
         cy.getId('prompt-remove-input').type(clusterName);
         cy.getId('prompt-remove-confirm-button').click();
 
-        cy.wait('@deleteRequest').then(() => {
-          cy.get('@rowCell').should('not.exist');
-        });
+        cy.reload();
+        cy.get('@rowCell').should('not.exist');
       });
 
       it('can delete multiple clusters', () => {
