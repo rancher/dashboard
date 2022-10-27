@@ -94,8 +94,6 @@ describe('Cluster Manager', () => {
       });
 
       it('can edit cluster and see changes afterwards', () => {
-        cy.intercept('PUT', `${ clusterRequestBase }/${ clusterName }`).as('saveRequest');
-
         cy.visit(clusterManagerPath);
         // Click action menu button for the cluster row within the table matching given name
         cy.contains(clusterName).parent().parent().parent()
@@ -104,11 +102,10 @@ describe('Cluster Manager', () => {
         cy.getId('name-ns-description-description').type(clusterName);
         cy.getId('rke2-custom-create-save').click();
 
-        cy.wait('@saveRequest').then(() => {
-          cy.visit(`${ clusterManagerPath }/${ namespace }/${ clusterName }?mode=edit#basic`);
-          cy.getId('name-ns-description-description').find('input').should('have.value', clusterName);
-        });
+        cy.visit(`${ clusterManagerPath }/${ namespace }/${ clusterName }?mode=edit#basic`);
+        cy.getId('name-ns-description-description').find('input').should('have.value', clusterName);
       });
+
       it('can delete cluster', () => {
         cy.intercept('DELETE', `${ clusterRequestBase }/${ clusterName }`).as('deleteRequest');
 
@@ -127,8 +124,6 @@ describe('Cluster Manager', () => {
       });
 
       it('can delete multiple clusters', () => {
-        cy.intercept('DELETE', `${ clusterRequestBase }/${ clusterNameImport }`).as('deleteRequest');
-
         cy.visit(clusterManagerPath);
         // Get row from a given name
         cy.contains(clusterNameImport).as('rowCell')
@@ -144,9 +139,7 @@ describe('Cluster Manager', () => {
         });
         cy.getId('prompt-remove-confirm-button').click();
 
-        cy.wait('@deleteRequest').then(() => {
-          cy.get('@rowCell').should('not.exist');
-        });
+        cy.get('@rowCell').should('not.exist');
       });
     });
   });
