@@ -3450,6 +3450,9 @@ persistentVolume:
     controllerPublishSecretNamespace:
       label: Controller Publish Secret Namespace
       placeholder: e.g. default
+    drivers:
+      driver-longhorn-io: Longhorn (CSI)
+      driver-harvesterhci-io: Harvester (CSI)
   cephfs:
     label: Ceph Filesystem (Unsupported)
     path:

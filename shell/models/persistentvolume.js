@@ -112,10 +112,24 @@ export const LONGHORN_DRIVER = 'driver.longhorn.io';
 export const LONGHORN_PLUGIN = VOLUME_PLUGINS.find(plugin => plugin.value === 'longhorn');
 
 export default class PV extends SteveModel {
+  // display value for a table column
   get source() {
-    const plugin = this.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find(plugin => this.spec[plugin.value]);
+    // if (this.isLonghorn) {
+    //   return this.t(LONGHORN_PLUGIN.labelKey);
+    // }
+    const csiDriver = this.spec?.csi?.driver;
 
-    return this.t(plugin.labelKey);
+    if (csiDriver) {
+      return this.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ csiDriver.replaceAll('.', '-') }`, null, csiDriver);
+    }
+    const pluginDef = VOLUME_PLUGINS.find(plugin => this.spec[plugin.value]);
+
+    if (pluginDef) {
+      return this.t(pluginDef.labelKey);
+    }
+
+    // every source should be a csi driver or listed in VOLUME_PLUGIN but just in case..
+    return this.t('generic.unknown');
   }
 
   get isLonghorn() {
