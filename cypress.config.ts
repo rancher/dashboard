@@ -26,7 +26,8 @@ const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(
 export default defineConfig({
   projectId:              process.env.TEST_PROJECT_ID,
   defaultCommandTimeout:  60000,
-  trashAssetsBeforeRuns:  true,
+  trashAssetsBeforeRuns: true,
+  retries:               2,
   env:                    {
     baseUrl,
     coverage:             false,
