@@ -1354,6 +1354,8 @@ cluster:
       vnet:
         label: Virtual Network
         placeholder: '[resourcegroup:]name'
+      tags:
+        label: Tags
     digitalocean:
       sizeLabel: |-
         {plan, select,
