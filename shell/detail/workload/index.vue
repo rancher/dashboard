@@ -120,6 +120,10 @@ export default {
       return this.value.type === WORKLOAD_TYPES.CRON_JOB;
     },
 
+    isPod() {
+      return this.value.type === POD;
+    },
+
     podSchema() {
       return this.$store.getters['cluster/schemaFor'](POD);
     },
@@ -133,13 +137,16 @@ export default {
     },
 
     podTemplateSpec() {
-      const isCronJob = this.value.type === WORKLOAD_TYPES.CRON_JOB;
-
-      if ( isCronJob ) {
+      if ( this.value.type === WORKLOAD_TYPES.CRON_JOB ) {
         return this.value.spec.jobTemplate.spec.template.spec;
-      } else {
-        return this.value.spec?.template?.spec;
       }
+
+      // This is for viewing
+      if ( this.value.type === POD ) {
+        return this.value;
+      }
+
+      return this.value.spec?.template?.spec;
     },
 
     container() {

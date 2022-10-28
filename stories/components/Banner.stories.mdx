@@ -1,0 +1,152 @@
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import Banner from '@/pkg/rancher-components/src/components/Banner/Banner';
+
+
+<Meta 
+  title="Components/Banner"
+  component={Banner}
+/>
+
+export const Template = (args, { argTypes, events }) => ({
+  components: { Banner },
+  props:      Object.keys(argTypes),
+  template:   '<Banner v-bind="$props" />'
+});
+
+
+# Banner
+
+Banner contain messages that communicate information to the user. They may also incorporate calls to action, or involve multiple tasks.
+
+### Description
+- They may be triggered by a user interaction or action or can be a system alert related to the section at hand.
+- Section alerts appear above the area or form they relate to.
+- Use a subject title and message to inform the user of details.
+- They appear as a fixed, full-width strip, on top of the screen throughout the application.
+<br/>
+
+
+<br/>
+
+#### Primary
+
+Primary banner are triggered by system events. They appear as a fixed, full-width strip, on top of the screen throughout the application.
+
+<Canvas>
+  <Story
+    name="Primary"
+    args={{
+      label:    'Please update system with new patch',
+      closable: true,
+      color:    'primary',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Secondary
+Secondary alerts should be used when there are tips or special notes that's require users attention.
+
+<Canvas>
+  <Story
+    name="Secondary"
+    args={{
+      label:    'Please update system with new patch',
+      closable: true,
+      color:    'secondary',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Success
+Success alerts should be used when an action was performed successfully.
+
+<Canvas>
+  <Story
+    name="Success"
+    args={{
+      label:    'Your account has been successfully migrated to the new user interface.',
+      closable: true,
+      color:    'success',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Info
+Info alerts should be used when there are tips or information that a user can benefit from. They are display in the section of the application related to the information.
+
+<Canvas>
+  <Story
+    name="Info"
+    args={{
+      label:    'The new Patch Finder 2.0 will be released soon.',
+      closable: true,
+      color:    'info',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Warning
+Warning banner should be used for messages that likely require attention. They are display in the section of the application related to the information.
+
+<Canvas>
+  <Story
+    name="Warning"
+    args={{
+      label:    'Your browser is outdated. For a better experience consider upgrading it to the latest version available.',
+      closable: true,
+      color:    'warning',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Error
+Danger banners should be used when the system has failed to perform an action, or when the user has made an error. * Never include a "close" icon or link to dismiss the action. In cases when the alert should be dismissible use a warning banner instead. In many cases like this, the user path can be changed to achieve better results without requiring a close button in the component. They are display in the section of the application related to the information.
+
+<Canvas>
+  <Story
+    name="Error"
+    args={{
+      label:    'The connection has been lost. Check your connection and refresh this page.',
+      closable: false,
+      color:    'error',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<br/>
+
+### Import
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import Banner from '@/pkg/rancher-components/src/components/Banner/Banner';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={Banner} />
+
+<br/>
+
+### Accessibility
+Make sure that the information presented in an alert is important enough to justify taking away the user’s attention from what they are doing (ie. errors, warnings, validations, etc.).
+
+### General
+- Use the role='alert' attribute when defining the alert. It should only be used when the user needs immediate attention due to its intrusive nature.
+- The WAI-ARIA role='alert' is equivalent to aria-live='assertive'. Screen readers are notified immediately of the error so the user can take action to address the issue.
+- When an alert is present in the screen on load time (i.e. the alert isn't a response to a user's action), it should use the aria-live='polite' attribute to avoid disrupting the order in which the elements are presented on the screen. This does not apply to danger alerts though, since critical alerts should always come first.
+- The close button contains the aria-label='close' attibute and the icon uses aria-hidden='true' so it is ignored by assistive technologies. The danger alert does not include a button since it's not dismissable.
+
+### Considerations
+- Ensure that the close button is included in the tabbing order and the alert can be navigated to and dismissed with the keyboard. The
+- Make sure colour and icons aren't the only way information is conveyed.

@@ -1,0 +1,48 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+
+import UnitInput from '@/shell/components/form/UnitInput.vue';
+
+
+export const TemplateUnitInput = (args, { argTypes }) => ({
+  components: { UnitInput },
+  props:      Object.keys(argTypes),
+  template:   '<UnitInput v-bind="$props" />',
+})
+
+<Meta title="Components/Form/UnitInput"
+  component={UnitInput}
+/>
+
+# Unit Input
+
+<br/>
+
+#### Unit Input control
+
+<Canvas isColumn>
+  <Story
+    name="UnitInput"
+    args={{
+      label: 'UnitInput',
+      type: 'text',
+      value: '123',
+      suffix: 'Seconds'
+    }}>
+    {TemplateUnitInput.bind({})}
+  </Story>
+</Canvas>
+
+
+<br/>
+
+### Import
+
+<Source
+  language='js'
+  code={`
+     import UnitInput from '@/shell/components/form/UnitInput.vue';
+  `}
+/>
+
+### Props table
+<ArgsTable of={UnitInput} />

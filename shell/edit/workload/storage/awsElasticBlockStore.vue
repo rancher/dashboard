@@ -1,9 +1,11 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { Checkbox } from '@components/Form/Checkbox';
+
 import { mapGetters } from 'vuex';
 
 export default {
-  components: { LabeledInput },
+  components: { LabeledInput, Checkbox },
   props:      {
     // volumeAttributes object
     value: {
@@ -24,6 +26,23 @@ export default {
 
 <template>
   <div>
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.name"
+          :required="true"
+          :mode="mode"
+          :label="t('workload.storage.volumeName')"
+        />
+      </div>
+      <div class="col span-6">
+        <Checkbox
+          v-model="value.awsElasticBlockStore.readOnly"
+          :mode="mode"
+          :label="t('workload.storage.readOnly')"
+        />
+      </div>
+    </div>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput

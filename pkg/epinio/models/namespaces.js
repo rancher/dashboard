@@ -7,6 +7,7 @@ export default class EpinioNamespace extends EpinioMetaResource {
       self:   this.getUrl(),
       remove: this.getUrl(),
       create: this.getUrl(null),
+      update: this.getUrl(),
     };
   }
 

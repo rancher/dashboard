@@ -18,18 +18,37 @@ echo "BRANCH: ${COMMIT_BRANCH:-<none>}"
 echo "TAG: ${GIT_TAG:-<none>}"
 DIR=${GIT_TAG:-$COMMIT_BRANCH}
 
+OUTPUT_DIR=dist/${DIR}-embedded
+
 echo "Building..."
-NUXT_ENV_commit=${COMMIT} NUXT_ENV_version=${VERSION} OUTPUT_DIR=dist/${DIR}-embedded ROUTER_BASE='/dashboard' yarn run build --spa
+NUXT_ENV_commit=${COMMIT} NUXT_ENV_version=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard' yarn run build
+
+if [ -v EMBED_PKG ]; then
+    echo "Build and embed plugin from: $EMBED_PKG"
+    PKG_FILE_NAME=${EMBED_PKG##*/}
+    echo PKG_FILE_NAME: $PKG_FILE_NAME
+
+    PKG_NAME="${PKG_FILE_NAME/.tar.gz/""}"
+    echo "Plugin name: '$PKG_NAME'"
+
+    # Fetch file, unpack and move to dist
+    curl $EMBED_PKG --output $PKG_FILE_NAME
+    OUTPUT_DIR_PKG=$OUTPUT_DIR/$PKG_NAME
+    mkdir -p $OUTPUT_DIR_PKG
+    tar xvfz $PKG_FILE_NAME -C $OUTPUT_DIR/$PKG_NAME
+    echo "Plugin contents that will be served from $PKG_NAME"
+    ls -alR $OUTPUT_DIR/$PKG_NAME
+fi
 
 echo "Destroying..."
-find dist/${DIR}-embedded -name "index.html" -mindepth 2 -exec rm {} \;
-find dist/${DIR}-embedded -type d -empty -depth -exec rmdir {} \;
+find $OUTPUT_DIR -name "index.html" -mindepth 2 -exec rm {} \;
+find $OUTPUT_DIR -type d -empty -depth -exec rmdir {} \;
 
 TARBALL=${DIR}.tar.gz
 echo "Compressing to ${TARBALL}..."
-tar -czf dist/${TARBALL} dist/${DIR}-embedded/
+tar -czf dist/${TARBALL} $OUTPUT_DIR/
 
 echo "Cleaning up..."
-rm -r dist/${DIR}-embedded
+rm -r $OUTPUT_DIR
 
 ls -alR dist/

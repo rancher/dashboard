@@ -46,20 +46,23 @@ module.exports = function(dir) {
       config.resolve.alias['~pkg'] = dir;
       delete config.resolve.alias['@'];
 
-      // Prevent the dynamic importer and the model-loader from importing anything dynamically - we don't want all of the
+      // Prevent the dynamic importer and the model-loader-require from importing anything dynamically - we don't want all of the
       // models etc when we build as a library
-      const dynamicImporterOveride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
+      const dynamicImporterOverride = new webpack.NormalModuleReplacementPlugin(/dynamic-importer$/, (resource) => {
         resource.request = path.join(__dirname, 'dynamic-importer.lib.js');
       });
-      const modelLoaderImporterOveride = new webpack.NormalModuleReplacementPlugin(/model-loader$/, (resource) => {
-        resource.request = path.join(__dirname, 'model-loader.lib.js');
+      const modelLoaderImporterOverride = new webpack.NormalModuleReplacementPlugin(/model-loader-require$/, (resource) => {
+        const fileName = 'model-loader-require.lib.js';
+        const pkgModelLoaderRequire = path.join(dir, fileName);
+
+        resource.request = fs.existsSync(pkgModelLoaderRequire) ? pkgModelLoaderRequire : path.join(__dirname, fileName);
       });
 
       // Auto-generate module to import the types (model, detail, edit etc)
       const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@rancher/auto-import': generateTypeImport('@pkg', dir) });
 
-      config.plugins.unshift(dynamicImporterOveride);
-      config.plugins.unshift(modelLoaderImporterOveride);
+      config.plugins.unshift(dynamicImporterOverride);
+      config.plugins.unshift(modelLoaderImporterOverride);
       config.plugins.unshift(autoImportPlugin);
       // config.plugins.unshift(debug);
 

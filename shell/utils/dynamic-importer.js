@@ -63,7 +63,7 @@ export function importDialog(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "dialog" */ `@shell/components/dialog/${name}`);
+  return () => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`);
 }
 
 export function importWindowComponent(name) {
@@ -105,6 +105,10 @@ export function importCustomPromptRemove(name) {
 
 export function resolveList(key) {
   return require.resolve(`@shell/list/${ key }`);
+}
+
+export function resolveChart(key) {
+  return require.resolve(`@shell/chart/${ key }`);
 }
 
 export function resolveEdit(key) {

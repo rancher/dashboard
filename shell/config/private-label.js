@@ -7,7 +7,7 @@ export const DOCS_BASE = 'https://rancher.com/docs/rancher/v2.6/en';
 
 const STANDARD_VENDOR = 'Rancher';
 const STANDARD_PRODUCT = 'Explorer';
-const CUSTOM_VENDOR = { suse: 'SUSE Rancher' };
+const CUSTOM_VENDOR = { suse: 'Rancher Prime' };
 
 let mode = STANDARD;
 let vendor = STANDARD_VENDOR;

@@ -68,6 +68,15 @@ export default {
     flexContent: {
       type:    Boolean,
       default: false,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'resource-details'
     }
   },
   async fetch() {
@@ -402,10 +411,34 @@ export default {
       @set-subtype="setSubtype"
     />
 
-    <button v-if="isView" v-shortkey.once="['shift','d']" class="hide" @shortkey="keyAction('goToDetail')" />
-    <button v-if="isView" v-shortkey.once="['shift','c']" class="hide" @shortkey="keyAction('goToViewConfig')" />
-    <button v-if="isView" v-shortkey.once="['shift','y']" class="hide" @shortkey="keyAction('goToViewYaml')" />
-    <button v-if="isView" v-shortkey.once="['shift','e']" class="hide" @shortkey="keyAction('goToEdit')" />
+    <button
+      v-if="isView"
+      v-shortkey.once="['shift','d']"
+      :data-testid="componentTestid + '-detail'"
+      class="hide"
+      @shortkey="keyAction('goToDetail')"
+    />
+    <button
+      v-if="isView"
+      v-shortkey.once="['shift','c']"
+      :data-testid="componentTestid + '-config'"
+      class="hide"
+      @shortkey="keyAction('goToViewConfig')"
+    />
+    <button
+      v-if="isView"
+      v-shortkey.once="['shift','y']"
+      :data-testid="componentTestid + '-yaml'"
+      class="hide"
+      @shortkey="keyAction('goToViewYaml')"
+    />
+    <button
+      v-if="isView"
+      v-shortkey.once="['shift','e']"
+      :data-testid="componentTestid + '-edit'"
+      class="hide"
+      @shortkey="keyAction('goToEdit')"
+    />
   </div>
 </template>
 

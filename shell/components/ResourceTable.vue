@@ -6,7 +6,6 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -117,7 +116,12 @@ export default {
     getCustomDetailLink: {
       type:    Function,
       default: null
-    }
+    },
+
+    ignoreFilter: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -133,7 +137,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
+    ...mapGetters(['currentProduct']),
     isNamespaced() {
       if ( this.namespaced !== null ) {
         return this.namespaced;
@@ -196,11 +200,9 @@ export default {
 
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
-      const isVirtualProduct = this.$store.getters['currentProduct'].name === HARVESTER;
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      // If this is a harvester list, 'all' must still be filtered
-      if ( !this.isNamespaced || (isAll && !isVirtualProduct)) {
+      if ( !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources) || this.ignoreFilter) {
         return this.rows || [];
       }
 
@@ -212,7 +214,7 @@ export default {
       }
 
       return this.rows.filter((row) => {
-        if (this.isVirtualCluster && this.isNamespaced) {
+        if (this.currentProduct?.hideSystemResources && this.isNamespaced) {
           return !!includedNamespaces[row.metadata.namespace] && !row.isSystemResource;
         } else if (!this.isNamespaced) {
           return true;

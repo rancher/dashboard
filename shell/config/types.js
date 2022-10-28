@@ -51,6 +51,7 @@ export const NAMESPACE = 'namespace';
 export const NODE = 'node';
 export const NETWORK_POLICY = 'networking.k8s.io.networkpolicy';
 export const POD = 'pod';
+export const PSP = 'policy.podsecuritypolicy';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
@@ -79,7 +80,7 @@ export const WORKLOAD_TYPES = {
   JOB:                    'batch.job',
   STATEFUL_SET:           'apps.statefulset',
   REPLICA_SET:            'apps.replicaset',
-  REPLICATION_CONTROLLER: 'replicationcontroller'
+  REPLICATION_CONTROLLER: 'replicationcontroller',
 };
 
 const {
@@ -99,6 +100,9 @@ export const CATALOG = {
   APP:            'catalog.cattle.io.app',
   REPO:           'catalog.cattle.io.repo',
 };
+
+// UI Plugin type
+export const UI_PLUGIN = 'catalog.cattle.io.uiplugin';
 
 export const HELM = { PROJECTHELMCHART: 'helm.cattle.io.projecthelmchart' };
 
@@ -169,7 +173,9 @@ export const MANAGEMENT = {
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
   MANAGED_CHART:                 'management.cattle.io.managedchart',
   USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
-  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider'
+  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
+  RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
+  RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
 };
 
 export const CAPI = {
@@ -265,30 +271,10 @@ export const VIRTUAL_TYPES = {
 
 // harvester
 export const HCI = {
-  VM:                 'kubevirt.io.virtualmachine',
-  VMI:                'kubevirt.io.virtualmachineinstance',
-  VMIM:               'kubevirt.io.virtualmachineinstancemigration',
-  VM_TEMPLATE:        'harvesterhci.io.virtualmachinetemplate',
-  VM_VERSION:         'harvesterhci.io.virtualmachinetemplateversion',
-  IMAGE:              'harvesterhci.io.virtualmachineimage',
-  SSH:                'harvesterhci.io.keypair',
-  VOLUME:             'harvesterhci.io.volume',
-  USER:               'harvesterhci.io.user',
-  SETTING:            'harvesterhci.io.setting',
-  UPGRADE:            'harvesterhci.io.upgrade',
-  BACKUP:             'harvesterhci.io.virtualmachinebackup',
-  RESTORE:            'harvesterhci.io.virtualmachinerestore',
-  NODE_NETWORK:       'network.harvesterhci.io.nodenetwork',
-  CLUSTER_NETWORK:    'network.harvesterhci.io.clusternetwork',
-  SUPPORT_BUNDLE:     'harvesterhci.io.supportbundle',
-  NETWORK_ATTACHMENT: 'harvesterhci.io.networkattachmentdefinition',
-  CLUSTER:            'harvesterhci.io.management.cluster',
-  DASHBOARD:          'harvesterhci.io.dashboard',
-  BLOCK_DEVICE:       'harvesterhci.io.blockdevice',
-  CLOUD_TEMPLATE:     'harvesterhci.io.cloudtemplate',
-  HOST:               'harvesterhci.io.host',
-  VERSION:            'harvesterhci.io.version',
-  MANAGED_CHART:      'harvesterhci.io.managedchart',
+  CLUSTER:   'harvesterhci.io.management.cluster',
+  DASHBOARD: 'harvesterhci.io.dashboard',
+  IMAGE:     'harvesterhci.io.virtualmachineimage',
+  SETTING:   'harvesterhci.io.setting',
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

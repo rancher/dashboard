@@ -8,7 +8,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import { CAPI, SERVICE } from '@shell/config/types';
 
 export default {
@@ -366,7 +366,7 @@ export default {
             v-model="row._ipam"
             :mode="mode"
             :options="ipamOptions"
-            :label="t('harvester.service.ipam.label')"
+            :label="t('servicesPage.harvester.ipam.label')"
             :disabled="mode === 'edit'"
             @input="queueUpdate"
           />
@@ -376,7 +376,7 @@ export default {
             v-model="rows[ipamIndex]._ipam"
             :mode="mode"
             :options="ipamOptions"
-            :label="t('harvester.service.ipam.label')"
+            :label="t('servicesPage.harvester.ipam.label')"
             :disabled="true"
             @input="queueUpdate"
           />

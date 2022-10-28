@@ -10,7 +10,7 @@ import getters, { STEVE_MODEL_TYPES } from './getters';
 import mutations from './mutations';
 import actions from './actions';
 
-function SteveFactory(namespace, baseUrl) {
+export function SteveFactory(namespace, baseUrl) {
   return {
     ...coreStoreModule,
 
@@ -50,6 +50,10 @@ function SteveFactory(namespace, baseUrl) {
   };
 }
 
+export const steveStoreInit = (store, ctx) => {
+  createWorker(store, ctx);
+};
+
 export default (config) => {
   config.namespace = config.namespace || '';
 
@@ -67,8 +71,6 @@ export default (config) => {
   return coreStore(
     SteveFactory(config.namespace, config.baseUrl),
     config,
-    (store, ctx) => {
-      createWorker(store, ctx);
-    }
+    steveStoreInit
   );
 };

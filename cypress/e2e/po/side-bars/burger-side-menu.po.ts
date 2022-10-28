@@ -58,12 +58,4 @@ export default class BurgerMenuPo extends ComponentPo {
   clusters(): Cypress.Chainable {
     return this.self().find('.body .clusters .cluster.selector.option');
   }
-
-  /**
-   * Get i18n menu
-   * @returns {Cypress.Chainable}
-   */
-  localization(): Cypress.Chainable {
-    return this.self().getId('locale-selector');
-  }
 }

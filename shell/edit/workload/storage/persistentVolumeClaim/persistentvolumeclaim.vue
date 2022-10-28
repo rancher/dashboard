@@ -209,6 +209,7 @@ export default {
           :label="t('persistentVolumeClaim.capacity')"
           :increment="1024"
           :input-exponent="3"
+          :required="true"
           :output-modifier="true"
         />
       </div>

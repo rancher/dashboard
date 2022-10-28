@@ -1,0 +1,54 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+
+import FileSelector from '@shell/components/form/FileSelector';
+
+export const Template = (args, { argTypes }) => ({
+  components: { FileSelector },
+  props:      Object.keys(argTypes),
+  template:   '<FileSelector v-bind="$props" />',
+})
+
+<Meta title="Components/Form/FileSelector" />
+
+# File Selector
+Input elements with type ‘file’ allows the user to select files from their file system or device storage.
+
+### Description
+- Associate a label to every file input for good accessibility. Do not include a colon at the end of the label.
+- Use only to upload file.
+- Set a maximum file size in order to prevent a potential service outage.
+
+<Canvas columns={2}>
+  Default
+  <Story
+    name="FileSelector"
+    args={{
+      label: 'Choose file',
+    }}>
+    {Template.bind({})}
+  </Story>
+  Disabled
+  <Story
+    name="disabled"
+    args={{
+      label: 'Choose file',
+      disabled: true
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import 
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import FileSelector from '@shell/components/form/FileSelector';
+  `}
+/>
+
+
+### Props table
+<ArgsTable of={FileSelector} />

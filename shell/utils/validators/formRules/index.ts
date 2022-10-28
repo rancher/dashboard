@@ -204,6 +204,13 @@ export default function(t: (key: string, options?: any) => string, opt: {display
     }
   };
 
+  const wildcardHostname: Validator = (val: string) => {
+    // allow wildcard in first part of hostname
+    val = val ? val.replace(/^\*\./, '') : val;
+
+    return hostname(val);
+  };
+
   const externalName: Validator = (val: string) => {
     if (isEmpty(val)) {
       return t('validation.service.externalName.none');
@@ -442,6 +449,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
     hostname,
     testRule,
     subDomain,
-    absolutePath
+    absolutePath,
+    wildcardHostname,
   };
 }

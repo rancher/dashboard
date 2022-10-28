@@ -5,6 +5,7 @@ import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@shell/store/type-map';
 import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
+import garbageCollect from '@shell/utils/gc/gc';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -316,10 +317,17 @@ export default {
       dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
     }
 
+    garbageCollect.gcUpdateLastAccessed(ctx, type);
+
     return all;
   },
 
-  async findMatching(ctx, { type, selector, opt }) {
+  async findMatching(ctx, {
+    type,
+    selector,
+    opt,
+    namespace
+  }) {
     const {
       getters, commit, dispatch, rootGetters
     } = ctx;
@@ -332,7 +340,7 @@ export default {
       commit('registerType', type);
     }
     if ( opt.force !== true && getters['haveSelector'](type, selector) ) {
-      return getters.matching( type, selector );
+      return getters.matching( type, selector, namespace );
     }
 
     const typeOptions = rootGetters['type-map/optionsFor'](type);
@@ -366,7 +374,9 @@ export default {
       });
     }
 
-    return getters.matching( type, selector );
+    garbageCollect.gcUpdateLastAccessed(ctx, type);
+
+    return getters.matching( type, selector, namespace );
   },
 
   // opt:
@@ -420,6 +430,8 @@ export default {
     }
 
     out = getters.byId(type, id);
+
+    garbageCollect.gcUpdateLastAccessed(ctx, type);
 
     return out;
   },
@@ -483,6 +495,10 @@ export default {
 
   create(ctx, data) {
     return classify(ctx, data);
+  },
+
+  createMany(ctx, data) {
+    return data.map(d => classify(ctx, d));
   },
 
   createPopulated(ctx, userData) {
@@ -582,5 +598,13 @@ export default {
 
   incrementLoadCounter({ commit }, resource) {
     commit('incrementLoadCounter', resource);
+  },
+
+  garbageCollect(ctx, ignoreTypes) {
+    return garbageCollect.garbageCollect(ctx, ignoreTypes);
+  },
+
+  gcResetStore({ state }) {
+    garbageCollect.gcResetStore(state);
   }
 };

@@ -16,10 +16,6 @@ export default {
     indeterminate: {
       type:    Boolean,
       default: false,
-    },
-    rows: {
-      type:     Array,
-      default:  undefined,
     }
   },
 
@@ -32,10 +28,6 @@ export default {
   computed: {
     // Count of rows - either from the data provided or from the rows for the first resource
     rowsCount() {
-      if (this.rows) {
-        return this.rows.length;
-      }
-
       if (this.resources.length > 0) {
         const existingData = this.$store.getters[`${ this.inStore }/all`](this.resources[0]) || [];
 

@@ -53,7 +53,7 @@ export default {
       const from = this.indexFrom;
       const last = this.filteredRows.length;
 
-      if ( this.page > 1 && from > last ) {
+      if ( this.totalPages > 0 && this.page > 1 && from > last ) {
         this.setPage(this.totalPages);
       }
     }

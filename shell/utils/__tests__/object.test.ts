@@ -38,18 +38,6 @@ describe('fx: get', () => {
     expect(result).toBeUndefined();
     expect(() => result).not.toThrow();
   });
-
-  it.each([
-    'key2.nonsense',
-    'non.sense',
-  ])('should catch error and return undefined', (path) => {
-    const obj = { key1: 'value', key2: { bat: 42, 'with.dots': 43 } };
-
-    const result = get(obj, path);
-
-    expect(result).toBeUndefined();
-    expect(() => result).not.toThrow();
-  });
 });
 
 describe('fx: getter', () => {
@@ -82,18 +70,6 @@ describe('fx: getter', () => {
       const result = getter("key2.'with.dots'")(obj);
 
       expect(result).toStrictEqual(obj.key2['with.dots']);
-    });
-
-    it.each([
-      'key2.nonsense',
-      'non.sense',
-    ])('should catch error and return undefined', (path) => {
-      const obj = { key1: 'value', key2: { bat: 42, 'with.dots': 43 } };
-
-      const result = getter(path)(obj);
-
-      expect(result).toBeUndefined();
-      expect(() => result).not.toThrow();
     });
 
     it.each([
