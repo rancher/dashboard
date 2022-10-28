@@ -99,13 +99,14 @@ export default {
     }
 
     return {
-      vendor:     getVendor(),
+      vendor:             getVendor(),
       providers,
       hasOthers,
       hasLocal,
-      showLocal:  !hasOthers || (route.query[LOCAL] === _FLAGGED),
-      firstLogin: firstLoginSetting?.value === 'true',
-      singleProvider
+      showLocal:          !hasOthers || (route.query[LOCAL] === _FLAGGED),
+      firstLogin:         firstLoginSetting?.value === 'true',
+      singleProvider,
+      showLocaleSelector: !process.env.loginLocaleSelector || process.env.loginLocaleSelector === 'true'
     };
   },
 
@@ -404,10 +405,10 @@ export default {
               {{ nonLocalPrompt }}
             </a>
           </div>
-          <div class="locale-elector">
-            <LocaleSelector mode="login" />
-          </div>
         </template>
+        <div v-if="showLocaleSelector" class="locale-elector">
+          <LocaleSelector mode="login" />
+        </div>
       </div>
 
       <BrandImage class="col span-6 landscape" file-name="login-landscape.svg" />
