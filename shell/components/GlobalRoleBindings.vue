@@ -84,6 +84,7 @@ export default {
         'restricted-admin',
         'user',
         'user-base',
+        'read-only-pandaria',
       ],
       globalRoleBindings:    null,
       sortedRoles:           null,

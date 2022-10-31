@@ -33,6 +33,10 @@ export const state = function() {
     principalId: null,
     v3User:      null,
     initialPass: null,
+    me:          null,
+    isAdmin:     false,
+
+    isReadOnlyAdmin: false,
   };
 };
 
@@ -63,7 +67,20 @@ export const getters = {
 
   isGithub(state) {
     return state.principalId && state.principalId.startsWith('github_user://');
-  }
+  },
+
+  me(state) {
+    return state.me;
+  },
+
+  isAdmin(state) {
+    return state.isAdmin;
+  },
+
+  isReadOnlyAdmin(state) {
+    return state.isReadOnlyAdmin;
+  },
+
 };
 
 export const mutations = {
@@ -74,6 +91,8 @@ export const mutations = {
   gotUser(state, v3User) {
     // Always deference to avoid race condition when setting `mustChangePassword`
     state.v3User = { ...v3User };
+    // do not modify reference, or you will lose reactive
+    state.me = v3User;
   },
 
   hasAuth(state, hasAuth) {
@@ -95,11 +114,21 @@ export const mutations = {
     state.principalId = null;
     state.v3User = null;
     state.initialPass = null;
+    state.me = null;
+    state.isReadOnlyAdmin = false;
   },
 
   initialPass(state, pass) {
     state.initialPass = pass;
-  }
+  },
+
+  setReadOnlyAdmin(state, isReadOnlyAdmin) {
+    state.isReadOnlyAdmin = isReadOnlyAdmin;
+  },
+
+  setAdmin(state, isAdmin) {
+    state.isAdmin = isAdmin;
+  },
 };
 
 export const actions = {

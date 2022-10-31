@@ -106,6 +106,7 @@ export default {
       globalBindings:      null,
       canSeeRoleTemplates: false,
       isAdmin:             false,
+      isReadOnlyAdmin:     false,
     };
   },
   computed: {
@@ -140,6 +141,10 @@ export default {
 
             if (globalRole.id === 'admin') {
               this.isAdmin = true;
+            }
+
+            if (globalRole.id === 'read-only-pandaria') {
+              this.isReadOnlyAdmin = true;
             }
 
             if (globalRole.isSpecial) {
@@ -235,6 +240,9 @@ export default {
         </div>
         <div v-if="isAdmin" class="admin">
           {{ t("user.detail.globalPermissions.adminMessage") }}
+        </div>
+        <div v-else-if="isReadOnlyAdmin" class="admin">
+          {{ t("user.detail.globalPermissions.readOnlyAdminMessage") }}
         </div>
         <SortableTable
           v-else

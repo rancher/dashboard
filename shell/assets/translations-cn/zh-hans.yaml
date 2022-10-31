@@ -4056,6 +4056,9 @@ rbac:
         label: 登录访问
       clustertemplaterevisions-create:
         label: 创建 RKE 模板修订版
+      read-only-pandaria:
+        description: 只读管理员可以访问所有下游集群中的所有资源，但不能访问local集群
+        label: 只读管理员
     notBound: '没有绑定的用户 <i class="icon icon-checkmark" style="margin-left: 5px"></i>'
     unableToCheck: 无法检查是否存在绑定了该角色的用户，请重试。
     usersBound: |-
@@ -4945,6 +4948,7 @@ user:
       adminMessage: 该用户是一个管理员，拥有所有权限
       tableHeaders:
         permission: 权限
+      readOnlyAdminMessage: 此用户是只读管理员并对下级集群对象拥有只读权限
     clusterRoles:
       label: 集群角色
       description: 授予一个用户在各个集群中的角色
@@ -5145,6 +5149,9 @@ wm:
   containerShell:
     clear: 清除
     containerName: "容器：{label}"
+    permissionDenied:
+      message: 无权访问
+      title: 无法打开 Shell 窗口
   kubectlShell:
     title: "Kubectl: {name}"
 workload:
