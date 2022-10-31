@@ -541,6 +541,14 @@ export default {
         document.activeElement.blur();
       }
     },
+    handleValueMouseDown() {
+      if (this.value.length === 1) {
+        this.clear();
+      }
+
+      this.open();
+    },
+
     removeOption(ns, event) {
       this.selectOption(ns);
       event.preventDefault();
@@ -567,7 +575,7 @@ export default {
         </div>
         <div v-for="ns in value" ref="value" :key="ns.id" class="ns-value">
           <div>{{ ns.label }}</div>
-          <i class="icon icon-close" @click="removeOption(ns, $event)" />
+          <i class="icon icon-close" @click="removeOption(ns, $event)" @mousedown="handleValueMouseDown()" />
         </div>
       </div>
       <div v-if="hidden > 0" ref="more" v-tooltip="tooltip" class="ns-more">
