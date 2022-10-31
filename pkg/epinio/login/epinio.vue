@@ -20,7 +20,6 @@ export default {
 
     // The scopes in the redirect url are pulled out and reapplied, however this does not work for dex (a decoded space separator)
     const scopes = redirectAsUrl.searchParams.get(`scope`); // This decodes it
-    const scopesArray = scopes.split(' ');
 
     // redirectTo mangles the different scopes together incorrectly, and we're supply our own mangled version anyway, so nuke
     redirectAsUrl.searchParams.delete('scope');
@@ -28,8 +27,9 @@ export default {
     this.redirectOpts = {
       provider:        this.name,
       redirectUrl:     redirectAsUrl.toString(),
-      scopes:          scopesArray,
-      scopesJoinChart: ' ',
+
+      scopes:          scopes.split(' '), // Put it in the format expcted by the `redirectTo` action
+      scopesJoinChar: ' ',
 
       nonce:        baseNonce,
       persistNonce: {

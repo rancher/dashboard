@@ -242,7 +242,7 @@ export const actions = {
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
 
     const params = {
-      [GITHUB_SCOPE]: scopes.join(opt.scopesJoinChart || ','), // Some providers won't accept comma separated scopes
+      [GITHUB_SCOPE]: scopes.join(opt.scopesJoinChar || ','), // Some providers won't accept comma separated scopes
       [GITHUB_NONCE]: encodedNonce
     };
 
