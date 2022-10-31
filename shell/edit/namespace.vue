@@ -105,8 +105,8 @@ export default {
   },
 
   watch: {
-    project(newProject) {
-      const limits = this.getDefaultContainerResourceLimits(newProject);
+    project() {
+      const limits = this.getDefaultContainerResourceLimits(this.projectName);
 
       this.$set(this, 'containerResourceLimits', limits);
     },

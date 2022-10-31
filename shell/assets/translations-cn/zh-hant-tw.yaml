@@ -1857,6 +1857,10 @@ containerResourceLimit:
   memPlaceholder: 例如：128
   requestsCpu: CPU 預留
   requestsMemory: 內存預留
+  maxCpu: 最大 CPU
+  maxMemory: 最大內存
+  minCpu: 最小 CPU
+  minMemory: 最小內存
 resource:
   errors:
     update: "更新 {name} 出錯"

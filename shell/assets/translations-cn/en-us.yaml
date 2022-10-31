@@ -1845,6 +1845,10 @@ containerResourceLimit:
   memPlaceholder: e.g. 128
   requestsCpu: CPU Reservation
   requestsMemory: Memory Reservation
+  maxCpu: Max CPU
+  maxMemory: Max Memory
+  minCpu: Min CPU
+  minMemory: Min Memory
 resource:
   errors:
     update: "Error updating {name}"
