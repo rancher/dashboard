@@ -16,6 +16,7 @@ import { addObject } from '@shell/utils/array';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import Labels from './Labels';
 import AgentEnv from './AgentEnv';
+import PrivateRegistry from './PrivateRegistry';
 
 const HARVESTER_HIDE_KEY = 'cm-harvester-import';
 
@@ -29,7 +30,8 @@ export default {
     Tab,
     Tabbed,
     Labels,
-    AgentEnv
+    AgentEnv,
+    PrivateRegistry
   },
 
   mixins: [CreateEditView],
@@ -170,6 +172,7 @@ export default {
       </Tab>
       <AgentEnv v-model="value" :mode="mode" />
       <Labels v-model="value" :mode="mode" />
+      <PrivateRegistry v-model="value" :mode="mode"></PrivateRegistry>
     </Tabbed>
   </CruResource>
 </template>

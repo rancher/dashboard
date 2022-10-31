@@ -1265,6 +1265,11 @@ cluster:
     commandInstructionsInsecure: '如果你看到&quot;證書由未知機構簽名&quot;的錯誤，你的 {vendor} 安裝了自簽名或不受信任的 SSL 證書。你可以運行下面的命令來繞過證書驗證：'
     clusterRoleBindingInstructions: '如果你在創建資源時遇到權限錯誤，你的用戶可能沒有綁定 <code>cluster-admin</code> 角色。你可以運行這個命令來申請角色：'
     clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
+    privateRegistry:
+      description: 為這個集群配置一個默認的私有鏡像倉庫。啟用後，集群配置和系統附加組件啟動所需的所有鏡像都將從這個鏡像倉庫中拉取（注意：這個配置將覆蓋全局配置中的system-default-registry）。
+      label: 私有鏡像倉庫
+      placeholder: '例如: index.docker.io'
+      title: 私有鏡像倉庫
   explore: 瀏覽
   exploreHarvester: 瀏覽
   importAction: 導入已有集群
