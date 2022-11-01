@@ -6467,6 +6467,10 @@ resourceQuota:
     namespace: '此命名空間：'
     available: '可用：'
     max: '總計：'
+  requestsGpuCount: GPU Count
+  requestsGpuMemory: GPU Memory
+  requestsStorageClassPVC: Storage Class PVC
+  requestsStorageClassStorage: Storage Class 存儲
 ##############################
 ### Support Page
 ##############################

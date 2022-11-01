@@ -1,16 +1,16 @@
 export const RANCHER_TYPES = [
   {
-    value:          'configMaps',
-    inputExponent:  0,
-    baseUnit:       '',
-    labelKey:       'resourceQuota.configMaps',
-    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
-  },
-  {
     value:           'limitsCpu',
     inputExponent:  -1,
     baseUnitKey:    'suffix.cpus',
     labelKey:       'resourceQuota.limitsCpu',
+    placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
+  },
+  {
+    value:           'requestsCpu',
+    inputExponent:  -1,
+    baseUnitKey:    'suffix.cpus',
+    labelKey:       'resourceQuota.requestsCpu',
     placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
@@ -19,34 +19,6 @@ export const RANCHER_TYPES = [
     increment:      1024,
     labelKey:       'resourceQuota.limitsMemory',
     placeholderKey: 'resourceQuota.projectLimit.memoryPlaceholder'
-  },
-  {
-    value:           'persistentVolumeClaims',
-    inputExponent:  0,
-    baseUnit:       '',
-    labelKey:       'resourceQuota.persistentVolumeClaims',
-    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
-  },
-  {
-    value:           'pods',
-    inputExponent:  0,
-    baseUnit:       '',
-    labelKey:       'resourceQuota.pods',
-    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
-  },
-  {
-    value:           'replicationControllers',
-    inputExponent:  0,
-    baseUnit:       '',
-    labelKey:       'resourceQuota.replicationControllers',
-    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
-  },
-  {
-    value:           'requestsCpu',
-    inputExponent:  -1,
-    baseUnitKey:    'suffix.cpus',
-    labelKey:       'resourceQuota.requestsCpu',
-    placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
     value:           'requestsMemory',
@@ -58,26 +30,10 @@ export const RANCHER_TYPES = [
   {
     value:           'requestsStorage',
     units:          'storage',
-    inputExponent:  2,
+    inputExponent:  3,
     increment:      1024,
     labelKey:       'resourceQuota.requestsStorage',
     placeholderKey: 'resourceQuota.projectLimit.storagePlaceholder'
-  },
-  {
-    value:           'secrets',
-    units:          'unitless',
-    inputExponent:  0,
-    baseUnit:       '',
-    labelKey:       'resourceQuota.secrets',
-    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
-  },
-  {
-    value:           'services',
-    units:          'unitless',
-    inputExponent:  0,
-    baseUnit:       '',
-    labelKey:       'resourceQuota.services',
-    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
     value:           'servicesLoadBalancers',
@@ -93,6 +49,81 @@ export const RANCHER_TYPES = [
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.servicesNodePorts',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
+    value:           'pods',
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.pods',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
+    value:           'services',
+    units:          'unitless',
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.services',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
+    value:          'configMaps',
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.configMaps',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
+    value:           'persistentVolumeClaims',
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.persistentVolumeClaims',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
+    value:           'replicationControllers',
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.replicationControllers',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
+    value:           'secrets',
+    units:          'unitless',
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.secrets',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
+    value:           'requestsGpuMemory',
+    units:          'unitless',
+    inputExponent:  0,
+    baseUnit:       '',
+    suffix:         'GiB',
+    labelKey:       'resourceQuota.requestsGpuMemory',
+    placeholderKey: 'resourceQuota.projectLimit.storagePlaceholder'
+  },
+  {
+    value:           'requestsGpuCount',
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.requestsGpuCount',
+    placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
+  },
+  {
+    value:           'requestsStorageClassStorage',
+    units:          'storage',
+    inputExponent:  3,
+    increment:      1024,
+    labelKey:       'resourceQuota.requestsStorageClassStorage',
+    placeholderKey: 'resourceQuota.projectLimit.storagePlaceholder'
+  },
+  {
+    value:           'requestsStorageClassPVC',
+    inputExponent:  0,
+    baseUnit:       '',
+    labelKey:       'resourceQuota.requestsStorageClassPVC',
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
 ];

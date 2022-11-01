@@ -6,12 +6,12 @@ import FormValidation from '@shell/mixins/form-validation';
 import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import ResourceQuota from '@shell/components/form/ResourceQuota/Project';
+import ResourceQuota from '@shell/components/form/ResourceQuota/ProjectQuota';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT, STORAGE_CLASS } from '@shell/config/types';
 import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
 import ProjectMembershipEditor from '@shell/components/form/Members/ProjectMembershipEditor';
@@ -29,6 +29,7 @@ export default {
     if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
       this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
     }
+    this.storageClasses = await this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
   },
   data() {
     this.$set(this.value, 'spec', this.value.spec || {});
@@ -52,6 +53,8 @@ export default {
       HARVESTER_TYPES,
       RANCHER_TYPES,
       fvFormRuleSets:       [{ path: 'spec.displayName', rules: ['required'] }],
+
+      storageClasses: [],
     };
   },
   computed: {
@@ -249,6 +252,7 @@ export default {
           v-model="value"
           :mode="canEditTabElements"
           :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
+          :storage-classes="storageClasses"
           @remove="removeQuota"
         />
       </Tab>
