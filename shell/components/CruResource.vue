@@ -357,6 +357,7 @@ export default {
 
 <template>
   <section class="cru">
+    test
     <slot name="noticeBanner" />
     <form
       :is="(isView? 'div' : 'form')"
