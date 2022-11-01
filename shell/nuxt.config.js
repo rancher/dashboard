@@ -55,13 +55,15 @@ export default function(dir, _appConfig) {
   let COMPONENTS_DIR = path.join(SHELL_ABS, 'rancher-components');
   let typescript = {};
 
-  const stat = fs.lstatSync(SHELL_ABS);
+  if (fs.existsSync(SHELL_ABS)) {
+    const stat = fs.lstatSync(SHELL_ABS);
 
-  // If @rancher/shell is a symlink, then use the components folder for it
-  if (stat.isSymbolicLink()) {
-    const REAL_SHELL_ABS = fs.realpathSync(SHELL_ABS); // In case the shell is being linked via 'yarn link'
+    // If @rancher/shell is a symlink, then use the components folder for it
+    if (stat.isSymbolicLink()) {
+      const REAL_SHELL_ABS = fs.realpathSync(SHELL_ABS); // In case the shell is being linked via 'yarn link'
 
-    COMPONENTS_DIR = path.join(REAL_SHELL_ABS, '..', 'pkg', 'rancher-components', 'src', 'components');
+      COMPONENTS_DIR = path.join(REAL_SHELL_ABS, '..', 'pkg', 'rancher-components', 'src', 'components');
+    }
   }
 
   // If we have a local folder named 'shell' then use that rather than the one in node_modules
