@@ -906,6 +906,10 @@ export const getters = {
             continue;
           }
 
+          if (item.showMenuFun && typeof item.showMenuFun === 'function' && !item.showMenuFun(state, getters, rootState, rootGetters, out)) {
+            continue;
+          }
+
           if ( isBasic && !getters.groupForBasicType(product, id) ) {
             continue;
           } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
