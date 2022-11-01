@@ -1322,7 +1322,7 @@ cluster:
       instanceDescription:
         label: 實例描述
         placeholder: 該實例的描述
-      instanceType: 
+      instanceType:
         label: 實例類型
       imageId:
         label: 系統鏡像
@@ -1371,7 +1371,7 @@ cluster:
         prePaid: 包年包月
         postPaid: 按量付費
         spotStrategy: 搶佔式實例
-      periodUnit: 
+      periodUnit:
         label: 購買資源的時長
         placeholder: 選擇購買資源時長...
         week: 周
@@ -6929,3 +6929,18 @@ clusterConnectMode:
     label: 測試
     success: 測試成功
   title: 集羣連接模式
+gpuReservation:
+  label: NVIDIA GPU 限制/預留
+  memUnit: GiB
+  placeholder: 例如：1
+  set: 限制
+  shared: 共享 GPU 內存
+  sharedTips: 在設置共享 GPU 內存的同時，Rancher 將自動爲工作負載設置 GPU 調度器名稱
+  unit: GPUs
+  devices: GPU 設備
+  resourceName: GPU 資源名
+vGpuReservation:
+  label: Orion X GPU 預留
+  placeholder: 例如：1
+  set: 限制
+  unit: vGPUs

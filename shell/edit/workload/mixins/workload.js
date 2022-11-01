@@ -11,6 +11,7 @@ import {
   SERVICE_ACCOUNT,
   CAPI,
   POD,
+  MANAGEMENT,
 } from '@shell/config/types';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -49,6 +50,8 @@ import formRulesGenerator from '@shell/utils/validators/formRules';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import LabeledInputSugget from '@shell/components/form/LabeledInputSugget';
 import debounce from 'lodash/debounce';
+import GpuResourceLimit from '@shell/components/GpuResourceLimit';
+import { SETTING } from '@shell/config/settings';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -65,6 +68,8 @@ const TAB_WEIGHT_MAP = {
 };
 
 const GPU_KEY = 'nvidia.com/gpu';
+const GPU_SHARED_KEY = 'rancher.io/gpu-mem';
+const VGPU_KEY = 'virtaitech.com/gpu';
 const DUAL_NETWORK_CARD = '[{"name":"static-macvlan-cni-attach","interface":"eth1"}]';
 const MACVLAN_SERVICE = 'macvlan.panda.io/macvlanService';
 const MACVLAN_ANNOTATION_MAP = {
@@ -104,7 +109,8 @@ export default {
     VolumeClaimTemplate,
     WorkloadPorts,
     ContainerMountPaths,
-    LabeledInputSugget
+    LabeledInputSugget,
+    GpuResourceLimit
   },
 
   mixins: [CreateEditView, ResourceManager],
@@ -137,6 +143,7 @@ export default {
     // don't block UI for these resources
     this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
     this.servicesOwned = await this.value.getServicesOwned();
+    this.systemGpuManagementSchedulerName = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SYSTEM_GPU_MANAGEMENT_SCHEDULER_NAME)?.value ?? '';
   },
 
   data() {
@@ -294,6 +301,8 @@ export default {
       fvReportedValidationPaths: ['spec'],
       isNamespaceNew:            false,
       allPods:                   [],
+
+      systemGpuManagementSchedulerName: '',
     };
   },
 
@@ -456,7 +465,7 @@ export default {
           limitsMemory,
           requestsCpu,
           requestsMemory,
-          limitsGpu,
+          // limitsGpu,
         } = neu;
 
         const out = {
@@ -467,12 +476,83 @@ export default {
           limits: {
             cpu:       limitsCpu,
             memory:    limitsMemory,
-            [GPU_KEY]: limitsGpu,
+            // [GPU_KEY]: limitsGpu,
           },
         };
 
         this.$set(this.container, 'resources', cleanUp(out));
       },
+    },
+
+    flatGpuResources: {
+      get() {
+        const { limits = {}, requests = {} } = this.container.resources || {};
+        const limitGpuDevices = Object.entries(limits).filter(([k]) => k.startsWith('nvidia.com/') && k !== GPU_KEY);
+        const requestGpuDevices = Object.entries(requests).filter(([k]) => k.startsWith('nvidia.com/') && k !== GPU_KEY);
+        const limitGpuDevice = {
+          name:  '',
+          value: '',
+        };
+        const requestGpuDevice = {
+          name:  '',
+          value: ''
+        };
+
+        if (limitGpuDevices.length > 0) {
+          limitGpuDevice.name = limitGpuDevices[0][0];
+          limitGpuDevice.value = limitGpuDevices[0][1];
+        }
+        if (requestGpuDevices.length > 0) {
+          requestGpuDevice.name = requestGpuDevices[0][0];
+          requestGpuDevice.value = requestGpuDevices[0][1];
+        }
+
+        return {
+          limitsGpuShared:   limits[GPU_SHARED_KEY],
+          limitsGpu:         limits[GPU_KEY],
+          limitsVgpu:        limits[VGPU_KEY],
+          requestsGpuShared: requests[GPU_SHARED_KEY],
+          requestsGpu:       requests[GPU_KEY],
+          limitGpuDevice,
+          requestGpuDevice,
+        };
+      },
+      set(neu) {
+        const {
+          limitsGpuShared, limitsGpu, limitsVgpu, requestsGpuShared, requestsGpu, limitGpuDevice = {}, requestGpuDevice = {}
+        } = neu;
+        const scheduler = this.podTemplateSpec.scheduling?.scheduler;
+        const { limits = {}, requests = {} } = this.container.resources || {};
+
+        const out = {
+          requests: {
+            ...requests,
+            [GPU_SHARED_KEY]: requestsGpuShared,
+            [GPU_KEY]:        requestsGpu,
+
+            [limitGpuDevice.name]: limitGpuDevice.value
+          },
+          limits: {
+            ...limits,
+            [GPU_SHARED_KEY]: limitsGpuShared,
+            [GPU_KEY]:        limitsGpu,
+            [VGPU_KEY]:       limitsVgpu,
+
+            [requestGpuDevice.name]: requestGpuDevice.value
+          }
+        };
+
+        this.$set(this.container, 'resources', cleanUp(out));
+
+        const scheduling = this.podTemplateSpec.scheduling ?? {};
+
+        if (requestsGpuShared && limitsGpuShared && (!scheduler || scheduler === 'default-scheduler')) {
+          scheduling.scheduler = this.systemGpuManagementSchedulerName;
+        } else if (this.systemGpuManagementSchedulerName && scheduler === this.systemGpuManagementSchedulerName) {
+          scheduling.scheduler = '';
+        }
+        this.podTemplateSpec.scheduling = scheduling;
+      }
     },
 
     healthCheck: {

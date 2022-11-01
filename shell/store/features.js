@@ -30,6 +30,7 @@ export const RKE2 = create('rke2', true);
 export const UNSUPPORTED_STORAGE_DRIVERS = create('unsupported-storage-drivers', false);
 export const FLEET = create('continuous-delivery', true);
 export const HARVESTER = create('harvester', true);
+export const VIRTAITECH_GPU_SERVICE_UI = create('virtaitech-gpu-service-ui', false);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);

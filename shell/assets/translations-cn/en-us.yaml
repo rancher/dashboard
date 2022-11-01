@@ -1310,7 +1310,7 @@ cluster:
       instanceDescription:
         label: Instance Description
         placeholder: Instance Description
-      instanceType: 
+      instanceType:
         label: Instance Type
       imageId:
         label: System image
@@ -1359,14 +1359,13 @@ cluster:
         prePaid: Subscription
         postPaid: Pay-as-you-go
         spotStrategy: Preemptible Instance
-      periodUnit: 
+      periodUnit:
         label: Duration
         placeholder: Choose Duration...
         week: Week
         month: Month
         year: Year
         half: Half
-
       spotDuration:
         label: Use Duration
         default: One Hour
@@ -6560,3 +6559,18 @@ clusterConnectMode:
     label: Test
     success: Connect Success
   title: Cluster connect mode
+gpuReservation:
+  label: NVIDIA GPU Limit/Reservation
+  memUnit: GiB
+  placeholder: e.g. 1
+  set: Limit to
+  shared: Shared GPU Memory
+  sharedTips: While setting the shared GPU memory, Rancher will automatically set the GPU scheduler name for the workload
+  unit: GPUs
+  devices: GPU Devices
+  resourceName: GPU Resource Name
+vGpuReservation:
+  label: Orion X GPU Reservation
+  placeholder: e.g. 1
+  set: Limit to
+  unit: vGPUs

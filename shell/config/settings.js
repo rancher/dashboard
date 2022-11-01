@@ -62,7 +62,9 @@ export const SETTING = {
    * both pre and post log in. If not present defaults to the usual process
    */
   THEME:                                'ui-theme',
-  SYSTEM_NAMESPACES:                    'system-namespaces'
+  SYSTEM_NAMESPACES:                    'system-namespaces',
+
+  SYSTEM_GPU_MANAGEMENT_SCHEDULER_NAME: 'system-gpu-management-scheduler-name',
 };
 
 // These are the settings that are allowed to be edited via the UI

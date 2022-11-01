@@ -212,6 +212,7 @@ export default {
             <Tab :label="t('workload.container.titles.resources')" name="resources" :weight="tabWeightMap['resources']">
               <!-- Resources and Limitations -->
               <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" :limit-min-max-values="false" />
+              <GpuResourceLimit v-model="flatGpuResources" :mode="mode" />
             </Tab>
 
             <Tab v-if="!isInitContainer" :label="t('workload.container.titles.healthCheck')" name="healthCheck" :weight="tabWeightMap['healthCheck']">
