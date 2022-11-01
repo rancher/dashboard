@@ -1247,6 +1247,8 @@ export const getters = {
       return;
     }
 
+    const isReadOnlyAdmin = rootGetters['auth/isReadOnlyAdmin'];
+
     return state.products.filter((p) => {
       const module = p.inStore;
 
@@ -1294,7 +1296,7 @@ export const getters = {
           return false;
         }
 
-        if ( p.ifHaveVerb && !ifHaveVerb(rootGetters, module, p.ifHaveVerb, haveIds)) {
+        if ( p.ifHaveVerb && !ifHaveVerb(rootGetters, module, p.ifHaveVerb, haveIds) && !isReadOnlyAdmin) {
           return false;
         }
       }
