@@ -616,10 +616,6 @@ export default {
                       v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
                       class="icon icon-info"
                     />
-                    <span
-                      v-if="isNamespaced"
-                      class="required"
-                    >*</span>
                   </span>
                 </div>
                 <div :class="ruleClass">
