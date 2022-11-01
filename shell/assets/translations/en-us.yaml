@@ -129,7 +129,7 @@ nav:
     serviceDiscovery: Service Discovery
     starred: Starred
     storage: Storage
-    workload: Workload
+    workload: Workloads
     monitoring: Monitoring
     advanced: Advanced
     RKE1Configuration: RKE1 Configuration
