@@ -212,6 +212,8 @@ export default {
 
 .upgrade-info {
   min-width: 550px;
+  max-height: 800px;
+  overflow-y: scroll;
 
   .repoInfo {
     .col span {
