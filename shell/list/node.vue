@@ -64,7 +64,7 @@ export default {
   },
 
   data() {
-    return { canViewPods: false };
+    return { canViewPods: false, isLabelsVisible: false };
   },
 
   beforeDestroy() {
@@ -78,6 +78,7 @@ export default {
     hasWindowsNodes() {
       return (this.rows || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
     },
+
     tableGroup: mapPref(GROUP_RESOURCES),
 
     headers() {
@@ -130,6 +131,14 @@ export default {
       }
     },
 
+    displayLabels(row) {
+      return row.labels ? Object.keys(row.labels) : [];
+    },
+
+    toggleLabels() {
+      this.isLabelsVisible = !this.isLabelsVisible;
+    },
+
     get,
 
   }
@@ -164,10 +173,22 @@ export default {
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td :colspan="fullColspan-2">
-              {{ t('node.list.nodeTaint') }}:
-              <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
-                {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
-              </Tag>
+              <div>
+                {{ t('node.list.nodeTaint') }}:
+                <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
+                  {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
+                </Tag>
+              </div>
+              <div v-if="!!displayLabels(row).length" class="mt-5">
+                <a href="#" @click.prevent="toggleLabels">
+                  {{ t(`node.list.${isLabelsVisible? 'hideLabels' : 'showLabels'}`, {labelCount: displayLabels(row).length}) }}
+                </a>
+                <div v-if="isLabelsVisible" class="mt-5">
+                  <Tag v-for="(label, i) in displayLabels(row)" :key="i" class="mr-5">
+                    {{ label }}
+                  </Tag>
+                </div>
+              </div>
             </td>
           </template>
           <td v-else :colspan="fullColspan">

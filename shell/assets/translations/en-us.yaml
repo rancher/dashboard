@@ -3298,6 +3298,14 @@ node:
     poolDescription:
       noSize: No Size
       noLocation: No Location
+    hideLabels: |-
+      {labelCount, plural,
+      =1 {Show 1 annotation}
+      other {Hide {labelCount} labels}}
+    showLabels: |-
+      {labelCount, plural,
+      =1 {Show 1 annotation}
+      other {Show {labelCount} labels}}
   detail:
     detailTop:
       containerRuntime: Container Runtime

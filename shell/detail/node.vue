@@ -198,6 +198,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else class="node">
+    NODE INFO
     <div class="spacer"></div>
     <div class="alerts">
       <Alert class="mr-10" :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />
