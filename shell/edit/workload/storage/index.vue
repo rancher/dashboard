@@ -76,7 +76,7 @@ export default {
      * Generated list of volumes
      */
     volumeTypeOptions() {
-      const excludedFiles = ['index', 'Mount', 'PVC', 'ContainerMountPaths'];
+      const excludedFiles = ['index', 'Mount', 'PVC', 'ContainerMountPaths', 'KeyToPath'];
       const defaultVolumeTypes = [
         'csi',
         'configMap',

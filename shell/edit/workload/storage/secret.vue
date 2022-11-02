@@ -3,12 +3,14 @@ import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { RadioGroup } from '@components/Form/Radio';
+import KeyToPath from './KeyToPath';
 
 export default {
   components: {
     LabeledInput,
     LabeledSelect,
     RadioGroup,
+    KeyToPath
   },
 
   props:      {
@@ -47,6 +49,10 @@ export default {
       default: false,
       type:    Boolean
     },
+    namespace: {
+      type:    String,
+      default: '',
+    }
   },
 
   computed: {
@@ -121,8 +127,39 @@ export default {
       }
     },
 
+    sourceData() {
+      const type = this.type;
+      const source = this.value[type];
+
+      if (type === 'secret') {
+        const name = source.secretName;
+
+        return this.secrets.find(s => s.metadata?.name === name);
+      } else if (type === 'configMap') {
+        const name = source.name;
+
+        return this.configMaps.find(c => c.metadata?.name === name);
+      }
+
+      return null;
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
+
+  watch: {
+    namespace() {
+      const type = this.type;
+
+      if (type === 'secret' && this.value[type]?.secretName) {
+        this.value[type].secretName = '';
+        this.$delete(this.value[type], 'items');
+      } else if (type === 'configMap' && this.value[type]?.name) {
+        this.value[type].name = '';
+        this.$delete(this.value[type], 'items');
+      }
+    }
+  }
 
 };
 </script>
@@ -148,7 +185,7 @@ export default {
           />
         </div>
       </div>
-      <div class="row">
+      <div class="row mb-10">
         <div class="col span-6">
           <LabeledSelect
             v-if="type==='secret'"
@@ -179,6 +216,11 @@ export default {
             :options="[true, false]"
             :labels="[t('workload.storage.optional.yes'), t('workload.storage.optional.no')]"
           />
+        </div>
+      </div>
+      <div v-if="sourceData" class="row">
+        <div class="col span-12">
+          <KeyToPath :value="value" :ref-data="sourceData" :mode="mode" />
         </div>
       </div>
     </div>

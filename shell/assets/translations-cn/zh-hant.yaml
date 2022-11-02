@@ -5697,6 +5697,20 @@ workload:
     volumePath: 卷路徑
     noVolumes: 在 Pod 選項卡中添加捲後，卷將顯示在此處
     selectVolume: 選擇卷
+    keyToPath:
+      addAction: 添加項目
+      default: 所有鍵
+      header: 項目
+      key:
+        label: 鍵
+        placeholder: '例如: username'
+      mode:
+        label: 模式
+        placeholder: '例如: 400'
+      path:
+        label: 路徑
+        placeholder: '例如: my-group/my-username'
+      specific: 選擇特定的鍵
   typeDescriptions:
     apps.daemonset: DaemonSet 在每個符合條件的節點上僅運行一個 Pod。當新節點添加到集羣時，DaemonSet 會自動部署新節點。推薦用於全系統或可垂直擴展，且每個節點永遠不需要超過一個 pod 的工作負載。
     apps.deployment: Deployment 運行分佈在符合條件的節點中的可擴展數量的 Pod 副本。變更會逐步推出，並可回滾到之前的版本。推薦用於無狀態和水平可擴展的工作負載。
