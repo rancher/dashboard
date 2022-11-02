@@ -134,12 +134,14 @@ export default {
 
       providers:          [],
       providerComponents: [],
-      customLoginError:    {}
+      customLoginError:   {},
+      cooldownTime:       0,
+      cooldownTimer:      null,
     };
   },
 
   computed: {
-    ...mapGetters({ t: 'i18n/t' }),
+    ...mapGetters({ t: 'i18n/t', loginCooldown: 'auth/loginCooldown' }),
 
     nonLocalPrompt() {
       if (this.singleProvider) {
@@ -177,6 +179,29 @@ export default {
       return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
     },
 
+  },
+
+  watch: {
+    loginCooldown(time) {
+      if (!time) {
+        return;
+      }
+      this.clearTimer();
+      this.cooldownTime = time;
+      const countdown = () => {
+        if (this.cooldownTime) {
+          this.cooldownTime = this.cooldownTime - 1;
+        } else {
+          this.clearTimer();
+        }
+      };
+
+      this.cooldownTimer = setInterval(countdown, 1000);
+    }
+  },
+
+  beforeDestroy() {
+    this.clearTimer();
   },
 
   created() {
@@ -296,6 +321,13 @@ export default {
 
       return AESEncrypt(password.trim());
     },
+
+    clearTimer() {
+      if (this.cooldownTimer) {
+        clearInterval(this.cooldownTimer);
+        this.cooldownTimer = null;
+      }
+    }
   }
 };
 </script>
@@ -394,10 +426,11 @@ export default {
                   id="submit"
                   data-testid="login-submit"
                   type="submit"
-                  :action-label="t('login.loginWithLocal')"
+                  :action-label="cooldownTime ? `${t('login.loginWithLocal')}(${cooldownTime}s)` : t('login.loginWithLocal')"
                   :waiting-label="t('login.loggingIn')"
                   :success-label="t('login.loggedIn')"
                   :error-label="t('asyncButton.default.error')"
+                  :disabled="!!cooldownTime"
                   @click="loginLocal"
                 />
                 <div v-if="!firstLogin" class="mt-20">
