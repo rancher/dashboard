@@ -48,6 +48,7 @@ const sidebars = {
         'code-base-works/directory-structure',
         'code-base-works/helm-chart-apps',
         'code-base-works/keyboard-shortcuts',
+        'code-base-works/kubernetes-resources-data-load',
         'code-base-works/machine-drivers',
         'code-base-works/performance',
       ],
