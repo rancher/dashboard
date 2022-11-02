@@ -56,6 +56,7 @@ const sidebars = {
     'products-and-navigation',
     'server-side-rendering',
     'sortable-table',
+    'storybook',
     'style',
     'terminology',
     {
