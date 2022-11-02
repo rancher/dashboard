@@ -6,7 +6,8 @@ title: What's New in 2.7
 
 ### Rancher Extensions
 
-- You can now bring your own apps' UI and integrate it with the Rancher Dashboard to leverage a single UI. Admins may now make changes and enhancements to their UI functionality as desired independent of Rancher Manager releases. This relies on feature charts that would be manageable via a catalog. 
+- Rancher Extensions provides a mechanism to extend the functionality of the Rancher Manager UI. Rancher will use this to provide new functionality that can be
+installed by administrators. Extensions are provided as Helm charts. A new top-level 'Extensions' UI allows administrators to enable Extensions support and install and manage Extensions themselves.
 
 ### OCI Support for Helm for Fleet
 
