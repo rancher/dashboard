@@ -6074,6 +6074,7 @@ action:
   clone: Clone
   disable: Disable
   download: Download YAML
+  downloadFile: Download File
   edit: Edit Config
   editYaml: Edit YAML
   enable: Enable
@@ -6128,6 +6129,16 @@ registryConfig:
   header: Registry Authentication
   toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
   addLabel: Add Registry
+modalDownLoadFileComponent:
+  title: Container file download
+  container: Container
+  filePath: File Path
+  placeholder: Please enter the path of the file in the container
+  notice: Downloading files over 600MiB may cause your browser to crash.
+  validateContainer: Please select a container
+  validatePath: Please enter the path to the file you want to download.
+  noSuchFile: File does not exist
+  serverError: An error occurred on the service break
 ##############################
 ### Advanced Settings
 ##############################

@@ -49,6 +49,8 @@ export default class Pod extends WorkloadService {
   get containerActions() {
     const out = [];
 
+    insertAt(out, 0, this.downloadFileMenuItem);
+    insertAt(out, 0, { divider: true });
     insertAt(out, 0, this.openLogsMenuItem);
     insertAt(out, 0, this.openShellMenuItem);
 
@@ -64,6 +66,15 @@ export default class Pod extends WorkloadService {
     }
 
     return containers[0]?.name;
+  }
+
+  get downloadFileMenuItem() {
+    return {
+      action:     'downloadFile',
+      enabled:    !!this.actions?.download,
+      icon:       'icon icon-download',
+      label:      this.t('action.downloadFile'),
+    };
   }
 
   async openShell(containerName = this.defaultContainerName) {
@@ -130,6 +141,15 @@ export default class Pod extends WorkloadService {
     const { initContainers = [] } = this.spec;
 
     return initContainers.includes(container);
+  }
+
+  downloadFile() {
+    const resources = this;
+
+    this.$dispatch('promptModal', {
+      resources,
+      component: 'DownloadFileDialog'
+    });
   }
 
   async hasExecShellPermission(endpoint, path) {

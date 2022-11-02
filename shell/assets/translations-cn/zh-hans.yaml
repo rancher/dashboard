@@ -6202,6 +6202,7 @@ action:
   clone: 克隆
   disable: 禁用
   download: 下载 YAML
+  downloadFile: 下载文件
   edit: 编辑配置
   editYaml: 编辑 YAML
   enable: 启用
@@ -6256,6 +6257,16 @@ registryConfig:
   header: 仓库验证
   toolTip: '当需要从给定的镜像仓库主机名中拉取镜像时，此信息将用于识别并验证仓库。'
   addLabel: 添加镜像仓库
+modalDownLoadFileComponent:
+  title: 容器文件下载
+  container: 容器
+  filePath: 文件路径
+  placeholder: 请输入容器中的文件路径
+  notice: 下载超过 600MiB 的文件有可能导致浏览器崩溃
+  validateContainer: 请选择容器
+  validatePath: 请输入要下载文件的路径
+  noSuchFile: 文件不存在
+  serverError: 服务端发生错误
 ##############################
 ### Advanced Settings
 ##############################

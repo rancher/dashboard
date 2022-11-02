@@ -921,6 +921,18 @@ export default class Resource {
         enabled:  this.canViewInApi,
       },
       {
+        action:     'downloadFile',
+        label:      this.t('action.downloadFile'),
+        icon:       'icon icon-download',
+        enabled:    !!this.actions?.download,
+      },
+      {
+        action:  (this.canCustomEdit ? 'goToClone' : 'cloneYaml'),
+        label:   this.t('action.clone'),
+        icon:    'icon icon-copy',
+        enabled:  this.canClone && this.canCreate && (this.canCustomEdit || this.canYaml),
+      },
+      {
         action:     'promptRemove',
         altAction:  'remove',
         label:      this.t('action.remove'),

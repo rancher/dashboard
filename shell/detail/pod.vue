@@ -103,6 +103,7 @@ export default {
           stateObj:         status, // Required if there's a description
           stateDescription: descriptions.join(' | '), // Required to display the description
           initIcon:         this.value.containerIsInit(container) ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-minus icon-2x text-muted ml-5',
+          downloadFile:     () => this.value.downloadFile(container),
 
           // Call openShell here so that opening the shell
           // at the container level still has 'this' in scope.
