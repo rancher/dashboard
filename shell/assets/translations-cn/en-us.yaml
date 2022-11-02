@@ -449,6 +449,12 @@ authConfig:
     table:
       server: Server
       clientId: Client ID
+    userUniqueIdAttribute:
+      label: Unique User ID
+      tip: Use the globally unique user attribute created by the user to avoid losing user permissions due to changes in the value of this attribute
+    groupUniqueIdAttribute:
+      label: Group Unique ID
+      tip: Use a globally unique property created by a user group to avoid losing user privileges due to a change in the value of the property
   saml:
     entityID: Entity ID Field
     UID: UID Field

@@ -230,6 +230,14 @@ export default {
         <div class="col span-6">
           <LabeledInput v-model="model.disabledStatusBitmask" :mode="mode" :label="t('authConfig.ldap.disabledStatusBitmask')" />
         </div>
+        <div class="col span-6">
+          <LabeledInput v-model="model.groupUniqueIdAttribute" :mode="mode" :label="t('authConfig.ldap.groupUniqueIdAttribute.label')" :tooltip="t('authConfig.ldap.groupUniqueIdAttribute.tip')" />
+        </div>
+      </div>
+      <div class="row mb-20">
+        <div class="col span-6">
+          <LabeledInput v-model="model.userUniqueIdAttribute" :mode="mode" :label="t('authConfig.ldap.userUniqueIdAttribute.label')" :tooltip="t('authConfig.ldap.userUniqueIdAttribute.tip')" />
+        </div>
         <div v-if="type!=='shibboleth'" class=" col span-6">
           <RadioGroup
             v-model="model.nestedGroupMembershipEnabled"

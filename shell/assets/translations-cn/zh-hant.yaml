@@ -455,6 +455,12 @@ authConfig:
     table:
       server: Server IP 地址
       clientId: 客戶端 ID
+    userUniqueIdAttribute:
+      label: 用戶唯一標識
+      tip: 請使用用戶創建後全局唯一的用戶屬性，避免因該屬性值變化導致用戶權限丟失
+    groupUniqueIdAttribute:
+      label: 組唯一標識
+      tip: 請使用用戶組創建後全局唯一的屬性，避免因該屬性值變化導致用戶權限丟失
   saml:
     entityID: Entity ID 字段
     UID: UID 字段
