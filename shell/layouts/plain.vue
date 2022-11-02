@@ -11,6 +11,7 @@ import GrowlManager from '@shell/components/GrowlManager';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
+import AutoLogout from '@shell/mixins/auto-logout';
 
 export default {
 
@@ -28,7 +29,7 @@ export default {
 
   middleware: ['authenticated'],
 
-  mixins: [Brand, BrowserTabVisibility],
+  mixins: [Brand, BrowserTabVisibility, AutoLogout],
 
   data() {
     return {

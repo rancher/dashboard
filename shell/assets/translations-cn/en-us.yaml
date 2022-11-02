@@ -6141,6 +6141,7 @@ advancedSettings:
     'ui-default-landing': 'The default page users land on after login.'
     'brand': Folder name for an alternative theme defined in '/assets/brand'
     'hide-local-cluster': Hide the local cluster
+    ui-session-logout-minutes: User will automatically logout without any operation after the configured time (in minutes)
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -6592,3 +6593,6 @@ vGpuReservation:
   placeholder: e.g. 1
   set: Limit to
   unit: vGPUs
+autoLogout:
+  message: You have not operated in the last {autoLogoutTime} minutes, so we will auto log out
+  title: Auto logout
