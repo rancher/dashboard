@@ -40,7 +40,19 @@ export default {
 
   computed: {
     rows() {
-      return sortBy(this.nonLocal, ['sideLabel', 'nameDisplay']);
+      const ids = ['cas'];
+
+      return Object.values(sortBy(this.nonLocal, ['sideLabel', 'nameDisplay']).reduce((t, c) => {
+        if (ids.includes(c.id)) {
+          t.newConfigs.push(c);
+        } else {
+          t.configs.push(c);
+        }
+
+        return t;
+      }, { configs: [], newConfigs: [] })).flat();
+
+      // return sortBy(this.nonLocal, ['sideLabel', 'nameDisplay']);
     },
 
     displayName() {

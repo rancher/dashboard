@@ -2,7 +2,7 @@ import { GITHUB_NONCE, GITHUB_REDIRECT, GITHUB_SCOPE } from '@shell/config/query
 import { NORMAN } from '@shell/config/types';
 import { _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { addObjects, findBy } from '@shell/utils/array';
-import { openAuthPopup, returnTo } from '@shell/utils/auth';
+import { openAuthPopup, returnTo, thirdAuthLogout } from '@shell/utils/auth';
 import { base64Encode } from '@shell/utils/crypto';
 import { removeEmberPage } from '@shell/utils/ember-page';
 import { randomStr } from '@shell/utils/string';
@@ -284,6 +284,13 @@ export const actions = {
     });
   },
 
+  verifyCASAuth({ dispatch }, { ticket }) {
+    return dispatch('login', {
+      provider: 'cas',
+      body:     { ticket }
+    });
+  },
+
   async test({ dispatch }, { provider, body }) {
     const driver = await dispatch('getAuthConfig', provider);
 
@@ -338,7 +345,17 @@ export const actions = {
     }
   },
 
-  async logout({ dispatch, commit }) {
+  async logout({ dispatch, commit }, payload) {
+    if (payload?.provider) {
+      try {
+        const driver = await dispatch('getAuthProvider', payload.provider);
+
+        if (driver?.logoutUrl) {
+          await thirdAuthLogout(driver.logoutUrl);
+        }
+      } catch (e) {
+      }
+    }
     // Unload plugins - we will load again on login
     await this.$plugin.logout();
 

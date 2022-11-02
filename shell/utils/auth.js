@@ -79,3 +79,10 @@ export const authProvidersInfo = async(store) => {
     enabled
   };
 };
+
+export function thirdAuthLogout(url) {
+  return new Promise((resolve) => {
+    window.open(url, 'rancherAuthLogout', popupWindowOptions());
+    resolve('Third Auth Logout Success');
+  });
+}

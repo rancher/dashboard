@@ -523,6 +523,33 @@ authConfig:
   noneEnabled: 本地验证是长期开启的。你也可以选择以下的验证提供程序。
   localEnabled: '{vendor} 配置为允许访问本地数据库中的账号。'
   manageLocal: 管理账号
+  cas:
+    callbackURL:
+      label: 服务回调 URL
+      placeholder: CAS 服务回调 URL
+    cas: 配置 Rancher 使用 CAS 进行认证
+    connectionTimeout:
+      label: 服务器连接超时
+      placeholder: 例如：5000
+    enableTLS: Use a secure connection
+    hostUrl:
+      label: CAS Host
+      placeholder: 例如：cas-server.com
+    loginEndpoint:
+      label: 登录 Endpoint
+      placeholder: 例如：/cas/login
+    logoutEndpoint:
+      label: 登出 Endpoint
+      placeholder: 例如：/cas/logout
+    passwordField:
+      label: 密码字段
+      placeholder: 例如：password
+    port:
+      label: 端口
+      placeholder: 例如：6379
+    usernameField:
+      label: 用户名字段
+      placeholder: 例如：username
 authGroups:
   actions:
     refresh: 刷新用户组成员名单
@@ -5810,6 +5837,7 @@ model:
       googleoauth: Google
       oidc: OIDC
       keycloakoidc: Keycloak
+      cas: CAS
   cluster:
     name: 集群名称
   ingress:

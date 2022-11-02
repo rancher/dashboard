@@ -517,6 +517,33 @@ authConfig:
   noneEnabled: Local Authentication is always enabled, but you may select another additional authentication provider from those shown below.
   localEnabled: '{vendor} is configured to allow access to accounts in its local database.'
   manageLocal: Manage Accounts
+  cas:
+    callbackURL:
+      label: Service Callback URL
+      placeholder: Your CAS Service Callback URL
+    cas: Configure Rancher to use CAS to authentication
+    connectionTimeout:
+      label: Server Connection Timeout
+      placeholder: e.g. 5000
+    enableTLS: Use a secure connection
+    hostUrl:
+      label: CAS Host
+      placeholder: e.g. cas-server.com
+    loginEndpoint:
+      label: Login Endpoint
+      placeholder: e.g. /cas/login
+    logoutEndpoint:
+      label: Logout Endpoint
+      placeholder: e.g. /cas/logout
+    passwordField:
+      label: Password Field
+      placeholder: e.g. password
+    port:
+      label: Port
+      placeholder: e.g. 6379
+    usernameField:
+      label: User Name Field
+      placeholder: e.g. username
 authGroups:
   actions:
     refresh: Refresh Group Memberships
@@ -5762,6 +5789,7 @@ model:
       googleoauth: Google
       oidc: OIDC
       keycloakoidc: Keycloak
+      cas: CAS
   cluster:
     name: Cluster Name
   ingress:

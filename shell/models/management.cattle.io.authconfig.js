@@ -14,10 +14,12 @@ export const configType = {
   googleoauth:     'oauth',
   local:           '',
   github:          'oauth',
-  keycloakoidc:    'oidc'
+  keycloakoidc:    'oidc',
+  cas:             'cas',
 };
 
 const imageOverrides = { keycloakoidc: 'keycloak' };
+const iconFileNameExtension = { cas: '.png' };
 
 export default class AuthConfig extends SteveModel {
   get _availableActions() {
@@ -53,7 +55,7 @@ export default class AuthConfig extends SteveModel {
 
   get icon() {
     try {
-      return require(`~shell/assets/images/vendor/${ imageOverrides[this.id] || this.id }.svg`);
+      return require(`~shell/assets/images/vendor/${ imageOverrides[this.id] || this.id }${ iconFileNameExtension[this.id] ?? '.svg' }`);
     } catch (e) {
       return '';
     }

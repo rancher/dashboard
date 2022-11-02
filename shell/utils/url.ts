@@ -111,7 +111,7 @@ export function parse(str: string): ParsedUri {
   uri.query = {};
   uri.queryStr.replace(o.q.parser, (_, $1: string, $2: string): string => {
     if ($1) {
-      uri[o.q.name][$1] = $2;
+      uri[o.q.name][$1] = decodeURIComponent($2);
     }
 
     return '';

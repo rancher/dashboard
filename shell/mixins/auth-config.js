@@ -109,6 +109,17 @@ export default {
           this.$set(this.model, 'rancherApiHost', this.serverUrl);
         }
       }
+      if (this.value.configType === 'cas') {
+        if (!this.model.service) {
+          const routerBase = this.$router.options.base;
+          let route = '/auth/verify-cas';
+
+          if ( routerBase !== '/' ) {
+            route = `${ routerBase.replace(/\/+$/, '') }/${ route.replace(/^\/+/, '') }`;
+          }
+          this.$set(this.model, 'service', `${ window.location.origin }${ route }`);
+        }
+      }
 
       if (!this.model.enabled) {
         this.applyDefaults();
@@ -248,6 +259,18 @@ export default {
       });
 
       this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
+
+      if (this.value.configType === 'cas') {
+        if (!this.model.service) {
+          const routerBase = this.$router.options.base;
+          let route = '/auth/verify-cas';
+
+          if ( routerBase !== '/' ) {
+            route = `${ routerBase.replace(/\/+$/, '') }/${ route.replace(/^\/+/, '') }`;
+          }
+          this.$set(this.model, 'service', `${ window.location.origin }${ route }`);
+        }
+      }
 
       return this.model;
     },
