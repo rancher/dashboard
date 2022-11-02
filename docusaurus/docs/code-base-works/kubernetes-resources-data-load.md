@@ -127,5 +127,39 @@ This is where it will decide to load a custom view (follow `this.hasListComponen
 
 For a default list, we should check for the last couple lines on the `async fetch` method for the function called `this.$fetchType(resource)` which is a method exposed by the mixin (where you can pass the resource type as argument) which will handle all data loading for that given resource type.
 
-Under the hood
+Under the hood it performs a `findAll` but it append some specific flags for incremental loading (`incremental`) and manual refresh (`hasManualRefresh` && `watch`) which will tap into the normal flow of data request from our API.
 
+For a **default** list view, all should be covered with defaults by the `/shell/components/ResourceList/index.vue` file.
+
+Two quick important notes:
+- There is a `loading` computed prop in the mixin that is the default flag for the loading state of a `ResourceTable`
+- There is a `rows` computed prop in the mixin that is the default list of items loaded on the mixin
+
+If any of these two are referenced on a custom list template part but aren't defined on the JS part of the same file, it's because it uses the defaults which come from the mixin itself.
+
+Another important configuration part is about the incremental loader options (component name `ResourceLoadingIndicator`). 
+
+For custom lists the `ResourceTable` component is on the lookout for a method called `$loadingResources` which is defined on your custom list methods. If it exists, it should return an object with two properties:
+
+`loadIndeterminate` - by default the incremental loader is of a **determinate** type, which means that it will show the current count of items already loaded / total items to be loaded. 
+`loadResources` - by default the incremental loader will load the counts for the resource passed, but there are custom list views (ex: workloads) are comprised of multiple resources. You'll need to pass an array of all resource types for that list if you want to show the correct numbers on the incremental loader.
+
+`Incremental loader` component (`ResourceLoadingIndicator`) is rendered inside the `Masthead` component (ResourceList... there are two Mastheads).
+
+Generally, custom lists don't have a `Masthead` specified on it's template, but there's a Masthead rendered. That comes from `/shell/components/ResourceList/index.vue`,
+
+### Implementation examples
+- simple custom list implementation, with it's own `async fetch`
+check `catalog.cattle.io.app` custom list
+
+- custom list implementation, **without** `async fetch`
+check `catalog.cattle.io.clusterrepo` custom list
+
+- custom list implementation, **with** `async fetch` and `$loadingResources`
+check `fleet.cattle.io.bundle` custom list
+
+- custom list implementation, **with** `async fetch` and it's own Masthead instance
+check `fleet.cattle.io.gitrepo` custom list
+
+- multiple resources implementation
+check `workload` custom list
