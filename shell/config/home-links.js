@@ -11,7 +11,7 @@ const DEFAULT_LINKS = [
   },
   {
     key:     'forums',
-    value:   'https://forums.rancher.com/',
+    value:   'https://forums.rancher.cn/',
     enabled: true,
   },
   {
@@ -27,6 +27,11 @@ const DEFAULT_LINKS = [
   {
     key:     'getStarted',
     value:   '/docs/getting-started',
+    enabled: true,
+  },
+  {
+    key:     'mirror',
+    value:   'https://mirror.rancher.cn/',
     enabled: true,
   },
 ];

@@ -6926,6 +6926,7 @@ customLinks:
     getStarted: 開始使用
     issues: 提交 GitHub Issue
     slack: Slack
+    mirror: 下載 Rancher 資源
   description: 配置要在主頁上顯示的鏈接。你可以配置自定義鏈接以及顯示或隱藏默認鏈接。
   displayTitle: 鏈接
   label: 主頁鏈接
