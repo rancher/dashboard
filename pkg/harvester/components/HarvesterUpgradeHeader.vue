@@ -212,7 +212,7 @@ export default {
 
 .upgrade-info {
   min-width: 550px;
-  max-height: 800px;
+  max-height: 90vh;
   overflow-y: scroll;
 
   .repoInfo {
