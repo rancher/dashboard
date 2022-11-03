@@ -284,6 +284,34 @@ export const getters = {
     return state.namespaceFilters.filter(x => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
   },
 
+  isSingleNamespace(state, getters) {
+    const product = getters['currentProduct'];
+
+    if ( !product ) {
+      return false;
+    }
+
+    if ( product.showWorkspaceSwitcher ) {
+      return false;
+    }
+
+    if ( getters.isAllNamespaces ) {
+      return false;
+    }
+
+    const filters = state.namespaceFilters;
+
+    if ( filters.length !== 1 ) {
+      return false;
+    }
+
+    if (filters[0].startsWith('ns://')) {
+      return filters[0];
+    }
+
+    return false;
+  },
+
   isMultipleNamespaces(state, getters) {
     const product = getters['currentProduct'];
 

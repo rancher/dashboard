@@ -31,7 +31,8 @@ export default {
     type,
     data,
     ctx,
-    skipHaveAll
+    skipHaveAll,
+    namespace
   }) {
     // Performance testing in dev and when env var is set
     if (process.env.dev && !!process.env.perfTest) {
@@ -39,7 +40,7 @@ export default {
     }
 
     const proxies = loadAll(state, {
-      type, data, ctx, skipHaveAll
+      type, data, ctx, skipHaveAll, namespace
     });
 
     // If we loaded a set of pods, then update the podsByNamespace cache

@@ -16,11 +16,6 @@ export default {
       required: true,
     },
 
-    loadResources: {
-      type:    Array,
-      default: () => []
-    },
-
     loadIndeterminate: {
       type:    Boolean,
       default: false

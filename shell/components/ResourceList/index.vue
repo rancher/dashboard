@@ -4,13 +4,17 @@ import Loading from '@shell/components/Loading';
 import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import IconMessage from '@shell/components/IconMessage.vue';
 
 export default {
+  name: 'ResourceList',
+
   components: {
     Loading,
     ResourceTable,
     Masthead,
-    ResourceLoadingIndicator
+    ResourceLoadingIndicator,
+    IconMessage
   },
   mixins: [ResourceFetch],
 
@@ -28,19 +32,16 @@ export default {
       default: false
     },
   },
+
   async fetch() {
     const store = this.$store;
     const resource = this.resource;
 
-    let hasFetch = false;
-
-    const inStore = store.getters['currentStore'](resource);
-
-    const schema = store.getters[`${ inStore }/schemaFor`](resource);
+    const schema = this.schema;
 
     if ( this.hasListComponent ) {
       // If you provide your own list then call its asyncData
-      const importer = store.getters['type-map/importList'](resource);
+      const importer = this.listComponent;
       const component = (await importer())?.default;
 
       if ( component?.typeDisplay ) {
@@ -49,7 +50,7 @@ export default {
 
       // If your list page has a fetch then it's responsible for populating rows itself
       if ( component?.fetch ) {
-        hasFetch = true;
+        this.hasFetch = true;
       }
 
       // If the custom component supports it, ask it what resources it loads, so we can
@@ -62,14 +63,17 @@ export default {
       }
     }
 
-    if ( !hasFetch ) {
+    if ( !this.hasFetch ) {
       if ( !schema ) {
         store.dispatch('loadingError', new Error(`Type ${ resource } not found, unable to display list`));
 
         return;
       }
 
-      await this.$fetchType(resource);
+      // See comment for `namespaceFilterRequired` watcher, skip fetch if we don't have a valid NS
+      if (!this.namespaceFilterRequired) {
+        await this.$fetchType(resource);
+      }
     }
   },
 
@@ -91,6 +95,8 @@ export default {
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
       resource,
+      loadResources:                    [resource], // List of resources that will be loaded, this could be many (`Workloads`)
+      hasFetch:                         false,
       // manual refresh
       manualRefreshInit:                false,
       watch:                            false,
@@ -98,7 +104,6 @@ export default {
       // Provided by fetch later
       customTypeDisplay:                null,
       // incremental loading
-      loadResources:                    [resource],
       loadIndeterminate:                false,
       // query param for simple filtering
       useQueryParamsForSimpleFiltering: true
@@ -124,6 +129,22 @@ export default {
     }
   },
 
+  watch: {
+    /**
+     * ResourceList has two modes
+     * 1) Root component handles API request to fetch resources
+     * 2) Custom list component handles API request to fetch resources
+     *
+     * Case 2 will fetch resources when the component is shown and will use the latest namespace filter
+     * Case 1 requires a manual prod by watching namespaceFilterRequired
+     */
+    namespaceFilterRequired(neu, old) {
+      if (!neu && !this.hasFetch) {
+        this.$fetchType(this.resource);
+      }
+    }
+  },
+
   created() {
     let listComponent = false;
 
@@ -140,7 +161,17 @@ export default {
 </script>
 
 <template>
-  <div>
+  <IconMessage
+    v-if="namespaceFilterRequired"
+    :vertical="true"
+    :subtle="false"
+    icon="icon-search"
+  >
+    <template #message>
+      <span v-html="t('resourceList.nsFiltering', { resource: $store.getters['type-map/labelFor'](schema, 2) || customTypeDisplay }, true)" />
+    </template>
+  </IconMessage>
+  <div v-else>
     <Masthead
       v-if="showMasthead"
       :type-display="customTypeDisplay"
@@ -149,6 +180,7 @@ export default {
       :show-incremental-loading-indicator="showIncrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
+      :load-namespace="namespaceFilter"
     >
       <template slot="extraActions">
         <slot name="extraActions" />

@@ -1,11 +1,15 @@
 import { mapGetters } from 'vuex';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
+import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
 
 export default {
+
+  mixins: [ResourceFetchNamespaced],
+
   data() {
     // fetching the settings related to manual refresh from global settings
     const perfSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
@@ -21,11 +25,15 @@ export default {
       perfConfig = DEFAULT_PERF_SETTING;
     }
 
+    const inStore = this.$store.getters['currentStore'](COUNT);
+
     return {
       perfConfig,
       init:                       false,
-      counts:                     {},
+      inStore,
+      counts:                     this.$store.getters[`${ inStore }/all`](COUNT)[0].counts,
       multipleResources:          [],
+      loadResources:              [this.resource],
       // manual refresh vars
       hasManualRefresh:           false,
       watch:                      true,
@@ -34,6 +42,11 @@ export default {
       // incremental loading vars
       incremental:                0,
       fetchedResourceType:        [],
+      // force ns filtering
+      forceNsFilter:              {
+        ...perfConfig.forceNsFilter,
+        threshold: parseInt(this.perfConfig?.incrementalLoading?.threshold || '0', 10)
+      }
     };
   },
   beforeDestroy() {
@@ -42,10 +55,8 @@ export default {
       // clear up the store to make sure we aren't storing anything that might interfere with the next rendered list view
       this.$store.dispatch('resource-fetch/clearData');
 
-      const inStore = this.$store.getters['currentStore'](COUNT);
-
       this.fetchedResourceType.forEach((type) => {
-        this.$store.dispatch(`${ inStore }/incrementLoadCounter`, type);
+        this.$store.dispatch(`${ this.inStore }/incrementLoadCounter`, type);
       });
     }
   },
@@ -53,9 +64,7 @@ export default {
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
     rows() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
-
-      return this.$store.getters[`${ inStore }/all`](this.resource);
+      return this.$store.getters[`${ this.inStore }/all`](this.resource);
     },
     loading() {
       return this.rows.length ? false : this.$fetchState.pending;
@@ -71,8 +80,6 @@ export default {
   },
   methods: {
     $fetchType(type, multipleResources = []) {
-      const inStore = this.$store.getters['currentStore'](COUNT);
-
       if (!this.init) {
         this.__gatherResourceFetchData(type, multipleResources);
 
@@ -90,9 +97,10 @@ export default {
         this.fetchedResourceType.push(type);
       }
 
-      return this.$store.dispatch(`${ inStore }/findAll`, {
+      return this.$store.dispatch(`${ this.inStore }/findAll`, {
         type,
         opt: {
+          namespaced:       this.namespaceFilter,
           incremental:      this.incremental,
           watch:            this.watch,
           force:            this.force,
@@ -100,16 +108,19 @@ export default {
         }
       });
     },
-    __getCountForResource(resourceName) {
-      let resourceCount;
 
-      if (this.counts[`${ resourceName }`]) {
-        resourceCount = this.counts[`${ resourceName }`].summary?.count;
-      }
+    __getCountForResources(resourceNames) {
+      return resourceNames.reduce((res, type) => res + this.__getCountForResource(type), 0);
+    },
+
+    __getCountForResource(resourceName, namespace) {
+      const resourceCounts = this.counts[`${ resourceName }`];
+      const resourceCount = namespace ? resourceCounts?.namespaces[namespace]?.count : resourceCounts?.summary?.count;
 
       return resourceCount || 0;
     },
-    __gatherResourceFetchData(type, multipleResources) {
+
+    __gatherResourceFetchData(resourceName, multipleResources) {
       // flag to prevent a first data update being triggered from the requestData watcher
       this.init = true;
 
@@ -123,8 +134,6 @@ export default {
 
       // other vars
       this.multipleResources = multipleResources;
-      const resourceName = type;
-      const inStore = this.$store.getters['currentStore'](resourceName);
       let resourceCount = 0;
 
       // manual refresh vars
@@ -135,17 +144,9 @@ export default {
       let incremental = 0;
 
       // get resource counts
-      if ( this.$store.getters[`${ inStore }/haveAll`](COUNT) ) {
-        this.counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
+      const resourcesForCount = this.multipleResources.length ? this.multipleResources : [resourceName];
 
-        if (this.multipleResources.length) {
-          this.multipleResources.forEach((item) => {
-            resourceCount = resourceCount + this.__getCountForResource(item);
-          });
-        } else {
-          resourceCount = this.__getCountForResource(resourceName);
-        }
-      }
+      resourceCount = this.__getCountForResources(resourcesForCount);
 
       // manual refresh check
       if (manualDataRefreshEnabled && resourceCount >= manualDataRefreshThreshold) {
