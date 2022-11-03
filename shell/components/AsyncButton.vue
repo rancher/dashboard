@@ -104,7 +104,13 @@ export default Vue.extend({
     componentTestid: {
       type:    String,
       default: 'action-button'
-    }
+    },
+
+    manual: {
+      type:    Boolean,
+      default: false,
+    },
+
   },
 
   data(): { phase: string, timer?: NodeJS.Timeout} {
@@ -199,6 +205,12 @@ export default Vue.extend({
     }
   },
 
+  beforeDestroy() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+    }
+  },
+
   methods: {
     clicked($event: MouseEvent) {
       if ($event) {
@@ -214,7 +226,10 @@ export default Vue.extend({
         clearTimeout(this.timer);
       }
 
-      this.phase = ASYNC_BUTTON_STATES.WAITING;
+      // If manual property is set, don't automatically change the button on click
+      if (!this.manual) {
+        this.phase = ASYNC_BUTTON_STATES.WAITING;
+      }
 
       const cb: AsyncButtonCallback = (success) => {
         this.done(success);

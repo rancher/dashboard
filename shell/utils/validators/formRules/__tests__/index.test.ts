@@ -906,6 +906,114 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  // this rule is pretty much identical to the standard hostname, but also allows for wildcards
+  it('"wildcardHostname" : returns undefined when value is valid hostname', () => {
+    const testValue = 'www.url.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+
+    expect(formRuleResult).toBeUndefined();
+  });
+
+  it('"wildcardHostname" : returns expected message when value starts with a dot', () => {
+    const testValue = '.hostname';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+    const expectedResult = JSON.stringify({ message: 'validation.dns.hostname.startDot', key: 'testDisplayKey' });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns expected message when value starts is too long for a hostname', () => {
+    const testValue = 'There.are.many.variations.of.passages.of.Lorem.Ipsum.available.but.the.majority.have.suffered.alteration.in.some.form.by.injected.humour.or.randomised.words.which.dont.look.even.slightly.believable.If.you.are.going.to.use.a.passage.of.Lorem.Ipsum.you.need';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'validation.dns.hostname.tooLong', key: 'testDisplayKey', max: 253
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns expected message when value contains invalid characters', () => {
+    const testValue = 'www.host*name.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: '"*"'
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns expected message when value contains a space character', () => {
+    const testValue = 'www.host name.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: 'Space'
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns expected message when hostname label starts with a dash', () => {
+    const testValue = 'www.-hostname.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+    const expectedResult = JSON.stringify({ message: 'validation.dns.hostname.startHyphen', key: 'testDisplayKey' });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns expected message when hostname label ends with a dash', () => {
+    const testValue = 'www.hostname-.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+    const expectedResult = JSON.stringify({ message: 'validation.dns.hostname.endHyphen', key: 'testDisplayKey' });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns expected message when hostname label contains a double-dash at the third character position', () => {
+    const testValue = 'www.ho--stname.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+    const expectedResult = JSON.stringify({ message: 'validation.dns.doubleHyphen', key: 'testDisplayKey' });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns expected message when hostname label is too long', () => {
+    const testValue = 'www.0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'validation.dns.hostname.tooLongLabel', key: 'testDisplayKey', max: 63
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns expected message when wildcard character is not the first part', () => {
+    const testValue = 'www.*.hostname.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+    const expectedResult = JSON.stringify({
+      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: '"*"'
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns expected message when wildcard character is at the beginning but not its own part', () => {
+    const testValue = '*hostname.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+
+    const expectedResult = JSON.stringify({
+      message: 'validation.chars', key: 'testDisplayKey', count: 1, chars: '"*"'
+    });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  it('"wildcardHostname" : returns valid when wildcard character is the first part', () => {
+    const testValue = '*.hostname.com';
+    const formRuleResult = formRules.wildcardHostname(testValue);
+
+    expect(formRuleResult).toBeUndefined();
+  });
+
   it('"absolutePath" : return expected message when path doesn\'t begin with a "/"', () => {
     const formRuleResult = formRules.absolutePath('absolute_path');
     const expectedResult = JSON.stringify({ message: 'validation.path', key: 'testDisplayKey' });

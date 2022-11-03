@@ -39,6 +39,8 @@
   --default-border             : #($dark);
   --default-banner-bg          : #{rgba($dark, 0.15)};
   --default-light-bg           : #{rgba($dark, 0.05)};
+  --slider-light-bg            : #{rgba($darker, 1)};
+  --slider-light-bg-right      : #{rgba($darker, 0)};
 
   --muted                      : #{$disabled};
 
@@ -160,6 +162,7 @@
   --diff-ins-border            : #{rgba($success, 0.5)};
   --diff-chg-ins               : #{rgba($success, 0.25)};
   --diff-chg-del               : #{rgba($warning, 0.5)};
+  --diff-chg-dela               : #{rgba($warning, 1)};
   --diff-empty-placeholder     : #{$darker};
 
 

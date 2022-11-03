@@ -290,8 +290,12 @@ export default {
         :headers="reportCheckHeaders"
         key-field="id"
       >
-        <template #sub-row="{row, fullColspan}">
-          <tr class="sub-row">
+        <template #sub-row="{row, fullColspan, onRowMouseEnter, onRowMouseLeave}">
+          <tr
+            class="sub-row"
+            @mouseenter="onRowMouseEnter"
+            @mouseleave="onRowMouseLeave"
+          >
             <td :colspan="fullColspan">
               <Banner v-if="(row.state==='fail' || row.state==='warn')&& row.remediation" class="sub-banner" :label="remediationDisplay(row)" color="warning" />
               <SortableTable

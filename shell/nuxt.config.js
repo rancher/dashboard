@@ -10,6 +10,29 @@ import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
 
 const createProxyMiddleware = require('http-proxy-middleware');
 
+// Global variables
+let api = process.env.API || 'http://localhost:8989';
+
+if ( !api.startsWith('http') ) {
+  api = `https://${ api }`;
+}
+
+// needed for proxies
+export const API_PATH = api;
+
+const dev = (process.env.NODE_ENV !== 'production');
+const devPorts = dev || process.env.DEV_PORTS === 'true';
+const version = process.env.VERSION ||
+  process.env.DRONE_TAG ||
+  process.env.DRONE_VERSION ||
+  require('./package.json').version;
+
+const prime = process.env.PRIME;
+
+const pl = process.env.PL || STANDARD;
+const commit = process.env.COMMIT || 'head';
+const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
+
 // ===============================================================================================
 // Nuxt configuration
 // ===============================================================================================
@@ -141,16 +164,16 @@ export default function(dir, _appConfig) {
       // Package file must have rancher field to be a plugin
       if (includePkg(name) && f.rancher) {
         reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
+
+        // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
+        // if (!nmPackages[name]) {
+        //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
+        //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
+
+        //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
+        // }
+        autoImportTypes[`@rancher/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
       }
-
-      // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
-      // if (!nmPackages[name]) {
-      //   const pkgPackageFile = require(path.join(dir, 'pkg', name, 'package.json'));
-      //   const pkgRef = `${ name }-${ pkgPackageFile.version }`;
-
-      //   serverMiddleware.push({ path: `/pkg/${ pkgRef }`, handler: serveStatic(`${ dir }/dist-pkg/${ pkgRef }`) });
-      // }
-      autoImportTypes[`@rancher/auto-import/${ name }`] = generateDynamicTypeImport(`@pkg/${ name }`, path.join(dir, `pkg/${ name }`));
     });
   }
 
@@ -185,8 +208,6 @@ export default function(dir, _appConfig) {
 
   // Serve up the dist-pkg folder under /pkg
   serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
-  // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
-  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
   // Add the standard dashboard server middleware after the middleware added to serve up UI packages
   serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
 
@@ -196,23 +217,6 @@ export default function(dir, _appConfig) {
 
   require('events').EventEmitter.defaultMaxListeners = 20;
   require('dotenv').config();
-
-  const version = process.env.VERSION ||
-    process.env.DRONE_TAG ||
-    process.env.DRONE_VERSION ||
-    require('./package.json').version;
-
-  const dev = (process.env.NODE_ENV !== 'production');
-  const devPorts = dev || process.env.DEV_PORTS === 'true';
-  const pl = process.env.PL || STANDARD;
-  const commit = process.env.COMMIT || 'head';
-  const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
-
-  let api = process.env.API || 'http://localhost:8989';
-
-  if ( !api.startsWith('http') ) {
-    api = `https://${ api }`;
-  }
 
   let routerBasePath = '/';
   let resourceBase = '';
@@ -265,7 +269,9 @@ export default function(dir, _appConfig) {
       dev,
       pl,
       perfTest,
-      rancherEnv
+      rancherEnv,
+      harvesterPkgUrl: process.env.HARVESTER_PKG_URL,
+      api
     },
 
     publicRuntimeConfig: { rancherEnv },
@@ -305,8 +311,9 @@ export default function(dir, _appConfig) {
     },
 
     router: {
-      base:       routerBasePath,
-      middleware: ['i18n'],
+      base:          routerBasePath,
+      middleware:    ['i18n'],
+      prefetchLinks: false
     },
 
     alias: {
@@ -493,7 +500,8 @@ export default function(dir, _appConfig) {
         plugins: [
           // TODO: Browser support
           // ['@babel/plugin-transform-modules-commonjs'],
-          ['@babel/plugin-proposal-private-property-in-object', { loose: true }]
+          ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
+          'babel-plugin-istanbul'
         ],
       }
     },
@@ -551,7 +559,7 @@ export default function(dir, _appConfig) {
     plugins: [
       // Extensions
       path.relative(dir, path.join(SHELL, 'core/plugins.js')),
-      path.relative(dir, path.join(SHELL, 'core/plugins-loader.js')),
+      path.relative(dir, path.join(SHELL, 'core/plugins-loader.js')), // Load builtin plugins
 
       // Third-party
       path.join(NUXT_SHELL, 'plugins/axios'),
@@ -570,39 +578,40 @@ export default function(dir, _appConfig) {
       path.join(NUXT_SHELL, 'plugins/global-formatters'),
       path.join(NUXT_SHELL, 'plugins/trim-whitespace'),
       { src: path.join(NUXT_SHELL, 'plugins/extend-router') },
-      { src: path.join(NUXT_SHELL, 'plugins/lookup'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/console'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/int-number'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/nuxt-client-init'), ssr: false },
       path.join(NUXT_SHELL, 'plugins/replaceall'),
       path.join(NUXT_SHELL, 'plugins/back-button'),
-      { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/plugin'), ssr: false }, // Load dyanmic plugins
       { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
+      { src: path.join(NUXT_SHELL, 'plugins/formatters'), ssr: false }, // Populate formatters cache for sorted table
+      { src: path.join(NUXT_SHELL, 'plugins/version'), ssr: false }, // Makes a fetch to the backend to get version metadata
     ],
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options
     proxy: {
-      '/k8s':          proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-      '/pp':           proxyWsOpts(api), // For (epinio) standalone API
-      '/api':          proxyWsOpts(api), // Management k8s API
-      '/apis':         proxyWsOpts(api), // Management k8s API
-      '/v1':           proxyWsOpts(api), // Management Steve API
-      '/v3':           proxyWsOpts(api), // Rancher API
-      '/v3-public':    proxyOpts(api), // Rancher Unauthed API
-      '/api-ui':       proxyOpts(api), // Browser API UI
-      '/meta':         proxyMetaOpts(api), // Browser API UI
-      '/v1-*':         proxyOpts(api), // SAML, KDM, etc
+      ...appConfig.proxies,
+      '/k8s':            proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+      '/pp':             proxyWsOpts(api), // For (epinio) standalone API
+      '/api':            proxyWsOpts(api), // Management k8s API
+      '/apis':           proxyWsOpts(api), // Management k8s API
+      '/v1':             proxyWsOpts(api), // Management Steve API
+      '/v3':             proxyWsOpts(api), // Rancher API
+      '/v3-public':      proxyOpts(api), // Rancher Unauthed API
+      '/api-ui':         proxyOpts(api), // Browser API UI
+      '/meta':           proxyMetaOpts(api), // Browser API UI
+      '/v1-*':           proxyOpts(api), // SAML, KDM, etc
+      '/rancherversion': proxyPrimeOpts(api), // Rancher version endpoint
       // These are for Ember embedding
-      '/c/*/edit':     proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-      '/k/':           proxyOpts('https://127.0.0.1:8000'),
-      '/g/':           proxyOpts('https://127.0.0.1:8000'),
-      '/n/':           proxyOpts('https://127.0.0.1:8000'),
-      '/p/':           proxyOpts('https://127.0.0.1:8000'),
-      '/assets':       proxyOpts('https://127.0.0.1:8000'),
-      '/translations': proxyOpts('https://127.0.0.1:8000'),
-      '/engines-dist': proxyOpts('https://127.0.0.1:8000'),
-      // Plugin dev
-      '/verdaccio/':   proxyOpts('http://127.0.0.1:4873/-'),
+      '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
+      '/k/':             proxyOpts('https://127.0.0.1:8000'),
+      '/g/':             proxyOpts('https://127.0.0.1:8000'),
+      '/n/':             proxyOpts('https://127.0.0.1:8000'),
+      '/p/':             proxyOpts('https://127.0.0.1:8000'),
+      '/assets':         proxyOpts('https://127.0.0.1:8000'),
+      '/translations':   proxyOpts('https://127.0.0.1:8000'),
+      '/engines-dist':   proxyOpts('https://127.0.0.1:8000'),
     },
 
     // Nuxt server
@@ -633,71 +642,114 @@ export default function(dir, _appConfig) {
   };
 
   return config;
+}
 
-  // ===============================================================================================
-  // Functions for the request proxying used in dev
-  // ===============================================================================================
+// ===============================================================================================
+// Functions for the request proxying used in dev
+// ===============================================================================================
 
-  function proxyMetaOpts(target) {
-    return {
-      target,
-      followRedirects: true,
-      secure:          !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-      onProxyRes,
+export function proxyMetaOpts(target) {
+  return {
+    target,
+    followRedirects: true,
+    secure:          !dev,
+    onProxyReq,
+    onProxyReqWs,
+    onError,
+    onProxyRes,
+  };
+}
+
+export function proxyOpts(target) {
+  return {
+    target,
+    secure: !devPorts,
+    onProxyReq,
+    onProxyReqWs,
+    onError,
+    onProxyRes,
+  };
+}
+
+// Intercept the /rancherversion API call wnad modify the 'RancherPrime' value
+// if configured to do so by the environment variable PRIME
+export function proxyPrimeOpts(target) {
+  const opts = proxyOpts(target);
+
+  // Don't intercept if the PRIME environment variable is not set
+  if (!prime?.length) {
+    return opts;
+  }
+
+  opts.onProxyRes = (proxyRes, req, res) => {
+    const _end = res.end;
+    let body = '';
+
+    proxyRes.on( 'data', (data) => {
+      data = data.toString('utf-8');
+      body += data;
+    });
+
+    res.write = () => {};
+
+    res.end = () => {
+      let output = body;
+
+      try {
+        const out = JSON.parse(body);
+
+        out.RancherPrime = prime;
+        output = JSON.stringify(out);
+      } catch (err) {}
+
+      res.setHeader('content-length', output.length );
+      res.setHeader('content-type', 'application/json' );
+      res.setHeader('transfer-encoding', '');
+      res.setHeader('cache-control', 'no-cache');
+      res.writeHead(proxyRes.statusCode);
+      _end.apply(res, [output]);
     };
-  }
+  };
 
-  function proxyOpts(target) {
-    return {
-      target,
-      secure: !devPorts,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-      onProxyRes,
-    };
-  }
+  return opts;
+}
 
-  function onProxyRes(proxyRes, req, res) {
-    if (devPorts) {
-      proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
-    }
+export function onProxyRes(proxyRes, req, res) {
+  if (devPorts) {
+    proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
   }
+}
 
-  function proxyWsOpts(target) {
-    return {
-      ...proxyOpts(target),
-      ws:           true,
-      changeOrigin: true,
-    };
-  }
+export function proxyWsOpts(target) {
+  return {
+    ...proxyOpts(target),
+    ws:           true,
+    changeOrigin: true,
+  };
+}
 
-  function onProxyReq(proxyReq, req) {
-    if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
-      proxyReq.setHeader('x-api-host', req.headers['host']);
-      proxyReq.setHeader('x-forwarded-proto', 'https');
-      // console.log(proxyReq.getHeaders());
-    }
-  }
-
-  function onProxyReqWs(proxyReq, req, socket, options, head) {
-    req.headers.origin = options.target.href;
-    proxyReq.setHeader('origin', options.target.href);
+export function onProxyReq(proxyReq, req) {
+  if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
     proxyReq.setHeader('x-api-host', req.headers['host']);
     proxyReq.setHeader('x-forwarded-proto', 'https');
     // console.log(proxyReq.getHeaders());
-
-    socket.on('error', (err) => {
-      console.error('Proxy WS Error:', err); // eslint-disable-line no-console
-    });
   }
+}
 
-  function onError(err, req, res) {
-    res.statusCode = 598;
-    console.error('Proxy Error:', err); // eslint-disable-line no-console
-    res.write(JSON.stringify(err));
-  }
+export function onProxyReqWs(proxyReq, req, socket, options, head) {
+  req.headers.origin = options.target.href;
+  proxyReq.setHeader('origin', options.target.href);
+  proxyReq.setHeader('x-api-host', req.headers['host']);
+  proxyReq.setHeader('x-forwarded-proto', 'https');
+  // console.log(proxyReq.getHeaders());
+
+  socket.on('error', (err) => {
+    console.error('Proxy WS Error:', err); // eslint-disable-line no-console
+  });
+}
+
+export function onError(err, req, res) {
+  res.statusCode = 598;
+  console.error('Proxy Error:', err); // eslint-disable-line no-console
+  res.write(JSON.stringify(err));
 }

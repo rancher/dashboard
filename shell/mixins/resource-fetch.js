@@ -1,25 +1,9 @@
 import { mapGetters } from 'vuex';
-import {
-  COUNT, MANAGEMENT, POD, WORKLOAD_TYPES, WORKLOAD, SECRET
-} from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
+import { COUNT, MANAGEMENT } from '@shell/config/types';
+import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
-
-// restrict advanced features of manual refresh and incremental loading to these resource types
-export const TYPES_RESTRICTED = [
-  SECRET,
-  POD,
-  WORKLOAD_TYPES.DEPLOYMENT,
-  WORKLOAD_TYPES.CRON_JOB,
-  WORKLOAD_TYPES.DAEMON_SET,
-  WORKLOAD_TYPES.JOB,
-  WORKLOAD_TYPES.STATEFUL_SET,
-  WORKLOAD_TYPES.REPLICA_SET,
-  WORKLOAD_TYPES.REPLICATION_CONTROLLER,
-  WORKLOAD
-];
 
 export default {
   data() {
@@ -33,6 +17,8 @@ export default {
       } catch (e) {
         console.warn('ui-performance setting contains invalid data'); // eslint-disable-line no-console
       }
+    } else {
+      perfConfig = DEFAULT_PERF_SETTING;
     }
 
     return {
@@ -64,7 +50,17 @@ export default {
     }
   },
 
-  computed: { ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }) },
+  computed: {
+    ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
+    rows() {
+      const inStore = this.$store.getters['currentStore'](this.resource);
+
+      return this.$store.getters[`${ inStore }/all`](this.resource);
+    },
+    loading() {
+      return this.rows.length ? false : this.$fetchState.pending;
+    },
+  },
   watch:    {
     refreshFlag(neu) {
       // this is where the data assignment will trigger the update of the list view...

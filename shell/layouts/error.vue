@@ -35,7 +35,11 @@ export default {
       return;
     }
 
-    this.ready = true;
+    // Avoid scenarios where the 404 error will blip up whilst the authenticated middleware is determining if there's an alternative valid
+    // route
+    setTimeout(() => {
+      this.ready = true;
+    }, 1000);
   },
 
   head() {

@@ -31,27 +31,26 @@ const dev = (process.env.NODE_ENV !== 'production');
 const devPorts = dev || process.env.DEV_PORTS === 'true';
 
 const proxy = {
-  '/k8s':          proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-  '/pp':           proxyWsOpts(api), // For (epinio) standalone API
-  '/api':          proxyWsOpts(api), // Management k8s API
-  '/apis':         proxyWsOpts(api), // Management k8s API
-  '/v1':           proxyWsOpts(api), // Management Steve API
-  '/v3':           proxyWsOpts(api), // Rancher API
-  '/v3-public':    proxyOpts(api), // Rancher Unauthed API
-  '/api-ui':       proxyOpts(api), // Browser API UI
-  '/meta':         proxyMetaOpts(api), // Browser API UI
-  '/v1-*':         proxyOpts(api), // SAML, KDM, etc
+  '/k8s':            proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+  '/pp':             proxyWsOpts(api), // For (epinio) standalone API
+  '/api':            proxyWsOpts(api), // Management k8s API
+  '/apis':           proxyWsOpts(api), // Management k8s API
+  '/v1':             proxyWsOpts(api), // Management Steve API
+  '/v3':             proxyWsOpts(api), // Rancher API
+  '/v3-public':      proxyOpts(api), // Rancher Unauthed API
+  '/api-ui':         proxyOpts(api), // Browser API UI
+  '/meta':           proxyMetaOpts(api), // Browser API UI
+  '/rancherversion': proxyOpts(api), // Rancher version endpoint
+  '/v1-*':           proxyOpts(api), // SAML, KDM, etc
   // These are for Ember embedding
-  '/c/*/edit':     proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-  '/k/':           proxyOpts('https://127.0.0.1:8000'),
-  '/g/':           proxyOpts('https://127.0.0.1:8000'),
-  '/n/':           proxyOpts('https://127.0.0.1:8000'),
-  '/p/':           proxyOpts('https://127.0.0.1:8000'),
-  '/assets':       proxyOpts('https://127.0.0.1:8000'),
-  '/translations': proxyOpts('https://127.0.0.1:8000'),
-  '/engines-dist': proxyOpts('https://127.0.0.1:8000'),
-  // Plugin dev
-  '/verdaccio/':   proxyOpts('http://127.0.0.1:4873/-'),
+  '/c/*/edit':       proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
+  '/k/':             proxyOpts('https://127.0.0.1:8000'),
+  '/g/':             proxyOpts('https://127.0.0.1:8000'),
+  '/n/':             proxyOpts('https://127.0.0.1:8000'),
+  '/p/':             proxyOpts('https://127.0.0.1:8000'),
+  '/assets':         proxyOpts('https://127.0.0.1:8000'),
+  '/translations':   proxyOpts('https://127.0.0.1:8000'),
+  '/engines-dist':   proxyOpts('https://127.0.0.1:8000')
 };
 
 const proxies = {};
@@ -66,6 +65,20 @@ for (const [key, value] of Object.entries(proxy)) {
 }
 
 app.use(express.static(dist));
+
+// Catch reload on a dynamic page
+// Check that the requestor will accept html and send them the index file
+app.use('*', (req, res, next) => {
+  const accept = req.headers.accept || '';
+  const acceptArray = accept.split(',');
+  const html = acceptArray.find(h => h.trim() === 'text/html');
+
+  if (html) {
+    return res.sendFile(path.join(dist, 'index.html'));
+  }
+
+  next();
+});
 
 const server = https.createServer(options, app);
 const appServer = server.listen(PORT);

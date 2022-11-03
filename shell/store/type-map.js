@@ -41,6 +41,7 @@
 //   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 //   category,                -- Group to show the product in for the nav hamburger menu
 //   typeStoreMap,            -- An object mapping types to the store that should be used to retrieve information about the type
+//   hideSystemResources      -- Hide resources in namespaces where namespace.isSystem === true, or a namespace managed by fleet (per its annotation) and hide those namespaces from ns/project list and nsfilter (default false)
 // })
 //
 // externalLink(stringOrFn)  The product has an external page (function gets context object
@@ -120,8 +121,14 @@
 //   continueOnMatch
 // )
 import { AGE, NAME, NAMESPACE as NAMESPACE_COL, STATE } from '@shell/config/table-headers';
-import { COUNT, SCHEMA, MANAGEMENT, NAMESPACE } from '@shell/config/types';
-import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
+import {
+  CATALOG,
+  COUNT,
+  SCHEMA,
+  MANAGEMENT,
+  NAMESPACE
+} from '@shell/config/types';
+import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
 } from '@shell/utils/array';
@@ -130,8 +137,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveDetail
-
+  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveChart, resolveDetail, importDialog
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -167,8 +173,8 @@ export const IF_HAVE = {
   NO_PROJECT:               'no-project',
   NOT_V1_ISTIO:             'not-v1-istio',
   MULTI_CLUSTER:            'multi-cluster',
-  HARVESTER_SINGLE_CLUSTER: 'harv-multi-cluster',
   NEUVECTOR_NAMESPACE:      'neuvector-namespace',
+  ADMIN:                    'admin-user',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -217,7 +223,9 @@ export function DSL(store, product, module = 'type-map') {
     headers(type, headers) {
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
-        if (process.client && header.getValue) {
+        if (header.getValue) {
+          // we need to store the .value prop for the advanced filtering
+          header.valueProp = header.value;
           header.value = header.getValue;
         }
 
@@ -361,6 +369,7 @@ export const state = function() {
       groupLabel:       {},
       ignore:           {},
       list:             {},
+      chart:            {},
       detail:           {},
       edit:             {},
       componentFor:     {},
@@ -803,7 +812,7 @@ export const getters = {
       const module = findBy(state.products, 'name', product).inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
       const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
-      const isDev = rootGetters['prefs/get'](DEV);
+      const isDev = rootGetters['prefs/get'](VIEW_IN_API);
       const isBasic = mode === BASIC;
 
       const out = {};
@@ -1056,6 +1065,14 @@ export const getters = {
     };
   },
 
+  hasCustomChart(state, getters, rootState) {
+    return (rawType) => {
+      const key = getters.componentFor(rawType);
+
+      return hasCustom(state, rootState, 'chart', key, key => resolveChart(key));
+    };
+  },
+
   hasCustomDetail(state, getters, rootState) {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
@@ -1090,24 +1107,11 @@ export const getters = {
     };
   },
 
-  hasCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
+  hasCustomPromptRemove(state, getters, rootState) {
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
 
-      const cache = state.cache.promptRemove;
-
-      if ( cache[type] !== undefined ) {
-        return cache[type];
-      }
-
-      try {
-        require.resolve(`@shell/promptRemove/${ type }`);
-        cache[type] = true;
-      } catch (e) {
-        cache[type] = false;
-      }
-
-      return cache[type];
+      return hasCustom(state, rootState, 'promptRemove', key, () => require.resolve(`@shell/promptRemove/${ key }`));
     };
   },
 
@@ -1125,9 +1129,21 @@ export const getters = {
     };
   },
 
+  importDialog(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'dialog', getters.componentFor(rawType, subType), importDialog);
+    };
+  },
+
   importList(state, getters, rootState) {
     return (rawType) => {
       return loadExtension(rootState, 'list', getters.componentFor(rawType), importList);
+    };
+  },
+
+  importChart(state, getters, rootState) {
+    return (rawType) => {
+      return loadExtension(rootState, 'chart', getters.componentFor(rawType), importChart);
     };
   },
 
@@ -1143,11 +1159,9 @@ export const getters = {
     };
   },
 
-  importCustomPromptRemove(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
-
-      return importCustomPromptRemove(type);
+  importCustomPromptRemove(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'promptRemove', getters.componentFor(rawType, subType), importCustomPromptRemove);
     };
   },
 
@@ -1225,7 +1239,7 @@ export const getters = {
   activeProducts(state, getters, rootState, rootGetters) {
     const knownTypes = {};
     const knownGroups = {};
-    const isDev = rootGetters['prefs/get'](DEV);
+    const isDev = rootGetters['prefs/get'](VIEW_IN_API);
 
     if ( state.schemaGeneration < 0 ) {
       // This does nothing, but makes activeProducts depend on schemaGeneration
@@ -1554,7 +1568,7 @@ export const mutations = {
     let obj = { ...options, match };
 
     if ( idx >= 0 ) {
-      obj = Object.assign(obj, state.typeOptions[idx]);
+      obj = Object.assign(state.typeOptions[idx], obj);
       state.typeOptions.splice(idx, 1, obj);
     } else {
       const obj = Object.assign({}, options, { match });
@@ -1739,15 +1753,26 @@ function ifHave(getters, option) {
   case IF_HAVE.MULTI_CLUSTER: {
     return getters.isMultiCluster;
   }
-  case IF_HAVE.HARVESTER_SINGLE_CLUSTER: {
-    return getters.isSingleVirtualCluster;
-  }
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
     return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);
+  }
+  case IF_HAVE.ADMIN: {
+    return isAdminUser(getters);
   }
   default:
     return false;
   }
+}
+
+// Could list a larger set of resources that typically only an admin user would have
+export function isAdminUser(getters) {
+  const canEditSettings = (getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
+  const canEditFeatureFlags = (getters['management/schemaFor'](MANAGEMENT.FEATURE)?.resourceMethods || []).includes('PUT');
+  const canInstallApps = (getters['management/schemaFor'](CATALOG.APP)?.resourceMethods || []).includes('PUT');
+  const canAddRepos = (getters['management/schemaFor'](CATALOG.CLUSTER_REPO)?.resourceMethods || []).includes('PUT');
+  const canPutHelmOperations = (getters['management/schemaFor'](CATALOG.OPERATION)?.resourceMethods || []).includes('PUT');
+
+  return canEditSettings && canEditFeatureFlags && canInstallApps && canAddRepos && canPutHelmOperations;
 }
 
 // Is V1 Istio installed?

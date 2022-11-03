@@ -4,7 +4,7 @@ import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
-import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
+import { mapPref, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
@@ -12,6 +12,7 @@ import { getVersionInfo } from '@shell/utils/version';
 import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
+import { isRancherPrime } from '@shell/config/version';
 
 const UNKNOWN = 'unknown';
 const UI_VERSION = process.env.VERSION || UNKNOWN;
@@ -46,7 +47,6 @@ export default {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct']),
     ...mapGetters('type-map', ['activeProducts']),
-    ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
     ...mapGetters({ features: 'features/get' }),
 
     value: {
@@ -66,9 +66,10 @@ export default {
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
+      let pClusters = null;
 
       if (this.hasProvCluster) {
-        const pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
+        pClusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
         const available = pClusters.reduce((p, c) => {
           p[c.mgmt] = true;
 
@@ -82,10 +83,12 @@ export default {
       }
 
       return kubeClusters.map((x) => {
+        const pCluster = pClusters?.find(c => c.mgmt.id === x.id);
+
         return {
           id:              x.id,
           label:           x.nameDisplay,
-          ready:           x.isReady,
+          ready:           x.isReady && !pCluster?.hasError,
           osLogo:          x.providerOsLogo,
           providerNavLogo: x.providerMenuLogo,
           badge:           x.badge,
@@ -99,22 +102,12 @@ export default {
 
       const out = search ? this.clusters.filter(item => item.label.toLowerCase().includes(search)) : this.clusters;
 
-      const sorted = sortBy(out, ['ready:desc', 'label']);
+      const sorted = sortBy(out, ['name:desc', 'label']);
 
       return sorted;
     },
 
-    dev: mapPref(DEV),
-
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
-
-    showLocale() {
-      return Object.keys(this.availableLocales).length > 1 || this.dev;
-    },
-
-    showNone() {
-      return !!process.env.dev && this.dev;
-    },
 
     multiClusterApps() {
       const options = this.options;
@@ -131,27 +124,12 @@ export default {
     configurationApps() {
       const options = this.options;
 
-      const items = options.filter(opt => opt.category === 'configuration');
-
-      // Add plugin page
-      // Ony when developing for now
-      if (process.env.dev) {
-        items.push({
-          label:   'Plugins',
-          inStore: 'management',
-          icon:    'icon-gear',
-          value:   'plugins',
-          weight:  1,
-          to:      { name: 'plugins' },
-        });
-      }
-
-      return items;
+      return options.filter(opt => opt.category === 'configuration');
     },
 
     options() {
       const cluster = this.clusterId || this.$store.getters['defaultClusterId'];
-
+      // TODO plugin routes
       const entries = this.activeProducts.map((p) => {
         // Try product-specific index first
         const to = p.to || {
@@ -185,14 +163,14 @@ export default {
     },
 
     hasSupport() {
-      return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
+      return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
     },
   },
 
   watch: {
     $route() {
       this.shown = false;
-    },
+    }
   },
 
   mounted() {
@@ -231,10 +209,6 @@ export default {
       this.$nextTick(() => {
         this.setClusterListHeight(this.maxClustersToShow);
       });
-    },
-
-    switchLocale(locale) {
-      this.$store.dispatch('i18n/switchTo', locale);
     },
   }
 };
@@ -358,34 +332,6 @@ export default {
               class="version"
               v-html="displayVersion"
             />
-          </div>
-          <div v-if="showLocale">
-            <v-popover
-              popover-class="localeSelector"
-              placement="top"
-              trigger="click"
-            >
-              <a
-                data-testid="locale-selector"
-                class="locale-chooser"
-              >
-                {{ selectedLocaleLabel }}
-              </a>
-
-              <template slot="popover">
-                <ul class="list-unstyled dropdown" style="margin: -1px;">
-                  <li v-if="showNone" v-t="'locale.none'" class="hand" @click="switchLocale('none')" />
-                  <li
-                    v-for="(label, name) in availableLocales"
-                    :key="name"
-                    class="hand"
-                    @click="switchLocale(name)"
-                  >
-                    {{ label }}
-                  </li>
-                </ul>
-              </template>
-            </v-popover>
           </div>
         </div>
       </div>

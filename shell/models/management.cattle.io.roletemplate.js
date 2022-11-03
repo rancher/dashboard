@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { get } from '@shell/utils/object';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import Role from './rbac.authorization.k8s.io.role';
 
 export const CATTLE_API_GROUP = '.cattle.io';
@@ -55,26 +55,7 @@ export const VERBS = [
   'watch',
 ];
 
-export default class RoleTemplate extends SteveModel {
-  get availableActions() {
-    const out = super._availableActions;
-
-    const toFilter = ['goToEdit', 'promptRemove'];
-    const editActions = out.filter((a) => {
-      if ( toFilter.includes(a.action) ) {
-        return a;
-      }
-    });
-
-    if ( editActions.length > 0 ) {
-      editActions.forEach((a) => {
-        a.enabled = !this.builtin;
-      });
-    }
-
-    return out;
-  }
-
+export default class RoleTemplate extends SteveDescriptionModel {
   get customValidationRules() {
     return Role.customValidationRules();
   }

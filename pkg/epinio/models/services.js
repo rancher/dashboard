@@ -1,16 +1,16 @@
 import { createEpinioRoute } from '@pkg/utils/custom-routing';
-import { EPINIO_TYPES } from '~/pkg/epinio/types';
+import { EPINIO_TYPES } from '../types';
 import EpinioNamespacedResource from './epinio-namespaced-resource';
 
 export default class EpinioServiceModel extends EpinioNamespacedResource {
   get links() {
     return {
-      update:      this.getUrl(),
-      self:        this.getUrl(),
-      remove:      this.getUrl(),
-      bind:        `${ this.getUrl() }/bind`,
-      unbind:      `${ this.getUrl() }/unbind`,
-      create:      this.getUrl(this.metadata?.namespace, null), // ensure name is null
+      update: this.getUrl(),
+      self:   this.getUrl(),
+      remove: this.getUrl(),
+      bind:   `${ this.getUrl() }/bind`,
+      unbind: `${ this.getUrl() }/unbind`,
+      create: this.getUrl(this.metadata?.namespace, null) // ensure name is null
     };
   }
 
@@ -26,7 +26,9 @@ export default class EpinioServiceModel extends EpinioNamespacedResource {
     // map bound app names to app models
     return (this.boundapps || [])
       .map((ba) => {
-        return (this.$getters['all'](EPINIO_TYPES.APP) || []).find(a => a.meta.namespace === this.meta.namespace && a.meta.name === ba);
+        return (this.$getters['all'](EPINIO_TYPES.APP) || []).find(
+          a => a.meta.namespace === this.meta.namespace && a.meta.name === ba
+        );
       })
       .filter(a => !!a);
   }
@@ -39,8 +41,8 @@ export default class EpinioServiceModel extends EpinioNamespacedResource {
 
   get serviceLocation() {
     return createEpinioRoute(`c-cluster-resource-id`, {
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  EPINIO_TYPES.CATALOG_SERVICE,
+      cluster:  this.$rootGetters['clusterId'],
+      resource: EPINIO_TYPES.CATALOG_SERVICE,
       id:       this.catalog_service
     });
   }
@@ -86,6 +88,6 @@ export default class EpinioServiceModel extends EpinioNamespacedResource {
   }
 
   async remove() {
-    await this.delete(true);// TODO: RC wire in somehow
+    await this.delete(true);
   }
 }

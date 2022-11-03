@@ -70,13 +70,7 @@ export function random32(count) {
   const out = [];
   let i;
 
-  if ( process.server ) {
-    const crypto = require('crypto');
-
-    for ( i = 0 ; i < count ; i++ ) {
-      out[i] = crypto.randomBytes(4).readUInt32BE(0, true);
-    }
-  } else if (window.crypto && window.crypto.getRandomValues) {
+  if (window.crypto && window.crypto.getRandomValues) {
     const tmp = new Uint32Array(count);
 
     window.crypto.getRandomValues(tmp);
