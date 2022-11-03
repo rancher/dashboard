@@ -105,9 +105,15 @@ export default {
         return;
       }
 
+      // 🔥 Option A: if no resource param, don't redirect.
+      if (!this.doneParams?.resource) {
+        return;
+      }
+
+      // 🔥 Option B: if resource param, redirect to resource type page (it will take you back if you navigate away)
       this.$router.replace({
         name:   this.doneRoute,
-        params: this.doneParams || { resource: this.value.type }
+        params: this.doneParams?.resource ? this.doneParams : { ...this.doneParams, resource: this.value.type }
       });
     },
 
