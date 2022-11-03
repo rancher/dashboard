@@ -310,6 +310,9 @@ export const actions = {
   },
 
   async logout({ dispatch, commit }) {
+    // Unload plugins - we will load again on login
+    await this.$plugin.logout();
+
     try {
       await dispatch('rancher/request', {
         url:                  '/v3/tokens?action=logout',

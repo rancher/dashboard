@@ -353,7 +353,7 @@ export default {
       </div>
     </header>
     <div v-if="showCarousel">
-      <h3>Featured Charts</h3>
+      <h3>{{ t('catalog.charts.featuredCharts') }}</h3>
       <Carousel
         :sliders="getFeaturedCharts"
         @clicked="(row) => selectChart(row)"

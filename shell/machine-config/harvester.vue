@@ -26,6 +26,8 @@ import { podAffinity as podAffinityValidator } from '@shell/utils/validators/pod
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 
+const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
+
 export function isReady() {
   function getStatusConditionOfType(type, defaultValue = []) {
     const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
@@ -151,7 +153,7 @@ export default {
         this.userDataOptions = userDataOptions;
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
-        this.networkOptions = (res.networks.value?.data || []).map((O) => {
+        this.networkOptions = (res.networks.value?.data || []).filter(O => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
           let value;
           let label;
 

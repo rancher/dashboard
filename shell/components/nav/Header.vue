@@ -109,6 +109,19 @@ export default {
       return !this.featureRancherDesktop;
     },
 
+    showFilter() {
+      // Some products won't have a current cluster
+      const validClusterOrProduct = this.currentCluster ||
+                 (this.currentProduct && this.currentProduct.customNamespaceFilter) ||
+                 (this.currentProduct && this.currentProduct.showWorkspaceSwitcher);
+      // Don't show if the header is in 'simple' mode
+      const notSimple = !this.simple;
+      // One of these must be enabled, otherwise t here's no component to show
+      const validFilterSettings = this.currentProduct.showNamespaceFilter || this.currentProduct.showWorkspaceSwitcher;
+
+      return validClusterOrProduct && notSimple && validFilterSettings;
+    },
+
     featureRancherDesktop() {
       return this.$config.rancherEnv === 'desktop';
     },
@@ -332,7 +345,7 @@ export default {
       <component :is="navHeaderRight" />
 
       <div
-        v-if="(currentCluster || (currentProduct && currentProduct.customNamespaceFilter)) && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
+        v-if="showFilter"
         class="top"
       >
         <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />

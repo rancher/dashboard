@@ -40,6 +40,12 @@ export default {
       default: false,
     },
 
+    // Remove padding and box-shadow
+    flat: {
+      type:    Boolean,
+      default: false,
+    },
+
     tabsOnly: {
       type:    Boolean,
       default: false,
@@ -257,7 +263,13 @@ export default {
       </ul>
       <slot name="tab-row-extras" />
     </ul>
-    <div :class="{ 'tab-container': !!tabs.length || !!sideTabs, 'no-content': noContent }">
+    <div
+      :class="{
+        'tab-container': !!tabs.length || !!sideTabs,
+        'no-content': noContent,
+        'tab-container--flat': !!flat,
+      }"
+    >
       <slot />
     </div>
   </div>
@@ -350,6 +362,15 @@ export default {
   &.no-content {
     padding: 0 0 3px 0;
   }
+
+  // Example case: Tabbed component within a tabbed component
+  &--flat {
+    padding: 0;
+
+    .side-tabs {
+      box-shadow: unset;
+    }
+  }
 }
 
 .tabs-only {
@@ -373,11 +394,6 @@ export default {
 
   .tab-container {
     padding: 20px;
-  }
-
-  // Tabbed component within a tabbed component
-  .tab-container & {
-    box-shadow: unset;
   }
 
   & .tabs {
@@ -451,7 +467,9 @@ export default {
     }
   }
 
-  & .tab-container {
+  &
+
+  .tab-container {
     width: calc(100% - #{$sideways-tabs-width});
     flex-grow: 1;
     background-color: var(--body-bg);

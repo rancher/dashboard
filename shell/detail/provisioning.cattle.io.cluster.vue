@@ -631,11 +631,11 @@ export default {
                 </div>
               </div>
               <div v-if="group.ref" class="right mr-45">
-                <template v-if="value.hasLink('update')">
+                <template v-if="value.hasLink('update') && group.ref.showScalePool">
                   <button v-tooltip="t('node.list.scaleDown')" :disabled="!group.ref.canScaleDownPool()" type="button" class="btn btn-sm role-secondary" @click="group.ref.scalePool(-1)">
                     <i class="icon icon-sm icon-minus" />
                   </button>
-                  <button v-tooltip="t('node.list.scaleUp')" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
+                  <button v-tooltip="t('node.list.scaleUp')" :disabled="!group.ref.canScaleUpPool()" type="button" class="btn btn-sm role-secondary ml-10" @click="group.ref.scalePool(1)">
                     <i class="icon icon-sm icon-plus" />
                   </button>
                 </template>
@@ -709,7 +709,7 @@ export default {
       </Tab>
 
       <Tab v-if="showRegistration" name="registration" :label="t('cluster.tabs.registration')" :weight="2">
-        <Banner color="warning" :label="t('cluster.import.warningBanner')" />
+        <Banner v-if="!value.isCustom" color="warning" :label="t('cluster.import.warningBanner')" />
         <CustomCommand v-if="value.isCustom" :cluster-token="clusterToken" :cluster="value" @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true" />
         <template v-else>
           <h4 v-html="t('cluster.import.commandInstructions', null, true)" />

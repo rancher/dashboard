@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import IconMessage from '@shell/components/IconMessage.vue';
-import { CATALOG, UI_PLUGIN } from '@shell/config/types';
+import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import Dialog from '@shell/components/Dialog.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -47,17 +47,23 @@ export default {
       }
     }
 
+    this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'system-default-registry'
+    });
+
     this.loading = false;
   },
 
   data() {
     return {
-      loading:                 true,
-      haveCharts:              false,
-      installCharts:           [],
-      errors:                  [],
-      addRepo:                 true,
-      buttonState:             ASYNC_BUTTON_STATES.ACTION,
+      loading:                true,
+      haveCharts:             false,
+      installCharts:          [],
+      errors:                 [],
+      addRepo:                true,
+      buttonState:            ASYNC_BUTTON_STATES.ACTION,
+      defaultRegistrySetting: null,
     };
   },
 
@@ -87,6 +93,15 @@ export default {
         },
         values: {}
       };
+
+      // Pass in the system default registry property if set
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+
+      if (defaultRegistry) {
+        chart.values.global = chart.values.global || {};
+        chart.values.global.cattle = chart.values.global.cattle || {};
+        chart.values.global.cattle.systemDefaultRegistry = defaultRegistry;
+      }
 
       const input = {
         charts:    [chart],
@@ -130,16 +145,9 @@ export default {
 
         await new Promise(resolve => setTimeout(resolve, 5000));
 
-        this.$store.dispatch('management/forgetType', UI_PLUGIN);
-
         this.buttonState = this.errors.length > 0 ? ASYNC_BUTTON_STATES.ERROR : ASYNC_BUTTON_STATES.ACTION;
 
-        this.$router.push(
-          {
-            path:  this.$route.path,
-            force: true,
-          },
-        );
+        this.$emit('done');
       }
     },
 

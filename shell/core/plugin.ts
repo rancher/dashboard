@@ -45,6 +45,10 @@ export class Plugin implements IPlugin {
     this.name = this._metadata.name || this.id;
   }
 
+  get version() {
+    return this._metadata.version;
+  }
+
   get validators() {
     return this._validators;
   }
@@ -102,6 +106,14 @@ export class Plugin implements IPlugin {
     };
 
     this.routes.push({ parent, route });
+  }
+
+  setHomePage(component: any) {
+    this.addRoute({
+      name: 'home',
+      path: '/home',
+      component
+    });
   }
 
   addUninstallHook(hook: Function) {

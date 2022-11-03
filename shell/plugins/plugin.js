@@ -1,10 +1,10 @@
 // This plugin loads any UI Plugins at app load time
 import { allHashSettled } from '@shell/utils/promise';
-import { shouldLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
+import { shouldNotLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 
 const META_NAME_PREFIX = 'app-autoload-';
 
-export default async(context) => {
+export default async function(context) {
   // UI Plugins declared in the HTML head
   const meta = context.app?.head?.meta || [];
   const hash = {};
@@ -28,27 +28,28 @@ export default async(context) => {
   }
 
   if (loadPlugins) {
-    const { store, $plugin } = context;
+    // TODO: Get rancher version using the new API (can't use setting as we have not loading the store)
+    const rancherVersion = undefined;
 
     // Fetch list of installed plugins from endpoint
     try {
-      const res = await store.dispatch('management/request', {
-        url:     `${ UI_PLUGIN_BASE_URL }/index.json`,
-        headers: { accept: 'application/json' }
+      const res = await context.store.dispatch('management/request', {
+        url:                  `${ UI_PLUGIN_BASE_URL }/index.json`,
+        method:               'GET',
+        headers:              { accept: 'application/json' },
+        redirectUnauthorized: false,
       });
 
       if (res) {
         const entries = res.entries || res.Entries || {};
 
         Object.values(entries).forEach((plugin) => {
-          if (shouldLoadPlugin(plugin)) {
-            let url;
+          const shouldNotLoad = shouldNotLoadPlugin(plugin, rancherVersion); // Error key string or false
 
-            if (plugin?.metadata?.['direct'] === 'true') {
-              url = plugin.endpoint;
-            }
-
-            hash[plugin.name] = $plugin.loadAsyncByNameAndVersion(plugin.name, plugin.version, url);
+          if (!shouldNotLoad) {
+            hash[plugin.name] = context.$plugin.loadPluginAsync(plugin);
+          } else {
+            context.store.dispatch('uiplugins/setError', { name: plugin.name, error: shouldNotLoad });
           }
         });
       }
@@ -67,8 +68,10 @@ export default async(context) => {
         console.error(`Failed to load plugin: ${ name }`); // eslint-disable-line no-console
 
         // Record error in the uiplugins store, so that we can show this to the user
-        context.store.dispatch('uiplugins/setError', { name, error: true });
+        context.store.dispatch('uiplugins/setError', { name, error: 'plugins.error.load' });
       }
     });
   }
-};
+
+  return true;
+}
