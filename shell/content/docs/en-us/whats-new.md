@@ -1,6 +1,30 @@
 ---
+title: What's New in 2.7
+---
+
+## New in 2.7.0
+
+### Rancher Extensions
+
+- Rancher Extensions provides a mechanism to extend the functionality of the Rancher Manager UI. Rancher will use this to provide new functionality that can be
+installed by administrators. Extensions are provided as Helm charts. A new top-level 'Extensions' UI allows administrators to enable Extensions support and install and manage Extensions themselves.
+
+### OCI Support for Helm for Fleet
+
+- Authentication for OCI-based registries is now supported. Note that the structure of the fleet.yaml is the same and the credentials are provided as a Kubernetes secret, which is described in the Private Helm Repo box in the Repo Structure docs.
+
+---
 title: What's New in 2.6
 ---
+
+## New in 2.6.9
+
+- Alerts within the UI regarding network connectivity are now off by default with a toggle to enable them. This will address usability concerns when web sockets are disconnected.
+
+
+## New in 2.6.8
+
+- 2.6.8 was released to address a bug found whereby Fleet was uninstalling components upon upgrading from 2.6.6 to 2.6.7. Monitoring and Longhorn will be remain installed now upon upgrade.
 
 
 ## New in 2.6.7
