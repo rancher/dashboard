@@ -179,6 +179,7 @@ nav:
     config: Harbor 配置
     logs: 日誌
     projects: 鏡像管理
+  manageUI: 集群管理 UI
 product:
   apps: 應用
   auth: 用戶 & 認證
