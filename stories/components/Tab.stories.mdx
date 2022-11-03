@@ -1,0 +1,45 @@
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import Tab from '@shell/components/Tabbed/Tab';
+import Tabbed from '@shell/components/Tabbed';
+
+<Meta 
+  title="Components/Tab"
+  component={Tabbed}
+/>
+
+export const Template = (args, { argTypes, events }) => ({
+  components: { Tabbed, Tab },
+  props:      Object.keys(argTypes),
+  template:   `
+      <Tabbed :side-tabs="true">
+        <Tab name="v1Metricss1" active label="tests"></Tab>
+        <Tab name="v1Metricss2" label="test2"></Tab>
+        <Tab name="v1Metricss3" label="tests3"></Tab>
+        <Tab name="v1Metricss4" label="tests3"></Tab>
+      </Tabbed>
+    `
+});
+
+
+# Tab
+
+Banner contain messages that communicate information to the user. They may also incorporate calls to action, or involve multiple tasks.
+
+### Description
+- 
+<br/>
+
+<Canvas>
+  <Story
+    name="Tab"
+    args={{
+      label: 'new',
+      name: 'test',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Props table
+
+<ArgsTable of={Tab} />

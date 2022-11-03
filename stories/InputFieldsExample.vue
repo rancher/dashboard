@@ -4,6 +4,8 @@ import UnitInput from '@shell/components/form/UnitInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import InputWithSelect from '@shell/components/form/InputWithSelect.vue';
 import Select from '@shell/components/form/Select.vue';
+import Tab from '@shell/components/Tabbed/Tab';
+import Tabbed from '@shell/components/Tabbed';
 
 export default {
   components: {
@@ -12,6 +14,8 @@ export default {
     UnitInput,
     InputWithSelect,
     Select,
+    Tab,
+    Tabbed,
   },
   data() {
     return {
@@ -70,7 +74,7 @@ export default {
       </div>
     </div>
 
-    <h3>LabeledInput control</h3>
+    <h3>LabeledInput control</h3> <h3>Tab</h3>
 
     <div class="row">
       <div class="col span-6">
