@@ -122,8 +122,10 @@ export default Vue.extend<Data, any, any, any>({
           await this.value.forceFetch();
         }
 
-        saveCb(true);
-        this.done();
+        if (!this._isBeingDestroyed || !this._isDestroyed) {
+          saveCb(true);
+          this.done();
+        }
       } catch (err: Error | any) {
         if (err.message === 'waitingForDeploy') {
           Vue.set(this, 'failedWaitingForDeploy', true);
