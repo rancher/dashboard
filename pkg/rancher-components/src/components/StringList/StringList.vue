@@ -155,8 +155,10 @@ export default Vue.extend({
       }
     },
 
-    onSelectLeave() {
+    onSelectLeave(item?: string) {
+      if (item === this.selected) {
       this.selected = null;
+      }
     },
 
     onClickEmptyBody() {
@@ -373,7 +375,6 @@ export default Vue.extend({
       ref="box"
       class="string-list-box"
       tabindex="0"
-      @focusout.prevent="onSelectLeave()"
       @dblclick="onClickEmptyBody()"
     >
       <div
@@ -386,10 +387,11 @@ export default Vue.extend({
         }"
         class="item"
         tabindex="0"
-        @click.stop="onSelect(item)"
+        @mousedown="onSelect(item)"
         @dblclick.stop="toggleEditMode(true, item)"
         @keydown.down.prevent="onSelectNext('down')"
         @keydown.up.prevent="onSelectNext('up')"
+        @blur="onSelectLeave(item)"
       >
         <span
           v-if="!isEditItem || isEditItem !== item"
@@ -429,6 +431,7 @@ export default Vue.extend({
       <div class="action-buttons">
         <button
           class="btn btn-sm role-tertiary add-button"
+          :disabled="!selected && !isCreateItem && !isEditItem"
           @mousedown.prevent="onClickMinusButton"
         >
           <span class="icon icon-minus icon-sm" />
