@@ -6339,6 +6339,12 @@ branding:
     tip: You can override the link color used throughout the UI with a custom color of your choice.
     useCustom: Use a Custom Link Color
     example: Link Example
+  loginLandscape:
+    label: Login Page Landscape Image/SVG
+    preview: Landscape Image/SVG Preview
+    tip: Upload a image/svg to replace the login page landscape image/svg. Max file size is 100KB
+    upload: Upload Image/SVG
+    useCustom: Use a Custom Login Page Landscape Image/SVG
 notifications:
   header: Custom notifications
   menuLabel: 'Custom Notifications'

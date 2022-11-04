@@ -6479,6 +6479,12 @@ branding:
     tip: 使用自定义链接颜色替换整个 UI 中使用的链接颜色。
     useCustom: 使用自定义链接颜色
     example: 链接示例
+  loginLandscape:
+    label: 登录页面的背景图
+    preview: 背景图预览
+    tip: 上传一个图片或SVG来替换登录页面的默认背景图片. 文件最大 100KB
+    upload: 上传背景图
+    useCustom: 使用自定义登录页面背景图
 notifications:
   header: 自定义通知
   menuLabel: '自定义通知'

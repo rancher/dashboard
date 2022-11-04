@@ -15,6 +15,7 @@ import { getVendor, setVendor } from '@shell/config/private-label';
 import { SETTING, fetchOrCreateSetting } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { setFavIcon } from '@shell/utils/favicon';
+import { mapGetters } from 'vuex';
 
 const Color = require('color');
 
@@ -33,6 +34,8 @@ export default {
       uiColorSetting:         fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
       uiLinkColorSetting:     fetchOrCreateSetting(this.$store, SETTING.LINK_COLOR, ''),
       uiFaviconSetting:       fetchOrCreateSetting(this.$store, SETTING.FAVICON, ''),
+
+      uiLoginLandscapeSetting: fetchOrCreateSetting(this.$store, SETTING.UI_LOGIN_LANDSCAPE, ''),
     });
 
     Object.assign(this, hash);
@@ -65,6 +68,13 @@ export default {
       this.uiLinkColor = Color(hash.uiLinkColorSetting.value).hex();
       this.customizeLinkColor = true;
     }
+    if (hash.uiLoginLandscapeSetting.value) {
+      try {
+        this.uiLoginLandscape = hash.uiLoginLandscapeSetting.value;
+
+        this.customizeLoginLandscape = true;
+      } catch {}
+    }
   },
 
   data() {
@@ -89,12 +99,17 @@ export default {
       uiLinkColor:        null,
       customizeLinkColor: false,
 
+      uiLoginLandscapeSetting: {},
+      uiLoginLandscape:        '',
+      customizeLoginLandscape: false,
+
       errors: [],
 
     };
   },
 
   computed: {
+    ...mapGetters({ theme: 'prefs/theme' }),
     mode() {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
@@ -156,6 +171,12 @@ export default {
         this.uiLinkColorSetting.value = null;
       }
 
+      if (this.customizeLoginLandscape) {
+        this.uiLoginLandscapeSetting.value = this.uiLoginLandscape;
+      } else {
+        this.uiLoginLandscapeSetting.value = '';
+      }
+
       this.errors = [];
 
       try {
@@ -165,7 +186,8 @@ export default {
           this.uiLogoLightSetting.save(),
           this.uiColorSetting.save(),
           this.uiLinkColorSetting.save(),
-          this.uiFaviconSetting.save()
+          this.uiFaviconSetting.save(),
+          this.uiLoginLandscapeSetting.save(),
         ]);
         if (this.uiPLSetting.value !== this.vendor) {
           setVendor(this.uiPLSetting.value);
@@ -270,6 +292,37 @@ export default {
           <SimpleBox v-if="uiFavicon">
             <label class="text-muted">{{ t('branding.favicon.preview') }}</label>
             <img class="logo-preview" :src="uiFavicon" />
+          </SimpleBox>
+        </div>
+      </div>
+
+      <h3 class="mt-40 mb-5 pb-5">
+        {{ t('branding.loginLandscape.label') }}
+      </h3>
+      <label class="text-label">
+        {{ t('branding.loginLandscape.tip', {}, true) }}
+      </label>
+
+      <div class="row mt-10 mb-20">
+        <Checkbox v-model="customizeLoginLandscape" :label="t('branding.loginLandscape.useCustom')" :mode="mode" />
+      </div>
+
+      <div v-if="customizeLoginLandscape" class="row mb-20">
+        <div class="col logo-container span-6">
+          <div class="mb-10">
+            <FileSelector
+              :byte-limit="100000"
+              :read-as-data-url="true"
+              class="role-secondary"
+              :label="t('branding.loginLandscape.upload')"
+              :mode="mode"
+              @error="setError"
+              @selected="updateLogo($event, 'uiLoginLandscape')"
+            />
+          </div>
+          <SimpleBox v-if="customizeLoginLandscape" class="mb-10" :class="[`theme-${theme}`]">
+            <label class="text-muted">{{ t('branding.loginLandscape.preview') }}</label>
+            <img class="logo-preview" :src="uiLoginLandscape" />
           </SimpleBox>
         </div>
       </div>

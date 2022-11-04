@@ -6479,6 +6479,12 @@ branding:
     tip: 使用自定義鏈接顏色替換整個 UI 中使用的鏈接顏色。
     useCustom: 使用自定義鏈接顏色
     example: 鏈接示例
+  loginLandscape:
+    label: 登錄頁面的背景圖
+    preview: 背景圖預覽
+    tip: 上傳一個圖片或SVG來替換登錄頁面的默認背景圖片. 文件最大 100KB
+    upload: 上傳背景圖
+    useCustom: 使用自定義登錄頁面背景圖
 notifications:
   header: 自定義通知
   menuLabel: '自定義通知'
