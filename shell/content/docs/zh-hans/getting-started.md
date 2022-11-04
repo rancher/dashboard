@@ -101,6 +101,31 @@ sideToc: false
       <td>Global → Security → Pod Security Policies</td>
       <td>Menu → Cluster Management → Advanced → Pod Security Policies</td>
     </tr>
+    <tr>
+      <td>Harbor 配置</td>
+      <td>全局 → 镜像仓库 → Harbor 配置</td>
+      <td>菜单 → 管理集群 → 镜像仓库 → harbor 配置</td></td>
+    </tr>
+    <tr>
+      <td>镜像管理</td>
+      <td>全局 → 镜像仓库 → 镜像管理</td>
+      <td>菜单 → 管理集群 → 镜像仓库 → 镜像管理</td></td>
+    </tr>
+    <tr>
+      <td>镜像日志</td>
+      <td>全局 → 镜像仓库 → 日志</td>
+      <td>菜单 → 管理集群 → 镜像仓库 → 日志</td></td>
+    </tr>
+    <tr>
+      <td>审计日志</td>
+      <td>全局 → 审计日志</td>
+      <td>菜单 → 管理集群 → 审计日志</td>
+    </tr>
+    <tr>
+      <td>全局监控</td>
+      <td>全局 → 工具 → 全局监控</td>
+      <td>菜单 → 管理集群 → 全局监控</td></td>
+    </tr>
     <!-- -->
     <tr class="table-group">
       <td colspan="3">Cluster Functionality (for a specific cluster)</td>
@@ -111,14 +136,34 @@ sideToc: false
       <td>Menu → (Cluster) → Cluster</td>
     </tr>
     <tr>
+      <td>Cluster</td>
+      <td>(Cluster) → 集群 → 查看 API Server 审计日志 </td>
+      <td>Menu → (集群) → 集群 → 查看 API Server 审计日志</td>
+    </tr>
+    <tr>
+      <td>Cluster</td>
+      <td>(Cluster) → 集群 → 连接模式</td>
+      <td>Menu → (集群) → 集群 → 连接模式</td>
+    </tr>
+    <tr>
       <td>Nodes</td>
       <td>(Cluster) → Nodes</td>
       <td>Menu -> (Cluster) → Cluster → Kube Nodes</td>
     </tr>
     <tr>
+      <td>扁平网络</td>
+      <td>(集群) → 扁平网络</td>
+      <td>菜单 → (集群) → 集群 → 扁平网络</td>
+    </tr>
+    <tr>
       <td>Projects/Namespaces</td>
       <td>(Cluster) → Projects/Namespaces</td>
       <td>Menu -> (Cluster) → Cluster → Projects/Namespaces</td>
+    </tr>
+    <tr>
+      <td>审计日志</td>
+      <td>(集群) → 审计日志</td>
+      <td>菜单 → (集群) → 集群 → 审计日志</td>
     </tr>
     <tr>
       <td>Alerts (V1)</td>
@@ -136,19 +181,9 @@ sideToc: false
       <td>Menu → (Cluster) → Legacy -> Notifiers</td>
     </tr>
     <tr>
-      <td>Logging (V1)</td>
-      <td>(Cluster) → Tools → Logging</td>
-      <td>Menu → (Cluster) → Cluster Tools -> Logging (Legacy)</td>
-    </tr>
-    <tr>
       <td>Monitoring (V1)</td>
       <td>(Cluster) → Tools → Monitoring</td>
       <td>Menu → (Cluster) → Cluster Tools -> Monitoring (Legacy)</td>
-    </tr>
-    <tr>
-      <td>Istio (V1)</td>
-      <td>(Cluster) → Tools → Istio</td>
-      <td>Menu → (Cluster) → Cluster Tools -> Istio (Legacy)</td>
     </tr>
     <tr>
       <td>CIS Scans (V1)</td>
@@ -185,6 +220,16 @@ sideToc: false
       <td>Namespaces</td>
       <td>(Cluster) → (Project) → Namespaces</td>
       <td>Menu → (Cluster) → Cluster → Projects/Namespaces</td>
+    </tr>
+    <tr>
+      <td>配额</td>
+      <td>(集群) → (项目) → 配额</td>
+      <td>菜单 → (集群) → 集群 → 项目/命名空间 → 配额</td>
+    </tr>
+    <tr>
+      <td>审计日志</td>
+      <td>(集群) → (项目) → 审计日志</td>
+      <td>菜单 → (集群) → 集群 → 项目/命名空间 → 审计日志</td>
     </tr>
     <tr>
       <td>Apps</td>

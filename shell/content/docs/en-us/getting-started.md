@@ -97,6 +97,31 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td>Global → Security → Pod Security Policies</td>
       <td>Menu → Cluster Management → Pod Security Policies</td>
     </tr>
+    <tr>
+      <td>Image Configuration</td>
+      <td>Global → Image Repo → Configuration</td>
+      <td>Menu → Cluster Management → Image Repo → Configuration</td></td>
+    </tr>
+    <tr>
+      <td>Image Management</td>
+      <td>Global → Image Repo → Image Management</td>
+      <td>Menu → Cluster Management → Image Repo → Image Management</td></td>
+    </tr>
+    <tr>
+      <td>Image Logs</td>
+      <td>Global → Image Repo → Image Logs</td>
+      <td>Menu → Cluster Management → Image Repo → Image Logs</td></td>
+    </tr>
+    <tr>
+      <td>Audit Log</td>
+      <td>Global → Audit Log</td>
+      <td>Menu → Cluster Management → Audit Log</td>
+    </tr>
+    <tr>
+      <td>Global Monitring</td>
+      <td>Global → Tools → Global Monitring</td>
+      <td>Menu → Cluster Management → Global Monitring</td></td>
+    </tr>
     <!-- -->
     <tr class="table-group">
       <td colspan="3">Cluster Functionality (for a specific cluster)</td>
@@ -107,14 +132,34 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td>Menu → (Cluster) → Cluster</td>
     </tr>
     <tr>
+      <td>Cluster</td>
+      <td>(Cluster) → Cluster → View API Server Audit Log </td>
+      <td>Menu → (Cluster) → Cluster → View API Server Audit Log</td>
+    </tr>
+    <tr>
+      <td>Cluster</td>
+      <td>(Cluster) → Cluster → Connect Mode</td>
+      <td>Menu → (Cluster) → Cluster → Connect Mode</td>
+    </tr>
+    <tr>
       <td>Nodes</td>
       <td>(Cluster) → Nodes</td>
       <td>Menu -> (Cluster) → Cluster → Kube Nodes</td>
     </tr>
     <tr>
+      <td>Flat Network</td>
+      <td>(Cluster) → Flat Network</td>
+      <td>Menu → (Cluster) → Cluster → Flat Network</td>
+    </tr>
+    <tr>
       <td>Projects/Namespaces</td>
       <td>(Cluster) → Projects/Namespaces</td>
       <td>Menu -> (Cluster) → Cluster → Projects/Namespaces</td>
+    </tr>
+    <tr>
+      <td>Audit Log</td>
+      <td>(Cluster) → Audit Log</td>
+      <td>Menu → (Cluster) → Cluster → Audit Log</td>
     </tr>
     <tr>
       <td>Alerts (V1)</td>
@@ -135,6 +180,11 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td>Monitoring (V1)</td>
       <td>(Cluster) → Tools → Monitoring</td>
       <td>Menu → (Cluster) → Cluster Tools -> Monitoring (Legacy)</td>
+    </tr>
+    <tr>
+      <td>CIS Scans (V1)</td>
+      <td>(Cluster) → Tools → CIS Scans</td>
+      <td>Menu → (Cluster) → Legacy -> CIS Scans</td>
     </tr>
     <tr class="table-group">
       <td colspan="3">V1 Monitoring</td>
@@ -166,6 +216,16 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td>Namespaces</td>
       <td>(Cluster) → (Project) → Namespaces</td>
       <td>Menu → (Cluster) → Cluster → Projects/Namespaces</td>
+    </tr>
+    <tr>
+      <td>Quotas</td>
+      <td>(Cluster) → (Project) → Quotas</td>
+      <td>Menu → (Cluster) → Cluster → Projects/Namespaces → Quotas</td>
+    </tr>
+    <tr>
+      <td>Audit Log</td>
+      <td>(Cluster) → (Project) → Audit Log</td>
+      <td>Menu → (Cluster) → Cluster → Projects/Namespaces → Audit Log</td>
     </tr>
     <tr>
       <td>Apps</td>
