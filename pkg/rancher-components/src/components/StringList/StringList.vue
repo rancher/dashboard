@@ -373,6 +373,7 @@ export default Vue.extend({
   >
     <div
       ref="box"
+      data-testid="div-string-list-box"
       class="string-list-box"
       tabindex="0"
       @dblclick="onClickEmptyBody()"
@@ -385,6 +386,7 @@ export default Vue.extend({
           selected: selected === item,
           readonly
         }"
+        :data-testid="`div-item-${item}`"
         class="item static"
         tabindex="0"
         @mousedown="onSelect(item)"
@@ -428,7 +430,10 @@ export default Vue.extend({
       class="string-list-footer"
       :class="{[actionsPosition]: true }"
     >
-      <div class="action-buttons">
+      <div
+        data-testid="div-action-buttons"
+        class="action-buttons"
+      >  
         <button
           class="btn btn-sm role-tertiary add-button"
           :disabled="!selected && !isCreateItem && !isEditItem"
