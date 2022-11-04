@@ -36,6 +36,7 @@ export default {
       const {
         clientId,
         clientSecret,
+        environment,
         subscriptionId,
       } = this.value.decodedData;
 
@@ -46,6 +47,7 @@ export default {
           data:   {
             clientId,
             clientSecret,
+            environment,
             subscriptionId,
           },
           redirectUnauthorized: false,

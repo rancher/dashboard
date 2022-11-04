@@ -11,6 +11,8 @@ import { Checkbox } from '@components/Form/Checkbox';
 import ArrayList from '@shell/components/form/ArrayList';
 import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';
+import { NORMAN } from '@shell/config/types';
+import { findBy } from '@shell/utils/array';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -134,6 +136,12 @@ export default {
       }
       if (!isEmpty(environment)) {
         this.value.environment = environment;
+      } else if (this.loadedCredentialIdFor !== this.credentialId) {
+        this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
+
+        const currentCredential = this.allCredentials.find(obj => obj.id === this.credentialId);
+
+        this.value.environment = currentCredential.azurecredentialConfig.environment;
       }
       if (!isEmpty(subscriptionId)) {
         this.value.subscriptionId = subscriptionId;
@@ -142,13 +150,21 @@ export default {
         this.value.tenantId = tenantId;
       }
 
-      this.locationOptions = await this.$store.dispatch('management/request', {
-        url:    addParam('/meta/aksLocations', 'cloudCredentialId', this.credentialId),
-        method: 'GET',
-      });
+      if (this.loadedCredentialIdFor !== this.credentialId) {
+        this.locationOptions = await this.$store.dispatch('management/request', {
+          url:    addParam('/meta/aksLocations', 'cloudCredentialId', this.credentialId),
+          method: 'GET',
+        });
+
+        this.loadedCredentialIdFor = this.credentialId;
+      }
+
+      if (!this.value.location || !findBy(this.locationOptions, 'name', this.value.location)) {
+        this.locationOptions?.length && this.setLocation(this.locationOptions[this.locationOptions.length - 1]);
+      }
 
       this.vmSizes = await this.$store.dispatch('management/request', {
-        url:    addParams('/meta/aksVMSizes', { cloudCredentialId: this.credentialId, region: 'westus' }),
+        url:    addParams('/meta/aksVMSizes', { cloudCredentialId: this.credentialId, region: this.value.location }),
         method: 'GET',
       });
     } catch (e) {
@@ -164,6 +180,8 @@ export default {
       credential:      null,
       locationOptions: null,
       vmSizes:         null,
+
+      loadedCredentialIdFor: null,
     };
   },
 
@@ -171,10 +189,13 @@ export default {
     credentialId() {
       this.$fetch();
     },
+    'value.location'() {
+      this.$fetch();
+    },
   },
 
   created() {
-    if (this.mode === 'create') {
+    if (this.mode === 'create' || !this.value.nsg) {
       merge(this.value, this.defaultConfig);
 
       this.value.nsg = `rancher-managed-${ randomStr(8) }`;
@@ -209,7 +230,7 @@ export default {
           :searchable="false"
           :required="true"
           :label="t('cluster.machineConfig.azure.environment.label')"
-          :disabled="disabled"
+          :disabled="true"
         />
       </div>
       <div class="col span-6">
