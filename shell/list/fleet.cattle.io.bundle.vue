@@ -27,7 +27,9 @@ export default {
 
   async fetch() {
     await this.$fetchType(FLEET.BUNDLE);
-    this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
+      this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
+    }
   },
 
   data() {

@@ -3,6 +3,7 @@ import FleetRepos from '@shell/components/fleet/FleetRepos';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { FLEET } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { checkSchemasForFindAllHash } from '~/shell/utils/auth';
 
 export default {
   name:       'ListGitRepo',
@@ -39,10 +40,26 @@ export default {
   },
 
   async fetch() {
-    const store = this.$store;
+    await checkSchemasForFindAllHash({
+      cluster: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER
+      },
+      clusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      },
 
-    await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-    await store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
+      // Not sure why I need this here
+      gitRepos: {
+        inStoreType: 'management',
+        type:        FLEET.GIT_REPO
+      }
+
+    }, this.$store);
+
+    // fixes getter error await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    //  await store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
 
     await this.$fetchType(this.resource);
   }

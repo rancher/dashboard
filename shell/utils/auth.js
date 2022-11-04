@@ -2,6 +2,7 @@ import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import { BACK_TO, SPA, _EDIT, _FLAGGED } from '@shell/config/query-params';
 import { MANAGEMENT } from '@shell/config/types';
+import { allHash } from '~/shell/utils/promise';
 
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
@@ -78,4 +79,16 @@ export const authProvidersInfo = async(store) => {
     enabledLocation,
     enabled
   };
+};
+
+export const checkSchemasForFindAllHash = (types, store) => {
+  const hash = {};
+
+  for (const [key, value] of Object.entries(types)) {
+    if (store.getters[`${ value.inStoreType }/schemaFor`](value.type)) {
+      hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type } );
+    }
+  }
+
+  return allHash(hash);
 };

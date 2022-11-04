@@ -28,7 +28,9 @@ export default {
 
   async fetch() {
     this.rancherClusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
-    this.fleetClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
+      this.fleetClusters = await this.$store.dispatch['management/findAll'](FLEET.CLUSTER);
+    }
   },
 
   data() {

@@ -8,6 +8,7 @@ import Loading from '@shell/components/Loading';
 import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 import ResourceTable from '@shell/components/ResourceTable';
 import CompoundStatusBadge from '@shell/components/CompoundStatusBadge';
+import { checkSchemasForFindAllHash } from '~/shell/utils/auth';
 
 export default {
   name:       'ListGitRepo',
@@ -19,13 +20,21 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({
-      allBundles:      this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE }),
-      gitRepos:        this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
-      fleetWorkspaces: this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
-    });
+    const hash = await checkSchemasForFindAllHash({
+      allBundles: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE
+      },
+      gitRepos: {
+        inStoreType: 'management',
+        type:        FLEET.GIT_REPO
+      },
+      fleetWorkspaces: {
+        inStoreType: 'management',
+        type:        FLEET.WORKSPACE
+      }
+    }, this.$store);
 
-    this.allBundles = hash.allBundles;
     this.gitRepos = hash.gitRepos;
     this.fleetWorkspaces = hash.fleetWorkspaces;
 

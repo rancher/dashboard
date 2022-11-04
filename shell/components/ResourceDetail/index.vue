@@ -13,6 +13,7 @@ import DetailTop from '@shell/components/DetailTop';
 import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import ForceDirectedTreeChart from '@shell/components/fleet/ForceDirectedTreeChart';
+import { checkSchemasForFindAllHash } from '~/shell/utils/auth';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -151,9 +152,25 @@ export default {
       }
     } else {
       if ( as === _GRAPH ) {
-        await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-        await store.dispatch('management/findAll', { type: FLEET.BUNDLE });
-        await store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT });
+        const graphSchema = await checkSchemasForFindAllHash({
+          cluster: {
+            inStoreType: 'management',
+            type:        FLEET.CLUSTER
+          },
+          bundle: {
+            inStoreType: 'management',
+            type:        FLEET.BUNDLE
+          },
+
+          // Not sure why I need this here
+          bundleDeployment: {
+            inStoreType: 'management',
+            type:        FLEET.BUNDLE_DEPLOYMENT
+          }
+
+        }, this.$store);
+
+        this.canViewChart = graphSchema.cluster && graphSchema.bundle && graphSchema.bundleDeployment;
       }
 
       let fqid = id;
@@ -184,7 +201,7 @@ export default {
       if ( as === _YAML ) {
         yaml = await getYaml(liveModel);
       }
-
+      console.log('LIVE MODEL', liveModel);
       if ( as === _GRAPH ) {
         this.chartData = liveModel;
       }
@@ -242,6 +259,7 @@ export default {
       value:           null,
       model:           null,
       notFound:        null,
+      canViewChart:    true,
     };
   },
 
@@ -378,7 +396,7 @@ export default {
     </Masthead>
 
     <ForceDirectedTreeChart
-      v-if="isGraph"
+      v-if="isGraph && canViewChart"
       :data="chartData"
       :fdc-config="getGraphConfig"
     />
