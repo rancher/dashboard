@@ -85,7 +85,14 @@ export default Vue.extend({
       isEditItem:        null as string | null,
       isCreateItem:      false,
       errors:            { duplicate: false } as Record<Error, boolean>,
+      _selectDelayTimer: null as unknown as NodeJS.Timeout,
+      _focusDelayTimer:  null as unknown as NodeJS.Timeout,
     };
+  },
+
+  beforeDestroy() {
+    clearTimeout(this._focusDelayTimer);
+    clearTimeout(this._selectDelayTimer);
   },
 
   computed: {
@@ -182,7 +189,8 @@ export default Vue.extend({
            * Select the next item in the list when an item is deleted.
            * If the deleted item was the last item, select the previous item (this.items[index - 1]). 
            */
-          setTimeout(() => {
+          clearTimeout(this._selectDelayTimer);
+          this._selectDelayTimer = setTimeout(() => {
             const item = (this.items[index] || this.items[index - 1]) as string;
 
             this.onSelect(item);
@@ -193,7 +201,8 @@ export default Vue.extend({
     },
 
     setFocus(refId: string) {
-      setTimeout(() => {
+      clearTimeout(this._focusDelayTimer);
+      this._focusDelayTimer = setTimeout(() => {
         this.getRef(refId)?.focus();
       }, 0);
     },
