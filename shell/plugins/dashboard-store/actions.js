@@ -80,7 +80,7 @@ export default {
 
   // Load a page of data for a given type
   // Used for incremental loading when enabled
-  async loadDataPage(ctx, { type, opt, namespace }) {
+  async loadDataPage(ctx, { type, opt }) {
     const { getters, commit, dispatch } = ctx;
 
     type = getters.normalizeType(type);
@@ -110,16 +110,15 @@ export default {
           opt: {
             ...opt,
             url: res.pagination?.next
-          },
-          namespace
+          }
         });
       } else {
       // We have everything!
         if (opt.hasManualRefresh) {
           dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
         }
-        if (namespace) {
-          commit('setHaveNamespace', { type, namespace });
+        if (opt.namespaced) {
+          commit('setHaveNamespace', { type, namespace: opt.namespaced });
         } else {
           commit('setHaveAll', { type });
         }
@@ -213,9 +212,7 @@ export default {
         commit('forgetType', type);
       }
 
-      dispatch('loadDataPage', {
-        type, opt: pageFetchOpts, namespace: opt.namespaced
-      });
+      dispatch('loadDataPage', { type, opt: pageFetchOpts });
     }
 
     let streamStarted = false;

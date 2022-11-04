@@ -45,7 +45,7 @@ export default {
       // force ns filtering
       forceNsFilter:              {
         ...perfConfig.forceNsFilter,
-        threshold: parseInt(this.perfConfig?.incrementalLoading?.threshold || '0', 10)
+        threshold: parseInt(perfConfig?.forceNsFilter?.threshold || '0', 10)
       }
     };
   },
