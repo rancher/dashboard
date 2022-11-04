@@ -145,12 +145,16 @@ export default {
       set(value) {
         const persistentVolume = this.persistentVolumes.find(pv => pv.metadata.name === value);
 
+        this.$set(this.value.spec, 'storageClassName', '');
+
         if (persistentVolume) {
           this.$set(this.value.spec.resources.requests, 'storage', persistentVolume.spec.capacity?.storage);
+          if (persistentVolume.spec?.storageClassName) {
+            this.$set(this.value.spec, 'storageClassName', persistentVolume.spec?.storageClassName );
+          }
         }
 
         this.$set(this.value.spec, 'volumeName', value);
-        this.$set(this.value.spec, 'storageClassName', '');
       }
     },
     storageAmountMode() {
