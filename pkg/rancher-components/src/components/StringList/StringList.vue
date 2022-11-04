@@ -157,7 +157,7 @@ export default Vue.extend({
 
     onSelectLeave(item?: string) {
       if (item === this.selected) {
-      this.selected = null;
+        this.selected = null;
       }
     },
 
@@ -385,7 +385,7 @@ export default Vue.extend({
           selected: selected === item,
           readonly
         }"
-        class="item"
+        class="item static"
         tabindex="0"
         @mousedown="onSelect(item)"
         @dblclick.stop="toggleEditMode(true, item)"
@@ -395,14 +395,14 @@ export default Vue.extend({
       >
         <span
           v-if="!isEditItem || isEditItem !== item"
-          class="label"
+          class="label static"
         >
           {{ item }}
         </span>
         <input
           v-if="isEditItem && isEditItem === item"
           ref="item-edit"
-          class="edit-input"
+          class="input-field edit-input static"
           :value="value != null ? value : item"
           @input.prevent="onChange($event.target.value)"
           @blur.prevent="toggleEditMode(false)"
@@ -411,12 +411,12 @@ export default Vue.extend({
       </div>
       <div
         v-if="isCreateItem"
-        class="item-create"
+        class="create-field static"
       >
         <input
           ref="item-create"
           type="text"
-          class="create"
+          class="input-field create-input static"
           :placeholder="placeholder"
           @input.prevent="onChange($event.target.value)"
           @keydown.enter.prevent="saveItem"
@@ -466,14 +466,6 @@ export default Vue.extend({
   flex-direction: column;
   width: auto;
 
-  input {
-    border-radius: 0;
-    &.error {
-      border: none !important;
-      box-shadow: 0 0 0 var(--outline-width) var(--error);
-    }
-  }
-
   &.readonly {
     cursor: default;
     opacity: 0.4;
@@ -488,17 +480,9 @@ export default Vue.extend({
     border: solid var(--border-width) var(--input-border);
     padding-top: 3px;
 
-    * {
+    .static {
       height: 25px;
       padding: 3px;
-    }
-
-    span {
-      padding-top: 0;
-    }
-
-    input {
-      padding-top: 1px;
     }
 
     .item {
@@ -506,6 +490,7 @@ export default Vue.extend({
 
       &.selected {
         background: var(--primary);
+        color: var(--primary-hover-text);
       }
 
       &.readonly {
@@ -518,11 +503,21 @@ export default Vue.extend({
         user-select: none;
         overflow: hidden;
         text-overflow: ellipsis;
+        padding-top: 0;
       }
     }
 
-    .item-create {
+    .create-field {
       margin-bottom: 7px;
+    }
+
+    .input-field {
+      padding-top: 1px;
+      border-radius: 0;
+      &.error {
+        border: none;
+        box-shadow: 0 0 0 var(--outline-width) var(--error);
+      }
     }
   }
 
@@ -547,7 +542,7 @@ export default Vue.extend({
       flex-direction: row-reverse;
       gap: 0.5rem;
 
-      button {
+      .btn {
         min-height: var(--footer-height);
         line-height: 0;
         border-radius: 2px;

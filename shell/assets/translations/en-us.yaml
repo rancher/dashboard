@@ -5210,6 +5210,8 @@ validation:
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
     max: '"{key}" should be at most {count} {count, plural, =1 {character} other {characters}}'
     min: '"{key}" should be at least {count} {count, plural, =1 {character} other {characters}}'
+  stringList:
+    duplicate: 'Error, item is duplicate.'
   targets:
     missingProjectId: A target must have a project selected.
   monitoring:
