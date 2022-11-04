@@ -4026,6 +4026,7 @@ promptForceRemove:
   forceDelete: 強制刪除
   confirmName: "在下面輸入池名稱以確認："
   podRemoveWarning: "強制刪除不會等待到 Pod 的進程已確認終止。這可能會導致<strong>數據損壞或不一致</strong>。"
+  namespaceWarning: 強制刪除將會直接修改 finalizers，有可能導致錯誤。
 promptScaleMachineDown:
   attemptingToRemove: "你正在嘗試刪除 {count} {type}"
   retainedMachine1: Control Plane 和 Etcd 角色要求至少一臺主機。

@@ -4007,6 +4007,7 @@ promptForceRemove:
   forceDelete: Force Delete
   confirmName: "Enter in the pool name below to confirm:"
   podRemoveWarning: "Force deleting pods does not wait for confirmation that the pod's processes have been terminated. This may result in <strong>data corruption or inconsistencies</strong>"
+  namespaceWarning: Forcing deletions will directly modify finalizers, which can lead to errors.
 promptScaleMachineDown:
   attemptingToRemove: "You are attempting to delete {count} {type}"
   retainedMachine1: At least one Machine must exist for roles Control Plane and Etcd.

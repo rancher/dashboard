@@ -147,6 +147,12 @@ export default class Namespace extends SteveModel {
     return this.labels[ISTIO_LABELS.AUTO_INJECTION] === 'enabled';
   }
 
+  removeFinalizers() {
+    delete this.metadata.finalizers;
+
+    return this;
+  }
+
   enableAutoInjection(namespaces = this, enable = true) {
     if (!isArray(namespaces)) {
       namespaces = [namespaces];
