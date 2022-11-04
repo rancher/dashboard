@@ -1,8 +1,9 @@
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { PropType } from 'vue';
 import { findStringDuplicates, findStringIndex } from '~/shell/utils/array';
 
-type Error = 'duplicate' | 'empty';
+type Error = 'duplicate';
+type ErrorMessages = Record<Error, string>;
 
 type Arrow = 'up' | 'down';
 
@@ -27,19 +28,20 @@ const CLASS = {
  * Manage a list of strings
  */
 export default Vue.extend({
-  name:  'string-list',
+  name:  'StringList',
   props: {
     /**
      * The items source
      */
     items: {
-      type: Array,
+      type: Array as PropType<string[]>,
       default() {
         return [];
       },
     },
     /**
-     * The caseSensitive option when create or edit items
+     * Determines if items with same text will be treated differently, depending on the letters case
+     * It is used to compare items during create/edit actions and detect duplicates.
      */
     caseSensitive: {
       type:    Boolean,
@@ -70,19 +72,19 @@ export default Vue.extend({
      * Custom Error messages
      */
     messages: {
-      type: Object,
+      type: Object as PropType<ErrorMessages>,
       default() {
-        return { duplicate: 'Error, item is duplicate!' };
+        return { duplicate: this.t('validation.stringList.duplicate') };
       },
     },
   },
   data() {
     return {
-      value:        null as string | null,
-      selected:     null as string | null,
-      isEditItem:   null as string | null,
-      isCreateItem: false,
-      errors:       { duplicate: false } as Record<Error, boolean>,
+      value:             null as string | null,
+      selected:          null as string | null,
+      isEditItem:        null as string | null,
+      isCreateItem:      false,
+      errors:            { duplicate: false } as Record<Error, boolean>,
     };
   },
 
@@ -92,9 +94,8 @@ export default Vue.extend({
      * Create an array of error messages, one for each current error
      */
     errorMessages(): string[] {
-      return Object
-        .keys(this.errors)
-        .filter(f => !!(this.errors)[f as Error])
+      return (Object.keys(this.errors) as Error[])
+        .filter(f => !!(this.errors)[f])
         .map(k => this.messages[k]);
     },
   },
@@ -242,8 +243,8 @@ export default Vue.extend({
     /**
      * Show/Hide the input line to create new item
      */
-    toggleCreateMode(v: boolean) {
-      if (v) {
+    toggleCreateMode(show: boolean) {
+      if (show) {
         this.value = '';
         this.moveScrollbar('down', 1000);
 
@@ -261,8 +262,8 @@ export default Vue.extend({
     /**
      * Show/Hide the in-line editing to edit an existing item
      */
-    toggleEditMode(v: boolean, item?: string) {
-      if (v) {
+    toggleEditMode(show: boolean, item?: string) {
+      if (show) {
         this.toggleCreateMode(false);
         this.value = this.isEditItem;
 
