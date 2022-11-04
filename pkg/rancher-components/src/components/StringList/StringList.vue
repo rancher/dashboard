@@ -1,5 +1,6 @@
 <script lang="ts">
 import Vue from 'vue';
+import { findStringDuplicates, findStringIndex } from '~/shell/utils/array';
 
 type Error = 'duplicate' | 'empty';
 
@@ -21,21 +22,6 @@ const CLASS = {
   item:  'item',
   error: 'error',
 };
-
-function findIndex(items: string[], item: string, trim = true) {
-  return items.indexOf(trim ? item?.trim() : item);
-}
-
-function findDuplicates(items: string[], caseSensitive = true) {
-  return items.filter((item, idx) => {
-    const index = findIndex(
-      items.map(i => (caseSensitive ? i : i.toLowerCase()).trim()),
-      (caseSensitive ? item : item.toLowerCase()),
-    );
-
-    return idx !== index;
-  }).length > 0;
-}
 
 /**
  * Manage a list of strings
@@ -144,7 +130,7 @@ export default Vue.extend({
     },
 
     onSelectNext(arrow: Arrow) {
-      const index = findIndex(
+      const index = findStringIndex(
         this.items as string[],
         this.selected as string,
       );
@@ -307,7 +293,7 @@ export default Vue.extend({
           this.value.trim(),
         ] as string[];
 
-        if (findDuplicates(items, this.caseSensitive)) {
+        if (findStringDuplicates(items, this.caseSensitive)) {
           this.toggleError('duplicate', true, INPUT.create);
 
           return;
@@ -324,13 +310,13 @@ export default Vue.extend({
     updateItem(item: string) {
       if (this.value) {
         const items = [...this.items] as string[];
-        const index = findIndex(items, item, false);
+        const index = findStringIndex(items, item, false);
 
         if (index !== -1) {
           items[index] = this.value.trim();
         }
 
-        if (findDuplicates(items, this.caseSensitive)) {
+        if (findStringDuplicates(items, this.caseSensitive)) {
           this.toggleError('duplicate', true, INPUT.edit);
 
           return;
@@ -348,7 +334,7 @@ export default Vue.extend({
       let index = -1;
 
       if (item) {
-        index = findIndex(this.items as string[], item, false);
+        index = findStringIndex(this.items as string[], item, false);
         const items = this.items.filter(f => f !== item) as string[];
 
         this.updateItems(items);
