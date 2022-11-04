@@ -159,7 +159,7 @@ export function findStringIndex(items: string[], item: string, trim = true): num
   return items.indexOf(trim ? item?.trim() : item);
 }
 
-export function findStringDuplicates(items: string[], caseSensitive = true): boolean {
+export function hasDuplicatedStrings(items: string[], caseSensitive = true): boolean {
   const normalizedItems = items.map(i => (caseSensitive ? i : i.toLowerCase()).trim());
 
   for (let i = 0; i < items.length; i++) {

@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import { findStringDuplicates, findStringIndex } from '~/shell/utils/array';
+import { findStringIndex, hasDuplicatedStrings } from '@/shell/utils/array';
 
 type Error = 'duplicate';
 type ErrorMessages = Record<Error, string>;
@@ -71,10 +71,10 @@ export default Vue.extend({
     /**
      * Custom Error messages
      */
-    messages: {
+    errorMessages: {
       type: Object as PropType<ErrorMessages>,
       default() {
-        return { duplicate: this.t('validation.stringList.duplicate') };
+        return {} as ErrorMessages;
       },
     },
   },
@@ -84,15 +84,8 @@ export default Vue.extend({
       selected:          null as string | null,
       isEditItem:        null as string | null,
       isCreateItem:      false,
-      errors:            { duplicate: false } as Record<Error, boolean>,
-      _selectDelayTimer: null as unknown as NodeJS.Timeout,
-      _focusDelayTimer:  null as unknown as NodeJS.Timeout,
+      errors:            { duplicate: false } as Record<Error, boolean>
     };
-  },
-
-  beforeDestroy() {
-    clearTimeout(this._focusDelayTimer);
-    clearTimeout(this._selectDelayTimer);
   },
 
   computed: {
@@ -100,10 +93,10 @@ export default Vue.extend({
     /**
      * Create an array of error messages, one for each current error
      */
-    errorMessages(): string[] {
+    errorMessagesArray(): string[] {
       return (Object.keys(this.errors) as Error[])
         .filter(f => !!(this.errors)[f])
-        .map(k => this.messages[k]);
+        .map(k => this.errorMessages[k]);
     },
   },
 
@@ -139,7 +132,7 @@ export default Vue.extend({
 
     onSelectNext(arrow: Arrow) {
       const index = findStringIndex(
-        this.items as string[],
+        this.items,
         this.selected as string,
       );
 
@@ -184,39 +177,33 @@ export default Vue.extend({
         return;
       }
       if (this.selected) {
-        const index = this.deleteItem(this.selected);
+        const index = findStringIndex(this.items, this.selected, false);
 
         if (index !== -1) {
           /**
-           * Select the next item in the list when an item is deleted.
-           * If the deleted item was the last item, select the previous item (this.items[index - 1]). 
+           * Select the next item in the list when an item is to be deleted.
            */
-          clearTimeout(this._selectDelayTimer);
-          this._selectDelayTimer = setTimeout(() => {
-            const item = (this.items[index] || this.items[index - 1]) as string;
+          const item = (this.items[index + 1] || this.items[index - 1]);
+          this.onSelect(item);
+          this.setFocus(item);
 
-            this.onSelect(item);
-            this.setFocus(item);
-          }, 100);
+          this.deleteItem(this.items[index]);
         }
       }
     },
 
     setFocus(refId: string) {
-      clearTimeout(this._focusDelayTimer);
-      this._focusDelayTimer = setTimeout(() => {
-        this.getRef(refId)?.focus();
-      }, 0);
+      this.$nextTick(() => this.getRef(refId)?.focus());
     },
 
     /**
      * Move scrollbar when the selected item is over the top or bottom side of the box
      */
-    moveScrollbar(arrow: Arrow, value = 25) {
+    moveScrollbar(arrow: Arrow, value?: number) {
       const box = this.getRef(BOX);
       const item = this.getRef(this.selected || '');
 
-      if (box && item && item.className === CLASS.item) {
+      if (box && item && item.className.includes(CLASS.item)) {
         const boxRect = box.getClientRects()[0];
         const itemRect = item.getClientRects()[0];
 
@@ -224,7 +211,8 @@ export default Vue.extend({
           (arrow === 'down' && itemRect.bottom > boxRect.bottom) ||
           (arrow === 'up' && itemRect.top < boxRect.top)
         ) {
-          box.scrollBy({ top: value * DIRECTION[arrow] });
+          const top = (value ?? itemRect.height) * DIRECTION[arrow];
+          box.scrollBy({ top });
         }
       }
     },
@@ -257,7 +245,7 @@ export default Vue.extend({
     toggleCreateMode(show: boolean) {
       if (show) {
         this.value = '';
-        this.moveScrollbar('down', 1000);
+        // this.moveScrollbar('down', 1000);
 
         this.isCreateItem = true;
         this.setFocus(INPUT.create);
@@ -303,9 +291,9 @@ export default Vue.extend({
         const items = [
           ...this.items,
           this.value.trim(),
-        ] as string[];
+        ];
 
-        if (findStringDuplicates(items, this.caseSensitive)) {
+        if (hasDuplicatedStrings(items, this.caseSensitive)) {
           this.toggleError('duplicate', true, INPUT.create);
 
           return;
@@ -321,14 +309,14 @@ export default Vue.extend({
      */
     updateItem(item: string) {
       if (this.value) {
-        const items = [...this.items] as string[];
+        const items = [...this.items];
         const index = findStringIndex(items, item, false);
 
         if (index !== -1) {
           items[index] = this.value.trim();
         }
 
-        if (findStringDuplicates(items, this.caseSensitive)) {
+        if (hasDuplicatedStrings(items, this.caseSensitive)) {
           this.toggleError('duplicate', true, INPUT.edit);
 
           return;
@@ -340,19 +328,12 @@ export default Vue.extend({
     },
 
     /**
-     * Delete item and update items list
+     * Remove an item from items list
      */
-    deleteItem(item?: string): number {
-      let index = -1;
+    deleteItem(item?: string) {
+      const items = this.items.filter(f => f !== item);
 
-      if (item) {
-        index = findStringIndex(this.items as string[], item, false);
-        const items = this.items.filter(f => f !== item) as string[];
-
-        this.updateItems(items);
-      }
-
-      return index;
+      this.updateItems(items);
     },
 
     /**
@@ -435,14 +416,14 @@ export default Vue.extend({
         class="action-buttons"
       >  
         <button
-          class="btn btn-sm role-tertiary add-button"
+          class="btn btn-sm role-tertiary remove-button"
           :disabled="!selected && !isCreateItem && !isEditItem"
           @mousedown.prevent="onClickMinusButton"
         >
           <span class="icon icon-minus icon-sm" />
         </button>
         <button
-          class="btn btn-sm role-tertiary remove-button"
+          class="btn btn-sm role-tertiary add-button"
           :disabled="isCreateItem"
           @click.prevent="onClickPlusButton"
         >
@@ -450,9 +431,9 @@ export default Vue.extend({
         </button>
       </div>
       <div class="messages">
-        <i v-if="errorMessages.length > 0" class="icon icon-warning icon-lg" />
+        <i v-if="errorMessagesArray.length > 0" class="icon icon-warning icon-lg" />
         <span
-          v-for="(msg, idx) in errorMessages"
+          v-for="(msg, idx) in errorMessagesArray"
           :key="idx"
           class="error"
         >
