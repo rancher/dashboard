@@ -439,6 +439,10 @@ export default {
         this.iframeEl.remove();
         this.initFrame();
         this.$store.dispatch('auth/logout');
+      } else if ( msg.action === 'need-redirect-to-cluster-index') {
+        this.iframeEl.remove();
+        this.initFrame();
+        this.$router.replace(this.fillRoute(INTERCEPTS['authenticated.cluster.index']));
       }
     },
 
