@@ -1,6 +1,8 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import { findStringIndex, hasDuplicatedStrings } from '@/shell/utils/array';
+
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { findStringIndex, hasDuplicatedStrings } from '@shell/utils/array';
 
 type Error = 'duplicate';
 type ErrorMessages = Record<Error, string>;
@@ -28,7 +30,10 @@ const CLASS = {
  * Manage a list of strings
  */
 export default Vue.extend({
-  name:  'StringList',
+  components: { LabeledInput },
+
+  name: 'StringList',
+
   props: {
     /**
      * The items source
@@ -184,6 +189,7 @@ export default Vue.extend({
            * Select the next item in the list when an item is to be deleted.
            */
           const item = (this.items[index + 1] || this.items[index - 1]);
+
           this.onSelect(item);
           this.setFocus(item);
 
@@ -193,15 +199,15 @@ export default Vue.extend({
     },
 
     setFocus(refId: string) {
-      this.$nextTick(() => this.getRef(refId)?.focus());
+      this.$nextTick(() => this.getElemByRef(refId)?.focus());
     },
 
     /**
      * Move scrollbar when the selected item is over the top or bottom side of the box
      */
     moveScrollbar(arrow: Arrow, value?: number) {
-      const box = this.getRef(BOX);
-      const item = this.getRef(this.selected || '');
+      const box = this.getElemByRef(BOX);
+      const item = this.getElemByRef(this.selected || '');
 
       if (box && item && item.className.includes(CLASS.item)) {
         const boxRect = box.getClientRects()[0];
@@ -212,6 +218,7 @@ export default Vue.extend({
           (arrow === 'up' && itemRect.top < boxRect.top)
         ) {
           const top = (value ?? itemRect.height) * DIRECTION[arrow];
+
           box.scrollBy({ top });
         }
       }
@@ -228,7 +235,7 @@ export default Vue.extend({
     },
 
     toggleErrorClass(refId: string, val: boolean) {
-      const input = this.getRef(refId);
+      const input = this.getElemByRef(refId)?.$el;
 
       if (input) {
         if (val) {
@@ -245,7 +252,6 @@ export default Vue.extend({
     toggleCreateMode(show: boolean) {
       if (show) {
         this.value = '';
-        // this.moveScrollbar('down', 1000);
 
         this.isCreateItem = true;
         this.setFocus(INPUT.create);
@@ -277,10 +283,10 @@ export default Vue.extend({
       }
     },
 
-    getRef(id: string) {
+    getElemByRef(id: string) {
       const ref = this.$refs[id];
 
-      return (Array.isArray(ref) ? ref[0] : ref) as HTMLElement;
+      return (Array.isArray(ref) ? ref[0] : ref) as any;
     },
 
     /**
@@ -382,27 +388,28 @@ export default Vue.extend({
         >
           {{ item }}
         </span>
-        <input
+        <LabeledInput
           v-if="isEditItem && isEditItem === item"
           ref="item-edit"
-          class="input-field edit-input static"
+          class="edit-input static"
           :value="value != null ? value : item"
-          @input.prevent="onChange($event.target.value)"
+          @input="onChange($event)"
           @blur.prevent="toggleEditMode(false)"
-          @keydown.enter.prevent="updateItem(item)"
+          @keydown.native.enter="updateItem(item)"
         />
       </div>
       <div
         v-if="isCreateItem"
         class="create-field static"
       >
-        <input
+        <LabeledInput
           ref="item-create"
+          class="create-input static"
           type="text"
-          class="input-field create-input static"
+          :value="value"
           :placeholder="placeholder"
-          @input.prevent="onChange($event.target.value)"
-          @keydown.enter.prevent="saveItem"
+          @input="onChange($event)"
+          @keydown.native.enter="saveItem"
         />
       </div>
     </div>
@@ -414,7 +421,7 @@ export default Vue.extend({
       <div
         data-testid="div-action-buttons"
         class="action-buttons"
-      >  
+      >
         <button
           class="btn btn-sm role-tertiary remove-button"
           :disabled="!selected && !isCreateItem && !isEditItem"
@@ -489,16 +496,18 @@ export default Vue.extend({
         user-select: none;
         overflow: hidden;
         text-overflow: ellipsis;
-        padding-top: 0;
+        padding-top: 1px;
       }
     }
 
     .create-field {
+      padding-top: 1px;
       margin-bottom: 7px;
     }
 
-    .input-field {
-      padding-top: 1px;
+    .labeled-input {
+      padding-top: 0;
+      padding-bottom: 0;
       border-radius: 0;
       &.error {
         border: none;
@@ -548,6 +557,17 @@ export default Vue.extend({
         line-height: inherit;
       }
     }
+  }
+}
+
+::v-deep {
+  .labeled-input INPUT.no-label,
+  .labeled-input INPUT:hover.no-label,
+  .labeled-input INPUT:focus.no-label {
+    padding: 1px 0px 0px 0px;
+  }
+  .labeled-input.compact-input {
+    min-height: 0;
   }
 }
 </style>
