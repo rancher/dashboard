@@ -313,6 +313,7 @@ export default {
 
     cleanup() {
       if (this.socket) {
+        this.socket.send(`0${ base64Encode('\x04') }`); // send ctrl+d(EOT) https://en.wikipedia.org/wiki/Control_character
         this.socket.disconnect();
         this.socket = null;
       }
