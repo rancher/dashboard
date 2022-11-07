@@ -85,9 +85,7 @@ export default {
   <Loading v-if="!settings" />
   <div v-else>
     <Banner color="warning" class="settings-banner">
-      <div>
-        {{ t('advancedSettings.subtext') }}
-      </div>
+      <div v-html="t('advancedSettings.subtext')" />
     </Banner>
     <div v-for="setting in settings" :key="setting.id" class="advanced-setting mb-20">
       <div class="header">

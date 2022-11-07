@@ -6181,7 +6181,7 @@ modalDownLoadFileComponent:
 ##############################
 advancedSettings:
   label: Settings
-  subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'.
+  subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'. If there are no configuration items you need here, please view <a href="/v3/setting" target="_blank">More Settings</a>.
   show: Show
   hide: Hide
   none: None
@@ -6229,6 +6229,11 @@ advancedSettings:
     ui-footer-text: Extra text in footer.
     ui-footer-url: URL for the extra text in footer.
     disable-password-encrypt: Disabling Password Encryption.
+    download-file-size-limit: Container file download size limit（in Mi）.
+    pandaria-enable-healthcheck-api: Enable rancher local API server health check.
+    restricted-default-admin: "Whether the initialization administrator role uses restricted administrator permissions. Please see the permission description <a href=\"http://docs.rancher.cn/docs/rancher2.5/admin-settings/rbac/global-permissions/_index/#%E5%8F%97%E9%99%90%E7%AE%A1%E7%90%86%E5%91%98\" target=\"_blank\">here</a>."
+    rotate-certs-if-expiring-in-days: Set the time for the rancher server to rotate certificates in advance（in days）.
+    system-catalog: Configure Rancher to use System Chart Repo.
   editHelp:
     'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
@@ -6251,6 +6256,9 @@ advancedSettings:
       info: Info
       debug: Debug
       trace: Trace
+    'system-catalog':
+      bundled: 'Bundled'
+      external: 'External'
 featureFlags:
   label: Feature Flags
   warning: |-

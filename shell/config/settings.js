@@ -73,6 +73,11 @@ export const SETTING = {
   DISABLE_PASSWORD_ENCRYPT:             'disable-password-encrypt',
   AUDIT_LOG_SERVER_URL:                 'auditlog-server-url',
   WHITELIST_DOMAIN:                     'whitelist-domain',
+  DOWNLOAD_FILE_SIZE_LIMIT:             'download-file-size-limit',
+  PANDARIA_ENABLE_HEALTHCHECK_API:      'pandaria-enable-healthcheck-api',
+  RESTRICTED_DEFAULT_ADMIN:             'restricted-default-admin',
+  ROTATE_CERTS_IF_EXPIRING_IN_DAYS:     'rotate-certs-if-expiring-in-days',
+  SYSTEM_CATALOG:                       'system-catalog',
 };
 
 // These are the settings that are allowed to be edited via the UI
@@ -118,6 +123,17 @@ export const ALLOWED_SETTINGS = {
   },
   [SETTING.DISABLE_PASSWORD_ENCRYPT]: { kind: 'boolean' },
   [SETTING.AUDIT_LOG_SERVER_URL]:     { kind: 'url' },
+  [SETTING.DOWNLOAD_FILE_SIZE_LIMIT]:       {
+    kind: 'int',
+    unit: 'Mi'
+  },
+  [SETTING.PANDARIA_ENABLE_HEALTHCHECK_API]:  { kind: 'boolean' },
+  [SETTING.RESTRICTED_DEFAULT_ADMIN]:         { kind: 'boolean' },
+  [SETTING.ROTATE_CERTS_IF_EXPIRING_IN_DAYS]: { kind: 'int' },
+  [SETTING.SYSTEM_CATALOG]:                   {
+    kind:    'enum',
+    options: ['external', 'bundled']
+  },
 };
 
 export const DEFAULT_PERF_SETTING = {

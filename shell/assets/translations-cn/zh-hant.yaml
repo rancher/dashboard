@@ -6309,7 +6309,7 @@ modalDownLoadFileComponent:
 ##############################
 advancedSettings:
   label: 設置
-  subtext: 一般用戶不需要修改此處的設置。請謹慎操作，不正確的值會破壞 {appName} 的安裝。與默認不同的設置會標記爲 "Modified"。
+  subtext: 一般用戶不需要修改此處的設置。請謹慎操作，不正確的值會破壞 {appName} 的安裝。與默認不同的設置會標記爲 "Modified"。如果這裡沒有您需要的配置項，請查看<a href="/v3/setting" target="_blank">更多設置</a>。
   show: 顯示
   hide: 隱藏
   none: 無
@@ -6357,6 +6357,11 @@ advancedSettings:
     ui-footer-text: 額外的頁腳內容
     ui-footer-url: 額外頁腳內容對應的鏈接
     disable-password-encrypt: 禁用密碼加密。
+    download-file-size-limit: 容器文件下載大小限制（以Mi為單位）。
+    pandaria-enable-healthcheck-api: 啟用Rancher local api-server健康檢查。
+    restricted-default-admin: "初始化管理員角色是否使用受限管理員許可權，許可權說明請查看<a href=\"http://docs.rancher.cn/docs/rancher2.5/admin-settings/rbac/global-permissions/_index/#%E5%8F%97%E9%99%90%E7%AE%A1%E7%90%86%E5%91%98\" target=\"_blank\">這裡</a>。"
+    rotate-certs-if-expiring-in-days: 設置Rancher Server提前輪換證書的時間（以天為單位）。
+    system-catalog: 配置 Rancher 使用 System Chart Repo。
   editHelp:
     'ui-banners': 此設置使用包含 3 個根參數的 JSON 對象，分別是<code>banner</code>、<code>showHeader</code>和<code>showFooter</code>。<code>banner</code> 是包含 <code>textColor</code>，<code>background</code>和<code>text</code>的對象，其中<code>textColor</code> 和 <code>background</code>的值可以是任何有效的 CSS 顏色值。
   enum:
@@ -6379,6 +6384,9 @@ advancedSettings:
       info: 信息
       debug: 調試
       trace: 跟蹤
+    'system-catalog':
+      bundled: 'Bundled'
+      external: 'External'
 featureFlags:
   label: 功能開關
   warning: |-
