@@ -7,7 +7,7 @@ source scripts/version
 if [[ $COMMIT_BRANCH == "master" ]]; then
   VERSION="latest"
 else
-  VERSION=$(cd pkg/$1; node -p -e "require('./package.json').version")
+  VERSION=$COMMIT_BRANCH
 fi
 
 echo "Drone Build Args"
