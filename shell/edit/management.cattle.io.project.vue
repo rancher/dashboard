@@ -18,10 +18,11 @@ import ProjectMembershipEditor from '@shell/components/form/Members/ProjectMembe
 import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import { Banner } from '@components/Banner';
+import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
 
 export default {
   components: {
-    ContainerResourceLimit, CruResource, Labels, LabeledSelect, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
+    ContainerResourceLimit, CruResource, Labels, LabeledSelect, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner, PodSecurityAdmission
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -276,6 +277,16 @@ export default {
           :mode="canEditTabElements"
           :display-side-by-side="false"
         />
+      </Tab>
+      <Tab
+        name="pod-security-admission"
+        label-key="generic.podSecurityAdmission"
+        :label="t('generic.podSecurityAdmission')"
+      >
+        <PodSecurityAdmission
+          :value="value"
+          :mode="mode"
+        ></PodSecurityAdmission>
       </Tab>
     </Tabbed>
   </CruResource>

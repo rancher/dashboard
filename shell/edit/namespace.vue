@@ -6,6 +6,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT, PROJECT } from '@shell/config/labels-annotations';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
+import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
@@ -25,6 +26,7 @@ export default {
     Labels,
     Loading,
     NameNsDescription,
+    PodSecurityAdmission,
     ResourceQuota,
     Tab,
     Tabbed,
@@ -233,6 +235,16 @@ export default {
           :mode="mode"
           :display-side-by-side="false"
         />
+      </Tab>
+      <Tab
+        name="pod-security-admission"
+        label-key="generic.podSecurityAdmission"
+        :label="t('generic.podSecurityAdmission')"
+      >
+        <PodSecurityAdmission
+          :value="value"
+          :mode="mode"
+        ></PodSecurityAdmission>
       </Tab>
     </Tabbed>
     <MoveModal v-if="projects" />
