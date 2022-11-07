@@ -48,6 +48,10 @@ export default {
         const v = s.data.value || s.data.default;
 
         s.enum = `advancedSettings.enum.${ id }.${ v }`;
+      } else if (s.kind === 'enum-map') {
+        const v = s.data.value || s.data.default;
+
+        s.enumMap = s.options[v];
       }
       // There are only 2 actions that can be enabled - Edit Setting or View in API
       // If neither is available for this setting then we hide the action menu button
@@ -111,6 +115,7 @@ export default {
           <pre v-if="setting.kind === 'json'">{{ setting.json }}</pre>
           <pre v-else-if="setting.kind === 'multiline'">{{ setting.data.value || setting.data.default }}</pre>
           <pre v-else-if="setting.kind === 'enum'">{{ t(setting.enum) }}</pre>
+          <pre v-else-if="setting.kind === 'enum-map'">{{ setting.enumMap }}</pre>
           <pre v-else-if="setting.data.value || setting.data.default">{{ setting.data.value || setting.data.default }}</pre>
           <pre v-else class="text-muted">&lt;{{ t('advancedSettings.none') }}&gt;</pre>
         </div>
