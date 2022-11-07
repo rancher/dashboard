@@ -6318,6 +6318,8 @@ advancedSettings:
     'hide-local-cluster': 隱藏 local 集群
     password-min-length: 定義用戶密碼所需的最少字符數。
     ui-session-logout-minutes: 用戶超過配置時間沒有任何操作將自動註銷(以分鐘為單位)。
+    ui-footer-text: 額外的頁腳內容
+    ui-footer-url: 額外頁腳內容對應的鏈接
   editHelp:
     'ui-banners': 此設置使用包含 3 個根參數的 JSON 對象，分別是<code>banner</code>、<code>showHeader</code>和<code>showFooter</code>。<code>banner</code> 是包含 <code>textColor</code>，<code>background</code>和<code>text</code>的對象，其中<code>textColor</code> 和 <code>background</code>的值可以是任何有效的 CSS 顏色值。
   enum:

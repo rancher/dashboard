@@ -67,6 +67,8 @@ export const SETTING = {
   SYSTEM_GPU_MANAGEMENT_SCHEDULER_NAME: 'system-gpu-management-scheduler-name',
   UI_SESSION_LOGOUT_MINUTES:            'ui-session-logout-minutes',
   UI_LOGIN_LANDSCAPE:                   'ui-login-landscape',
+  FOOTER_TEXT:                          'ui-footer-text',
+  FOOTER_URL:                           'ui-footer-url',
 };
 
 // These are the settings that are allowed to be edited via the UI
@@ -101,6 +103,8 @@ export const ALLOWED_SETTINGS = {
   [SETTING.HIDE_LOCAL_CLUSTER]: { kind: 'boolean' },
 
   [SETTING.UI_SESSION_LOGOUT_MINUTES]: { value: '30' },
+  [SETTING.FOOTER_TEXT]:               {},
+  [SETTING.FOOTER_URL]:                { kind: 'url' },
 };
 
 export const DEFAULT_PERF_SETTING = {
