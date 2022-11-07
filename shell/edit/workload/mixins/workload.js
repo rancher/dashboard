@@ -159,7 +159,7 @@ export default {
       this.value.spec = {};
       if (this.value.type === POD) {
         const podContainers = [{
-          imagePullPolicy: 'Always',
+          imagePullPolicy: 'IfNotPresent',
           name:            `container-0`,
         }];
 
@@ -208,7 +208,7 @@ export default {
 
       if (this.$route.query.init) {
         podTemplateSpec.initContainers.push({
-          imagePullPolicy: 'Always',
+          imagePullPolicy: 'IfNotPresent',
           name:            `container-${ allContainers.length }`,
         });
 
@@ -216,7 +216,7 @@ export default {
       }
       if (createSidecar || this.value.type === 'pod') {
         container = {
-          imagePullPolicy: 'Always',
+          imagePullPolicy: 'IfNotPresent',
           name:            `container-${ allContainers.length }`,
         };
 
@@ -1038,7 +1038,7 @@ export default {
         nameNumber++;
       }
       const container = {
-        imagePullPolicy: 'Always',
+        imagePullPolicy: 'IfNotPresent',
         name:            `container-${ nameNumber }`,
         active:          true
       };

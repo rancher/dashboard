@@ -84,7 +84,7 @@ export default class Workload extends WorkloadService {
           spec: {
             template: {
               spec: {
-                restartPolicy: 'Never', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }], initContainers: []
+                restartPolicy: 'Never', containers: [{ imagePullPolicy: 'IfNotPresent', name: 'container-0' }], initContainers: []
               }
             }
           }
@@ -98,7 +98,7 @@ export default class Workload extends WorkloadService {
       if (!spec.template) {
         spec.template = {
           spec: {
-            restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }], initContainers: []
+            restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always', containers: [{ imagePullPolicy: 'IfNotPresent', name: 'container-0' }], initContainers: []
           }
         };
       }
