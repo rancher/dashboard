@@ -11,11 +11,9 @@ export const Template = (args, { argTypes, events }) => ({
   components: { Tabbed, Tab },
   props:      Object.keys(argTypes),
   template:   `
-      <Tabbed :side-tabs="true">
-        <Tab name="v1Metricss1" active label="tests"></Tab>
-        <Tab name="v1Metricss2" label="test2"></Tab>
-        <Tab name="v1Metricss3" label="tests3"></Tab>
-        <Tab name="v1Metricss4" label="tests3"></Tab>
+      <Tabbed class="deployment-tabs" v-bind="$props">
+        <Tab name="test1" label="new"></Tab>
+        <Tab name="test2" label="new2"></Tab>
       </Tabbed>
     `
 });
@@ -23,7 +21,7 @@ export const Template = (args, { argTypes, events }) => ({
 
 # Tab
 
-Banner contain messages that communicate information to the user. They may also incorporate calls to action, or involve multiple tasks.
+-
 
 ### Description
 - 
@@ -40,6 +38,3 @@ Banner contain messages that communicate information to the user. They may also 
   </Story>
 </Canvas>
 
-### Props table
-
-<ArgsTable of={Tab} />
