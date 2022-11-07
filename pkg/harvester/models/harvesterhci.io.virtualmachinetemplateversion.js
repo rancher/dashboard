@@ -4,7 +4,7 @@ import { HCI } from '../types';
 import {
   AS, MODE, _VIEW, _CONFIG, _UNFLAG, _EDIT
 } from '@shell/config/query-params';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
