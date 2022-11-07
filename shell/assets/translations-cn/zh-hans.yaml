@@ -6320,6 +6320,7 @@ advancedSettings:
     ui-session-logout-minutes: 用户超过配置时间没有任何操作将自动注销(以分钟为单位)。
     ui-footer-text: 额外的页脚内容
     ui-footer-url: 额外页脚内容对应的链接
+    disable-password-encrypt: 禁用密码加密。
   editHelp:
     'ui-banners': 此设置使用包含 3 个根参数的 JSON 对象，分别是<code>banner</code>、<code>showHeader</code>和<code>showFooter</code>。<code>banner</code> 是包含 <code>textColor</code>，<code>background</code>和<code>text</code>的对象，其中<code>textColor</code> 和 <code>background</code>的值可以是任何有效的 CSS 颜色值。
   enum:

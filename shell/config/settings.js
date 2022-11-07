@@ -70,6 +70,7 @@ export const SETTING = {
   FOOTER_TEXT:                          'ui-footer-text',
   FOOTER_URL:                           'ui-footer-url',
   UI_DEFAULT_LANDING:                   'ui-default-landing',
+  DISABLE_PASSWORD_ENCRYPT:             'disable-password-encrypt',
 };
 
 // These are the settings that are allowed to be edited via the UI
@@ -113,6 +114,7 @@ export const ALLOWED_SETTINGS = {
       vue:   'Cluster Explorer'
     },
   },
+  [SETTING.DISABLE_PASSWORD_ENCRYPT]: { kind: 'boolean' },
 };
 
 export const DEFAULT_PERF_SETTING = {
