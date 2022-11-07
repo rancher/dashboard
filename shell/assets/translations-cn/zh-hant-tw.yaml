@@ -971,6 +971,8 @@ catalog:
     url:
       label: 索引 URL
       placeholder: '例如：https://charts.rancher.io'
+    tls:
+      insecureSkipTLSVerify: 跳過證書驗證
   tools:
     header: 集群工具
     noTools: "未找到集群工具"

@@ -7,6 +7,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Labels from '@shell/components/form/Labels';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NAMESPACE } from '@shell/config/types';
+import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
   name: 'CruCatalogRepo',
@@ -18,6 +19,7 @@ export default {
     NameNsDescription,
     Labels,
     SelectOrCreateAuthSecret,
+    Checkbox
   },
 
   mixins: [CreateEditView],
@@ -96,6 +98,10 @@ export default {
       :limit-to-namespace="false"
       generate-name="clusterrepo-auth-"
     />
+
+    <div class="mt-20">
+      <Checkbox v-model="value.spec.insecureSkipTLSVerify" label-key="catalog.repo.tls.insecureSkipTLSVerify" />
+    </div>
 
     <Labels
       default-section-class="mt-20"

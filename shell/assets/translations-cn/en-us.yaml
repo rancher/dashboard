@@ -959,6 +959,8 @@ catalog:
     url:
       label: Index URL
       placeholder: 'e.g. https://charts.rancher.io'
+    tls:
+      insecureSkipTLSVerify: Skip tls verify
   tools:
     header: Cluster Tools
     noTools: "No Cluster Tools found"
