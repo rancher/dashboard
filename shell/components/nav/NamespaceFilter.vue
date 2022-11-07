@@ -773,12 +773,13 @@ export default {
       height: 40px;
       padding: 0 10px;
       position: relative;
-      z-index: $dropdown-z-index;
+      // z-index: $dropdown-z-index;
 
       &.ns-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
         border-color: var(--link-border);
+        z-index: $dropdown-z-index;
       }
 
       > .ns-values {
