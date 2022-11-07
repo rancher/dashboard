@@ -235,6 +235,30 @@ export default {
     }
   },
   methods: {
+    hasPSA(row) {
+      return true;
+    },
+
+    getPSA(row) {
+      const data = [{
+        control: 'enforce',
+        policy:  'privileged',
+        version: '1.0.0'
+      }, {
+        control: 'audit',
+        policy:  'baseline',
+        version: '1.2.3'
+      }, {
+        control: 'warn',
+        policy:  'restricted',
+        version: 'latest'
+      }];
+
+      const list = data.map(({ control, policy, version }) => `<li>${ control } ${ policy } (${ version })</li>`).join('');
+
+      return `<ul class="mr-20">${ list }</ul>`;
+    },
+
     userIsFilteringForSpecificNamespaceOrProject() {
       const activeFilters = this.$store.getters['namespaceFilters'];
 
@@ -386,6 +410,14 @@ export default {
           v-else
           class="text-muted"
         >&ndash;</span>
+      </template>
+      <template #cell:name="{row}">
+        <span>{{ row.name }}</span>
+        <i
+          v-if="hasPSA(row)"
+          v-tooltip="getPSA(row)"
+          class="icon icon-lock"
+        />
       </template>
       <template
         v-for="project in projectsWithoutNamespaces"
