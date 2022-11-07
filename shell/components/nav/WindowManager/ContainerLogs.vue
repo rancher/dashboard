@@ -10,6 +10,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
+import VirtualList from 'vue-virtual-scroll-list';
+import LogItem from '@shell/components/LogItem';
 import day from 'dayjs';
 
 import { escapeHtml, escapeRegex } from '@shell/utils/string';
@@ -29,7 +31,12 @@ const ansiup = new AnsiUp();
 
 export default {
   components: {
-    Window, Select, LabeledSelect, Checkbox, AsyncButton
+    Window,
+    Select,
+    LabeledSelect,
+    Checkbox,
+    AsyncButton,
+    VirtualList,
   },
 
   props: {
@@ -82,6 +89,7 @@ export default {
       backlog:     [],
       lines:       [],
       now:         new Date(),
+      logItem:     LogItem
     };
   },
 
@@ -214,6 +222,10 @@ export default {
       const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
 
       return `${ dateFormat } ${ timeFormat }`;
+    },
+
+    maxLines() {
+      return this.parseRange(this.range)?.tailLines;
     }
   },
 
@@ -224,14 +236,13 @@ export default {
   },
 
   beforeDestroy() {
-    this.$refs.body.removeEventListener('scroll', this.boundUpdateFollowing);
     this.cleanup();
   },
 
   async mounted() {
     await this.connect();
     this.boundUpdateFollowing = this.updateFollowing.bind(this);
-    this.$refs.body.addEventListener('scroll', this.boundUpdateFollowing);
+    this.$refs.virtualList.$el.addEventListener('scroll', this.boundUpdateFollowing);
     this.boundFlush = this.flush.bind(this);
     this.timerFlush = setInterval(this.boundFlush, 100);
   },
@@ -337,6 +348,9 @@ export default {
       if ( this.backlog.length ) {
         this.lines.push(...this.backlog);
         this.backlog = [];
+        if (this.maxLines && this.lines.length > this.maxLines) {
+          this.lines = this.lines.slice(-this.maxLines);
+        }
       }
 
       if ( this.isFollowing ) {
@@ -347,9 +361,13 @@ export default {
     },
 
     updateFollowing() {
-      const el = this.$refs.body;
+      const virtualList = this.$refs.virtualList;
 
-      this.isFollowing = el.scrollTop + el.clientHeight + 2 >= el.scrollHeight;
+      if (virtualList) {
+        this.$nextTick(() => {
+          this.isFollowing = virtualList.getScrollSize() - virtualList.getClientSize() === virtualList.getOffset();
+        });
+      }
     },
 
     parseRange(range) {
@@ -419,9 +437,11 @@ export default {
     },
 
     follow() {
-      const el = this.$refs.body;
+      const virtualList = this.$refs.virtualList;
 
-      el.scrollTop = el.scrollHeight;
+      if (virtualList) {
+        virtualList.scrollToBottom();
+      }
     },
 
     toggleWrap(on) {
@@ -459,7 +479,6 @@ export default {
         this.socket.disconnect();
         this.socket = null;
       }
-
       clearInterval(this.timerFlush);
     },
   },
@@ -592,44 +611,14 @@ export default {
         ref="body"
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
       >
-        <table
-          class="fixed"
-          cellpadding="0"
-          cellspacing="0"
-        >
-          <tbody class="logs-body">
-            <template v-if="filtered.length">
-              <tr
-                v-for="line in filtered"
-                :key="line.id"
-              >
-                <td
-                  :key="line.id + '-time'"
-                  class="time"
-                  v-html="format(line.time)"
-                />
-                <td
-                  :key="line.id + '-msg'"
-                  class="msg"
-                  v-html="line.msg"
-                />
-              </tr>
-            </template>
-            <tr v-else-if="search">
-              <td
-                v-t="'wm.containerLogs.noMatch'"
-                colspan="2"
-                class="msg text-muted"
-              />
-            </tr>
-            <tr
-              v-else
-              v-t="'wm.containerLogs.noData'"
-              colspan="2"
-              class="msg text-muted"
-            />
-          </tbody>
-        </table>
+        <VirtualList
+          ref="virtualList"
+          data-key="id"
+          :data-sources="filtered"
+          :data-component="logItem"
+          class="virtual-list"
+          :keeps="100"
+        />
       </div>
     </template>
   </Window>
@@ -734,6 +723,11 @@ export default {
     > * {
       margin-bottom: 10px;
     }
+  }
+
+  .virtual-list {
+    overflow-y: auto;
+    height:100%;
   }
 
   @media only screen and (max-width: 1060px) {
