@@ -391,11 +391,7 @@ export default {
 
       if ( showK3s ) {
         if ( showRke2 ) {
-          out.push({
-            kind:  'group',
-            label: this.t('cluster.provider.k3s'),
-            badge: this.t('generic.techPreview')
-          });
+          out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
         }
 
         out.push(...allValidK3sVersions);
@@ -2259,10 +2255,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .k3s-tech-preview-info {
-    color: var(--error);
-    padding-top: 10px;
-  }
   .patch-version {
     margin-top: 5px;
   }
