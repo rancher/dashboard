@@ -177,6 +177,7 @@ nav:
     projects: Image Management
   manageUI: Cluster Manager UI
   auditLog: Audit Log
+  quotas: Quotas
 product:
   apps: Apps
   auth: Users & Authentication

@@ -52,8 +52,16 @@ export default class Project extends HybridModel {
       label:      this.t('nav.auditLog'),
     };
 
+    const resourceQuota = {
+      action:     'resourceQuota',
+      enabled:    true,
+      icon:       'icon icon-fw icon-globe',
+      label:      this.t('nav.quotas'),
+    };
+
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, auditLog);
+    insertAt(out, 0, resourceQuota);
 
     return out;
   }
@@ -214,6 +222,19 @@ export default class Project extends HybridModel {
         params: {
           cluster:  this.$rootGetters['currentCluster'].id,
           page:    'project-audit-log'
+        },
+        query: { [PROJECT_ID]: this.id.replace('/', ':') }
+      });
+    })();
+  }
+
+  get resourceQuota() {
+    return (() => {
+      this.currentRouter().push({
+        name:   'c-cluster-legacy-resourceQuota-page',
+        params: {
+          cluster:  this.$rootGetters['currentCluster'].id,
+          page:    'project-resource-quota'
         },
         query: { [PROJECT_ID]: this.id.replace('/', ':') }
       });
