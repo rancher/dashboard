@@ -1663,6 +1663,8 @@ cluster:
         kubeControllerManagerTitle: 补充的 Controller Manager 参数
         kubeApiServerTitle: 补充的 API server 参数
         kubeSchedulerTitle: 补充的 Scheduler 参数
+        kubePlaceholder: 例如： max-pods=110
+        protip: '参数格式为 <em>key=value</em>，将多行 <em>key=value</em> 键值对粘贴到输入框内，以便批量输入。'
     agentArgs:
       label: 如果内核参数与预期的 Kubelet 默认值不同，则抛出错误。
   banner:

@@ -2194,10 +2194,20 @@ export default {
                     :show-remove="false"
                     :initial-empty-row="true"
                   />
-                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}</h3>
+                  <h3>
+                    {{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}
+                    <i
+                      v-tooltip="t('cluster.advanced.argInfo.machineSelector.protip', null, true)"
+                      class="icon icon-info"
+                    />
+                  </h3>
                 </template>
                 <h3 v-else>
                   {{ advancedTitleAlt }}
+                  <i
+                    v-tooltip="t('cluster.advanced.argInfo.machineSelector.protip', null, true)"
+                    class="icon icon-info"
+                  />
                 </h3>
 
                 <ArrayList
@@ -2205,6 +2215,7 @@ export default {
                   :mode="mode"
                   :add-label="t('cluster.advanced.argInfo.machineSelector.listLabel')"
                   :initial-empty-row="!!row.value.machineLabelSelector"
+                  :value-placeholder="t('cluster.advanced.argInfo.machineSelector.kubePlaceholder')"
                 />
               </template>
             </ArrayListGrouped>
@@ -2214,25 +2225,47 @@ export default {
               :label="t('cluster.advanced.argInfo.machineSelector.bannerLabel')"
             />
 
+            <h3>
+              {{ t('cluster.advanced.argInfo.machineSelector.kubeControllerManagerTitle') }}
+              <i
+                v-tooltip="t('cluster.advanced.argInfo.machineSelector.protip', null, true)"
+                class="icon icon-info"
+              />
+            </h3>
             <ArrayList
               v-if="serverArgs['kube-controller-manager-arg']"
               v-model="serverConfig['kube-controller-manager-arg']"
               :mode="mode"
-              :title="t('cluster.advanced.argInfo.machineSelector.kubeControllerManagerTitle')"
               class="mb-20"
+              :value-placeholder="t('cluster.advanced.argInfo.machineSelector.kubePlaceholder')"
             />
+
+            <h3>
+              {{ t('cluster.advanced.argInfo.machineSelector.kubeApiServerTitle') }}
+              <i
+                v-tooltip="t('cluster.advanced.argInfo.machineSelector.protip', null, true)"
+                class="icon icon-info"
+              />
+            </h3>
             <ArrayList
               v-if="serverArgs['kube-apiserver-arg']"
               v-model="serverConfig['kube-apiserver-arg']"
               :mode="mode"
-              :title="t('cluster.advanced.argInfo.machineSelector.kubeApiServerTitle')"
               class="mb-20"
+              :value-placeholder="t('cluster.advanced.argInfo.machineSelector.kubePlaceholder')"
             />
+            <h3>
+              {{ t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle') }}
+              <i
+                v-tooltip="t('cluster.advanced.argInfo.machineSelector.protip', null, true)"
+                class="icon icon-info"
+              />
+            </h3>
             <ArrayList
               v-if="serverArgs['kube-scheduler-arg']"
               v-model="serverConfig['kube-scheduler-arg']"
               :mode="mode"
-              :title="t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle')"
+              :value-placeholder="t('cluster.advanced.argInfo.machineSelector.kubePlaceholder')"
             />
           </template>
           <template v-if="agentArgs['protect-kernel-defaults']">

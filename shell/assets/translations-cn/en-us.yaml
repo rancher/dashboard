@@ -1650,6 +1650,8 @@ cluster:
         kubeControllerManagerTitle: Additional Controller Manager Args
         kubeApiServerTitle: Additional API Server Args
         kubeSchedulerTitle: Additional Scheduler Args
+        kubePlaceholder: e.g. max-pods=110
+        protip: 'The parameter format is <em>key=value</em>，Paste lines of <em>key=value</em> into any list field for easy bulk entry.'
     agentArgs:
       label: Raise error if kernel parameters are different than the expected kubelet defaults
   banner:
