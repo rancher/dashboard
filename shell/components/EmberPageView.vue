@@ -24,13 +24,38 @@ export default {
       page
     };
   },
+
+  computed: {
+    path() {
+      const page = this.currentPage;
+      const pagePath = this.pages[page];
+
+      if (!pagePath) {
+        return '';
+      }
+      const query = this.$route.query;
+      const q = Object.entries(query).map(e => `${ e[0] }=${ e[1] }`).join('&');
+
+      return `${ pagePath }${ q ? `?${ q }` : '' }`;
+    },
+
+    currentPage() {
+      return this.$route.params.page;
+    },
+    forceNew() {
+      const page = this.currentPage;
+      const pagePath = this.pages[page];
+
+      return pagePath?.startsWith('/meta/auditui/');
+    }
+  },
 };
 </script>
 
 <template>
-  <EmberPage v-if="src" :src="src" />
+  <EmberPage v-if="path" :src="path" :force-new="forceNew" />
   <div v-else>
     <h1>{{ t('generic.notFound') }}</h1>
-    <h2>{{ page }}</h2>
+    <h2>{{ currentPage }}</h2>
   </div>
 </template>
