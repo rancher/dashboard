@@ -16,6 +16,7 @@ export default {
         'image-repo-config':     '/custom-extension/image-repo/image-router',
         'image-repo-projects':   '/custom-extension/image-repo/projects-router',
         'image-repo-logs':       '/custom-extension/image-repo/logs-router',
+        'global-audit-log':      '/custom-extension/audit-log',
       }
     };
   }

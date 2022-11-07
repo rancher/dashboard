@@ -615,6 +615,7 @@ export default function(dir, _appConfig) {
 
       '/c/*/vlansubnet':    proxyOpts('https://127.0.0.1:8000'),
       '/custom-extension/': proxyOpts('https://127.0.0.1:8000'),
+      '/c/*/audit-log':     proxyOpts('https://127.0.0.1:8000'),
     },
 
     // Nuxt server

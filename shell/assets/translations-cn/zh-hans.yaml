@@ -180,6 +180,7 @@ nav:
     logs: 日志
     projects: 镜像管理
   manageUI: 集群管理 UI
+  auditLog: 审计日志
 product:
   apps: 应用
   auth: 用户 & 认证

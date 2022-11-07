@@ -176,6 +176,7 @@ nav:
     logs: Logs
     projects: Image Management
   manageUI: Cluster Manager UI
+  auditLog: Audit Log
 product:
   apps: Apps
   auth: Users & Authentication

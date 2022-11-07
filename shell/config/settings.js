@@ -71,6 +71,8 @@ export const SETTING = {
   FOOTER_URL:                           'ui-footer-url',
   UI_DEFAULT_LANDING:                   'ui-default-landing',
   DISABLE_PASSWORD_ENCRYPT:             'disable-password-encrypt',
+  AUDIT_LOG_SERVER_URL:                 'auditlog-server-url',
+  WHITELIST_DOMAIN:                     'whitelist-domain',
 };
 
 // These are the settings that are allowed to be edited via the UI
@@ -115,6 +117,7 @@ export const ALLOWED_SETTINGS = {
     },
   },
   [SETTING.DISABLE_PASSWORD_ENCRYPT]: { kind: 'boolean' },
+  [SETTING.AUDIT_LOG_SERVER_URL]:     { kind: 'url' },
 };
 
 export const DEFAULT_PERF_SETTING = {
