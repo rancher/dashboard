@@ -287,7 +287,10 @@ export default {
       delete this.chartValues?.global?.systemDefaultRegistry;
       delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
-      this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
+      const isImported = this.currentCluster?.providerForEmberParam === 'import';
+      const clusterDefaultRegistry = isImported ? this.currentCluster?.spec?.systemDefaultRegistry : '';
+
+      this.customRegistrySetting = clusterDefaultRegistry || existingRegistry || this.defaultRegistrySetting;
       this.showCustomRegistryInput = !!this.customRegistrySetting;
 
       /* Serializes an object as a YAML document */
