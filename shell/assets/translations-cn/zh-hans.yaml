@@ -1933,6 +1933,7 @@ cluster:
     v2: RKE2/K3s
   validation:
     iamInstanceProfileName: 如果选择了 Amazon 云提供商，则必须为每个主机池定义“IAM 实例配置文件名称”。
+  k8sAuditLog: 查看 API Server 审计日志
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{total} {units} {suffix} 中的 {useful}"

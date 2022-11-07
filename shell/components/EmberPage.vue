@@ -276,6 +276,7 @@ export default {
 
         // Ensure iframe gets the latest theme if it has changed
         this.notifyTheme(this.theme);
+        this.syncLocale();
 
         const currentUrl = iframeEl.contentWindow.location.pathname;
         const src = this.trimURL(this.src);
@@ -504,6 +505,10 @@ export default {
       const iframeEl = findEmberPage();
 
       iframeEl?.contentWindow?.ls('user-language')?.sideLoadLanguage(this.locale);
+      iframeEl?.contentWindow.postMessage({
+        action: 'set-lang',
+        name:   this.locale
+      });
     }
   }
 };

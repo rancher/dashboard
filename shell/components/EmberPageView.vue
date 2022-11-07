@@ -42,6 +42,7 @@ export default {
     currentPage() {
       return this.$route.params.page;
     },
+
     forceNew() {
       const page = this.currentPage;
       const pagePath = this.pages[page];
