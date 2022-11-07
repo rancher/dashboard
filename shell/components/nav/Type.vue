@@ -61,6 +61,14 @@ export default {
         const typePath = this.$router.resolve(this.type.route)?.route?.fullPath;
         const legacyPaths = [
           '/cluster-vlansubnet',
+          '/cluster-audit-log',
+          '/project-audit-log',
+          '/workload-audit-log',
+          '/project-resource-quota',
+          '/image-repo-config',
+          '/image-repo-projects',
+          '/image-repo-logs',
+          '/global-audit-log',
         ];
 
         if (/^(\/c|p|g|n\/)/.test(typePath) && legacyPaths.some(p => typePath?.indexOf(p) > -1)) {
