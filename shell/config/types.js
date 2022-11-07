@@ -121,6 +121,7 @@ export const MONITORING = {
     RECEIVER_EMAIL:                   'monitoring.coreos.com.receiver.email',
     RECEIVER_SLACK:                   'monitoring.coreos.com.receiver.slack',
     RECEIVER_WEBHOOK:                 'monitoring.coreos.com.receiver.webhook',
+    RECEIVER_PANDARIA_WEBHOOK:        'monitoring.coreos.com.receiver.webhook',
     RECEIVER_PAGERDUTY:               'monitoring.coreos.com.receiver.pagerduty',
     RECEIVER_OPSGENIE:                'monitoring.coreos.com.receiver.opsgenie',
     RECEIVER_HTTP_CONFIG:             'monitoring.coreos.com.receiver.httpconfig',

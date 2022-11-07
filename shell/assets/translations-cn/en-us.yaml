@@ -3188,6 +3188,29 @@ monitoringReceiver:
       placeholder: e.g. http://my-proxy/
     sendResolved:
       label: Enable send resolved alerts
+  pandariaWebhook:
+    add:
+      aliyunSMS: Aliyun SMS
+      dingTalk: Ding Talk
+      msTeams: MS Teams
+      serviceNow: Service Now
+    aliyunSMS:
+      accessKeyIdLabel: Access Key
+      accessKeyIdPlaceholder: Aliyun Access Key
+      accessKeySecretLabel: Access Key Secret
+      accessKeySecretPlaceholder: Aliyun Access Key Secret
+      phoenNumberButton: Add Phone Number
+      phoneNumberLabel: Phone Number
+      phoneNumberPlaceholder: e.g. 112314
+      signatureNameLabel: Signature Name
+      signatureNamePlaceholder: e.g. mysign
+      templateCodeLabel: Template Code
+      templateCodePlaceholder: e.g. mytemplate
+    banner: To use Ding Talk, AliCloud SMS or MS Teams you will need to have <pre class="inline-block m-0 p-0 vertical-middle">pandaria-alerting-drivers</pre> installed first.
+    dingTalk:
+      secretLabel: Secret
+      secretPlaceholder: Only for webhook with sign enabled
+    label: Pandaria Webhook
 alertmanagerConfigReceiver:
   secretKeyId: Key Id from Secret
   name: Receiver Name

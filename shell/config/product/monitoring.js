@@ -28,7 +28,7 @@ export function init(store) {
     PROMETHEUSRULE,
     PROMETHEUS,
     SPOOFED: {
-      RECEIVER, RECEIVER_SPEC, RECEIVER_EMAIL, RECEIVER_SLACK, RECEIVER_WEBHOOK, RECEIVER_PAGERDUTY, RECEIVER_OPSGENIE, RECEIVER_HTTP_CONFIG, RESPONDER,
+      RECEIVER, RECEIVER_SPEC, RECEIVER_EMAIL, RECEIVER_SLACK, RECEIVER_WEBHOOK, RECEIVER_PANDARIA_WEBHOOK, RECEIVER_PAGERDUTY, RECEIVER_OPSGENIE, RECEIVER_HTTP_CONFIG, RESPONDER,
       ROUTE, ROUTE_SPEC
     }
   } = MONITORING;
@@ -118,6 +118,15 @@ export function init(store) {
       },
       {
         id:              RECEIVER_WEBHOOK,
+        type:            'schema',
+        resourceFields:  {
+          url:           { type: 'string' },
+          http_config:   { type: RECEIVER_HTTP_CONFIG },
+          send_resolved: { type: 'boolean' }
+        }
+      },
+      {
+        id:              RECEIVER_PANDARIA_WEBHOOK,
         type:            'schema',
         resourceFields:  {
           url:           { type: 'string' },

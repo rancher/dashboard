@@ -3206,6 +3206,29 @@ monitoringReceiver:
       placeholder: 例如：http://my-proxy/
     sendResolved:
       label: 發送已解決告警
+  pandariaWebhook:
+    add:
+      aliyunSMS: 阿里雲短信
+      dingTalk: 釘釘
+      msTeams: MS Teams
+      serviceNow: Service Now
+    aliyunSMS:
+      accessKeyIdLabel: 訪問秘鑰
+      accessKeyIdPlaceholder: 阿里雲訪問秘鑰
+      accessKeySecretLabel: 訪問秘鑰令牌
+      accessKeySecretPlaceholder: 阿里雲訪問秘鑰所對應的令牌
+      phoenNumberButton: 添加手機號
+      phoneNumberLabel: 手機號
+      phoneNumberPlaceholder: 你要添加的手機號碼
+      signatureNameLabel: 簽名名稱
+      signatureNamePlaceholder: 簽名管理中配置的簽名名稱
+      templateCodeLabel: 模版 CODE
+      templateCodePlaceholder: 模版管理中配置的模版對應的 CODE
+    banner: 要使用Ding Talk、阿里雲短信或MS Teams，你需要先安裝<pre class="inline-block m-0 p-0 vertical-middle">pandaria-alerting-drivers</pre>。
+    dingTalk:
+      secretLabel: 密鑰
+      secretPlaceholder: 僅在選擇“加簽”時需要填寫
+    label: Pandaria Webhook
 alertmanagerConfigReceiver:
   secretKeyId: 密鑰 ID
   name: 接收器名稱

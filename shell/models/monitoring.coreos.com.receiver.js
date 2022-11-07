@@ -2,6 +2,7 @@ import { canCreate, updateConfig } from '@shell/utils/alertmanagerconfig';
 import { isEmpty } from '@shell/utils/object';
 import { MONITORING } from '@shell/config/types';
 import jsyaml from 'js-yaml';
+import { cloneDeep, uniq } from 'lodash';
 import SteveModel from '@shell/plugins/steve/steve-class';
 
 export const RECEIVERS_TYPES = [
@@ -45,6 +46,15 @@ export const RECEIVERS_TYPES = [
     addButton:    'webhook.add'
   },
   {
+    name:         'pandariaWebhook',
+    label:        'monitoringReceiver.pandariaWebhook.label',
+    title:        'monitoringReceiver.pandariaWebhook.title',
+    key:          'pandaria_webhook_configs',
+    logo:         require(`~shell/assets/images/vendor/webhook.svg`),
+    banner:       'pandariaWebhook.banner',
+    addButton:    'pandariaWebhook.add'
+  },
+  {
     name:  'custom',
     label: 'monitoringReceiver.custom.label',
     title: 'monitoringReceiver.custom.title',
@@ -53,6 +63,17 @@ export const RECEIVERS_TYPES = [
     logo:  require(`~shell/assets/images/vendor/custom.svg`)
   },
 ];
+
+// Pandaria extra webhook
+export const ALERTINGDRIVERNEEDUPDATE = [
+  'DINGTALK',
+  'MICROSOFT_TEAMS',
+  'ALIYUN_SMS',
+];
+export const PANDARIADEFAULTTYPE = 'DINGTALK';
+export const PANDARIAWEBHOOKKEY = 'pandaria_webhook_configs';
+export const WEBHOOKKEY = 'webhook_configs';
+export const PANDARIAWEBHOOKURL = 'http://alerting-drivers.cattle-monitoring-system.svc:9094/';
 
 export default class Receiver extends SteveModel {
   get removeSerially() {
@@ -67,18 +88,35 @@ export default class Receiver extends SteveModel {
 
   async save() {
     const errors = await this.validationErrors(this);
+    const pandariaWebhookErrors = this.validationPandariaErrors();
+
+    errors.push(...pandariaWebhookErrors);
 
     if (!isEmpty(errors)) {
       return Promise.reject(errors);
     }
 
     await this.updateReceivers((currentReceivers) => {
+      if (!Array.isArray(currentReceivers)) {
+        currentReceivers = [];
+      }
       const existingReceiver = currentReceivers.find(r => r.name === this.spec?.name);
+      const cloneSpec = cloneDeep(this.spec);
+
+      // Assign pandaria-webhook config to webhook
+      if (cloneSpec?.[PANDARIAWEBHOOKKEY]?.length > 0) {
+        if (!cloneSpec[WEBHOOKKEY]) {
+          cloneSpec[WEBHOOKKEY] = [];
+        }
+        cloneSpec[PANDARIAWEBHOOKKEY].forEach((item) => {
+          cloneSpec[WEBHOOKKEY].push(item);
+        });
+      }
 
       if (existingReceiver) {
-        Object.assign(existingReceiver, this.spec);
+        Object.assign(existingReceiver, cloneSpec);
       } else {
-        currentReceivers.push(this.spec);
+        currentReceivers.push(cloneSpec);
       }
 
       return currentReceivers;
@@ -191,5 +229,27 @@ export default class Receiver extends SteveModel {
     }
 
     return null;
+  }
+
+  // Pandaria validate PANDARIAWEBHOOKKEY
+  validationPandariaErrors() {
+    const errors = [];
+
+    if (this.spec?.[PANDARIAWEBHOOKKEY]?.length > 0) {
+      this.spec[PANDARIAWEBHOOKKEY].forEach((item) => {
+        if (item.type === 'DINGTALK' || item.type === 'MICROSOFT_TEAMS') {
+          !item.webhook_url && errors.push(this.t('validation.required', { key: 'Webhook URL' }));
+        }
+
+        if (item.type === 'ALIYUN_SMS') {
+          !item.http_config?.access_key_id && errors.push(this.t('validation.required', { key: 'ALIYUN_SMS access_key_id' }));
+          !item.http_config?.access_key_secret && errors.push(this.t('validation.required', { key: 'ALIYUN_SMS access_key_secret' }));
+          !item.http_config?.template_code && errors.push(this.t('validation.required', { key: 'ALIYUN_SMS template_code' }));
+          !item.http_config?.sign_name && errors.push(this.t('validation.required', { key: 'ALIYUN_SMS sign_name' }));
+        }
+      });
+    }
+
+    return uniq(errors);
   }
 }
