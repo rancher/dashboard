@@ -1,8 +1,9 @@
 <script>
-import KeyValue from '@shell/components/form/KeyValue';
+import KeyValue from '@shell/components/Form/KeyValue';
+import { ToggleSwitch } from '@components/form/ToggleSwitch';
 
 export default {
-  components: { KeyValue },
+  components: { KeyValue, ToggleSwitch },
 
   props: {
     value: {
@@ -41,6 +42,15 @@ export default {
     }
   },
 
+  data() {
+    return {
+      /**
+       * Toggle system labels into the list
+       */
+      toggler: false
+    };
+  },
+
   computed: {
     containerClass() {
       return `${ this.displaySideBySide ? 'row' : '' } ${ this.defaultContainerClass }`.trim();
@@ -48,26 +58,47 @@ export default {
 
     sectionClass() {
       return `${ this.displaySideBySide ? 'col span-6' : 'row' } ${ this.defaultSectionClass }`.trim();
-    }
+    },
   }
 };
 </script>
 <template>
-  <div :class="containerClass">
-    <div :class="sectionClass">
-      <KeyValue
-        key="labels"
-        :value="value.labels"
-        :add-label="t('labels.addLabel')"
-        :mode="mode"
-        :title="t('labels.labels.title')"
-        :title-protip="labelTitleTooltip"
-        :read-allowed="false"
-        :value-can-be-empty="true"
-        @input="value.setLabels($event)"
-      />
+  <div
+    class="labels"
+    :class="containerClass"
+  >
+    <!-- Labels -->
+    <div class="labels__label">
+      <div class="labels__label__header">
+        <h3>
+          <t k="labels.labels.title" />
+        </h3>
+        <ToggleSwitch
+          v-model="toggler"
+          :on-label="t('labels.labels.show')"
+          off-value="toggler"
+          on-value="toggler"
+        />
+      </div>
+      <p class="helper-text mt-20 mb-20">
+        <t k="labels.labels.description" />
+      </p>
+      <div :class="sectionClass">
+        <KeyValue
+          key="labels"
+          :value="value.labels"
+          :add-label="t('labels.addLabel')"
+          :mode="mode"
+          :title-protip="labelTitleTooltip"
+          :read-allowed="false"
+          :value-can-be-empty="true"
+          @input="value.setLabels($event)"
+        />
+      </div>
     </div>
     <div class="spacer" />
+
+    <!-- Annotations -->
     <div :class="sectionClass">
       <KeyValue
         key="annotations"
@@ -84,6 +115,16 @@ export default {
   </div>
 </template>
 
-<style scoped>
-
+<style lang="scss" scoped>
+.labels {
+  &__label {
+    &__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1em;
+    }
+  }
+}
 </style>
