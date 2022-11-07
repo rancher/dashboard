@@ -69,6 +69,7 @@ export const SETTING = {
   UI_LOGIN_LANDSCAPE:                   'ui-login-landscape',
   FOOTER_TEXT:                          'ui-footer-text',
   FOOTER_URL:                           'ui-footer-url',
+  UI_DEFAULT_LANDING:                   'ui-default-landing',
 };
 
 // These are the settings that are allowed to be edited via the UI
@@ -105,6 +106,13 @@ export const ALLOWED_SETTINGS = {
   [SETTING.UI_SESSION_LOGOUT_MINUTES]: { value: '30' },
   [SETTING.FOOTER_TEXT]:               {},
   [SETTING.FOOTER_URL]:                { kind: 'url' },
+  [SETTING.UI_DEFAULT_LANDING]:        {
+    kind:    'enum-map',
+    options: {
+      ember: 'Cluster Manager',
+      vue:   'Cluster Explorer'
+    },
+  },
 };
 
 export const DEFAULT_PERF_SETTING = {
