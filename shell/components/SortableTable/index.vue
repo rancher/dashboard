@@ -1311,6 +1311,7 @@ export default {
       display: flex;
       align-items: center;
       position: relative;
+      height: 20px;
 
       &:nth-child(4n+1) {
         border-color: var(--success);
