@@ -140,7 +140,6 @@ export default class HciSetting extends HarvesterResource {
       out.push( {
         nullable:   false,
         path:       'value',
-        required:   true,
         type:       'string',
         validators: ['backupTarget'],
       });

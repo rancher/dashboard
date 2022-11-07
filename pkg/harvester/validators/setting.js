@@ -1,6 +1,10 @@
 export function backupTarget(value, getters, errors, validatorArgs) {
   const t = getters['i18n/t'];
 
+  if (!value) {
+    return errors;
+  }
+
   const parseValue = JSON.parse(value);
   const type = parseValue.type;
 

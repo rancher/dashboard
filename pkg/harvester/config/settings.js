@@ -28,7 +28,9 @@ export const HCI_SETTING = {
 };
 
 export const HCI_ALLOWED_SETTINGS = {
-  [HCI_SETTING.BACKUP_TARGET]: { kind: 'json', from: 'import' },
+  [HCI_SETTING.BACKUP_TARGET]: {
+    kind: 'json', from: 'import', canReset: true
+  },
   [HCI_SETTING.LOG_LEVEL]:     {
     kind:    'enum',
     options: ['info', 'debug', 'trace']

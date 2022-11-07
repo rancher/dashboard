@@ -22,7 +22,7 @@ export default {
     try {
       parseDefaultValue = JSON.parse(this.value.value);
     } catch (error) {
-      parseDefaultValue = JSON.parse(this.value.default);
+      parseDefaultValue = { type: '', endpoint: '' };
     }
 
     if (!parseDefaultValue.type) {
@@ -72,9 +72,16 @@ export default {
   watch: {
     value: {
       handler(neu) {
-        const parseDefaultValue = JSON.parse(neu.value);
+        let parseDefaultValue;
+
+        try {
+          parseDefaultValue = JSON.parse(neu.value);
+        } catch (err) {
+          parseDefaultValue = { type: '', endpoint: '' };
+        }
 
         this.$set(this, 'parseDefaultValue', parseDefaultValue);
+        this.update();
       },
       deep: true
     }
@@ -97,8 +104,18 @@ export default {
 
       const value = JSON.stringify(this.parseDefaultValue);
 
-      this.$set(this.value, 'value', value);
+      if (!this.parseDefaultValue.type) {
+        this.$delete(this.value, 'value');
+      } else {
+        this.$set(this.value, 'value', value);
+      }
     },
+
+    useDefault() {
+      const parseDefaultValue = { type: '', endpoint: '' };
+
+      this.$set(this, 'parseDefaultValue', parseDefaultValue);
+    }
   }
 };
 </script>

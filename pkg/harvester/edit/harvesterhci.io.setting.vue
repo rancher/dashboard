@@ -147,6 +147,10 @@ export default {
       } else {
         this.value.value = this.value.default || '';
       }
+
+      if (typeof this.$refs.settingComp?.useDefault === 'function') {
+        this.$refs.settingComp.useDefault();
+      }
     }
   }
 };
@@ -185,6 +189,7 @@ export default {
         <component
           :is="customComponent"
           v-if="hasCustomComponent"
+          ref="settingComp"
           v-model="value"
           :register-before-hook="registerBeforeHook"
           :mode="mode"
