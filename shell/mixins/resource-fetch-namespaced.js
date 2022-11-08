@@ -6,7 +6,7 @@ import { mapGetters } from 'vuex';
 export default {
 
   computed: {
-    ...mapGetters(['currentCluster', 'isSingleNamespace']),
+    ...mapGetters(['currentProduct', 'currentCluster', 'isSingleNamespace']),
 
     /**
      * Does the user need to update the filter to supply a single namespace?
@@ -39,7 +39,7 @@ export default {
         return false;
       }
 
-      return this.__areResourcesNamespaced && this.__areResourcesTooMany;
+      return !this.currentProduct.showWorkspaceSwitcher && this.__areResourcesNamespaced && this.__areResourcesTooMany;
     },
 
     /**
