@@ -78,6 +78,11 @@ export default {
     ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
+    ...mapGetters({ isAdmin: 'auth/isAdmin', me: 'auth/me' }),
+
+    harborSyncComplete() {
+      return this.me?.annotations?.['management.harbor.pandaria.io/synccomplete'];
+    },
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
@@ -269,6 +274,20 @@ export default {
     },
 
     product(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
+    },
+
+    isAdmin(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
+    },
+
+    harborSyncComplete(a, b) {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
