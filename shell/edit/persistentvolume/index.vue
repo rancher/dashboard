@@ -80,34 +80,13 @@ export default {
     const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
 
     return {
-      secondaryResourceData: {
-        namespace: null,
-        data:      {
-          [STORAGE_CLASS]: {
-            applyTo: [
-              {
-                var:         'storageClassOptions',
-                parsingFunc: (data) => {
-                  const storageClassOptions = data.map(s => ({
-                    label: s.metadata.name,
-                    value: s.metadata.name
-                  }));
-
-                  storageClassOptions.unshift(this.NONE_OPTION);
-
-                  return storageClassOptions;
-                }
-              }
-            ]
-          },
-        }
-      },
-      storageClassOptions: [],
-      currentClaim:        null,
+      secondaryResourceData: this.secondaryResourceDataConfig(),
+      storageClassOptions:   [],
+      currentClaim:          null,
       plugin,
       NONE_OPTION,
       NODE,
-      initialNodeAffinity: clone(this.value.spec.nodeAffinity),
+      initialNodeAffinity:   clone(this.value.spec.nodeAffinity),
     };
   },
 
@@ -175,6 +154,30 @@ export default {
   },
 
   methods: {
+    secondaryResourceDataConfig() {
+      return {
+        namespace: null,
+        data:      {
+          [STORAGE_CLASS]: {
+            applyTo: [
+              {
+                var:         'storageClassOptions',
+                parsingFunc: (data) => {
+                  const storageClassOptions = data.map(s => ({
+                    label: s.metadata.name,
+                    value: s.metadata.name
+                  }));
+
+                  storageClassOptions.unshift(this.NONE_OPTION);
+
+                  return storageClassOptions;
+                }
+              }
+            ]
+          },
+        }
+      };
+    },
     checkboxSetter(key, value) {
       if (value) {
         this.value.spec.accessModes.push(key);

@@ -77,31 +77,7 @@ export default {
     const defaultTab = this.$route.query[FOCUS] || null;
 
     return {
-      secondaryResourceData: {
-        namespace: this.value?.metadata?.namespace || null,
-        data:      {
-          [PV]: {
-            applyTo: [
-              { var: 'persistentVolumes' },
-              {
-                var:         'persistentVolumeOptions',
-                parsingFunc: (data) => {
-                  return data
-                    .map((s) => {
-                      const status = s.status.phase === 'Available' ? '' : ` (${ s.status.phase })`;
-
-                      return {
-                        label: `${ s.metadata.name }${ status }`,
-                        value: s.metadata.name
-                      };
-                    })
-                    .sort((l, r) => l.label.localeCompare(r.label));
-                }
-              }
-            ]
-          },
-        }
-      },
+      secondaryResourceData:   this.secondaryResourceDataConfig(),
       sourceOptions,
       source:                  this.value.spec.volumeName ? sourceOptions[1].value : sourceOptions[0].value,
       immutableMode:           this.realMode === _CREATE ? _CREATE : _VIEW,
@@ -178,6 +154,33 @@ export default {
     }
   },
   methods: {
+    secondaryResourceDataConfig() {
+      return {
+        namespace: this.value?.metadata?.namespace || null,
+        data:      {
+          [PV]: {
+            applyTo: [
+              { var: 'persistentVolumes' },
+              {
+                var:         'persistentVolumeOptions',
+                parsingFunc: (data) => {
+                  return data
+                    .map((s) => {
+                      const status = s.status.phase === 'Available' ? '' : ` (${ s.status.phase })`;
+
+                      return {
+                        label: `${ s.metadata.name }${ status }`,
+                        value: s.metadata.name
+                      };
+                    })
+                    .sort((l, r) => l.label.localeCompare(r.label));
+                }
+              }
+            ]
+          },
+        }
+      };
+    },
     checkboxSetter(key, value) {
       if (value) {
         this.value.spec.accessModes.push(key);
