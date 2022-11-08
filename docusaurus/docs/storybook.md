@@ -35,7 +35,7 @@ import { Canvas, Meta, Story } from '@storybook/addon-docs';
 
 import Checkbox from './Checkbox.vue';
 
-<Meta title="MDX/Checkbox" component={Checkbox} />
+<Meta title="Components/Checkbox" component={Checkbox} />
 
 <!-- Add templet for checkbox stories -->
 export const Template = (args, { argTypes }) => ({
@@ -100,7 +100,7 @@ For more details refer to [storybook official documentation](https://storybook.j
 
 <!-- PercentageBar.stories.js -->
 
-import PercentageBar from '@shell/components/PercentageBar';
+import PercentageBar from './Components/PercentageBar';
 
 
 export default {
