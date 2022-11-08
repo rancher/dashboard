@@ -13,9 +13,9 @@ installed by administrators. Extensions are provided as Helm charts. A new top-l
 
 - Authentication for OCI-based registries is now supported. Note that the structure of the fleet.yaml is the same and the credentials are provided as a Kubernetes secret, which is described in the Private Helm Repo box in the Repo Structure docs.
 
-### k3s provisioning is GA
+### k3s provisioning is GA (x86 Only)
 
-- You can now provision clusters that use k3s. 
+- Provisioning K3s clusters on x86 clusters has graduated to GA! The fully compliant Kubernetes distribution is simplified, secure and at less than 60mb is perfect for Edge.
 
 ---
 title: What's New in 2.6
