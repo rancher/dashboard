@@ -40,7 +40,7 @@ export default {
     }
     this.userChangeOnLogin = this.mustChangePassword;
 
-    const disabledEncryption = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PWD_ENCRYPT);
+    const disabledEncryption = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PASSWORD_ENCRYPT);
 
     this.disabledEncryption = disabledEncryption;
   },

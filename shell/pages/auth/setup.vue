@@ -142,7 +142,7 @@ export default {
 
     const isFirstLogin = await calcIsFirstLogin(store);
     const mustChangePassword = await calcMustChangePassword(store);
-    const disabledEncryption = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PWD_ENCRYPT);
+    const disabledEncryption = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PASSWORD_ENCRYPT);
 
     return {
       productName,

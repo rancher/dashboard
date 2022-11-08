@@ -64,7 +64,7 @@ export default {
       firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
       plSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.PL);
       brand = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BRAND);
-      disabledEncryption = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PWD_ENCRYPT);
+      disabledEncryption = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PASSWORD_ENCRYPT);
       uiLoginLandscape = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_LOGIN_LANDSCAPE);
       footerText = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FOOTER_TEXT);
       footerUrl = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FOOTER_URL);
@@ -91,7 +91,7 @@ export default {
       disabledEncryption = await store.dispatch('rancher/find', {
         type: 'setting',
         id:   SETTING.BRAND,
-        opt:  { url: `/v3/settings/${ SETTING.DISABLE_PWD_ENCRYPT }` }
+        opt:  { url: `/v3/settings/${ SETTING.DISABLE_PASSWORD_ENCRYPT }` }
       });
 
       uiLoginLandscape = await store.dispatch('rancher/find', {
