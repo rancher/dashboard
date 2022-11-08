@@ -61,6 +61,10 @@ export default {
         return this.$store.getters['i18n/t']('keyValue.protip', null, true);
       },
     },
+    valueProtip: {
+      type:    String,
+      default: '',
+    },
     // For asMap=false, the name of the field that goes into the row objects
     keyName: {
       type:    String,
@@ -513,6 +517,7 @@ export default {
         </label>
         <label class="text-label">
           {{ valueLabel }}
+          <i v-if="valueProtip && !isView && addAllowed" v-tooltip="valueProtip" class="icon icon-info" />
         </label>
         <label v-for="c in extraColumns" :key="c">
           <slot :name="'label:'+c">{{ c }}</slot>

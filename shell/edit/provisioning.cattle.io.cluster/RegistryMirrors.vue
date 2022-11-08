@@ -56,13 +56,14 @@ export default {
     :as-map="false"
     key-label="Registry Hostname"
     key-name="hostname"
-    key-placeholder="e.g. docker.io or *"
+    :key-placeholder="t('registryMirror.keyPlaceholder')"
     value-label="Mirror Endpoints"
-    value-placeholder="e.g. a.registry.com:5000, b.registry.com:5000"
+    :value-placeholder="t('registryMirror.valuePlaceholder')"
     value-name="endpoints"
     :add-label="t('registryMirror.addLabel')"
     :mode="mode"
     :read-allowed="false"
+    :value-protip="t('registryMirror.valueProtip')"
     @input="update"
   >
     <template #title>

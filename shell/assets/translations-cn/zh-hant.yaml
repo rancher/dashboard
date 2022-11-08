@@ -6291,6 +6291,9 @@ registryMirror:
   header: Mirror
   toolTip: 'Mirror 可用來重定向來自一個倉庫的鏡像請求，使其來自你指定的端點列表。例如，你可以把 docker.io 指向到只和你的內部倉庫通信，而不是通過互聯網訪問實際的 DockerHub。'
   addLabel: 添加 Mirror
+  valueProtip: 鏡像端點應該包含協議頭
+  valuePlaceholder: 例如：https://a.registry.com:5000, https://b.registry.com:5000
+  keyPlaceholder: 例如：docker.io 或 *
 registryConfig:
   header: 倉庫驗證
   toolTip: '當需要從給定的鏡像倉庫主機名中拉取鏡像時，此信息將用於識別並驗證倉庫。'

@@ -6291,6 +6291,9 @@ registryMirror:
   header: Mirror
   toolTip: 'Mirror 可用来重定向来自一个仓库的镜像请求，使其来自你指定的端点列表。例如，你可以把 docker.io 指向到只和你的内部仓库通信，而不是通过互联网访问实际的 DockerHub。'
   addLabel: 添加 Mirror
+  valueProtip: 镜像端点应该包含协议头
+  valuePlaceholder: 例如：https://a.registry.com:5000, https://b.registry.com:5000
+  keyPlaceholder: 例如：docker.io 或 *
 registryConfig:
   header: 仓库验证
   toolTip: '当需要从给定的镜像仓库主机名中拉取镜像时，此信息将用于识别并验证仓库。'

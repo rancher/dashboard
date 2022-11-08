@@ -6163,6 +6163,9 @@ registryMirror:
   header: Mirrors
   toolTip: 'Mirrors can be used to redirect requests for images from one registry to actually come from a list of endpoints you specify instead.  For example you could point docker.io to always talk to your internal registry and instead of ever going to the actual DockerHub on the internet.'
   addLabel: Add Mirror
+  valueProtip: Mirror endpoints should contain protocol headers
+  valuePlaceholder: e.g. https://a.registry.com:5000, https://b.registry.com:5000
+  keyPlaceholder: e.g. docker.io or *
 registryConfig:
   header: Registry Authentication
   toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
