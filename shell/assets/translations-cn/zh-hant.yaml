@@ -1945,6 +1945,11 @@ clusterIndexPage:
     ram: 內存
     used: 已使用
     reserved: 已預留
+    units:
+      cores: |-
+        {count, plural,
+        =1 {核}
+        other {核}}
   header: 集羣儀表板
   resourceGauge:
     totalResources: 資源總額
