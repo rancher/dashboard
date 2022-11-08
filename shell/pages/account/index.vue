@@ -10,14 +10,14 @@ import { mapGetters } from 'vuex';
 
 import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
-import CopyToClipboardText from '@shell/components/CopyToClipboardText';
+import CopyToClipboardIcon from '@shell/components/CopyToClipboardIcon';
 
 const API_ENDPOINT = '/v3';
 
 export default {
   layout:     'plain',
   components: {
-    CopyToClipboardText, BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal
+    CopyToClipboardIcon, BackLink, Banner, PromptChangePassword, Loading, ResourceTable, Principal
   },
   mixins: [BackRoute],
   async fetch() {
@@ -168,7 +168,8 @@ export default {
         <h2 v-t="'accountAndKeys.apiKeys.title'" />
         <div class="api-url">
           <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
-          <CopyToClipboardText :text="apiUrl" />
+          <a :href="apiUrl" target="_blank"> {{ apiUrl }} </a>
+          <CopyToClipboardIcon :text="apiUrl" />
         </div>
       </div>
       <button v-if="apiKeySchema" class="btn role-primary add mb-20" @click="addKey">
