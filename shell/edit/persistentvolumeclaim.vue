@@ -41,7 +41,7 @@ export default {
   async fetch() {
     const storageClasses = await this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
 
-    if (this.$store.getters['management/canList'](PV)) {
+    if (this.$store.getters['cluster/canList'](PV)) {
       this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
     }
 
@@ -51,8 +51,8 @@ export default {
     this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || this.storageClassOptions[0]);
   },
   data() {
-    const canListPersistentVolumes = this.$store.getters['management/canList'](PV);
-    const canListStorageClasses = this.$store.getters['management/canList'](STORAGE_CLASS);
+    const canListPersistentVolumes = this.$store.getters['cluster/canList'](PV);
+    const canListStorageClasses = this.$store.getters['cluster/canList'](STORAGE_CLASS);
     const sourceOptions = [
       {
         label: this.t('persistentVolumeClaim.source.options.new'),
