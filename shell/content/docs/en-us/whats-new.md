@@ -13,6 +13,10 @@ installed by administrators. Extensions are provided as Helm charts. A new top-l
 
 - Authentication for OCI-based registries is now supported. Note that the structure of the fleet.yaml is the same and the credentials are provided as a Kubernetes secret, which is described in the Private Helm Repo box in the Repo Structure docs.
 
+### k3s provisioning is GA
+
+- You can now provision clusters that use k3s. 
+
 ---
 title: What's New in 2.6
 ---
