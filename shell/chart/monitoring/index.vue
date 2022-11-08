@@ -8,6 +8,7 @@ import Alerting from '@shell/chart/monitoring/alerting';
 import { Checkbox } from '@components/Form/Checkbox';
 import ClusterSelector from '@shell/chart/monitoring/ClusterSelector';
 import Grafana from '@shell/chart/monitoring/grafana';
+import Thanos from '@shell/chart/monitoring/thanos';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Loading from '@shell/components/Loading';
 import Prometheus from '@shell/chart/monitoring/prometheus';
@@ -22,6 +23,7 @@ export default {
     Checkbox,
     ClusterSelector,
     Grafana,
+    Thanos,
     LabeledInput,
     Loading,
     Prometheus,
@@ -296,6 +298,21 @@ export default {
     >
       <div>
         <Grafana
+          v-model="value"
+          :access-modes="accessModes"
+          :mode="mode"
+          :pvcs="pvcs"
+          :storage-classes="storageClasses"
+        />
+      </div>
+    </Tab>
+    <Tab
+      name="thanos"
+      :label="t('monitoring.tabs.thanos')"
+      :weight="96"
+    >
+      <div>
+        <Thanos
           v-model="value"
           :access-modes="accessModes"
           :mode="mode"

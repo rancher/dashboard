@@ -141,6 +141,7 @@ nav:
     Scheduling: 調度
     Storage: 存儲
     imageRepo: 鏡像倉庫
+    globalMonitoring: 全局監控
   ns:
     all: 所有命名空間
     clusterLevel: 集羣資源
@@ -182,6 +183,9 @@ nav:
   manageUI: 集羣管理 UI
   auditLog: 審計日誌
   quotas: 配額
+  globalMonitoring: 
+    label: 全局監控
+    dashboard: Dashboard
 product:
   apps: 應用
   auth: 用戶 & 認證
@@ -3102,6 +3106,12 @@ monitoring:
       receiver: 接收器
       repeatInterval: 重複間隔
   routesAndReceivers: 路由和接收器（已棄用）
+  thanos:
+    title: 配置 Thanos
+    sidecar:
+      label: 是否開啟 Thanos Sidecar
+    tls:
+      label: 是否開啟 TLS
   monitors: 監控
   projectMonitors: 項目監控
   alertmanagerConfig:
@@ -3150,6 +3160,7 @@ monitoring:
     grafana: Grafana
     prometheus: Prometheus
     projectMetrics: 項目指標
+    thanos: Thanos
   v1Warning: '當前 Monitoring 由 Cluster Manager 部署。如果你需要從啓用了 Monitoring 的舊版 {vendor} 遷移，請先在 Cluster Manager 中禁用 Monitoring，然後再在 Cluster Explorer 中安裝新版 {vendor} Monitoring Chart。'
   volume:
     modes:
@@ -7143,3 +7154,232 @@ rancher-nvidia-k8s-device-plugin:
   scheduleOptions:
     nodeSelector:
       title: 節點選擇器
+formReservation:
+  limitCpu:
+    label: "{component} CPU 限制"
+    placeholder: "例如: 1000"
+  limitMemory:
+    label: "{component} Memory 限制"
+    placeholder: "例如: 1000"
+  requestCpu:
+    label: "{component} CPU 預留"
+    placeholder: "例如: 1000"
+  requestMemory:
+    label: "{component} Memory 預留"
+    placeholder: "例如: 1000"
+globalMonitoringDashboard:
+  globalMonitoring: 
+    label: 全局監控
+    description: 多集羣監控
+  grafana: 
+    label: Grafana
+    description: Metrics 儀表盤
+  thanos: 
+    label: Prometheus Thanos
+    description: 集羣組件系統
+globalMonitoringPage:
+  cluster: 全局監控所在集羣
+  token:
+    label: 使用默認 token
+    custom: 
+      label: 自定義 token
+      placeholder: 請配置自定義 token
+  customAddress: 
+    add: 添加地址
+    otherHeader: 自定義其他地址
+    header: 自定義地址
+    placeholder: 例如：172.17.0.1:30901
+  enableMonitoring:
+    title: 監控端點
+    cluster: 集羣
+    warning: 配置刮取該下游集羣prometheus數據的端點，仍需要在下游部署開啟了thanos sidecar的監控
+  confirmDisable: 你確定嗎? 再次單擊將禁用全局監控
+  customAnswers:
+    detail: 配置自定義的應答。
+    title: 自定義應答
+    answer: 
+      label: 應答
+    addAnswerLabel: 添加應答
+  disable: 禁用
+  disabled: 全局監控未啓用。點擊啓用來激活全局監控。 如果在集羣中啓用了集羣監控並且版本不低於<code>v0.0.7000</code>，你將可以通過全局監控查看多個集羣的指標。
+  enableActionLabel: 啓用
+  enabled: 全局監控已啓用。如果在集羣中啓用了集羣監控並且版本不低於<code>v0.0.7000</code>，你可以通過全局監控查看多個集羣的指標。
+  globalMonitoringClusterUnavailable: 集羣 {clusterName} 不可用。
+  grafana:
+    header: 監控大屏
+    detail: 全局 Grafana 和{appName}監控大屏的配置。
+    title: 
+      label: 標題
+      placeholder: 例如 grafana
+    tabTitle: 
+      label: 選項卡標題
+      placeholder: 例如 grafana
+    logo: 
+      label: logo
+      placeholder: 請輸入 logo 地址
+    favicon: 
+      label: favicon
+      placeholder: 請輸入 favicon 地址
+    serverUrl: 
+      label: serverUrl
+      placeholder: 例如 http://rancher.cattle-system
+    enableGrafanaSidecar:
+      label: Grafana 啓用初始化 Sidecar
+    enablePersistence:
+      label: Grafana 啓用持久化存儲
+    serviceType:
+      label: Grafana UI SVC 類型
+    size:
+      label: Grafana 持久化存儲大小
+      placeholder: "例如: 10Gi"
+    storageClass:
+      label: Grafana 默認存儲類
+      placeholder: 使用默認的類
+  header: 全局監控（實驗性）
+  links:
+    globalMonitoring:
+      label: 監控大屏
+    grafana:
+      label: Grafana UI
+    thanos:
+      label: Thanos UI
+  noAvailableClusters: 沒有可用集羣，請先添加一個集羣。
+  noTemplate: 無法加載全局監控模版
+  nodeSelector:
+    addSelectorLabel: 添加選擇器
+    helpText: 選擇要運行 {component} 工作負載的節點。
+  notReady: 正在安裝全局監控到指定集羣的系統項目裏...
+  objectStorageWarning: 每個集羣中的 Thanos sidecar 都需要對象存儲的密鑰。所以這些集羣的管理員也可以在集羣的系統項目裏看到你所配置的存儲的密鑰。
+  store:
+    aliyunoss:
+      accessKey:
+        label: 阿里雲 Access Key
+        placeholder: 你的阿里雲 access key
+      bucketName:
+        label: 阿里雲存儲桶名稱
+        placeholder: 例如：backups
+      endpoint:
+        beijing: 華北 2（北京）
+        chengdu: 西南 1（成都）
+        east-1: 美國東部 1 （弗吉尼亞）
+        eu-central-1: 歐洲中部 1 （法蘭克福）
+        eu-west-1: 英國（倫敦）
+        hangzhou: 華東 1（杭州）
+        heyuan: 華南 2（河源）
+        hongkong: 中國（香港）
+        huhehaote: 華北 5（呼和浩特）
+        label: 阿里雲區域
+        me-east-1: 中東東部 1 （迪拜）
+        northeast-1: 亞太東北 1 （日本）
+        qingdao: 華北 1（青島）
+        shanghai: 華東 2（上海）
+        shenzhen: 華南 1（深圳）
+        south-1: 亞太南部 1 （孟買）
+        southeast-1: 亞太東南 1 （新加坡）
+        southeast-2: 亞太東南 2 （悉尼）
+        southeast-3: 亞太東南 3 （吉隆坡）
+        southeast-5: 亞太東南 5 （雅加達）
+        west-1: 美國西部 1 （硅谷）
+        zhangjiakou: 華北 3（張家口）
+      label: 阿里雲 OSS
+      secretKey:
+        label: 阿里雲 Secret Key
+        placeholder: 你的阿里雲 secret key
+        provided: 已提供
+    azure:
+      bucketName:
+        label: Container 名稱
+        placeholder: 例如：mycontainer
+      endpoint:
+        label: Endpoint
+        placeholder: 例如：http://mystorageaccount.blob.core.windows.net
+      label: Azure 存儲
+      maxRetries:
+        label: 最大重試次數
+        placeholder: 例如：0
+      storageAccount:
+        label: Storage Account
+        placeholder: 你的 Storage Account
+      storageAccountKey:
+        label: Storage Account Key
+        placeholder: 你的 Storage Account Key
+    detail: 將多集羣的 Prometheus 指標存儲到對象存儲上。
+    enabled:
+      label: 存儲指標到對象存儲
+    gcs:
+      bucketName:
+        label: 存儲桶名稱
+        placeholder: 例如：backups
+      label: Google 雲存儲
+      serviceAccount:
+        label: Service Account
+        placeholder: 你的 Google service account
+    s3:
+      accessKey:
+        label: S3 Access Key
+        placeholder: 你的 AWS access key
+      bucketName:
+        label: S3 存儲桶名稱
+        placeholder: 例如：backups
+      endpoint:
+        label: S3 區域地址
+        placeholder: 例如：s3.us-west-2.amazonaws.com
+      label: S3
+      secretKey:
+        label: S3 Secret Key
+        placeholder: 你的 AWS secret key
+        provided: 已提供
+    tencentcloudcos:
+      appid:
+        label: APP ID
+        placeholder: 例如：1250000000
+      bucketName:
+        label: 存儲桶名稱
+        placeholder: 例如：backups
+      label: 騰訊雲 COS
+      region:
+        label: 區域
+        placeholder: 例如：cos.ap-beijing-1.myqcloud.com
+      secretId:
+        label: 密鑰 ID
+        placeholder: 騰訊雲密鑰 ID
+      secretKey:
+        label: 密鑰 Key
+        placeholder: 騰訊雲密鑰 Key
+    title: 對象存儲
+  svc:
+    clusterIp: "{appName}代理"
+    loadBalancer: 4 層負載均衡
+    nodePort: NodePort
+  thanos:
+    detail: 查詢多集羣 Prometheus 指標的組件。
+    serviceType:
+      label: Thanos Query UI 服務類型
+    title: Thanos Query
+  updating: 正在更新全局監控組件...
+  version: 全局監控版本
+  tls:
+    header: 證書
+    serverName: 
+      label: Server Name
+    ca:
+      label: CA 證書
+      placeholder: 粘貼證書，以-----BEGIN CERTIFICATE----- 開始。
+    cert:
+      label: 證書
+      placeholder: 粘貼證書，以-----BEGIN CERTIFICATE----- 開始。
+    key:
+      label: 私鑰
+      placeholder: 粘貼私鑰，一般以-----RSA PRIVATE KEY----- 開始。
+    warning: 使用tls方式訪問，下游監控部署也得同步開啟tls認證。
+  warning:
+    undefindChart: 當前集羣 chart undefined。
+  uninstallV1:
+    warning1: V1 全局監控目前已部署。在啟用 V2 全局監控之前，需要先將其禁用。
+    promptDescription: <div class=\"mt-20 mb-20\">您正在嘗試禁用 V1 全局監控。</div>
+    success1: V1 全局監控成功被禁用
+formScheduling:
+  toleration:
+    title: 調度容忍
+    add: 增加調度容忍
+    workloadTitle: "{workload} Pod 的容忍"

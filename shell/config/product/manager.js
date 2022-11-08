@@ -9,7 +9,7 @@ import {
 import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store';
-import { SETTING } from '@shell/config/settings';
+import { SETTING, getGlobalMonitoringV2Setting } from '@shell/config/settings';
 
 export const NAME = 'manager';
 
@@ -186,6 +186,46 @@ export function init(store) {
     'global-audit-log',
   ]);
   // global audit log end
+
+  virtualType({
+    showMenuFun(state, getters, rootState, rootGetters) {
+      return rootState.auth?.isAdmin;
+    },
+    label:      'Global Monitoring',
+    labelKey:   'nav.globalMonitoring.label',
+    name:       'global-monitoring',
+    group:      'Root',
+    namespaced: false,
+    icon:       'globe',
+    route:      { name: 'c-cluster-manager-globalMonitoring' },
+    exact:      true,
+    weight:     99,
+  });
+
+  virtualType({
+    showMenuFun(state, getters, rootState, rootGetters) {
+      const setting = getGlobalMonitoringV2Setting(rootGetters);
+
+      return rootState.auth?.isAdmin && setting.enabled === 'true';
+    },
+    label:      'Global Monitoring',
+    labelKey:   'nav.globalMonitoring.dashboard',
+    name:       'global-monitoring-dasboard',
+    group:      'Root',
+    namespaced: false,
+    icon:       'globe',
+    route:      {
+      name:   'c-cluster-manager-globalMonitoring-dashboard',
+      params: { cluster: 'local', dashboard: 'dashboard' }
+    },
+    exact:      true,
+    weight:     98,
+  });
+
+  basicType([
+    'global-monitoring',
+    'global-monitoring-dasboard',
+  ], 'globalMonitoring');
 
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);

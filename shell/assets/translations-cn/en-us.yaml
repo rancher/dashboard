@@ -137,6 +137,7 @@ nav:
     clusterProvisioning: Cluster Provisioning
     core: Core
     imageRepo: Image Repo
+    globalMonitoring: Global Monitoring
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -178,6 +179,9 @@ nav:
   manageUI: Cluster Manager UI
   auditLog: Audit Log
   quotas: Quotas
+  globalMonitoring: 
+    label: Global Monitoring
+    dashboard: Dashboard
 product:
   apps: Apps
   auth: Users & Authentication
@@ -3083,6 +3087,12 @@ monitoring:
       groupWait: Group Wait
       receiver: Receiver
       repeatInterval: Repeat Interval
+  thanos:
+    title: Configure Thanos
+    sidecar:
+      label: Enable Thanos Sidecar
+    tls:
+      label: Enable TLS
   routesAndReceivers: Routes and Receivers (Deprecated)
   monitors: Monitors
   projectMonitors: Project Monitoring
@@ -3132,6 +3142,7 @@ monitoring:
     grafana: Grafana
     prometheus: Prometheus
     projectMetrics: Project Metrics
+    thanos: Thanos
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of {vendor} with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new {vendor} Monitoring chart in Cluster Explorer.'
   volume:
     modes:
@@ -6773,3 +6784,232 @@ rancher-nvidia-k8s-device-plugin:
   scheduleOptions:
     nodeSelector:
       title: Node Selector
+formReservation:
+  limitCpu:
+    label: '{component} CPU Limit'
+    placeholder: e.g. 1000
+  limitMemory:
+    label: '{component} Memory Limit'
+    placeholder: e.g. 1000
+  requestCpu:
+    label: '{component} CPU Reservation'
+    placeholder: e.g. 1000
+  requestMemory:
+    label: '{component} Memory Reservation'
+    placeholder: e.g. 1000
+globalMonitoringDashboard:
+  globalMonitoring: 
+    label: Global Monitoring
+    description: Global Monitoring
+  grafana: 
+    label: Grafana
+    description: Metrics Dashboards
+  thanos: 
+    label: Prometheus Thanos
+    description: Cluster Component System
+globalMonitoringPage:
+  header: Global Monitoring (Experimental)
+  cluster: Global Monitoring Cluster
+  token:
+    label: Use default token
+    custom: 
+      label: Custom token
+      placeholder: Please configure a custom token
+  customAddress: 
+    add: Add Address
+    otherHeader: Customize other addresses
+    header: Custom Address
+    placeholder: e.g. 172.17.0.1:30901
+  enableMonitoring:
+    title: Monitoring Store
+    cluster: Cluster
+    warning: To configure an endpoint for scraping Prometheus data of the downstream cluster, the Thanos Sidecar monitoring function must still be enabled in the downstream cluster
+  noAvailableClusters: No active clusters. Please add a cluster first.
+  enabled: "Global Monitoring is enabled. You can query your metrics across multiple clusters if cluster monitoring <code>v0.0.7000</code> or above enabled inside the clusters."
+  disabled: "Global Monitoring is not enabled yet. Please click Enable button to enable it. You will be able to query your metrics across multiple clusters if cluster monitoring <code>v0.0.7000</code> or above enabled inside the clusters."
+  notReady: Installing Global Monitoring into the system project of global monitoring cluster...
+  updating: Updating Global Monitoring in the system project of global monitoring cluster...
+  version: Global Monitoring Version
+  disable: Disable
+  noTemplate: Failed to load global monitoring catalog templates.
+  confirmDisable: "Are you sure?  Click again to disable global monitoring"
+  enableActionLabel: Enable
+  globalMonitoringClusterUnavailable: Cluster {clusterName} is unavailable.
+  objectStorageWarning: Thanos sidecar in each cluster requires the object storage crednetials. So cluster owners will also be able to see the object storage crednetials in the System projects.
+  customAnswers:
+    title: Custom Answers
+    detail: Configure custom answers.
+    answer: 
+      label: Answers
+    addAnswerLabel: Add Answer
+  nodeSelector:
+    addSelectorLabel: Add Selector
+    helpText: Select the nodes where {component} workloads will be scheduled to
+  links:
+    grafana:
+      label: Grafana UI
+    globalMonitoring:
+      label: Global Dashboard
+    thanos:
+      label: Thanos UI
+  thanos:
+    title: Thanos Query
+    detail: Query Prometheus metrics across multiple clusters.
+    serviceType:
+      label: Thanos Query UI Service
+  store:
+    title: Object Storage
+    detail: Store Prometheus metrics across multiple clusters to object storage for unlimited time.
+    enabled:
+      label: Store Prometheus metrics to object storage
+    gcs:
+      label: Google Cloud Storage
+      bucketName:
+        label: Bucket Name
+        placeholder: "e.g. backups"
+      serviceAccount:
+        label: Service Account
+        placeholder: "Your Google service account"
+    s3:
+      label: S3
+      bucketName:
+        label: S3 Bucket Name
+        placeholder: "e.g. backups"
+      endpoint:
+        label: S3 Region Endpoint
+        placeholder: "e.g. s3.us-west-2.amazonaws.com"
+      accessKey:
+        label: S3 Access Key
+        placeholder: Your AWS access key
+      secretKey:
+        label: S3 Secret Key
+        placeholder: Your AWS secret key
+        provided: Provided
+    aliyunoss:
+      label: Aliyun OSS
+      bucketName:
+        label: Aliyun OSS Bucket Name
+        placeholder: "e.g. backups"
+      endpoint:
+        label: Aliyun OSS Region
+        hangzhou: oss-cn-hangzhou
+        shanghai: oss-cn-shanghai
+        qingdao: oss-cn-qingdao
+        beijing: oss-cn-beijing
+        zhangjiakou: oss-cn-zhangjiakou
+        huhehaote: oss-cn-huhehaote
+        shenzhen: oss-cn-shenzhen
+        heyuan: oss-cn-heyuan
+        chengdu: oss-cn-chengdu
+        hongkong: oss-cn-hongkong
+        west-1: oss-us-west-1
+        east-1: oss-us-east-1
+        southeast-1: oss-ap-southeast-1
+        southeast-2: oss-ap-southeast-2
+        southeast-3: oss-ap-southeast-3
+        southeast-5: oss-ap-southeast-5
+        northeast-1: oss-ap-northeast-1
+        south-1: oss-ap-south-1
+        eu-central-1: oss-eu-central
+        eu-west-1: oss-eu-west-1
+        me-east-1: oss-me-east-1
+      accessKey:
+        label: Aliyun OSS Access Key
+        placeholder: Your Aliyun access key
+      secretKey:
+        label: Aliyun OSS Secret Key
+        placeholder: Your Aliyun secret key
+        provided: Provided
+    tencentcloudcos:
+      label: "Tencent COS"
+      bucketName:
+        label: "Bucket Name"
+        placeholder: "e.g. backups"
+      region:
+        label: "Region"
+        placeholder: "e.g. cos.ap-beijing-1.myqcloud.com"
+      appid:
+        label: "APP ID"
+        placeholder: "e.g. 1250000000"
+      secretKey:
+        label: "Secret Key"
+        placeholder: "Your Secret Key"
+      secretId:
+        label: "Secret Id"
+        placeholder: "Your Secret Id"
+    azure:
+      label: "Azure Storage"
+      bucketName:
+        label: "Container Name"
+        placeholder: "e.g. mycontainer"
+      endpoint:
+        label: "Endpoint"
+        placeholder: "e.g. http://mystorageaccount.blob.core.windows.net"
+      storageAccount:
+        label: "Storage Account"
+        placeholder: "Your Azure Storage Account"
+      storageAccountKey:
+        label: "Storage Account Key"
+        placeholder: "Your Azure Storage Account Key"
+      maxRetries:
+        label: "Max Retries"
+        placeholder: "e.g. 0"
+  grafana:
+    header: Global Dashboard
+    title: 
+      label: Title
+      placeholder: e.g. grafana
+    tabTitle: 
+      label: Tab Title
+      placeholder: e.g. grafana
+    logo: 
+      label: logo
+      placeholder: Please enter the logo address
+    favicon: 
+      label: favicon
+      placeholder: Please enter the favicon address
+    serverUrl: 
+      label: serverUrl
+      placeholder: e.g. http://rancher.cattle-system
+    detail: Global Grafana and {appName} Global Dashboard configuration.
+    enablePersistence:
+      label: Enable Persistent Storage for Grafana
+    enableGrafanaSidecar:
+      label: Enable Grafana Dashboard Provisioning Sidecar
+    size:
+      label: Grafana Persistent Volume Size
+      placeholder: e.g. 10Gi
+    serviceType:
+      label: Grafana UI Service
+    storageClass:
+      label: Default StorageClass for Grafana
+      placeholder: Use the default class
+  svc:
+    clusterIp: "{appName} Proxy"
+    nodePort: NodePort
+    loadBalancer: L4 Load Balancer
+  tls:
+    header: Certificate
+    serverName:
+      label: Server Name
+    cert:
+      label: Certificate
+      placeholder: 'Paste in the certificate, starting with -----BEGIN CERTIFICATE-----'
+    key:
+      label: Private Key
+      placeholder:  Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----
+    ca:
+      label: CA Certificate
+      placeholder: 'Paste in the certificate, starting with -----BEGIN CERTIFICATE-----'
+    warning: If TLS is used for access, the downstream monitoring deployment must also enable TLS authentication simultaneously.
+  warning:
+    undefindChart: Current cluster chart undefined.
+  uninstallV1:
+    warning1: V1 global monitoring has been deployed. Before enabling V2 global monitoring, you need to disable it.
+    promptDescription: <div class="mt-20 mb-20">You are trying to disable V1 global monitoring.</div>
+    success1: V1 global monitoring successfully uninstalled.
+formScheduling:
+  toleration:
+    title: Tolerations
+    add: Add Toleration
+    workloadTitle: Tolerations for {workload} pod

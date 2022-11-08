@@ -138,7 +138,7 @@ export default {
       const product = this.$store.getters['currentProduct'];
       const inStore = product.inStore;
       const haveAllCount = this.$store.getters[`${ inStore }/haveAll`](COUNT);
-      const counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
+      const counts = this.$store.getters[`${ inStore }/all`](COUNT)[0]?.counts;
 
       if ( !managementReady || !product ) {
         return {};

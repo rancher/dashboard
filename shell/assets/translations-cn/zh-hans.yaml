@@ -141,6 +141,7 @@ nav:
     Scheduling: 调度
     Storage: 存储
     imageRepo: 镜像仓库
+    globalMonitoring: 全局监控
   ns:
     all: 所有命名空间
     clusterLevel: 集群资源
@@ -182,6 +183,9 @@ nav:
   manageUI: 集群管理 UI
   auditLog: 审计日志
   quotas: 配额
+  globalMonitoring: 
+    label: 全局监控
+    dashboard: Dashboard
 product:
   apps: 应用
   auth: 用户 & 认证
@@ -3102,6 +3106,12 @@ monitoring:
       receiver: 接收器
       repeatInterval: 重复间隔
   routesAndReceivers: 路由和接收器（已弃用）
+  thanos:
+    title: 配置 Thanos
+    sidecar:
+      label: 是否开启 thanos sidecar
+    tls:
+      label: 是否开启 tls
   monitors: 监控
   projectMonitors: 项目监控
   alertmanagerConfig:
@@ -3150,6 +3160,7 @@ monitoring:
     grafana: Grafana
     prometheus: Prometheus
     projectMetrics: 项目指标
+    thanos: Thanos
   v1Warning: '当前 Monitoring 由 Cluster Manager 部署。如果你需要从启用了 Monitoring 的旧版 {vendor} 迁移，请先在 Cluster Manager 中禁用 Monitoring，然后再在 Cluster Explorer 中安装新版 {vendor} Monitoring Chart。'
   volume:
     modes:
@@ -7143,3 +7154,232 @@ rancher-nvidia-k8s-device-plugin:
   scheduleOptions:
     nodeSelector:
       title: 节点选择器
+formReservation:
+  limitCpu:
+    label: '{component} CPU 限制'
+    placeholder: '例如: 1000'
+  limitMemory:
+    label: '{component} Memory 限制'
+    placeholder: '例如: 1000'
+  requestCpu:
+    label: '{component} CPU 预留'
+    placeholder: '例如: 1000'
+  requestMemory:
+    label: '{component} Memory 预留'
+    placeholder: '例如: 1000'
+globalMonitoringDashboard:
+  globalMonitoring: 
+    label: 全局监控
+    description: 多集群监控
+  grafana: 
+    label: Grafana
+    description: Metrics 仪表盘
+  thanos: 
+    label: Prometheus Thanos
+    description: 集群组件系统
+globalMonitoringPage:
+  header: 全局监控（实验性）
+  cluster: 全局监控所在集群
+  token:
+    label: 使用默认 token
+    custom: 
+      label: 自定义 token
+      placeholder: 请配置自定义 token
+  customAddress: 
+    add: 添加地址
+    otherHeader: 自定义其他地址
+    header: 自定义地址
+    placeholder: 例如：172.17.0.1:30901
+  enableMonitoring:
+    title: 监控端点
+    cluster: 集群
+    warning: 配置刮取该下游集群prometheus数据的端点，仍需要在下游部署开启了thanos sidecar的监控
+  confirmDisable: "你确定吗? 再次单击将禁用全局监控"
+  customAnswers:
+    title: 自定义应答
+    detail: 配置自定义的应答。
+    answer: 
+      label: 应答
+    addAnswerLabel: 添加应答
+  noAvailableClusters: 没有可用集群，请先添加一个集群。
+  enabled: "全局监控已启用。如果在集群中启用了集群监控并且版本不低于<code>v0.0.7000</code>，你可以通过全局监控查看多个集群的指标。"
+  disabled: "全局监控未启用。点击启用来激活全局监控。 如果在集群中启用了集群监控并且版本不低于<code>v0.0.7000</code>，你将可以通过全局监控查看多个集群的指标。"
+  notReady: 正在安装全局监控到指定集群的系统项目里...
+  updating: 正在更新全局监控组件...
+  noTemplate: 无法加载全局监控模版
+  version: 全局监控版本
+  disable: 禁用
+  enableActionLabel: 启用
+  globalMonitoringClusterUnavailable: 集群 {clusterName} 不可用。
+  objectStorageWarning: 每个集群中的 Thanos sidecar 都需要对象存储的密钥。所以这些集群的管理员也可以在集群的系统项目里看到你所配置的存储的密钥。
+  nodeSelector:
+    addSelectorLabel: 添加选择器
+    helpText: 选择要运行 {component} 工作负载的节点。
+  links:
+    grafana:
+      label: Grafana UI
+    globalMonitoring:
+      label: 监控大屏
+    thanos:
+      label: Thanos UI
+  thanos:
+    title: Thanos Query
+    detail: 查询多集群 Prometheus 指标的组件。
+    serviceType:
+      label: Thanos Query UI 服务类型
+  store:
+    title: 对象存储
+    detail: 将多集群的 Prometheus 指标存储到对象存储上。
+    enabled:
+      label: 存储指标到对象存储
+    gcs:
+      label: Google 云存储
+      bucketName:
+        label: 存储桶名称
+        placeholder: "例如：backups"
+      serviceAccount:
+        label: Service Account
+        placeholder: "你的 Google service account"
+    s3:
+      label: S3
+      bucketName:
+        label: S3 存储桶名称
+        placeholder: "例如：backups"
+      endpoint:
+        label: S3 区域地址
+        placeholder: "例如：s3.us-west-2.amazonaws.com"
+      accessKey:
+        label: S3 Access Key
+        placeholder: 你的 AWS access key
+      secretKey:
+        label: S3 Secret Key
+        placeholder: 你的 AWS secret key
+        provided: 已提供
+    aliyunoss:
+      label: 阿里云 OSS
+      bucketName:
+        label: 阿里云存储桶名称
+        placeholder: "例如：backups"
+      endpoint:
+        label: 阿里云区域
+        hangzhou: '华东 1（杭州）'
+        shanghai: '华东 2（上海）'
+        qingdao: '华北 1（青岛）'
+        beijing: '华北 2（北京）'
+        zhangjiakou: '华北 3（张家口）'
+        huhehaote: '华北 5（呼和浩特）'
+        shenzhen: '华南 1（深圳）'
+        heyuan: '华南 2（河源）'
+        chengdu: '西南 1（成都）'
+        hongkong: '中国（香港）'
+        west-1: '美国西部 1 （硅谷）'
+        east-1: '美国东部 1 （弗吉尼亚）'
+        southeast-1: '亚太东南 1 （新加坡）'
+        southeast-2: '亚太东南 2 （悉尼）'
+        southeast-3: '亚太东南 3 （吉隆坡）'
+        southeast-5: '亚太东南 5 （雅加达）'
+        northeast-1: '亚太东北 1 （日本）'
+        south-1: '亚太南部 1 （孟买）'
+        eu-central-1: '欧洲中部 1 （法兰克福）'
+        eu-west-1: '英国（伦敦）'
+        me-east-1: '中东东部 1 （迪拜）'
+      accessKey:
+        label: 阿里云 Access Key
+        placeholder: 你的阿里云 access key
+      secretKey:
+        label: 阿里云 Secret Key
+        placeholder: 你的阿里云 secret key
+        provided: 已提供
+    tencentcloudcos:
+      label: "腾讯云 COS"
+      bucketName:
+        label: "存储桶名称"
+        placeholder: "例如：backups"
+      region:
+        label: "区域"
+        placeholder: "例如：cos.ap-beijing-1.myqcloud.com"
+      appid:
+        label: "APP ID"
+        placeholder: "例如：1250000000"
+      secretId:
+        label: "密钥 ID"
+        placeholder: "腾讯云密钥 ID"
+      secretKey:
+        label: "密钥 Key"
+        placeholder: "腾讯云密钥 Key"
+    azure:
+      label: "Azure 存储"
+      bucketName:
+        label: "Container 名称"
+        placeholder: "例如：mycontainer"
+      endpoint:
+        label: "Endpoint"
+        placeholder: "例如：http://mystorageaccount.blob.core.windows.net"
+      storageAccount:
+        label: "Storage Account"
+        placeholder: "你的 Storage Account"
+      storageAccountKey:
+        label: "Storage Account Key"
+        placeholder: "你的 Storage Account Key"
+      maxRetries:
+        label: "最大重试次数"
+        placeholder: "例如：0"
+  grafana:
+    header: 监控大屏
+    detail: 全局 Grafana 和{appName}监控大屏的配置。
+    title: 
+      label: 标题
+      placeholder: 例如 grafana
+    tabTitle: 
+      label: 选项卡标题
+      placeholder: 例如 grafana
+    logo: 
+      label: logo
+      placeholder: 请输入 logo 地址
+    favicon: 
+      label: favicon
+      placeholder: 请输入 favicon 地址
+    serverUrl: 
+      label: serverUrl
+      placeholder: 例如 http://rancher.cattle-system
+    enablePersistence:
+      label: Grafana 启用持久化存储
+    enableGrafanaSidecar:
+      label: Grafana 启用初始化 Sidecar
+    size:
+      label: Grafana 持久化存储大小
+      placeholder: '例如: 10Gi'
+    serviceType:
+      label: Grafana UI SVC 类型
+    storageClass:
+      label: Grafana 默认存储类
+      placeholder: 使用默认的类
+  svc:
+    clusterIp: "{appName}代理"
+    nodePort: NodePort
+    loadBalancer: 4 层负载均衡
+  tls:
+    header: 证书
+    serverName: 
+      label: Server Name
+    ca:
+      label: CA 证书
+      placeholder: 粘贴证书，以-----BEGIN CERTIFICATE----- 开始。
+    cert:
+      label: 证书
+      placeholder: 粘贴证书，以-----BEGIN CERTIFICATE----- 开始。
+    key:
+      label: 私钥
+      placeholder: 粘贴私钥，一般以-----RSA PRIVATE KEY----- 开始。
+    warning: 使用tls方式访问，下游监控部署也得同步开启tls认证。
+  warning:
+    undefindChart: 当前集群 chart undefined。
+  uninstallV1:
+    warning1: V1 全局监控目前已部署。在启用 V2 全局监控之前，需要先将其禁用。
+    promptDescription: <div class="mt-20 mb-20">您正在尝试禁用 V1 全局监控。</div>
+    success1: V1 全局监控成功被禁用
+formScheduling:
+  toleration:
+    title: 调度容忍
+    add: 添加调度容忍
+    workloadTitle: "{workload} Pod 的容忍"
