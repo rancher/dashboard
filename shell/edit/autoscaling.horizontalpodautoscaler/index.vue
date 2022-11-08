@@ -70,7 +70,10 @@ export default {
         Object.values(SCALABLE_WORKLOAD_TYPES)
           .flatMap(type => this.$store.getters['cluster/all'](type))
           .filter(
-            wl => wl.metadata.namespace === this.value.metadata.namespace
+            // Filter out anything that has an owner, which should probably be the one with the HPA
+            // For example ReplicaSets can be associated with a HPA (https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/#replicaset-as-a-horizontal-pod-autoscaler-target)
+            // but wouldn't make sense if it's owned by a deployment
+            wl => wl.metadata.namespace === this.value.metadata.namespace && !wl.ownedByWorkload
           )
       );
     },
