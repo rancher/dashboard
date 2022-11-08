@@ -1,35 +1,6 @@
-import { DOCS_BASE } from '@shell/config/private-label';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { allHash } from '@shell/utils/promise';
-
-const DEFAULT_LINKS = [
-  {
-    key:     'docs',
-    value:   DOCS_BASE,
-    enabled: true,
-  },
-  {
-    key:     'forums',
-    value:   'https://forums.rancher.com/',
-    enabled: true,
-  },
-  {
-    key:     'slack',
-    value:   'https://slack.rancher.io/',
-    enabled: true,
-  },
-  {
-    key:     'issues',
-    value:   'https://github.com/rancher/dashboard/issues/new/choose',
-    enabled: true,
-  },
-  {
-    key:     'getStarted',
-    value:   '/docs/getting-started',
-    enabled: true,
-  },
-];
 
 const SUPPORT_LINK = {
   key:      'commercialSupport',
@@ -43,6 +14,33 @@ export const CUSTOM_LINKS_VERSION = 'v1';
 
 // Fetch the settings required for the links, taking into account legacy settings if we have not migrated
 export async function fetchLinks(store, hasSupport, isSupportPage, t) {
+  const DEFAULT_LINKS = [
+    {
+      key:     'docs',
+      value:   store.getters['rancherDocsBase'],
+      enabled: true,
+    },
+    {
+      key:     'forums',
+      value:   'https://forums.rancher.com/',
+      enabled: true,
+    },
+    {
+      key:     'slack',
+      value:   'https://slack.rancher.io/',
+      enabled: true,
+    },
+    {
+      key:     'issues',
+      value:   'https://github.com/rancher/dashboard/issues/new/choose',
+      enabled: true,
+    },
+    {
+      key:     'getStarted',
+      value:   '/docs/getting-started',
+      enabled: true,
+    },
+  ];
   let uiLinks = {};
 
   try {

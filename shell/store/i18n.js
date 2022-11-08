@@ -2,7 +2,7 @@ import merge from 'lodash/merge';
 import IntlMessageFormat from 'intl-messageformat';
 import { get } from '@shell/utils/object';
 import en from '@shell/assets/translations/en-us.yaml';
-import { getProduct, getVendor, DOCS_BASE } from '@shell/config/private-label';
+import { getProduct, getVendor } from '@shell/config/private-label';
 import { loadTranslation } from '@shell/utils/dynamic-importer';
 
 const NONE = 'none';
@@ -100,7 +100,6 @@ export const getters = {
       const moreArgs = {
         vendor:   getVendor(),
         appName:  getProduct(),
-        docsBase: DOCS_BASE,
         ...args
       };
 
