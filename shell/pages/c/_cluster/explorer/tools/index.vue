@@ -89,6 +89,10 @@ export default {
       return this.$store.getters['catalog/repos'].find(x => x.isRancher);
     },
 
+    pandariaCatalog() {
+      return this.$store.getters['catalog/repos'].find(x => x.isPandaria);
+    },
+
     installedApps() {
       return this.allInstalled;
     },
@@ -117,7 +121,7 @@ export default {
         clusterProvider,
         showDeprecated:   this.showDeprecated,
         showHidden:       this.showHidden,
-        showRepos:        [this.rancherCatalog?._key],
+        showRepos:        [this.rancherCatalog?._key, this.pandariaCatalog?._key],
         showTypes:        [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
       });
 

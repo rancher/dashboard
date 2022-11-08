@@ -79,6 +79,10 @@ export default class ClusterRepo extends SteveModel {
     return this.isRancherSource && this.metadata.name === 'rancher-partner-charts';
   }
 
+  get isPandaria() {
+    return this.metadata.name === 'pandaria-catalog';
+  }
+
   get color() {
     if ( this.isRancher ) {
       return 'rancher';

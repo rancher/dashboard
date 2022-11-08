@@ -3476,6 +3476,7 @@ node:
     downloadNodeConfig: Download Keys
     scaleDown: Scale Down
     forceDelete: Force Delete
+    editGpuDevicePluginConfig: Edit NVIDIA GPU Config
 persistentVolume:
   pluginConfiguration:
     label: Plugin configuration
@@ -6697,3 +6698,74 @@ vGpuReservation:
 autoLogout:
   message: You have not operated in the last {autoLogoutTime} minutes, so we will auto log out
   title: Auto logout
+editGpuDevicePluginConfigDialog:
+  title: Edit {name} NVIDIA Device Plugin Config
+  subtitle: Select K8s Device Plugin Config
+  config:
+    label: Config
+    placeholder: Please Select A Config...
+  errors:
+    noPermission: The current user does not have permission to modify the configuration
+rancher-nvidia-k8s-device-plugin:
+  titles:
+    image: Container Images
+    plugin: Device Plugin Options
+    gfd: GFD Options
+    schedule: Schedule Options
+  containerImage:
+    repository:
+      label: Image Repository
+    tag:
+      label: Image Tag
+    gfdRepository:
+      label: GPU Feature Discovery Image Repository
+    gfdTag:
+      label: GPU Feature Discovery Image Tag
+    nfdRepository:
+      label: Node Feature Discovery Image Repository
+    nfdTag:
+      label: Node Feature Discovery Image Tag
+  devicePluginOptions:
+    configName:
+      label: Config Name
+    migStrategy:
+      label: MIG Strategy
+      tip: The desired strategy for exposing MIG devices on GPUs that support it. <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">Learn More</a>
+    failOnInitError:
+      label: Fail On Init Error
+      tip: Fail the plugin if an error is encountered during initialization, otherwise block indefinitely. <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">Learn More</a>
+    nvidiaDriverRoot:
+      label: NVIDIA Driver Root
+      tip: The root path for the NVIDIA driver installation. <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">Learn More</a>
+    passDeviceSpecs:
+      label: Pass Device Specs
+      tip: Pass the paths and desired device node permissions for any NVIDIA devices being allocated to the container. <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">Learn More</a>
+    deviceListStrategy:
+      label: Device List Strategy
+      tip: The desired strategy for passing the device list to the underlying runtime. <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">Learn More</a>
+    deviceIDStrategy:
+      label: Device ID Strategy
+      tip: The desired strategy for passing device IDs to the underlying runtime. <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">Learn More</a>
+    renameByDefault:
+      label: Rename By Default
+    failRequestsGreaterThanOne:
+      label: Fail Request Greater Than One
+    resources:
+      title: Resources
+      add: Add Resource
+      name:
+        label: Name
+      replicas:
+        label: Replicas
+    sharedAccess:
+      label: Enable Shared Access
+      tip: Shared Access to GPUs with CUDA Time-Slicing. <a href="https://github.com/nvidia/k8s-device-plugin#shared-access-to-gpus-with-cuda-time-slicing" target="_blank" rel="noopener noreferrer nofollow">Learn More</a>
+    addConfig: Add Config
+    removeConfig: Remove Config
+  gfdOptions:
+    enabled:
+      label: GPU Feature Discovery Enabled
+      tip: Deploying with gpu-feature-discovery for automatic node labels. <a href="https://github.com/nvidia/k8s-device-plugin#deploying-with-gpu-feature-discovery-for-automatic-node-labels" target="_blank" rel="noopener noreferrer nofollow">Learn More</a>
+  scheduleOptions:
+    nodeSelector:
+      title: Node Selector

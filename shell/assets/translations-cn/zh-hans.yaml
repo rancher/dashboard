@@ -3494,6 +3494,7 @@ node:
     downloadNodeConfig: 下载密钥
     scaleDown: 缩容
     forceDelete: 强制删除
+    editGpuDevicePluginConfig: 修改 NVIDIA GPU 配置
 persistentVolume:
   pluginConfiguration:
     label: 插件配置
@@ -7067,3 +7068,74 @@ vGpuReservation:
 autoLogout:
   message: 你在 {autoLogoutTime} 分钟内没有任何操作, 系统将自动登出
   title: 自动登出
+editGpuDevicePluginConfigDialog:
+  title: 修改 {name} NVIDIA 设备插件配置
+  subtitle: 选择 K8s 设备插件配置
+  config:
+    label: 配置名称
+    placeholder: 请选择一个配置...
+  errors:
+    noPermission: 当前用户没有权限修改配置
+rancher-nvidia-k8s-device-plugin:
+  titles:
+    image: 容器镜像
+    plugin: 设备插件选项
+    gfd: GPU 特性发现选项
+    schedule: 节点调度选项
+  containerImage:
+    repository:
+      label: 镜像仓库
+    tag:
+      label: 镜像标签
+    gfdRepository:
+      label: GPU 特性发现镜像仓库
+    gfdTag:
+      label: GPU 特性发现镜像标签
+    nfdRepository:
+      label: 节点特性发现镜像仓库
+    nfdTag:
+      label: 节点特性发现镜像标签
+  devicePluginOptions:
+    configName:
+      label: 配置名称
+    migStrategy:
+      label: MIG 策略
+      tip: 如果 GPU 支持 MIG 设备，选择暴露 MIG 设备的策略。<a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">了解更多</a>
+    failOnInitError:
+      label: 初始化错误时失败
+      tip: 如果在初始化过程中遇到错误，则使 Device Plugin 失败退出，否则会一直阻塞。 <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">了解更多</a>
+    nvidiaDriverRoot:
+      label: NVIDIA 驱动程序根目录
+      tip: 节点中NVIDIA驱动安装的路径。 <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">了解更多</a>
+    passDeviceSpecs:
+      label: 传递设备规格
+      tip: 为分配给容器的任何 NVIDIA 设备传递路径和所需的设备节点权限。 <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">了解更多</a>
+    deviceListStrategy:
+      label: 设备列表策略
+      tip: 选择向容器运行时传递设备列表的策略。 <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">了解更多</a>
+    deviceIDStrategy:
+      label: 设备 ID 策略
+      tip: 选择向容器运行时传递设备ID的策略。 <a href="https://github.com/nvidia/k8s-device-plugin#configuration-option-details" target="_blank" rel="noopener noreferrer nofollow">了解更多</a>
+    renameByDefault:
+      label: 按默认值重命名
+    failRequestsGreaterThanOne:
+      label: 大于一次的失败请求
+    resources:
+      title: 资源
+      add: 添加资源
+      name:
+        label: 名称
+      replicas:
+        label: 副本数
+    sharedAccess:
+      label: 启用共享访问
+      tip: 使用 CUDA Time-Slicing 共享访问 GPU。 <a href="https://github.com/nvidia/k8s-device-plugin#shared-access-to-gpus-with-cuda-time-slicing" target="_blank" rel="noopener noreferrer nofollow">了解更多</a>
+    addConfig: 添加配置
+    removeConfig: 删除配置
+  gfdOptions:
+    enabled:
+      label: 启用 GPU 特性发现
+      tip: 使用 gpu-feature-discovery 进行部署，以获得自动节点标签。 <a href="https://github.com/nvidia/k8s-device-plugin#deploying-with-gpu-feature-discovery-for-automatic-node-labels" target="_blank" rel="noopener noreferrer nofollow">了解更多</a>
+  scheduleOptions:
+    nodeSelector:
+      title: 节点选择器
