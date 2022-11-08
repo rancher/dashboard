@@ -136,17 +136,16 @@ export default {
     counts() {
       const managementReady = this.managementReady;
       const product = this.$store.getters['currentProduct'];
+      const inStore = product.inStore;
+      const haveAllCount = this.$store.getters[`${ inStore }/haveAll`](COUNT);
+      const counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
 
       if ( !managementReady || !product ) {
         return {};
       }
 
-      const inStore = product.inStore;
-
       // So that there's something to watch for updates
-      if ( this.$store.getters[`${ inStore }/haveAll`](COUNT) ) {
-        const counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
-
+      if (haveAllCount) {
         return counts;
       }
 
