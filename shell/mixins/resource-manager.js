@@ -35,11 +35,7 @@ export default {
           let url = schema.links.collection;
 
           if (schema?.attributes?.namespaced && namespace) {
-            const parts = url.split('/');
-
-            parts.splice(parts.length - 2, 0, `api`);
-            parts.splice(parts.length - 1, 0, `namespaces/${ namespace }`);
-            url = parts.join('/');
+            url = `${ url }/${ namespace }`;
           } else if (onlyNamespaced) {
             // Type isn't namespaced and we've been requested to only fetch namespaced types
             return;
