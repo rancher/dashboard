@@ -10,7 +10,6 @@ import MetricsTraitTab from '@pkg/components/ApplicationComponentsTab/MetricsTra
 import TabDeleteButton from '@pkg/components/TabDeleteButton';
 import TreeTab from '@pkg/components/TreeTabbed/TreeTab';
 import VerrazzanoHelper from '@pkg/mixins/verrazzano-helper';
-
 import { VZ_COMPONENT } from '@pkg/types';
 import { allHash } from '@shell/utils/promise';
 
@@ -101,6 +100,24 @@ export default {
       if (this.newName) {
         this.dynamicListAddChild({ componentName: this.newName, traits: [] });
         this.newName = '';
+      }
+    },
+    componentByName(componentName) {
+      const comps = this.namespacedComponents?.filter((comp) => {
+        return comp.name === componentName;
+      });
+
+      return comps && comps[0];
+    },
+    getComponentRoute(componentName) {
+      const component = this.componentByName(componentName);
+
+      if (component) {
+        const location = component.detailLocation;
+
+        location.query = this.$route.query;
+
+        return location;
       }
     },
     getAvailableTraitTypes(component) {
@@ -243,6 +260,11 @@ export default {
                   disabled
                   :label="t('verrazzano.common.fields.componentName')"
                 />
+              </div>
+              <div class="flex-right">
+                <nuxt-link v-if="getComponentRoute(component.componentName)" :to="getComponentRoute(component.componentName)">
+                  <i class="icon icon-external-link" />
+                </nuxt-link>
               </div>
             </div>
             <div v-if="!isView">
