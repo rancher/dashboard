@@ -1,7 +1,7 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/Select';
 import ArrayList from '@shell/components/form/ArrayList';
+import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { NAMESPACE } from '@shell/config/types';
 import { _EDIT } from '@shell/config/query-params';
 import { uniq } from '@shell/utils/array';
@@ -12,9 +12,9 @@ export default {
   name: 'HarvesterEditVip',
 
   components: {
-    LabeledInput,
     LabeledSelect,
     ArrayList,
+    TextAreaAutoGrow,
   },
 
   props: {
@@ -120,12 +120,6 @@ export default {
 
         if (!v.value) {
           errors.push(this.t('validation.required', { key: this.t('harvester.vip.cidr.label') }, true));
-        } else {
-          const isCidr = !!/^(?:(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\/([1-9]|[1-2]\d|3[0-2])$/.test(v.value);
-
-          if (!isCidr) {
-            errors.push(this.t('harvester.vip.cidr.invalid', null, true));
-          }
         }
       });
 
@@ -189,6 +183,7 @@ export default {
           <div class="value">
             {{ t('harvester.vip.cidr.label') }}
             <span class="required">*</span>
+            <i v-tooltip="t('harvester.vip.cidr.toolTip')" class="icon icon-info" />
           </div>
           <div />
         </div>
@@ -203,10 +198,11 @@ export default {
           />
         </div>
         <div class="value">
-          <LabeledInput
+          <TextAreaAutoGrow
             v-model="scope.row.value.value"
             :mode="mode"
             @input="update"
+            @keydown.native.enter.prevent="()=>{}"
           />
         </div>
       </template>
