@@ -12,7 +12,8 @@ const options = {
   cert: fs.readFileSync(path.resolve(base, 'cert/server.crt'))
 };
 
-let api = process.env.API || 'http://localhost:8989';
+let api = 'https://k4edge.net';
+// let api = 'https://localhost:8443';
 
 if ( !api.startsWith('http') ) {
   api = `https://${ api }`;

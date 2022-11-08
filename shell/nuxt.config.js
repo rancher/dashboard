@@ -208,7 +208,8 @@ export default function(dir, _appConfig) {
   const commit = process.env.COMMIT || 'head';
   const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
-  let api = process.env.API || 'http://localhost:8989';
+  let api = 'https://k4edge.net';
+  // let api = 'https://localhost:8443';
 
   if ( !api.startsWith('http') ) {
     api = `https://${ api }`;
