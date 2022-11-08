@@ -465,14 +465,14 @@ export default {
 
     h1 {
       margin: 0;
-
+      display: flex;
+      align-items: center;
       .name-display {
         display: inline-block;
         max-width: 500px;
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
-        vertical-align: middle;
       }
     }
   }
@@ -498,7 +498,6 @@ export default {
     font-size: initial;
     display: inline-block;
     position: relative;
-    top: -2px;
   }
 
   .left-right-split {
