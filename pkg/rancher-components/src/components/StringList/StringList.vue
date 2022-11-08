@@ -293,10 +293,12 @@ export default Vue.extend({
      * Create a new item and insert in the items list
      */
     saveItem() {
-      if (this.value) {
+      const value = this.value?.trim();
+
+      if (value) {
         const items = [
           ...this.items,
-          this.value.trim(),
+          value,
         ];
 
         if (hasDuplicatedStrings(items, this.caseSensitive)) {
@@ -314,12 +316,14 @@ export default Vue.extend({
      * Update an existing item in the items list
      */
     updateItem(item: string) {
-      if (this.value) {
+      const value = this.value?.trim();
+
+      if (value) {
         const items = [...this.items];
         const index = findStringIndex(items, item, false);
 
         if (index !== -1) {
-          items[index] = this.value.trim();
+          items[index] = value;
         }
 
         if (hasDuplicatedStrings(items, this.caseSensitive)) {
