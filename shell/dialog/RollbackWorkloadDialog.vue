@@ -10,6 +10,8 @@ import { WORKLOAD_TYPES } from '@shell/config/types';
 import { diffFrom } from '@shell/utils/time';
 import { mapGetters } from 'vuex';
 import { ACTIVELY_REMOVE, NEVER_ADD } from '@shell/utils/create-yaml';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { escapeHtml } from '@shell/utils/string';
 
 const HIDE = [
   'metadata.labels.pod-template-hash',
@@ -99,7 +101,13 @@ export default {
     },
     sanitizedSelectedRevision() {
       return this.sanitizeYaml(this.selectedRevision);
-    }
+    },
+    timeFormatStr() {
+      const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+
+      return `${ dateFormat }, ${ timeFormat }`;
+    },
   },
   fetch() {
     // Fetch revisions of the current workload
@@ -161,14 +169,18 @@ export default {
       const isCurrentRevision = revisionNumber === this.currentRevisionNumber;
       const now = day();
       const createdDate = day(revision.metadata.creationTimestamp);
-      const revisionAge = diffFrom(createdDate, now, this.t);
-      const units = this.t(revisionAge.unitsKey, { count: revisionAge.label });
+      const createdDateFormatted = createdDate.format(this.timeFormatStr);
+
+      const revisionAgeObject = diffFrom(createdDate, now, this.t);
+      const revisionAge = `${ createdDateFormatted }, ${ revisionAgeObject.label }`;
+      const units = this.t(revisionAgeObject.unitsKey, { count: revisionAgeObject.label });
       const currentLabel = this.t('promptRollback.currentLabel');
+
       const optionLabel = this.t('promptRollback.revisionOption', {
         revisionNumber,
-        revisionAge:    revisionAge.label,
+        revisionAge,
         units,
-        currentLabel:   isCurrentRevision ? currentLabel : ''
+        currentLabel: isCurrentRevision ? currentLabel : ''
       });
 
       return {
