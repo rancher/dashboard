@@ -163,5 +163,6 @@ export default {
     :schema="schema"
     :rows="filteredRows"
     :overflow-y="true"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
   />
 </template>
