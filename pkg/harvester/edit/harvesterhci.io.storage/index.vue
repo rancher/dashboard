@@ -147,7 +147,7 @@ export default {
     },
     willSave() {
       Object.keys(this.value.parameters).forEach((key) => {
-        if (this.value.parameters[key] === null) {
+        if (this.value.parameters[key] === null || this.value.parameters[key] === '') {
           delete this.value.parameters[key];
         }
       });
