@@ -16,4 +16,3 @@ installed by administrators. Extensions are provided as Helm charts. A new top-l
 ### OCI Support for Helm for Fleet
 
 - Authentication for OCI-based registries is now supported. Note that the structure of the fleet.yaml is the same and the credentials are provided as a Kubernetes secret, which is described in the Private Helm Repo box in the Repo Structure docs.
-
