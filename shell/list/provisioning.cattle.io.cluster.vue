@@ -168,7 +168,7 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="filteredRows" :namespaced="false" :loading="loading">
+    <ResourceTable :schema="schema" :rows="filteredRows" :namespaced="false" :loading="loading" :data-testid="'cluster-list'">
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
