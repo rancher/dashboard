@@ -18,6 +18,13 @@ export default {
   components: { ResourceTable },
   mixins:     [ResourceFetch],
 
+  props: {
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
+  },
+
   async fetch() {
     try {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);

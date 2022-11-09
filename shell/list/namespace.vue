@@ -22,6 +22,13 @@ export default {
       type:     Boolean,
       required: false,
     },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
+  },
+  data() {
+    return { asddsa: true };
   },
 
   computed: {
@@ -52,6 +59,7 @@ export default {
     :schema="schema"
     key-field="_key"
     :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     v-on="$listeners"
   />
 </template>

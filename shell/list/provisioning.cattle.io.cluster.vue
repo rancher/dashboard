@@ -30,6 +30,11 @@ export default {
       type:    Boolean,
       default: false
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -180,6 +185,7 @@ export default {
       :rows="filteredRows"
       :namespaced="false"
       :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
     >
       <template #cell:summary="{row}">

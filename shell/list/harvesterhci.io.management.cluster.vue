@@ -23,6 +23,10 @@ export default {
       type:     Object,
       required: true,
     },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -136,6 +140,7 @@ export default {
       :rows="rows"
       :is-creatable="true"
       :namespaced="false"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     >
       <template #col:name="{row}">
         <td>
