@@ -87,7 +87,7 @@ export default {
         </header>
       </div>
 
-      <form>
+      <form onsubmit="return false;">
         <SelectPrincipal :retain-selection="true" class="mb-20" :show-my-group-types="['group']" :search-group-types="'group'" @add="setPrincipal" />
 
         <GlobalRoleBindings

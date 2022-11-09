@@ -126,6 +126,7 @@ export default {
           :waiting-label="t('authGroups.actions.refresh')"
           :success-label="t('authGroups.actions.refresh')"
           :error-label="t('authGroups.actions.refresh')"
+          :class="{'mr-5': canCreateGlobalRoleBinding}"
           @click="refreshGroupMemberships"
         />
         <n-link
