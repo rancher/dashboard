@@ -223,7 +223,6 @@ export default {
       :selectable="selectable"
       :value="value != null ? value : ''"
       v-on="$listeners"
-      @input="(e) => $emit('input', e)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @open="resizeHandler"

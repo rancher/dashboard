@@ -1,22 +1,45 @@
 import { isMatch } from 'lodash';
 
+import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
+import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import ClusterManagerDetailRke2CustomPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke2-custom.po';
+import ClusterManagerDetailImportedGenericPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-import-generic.po';
+import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
+import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke2-custom.po';
+import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
+import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+
+// At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
+const runTimestamp = +new Date();
+const runPrefix = `e2e-test-${ runTimestamp }`;
+
+// File specific consts
 const { baseUrl } = Cypress.config();
 const namespace = 'fleet-default';
 const type = 'provisioning.cattle.io.cluster';
-const clusterManagerPath = `${ baseUrl }/c/local/manager/${ type }`;
-const clusterRefreshPath = `${ baseUrl }/v1/management.cattle.io.fleetworkspaces`;
-const timestamp = +new Date();
-const clusterNamePartial = `e2e-test-create`;
-const clusterName = `${ clusterNamePartial }-${ timestamp }`;
-const clusterNameImport = `${ clusterNamePartial }-${ timestamp }-import`;
+const clusterRequestBase = `${ baseUrl }/v1/${ type }/${ namespace }`;
+const clusterNamePartial = `${ runPrefix }-create`;
+const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
+const importGenericName = `${ clusterNamePartial }-import-generic`;
+const clusterNameImport = `${ clusterNamePartial }-${ runTimestamp }-import`;
+const clusterName = `${ clusterNamePartial }-${ runTimestamp }`;
 
 describe('Cluster Manager', () => {
+  const clusterList = new ClusterManagerListPagePo();
+
+  const detailClusterPage = new ClusterManagerDetailRke2CustomPagePo(rke2CustomName);
+
   beforeEach(() => {
     cy.login();
   });
 
-  describe('using RKE2', () => {
-    describe('given custom selection', () => {
+  describe('Created', () => {
+    const createClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+
+    describe('RKE2 Custom', () => {
+      const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(rke2CustomName);
+
       it('can create new cluster', () => {
         cy.intercept('POST', `/v1/${ type }s`).as('createRequest');
         const request = {
@@ -28,27 +51,91 @@ describe('Cluster Manager', () => {
         };
 
         cy.userPreferences();
-        cy.visit(clusterManagerPath);
-        cy.getId('cluster-manager-list-create').click();
-        cy.getId('cluster-manager-create-rke-switch').click();
-        cy.getId('cluster-manager-create-grid-2-0').click();
-        cy.getId('name-ns-description-name').type(clusterName);
-        cy.getId('rke2-custom-create-save').click();
+
+        clusterList.goTo();
+        clusterList.checkIsCurrentPage();
+        clusterList.createCluster();
+
+        createClusterPage.waitForPage();
+        createClusterPage.rkeToggle().toggle();
+        createClusterPage.selectCustom(0);
+        createClusterPage.nameNsDescription().name().set(rke2CustomName);
+        createClusterPage.create();
+
+        detailClusterPage.waitForPage(undefined, 'registration');
 
         cy.wait('@createRequest').then((intercept) => {
           // Issue with linter https://github.com/cypress-io/eslint-plugin-cypress/issues/3
           expect(isMatch(intercept.request.body, request)).to.equal(true);
-          cy.url().should('include', `${ clusterManagerPath }/${ namespace }/${ clusterName }#registration`);
         });
       });
 
-      it('can create new imported generic cluster', () => {
+      it('can edit cluster and see changes afterwards', () => {
+        cy.intercept('PUT', `${ clusterRequestBase }/${ rke2CustomName }`).as('saveRequest');
+
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).clickMenuItem(0);
+
+        editCreatedClusterPage.waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage.nameNsDescription().description().set(rke2CustomName);
+        editCreatedClusterPage.save();
+
+        cy.wait('@saveRequest').then(() => {
+          clusterList.goTo();
+          clusterList.list().actionMenu(rke2CustomName).clickMenuItem(0);
+
+          editCreatedClusterPage.waitForPage('mode=edit', 'basic');
+          editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
+        });
+      });
+
+      it('can view cluster YAML editor', () => {
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).clickMenuItem(1);
+
+        editCreatedClusterPage.waitForPage('mode=edit&as=yaml');
+        editCreatedClusterPage.resourceDetail().resourceYaml().checkVisible();
+      });
+
+      it('can delete cluster', () => {
+        cy.intercept('DELETE', `${ clusterRequestBase }/${ rke2CustomName }`).as('deleteRequest');
+
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).clickMenuItem(4);
+
+        const promptRemove = new PromptRemove();
+
+        promptRemove.confirm(rke2CustomName);
+        promptRemove.remove();
+
+        cy.wait('@deleteRequest').then(() => {
+          return clusterList.sortableTable().rowElementWithName(rke2CustomName).should('not.exist', { timeout: 15000 });
+        });
+      });
+    });
+  });
+
+  describe('Imported', () => {
+    const importClusterPage = new ClusterManagerImportGenericPagePo();
+
+    describe('Generic', () => {
+      const editImportedClusterPage = new ClusterManagerEditGenericPagePo(importGenericName);
+
+      it('can create new cluster', () => {
+        const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(importGenericName);
+
         cy.intercept('POST', `/v1/${ type }s`).as('importRequest');
-        cy.visit(clusterManagerPath);
-        cy.getId('cluster-manager-list-import').click();
-        cy.getId('cluster-manager-create-grid-1-0').click();
-        cy.getId('name-ns-description-name').type(clusterNameImport);
-        cy.getId('cluster-manager-import-save').click();
+
+        clusterList.goTo();
+        clusterList.checkIsCurrentPage();
+        clusterList.importCluster();
+
+        importClusterPage.waitForPage('mode=import');
+        importClusterPage.selectGeneric(0);
+        importClusterPage.nameNsDescription().name().set(importGenericName);
+        importClusterPage.create();
+
+        detailClusterPage.waitForPage(undefined, 'registration');
 
         cy.wait('@importRequest').then((intercept) => {
           expect(intercept.request.body).to.deep.equal({
@@ -59,87 +146,43 @@ describe('Cluster Manager', () => {
             },
             spec: {}
           });
-          cy.url().should('include', `${ clusterManagerPath }/${ namespace }/${ clusterNameImport }#registration`);
         });
       });
 
-      it('can navigate to local cluster explore product', () => {
-        const clusterName = 'local';
+      it('can navigate to cluster edit page', () => {
+        clusterList.goTo();
+        clusterList.list().actionMenu(importGenericName).clickMenuItem(0);
 
-        cy.visit(clusterManagerPath);
-        // Click explore button for the cluster row within the table matching given name
-        cy.contains(clusterName).parent().parent().parent()
-          .within(() => cy.getId('cluster-manager-list-explore-management').click());
-
-        cy.url().should('include', `/c/${ clusterName }/explorer`);
+        editImportedClusterPage.waitForPage('mode=edit');
       });
 
-      it(`can see cluster's details`, () => {
-        cy.visit(clusterManagerPath);
-        // Click action menu button for the cluster row within the table matching given name
-        cy.contains(clusterName).parent().parent().parent()
-          .within(() => cy.getId('-action-button', '$').click());
-        cy.getId('action-menu-0-item').click();
+      it('can delete cluster by bulk actions', () => {
+        cy.intercept('DELETE', `${ clusterRequestBase }/${ importGenericName }`).as('deleteRequest');
 
-        cy.contains(`Custom - ${ clusterName }`).should('exist');
-      });
+        clusterList.goTo();
+        clusterList.sortableTable().rowSelectCtlWithName(importGenericName).set();
+        clusterList.sortableTable().bulkActionDropDownOpen();
+        clusterList.sortableTable().bulkActionDropDownButton('Delete').click();
 
-      it('can view cluster YAML editor', () => {
-        cy.visit(clusterManagerPath);
-        // Click action menu button for the cluster row within the table matching given name
-        cy.contains(clusterName).parent().parent().parent()
-          .within(() => cy.getId('-action-button', '$').click());
-        cy.getId('action-menu-1-item').click();
-        cy.getId('yaml-editor-code-mirror').contains(clusterName);
-      });
+        const promptRemove = new PromptRemove();
 
-      it('can edit cluster and see changes afterwards', () => {
-        cy.visit(clusterManagerPath);
-        // Click action menu button for the cluster row within the table matching given name
-        cy.contains(clusterName).parent().parent().parent()
-          .within(() => cy.getId('-action-button', '$').click());
-        cy.getId('action-menu-0-item').click();
-        cy.getId('name-ns-description-description').type(clusterName);
-        cy.getId('rke2-custom-create-save').click();
+        promptRemove.confirm(importGenericName);
+        promptRemove.remove();
 
-        cy.visit(`${ clusterManagerPath }/${ namespace }/${ clusterName }?mode=edit#basic`);
-        cy.getId('name-ns-description-description').find('input').should('have.value', clusterName);
-      });
-
-      it('can delete cluster', () => {
-        cy.intercept('GET', clusterRefreshPath).as('refreshRequest');
-
-        cy.visit(clusterManagerPath);
-        // Click action menu button for the cluster row within the table matching given name
-        cy.contains(clusterName).as('rowCell').parent().parent()
-          .parent()
-          .within(() => cy.getId('-action-button', '$').click());
-        cy.getId('action-menu-4-item').click();
-        cy.getId('prompt-remove-input').type(clusterName);
-        cy.getId('prompt-remove-confirm-button').click();
-
-        cy.reload();
-        cy.get('@rowCell').should('not.exist');
-      });
-
-      it('can delete multiple clusters', () => {
-        cy.visit(clusterManagerPath);
-        // Get row from a given name
-        cy.contains(clusterNameImport).as('rowCell')
-          // Click checkbox for the cluster row within the table matching given name
-          .parent().parent()
-          .parent()
-          .within(() => cy.getId('-checkbox', '$').click({ multiple: true }));
-        // Single buttons are replaced with action menu on mobile
-        cy.getId('sortable-table-promptRemove').click({ force: true });
-        cy.get('@rowCell').then((row) => {
-          // In the markdown we have ALWAYS whitespace
-          cy.getId('prompt-remove-input').type(row.text().trim());
+        cy.wait('@deleteRequest').then(() => {
+          return clusterList.sortableTable().rowElementWithName(importGenericName).should('not.exist', { timeout: 15000 });
         });
-        cy.getId('prompt-remove-confirm-button').click();
-
-        cy.get('@rowCell').should('not.exist');
       });
     });
+  });
+
+  it(`can navigate to local cluster's explore product`, () => {
+    const clusterName = 'local';
+    const clusterDashboard = new ClusterDashboardPagePo(clusterName);
+
+    clusterList.goTo();
+    clusterList.list().explore(clusterName).click();
+
+    clusterDashboard.waitForPage(undefined, 'cluster-events');
   });
 });

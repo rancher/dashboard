@@ -191,7 +191,8 @@ export default {
         const $el = $(el);
         const h = 33 * max;
 
-        $el.css('height', `${ h }px`);
+        $el.css('min-height', `${ h }px`);
+        $el.css('max-height', `${ h }px`);
       }
     },
     handler(e) {
@@ -516,6 +517,7 @@ export default {
       display: flex;
       flex-direction: column;
       margin: 10px 20px;
+      overflow-y: auto;
 
       .category {
         padding: 10px 0;

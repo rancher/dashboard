@@ -284,7 +284,7 @@ export default {
         <Checkbox v-model="customizeColor" :label="t('branding.color.useCustom')" :mode="mode" />
       </div>
       <div v-if="customizeColor" class="row mt-20 mb-20">
-        <ColorInput v-model="uiColor" />
+        <ColorInput v-model="uiColor" component-testid="primary" />
       </div>
 
       <h3 class="mt-40 mb-5 pb-0">
@@ -304,6 +304,7 @@ export default {
         <ColorInput
           v-model="uiLinkColor"
           class="col"
+          component-testid="link"
         />
         <span class="col link-example">
           <a>
@@ -316,7 +317,7 @@ export default {
       <Banner :key="err" color="error" :label="err" />
     </template>
     <div v-if="mode === 'edit'">
-      <AsyncButton class="pull-right mt-20" mode="apply" @click="save" />
+      <AsyncButton component-testid="branding-apply" class="pull-right mt-20" mode="apply" @click="save" />
     </div>
   </div>
 </template>
