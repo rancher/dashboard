@@ -108,6 +108,7 @@ export default {
         </div>
       </div>
       <Tabbed
+        ref="containersTabbed"
         class="deployment-tabs"
         :show-tabs-add-remove="true"
         :default-tab="defaultTab"
