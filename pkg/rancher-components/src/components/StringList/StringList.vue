@@ -129,7 +129,7 @@ export default Vue.extend({
     },
 
     onSelect(item: string) {
-      if (this.isCreateItem || this.editedItem === item) {
+      if (this.readonly || this.isCreateItem || this.editedItem === item) {
         return;
       }
       this.selected = item;
@@ -251,6 +251,9 @@ export default Vue.extend({
      * Show/Hide the input line to create new item
      */
     toggleCreateMode(show: boolean) {
+      if (this.readonly) {
+        return;
+      }
       if (show) {
         this.value = '';
 
@@ -269,6 +272,9 @@ export default Vue.extend({
      * Show/Hide the in-line editing to edit an existing item
      */
     toggleEditMode(show: boolean, item?: string) {
+      if (this.readonly) {
+        return;
+      }
       if (show) {
         this.toggleCreateMode(false);
         this.value = this.editedItem;
