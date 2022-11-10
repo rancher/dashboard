@@ -132,7 +132,12 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="users" :group-by="groupBy" :loading="loading" />
+    <ResourceTable
+      :schema="schema"
+      :rows="users"
+      :group-by="groupBy"
+      :loading="loading"
+    />
   </div>
 </template>
 

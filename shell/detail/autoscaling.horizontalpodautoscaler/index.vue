@@ -86,7 +86,10 @@ export default {
 </script>
 
 <template>
-  <ResourceTabs v-model="value" :mode="mode">
+  <ResourceTabs
+    v-model="value"
+    :mode="mode"
+  >
     <Tab
       name="metrics"
       :label="t('hpa.tabs.metrics')"
@@ -101,9 +104,15 @@ export default {
           <div class="row info-row">
             <div class="col span-6 info-column">
               <h4>
-                <t k="hpa.detail.metricHeader" :source="metric.metricSource" />
+                <t
+                  k="hpa.detail.metricHeader"
+                  :source="metric.metricSource"
+                />
               </h4>
-              <div v-if="metric.metricName" class="mb-5">
+              <div
+                v-if="metric.metricName"
+                class="mb-5"
+              >
                 <label class="text-label">
                   <t k="hpa.metrics.headers.metricName" />:
                 </label>

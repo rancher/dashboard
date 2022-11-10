@@ -35,7 +35,12 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.path" :mode="mode" :disabled="disabled" :label="t('logging.file.path')" />
+        <LabeledInput
+          v-model="value.path"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.file.path')"
+        />
       </div>
     </div>
   </div>

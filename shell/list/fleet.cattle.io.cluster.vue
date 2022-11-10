@@ -73,7 +73,11 @@ export default {
 
 <template>
   <div>
-    <Banner v-if="hiddenHarvesterCount" color="info" :label="t('fleet.clusters.harvester', {count: hiddenHarvesterCount} )" />
+    <Banner
+      v-if="hiddenHarvesterCount"
+      color="info"
+      :label="t('fleet.clusters.harvester', {count: hiddenHarvesterCount} )"
+    />
     <FleetClusters
       :rows="filteredRows"
       :schema="schema"

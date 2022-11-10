@@ -59,11 +59,22 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <h2 v-t="'fleet.cluster.summary'" class="mt-20" />
+    <h2
+      v-t="'fleet.cluster.summary'"
+      class="mt-20"
+    />
     <ResourcesSummary :value="value.status.resourceCounts" />
 
-    <ResourceTabs v-model="value" mode="view" class="mt-20">
-      <Tab label="Git Repos" name="repos" :weight="19">
+    <ResourceTabs
+      v-model="value"
+      mode="view"
+      class="mt-20"
+    >
+      <Tab
+        label="Git Repos"
+        name="repos"
+        :weight="19"
+      >
         <FleetRepos
           :rows="repos"
           :schema="repoSchema"

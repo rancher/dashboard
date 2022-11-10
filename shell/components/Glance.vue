@@ -14,8 +14,17 @@ export default {
 </script>
 
 <template>
-  <GradientBox :plain="true" class="glance" primary-color-var="--glance-bg-rgb" :show-tab="false">
-    <div v-for="slot in slots" :key="slot" class="tile">
+  <GradientBox
+    :plain="true"
+    class="glance"
+    primary-color-var="--glance-bg-rgb"
+    :show-tab="false"
+  >
+    <div
+      v-for="slot in slots"
+      :key="slot"
+      class="tile"
+    >
       <slot :name="slot" />
     </div>
   </GradientBox>

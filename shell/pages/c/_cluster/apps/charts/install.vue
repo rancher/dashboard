@@ -1264,7 +1264,11 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else-if="!legacyApp && !mcapp" class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+  <div
+    v-else-if="!legacyApp && !mcapp"
+    class="install-steps"
+    :class="{ 'isPlainLayout': isPlainLayout}"
+  >
     <TypeDescription resource="chart" />
     <Wizard
       v-if="value"
@@ -1278,7 +1282,10 @@ export default {
       @cancel="cancel"
       @finish="finish"
     >
-      <template v-for="customStep of customSteps" v-slot:[customStep.name]>
+      <template
+        v-for="customStep of customSteps"
+        v-slot:[customStep.name]
+      >
         <component
           :is="customStep.component"
           :key="customStep.name"
@@ -1289,31 +1296,58 @@ export default {
       <template #bannerTitleImage>
         <div>
           <div class="logo-bg">
-            <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+            <LazyImage
+              :src="chart ? chart.icon : ''"
+              class="logo"
+            />
           </div>
-          <label v-if="windowsIncompatible" class="os-label">
+          <label
+            v-if="windowsIncompatible"
+            class="os-label"
+          >
             {{ windowsIncompatible }}
           </label>
         </div>
       </template>
       <template #basics>
         <div class="step__basic">
-          <Banner v-if="step1Description" color="info" class="description">
+          <Banner
+            v-if="step1Description"
+            color="info"
+            class="description"
+          >
             <span>{{ step1Description }}</span>
-            <span v-if="namespaceNewAllowed" class="mt-10">
+            <span
+              v-if="namespaceNewAllowed"
+              class="mt-10"
+            >
               {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
             </span>
           </Banner>
-          <div v-if="requires.length || warnings.length" class="mb-15">
-            <Banner v-for="msg in requires" :key="msg" color="error">
+          <div
+            v-if="requires.length || warnings.length"
+            class="mb-15"
+          >
+            <Banner
+              v-for="msg in requires"
+              :key="msg"
+              color="error"
+            >
               <span v-html="msg" />
             </Banner>
 
-            <Banner v-for="msg in warnings" :key="msg" color="warning">
+            <Banner
+              v-for="msg in warnings"
+              :key="msg"
+              color="warning"
+            >
               <span v-html="msg" />
             </Banner>
           </div>
-          <div v-if="showSelectVersionOrChart" class="row mb-20">
+          <div
+            v-if="showSelectVersionOrChart"
+            class="row mb-20"
+          >
             <div class="col span-4">
               <!-- We have a chart for the app, let the user select a new version -->
               <LabeledSelect
@@ -1337,7 +1371,7 @@ export default {
               >
                 <template v-slot:option="opt">
                   <template v-if="opt.kind === 'divider'">
-                    <hr />
+                    <hr>
                   </template>
                   <template v-else-if="opt.kind === 'label'">
                     <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
@@ -1360,7 +1394,10 @@ export default {
             :horizontal="false"
             @isNamespaceNew="isNamespaceNew = $event"
           >
-            <template v-if="showProject" #project>
+            <template
+              v-if="showProject"
+              #project
+            >
               <LabeledSelect
                 v-model="project"
                 :disabled="!namespaceIsNew"
@@ -1373,7 +1410,11 @@ export default {
               />
             </template>
           </NameNsDescription>
-          <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
+          <Checkbox
+            v-model="showCommandStep"
+            class="mb-20"
+            :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })"
+          />
 
           <Checkbox
             v-model="showCustomRegistryInput"
@@ -1392,15 +1433,24 @@ export default {
               />
             </div>
           </div>
-          <div class="step__values__controls--spacer" style="flex:1">
+          <div
+            class="step__values__controls--spacer"
+            style="flex:1"
+          >
 &nbsp;
           </div>
-          <Banner v-if="isNamespaceNew" color="info" v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) ">
-          </Banner>
+          <Banner
+            v-if="isNamespaceNew"
+            color="info"
+            v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) "
+          />
         </div>
       </template>
       <template #clusterTplVersion>
-        <Banner color="info" class="description">
+        <Banner
+          color="info"
+          class="description"
+        >
           {{ t('catalog.install.steps.clusterTplVersion.description') }}
         </Banner>
         <div class="row mb-20">
@@ -1418,14 +1468,23 @@ export default {
 &nbsp;
           </div>
           <div class="btn-group">
-            <button type="button" class="btn bg-primary btn-sm" :disabled="!hasReadme || showingReadmeWindow" @click="showSlideIn = !showSlideIn">
+            <button
+              type="button"
+              class="btn bg-primary btn-sm"
+              :disabled="!hasReadme || showingReadmeWindow"
+              @click="showSlideIn = !showSlideIn"
+            >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
           </div>
         </div>
       </template>
       <template #helmValues>
-        <Banner v-if="step2Description" color="info" class="description">
+        <Banner
+          v-if="step2Description"
+          color="info"
+          class="description"
+        >
           {{ step2Description }}
         </Banner>
         <div class="step__values__controls">
@@ -1435,7 +1494,7 @@ export default {
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
             :disabled="preFormYamlOption != formYamlOption"
-          ></ButtonGroup>
+          />
           <div class="step__values__controls--spacer">
 &nbsp;
           </div>
@@ -1445,9 +1504,16 @@ export default {
             :options="yamlDiffModeOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
-          ></ButtonGroup>
-          <div v-if="hasReadme && !showingReadmeWindow" class="btn-group">
-            <button type="button" class="btn bg-primary btn-sm" @click="showSlideIn = !showSlideIn">
+          />
+          <div
+            v-if="hasReadme && !showingReadmeWindow"
+            class="btn-group"
+          >
+            <button
+              type="button"
+              class="btn bg-primary btn-sm"
+              @click="showSlideIn = !showSlideIn"
+            >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
           </div>
@@ -1529,27 +1595,83 @@ export default {
         </div>
 
         <!-- Confirm loss of changes on toggle from yaml/preview to form -->
-        <ResourceCancelModal ref="cancelModal" :is-cancel-modal="false" :is-form="true" @cancel-cancel="preFormYamlOption=formYamlOption" @confirm-cancel="formYamlOption = preFormYamlOption;"></ResourceCancelModal>
+        <ResourceCancelModal
+          ref="cancelModal"
+          :is-cancel-modal="false"
+          :is-form="true"
+          @cancel-cancel="preFormYamlOption=formYamlOption"
+          @confirm-cancel="formYamlOption = preFormYamlOption;"
+        />
       </template>
       <template #helmCli>
-        <Banner v-if="step3Description" color="info" class="description">
+        <Banner
+          v-if="step3Description"
+          color="info"
+          class="description"
+        >
           {{ step3Description }}
         </Banner>
-        <div><Checkbox v-if="existing" v-model="customCmdOpts.cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
-        <div><Checkbox v-if="!existing" v-model="customCmdOpts.crds" :label="t('catalog.install.helm.crds')" /></div>
-        <div><Checkbox v-model="customCmdOpts.hooks" :label="t('catalog.install.helm.hooks')" /></div>
-        <div><Checkbox v-if="existing" v-model="customCmdOpts.force" :label="t('catalog.install.helm.force')" /></div>
-        <div><Checkbox v-if="existing" v-model="customCmdOpts.resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
-        <div><Checkbox v-if="!existing" v-model="customCmdOpts.openApi" :label="t('catalog.install.helm.openapi')" /></div>
-        <div><Checkbox v-model="customCmdOpts.wait" :label="t('catalog.install.helm.wait')" /></div>
-        <div style="display: block; max-width: 400px;" class="mt-10">
+        <div>
+          <Checkbox
+            v-if="existing"
+            v-model="customCmdOpts.cleanupOnFail"
+            :label="t('catalog.install.helm.cleanupOnFail')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-if="!existing"
+            v-model="customCmdOpts.crds"
+            :label="t('catalog.install.helm.crds')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-model="customCmdOpts.hooks"
+            :label="t('catalog.install.helm.hooks')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-if="existing"
+            v-model="customCmdOpts.force"
+            :label="t('catalog.install.helm.force')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-if="existing"
+            v-model="customCmdOpts.resetValues"
+            :label="t('catalog.install.helm.resetValues')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-if="!existing"
+            v-model="customCmdOpts.openApi"
+            :label="t('catalog.install.helm.openapi')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-model="customCmdOpts.wait"
+            :label="t('catalog.install.helm.wait')"
+          />
+        </div>
+        <div
+          style="display: block; max-width: 400px;"
+          class="mt-10"
+        >
           <UnitInput
             v-model.number="customCmdOpts.timeout"
             :label="t('catalog.install.helm.timeout.label')"
             :suffix="t('catalog.install.helm.timeout.unit', {value: customCmdOpts.timeout})"
           />
         </div>
-        <div style="display: block; max-width: 400px;" class="mt-10">
+        <div
+          style="display: block; max-width: 400px;"
+          class="mt-10"
+        >
           <UnitInput
             v-if="existing"
             v-model.number="customCmdOpts.historyMax"
@@ -1557,7 +1679,10 @@ export default {
             :suffix="t('catalog.install.helm.historyMax.unit', {value: customCmdOpts.historyMax})"
           />
         </div>
-        <div style="display: block; max-width: 400px;" class="mt-10">
+        <div
+          style="display: block; max-width: 400px;"
+          class="mt-10"
+        >
           <LabeledInput
             v-model="customCmdOpts.description"
             label-key="catalog.install.helm.description.label"
@@ -1567,24 +1692,42 @@ export default {
         </div>
       </template>
     </Wizard>
-    <div class="slideIn" :class="{'hide': false, 'slideIn__show': showSlideIn}">
+    <div
+      class="slideIn"
+      :class="{'hide': false, 'slideIn__show': showSlideIn}"
+    >
       <h2 class="slideIn__header">
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
         <div class="slideIn__header__buttons">
-          <div v-tooltip="t('catalog.install.slideIn.dock')" class="slideIn__header__button" @click="showSlideIn = false; showReadmeWindow()">
+          <div
+            v-tooltip="t('catalog.install.slideIn.dock')"
+            class="slideIn__header__button"
+            @click="showSlideIn = false; showReadmeWindow()"
+          >
             <i class="icon icon-dock" />
           </div>
-          <div class="slideIn__header__button" @click="showSlideIn = false">
+          <div
+            class="slideIn__header__button"
+            @click="showSlideIn = false"
+          >
             <i class="icon icon-close" />
           </div>
         </div>
       </h2>
-      <ChartReadme v-if="hasReadme" :version-info="versionInfo" class="chart-content__tabs" />
+      <ChartReadme
+        v-if="hasReadme"
+        :version-info="versionInfo"
+        class="chart-content__tabs"
+      />
     </div>
   </div>
 
   <!-- App is deployed as a Legacy or MultiCluster app, don't let user update from here -->
-  <div v-else class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+  <div
+    v-else
+    class="install-steps"
+    :class="{ 'isPlainLayout': isPlainLayout}"
+  >
     <div class="outer-container">
       <div class="header mb-20">
         <div class="title">
@@ -1593,7 +1736,10 @@ export default {
               <!-- Logo -->
               <slot name="bannerTitleImage">
                 <div class="round-image">
-                  <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+                  <LazyImage
+                    :src="chart ? chart.icon : ''"
+                    class="logo"
+                  />
                 </div>
               </slot>
               <!-- Title with subtext -->
@@ -1601,14 +1747,20 @@ export default {
                 <h2 v-if="stepperName">
                   {{ stepperName }}
                 </h2>
-                <span v-if="stepperSubtext" class="subtext">{{ stepperSubtext }}</span>
+                <span
+                  v-if="stepperSubtext"
+                  class="subtext"
+                >{{ stepperSubtext }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <Banner color="warning" class="description">
+      <Banner
+        color="warning"
+        class="description"
+      >
         <span v-if="!mcapp">
           {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>

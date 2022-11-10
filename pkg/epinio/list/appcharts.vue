@@ -31,6 +31,5 @@ export default {
     :loading="$fetchState.pending"
     :table-actions="false"
     v-on="$listeners"
-  >
-  </ResourceTable>
+  />
 </template>

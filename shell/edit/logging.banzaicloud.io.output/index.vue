@@ -162,23 +162,52 @@ export default {
         :register-before-hook="registerBeforeHook"
         :namespaced="value.type !== LOGGING.CLUSTER_OUTPUT"
       />
-      <Banner v-if="selectedProviders.length > 1" color="info">
+      <Banner
+        v-if="selectedProviders.length > 1"
+        color="info"
+      >
         This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.
       </Banner>
-      <Banner v-else-if="!value.allProvidersSupported" color="info">
+      <Banner
+        v-else-if="!value.allProvidersSupported"
+        color="info"
+      >
         This output is configured with providers we don't support yet. You can view or edit the YAML.
       </Banner>
-      <Tabbed v-else ref="tabbed" :side-tabs="true" @changed="tabChanged($event)">
-        <Tab name="Output" label="Output" :weight="2">
+      <Tabbed
+        v-else
+        ref="tabbed"
+        :side-tabs="true"
+        @changed="tabChanged($event)"
+      >
+        <Tab
+          name="Output"
+          label="Output"
+          :weight="2"
+        >
           <div class="row">
             <div class="col span-6">
-              <LabeledSelect v-model="selectedProvider" label="Output" :options="providers" :mode="mode" />
+              <LabeledSelect
+                v-model="selectedProvider"
+                label="Output"
+                :options="providers"
+                :mode="mode"
+              />
             </div>
           </div>
-          <div class="spacer"></div>
-          <component :is="getComponent(selectedProvider)" :value="value.spec[selectedProvider]" :namespace="value.namespace" :mode="mode" />
+          <div class="spacer" />
+          <component
+            :is="getComponent(selectedProvider)"
+            :value="value.spec[selectedProvider]"
+            :namespace="value.namespace"
+            :mode="mode"
+          />
         </Tab>
-        <Tab name="buffer" :label="t('logging.output.buffer.label')" :weight="1">
+        <Tab
+          name="buffer"
+          :label="t('logging.output.buffer.label')"
+          :weight="1"
+        >
           <YamlEditor
             ref="yaml"
             v-model="bufferYaml"

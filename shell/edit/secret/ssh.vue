@@ -56,7 +56,11 @@ export default {
           required
           :placeholder="t('secret.ssh.publicPlaceholder')"
         />
-        <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onUsernameSelected" />
+        <FileSelector
+          class="btn btn-sm bg-primary mt-10"
+          :label="t('generic.readFromFile')"
+          @selected="onUsernameSelected"
+        />
       </div>
       <div class="col span-6">
         <LabeledInput
@@ -67,7 +71,11 @@ export default {
           required
           :placeholder="t('secret.ssh.privatePlaceholder')"
         />
-        <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onPasswordSelected" />
+        <FileSelector
+          class="btn btn-sm bg-primary mt-10"
+          :label="t('generic.readFromFile')"
+          @selected="onPasswordSelected"
+        />
       </div>
     </div>
   </div>

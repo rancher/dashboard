@@ -130,8 +130,14 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-rotate" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text">
+  <Card
+    class="prompt-rotate"
+    :show-highlight-border="false"
+  >
+    <h4
+      slot="title"
+      class="text-default-text"
+    >
       <template v-if="kubeNodes.length > 1">
         {{ t('drainNode.titleMultiple', { count: kubeNodes.length }) }}
       </template>
@@ -140,7 +146,10 @@ export default {
       </template>
     </h4>
 
-    <div slot="body" class="pl-10 pr-10">
+    <div
+      slot="body"
+      class="pl-10 pr-10"
+    >
       <div>
         <RadioGroup
           v-model="body.deleteLocalData"
@@ -153,12 +162,23 @@ export default {
             <h5>{{ t('drainNode.deleteLocalData') }}</h5>
           </template>
         </RadioGroup>
-        <RadioGroup v-model="body.force" name="force" :options="radioOptions" :row="true" class="mb-15">
+        <RadioGroup
+          v-model="body.force"
+          name="force"
+          :options="radioOptions"
+          :row="true"
+          class="mb-15"
+        >
           <template #label>
             <h5>{{ t('drainNode.force') }}</h5>
           </template>
         </RadioGroup>
-        <RadioGroup v-model="gracePeriod" name="gracePeriod" :options="gracePeriodOptions" class="mb-15">
+        <RadioGroup
+          v-model="gracePeriod"
+          name="gracePeriod"
+          :options="gracePeriodOptions"
+          class="mb-15"
+        >
           <template #label>
             <h5>{{ t('drainNode.gracePeriod.title') }}</h5>
           </template>
@@ -172,7 +192,12 @@ export default {
           :placeholder="t('drainNode.gracePeriod.placeholder')"
           class="mb-10"
         />
-        <RadioGroup v-model="timeout" name="timeout" :options="timeoutOptions" class="mb-15">
+        <RadioGroup
+          v-model="timeout"
+          name="timeout"
+          :options="timeoutOptions"
+          class="mb-15"
+        >
           <template #label>
             <h5>{{ t('drainNode.timeout.title') }}</h5>
           </template>
@@ -187,19 +212,29 @@ export default {
           :placeholder="t('drainNode.timeout.placeholder')"
         />
       </div>
-      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
     </div>
 
-    <div slot="actions" class="buttons">
-      <button class="btn role-secondary mr-10" @click="close">
+    <div
+      slot="actions"
+      class="buttons"
+    >
+      <button
+        class="btn role-secondary mr-10"
+        @click="close"
+      >
         {{ t('generic.cancel') }}
       </button>
 
       <AsyncButton
         mode="drain"
         @click="apply"
-      >
-      </AsyncButton>
+      />
     </div>
   </Card>
 </template>

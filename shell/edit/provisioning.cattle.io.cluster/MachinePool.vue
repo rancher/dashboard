@@ -205,7 +205,7 @@ export default {
         />
       </div>
     </div>
-    <hr class="mt-10" />
+    <hr class="mt-10">
     <component
       :is="configComponent"
       v-if="value.config"
@@ -220,18 +220,35 @@ export default {
       :machine-pools="machinePools"
       @error="e=>errors = e"
     />
-    <Banner v-else-if="value.configMissing" color="error" label-key="cluster.machinePool.configNotFound" />
-    <Banner v-else color="info" label-key="cluster.machinePool.noAccessBanner" />
+    <Banner
+      v-else-if="value.configMissing"
+      color="error"
+      label-key="cluster.machinePool.configNotFound"
+    />
+    <Banner
+      v-else
+      color="info"
+      label-key="cluster.machinePool.noAccessBanner"
+    />
 
-    <AdvancedSection :mode="mode" class="advanced">
-      <portal-target :name="'advanced-' + uuid" multiple />
+    <AdvancedSection
+      :mode="mode"
+      class="advanced"
+    >
+      <portal-target
+        :name="'advanced-' + uuid"
+        multiple
+      />
 
       <div class="spacer" />
       <div class="row">
         <div class="col span-4">
           <h3>
             {{ t('cluster.machinePool.autoReplace.label') }}
-            <i v-tooltip="t('cluster.machinePool.autoReplace.toolTip')" class="icon icon-info icon-lg" />
+            <i
+              v-tooltip="t('cluster.machinePool.autoReplace.toolTip')"
+              class="icon icon-info icon-lg"
+            />
           </h3>
           <UnitInput
             v-model.number="unhealthyNodeTimeoutInteger"
@@ -266,9 +283,15 @@ export default {
 
       <div class="spacer" />
 
-      <Taints v-model="value.pool.taints" :mode="mode" />
+      <Taints
+        v-model="value.pool.taints"
+        :mode="mode"
+      />
 
-      <portal-target :name="'advanced-footer-' + uuid" multiple />
+      <portal-target
+        :name="'advanced-footer-' + uuid"
+        multiple
+      />
     </AdvancedSection>
   </div>
 </template>

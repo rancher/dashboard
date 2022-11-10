@@ -94,7 +94,10 @@ export default {
 </script>
 
 <template>
-  <div v-if="rows.length" class="grid">
+  <div
+    v-if="rows.length"
+    class="grid"
+  >
     <div
       :is="asLink ? 'a' : 'div'"
       v-for="(r, idx) in rows"
@@ -110,7 +113,10 @@ export default {
       }"
       @click="select(r, idx)"
     >
-      <div class="side-label" :class="{'indicator': true }" />
+      <div
+        class="side-label"
+        :class="{'indicator': true }"
+      />
       <div v-if="r.deploysOnWindows">
         <label class="deploys-os-label">
           {{ t('catalog.charts.deploysOnWindows') }}
@@ -121,23 +127,39 @@ export default {
           {{ t('catalog.charts.windowsIncompatible') }}
         </label>
       </div>
-      <div v-if="get(r, sideLabelField)" class="side-label" :class="{'indicator': false }">
+      <div
+        v-if="get(r, sideLabelField)"
+        class="side-label"
+        :class="{'indicator': false }"
+      >
         <label>{{ get(r, sideLabelField) }}</label>
       </div>
 
       <div class="logo">
-        <i v-if="r.iconClass" :class="r.iconClass" />
-        <LazyImage v-else :src="get(r, iconField)" />
+        <i
+          v-if="r.iconClass"
+          :class="r.iconClass"
+        />
+        <LazyImage
+          v-else
+          :src="get(r, iconField)"
+        />
       </div>
       <h4 class="name">
         {{ get(r, nameField) }}
       </h4>
-      <div v-if="get(r, descriptionField)" class="description">
+      <div
+        v-if="get(r, descriptionField)"
+        class="description"
+      >
         {{ get(r, descriptionField) }}
       </div>
     </div>
   </div>
-  <div v-else class="m-50 text-center">
+  <div
+    v-else
+    class="m-50 text-center"
+  >
     <h1 v-t="noDataKey" />
   </div>
 </template>

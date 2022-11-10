@@ -66,14 +66,22 @@ export default {
       <h3 class="clearfix">
         {{ t('workload.container.lifecycleHook.postStart.label') }}
       </h3>
-      <HookOption v-model="postStart" :mode="mode" @input="update" />
+      <HookOption
+        v-model="postStart"
+        :mode="mode"
+        @input="update"
+      />
     </div>
 
     <div>
       <h3 class="clearfix">
         {{ t('workload.container.lifecycleHook.preStop.label') }}
       </h3>
-      <HookOption v-model="preStop" :mode="mode" @input="update" />
+      <HookOption
+        v-model="preStop"
+        :mode="mode"
+        @input="update"
+      />
     </div>
   </div>
 </template>

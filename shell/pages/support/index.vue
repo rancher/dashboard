@@ -117,34 +117,62 @@ export default {
         <div class="promo col main-panel">
           <div class="box mb-20 box-primary">
             <h2>{{ t('support.suse.access.title') }}</h2>
-            <div v-if="!hasSupport" class="external support-links mt-20">
+            <div
+              v-if="!hasSupport"
+              class="external support-links mt-20"
+            >
               <div class="support-link">
-                <a class="support-link" href="https://rancher.com/support-maintenance-terms" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.learnMore') }}</a>
+                <a
+                  class="support-link"
+                  href="https://rancher.com/support-maintenance-terms"
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >{{ t('support.community.learnMore') }}</a>
               </div>
               <div class="support-link">
-                <a class="support-link" href="https://rancher.com/pricing" target="_blank" rel="noopener noreferrer nofollow">{{ t('support.community.pricing') }}</a>
+                <a
+                  class="support-link"
+                  href="https://rancher.com/pricing"
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >{{ t('support.community.pricing') }}</a>
               </div>
             </div>
             <div v-else>
               <p class="pb-10">
                 {{ hasAWSSupport ? t("support.suse.access.aws.text") : t("support.suse.access.text") }}
               </p>
-              <a v-if="hasAWSSupport" class="mr-5 btn role-secondary btn-sm" :href="supportConfigLink">
+              <a
+                v-if="hasAWSSupport"
+                class="mr-5 btn role-secondary btn-sm"
+                :href="supportConfigLink"
+              >
                 {{ t('support.suse.access.aws.generateConfig') }}
               </a>
-              <a :href="sccLink" target="_blank" rel="noopener noreferrer nofollow">
+              <a
+                :href="sccLink"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
                 {{ t('support.suse.access.action') }} <i class="icon icon-external-link" />
               </a>
             </div>
           </div>
           <div class="boxes">
-            <div v-for="key in promos" :key="key" class="box">
+            <div
+              v-for="key in promos"
+              :key="key"
+              class="box"
+            >
               <h2>{{ t(`${key}.title`) }}</h2>
               <div>{{ t(`${key}.text`) }}</div>
             </div>
           </div>
         </div>
-        <CommunityLinks :is-support-page="true" class="community col side-panel span-3" />
+        <CommunityLinks
+          :is-support-page="true"
+          class="community col side-panel span-3"
+        />
       </div>
     </IndentedPanel>
   </div>

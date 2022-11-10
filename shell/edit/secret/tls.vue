@@ -68,7 +68,11 @@ export default {
           :mode="mode"
           :placeholder="t('secret.certificate.privateKeyPlaceholder')"
         />
-        <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onKeySelected" />
+        <FileSelector
+          class="btn btn-sm bg-primary mt-10"
+          :label="t('generic.readFromFile')"
+          @selected="onKeySelected"
+        />
       </div>
       <div class="col span-6">
         <LabeledInput
@@ -79,7 +83,11 @@ export default {
           :mode="mode"
           :placeholder="t('secret.certificate.certificatePlaceholder')"
         />
-        <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCrtSelected" />
+        <FileSelector
+          class="btn btn-sm bg-primary mt-10"
+          :label="t('generic.readFromFile')"
+          @selected="onCrtSelected"
+        />
       </div>
     </div>
   </div>

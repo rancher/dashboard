@@ -177,16 +177,42 @@ export default {
       </div>
     </header>
     <Tabbed>
-      <Tab v-if="tabs[GLOBAL].canFetch" :name="GLOBAL" :weight="tabs[GLOBAL].weight" :label-key="tabs[GLOBAL].labelKey">
-        <ResourceTable :schema="tabs[GLOBAL].schema" :rows="globalResources" />
+      <Tab
+        v-if="tabs[GLOBAL].canFetch"
+        :name="GLOBAL"
+        :weight="tabs[GLOBAL].weight"
+        :label-key="tabs[GLOBAL].labelKey"
+      >
+        <ResourceTable
+          :schema="tabs[GLOBAL].schema"
+          :rows="globalResources"
+        />
       </Tab>
 
-      <Tab v-if="tabs[CLUSTER].canFetch" :name="CLUSTER" :weight="tabs[CLUSTER].weight" :label-key="tabs[CLUSTER].labelKey">
-        <ResourceTable :schema="tabs[CLUSTER].schema" :headers="tabs[CLUSTER].headers" :rows="clusterResources" />
+      <Tab
+        v-if="tabs[CLUSTER].canFetch"
+        :name="CLUSTER"
+        :weight="tabs[CLUSTER].weight"
+        :label-key="tabs[CLUSTER].labelKey"
+      >
+        <ResourceTable
+          :schema="tabs[CLUSTER].schema"
+          :headers="tabs[CLUSTER].headers"
+          :rows="clusterResources"
+        />
       </Tab>
 
-      <Tab v-if="tabs[PROJECT].canFetch" :name="PROJECT" :weight="tabs[PROJECT].weight" :label-key="tabs[PROJECT].labelKey">
-        <ResourceTable :schema="tabs[PROJECT].schema" :headers="tabs[PROJECT].headers" :rows="namespaceResources" />
+      <Tab
+        v-if="tabs[PROJECT].canFetch"
+        :name="PROJECT"
+        :weight="tabs[PROJECT].weight"
+        :label-key="tabs[PROJECT].labelKey"
+      >
+        <ResourceTable
+          :schema="tabs[PROJECT].schema"
+          :headers="tabs[PROJECT].headers"
+          :rows="namespaceResources"
+        />
       </Tab>
     </Tabbed>
   </div>

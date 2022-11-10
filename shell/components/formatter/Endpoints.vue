@@ -83,7 +83,11 @@ export default {
 <template>
   <span>
     <template v-for="(endpoint, index) in parsed">
-      <span v-if="endpoint.display" :key="endpoint.display" class="block">{{ endpoint.display }}</span>
+      <span
+        v-if="endpoint.display"
+        :key="endpoint.display"
+        class="block"
+      >{{ endpoint.display }}</span>
       <a
         v-else
         :key="index + endpoint.link"

@@ -36,10 +36,20 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.region" :mode="mode" :disabled="disabled" :label="t('logging.cloudwatch.region')" />
+        <LabeledInput
+          v-model="value.region"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.cloudwatch.region')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.endpoint" :mode="mode" :disabled="disabled" :label="t('logging.cloudwatch.endpoint')" />
+        <LabeledInput
+          v-model="value.endpoint"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.cloudwatch.endpoint')"
+        />
       </div>
     </div>
     <div class="row">
@@ -76,10 +86,20 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.log_group_name" :mode="mode" :disabled="disabled" :label="t('logging.cloudwatch.logGroupName')" />
+        <LabeledInput
+          v-model="value.log_group_name"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.cloudwatch.logGroupName')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.log_stream_name" :mode="mode" :disabled="disabled" :label="t('logging.cloudwatch.logStreamName')" />
+        <LabeledInput
+          v-model="value.log_stream_name"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.cloudwatch.logStreamName')"
+        />
       </div>
     </div>
   </div>

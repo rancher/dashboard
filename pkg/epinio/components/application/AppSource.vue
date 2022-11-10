@@ -415,7 +415,11 @@ export default Vue.extend<Data, any, any, any>({
         />
       </div>
     </template>
-    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30">
+    <Collapse
+      :open.sync="open"
+      :title="'Advanced Settings'"
+      class="mt-30"
+    >
       <template>
         <LabeledSelect
           v-model="appChart"

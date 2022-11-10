@@ -135,15 +135,39 @@ export default {
 </script>
 
 <template>
-  <n-link v-if="isInternal && href" :to="href">
-    <i v-if="beforeIconClass" :class="beforeIconClass" style="position: relative; top: -2px;" />
+  <n-link
+    v-if="isInternal && href"
+    :to="href"
+  >
+    <i
+      v-if="beforeIconClass"
+      :class="beforeIconClass"
+      style="position: relative; top: -2px;"
+    />
     {{ label }}
-    <i v-if="afterIconClass" :class="afterIconClass" style="position: relative; top: -2px;" />
+    <i
+      v-if="afterIconClass"
+      :class="afterIconClass"
+      style="position: relative; top: -2px;"
+    />
   </n-link>
-  <a v-else-if="href" :href="href" :rel="rel" :target="target">
-    <i v-if="beforeIconClass" :class="beforeIconClass" style="position: relative; top: -2px;" />
+  <a
+    v-else-if="href"
+    :href="href"
+    :rel="rel"
+    :target="target"
+  >
+    <i
+      v-if="beforeIconClass"
+      :class="beforeIconClass"
+      style="position: relative; top: -2px;"
+    />
     {{ label }}
-    <i v-if="afterIconClass" :class="afterIconClass" style="position: relative; top: -2px;" />
+    <i
+      v-if="afterIconClass"
+      :class="afterIconClass"
+      style="position: relative; top: -2px;"
+    />
   </a>
   <span v-else> {{ href }} {{ label }}</span>
 </template>

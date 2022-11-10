@@ -117,7 +117,10 @@ export default {
         <TypeDescription :resource="hResource" />
       </template>
 
-      <template v-if="canCreateCluster" slot="extraActions">
+      <template
+        v-if="canCreateCluster"
+        slot="extraActions"
+      >
         <n-link
           :to="importLocation"
           class="btn role-primary"
@@ -137,11 +140,19 @@ export default {
       <template #col:name="{row}">
         <td>
           <span class="cluster-link">
-            <a v-if="row.isReady" class="link" :disabled="navigating" @click="goToCluster(row)">{{ row.nameDisplay }}</a>
+            <a
+              v-if="row.isReady"
+              class="link"
+              :disabled="navigating"
+              @click="goToCluster(row)"
+            >{{ row.nameDisplay }}</a>
             <span v-else>
               {{ row.nameDisplay }}
             </span>
-            <i class="icon icon-spinner icon-spin ml-5" :class="{'navigating': navigating === row.id}" />
+            <i
+              class="icon icon-spinner icon-spin ml-5"
+              :class="{'navigating': navigating === row.id}"
+            />
           </span>
         </td>
       </template>
@@ -159,15 +170,18 @@ export default {
       <div class="no-clusters">
         {{ t('harvesterManager.cluster.none') }}
       </div>
-      <hr class="info-section" />
+      <hr class="info-section">
       <div class="logo">
-        <BrandImage file-name="harvester.png" height="64" />
+        <BrandImage
+          file-name="harvester.png"
+          height="64"
+        />
       </div>
       <div class="tagline">
         <div>{{ t('harvesterManager.cluster.description') }}</div>
       </div>
       <div class="tagline sub-tagline">
-        <div v-html="t('harvesterManager.cluster.learnMore', {}, true)"></div>
+        <div v-html="t('harvesterManager.cluster.learnMore', {}, true)" />
       </div>
     </div>
   </div>

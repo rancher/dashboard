@@ -38,5 +38,11 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :schema="schema" :rows="filteredRows" :headers="$attrs.headers" :group-by="$attrs.groupBy" :loading="loading" />
+  <ResourceTable
+    :schema="schema"
+    :rows="filteredRows"
+    :headers="$attrs.headers"
+    :group-by="$attrs.groupBy"
+    :loading="loading"
+  />
 </template>

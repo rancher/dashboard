@@ -140,9 +140,18 @@ export default {
       :show-remove="false"
       @input="matchChanged($event)"
     />
-    <Banner v-if="matchingClusters" :color="(matchingClusters.isNone || matchingClusters.isAll ? 'warning' : 'success')">
-      <span v-if="matchingClusters.isAll" v-html="t('fleet.clusterGroup.selector.matchesAll', matchingClusters)" />
-      <span v-else-if="matchingClusters.isNone" v-html="t('fleet.clusterGroup.selector.matchesNone', matchingClusters)" />
+    <Banner
+      v-if="matchingClusters"
+      :color="(matchingClusters.isNone || matchingClusters.isAll ? 'warning' : 'success')"
+    >
+      <span
+        v-if="matchingClusters.isAll"
+        v-html="t('fleet.clusterGroup.selector.matchesAll', matchingClusters)"
+      />
+      <span
+        v-else-if="matchingClusters.isNone"
+        v-html="t('fleet.clusterGroup.selector.matchesNone', matchingClusters)"
+      />
       <span
         v-else
         v-html="t('fleet.clusterGroup.selector.matchesSome', matchingClusters)"

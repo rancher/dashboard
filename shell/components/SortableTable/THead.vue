@@ -199,7 +199,11 @@ export default {
 <template>
   <thead>
     <tr :class="{'loading': loading}">
-      <th v-if="tableActions" :width="checkWidth" align="middle">
+      <th
+        v-if="tableActions"
+        :width="checkWidth"
+        align="middle"
+      >
         <Checkbox
           v-model="isAll"
           class="check"
@@ -207,7 +211,10 @@ export default {
           :disabled="noRows || noResults"
         />
       </th>
-      <th v-if="subExpandColumn" :width="expandWidth"></th>
+      <th
+        v-if="subExpandColumn"
+        :width="expandWidth"
+      />
       <th
         v-for="col in columns"
         v-show="!hasAdvancedFiltering || (hasAdvancedFiltering && col.isColVisible)"
@@ -221,7 +228,10 @@ export default {
           class="table-header-container"
           :class="{ 'not-filterable': hasAdvancedFiltering && !col.isFilter }"
         >
-          <span v-if="col.sort" v-tooltip="col.tooltip">
+          <span
+            v-if="col.sort"
+            v-tooltip="col.tooltip"
+          >
             <span v-html="labelFor(col)" />
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"
@@ -230,11 +240,20 @@ export default {
             />
             <span class="icon-stack">
               <i class="icon icon-sort icon-stack-1x faded" />
-              <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
-              <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
+              <i
+                v-if="isCurrent(col) && !descending"
+                class="icon icon-sort-down icon-stack-1x"
+              />
+              <i
+                v-if="isCurrent(col) && descending"
+                class="icon icon-sort-up icon-stack-1x"
+              />
             </span>
           </span>
-          <span v-else v-tooltip="col.tooltip">{{ labelFor(col) }}</span>
+          <span
+            v-else
+            v-tooltip="col.tooltip"
+          >{{ labelFor(col) }}</span>
         </div>
       </th>
       <th
@@ -298,8 +317,10 @@ export default {
           </div>
         </div>
       </th>
-      <th v-else-if="rowActions" :width="rowActionsWidth">
-      </th>
+      <th
+        v-else-if="rowActions"
+        :width="rowActionsWidth"
+      />
     </tr>
   </thead>
 </template>

@@ -20,8 +20,16 @@ export default {
 </script>
 
 <template>
-  <div v-if="cluster" class="cluster-icon" :class="{'cluster-icon-small': small}">
-    <div v-if="useForIcon" class="cluster-badge-logo" :style="{ backgroundColor: cluster.badge.color, color: cluster.badge.textColor }">
+  <div
+    v-if="cluster"
+    class="cluster-icon"
+    :class="{'cluster-icon-small': small}"
+  >
+    <div
+      v-if="useForIcon"
+      class="cluster-badge-logo"
+      :style="{ backgroundColor: cluster.badge.color, color: cluster.badge.textColor }"
+    >
       {{ cluster.badge.iconText }}
     </div>
     <!-- eslint-disable -->
@@ -44,7 +52,11 @@ export default {
       </g>
     </svg>
     <!-- eslint-enable -->
-    <img v-else-if="cluster.providerNavLogo" class="cluster-os-logo" :src="cluster.providerNavLogo" />
+    <img
+      v-else-if="cluster.providerNavLogo"
+      class="cluster-os-logo"
+      :src="cluster.providerNavLogo"
+    >
   </div>
 </template>
 
