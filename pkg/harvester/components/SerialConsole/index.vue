@@ -249,7 +249,7 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   @import '../../../../node_modules/xterm/css/xterm.css';
 
   body, #__nuxt, #__layout, MAIN {

@@ -45,7 +45,7 @@ export default {
   <NovncConsoleWrapper v-else ref="console" v-model="vmi" class="novnc-wrapper" />
 </template>
 
-<style>
+<style scoped>
 HTML, BODY, MAIN, #__nuxt, #__layout, #app, .vm-console, .vm-console > DIV, .vm-console > DIV > DIV {
   height: 100%;
 }

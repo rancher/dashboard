@@ -722,7 +722,7 @@ export default {
   }
 
 </style>
-<style lang="scss">
+<style lang="scss" scoped>
   .dashboard-root{
     display: flex;
     flex-direction: column;
