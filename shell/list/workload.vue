@@ -85,7 +85,7 @@ export default {
         }
 
         for ( const row of typeRows ) {
-          if (!this.allTypes || row.showAsWorkload) {
+          if (!this.allTypes || !row.ownedByWorkload) {
             out.push(row);
           }
         }

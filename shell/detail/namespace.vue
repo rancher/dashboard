@@ -156,7 +156,7 @@ export default {
     workloadRows() {
       const params = this.$route.params;
       const { id } = params;
-      const rows = flatten(compact(this.allWorkloads)).filter(row => row.showAsWorkload);
+      const rows = flatten(compact(this.allWorkloads)).filter(row => !row.ownedByWorkload);
       const namespacedRows = filter(rows, ({ metadata: { namespace } }) => namespace === id);
 
       return namespacedRows;
