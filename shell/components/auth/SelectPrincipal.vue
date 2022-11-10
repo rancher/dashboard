@@ -95,6 +95,11 @@ export default {
 
   methods: {
     add(id) {
+      if (!id) {
+        // Ignore attempts to select an invalid principal
+        return;
+      }
+
       this.$emit('add', id);
       if (!this.retainSelection) {
         this.newValue = '';
