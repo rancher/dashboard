@@ -87,7 +87,7 @@ export default Vue.extend({
     return {
       value:             null as string | null,
       selected:          null as string | null,
-      isEditItem:        null as string | null,
+      editedItem:        null as string | null,
       isCreateItem:      false,
       errors:            { duplicate: false } as Record<Error, boolean>
     };
@@ -100,7 +100,7 @@ export default Vue.extend({
      */
     errorMessagesArray(): string[] {
       return (Object.keys(this.errors) as Error[])
-        .filter(f => !!(this.errors)[f])
+        .filter(f => this.errors[f] && this.errorMessages[f])
         .map(k => this.errorMessages[k]);
     },
   },
@@ -129,7 +129,7 @@ export default Vue.extend({
     },
 
     onSelect(item: string) {
-      if (this.isCreateItem || this.isEditItem === item) {
+      if (this.isCreateItem || this.editedItem === item) {
         return;
       }
       this.selected = item;
@@ -160,7 +160,7 @@ export default Vue.extend({
     },
 
     onClickEmptyBody() {
-      if (!this.isCreateItem && !this.isEditItem) {
+      if (!this.isCreateItem && !this.editedItem) {
         this.toggleCreateMode(true);
       }
     },
@@ -176,7 +176,7 @@ export default Vue.extend({
 
         return;
       }
-      if (this.isEditItem) {
+      if (this.editedItem) {
         this.toggleEditMode(false);
 
         return;
@@ -229,6 +229,7 @@ export default Vue.extend({
      */
     toggleError(type: Error, val: boolean, refId?: string) {
       this.errors[type] = val;
+
       if (refId) {
         this.toggleErrorClass(refId, val);
       }
@@ -270,16 +271,16 @@ export default Vue.extend({
     toggleEditMode(show: boolean, item?: string) {
       if (show) {
         this.toggleCreateMode(false);
-        this.value = this.isEditItem;
+        this.value = this.editedItem;
 
-        this.isEditItem = item || '';
+        this.editedItem = item || '';
         this.setFocus(INPUT.edit);
       } else {
         this.value = null;
         this.toggleError('duplicate', false);
         this.onSelectLeave();
 
-        this.isEditItem = null;
+        this.editedItem = null;
       }
     },
 
@@ -387,13 +388,13 @@ export default Vue.extend({
         @blur="onSelectLeave(item)"
       >
         <span
-          v-if="!isEditItem || isEditItem !== item"
+          v-if="!editedItem || editedItem !== item"
           class="label static"
         >
           {{ item }}
         </span>
         <LabeledInput
-          v-if="isEditItem && isEditItem === item"
+          v-if="editedItem && editedItem === item"
           ref="item-edit"
           class="edit-input static"
           :value="value != null ? value : item"
@@ -428,7 +429,7 @@ export default Vue.extend({
       >
         <button
           class="btn btn-sm role-tertiary remove-button"
-          :disabled="!selected && !isCreateItem && !isEditItem"
+          :disabled="!selected && !isCreateItem && !editedItem"
           @mousedown.prevent="onClickMinusButton"
         >
           <span class="icon icon-minus icon-sm" />
