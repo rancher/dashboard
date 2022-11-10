@@ -1,0 +1,45 @@
+
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import Alert from '@shell/components/Alert';
+
+<Meta 
+  title="Components/Alert" 
+  component={Alert}
+/>
+
+export const Template = (args, { argTypes }) => ({
+  components: { Alert },
+  props:      Object.keys(argTypes),
+  template:   '<Alert v-bind="$props" />',
+})
+
+# Alert
+
+
+<Canvas>
+  <Story
+    name="Success"
+    args={{
+      message: 'Hello world',
+      status: 'warning',
+    }}>
+    {Template.bind({})}
+  </Story>
+ 
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import Alert from '@shell/components/Alert';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={Alert} />
+

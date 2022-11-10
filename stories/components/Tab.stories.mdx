@@ -11,9 +11,9 @@ export const Template = (args, { argTypes, events }) => ({
   components: { Tabbed, Tab },
   props:      Object.keys(argTypes),
   template:   `
-      <Tabbed class="deployment-tabs" v-bind="$props">
-        <Tab name="test1" label="new"></Tab>
-        <Tab name="test2" label="new2"></Tab>
+      <Tabbed v-bind="$props">
+        <Tab name="test1" badge="0"  label="new"></Tab>
+        <Tab name="test2" error="true" label="new2"></Tab>
       </Tabbed>
     `
 });
@@ -37,4 +37,8 @@ export const Template = (args, { argTypes, events }) => ({
     {Template.bind({})}
   </Story>
 </Canvas>
+
+### Props table
+
+<ArgsTable of={Tab} />
 

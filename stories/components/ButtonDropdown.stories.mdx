@@ -1,0 +1,44 @@
+
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import ButtonDropdown from '@shell/components/ButtonDropdown';
+
+<Meta 
+  title="Components/ButtonDropdown" 
+  component={ButtonDropdown}
+/>
+
+export const Template = (args, { argTypes }) => ({
+  components: { ButtonDropdown },
+  props:      Object.keys(argTypes),
+  template:   '<ButtonDropdown v-bind="$props" />',
+})
+
+# Alert
+
+
+<Canvas>
+  <Story
+    name="ButtonDrop"
+    args={{
+      buttonLabel: 'Select',
+      dropdownOptions: ['0', '1', '2', '5']
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import ButtonDropdown from '@shell/components/ButtonDropdown';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={ButtonDropdown} />
+
