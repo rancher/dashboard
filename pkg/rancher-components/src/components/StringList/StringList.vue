@@ -410,6 +410,7 @@ export default Vue.extend({
         <LabeledInput
           v-if="editedItem && editedItem === item"
           ref="item-edit"
+          :data-testid="`item-edit-${item}`"
           class="edit-input static"
           :value="value != null ? value : item"
           @input="onChange($event)"
@@ -423,6 +424,7 @@ export default Vue.extend({
       >
         <LabeledInput
           ref="item-create"
+          data-testid="item-create"
           class="create-input static"
           type="text"
           :value="value"
@@ -443,6 +445,7 @@ export default Vue.extend({
         class="action-buttons"
       >
         <button
+          data-testid="button-remove"
           class="btn btn-sm role-tertiary remove-button"
           :disabled="!selected && !isCreateItem && !editedItem"
           @mousedown.prevent="onClickMinusButton"
@@ -450,6 +453,7 @@ export default Vue.extend({
           <span class="icon icon-minus icon-sm" />
         </button>
         <button
+          data-testid="button-add"
           class="btn btn-sm role-tertiary add-button"
           :disabled="isCreateItem || editedItem"
           @click.prevent="onClickPlusButton"
@@ -458,10 +462,15 @@ export default Vue.extend({
         </button>
       </div>
       <div class="messages">
-        <i v-if="errorMessagesArray.length > 0" class="icon icon-warning icon-lg" />
+        <i
+          v-if="errorMessagesArray.length > 0"
+          data-testid="i-warning-icon"
+          class="icon icon-warning icon-lg"
+        />
         <span
           v-for="(msg, idx) in errorMessagesArray"
           :key="idx"
+          :data-testid="`span-error-message-${msg}`"
           class="error"
         >
           {{ idx > 0 ? '; ' : '' }}
