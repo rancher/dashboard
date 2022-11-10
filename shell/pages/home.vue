@@ -177,12 +177,6 @@ export default {
   },
 
   methods: {
-    demo() {
-      this.$store.dispatch('growl/success', {
-        title:   'TEST',
-        message: 'this is a gowl test'
-      }, { root: true });
-    },
     /**
      * Define actions for each navigation link
      * @param {*} action
@@ -281,7 +275,6 @@ export default {
             </div>
           </div>
           <div class="row panel">
-            <button @click="demo()"></button>
             <div v-if="mcm" class="col span-12">
               <SortableTable
                 :table-actions="false"
