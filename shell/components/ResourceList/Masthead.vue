@@ -163,7 +163,7 @@ export default {
 </script>
 
 <template>
-  <header>
+  <header class="header-layout">
     <slot name="typeDescription">
       <TypeDescription :resource="resource" />
     </slot>

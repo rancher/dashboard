@@ -375,7 +375,7 @@ export default {
 
 <template>
   <div class="masthead">
-    <header>
+    <header class="header-layout">
       <div class="title">
         <div class="primaryheader">
           <h1>

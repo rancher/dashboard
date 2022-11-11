@@ -10,7 +10,7 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="main-layout">
     <div class="dashboard-root">
       <FixedBanner :header="true" />
       <FixedBanner :consent="true" />

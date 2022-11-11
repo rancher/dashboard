@@ -59,7 +59,7 @@ export default {
 
     <div class="dashboard-content">
       <Header :simple="true" />
-      <main>
+      <main class="main-layout">
         <IndentedPanel class="pt-20">
           <nuxt class="outlet" />
         </IndentedPanel>

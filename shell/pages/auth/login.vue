@@ -284,7 +284,7 @@ export default {
 </script>
 
 <template>
-  <main class="login">
+  <main class="main-layout login">
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
         <p class="text-center">
