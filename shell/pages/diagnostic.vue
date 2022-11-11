@@ -284,12 +284,13 @@ export default {
     },
 
     promptDownload(btnCb) {
-      const resources = [{ downloadData: this.downloadData, gatherResponseTimes: this.gatherResponseTimes }];
-
       if ( !this.responseTimes ) {
         this.$store.dispatch('management/promptModal', {
-          component: 'DiagnosticTimingsDialog',
-          resources
+          component:      'DiagnosticTimingsDialog',
+          componentProps: {
+            downloadData:        this.downloadData,
+            gatherResponseTimes: this.gatherResponseTimes
+          }
         })
           .then(() => btnCb(true))
           .catch(() => btnCb(false));

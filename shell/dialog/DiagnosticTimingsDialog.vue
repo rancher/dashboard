@@ -13,8 +13,12 @@ export default {
   },
 
   props: {
-    resources: {
-      type:     Array,
+    downloadData: {
+      type:     Function,
+      required: true
+    },
+    gatherResponseTimes: {
+      type:     Function,
       required: true
     }
   },
@@ -24,9 +28,6 @@ export default {
   },
 
   computed: {
-    config() {
-      return this.resources[0];
-    },
 
     applyMode() {
       return 'diagnostic';
@@ -48,7 +49,7 @@ export default {
 
     apply(btnCb) {
       try {
-        this.config.downloadData(btnCb);
+        this.downloadData(btnCb);
         this.close();
       } catch (err) {
         console.error(err); // eslint-disable-line
@@ -84,7 +85,7 @@ export default {
           <AsyncButton
             mode="timing"
             class="row mt-20"
-            @click="config.gatherResponseTimes"
+            @click="gatherResponseTimes"
           />
         </div>
       </slot>

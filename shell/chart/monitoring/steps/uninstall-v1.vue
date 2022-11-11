@@ -40,8 +40,8 @@ export default {
   methods: {
     uninstall(buttonCb) {
       this.$store.dispatch('cluster/promptModal', {
-        component: 'GenericPrompt',
-        resources: {
+        component:      'GenericPrompt',
+        componentProps: {
           applyMode:   'uninstall',
           applyAction: async(buttonDone) => {
             await this.$store.getters['currentCluster'].doAction('disableMonitoring');

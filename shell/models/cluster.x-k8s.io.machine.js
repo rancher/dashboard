@@ -114,8 +114,8 @@ export default class CapiMachine extends SteveModel {
 
   toggleForceRemoveModal(resources = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'ForceMachineRemoveDialog'
+      componentProps: { machine: resources },
+      component:      'ForceMachineRemoveDialog'
     });
   }
 
