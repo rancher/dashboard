@@ -1733,7 +1733,6 @@ cluster:
         false: Only available inside the cluster
         true: Exposed to the public interface
   k3s:
-    techPreview: K3s provisioning is in Tech Preview
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
@@ -2483,7 +2482,7 @@ landing:
     cpuUsed: CPU Used
     memoryUsed: Memory Used
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.6"
+  whatsNewLink: "What's new in 2.7"
   learnMore: Learn More
   support: Support
   psps: PSPs

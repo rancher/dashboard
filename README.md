@@ -27,7 +27,7 @@ API=https://your-rancher yarn dev
 ```
 
 
-## Other Building <odes
+## Other Building Modes
 ```bash
 # Build for standalone use within Rancher
 # (These are done on commit/tag via Drone)

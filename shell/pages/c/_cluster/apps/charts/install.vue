@@ -437,7 +437,7 @@ export default {
       const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
-      const out = projects.filter(x => x.spec.clusterName === cluster.id).map((project) => {
+      const out = projects.filter(x => x.spec.clusterName === cluster?.id).map((project) => {
         return {
           id:    project.id,
           label: project.nameDisplay,
@@ -766,10 +766,10 @@ export default {
 
       if (hasPermissionToSeeProvCluster) {
         const mgmCluster = this.$store.getters['currentCluster'];
-        const provCluster = await this.$store.dispatch('management/find', {
+        const provCluster = mgmCluster ? await this.$store.dispatch('management/find', {
           type: CAPI.RANCHER_CLUSTER,
           id:   mgmCluster.provClusterId
-        });
+        }) : {};
 
         if (provCluster.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
           const agentConfig = provCluster.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
@@ -973,7 +973,7 @@ export default {
       const systemProjectId = projects.find(p => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
 
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
+      const isWindows = (cluster?.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
       const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
@@ -1007,7 +1007,7 @@ export default {
 
       const cluster = this.$store.getters['currentCluster'];
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
+      const isWindows = (cluster?.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
       const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
