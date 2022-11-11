@@ -87,7 +87,7 @@ export default Vue.extend({
     return {
       value:             null as string | null,
       selected:          null as string | null,
-      isEditItem:        null as string | null,
+      editedItem:        null as string | null,
       isCreateItem:      false,
       errors:            { duplicate: false } as Record<Error, boolean>
     };
@@ -100,7 +100,7 @@ export default Vue.extend({
      */
     errorMessagesArray(): string[] {
       return (Object.keys(this.errors) as Error[])
-        .filter(f => !!(this.errors)[f])
+        .filter(f => this.errors[f] && this.errorMessages[f])
         .map(k => this.errorMessages[k]);
     },
   },
@@ -113,23 +113,32 @@ export default Vue.extend({
       this.toggleEditMode(false);
       this.toggleCreateMode(false);
     },
+    errors: {
+      handler(val) {
+        this.$emit('errors', val);
+      },
+      deep: true
+    }
   },
 
   methods: {
     onChange(value: string) {
       this.value = value;
-      /**
-       * Remove duplicate error when a new value is typed
-       */
+
+      const items = [
+        ...this.items,
+        this.value
+      ];
+
       this.toggleError(
         'duplicate',
-        false,
-        this.isCreateItem ? INPUT.create : INPUT.edit,
+        hasDuplicatedStrings(items, this.caseSensitive),
+        this.isCreateItem ? INPUT.create : INPUT.edit
       );
     },
 
     onSelect(item: string) {
-      if (this.isCreateItem || this.isEditItem === item) {
+      if (this.readonly || this.isCreateItem || this.editedItem === item) {
         return;
       }
       this.selected = item;
@@ -160,7 +169,7 @@ export default Vue.extend({
     },
 
     onClickEmptyBody() {
-      if (!this.isCreateItem && !this.isEditItem) {
+      if (!this.isCreateItem && !this.editedItem) {
         this.toggleCreateMode(true);
       }
     },
@@ -176,7 +185,7 @@ export default Vue.extend({
 
         return;
       }
-      if (this.isEditItem) {
+      if (this.editedItem) {
         this.toggleEditMode(false);
 
         return;
@@ -229,6 +238,7 @@ export default Vue.extend({
      */
     toggleError(type: Error, val: boolean, refId?: string) {
       this.errors[type] = val;
+
       if (refId) {
         this.toggleErrorClass(refId, val);
       }
@@ -250,7 +260,11 @@ export default Vue.extend({
      * Show/Hide the input line to create new item
      */
     toggleCreateMode(show: boolean) {
+      if (this.readonly) {
+        return;
+      }
       if (show) {
+        this.toggleEditMode(false);
         this.value = '';
 
         this.isCreateItem = true;
@@ -268,18 +282,21 @@ export default Vue.extend({
      * Show/Hide the in-line editing to edit an existing item
      */
     toggleEditMode(show: boolean, item?: string) {
+      if (this.readonly) {
+        return;
+      }
       if (show) {
         this.toggleCreateMode(false);
-        this.value = this.isEditItem;
+        this.value = this.editedItem;
 
-        this.isEditItem = item || '';
+        this.editedItem = item || '';
         this.setFocus(INPUT.edit);
       } else {
         this.value = null;
         this.toggleError('duplicate', false);
         this.onSelectLeave();
 
-        this.isEditItem = null;
+        this.editedItem = null;
       }
     },
 
@@ -292,7 +309,7 @@ export default Vue.extend({
     /**
      * Create a new item and insert in the items list
      */
-    saveItem() {
+    saveItem(closeInput = true) {
       const value = this.value?.trim();
 
       if (value) {
@@ -301,21 +318,20 @@ export default Vue.extend({
           value,
         ];
 
-        if (hasDuplicatedStrings(items, this.caseSensitive)) {
-          this.toggleError('duplicate', true, INPUT.create);
-
-          return;
+        if (!hasDuplicatedStrings(items, this.caseSensitive)) {
+          this.updateItems(items);
         }
-
-        this.updateItems(items);
       }
-      this.toggleCreateMode(false);
+
+      if (closeInput) {
+        this.toggleCreateMode(false);
+      }
     },
 
     /**
      * Update an existing item in the items list
      */
-    updateItem(item: string) {
+    updateItem(item: string, closeInput = true) {
       const value = this.value?.trim();
 
       if (value) {
@@ -326,15 +342,14 @@ export default Vue.extend({
           items[index] = value;
         }
 
-        if (hasDuplicatedStrings(items, this.caseSensitive)) {
-          this.toggleError('duplicate', true, INPUT.edit);
-
-          return;
+        if (!hasDuplicatedStrings(items, this.caseSensitive)) {
+          this.updateItems(items);
         }
-
-        this.updateItems(items);
       }
-      this.toggleEditMode(false);
+
+      if (closeInput) {
+        this.toggleEditMode(false);
+      }
     },
 
     /**
@@ -387,19 +402,19 @@ export default Vue.extend({
         @blur="onSelectLeave(item)"
       >
         <span
-          v-if="!isEditItem || isEditItem !== item"
+          v-if="!editedItem || editedItem !== item"
           class="label static"
         >
           {{ item }}
         </span>
         <LabeledInput
-          v-if="isEditItem && isEditItem === item"
+          v-if="editedItem && editedItem === item"
           ref="item-edit"
           class="edit-input static"
           :value="value != null ? value : item"
           @input="onChange($event)"
-          @blur.prevent="toggleEditMode(false)"
-          @keydown.native.enter="updateItem(item)"
+          @blur.prevent="updateItem(item)"
+          @keydown.native.enter="updateItem(item, !errors.duplicate)"
         />
       </div>
       <div
@@ -413,7 +428,8 @@ export default Vue.extend({
           :value="value"
           :placeholder="placeholder"
           @input="onChange($event)"
-          @keydown.native.enter="saveItem"
+          @blur.prevent="saveItem"
+          @keydown.native.enter="saveItem(!errors.duplicate)"
         />
       </div>
     </div>
@@ -428,14 +444,14 @@ export default Vue.extend({
       >
         <button
           class="btn btn-sm role-tertiary remove-button"
-          :disabled="!selected && !isCreateItem && !isEditItem"
+          :disabled="!selected && !isCreateItem && !editedItem"
           @mousedown.prevent="onClickMinusButton"
         >
           <span class="icon icon-minus icon-sm" />
         </button>
         <button
           class="btn btn-sm role-tertiary add-button"
-          :disabled="isCreateItem"
+          :disabled="isCreateItem || editedItem"
           @click.prevent="onClickPlusButton"
         >
           <span class="icon icon-plus icon-sm" />
