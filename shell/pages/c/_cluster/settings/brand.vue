@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import ColorInput from '@shell/components/form/ColorInput';
 import TypeDescription from '@shell/components/TypeDescription';
 

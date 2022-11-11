@@ -11,7 +11,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import InputWithSelect from '@shell/components/form/InputWithSelect';
 import jsyaml from 'js-yaml';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Labels from '@shell/components/form/Labels';
 import Loading from '@shell/components/Loading';

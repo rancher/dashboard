@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { filterBy } from '@shell/utils/array';
 import { PVC, STORAGE_CLASS } from '@shell/config/types';

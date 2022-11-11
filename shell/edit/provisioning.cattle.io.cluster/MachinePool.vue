@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import { Checkbox } from '@components/Form/Checkbox';
 import { _EDIT } from '@shell/config/query-params';
 import { importMachineConfig } from '@shell/utils/dynamic-importer';

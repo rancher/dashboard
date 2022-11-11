@@ -10,7 +10,7 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
 import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';

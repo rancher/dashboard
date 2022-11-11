@@ -3,7 +3,7 @@ import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import AuthConfig from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import { Banner } from '@components/Banner';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import FileSelector from '@shell/components/form/FileSelector';

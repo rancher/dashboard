@@ -3,7 +3,7 @@ import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import { RadioGroup } from '@components/Form/Radio';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import { Banner } from '@components/Banner';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';

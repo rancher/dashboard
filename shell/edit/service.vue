@@ -6,7 +6,7 @@ import ArrayList from '@shell/components/form/ArrayList';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import KeyValue from '@shell/components/form/KeyValue';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { RadioGroup } from '@components/Form/Radio';
 import ServicePorts from '@shell/components/form/ServicePorts';

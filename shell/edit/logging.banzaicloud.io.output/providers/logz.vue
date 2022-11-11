@@ -1,6 +1,6 @@
 <script>
 import { Checkbox } from '@components/Form/Checkbox';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import SecretSelector from '@shell/components/form/SecretSelector';
 import { updatePort } from './utils';
 

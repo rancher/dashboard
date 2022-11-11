@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { UI_PLUGIN } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';

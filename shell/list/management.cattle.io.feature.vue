@@ -1,10 +1,10 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card } from '@rancher/components';
+import { Card, LabeledInput } from '@rancher/components';
 import ResourceTable from '@shell/components/ResourceTable';
 import { Banner } from '@components/Banner';
-import { LabeledInput } from '@components/Form/LabeledInput';
+
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import ResourceFetch from '@shell/mixins/resource-fetch';

@@ -35,7 +35,7 @@ import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
 import MatchExpressions from '@shell/components/form/MatchExpressions';

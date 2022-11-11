@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import Question from './Question';
 
 //  @TODO valid_chars, invalid_chars
