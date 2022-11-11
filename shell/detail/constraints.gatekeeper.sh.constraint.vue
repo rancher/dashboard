@@ -21,7 +21,10 @@ export default {
 </script>
 <template>
   <div>
-    <div v-if="value.spec.enforcementAction" class="row mt-40">
+    <div
+      v-if="value.spec.enforcementAction"
+      class="row mt-40"
+    >
       <div class="col span-12">
         <h3>Enforcement Action</h3>
         {{ value.spec.enforcementAction }}

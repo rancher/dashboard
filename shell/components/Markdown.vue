@@ -75,7 +75,11 @@ export default {
 </script>
 
 <template>
-  <div v-if="loaded" class="markdown" v-html="sanitized" />
+  <div
+    v-if="loaded"
+    class="markdown"
+    v-html="sanitized"
+  />
   <Loading v-else />
 </template>
 

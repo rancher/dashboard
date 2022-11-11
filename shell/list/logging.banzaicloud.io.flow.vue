@@ -30,5 +30,9 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :schema="schema" :rows="rows" :loading="loading" />
+  <ResourceTable
+    :schema="schema"
+    :rows="rows"
+    :loading="loading"
+  />
 </template>

@@ -49,7 +49,11 @@ export default {
 </script>
 
 <template>
-  <div v-if="showWarning" id="azure-warn" class="banner">
+  <div
+    v-if="showWarning"
+    id="azure-warn"
+    class="banner"
+  >
     <p>
       {{ t('authConfig.azuread.updateEndpoint.banner.message') }}
       <n-link :to="authConfigRoute">

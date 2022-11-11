@@ -149,7 +149,7 @@ export default {
       :load-indeterminate="loadIndeterminate"
     >
       <template slot="extraActions">
-        <slot name="extraActions"></slot>
+        <slot name="extraActions" />
       </template>
     </Masthead>
     <div v-if="hasListComponent">

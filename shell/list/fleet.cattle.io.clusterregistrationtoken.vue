@@ -73,13 +73,16 @@ export default {
 
 <template>
   <div>
-    <Banner v-if="hidden" color="info" :label="t('fleet.tokens.harvester', {count: hidden} )" />
+    <Banner
+      v-if="hidden"
+      color="info"
+      :label="t('fleet.tokens.harvester', {count: hidden} )"
+    />
     <ResourceTable
       v-bind="$attrs"
       :schema="schema"
       :rows="tokens"
       :loading="loading"
-    >
-    </ResourceTable>
+    />
   </div>
 </template>

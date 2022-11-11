@@ -121,7 +121,13 @@ export default {
           :suffix="t('storageClass.aws-ebs.volumeType.provisionedIops.suffix')"
           :mode="mode"
         />
-        <LabeledInput v-model="value.parameters.fsType" class="mt-10" :placeholder="t('storageClass.aws-ebs.filesystemType.placeholder')" :label="t('storageClass.aws-ebs.filesystemType.label')" :mode="mode" />
+        <LabeledInput
+          v-model="value.parameters.fsType"
+          class="mt-10"
+          :placeholder="t('storageClass.aws-ebs.filesystemType.placeholder')"
+          :label="t('storageClass.aws-ebs.filesystemType.label')"
+          :mode="mode"
+        />
       </div>
     </div>
     <div class="row mb-20">
@@ -133,7 +139,13 @@ export default {
           :mode="mode"
           :options="availabilityZoneOptions"
         />
-        <LabeledInput v-if="availabilityZone === 'manual'" v-model="value.parameters.zones" class="mt-10" :placeholder="t('storageClass.aws-ebs.availabilityZone.placeholder')" :mode="mode" />
+        <LabeledInput
+          v-if="availabilityZone === 'manual'"
+          v-model="value.parameters.zones"
+          class="mt-10"
+          :placeholder="t('storageClass.aws-ebs.availabilityZone.placeholder')"
+          :mode="mode"
+        />
       </div>
     </div>
     <div class="row">
@@ -156,7 +168,12 @@ export default {
           :mode="mode"
           :options="keyIdOptions"
         />
-        <LabeledInput v-if="keyId === 'manual'" v-model="value.parameters.kmsKeyId" class="mt-10" :mode="mode" />
+        <LabeledInput
+          v-if="keyId === 'manual'"
+          v-model="value.parameters.kmsKeyId"
+          class="mt-10"
+          :mode="mode"
+        />
       </div>
     </div>
   </div>

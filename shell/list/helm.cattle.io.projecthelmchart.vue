@@ -74,18 +74,30 @@ export default {
       :load-indeterminate="loadIndeterminate"
       is-creatable
     />
-    <Banner color="info" :label="t('monitoring.projectMonitoring.list.banner')" />
+    <Banner
+      color="info"
+      :label="t('monitoring.projectMonitoring.list.banner')"
+    />
     <!-- ToDo: figure out how to get this centered in the empty space -->
-    <div v-if="rows.length === 0 && !loading" class="empty-list">
+    <div
+      v-if="rows.length === 0 && !loading"
+      class="empty-list"
+    >
       <div class="message">
-        <i class="icon icon-monitoring icon-10x icon-grey"></i>
+        <i class="icon icon-monitoring icon-10x icon-grey" />
         <div class="text-large">
           {{ t('monitoring.projectMonitoring.list.empty.message') }}
         </div>
-        <div v-if="canCreateProjectHelmChart" class="text-large">
+        <div
+          v-if="canCreateProjectHelmChart"
+          class="text-large"
+        >
           {{ t('monitoring.projectMonitoring.list.empty.canCreate') }}
         </div>
-        <div v-else class="text-large">
+        <div
+          v-else
+          class="text-large"
+        >
           {{ t('monitoring.projectMonitoring.list.empty.cannotCreate') }}
         </div>
       </div>

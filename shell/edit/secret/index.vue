@@ -324,9 +324,16 @@ export default {
       @select-type="selectType"
       @error="e=>errors = e"
     >
-      <NameNsDescription v-model="value" :mode="mode" :namespaced="!isCloud" />
+      <NameNsDescription
+        v-model="value"
+        :mode="mode"
+        :namespaced="!isCloud"
+      />
 
-      <div v-if="isCustomSecretCreate" class="row">
+      <div
+        v-if="isCustomSecretCreate"
+        class="row"
+      >
         <div class="col span-3">
           <LabeledSelect
             v-model="secretType"
@@ -354,7 +361,7 @@ export default {
         </div>
       </div>
 
-      <div class="spacer"></div>
+      <div class="spacer" />
       <component
         :is="cloudComponent"
         v-if="isCloud"
@@ -364,8 +371,16 @@ export default {
         :mode="mode"
         :hide-sensitive-data="hideSensitiveData"
       />
-      <Tabbed v-else :side-tabs="true" default-tab="data">
-        <Tab name="data" :label="dataLabel" :weight="99">
+      <Tabbed
+        v-else
+        :side-tabs="true"
+        default-tab="data"
+      >
+        <Tab
+          name="data"
+          :label="dataLabel"
+          :weight="99"
+        >
           <component
             :is="dataComponent"
             :value="value"
@@ -373,8 +388,15 @@ export default {
             :hide-sensitive-data="hideSensitiveData"
           />
         </Tab>
-        <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="-1">
-          <Labels v-model="value" :mode="mode" />
+        <Tab
+          name="labels"
+          label-key="generic.labelsAndAnnotations"
+          :weight="-1"
+        >
+          <Labels
+            v-model="value"
+            :mode="mode"
+          />
         </Tab>
       </Tabbed>
     </CruResource>

@@ -181,11 +181,23 @@ export default {
     </template>
 
     <template #option="option">
-      <Principal :key="option.label" :value="option.label" :use-muted="false" />
+      <Principal
+        :key="option.label"
+        :value="option.label"
+        :use-muted="false"
+      />
     </template>
 
-    <template v-if="retainSelection" #selected-option="option">
-      <Principal :key="option.label" :value="option.label" :use-muted="false" class="mt-10 mb-10" />
+    <template
+      v-if="retainSelection"
+      #selected-option="option"
+    >
+      <Principal
+        :key="option.label"
+        :value="option.label"
+        :use-muted="false"
+        class="mt-10 mb-10"
+      />
     </template>
   </LabeledSelect>
 </template>

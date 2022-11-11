@@ -55,7 +55,10 @@ export default {
 </script>
 <template>
   <span class="cluster-link">
-    <n-link v-if="to" :to="to">
+    <n-link
+      v-if="to"
+      :to="to"
+    >
       {{ value }}
     </n-link>
     <span v-else>{{ value }}</span>

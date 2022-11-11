@@ -158,7 +158,7 @@ export default Vue.extend<Data, any, any, any>({
           :mode="mode"
           @change="updateInfo"
           @valid="steps[1].ready = $event"
-        ></AppInfo>
+        />
       </template>
       <template #source>
         <AppSource
@@ -169,14 +169,14 @@ export default Vue.extend<Data, any, any, any>({
           @changeAppInfo="updateInfo"
           @changeAppConfig="updateManifestConfigurations"
           @valid="steps[0].ready = $event"
-        ></AppSource>
+        />
       </template>
       <template #configurations>
         <AppConfiguration
           :application="value"
           :mode="mode"
           @change="updateConfigurations"
-        ></AppConfiguration>
+        />
       </template>
       <template #progress="{step}">
         <AppProgress
@@ -185,7 +185,7 @@ export default Vue.extend<Data, any, any, any>({
           :bindings="bindings"
           :mode="mode"
           :step="step"
-        ></AppProgress>
+        />
       </template>
     </Wizard>
     <!-- <br><br>

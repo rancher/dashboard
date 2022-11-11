@@ -112,16 +112,26 @@ export default {
 
 <template>
   <div>
-    <SimpleBox class="container" :class="{'has-link': !!location}" @click="goToResource">
+    <SimpleBox
+      class="container"
+      :class="{'has-link': !!location}"
+      @click="goToResource"
+    >
       <h1>{{ resourceCounts.total }}</h1>
       <h3>
         {{ name }}
       </h3>
       <div class="warnings">
-        <div v-if="resourceCounts.warningCount" class="warn-count mb-10 chip">
+        <div
+          v-if="resourceCounts.warningCount"
+          class="warn-count mb-10 chip"
+        >
           {{ resourceCounts.warningCount }}
         </div>
-        <div v-if="resourceCounts.errorCount" class="error-count chip">
+        <div
+          v-if="resourceCounts.errorCount"
+          class="error-count chip"
+        >
           {{ resourceCounts.errorCount }}
         </div>
       </div>

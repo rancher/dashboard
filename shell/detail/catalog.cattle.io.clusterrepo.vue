@@ -17,7 +17,10 @@ export default {
       <h3>{{ t('tableHeaders.url') }}</h3>
       <span>{{ value.urlDisplay }}</span>
     </div>
-    <div v-if="value.isGit" class="span-6">
+    <div
+      v-if="value.isGit"
+      class="span-6"
+    >
       <h3>{{ t('tableHeaders.branch') }}</h3>
       <span>{{ value.branchDisplay }}</span>
     </div>

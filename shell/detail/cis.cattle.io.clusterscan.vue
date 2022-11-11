@@ -251,16 +251,29 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <div class="detail mb-20">
-      <div v-for="item in details" :key="item.label">
+      <div
+        v-for="item in details"
+        :key="item.label"
+      >
         <span class="text-label">{{ item.label }}</span>:
-        <component :is="item.component" v-if="item.component" :value="item.value" />
-        <nuxt-link v-else-if="item.to" :to="item.to">
+        <component
+          :is="item.component"
+          v-if="item.component"
+          :value="item.value"
+        />
+        <nuxt-link
+          v-else-if="item.to"
+          :to="item.to"
+        >
           {{ item.value }}
         </nuxt-link>
         <span v-else>{{ item.value }}</span>
       </div>
     </div>
-    <div v-if="clusterReports.length > 1" class="table-header row mb-20">
+    <div
+      v-if="clusterReports.length > 1"
+      class="table-header row mb-20"
+    >
       <div class="col span-8">
         <h3>
           {{ t('cis.scan.scanReport') }}
@@ -297,7 +310,12 @@ export default {
             @mouseleave="onRowMouseLeave"
           >
             <td :colspan="fullColspan">
-              <Banner v-if="(row.state==='fail' || row.state==='warn')&& row.remediation" class="sub-banner" :label="remediationDisplay(row)" color="warning" />
+              <Banner
+                v-if="(row.state==='fail' || row.state==='warn')&& row.remediation"
+                class="sub-banner"
+                :label="remediationDisplay(row)"
+                color="warning"
+              />
               <SortableTable
                 class="sub-table"
                 :rows="row.nodeRows"

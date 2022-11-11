@@ -234,8 +234,14 @@ export default {
         </div>
       </template>
       <!-- Pass down templates provided by the caller -->
-      <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-        <slot :name="slot" v-bind="scope" />
+      <template
+        v-for="(_, slot) of $scopedSlots"
+        v-slot:[slot]="scope"
+      >
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
       </template>
     </v-select>
     <LabeledTooltip

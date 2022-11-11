@@ -151,5 +151,10 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="filteredRows" :overflow-y="true" />
+  <ResourceTable
+    :loading="$fetchState.pending"
+    :schema="schema"
+    :rows="filteredRows"
+    :overflow-y="true"
+  />
 </template>

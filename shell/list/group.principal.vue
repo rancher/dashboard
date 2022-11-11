@@ -139,6 +139,9 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" />
+    <ResourceTable
+      :schema="schema"
+      :rows="rows"
+    />
   </div>
 </template>

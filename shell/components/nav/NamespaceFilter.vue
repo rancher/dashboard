@@ -551,44 +551,117 @@ export default {
 </script>
 
 <template>
-  <div class="ns-filter" tabindex="0" @focus="open()">
-    <div v-if="isOpen" class="ns-glass" @click="close()"></div>
+  <div
+    class="ns-filter"
+    tabindex="0"
+    @focus="open()"
+  >
+    <div
+      v-if="isOpen"
+      class="ns-glass"
+      @click="close()"
+    />
     <!-- Dropdown control -->
-    <div ref="dropdown" class="ns-dropdown" :class="{ 'ns-open': isOpen }" @click="toggle()">
-      <div v-if="value.length === 0" ref="values" class="ns-values">
+    <div
+      ref="dropdown"
+      class="ns-dropdown"
+      :class="{ 'ns-open': isOpen }"
+      @click="toggle()"
+    >
+      <div
+        v-if="value.length === 0"
+        ref="values"
+        class="ns-values"
+      >
         {{ t('nav.ns.all') }}
       </div>
-      <div v-else-if="isSingleSpecial" ref="values" class="ns-values">
+      <div
+        v-else-if="isSingleSpecial"
+        ref="values"
+        class="ns-values"
+      >
         {{ value[0].label }}
       </div>
-      <div v-else ref="values" v-tooltip="tooltip" class="ns-values">
-        <div v-if="total" ref="total" class="ns-value ns-abs">
+      <div
+        v-else
+        ref="values"
+        v-tooltip="tooltip"
+        class="ns-values"
+      >
+        <div
+          v-if="total"
+          ref="total"
+          class="ns-value ns-abs"
+        >
           {{ t('namespaceFilter.selected.label', { total }) }}
         </div>
-        <div v-for="ns in value" ref="value" :key="ns.id" class="ns-value">
+        <div
+          v-for="ns in value"
+          ref="value"
+          :key="ns.id"
+          class="ns-value"
+        >
           <div>{{ ns.label }}</div>
-          <i class="icon icon-close" @click="removeOption(ns, $event)" />
+          <i
+            class="icon icon-close"
+            @click="removeOption(ns, $event)"
+          />
         </div>
       </div>
-      <div v-if="hidden > 0" ref="more" v-tooltip="tooltip" class="ns-more">
+      <div
+        v-if="hidden > 0"
+        ref="more"
+        v-tooltip="tooltip"
+        class="ns-more"
+      >
         {{ t('namespaceFilter.more', { more: hidden }) }}
       </div>
-      <i v-if="!isOpen" class="icon icon-chevron-down" />
-      <i v-else class="icon icon-chevron-up" />
+      <i
+        v-if="!isOpen"
+        class="icon icon-chevron-down"
+      />
+      <i
+        v-else
+        class="icon icon-chevron-up"
+      />
     </div>
-    <button v-shortkey.once="['n']" class="hide" @shortkey="open()" />
-    <div v-if="isOpen" class="ns-dropdown-menu">
+    <button
+      v-shortkey.once="['n']"
+      class="hide"
+      @shortkey="open()"
+    />
+    <div
+      v-if="isOpen"
+      class="ns-dropdown-menu"
+    >
       <div class="ns-controls">
         <div class="ns-input">
-          <input ref="filter" v-model="filter" tabindex="0" class="ns-filter-input" @keydown="inputKeyHandler($event)" />
-          <i v-if="hasFilter" class="ns-filter-clear icon icon-close" @click="filter = ''" />
+          <input
+            ref="filter"
+            v-model="filter"
+            tabindex="0"
+            class="ns-filter-input"
+            @keydown="inputKeyHandler($event)"
+          >
+          <i
+            v-if="hasFilter"
+            class="ns-filter-clear icon icon-close"
+            @click="filter = ''"
+          />
         </div>
         <div class="ns-clear">
-          <i class="icon icon-close" @click="clear()" />
+          <i
+            class="icon icon-close"
+            @click="clear()"
+          />
         </div>
       </div>
-      <div class="ns-divider mt-0"></div>
-      <div ref="options" class="ns-options" role="list">
+      <div class="ns-divider mt-0" />
+      <div
+        ref="options"
+        class="ns-options"
+        role="list"
+      >
         <div
           v-for="opt in filtered"
           :id="opt.elementId"
@@ -600,14 +673,29 @@ export default {
           @mouseover="mouseOver($event)"
           @keydown="itemKeyHandler($event, opt)"
         >
-          <div v-if="opt.kind === 'divider'" class="ns-divider"></div>
-          <div v-else class="ns-item">
-            <i v-if="opt.kind === 'namespace'" class="icon icon-folder" />
+          <div
+            v-if="opt.kind === 'divider'"
+            class="ns-divider"
+          />
+          <div
+            v-else
+            class="ns-item"
+          >
+            <i
+              v-if="opt.kind === 'namespace'"
+              class="icon icon-folder"
+            />
             <div>{{ opt.label }}</div>
-            <i v-if="opt.selected" class="icon icon-checkmark" />
+            <i
+              v-if="opt.selected"
+              class="icon icon-checkmark"
+            />
           </div>
         </div>
-        <div v-if="filtered.length === 0" class="ns-none">
+        <div
+          v-if="filtered.length === 0"
+          class="ns-none"
+        >
           {{ t('namespaceFilter.noMatchingOptions') }}
         </div>
       </div>

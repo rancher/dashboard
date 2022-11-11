@@ -120,7 +120,10 @@ export default ({
           >
             {{ t('banner.consentFootnote') }}
           </p>
-          <div v-if="isConsentBanner" class="mt-10">
+          <div
+            v-if="isConsentBanner"
+            class="mt-10"
+          >
             <Checkbox
               v-model="showAsDialog"
               name="bannerDecoration"
@@ -150,7 +153,10 @@ export default ({
           <h3>
             {{ t('banner.bannerDecoration.label') }}
           </h3>
-          <div v-for="o in textDecorationOptions" :key="o.style">
+          <div
+            v-for="o in textDecorationOptions"
+            :key="o.style"
+          >
             <Checkbox
               v-model="value[bannerType][o.style]"
               name="bannerDecoration"

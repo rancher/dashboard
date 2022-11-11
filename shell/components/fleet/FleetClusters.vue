@@ -91,19 +91,37 @@ export default {
   >
     <template #cell:workspace="{row}">
       <span v-if="row.type !== MANAGEMENT_CLUSTER && row.metadata.namespace">{{ row.metadata.namespace }}</span>
-      <span v-else class="text-muted">&mdash;</span>
+      <span
+        v-else
+        class="text-muted"
+      >&mdash;</span>
     </template>
 
     <template #cell:reposReady="{row}">
-      <span v-if="!row.repoInfo" class="text-muted">&mdash;</span>
-      <span v-else-if="row.repoInfo.unready" class="text-warning">{{ row.repoInfo.ready }}/{{ row.repoInfo.total }}</span>
+      <span
+        v-if="!row.repoInfo"
+        class="text-muted"
+      >&mdash;</span>
+      <span
+        v-else-if="row.repoInfo.unready"
+        class="text-warning"
+      >{{ row.repoInfo.ready }}/{{ row.repoInfo.total }}</span>
       <span v-else>{{ row.repoInfo.total }}</span>
     </template>
 
     <template #cell:nodesReady="{row}">
-      <span v-if="!row.nodeInfo" class="text-muted">&mdash;</span>
-      <span v-else-if="row.nodeInfo.unready" class="text-warning">{{ row.nodeInfo.ready }}/{{ row.nodeInfo.total }}</span>
-      <span v-else :class="{'text-error': !row.nodeInfo.total}">{{ row.nodeInfo.total }}</span>
+      <span
+        v-if="!row.nodeInfo"
+        class="text-muted"
+      >&mdash;</span>
+      <span
+        v-else-if="row.nodeInfo.unready"
+        class="text-warning"
+      >{{ row.nodeInfo.ready }}/{{ row.nodeInfo.total }}</span>
+      <span
+        v-else
+        :class="{'text-error': !row.nodeInfo.total}"
+      >{{ row.nodeInfo.total }}</span>
     </template>
   </ResourceTable>
 </template>

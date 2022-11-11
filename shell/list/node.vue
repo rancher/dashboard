@@ -165,12 +165,19 @@ export default {
             <td>&nbsp;</td>
             <td :colspan="fullColspan-2">
               {{ t('node.list.nodeTaint') }}:
-              <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
+              <Tag
+                v-for="taint in row.spec.taints"
+                :key="taint.key + taint.value + taint.effect"
+                class="mr-5"
+              >
                 {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
               </Tag>
             </td>
           </template>
-          <td v-else :colspan="fullColspan">
+          <td
+            v-else
+            :colspan="fullColspan"
+          >
 &nbsp;
           </td>
         </tr>

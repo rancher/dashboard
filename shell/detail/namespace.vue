@@ -231,7 +231,10 @@ export default {
         :required-states="summaryStates"
       />
     </div>
-    <ResourceTabs v-model="value" :mode="mode">
+    <ResourceTabs
+      v-model="value"
+      :mode="mode"
+    >
       <Tab :name="t('namespace.resources')">
         <SortableTable
           default-sort-by="error"
@@ -261,8 +264,7 @@ export default {
           v-bind="$attrs"
           :schema="workloadSchema"
           :rows="workloadRows"
-        >
-        </ResourceTable>
+        />
       </Tab>
     </ResourceTabs>
     <MoveModal />

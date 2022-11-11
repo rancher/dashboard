@@ -3,7 +3,10 @@ export default {};
 </script>
 
 <template>
-  <div class="indented-panel" v-on="$listeners">
+  <div
+    class="indented-panel"
+    v-on="$listeners"
+  >
     <slot />
   </div>
 </template>

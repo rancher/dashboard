@@ -146,7 +146,10 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <form v-else class="filled-height">
+  <form
+    v-else
+    class="filled-height"
+  >
     <CruResource
       :done-route="doneRoute"
       :mode="mode"
@@ -157,10 +160,18 @@ export default {
       @finish="save"
       @cancel="done"
     >
-      <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
+      <NameNsDescription
+        v-if="!isView"
+        :value="value"
+        :mode="mode"
+      />
 
       <Tabbed :side-tabs="true">
-        <Tab name="target" :label="t('hpa.tabs.target')" :weight="10">
+        <Tab
+          name="target"
+          :label="t('hpa.tabs.target')"
+          :weight="10"
+        >
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledSelect
@@ -200,7 +211,10 @@ export default {
             </div>
           </div>
         </Tab>
-        <Tab name="metrics" :label="t('hpa.tabs.metrics')">
+        <Tab
+          name="metrics"
+          :label="t('hpa.tabs.metrics')"
+        >
           <ArrayListGrouped
             v-model="value.spec.metrics"
             :default-add-value="{ ...defaultResourceMetric }"
@@ -216,7 +230,7 @@ export default {
               >
                 <i class="icon icon-2x icon-x" />
               </button>
-              <span v-else></span>
+              <span v-else />
             </template>
             <template #default="props">
               <MetricsRow

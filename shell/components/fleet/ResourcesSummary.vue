@@ -67,7 +67,11 @@ export default {
 
 <template>
   <div class="row flexwrap">
-    <div v-for="(v, k) in counts" :key="k" class="col countbox">
+    <div
+      v-for="(v, k) in counts"
+      :key="k"
+      class="col countbox"
+    >
       <CountBox
         :compact="true"
         :count="v['count']"
