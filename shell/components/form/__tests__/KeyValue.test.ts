@@ -15,4 +15,102 @@ describe('component: KeyValue', () => {
 
     expect(inputValue.value).toBe(value);
   });
+
+  it('should display array of keys and values', () => {
+    const value = [
+      {
+        key:   'Tasha',
+        value: 'Yar'
+      },
+      {
+        key:   'Belanna',
+        value: 'Torres',
+      },
+      {
+        key:   'Jadzia',
+        value: 'Dax',
+      },
+      {
+        key:   'Michael',
+        value: 'Burnham',
+      },
+    ];
+    const wrapper = mount(KeyValue, {
+      propsData:  { value, asMap: false },
+      mocks:      { $store: { getters: { 'i18n/t': jest.fn() } } },
+      directives: { t }
+    });
+
+    const inputKeys = wrapper.findAll('.key');
+    const inputValues = wrapper.findAll('.value');
+
+    expect(inputKeys).toHaveLength(4);
+    expect(inputValues).toHaveLength(4);
+  });
+
+  it('should display array of keys and values', () => {
+    const value = [
+      {
+        key:   'Tasha',
+        value: 'Yar'
+      },
+      {
+        key:   'Belanna',
+        value: 'Torres',
+      },
+      {
+        key:   'Jadzia',
+        value: 'Dax',
+      },
+      {
+        key:   'Michael',
+        value: 'Burnham',
+      },
+    ];
+    const wrapper = mount(KeyValue, {
+      propsData:  { value, asMap: false },
+      mocks:      { $store: { getters: { 'i18n/t': jest.fn() } } },
+      directives: { t }
+    });
+
+    const inputKeys = wrapper.findAll('.key');
+    const inputValues = wrapper.findAll('.value');
+
+    expect(inputKeys).toHaveLength(4);
+    expect(inputValues).toHaveLength(4);
+  });
+
+  it('should be able to update key', () => {
+    const value = [
+      {
+        key:   'Hugh',
+        value: 'Culber'
+      }
+    ];
+    const wrapper = mount(KeyValue, {
+      propsData:  { value, asMap: false },
+      mocks:      { $store: { getters: { 'i18n/t': jest.fn() } } },
+      directives: { t }
+    });
+
+    const keyField = wrapper.find('.key input');
+    const valueField = wrapper.find('.value textarea');
+
+    const newKey = 'Paul';
+    const newValue = 'Stamets';
+
+    jest.useFakeTimers();
+
+    keyField.setValue(newKey);
+    keyField.trigger('blur');
+
+    valueField.setValue(newValue);
+    valueField.trigger('blur');
+    jest.advanceTimersByTime(10);
+    jest.useRealTimers();
+
+    console.log(wrapper.emitted('input'));
+    expect(wrapper.emitted('input')).toHaveLength(1);
+    expect(wrapper.emitted('input')![0][0]).toBe(1);
+  });
 });
