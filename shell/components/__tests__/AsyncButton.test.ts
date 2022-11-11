@@ -40,7 +40,7 @@ describe('component: AsyncButton', () => {
     expect(span.text()).toBe('some-string');
   });
 
-  it('click on async button should emit click with a proper state of waiting, disabled and spinning ::: CB true', async() => {
+  it('click on async button should emit click with a proper state of waiting, disabled and spinning ::: CB true', () => {
     jest.useFakeTimers();
 
     const wrapper = mount(AsyncButton, {
@@ -77,7 +77,7 @@ describe('component: AsyncButton', () => {
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.ACTION);
   });
 
-  it('click on async button should emit click and update state properly ::: CB false', async() => {
+  it('click on async button should emit click and update state properly ::: CB false', () => {
     jest.useFakeTimers();
 
     const wrapper = mount(AsyncButton, {
@@ -111,7 +111,7 @@ describe('component: AsyncButton', () => {
     expect(wrapper.vm.phase).toBe(ASYNC_BUTTON_STATES.ACTION);
   });
 
-  it('click on async button should emit click and update state properly ::: CB "cancelled"', async() => {
+  it('click on async button should emit click and update state properly ::: CB "cancelled"', () => {
     const wrapper = mount(AsyncButton, {
       mocks:      {
         $store: {
