@@ -2,33 +2,33 @@ import { mount } from '@vue/test-utils';
 import { Card } from './index';
 
 describe('component: Card', () => {
-  it('should display text based on card title', () => {
-    const title = 'Card title';
+  const title = 'Card title';
+  const body = 'Card body';
+
+
     const wrapper = mount(Card, {
-        propsData: { title },
+        propsData: { title, body },
         slots: { 
           title: '<div>Card title</div>',
+          body: '<div>Card body</div>',
         }
     });
 
-    const element = wrapper.find('.card-title');
-
+  it('should have a card title', () => {
+    const element = wrapper.find('[data-testid="card-title-slot"]')
+    expect(element.exists()).toBe(true);
     expect(element.text()).toBe(title)
   });
-});
 
-describe('component: Card', () => {
-  it('should display text based on body content', () => {
-    const body = 'Body content';
-    const wrapper = mount(Card, {
-        propsData: { body },
-        slots: { 
-          body: '<div>Body content</div>' 
-        }
-    });
-
-    const element = wrapper.find('.card-body');
-
+  it('should have a card body', () => {
+    const element = wrapper.find('[data-testid="card-body-slot"]')
+    expect(element.exists()).toBe(true);
     expect(element.text()).toBe(body)
   });
+
+  it('should have a card actions', () => {
+    const element = wrapper.find('[data-testid="card-actions-slot"]')
+    expect(element.exists()).toBe(true);
+  });
 });
+
