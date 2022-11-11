@@ -4,7 +4,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { alternateLabel } from '@shell/utils/platform';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
-import { Card } from '@components/Card';
+import { Card } from '@rancher/components';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 
 export default {

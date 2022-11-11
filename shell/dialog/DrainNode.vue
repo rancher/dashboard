@@ -2,7 +2,7 @@
 import Vue from 'vue';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
-import { Card } from '@components/Card';
+import { Card } from '@rancher/components';
 import { RadioGroup } from '@components/Form/Radio';
 import UnitInput from '@shell/components/form/UnitInput';
 import { _EDIT, _VIEW } from '@shell/config/query-params';

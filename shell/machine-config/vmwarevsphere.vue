@@ -6,7 +6,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import UnitInput from '@shell/components/form/UnitInput';
-import { Card } from '@components/Card';
+import { Card } from '@rancher/components';
 import { RadioGroup } from '@components/Form/Radio';
 import KeyValue from '@shell/components/form/KeyValue';
 import { LabeledInput } from '@components/Form/LabeledInput';

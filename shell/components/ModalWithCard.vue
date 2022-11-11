@@ -1,5 +1,5 @@
 <script>
-import { Card } from '@components/Card';
+import { Card } from '@rancher/components';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 
