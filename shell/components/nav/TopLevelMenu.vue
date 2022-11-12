@@ -260,7 +260,7 @@ export default {
         <div class="title">
           <div class="menu-spacer"></div>
           <div class="side-menu-logo">
-            <BrandImage file-name="rancher-logo.svg" />
+            <BrandImage file-name="Dell_Logo.svg" />
           </div>
         </div>
         <div class="body">

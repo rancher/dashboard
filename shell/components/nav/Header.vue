@@ -305,7 +305,7 @@ export default {
           </div>
           <ClusterBadge v-if="currentCluster" :cluster="currentCluster" class="ml-10" />
           <div v-if="!currentCluster" class="simple-title">
-            <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+            <BrandImage class="side-menu-logo-img" file-name="Dell_Logo.png" />
           </div>
         </template>
       </div>
@@ -322,7 +322,7 @@ export default {
       </div>
 
       <div v-else class="side-menu-logo">
-        <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+        <BrandImage class="side-menu-logo-img" file-name="Dell_Logo.png" />
       </div>
     </div>
 
