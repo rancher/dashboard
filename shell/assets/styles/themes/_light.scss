@@ -1,6 +1,6 @@
 // Local variables for reused colors
 //light main text
-$darkest   : #141419;
+$darkest   : #333333;
 
 //light secondary
 $darker    : #6C6C76;
@@ -28,10 +28,10 @@ $secondary       : $darker;
 $link            : #0076CE;
 
 // Status colors
-$success         : #5D995D;
-$warning         : #DAC342;
-$error           : #F64747;
-$info            : #0076CE;
+$success         : #6EA204;
+$warning         : #F2AF00;
+$error           : #CE1126;
+$info            : #005DA4;
 
 $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;
@@ -326,10 +326,10 @@ BODY, .theme-light {
   --footer-height              : 0px;
 
   --topmenu-bg                 : #{$lightest};
-  --topmenu-text               : white;
+  --topmenu-text               : #{$darkest};
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($lightest, 10%)};
-  --topmost-light-hover        : #{darken($primary, 10%)};
+  --topmost-light-hover        : #{$light};
 
   --disabled-bg                : #{$disabled};
   --disabled-text              : #{$secondary};

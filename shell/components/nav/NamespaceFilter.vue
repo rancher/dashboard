@@ -762,13 +762,12 @@ export default {
     }
 
     .ns-dropdown {
-      color: black;
       background: white;
       align-items: center;
       display: flex;
       border: 1px solid var(--header-border);
       border-radius: var(--border-radius);
-      color: var(--header-btn-text);
+      color: var(--header-input-text);
       cursor: pointer;
       height: 40px;
       padding: 0 10px;

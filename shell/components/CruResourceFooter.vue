@@ -100,6 +100,15 @@ export default {
   justify-content: flex-end;
   margin-top: 20px;
 
+  .role-secondary{
+    color: white !important;
+  }
+
+  .role-secondary:hover {
+    color: white !important;
+    background-color: #00447C !important;
+  }
+
   .btn {
     margin-left: 20px;
   }

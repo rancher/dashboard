@@ -260,7 +260,7 @@ export default {
         <div class="title">
           <div class="menu-spacer"></div>
           <div class="side-menu-logo">
-            <BrandImage file-name="Dell_Logo.svg" />
+            <BrandImage file-name="logo-dell-technology-color-256.svg" />
           </div>
         </div>
         <div class="body">
@@ -512,18 +512,26 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    &:hover {
-      background-color: var(--topmost-light-hover);
+    &.unraised {
+        &:hover {
+        background-color: #00447C;
+      }
     }
     .menu-icon {
       width: 24px;
       height: 24px;
       fill: var(--header-btn-text);
-      &.raised{
-        fill: black;
-      }
     }
     &.raised {
+      .menu-icon {
+        fill: #0076CE;
+      }
+      &:hover{
+        background-color: #00447C;
+        .menu-icon {
+          fill: var(--header-btn-text);
+        }
+      }
       z-index: 200;
     }
   }
