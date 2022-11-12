@@ -519,6 +519,9 @@ export default {
       width: 24px;
       height: 24px;
       fill: var(--header-btn-text);
+      &.raised{
+        fill: black;
+      }
     }
     &.raised {
       z-index: 200;

@@ -580,6 +580,7 @@ export default {
         font-size: 16px;
         text-overflow: ellipsis;
         overflow: hidden;
+        color: white;
       }
       &.cluster-clipped {
         overflow: hidden;
@@ -606,6 +607,7 @@ export default {
 
     .product-name {
       font-size: 16px;
+      color: white;
     }
 
     .side-menu-logo {
@@ -709,7 +711,7 @@ export default {
         }
 
         &:hover {
-          background: var(--primary);
+          background: var(--primary-hover-bg);
           color: #fff;
         }
 
@@ -728,8 +730,9 @@ export default {
         > I {
           font-size: 18px;
           padding: 6px;
+          color: white;
           &:hover {
-            color: var(--link);
+            color: white;
           }
         }
       }
