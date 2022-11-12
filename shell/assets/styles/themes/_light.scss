@@ -307,9 +307,9 @@ BODY, .theme-light {
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$darkest};
 
-  --header-bg                  : #{$lightest};
+  --header-bg                  : #{$primary};
   --header-btn-bg              : transparent;
-  --header-btn-text            : #{$darkest};
+  --header-btn-text            : white;
   --header-input-text          : #{$darkest};
   --header-height              : 55px;
   --header-border              : #{$medium};
@@ -326,10 +326,10 @@ BODY, .theme-light {
   --footer-height              : 0px;
 
   --topmenu-bg                 : #{$lightest};
-  --topmenu-text               : #{$darkest};
+  --topmenu-text               : white;
   --topmost-border             : #{$medium};
   --topmost-shadow             : #{lighten($lightest, 10%)};
-  --topmost-light-hover        : #{$light};
+  --topmost-light-hover        : #{darken($primary, 10%)};
 
   --disabled-bg                : #{$disabled};
   --disabled-text              : #{$secondary};

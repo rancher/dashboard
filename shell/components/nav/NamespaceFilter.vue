@@ -677,11 +677,12 @@ export default {
     }
 
     .ns-dropdown-menu {
-      background-color: var(--header-bg);
-      border: 1px solid var(--link-border);
+      background: white;
+      background-color: white;
+      border: 1px solid var(--border);
       border-bottom-left-radius: var(--border-radius);
       border-bottom-right-radius: var(--border-radius);
-      color: var(--header-btn-text);
+      color: black;
       margin-top: -1px;
       padding-bottom: 10px;
       position: relative;
@@ -761,6 +762,8 @@ export default {
     }
 
     .ns-dropdown {
+      color: black;
+      background: white;
       align-items: center;
       display: flex;
       border: 1px solid var(--header-border);
