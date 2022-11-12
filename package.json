@@ -1,6 +1,6 @@
 {
-  "name": "dashboard",
-  "description": "Rancher Dashboard",
+  "name": "K4edge",
+  "description": "K4edge Dashboard",
   "repository": "https://github.com/rancherlabs/dashboard",
   "license": "Apache-2.0",
   "author": "SUSE",

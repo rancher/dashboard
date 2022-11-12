@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "Building Rancher Dashboard Docker Image"
+start=`date +%s`
+tag=rancher-dashboard:v2.6.8
+
+docker build -t $tag .
+docker image tag $tag k4edge.net/$tag
+docker push k4edge.net/$tag
+
+end=`date +%s`
+runtime=$((end-start))
+
+echo "Total build time: $runtime seconds."
+echo "Image k4edge.net/$tag uploaded to K4edge Docker Registry."
