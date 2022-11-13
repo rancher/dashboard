@@ -316,8 +316,8 @@ BODY, .theme-light {
   --header-border-size         : 1px;
   --nav-width                  : 230px;
   --nav-bg                     : #{$lightest};
-  --nav-active                 : #{$light};
-  --nav-hover                  : #{$medium};
+  --nav-active                 : #E7F2FB;
+  --nav-hover                  : #F7F7F7;
   --nav-expander-hover         : #{darken($medium, 10%)};
   --nav-border                 : #{$medium};
   --nav-border-size            : 1px;

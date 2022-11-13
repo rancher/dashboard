@@ -368,4 +368,34 @@ export default {
       outline: none;
     }
   }
+
+  .side-nav{
+    >.nav .accordion {
+      &.depth-0 >.header{
+        padding: 12px 0;
+        .icon {
+          font-size: 20px;
+          color: #666666;
+          &:hover{
+            background-color: #00447C;
+            color: white;
+          }
+        }
+      }
+      &.expanded.depth-0 {
+        >.header{
+          border-left: 5px solid #0076CE;
+          h6{
+            font-size: 14px;
+            font-weight: 500;
+          }
+        }
+      }
+      &.expanded.depth-1 {
+        >.header{
+          background-color: var(--nav-active);
+        }
+      }
+    }
+  }
 </style>

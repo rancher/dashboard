@@ -84,19 +84,23 @@ export default {
     justify-content: center;
     width: 32px;
   }
-
   .cluster {
+    .cluster-local-logo{
+      fill: white;
+    }
+  }
+  .side-menu{
+    .cluster {
     .cluster-local-logo{
       fill: #007db8;
     }
   }
-
   .cluster:hover {
     .cluster-local-logo{
       fill: white;
     }
   }
-
+  }
   .cluster-icon-small {
     height: 25px;
     width: 25px;
