@@ -146,7 +146,7 @@ export default {
       grid-column-gap: 5px;
       font-size: 14px;
       line-height: 24px;
-      padding: 7.5px 7px 7.5px 10px;
+      padding: 8px 7px 8px 10px;
       margin: 0 0 0 -3px;
       overflow: hidden;
       text-overflow: ellipsis;
