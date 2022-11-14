@@ -27,7 +27,7 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    const wrapper: Wrapper<GrowlManager & { [key: string]: any }> = shallowMount(GrowlManager, {
+    const wrapper: Wrapper<InstanceType<typeof GrowlManager> & { [key: string]: any }> = shallowMount(GrowlManager, {
       computed: { stack: () => stackMock },
       mocks:    { $store: mockStore }
     });
@@ -59,7 +59,7 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    const wrapper: Wrapper<GrowlManager & { [key: string]: any }> = shallowMount(GrowlManager, {
+    const wrapper: Wrapper<InstanceType<typeof GrowlManager> & { [key: string]: any }> = shallowMount(GrowlManager, {
       computed: { stack: () => stackMock },
       mocks:    { $store: mockStore }
     });
@@ -83,7 +83,7 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    const wrapper: Wrapper<GrowlManager & { [key: string]: any }> = shallowMount(GrowlManager, {
+    const wrapper: Wrapper<InstanceType<typeof GrowlManager> & { [key: string]: any }> = shallowMount(GrowlManager, {
       computed: { stack: () => stackMock },
       mocks:    { $store: mockStore }
     });

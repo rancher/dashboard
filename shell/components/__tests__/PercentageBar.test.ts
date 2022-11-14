@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, Wrapper } from '@vue/test-utils';
 import PercentageBar, { PreferredDirection } from '../PercentageBar.vue';
 import Bar from '../graph/Bar.vue';
 
@@ -8,7 +8,7 @@ const colorStops = {
 
 describe('component: PercentageBar', () => {
   it('should render component with the correct data applied', () => {
-    const wrapper = shallowMount(PercentageBar, {
+    const wrapper: Wrapper<InstanceType<typeof PercentageBar> & { [key: string]: any }> = shallowMount(PercentageBar, {
       propsData: {
         value:              25,
         preferredDirection: PreferredDirection.MORE,

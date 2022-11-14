@@ -26,7 +26,7 @@ const parsedBannerContent = {
 
 describe('component: FixedBanner', () => {
   it('should render HEADER fixed banner correctly', async() => {
-    const wrapper: Wrapper<FixedBanner & { [key: string]: any }> = shallowMount(FixedBanner, {
+    const wrapper: Wrapper<InstanceType<typeof FixedBanner> & { [key: string]: any }> = shallowMount(FixedBanner, {
       propsData: { header: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
@@ -52,7 +52,7 @@ describe('component: FixedBanner', () => {
   });
 
   it('should render FOOTER fixed banner, as text array (newline char), correctly', async() => {
-    const wrapper: Wrapper<FixedBanner & { [key: string]: any }> = shallowMount(FixedBanner, {
+    const wrapper: Wrapper<InstanceType<typeof FixedBanner> & { [key: string]: any }> = shallowMount(FixedBanner, {
       propsData: { footer: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
@@ -78,7 +78,7 @@ describe('component: FixedBanner', () => {
   });
 
   it('should render CONSENT as a DIALOG correctly', async() => {
-    const wrapper: Wrapper<FixedBanner & { [key: string]: any }> = shallowMount(FixedBanner, {
+    const wrapper: Wrapper<InstanceType<typeof FixedBanner> & { [key: string]: any }> = shallowMount(FixedBanner, {
       propsData: { consent: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
@@ -111,7 +111,7 @@ describe('component: FixedBanner', () => {
   });
 
   it('clicking dialog button should hide dialog', async() => {
-    const wrapper: Wrapper<FixedBanner & { [key: string]: any }> = shallowMount(FixedBanner, {
+    const wrapper: Wrapper<InstanceType<typeof FixedBanner> & { [key: string]: any }> = shallowMount(FixedBanner, {
       propsData: { consent: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });

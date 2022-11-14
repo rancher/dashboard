@@ -6,7 +6,7 @@ describe('component: AsyncButton', () => {
     const mockExists = jest.fn().mockReturnValue(true);
     const mockT = jest.fn().mockReturnValue('some-string');
 
-    const wrapper: Wrapper<AsyncButton & { [key: string]: any }> = mount(AsyncButton, {
+    const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
       mocks:      {
         $store: {
           getters: {
@@ -43,7 +43,7 @@ describe('component: AsyncButton', () => {
   it('click on async button should emit click with a proper state of waiting, disabled and spinning ::: CB true', () => {
     jest.useFakeTimers();
 
-    const wrapper: Wrapper<AsyncButton & { [key: string]: any }> = mount(AsyncButton, {
+    const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
       mocks:      {
         $store: {
           getters: {
@@ -80,7 +80,7 @@ describe('component: AsyncButton', () => {
   it('click on async button should emit click and update state properly ::: CB false', () => {
     jest.useFakeTimers();
 
-    const wrapper: Wrapper<AsyncButton & { [key: string]: any }> = mount(AsyncButton, {
+    const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
       mocks:      {
         $store: {
           getters: {
@@ -112,7 +112,7 @@ describe('component: AsyncButton', () => {
   });
 
   it('click on async button should emit click and update state properly ::: CB "cancelled"', () => {
-    const wrapper: Wrapper<AsyncButton & { [key: string]: any }> = mount(AsyncButton, {
+    const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
       mocks:      {
         $store: {
           getters: {
