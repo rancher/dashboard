@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import ButtonGroup from '@shell/components/ButtonGroup.vue';
+import ButtonGroup from '../ButtonGroup.vue';
 
 describe('component: ButtonGroup', () => {
   it('should render component with the default props correctly', () => {

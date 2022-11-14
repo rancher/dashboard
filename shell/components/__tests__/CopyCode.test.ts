@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import CopyCode from '@shell/components/CopyCode.vue';
+import CopyCode from '../CopyCode.vue';
 
 describe('component: CopyCode', () => {
   it('should emit copied after click', async() => {

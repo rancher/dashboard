@@ -1,5 +1,5 @@
 import { shallowMount, RouterLinkStub } from '@vue/test-utils';
-import Backlink from '@shell/components/Backlink.vue';
+import Backlink from '../Backlink.vue';
 
 describe('component: Backlink', () => {
   it('should render component with the correct data applied', () => {

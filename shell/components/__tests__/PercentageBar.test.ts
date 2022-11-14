@@ -1,6 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
-import PercentageBar, { PreferredDirection } from '@shell/components/PercentageBar.vue';
-import Bar from '@shell/components/graph/Bar.vue';
+import PercentageBar, { PreferredDirection } from '../PercentageBar.vue';
+import Bar from '../graph/Bar.vue';
 
 const colorStops = {
   0: '--success', 30: '--warning', 70: '--error'

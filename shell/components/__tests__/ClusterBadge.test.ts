@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import ClusterBadge from '@shell/components/ClusterBadge.vue';
+import ClusterBadge from '../ClusterBadge.vue';
 
 describe('component: ClusterBadge', () => {
   it('should render component with the correct data applied', () => {

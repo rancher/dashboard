@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import GrowlManager from '@shell/components/GrowlManager.vue';
+import GrowlManager from '../GrowlManager.vue';
 
 const stackMock = [
   {
