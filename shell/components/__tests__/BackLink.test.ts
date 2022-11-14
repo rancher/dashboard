@@ -1,7 +1,7 @@
 import { shallowMount, RouterLinkStub } from '@vue/test-utils';
-import Backlink from '@shell/components/Backlink.vue';
+import BackLink from '../BackLink.vue';
 
-describe('component: Backlink', () => {
+describe('component: BackLink', () => {
   it('should render component with the correct data applied', () => {
     const linkRoute = {
       name:   'some-route-name',
@@ -12,7 +12,7 @@ describe('component: Backlink', () => {
       }
     };
 
-    const wrapper = shallowMount(Backlink, {
+    const wrapper = shallowMount(BackLink, {
       propsData: { link: linkRoute },
       stubs:     { NuxtLink: RouterLinkStub }
     });
