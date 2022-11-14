@@ -137,6 +137,7 @@ describe('component: GrowlManager', () => {
   
     expect(spyCloseExpired).not.toHaveBeenCalled();
 
+    // this is to trigger the watch so that autoRemove can do its part
     store.commit('growl/updateStack');
 
     await wrapper.vm.$nextTick();
