@@ -94,8 +94,16 @@ export default {
       :namespaced="true"
     />
 
-    <ResourceTabs v-model="value" :mode="mode" :side-tabs="true">
-      <Tab name="volumeclaim" :label="t('podDisruptionBudget.budget.label')" :weight="4">
+    <ResourceTabs
+      v-model="value"
+      :mode="mode"
+      :side-tabs="true"
+    >
+      <Tab
+        name="volumeclaim"
+        :label="t('podDisruptionBudget.budget.label')"
+        :weight="4"
+      >
         <div class="row">
           <div class="col span-6">
             <LabeledInput
@@ -113,8 +121,16 @@ export default {
           </div>
         </div>
       </Tab>
-      <Tab name="selectors" :label="t('generic.selectors.label')">
-        <ResourceSelector :type="POD" :value="value.spec.selector" :mode="mode" :namespace="value.metadata.namespace" />
+      <Tab
+        name="selectors"
+        :label="t('generic.selectors.label')"
+      >
+        <ResourceSelector
+          :type="POD"
+          :value="value.spec.selector"
+          :mode="mode"
+          :namespace="value.metadata.namespace"
+        />
       </Tab>
       <Tab
         name="labels-and-annotations"
