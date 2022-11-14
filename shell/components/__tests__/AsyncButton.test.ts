@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { mount, Wrapper } from '@vue/test-utils';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '../AsyncButton.vue';
 
 describe('component: AsyncButton', () => {
@@ -6,7 +6,7 @@ describe('component: AsyncButton', () => {
     const mockExists = jest.fn().mockReturnValue(true);
     const mockT = jest.fn().mockReturnValue('some-string');
 
-    const wrapper = mount(AsyncButton, {
+    const wrapper: Wrapper<AsyncButton & { [key: string]: any }> = mount(AsyncButton, {
       mocks:      {
         $store: {
           getters: {
@@ -21,7 +21,7 @@ describe('component: AsyncButton', () => {
     const icon = wrapper.find('i');
     const span = wrapper.find('span');
 
-    expect(wrapper.vm.currentPhase).toBe(ASYNC_BUTTON_STATES.ACTION);
+    expect(wrapper.props().currentPhase).toBe(ASYNC_BUTTON_STATES.ACTION);
 
     expect(button.exists()).toBe(true);
     expect(button.classes()).toContain('btn');
@@ -43,7 +43,7 @@ describe('component: AsyncButton', () => {
   it('click on async button should emit click with a proper state of waiting, disabled and spinning ::: CB true', () => {
     jest.useFakeTimers();
 
-    const wrapper = mount(AsyncButton, {
+    const wrapper: Wrapper<AsyncButton & { [key: string]: any }> = mount(AsyncButton, {
       mocks:      {
         $store: {
           getters: {
@@ -80,7 +80,7 @@ describe('component: AsyncButton', () => {
   it('click on async button should emit click and update state properly ::: CB false', () => {
     jest.useFakeTimers();
 
-    const wrapper = mount(AsyncButton, {
+    const wrapper: Wrapper<AsyncButton & { [key: string]: any }> = mount(AsyncButton, {
       mocks:      {
         $store: {
           getters: {
@@ -112,7 +112,7 @@ describe('component: AsyncButton', () => {
   });
 
   it('click on async button should emit click and update state properly ::: CB "cancelled"', () => {
-    const wrapper = mount(AsyncButton, {
+    const wrapper: Wrapper<AsyncButton & { [key: string]: any }> = mount(AsyncButton, {
       mocks:      {
         $store: {
           getters: {

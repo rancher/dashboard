@@ -10,7 +10,7 @@ describe('component: Backlink', () => {
         query1: 'queryval1',
         query2: 'queryval2'
       }
-    };
+    };//
 
     const wrapper = shallowMount(Backlink, {
       propsData: { link: linkRoute },

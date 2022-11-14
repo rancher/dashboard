@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, Wrapper } from '@vue/test-utils';
 import FixedBanner from '../FixedBanner.vue';
 
 const SETTING_NO_CONSENT = { value: '{"loginError":{"message":"","showMessage":"false"},"bannerHeader":{"background":" #EEEFF4","color":" #141419","textAlignment":"center","fontWeight":null,"fontStyle":null,"fontSize":"14px","textDecoration":null,"text":"SOME HEADER TEXT"},"bannerFooter":{"background":" #EEEFF4","color":" #141419","textAlignment":"center","fontWeight":null,"fontStyle":null,"fontSize":"14px","textDecoration":null,"text":"SOME FOOTER TEXT"},"bannerConsent":{"background":" #EEEFF4","color":" #141419","textAlignment":"center","fontWeight":null,"fontStyle":null,"fontSize":"14px","textDecoration":null,"text":null,"button":null},"showHeader":"true","showFooter":"true","showConsent":"false"}' };
@@ -26,7 +26,7 @@ const parsedBannerContent = {
 
 describe('component: FixedBanner', () => {
   it('should render HEADER fixed banner correctly', async() => {
-    const wrapper = shallowMount(FixedBanner, {
+    const wrapper: Wrapper<FixedBanner & { [key: string]: any }> = shallowMount(FixedBanner, {
       propsData: { header: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
@@ -37,10 +37,10 @@ describe('component: FixedBanner', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.vm.bannerStyle).toEqual(parsedBannerStyle);
+    expect(wrapper.vm.bannerStyle).toStrictEqual(parsedBannerStyle);
 
-    expect(wrapper.vm.banner).toEqual(expect.objectContaining(parsedBannerContent));
-    expect(wrapper.vm.showHeader).toEqual(true);
+    expect(wrapper.vm.banner).toStrictEqual(expect.objectContaining(parsedBannerContent));
+    expect(wrapper.vm.showHeader).toStrictEqual(true);
 
     const bannerElem = wrapper.find('.banner');
     const noArrayTextElem = wrapper.find('.banner > p');
@@ -52,7 +52,7 @@ describe('component: FixedBanner', () => {
   });
 
   it('should render FOOTER fixed banner, as text array (newline char), correctly', async() => {
-    const wrapper = shallowMount(FixedBanner, {
+    const wrapper: Wrapper<FixedBanner & { [key: string]: any }> = shallowMount(FixedBanner, {
       propsData: { footer: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
@@ -63,10 +63,10 @@ describe('component: FixedBanner', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.vm.bannerStyle).toEqual(parsedBannerStyle);
+    expect(wrapper.vm.bannerStyle).toStrictEqual(parsedBannerStyle);
 
-    expect(wrapper.vm.banner).toEqual(expect.objectContaining(parsedBannerContent));
-    expect(wrapper.vm.showFooter).toEqual(true);
+    expect(wrapper.vm.banner).toStrictEqual(expect.objectContaining(parsedBannerContent));
+    expect(wrapper.vm.showFooter).toStrictEqual(true);
 
     const bannerElem = wrapper.find('.banner');
     const noArrayTextElem = wrapper.find('.banner > p');
@@ -78,7 +78,7 @@ describe('component: FixedBanner', () => {
   });
 
   it('should render CONSENT as a DIALOG correctly', async() => {
-    const wrapper = shallowMount(FixedBanner, {
+    const wrapper: Wrapper<FixedBanner & { [key: string]: any }> = shallowMount(FixedBanner, {
       propsData: { consent: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
@@ -89,10 +89,10 @@ describe('component: FixedBanner', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.vm.bannerStyle).toEqual(parsedBannerStyle);
+    expect(wrapper.vm.bannerStyle).toStrictEqual(parsedBannerStyle);
 
-    expect(wrapper.vm.banner).toEqual(expect.objectContaining(parsedBannerContent));
-    expect(wrapper.vm.showConsent).toEqual(true);
+    expect(wrapper.vm.banner).toStrictEqual(expect.objectContaining(parsedBannerContent));
+    expect(wrapper.vm.showConsent).toStrictEqual(true);
 
     const bannerElem = wrapper.find('.banner');
     const bannerDialogGlassElem = wrapper.find('.banner-dialog-glass');
@@ -111,7 +111,7 @@ describe('component: FixedBanner', () => {
   });
 
   it('clicking dialog button should hide dialog', async() => {
-    const wrapper = shallowMount(FixedBanner, {
+    const wrapper: Wrapper<FixedBanner & { [key: string]: any }> = shallowMount(FixedBanner, {
       propsData: { consent: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });

@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, Wrapper } from '@vue/test-utils';
 import GrowlManager from '../GrowlManager.vue';
 
 const stackMock = [
@@ -27,12 +27,9 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    
-    const wrapper = shallowMount(GrowlManager, { 
-      computed: {
-        stack: () => stackMock,
-      },
-      mocks: { $store: mockStore } 
+    const wrapper: Wrapper<GrowlManager & { [key: string]: any }> = shallowMount(GrowlManager, {
+      computed: { stack: () => stackMock },
+      mocks:    { $store: mockStore }
     });
 
     await wrapper.vm.$nextTick();
@@ -62,12 +59,9 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    
-    const wrapper = shallowMount(GrowlManager, { 
-      computed: {
-        stack: () => stackMock,
-      },
-      mocks: { $store: mockStore } 
+    const wrapper: Wrapper<GrowlManager & { [key: string]: any }> = shallowMount(GrowlManager, {
+      computed: { stack: () => stackMock },
+      mocks:    { $store: mockStore }
     });
 
     await wrapper.vm.$nextTick();
@@ -89,12 +83,9 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    
-    const wrapper = shallowMount(GrowlManager, { 
-      computed: {
-        stack: () => stackMock,
-      },
-      mocks: { $store: mockStore } 
+    const wrapper: Wrapper<GrowlManager & { [key: string]: any }> = shallowMount(GrowlManager, {
+      computed: { stack: () => stackMock },
+      mocks:    { $store: mockStore }
     });
 
     const clearAllButton = wrapper.find('button[type="button"]');
