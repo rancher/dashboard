@@ -25,6 +25,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
   async fetch() {
     await this.updateRows();
@@ -142,6 +147,7 @@ export default {
     <ResourceTable
       :schema="schema"
       :rows="rows"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     />
   </div>
 </template>

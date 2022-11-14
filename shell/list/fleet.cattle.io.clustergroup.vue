@@ -28,6 +28,11 @@ export default {
       type:     Boolean,
       required: false,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   computed: {
@@ -63,6 +68,7 @@ export default {
     :headers="headers"
     :rows="rows"
     :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     key-field="_key"
     v-on="$listeners"
   >

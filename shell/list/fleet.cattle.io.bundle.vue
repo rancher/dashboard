@@ -23,6 +23,10 @@ export default {
       type:     Object,
       required: true,
     },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -106,6 +110,7 @@ export default {
       :headers="headers"
       :rows="bundles"
       :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     >
       <template #cell:deploymentsReady="{row}">
         <span

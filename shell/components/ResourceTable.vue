@@ -134,6 +134,13 @@ export default {
       type:    Boolean,
       default: false
     },
+    /**
+     * Allows for the usage of a query param to work for simple filtering (q)
+     */
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -398,6 +405,7 @@ export default {
     :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     v-on="$listeners"

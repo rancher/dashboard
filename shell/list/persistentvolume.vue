@@ -17,6 +17,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -36,5 +41,6 @@ export default {
     :headers="$attrs.headers"
     :group-by="$attrs.groupBy"
     :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
   />
 </template>

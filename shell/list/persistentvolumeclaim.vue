@@ -17,6 +17,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -35,5 +40,6 @@ export default {
     :loading="loading"
     :schema="schema"
     :rows="rows"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
   />
 </template>

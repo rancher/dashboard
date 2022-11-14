@@ -28,6 +28,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -195,6 +200,7 @@ export default {
       :rows="filteredRows"
       :row-actions="enableRowActions"
       :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     >
       <template
         slot="cell:name"

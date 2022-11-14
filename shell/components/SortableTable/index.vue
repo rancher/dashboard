@@ -298,16 +298,32 @@ export default {
       type:    String,
       default: 'sortable-table'
     },
+    /**
+     * Allows for the usage of a query param to work for simple filtering (q)
+     */
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
+    let searchQuery = '';
+    let eventualSearchQuery = '';
+
+    // only allow for filter query param for simple filtering for now...
+    if (!this.hasAdvancedFiltering && this.useQueryParamsForSimpleFiltering && this.$route.query?.q) {
+      searchQuery = this.$route.query?.q;
+      eventualSearchQuery = this.$route.query?.q;
+    }
+
     return {
-      currentPhase:                ASYNC_BUTTON_STATES.WAITING,
-      expanded:                    {},
-      searchQuery:                 '',
-      eventualSearchQuery:         '',
-      actionOfInterest:            null,
-      loadingDelay:                false,
+      currentPhase:        ASYNC_BUTTON_STATES.WAITING,
+      expanded:            {},
+      searchQuery,
+      eventualSearchQuery,
+      actionOfInterest:    null,
+      loadingDelay:        false,
     };
   },
 
@@ -339,6 +355,20 @@ export default {
   watch: {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
+
+      if (!this.hasAdvancedFiltering && this.useQueryParamsForSimpleFiltering) {
+        const route = {
+          name:   this.$route.name,
+          params: { ...this.$route.params },
+          query:  { ...this.$route.query, q }
+        };
+
+        if (!q && this.$route.query?.q) {
+          route.query = {};
+        }
+
+        this.$router.replace(route);
+      }
     }, 200),
 
     descending(neu, old) {
