@@ -264,13 +264,13 @@ export default {
         const options = this.options;
 
         // Remove values that are not valid options
-        const out = values
+        const filters = values
           .map((value) => {
             return findBy(options, 'id', value);
           })
           .filter(x => !!x);
 
-        return out;
+        return filters;
       },
 
       set(neu) {
@@ -580,6 +580,7 @@ export default {
       :class="{ 'ns-open': isOpen }"
       @click="toggle()"
     >
+      <!-- No filters found or available -->
       <div
         v-if="value.length === 0"
         ref="values"
@@ -588,6 +589,8 @@ export default {
       >
         {{ t('nav.ns.all') }}
       </div>
+
+      <!-- Filtered by set with custom label E.g. "All namespaces" -->
       <div
         v-else-if="isSingleSpecial"
         ref="values"
@@ -596,6 +599,8 @@ export default {
       >
         {{ value[0].label }}
       </div>
+
+      <!-- All the selected namespaces -->
       <div
         v-else
         ref="values"
@@ -626,6 +631,7 @@ export default {
           />
         </div>
       </div>
+
       <!-- Inform user if more namespaces are selected -->
       <div
         v-if="hidden > 0"
