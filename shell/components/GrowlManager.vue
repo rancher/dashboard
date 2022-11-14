@@ -117,7 +117,7 @@ export default {
       <button
         type="button"
         class="btn btn-sm role-primary"
-        @click="closeAll"
+        @click="closeAll()"
       >
         {{ t('growl.clearAll') }}
       </button>
