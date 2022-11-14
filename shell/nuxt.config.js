@@ -33,6 +33,9 @@ const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
+// Allow skkipping of eslint check
+const skipEsLintCheck = (process.env.SKIP_ESLINT == 'true');
+
 // ===============================================================================================
 // Nuxt configuration
 // ===============================================================================================
@@ -258,6 +261,22 @@ export default function(dir, _appConfig) {
   const rancherEnv = process.env.RANCHER_ENV || 'web';
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
+
+  // Nuxt modules
+  let nuxtModules = [
+    '@nuxtjs/proxy',
+    '@nuxtjs/axios',
+    '@nuxtjs/eslint-module',
+    '@nuxtjs/webpack-profile',
+    'cookie-universal-nuxt',
+    'portal-vue/nuxt',
+    path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
+  ];
+
+  // Remove es-lint nuxt module if env var configures this
+  if (skipEsLintCheck) {
+    nuxtModules = nuxtModules.filter(s => !s.includes('eslint-module'));
+  }
 
   const config = {
     dev,
@@ -545,15 +564,7 @@ export default function(dir, _appConfig) {
     },
 
     // Nuxt modules
-    modules: [
-      '@nuxtjs/proxy',
-      '@nuxtjs/axios',
-      '@nuxtjs/eslint-module',
-      '@nuxtjs/webpack-profile',
-      'cookie-universal-nuxt',
-      'portal-vue/nuxt',
-      path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
-    ],
+    modules: nuxtModules,
 
     // Vue plugins
     plugins: [
