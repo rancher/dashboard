@@ -1,5 +1,5 @@
 import { shallowMount, RouterLinkStub } from '@vue/test-utils';
-import Backlink from '../Backlink.vue';
+import Backlink from '@shell/components/Backlink.vue';
 
 describe('component: Backlink', () => {
   it('should render component with the correct data applied', () => {
@@ -10,7 +10,7 @@ describe('component: Backlink', () => {
         query1: 'queryval1',
         query2: 'queryval2'
       }
-    };//
+    };
 
     const wrapper = shallowMount(Backlink, {
       propsData: { link: linkRoute },
