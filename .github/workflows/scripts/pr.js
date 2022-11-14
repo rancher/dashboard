@@ -199,8 +199,6 @@ async function processOpenOrEditAction() {
         console.log("+ This PR does not fix any issues");
     }
 
-    console.log(JSON.stringify(body, null, 2));
-
     const milestones = {};
 
     for (i of issues) {
@@ -244,7 +242,7 @@ async function processOpenOrEditAction() {
 }
 
 // Debugging
-// console.log(JSON.stringify(event, null, 2));
+console.log(JSON.stringify(event, null, 2));
 
 // Look at the action
 if (event.action === 'opened' || event.action === 'reopened') {
