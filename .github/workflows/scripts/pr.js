@@ -208,7 +208,6 @@ async function processOpenOrEditAction() {
       console.log('')
       console.log('Processing Issue #' + i + ' - ' + iss.title);
 
-
       if (pr.draft) {
         console.log('    Issue will not be moved to In Review (Draft PR)');
       } else if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
@@ -246,7 +245,7 @@ async function processOpenOrEditAction() {
 }
 
 // Debugging
-console.log(JSON.stringify(event, null, 2));
+// console.log(JSON.stringify(event, null, 2));
 
 // Look at the action
 if (event.action === 'opened' || event.action === 'reopened') {
