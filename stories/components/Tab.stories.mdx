@@ -9,11 +9,18 @@ import Tabbed from '@shell/components/Tabbed';
 
 export const Template = (args, { argTypes, events }) => ({
   components: { Tabbed, Tab },
+  data() {
+    return {
+      isActive: true,
+    }
+  },
   props:      Object.keys(argTypes),
   template:   `
       <Tabbed v-bind="$props">
-        <Tab name="test1" badge="0"  label="new"></Tab>
-        <Tab name="test2" error="true" label="new2"></Tab>
+        <Tab name="test1" badge="0" label="new">
+          <div name="test1">Test one content</div>
+        </Tab>
+        <Tab name="test2" error="true" label="new2"><div name="test1">Test two content</div></Tab>
       </Tabbed>
     `
 });
@@ -21,10 +28,17 @@ export const Template = (args, { argTypes, events }) => ({
 
 # Tab
 
--
+Tabs are used to separate information into logical sections and to quickly navigate between them.
 
 ### Description
-- 
+- Use tabs when there is a large amount of content that can be separated.
+- Should use no more than six horizontal tabs. This maintains an uncluttered UI and reduces cognitive load for users.
+- Vertical tabs provide better scalability for a large number of tabs (ten and more).
+- Stick to only one row of tabs. Use tab navigation when the content categories fit in a single row.
+- Write short tab labels. Try not to use more than two words for a tab label.
+- Vertical tabs provide better scalability for a large number of tabs (ten and more).
+- Secondary tabs never appear without a parent set of primary tabs.
+- The number of secondary tabs inside vertical tabs should be as small as possible – not more than six are recommended.
 <br/>
 
 <Canvas>
