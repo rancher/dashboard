@@ -40,6 +40,23 @@ describe('component: LiveDate', () => {
     expect(element.text()).toContain('5 secs');
   });
 
+  // this test calls a component method directly: we're testing this because it's how 'live' formatters are used in sortabletable
+  it('should recompute and update the displayed value as time passes', async() => {
+    const wrapper = await mount(LiveDate, {
+      mocks:     defaultMock,
+      propsData: { value: dayjs().toString() }
+    });
+
+    let element = wrapper.find('span');
+
+    expect(element.text()).toContain('Just now');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await wrapper.vm.liveUpdate(Date.now());
+
+    element = wrapper.find('span');
+    expect(element.text()).toContain('1 sec');
+  });
+
   it('should include ago suffix if enabled', async() => {
     const wrapper = await mount(LiveDate, { mocks: defaultMock, propsData: { value: Date.now() - 5000, addSuffix: true } });
 
@@ -48,21 +65,18 @@ describe('component: LiveDate', () => {
     expect(element.text()).toContain('5 secs ago');
   });
 
-  it('should use the largest sensible time unit', async() => {
-    const oneDay = 86400000;
-    const twentyThreeHours = 82800000;
-
+  it.each([
+    [86400000, '1 day'],
+    [82800000, '23 hours'],
+    [3540000, '59 mins']
+  ])('should use the largest sensible time unit', async(msAgo, displayValue) => {
     const wrapper = await mount(LiveDate, {
       mocks:     defaultMock,
-      propsData: { value: Date.now() - oneDay }
+      propsData: { value: Date.now() - msAgo }
     });
 
     const element = wrapper.find('span');
 
-    expect(element.text()).toContain('1 day');
-
-    await wrapper.setProps({ value: Date.now() - twentyThreeHours });
-
-    expect(element.text()).toContain('23 hours');
+    expect(element.text()).toContain(displayValue);
   });
 });
