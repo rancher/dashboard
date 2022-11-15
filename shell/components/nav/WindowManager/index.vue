@@ -175,8 +175,14 @@ export default {
 </script>
 
 <template>
-  <div id="windowmanager" class="windowmanager">
-    <div ref="tabs" class="tabs">
+  <div
+    id="windowmanager"
+    class="windowmanager"
+  >
+    <div
+      ref="tabs"
+      class="tabs"
+    >
       <div
         v-for="tab in tabs"
         :key="tab.id"
@@ -184,9 +190,16 @@ export default {
         :class="{'active': tab.id === active}"
         @click="switchTo(tab.id)"
       >
-        <i v-if="tab.icon" class="icon" :class="{['icon-'+ tab.icon]: true}" />
+        <i
+          v-if="tab.icon"
+          class="icon"
+          :class="{['icon-'+ tab.icon]: true}"
+        />
         <span class="tab-label"> {{ tab.label }}</span>
-        <i class="closer icon icon-fw icon-x" @click.stop="close(tab.id)" />
+        <i
+          class="closer icon icon-fw icon-x"
+          @click.stop="close(tab.id)"
+        />
       </div>
       <div
         class="resizer"

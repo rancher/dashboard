@@ -25,6 +25,9 @@ export default {
     <span v-if="value || value === 0">
       {{ value }}
     </span>
-    <span v-else class="text-muted">&mdash;</span>
+    <span
+      v-else
+      class="text-muted"
+    >&mdash;</span>
   </div>
 </template>

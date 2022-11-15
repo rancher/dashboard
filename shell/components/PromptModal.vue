@@ -87,7 +87,13 @@ export default {
     :scrollable="true"
     @closed="close()"
   >
-    <component :is="component" v-if="opened && component" :resources="resources" :register-background-closing="registerBackgroundClosing" @close="close()" />
+    <component
+      :is="component"
+      v-if="opened && component"
+      :resources="resources"
+      :register-background-closing="registerBackgroundClosing"
+      @close="close()"
+    />
   </modal>
 </template>
 

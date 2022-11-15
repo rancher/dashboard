@@ -29,14 +29,26 @@ export default {
 <template>
   <div class="wrapper">
     <div class="chart-readmes">
-      <Markdown v-if="appReadme" v-model="appReadme" class="md md-desc mb-20" @loaded="appReadmeLoaded = true" />
-      <h1 v-if="appReadme && readme && appReadmeLoaded && readmeLoaded" class="pt-10">
+      <Markdown
+        v-if="appReadme"
+        v-model="appReadme"
+        class="md md-desc mb-20"
+        @loaded="appReadmeLoaded = true"
+      />
+      <h1
+        v-if="appReadme && readme && appReadmeLoaded && readmeLoaded"
+        class="pt-10"
+      >
         {{ t('catalog.install.appReadmeTitle') }}
       </h1>
-      <Markdown v-if="readme" v-model="readme" class="md md-desc" @loaded="readmeLoaded = true" />
+      <Markdown
+        v-if="readme"
+        v-model="readme"
+        class="md md-desc"
+        @loaded="readmeLoaded = true"
+      />
     </div>
-    <div>
-    </div>
+    <div />
   </div>
 </template>
 

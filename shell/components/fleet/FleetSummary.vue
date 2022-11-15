@@ -175,8 +175,16 @@ export default {
 
 <template>
   <div class="row flexwrap">
-    <FleetStatus title="Bundles" :values="bundleCounts" value-key="count" />
-    <FleetStatus title="Resources" :values="resourceCounts" value-key="count" />
+    <FleetStatus
+      title="Bundles"
+      :values="bundleCounts"
+      value-key="count"
+    />
+    <FleetStatus
+      title="Resources"
+      :values="resourceCounts"
+      value-key="count"
+    />
   </div>
 </template>
 <style lang="scss" scoped>

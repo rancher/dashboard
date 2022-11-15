@@ -43,20 +43,31 @@ export default {
           <t k="neuvector.overview.title" />
         </h1>
         <div>
-          <t k="neuvector.overview.subtitle" :raw="true" />
+          <t
+            k="neuvector.overview.subtitle"
+            :raw="true"
+          />
         </div>
       </div>
     </header>
     <div class="links">
-      <div v-for="fel in externalLinks" :key="fel.label" class="link-container">
-        <a :href="fel.link" target="_blank" rel="noopener noreferrer">
+      <div
+        v-for="fel in externalLinks"
+        :key="fel.label"
+        class="link-container"
+      >
+        <a
+          :href="fel.link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <div class="link-logo">
             <LazyImage :src="fel.iconSrc" />
           </div>
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
-            <hr />
+            <hr>
             <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>

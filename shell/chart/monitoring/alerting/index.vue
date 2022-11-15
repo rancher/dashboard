@@ -184,7 +184,10 @@ export default {
             />
           </div>
         </div>
-        <div v-if="allSecrets.length > 0" class="row">
+        <div
+          v-if="allSecrets.length > 0"
+          class="row"
+        >
           <div class="col span-6">
             <LabeledSelect
               v-model="value.alertmanager.alertmanagerSpec.secrets"

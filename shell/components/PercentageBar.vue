@@ -103,8 +103,15 @@ export default {
 
 <template>
   <span class="percentage-bar">
-    <Bar :percentage="value" :primary-color="primaryColor" :slices="slices" />
-    <span v-if="showPercentage" class="ml-5 percentage-value">{{ formattedPercentage }}</span>
+    <Bar
+      :percentage="value"
+      :primary-color="primaryColor"
+      :slices="slices"
+    />
+    <span
+      v-if="showPercentage"
+      class="ml-5 percentage-value"
+    >{{ formattedPercentage }}</span>
   </span>
 </template>
 

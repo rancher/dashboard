@@ -156,7 +156,7 @@ export default {
     workloadRows() {
       const params = this.$route.params;
       const { id } = params;
-      const rows = flatten(compact(this.allWorkloads)).filter(row => row.showAsWorkload);
+      const rows = flatten(compact(this.allWorkloads)).filter(row => !row.ownedByWorkload);
       const namespacedRows = filter(rows, ({ metadata: { namespace } }) => namespace === id);
 
       return namespacedRows;
@@ -231,7 +231,10 @@ export default {
         :required-states="summaryStates"
       />
     </div>
-    <ResourceTabs v-model="value" :mode="mode">
+    <ResourceTabs
+      v-model="value"
+      :mode="mode"
+    >
       <Tab :name="t('namespace.resources')">
         <SortableTable
           default-sort-by="error"
@@ -261,8 +264,7 @@ export default {
           v-bind="$attrs"
           :schema="workloadSchema"
           :rows="workloadRows"
-        >
-        </ResourceTable>
+        />
       </Tab>
     </ResourceTabs>
     <MoveModal />

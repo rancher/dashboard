@@ -410,7 +410,10 @@ export default {
       color="warning"
       @close="hidePspDeprecationBanner = true"
     >
-      <t k="landing.deprecatedPsp" :raw="true" />
+      <t
+        k="landing.deprecatedPsp"
+        :raw="true"
+      />
     </Banner>
     <Banner
       v-if="!hideClusterToolsTip"
@@ -430,12 +433,19 @@ export default {
       </div>
       <div>
         <label>{{ t('glance.version') }}: </label>
-        <span v-if="currentCluster.kubernetesVersionExtension" style="font-size: 0.5em">{{ currentCluster.kubernetesVersionExtension }}</span>
+        <span
+          v-if="currentCluster.kubernetesVersionExtension"
+          style="font-size: 0.5em"
+        >{{ currentCluster.kubernetesVersionExtension }}</span>
         <span>{{ currentCluster.kubernetesVersionBase }}</span>
       </div>
       <div>
         <label>{{ t('glance.created') }}: </label>
-        <span><LiveDate :value="currentCluster.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></span>
+        <span><LiveDate
+          :value="currentCluster.metadata.creationTimestamp"
+          :add-suffix="true"
+          :show-tooltip="true"
+        /></span>
       </div>
       <p
         v-if="displayPspDeprecationBanner && hidePspDeprecationBanner"
@@ -447,7 +457,10 @@ export default {
       </p>
       <div :style="{'flex':1}" />
       <div v-if="!monitoringStatus.v2 && !monitoringStatus.v1">
-        <n-link :to="{name: 'c-cluster-explorer-tools'}" class="monitoring-install">
+        <n-link
+          :to="{name: 'c-cluster-explorer-tools'}"
+          class="monitoring-install"
+        >
           <i class="icon icon-gear" />
           <span>{{ t('glance.installMonitoring') }}</span>
         </n-link>
@@ -455,39 +468,88 @@ export default {
       <div v-if="monitoringStatus.v1">
         <span>{{ t('glance.v1MonitoringInstalled') }}</span>
       </div>
-      <ConfigBadge v-if="currentCluster.canUpdate" :cluster="currentCluster" />
+      <ConfigBadge
+        v-if="currentCluster.canUpdate"
+        :cluster="currentCluster"
+      />
     </div>
 
     <div class="resource-gauges">
       <ResourceSummary :spoofed-counts="totalCountGaugeInput" />
-      <ResourceSummary v-if="canAccessNodes" resource="node" />
-      <ResourceSummary v-if="canAccessDeployments" resource="apps.deployment" />
+      <ResourceSummary
+        v-if="canAccessNodes"
+        resource="node"
+      />
+      <ResourceSummary
+        v-if="canAccessDeployments"
+        resource="apps.deployment"
+      />
     </div>
 
-    <h3 v-if="!hasV1Monitoring && hasStats" class="mt-40">
+    <h3
+      v-if="!hasV1Monitoring && hasStats"
+      class="mt-40"
+    >
       {{ t('clusterIndexPage.sections.capacity.label') }}
     </h3>
-    <div v-if="!hasV1Monitoring && hasStats" class="hardware-resource-gauges">
-      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.pods')" :used="podsUsed" />
-      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.cores')" :reserved="cpuReserved" :used="cpuUsed" />
-      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ram')" :reserved="ramReserved" :used="ramUsed" :units="ramReserved.units" />
+    <div
+      v-if="!hasV1Monitoring && hasStats"
+      class="hardware-resource-gauges"
+    >
+      <HardwareResourceGauge
+        :name="t('clusterIndexPage.hardwareResourceGauge.pods')"
+        :used="podsUsed"
+      />
+      <HardwareResourceGauge
+        :name="t('clusterIndexPage.hardwareResourceGauge.cores')"
+        :reserved="cpuReserved"
+        :used="cpuUsed"
+      />
+      <HardwareResourceGauge
+        :name="t('clusterIndexPage.hardwareResourceGauge.ram')"
+        :reserved="ramReserved"
+        :used="ramUsed"
+        :units="ramReserved.units"
+      />
     </div>
 
     <div v-if="!hasV1Monitoring && componentServices">
-      <div v-for="status in componentServices" :key="status.name" class="k8s-component-status" :class="{'k8s-component-status-healthy': status.healthy, 'k8s-component-status-unhealthy': !status.healthy}">
-        <i v-if="status.healthy" class="icon icon-checkmark" />
-        <i v-else class="icon icon-warning" />
+      <div
+        v-for="status in componentServices"
+        :key="status.name"
+        class="k8s-component-status"
+        :class="{'k8s-component-status-healthy': status.healthy, 'k8s-component-status-unhealthy': !status.healthy}"
+      >
+        <i
+          v-if="status.healthy"
+          class="icon icon-checkmark"
+        />
+        <i
+          v-else
+          class="icon icon-warning"
+        />
         <div>{{ t(status.labelKey) }}</div>
       </div>
     </div>
 
-    <div v-if="hasV1Monitoring" id="ember-anchor" class="mt-20">
-      <EmberPage inline="ember-anchor" :src="v1MonitoringURL" />
+    <div
+      v-if="hasV1Monitoring"
+      id="ember-anchor"
+      class="mt-20"
+    >
+      <EmberPage
+        inline="ember-anchor"
+        :src="v1MonitoringURL"
+      />
     </div>
 
     <div class="mt-30">
       <Tabbed @changed="tabChange">
-        <Tab name="cluster-events" :label="t('clusterIndexPage.sections.events.label')" :weight="2">
+        <Tab
+          name="cluster-events"
+          :label="t('clusterIndexPage.sections.events.label')"
+          :weight="2"
+        >
           <span class="events-table-link">
             <n-link :to="allEventsLink">
               <span>{{ t('glance.eventsTable') }}</span>
@@ -495,13 +557,26 @@ export default {
           </span>
           <EventsTable />
         </Tab>
-        <Tab v-if="hasMonitoring" name="cluster-alerts" :label="t('clusterIndexPage.sections.alerts.label')" :weight="1">
+        <Tab
+          v-if="hasMonitoring"
+          name="cluster-alerts"
+          :label="t('clusterIndexPage.sections.alerts.label')"
+          :weight="1"
+        >
           <AlertTable v-if="selectedTab === 'cluster-alerts'" />
         </Tab>
       </Tabbed>
     </div>
-    <Tabbed v-if="hasMetricsTabs" class="mt-30">
-      <Tab v-if="showClusterMetrics" name="cluster-metrics" :label="t('clusterIndexPage.sections.clusterMetrics.label')" :weight="2">
+    <Tabbed
+      v-if="hasMetricsTabs"
+      class="mt-30"
+    >
+      <Tab
+        v-if="showClusterMetrics"
+        name="cluster-metrics"
+        :label="t('clusterIndexPage.sections.clusterMetrics.label')"
+        :weight="2"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -511,7 +586,12 @@ export default {
           />
         </template>
       </Tab>
-      <Tab v-if="showK8sMetrics" name="k8s-metrics" :label="t('clusterIndexPage.sections.k8sMetrics.label')" :weight="1">
+      <Tab
+        v-if="showK8sMetrics"
+        name="k8s-metrics"
+        :label="t('clusterIndexPage.sections.k8sMetrics.label')"
+        :weight="1"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -521,7 +601,12 @@ export default {
           />
         </template>
       </Tab>
-      <Tab v-if="showEtcdMetrics" name="etcd-metrics" :label="t('clusterIndexPage.sections.etcdMetrics.label')" :weight="0">
+      <Tab
+        v-if="showEtcdMetrics"
+        name="etcd-metrics"
+        :label="t('clusterIndexPage.sections.etcdMetrics.label')"
+        :weight="0"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"

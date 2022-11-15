@@ -220,7 +220,10 @@ export default {
     height="auto"
     :scrollable="true"
   >
-    <div v-if="plugin" class="plugin-install-dialog">
+    <div
+      v-if="plugin"
+      class="plugin-install-dialog"
+    >
       <h4 class="mt-10">
         {{ t(`plugins.${ mode }.title`, { name: plugin.label }) }}
       </h4>
@@ -229,7 +232,11 @@ export default {
           <p>
             {{ t(`plugins.${ mode }.prompt`) }}
           </p>
-          <Banner v-if="!plugin.certified" color="warning" :label="t('plugins.install.warnNotCertified')" />
+          <Banner
+            v-if="!plugin.certified"
+            color="warning"
+            :label="t('plugins.install.warnNotCertified')"
+          />
           <LabeledSelect
             v-if="showVersionSelector"
             v-model="version"
@@ -242,7 +249,11 @@ export default {
           </div>
         </div>
         <div class="dialog-buttons">
-          <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">
+          <button
+            :disabled="busy"
+            class="btn role-secondary"
+            @click="closeDialog(false)"
+          >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton

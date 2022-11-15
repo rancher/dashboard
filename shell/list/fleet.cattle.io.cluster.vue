@@ -18,6 +18,10 @@ export default {
       type:     Object,
       required: true,
     },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -73,11 +77,16 @@ export default {
 
 <template>
   <div>
-    <Banner v-if="hiddenHarvesterCount" color="info" :label="t('fleet.clusters.harvester', {count: hiddenHarvesterCount} )" />
+    <Banner
+      v-if="hiddenHarvesterCount"
+      color="info"
+      :label="t('fleet.clusters.harvester', {count: hiddenHarvesterCount} )"
+    />
     <FleetClusters
       :rows="filteredRows"
       :schema="schema"
       :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     />
   </div>
 </template>

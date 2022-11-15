@@ -47,17 +47,32 @@ export default {
 <template>
   <div>
     <slot name="prefix">
-      <t v-if="prefixLabel" :k="prefixLabel" :raw="true" />
+      <t
+        v-if="prefixLabel"
+        :k="prefixLabel"
+        :raw="true"
+      />
       {{ prefix }}
     </slot>
-    <nuxt-link :to="to" :target="target">
+    <nuxt-link
+      :to="to"
+      :target="target"
+    >
       <slot name="middle">
-        <t v-if="middleLabel" :k="middleLabel" :raw="true" />
+        <t
+          v-if="middleLabel"
+          :k="middleLabel"
+          :raw="true"
+        />
         {{ middle }}
       </slot>
     </nuxt-link>
     <slot name="suffix">
-      <t v-if="suffixLabel" :k="suffixLabel" :raw="true" />
+      <t
+        v-if="suffixLabel"
+        :k="suffixLabel"
+        :raw="true"
+      />
       {{ suffix }}
     </slot>
   </div>

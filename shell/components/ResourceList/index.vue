@@ -89,17 +89,19 @@ export default {
       inStore,
       schema,
       hasListComponent,
-      showMasthead:      showMasthead === undefined ? true : showMasthead,
+      showMasthead:                     showMasthead === undefined ? true : showMasthead,
       resource,
       // manual refresh
-      manualRefreshInit: false,
-      watch:             false,
-      force:             false,
+      manualRefreshInit:                false,
+      watch:                            false,
+      force:                            false,
       // Provided by fetch later
-      customTypeDisplay: null,
+      customTypeDisplay:                null,
       // incremental loading
-      loadResources:     [resource],
-      loadIndeterminate: false,
+      loadResources:                    [resource],
+      loadIndeterminate:                false,
+      // query param for simple filtering
+      useQueryParamsForSimpleFiltering: true
     };
   },
 
@@ -149,7 +151,7 @@ export default {
       :load-indeterminate="loadIndeterminate"
     >
       <template slot="extraActions">
-        <slot name="extraActions"></slot>
+        <slot name="extraActions" />
       </template>
     </Masthead>
     <div v-if="hasListComponent">
@@ -170,6 +172,7 @@ export default {
       :has-advanced-filtering="hasAdvancedFiltering"
       :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
       :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     />
   </div>
 </template>

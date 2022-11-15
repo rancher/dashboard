@@ -114,21 +114,32 @@ export default Vue.extend<Data, any, any, any>({
     @error="e=>errors = e"
     @finish="save"
   >
-    <ResourceTabs v-model="value" mode="mode">
-      <Tab label-key="epinio.applications.steps.basics.label" name="info" :weight="20">
+    <ResourceTabs
+      v-model="value"
+      mode="mode"
+    >
+      <Tab
+        label-key="epinio.applications.steps.basics.label"
+        name="info"
+        :weight="20"
+      >
         <AppInfo
           :application="value"
           :mode="mode"
           @change="updateInfo"
-        ></AppInfo>
+        />
       </Tab>
-      <Tab label-key="epinio.applications.steps.configurations.label" name="configurations" :weight="10">
+      <Tab
+        label-key="epinio.applications.steps.configurations.label"
+        name="configurations"
+        :weight="10"
+      >
         <AppConfiguration
           :application="value"
           :initial-application="initialValue"
           :mode="mode"
           @change="updateConfigurations"
-        ></AppConfiguration>
+        />
       </Tab>
     </ResourceTabs>
   </CruResource>

@@ -24,7 +24,7 @@ module.exports = {
     extract:       false,
     loaderOptions: {
       sass: {
-        prependData: `
+        additionalData: `
           @import "../../shell/assets/styles/base/_mixins.scss";
           @import "../../shell/assets/styles/base/_variables.scss";
         `
