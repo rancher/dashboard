@@ -2871,7 +2871,6 @@ monitoring:
         existing: Enable With Existing PVC
         statefulset: Enable with StatefulSet Template
         template: Enable with PVC Template
-      volumeMode: Volume Mode
       volumeName: Volume Name
     title: Configure Grafana
   hostNetwork:
@@ -2934,7 +2933,6 @@ monitoring:
       selector: Selector
       selectorWarning: 'If you are using a dynamic provisioner (e.g. Longhorn), no Selectors should be specified since a PVC with a non-empty selector can''t have a PV dynamically provisioned for it.'
       size: Size
-      volumeMode: Volume Mode
       volumeName: Volume Name
     title: Configure Prometheus
     warningInstalled: |
@@ -3023,10 +3021,6 @@ monitoring:
     prometheus: Prometheus
     projectMetrics: Project Metrics
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of {vendor} with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new {vendor} Monitoring chart in Cluster Explorer.'
-  volume:
-    modes:
-      block: Block
-      file: Filesystem
 
 monitoringReceiver:
   addButton: Add {type}
