@@ -2,7 +2,7 @@ import {
   CONFIG_MAP,
   EVENT,
   NODE, SECRET, INGRESS,
-  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
+  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD, POD_DISRUPTION_BUDGET, LIMIT_RANGE, RESOURCE_QUOTA,
   RBAC,
   MANAGEMENT,
   NAMESPACE,
@@ -61,10 +61,15 @@ export function init(store) {
     EVENT,
   ], 'cluster');
   basicType([
+    LIMIT_RANGE,
+    NETWORK_POLICY,
+    POD_DISRUPTION_BUDGET,
+    RESOURCE_QUOTA,
+  ], 'policy');
+  basicType([
     SERVICE,
     INGRESS,
     HPA,
-    NETWORK_POLICY,
   ], 'serviceDiscovery');
   basicType([
     PV,
@@ -87,6 +92,7 @@ export function init(store) {
   weightGroup('workload', 98, true);
   weightGroup('serviceDiscovery', 96, true);
   weightGroup('storage', 95, true);
+  weightGroup('policy', 94, true);
   weightType(POD, -1, true);
 
   // here is where we define the usage of the WORKLOAD custom list view for
