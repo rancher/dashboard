@@ -1,7 +1,6 @@
 import { shallowMount, Wrapper, createLocalVue } from '@vue/test-utils';
 import GrowlManager from '../GrowlManager.vue';
-import Vuex from 'vuex'
-
+import Vuex from 'vuex';
 
 const stackMock = [
   {
@@ -104,29 +103,26 @@ describe('component: GrowlManager', () => {
 
   it('growl should auto remove itself after set interval of 1 second', async() => {
     const localVue = createLocalVue();
+
     localVue.use(Vuex);
 
     const store = new Vuex.Store({
       modules: {
         growl: {
           namespaced: true,
-          state: {
-            stack: []
-          },
-          actions: {
-            clear: jest.fn()
-          },
-          mutations: {
-            updateStack: (state) => { state.stack = stackMock; }
+          state:      { stack: [] },
+          actions:    { clear: jest.fn() },
+          mutations:  {
+            updateStack: (state) => {
+              state.stack = stackMock;
+            }
           }
         },
       },
-      getters: {
-        'i18n/t': () => jest.fn()
-      }
+      getters: { 'i18n/t': () => jest.fn() }
     });
 
-    jest.useFakeTimers()
+    jest.useFakeTimers();
 
     const wrapper: Wrapper<InstanceType<typeof GrowlManager> & { [key: string]: any }> = shallowMount(GrowlManager, {
       store,
@@ -134,7 +130,7 @@ describe('component: GrowlManager', () => {
     });
 
     const spyCloseExpired = jest.spyOn(wrapper.vm, 'closeExpired');
-  
+
     expect(spyCloseExpired).not.toHaveBeenCalled();
 
     // this is to trigger the watch so that autoRemove can do its part
