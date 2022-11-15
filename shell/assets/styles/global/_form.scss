@@ -23,7 +23,7 @@ TEXTAREA,
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   border: solid var(--border-width) var(--input-border);
-  color: var(--input-text);
+  color: black;
 
   @include input-status-color;
 
@@ -82,10 +82,9 @@ TEXTAREA {
 
 FORM {
   LABEL {
-    color: var(--input-label);
+    color: black;
     display: inline-block;
-    margin: $spacing 0 $spacing 0;
-    font-size: 12px;
+    font-size: 14px;
 
     .radio-label,
     .checkbox-label {
@@ -128,7 +127,7 @@ FORM {
   font-weight: bold;
 }
 
-INPUT.inline-input {
+/* INPUT.inline-input {
   display: inline-block;
   width: 75px;
   margin: 0 10px;
@@ -138,7 +137,7 @@ INPUT.inline-input {
     clear: both;
     margin-left: 24px;
     font-size: 12px;
-}
+} */
 
 .fixed select, .fixed.v-select, .fixed input:not(.vs__search){
   height: 50px;

@@ -346,11 +346,6 @@ export default {
           <div class="pad"></div>
         </div>
         <div class="footer">
-          <div v-if="canEditSettings" @click="hide()">
-            <nuxt-link :to="{name: 'support'}">
-              {{ t('nav.support', {hasSupport}) }}
-            </nuxt-link>
-          </div>
           <div @click="hide()">
             <nuxt-link
               v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }"
@@ -409,7 +404,7 @@ export default {
   .cluster {
     &.selector:not(.disabled):hover {
       color: var(--primary-hover-text);
-      background: var(--primary-hover-bg);
+      background: #F7F7F7;
       border-radius: 5px;
       text-decoration: none;
 
@@ -454,10 +449,11 @@ export default {
     align-items: center;
     cursor: pointer;
     display: flex;
-    color: var(--link);
+    color: #666666;
 
     &:hover {
       text-decoration: none;
+      color: black;
     }
 
     &:focus {
@@ -474,16 +470,16 @@ export default {
     }
     svg {
       margin-right: 8px;
-      fill: var(--link);
+      fill: #666666;
     }
 
     > div {
-      color: var(--link);
+      color: #666666;
     }
 
     &:hover {
       color: var(--primary-hover-text);
-      background: var(--primary-hover-bg);
+      background: #F7F7F7;
       border-radius: 5px;
       > div {
         color: var(--primary-hover-text);
@@ -524,12 +520,12 @@ export default {
     }
     &.raised {
       .menu-icon {
-        fill: #0076CE;
+        fill: #666666;
       }
       &:hover{
-        background-color: #00447C;
+        background-color: #F7F7F7;
         .menu-icon {
-          fill: var(--header-btn-text);
+          fill: black;
         }
       }
       z-index: 200;

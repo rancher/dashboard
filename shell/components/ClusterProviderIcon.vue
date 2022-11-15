@@ -97,7 +97,7 @@ export default {
   }
   .cluster:hover {
     .cluster-local-logo{
-      fill: white;
+      fill: var(--primary);
     }
   }
   }
