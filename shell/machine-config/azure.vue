@@ -2,11 +2,10 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
-import { Banner } from '@components/Banner';
+import { Banner, LabeledInput, Checkbox } from '@rancher/components';
 import merge from 'lodash/merge';
 import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput, Checkbox } from '@rancher/components';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import { randomStr } from '@shell/utils/string';

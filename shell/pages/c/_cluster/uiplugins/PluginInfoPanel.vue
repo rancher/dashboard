@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import LazyImage from '@shell/components/LazyImage';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';

@@ -4,7 +4,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
-import Banner from '@components/Banner/Banner.vue';
+import { Banner } from '@rancher/components';
 
 // Note: This dialog handles installation and update of a plugin
 

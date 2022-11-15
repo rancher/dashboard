@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
 import { MANAGEMENT } from '@shell/config/types';

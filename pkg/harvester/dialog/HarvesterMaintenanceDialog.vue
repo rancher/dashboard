@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 export default {

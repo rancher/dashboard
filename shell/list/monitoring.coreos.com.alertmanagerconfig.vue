@@ -1,6 +1,6 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { MONITORING } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {

@@ -6,7 +6,7 @@ import ArrayList from '@shell/components/form/ArrayList';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import KeyValue from '@shell/components/form/KeyValue';
-import { LabeledInput } from '@rancher/components';
+import { LabeledInput, Banner } from '@rancher/components';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { RadioGroup } from '@components/Form/Radio';
 import ServicePorts from '@shell/components/form/ServicePorts';
@@ -16,7 +16,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@shell/models/service';
 import { ucFirst } from '@shell/utils/string';
 import CruResource from '@shell/components/CruResource';
-import { Banner } from '@components/Banner';
+
 import Labels from '@shell/components/form/Labels';
 import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOnConfig';
 import { clone } from '@shell/utils/object';

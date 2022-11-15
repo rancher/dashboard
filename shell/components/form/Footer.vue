@@ -2,7 +2,7 @@
 import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import AsyncButton, { AsyncButtonCallback } from '@shell/components/AsyncButton.vue';
-import Banner from '@components/Banner/Banner.vue';
+import { Banner } from '@rancher/components';
 
 export default Vue.extend({
   components: { AsyncButton, Banner },

@@ -5,10 +5,10 @@ import isEqual from 'lodash/isEqual';
 import { mapPref, DIFF } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER, LEGACY } from '@shell/store/features';
 import { mapGetters } from 'vuex';
-import { Banner } from '@components/Banner';
+import { Banner, Checkbox, LabeledInput } from '@rancher/components';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
-import { Checkbox, LabeledInput } from '@rancher/components';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 import { LabeledTooltip } from '@components/LabeledTooltip';

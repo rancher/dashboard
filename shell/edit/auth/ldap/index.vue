@@ -2,8 +2,8 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
-import { LabeledInput } from '@rancher/components';
-import { Banner } from '@components/Banner';
+import { LabeledInput, Banner } from '@rancher/components';
+
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import config from '@shell/edit/auth/ldap/config';
 import AuthConfig from '@shell/mixins/auth-config';

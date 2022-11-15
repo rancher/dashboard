@@ -4,7 +4,7 @@ import { createYaml } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';

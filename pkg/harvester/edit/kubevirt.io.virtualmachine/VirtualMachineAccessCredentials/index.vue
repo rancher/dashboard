@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import InfoBox from '@shell/components/InfoBox';
 
 import { randomStr } from '@shell/utils/string';

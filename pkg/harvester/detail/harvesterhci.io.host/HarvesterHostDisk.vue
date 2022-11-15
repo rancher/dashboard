@@ -1,7 +1,7 @@
 <script>
 import LabelValue from '@shell/components/LabelValue';
-import { BadgeState } from '@rancher/components';
-import { Banner } from '@components/Banner';
+import { BadgeState, Banner } from '@rancher/components';
+
 import HarvesterDisk from '../../mixins/harvester-disk';
 
 export default {

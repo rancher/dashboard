@@ -7,8 +7,7 @@
  * AlertmanagerConfig resource, which has a different API. The new forms are
  * located in @shell/edit/monitoring.coreos.com.alertmanagerconfig/types.
  */
-import { Checkbox, LabeledInput } from '@rancher/components';
-import { Banner } from '@components/Banner';
+import { Banner, Checkbox, LabeledInput } from '@rancher/components';
 import { _VIEW } from '@shell/config/query-params';
 import { ALIBABA_CLOUD_SMS_URL, MS_TEAMS_URL } from '@shell/edit/monitoring.coreos.com.receiver/types/webhook.add.vue';
 import TLS from '../tls';

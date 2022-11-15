@@ -1,9 +1,9 @@
 <script>
 import { RadioGroup } from '@components/Form/Radio';
-import { LabeledInput, Checkbox } from '@rancher/components';
+import { LabeledInput, Checkbox, Banner } from '@rancher/components';
 
 import UnitInput from '@shell/components/form/UnitInput';
-import { Banner } from '@components/Banner';
+
 import FileSelector from '@shell/components/form/FileSelector';
 
 const DEFAULT_NON_TLS_PORT = 389;

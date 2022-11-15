@@ -1,5 +1,5 @@
 <script>
-import { Checkbox } from '@rancher/components';
+import { Checkbox, Banner } from '@rancher/components';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -14,7 +14,7 @@ import { STORAGE_CLASS, PV } from '@shell/config/types';
 import StatusTable from '@shell/components/StatusTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Labels from '@shell/components/form/Labels';
-import { Banner } from '@components/Banner';
+
 import ResourceManager from '@shell/mixins/resource-manager';
 
 const DEFAULT_STORAGE = '10Gi';

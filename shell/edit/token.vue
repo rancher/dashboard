@@ -3,10 +3,10 @@ import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import sortBy from 'lodash/sortBy';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import { Banner } from '@components/Banner';
+import { Banner, LabeledInput } from '@rancher/components';
 import DetailText from '@shell/components/DetailText';
 import Footer from '@shell/components/form/Footer';
-import { LabeledInput } from '@rancher/components';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';

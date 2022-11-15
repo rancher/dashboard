@@ -1,10 +1,10 @@
 <script>
 import { mapPref, AFTER_LOGIN_ROUTE, READ_WHATS_NEW, HIDE_HOME_PAGE_CARDS } from '@shell/store/prefs';
-import { Banner } from '@components/Banner';
+import { Banner, BadgeState } from '@rancher/components';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import SortableTable from '@shell/components/SortableTable';
-import { BadgeState } from '@rancher/components';
+
 import CommunityLinks from '@shell/components/CommunityLinks';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';

@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Tag from '@shell/components/Tag';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import {
   STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM, PODS, AGE, KUBE_NODE_OS
 } from '@shell/config/table-headers';

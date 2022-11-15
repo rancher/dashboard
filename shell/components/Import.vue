@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Card } from '@rancher/components';
-import { Banner } from '@components/Banner';
+import { Card, Banner } from '@rancher/components';
+
 import Loading from '@shell/components/Loading';
 import YamlEditor from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';

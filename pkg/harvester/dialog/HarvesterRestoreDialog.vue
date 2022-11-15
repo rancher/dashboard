@@ -7,7 +7,7 @@ import { allHash } from '@shell/utils/promise';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 import { Card } from '@components/Card';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 

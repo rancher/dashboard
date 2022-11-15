@@ -3,8 +3,8 @@ import { mapGetters } from 'vuex';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { alternateLabel } from '@shell/utils/platform';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@components/Banner';
-import { Card } from '@rancher/components';
+import { Banner, Card } from '@rancher/components';
+
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 
 export default {

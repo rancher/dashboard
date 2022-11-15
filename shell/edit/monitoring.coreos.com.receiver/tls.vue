@@ -7,9 +7,8 @@
  * AlertmanagerConfig resource, which has a different API. The new forms are
  * located in @shell/edit/monitoring.coreos.com.alertmanagerconfig/types.
  */
-import { LabeledInput } from '@rancher/components';
-import { Banner } from '@components/Banner';
 import { mapGetters } from 'vuex';
+import { Banner, LabeledInput } from '@rancher/components';
 
 export default {
   components: { Banner, LabeledInput },

@@ -1,7 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card, LabeledInput } from '@rancher/components';
-import { Banner } from '@components/Banner';
+import { Card, LabeledInput, Banner } from '@rancher/components';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
 

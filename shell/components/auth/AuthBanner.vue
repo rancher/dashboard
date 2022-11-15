@@ -1,7 +1,7 @@
 
 <script>
-import { Banner } from '@components/Banner';
 import DisableAuthProviderModal from '@shell/components/DisableAuthProviderModal';
+import { Banner } from '@rancher/components';
 
 export default {
   components: {

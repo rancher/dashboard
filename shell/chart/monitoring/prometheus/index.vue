@@ -2,8 +2,7 @@
 import isEmpty from 'lodash/isEmpty';
 import { mapGetters } from 'vuex';
 
-import { Banner } from '@components/Banner';
-import { Checkbox, LabeledInput } from '@rancher/components';
+import { Banner, Checkbox, LabeledInput } from '@rancher/components';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import MatchExpressions from '@shell/components/form/MatchExpressions';

@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { HELM } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 

@@ -1,7 +1,7 @@
 <script>
 import draggable from 'vuedraggable';
 import InfoBox from '@shell/components/InfoBox';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import BadgeStateFormatter from '@shell/components/formatter/BadgeStateFormatter';
 import UnitInput from '@shell/components/form/UnitInput';
 import { LabeledInput } from '@components/Form/LabeledInput';

@@ -1,10 +1,10 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import day from 'dayjs';
-import { Card } from '@rancher/components';
+import { Card, Banner } from '@rancher/components';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Banner } from '@components/Banner';
+
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import { WORKLOAD_TYPES } from '@shell/config/types';
 import { diffFrom } from '@shell/utils/time';

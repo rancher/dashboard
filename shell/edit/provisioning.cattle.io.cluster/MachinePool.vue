@@ -1,12 +1,12 @@
 <script>
-import { LabeledInput, Checkbox } from '@rancher/components';
+import { LabeledInput, Checkbox, Banner } from '@rancher/components';
 
 import { _EDIT } from '@shell/config/query-params';
 import { importMachineConfig } from '@shell/utils/dynamic-importer';
 import Taints from '@shell/components/form/Taints.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
-import { Banner } from '@components/Banner';
+
 import UnitInput from '@shell/components/form/UnitInput.vue';
 import { randomStr } from '@shell/utils/string';
 

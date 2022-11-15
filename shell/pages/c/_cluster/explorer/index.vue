@@ -3,7 +3,7 @@ import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { parseSi, createMemoryValues } from '@shell/utils/units';
 import {
   NAME,

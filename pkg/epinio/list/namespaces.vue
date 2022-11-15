@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import { Card } from '@components/Card';
 import { mapGetters, mapState } from 'vuex';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';

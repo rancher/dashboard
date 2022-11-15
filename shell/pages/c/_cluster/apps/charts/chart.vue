@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import ChartMixin from '@shell/mixins/chart';
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import ChartReadme from '@shell/components/ChartReadme';
 import LazyImage from '@shell/components/LazyImage';
 import DateFormatter from '@shell/components/formatter/Date';

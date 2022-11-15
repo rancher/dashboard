@@ -1,8 +1,8 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabelValue from '@shell/components/LabelValue';
-import { BadgeState } from '@rancher/components';
-import { Banner } from '@components/Banner';
+import { BadgeState, Banner } from '@rancher/components';
+
 import { RadioGroup, RadioButton } from '@components/Form/Radio';
 import HarvesterDisk from '../../mixins/harvester-disk';
 
