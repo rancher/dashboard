@@ -94,13 +94,14 @@
   --dropdown-bg                : #{mix($medium, $dark, 10%)};
   --dropdown-border            : #{$light};
   --dropdown-divider           : #{$light};
-  --dropdown-text              : #{$link};
+  --dropdown-text              : #{$lightest};
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$selected};
   --dropdown-hover-text        : #{$lightest};
   --dropdown-hover-bg          : #{$link};
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
+  --dropdown-highlight-text     : #{$link};
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};

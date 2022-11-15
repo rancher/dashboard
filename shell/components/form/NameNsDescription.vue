@@ -262,7 +262,8 @@ export default {
       if (this.canCreateNamespace) {
         out.push({
           label: this.t('namespace.createNamespace'),
-          value: ''
+          value: '',
+          kind:  'highlighted'
         });
       }
       out.push({
