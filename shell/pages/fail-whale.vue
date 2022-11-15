@@ -95,6 +95,10 @@ export default {
 
 <style lang="scss" scoped>
   .error {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: center;
     overflow: hidden;
 
     .row {
