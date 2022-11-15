@@ -2,8 +2,8 @@
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@shell/utils/object';
 import { escapeHtml, resourceNames } from '@shell/utils/string';
-import { Card } from '@rancher/components';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Card, Checkbox } from '@rancher/components';
+
 import { alternateLabel } from '@shell/utils/platform';
 import { uniq } from '@shell/utils/array';
 import AsyncButton from '@shell/components/AsyncButton';

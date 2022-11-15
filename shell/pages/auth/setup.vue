@@ -1,12 +1,12 @@
 <script>
 import { randomStr } from '@shell/utils/string';
-import { LabeledInput } from '@rancher/components';
+import { LabeledInput, Checkbox } from '@rancher/components';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LOGGED_OUT, SETUP } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
-import { Checkbox } from '@components/Form/Checkbox';
+
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import { RadioGroup } from '@components/Form/Radio';
 import { setSetting } from '@shell/utils/settings';

@@ -1,6 +1,6 @@
 <script>
-import { Checkbox } from '@components/Form/Checkbox';
-import { LabeledInput } from '@rancher/components';
+import { Checkbox, LabeledInput } from '@rancher/components';
+
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { NORMAN } from '@shell/config/types';
 

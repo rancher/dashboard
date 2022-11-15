@@ -8,9 +8,9 @@ import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import ChartReadme from '@shell/components/ChartReadme';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox, LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput } from '@rancher/components';
+
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import LazyImage from '@shell/components/LazyImage';
 import Loading from '@shell/components/Loading';

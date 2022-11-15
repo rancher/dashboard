@@ -1,6 +1,6 @@
 <script>
-import { LabeledInput } from '@rancher/components';
-import { Checkbox } from '@components/Form/Checkbox';
+import { LabeledInput, Checkbox } from '@rancher/components';
+
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default ({

@@ -1,9 +1,8 @@
 <script>
-import { LabeledInput } from '@rancher/components';
+import { LabeledInput, Checkbox } from '@rancher/components';
 import ColorInput from '@shell/components/form/ColorInput';
 import TypeDescription from '@shell/components/TypeDescription';
 
-import { Checkbox } from '@components/Form/Checkbox';
 import FileSelector from '@shell/components/form/FileSelector';
 import SimpleBox from '@shell/components/SimpleBox';
 import Loading from '@shell/components/Loading';

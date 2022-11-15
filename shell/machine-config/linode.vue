@@ -6,7 +6,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rancher/components';
 
 export default {
   components: {

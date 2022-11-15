@@ -1,8 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
-import { LabeledInput } from '@rancher/components';
+import { LabeledInput, Checkbox } from '@rancher/components';
 import { RadioGroup } from '@components/Form/Radio';
-import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
   components: {

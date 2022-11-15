@@ -4,7 +4,7 @@ import { mapGetters } from 'vuex';
 
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rancher/components';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
 

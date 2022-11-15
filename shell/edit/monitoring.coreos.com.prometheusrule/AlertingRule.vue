@@ -4,10 +4,10 @@ import has from 'lodash/has';
 import isEmpty from 'lodash/isEmpty';
 import pickBy from 'lodash/pickBy';
 
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox, LabeledInput } from '@rancher/components';
 import CodeMirror from '@shell/components/CodeMirror';
 import KeyValue from '@shell/components/form/KeyValue';
-import { LabeledInput } from '@rancher/components';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 import { _VIEW } from '@shell/config/query-params';

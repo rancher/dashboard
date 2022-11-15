@@ -4,7 +4,7 @@ import IconMessage from '@shell/components/IconMessage.vue';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import Dialog from '@shell/components/Dialog.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { Checkbox } from '@rancher/components';
 import { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
 import {
   UI_PLUGIN_NAMESPACE,

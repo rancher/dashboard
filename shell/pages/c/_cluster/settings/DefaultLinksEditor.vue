@@ -2,7 +2,7 @@
 import Vue from 'vue';
 
 import { _VIEW } from '@shell/config/query-params';
-import { Checkbox } from '@components/Form/Checkbox';
+import { Checkbox } from '@rancher/components';
 
 export default {
   name: 'DefaultLinksEditor',

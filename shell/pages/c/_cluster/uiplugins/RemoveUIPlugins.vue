@@ -1,7 +1,7 @@
 <script>
 import { CATALOG, UI_PLUGIN } from '@shell/config/types';
 import Dialog from '@shell/components/Dialog.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { Checkbox } from '@rancher/components';
 import {
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHARTS,

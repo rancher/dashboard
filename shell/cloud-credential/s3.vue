@@ -1,8 +1,8 @@
 <script>
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { Checkbox } from '@components/Form/Checkbox';
-import { LabeledInput } from '@rancher/components';
+import { Checkbox, LabeledInput } from '@rancher/components';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
