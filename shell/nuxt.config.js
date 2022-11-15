@@ -33,6 +33,13 @@ const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
+// Allow skipping of eslint check
+// 0 = Skip browser and console checks
+// 1 = Skip browser check
+// 2 = Do not skip any checks
+const skipEsLintCheckStr = (process.env.SKIP_ESLINT || '');
+const skipEsLintCheck = parseInt(skipEsLintCheckStr, 10) || 2;
+
 // ===============================================================================================
 // Nuxt configuration
 // ===============================================================================================
@@ -56,7 +63,10 @@ export default function(dir, _appConfig) {
     NUXT_SHELL = '~~/shell';
     COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
 
-    typescript = { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } };
+    // Skip eslint check that runs as part of nuxt build in the console
+    if (skipEsLintCheck > 0) {
+      typescript = { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } };
+    }
   }
 
   // ===============================================================================================
@@ -258,6 +268,22 @@ export default function(dir, _appConfig) {
   const rancherEnv = process.env.RANCHER_ENV || 'web';
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
+
+  // Nuxt modules
+  let nuxtModules = [
+    '@nuxtjs/proxy',
+    '@nuxtjs/axios',
+    '@nuxtjs/eslint-module',
+    '@nuxtjs/webpack-profile',
+    'cookie-universal-nuxt',
+    'portal-vue/nuxt',
+    path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
+  ];
+
+  // Remove es-lint nuxt module if env var configures this
+  if (skipEsLintCheck < 2) {
+    nuxtModules = nuxtModules.filter(s => !s.includes('eslint-module'));
+  }
 
   const config = {
     dev,
@@ -545,15 +571,7 @@ export default function(dir, _appConfig) {
     },
 
     // Nuxt modules
-    modules: [
-      '@nuxtjs/proxy',
-      '@nuxtjs/axios',
-      '@nuxtjs/eslint-module',
-      '@nuxtjs/webpack-profile',
-      'cookie-universal-nuxt',
-      'portal-vue/nuxt',
-      path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
-    ],
+    modules: nuxtModules,
 
     // Vue plugins
     plugins: [
