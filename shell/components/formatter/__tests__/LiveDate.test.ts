@@ -41,7 +41,7 @@ describe('component: LiveDate', () => {
   });
 
   // this test calls a component method directly: we're testing this because it's how 'live' formatters are used in sortabletable
-  it('should recompute and update the displayed value as time passes', async() => {
+  it('should recompute and update the displayed value when prompted', async() => {
     const wrapper = await mount(LiveDate, {
       mocks:     defaultMock,
       propsData: { value: dayjs().toString() }
