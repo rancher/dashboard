@@ -4,7 +4,7 @@ import Loading from '@shell/components/Loading';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import EmberPage from '@shell/components/EmberPage';
-import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { ToggleSwitch } from '@rancher/components';
 import {
   CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
 } from '@shell/config/query-params';
