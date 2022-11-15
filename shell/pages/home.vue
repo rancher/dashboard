@@ -4,7 +4,7 @@ import { Banner } from '@components/Banner';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import SortableTable from '@shell/components/SortableTable';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rancher/components';
 import CommunityLinks from '@shell/components/CommunityLinks';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';

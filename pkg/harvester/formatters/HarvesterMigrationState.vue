@@ -1,6 +1,6 @@
 <script>
 import { HCI } from '../types';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rancher/components';
 
 export default {
   components: { BadgeState },

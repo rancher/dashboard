@@ -1,5 +1,5 @@
 <script>
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rancher/components';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 
 const ACTIVE = 'healthy';

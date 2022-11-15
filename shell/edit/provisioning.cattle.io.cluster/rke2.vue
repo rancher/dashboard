@@ -31,9 +31,9 @@ import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState, Checkbox, LabeledInput } from '@rancher/components';
 import { Banner } from '@components/Banner';
-import { Checkbox, LabeledInput } from '@rancher/components';
+
 import CruResource from '@shell/components/CruResource';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect';

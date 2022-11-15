@@ -1,6 +1,6 @@
 <script>
 import { get } from '@shell/utils/object';
-import { BadgeState } from '@components/BadgeState';
+import { BadgeState } from '@rancher/components';
 import { mapGetters } from 'vuex';
 
 const carouselSeenStorageKey = `carousel-seen`;
