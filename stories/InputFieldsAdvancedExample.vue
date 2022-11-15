@@ -61,7 +61,10 @@ export default {
   <form>
     <h3>Alignment</h3>
 
-    <div class="row" style="background: tomato;">
+    <div
+      class="row"
+      style="background: tomato;"
+    >
       <div class="col span-4">
         <LabeledInput
           v-model="x"
@@ -95,7 +98,10 @@ export default {
 
     <KeyValue v-model="labels" />
 
-    <KeyValue v-model="labels" :extra-columns="['effect']">
+    <KeyValue
+      v-model="labels"
+      :extra-columns="['effect']"
+    >
       <template #label:effect>
         Units
       </template>
@@ -110,16 +116,28 @@ export default {
     </KeyValue>
 
     <h3>Taints control</h3>
-    <Taints v-model="taints" mode="edit" />
+    <Taints
+      v-model="taints"
+      mode="edit"
+    />
 
     <h3>Tolerations control</h3>
-    <Tolerations v-model="tolerations" mode="edit" />
+    <Tolerations
+      v-model="tolerations"
+      mode="edit"
+    />
 
     <h3>Upgrade control</h3>
-    <Upgrading v-model="upgrading" mode="edit" />
+    <Upgrading
+      v-model="upgrading"
+      mode="edit"
+    />
 
     <h3>Security Context control</h3>
-    <Security v-model="securityContext" mode="edit" />
+    <Security
+      v-model="securityContext"
+      mode="edit"
+    />
   </form>
 </template>
 

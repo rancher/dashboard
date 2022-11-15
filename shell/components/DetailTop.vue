@@ -130,19 +130,33 @@ export default {
 </script>
 
 <template>
-  <div class="detail-top" :class="{empty: isEmpty}">
-    <div v-if="hasNamespaces" class="labels">
+  <div
+    class="detail-top"
+    :class="{empty: isEmpty}"
+  >
+    <div
+      v-if="hasNamespaces"
+      class="labels"
+    >
       <span class="label">
         {{ t('resourceDetail.detailTop.namespaces') }}:
       </span>
       <span>
-        <nuxt-link v-for="namespace in namespaces" :key="namespace.name" :to="namespace.detailLocation" class="namespaceLinkList">
+        <nuxt-link
+          v-for="namespace in namespaces"
+          :key="namespace.name"
+          :to="namespace.detailLocation"
+          class="namespaceLinkList"
+        >
           {{ namespace.name }}
         </nuxt-link>
       </span>
     </div>
 
-    <div v-if="description" class="description">
+    <div
+      v-if="description"
+      class="description"
+    >
       <span class="label">
         {{ t('resourceDetail.detailTop.description') }}:
       </span>
@@ -150,8 +164,16 @@ export default {
     </div>
 
     <div v-if="hasDetails">
-      <div v-for="group, index in details" :key="index" class="details">
-        <div v-for="detail in group" :key="detail.label || detail.slotName" class="detail">
+      <div
+        v-for="group, index in details"
+        :key="index"
+        class="details"
+      >
+        <div
+          v-for="detail in group"
+          :key="detail.label || detail.slotName"
+          class="detail"
+        >
           <span class="label">
             {{ detail.label }}:
           </span>
@@ -166,29 +188,52 @@ export default {
       </div>
     </div>
 
-    <div v-if="hasLabels" class="labels">
+    <div
+      v-if="hasLabels"
+      class="labels"
+    >
       <div class="tags">
         <span class="label">
           {{ t('resourceDetail.detailTop.labels') }}:
         </span>
-        <Tag v-for="(prop, key) in labels" :key="key + prop">
+        <Tag
+          v-for="(prop, key) in labels"
+          :key="key + prop"
+        >
           {{ key }}<span v-if="prop">: </span>{{ prop }}
         </Tag>
-        <a v-if="showFilteredSystemLabels" href="#" class="detail-top__label-button" @click.prevent="toggleLabels">
+        <a
+          v-if="showFilteredSystemLabels"
+          href="#"
+          class="detail-top__label-button"
+          @click.prevent="toggleLabels"
+        >
           {{ t(`resourceDetail.detailTop.${showAllLabels? 'hideLabels' : 'showLabels'}`) }}
         </a>
       </div>
     </div>
 
-    <div v-if="hasAnnotations" class="annotations">
+    <div
+      v-if="hasAnnotations"
+      class="annotations"
+    >
       <span class="label">
         {{ t('resourceDetail.detailTop.annotations') }}:
       </span>
-      <a href="#" @click.prevent="toggleAnnotations">
+      <a
+        href="#"
+        @click.prevent="toggleAnnotations"
+      >
         {{ t(`resourceDetail.detailTop.${annotationsVisible? 'hideAnnotations' : 'showAnnotations'}`, {annotations: annotationCount}) }}
       </a>
       <div v-if="annotationsVisible">
-        <DetailText v-for="(val, key) in annotations" :key="key" class="annotation" :value="val" :label="key" />
+        <DetailText
+          v-for="(val, key) in annotations"
+          :key="key"
+          class="annotation"
+          :value="val"
+          :label="key"
+        />
       </div>
     </div>
   </div>

@@ -28,12 +28,15 @@ export default {
 </script>
 <template>
   <div class="intro-box">
-    <i class="icon icon-repository"></i>
+    <i class="icon icon-repository" />
     <div class="title">
       {{ t('fleet.gitRepo.repo.noRepos') }}
     </div>
     <div class="actions">
-      <n-link :to="formRoute" class="btn role-secondary">
+      <n-link
+        :to="formRoute"
+        class="btn role-secondary"
+      >
         {{ t('fleet.gitRepo.repo.addRepo') }}
       </n-link>
     </div>

@@ -44,7 +44,11 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription v-model="value" :mode="mode" :namespaced="isNamespaced" />
+    <NameNsDescription
+      v-model="value"
+      :mode="mode"
+      :namespaced="isNamespaced"
+    />
 
     <h2>{{ t('catalog.repo.target.label') }}</h2>
     <div class="row mb-10">
@@ -59,7 +63,10 @@ export default {
       </div>
     </div>
 
-    <div v-if="isGit" class="row mb-10">
+    <div
+      v-if="isGit"
+      class="row mb-10"
+    >
       <div class="col span-6">
         <LabeledInput
           v-model.trim="value.spec.gitRepo"
@@ -104,6 +111,11 @@ export default {
       :display-side-by-side="false"
     />
 
-    <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
+    <Footer
+      :mode="mode"
+      :errors="errors"
+      @save="save"
+      @done="done"
+    />
   </form>
 </template>

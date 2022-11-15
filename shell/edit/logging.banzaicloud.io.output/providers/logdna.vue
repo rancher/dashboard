@@ -35,13 +35,23 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.hostname" :mode="mode" :disabled="disabled" :label="t('logging.logdna.hostname')" />
+        <LabeledInput
+          v-model="value.hostname"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.logdna.hostname')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.app" :mode="mode" :disabled="disabled" :label="t('logging.logdna.app')" />
+        <LabeledInput
+          v-model="value.app"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.logdna.app')"
+        />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>
@@ -49,7 +59,13 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.api_key" :mode="mode" :disabled="disabled" :label="t('logging.logdna.apiKey')" :required="true" />
+        <LabeledInput
+          v-model="value.api_key"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.logdna.apiKey')"
+          :required="true"
+        />
       </div>
     </div>
   </div>

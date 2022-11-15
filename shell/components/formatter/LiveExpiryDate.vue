@@ -61,9 +61,23 @@ export default {
 </script>
 
 <template>
-  <span v-if="stateValue.isExpired" class="text-error">
-    <LiveDate :value="stateValue.expiresAt" :add-suffix="true" />
+  <span
+    v-if="stateValue.isExpired"
+    class="text-error"
+  >
+    <LiveDate
+      :value="stateValue.expiresAt"
+      :add-suffix="true"
+    />
   </span>
-  <LiveDate v-else-if="stateValue.expiresAt" :value="stateValue.expiresAt" :add-suffix="false" />
-  <span v-else v-t="'generic.never'" class="text-muted" />
+  <LiveDate
+    v-else-if="stateValue.expiresAt"
+    :value="stateValue.expiresAt"
+    :add-suffix="false"
+  />
+  <span
+    v-else
+    v-t="'generic.never'"
+    class="text-muted"
+  />
 </template>

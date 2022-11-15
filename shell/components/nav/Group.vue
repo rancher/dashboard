@@ -186,25 +186,55 @@ export default {
 </script>
 
 <template>
-  <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}">
-    <div v-if="showHeader" class="header" :class="{'active': isOverview, 'noHover': !canCollapse}" @click="groupSelected()">
+  <div
+    class="accordion"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}"
+  >
+    <div
+      v-if="showHeader"
+      class="header"
+      :class="{'active': isOverview, 'noHover': !canCollapse}"
+      @click="groupSelected()"
+    >
       <slot name="header">
-        <n-link v-if="hasOverview" :to="group.children[0].route" :exact="group.children[0].exact">
+        <n-link
+          v-if="hasOverview"
+          :to="group.children[0].route"
+          :exact="group.children[0].exact"
+        >
           <h6 v-html="group.labelDisplay || group.label" />
         </n-link>
-        <h6 v-else v-html="group.labelDisplay || group.label" />
+        <h6
+          v-else
+          v-html="group.labelDisplay || group.label"
+        />
       </slot>
-      <i v-if="!onlyHasOverview && canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" @click="peek($event, true)" />
+      <i
+        v-if="!onlyHasOverview && canCollapse"
+        class="icon toggle"
+        :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}"
+        @click="peek($event, true)"
+      />
     </div>
-    <ul v-if="isExpanded" class="list-unstyled body" v-bind="$attrs">
+    <ul
+      v-if="isExpanded"
+      class="list-unstyled body"
+      v-bind="$attrs"
+    >
       <template v-for="(child, idx) in group[childrenKey]">
-        <li v-if="child.divider" :key="idx">
-          <hr />
+        <li
+          v-if="child.divider"
+          :key="idx"
+        >
+          <hr>
         </li>
         <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
           HIDDEN
         </div> -->
-        <li v-else-if="child[childrenKey]" :key="child.name">
+        <li
+          v-else-if="child[childrenKey]"
+          :key="child.name"
+        >
           <Group
             ref="groups"
             :key="id+'_'+child.name+'_children'"

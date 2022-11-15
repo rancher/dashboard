@@ -24,15 +24,27 @@ export default {
 <template>
   <div class="collapse">
     <slot name="title">
-      <div class="advanced text-link" @click="showAdvanced">
-        <i v-if="open" class="icon icon-chevron-down"></i>
-        <i v-else class="icon icon-chevron-right"></i>
+      <div
+        class="advanced text-link"
+        @click="showAdvanced"
+      >
+        <i
+          v-if="open"
+          class="icon icon-chevron-down"
+        />
+        <i
+          v-else
+          class="icon icon-chevron-right"
+        />
         {{ title }}
       </div>
     </slot>
 
-    <div v-if="open" class="content">
-      <slot></slot>
+    <div
+      v-if="open"
+      class="content"
+    >
+      <slot />
     </div>
   </div>
 </template>

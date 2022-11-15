@@ -64,17 +64,29 @@ export default {
       <h4>
         {{ title }}
       </h4>
-      <slot></slot>
+      <slot />
       <div class="dialog-buttons mt-20">
-        <slot name="buttons"></slot>
+        <slot name="buttons" />
         <div v-if="!$slots.buttons">
-          <button class="btn role-secondary" @click="closeDialog(false)">
+          <button
+            class="btn role-secondary"
+            @click="closeDialog(false)"
+          >
             {{ t('generic.cancel') }}
           </button>
-          <button v-if="!mode" class="btn role-primary ml-10" @click="closeDialog(true)">
+          <button
+            v-if="!mode"
+            class="btn role-primary ml-10"
+            @click="closeDialog(true)"
+          >
             {{ t('generic.ok') }}
           </button>
-          <AsyncButton v-else :mode="mode" class="ml-10" @click="ok" />
+          <AsyncButton
+            v-else
+            :mode="mode"
+            class="ml-10"
+            @click="ok"
+          />
         </div>
       </div>
     </div>

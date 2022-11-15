@@ -191,10 +191,19 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" :delayed="true" />
+  <Loading
+    v-if="$fetchState.pending"
+    :delayed="true"
+  />
   <div v-else-if="errors.length">
-    <div v-for="(err, idx) in errors" :key="idx">
-      <Banner color="error" :label="stringify(err)" />
+    <div
+      v-for="(err, idx) in errors"
+      :key="idx"
+    >
+      <Banner
+        color="error"
+        :label="stringify(err)"
+      />
     </div>
   </div>
   <div v-else>
@@ -245,7 +254,7 @@ export default {
         />
       </div>
     </div>
-    <hr class="mt-20" />
+    <hr class="mt-20">
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledInput
@@ -290,7 +299,7 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20" />
+      <hr class="mt-20">
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -302,7 +311,7 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20" />
+      <hr class="mt-20">
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -383,7 +392,7 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20" />
+      <hr class="mt-20">
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledSelect

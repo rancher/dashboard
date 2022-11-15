@@ -90,7 +90,10 @@ export default {
 
 <template>
   <span>
-    <span v-for="(gateway, i) in gateways" :key="gateway">
+    <span
+      v-for="(gateway, i) in gateways"
+      :key="gateway"
+    >
       <template v-if="i < 5">
         <nuxt-link :to="gatewayLinks(gateway)">
           {{ gatewayLinks(gateway).params.id }}
@@ -98,7 +101,10 @@ export default {
         <span v-if="i<gateways.length-1 && i < 4">,</span>
       </template>
     </span>
-    <span v-if="gateways.length>7" class="text-muted">
+    <span
+      v-if="gateways.length>7"
+      class="text-muted"
+    >
       {{ t('generic.plusMore', {n: gateways.length-4}) }}
     </span>
   </span>

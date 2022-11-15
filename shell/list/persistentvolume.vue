@@ -17,6 +17,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -30,5 +35,12 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :schema="schema" :rows="rows" :headers="$attrs.headers" :group-by="$attrs.groupBy" :loading="loading" />
+  <ResourceTable
+    :schema="schema"
+    :rows="rows"
+    :headers="$attrs.headers"
+    :group-by="$attrs.groupBy"
+    :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+  />
 </template>

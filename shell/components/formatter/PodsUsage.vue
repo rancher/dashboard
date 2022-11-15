@@ -40,7 +40,10 @@ export default {
 </script>
 
 <template>
-  <i v-if="loading" class="icon icon-spinner icon-spin" />
+  <i
+    v-if="loading"
+    class="icon icon-spinner icon-spin"
+  />
   <p v-else>
     {{ podsUsage }}
   </p>
