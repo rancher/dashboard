@@ -44,8 +44,15 @@ export default {
     </h2>
     <ResourcesSummary :value="value.status.resourceCounts" />
 
-    <ResourceTabs v-model="value" mode="view" class="mt-20">
-      <Tab label="Clusters" name="clusters">
+    <ResourceTabs
+      v-model="value"
+      mode="view"
+      class="mt-20"
+    >
+      <Tab
+        label="Clusters"
+        name="clusters"
+      >
         <FleetClusters
           :schema="clusterSchema"
           :rows="value.targetClusters"

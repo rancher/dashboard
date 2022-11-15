@@ -70,9 +70,16 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-model="value" :mode="mode" :namespaced="false" />
+    <NameNsDescription
+      v-model="value"
+      :mode="mode"
+      :namespaced="false"
+    />
 
-    <Tabbed :side-tabs="true" default-tab="members">
+    <Tabbed
+      :side-tabs="true"
+      default-tab="members"
+    >
       <!-- <Tab name="members" label-key="generic.members" :weight="2">
         <RoleBindings
           ref="rb"
@@ -86,8 +93,14 @@ export default {
         />
       </Tab> -->
 
-      <Tab name="labels" label-key="generic.labelsAndAnnotations">
-        <Labels v-model="value" :mode="mode" />
+      <Tab
+        name="labels"
+        label-key="generic.labelsAndAnnotations"
+      >
+        <Labels
+          v-model="value"
+          :mode="mode"
+        />
       </Tab>
     </Tabbed>
   </CruResource>

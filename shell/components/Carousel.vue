@@ -128,7 +128,12 @@ export default {
 
 <template>
   <div class="slider">
-    <div id="slide-track" ref="slider" :style="trackStyle" class="slide-track">
+    <div
+      id="slide-track"
+      ref="slider"
+      :style="trackStyle"
+      class="slide-track"
+    >
       <div
         :is="asLink ? 'a' : 'div'"
         v-for="(slide, i) in sliders"
@@ -143,10 +148,13 @@ export default {
       >
         <div class="slide-content">
           <div class="slide-img">
-            <img :src="slide.icon ? slide.icon : `/_nuxt/shell/assets/images/generic-catalog.svg`" />
+            <img :src="slide.icon ? slide.icon : `/_nuxt/shell/assets/images/generic-catalog.svg`">
           </div>
           <div class="slide-content-right">
-            <BadgeState :label="slide.repoName" color="slider-badge mb-20" />
+            <BadgeState
+              :label="slide.repoName"
+              color="slider-badge mb-20"
+            />
             <h1>{{ slide.chartNameDisplay }}</h1>
             <p>{{ slide.chartDescription }}</p>
           </div>
@@ -160,13 +168,23 @@ export default {
         class="control-item"
         :class="{'active': activeItemId === i}"
         @click="scrollSlide(i, slider.length)"
-      ></div>
+      />
     </div>
-    <div ref="prev" class="prev" :class="[activeItemId === 0 ? 'disabled' : 'prev']" @click="nextPrev('prev')">
-      <i class="icon icon-chevron-left icon-4x"></i>
+    <div
+      ref="prev"
+      class="prev"
+      :class="[activeItemId === 0 ? 'disabled' : 'prev']"
+      @click="nextPrev('prev')"
+    >
+      <i class="icon icon-chevron-left icon-4x" />
     </div>
-    <div ref="next" class="next" :class="[activeItemId === slider.length - 1 ? 'disabled' : 'next']" @click="nextPrev('next')">
-      <i class="icon icon-chevron-right icon-4x"></i>
+    <div
+      ref="next"
+      class="next"
+      :class="[activeItemId === slider.length - 1 ? 'disabled' : 'next']"
+      @click="nextPrev('next')"
+    >
+      <i class="icon icon-chevron-right icon-4x" />
     </div>
   </div>
 </template>

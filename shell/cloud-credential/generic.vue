@@ -68,7 +68,12 @@ export default {
 
 <template>
   <div>
-    <Banner v-if="!hasSupport" color="info" label-key="cluster.selectCredential.genericDescription" class="mt-0" />
+    <Banner
+      v-if="!hasSupport"
+      color="info"
+      label-key="cluster.selectCredential.genericDescription"
+      class="mt-0"
+    />
     <KeyValue
       :value="value.decodedData"
       :key-options="hasSupport || !keyOptions.length ? null : keyOptions"

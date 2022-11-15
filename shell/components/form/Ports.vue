@@ -106,15 +106,21 @@ export default {
 
 <template>
   <div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="clearfix">
       <h4>Ports</h4>
     </div>
 
-    <table v-if="rows.length" class="fixed">
+    <table
+      v-if="rows.length"
+      class="fixed"
+    >
       <thead>
         <tr>
-          <th v-if="padLeft" class="left"></th>
+          <th
+            v-if="padLeft"
+            class="left"
+          />
           <th class="port">
             Listening Port
           </th>
@@ -130,7 +136,10 @@ export default {
           <th class="hostPort">
             Host Port
           </th>
-          <th v-if="showRemove" class="remove"></th>
+          <th
+            v-if="showRemove"
+            class="remove"
+          />
         </tr>
       </thead>
       <tbody>
@@ -138,7 +147,10 @@ export default {
           v-for="(row, idx) in rows"
           :key="idx"
         >
-          <td v-if="padLeft" class="left"></td>
+          <td
+            v-if="padLeft"
+            class="left"
+          />
           <td class="port">
             <span v-if="isView">{{ row.port }}</span>
             <input
@@ -150,7 +162,7 @@ export default {
               max="65535"
               placeholder="e.g. 8080"
               @input="queueUpdate"
-            />
+            >
           </td>
           <td class="protocol">
             <span v-if="isView">{{ row.protocol }}</span>
@@ -189,7 +201,7 @@ export default {
               max="65535"
               placeholder="e.g. 80"
               @input="queueUpdate"
-            />
+            >
           </td>
           <td class="expose">
             <span v-if="isView">{{ row.expose ? "Yes" : "No" }}</span>
@@ -209,16 +221,30 @@ export default {
               @input="queueUpdate"
             />
           </td>
-          <td v-if="showRemove" class="remove">
-            <button type="button" class="btn role-link" @click="remove(idx)">
+          <td
+            v-if="showRemove"
+            class="remove"
+          >
+            <button
+              type="button"
+              class="btn role-link"
+              @click="remove(idx)"
+            >
               Remove
             </button>
           </td>
         </tr>
       </tbody>
     </table>
-    <div v-if="showAdd" class="footer">
-      <button type="button" class="btn role-tertiary add" @click="add()">
+    <div
+      v-if="showAdd"
+      class="footer"
+    >
+      <button
+        type="button"
+        class="btn role-tertiary add"
+        @click="add()"
+      >
         Add Port
       </button>
     </div>

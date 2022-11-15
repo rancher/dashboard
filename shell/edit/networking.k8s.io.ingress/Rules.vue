@@ -128,7 +128,13 @@ export default {
     />
   </div>
   <div v-else>
-    <ArrayListGrouped v-model="value.spec.rules" :add-label="t('ingress.rules.addRule')" :default-add-value="{}" :mode="mode" @add="onAdd">
+    <ArrayListGrouped
+      v-model="value.spec.rules"
+      :add-label="t('ingress.rules.addRule')"
+      :default-add-value="{}"
+      :mode="mode"
+      @add="onAdd"
+    >
       <template #default="props">
         <Rule
           ref="lastRule"

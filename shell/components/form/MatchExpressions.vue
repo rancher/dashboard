@@ -205,7 +205,12 @@ export default {
         <div v-if="isView">
           {{ row.key }}
         </div>
-        <input v-else-if="!hasKeySelectOptions" v-model="row.key" :mode="mode" @input="update" />
+        <input
+          v-else-if="!hasKeySelectOptions"
+          v-model="row.key"
+          :mode="mode"
+          @input="update"
+        >
         <LabeledSelect
           v-else
           v-model="row.key"
@@ -250,7 +255,7 @@ export default {
           :mode="mode"
           :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'"
           @input="update"
-        />
+        >
       </div>
       <div class="remove-container">
         <button
@@ -266,7 +271,10 @@ export default {
         </button>
       </div>
     </div>
-    <div v-if="!isView" class="mt-20">
+    <div
+      v-if="!isView"
+      class="mt-20"
+    >
       <button
         type="button"
         class="btn role-tertiary add"

@@ -81,5 +81,8 @@ export default {
 };
 </script>
 <template>
-  <img v-bind="$attrs" :src="pathToBrandedImage" />
+  <img
+    v-bind="$attrs"
+    :src="pathToBrandedImage"
+  >
 </template>

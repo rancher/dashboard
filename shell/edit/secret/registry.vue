@@ -112,15 +112,33 @@ export default {
         />
       </div>
     </div>
-    <div v-if="needsDockerServer" class="row mb-20">
-      <LabeledInput v-model="registryUrl" required :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />
+    <div
+      v-if="needsDockerServer"
+      class="row mb-20"
+    >
+      <LabeledInput
+        v-model="registryUrl"
+        required
+        :label="t('secret.registry.domainName')"
+        placeholder="e.g. index.docker.io"
+        :mode="mode"
+      />
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="username" :label="t('secret.registry.username')" :mode="mode" />
+        <LabeledInput
+          v-model="username"
+          :label="t('secret.registry.username')"
+          :mode="mode"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="password" :label="t('secret.registry.password')" :mode="mode" type="password" />
+        <LabeledInput
+          v-model="password"
+          :label="t('secret.registry.password')"
+          :mode="mode"
+          type="password"
+        />
       </div>
     </div>
   </div>

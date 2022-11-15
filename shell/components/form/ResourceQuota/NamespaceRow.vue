@@ -169,7 +169,10 @@ export default {
 };
 </script>
 <template>
-  <div v-if="typeOption" class="row">
+  <div
+    v-if="typeOption"
+    class="row"
+  >
     <Select
       class="mr-10"
       :mode="mode"

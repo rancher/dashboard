@@ -169,12 +169,29 @@ export default {
         {{ t('nav.home') }}
       </nuxt-link>
       <span v-if="doc">> {{ doc.attributes.title }}</span>
-      <i v-if="showRefresh" class="icon icon-refresh doc-refresh" @click="refresh"></i>
+      <i
+        v-if="showRefresh"
+        class="icon icon-refresh doc-refresh"
+        @click="refresh"
+      />
     </h1>
-    <div v-if="doc" id="doc-content" class="doc-content" :class="{'nuxt-content-side-toc': sideToc}">
-      <Markdown ref="scrollPanel" v-model="doc.body" class="doc-content-document" :class="{'nuxt-content-side-toc': sideToc}" />
+    <div
+      v-if="doc"
+      id="doc-content"
+      class="doc-content"
+      :class="{'nuxt-content-side-toc': sideToc}"
+    >
+      <Markdown
+        ref="scrollPanel"
+        v-model="doc.body"
+        class="doc-content-document"
+        :class="{'nuxt-content-side-toc': sideToc}"
+      />
 
-      <div v-if="sideToc" class="toc">
+      <div
+        v-if="sideToc"
+        class="toc"
+      >
         <a
           v-for="bookmark in doc.toc"
           :id="`toc-link-${ bookmark.id }`"

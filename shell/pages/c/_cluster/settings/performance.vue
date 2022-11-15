@@ -131,7 +131,10 @@ export default {
         <div class="mt-40">
           <h2 v-t="'performance.manualRefresh.label'" />
           <p>{{ t('performance.manualRefresh.description') }}</p>
-          <Banner color="error" label-key="performance.manualRefresh.banner" />
+          <Banner
+            color="error"
+            label-key="performance.manualRefresh.banner"
+          />
           <Checkbox
             v-model="value.manualRefresh.enabled"
             :mode="mode"
@@ -158,7 +161,10 @@ export default {
         <div class="mt-40">
           <h2 v-t="'performance.gc.label'" />
           <p>{{ t('performance.gc.description') }}</p>
-          <Banner color="error" label-key="performance.gc.banner" />
+          <Banner
+            color="error"
+            label-key="performance.gc.banner"
+          />
           <Checkbox
             v-model="value.garbageCollection.enabled"
             :mode="mode"
@@ -213,7 +219,10 @@ export default {
                 min="30"
                 class="input"
               />
-              <p class="mt-20" :class="{ 'text-muted': !value.garbageCollection.enabled }">
+              <p
+                class="mt-20"
+                :class="{ 'text-muted': !value.garbageCollection.enabled }"
+              >
                 {{ t('performance.gc.howRun.count.description') }}
               </p>
               <LabeledInput
@@ -231,10 +240,18 @@ export default {
       </div>
     </div>
     <template v-for="err in errors">
-      <Banner :key="err" color="error" :label="err" />
+      <Banner
+        :key="err"
+        color="error"
+        :label="err"
+      />
     </template>
     <div v-if="mode === 'edit'">
-      <AsyncButton class="pull-right mt-20" mode="apply" @click="save" />
+      <AsyncButton
+        class="pull-right mt-20"
+        mode="apply"
+        @click="save"
+      />
     </div>
   </div>
 </template>

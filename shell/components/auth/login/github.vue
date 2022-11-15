@@ -13,7 +13,11 @@ export default {
 </script>
 
 <template>
-  <button ref="btn" class="btn role-primary" @click="login">
+  <button
+    ref="btn"
+    class="btn role-primary"
+    @click="login"
+  >
     Log In with GitHub
   </button>
 </template>

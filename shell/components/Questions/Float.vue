@@ -24,7 +24,10 @@ export default {
         @input="val = parseFloat($event); if ( !isNaN(val) ) { $emit('input', val) }"
       />
     </div>
-    <div v-if="showDescription" class="col span-6 mt-10">
+    <div
+      v-if="showDescription"
+      class="col span-6 mt-10"
+    >
       {{ question.description }}
     </div>
   </div>

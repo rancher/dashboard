@@ -63,7 +63,11 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.azureFile.fsType" :mode="mode" :label="t('workload.storage.csi.fsType')" />
+        <LabeledInput
+          v-model="value.azureFile.fsType"
+          :mode="mode"
+          :label="t('workload.storage.csi.fsType')"
+        />
       </div>
     </div>
   </div>
