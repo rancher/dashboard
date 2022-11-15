@@ -1,8 +1,9 @@
-import { addObject, clear, removeObject } from '@shell/utils/array';
+import { clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { COUNT, SCHEMA } from '@shell/config/types';
 import { getPerformanceSetting } from '@shell/utils/settings';
-import Socket, {
+import ResourceWatcher from '@shell/utils/resourceWatcher';
+import {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
@@ -18,13 +19,9 @@ import { escapeHtml } from '@shell/utils/string';
 // eslint-disable-next-line
 import webworker from './web-worker.steve-sub-worker.js';
 
-export const NO_WATCH = 'NO_WATCH';
-export const NO_SCHEMA = 'NO_SCHEMA';
-
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
-// We only create a worker for the cluster store
 export function createWorker(store, ctx) {
   const { getters } = ctx;
   const storeName = getters.storeName;
@@ -68,11 +65,16 @@ export function createWorker(store, ctx) {
 export function keyForSubscribe({
   resourceType, type, namespace, id, selector
 } = {}) {
-  return `${ resourceType || type || '' }/${ namespace || '' }/${ id || '' }/${ selector || '' }`;
+  return [(resourceType || type), namespace, id, selector] // each watch param in an array
+    .filter(param => !!param) // filter out all the empty ones
+    .join('/'); // join into a string so we can use it as an object key
 }
 
 export function equivalentWatch(a, b) {
-  if ( a.type !== b.type ) {
+  const aresourceType = a.resourceType || a.type;
+  const bresourceType = b.resourceType || b.type;
+
+  if ( aresourceType !== bresourceType ) {
     return false;
   }
 
@@ -164,7 +166,7 @@ export const actions = {
     } else {
       const maxTries = growlsDisabled(rootGetters) ? null : 3;
 
-      socket = new Socket(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
+      socket = new ResourceWatcher(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
 
       commit('setSocket', socket);
       socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -297,10 +299,6 @@ export const actions = {
       return;
     }
 
-    if ( typeof revision === 'undefined' ) {
-      revision = getters.nextResourceVersion(type, id);
-    }
-
     const msg = { resourceType: type };
 
     if ( revision ) {
@@ -326,85 +324,7 @@ export const actions = {
     return dispatch('send', msg);
   },
 
-  reconnectWatches({
-    state, getters, commit, dispatch
-  }) {
-    const promises = [];
-
-    for ( const entry of state.started.slice() ) {
-      console.info(`Reconnect [${ getters.storeName }]`, JSON.stringify(entry)); // eslint-disable-line no-console
-
-      if ( getters.schemaFor(entry.type) ) {
-        commit('setWatchStopped', entry);
-        delete entry.revision;
-        promises.push(dispatch('watch', entry));
-      }
-    }
-
-    return Promise.all(promises);
-  },
-
-  async resyncWatch({
-    state, getters, dispatch, commit
-  }, params) {
-    const {
-      resourceType, namespace, id, selector
-    } = params;
-
-    console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
-
-    const opt = { force: true, forceWatch: true };
-
-    if ( id ) {
-      await dispatch('find', {
-        type: resourceType,
-        id,
-        opt,
-      });
-      commit('clearInError', params);
-
-      return;
-    }
-
-    let have, want;
-
-    if ( selector ) {
-      have = getters['matching'](resourceType, selector).slice();
-      want = await dispatch('findMatching', {
-        type: resourceType,
-        selector,
-        opt,
-      });
-    } else {
-      have = getters['all'](resourceType).slice();
-
-      if ( namespace ) {
-        have = have.filter(x => x.metadata?.namespace === namespace);
-      }
-
-      want = await dispatch('findAll', {
-        type:           resourceType,
-        watchNamespace: namespace,
-        opt
-      });
-    }
-
-    const wantMap = {};
-
-    for ( const obj of want ) {
-      wantMap[obj.id] = true;
-    }
-
-    for ( const obj of have ) {
-      if ( !wantMap[obj.id] ) {
-        state.debugSocket && console.info(`Remove stale [${ getters.storeName }]`, resourceType, obj.id); // eslint-disable-line no-console
-
-        commit('remove', obj);
-      }
-    }
-  },
-
-  async opened({
+  opened({
     commit, dispatch, state, getters, rootGetters
   }, event) {
     state.debugSocket && console.info(`WebSocket Opened [${ getters.storeName }]`); // eslint-disable-line no-console
@@ -432,7 +352,6 @@ export const actions = {
     }
 
     if ( socket.hasReconnected ) {
-      await dispatch('reconnectWatches');
       // Check for disconnect notifications and clear them
       const growlErr = rootGetters['growl/find']({ key: 'url', val: socket.url });
 
@@ -546,50 +465,14 @@ export const actions = {
 
   'ws.resource.start'({ state, getters, commit }, msg) {
     state.debugSocket && console.info(`Resource start: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
-    commit('setWatchStarted', {
-      type:      msg.resourceType,
-      namespace: msg.namespace,
-      id:        msg.id,
-      selector:  msg.selector
-    });
   },
 
-  'ws.resource.error'({ getters, commit, dispatch }, msg) {
+  'ws.resource.error'({ getters }, msg) {
     console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
-
-    const err = msg.data?.error?.toLowerCase();
-
-    if ( err.includes('watch not allowed') ) {
-      commit('setInError', { type: msg.resourceType, reason: NO_WATCH });
-    } else if ( err.includes('failed to find schema') ) {
-      commit('setInError', { type: msg.resourceType, reason: NO_SCHEMA });
-    } else if ( err.includes('too old') ) {
-      dispatch('resyncWatch', msg);
-    }
   },
 
-  'ws.resource.stop'({ getters, commit, dispatch }, msg) {
-    const type = msg.resourceType;
-    const obj = {
-      type,
-      id:        msg.id,
-      namespace: msg.namespace,
-      selector:  msg.selector
-    };
-
-    // console.warn(`Resource stop: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
-
-    if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
-      // Try reconnecting once
-
-      commit('setWatchStopped', obj);
-
-      setTimeout(() => {
-        // Delay a bit so that immediate start/error/stop causes
-        // only a slow infinite loop instead of a tight one.
-        dispatch('watch', obj);
-      }, 5000);
-    }
+  'ws.resource.stop'({ getters }, msg) {
+    console.warn(`Resource stop: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
   },
 
   'ws.resource.create'(ctx, msg) {
@@ -694,44 +577,16 @@ export const mutations = {
     removeObject(state.pendingFrames, obj);
   },
 
-  setWatchStarted(state, obj) {
-    const existing = state.started.find(entry => equivalentWatch(obj, entry));
-
-    if ( !existing ) {
-      addObject(state.started, obj);
-    }
-
-    delete state.inError[keyForSubscribe(obj)];
-  },
-
-  setWatchStopped(state, obj) {
-    const existing = state.started.find(entry => equivalentWatch(obj, entry));
-
-    if ( existing ) {
-      removeObject(state.started, existing);
-    } else {
-      console.warn("Tried to remove a watch that doesn't exist", obj); // eslint-disable-line no-console
-    }
-  },
-
-  setInError(state, msg) {
-    const key = keyForSubscribe(msg);
-
-    state.inError[key] = msg.reason;
-  },
-
-  clearInError(state, msg) {
-    const key = keyForSubscribe(msg);
-
-    delete state.inError[key];
-  },
-
   debug(state, on) {
     state.debugSocket = on !== false;
   },
 
   resetSubscriptions(state) {
-    clear(state.started);
+    const watcheKeys = Object.keys(state.socket.watches);
+
+    watcheKeys.forEach((watchKey) => {
+      state.socket.unwatch(watchKey);
+    });
     clear(state.pendingFrames);
     clear(state.queue);
     clearTimeout(state.queueTimer);
@@ -742,46 +597,13 @@ export const mutations = {
 
 export const getters = {
   canWatch: state => (obj) => {
-    return !state.inError[keyForSubscribe(obj)];
+    return !state?.socket?.[keyForSubscribe(obj)]?.error;
   },
 
   watchStarted: state => (obj) => {
-    return !!state.started.find(entry => equivalentWatch(obj, entry));
-  },
+    const watches = Object.values(state.socket?.watches || {});
 
-  nextResourceVersion: (state, getters) => (type, id) => {
-    type = normalizeType(type);
-    let revision = 0;
-
-    if ( id ) {
-      const existing = getters['byId'](type, id);
-
-      revision = parseInt(existing?.metadata?.resourceVersion, 10);
-    }
-
-    if ( !revision ) {
-      const cache = state.types[type];
-
-      if ( !cache ) {
-        return null;
-      }
-
-      revision = cache.revision;
-
-      for ( const obj of cache.list ) {
-        if ( obj && obj.metadata ) {
-          const neu = parseInt(obj.metadata.resourceVersion, 10);
-
-          revision = Math.max(revision, neu);
-        }
-      }
-    }
-
-    if ( revision ) {
-      return revision;
-    }
-
-    return null;
+    return !!watches.find(watch => equivalentWatch(obj, watch));
   },
 
   currentGeneration: state => (type) => {

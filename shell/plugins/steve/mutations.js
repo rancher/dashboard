@@ -1,13 +1,12 @@
 import { addObject, removeObject } from '@shell/utils/array';
 import { NAMESPACE, POD, SCHEMA } from '@shell/config/types';
 import {
-  forgetType,
+  forgetType as dashboardStoreForgetAll,
   resetStore,
   loadAll,
   load,
   remove
 } from '@shell/plugins/dashboard-store/mutations';
-import { keyForSubscribe } from '@shell/plugins/steve/subscribe';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
 
@@ -70,8 +69,14 @@ export default {
   },
 
   forgetType(state, type) {
-    if ( forgetType(state, type) ) {
-      delete state.inError[keyForSubscribe({ type })];
+    if ( dashboardStoreForgetAll(state, type) ) {
+      Object.keys(state?.socket?.watches || {})
+        .filter((watchKey) => {
+          return state.socket.watches[watchKey].resourceType === type;
+        })
+        .forEach((watchKey) => {
+          state.socket.unwatch(watchKey);
+        });
     }
   },
 

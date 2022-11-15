@@ -25,7 +25,6 @@ export function SteveFactory(namespace, baseUrl) {
         pendingFrames:    [],
         deferredRequests: {},
         started:          [],
-        inError:          {},
         podsByNamespace:  {}, // Cache of pods by namespace
       };
     },

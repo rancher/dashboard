@@ -522,10 +522,7 @@ export default {
     };
 
     if (getters['schemaFor'](type) && getters['watchStarted'](obj)) {
-      // Set that we don't want to watch this type
-      // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
-      // detect the stop message from the backend over the web socket
-      commit('setWatchStopped', obj);
+      // the socket's send method called in the "watch" action here will pick up the "stop" in obj and automatically unwatch the resource
       dispatch('watch', obj); // Ask the backend to stop watching the type
       // Make sure anything in the pending queue for the type is removed, since we've now removed the type
       commit('clearFromQueue', type);

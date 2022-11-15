@@ -216,13 +216,29 @@ If you already called `findAll` for a resource, then do `findMatching`, no addit
 
 The `unsubscribe` function is used to unwatch resources. However, as a general rule, resources are never unwatched because Rancher assumes that any data you have already loaded needs to be kept up-to-date.
 
-The code related to watching resources is in `plugins/steve/subscribe.js`.
+The code related to watching resources is in `shell/plugins/steve/subscribe.js` and `shell/utils/resourceWatcher.js`
+
+Code found in `subscribe.js` primarily acts as an interface so that Vue can dispatch actions, retrieve information via getters, and store related information for the socket object via Vuex. Other functionality related to websockets found in `subscribe.js` also include:
+* Creating the actual socket object and storing it in the appropriate Vuex store.
+* Destroying a websocket that is no longer needed (when a store is being destroyed).
+* Queing messages to the websocket if the websocket is currently unable to send them.
+
+To avoid excessive rerendering, the messages that change state, such as `resource.{create, change, remove}`, are saved in a buffer in the store. Once per second they are all flushed together to update the store.
+
+Code found in `resourceWatcher.js` is primarily geared towards the websocket itself, the resource watches it maintains and can be used without Vuex depending on the use case. The socket class exported from here is responsible for:
+* Connecting the created websocket to the appropriate API and maintaining data to reconnect if required.
+* Watching a resource if an existing watch is not already created, maintaining and/or refreshing the resource collection's resourceVersion as needed.
+* Unwatching a resource if it exists.
+* Maintaining sufficient information for each watch such that a watch can be recreated should it enter an error state or stop.
+* Maintain sufficient information for each watch so as to provide an interface for other code to retrieve information about a particular watch's status.
+* Process messages from the websocket and execute any code required to maintain existing watches and then fire an event that can be picked up outside of the socket.
+* Maintain the connection status of the websocket itself.
+
 
 ### Pinging
 
 The UI normally has three websocket connections with `rancher` (Steve's global cluster management), `management` (Norman) and `cluster` (Steve for an individual cluster). The UI is pinged by Steve every five seconds and by Norman every thirty seconds. Steve's messages send the server version they are sent from, which sends another action and reloads the page if the server has been upgraded.
 
-To avoid excessive rerendering, the messages that change state, such as `resource.{create, change, remove}`, are saved in a buffer. Once per second they are all flushed together to update the store.
 
 ## Resource Selectors
 
