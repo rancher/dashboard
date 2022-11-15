@@ -1,7 +1,7 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
-import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import { TextAreaAutoGrow } from '@rancher/components';
 
 export default {
   name: 'HarvesterAdditionalCA',
