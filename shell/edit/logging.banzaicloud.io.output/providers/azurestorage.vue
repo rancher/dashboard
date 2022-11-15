@@ -36,18 +36,33 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.azure_container" :mode="mode" :disabled="disabled" :label="t('logging.azurestorage.container')" />
+        <LabeledInput
+          v-model="value.azure_container"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.azurestorage.container')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.path" :mode="mode" :disabled="disabled" :label="t('logging.azurestorage.path')" />
+        <LabeledInput
+          v-model="value.path"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.azurestorage.path')"
+        />
       </div>
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.store_as" :mode="mode" :disabled="disabled" :label="t('logging.azurestorage.storeAs')" />
+        <LabeledInput
+          v-model="value.store_as"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.azurestorage.storeAs')"
+        />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>

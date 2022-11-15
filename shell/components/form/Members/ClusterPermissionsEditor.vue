@@ -213,7 +213,10 @@ export default {
 </script>
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else class="cluster-permissions-editor">
+  <div
+    v-else
+    class="cluster-permissions-editor"
+  >
     <div class="row mt-10">
       <div class="col span-12">
         <SelectPrincipal
@@ -226,7 +229,11 @@ export default {
       </div>
     </div>
 
-    <Card class="m-0" :show-highlight-border="false" :show-actions="false">
+    <Card
+      class="m-0"
+      :show-highlight-border="false"
+      :show-actions="false"
+    >
       <template v-slot:title>
         <div class="type-title">
           <h3>{{ t('members.clusterPermissions.label') }}</h3>
@@ -241,8 +248,18 @@ export default {
           :options="options"
           name="permission-group"
         />
-        <div v-if="permissionGroup === 'custom'" class="custom-permissions ml-20 mt-10" :class="{'two-column': useTwoColumnsForCustom}">
-          <Checkbox v-for="permission in customPermissions" :key="permission.key" v-model="permission.value" class="mb-5" :label="permission.label" />
+        <div
+          v-if="permissionGroup === 'custom'"
+          class="custom-permissions ml-20 mt-10"
+          :class="{'two-column': useTwoColumnsForCustom}"
+        >
+          <Checkbox
+            v-for="permission in customPermissions"
+            :key="permission.key"
+            v-model="permission.value"
+            class="mb-5"
+            :label="permission.label"
+          />
         </div>
       </template>
     </Card>

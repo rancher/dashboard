@@ -38,8 +38,16 @@ export default {
 </script>
 
 <template>
-  <a class="copy-to-clipboard-text" :class="{ 'copied': copied, 'plain': plain}" href="#" @click="clicked">
-    {{ text }} <i class="icon" :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}" />
+  <a
+    class="copy-to-clipboard-text"
+    :class="{ 'copied': copied, 'plain': plain}"
+    href="#"
+    @click="clicked"
+  >
+    {{ text }} <i
+      class="icon"
+      :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}"
+    />
   </a>
 </template>
 <style lang="scss" scoped>

@@ -87,8 +87,10 @@ export default {
           <p>
             {{ t('monitoring.installSteps.uninstallV1.warning1') }}
           </p>
-          <p class="mt-10" v-html="t('monitoring.installSteps.uninstallV1.warning2', {}, true)">
-          </p>
+          <p
+            class="mt-10"
+            v-html="t('monitoring.installSteps.uninstallV1.warning2', {}, true)"
+          />
         </template>
       </IconMessage>
       <AsyncButton
@@ -108,8 +110,10 @@ export default {
         <p class="">
           {{ t('monitoring.installSteps.uninstallV1.success1') }}
         </p>
-        <p class="mt-10" v-html="t('monitoring.installSteps.uninstallV1.success2')">
-        </p>
+        <p
+          class="mt-10"
+          v-html="t('monitoring.installSteps.uninstallV1.success2')"
+        />
       </template>
     </IconMessage>
   </div>

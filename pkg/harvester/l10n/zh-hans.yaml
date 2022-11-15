@@ -654,25 +654,6 @@ harvester:
   projectNamespace:
     label: 项目/命名空间
 
-  service:
-    title: 附加配置
-    ipam:
-      label: IPAM
-    healthCheckPort:
-      label: 健康检查端口
-    healthCheckSuccessThreshold:
-      label: 健康检查成功阙值
-      description: 如果探针连续检测到某个地址的成功次数达到成功阈值，后端服务器就可以开始转发流量。
-    healthCheckFailureThreshold:
-      label: 健康检查失败阈值
-      description: 如果健康检查失败的数量达到失败阈值，后端服务器将停止转发流量。
-    healthCheckPeriod:
-      label: 健康检查周期
-    healthCheckTimeout:
-      label: 健康检查超时
-    healthCheckEnabled:
-      label: 健康检查
-
   vip:
     namespace:
       label: 命名空间

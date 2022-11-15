@@ -77,7 +77,13 @@ export default {
           :mode="mode"
           :options="volumeTypeOptions"
         />
-        <LabeledInput v-model="value.parameters.fsType" class="mt-10" :placeholder="t('storageClass.gce-pd.filesystemType.placeholder')" :label="t('storageClass.gce-pd.filesystemType.label')" :mode="mode" />
+        <LabeledInput
+          v-model="value.parameters.fsType"
+          class="mt-10"
+          :placeholder="t('storageClass.gce-pd.filesystemType.placeholder')"
+          :label="t('storageClass.gce-pd.filesystemType.label')"
+          :mode="mode"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup
@@ -87,7 +93,13 @@ export default {
           :mode="mode"
           :options="availabilityZoneOptions"
         />
-        <LabeledInput v-if="availabilityZone === 'manual'" v-model="value.parameters.zones" class="mt-10" :placeholder="t('storageClass.gce-pd.availabilityZone.placeholder')" :mode="mode" />
+        <LabeledInput
+          v-if="availabilityZone === 'manual'"
+          v-model="value.parameters.zones"
+          class="mt-10"
+          :placeholder="t('storageClass.gce-pd.availabilityZone.placeholder')"
+          :mode="mode"
+        />
       </div>
     </div>
     <div class="row">

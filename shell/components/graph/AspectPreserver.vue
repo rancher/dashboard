@@ -37,9 +37,20 @@ export default {
 </script>
 
 <template>
-  <div ref="outer" class="aspect--outer">
-    <div ref="inner" class="aspect--inner" :style="{paddingBottom: 100 * aspectRatio[1]/aspectRatio[0] + '%' }">
-      <slot class="aspect--svg" :graphWidth="graphWidth" :graphHeight="graphHeight"></slot>
+  <div
+    ref="outer"
+    class="aspect--outer"
+  >
+    <div
+      ref="inner"
+      class="aspect--inner"
+      :style="{paddingBottom: 100 * aspectRatio[1]/aspectRatio[0] + '%' }"
+    >
+      <slot
+        class="aspect--svg"
+        :graphWidth="graphWidth"
+        :graphHeight="graphHeight"
+      />
     </div>
   </div>
 </template>

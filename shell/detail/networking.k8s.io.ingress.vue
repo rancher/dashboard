@@ -57,9 +57,22 @@ export default {
 };
 </script>
 <template>
-  <ResourceTabs v-model="value" mode="view" class="mt-20">
-    <Tab :label="t('ingress.rules.title')" name="rules" :weight="1">
-      <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" :certificates="certificates" />
+  <ResourceTabs
+    v-model="value"
+    mode="view"
+    class="mt-20"
+  >
+    <Tab
+      :label="t('ingress.rules.title')"
+      name="rules"
+      :weight="1"
+    >
+      <Rules
+        v-model="value"
+        :mode="mode"
+        :service-targets="serviceTargets"
+        :certificates="certificates"
+      />
     </Tab>
   </ResourceTabs>
 </template>

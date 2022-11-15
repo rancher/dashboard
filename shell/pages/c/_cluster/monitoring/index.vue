@@ -146,14 +146,23 @@ export default {
           <t k="monitoring.overview.title" />
         </h1>
         <div>
-          <t k="monitoring.overview.subtitle" :raw="true" />
+          <t
+            k="monitoring.overview.subtitle"
+            :raw="true"
+          />
         </div>
       </div>
     </header>
     <div>
-      <Banner v-if="v1Installed" color="warning">
+      <Banner
+        v-if="v1Installed"
+        color="warning"
+      >
         <template #default>
-          <t k="monitoring.v1Warning" :raw="true" />
+          <t
+            k="monitoring.v1Warning"
+            :raw="true"
+          />
         </template>
       </Banner>
       <div class="create-resource-container">
@@ -184,7 +193,7 @@ export default {
                   <i class="icon icon-external-link" />
                 </div>
               </div>
-              <hr />
+              <hr>
               <div class="description">
                 <span>
                   <t :k="fel.description" />

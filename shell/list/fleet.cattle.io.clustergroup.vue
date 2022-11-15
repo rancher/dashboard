@@ -28,6 +28,11 @@ export default {
       type:     Boolean,
       required: false,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   computed: {
@@ -63,15 +68,22 @@ export default {
     :headers="headers"
     :rows="rows"
     :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     key-field="_key"
     v-on="$listeners"
   >
     <template #cell:clusters="{row}">
       <template v-if="row.status">
-        <span v-if="row.status.nonReadyClusterCount" class="text-warning">{{ row.status.clusterCount - row.status.nonReadyClusterCount }}/{{ row.status.clusterCount }}</span>
+        <span
+          v-if="row.status.nonReadyClusterCount"
+          class="text-warning"
+        >{{ row.status.clusterCount - row.status.nonReadyClusterCount }}/{{ row.status.clusterCount }}</span>
         <span v-else>{{ row.status.clusterCount }}</span>
       </template>
-      <span v-else class="text-muted">&mdash;</span>
+      <span
+        v-else
+        class="text-muted"
+      >&mdash;</span>
     </template>
   </ResourceTable>
 </template>

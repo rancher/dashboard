@@ -45,7 +45,11 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model.number="value.vsphereVolume.storagePolicyName" :mode="mode" :label="t('workload.storage.csi.storagePolicyName')" />
+        <LabeledInput
+          v-model.number="value.vsphereVolume.storagePolicyName"
+          :mode="mode"
+          :label="t('workload.storage.csi.storagePolicyName')"
+        />
       </div>
     </div>
     <div class="row">
@@ -58,7 +62,11 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.vsphereVolume.fsType" :mode="mode" :label="t('workload.storage.csi.fsType')" />
+        <LabeledInput
+          v-model="value.vsphereVolume.fsType"
+          :mode="mode"
+          :label="t('workload.storage.csi.fsType')"
+        />
       </div>
     </div>
   </div>

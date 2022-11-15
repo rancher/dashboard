@@ -81,7 +81,11 @@ export default {
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+        <AuthBanner
+          :t-args="tArgs"
+          :disable="disable"
+          :edit="goToEdit"
+        >
           <template slot="rows">
             <tr><td>{{ t(`authConfig.${NAME}.adminEmail`) }}: </td><td>{{ model.adminEmail }}</td></tr>
             <tr><td>{{ t(`authConfig.${NAME}.domain`) }}: </td><td>{{ model.hostname }}</td></tr>
@@ -90,14 +94,25 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr />
+        <hr>
 
-        <AllowedPrincipals provider="googleoauth" :auth-config="model" :mode="mode" />
+        <AllowedPrincipals
+          provider="googleoauth"
+          :auth-config="model"
+          :mode="mode"
+        />
       </template>
 
       <template v-else>
-        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
-        <div :style="{'align-items':'center'}" class="row mb-20">
+        <Banner
+          v-if="!model.enabled"
+          :label="t('authConfig.stateBanner.disabled', tArgs)"
+          color="warning"
+        />
+        <div
+          :style="{'align-items':'center'}"
+          class="row mb-20"
+        >
           <div class="col span-5">
             <LabeledInput
               v-model="model.adminEmail"
@@ -115,20 +130,40 @@ export default {
             />
           </div>
           <div class="col span-2">
-            <Checkbox v-model="model.nestedGroupMembershipEnabled" :mode="mode" :label="t('authConfig.ldap.nestedGroupMembership.label')" />
+            <Checkbox
+              v-model="model.nestedGroupMembershipEnabled"
+              :mode="mode"
+              :label="t('authConfig.ldap.nestedGroupMembership.label')"
+            />
           </div>
         </div>
-        <InfoBox :step="1" class=" mt-20 mb-20">
+        <InfoBox
+          :step="1"
+          class=" mt-20 mb-20"
+        >
           <h3 v-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)" />
           <ul class="mt-0 step-list">
             <li>{{ t('authConfig.googleoauth.steps.1.body.1', {}, true) }} </li>
-            <li><b>{{ t('authConfig.googleoauth.steps.1.body.2', {}, true) }}</b> {{ t('authConfig.googleoauth.steps.1.topPrivateDomain', {}, true) }} <CopyToClipboardText :plain="true" :text="tArgs.hostname" /> </li>
-            <li><b>{{ t('authConfig.googleoauth.steps.1.body.3', {}, true) }}</b> <CopyToClipboardText :plain="true" :text="serverUrl" /> </li>
+            <li>
+              <b>{{ t('authConfig.googleoauth.steps.1.body.2', {}, true) }}</b> {{ t('authConfig.googleoauth.steps.1.topPrivateDomain', {}, true) }} <CopyToClipboardText
+                :plain="true"
+                :text="tArgs.hostname"
+              />
+            </li>
+            <li>
+              <b>{{ t('authConfig.googleoauth.steps.1.body.3', {}, true) }}</b> <CopyToClipboardText
+                :plain="true"
+                :text="serverUrl"
+              />
+            </li>
             <li>{{ t('authConfig.googleoauth.steps.1.body.4', {}, true) }} </li>
             <li>{{ t('authConfig.googleoauth.steps.1.body.5', {}, true) }} </li>
           </ul>
         </InfoBox>
-        <InfoBox :step="2" class="mb-20">
+        <InfoBox
+          :step="2"
+          class="mb-20"
+        >
           <div class="row">
             <h3 v-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)" />
           </div>
@@ -136,8 +171,18 @@ export default {
             <div class="col span-6">
               <ul class="mt-0 step-list">
                 <li>{{ t('authConfig.googleoauth.steps.2.body.1', {}, true) }} </li>
-                <li><b>{{ t('authConfig.googleoauth.steps.2.body.2', {}, true) }}</b> <CopyToClipboardText :plain="true" :text="serverUrl" /> </li>
-                <li><b>{{ t('authConfig.googleoauth.steps.2.body.3', {}, true) }}</b> <CopyToClipboardText :plain="true" :text="serverUrl+'/verify-auth'" /> </li>
+                <li>
+                  <b>{{ t('authConfig.googleoauth.steps.2.body.2', {}, true) }}</b> <CopyToClipboardText
+                    :plain="true"
+                    :text="serverUrl"
+                  />
+                </li>
+                <li>
+                  <b>{{ t('authConfig.googleoauth.steps.2.body.3', {}, true) }}</b> <CopyToClipboardText
+                    :plain="true"
+                    :text="serverUrl+'/verify-auth'"
+                  />
+                </li>
                 <li>{{ t('authConfig.googleoauth.steps.2.body.4', {}, true) }} </li>
                 <li>{{ t('authConfig.googleoauth.steps.2.body.5', {}, true) }} </li>
               </ul>
@@ -152,11 +197,19 @@ export default {
                 :tooltip="t(`authConfig.googleoauth.oauthCredentials.tip`)"
                 :hover-tooltip="true"
               />
-              <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'oauthCredential', $event)" />
+              <FileSelector
+                class="role-tertiary add mt-5"
+                :label="t('generic.readFromFile')"
+                :mode="mode"
+                @selected="$set(model, 'oauthCredential', $event)"
+              />
             </div>
           </div>
         </InfoBox>
-        <InfoBox :step="3" class="mb-20">
+        <InfoBox
+          :step="3"
+          class="mb-20"
+        >
           <div class="row">
             <h3 v-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)" />
           </div>
@@ -179,14 +232,25 @@ export default {
                 :tooltip="t(`authConfig.googleoauth.serviceAccountCredentials.tip`)"
                 :hover-tooltip="true"
               />
-              <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'serviceAccountCredential', $event)" />
+              <FileSelector
+                class="role-tertiary add mt-5"
+                :label="t('generic.readFromFile')"
+                :mode="mode"
+                @selected="$set(model, 'serviceAccountCredential', $event)"
+              />
             </div>
           </div>
         </InfoBox>
 
-        <div v-if="!model.enabled" class="row">
+        <div
+          v-if="!model.enabled"
+          class="row"
+        >
           <div class="col span-12">
-            <Banner color="info" v-html="t('authConfig.associatedWarning', tArgs, true)" />
+            <Banner
+              color="info"
+              v-html="t('authConfig.associatedWarning', tArgs, true)"
+            />
           </div>
         </div>
       </template>

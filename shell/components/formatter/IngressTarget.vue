@@ -36,20 +36,37 @@ export default {
 </script>
 
 <template>
-  <div v-if="value" class="ingress-target" :reactivity="workloads.length">
-    <div v-for="(path, i) in paths" :key="i" class="target">
+  <div
+    v-if="value"
+    class="ingress-target"
+    :reactivity="workloads.length"
+  >
+    <div
+      v-for="(path, i) in paths"
+      :key="i"
+      class="target"
+    >
       <IngressFullPath :row="path" />
       <i class="icon icon-chevron-right" />
-      <nuxt-link v-if="path.serviceName && path.serviceTargetTo" :to="path.serviceTargetTo">
+      <nuxt-link
+        v-if="path.serviceName && path.serviceTargetTo"
+        :to="path.serviceTargetTo"
+      >
         {{ path.serviceName }}
       </nuxt-link>
       <span v-else-if="path.serviceName">
         {{ path.serviceName }}
       </span>
     </div>
-    <div v-if="defaultService" class="target">
+    <div
+      v-if="defaultService"
+      class="target"
+    >
       {{ t('ingress.target.default') }} <i class="icon icon-chevron-right" />
-      <nuxt-link v-if="defaultService.targetTo" :to="defaultService.targetTo">
+      <nuxt-link
+        v-if="defaultService.targetTo"
+        :to="defaultService.targetTo"
+      >
         {{ defaultService.name }}
       </nuxt-link>
       <span v-else>

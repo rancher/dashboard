@@ -67,9 +67,12 @@ export default {
     height="auto"
     :scrollable="true"
   >
-    <div v-if="plugin" class="plugin-install-dialog">
+    <div
+      v-if="plugin"
+      class="plugin-install-dialog"
+    >
       <h4 class="mt-10">
-        {{ t('plugins.uninstall.title', { name: plugin.name }) }}
+        {{ t('plugins.uninstall.title', { name: plugin.label }) }}
       </h4>
       <div class="mt-10 dialog-panel">
         <div class="dialog-info">
@@ -78,7 +81,11 @@ export default {
           </p>
         </div>
         <div class="dialog-buttons">
-          <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">
+          <button
+            :disabled="busy"
+            class="btn role-secondary"
+            @click="closeDialog(false)"
+          >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton

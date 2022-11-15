@@ -39,6 +39,9 @@ export default {
       :mode="mode"
       @input="value.setData('token', $event);"
     />
-    <p class="text-muted mt-10" v-html="t('cluster.credential.linode.accessToken.help', {}, true)" />
+    <p
+      class="text-muted mt-10"
+      v-html="t('cluster.credential.linode.accessToken.help', {}, true)"
+    />
   </div>
 </template>

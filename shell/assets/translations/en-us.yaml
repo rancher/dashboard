@@ -191,6 +191,7 @@ product:
   harvesterManager: Virtualization Management
   rancher: Rancher
   uiplugins: Extensions
+  elemental: OS Management
 
 suffix:
   percent: "%"
@@ -486,7 +487,7 @@ authConfig:
         linkText: 'Update it here.'
       modal:
         title: Are you sure? This update is irreversible.
-        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the following application permissions for Microsoft Graph: User.Read.All, Group.Read.All<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
+        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
     oidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
@@ -607,7 +608,7 @@ asyncButton:
     waiting: Importing&hellip;
   install:
     action: Install
-    success: Installing
+    success: Installed
     waiting: Installing&hellip;
   load:
     action: Load
@@ -752,8 +753,6 @@ backupRestoreOperator:
     useDefault: Use the default storage location configured during installation
   targetBackup: Target Backup
 
-
-
 catalog:
   app:
     managed: Managed
@@ -767,6 +766,13 @@ catalog:
         busy: The related resources will appear when {app} is fully installed.
       values: Values YAML
   chart:
+    registry:
+      label: Container Registry
+      tooltip: Container images are pulled from the Cluster Container Registry or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
+      custom:
+        checkBoxLabel: Container Registry for Rancher System Container Images
+        inputLabel: Container Registry
+        placeholder: Registry domain and ports, ex. registry.io:5000
     header:
       charts: Charts
     info:
@@ -794,6 +800,7 @@ catalog:
     windowsIncompatible: Linux only
     versionWindowsIncompatible: Linux only version
     header: Charts
+    featuredCharts: Featured Charts
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
@@ -1566,6 +1573,9 @@ cluster:
       label: Roles
     labels:
       label: Kubernetes Node Labels
+    noAccessBanner: "You do not have access to see this machine pool's configuration."
+    configNotFound: "We could not find this machine pool's configuration. We recommend that you create a new cluster with the desired configuration."
+    noPoolsDisclaimer: You do not have any machine pools defined, click the plus to add one.
     autoReplace:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
@@ -1581,10 +1591,10 @@ cluster:
       noResults: No results found
   privateRegistry:
     systemDefaultRegistry:
-      label: Registry hostname for {vendor} System Container Images
+      label: Registry hostname for Rancher System Container Images
     mode:
-      public: Use default global registry for {vendor} System Container Images
-      private: Use specified private registry for {vendor} System Container Images
+      public: Use default global registry for Rancher System Container Images
+      private: Use specified private registry for Rancher System Container Images
       advanced: Configure advanced containerd mirroring and registry authentication options
   provider:
     aliyunecs: Aliyun ECS
@@ -1642,6 +1652,7 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+    machineinventoryselectortemplate: Elemental Cluster
   providerTag:
     rke2:
       harvester: '{tag}'
@@ -1722,7 +1733,6 @@ cluster:
         false: Only available inside the cluster
         true: Exposed to the public interface
   k3s:
-    techPreview: K3s provisioning is in Tech Preview
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
@@ -2472,7 +2482,7 @@ landing:
     cpuUsed: CPU Used
     memoryUsed: Memory Used
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.6"
+  whatsNewLink: "What's new in 2.7"
   learnMore: Learn More
   support: Support
   psps: PSPs
@@ -3677,6 +3687,7 @@ plugins:
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
+    built-in: This Extension is built-in
   error:
     title: Error loading extension
     message: Could not load extension code
@@ -3701,12 +3712,13 @@ plugins:
     versions: Versions
     versionError: Could not load version information
   empty:
-    all: Extensions are neither installed or available
+    all: Extensions are neither installed nor available
     available: No Extensions available
     installed: No Extensions installed
     updates: No updates available for installed Extensions
   loadError: An error occurred loading the code for this extension
   helmError: "An error occurred installing the extension via Helm"
+  manageRepos: Manage Repositories
   tabs:
     all: All
     available: Available
@@ -3754,7 +3766,9 @@ plugins:
       registry:
         title: Remove the Rancher Extensions Repository
         prompt: The Rancher Extensions Repository provides extensions published by Rancher
-
+      crd:
+        title: Remove the Rancher Extensions Custom Resource Definition
+        prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
 prefs:
   title: Preferences
   theme:
@@ -4246,8 +4260,10 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
     node: Group by Node
+    cluster: Group by Cluster
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
+    notInACluster: Not in a Cluster
     namespace: "<span>Namespace:</span> {name}"
     notInAMachinePool: "Not In A Deployment"
     machinePool: "<span>Pool:</span> {name}"
@@ -4437,6 +4453,24 @@ servicesPage:
     placeholder: e.g. my.database.example.com
     input:
       label: DNS Name
+  harvester:
+    title: Add-on Config
+    ipam:
+      label: IPAM
+    healthCheckPort:
+      label: Health Check Port
+    healthCheckSuccessThreshold:
+      label: Health Check Success Threshold
+      description: If the number of times the prober continuously detects an address successfully reaches the success threshold, then the backend server can start to forward traffic.
+    healthCheckFailureThreshold:
+      label: Health Check Failure Threshold
+      description: The backend server will stop forwarding traffic if the number of health check failures reaches the failure threshold.
+    healthCheckPeriod:
+      label: Health Check Period
+    healthCheckTimeout:
+      label: Health Check Timeout
+    healthCheckEnabled:
+      label: Health Check
   ips:
     define: Service Ports
     clusterIpHelpText: The Cluster IP address must be within the CIDR range configured for the API server.
@@ -4537,6 +4571,16 @@ sortableTable:
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
+  in: in
+  addFilter: Add Filter
+  filterFor: Filter for...
+  selectCol: Select a column
+  resetFilters: Reset
+  add: Add
+  tableHeader:
+    noFilter: This column cannot be filtered by
+    groupBy: Group by
+    show: Show
 
 storageClass:
   actions:
@@ -4843,6 +4887,7 @@ tableHeaders:
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
+  cluster: Cluster
   clusters: Clusters
   clustersReady: Clusters Ready
   clusterGroups: Cluster Groups
@@ -6260,7 +6305,7 @@ branding:
   directoryName: Brand Asset Directory Name
   logos:
     label: Logo
-    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB'
+    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview
     darkPreview: Dark Theme Preview
     uploadLight: Upload Light Logo
@@ -6318,7 +6363,7 @@ resourceQuota:
   servicesLoadBalancers: Services Load Balancers
   servicesNodePorts: Service Node Ports
   namespaceLimit:
-    label: Limit
+    label: Namespace Limit
   projectLimit:
     label: Project Limit
     cpuPlaceholder: e.g. 2000

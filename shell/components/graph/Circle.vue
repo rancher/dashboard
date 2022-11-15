@@ -84,16 +84,45 @@ export default {
 </script>
 
 <template>
-  <svg class="circle" width="100%" height="100%" :viewBox="viewBox">
+  <svg
+    class="circle"
+    width="100%"
+    height="100%"
+    :viewBox="viewBox"
+  >
     <g :transform="transform">
       <defs>
-        <linearGradient :id="primaryStrokeColorId" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="50%" :stop-color="primaryStrokeGradientColor || primaryStrokeColor" />
-          <stop offset="100%" :stop-color="primaryStrokeColor" />
+        <linearGradient
+          :id="primaryStrokeColorId"
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="0%"
+        >
+          <stop
+            offset="50%"
+            :stop-color="primaryStrokeGradientColor || primaryStrokeColor"
+          />
+          <stop
+            offset="100%"
+            :stop-color="primaryStrokeColor"
+          />
         </linearGradient>
-        <linearGradient :id="secondaryStrokeColorId" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="50%" :stop-color="secondaryStrokeGradientColor || secondaryStrokeColor" />
-          <stop offset="100%" :stop-color="secondaryStrokeColor" />
+        <linearGradient
+          :id="secondaryStrokeColorId"
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="0%"
+        >
+          <stop
+            offset="50%"
+            :stop-color="secondaryStrokeGradientColor || secondaryStrokeColor"
+          />
+          <stop
+            offset="100%"
+            :stop-color="secondaryStrokeColor"
+          />
         </linearGradient>
       </defs>
       <circle

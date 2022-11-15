@@ -42,5 +42,8 @@ export default {
 </script>
 
 <template>
-  <span><i v-if="displayClass" :class="{'icon': true, [displayClass]: true, [iconSize]: true}" /> {{ value }}</span>
+  <span><i
+    v-if="displayClass"
+    :class="{'icon': true, [displayClass]: true, [iconSize]: true}"
+  /> {{ value }}</span>
 </template>

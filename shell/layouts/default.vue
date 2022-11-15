@@ -575,9 +575,15 @@ export default {
     <FixedBanner :header="true" />
     <AwsComplianceBanner v-if="managementReady" />
     <AzureWarning v-if="managementReady" />
-    <div v-if="managementReady" class="dashboard-content">
+    <div
+      v-if="managementReady"
+      class="dashboard-content"
+    >
       <Header />
-      <nav v-if="clusterReady" class="side-nav">
+      <nav
+        v-if="clusterReady"
+        class="side-nav"
+      >
         <div class="nav">
           <template v-for="(g) in groups">
             <Group
@@ -593,13 +599,24 @@ export default {
             />
           </template>
         </div>
-        <n-link v-if="showClusterTools" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}">
-          <a class="tools-button" @click="collapseAll()">
+        <n-link
+          v-if="showClusterTools"
+          tag="div"
+          class="tools"
+          :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}"
+        >
+          <a
+            class="tools-button"
+            @click="collapseAll()"
+          >
             <i class="icon icon-gear" />
             <span>{{ t('nav.clusterTools') }}</span>
           </a>
         </n-link>
-        <div v-if="showProductFooter" class="footer">
+        <div
+          v-if="showProductFooter"
+          class="footer"
+        >
           <nuxt-link
             :to="supportLink"
             class="pull-right"
@@ -628,7 +645,10 @@ export default {
               </a>
 
               <template slot="popover">
-                <ul class="list-unstyled dropdown" style="margin: -1px;">
+                <ul
+                  class="list-unstyled dropdown"
+                  style="margin: -1px;"
+                >
                   <li
                     v-for="(label, name) in availableLocales"
                     :key="name"
@@ -642,7 +662,10 @@ export default {
             </v-popover>
           </span>
         </div>
-        <div v-else class="version text-muted">
+        <div
+          v-else
+          class="version text-muted"
+        >
           {{ displayVersion }}
         </div>
       </nav>
@@ -653,10 +676,28 @@ export default {
         <PromptRestore />
         <AssignTo />
         <PromptModal />
-        <button v-if="noLocaleShortcut" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
-        <button v-if="themeShortcut" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
-        <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
-        <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
+        <button
+          v-if="noLocaleShortcut"
+          v-shortkey.once="['shift','l']"
+          class="hide"
+          @shortkey="toggleNoneLocale()"
+        />
+        <button
+          v-if="themeShortcut"
+          v-shortkey.once="['shift','t']"
+          class="hide"
+          @shortkey="toggleTheme()"
+        />
+        <button
+          v-shortkey.once="['f8']"
+          class="hide"
+          @shortkey="wheresMyDebugger()"
+        />
+        <button
+          v-shortkey.once="['`']"
+          class="hide"
+          @shortkey="toggleShell"
+        />
       </main>
       <!-- Ensure there's an outlet to show the error (404) page -->
       <main v-else-if="unmatchedRoute">

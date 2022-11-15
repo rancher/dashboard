@@ -17,9 +17,15 @@ export default {
 };
 </script>
 <template>
-  <span class="flag" :class="{[color]: true}">
+  <span
+    class="flag"
+    :class="{[color]: true}"
+  >
     <slot>
-      <t v-if="labelKey" :k="labelKey" />
+      <t
+        v-if="labelKey"
+        :k="labelKey"
+      />
       <template v-else>{{ label }}</template>
     </slot>
   </span>

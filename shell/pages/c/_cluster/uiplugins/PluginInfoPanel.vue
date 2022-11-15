@@ -81,9 +81,19 @@ export default {
 </script>
 <template>
   <div class="plugin-info-panel">
-    <div v-if="showSlideIn" class="glass" @click="hide()" />
-    <div class="slideIn" :class="{'hide': false, 'slideIn__show': showSlideIn}">
-      <div v-if="info" class="plugin-info-content">
+    <div
+      v-if="showSlideIn"
+      class="glass"
+      @click="hide()"
+    />
+    <div
+      class="slideIn"
+      :class="{'hide': false, 'slideIn__show': showSlideIn}"
+    >
+      <div
+        v-if="info"
+        class="plugin-info-content"
+      >
         <div class="plugin-header">
           <div class="plugin-icon">
             <LazyImage
@@ -97,7 +107,7 @@ export default {
               v-else
               :src="defaultIcon"
               class="icon plugin-icon-img"
-            />
+            >
           </div>
           <div class="plugin-title">
             <h2 class="slideIn__header">
@@ -109,23 +119,52 @@ export default {
           </div>
           <div class="plugin-close">
             <div class="slideIn__header__buttons">
-              <div class="slideIn__header__button" @click="showSlideIn = false">
+              <div
+                class="slideIn__header__button"
+                @click="showSlideIn = false"
+              >
                 <i class="icon icon-close" />
               </div>
             </div>
           </div>
         </div>
         <div>
-          <Banner v-if="info.error" color="error" :label="info.error" class="mt-10" />
-          <Banner v-if="!info.certified" color="warning" :label="t('plugins.descriptions.third-party')" class="mt-10" />
-          <Banner v-if="info.experimental" color="warning" :label="t('plugins.descriptions.experimental')" class="mt-10" />
+          <Banner
+            v-if="info.error"
+            color="error"
+            :label="info.error"
+            class="mt-10"
+          />
+          <Banner
+            v-if="info.builtin"
+            color="warning"
+            :label="t('plugins.descriptions.built-in')"
+            class="mt-10"
+          />
+          <template v-else>
+            <Banner
+              v-if="!info.certified"
+              color="warning"
+              :label="t('plugins.descriptions.third-party')"
+              class="mt-10"
+            />
+            <Banner
+              v-if="info.experimental"
+              color="warning"
+              :label="t('plugins.descriptions.experimental')"
+              class="mt-10"
+            />
+          </template>
         </div>
 
         <h3 v-if="info.versions.length">
           {{ t('plugins.info.versions') }}
         </h3>
         <div class="plugin-versions mb-10">
-          <div v-for="v in info.versions" :key="v.version">
+          <div
+            v-for="v in info.versions"
+            :key="v.version"
+          >
             <a
               class="version-link"
               :class="{'version-active': v.version === infoVersion}"
@@ -142,8 +181,14 @@ export default {
         <h3 v-if="versionInfo">
           {{ t('plugins.info.detail') }}
         </h3>
-        <div v-if="versionInfo" class="plugin-info-detail">
-          <ChartReadme v-if="versionInfo" :version-info="versionInfo" />
+        <div
+          v-if="versionInfo"
+          class="plugin-info-detail"
+        >
+          <ChartReadme
+            v-if="versionInfo"
+            :version-info="versionInfo"
+          />
         </div>
         <div v-if="!info.versions.length">
           <h3>
