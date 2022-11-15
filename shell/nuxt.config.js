@@ -34,7 +34,7 @@ const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
 // Allow skkipping of eslint check
-const skipEsLintCheck = (process.env.SKIP_ESLINT == 'true');
+const skipEsLintCheck = (process.env.SKIP_ESLINT === 'true');
 
 // ===============================================================================================
 // Nuxt configuration
