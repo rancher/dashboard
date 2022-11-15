@@ -79,9 +79,13 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-model="value" :mode="mode" :namespaced="isNamespaced" />
+    <NameNsDescription
+      v-model="value"
+      :mode="mode"
+      :namespaced="isNamespaced"
+    />
 
-    <hr class="mt-20 mb-20" />
+    <hr class="mt-20 mb-20">
 
     <Labels
       default-section-class="mt-20"

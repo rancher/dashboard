@@ -487,7 +487,7 @@ authConfig:
         linkText: 'Update it here.'
       modal:
         title: Are you sure? This update is irreversible.
-        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the following application permissions for Microsoft Graph: User.Read.All, Group.Read.All<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
+        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
     oidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
@@ -1733,7 +1733,6 @@ cluster:
         false: Only available inside the cluster
         true: Exposed to the public interface
   k3s:
-    techPreview: K3s provisioning is in Tech Preview
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
@@ -2483,7 +2482,7 @@ landing:
     cpuUsed: CPU Used
     memoryUsed: Memory Used
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.6"
+  whatsNewLink: "What's new in 2.7"
   learnMore: Learn More
   support: Support
   psps: PSPs
@@ -3767,7 +3766,9 @@ plugins:
       registry:
         title: Remove the Rancher Extensions Repository
         prompt: The Rancher Extensions Repository provides extensions published by Rancher
-
+      crd:
+        title: Remove the Rancher Extensions Custom Resource Definition
+        prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
 prefs:
   title: Preferences
   theme:
@@ -6304,7 +6305,7 @@ branding:
   directoryName: Brand Asset Directory Name
   logos:
     label: Logo
-    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB'
+    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview
     darkPreview: Dark Theme Preview
     uploadLight: Upload Light Logo

@@ -76,15 +76,35 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-rotate" :show-highlight-border="false" :sticky="true">
-    <h4 slot="title" class="text-default-text" v-html="t('addProjectMemberDialog.title')" />
+  <Card
+    class="prompt-rotate"
+    :show-highlight-border="false"
+    :sticky="true"
+  >
+    <h4
+      slot="title"
+      class="text-default-text"
+      v-html="t('addProjectMemberDialog.title')"
+    />
 
-    <div slot="body" class="pl-10 pr-10">
-      <ProjectMemberEditor v-model="member" :use-two-columns-for-custom="true" />
+    <div
+      slot="body"
+      class="pl-10 pr-10"
+    >
+      <ProjectMemberEditor
+        v-model="member"
+        :use-two-columns-for-custom="true"
+      />
     </div>
 
-    <div slot="actions" class="buttons">
-      <button class="btn role-secondary mr-10" @click="close">
+    <div
+      slot="actions"
+      class="buttons"
+    >
+      <button
+        class="btn role-secondary mr-10"
+        @click="close"
+      >
         {{ t('generic.cancel') }}
       </button>
 

@@ -31,31 +31,42 @@ const sidebars = {
       label: 'Guide',
       items: [
         'guide/build-for-container-registry',
-        'guide/customising-how-k8s-resources-are-presented',
-        'guide/forms-and-validation',
         'guide/package-management',
-        'guide/plugins'
+        'guide/auth-providers',
       ],
     },
     {
       type:  'category',
-      label: 'How code base works',
+      label: 'How the Code Base Works',
       items: [
         'code-base-works/api-resources-and-schemas',
-        'code-base-works/auth-providers',
         'code-base-works/auth-sessions-and-tokens',
         'code-base-works/cluster-management-resources',
+        'code-base-works/customising-how-k8s-resources-are-presented',
         'code-base-works/directory-structure',
+        'code-base-works/forms-and-validation',
         'code-base-works/helm-chart-apps',
         'code-base-works/keyboard-shortcuts',
+        'code-base-works/kubernetes-resources-data-load',
         'code-base-works/machine-drivers',
         'code-base-works/performance',
+        'code-base-works/sortable-table',
       ],
+    },
+    {
+      type:  'category',
+      label: 'Plugins',
+      items: [
+        'plugins/plugins-getting-started',
+        'plugins/initializing-plugins'
+        // Do we still need this info?
+        // 'plugins/moving-existing-code'
+      ]
     },
     'on-screen-text-and-translations',
     'products-and-navigation',
     'server-side-rendering',
-    'sortable-table',
+
     'style',
     'terminology',
     {

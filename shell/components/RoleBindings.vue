@@ -381,7 +381,12 @@ export default {
     />
   </div>
   <div v-else>
-    <div v-for="(row, idx) in unremovedRows" :key="idx" class="role-row" :class="{[mode]: true}">
+    <div
+      v-for="(row, idx) in unremovedRows"
+      :key="idx"
+      class="role-row"
+      :class="{[mode]: true}"
+    >
       <div class="subject">
         <LabeledSelect
           v-model="row.subject"
@@ -403,11 +408,23 @@ export default {
         />
       </div>
       <div class="remove">
-        <button v-t="'generic.remove'" :disabled="isView" type="button" class="btn role-link" @click="remove(row)" />
+        <button
+          v-t="'generic.remove'"
+          :disabled="isView"
+          type="button"
+          class="btn role-link"
+          @click="remove(row)"
+        />
       </div>
     </div>
     <div>
-      <button v-t="'rbac.roleBinding.add'" :disabled="isView" type="button" class="btn role-tertiary add" @click="add()" />
+      <button
+        v-t="'rbac.roleBinding.add'"
+        :disabled="isView"
+        type="button"
+        class="btn role-tertiary add"
+        @click="add()"
+      />
     </div>
   </div>
 </template>

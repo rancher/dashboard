@@ -25,9 +25,17 @@ export default {
 </script>
 
 <template>
-  <div v-if="shown" class="banner-graphic" :class="{'small': small}">
+  <div
+    v-if="shown"
+    class="banner-graphic"
+    :class="{'small': small}"
+  >
     <div class="graphic">
-      <BrandImage class="banner" file-name="banner.svg" :draggable="false" />
+      <BrandImage
+        class="banner"
+        file-name="banner.svg"
+        :draggable="false"
+      />
     </div>
     <div
       v-if="titleKey"
@@ -41,8 +49,12 @@ export default {
       data-testid="banner-title"
       class="title"
       v-html="title"
-    ></h1>
-    <div v-if="pref" class="close-button" @click="hide()">
+    />
+    <div
+      v-if="pref"
+      class="close-button"
+      @click="hide()"
+    >
       <i class="icon icon-close" />
     </div>
   </div>

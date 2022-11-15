@@ -80,17 +80,17 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
     <tr>
       <td>Catalogs</td>
       <td>Global → Tools → Catalogs</td>
-      <td>Menu → Multi-cluster Apps → Catalogs</td>
+      <td>Menu → Global Configuration → Catalogs</td>
     </tr>
     <tr>
       <td>Global DNS Entries</td>
       <td>Global → Tools → Global DNS Entries</td>
-      <td>Menu → Multi-cluster Apps → Global DNS Entries</td>
+      <td>Menu → Global Configuration → Global DNS Entries</td>
     </tr>
     <tr>
       <td>Global DNS Providers</td>
       <td>Global → Tools → Global DNS Providers</td>
-      <td>Menu → Multi-cluster Apps → Global DNS Providers</td>
+      <td>Menu → Global Configuration → Global DNS Providers</td>
     </tr>
     <tr>
       <td>Pod Security Policies</td>

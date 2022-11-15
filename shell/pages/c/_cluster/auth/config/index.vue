@@ -86,12 +86,16 @@ export default {
     <h1 class="m-0">
       {{ displayName }}
     </h1>
-    <Banner v-if="!enabled.length" :label="t('authConfig.noneEnabled')" color="info">
+    <Banner
+      v-if="!enabled.length"
+      :label="t('authConfig.noneEnabled')"
+      color="info"
+    >
       {{ t('authConfig.localEnabled') }}
       <nuxt-link :to="localUsersRoute">
         {{ t('authConfig.manageLocal') }}
       </nuxt-link>
-      <br />
+      <br>
       {{ t('authConfig.noneEnabled') }}
     </Banner>
     <SelectIconGrid

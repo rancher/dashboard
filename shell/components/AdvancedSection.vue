@@ -21,7 +21,12 @@ export default {
 
 <template>
   <div class="mt-20">
-    <a v-t="show ? 'generic.hideAdvanced' : 'generic.showAdvanced'" class="hand block" :class="{'mb-10': show}" @click="toggle" />
+    <a
+      v-t="show ? 'generic.hideAdvanced' : 'generic.showAdvanced'"
+      class="hand block"
+      :class="{'mb-10': show}"
+      @click="toggle"
+    />
 
     <slot v-if="show" />
   </div>

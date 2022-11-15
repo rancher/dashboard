@@ -255,22 +255,45 @@ export default {
   >
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.name" :is-disabled="receiverNameDisabled" :label="t('generic.name')" :mode="mode" />
+        <LabeledInput
+          v-model="value.name"
+          :is-disabled="receiverNameDisabled"
+          :label="t('generic.name')"
+          :mode="mode"
+        />
       </div>
     </div>
-    <Tabbed ref="tabbed" :side-tabs="true" default-tab="overview" @changed="tabChanged">
-      <Tab :label="t('generic.overview')" :weight="receiverTypes.length" name="overview">
+    <Tabbed
+      ref="tabbed"
+      :side-tabs="true"
+      default-tab="overview"
+      @changed="tabChanged"
+    >
+      <Tab
+        :label="t('generic.overview')"
+        :weight="receiverTypes.length"
+        name="overview"
+      >
         <div class="box-container create-resource-container ">
-          <div v-for="(receiverType, i) in receiverTypes" :key="i" class="mb-10 subtype-banner" primary-color-var="--primary-color" @click="navigateTo(receiverType)">
+          <div
+            v-for="(receiverType, i) in receiverTypes"
+            :key="i"
+            class="mb-10 subtype-banner"
+            primary-color-var="--primary-color"
+            @click="navigateTo(receiverType)"
+          >
             <div class="left">
               <div class="logo">
-                <img :src="receiverType.logo" />
+                <img :src="receiverType.logo">
               </div>
               <h4 class="name ml-10">
                 <t :k="receiverType.label" />
               </h4>
             </div>
-            <div v-if="receiverType.name !== 'custom'" class="right">
+            <div
+              v-if="receiverType.name !== 'custom'"
+              class="right"
+            >
               {{ getCount(receiverType) }}
             </div>
           </div>

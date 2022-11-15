@@ -114,15 +114,25 @@ export default {
       @error="e=>errors = e"
     >
       <template>
-        <div class="spacer"></div>
+        <div class="spacer" />
         <div class="row">
           <div class="col span-12">
-            <NameNsDescription :mode="mode" :value="value" :namespaced="false" @change="name=value.metadata.name" />
+            <NameNsDescription
+              :mode="mode"
+              :value="value"
+              :namespaced="false"
+              @change="name=value.metadata.name"
+            />
           </div>
         </div>
         <div class="row">
           <div class="col span-6">
-            <LabeledSelect v-model="value.spec.benchmarkVersion" :mode="mode" :label="t('cis.benchmarkVersion')" :options="compatibleBenchmarkNames" />
+            <LabeledSelect
+              v-model="value.spec.benchmarkVersion"
+              :mode="mode"
+              :label="t('cis.benchmarkVersion')"
+              :options="compatibleBenchmarkNames"
+            />
           </div>
         </div>
         <div class="spacer" />

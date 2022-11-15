@@ -191,7 +191,8 @@ async function processOpenOrEditAction() {
     console.log('Processing Opened/Edited PR #' + event.pull_request.number + ' : ' + event.pull_request.title);
     console.log('======');
 
-    const body = event.pull_request.body;
+    const pr = event.pull_request;
+    const body = pr.body;
     const issues = getReferencedIssues(body);
     if (issues.length > 0) {
         console.log('+ This PR fixes issues: #' + issues.join(', '));
@@ -207,7 +208,9 @@ async function processOpenOrEditAction() {
       console.log('')
       console.log('Processing Issue #' + i + ' - ' + iss.title);
 
-      if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
+      if (pr.draft) {
+        console.log('    Issue will not be moved to In Review (Draft PR)');
+      } else if (hasLabel(iss, BACKEND_BLOCKED_LABEL)) {
         console.log('    Issue will not be moved to In Review (Backend Blocked)');
       } else {
         if (!hasLabel(iss, IN_REVIEW_LABEL)) {

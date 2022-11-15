@@ -435,7 +435,11 @@ export default {
       :label="g.name"
       :weight="g.weight"
     >
-      <div v-for="q in g.questions" :key="q.variable" class="row question">
+      <div
+        v-for="q in g.questions"
+        :key="q.variable"
+        class="row question"
+      >
         <div class="col span-12">
           <component
             :is="componentForQuestion(q)"
@@ -459,7 +463,11 @@ export default {
       <h3 v-if="groups.length > 1">
         {{ g.label }}
       </h3>
-      <div v-for="q in g.questions" :key="q.variable" class="row question">
+      <div
+        v-for="q in g.questions"
+        :key="q.variable"
+        class="row question"
+      >
         <div class="col span-12">
           <component
             :is="componentForQuestion(q)"

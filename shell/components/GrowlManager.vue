@@ -79,10 +79,21 @@ export default {
 </script>
 
 <template>
-  <div class="growl-container" @mouseenter="mouseEnter" @mouseleave="mouseLeave">
+  <div
+    class="growl-container"
+    @mouseenter="mouseEnter"
+    @mouseleave="mouseLeave"
+  >
     <div class="growl-list">
-      <div v-for="growl in stack" :key="growl.id" :class="{'growl': true, ['bg-'+growl.color]: true}">
-        <div class="growl-message" :class="{'growl-center': !growl.message}">
+      <div
+        v-for="growl in stack"
+        :key="growl.id"
+        :class="{'growl': true, ['bg-'+growl.color]: true}"
+      >
+        <div
+          class="growl-message"
+          :class="{'growl-center': !growl.message}"
+        >
           <div class="icon-container">
             <i :class="{icon: true, ['icon-'+growl.icon]: true}" />
           </div>
@@ -92,12 +103,22 @@ export default {
               {{ growl.message }}
             </p>
           </div>
-          <i class="close hand icon icon-close" @click="close(growl)" />
+          <i
+            class="close hand icon icon-close"
+            @click="close(growl)"
+          />
         </div>
       </div>
     </div>
-    <div v-if="stack.length > 1" class="text-right mr-10 mt-10">
-      <button type="button" class="btn btn-sm role-primary" @click="closeAll">
+    <div
+      v-if="stack.length > 1"
+      class="text-right mr-10 mt-10"
+    >
+      <button
+        type="button"
+        class="btn btn-sm role-primary"
+        @click="closeAll"
+      >
         {{ t('growl.clearAll') }}
       </button>
     </div>

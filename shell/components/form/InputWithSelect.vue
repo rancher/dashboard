@@ -185,7 +185,7 @@ export default {
       :disabled="isView"
       :placeholder="placeholder"
       autocomplete="off"
-    />
+    >
   </div>
 </template>
 

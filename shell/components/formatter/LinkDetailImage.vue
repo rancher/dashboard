@@ -23,7 +23,7 @@ export default {
     <nuxt-link :to="row.detailLocation">
       {{ value }}
     </nuxt-link>
-    <br />
+    <br>
     <span class="text-small text-muted">
       {{ row.imageDisplay }}
     </span>

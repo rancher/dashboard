@@ -121,7 +121,10 @@ export default {
     </div>
 
     <div class="row mb-10">
-      <div v-if="isImportCluster" class="col span-6">
+      <div
+        v-if="isImportCluster"
+        class="col span-6"
+      >
         <LabeledSelect
           v-model="cluster"
           :mode="mode"
