@@ -1,0 +1,95 @@
+
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import GrowlManager from '@shell/components/GrowlManager.vue';
+import store from '@/.storybook/preview';
+
+
+<Meta
+  title="Components/GrowlManager"
+  component={GrowlManager}
+/>
+
+
+export const Template = () => ({
+  components: { GrowlManager },
+  store: store,
+  template:   '<GrowlManager />',
+})
+
+# GrowlManager
+
+GrowlManager component is used to display (async) responses of specific actions as a overlay. Each message is represented severity, summary, and details.
+
+### When to use it
+
+* To provide real-time information to the User about out-of-view events or background processes.
+* To display a message to appear and have the User take action to dismiss.
+* To display non-critical information that won’t disrupt a workflow.
+
+
+### When not to use it
+* For error messages related to a specific form fields.
+* For messages are related to a specific component or view (use inline alerts instead).
+
+### Usage
+
+We can display different leves of messages in the GrowlManager component by dispatching actions to the `growl` store.
+
+
+#### Info (default)
+For events of lower relative importance, or for generic use.
+
+```ts
+this.$store.dispatch('growl/info', {
+    title:   'Info',
+    message: 'This is an info message',
+  }, { root: true });
+```
+
+#### Success
+For reporting of a successful end of an operation or action.
+
+```ts
+this.$store.dispatch('growl/success', {
+    title:   'Success',
+    message: 'This is an success message',
+  }, { root: true });
+```
+
+#### Warning
+For events that require user attention.
+```ts
+this.$store.dispatch('growl/warning', {
+    title:   'Warning',
+    message: 'This is an warning message',
+  }, { root: true });
+```
+
+#### Error
+When things go wrong.
+
+For events that require user attention.
+```ts
+this.$store.dispatch('growl/error', {
+    title:   'Error',
+    message: 'This is an error message',
+  }, { root: true });
+```
+
+
+<Canvas>
+  <Story name="GrowlManager">
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import GrowlManager from '@shell/components/GrowlManager.vue'
+  `}
+/>
