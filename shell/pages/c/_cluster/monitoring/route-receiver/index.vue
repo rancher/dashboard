@@ -76,7 +76,10 @@ export default {
     <div class="row header mb-10">
       <h1>  {{ t('monitoring.routesAndReceivers') }}</h1>
       <div>
-        <button class="btn btn-lg role-primary float right" @click="$router.push(createRoute)">
+        <button
+          class="btn btn-lg role-primary float right"
+          @click="$router.push(createRoute)"
+        >
           {{ t('resourceList.head.create') }}
         </button>
       </div>
@@ -87,18 +90,34 @@ export default {
         :label="t('monitoring.alertmanagerConfig.deprecationWarning')"
       />
     </div>
-    <Tabbed ref="tabs" :default-tab="initTab">
-      <Tab :name="routeSchema.id" :label="$store.getters['type-map/labelFor'](routeSchema, 2)">
+    <Tabbed
+      ref="tabs"
+      :default-tab="initTab"
+    >
+      <Tab
+        :name="routeSchema.id"
+        :label="$store.getters['type-map/labelFor'](routeSchema, 2)"
+      >
         <div v-if="secretTo">
           We don't support the current route format stored in alertmanager.yaml. Click
           <nuxt-link :to="secretTo">
             here
           </nuxt-link> to update manually.
         </div>
-        <ResourceTable v-else :schema="routeSchema" :rows="routes" />
+        <ResourceTable
+          v-else
+          :schema="routeSchema"
+          :rows="routes"
+        />
       </Tab>
-      <Tab :name="receiverSchema.id" :label="$store.getters['type-map/labelFor'](receiverSchema, 2)">
-        <ResourceTable :schema="receiverSchema" :rows="receivers" />
+      <Tab
+        :name="receiverSchema.id"
+        :label="$store.getters['type-map/labelFor'](receiverSchema, 2)"
+      >
+        <ResourceTable
+          :schema="receiverSchema"
+          :rows="receivers"
+        />
       </Tab>
     </Tabbed>
   </div>

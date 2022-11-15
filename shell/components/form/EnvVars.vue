@@ -105,7 +105,10 @@ export default {
 </script>
 <template>
   <div :style="{'width':'100%'}">
-    <div v-for="(row, i) in allEnv" :key="row.id">
+    <div
+      v-for="(row, i) in allEnv"
+      :key="row.id"
+    >
       <ValueFromResource
         v-model="row.value"
         :all-secrets="secrets"

@@ -67,7 +67,7 @@ export default {
         @input="value.setLabels($event)"
       />
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div :class="sectionClass">
       <KeyValue
         key="annotations"

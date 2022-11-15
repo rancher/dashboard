@@ -113,7 +113,10 @@ export default {
   <div>
     <h3>
       {{ t('registryConfig.header') }}
-      <i v-tooltip="t('registryConfig.toolTip')" class="icon icon-info" />
+      <i
+        v-tooltip="t('registryConfig.toolTip')"
+        class="icon icon-info"
+      />
     </h3>
     <ArrayListGrouped
       v-model="entries"
@@ -125,7 +128,11 @@ export default {
       <template #default="{row}">
         <div class="row">
           <div class="col span-6">
-            <LabeledInput v-model="row.value.hostname" label="Registry Hostname" :mode="mode" />
+            <LabeledInput
+              v-model="row.value.hostname"
+              label="Registry Hostname"
+              :mode="mode"
+            />
 
             <SelectOrCreateAuthSecret
               v-model="row.value.authConfigSecretName"
@@ -149,7 +156,13 @@ export default {
               secret-name-label="TLS Secret"
             />
 
-            <LabeledInput v-model="row.value.caBundle" class="mt-20" type="multiline" label="CA Cert Bundle" :mode="mode" />
+            <LabeledInput
+              v-model="row.value.caBundle"
+              class="mt-20"
+              type="multiline"
+              label="CA Cert Bundle"
+              :mode="mode"
+            />
 
             <div>
               <Checkbox

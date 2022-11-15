@@ -365,14 +365,20 @@ export default {
         @save="save"
         @done="done"
       >
-        <template v-if="!isView" #left>
+        <template
+          v-if="!isView"
+          #left
+        >
           <FileSelector
             class="btn role-secondary"
             :label="t('generic.readFromFile')"
             @selected="onFileSelected"
           />
         </template>
-        <template v-if="!isView" #middle>
+        <template
+          v-if="!isView"
+          #middle
+        >
           <button
             v-if="showPreview"
             type="button"

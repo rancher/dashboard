@@ -298,16 +298,32 @@ export default {
       type:    String,
       default: 'sortable-table'
     },
+    /**
+     * Allows for the usage of a query param to work for simple filtering (q)
+     */
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
+    let searchQuery = '';
+    let eventualSearchQuery = '';
+
+    // only allow for filter query param for simple filtering for now...
+    if (!this.hasAdvancedFiltering && this.useQueryParamsForSimpleFiltering && this.$route.query?.q) {
+      searchQuery = this.$route.query?.q;
+      eventualSearchQuery = this.$route.query?.q;
+    }
+
     return {
-      currentPhase:                ASYNC_BUTTON_STATES.WAITING,
-      expanded:                    {},
-      searchQuery:                 '',
-      eventualSearchQuery:         '',
-      actionOfInterest:            null,
-      loadingDelay:                false,
+      currentPhase:        ASYNC_BUTTON_STATES.WAITING,
+      expanded:            {},
+      searchQuery,
+      eventualSearchQuery,
+      actionOfInterest:    null,
+      loadingDelay:        false,
     };
   },
 
@@ -339,6 +355,20 @@ export default {
   watch: {
     eventualSearchQuery: debounce(function(q) {
       this.searchQuery = q;
+
+      if (!this.hasAdvancedFiltering && this.useQueryParamsForSimpleFiltering) {
+        const route = {
+          name:   this.$route.name,
+          params: { ...this.$route.params },
+          query:  { ...this.$route.query, q }
+        };
+
+        if (!q && this.$route.query?.q) {
+          route.query = {};
+        }
+
+        this.$router.replace(route);
+      }
     }, 200),
 
     descending(neu, old) {
@@ -850,14 +880,20 @@ export default {
 
 <template>
   <div ref="container">
-    <div :class="{'titled': $slots.title && $slots.title.length}" class="sortable-table-header">
+    <div
+      :class="{'titled': $slots.title && $slots.title.length}"
+      class="sortable-table-header"
+    >
       <slot name="title" />
       <div
         v-if="showHeaderRow"
         class="fixed-header-actions"
         :class="{button: !!$slots['header-button'], 'advanced-filtering': hasAdvancedFiltering}"
       >
-        <div :class="bulkActionsClass" class="bulk">
+        <div
+          :class="bulkActionsClass"
+          class="bulk"
+        >
           <slot name="header-left">
             <template v-if="tableActions">
               <button
@@ -874,12 +910,24 @@ export default {
                 @mouseover="setBulkActionOfInterest(act)"
                 @mouseleave="setBulkActionOfInterest(null)"
               >
-                <i v-if="act.icon" :class="act.icon" />
+                <i
+                  v-if="act.icon"
+                  :class="act.icon"
+                />
                 <span v-html="act.label" />
               </button>
-              <ActionDropdown :class="bulkActionsDropdownClass" class="bulk-actions-dropdown" :disable-button="!selectedRows.length" size="sm">
+              <ActionDropdown
+                :class="bulkActionsDropdownClass"
+                class="bulk-actions-dropdown"
+                :disable-button="!selectedRows.length"
+                size="sm"
+              >
                 <template #button-content>
-                  <button ref="actionDropDown" class="btn bg-primary mr-0" :disabled="!selectedRows.length">
+                  <button
+                    ref="actionDropDown"
+                    class="btn bg-primary mr-0"
+                    :disabled="!selectedRows.length"
+                  >
                     <i class="icon icon-gear" />
                     <span>{{ t('sortableTable.bulkActions.collapsed.label') }}</span>
                     <i class="ml-10 icon icon-chevron-down" />
@@ -900,31 +948,50 @@ export default {
                       @mouseover="setBulkActionOfInterest(act)"
                       @mouseleave="setBulkActionOfInterest(null)"
                     >
-                      <i v-if="act.icon" :class="act.icon" />
+                      <i
+                        v-if="act.icon"
+                        :class="act.icon"
+                      />
                       <span v-html="act.label" />
                     </li>
                   </ul>
                 </template>
               </ActionDropdown>
-              <label v-if="selectedRowsText" :class="bulkActionAvailabilityClass" class="action-availability">
+              <label
+                v-if="selectedRowsText"
+                :class="bulkActionAvailabilityClass"
+                class="action-availability"
+              >
                 {{ selectedRowsText }}
               </label>
             </template>
           </slot>
         </div>
-        <div v-if="!hasAdvancedFiltering && ($slots['header-middle'] && $slots['header-middle'].length)" class="middle">
+        <div
+          v-if="!hasAdvancedFiltering && ($slots['header-middle'] && $slots['header-middle'].length)"
+          class="middle"
+        >
           <slot name="header-middle" />
         </div>
 
-        <div v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)" class="search row">
-          <ul v-if="hasAdvancedFiltering" class="advanced-filters-applied">
+        <div
+          v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)"
+          class="search row"
+        >
+          <ul
+            v-if="hasAdvancedFiltering"
+            class="advanced-filters-applied"
+          >
             <li
               v-for="(filter, i) in advancedFilteringValues"
               :key="i"
             >
               <span class="label">{{ `"${filter.value}" ${ t('sortableTable.in') } ${filter.label}` }}</span>
-              <span class="cross" @click="clearAdvancedFilter(i)">&#10005;</span>
-              <div class="bg"></div>
+              <span
+                class="cross"
+                @click="clearAdvancedFilter(i)"
+              >&#10005;</span>
+              <div class="bg" />
             </li>
           </ul>
           <slot name="header-right" />
@@ -936,11 +1003,21 @@ export default {
             :current-phase="currentPhase"
             @click="debouncedRefreshTableData"
           />
-          <div v-if="hasAdvancedFiltering" ref="advanced-filter-group" class="advanced-filter-group">
-            <button class="btn role-primary" @click="advancedFilteringVisibility = !advancedFilteringVisibility;">
+          <div
+            v-if="hasAdvancedFiltering"
+            ref="advanced-filter-group"
+            class="advanced-filter-group"
+          >
+            <button
+              class="btn role-primary"
+              @click="advancedFilteringVisibility = !advancedFilteringVisibility;"
+            >
               {{ t('sortableTable.addFilter') }}
             </button>
-            <div v-show="advancedFilteringVisibility" class="advanced-filter-container">
+            <div
+              v-show="advancedFilteringVisibility"
+              class="advanced-filter-container"
+            >
               <input
                 ref="advancedSearchQuery"
                 v-model="advFilterSearchTerm"
@@ -993,7 +1070,11 @@ export default {
         </div>
       </div>
     </div>
-    <table class="sortable-table" :class="classObject" width="100%">
+    <table
+      class="sortable-table"
+      :class="classObject"
+      width="100%"
+    >
       <THead
         v-if="showHeaders"
         :label-for="labelFor"
@@ -1022,7 +1103,7 @@ export default {
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->
-      <div v-if="loading && !loadingDelay"></div>
+      <div v-if="loading && !loadingDelay" />
 
       <tbody v-else-if="loading">
         <slot name="loading">
@@ -1030,7 +1111,10 @@ export default {
             <td :colspan="fullColspan">
               <div class="data-loading">
                 <i class="icon-spin icon icon-spinner" />
-                <t k="generic.loading" :raw="true" />
+                <t
+                  k="generic.loading"
+                  :raw="true"
+                />
               </div>
             </td>
           </tr>
@@ -1040,7 +1124,10 @@ export default {
         <slot name="no-rows">
           <tr class="no-rows">
             <td :colspan="fullColspan">
-              <t v-if="showNoRows" :k="noRowsKey" />
+              <t
+                v-if="showNoRows"
+                :k="noRowsKey"
+              />
             </td>
           </tr>
         </slot>
@@ -1048,18 +1135,37 @@ export default {
       <tbody v-else-if="noResults">
         <slot name="no-results">
           <tr class="no-results">
-            <td :colspan="fullColspan" class="text-center">
+            <td
+              :colspan="fullColspan"
+              class="text-center"
+            >
               <t :k="noDataKey" />
             </td>
           </tr>
         </slot>
       </tbody>
-      <tbody v-for="groupedRows in displayRows" v-else :key="groupedRows.key" :class="{ group: groupBy }">
-        <slot v-if="groupBy" name="group-row" :group="groupedRows" :fullColspan="fullColspan">
+      <tbody
+        v-for="groupedRows in displayRows"
+        v-else
+        :key="groupedRows.key"
+        :class="{ group: groupBy }"
+      >
+        <slot
+          v-if="groupBy"
+          name="group-row"
+          :group="groupedRows"
+          :fullColspan="fullColspan"
+        >
           <tr class="group-row">
             <td :colspan="fullColspan">
-              <slot name="group-by" :group="groupedRows.grp">
-                <div v-trim-whitespace class="group-tab">
+              <slot
+                name="group-by"
+                :group="groupedRows.grp"
+              >
+                <div
+                  v-trim-whitespace
+                  class="group-tab"
+                >
                   {{ groupedRows.ref }}
                 </div>
               </slot>
@@ -1067,8 +1173,14 @@ export default {
           </tr>
         </slot>
         <template v-for="(row, i) in groupedRows.rows">
-          <slot name="main-row" :row="row.row">
-            <slot :name="'main-row:' + (row.row.mainRowKey || i)" :full-colspan="fullColspan">
+          <slot
+            name="main-row"
+            :row="row.row"
+          >
+            <slot
+              :name="'main-row:' + (row.row.mainRowKey || i)"
+              :full-colspan="fullColspan"
+            >
               <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
                 because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
                 the value of :class changes. -->
@@ -1080,7 +1192,11 @@ export default {
                 :data-node-id="row.key"
                 :data-cant-run-bulk-action-of-interest="actionOfInterest && !row.canRunBulkActionOfInterest"
               >
-                <td v-if="tableActions" class="row-check" align="middle">
+                <td
+                  v-if="tableActions"
+                  class="row-check"
+                  align="middle"
+                >
                   {{ row.mainRowKey }}<Checkbox
                     class="selection-checkbox"
                     :data-node-id="row.key"
@@ -1088,7 +1204,11 @@ export default {
                     :value="selectedRows.includes(row.row)"
                   />
                 </td>
-                <td v-if="subExpandColumn" class="row-expand" align="middle">
+                <td
+                  v-if="subExpandColumn"
+                  class="row-expand"
+                  align="middle"
+                >
                   <i
                     data-title="Toggle Expand"
                     :class="{
@@ -1117,7 +1237,12 @@ export default {
                       :class="{['col-'+col.dasherize]: !!col.col.formatter, [col.col.breakpoint]: !!col.col.breakpoint, ['skip-select']: col.col.skipSelect}"
                       :width="col.col.width"
                     >
-                      <slot :name="'cell:' + col.col.name" :row="row.row" :col="col.col" :value="col.value">
+                      <slot
+                        :name="'cell:' + col.col.name"
+                        :row="row.row"
+                        :col="col.col"
+                        :value="col.value"
+                      >
                         <component
                           :is="col.component"
                           v-if="col.component && col.needRef"
@@ -1157,7 +1282,10 @@ export default {
                     </td>
                   </slot>
                 </template>
-                <td v-if="rowActions" align="middle">
+                <td
+                  v-if="rowActions"
+                  align="middle"
+                >
                   <slot
                     name="row-actions"
                     :row="row.row"
@@ -1196,9 +1324,15 @@ export default {
               @mouseenter="onRowMouseEnter"
               @mouseleave="onRowMouseLeave"
             >
-              <td v-if="tableActions" class="row-check" align="middle">
-              </td>
-              <td :colspan="fullColspan - (tableActions ? 1: 0)" :class="{ 'text-error' : row.row.stateObj.error }">
+              <td
+                v-if="tableActions"
+                class="row-check"
+                align="middle"
+              />
+              <td
+                :colspan="fullColspan - (tableActions ? 1: 0)"
+                :class="{ 'text-error' : row.row.stateObj.error }"
+              >
                 {{ row.row.stateDescription }}
               </td>
             </tr>
@@ -1206,7 +1340,10 @@ export default {
         </template>
       </tbody>
     </table>
-    <div v-if="showPaging" class="paging">
+    <div
+      v-if="showPaging"
+      class="paging"
+    >
       <button
         type="button"
         class="btn btn-sm role-multi-action"
@@ -1243,12 +1380,33 @@ export default {
         <i class="icon icon-chevron-end" />
       </button>
     </div>
-    <button v-if="search" v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+    <button
+      v-if="search"
+      v-shortkey.once="['/']"
+      class="hide"
+      @shortkey="focusSearch()"
+    />
     <template v-if="tableActions">
-      <button v-shortkey="['j']" class="hide" @shortkey="focusNext($event)" />
-      <button v-shortkey="['k']" class="hide" @shortkey="focusPrevious($event)" />
-      <button v-shortkey="['shift','j']" class="hide" @shortkey="focusNext($event, true)" />
-      <button v-shortkey="['shift','k']" class="hide" @shortkey="focusPrevious($event, true)" />
+      <button
+        v-shortkey="['j']"
+        class="hide"
+        @shortkey="focusNext($event)"
+      />
+      <button
+        v-shortkey="['k']"
+        class="hide"
+        @shortkey="focusPrevious($event)"
+      />
+      <button
+        v-shortkey="['shift','j']"
+        class="hide"
+        @shortkey="focusNext($event, true)"
+      />
+      <button
+        v-shortkey="['shift','k']"
+        class="hide"
+        @shortkey="focusPrevious($event, true)"
+      />
       <slot name="shortkeys" />
     </template>
   </div>
@@ -1311,6 +1469,7 @@ export default {
       display: flex;
       align-items: center;
       position: relative;
+      height: 20px;
 
       &:nth-child(4n+1) {
         border-color: var(--success);

@@ -259,9 +259,15 @@ export default {
             @input="update"
           >
             <template #label>
-              <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
+              <label
+                class="has-tooltip"
+                :style="{'color':'var(--input-label)'}"
+              >
                 {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
-                <i v-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')" class="icon icon-info" />
+                <i
+                  v-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')"
+                  class="icon icon-info"
+                />
               </label>
             </template>
           </UnitInput>
@@ -299,7 +305,10 @@ export default {
         </div>
       </div>
     </template>
-    <div v-else class="row">
+    <div
+      v-else
+      class="row"
+    >
       <div
         data-testid="input-job-termination"
         class="col span-6"
@@ -311,9 +320,15 @@ export default {
           :mode="mode"
         >
           <template #label>
-            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
+            <label
+              class="has-tooltip"
+              :style="{'color':'var(--input-label)'}"
+            >
               {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
-              <i v-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')" class="icon icon-info" />
+              <i
+                v-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')"
+                class="icon icon-info"
+              />
             </label>
           </template>
         </UnitInput>

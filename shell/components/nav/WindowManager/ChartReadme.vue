@@ -30,7 +30,10 @@ export default {
 <template>
   <Window :active="active">
     <template #body>
-      <ChartReadme :version-info="versionInfo" class="chart-container" />
+      <ChartReadme
+        :version-info="versionInfo"
+        class="chart-container"
+      />
     </template>
   </Window>
 </template>

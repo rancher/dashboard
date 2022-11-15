@@ -17,12 +17,20 @@ export default {
   <div>
     <div class="row">
       <div class="col span-6">
-        <UnitInput v-model="value.auditInterval" label="Audit interval" suffix="Seconds" />
+        <UnitInput
+          v-model="value.auditInterval"
+          label="Audit interval"
+          suffix="Seconds"
+        />
       </div>
     </div>
     <div class="row mt-10">
       <div class="col span-6">
-        <UnitInput v-model="value.constraintViolationsLimit" label="Constraint violations limit" suffix="" />
+        <UnitInput
+          v-model="value.constraintViolationsLimit"
+          label="Constraint violations limit"
+          suffix=""
+        />
       </div>
     </div>
   </div>

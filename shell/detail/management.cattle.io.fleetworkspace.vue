@@ -55,18 +55,33 @@ export default {
     <div class="mb-20">
       <div class="row">
         <div class="col span-4">
-          <CountBox :count="value.counts.gitRepos" :name="gitRepoLabel" :primary-color-var="'--sizzle-3'" />
+          <CountBox
+            :count="value.counts.gitRepos"
+            :name="gitRepoLabel"
+            :primary-color-var="'--sizzle-3'"
+          />
         </div>
         <div class="col span-4">
-          <CountBox :count="value.counts.clusters" :name="clustersLabel" :primary-color-var="'--sizzle-1'" />
+          <CountBox
+            :count="value.counts.clusters"
+            :name="clustersLabel"
+            :primary-color-var="'--sizzle-1'"
+          />
         </div>
         <div class="col span-4">
-          <CountBox :count="value.counts.clusterGroups" :name="clusterGroupsLabel" :primary-color-var="'--sizzle-2'" />
+          <CountBox
+            :count="value.counts.clusterGroups"
+            :name="clusterGroupsLabel"
+            :primary-color-var="'--sizzle-2'"
+          />
         </div>
       </div>
     </div>
     <section class="bordered-section">
-      <ResourceTabs :value="value" mode="view">
+      <ResourceTabs
+        :value="value"
+        mode="view"
+      >
         <!-- <Tab name="members" label="Members">
           <RoleBindings
             ref="rb"

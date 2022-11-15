@@ -123,14 +123,31 @@ export default {
     </div>
 
     <Tabbed :side-tabs="true">
-      <Tab name="memberRoles" label-key="cluster.tabs.memberRoles" :weight="3">
-        <Banner v-if="isEdit" color="info">
+      <Tab
+        name="memberRoles"
+        label-key="cluster.tabs.memberRoles"
+        :weight="3"
+      >
+        <Banner
+          v-if="isEdit"
+          color="info"
+        >
           {{ t('cluster.memberRoles.removeMessage') }}
         </Banner>
-        <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" />
+        <ClusterMembershipEditor
+          :mode="mode"
+          :parent-id="value.mgmt ? value.mgmt.id : null"
+          @membership-update="onMembershipUpdate"
+        />
       </Tab>
-      <AgentEnv v-model="value" :mode="mode" />
-      <Labels v-model="value" :mode="mode" />
+      <AgentEnv
+        v-model="value"
+        :mode="mode"
+      />
+      <Labels
+        v-model="value"
+        :mode="mode"
+      />
     </Tabbed>
   </CruResource>
 </template>

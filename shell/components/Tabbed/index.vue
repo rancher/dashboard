@@ -244,19 +244,44 @@ export default {
           @click.prevent="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
-          <span v-if="tab.badge" class="tab-badge">{{ tab.badge }}</span>
-          <i v-if="hasIcon(tab)" v-tooltip="t('validation.tab')" class="conditions-alert-icon icon-error icon-lg" />
+          <span
+            v-if="tab.badge"
+            class="tab-badge"
+          >{{ tab.badge }}</span>
+          <i
+            v-if="hasIcon(tab)"
+            v-tooltip="t('validation.tab')"
+            class="conditions-alert-icon icon-error icon-lg"
+          />
         </a>
       </li>
-      <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
-        <a href="#" @click.prevent>(None)</a>
+      <li
+        v-if="sideTabs && !sortedTabs.length"
+        class="tab disabled"
+      >
+        <a
+          href="#"
+          @click.prevent
+        >(None)</a>
       </li>
-      <ul v-if="sideTabs && showTabsAddRemove" class="tab-list-footer">
+      <ul
+        v-if="sideTabs && showTabsAddRemove"
+        class="tab-list-footer"
+      >
         <li>
-          <button type="button" class="btn bg-transparent" @click="tabAddClicked">
+          <button
+            type="button"
+            class="btn bg-transparent"
+            @click="tabAddClicked"
+          >
             <i class="icon icon-plus icon-lg" />
           </button>
-          <button type="button" class="btn bg-transparent" :disabled="!sortedTabs.length" @click="tabRemoveClicked">
+          <button
+            type="button"
+            class="btn bg-transparent"
+            :disabled="!sortedTabs.length"
+            @click="tabRemoveClicked"
+          >
             <i class="icon icon-minus icon-lg" />
           </button>
         </li>

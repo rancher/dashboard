@@ -91,21 +91,42 @@ export default {
 
 <template>
   <div v-if="hasOptions">
-    <SimpleBox :pref="pref" :pref-key="prefKey">
+    <SimpleBox
+      :pref="pref"
+      :pref-key="prefKey"
+    >
       <template #title>
         <h2>
           {{ t('customLinks.displayTitle') }}
         </h2>
       </template>
-      <div v-for="link in options" :key="link.label" class="support-link">
-        <n-link v-if="link.value.startsWith('/') " :to="link.value">
+      <div
+        v-for="link in options"
+        :key="link.label"
+        class="support-link"
+      >
+        <n-link
+          v-if="link.value.startsWith('/') "
+          :to="link.value"
+        >
           {{ link.label }}
         </n-link>
-        <a v-else :href="link.value" rel="noopener noreferrer nofollow" target="_blank"> {{ link.label }} </a>
+        <a
+          v-else
+          :href="link.value"
+          rel="noopener noreferrer nofollow"
+          target="_blank"
+        > {{ link.label }} </a>
       </div>
       <slot />
-      <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
-        <a class="link" @click="show">
+      <div
+        v-if="selectedLocaleLabel === t('locale.zh-hans')"
+        class="support-link"
+      >
+        <a
+          class="link"
+          @click="show"
+        >
           {{ t('footer.wechat.title') }}
         </a>
       </div>
@@ -117,10 +138,12 @@ export default {
     >
       <div class="wechat-modal">
         <h1>{{ t('footer.wechat.modalText') }}</h1>
-        <div class="qr-img">
-        </div>
+        <div class="qr-img" />
         <div>
-          <button class="btn role-primary" @click="close">
+          <button
+            class="btn role-primary"
+            @click="close"
+          >
             {{ t('generic.close') }}
           </button>
         </div>

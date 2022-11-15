@@ -29,6 +29,15 @@ export default {
         return [_EDIT, _VIEW].includes(value);
       },
       default: _EDIT,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'color-input'
     }
   },
 
@@ -56,17 +65,31 @@ export default {
 </script>
 
 <template>
-  <div class="color-input" :class="{[mode]:mode, disabled: mode !== editMode}">
-    <label class="text-label"><t v-if="labelKey" :k="labelKey" :raw="true" />{{ label }}</label>
-    <div class="preview-container" @click.stop="$refs.input.click($event)">
-      <span :style="{'background-color': inputValue}" class="color-display">
+  <div
+    class="color-input"
+    :class="{[mode]:mode, disabled: mode !== editMode}"
+    :data-testid="componentTestid + '-color-input'"
+  >
+    <label class="text-label"><t
+      v-if="labelKey"
+      :k="labelKey"
+      :raw="true"
+    />{{ label }}</label>
+    <div
+      class="preview-container"
+      @click.stop="$refs.input.click($event)"
+    >
+      <span
+        :style="{'background-color': inputValue}"
+        class="color-display"
+      >
         <input
           ref="input"
           type="color"
           :disabled="mode !== editMode"
           :value="inputValue"
           @input="$emit('input', $event.target.value)"
-        />
+        >
       </span>
       <span class="text-muted color-value">{{ inputValue }}</span>
     </div>

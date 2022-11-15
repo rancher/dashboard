@@ -34,6 +34,10 @@ export default {
       type:     Object,
       required: true,
     },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -151,6 +155,7 @@ export default {
       :rows="rows"
       :sub-rows="true"
       :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       v-on="$listeners"
     >
       <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
@@ -165,12 +170,19 @@ export default {
             <td>&nbsp;</td>
             <td :colspan="fullColspan-2">
               {{ t('node.list.nodeTaint') }}:
-              <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
+              <Tag
+                v-for="taint in row.spec.taints"
+                :key="taint.key + taint.value + taint.effect"
+                class="mr-5"
+              >
                 {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
               </Tag>
             </td>
           </template>
-          <td v-else :colspan="fullColspan">
+          <td
+            v-else
+            :colspan="fullColspan"
+          >
 &nbsp;
           </td>
         </tr>

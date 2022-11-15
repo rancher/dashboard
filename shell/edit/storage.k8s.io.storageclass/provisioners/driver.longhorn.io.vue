@@ -31,5 +31,10 @@ export default {
 };
 </script>
 <template>
-  <KeyValue v-model="value.parameters" :add-label="t('storageClass.longhorn.addLabel')" :read-allowed="false" :mode="mode" />
+  <KeyValue
+    v-model="value.parameters"
+    :add-label="t('storageClass.longhorn.addLabel')"
+    :read-allowed="false"
+    :mode="mode"
+  />
 </template>

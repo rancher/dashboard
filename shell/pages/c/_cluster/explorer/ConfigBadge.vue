@@ -25,7 +25,10 @@ export default {
 <template>
   <div class="config-badge">
     <div>
-      <a class="badge-install" @click="customBadgeDialog">
+      <a
+        class="badge-install"
+        @click="customBadgeDialog"
+      >
         <i class="icon icon-cluster" />
         <span v-if="hasBadge">{{ t('clusterBadge.editLabel') }}</span>
         <span v-else>{{ t('clusterBadge.addLabel') }}</span>

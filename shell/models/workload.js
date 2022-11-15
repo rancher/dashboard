@@ -499,7 +499,7 @@ export default class Workload extends WorkloadService {
     return ports;
   }
 
-  get showAsWorkload() {
+  get ownedByWorkload() {
     const types = Object.values(WORKLOAD_TYPES);
 
     if (this.metadata?.ownerReferences) {
@@ -507,12 +507,12 @@ export default class Workload extends WorkloadService {
         const have = (`${ owner.apiVersion.replace(/\/.*/, '') }.${ owner.kind }`).toLowerCase();
 
         if ( types.includes(have) ) {
-          return false;
+          return true;
         }
       }
     }
 
-    return true;
+    return false;
   }
 
   get isFromNorman() {

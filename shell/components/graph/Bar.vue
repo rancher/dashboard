@@ -39,9 +39,20 @@ export default {
 </script>
 
 <template>
-  <div class="bar" :style="barStyle">
-    <div class="indicator" :style="indicatorStyle" />
-    <div v-for="(sliceStyle, i) in sliceStyles" :key="i" class="slice" :style="sliceStyle" />
+  <div
+    class="bar"
+    :style="barStyle"
+  >
+    <div
+      class="indicator"
+      :style="indicatorStyle"
+    />
+    <div
+      v-for="(sliceStyle, i) in sliceStyles"
+      :key="i"
+      class="slice"
+      :style="sliceStyle"
+    />
   </div>
 </template>
 

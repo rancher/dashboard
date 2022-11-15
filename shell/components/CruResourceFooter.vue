@@ -106,7 +106,7 @@ export default {
       :is-cancel-modal="isCancelModal"
       :is-form="isForm"
       @confirm-cancel="confirmCancel($event)"
-    ></ResourceCancelModal>
+    />
   </div>
 </template>
 

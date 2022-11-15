@@ -467,10 +467,12 @@ export default {
       :key="slot"
       :class="{ col: true, [colSpan]: true }"
     >
-      <slot :name="slot">
-      </slot>
+      <slot :name="slot" />
     </div>
-    <div v-if="showSpacer" class="spacer"></div>
+    <div
+      v-if="showSpacer"
+      class="spacer"
+    />
   </div>
 </template>
 

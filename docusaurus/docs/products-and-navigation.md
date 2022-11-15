@@ -1,18 +1,18 @@
 # Products and Navigation
 
-Details on products such as Cluster Management, Fleet and Harvester are defined in `config/product`. For each product, we use the `product(options)` function to define whether you can remove it and what store is used to get resources for that product. For example, `config/product/explorer` defines how types are grouped and weighted in Cluster Explorer.
+Details on products such as Cluster Management, Fleet and Harvester are defined in `config/product`. For example, `config/product/explorer` defines how types are grouped and weighted in Cluster Explorer. Within each product config, we use the `product(options)` function to define whether you can remove it and what store is used to get resources for that product. There are many more options detailed in `shell/store/type-map.js`
 
 ## Product Configuration
 
-Products are top-level features that are reached via the header top left menu. Some are built in, such as `Cluster Explorer`, `Apps & Marketplace`, and `Users & Authentication`. Some are enabled only after installing the required Helm charts via `Apps & Marketplace`.
+All top-level features that are reached via the header top left menu are products (some products also appear within the Cluster Explorer). Some are built in, such as `Cluster Explorer`, `Apps & Marketplace`, and `Users & Authentication`. Some are packaged with the Rancher dashboard, but enabled only after installing the required Helm charts via `Apps & Marketplace`, and some are dynamically loaded at runtime as part of a plugin.
 
-Configuration for each product can be found in `/config/product`. In the product configuration,
+Product config files are nested within /config/product in the shell code, but should reside directly in /config within plugins. 
 
 - `basicType()` indicates resources that are always shown in the side nav for the product, such as Services and Ingresses. Basic types are shown even if the number of them is 0, while other resources (such as the types listed under **More** in Cluster Explorer) are only included in the navigation if there is at least one of them.
 - `ignoreType()` is used for types that were deprecated or hidden.
 - `mapGroup()` maps Kubernetes API groups to more human-readable names.
-- `configureType()` disables create for special types such as node types or Jobs because Jobs are not mutateable in Kubernetes. All of the possible types are defined in the `type-map/optionsFor` action.
-- `headers()` defines headers shown in the list view for the resource. For basic cases you can define table headers in the product config. For more complicated cases, you can define a custom list component.
+- `configureType()` toggles various display options for the type. All of the possible options are defined in the `type-map/optionsFor` action.
+- `headers()` defines headers shown in the list view for the resource. If anything beyond the content of the ResourceTable needs to be customized, a custom list component can be used instead. Read more [here](./code-base-works/customising-how-k8s-resources-are-presented.md)
 - `weightGroup()`/`weightType()` Sets the position of the group/type for this product. 
 
 These settings are stored in the `type-map` section of the store and manipulated with functions in `/store/type-map.js`. More docs for these functions are at the top of the `type-map.js` file.
@@ -38,7 +38,7 @@ Note: While the side nav typically limits how many resources are shown so that t
 
 ## Virtual and Spoofed Resource Types
 
-The side nav is populated by resource types that have been applied to the current product. Virtual Types are a way to add additional menu items. These are purely for adding navigation and do not support tables or details views. Examples of virtual types can be found by searching for `virtualType`. For instance the `Users & Authentication` product has a virtual type of 'config' to show the `Auth Providers` page.
+The side nav is populated by resource types that have been applied to the current product. Virtual Types are a way to add additional menu items. These are purely for adding navigation and do not support tables or detail views. Examples of virtual types can be found by searching for `virtualType`. For instance the `Users & Authentication` product has a virtual type of 'config' to show the `Auth Providers` page.
 
 Spoofed Types, like virtual types, add menu items but also define a spoofed schema and a `getInstances` function. The latter provides a list of objects of the spoofed type. This allows the app to then make use of the generic list, detail, edit, etc pages used for standard types.
 

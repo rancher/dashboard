@@ -44,7 +44,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <SecretSelector

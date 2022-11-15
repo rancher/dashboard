@@ -30,8 +30,14 @@ export default {
 </script>
 
 <template>
-  <div class="message-icon" :class="{'vertical': vertical, 'subtle': subtle}">
-    <i class="icon" :class="{ [icon]: true, [iconState]: !!iconState}" />
+  <div
+    class="message-icon"
+    :class="{'vertical': vertical, 'subtle': subtle}"
+  >
+    <i
+      class="icon"
+      :class="{ [icon]: true, [iconState]: !!iconState}"
+    />
     <div class="message">
       <slot name="message">
         <template v-if="messageKey">

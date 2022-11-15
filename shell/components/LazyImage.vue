@@ -64,5 +64,9 @@ export default {
 </script>
 
 <template>
-  <img ref="img" :src="initialSrc" v-bind="$attrs" />
+  <img
+    ref="img"
+    :src="initialSrc"
+    v-bind="$attrs"
+  >
 </template>

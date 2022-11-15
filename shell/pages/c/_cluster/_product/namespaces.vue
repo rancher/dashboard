@@ -68,7 +68,10 @@ export default {
     >
       <template #cell:project="{row}">
         <span v-if="row.project">{{ row.project.nameDisplay }}</span>
-        <span v-else class="text-muted">&ndash;</span>
+        <span
+          v-else
+          class="text-muted"
+        >&ndash;</span>
       </template>
     </ResourceTable>
   </div>

@@ -285,7 +285,7 @@ The Create/Edit Yaml experience is controlled by `/components/ResourceYaml.vue`.
 
 Special attention should be made of the `mode` and `as` params that's available via the `CreateEditView` mixin (as well as other helpful functionality). Changing these should change the behaviour of the resource details page (depending on the availability of resource type custom components).
 
-For more information about CreateEditView and how to add new create/edit forms, see [Create/Edit Forms.](../guide/forms-and-validation.md)
+For more information about CreateEditView and how to add new create/edit forms, see [Create/Edit Forms.](./forms-and-validation.md)
 
 | `mode` | `as`     | Content                                                              |
 | ------ | -------- | -------------------------------------------------------------------- |

@@ -45,8 +45,17 @@ export default {
 };
 </script>
 <template>
-  <div v-if="typeOption" class="row">
-    <Select class="mr-10" :mode="mode" :value="type" :options="types" @input="updateType($event)" />
+  <div
+    v-if="typeOption"
+    class="row"
+  >
+    <Select
+      class="mr-10"
+      :mode="mode"
+      :value="type"
+      :options="types"
+      @input="updateType($event)"
+    />
     <UnitInput
       v-model="value.spec.resourceQuota.limit[type]"
       class="mr-10"

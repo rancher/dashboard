@@ -64,7 +64,10 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" :delayed="true" />
+  <Loading
+    v-if="$fetchState.pending"
+    :delayed="true"
+  />
   <div v-else>
     <LabeledInput
       :value="value.decodedData.accessKey"
@@ -93,6 +96,9 @@ export default {
       :options="knownRegions"
       @input="value.setData('defaultRegion', $event);"
     />
-    <p class="text-muted mt-5" v-html="t('cluster.credential.aws.defaultRegion.help', {}, true)" />
+    <p
+      class="text-muted mt-5"
+      v-html="t('cluster.credential.aws.defaultRegion.help', {}, true)"
+    />
   </div>
 </template>
