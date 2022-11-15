@@ -102,7 +102,11 @@ export default {
     />
 
     <Tabbed :side-tabs="true">
-      <Tab name="data" :label="t('serviceAccount.tabs.serviceAccount.label')" :weight="2">
+      <Tab
+        name="data"
+        :label="t('serviceAccount.tabs.serviceAccount.label')"
+        :weight="2"
+      >
         <div class="row">
           <div class="col mt-20">
             <Checkbox
@@ -128,8 +132,7 @@ export default {
           </div>
         </div>
 
-        <div class="row mb-20">
-        </div>
+        <div class="row mb-20" />
       </Tab>
       <Tab
         name="labels-and-annotations"

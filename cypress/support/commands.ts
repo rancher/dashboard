@@ -1,5 +1,5 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
-import { Matcher } from '~/cypress/support/types';
+import { Matcher } from '@/cypress/support/types';
 
 /**
  * Login local authentication, including first login and bootstrap if not cached

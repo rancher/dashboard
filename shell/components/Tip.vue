@@ -15,7 +15,10 @@ export default {
 
 <template>
   <div class="tip">
-    <span class="my-icon" :class="icon"></span>
+    <span
+      class="my-icon"
+      :class="icon"
+    />
     <slot>
       <span class="text">{{ text }}</span>
     </slot>

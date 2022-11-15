@@ -147,7 +147,11 @@ export default {
     <div class="title clearfix">
       <h3>
         {{ label }}
-        <i v-if="description" v-tooltip="description" class="icon icon-info" />
+        <i
+          v-if="description"
+          v-tooltip="description"
+          class="icon icon-info"
+        />
       </h3>
     </div>
     <div class="row">
@@ -164,7 +168,10 @@ export default {
           @input="update"
         />
 
-        <div v-if="kind && kind!=='none'" class="spacer-small" />
+        <div
+          v-if="kind && kind!=='none'"
+          class="spacer-small"
+        />
 
         <!-- HTTP/HTTPS -->
         <div
@@ -231,11 +238,18 @@ export default {
       </div>
 
       <div class="col span-1-of-13">
-        <hr v-if="kind && kind!=='none'" :style="{'position':'relative', 'margin':'0px'}" class="vertical" />
+        <hr
+          v-if="kind && kind!=='none'"
+          :style="{'position':'relative', 'margin':'0px'}"
+          class="vertical"
+        >
       </div>
 
       <!-- none -->
-      <div v-if="!isNone" class="col span-11-of-23">
+      <div
+        v-if="!isNone"
+        class="col span-11-of-23"
+      >
         <div class="row">
           <div
             data-testid="input-probe-periodSeconds"

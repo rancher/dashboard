@@ -24,7 +24,12 @@ export default {
 
 <template>
   <div class="half-circle">
-    <GraphCircle v-bind="$attrs" :rotate="-180" :percentage="calculatedPercentage" :stroke-width="strokeWidth" />
+    <GraphCircle
+      v-bind="$attrs"
+      :rotate="-180"
+      :percentage="calculatedPercentage"
+      :stroke-width="strokeWidth"
+    />
   </div>
 </template>
 

@@ -105,7 +105,10 @@ function toPercent(value, min, max) {
 </script>
 
 <template>
-  <div v-trim-whitespace :class="{progress: true, multi: pieces.length > 1}">
+  <div
+    v-trim-whitespace
+    :class="{progress: true, multi: pieces.length > 1}"
+  >
     <div
       v-for="(piece, idx) of pieces"
       :key="idx"

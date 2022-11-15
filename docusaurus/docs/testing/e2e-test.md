@@ -6,28 +6,54 @@ Because of this, we extend the [Cypress best practices](https://docs.cypress.io/
 
 ## Initial Setup
 
-For the cypress test runner to consume the UI, you should specify the environment variables:
+For the cypress test runner to consume the UI, you should specify the environment variables. This may change based on the type of tests you may want to run.
 
-- Local authentication credentials
-  - `TEST_USERNAME`, default `admin`
-  - `TEST_PASSWORD`, user password or custom during first Rancher run
-  - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` password (do not pick `admin`)
-- `TEST_BASE_URL` // URL used by Cypress to run the tests, default `https://localhost:8005`
-- `TEST_SKIP_SETUP` // Avoid to execute bootstrap setup tests for already initialized Rancher instances
-- Dashboard
-  - `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
-  - `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
+### Setup for remote tests
 
-## Development with watch/dev
+For tests against a deployed Rancher, e.g. on Digital Ocean, mainly for analyzing the project current state.
 
-While writing the tests, you can simply run Rancher dashboard and then open the Cypress dashboard with the commands
+- `TEST_USERNAME`, default `admin`
+- `TEST_PASSWORD`, user password or custom during first Rancher run
+- `TEST_BASE_URL`, the address of your instance
+- `TEST_SKIP_SETUP=true`, we avoid setup as your instance is already set
 
-- `yarn dev`
-- `yarn cy:open`
+Finally run one of the 2 commands:
 
-The Cypress dashboard will contain the options and the list of test suites. These will automatically re-run if they are altered (hot reloading).
+- `yarn cy:open`, if you want to select the tests
+- `yarn cy:run`, if you want to run ALL the tests
 
 For further information, consult [official documentation](https://docs.cypress.io/guides/guides/command-line#cypress-open).
+
+### Setup for local tests
+
+These types of tests are aimed for development and updates.
+
+NOTE: Local setup of Rancher do not work on Mac with M1 chips.
+
+- `API`, the address of your server (e.g. DO), it may be local or hosted (e.g. you have Mac M1)
+- `TEST_USERNAME`, default `admin`
+- `TEST_PASSWORD`, user password or custom during first Rancher run
+- `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` user password (do not pick `admin` as password as it generates issues)
+- `TEST_BASE_URL=https://localhost:8005`
+- `TEST_SKIP_SETUP=false`, avoid to execute bootstrap setup tests for already initialized Rancher instances, it has to be toggled in case of new instances
+
+You will have to run your local instance at this point:
+
+- `yarn dev`
+
+Finally run one of the 2 commands:
+
+- `yarn cy:open`, if you want to select the tests from the browser
+- `yarn cy:run`, if you want to run ALL the tests in background
+
+For further information, consult [official documentation](https://docs.cypress.io/guides/guides/command-line#cypress-open).
+
+### Setup for dashboard purposes ONLY
+
+If you want your tests to be tracked on Cypress dashboards you will have to enable the following:
+
+- `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
+- `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
 
 ## E2E Dashboard 
 

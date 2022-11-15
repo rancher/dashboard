@@ -17,6 +17,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -27,5 +32,10 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :schema="schema" :rows="rows" :loading="loading" />
+  <ResourceTable
+    :schema="schema"
+    :rows="rows"
+    :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+  />
 </template>

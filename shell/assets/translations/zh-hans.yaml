@@ -43,10 +43,12 @@ generic:
       info: 信息
       warning: 警告
       error: 错误
+  ok: OK
   overview: 概述
   plusMore: "+ {n} 更多"
   readFromFile: 从文件读取
   readFromFolder: 从文件夹读取
+  reload: 重新加载
   register: 注册
   remove: 移除
   resource: |-
@@ -188,10 +190,12 @@ product:
   settings: 全局设置
   clusterManagement: 集群管理
   monitoring: 监控
-  mcapps: 多集群应用
+  mcapps: 全局配置
   neuvector: NeuVector
   harvesterManager: 虚拟化管理
   rancher: Rancher
+  uiplugins: 扩展
+  elemental: OS 管理
 
 suffix:
   percent: "%"
@@ -247,19 +251,26 @@ about:
     checkboxLabel: 发出其它请求
     systemInformation: 
       subtitle: 系统信息
-      os: 操作系统
-      browserUserAgent: 用户浏览器
-      browserLanguage: 浏览器语言
-      cookieEnabled: 启用 Cookie
-      deviceMemory: 设备内存
-      hardwareConcurrency: 硬件并发
-      memJsHeapLimit: JS 堆内存大小限制
-      memTotalJsHeapSize: JS 堆内存总大小
-      memUsedJsHeapSize: 已使用的 JS 堆内存
+      browser: 浏览器
+      browserInfo: "用户浏览器：{userAgent}；语言：{language}；是否启用了 Cookies：{cookieEnabled}"
+      system: 系统
+      jsMemory: Javascript 内存
+      deviceMemory: "设备内存：{deviceMemory}"
+      hardwareConcurrency: "硬件并发：{hardwareConcurrency}"
+      os: "操作系统：{platform}"
+      memJsHeapLimit: "堆大小限制：{jsHeapSizeLimit}"
+      memTotalJsHeapSize: "总堆大小：{totalJSHeapSize}"
+      memUsedJsHeapSize: "已使用的堆大小：{usedJSHeapSize}" 
     logs: 
       subtitle: 最新日志
-    resourceCounts: 
-      subtitle: 资源数量
+    resourceCounts: |-
+      {count, plural,
+        one { 集群资源数量（{count} 集群）}
+        other { 集群资源数量（{count} 集群）}
+      }
+    modal:
+      title: 未生成响应时间。
+      body: 生成响应时间以提供更具体的信息。
 
 accountAndKeys:
   title: 账号 & API 密钥
@@ -294,12 +305,12 @@ accountAndKeys:
       scope: 范围
       noScope: 无范围
     info:
-      accessKey: 访问密钥
-      secretKey: 密文密钥
+      accessKey: Access Key
+      secretKey: Secret Key
       bearerToken: 持有者令牌
       saveWarning: 请善保存以上的信息。这是你唯一查看该信息的机会。如果丢失这些信息，你需要创建一个新的 API 密钥。
       keyCreated: 已创建一个新的 API 密钥。
-      bearerTokenTip: "访问密钥和密文密钥可以作为 HTTP Basic auth 的用户名和密码发送，从而授权请求。你也可以将它们组合起来作为一个持有者令牌使用。"
+      bearerTokenTip: "Access Key 和 Secret Key 可以作为 HTTP Basic auth 的用户名和密码发送，从而授权请求。你也可以将它们组合起来作为一个持有者令牌使用。"
       ttlLimitedWarning: 系统配置导致该 API 密钥的到期时间缩短了。
 
 addClusterMemberDialog:
@@ -362,8 +373,8 @@ authConfig:
       label: OAuth 凭证
       tip: 你可以在 Google API 开发者控制台中找到 OAuth 凭证的 JSON 文件。
     serviceAccountCredentials:
-      label: 服务账号凭证
-      tip: 你可以在 Google API 控制台的服务账号区域，找到服务账号凭证的 JSON 文件。
+      label: Service Account 凭证
+      tip: 你可以在 Google API 控制台的 Service Account 区域，找到 Service Account 凭证的 JSON 文件。
     steps:
       1:
         title: '点击<a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">此处</a>在新窗口中进入应用设置。'
@@ -383,12 +394,12 @@ authConfig:
           4: '点击 "Create"，然后点击 "Download JSON" 按钮。'
           5: '在 OAuth 凭证框中，上传下载的 JSON 文件。'
       3:
-        title: '创建服务账号凭证'
+        title: '创建 Service Account 凭证'
         introduction: '参照本<a href="{docsBase}/admin-settings/authentication/google/#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">指南</a>：'
         body:
-          1: 创建一个服务账号。
-          2: 为这个服务账号生成密钥。
-          3: 在你的 Google 域名中添加服务账号作为 OAuth 客户端。
+          1: 创建一个 Service Account。
+          2: 为这个 Service Account 生成密钥。
+          3: 在你的 Google 域名中添加 Service Account 作为 OAuth 客户端。
   ldap:
     freeipa: 配置 FreeIPA server。
     activedirectory: 配置 Active Directory 账号。
@@ -426,8 +437,8 @@ authConfig:
     searchFilter: 搜索过滤条件
     serverConnectionTimeout: 服务器连接超时
     serviceAccountDN: Service Account 标识名称
-    serviceAccountPassword: 服务账号密码
-    serviceAccountInfo: '{vendor} 需要一个对所有能够登录的域名都有只读访问权的服务账号，以在用户使用 API 密钥进行请求时，确定用户属于什么组。'
+    serviceAccountPassword: Service Account 密码
+    serviceAccountInfo: '{vendor} 需要一个对所有能够登录的域名都有只读访问权的 Service Account，以在用户使用 API 密钥进行请求时，确定用户属于什么组。'
     starttls:
       label: 启动 TLS
       tip: 通过在连接过程中使用 TLS 封装来升级非加密连接。不能与 TLS 结合使用。
@@ -569,7 +580,7 @@ asyncButton:
     waiting: 正在停用&hellip;
     success: 已停用
   diagnostic:
-    action: 下载数据
+    action: 下载诊断包
     success: 正在保存
     waiting: 正在下载&hellip;
   done:
@@ -602,8 +613,12 @@ asyncButton:
     waiting: 正在导入&hellip;
   install:
     action: 安装
-    success: 正在安装
-    waiting: 正在启动&hellip;
+    success: 已安装
+    waiting: 正在安装&hellip;
+  load:
+    action: 加载
+    success: 已加载
+    waiting: 正在加载…
   pause:
     action: 暂停编排
     success: 已暂停编排
@@ -646,6 +661,10 @@ asyncButton:
     action: 立即创建快照
     waiting: 已启动快照&hellip;
     success: 正在创建快照
+  timing:
+    action: 生成响应时间
+    waiting: 正在生成&hellip;
+    success: 已生成响应时间
   uninstall:
     action: 卸载
     success: 已卸载
@@ -739,8 +758,6 @@ backupRestoreOperator:
     useDefault: 使用安装时配置的默认存储位置
   targetBackup: 目标备份
 
-
-
 catalog:
   app:
     managed: 托管
@@ -754,6 +771,13 @@ catalog:
         busy: "{app} 完全安装后，相关资源会出现。"
       values: Values YAML
   chart:
+    registry:
+      label: 容器镜像仓库
+      tooltip: 容器镜像是从 Cluster Container 中拉取的，如果拉取失败，则从系统容器镜像仓库中拉取。要更改默认行为，请在此处输入或更新镜像仓库。
+      custom:
+        checkBoxLabel: Rancher 系统容器镜像的容器镜像仓库
+        inputLabel: 容器镜像仓库
+        placeholder: 镜像仓库域名和端口，例如：registry.io:5000
     header:
       charts: Chart
     info:
@@ -812,7 +836,8 @@ catalog:
         enableLegacy:
           prompt: 想编辑这个应用，你需要添加旧版功能。
           goto: 前往功能开关设置
-        navigate: 导航到 {legacyType} 应用
+        navigate: 导航到旧版应用程序
+        mcmNotSupported: 无法通过此 UI 管理旧版多集群应用程序
         category:
           legacy: 旧版应用
           mcm: 多集群
@@ -914,6 +939,8 @@ catalog:
       rancher-charts: '{vendor}'
       rancher-partner-charts: Partner
       rancher-rke2-charts: RKE2
+      rancher-ui-plugins: Rancher 扩展
+
     target:
       git: 包含定义了 Helm Chart 或集群模板的 Git 仓库。
       http: 指向 Helm 生成的索引 HTTP(S) URL
@@ -1090,14 +1117,14 @@ cluster:
         none: 选择凭证
     aws:
       accessKey:
-        label: 访问密钥
-        placeholder: 你的 AWS 访问密钥
+        label: Access Key
+        placeholder: 你的 AWS Access Key
       defaultRegion:
         help: 创建集群时使用的默认区域。需要验证此凭证是否有效。
         label: 默认区域
       secretKey:
-        label: SecretKey
-        placeholder: 你的 AWS 密文密钥
+        label: Secret Key
+        placeholder: 你的 AWS Secret Key
     azure:
       clientId:
         label: 客户端 ID
@@ -1125,8 +1152,8 @@ cluster:
       placeholder: 此凭证的名称（可选）
     s3:
       accessKey:
-        label: 访问密钥
-        placeholder: 你的 API 访问密钥
+        label: Access Key
+        placeholder: 你的 API Access Key
       defaultRegion:
         label: 默认区域
         placeholder: "可选：要使用的默认区域"
@@ -1146,7 +1173,7 @@ cluster:
         label: 接受任何证书（不安全）
       secretKey:
         label: SecretKey
-        placeholder: 你的 API 密文密钥
+        placeholder: 你的 API Secret Key
     vmwarevsphere:
         server:
           label: vCenter 或 ESXi Server
@@ -1160,16 +1187,16 @@ cluster:
         note: '注意：免费的 ESXi 许可证不支持 API 访问。仅支持具有有效或评估许可证的服务器。'
     gcp:
       authEncodedJson:
-        label: 服务账号
-        placeholder: 服务帐号私钥 JSON 文件
+        label: Service Account
+        placeholder: Service Account 私钥 JSON 文件
         help: |-
-          <p>创建一个<a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">服务账号</a> JSON 私钥文件，并在此处提供 JSON 文件。
+          <p>创建一个 <a href="https://console.cloud.google.com/projectselector/iam-admin/serviceaccounts" target="_blank" rel="noopener noreferrer nofollow">Service Account</a> JSON 私钥文件，并在此处提供 JSON 文件。
           需要以下 IAM 角色：</p>
           <ul>
           <li><b>计算引擎</b>：Compute Viewer (roles/compute.viewer)</li>
           <li><b>项目</b>：Viewer (roles/viewer)</li>
           <li><b>Kubernetes 引擎</b>：Kubernetes 引擎管理员 (roles/container.admin)</li>
-          <li><b>服务账号</b>：服务账号用户(roles/iam.serviceAccountUser)</li>
+          <li><b>Service Account</b>：Service Account 用户(roles/iam.serviceAccountUser)</li>
           </ul>
           点击<a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">此处</a>查看更多角色相关的信息。
     harvester:
@@ -1203,10 +1230,13 @@ cluster:
     warning:
       label: 这是一个 Harvester 集群 - 请启用 Harvester 功能开关以对其进行管理。
       state: 警告
+      cloudProvider: 
+        incompatible:
+          由于当前的 Harvester 版本与所选的 RKE2 Kubernetes 版本不兼容，因此你无法选择 Harvester cloud provider。请单击 <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">此处</a>查看支持的 Kubernetes 版本。
     clusterWarning: |-
       还有 {count, plural,
-      =1 {1个 Harvester 集群未显示}
-      other { #个 Harvester 集群未显示}
+      =1 {1 个 Harvester 集群未显示}
+      other { # 个 Harvester 集群未显示}
       }
     registration:
       step1: "1. 前往目标 Harvester UI 的<code>高级设置</code>页面。"
@@ -1537,11 +1567,11 @@ cluster:
             =5 {}
             =6 { 集群的节点数需要是奇数。}
             =7 {}
-            other { 不建议创建多于7个ETCD 节点。}
+            other { 不建议创建多于 7 个ETCD 节点。}
           }
         worker: |-
           {count, plural,
-            =0 { 一个集群需要至少1个可用的 Worker 节点。}
+            =0 { 一个集群需要至少 1 个可用的 Worker 节点。}
             =1 { 只有1个 Worker 节点的集群是不具备容错能力的。}
             other {}
           }
@@ -1554,6 +1584,9 @@ cluster:
       label: 角色
     labels:
       label: Kubernetes 节点标签
+    noAccessBanner: "你没有查看此主机池配置的权限。"
+    configNotFound: "找不到这个主机池的配置。建议你创建一个具有所需配置的新集群。"
+    noPoolsDisclaimer: 你没有定义任何主机池，请单击加号进行添加。
     autoReplace:
       label: 自动替换
       toolTip: 如果大于 0，则在此期间无法访问的节点将被自动删除和替换。
@@ -1569,10 +1602,10 @@ cluster:
       noResults: 没有匹配的结果
   privateRegistry:
     systemDefaultRegistry:
-      label: 用于 {vendor} 镜像的仓库主机名
+      label: 用于 Rancher 系统容器镜像的仓库主机名
     mode:
-      public: 从公共 DockerHub 中为 {vendor} 拉取镜像
-      private: 从私有仓库中为 {vendor} 拉取镜像
+      public: 用于 Rancher 系统容器镜像的默认全局镜像仓库
+      private: 为 Rancher 系统容器镜像使用指定的私有镜像仓库
       advanced: 配置高级容器 Mirror 和仓库验证选项
   provider:
     aliyunecs: Aliyun ECS
@@ -1623,13 +1656,14 @@ cluster:
     rancherkubernetesengine: RKE
     rke2: RKE2
     rke: RKE1
-    rkeWindows: Windows
+    rkeWindows: Windows（仅限 RKE1）
     s3: S3 兼容
     softlayer: IBM 云
     tencenttke: 腾讯云 TKE
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+    machineinventoryselectortemplate: Elemental 集群
   providerTag:
     rke2:
       harvester: '{tag}'
@@ -1662,6 +1696,7 @@ cluster:
       label: 默认 Pod 安全策略
     enableNetworkPolicy:
       label: 项目网络隔离
+      warning: 默认情况下，Ingress Controller 无法将请求路由到其他节点上的 Pod。
     workNode:
       label: Worker 节点
     controlPlaneConcurrency:
@@ -1686,7 +1721,7 @@ cluster:
       domain:
         label: 集群域名
       nodePortRange:
-        label: NodePort 服务端口范围
+        label: Node Port Service 端口范围
       tlsSan:
         label: TLS 可选名称
       fqdn:
@@ -1968,8 +2003,8 @@ fleet:
       revisionLabel: Tag 或 Commit Hash
       revisionPlaceholder: 例如：v1.0.0
     serviceAccount:
-      label: 服务账号名称
-      placeholder: "（选填）在目标集群中使用服务账号"
+      label: Service Account 名称
+      placeholder: "（选填）在目标集群中使用 Service Account"
     targetNamespace:
       label: 目标命名空间
       placeholder: "（选填）要求所有资源都在此命名空间内"
@@ -2082,6 +2117,7 @@ glance:
   installMonitoring: 安装 Monitoring
   v1MonitoringInstalled: 已安装 Monitoring V1
   clusterInfo: 集群信息
+  eventsTable: 完整事件列表
 
 clusterBadge:
   addLabel: 添加集群徽章
@@ -2111,9 +2147,15 @@ graphOptions:
 
 growl:
   clearAll: 清除全部通知
-  disconnected: 
-    message: "与 {url} 的连接意外断开 {time}，正在重试..."
+  disconnectError: 
+    message: "与 {url} 的连接在 {time} 意外断开，重连 {tries} 次后断开连接。请检查你的网络连接并重新加载页面。"
     title: Websocket 断开连接
+  connectError: 
+    message: "与 {url} 的连接在 {time} 意外断开，重连次数为 #{tries}。"
+    title: Websocket 重新连接
+  reconnected: 
+    message: "在尝试第 #{tries} 次时恢复了与 {url} 的连接。"
+    title: Websocket 已重新连接
 
 hpa:
   detail:
@@ -2281,17 +2323,17 @@ istio:
     name:
       placeholder: 例如：myrule
     loadBalancer:
-      title: 负载均衡
+      title: Load Balancer
       label: 算法
-      detail: 配置负载均衡算法
+      detail: 配置 Load Balancer 算法
       simple:
         label: 使用标准负载均衡算法
         roundRobin:
           label: 轮询策略
         leastConn:
-          label: 最小连接数负载均衡
+          label: 最小连接数 Load Balancer
         random:
-          label: 随机负载均衡
+          label: 随机 Load Balancer
         passthrough:
           label: 透传
       consistentHash:
@@ -2457,6 +2499,9 @@ landing:
   seeWhatsNew: 点击右侧链接，了解此版本的新功能和优化。
   whatsNewLink: "2.6 的新功能"
   learnMore: 了解更多
+  support: 支持
+  psps: PSP
+  deprecatedPsp: Pod 安全策略自 Kubernetes v1.21 起已弃用，并已在 Kubernetes v1.25 中删除。你在此集群中有一个或多个 PSP 资源。
   community:
     title: 社区支持
     docs: Rancher 官方文档
@@ -2558,16 +2603,16 @@ logging:
   awsElasticsearch:
     url: URL
     keyId: 密钥 ID
-    secretKey: 密文密钥
+    secretKey: Secret Key
   azurestorage:
     storageAccount: 账号
-    accessKey:  访问密钥
+    accessKey:  Access Key
     container: 容器
     path: 路径
     storeAs: 存储为
   cloudwatch:
     keyId: 密钥 ID
-    secretKey: 密文密钥
+    secretKey: Secret Key
     endpoint: 端点
     region: 区域
     logGroupName: 日志组名称
@@ -2588,7 +2633,7 @@ logging:
   kinesisStream:
     streamName: 流名称
     keyId: 密钥 ID
-    secretKey: 密文密钥
+    secretKey: Secret Key
   logdna:
     apiKey: API 密钥
     hostname: 主机名
@@ -2628,7 +2673,7 @@ logging:
       timekeyUseUTC: Timekey 使用 UTC
   s3:
     keyId: 密钥 ID
-    secretKey: 密文密钥
+    secretKey: Secret Key
     endpoint: 端点
     bucket: 存储桶
     path: 路径
@@ -3056,7 +3101,7 @@ alertmanagerConfigReceiver:
   receiverTypes: "可以在表单中编辑以下接收器类型：Email、Slack、PagerDuty、Opsgenie 和 Webhook。如果是其他类型的接收器，则编辑 AlertmanagerConfig YAML。"
   slack:
     webhookUrl: Webhook URL
-    apiUrlTooltip: 包含 Slack webhook URL 的密文密钥。该密钥需要与 AlertmanagerConfig 对象位于同一命名空间中，并且可由 Prometheus Operator 访问。
+    apiUrlTooltip: 包含 Slack webhook URL 的 Secret Key。该密钥需要与 AlertmanagerConfig 对象位于同一命名空间中，并且可由 Prometheus Operator 访问。
 monitoringRoute:
   groups:
     label: 分组依据
@@ -3175,7 +3220,7 @@ navLink:
           label: 端口
           placeholder: '例如：80'
         scheme:
-          label: 协议
+          label: Scheme
           placeholder: '例如：http'
     target:
       label: 窗口目标
@@ -3645,6 +3690,98 @@ persistentVolumeClaim:
       readWriteMany: 多节点读写
   status:
     label: 状态
+
+# Rancher Extensions
+plugins:
+  labels:
+    builtin: 内置角色
+    experimental: 实验功能
+    third-party: 第三方
+    installing: 正在安装...
+    uninstalling: 正在卸载...
+  descriptions:
+    experimental: 这是实验性扩展
+    third-party: 此扩展由第三方提供
+    built-in: 这是内置扩展
+  error:
+    title: 加载扩展时出错
+    message: 无法加载扩展代码
+    generic: 扩展错误
+    api: 此扩展与 Extensions API 不兼容
+    host: 此扩展与此应用程序不兼容
+    version: 此扩展与此 Rancher 版本不兼容
+    load: 加载此扩展的代码时出错
+  success:
+    title: 已加载扩展 {name}
+    message: 扩展加载成功
+  developer:
+    label: 开发者加载
+    title: 开发者加载扩展
+    prompt: 从 URL 加载扩展
+    fields:
+      url: 扩展 URL
+      name: 扩展模块名称
+      persist: 通过创建自定义资源来持久化扩展
+  info:
+    detail: 详情
+    versions: 版本
+    versionError: 无法加载版本信息
+  empty:
+    all: 扩展未安装或不可用
+    available: 没有可用的扩展
+    installed: 没有已安装的扩展
+    updates: 没有可用于已安装扩展的更新
+  loadError: 加载此扩展的代码时出错
+  helmError: "通过 Helm 安装扩展时出错"
+  manageRepos: 管理仓库
+  tabs:
+    all: 全部
+    available: 可用
+    installed: 已安装
+    updates: 更新
+  title: 扩展
+  version: "版本：{version}"
+  install:
+    label: 安装
+    title: 安装扩展 {name}
+    prompt: "确定要安装此扩展吗？"
+    version: 版本
+    warnNotCertified: 请确保你已了解安装来自不受信任作者的扩展的风险
+  update:
+    label: 更新
+    title: 更新扩展 {name}
+    prompt: "确定要更新此扩展吗？"
+  rollback:
+    label: 回滚
+    title: 回滚扩展 {name}
+    prompt: "确定要回滚此扩展吗？"
+  uninstall:
+    label: 卸载
+    title: "卸载扩展 {name}"
+    prompt: "确定要卸载此扩展吗？"
+  upgradeAvailable: 此扩展有可用的版本更新
+  reload: 扩展已更改 - 需要重新加载
+  safeMode:
+    title: 扩展安全模式
+    message: 未加载扩展
+  setup:
+    title: 未启用扩展支持
+    prompt:
+      cant: 自动安装不可用 - 找不到所需的 Helm Chart
+      can: 你需要安装 Extension Operator
+    install:
+      title: 启用扩展支持？
+      prompt: 这将安装 Helm Chart 以启用扩展支持
+      airgap: Rancher Extensions 仓库提供了由 Rancher 发布的扩展。如果你的 Rancher 是离线的，请取消选中。
+      addRancherRepo: 添加 Rancher Extension 仓库
+    remove:
+      label: 禁用扩展支持
+      title: 禁用扩展支持？
+      prompt: 这将卸载启用扩展支持的 Helm Chart
+      registry:
+        title: 删除 Rancher Rancher Extensions 仓库
+        prompt: Rancher Extensions 仓库提供了由 Rancher 发布的扩展。
+
 prefs:
   title: 偏好设置
   theme:
@@ -3653,6 +3790,7 @@ prefs:
     auto: 自动
     dark: 深色
     autoDetail: 自动模式使用系统设置，或在{pm}点到次日{am}点间自动切换到深色模式。
+  language: 语言
   landing:
     label: 登录页面
     vue: 集群浏览器
@@ -3677,12 +3815,14 @@ prefs:
     sublime: '默认'
     emacs: 'Emacs'
     vim: 'Vim'
-  advanced: 高级选项
-  advancedTooltip: 启用“在 API 中查看”选项并使用键盘快捷键来切换浅色或深色主题 (shift+t)。此设置还显示了由 Rancher 管理的命名空间，不要手动编辑或删除这些命名空间。
-  dev:
-    label: 启用开发工具
+  advFeatures:
+    title: 高级功能
+    viewInApi: 启用“在 API 中查看”
+    allNamespaces: 显示由 Rancher 管理的 system 命名空间（不要编辑或删除）
+    themeShortcut: 使用快捷键（shift+T）来切换深色/浅色主题
+    pluginDeveloper: 启用扩展开发者功能
   hideDesc:
-    label: 隐藏所有类型说明框
+    label: 隐藏所有类型描述
   helm:
     'true': 包括预发布版本
     'false': 只显示正式版本
@@ -3768,7 +3908,7 @@ projectMembers:
     projectcatalogsManage: 管理项目应用商店
     projectroletemplatebindingsManage: 管理项目成员
     secretsManage: 管理密文
-    serviceaccountsManage: 管理服务账号
+    serviceaccountsManage: 管理 Service Account
     servicesManage: 管理服务
     persistentvolumeclaimsManage: 管理卷
     workloadsManage: 管理工作负载
@@ -3778,7 +3918,7 @@ projectMembers:
     projectcatalogsView: 查看项目应用商店
     projectroletemplatebindingsView: 查看项目成员
     secretsView: 查看密文
-    serviceaccountsView: 查看服务账号
+    serviceaccountsView: 查看 Service Account
     servicesView: 查看服务
     persistentvolumeclaimsView: 查看卷
     workloadsView: 查看工作负载
@@ -3971,6 +4111,18 @@ rbac:
       noContext:
         label: 没有内容
   globalRoles:
+    notBound: '没有绑定的用户 <i class="icon icon-checkmark" style="margin-left: 5px"></i>'
+    unableToCheck: 无法检查是否存在绑定了该角色的用户，请重试。
+    waiting: |-
+      {count, plural,
+        =1 { 检查是否存在绑定了该角色的用户 <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+        other { 检查是否存在绑定了这些角色的用户 <i class="icon-spin icon icon-spinner" style="margin-left: 5px"></i> }
+      }
+    usersBound: |-
+      {count, plural,
+        =1 { 注意：有 1 个用户绑定了即将被删除的角色，是否继续操作？}
+        other { 注意：有 {count} 个用户绑定了即将被删除的角色，是否继续操作？}
+      }
     types:
       global:
         label: 全局权限
@@ -4121,8 +4273,10 @@ resourceTable:
     namespace: 按命名空间分组
     project: 按项目分组
     node: 按节点分组
+    cluster: 按集群分组
   groupLabel:
     cluster: "<span>集群：</span> {name}"
+    notInACluster: 不在集群中
     namespace: "<span>命名空间：</span> {name}"
     notInAMachinePool: "不在 Deployment 中"
     machinePool: "<span>节点池：</span> {name}"
@@ -4245,8 +4399,8 @@ selectOrCreateAuthSecret:
     aws: AWS/S3
     custom: 密文名称
   s3:
-    accessKey: 访问密钥
-    secretKey: 密文密钥
+    accessKey: Access Key
+    secretKey: Secret Key
   ssh:
     publicKey: 公钥
     privateKey: 私钥
@@ -4260,11 +4414,11 @@ selectOrCreateAuthSecret:
   createS3: 创建与 S3 兼容的身份验证密文
 
 serviceAccount:
-  automount: 自动挂载服务账号令牌
+  automount: 自动挂载 Service Account 令牌
   imagePullSecrets: 镜像拉取密文
   tabs:
     serviceAccount:
-      label: 服务账号
+      label: Service Account
 
 servicePorts:
   header:
@@ -4277,7 +4431,7 @@ servicePorts:
       label: 端口名称
       placeholder: 例如：myport
     node:
-      label: 节点端口
+      label: Node Port
       placeholder: 例如：30000
     protocol:
       label: 协议
@@ -4286,11 +4440,11 @@ servicePorts:
       placeholder: 例如：80 或 http
 
 serviceTypes:
-  clusterip: 集群 IP
-  externalname: 外部名称
+  clusterip: Cluster IP
+  externalname: External Name
   headless: Headless
-  loadbalancer: 负载均衡
-  nodeport: 节点端口
+  loadbalancer: Load Balancer
+  nodeport: Node Port
 
 servicesPage:
   anyNode: 任何节点
@@ -4306,12 +4460,30 @@ servicesPage:
       label: 会话粘滞时间
       placeholder: 例如：10800
   externalName:
-    define: 外部名称
-    helpText: "外部名称用于是指定一个 DNS 名称。这是必填字段。如果要硬编码一个 IP 地址，请使用 headless 服务。"
-    label: 外部名称
+    define: External Name
+    helpText: "External Name 用于是指定一个 DNS 名称。这是必填字段。如果要硬编码一个 IP 地址，请使用 Headless Service。"
+    label: External Name
     placeholder: 例如：my.database.example.com
     input:
       label: DNS 名称
+  harvester:
+    title: 附加配置
+    ipam:
+      label: IPAM
+    healthCheckPort:
+      label: 健康检查端口
+    healthCheckSuccessThreshold:
+      label: 健康检查成功阙值
+      description: 如果探针连续检测到某个地址的成功次数达到成功阈值，后端服务器就可以开始转发流量。
+    healthCheckFailureThreshold:
+      label: 健康检查失败阈值
+      description: 如果健康检查失败的数量达到失败阈值，后端服务器将停止转发流量。
+    healthCheckPeriod:
+      label: 健康检查周期
+    healthCheckTimeout:
+      label: 健康检查超时
+    healthCheckEnabled:
+      label: 健康检查
   ips:
     define: 服务端口
     clusterIpHelpText: 集群 IP 地址必须在为 API server 配置的 CIDR 范围内。
@@ -4320,13 +4492,13 @@ servicesPage:
       placeholder: 例如：1.1.1.1
       protip: IP 地址列表，集群中的节点也将使用该服务的流量。
     input:
-      label: 集群 IP
+      label: Cluster IP
       placeholder: 例如：10.43.xxx.xxx
     label: IP 地址
     loadBalancer:
-      label: 负载均衡
+      label: Load Balancer
     loadBalancerIp:
-      label: 负载均衡 IP
+      label: Load Balancer IP
       placeholder: 例如：192.0.xxx.xxx
       helpText: 如果你指定了 loadBalancerIP 但你的云提供商不支持该功能，loadBalancerIP 字段的值会被忽略。
   pods:
@@ -4339,31 +4511,31 @@ servicesPage:
     matchingPods:
       matchesSome: |-
         {matched, plural,
-          =0 {与{total, number}个 Pod 中的0个匹配。如果没有创建选择器，必须进行手动端点。}
+          =0 {与 {total, number} 个 Pod 中的 0 个匹配。如果没有创建选择器，则必须进行手动端点。}
           =1 {与{total, number}个 Pod 中的1个匹配："{sample}"}
-          other {与{total, number}个 Pod 中的{matched, number}个匹配，包括"{sample}"}
+          other {与 {total, number} 个 Pod 中的 {matched, number} 个匹配，包括"{sample}"}
         }
   serviceTypes:
     clusterIp:
       abbrv: IP
       description: 在集群内网 IP 上公开服务。如果选择此值，服务只能从集群内部访问。这是默认类型。
-      label: 集群 IP
+      label: Cluster IP
     externalName:
       abbrv: EN
-      description: "将服务与`externalName`字段的内容（如 foo.bar.example.com）进行映射，返回一个带有其值的 CNAME 记录。没有设置任何形式的代理。"
-      label: 外部名称
+      description: "将服务与 `externalName` 字段的内容（如 foo.bar.example.com）进行映射，返回一个带有其值的 CNAME 记录。没有设置任何形式的代理。"
+      label: External Name
     headless:
       abbrv: H
-      description: 既没有定义集群 IP，也没有定义负载均衡。它们是用来对接 Kubernetes 实现之外的其他服务发现机制的。这些服务没有分配的集群 IP，kube-proxy 也不处理这些服务。
+      description: 既没有定义 Cluster IP，也没有定义 Load Balancer。它们是用来对接 Kubernetes 实现之外的其他服务发现机制的。这些服务没有分配的 Cluster IP，kube-proxy 也不处理这些服务。
       label: Headless
     loadBalancer:
       abbrv: LB
       description: 使用云提供商的负载均衡器向外部公开服务。
-      label: 负载均衡
+      label: Load Balancer
     nodePort:
       abbrv: NP
       description: "在每个节点的 IP 上以静态端口（`NodePort`）公开服务。你可以通过请求`&lt;NodeIP&gt;:&lt;NodePort&gt;`从集群外部联系这种类型的服务。"
-      label: 节点端口
+      label: Node Port
   typeOpts:
     label: 服务类型
 
@@ -4377,7 +4549,7 @@ setup:
     dockerSuffix: ""
     helmPrefix: 'Helm 安装，运行：'
     helmSuffix: ""
-  eula: 我同意使用 {name} 的 <a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">条款和条件</a>。
+  eula: 选中此框，即表示你接受<a href="https://rancher.com/eula" target="_blank" rel="noopener noreferrer nofollow">最终用户许可协议及条款和条件</a>
   newPassword: 新密码
   newUserSetPassword: 请设置强密码。建议使用生成的随机密码。你也可以自行设置。
   serverUrl:
@@ -4412,6 +4584,16 @@ sortableTable:
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
   search: 筛选
+  in: in
+  addFilter: 添加筛选器
+  filterFor: 筛选...
+  selectCol: 选择一列
+  resetFilters: 重置
+  add: 添加
+  tableHeader:
+    noFilter: 此列无法过滤
+    groupBy: 分组依据
+    show: 显示
 
 storageClass:
   actions:
@@ -4701,7 +4883,7 @@ storageClass:
     title: 本地存储（不支持）
 
 tableHeaders:
-  accessKey: 访问密钥
+  accessKey: Access Key
   address: 地址
   age: 存活时间
   apiGroup: API 组
@@ -4718,6 +4900,7 @@ tableHeaders:
   clusterCreatorDefault: 集群创建者的默认角色
   clusterFlow: Cluster Flow
   clusterOutput: 集群输出
+  cluster: 集群
   clusters: 集群
   clustersReady: 就绪集群
   clusterGroups: 集群组
@@ -4770,7 +4953,7 @@ tableHeaders:
   node: 节点
   nodeName: 名称
   nodesReady: 就绪节点
-  nodePort: 节点端口
+  nodePort: Node Port
   object: 对象
   operatingSystem: 操作系统
   output: 输出
@@ -4787,13 +4970,13 @@ tableHeaders:
   publicPorts: 公共端口
   ram: 内存（RAM）
   rbac:
-    create: 创建
-    delete: 删除
-    get: 查询
-    list: 列出
-    patch: 修改
-    update: 更新
-    watch: 监视
+    create: Create
+    delete: Delete
+    get: Get
+    list: List
+    patch: Patch
+    update: Update
+    watch: Watch
   ready: 就绪
   reason: 原因
   receivers: 接收器
@@ -5044,13 +5227,13 @@ validation:
       missingOneResource: 你必须为每个授予资源指定至少一个资源、非资源 URL 或 API 组。
   service:
     externalName:
-      none: 使用 ExternalName 服务时，外部名称是必填项。
+      none: 使用 ExternalName Service 时，External Name 是必填项。
     ports:
       name:
         required: '端口规则 [{position}] - 端口名称是必填项。'
       nodePort:
-        requiredInt: '端口规则 [{position}] - 如果包含节点端口，节点端口必须是整数。'
-        between: '端口规则 [{position}] - 节点端口的取值范围是：1-65535'
+        requiredInt: '端口规则 [{position}] - 如果包含 Node Port，Node Port 必须是整数。'
+        between: '端口规则 [{position}] - Node Port 的取值范围是：1-65535'
       port:
         required: '端口规则 [{position}] - 端口是必填项，'
         requiredInt: '端口规则 [{position}] - 如果包含端口，端口必须是整数。'
@@ -5471,7 +5654,7 @@ workload:
       tolerationSeconds: "容忍（秒）"
       value: 值
   serviceAccountName:
-    label: 服务账号名称
+    label: Service Account 名称
     createMessage: 此命名空间中不存在服务名称 [ {name} ]，请手动创建它。
   serviceName: 服务名称
   storage:
@@ -5492,6 +5675,8 @@ workload:
     addClaim: 添加声明
     addMount: 添加挂载
     addVolume: 添加卷
+    selectVolume: 选择卷
+    noVolumes: 在 Pod 选项卡中添加卷后，卷将显示在此处
     certificate: 证书
     csi:
       diskName: 磁盘名称
@@ -5552,6 +5737,7 @@ workload:
     apps.statefulset: StatefulSet 管理有状态的应用，并保证创建的 Pod 的顺序和唯一性。推荐用于具有持久化存储或严格身份、法定人数或升级顺序要求的工作负载。
     batch.cronjob: CronJob 创建 Job，然后按照重复调度来运行 Pod。该调度以标准的 Unix cron 格式表示，并使用 Kubernetes Control Plane 的时区（通常是 UTC）。
     batch.job: Job 创建一个或多个 Pod。 Job 通过运行 Pod 直到其成功退出，以可靠执行一次性任务。失败的 Pod 会自动被替换，直到达到指定的完成运行次数。Job 还可以并行运行多个 Pod，或作为批处理工作队列。
+    pod: Pod 是你可以在 Kubernetes 中创建和管理的最小可部署计算单元。Pod 是一个或多个容器，具有共享的存储和网络资源以及运行容器的规范。
   upgrading:
     activeDeadlineSeconds:
       label: 判定 Pod 是否活跃的截止时间
@@ -5664,9 +5850,9 @@ model:
     server:
       label: 主机名或 IP 地址
     serviceAccountPassword:
-      label: 服务账号密码
+      label: Service Account 密码
     serviceAccountUsername:
-      label: 服务账号用户名
+      label: Service Account 用户名
   projectMember:
     role:
       member: 成员
@@ -6098,7 +6284,7 @@ advancedSettings:
     'engine-supported-range': '支持的 Docker 引擎版本的 Semver 范围。不在此范围内的版本将在 UI 中标记为不支持。'
     'ingress-ip-domain': '用于自动生成 Ingress 主机名的通配符 DNS 域。<ingress-name>.<namespace-name>.<ip address of ingress controller> 会被添加到该域。'
     'server-url': '默认 {appName} 安装地址。必须使用 HTTPS。你集群中的所有节点都必须能够访问此地址。'
-    'system-default-registry': '用于所有系统 Docker 镜像的私有仓库。'
+    'system-default-registry': '用于所有 Rancher System 容器镜像的私有镜像仓库。如果未指定任何值，则使用容器运行时的默认镜像仓库。对于 Docker 和 containerd，默认为 `docker.io`。'
     'ui-index': 'Cluster Manager UI 的 HTML 索引位置。'
     'ui-dashboard-index': '{appName} UI 的 HTML 索引位置。'
     'ui-offline-preferred': '控制 UI 资产是由服务器容器在本地提供，还是从 ui-index 和 ui-dashboard-index 设置中定义的远程 URL 提供。`动态` 选项将在 {appName} 的生产版本中使用本地资产。'
@@ -6173,7 +6359,7 @@ performance:
     label: 增量加载
     setting: 你可以配置一个阈值，高于该阈值时则使用增量加载。
     description: |-
-      启用后，资源会更快出现，但可能需要更长的时间来加载整个资源集。此设置仅适用于以下资源：Pod、Deployment、CronJob、DaemonSet、Job、StatefulSet、ReplicaSet、Replication Controller、Workload 和 Secret。
+      启用后，资源会更快出现，但可能需要更长的时间来加载整个资源集。此设置仅适用于来自 Kubernetes API 的资源
     checkboxLabel: 启用增量加载
     inputLabel: 资源阈值
   manualRefresh:
@@ -6182,7 +6368,7 @@ performance:
     setting: 你可以配置一个阈值，高于该阈值时则启用手动刷新。
     buttonTooltip: 刷新列表
     description: |-
-      启用后，列表数据不会自动更新，用户必须手动刷新列表视图。此设置仅适用于以下资源：Pod、Deployment、CronJob、DaemonSet、Job、StatefulSet、ReplicaSet、Replication Controller、Workload 和 Secret。
+      启用后，列表数据不会自动更新，用户必须手动刷新列表视图。此设置仅适用于来自 Kubernetes API 的资源
     checkboxLabel: 启用列表数据的手动刷新
     inputLabel: 资源阈值
   websocketNotification:
@@ -6190,6 +6376,29 @@ performance:
     description: |-
       启用后，UI 检测到断开连接时不会出现 WebSocket 通知。
     checkboxLabel: 禁用 WebSocket 通知
+  gc:
+    label: 资源垃圾回收
+    description: UI 将在本地缓存 kuberentes 资源，避免这些资源被重新抓取。在某些情况下，这可能会导致浏览器中存储了大量数据。你可以启用此设置进行定期删除。
+    banner: 此设置是实验性的，可能会在后续版本中删除或更新。
+    checkboxLabel: 启用垃圾回收
+    whenRun:
+      description: 垃圾回收运行的时候更新
+      intervalCheckBox:
+        label: 定期运行垃圾回收
+      interval:
+        inputLabel: 运行间隔
+      route:
+        description: 在换页时运行垃圾回收
+        inputLabel: 换页
+    howRun:
+      description: 更新垃圾回收的运行方式
+      age:
+        description: "必须在此期间内未访问过资源，才能考虑进行垃圾回收。"
+        inputLabel: 资源存活时间
+      count:
+        description: 资源必须超过此数量才能考虑进行垃圾回收。
+        inputLabel: 资源数量
+
 
 banner:
   label: 固定横幅
@@ -6283,8 +6492,8 @@ resourceQuota:
   requestsStorage: 存储预留
   secrets: 密文
   services: 服务
-  servicesLoadBalancers: 服务负载均衡
-  servicesNodePorts: 服务节点端口
+  servicesLoadBalancers: Service Load Balancer
+  servicesNodePorts: Service Node Port
   namespaceLimit:
     label: 命名空间限制
   projectLimit:
@@ -6306,6 +6515,26 @@ resourceQuota:
     namespace: '此命名空间：'
     available: '可用：'
     max: '总计：'
+customLinks: 
+  displayTitle: 链接
+  label: 主页链接
+  description: '配置要在主页上显示的链接。你可以配置自定义链接以及显示或隐藏默认链接。'
+  restoreDefaults: '恢复默认值'
+  addLink: 添加链接
+  restoreSuccess: 默认链接已恢复。
+  settings:
+    default: 默认链接
+    custom: 自定义链接
+    keyLabel: 显示文本
+    valueLabel: URL
+    showLabel: 显示
+  defaults: 
+    docs:       Rancher 官方文档
+    forums:     论坛
+    slack:      Slack
+    issues:     提交 GitHub Issue
+    getStarted: 开始使用
+    commercialSupport: 商业支持
 
 
 
@@ -6318,7 +6547,7 @@ support:
     title: SUSE Rancher 提供世界一流的支持
     linksTitle: 社区支持
     learnMore: 进一步了解 SUSE Rancher 支持。
-    pricing: 联系我们获取价格
+    pricing: 联系我们获取价格。
   subscription:
     haveSupport: 已获得支持？
     addSubscription: 添加订阅 ID

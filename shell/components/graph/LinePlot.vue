@@ -142,8 +142,7 @@ export default {
         :key="i"
         :d="lines[i]"
         class="line"
-      >
-      </path>
+      />
       <circle
         v-for="(point, index) in set.points"
         :key="`${index}--circle`"
@@ -151,13 +150,11 @@ export default {
         r="4"
         :cx="scaleX([0, 10], index)"
         :cy="scaleY(set.domain, point)"
-      >
-      </circle>
+      />
     </g>
     <g
       class="grid"
-    >
-    </g>
+    />
   </svg>
 </template>
 

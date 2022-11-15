@@ -76,13 +76,25 @@ export default {
       :type-display="t('manager.cloudCredentials.label')"
     />
 
-    <ResourceTable :schema="schema" :rows="rows" :headers="headers" :namespaced="false" group-by="providerDisplay">
+    <ResourceTable
+      :schema="schema"
+      :rows="rows"
+      :headers="headers"
+      :namespaced="false"
+      group-by="providerDisplay"
+    >
       <template #cell:id="{row}">
         {{ row.id.replace('cattle-global-data:','') }}
       </template>
       <template #cell:apikey="{row}">
-        <span v-if="row.publicData" v-html="row.publicData" />
-        <span v-else class="text-muted">&mdash;</span>
+        <span
+          v-if="row.publicData"
+          v-html="row.publicData"
+        />
+        <span
+          v-else
+          class="text-muted"
+        >&mdash;</span>
       </template>
     </ResourceTable>
   </div>

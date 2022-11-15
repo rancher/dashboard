@@ -45,7 +45,10 @@ export default {
 
 <template>
   <div>
-    <ChartHeading :label="t('gatekeeperIndex.poweredBy')" url="https://github.com/open-policy-agent/gatekeeper" />
+    <ChartHeading
+      :label="t('gatekeeperIndex.poweredBy')"
+      url="https://github.com/open-policy-agent/gatekeeper"
+    />
     <div class="spacer" />
     <div class="mb-10">
       <h2><t k="gatekeeperIndex.violations" /></h2>

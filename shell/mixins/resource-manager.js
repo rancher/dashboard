@@ -74,6 +74,11 @@ export default {
                 // - id param = this.$store.getters['cluster/keyFieldForType'](type)
                 // - id value = new dashboard-store getter, overwritten by steve store getter
                 requestData.forEach((item) => {
+                  // if there's already a prop type, don't overwrite it without storing it first...
+                  // only do this operation once in multiple apply's because the requestData is the same!
+                  if (item.type && !item._type) {
+                    item._type = item.type;
+                  }
                   item.type = type;
                   item.id = `${ item.metadata.namespace }/${ item.metadata.name }`;
                 });

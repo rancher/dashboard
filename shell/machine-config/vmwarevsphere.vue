@@ -659,7 +659,10 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" :delayed="true" />
+  <Loading
+    v-if="$fetchState.pending"
+    :delayed="true"
+  />
   <div v-else-if="errors.length">
     <div
       v-for="(err, idx) in errors"
@@ -672,8 +675,15 @@ export default {
     </div>
   </div>
   <div v-else>
-    <Card class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
-      <h4 slot="title" class="text-default-text mb-5">
+    <Card
+      class="m-0 mt-20"
+      :show-highlight-border="false"
+      :show-actions="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text mb-5"
+      >
         {{ t('cluster.machineConfig.vsphere.scheduling.label') }}
         <p class="text-muted text-small">
           {{ t('cluster.machineConfig.vsphere.scheduling.description') }}
@@ -741,8 +751,15 @@ export default {
         </div>
       </div>
     </Card>
-    <Card class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
-      <h4 slot="title" class="text-default-text mb-5">
+    <Card
+      class="m-0 mt-20"
+      :show-highlight-border="false"
+      :show-actions="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text mb-5"
+      >
         {{ t('cluster.machineConfig.vsphere.instanceOptions.label') }}
         <p class="text-muted text-small">
           {{ t('cluster.machineConfig.vsphere.instanceOptions.description') }}
@@ -790,7 +807,10 @@ export default {
           </div>
         </div>
         <div class="row mt-10">
-          <div class="col" :class="showContentLibrary ? 'span-4' : 'span-6'">
+          <div
+            class="col"
+            :class="showContentLibrary ? 'span-4' : 'span-6'"
+          >
             <LabeledSelect
               v-model="value.creationType"
               :mode="mode"
@@ -799,7 +819,10 @@ export default {
               :disabled="disabled"
             />
           </div>
-          <div v-if="showTemplate" class="col span-6">
+          <div
+            v-if="showTemplate"
+            class="col span-6"
+          >
             <LabeledSelect
               v-model="value.cloneFrom"
               :loading="templatesLoading"
@@ -811,7 +834,10 @@ export default {
               :tooltip="templateTooltip"
             />
           </div>
-          <div v-if="showContentLibrary" class="col span-4">
+          <div
+            v-if="showContentLibrary"
+            class="col span-4"
+          >
             <LabeledSelect
               v-model="value.contentLibrary"
               :loading="contentLibrariesLoading"
@@ -821,7 +847,10 @@ export default {
               :disabled="disabled"
             />
           </div>
-          <div v-if="showContentLibrary" class="col span-4">
+          <div
+            v-if="showContentLibrary"
+            class="col span-4"
+          >
             <LabeledSelect
               v-model="value.cloneFrom"
               :loading="libraryTemplatesLoading"
@@ -832,7 +861,10 @@ export default {
               :disabled="disabled"
             />
           </div>
-          <div v-if="showVirtualMachines" class="col span-6">
+          <div
+            v-if="showVirtualMachines"
+            class="col span-6"
+          >
             <LabeledSelect
               v-model="value.cloneFrom"
               :loading="virtualMachinesLoading"
@@ -842,7 +874,10 @@ export default {
               :disabled="disabled"
             />
           </div>
-          <div v-if="showIso" class="col span-6">
+          <div
+            v-if="showIso"
+            class="col span-6"
+          >
             <LabeledInput
               v-model="value.boot2dockerUrl"
               :mode="mode"
@@ -852,7 +887,10 @@ export default {
             />
           </div>
         </div>
-        <div v-if="showIso" class="row mt-10">
+        <div
+          v-if="showIso"
+          class="row mt-10"
+        >
           <div class="col span-12">
             <LabeledInput
               v-model="value.cloudinit"
@@ -866,7 +904,10 @@ export default {
             </p>
           </div>
         </div>
-        <div v-if="showCloudConfigYaml" class="row mt-10">
+        <div
+          v-if="showCloudConfigYaml"
+          class="row mt-10"
+        >
           <div class="col span-12">
             <label class="text-label mt-0">{{ t('cluster.machineConfig.vsphere.instanceOptions.cloudConfigYaml') }}</label>
             <YamlEditor
@@ -910,8 +951,16 @@ export default {
         </div>
       </div>
     </Card>
-    <Card v-if="haveTags" class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
-      <h4 slot="title" class="text-default-text mb-5">
+    <Card
+      v-if="haveTags"
+      class="m-0 mt-20"
+      :show-highlight-border="false"
+      :show-actions="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text mb-5"
+      >
         {{ t('cluster.machineConfig.vsphere.tags.label') }}
         <p class="text-muted text-small">
           {{ t('cluster.machineConfig.vsphere.tags.description') }}
@@ -927,8 +976,16 @@ export default {
         />
       </div>
     </Card>
-    <Card v-if="haveAttributes" class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
-      <h4 slot="title" class="text-default-text mb-5">
+    <Card
+      v-if="haveAttributes"
+      class="m-0 mt-20"
+      :show-highlight-border="false"
+      :show-actions="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text mb-5"
+      >
         {{ t('cluster.machineConfig.vsphere.customAttributes.label') }}
         <p class="text-muted text-small">
           {{ t('cluster.machineConfig.vsphere.customAttributes.description') }}
@@ -948,8 +1005,15 @@ export default {
         />
       </div>
     </Card>
-    <Card class="m-0 mt-20" :show-highlight-border="false" :show-actions="false">
-      <h4 slot="title" class="text-default-text mb-5">
+    <Card
+      class="m-0 mt-20"
+      :show-highlight-border="false"
+      :show-actions="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text mb-5"
+      >
         {{ t('cluster.machineConfig.vsphere.vAppOptions.label') }}
         <p class="text-muted text-small">
           {{ t('cluster.machineConfig.vsphere.vAppOptions.description') }}
@@ -967,7 +1031,10 @@ export default {
             />
           </div>
         </div>
-        <div v-if="showManual" class="row mb-10">
+        <div
+          v-if="showManual"
+          class="row mb-10"
+        >
           <div class="col span-4">
             <LabeledInput
               v-model="value.vappTransport"
@@ -999,7 +1066,10 @@ export default {
             />
           </div>
         </div>
-        <div v-if="showManual" class="row">
+        <div
+          v-if="showManual"
+          class="row"
+        >
           <div class="col span-12">
             <KeyValue
               v-model="vappProperty"

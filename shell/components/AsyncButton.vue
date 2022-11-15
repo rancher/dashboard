@@ -97,6 +97,15 @@ export default Vue.extend({
       default: ASYNC_BUTTON_STATES.ACTION,
     },
 
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'action-button'
+    },
+
     manual: {
       type:    Boolean,
       default: false,
@@ -261,6 +270,7 @@ export default Vue.extend({
     :type="type"
     :disabled="isDisabled"
     :tab-index="tabIndex"
+    :data-testid="componentTestid + '-async-button'"
     @click="clicked"
   >
     <i

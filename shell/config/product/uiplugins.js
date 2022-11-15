@@ -13,5 +13,6 @@ export function init(store) {
     removable:           false,
     showClusterSwitcher: false,
     category:            'configuration',
+    weight:              50,
   });
 }

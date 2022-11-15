@@ -72,7 +72,13 @@ export default {
       @remove="emitRemove"
     >
       <template #columns="props">
-        <Row v-model="value" :mode="mode" :types="remainingTypes(typeValues[props.i])" :type="typeValues[props.i]" @type-change="updateType(props.i, $event)" />
+        <Row
+          v-model="value"
+          :mode="mode"
+          :types="remainingTypes(typeValues[props.i])"
+          :type="typeValues[props.i]"
+          @type-change="updateType(props.i, $event)"
+        />
       </template>
     </ArrayList>
   </div>

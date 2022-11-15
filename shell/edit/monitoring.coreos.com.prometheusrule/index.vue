@@ -178,10 +178,18 @@ export default {
               />
             </div>
           </div>
-          <GroupRules v-model="group.rules" class="mb-20" :mode="mode" />
+          <GroupRules
+            v-model="group.rules"
+            class="mb-20"
+            :mode="mode"
+          />
         </Tab>
       </Tabbed>
-      <Banner v-else color="warning" :label="t('prometheusRule.groups.none')" />
+      <Banner
+        v-else
+        color="warning"
+        :label="t('prometheusRule.groups.none')"
+      />
     </div>
   </CruResource>
 </template>

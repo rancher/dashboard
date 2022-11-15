@@ -19,3 +19,8 @@ assets/fonts
 shell/pkg/import.js
 pkg/rancher-components/
 shell/rancher-components/
+dist/
+coverage/
+build/
+public/
+pkg/**/node_modules

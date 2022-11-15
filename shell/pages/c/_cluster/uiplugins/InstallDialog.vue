@@ -24,6 +24,7 @@ export default {
 
   data() {
     return {
+      currentVersion:         '',
       defaultRegistrySetting: null,
       plugin:                 undefined,
       busy:                   false,
@@ -43,7 +44,16 @@ export default {
         return [];
       }
 
-      return this.plugin.versions.map((version) => {
+      // Don't allow update/rollback to curent version
+      const versions = this.plugin.versions.filter((v) => {
+        if (this.currentVersion) {
+          return v.version !== this.currentVersion;
+        }
+
+        return true;
+      });
+
+      return versions.map((version) => {
         return {
           label: version.version,
           value: version.version,
@@ -65,6 +75,8 @@ export default {
       this.version = plugin.displayVersion;
 
       if (mode === 'update') {
+        this.currentVersion = plugin.displayVersion;
+
         // Update to latest version, so take the first version
         if (plugin.versions.length > 0) {
           this.version = plugin.versions[0].version;
@@ -72,6 +84,8 @@ export default {
       } else if (mode === 'rollback') {
         // Find the newest version once we remove the current version
         const versionNames = plugin.versions.filter(v => v.version !== plugin.displayVersion);
+
+        this.currentVersion = plugin.displayVersion;
 
         if (versionNames.length > 0) {
           this.version = versionNames[0].version;
@@ -206,16 +220,23 @@ export default {
     height="auto"
     :scrollable="true"
   >
-    <div v-if="plugin" class="plugin-install-dialog">
+    <div
+      v-if="plugin"
+      class="plugin-install-dialog"
+    >
       <h4 class="mt-10">
-        {{ t(`plugins.${ mode }.title`, { name: plugin.name }) }}
+        {{ t(`plugins.${ mode }.title`, { name: plugin.label }) }}
       </h4>
       <div class="custom mt-10">
         <div class="dialog-panel">
           <p>
             {{ t(`plugins.${ mode }.prompt`) }}
           </p>
-          <Banner v-if="!plugin.certified" color="warning" :label="t('plugins.install.warnNotCertified')" />
+          <Banner
+            v-if="!plugin.certified"
+            color="warning"
+            :label="t('plugins.install.warnNotCertified')"
+          />
           <LabeledSelect
             v-if="showVersionSelector"
             v-model="version"
@@ -228,7 +249,11 @@ export default {
           </div>
         </div>
         <div class="dialog-buttons">
-          <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">
+          <button
+            :disabled="busy"
+            class="btn role-secondary"
+            @click="closeDialog(false)"
+          >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton
