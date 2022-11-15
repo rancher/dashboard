@@ -231,7 +231,7 @@ export default {
   data() {
     const rows = this.getRows(this.value);
 
-    return { rows };
+    return { rows, testInput: null };
   },
 
   computed: {
@@ -497,6 +497,11 @@ export default {
 </script>
 <template>
   <div class="key-value">
+    <input
+      v-model="testInput"
+      :disabled="isView || !keyEditable"
+      :placeholder="keyPlaceholder"
+    />
     <div v-if="title || $slots.title" class="clearfix">
       <slot name="title">
         <h3>

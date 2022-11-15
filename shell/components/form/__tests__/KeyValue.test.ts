@@ -93,24 +93,27 @@ describe('component: KeyValue', () => {
       directives: { t }
     });
 
-    const keyField = wrapper.find('.key input');
-    const valueField = wrapper.find('.value textarea');
+    jest.useFakeTimers();
+
+    const keyField = wrapper.find('input');
+    const valueField = wrapper.find('textarea');
 
     const newKey = 'Paul';
     const newValue = 'Stamets';
 
-    jest.useFakeTimers();
-
     keyField.setValue(newKey);
     keyField.trigger('blur');
+    keyField.trigger('input');
 
     valueField.setValue(newValue);
     valueField.trigger('blur');
+    valueField.trigger('input');
+
     jest.advanceTimersByTime(10);
     jest.useRealTimers();
 
-    console.log(wrapper.emitted('input'));
-    expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')![0][0]).toBe(1);
+    console.log(keyField.element);
+
+    expect(wrapper.emitted()).toBe(1);
   });
 });
