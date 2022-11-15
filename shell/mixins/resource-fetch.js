@@ -53,11 +53,7 @@ export default {
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
     rows() {
-      console.log('ROWS');
       const inStore = this.$store.getters['currentStore'](this.resource);
-
-      console.log(this.$store.getters[`${ inStore }/all`](this.resource));
-
       return this.$store.getters[`${ inStore }/all`](this.resource);
     },
     loading() {
