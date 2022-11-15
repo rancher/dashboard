@@ -1,13 +1,13 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import { LOGGING } from '@shell/config/types';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListApps',
-  components: { Loading, ResourceTable },
-
-  props: {
+  components: { ResourceTable },
+  mixins:     [ResourceFetch],
+  props:      {
     resource: {
       type:     String,
       required: true,
@@ -17,20 +17,25 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
     await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
-    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
-  },
-
-  data() {
-    return { rows: null };
-  },
+    await this.$fetchType(this.resource);
+  }
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else-if="rows" :schema="schema" :rows="rows" />
+  <ResourceTable
+    :schema="schema"
+    :rows="rows"
+    :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+  />
 </template>

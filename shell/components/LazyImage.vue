@@ -19,15 +19,16 @@ export default {
     },
   },
 
-  mounted() {
-    const $img = $(this.$refs.img);
-
-    if ( this.src ) {
-      $img.attr('src', this.src);
-      this.boundError = this.onError.bind(this);
-
-      $img.on('error', this.boundError);
+  watch: {
+    src(neu, old) {
+      if (neu !== old) {
+        this.loadImage();
+      }
     }
+  },
+
+  mounted() {
+    this.loadImage();
   },
 
   beforeDestroy() {
@@ -39,6 +40,18 @@ export default {
   },
 
   methods: {
+    // Ensure we load the image when the source changes
+    loadImage() {
+      const $img = $(this.$refs.img);
+
+      if ( this.src ) {
+        $img.attr('src', this.src);
+        this.boundError = this.onError.bind(this);
+
+        $img.on('error', this.boundError);
+      }
+    },
+
     onError() {
       const $img = $(this.$refs.img);
 
@@ -51,5 +64,9 @@ export default {
 </script>
 
 <template>
-  <img ref="img" :src="initialSrc" v-bind="$attrs" />
+  <img
+    ref="img"
+    :src="initialSrc"
+    v-bind="$attrs"
+  >
 </template>

@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import IconMessage from '@shell/components/IconMessage.vue';
-import { CATALOG, UI_PLUGIN } from '@shell/config/types';
+import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import Dialog from '@shell/components/Dialog.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -47,17 +47,23 @@ export default {
       }
     }
 
+    this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'system-default-registry'
+    });
+
     this.loading = false;
   },
 
   data() {
     return {
-      loading:                 true,
-      haveCharts:              false,
-      installCharts:           [],
-      errors:                  [],
-      addRepo:                 true,
-      buttonState:             ASYNC_BUTTON_STATES.ACTION,
+      loading:                true,
+      haveCharts:             false,
+      installCharts:          [],
+      errors:                 [],
+      addRepo:                true,
+      buttonState:            ASYNC_BUTTON_STATES.ACTION,
+      defaultRegistrySetting: null,
     };
   },
 
@@ -87,6 +93,15 @@ export default {
         },
         values: {}
       };
+
+      // Pass in the system default registry property if set
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+
+      if (defaultRegistry) {
+        chart.values.global = chart.values.global || {};
+        chart.values.global.cattle = chart.values.global.cattle || {};
+        chart.values.global.cattle.systemDefaultRegistry = defaultRegistry;
+      }
 
       const input = {
         charts:    [chart],
@@ -130,16 +145,9 @@ export default {
 
         await new Promise(resolve => setTimeout(resolve, 5000));
 
-        this.$store.dispatch('management/forgetType', UI_PLUGIN);
-
         this.buttonState = this.errors.length > 0 ? ASYNC_BUTTON_STATES.ERROR : ASYNC_BUTTON_STATES.ACTION;
 
-        this.$router.push(
-          {
-            path:  this.$route.path,
-            force: true,
-          },
-        );
+        this.$emit('done');
       }
     },
 
@@ -209,7 +217,11 @@ export default {
               @click="enable"
             />
           </div>
-          <div v-for="(e, i) in errors" :key="i" class="plugin-setup-error">
+          <div
+            v-for="(e, i) in errors"
+            :key="i"
+            class="plugin-setup-error"
+          >
             {{ e }}
           </div>
         </div>
@@ -224,8 +236,15 @@ export default {
         <p>
           {{ t('plugins.setup.install.prompt') }}
         </p>
-        <div v-if="!hasRancherUIPluginsRepo" class="mt-20">
-          <Checkbox v-model="addRepo" :primary="true" label-key="plugins.setup.install.addRancherRepo" />
+        <div
+          v-if="!hasRancherUIPluginsRepo"
+          class="mt-20"
+        >
+          <Checkbox
+            v-model="addRepo"
+            :primary="true"
+            label-key="plugins.setup.install.addRancherRepo"
+          />
           <div class="checkbox-info">
             {{ t('plugins.setup.install.airgap') }}
           </div>

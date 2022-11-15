@@ -26,6 +26,8 @@ export default {
 
       const plugin = this.plugin;
 
+      this.$emit('update', plugin.name, 'uninstall');
+
       // Delete the CR if this is a developer plugin (there is no Helm App, so need to remove the CRD ourselves)
       if (plugin.uiplugin?.isDeveloper) {
         // Delete the custom resource
@@ -40,13 +42,18 @@ export default {
       });
 
       if (pluginApp) {
-        await pluginApp.remove();
+        try {
+          await pluginApp.remove();
+        } catch (e) {
+          this.$store.dispatch('growl/error', {
+            title:   this.t('plugins.error.generic'),
+            message: e.message ? e.message : e,
+            timeout: 10000
+          }, { root: true });
+        }
 
         await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
       }
-
-      // Unload the plugin code
-      this.$plugin.removePlugin(plugin.name);
 
       this.closeDialog(plugin);
     }
@@ -60,9 +67,12 @@ export default {
     height="auto"
     :scrollable="true"
   >
-    <div v-if="plugin" class="plugin-install-dialog">
+    <div
+      v-if="plugin"
+      class="plugin-install-dialog"
+    >
       <h4 class="mt-10">
-        {{ t('plugins.uninstall.title', { name: plugin.name }) }}
+        {{ t('plugins.uninstall.title', { name: plugin.label }) }}
       </h4>
       <div class="mt-10 dialog-panel">
         <div class="dialog-info">
@@ -71,7 +81,11 @@ export default {
           </p>
         </div>
         <div class="dialog-buttons">
-          <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">
+          <button
+            :disabled="busy"
+            class="btn role-secondary"
+            @click="closeDialog(false)"
+          >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton

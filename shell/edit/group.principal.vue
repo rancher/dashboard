@@ -51,7 +51,12 @@ export default {
       :can-yaml="false"
       @finish="save"
     >
-      <GlobalRoleBindings ref="grb" :group-principal-id="value.id" :mode="mode" @canLogIn="valid = $event" />
+      <GlobalRoleBindings
+        ref="grb"
+        :group-principal-id="value.id"
+        :mode="mode"
+        @canLogIn="valid = $event"
+      />
     </CruResource>
   </div>
 </template>

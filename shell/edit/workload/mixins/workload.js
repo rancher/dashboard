@@ -1,3 +1,4 @@
+import { mapGetters } from 'vuex';
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@shell/utils/object';
 import {
@@ -13,7 +14,7 @@ import {
 } from '@shell/config/types';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { allHash } from '@shell/utils/promise';
+import ResourceManager from '@shell/mixins/resource-manager';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
@@ -29,7 +30,7 @@ import WorkloadPorts from '@shell/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import KeyValue from '@shell/components/form/KeyValue';
 import Tabbed from '@shell/components/Tabbed';
-import { mapGetters } from 'vuex';
+
 import NodeScheduling from '@shell/components/form/NodeScheduling';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import Tolerations from '@shell/components/form/Tolerations';
@@ -94,7 +95,7 @@ export default {
     ContainerMountPaths
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, ResourceManager],
 
   props: {
     value: {
@@ -118,36 +119,11 @@ export default {
   },
 
   async fetch() {
-    const requests = { rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }) };
-    const needed = {
-      configMaps: CONFIG_MAP,
-      nodes:      NODE,
-      services:   SERVICE,
-      pvcs:       PVC,
-      sas:        SERVICE_ACCOUNT,
-      secrets:    SECRET,
-    };
+    await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
 
-    // Only fetch types if the user can see them
-    Object.keys(needed).forEach((key) => {
-      const type = needed[key];
-
-      if (this.$store.getters['cluster/schemaFor'](type)) {
-        requests[key] = this.$store.dispatch('cluster/findAll', { type });
-      }
-    });
-
-    const hash = await allHash(requests);
-
-    this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
-
-    this.allSecrets = hash.secrets || [];
-    this.allConfigMaps = hash.configMaps || [];
-    this.allNodeObjects = hash.nodes || [];
-    this.allNodes = this.allNodeObjects.map(node => node.id);
-    this.allServices = hash.services || [];
-    this.pvcs = hash.pvcs || [];
-    this.sas = hash.sas || [];
+    // don't block UI for these resources
+    this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+    this.servicesOwned = await this.value.getServicesOwned();
   },
 
   data() {
@@ -167,16 +143,21 @@ export default {
           name:            `container-0`,
         }];
 
-        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] } } };
+        const metadata = { ...this.value.metadata };
+
+        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
 
         this.$set(this.value, 'spec', podSpec);
       }
     }
 
+    // EDIT view for POD
+    // Transform it from POD world to workload
     if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
       const podSpec = { ...this.value.spec };
+      const metadata = { ...this.value.metadata };
 
-      this.$set(this.value.spec, 'template', { spec: podSpec });
+      this.$set(this.value.spec, 'template', { spec: podSpec, metadata });
     }
 
     const spec = this.value.spec;
@@ -228,37 +209,81 @@ export default {
     this.selectContainer(container);
 
     return {
-      allConfigMaps:     [],
-      allNodes:          null,
-      allNodeObjects:    [],
-      allSecrets:        [],
-      allServices:       [],
-      name:              this.value?.metadata?.name || null,
-      pvcs:              [],
-      sas:               [],
-      showTabs:          false,
-      pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
+      secondaryResourceData:       {
+        namespace: this.value?.metadata?.namespace || null,
+        data:      {
+          [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
+          [PVC]:             { applyTo: [{ var: 'pvcs' }] },
+          [SERVICE_ACCOUNT]: { applyTo: [{ var: 'namespacedServiceNames' }] },
+          [SECRET]:          {
+            applyTo: [
+              { var: 'namespacedSecrets' },
+              {
+                var:         'imagePullNamespacedSecrets',
+                parsingFunc: (data) => {
+                  return data.filter(secret => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+                }
+              }
+            ]
+          },
+          [NODE]:            {
+            applyTo: [
+              { var: 'allNodeObjects' },
+              {
+                var:         'allNodes',
+                parsingFunc: (data) => {
+                  return data.map(node => node.id);
+                }
+              }
+            ]
+          },
+          [SERVICE]: {
+            applyTo: [
+              { var: 'allServices' },
+              {
+                var:         'headlessServices',
+                parsingFunc: (data) => {
+                  return data.filter(service => service.spec.clusterIP === 'None');
+                }
+              }
+            ]
+          },
+        }
+      },
+      namespacedConfigMaps:        [],
+      allNodes:                    null,
+      allNodeObjects:              [],
+      namespacedSecrets:           [],
+      imagePullNamespacedSecrets:  [],
+      allServices:                 [],
+      headlessServices:            [],
+      name:                        this.value?.metadata?.name || null,
+      pvcs:                        [],
+      namespacedServiceNames:      [],
+      showTabs:                    false,
+      pullPolicyOptions:           ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      servicesOwned:     [],
-      servicesToRemove:  [],
-      portsForServices:  [],
+      servicesOwned:               [],
+      servicesToRemove:            [],
+      portsForServices:            [],
       isInitContainer,
       container,
-      containerChange:   0,
-      tabChange:         0,
-      podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
-      savePvcHookName:   'savePvcHook',
-      tabWeightMap:      TAB_WEIGHT_MAP,
-      fvFormRuleSets:      [{
+      containerChange:             0,
+      tabChange:                   0,
+      podFsGroup:                  podTemplateSpec.securityContext?.fsGroup,
+      savePvcHookName:             'savePvcHook',
+      tabWeightMap:                TAB_WEIGHT_MAP,
+      fvFormRuleSets:              [{
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
       fvReportedValidationPaths: ['spec'],
-
+      isNamespaceNew:            false,
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     tabErrors() {
       return { general: this.fvGetPathErrors(['image'])?.length > 0 };
     },
@@ -326,13 +351,13 @@ export default {
           }
 
           return this.spec.jobTemplate.metadata.labels;
-        } else {
-          if (!this.spec.template.metadata) {
-            this.$set(this.spec.template, 'metadata', { labels: {} });
-          }
-
-          return this.spec.template.metadata.labels;
         }
+
+        if (!this.spec.template.metadata) {
+          this.$set(this.spec.template, 'metadata', { labels: {} });
+        }
+
+        return this.spec.template.metadata.labels;
       },
       set(neu) {
         if (this.isCronJob) {
@@ -351,13 +376,12 @@ export default {
           }
 
           return this.spec.jobTemplate.metadata.annotations;
-        } else {
-          if (!this.spec.template.metadata) {
-            this.$set(this.spec.template, 'metadata', { annotations: {} });
-          }
-
-          return this.spec.template.metadata.annotations;
         }
+        if (!this.spec.template.metadata) {
+          this.$set(this.spec.template, 'metadata', { annotations: {} });
+        }
+
+        return this.spec.template.metadata.annotations;
       },
       set(neu) {
         if (this.isCronJob) {
@@ -467,55 +491,6 @@ export default {
       return this.$store.getters['cluster/schemaFor'](this.type);
     },
 
-    namespacedSecrets() {
-      const namespace = this.value?.metadata?.namespace;
-
-      if (namespace) {
-        return this.allSecrets.filter(
-          secret => secret.metadata.namespace === namespace
-        );
-      } else {
-        return this.allSecrets;
-      }
-    },
-
-    imagePullNamespacedSecrets() {
-      const namespace = this.value?.metadata?.namespace;
-
-      return this.allSecrets.filter(secret => secret.metadata.namespace === namespace && (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
-    },
-
-    namespacedConfigMaps() {
-      const namespace = this.value?.metadata?.namespace;
-
-      if (namespace) {
-        return this.allConfigMaps.filter(
-          configMap => configMap.metadata.namespace === namespace
-        );
-      } else {
-        return this.allConfigMaps;
-      }
-    },
-
-    namespacedServiceNames() {
-      const { namespace } = this.value?.metadata;
-
-      if (namespace) {
-        return this.sas.filter(
-          serviceName => serviceName.metadata.namespace === namespace
-        );
-      } else {
-        return this.sas;
-      }
-    },
-
-    headlessServices() {
-      return this.allServices.filter(
-        service => service.spec.clusterIP === 'None' &&
-          service.metadata.namespace === this.value.metadata.namespace
-      );
-    },
-
     workloadTypes() {
       return omitBy(WORKLOAD_TYPES, (type) => {
         return (
@@ -558,6 +533,25 @@ export default {
   },
 
   watch: {
+    async 'value.metadata.namespace'(neu) {
+      if (this.isNamespaceNew) {
+        // we don't need to re-fetch namespace specific (or non-namespace specific) resources when the namespace hasn't been created yet
+        return;
+      }
+      this.secondaryResourceData.namespace = neu;
+      // Fetch resources that are namespace specific, we don't need to re-fetch non-namespaced resources on namespace change
+      this.resourceManagerFetchSecondaryResources(this.secondaryResourceData, true);
+
+      this.servicesOwned = await this.value.getServicesOwned();
+    },
+
+    isNamespaceNew(neu, old) {
+      if (!old && neu) {
+        // As the namespace is new any resource that's been fetched with a namespace is now invalid
+        this.resourceManagerClearSecondaryResources(this.secondaryResourceData, true);
+      }
+    },
+
     type(neu, old) {
       const template =
         old === WORKLOAD_TYPES.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;
@@ -689,6 +683,7 @@ export default {
         template = this.spec.template;
       }
 
+      // WORKLOADS
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&

@@ -345,7 +345,10 @@ export default {
           {{ t('catalog.charts.header') }}
         </h1>
       </div>
-      <div class="actions-container">
+      <div
+        v-if="getFeaturedCharts.length > 0"
+        class="actions-container"
+      >
         <ButtonGroup
           v-model="chartMode"
           :options="chartOptions"
@@ -353,7 +356,7 @@ export default {
       </div>
     </header>
     <div v-if="showCarousel">
-      <h3>Featured Charts</h3>
+      <h3>{{ t('catalog.charts.featuredCharts') }}</h3>
       <Carousel
         :sliders="getFeaturedCharts"
         @clicked="(row) => selectChart(row)"
@@ -381,7 +384,11 @@ export default {
             :color="repo.color"
           >
             <template #label>
-              <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
+              <span>{{ repo.label }}</span><i
+                v-if="!repo.all"
+                class=" pl-5 icon icon-dot icon-sm"
+                :class="{[repo.color]: true}"
+              />
             </template>
           </Checkbox>
         </template>
@@ -411,15 +418,32 @@ export default {
           :placeholder="t('catalog.charts.search')"
         >
 
-        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-        <AsyncButton class="refresh-btn" mode="refresh" size="sm" @click="refresh" />
+        <button
+          v-shortkey.once="['/']"
+          class="hide"
+          @shortkey="focusSearch()"
+        />
+        <AsyncButton
+          class="refresh-btn"
+          mode="refresh"
+          size="sm"
+          @click="refresh"
+        />
       </div>
     </div>
 
-    <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
+    <Banner
+      v-for="err in loadingErrors"
+      :key="err"
+      color="error"
+      :label="err"
+    />
 
     <div v-if="allCharts.length">
-      <div v-if="filteredCharts.length === 0" style="width: 100%;">
+      <div
+        v-if="filteredCharts.length === 0"
+        style="width: 100%;"
+      >
         <div class="m-50 text-center">
           <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
@@ -433,7 +457,10 @@ export default {
         @clicked="(row) => selectChart(row)"
       />
     </div>
-    <div v-else class="m-50 text-center">
+    <div
+      v-else
+      class="m-50 text-center"
+    >
       <h1>{{ t('catalog.charts.noCharts') }}</h1>
     </div>
   </div>

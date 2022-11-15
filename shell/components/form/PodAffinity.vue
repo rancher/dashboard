@@ -40,6 +40,10 @@ export default {
       type:    Array,
       default: null
     },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -218,7 +222,11 @@ export default {
 </script>
 
 <template>
-  <div :style="{'width':'100%'}" class="row" @input="queueUpdate">
+  <div
+    :style="{'width':'100%'}"
+    class="row"
+    @input="queueUpdate"
+  >
     <div class="col span-12">
       <ArrayListGrouped
         v-model="allSelectorTerms"
@@ -260,8 +268,11 @@ export default {
               @input="changeNamespaceMode(props.row.value, props.i)"
             />
           </div>
-          <div class="spacer"></div>
-          <div v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')" class="row mb-20">
+          <div class="spacer" />
+          <div
+            v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')"
+            class="row mb-20"
+          >
             <LabeledSelect
               v-if="hasNamespaces"
               v-model="props.row.value.namespaces"
@@ -290,7 +301,7 @@ export default {
             :show-remove="false"
             @input="e=>set(props.row.value, 'labelSelector.matchExpressions', e)"
           />
-          <div class="spacer"></div>
+          <div class="spacer" />
           <div class="row">
             <div class="col span-12">
               <LabeledSelect
@@ -305,6 +316,7 @@ export default {
                 :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
                 :options="existingNodeLabels"
                 :disabled="mode==='view'"
+                :loading="loading"
                 @input="update"
               />
               <LabeledInput
@@ -319,7 +331,7 @@ export default {
             </div>
           </div>
 
-          <div class="spacer"></div>
+          <div class="spacer" />
           <div class="row">
             <div class="col span-6">
               <LabeledInput

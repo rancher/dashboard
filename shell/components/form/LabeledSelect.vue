@@ -240,10 +240,16 @@ export default {
       :style="{ border: 'none' }"
     >
       <label v-if="hasLabel">
-        <t v-if="labelKey" :k="labelKey" />
+        <t
+          v-if="labelKey"
+          :k="labelKey"
+        />
         <template v-else-if="label">{{ label }}</template>
 
-        <span v-if="requiredField" class="required">*</span>
+        <span
+          v-if="requiredField"
+          class="required"
+        >*</span>
       </label>
     </div>
     <v-select
@@ -283,24 +289,40 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr />
+          <hr>
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">
             {{ option.label }}
           </div>
         </template>
-        <div v-else @mousedown="(e) => onClickOption(option, e)">
+        <div
+          v-else
+          @mousedown="(e) => onClickOption(option, e)"
+        >
           {{ getOptionLabel(option) }}
-          <i v-if="option.error" class="icon icon-warning pull-right" style="font-size: 20px;" />
+          <i
+            v-if="option.error"
+            class="icon icon-warning pull-right"
+            style="font-size: 20px;"
+          />
         </div>
       </template>
       <!-- Pass down templates provided by the caller -->
-      <template v-for="(_, slot) of $scopedSlots" #[slot]="scope">
-        <slot :name="slot" v-bind="scope" />
+      <template
+        v-for="(_, slot) of $scopedSlots"
+        #[slot]="scope"
+      >
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
       </template>
     </v-select>
-    <i v-if="loading" class="icon icon-spinner icon-spin icon-lg" />
+    <i
+      v-if="loading"
+      class="icon icon-spinner icon-spin icon-lg"
+    />
     <LabeledTooltip
       v-if="tooltip && !focused"
       :hover="hoverTooltip"

@@ -144,13 +144,14 @@ jobs:
           yarn coverage
           ls coverage
 
+      # Job is flaky now and then, but we do not want to interrupt the development flow
       - name: Upload unit test coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unit
           files: ./coverage/coverage-unit.json
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
       - name: Upload e2e test coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -158,7 +159,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: e2e
           files: ./coverage/coverage-e2e.json
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
       - name: Upload merged coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -166,4 +167,4 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: merged
           files: ./coverage/coverage.json
-          fail_ci_if_error: true
+          fail_ci_if_error: false

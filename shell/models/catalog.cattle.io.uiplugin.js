@@ -31,4 +31,8 @@ export default class UIPlugin extends SteveModel {
   get isDeveloper() {
     return this.pluginMetadata?.developer === 'true';
   }
+
+  get plugin() {
+    return this.spec?.plugin || {};
+  }
 }

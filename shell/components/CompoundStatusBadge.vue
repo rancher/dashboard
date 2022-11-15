@@ -28,7 +28,10 @@ export default {
     class="compound-cluster-badge"
     :class="`bg-${badgeClass}`"
   >
-    <i v-if="icon" :class="`icon-${icon}`" />
+    <i
+      v-if="icon"
+      :class="`icon-${icon}`"
+    />
     <span>{{ value }}</span>
   </div>
 </template>

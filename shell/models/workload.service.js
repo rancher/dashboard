@@ -123,6 +123,11 @@ export default class WorkloadService extends SteveModel {
 
       return containers;
     }
+
+    if ( this.spec.containers ) {
+      return this.spec.containers;
+    }
+
     const { spec:{ template:{ spec:{ containers } } } } = this;
 
     return containers;
@@ -135,6 +140,11 @@ export default class WorkloadService extends SteveModel {
 
       return initContainers;
     }
+
+    if (this.spec.initContainers) {
+      return this.spec.initContainers;
+    }
+
     const { spec:{ template:{ spec:{ initContainers } } } } = this;
 
     return initContainers;

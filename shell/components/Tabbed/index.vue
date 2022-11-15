@@ -40,6 +40,12 @@ export default {
       default: false,
     },
 
+    // Remove padding and box-shadow
+    flat: {
+      type:    Boolean,
+      default: false,
+    },
+
     tabsOnly: {
       type:    Boolean,
       default: false,
@@ -238,26 +244,57 @@ export default {
           @click.prevent="select(tab.name, $event)"
         >
           <span>{{ tab.labelDisplay }}</span>
-          <span v-if="tab.badge" class="tab-badge">{{ tab.badge }}</span>
-          <i v-if="hasIcon(tab)" v-tooltip="t('validation.tab')" class="conditions-alert-icon icon-error icon-lg" />
+          <span
+            v-if="tab.badge"
+            class="tab-badge"
+          >{{ tab.badge }}</span>
+          <i
+            v-if="hasIcon(tab)"
+            v-tooltip="t('validation.tab')"
+            class="conditions-alert-icon icon-error icon-lg"
+          />
         </a>
       </li>
-      <li v-if="sideTabs && !sortedTabs.length" class="tab disabled">
-        <a href="#" @click.prevent>(None)</a>
+      <li
+        v-if="sideTabs && !sortedTabs.length"
+        class="tab disabled"
+      >
+        <a
+          href="#"
+          @click.prevent
+        >(None)</a>
       </li>
-      <ul v-if="sideTabs && showTabsAddRemove" class="tab-list-footer">
+      <ul
+        v-if="sideTabs && showTabsAddRemove"
+        class="tab-list-footer"
+      >
         <li>
-          <button type="button" class="btn bg-transparent" @click="tabAddClicked">
+          <button
+            type="button"
+            class="btn bg-transparent"
+            @click="tabAddClicked"
+          >
             <i class="icon icon-plus icon-lg" />
           </button>
-          <button type="button" class="btn bg-transparent" :disabled="!sortedTabs.length" @click="tabRemoveClicked">
+          <button
+            type="button"
+            class="btn bg-transparent"
+            :disabled="!sortedTabs.length"
+            @click="tabRemoveClicked"
+          >
             <i class="icon icon-minus icon-lg" />
           </button>
         </li>
       </ul>
       <slot name="tab-row-extras" />
     </ul>
-    <div :class="{ 'tab-container': !!tabs.length || !!sideTabs, 'no-content': noContent }">
+    <div
+      :class="{
+        'tab-container': !!tabs.length || !!sideTabs,
+        'no-content': noContent,
+        'tab-container--flat': !!flat,
+      }"
+    >
       <slot />
     </div>
   </div>
@@ -350,6 +387,15 @@ export default {
   &.no-content {
     padding: 0 0 3px 0;
   }
+
+  // Example case: Tabbed component within a tabbed component
+  &--flat {
+    padding: 0;
+
+    .side-tabs {
+      box-shadow: unset;
+    }
+  }
 }
 
 .tabs-only {
@@ -373,11 +419,6 @@ export default {
 
   .tab-container {
     padding: 20px;
-  }
-
-  // Tabbed component within a tabbed component
-  .tab-container & {
-    box-shadow: unset;
   }
 
   & .tabs {
@@ -451,7 +492,9 @@ export default {
     }
   }
 
-  & .tab-container {
+  &
+
+  .tab-container {
     width: calc(100% - #{$sideways-tabs-width});
     flex-grow: 1;
     background-color: var(--body-bg);

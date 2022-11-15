@@ -187,7 +187,13 @@ export default {
   <div>
     <Loading v-if="$fetchState.pending" />
 
-    <CruResource :validation-passed="validationPassed" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
+    <CruResource
+      :validation-passed="validationPassed"
+      :done-route="doneRoute"
+      :resource="value"
+      :mode="mode"
+      @finish="save"
+    >
       <template>
         <div>
           <div class="row mb-10">
@@ -203,9 +209,16 @@ export default {
             </div>
           </div>
           <template v-if="storageSource === 'configureS3'">
-            <S3 v-model="s3" :mode="mode" :secrets="allSecrets" />
+            <S3
+              v-model="s3"
+              :mode="mode"
+              :secrets="allSecrets"
+            />
           </template>
-          <div v-else-if="storageSource==='useBackup'" class="row mb-10">
+          <div
+            v-else-if="storageSource==='useBackup'"
+            class="row mb-10"
+          >
             <div class="col span-6">
               <LabeledSelect
                 :disabled="!availableBackups.length"
@@ -219,12 +232,21 @@ export default {
             </div>
           </div>
         </div>
-        <div class="spacer"></div>
+        <div class="spacer" />
 
         <div>
-          <div :style="{'align-items':'center'}" class="row mb-10">
+          <div
+            :style="{'align-items':'center'}"
+            class="row mb-10"
+          >
             <div class="col span-6">
-              <LabeledInput v-model="value.spec.backupFilename" :spellcheck="false" required :mode="mode" :label="t('backupRestoreOperator.backupFilename')" />
+              <LabeledInput
+                v-model="value.spec.backupFilename"
+                :spellcheck="false"
+                required
+                :mode="mode"
+                :label="t('backupRestoreOperator.backupFilename')"
+              />
             </div>
             <div class="col span-6">
               <LabeledSelect
@@ -239,18 +261,38 @@ export default {
               />
             </div>
           </div>
-          <div :style="{'align-items':'center'}" class="row">
+          <div
+            :style="{'align-items':'center'}"
+            class="row"
+          >
             <div class="col span-6">
-              <Checkbox v-model="value.spec.prune" class="mb-5" :label="t('backupRestoreOperator.prune.label')" :mode="mode">
+              <Checkbox
+                v-model="value.spec.prune"
+                class="mb-5"
+                :label="t('backupRestoreOperator.prune.label')"
+                :mode="mode"
+              >
                 <template #label>
-                  <span v-tooltip="t('backupRestoreOperator.prune.tip')" class="text-label">
+                  <span
+                    v-tooltip="t('backupRestoreOperator.prune.tip')"
+                    class="text-label"
+                  >
                     {{ t('backupRestoreOperator.prune.label') }} <i class="icon icon-info" />
                   </span>
                 </template>
               </Checkbox>
-              <UnitInput v-if="value.spec.prune" v-model="value.spec.deleteTimeoutSeconds" :suffix="t('suffix.seconds', {count: value.spec.deleteTimeoutSeconds})" :mode="mode" :label="t('backupRestoreOperator.deleteTimeout.label')">
+              <UnitInput
+                v-if="value.spec.prune"
+                v-model="value.spec.deleteTimeoutSeconds"
+                :suffix="t('suffix.seconds', {count: value.spec.deleteTimeoutSeconds})"
+                :mode="mode"
+                :label="t('backupRestoreOperator.deleteTimeout.label')"
+              >
                 <template #label>
-                  <label v-tooltip="t('backupRestoreOperator.deleteTimeout.tip')" class="has-tooltip">
+                  <label
+                    v-tooltip="t('backupRestoreOperator.deleteTimeout.tip')"
+                    class="has-tooltip"
+                  >
                     {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />
                   </label>
                 </template>

@@ -36,9 +36,19 @@ export default {
 </script>
 
 <template>
-  <div v-if="loading" class="loading-indicator">
-    <div v-if="showMessage" class="overlay" :class="{ 'overlay-content-mode' : mode === 'content', 'overlay-main-mode' : mode === 'main' }">
-      <t k="generic.loading" :raw="true" />
+  <div
+    v-if="loading"
+    class="loading-indicator"
+  >
+    <div
+      v-if="showMessage"
+      class="overlay"
+      :class="{ 'overlay-content-mode' : mode === 'content', 'overlay-main-mode' : mode === 'main' }"
+    >
+      <t
+        k="generic.loading"
+        :raw="true"
+      />
     </div>
   </div>
   <div v-else>

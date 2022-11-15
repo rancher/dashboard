@@ -679,6 +679,10 @@ export default class ProvCluster extends SteveModel {
   }
 
   get supportsWindows() {
+    if (this.isK3s || this.isImportedK3s) {
+      return false;
+    }
+
     if ( this.isRke1 ) {
       return this.mgmt?.spec?.windowsPreferedCluster || false;
     }

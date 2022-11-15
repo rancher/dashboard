@@ -28,6 +28,16 @@ export default {
       type:     Object,
       required: true,
     },
+
+    loading: {
+      type:     Boolean,
+      required: false,
+    },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   computed: {
@@ -89,13 +99,15 @@ export default {
 
 <template>
   <div>
-    <FleetIntro v-if="noRows" />
+    <FleetIntro v-if="noRows && !loading" />
     <ResourceTable
       v-if="!noRows"
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
       :rows="rows"
+      :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       key-field="_key"
       v-on="$listeners"
     >
@@ -109,15 +121,28 @@ export default {
         />
         <template v-if="row.commitDisplay">
           <div class="text-muted">
-            <Shortened long-value-key="status.commit" :row="row" :value="row.commitDisplay" />
+            <Shortened
+              long-value-key="status.commit"
+              :row="row"
+              :value="row.commitDisplay"
+            />
           </div>
         </template>
       </template>
 
       <template #cell:clustersReady="{row}">
-        <span v-if="!row.clusterInfo" class="text-muted">&mdash;</span>
-        <span v-else-if="row.clusterInfo.unready" class="text-warning">{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
-        <span v-else class="cluster-count-info">
+        <span
+          v-if="!row.clusterInfo"
+          class="text-muted"
+        >&mdash;</span>
+        <span
+          v-else-if="row.clusterInfo.unready"
+          class="text-warning"
+        >{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
+        <span
+          v-else
+          class="cluster-count-info"
+        >
           {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
           <i
             v-if="!row.clusterInfo.total"

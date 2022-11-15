@@ -26,6 +26,7 @@ import {
   NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
   splitNamespaceFilterKey,
 } from '@shell/utils/namespace-filter';
+import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -44,6 +45,7 @@ export const plugins = [
     namespace:      'cluster',
     baseUrl:        '', // URL is dynamically set for the selected cluster
     supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
+    supportsGc:     true, // Enable garbage collection for this store only
   }),
   Steve({
     namespace:      'rancher',
@@ -455,7 +457,9 @@ export const getters = {
     const cluster = getters['currentCluster'];
 
     return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
-  }
+  },
+
+  ...gcGetters
 };
 
 export const mutations = {
@@ -539,7 +543,8 @@ export const mutations = {
 
   setIsSingleProduct(state, isSingleProduct) {
     state.isSingleProduct = isSingleProduct;
-  }
+  },
+
 };
 
 export const actions = {
@@ -861,6 +866,8 @@ export const actions = {
   async onLogout(store) {
     const { dispatch, commit, state } = store;
 
+    store.dispatch('gcStopIntervals');
+
     Object.values(this.$plugin.getPlugins()).forEach((p) => {
       if (p.onLogOut) {
         p.onLogOut(store);
@@ -975,5 +982,7 @@ export const actions = {
 
   setIsSingleProduct({ commit }, isSingleProduct) {
     commit(`setIsSingleProduct`, isSingleProduct);
-  }
+  },
+
+  ...gcActions
 };

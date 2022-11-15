@@ -18,6 +18,13 @@ export default {
   components: { ResourceTable },
   mixins:     [ResourceFetch],
 
+  props: {
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
+  },
+
   async fetch() {
     try {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);
@@ -76,7 +83,7 @@ export default {
       return schema;
     },
 
-    rows() {
+    filteredRows() {
       const out = [];
 
       for ( const typeRows of this.resources ) {
@@ -85,7 +92,7 @@ export default {
         }
 
         for ( const row of typeRows ) {
-          if (!this.allTypes || row.showAsWorkload) {
+          if (!this.allTypes || !row.ownedByWorkload) {
             out.push(row);
           }
         }
@@ -151,5 +158,11 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="rows" :overflow-y="true" />
+  <ResourceTable
+    :loading="$fetchState.pending"
+    :schema="schema"
+    :rows="filteredRows"
+    :overflow-y="true"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+  />
 </template>

@@ -37,19 +37,35 @@ export default {
 
 <template>
   <div>
-    <Banner color="success clearfix" class="banner">
+    <Banner
+      color="success clearfix"
+      class="banner"
+    >
       <div class="text">
         {{ t('authConfig.stateBanner.enabled', tArgs) }}
       </div>
       <slot name="actions" />
-      <button type="button" class="btn-sm role-primary" @click="edit">
+      <button
+        type="button"
+        class="btn-sm role-primary"
+        @click="edit"
+      >
         {{ t('action.edit') }}
       </button>
-      <AsyncButton class="ml-10" mode="disable" size="sm" action-color="bg-error" @click="disable" />
+      <AsyncButton
+        class="ml-10"
+        mode="disable"
+        size="sm"
+        action-color="bg-error"
+        @click="disable"
+      />
     </Banner>
 
-    <table v-if="!!$slots.rows" class="values">
-      <slot name="rows"></slot>
+    <table
+      v-if="!!$slots.rows"
+      class="values"
+    >
+      <slot name="rows" />
     </table>
   </div>
 </template>

@@ -1,33 +1,36 @@
 <script>
 import { FLEET } from '@shell/config/types';
 import { Banner } from '@components/Banner';
-import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
 import { isHarvesterCluster } from '@shell/utils/cluster';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   name:       'ListClusterGroup',
-  components: {
-    Banner, Loading, ResourceTable
-  },
-
-  props: {
+  components: { Banner, ResourceTable },
+  mixins:     [ResourceFetch],
+  props:      {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
     },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
-    this.allTokens = await this.$store.dispatch('management/findAll', { type: FLEET.TOKEN });
+    await this.$fetchType(FLEET.TOKEN);
     this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
   },
 
   data() {
-    return {
-      allFleet:  null,
-      allTokens: null,
-    };
+    return { allFleet: [] };
   },
 
   computed: {
@@ -45,7 +48,7 @@ export default {
     tokens() {
       const harvester = this.harvesterClusters;
 
-      return this.allTokens.filter((token) => {
+      return this.rows.filter((token) => {
         const refs = token.metadata?.ownerReferences || [];
 
         for (const owner of refs) {
@@ -59,23 +62,32 @@ export default {
     },
 
     hidden() {
-      return this.allTokens.length - this.tokens.length;
+      return this.rows.length - this.tokens.length;
     }
-  }
+  },
+  // override with relevant info for the loading indicator since this doesn't use it's own masthead
+  $loadingResources() {
+    return {
+      loadResources:     [FLEET.TOKEN],
+      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
+    };
+  },
 };
 </script>
 
 <template>
   <div>
-    <Loading v-if="$fetchState.pending" />
-    <div v-else>
-      <Banner v-if="hidden" color="info" :label="t('fleet.tokens.harvester', {count: hidden} )" />
-      <ResourceTable
-        v-bind="$attrs"
-        :schema="schema"
-        :rows="tokens"
-      >
-      </ResourceTable>
-    </div>
+    <Banner
+      v-if="hidden"
+      color="info"
+      :label="t('fleet.tokens.harvester', {count: hidden} )"
+    />
+    <ResourceTable
+      v-bind="$attrs"
+      :schema="schema"
+      :rows="tokens"
+      :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    />
   </div>
 </template>

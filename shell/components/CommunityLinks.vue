@@ -1,10 +1,11 @@
 <script>
-import { options } from '@shell/config/footer';
 import SimpleBox from '@shell/components/SimpleBox';
 import Closeable from '@shell/mixins/closeable';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { mapGetters } from 'vuex';
+import { isRancherPrime } from '@shell/config/version';
+import { fetchLinks } from '@shell/config/home-links';
 
 export default {
   name: 'CommunityLinks',
@@ -18,36 +19,23 @@ export default {
         return {};
       },
     },
+    isSupportPage: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   mixins: [Closeable],
 
   async fetch() {
-    // If user already have custom links and uiIssueSetting Doc URL set
-    // This should already be in the uiCustomLinks
-    try {
-      this.uiCustomLinks = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
-    } catch (err) {
-
-    }
-
-    // Fallback:
-    // NB: this.uiIssueSetting is deprecated now.
-    if (!this.uiCustomLinks) {
-      try {
-        this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
-      } catch (err) {
-
-      }
-    }
+    this.links = await fetchLinks(this.$store, this.hasSupport, this.isSupportPage, str => this.t(str));
   },
 
   data() {
-    return { uiCustomLinks: null, uiIssuesSetting: null };
+    return { links: {} };
   },
 
   computed: {
-
     ...mapGetters('i18n', [
       'selectedLocaleLabel'
     ]),
@@ -56,38 +44,41 @@ export default {
       return !!Object.keys(this.options).length || !!Object.keys(this.$slots).length;
     },
 
-    options() {
-      // Link options are provided
-      if (Object.keys(this.linkOptions).length > 0) {
-        return this.linkOptions;
-      }
-
-      // Custom links set from settings
-      if (!!this.uiCustomLinks?.value) {
-        try {
-          const customLinks = JSON.parse(this.uiCustomLinks.value);
-
-          if (Array.isArray(customLinks)) {
-            return customLinks.reduce((prev, curr) => {
-              prev[curr.key] = curr.value;
-
-              return prev;
-            }, {});
-          }
-        } catch (e) {
-          console.error('Could not parse custom links setting', e); // eslint-disable-line no-console
-        }
-      }
-
-      // Fallback
-      return options(false, this.uiIssuesSetting?.value);
+    hasSupport() {
+      return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
     },
+
+    options() {
+      // Use linkOptions if provided - used by Harvester
+      if (this.linkOptions && Object.keys(this.linkOptions).length) {
+        const options = [];
+
+        Object.keys(this.linkOptions).forEach((key) => {
+          options.push({
+            key,
+            label: this.t(key),
+            value: this.linkOptions[key]
+          });
+        });
+
+        return options;
+      }
+
+      // Combine the links
+      const all = [];
+
+      if (this.links.custom) {
+        all.push(...this.links.custom);
+      }
+
+      if (this.links.defaults) {
+        all.push(...this.links.defaults.filter(link => link.enabled));
+      }
+
+      return all;
+    }
   },
   methods: {
-    getLabel(label) {
-      return this.$store.getters['i18n/withFallback'](`customLinks.defaults.${ label }`, null, label);
-    },
-
     show() {
       this.$modal.show('wechat-modal');
     },
@@ -100,21 +91,42 @@ export default {
 
 <template>
   <div v-if="hasOptions">
-    <SimpleBox :pref="pref" :pref-key="prefKey">
+    <SimpleBox
+      :pref="pref"
+      :pref-key="prefKey"
+    >
       <template #title>
         <h2>
           {{ t('customLinks.displayTitle') }}
         </h2>
       </template>
-      <div v-for="(value, name) in options" :key="name" class="support-link">
-        <n-link v-if="value.startsWith('/') " :to="value">
-          {{ getLabel(name) }}
+      <div
+        v-for="link in options"
+        :key="link.label"
+        class="support-link"
+      >
+        <n-link
+          v-if="link.value.startsWith('/') "
+          :to="link.value"
+        >
+          {{ link.label }}
         </n-link>
-        <a v-else :href="value" rel="noopener noreferrer nofollow" target="_blank"> {{ getLabel(name) }} </a>
+        <a
+          v-else
+          :href="link.value"
+          rel="noopener noreferrer nofollow"
+          target="_blank"
+        > {{ link.label }} </a>
       </div>
       <slot />
-      <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
-        <a class="link" @click="show">
+      <div
+        v-if="selectedLocaleLabel === t('locale.zh-hans')"
+        class="support-link"
+      >
+        <a
+          class="link"
+          @click="show"
+        >
           {{ t('footer.wechat.title') }}
         </a>
       </div>
@@ -126,10 +138,12 @@ export default {
     >
       <div class="wechat-modal">
         <h1>{{ t('footer.wechat.modalText') }}</h1>
-        <div class="qr-img">
-        </div>
+        <div class="qr-img" />
         <div>
-          <button class="btn role-primary" @click="close">
+          <button
+            class="btn role-primary"
+            @click="close"
+          >
             {{ t('generic.close') }}
           </button>
         </div>

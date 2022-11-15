@@ -55,6 +55,9 @@ export default {
         :label="stateDisplay"
       />
     </div>
-    <BadgeState v-else :value="row" />
+    <BadgeState
+      v-else
+      :value="row"
+    />
   </div>
 </template>

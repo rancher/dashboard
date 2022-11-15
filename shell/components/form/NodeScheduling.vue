@@ -31,7 +31,11 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    }
+    },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -177,13 +181,18 @@ export default {
             :options="nodes || []"
             :mode="mode"
             :multiple="false"
+            :loading="loading"
             @input="update"
           />
         </div>
       </div>
     </template>
     <template v-else-if="selectNode === 'affinity'">
-      <NodeAffinity v-model="nodeAffinity" :mode="mode" @input="update" />
+      <NodeAffinity
+        v-model="nodeAffinity"
+        :mode="mode"
+        @input="update"
+      />
     </template>
   </div>
 </template>

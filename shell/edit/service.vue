@@ -410,7 +410,10 @@ export default {
         :label="t('servicesPage.ips.label')"
         :tooltip="t('servicesPage.ips.external.protip')"
       >
-        <div v-if="hasClusterIp" class="row mb-20">
+        <div
+          v-if="hasClusterIp"
+          class="row mb-20"
+        >
           <div class="col span-6">
             <LabeledInput
               v-model="value.spec.clusterIP"
@@ -424,7 +427,10 @@ export default {
             />
           </div>
         </div>
-        <div v-if="checkTypeIs('LoadBalancer')" class="row mb-20">
+        <div
+          v-if="checkTypeIs('LoadBalancer')"
+          class="row mb-20"
+        >
           <div class="col span-6">
             <LabeledInput
               v-model="value.spec.loadBalancerIP"
@@ -455,7 +461,7 @@ export default {
       <Tab
         v-if="showHarvesterAddOnConfig"
         name="add-on-config"
-        :label="t('harvester.service.title')"
+        :label="t('servicesPage.harvester.title')"
         :weight="-1"
       >
         <HarvesterServiceAddOnConfig
@@ -481,7 +487,10 @@ export default {
               :mode="mode"
             />
           </div>
-          <div v-if="showAffinityTimeout" class="col span-6">
+          <div
+            v-if="showAffinityTimeout"
+            class="col span-6"
+          >
             <UnitInput
               v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
               :suffix="

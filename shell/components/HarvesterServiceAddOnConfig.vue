@@ -100,7 +100,7 @@ export default {
       const errors = [];
 
       if (this.healthCheckEnabled && !this.healthcheckPort) {
-        errors.push(this.t('validation.required', { key: this.t('harvester.service.healthCheckPort.label') }, true));
+        errors.push(this.t('validation.required', { key: this.t('servicesPage.harvester.healthCheckPort.label') }, true));
       }
 
       if (errors.length > 0) {
@@ -131,7 +131,7 @@ export default {
           v-model="ipam"
           :mode="mode"
           :options="ipamOptions"
-          :label="t('harvester.service.ipam.label')"
+          :label="t('servicesPage.harvester.ipam.label')"
           :disabled="mode === 'edit'"
         />
       </div>
@@ -143,7 +143,7 @@ export default {
           v-model="healthCheckEnabled"
           :mode="mode"
           name="healthCheckEnabled"
-          :label="t('harvester.service.healthCheckEnabled.label')"
+          :label="t('servicesPage.harvester.healthCheckEnabled.label')"
           :labels="[t('generic.disabled'),t('generic.enabled')]"
           :options="[false, true]"
         />
@@ -151,13 +151,16 @@ export default {
     </div>
     <div v-if="healthCheckEnabled">
       <div class="row mt-10">
-        <div v-if="healthCheckEnabled" class="col span-6">
+        <div
+          v-if="healthCheckEnabled"
+          class="col span-6"
+        >
           <LabeledSelect
             v-model="healthcheckPort"
             :mode="mode"
             :options="portOptions"
             required
-            :label="t('harvester.service.healthCheckPort.label')"
+            :label="t('servicesPage.harvester.healthCheckPort.label')"
           />
         </div>
         <div class="col span-6">
@@ -165,8 +168,8 @@ export default {
             v-model="healthCheckSuccessThreshold"
             :mode="mode"
             type="number"
-            :label="t('harvester.service.healthCheckSuccessThreshold.label')"
-            :tooltip="t('harvester.service.healthCheckSuccessThreshold.description')"
+            :label="t('servicesPage.harvester.healthCheckSuccessThreshold.label')"
+            :tooltip="t('servicesPage.harvester.healthCheckSuccessThreshold.description')"
           />
         </div>
       </div>
@@ -176,8 +179,8 @@ export default {
             v-model="healthCheckFailureThreshold"
             :mode="mode"
             type="number"
-            :label="t('harvester.service.healthCheckFailureThreshold.label')"
-            :tooltip="t('harvester.service.healthCheckFailureThreshold.description')"
+            :label="t('servicesPage.harvester.healthCheckFailureThreshold.label')"
+            :tooltip="t('servicesPage.harvester.healthCheckFailureThreshold.description')"
           />
         </div>
         <div class="col span-6">
@@ -185,7 +188,7 @@ export default {
             v-model="healthCheckPeriod"
             :mode="mode"
             type="number"
-            :label="t('harvester.service.healthCheckPeriod.label')"
+            :label="t('servicesPage.harvester.healthCheckPeriod.label')"
           />
         </div>
       </div>
@@ -195,7 +198,7 @@ export default {
             v-model="healthCheckTimeout"
             :mode="mode"
             type="number"
-            :label="t('harvester.service.healthCheckTimeout.label')"
+            :label="t('servicesPage.harvester.healthCheckTimeout.label')"
           />
         </div>
       </div>

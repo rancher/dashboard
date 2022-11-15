@@ -66,8 +66,18 @@ export default {
         <ActionMenu />
         <PromptRemove />
         <AssignTo />
-        <button v-if="themeShortcut" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
-        <button v-if="noLocaleShortcut" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
+        <button
+          v-if="themeShortcut"
+          v-shortkey.once="['shift','t']"
+          class="hide"
+          @shortkey="toggleTheme()"
+        />
+        <button
+          v-if="noLocaleShortcut"
+          v-shortkey.once="['shift','l']"
+          class="hide"
+          @shortkey="toggleNoneLocale()"
+        />
       </main>
     </div>
 

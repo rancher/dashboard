@@ -211,12 +211,23 @@ export default {
     height="auto"
     :scrollable="true"
   >
-    <Card v-if="loaded" class="prompt-restore" :show-highlight-border="false">
-      <h4 slot="title" class="text-default-text" v-html="t('promptRestore.title', null, true)" />
+    <Card
+      v-if="loaded"
+      class="prompt-restore"
+      :show-highlight-border="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text"
+        v-html="t('promptRestore.title', null, true)"
+      />
 
-      <div slot="body" class="pl-10 pr-10">
+      <div
+        slot="body"
+        class="pl-10 pr-10"
+      >
         <form>
-          <h3 v-t="'promptRestore.name'"></h3>
+          <h3 v-t="'promptRestore.name'" />
           <div v-if="!isCluster">
             {{ snapshot.nameDisplay }}
           </div>
@@ -231,10 +242,13 @@ export default {
 
           <div class="spacer" />
 
-          <h3 v-t="'promptRestore.date'"></h3>
+          <h3 v-t="'promptRestore.date'" />
           <div>
             <p>
-              <Date v-if="snapshot" :value="snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp" />
+              <Date
+                v-if="snapshot"
+                :value="snapshot.createdAt || snapshot.created || snapshot.metadata.creationTimestamp"
+              />
             </p>
           </div>
           <div class="spacer" />
@@ -248,8 +262,14 @@ export default {
         </form>
       </div>
 
-      <div slot="actions" class="dialog-actions">
-        <button class="btn role-secondary" @click="close">
+      <div
+        slot="actions"
+        class="dialog-actions"
+      >
+        <button
+          class="btn role-secondary"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
 
@@ -259,7 +279,12 @@ export default {
           @click="apply"
         />
 
-        <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
+          color="error"
+          :label="err"
+        />
       </div>
     </Card>
   </modal>

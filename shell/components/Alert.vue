@@ -47,5 +47,9 @@ export default {
 </script>
 
 <template>
-  <BadgeState :label="message" :color="color" :icon="icon" />
+  <BadgeState
+    :label="message"
+    :color="color"
+    :icon="icon"
+  />
 </template>

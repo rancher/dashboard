@@ -50,5 +50,8 @@ export default {
 </script>
 
 <template>
-  <EmberPage v-if="src" :src="src" />
+  <EmberPage
+    v-if="src"
+    :src="src"
+  />
 </template>

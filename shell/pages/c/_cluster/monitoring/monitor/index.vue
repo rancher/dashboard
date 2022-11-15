@@ -53,19 +53,37 @@ export default {
     <div class="row header mb-40">
       <h1>  {{ t('monitoring.monitors') }}</h1>
       <div>
-        <button class="btn btn-lg role-primary float right" @click="$router.push(createRoute)">
+        <button
+          class="btn btn-lg role-primary float right"
+          @click="$router.push(createRoute)"
+        >
           {{ t('resourceList.head.createFromYaml') }}
         </button>
       </div>
     </div>
-    <Tabbed ref="tabs" :default-tab="initTab">
-      <Tab :name="podMonitorSchema.id" :label="$store.getters['type-map/labelFor'](podMonitorSchema, 2)">
+    <Tabbed
+      ref="tabs"
+      :default-tab="initTab"
+    >
+      <Tab
+        :name="podMonitorSchema.id"
+        :label="$store.getters['type-map/labelFor'](podMonitorSchema, 2)"
+      >
         <TypeDescription :resource="podMonitorSchema.id" />
-        <ResourceTable :schema="podMonitorSchema" :rows="podMonitors" />
+        <ResourceTable
+          :schema="podMonitorSchema"
+          :rows="podMonitors"
+        />
       </Tab>
-      <Tab :name="serviceMonitorSchema.id" :label="$store.getters['type-map/labelFor'](serviceMonitorSchema, 2)">
+      <Tab
+        :name="serviceMonitorSchema.id"
+        :label="$store.getters['type-map/labelFor'](serviceMonitorSchema, 2)"
+      >
         <TypeDescription :resource="serviceMonitorSchema.id" />
-        <ResourceTable :schema="serviceMonitorSchema" :rows="serviceMonitors" />
+        <ResourceTable
+          :schema="serviceMonitorSchema"
+          :rows="serviceMonitors"
+        />
       </Tab>
     </Tabbed>
   </div>

@@ -85,7 +85,10 @@ export default {
 
 <template>
   <div class="graphContainer">
-    <svg :width="graphWidth" :height="graphHeight">
+    <svg
+      :width="graphWidth"
+      :height="graphHeight"
+    >
       <path :d="line" />
     </svg>
   </div>

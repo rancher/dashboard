@@ -7,6 +7,7 @@ import {
   UI_PLUGIN_CHARTS,
   UI_PLUGINS_REPO_NAME,
   UI_PLUGINS_REPO_URL,
+  UI_PLUGIN_OPERATOR_CRD_CHART_NAME,
 } from '@shell/config/uiplugins';
 
 export default {
@@ -21,13 +22,23 @@ export default {
 
       this.defaultRepo = repos.find(r => r.name === UI_PLUGINS_REPO_NAME && r.spec.gitRepo === UI_PLUGINS_REPO_URL);
     }
+
+    if (this.$store.getters['management/schemaFor'](UI_PLUGIN)) {
+      const plugins = await this.$store.dispatch('management/findAll', { type: UI_PLUGIN });
+
+      // Are there any plugins installed?
+      this.hasPluginsInstalled = (plugins || []).length > 0;
+      this.removeCRD = !this.hasPluginsInstalled;
+    }
   },
 
   data() {
     return {
-      errors:      [],
-      defaultRepo: undefined,
-      removeRepo:  false,
+      errors:              [],
+      defaultRepo:         undefined,
+      removeRepo:          false,
+      removeCRD:           true,
+      hasPluginsInstalled: false,
     };
   },
 
@@ -42,8 +53,8 @@ export default {
         return found.remove();
       }
 
-      // TODO - Return rejected promise - error
-      return null;
+      // Return rejected promise - could not find the required chart
+      return Promise.reject(new Error(`Could not find chart §{ name }`));
     },
 
     showDialog() {
@@ -55,7 +66,12 @@ export default {
       this.errors = [];
 
       // Remove the charts in the reverse order that we install them in
-      const uninstall = [...UI_PLUGIN_CHARTS].reverse();
+      let uninstall = [...UI_PLUGIN_CHARTS].reverse();
+
+      if (!this.removeCRD) {
+        // User does not want to uninstall the CRD, so remove the chart
+        uninstall = uninstall.filter(chart => chart !== UI_PLUGIN_OPERATOR_CRD_CHART_NAME);
+      }
 
       for (let i = 0; i < uninstall.length; i++) {
         const chart = uninstall[i];
@@ -79,14 +95,9 @@ export default {
 
       await new Promise(resolve => setTimeout(resolve, 5000));
 
-      btnCb(true);
+      this.$emit('done');
 
-      this.$router.push(
-        {
-          path:  this.$route.path,
-          force: true,
-        },
-      );
+      btnCb(true);
     },
   }
 };
@@ -102,10 +113,30 @@ export default {
       <p>
         {{ t('plugins.setup.remove.prompt') }}
       </p>
-      <div v-if="!!defaultRepo" class="mt-20">
-        <Checkbox v-model="removeRepo" :primary="true" label-key="plugins.setup.remove.registry.title" />
+      <div
+        v-if="!!defaultRepo"
+        class="mt-20"
+      >
+        <Checkbox
+          v-model="removeRepo"
+          :primary="true"
+          label-key="plugins.setup.remove.registry.title"
+        />
         <div class="checkbox-info">
           {{ t('plugins.setup.remove.registry.prompt') }}
+        </div>
+      </div>
+      <div
+        v-if="hasPluginsInstalled"
+        class="mt-20"
+      >
+        <Checkbox
+          v-model="removeCRD"
+          :primary="true"
+          label-key="plugins.setup.remove.crd.title"
+        />
+        <div class="checkbox-info">
+          {{ t('plugins.setup.remove.crd.prompt') }}
         </div>
       </div>
     </template>

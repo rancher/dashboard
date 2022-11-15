@@ -3,50 +3,13 @@ import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
 import Banner from '@components/Banner/Banner.vue';
 import { MANAGEMENT } from '@shell/config/types';
-import { fetchOrCreateSetting, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import KeyValue from '@shell/components/form/KeyValue';
-import { allHash } from '@shell/utils/promise';
 import { mapGetters } from 'vuex';
-
-const DEFAULT_CUSTOM_LINKS = [
-  {
-    order: 1,
-    key:   'customLinks.defaults.docs',
-    value: 'https://rancher.com/docs/rancher/v2.6/en'
-  },
-  {
-    order: 2,
-    key:   'customLinks.defaults.forums',
-    value: 'https://forums.rancher.com/'
-
-  },
-  {
-    order: 3,
-    key:   'customLinks.defaults.slack',
-    value: 'https://slack.rancher.io/'
-  },
-  {
-    order: 5,
-    key:   'customLinks.defaults.getStarted',
-    value: '/docs/getting-started'
-  }
-
-];
-
-const DEFAULT_SUPPORT_LINK = {
-  order: 4,
-  key:   'customLinks.defaults.issues',
-  value: 'https://github.com/rancher/dashboard/issues/new'
-};
-
-const COMMUNITY_LINKS = [
-  {
-    order: 99,
-    key:   'customLinks.defaults.commercialSupport',
-    value: '/support'
-  }
-];
+import { isRancherPrime } from '@shell/config/version';
+import DefaultLinksEditor from './DefaultLinksEditor';
+import { CUSTOM_LINKS_VERSION, fetchLinks } from '@shell/config/home-links';
+import { SETTING, fetchOrCreateSetting } from '@shell/config/settings';
 
 export default {
   layout:     'authenticated',
@@ -55,40 +18,20 @@ export default {
     Loading,
     AsyncButton,
     Banner,
+    DefaultLinksEditor,
   },
   async fetch() {
-    try {
-      const { uiIssuesSetting, uiCommunitySetting } = await allHash({
-        uiIssuesSetting:    this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES }),
-        uiCommunitySetting: this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.COMMUNITY_LINKS })
-      });
-
-      this.uiIssuesSetting = uiIssuesSetting;
-      this.uiCommunitySetting = uiCommunitySetting;
-    } catch {}
-
-    try {
-      const defaultIssueLink = !!this.uiIssuesSetting.value ? { key: this.t('customLinks.defaults.issues'), value: this.uiIssuesSetting.value } : DEFAULT_SUPPORT_LINK;
-      const defaultLinks = this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, defaultIssueLink, ...COMMUNITY_LINKS]);
-
-      this.uiCustomLinks = await fetchOrCreateSetting(this.$store, SETTING.UI_CUSTOM_LINKS, JSON.stringify(defaultLinks));
-
-      await this.deprecateIssueLinks();
-    } catch {}
-
-    const sValue = this.uiCustomLinks?.value || JSON.stringify(this.multiWithFallback([...DEFAULT_CUSTOM_LINKS]));
-
-    this.value = JSON.parse(sValue);
+    this.value = await fetchLinks(this.$store, this.hasSupport, false, str => this.t(str));
   },
 
   data() {
     return {
+      defaultsDisabled:    true,
+      isRancherPrime:     isRancherPrime(),
       uiCustomLinks:      {},
-      defaultValues:      undefined,
       bannerVal:          {},
-      value:              {},
+      value:              [],
       errors:             [],
-      showRestoredBanner: false
     };
   },
   computed: {
@@ -99,20 +42,20 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
-  },
-  methods: {
-    useDefaults() {
-      const nonCommercialRancherLinks = this.isCommercial ? [] : COMMUNITY_LINKS;
 
-      this.defaultValues = this.multiWithFallback([...DEFAULT_CUSTOM_LINKS, DEFAULT_SUPPORT_LINK, ...nonCommercialRancherLinks]);
-
-      this.showRestoredBanner = true;
-
-      setTimeout(() => {
-        this.showRestoredBanner = false;
-      }, 10000);
+    allValues() {
+      return {
+        version:  CUSTOM_LINKS_VERSION,
+        defaults: this.value.defaults.filter(obj => obj.enabled).map(obj => obj.key),
+        custom:   this.value.custom
+      };
     },
 
+    hasSupport() {
+      return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
+    },
+  },
+  methods: {
     deprecateIssueLinks() {
       if (this.uiIssuesSetting.value || this.uiIssuesSetting.value) {
         this.uiIssuesSetting.value = '';
@@ -123,10 +66,15 @@ export default {
     },
 
     async save(btnCB) {
-      this.uiCustomLinks.value = JSON.stringify(this.value);
       this.errors = [];
       try {
-        await this.uiCustomLinks.save();
+        const uiCustomLinks = await fetchOrCreateSetting(this.$store, SETTING.UI_CUSTOM_LINKS, '');
+
+        uiCustomLinks.value = JSON.stringify(this.allValues);
+
+        await uiCustomLinks.save();
+
+        this.value = await fetchLinks(this.$store, this.hasSupport, false, str => this.t(str));
         btnCB(true);
       } catch (err) {
         this.errors.push(err);
@@ -139,38 +87,50 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <Banner v-if="showRestoredBanner" :color="'success'" label="Default restored" :closable="true" :label-key="'customLinks.restoreSuccess'" />
-    <h1
-      class="mb-20"
-    >
+    <h1 class="mb-20">
       {{ t("customLinks.label") }}
     </h1>
     <div>
       <label class="text-label">
         {{ t(`customLinks.description`, {}, true) }}
       </label>
-      <div class="ui-links-setting mt-20">
-        <KeyValue
-          v-model="value"
-          :default-value="defaultValues"
-          :as-map="false"
-          :key-label="t('customLinks.settings.keyLabel')"
-          :value-label="t('customLinks.settings.valueLabel')"
-          :add-label="t('customLinks.addLink')"
-          :mode="mode"
-          :read-allowed="false"
-          :protip="false"
-        />
-      </div>
+    </div>
+    <div class="mt-20">
+      <KeyValue
+        v-model="value.custom"
+        :title="'Custom Links'"
+        :as-map="false"
+        key-name="label"
+        :key-label="t('customLinks.settings.keyLabel')"
+        :value-label="t('customLinks.settings.valueLabel')"
+        :add-label="t('customLinks.addLink')"
+        :read-allowed="false"
+        :protip="false"
+        :mode="mode"
+      />
+    </div>
+    <div class="ui-links-setting mt-20">
+      <DefaultLinksEditor
+        v-model="value.defaults"
+        :mode="mode"
+      />
     </div>
     <template v-for="err in errors">
-      <Banner :key="err" color="error" :label="err" />
+      <Banner
+        :key="err"
+        color="error"
+        :label="err"
+      />
     </template>
-    <div v-if="mode === 'edit'" class="mt-20">
-      <AsyncButton class="pull-right" mode="apply" @click="save" />
-      <button class="pull-right btn role-secondary mr-10" @click="useDefaults">
-        {{ t('customLinks.restoreDefaults') }}
-      </button>
+    <div
+      v-if="mode === 'edit'"
+      class="mt-20"
+    >
+      <AsyncButton
+        class="pull-right"
+        mode="apply"
+        @click="save"
+      />
     </div>
   </div>
 </template>
@@ -194,7 +154,10 @@ export default {
     text-decoration: underline;
   }
 }
-.input {
-  max-width: 25%;
+.action {
+  display: flex;
+  input {
+    margin-right: 5px;
+  }
 }
 </style>

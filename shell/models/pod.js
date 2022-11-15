@@ -182,19 +182,29 @@ export default class Pod extends WorkloadService {
   }
 
   save() {
+    const prev = { ...this };
+
     const { metadata, spec } = this.spec.template;
 
     this.spec = {
       ...this.spec,
-      metadata: {
-        ...this.metadata,
-        ...metadata
-      },
       ...spec
+    };
+
+    this.metadata = {
+      ...this.metadata,
+      ...metadata
     };
 
     delete this.spec.template;
 
-    return this._save(...arguments);
+    // IF there is an error POD world model get overwritten
+    // For the workloads this need be reset back
+    return this._save(...arguments).catch((e) => {
+      this.spec = prev.spec;
+      this.metadata = prev.metadata;
+
+      return Promise.reject(e);
+    });
   }
 }

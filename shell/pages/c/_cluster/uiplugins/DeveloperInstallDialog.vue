@@ -83,9 +83,9 @@ export default {
 
       const parts = name.split('-');
 
-      if (parts.length === 2) {
-        crdName = parts[0];
-        version = parts[1];
+      if (parts.length >= 2) {
+        version = parts.pop();
+        crdName = parts.join('-');
       }
 
       if (this.persist) {
@@ -156,18 +156,33 @@ export default {
       </p>
       <div class="custom mt-10">
         <div class="fields">
-          <LabeledInput v-model="location" v-focus label-key="plugins.developer.fields.url" @input="updateLocation" />
+          <LabeledInput
+            v-model="location"
+            v-focus
+            label-key="plugins.developer.fields.url"
+            @input="updateLocation"
+          />
         </div>
       </div>
       <div class="custom mt-10">
         <div class="fields">
-          <LabeledInput v-model="name" label-key="plugins.developer.fields.name" @input="updateName" />
+          <LabeledInput
+            v-model="name"
+            label-key="plugins.developer.fields.name"
+            @input="updateName"
+          />
         </div>
         <div class="fields mt-10">
-          <Checkbox v-model="persist" label-key="plugins.developer.fields.persist" />
+          <Checkbox
+            v-model="persist"
+            label-key="plugins.developer.fields.persist"
+          />
         </div>
         <div class="dialog-buttons mt-20">
-          <button class="btn role-secondary" @click="closeDialog()">
+          <button
+            class="btn role-secondary"
+            @click="closeDialog()"
+          >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton

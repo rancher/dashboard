@@ -1,7 +1,7 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { CATALOG } from '@shell/config/types';
+import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import Banner from '@components/Banner/Banner.vue';
@@ -15,13 +15,22 @@ export default {
     LabeledSelect,
   },
 
+  async fetch() {
+    this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'system-default-registry'
+    });
+  },
+
   data() {
     return {
-      plugin:   undefined,
-      busy:     false,
-      version:  '',
-      update:   false,
-      mode:      '',
+      currentVersion:         '',
+      defaultRegistrySetting: null,
+      plugin:                 undefined,
+      busy:                   false,
+      version:                '',
+      update:                 false,
+      mode:                   '',
     };
   },
 
@@ -35,7 +44,16 @@ export default {
         return [];
       }
 
-      return this.plugin.versions.map((version) => {
+      // Don't allow update/rollback to curent version
+      const versions = this.plugin.versions.filter((v) => {
+        if (this.currentVersion) {
+          return v.version !== this.currentVersion;
+        }
+
+        return true;
+      });
+
+      return versions.map((version) => {
         return {
           label: version.version,
           value: version.version,
@@ -57,6 +75,8 @@ export default {
       this.version = plugin.displayVersion;
 
       if (mode === 'update') {
+        this.currentVersion = plugin.displayVersion;
+
         // Update to latest version, so take the first version
         if (plugin.versions.length > 0) {
           this.version = plugin.versions[0].version;
@@ -64,6 +84,8 @@ export default {
       } else if (mode === 'rollback') {
         // Find the newest version once we remove the current version
         const versionNames = plugin.versions.filter(v => v.version !== plugin.displayVersion);
+
+        this.currentVersion = plugin.displayVersion;
 
         if (versionNames.length > 0) {
           this.version = versionNames[0].version;
@@ -92,7 +114,7 @@ export default {
 
       const plugin = this.plugin;
 
-      this.$emit(plugin.name, 'install');
+      this.$emit('update', plugin.name, 'install');
 
       // Find the version that the user wants to install
       const version = plugin.versions?.find(v => v.version === this.version);
@@ -102,6 +124,35 @@ export default {
 
         return;
       }
+
+      // is the image used by the chart in the rancher org?
+      let isRancherImage = false;
+
+      try {
+        const chartVersionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
+          repoType:    version.repoType,
+          repoName:    version.repoName,
+          chartName:   plugin.chart.chartName,
+          versionName: this.version,
+        });
+
+        const image = chartVersionInfo?.values?.image?.repository || '';
+
+        isRancherImage = image.startsWith('rancher/');
+      } catch (e) {}
+
+      // See if there is already a plugin with this name
+      let exists = false;
+
+      try {
+        const app = await this.$store.dispatch('management/find', {
+          type:  CATALOG.APP,
+          id:   `${ UI_PLUGIN_NAMESPACE }/${ plugin.chart.chartName }`,
+          opt:  { force: true },
+        });
+
+        exists = !!app;
+      } catch (e) {}
 
       const repoType = version.repoType;
       const repoName = version.repoName;
@@ -118,6 +169,15 @@ export default {
         values: {}
       };
 
+      // Pass in the system default registry property if set - only if the image is in the rancher org
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
+
+      if (isRancherImage && defaultRegistry) {
+        chart.values.global = chart.values.global || {};
+        chart.values.global.cattle = chart.values.global.cattle || {};
+        chart.values.global.cattle.systemDefaultRegistry = defaultRegistry;
+      }
+
       const input = {
         charts:    [chart],
         // timeout:   this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
@@ -126,24 +186,29 @@ export default {
       };
 
       // Helm action
-      const action = this.update ? 'upgrade' : 'install';
+      const action = (exists || this.update) ? 'upgrade' : 'install';
 
-      // const name = plugin.chart.chartName;
+      try {
+        const res = await repo.doAction(action, input);
+        const operationId = `${ res.operationNamespace }/${ res.operationName }`;
 
-      // const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
-      const res = await repo.doAction(action, input);
-      const operationId = `${ res.operationNamespace }/${ res.operationName }`;
+        this.closeDialog(plugin);
 
-      // Vue.set(this.installing, this.selected.chart.chartName, operationId);
+        await repo.waitForOperation(operationId);
 
-      this.closeDialog(plugin);
+        await this.$store.dispatch(`management/find`, {
+          type: CATALOG.OPERATION,
+          id:   operationId
+        });
+      } catch (e) {
+        this.$store.dispatch('growl/error', {
+          title:   this.t('plugins.error.generic'),
+          message: e.message ? e.message : e,
+          timeout: 10000
+        }, { root: true });
 
-      await repo.waitForOperation(operationId);
-
-      await this.$store.dispatch(`management/find`, {
-        type: CATALOG.OPERATION,
-        id:   operationId
-      });
+        this.closeDialog(plugin);
+      }
     }
   }
 };
@@ -155,16 +220,23 @@ export default {
     height="auto"
     :scrollable="true"
   >
-    <div v-if="plugin" class="plugin-install-dialog">
+    <div
+      v-if="plugin"
+      class="plugin-install-dialog"
+    >
       <h4 class="mt-10">
-        {{ t(`plugins.${ mode }.title`, { name: plugin.name }) }}
+        {{ t(`plugins.${ mode }.title`, { name: plugin.label }) }}
       </h4>
       <div class="custom mt-10">
         <div class="dialog-panel">
           <p>
             {{ t(`plugins.${ mode }.prompt`) }}
           </p>
-          <Banner v-if="!plugin.certified" color="warning" :label="t('plugins.install.warnNotCertified')" />
+          <Banner
+            v-if="!plugin.certified"
+            color="warning"
+            :label="t('plugins.install.warnNotCertified')"
+          />
           <LabeledSelect
             v-if="showVersionSelector"
             v-model="version"
@@ -177,7 +249,11 @@ export default {
           </div>
         </div>
         <div class="dialog-buttons">
-          <button :disabled="busy" class="btn role-secondary" @click="closeDialog(false)">
+          <button
+            :disabled="busy"
+            class="btn role-secondary"
+            @click="closeDialog(false)"
+          >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton

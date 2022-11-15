@@ -71,9 +71,17 @@ export default {
 </script>
 
 <template>
-  <component :is="tagName" v-bind="$attrs" class="container">
-    <slot :data="value" :min="min" :max="max" :interval="interval">
-    </slot>
+  <component
+    :is="tagName"
+    v-bind="$attrs"
+    class="container"
+  >
+    <slot
+      :data="value"
+      :min="min"
+      :max="max"
+      :interval="interval"
+    />
     {{ label }}
   </component>
 </template>

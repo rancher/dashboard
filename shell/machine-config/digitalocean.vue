@@ -137,7 +137,10 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" :delayed="true" />
+  <Loading
+    v-if="$fetchState.pending"
+    :delayed="true"
+  />
   <div v-else-if="errors.length">
     <div
       v-for="(err, idx) in errors"

@@ -74,6 +74,12 @@ export interface IPlugin {
   addRoute(parent: string, route: RouteConfig): void;
 
   /**
+   * Set the component to use for the landing home page
+   * @param component Home page component
+   */
+  setHomePage(component: any): void;
+
+  /**
    * Add routes to the Vue Router
    */
   addRoutes(routes: PluginRouteConfig[] | RouteConfig[]): void;

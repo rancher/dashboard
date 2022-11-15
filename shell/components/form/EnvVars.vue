@@ -23,6 +23,10 @@ export default {
       type:     Array,
       required: true
     },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
     /**
      * Container spec
      */
@@ -101,12 +105,16 @@ export default {
 </script>
 <template>
   <div :style="{'width':'100%'}">
-    <div v-for="(row, i) in allEnv" :key="row.id">
+    <div
+      v-for="(row, i) in allEnv"
+      :key="row.id"
+    >
       <ValueFromResource
         v-model="row.value"
         :all-secrets="secrets"
         :all-config-maps="configMaps"
         :mode="mode"
+        :loading="loading"
         @remove="removeRow(i)"
         @input="updateRow"
       />

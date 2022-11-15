@@ -1,13 +1,13 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import { get } from '@shell/utils/object';
 import { AGE } from '@shell/config/table-headers';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
-  components: { Loading, ResourceTable },
-
-  props: {
+  components: { ResourceTable },
+  mixins:     [ResourceFetch],
+  props:      {
     resource: {
       type:     String,
       required: true,
@@ -17,14 +17,15 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
-    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
-  },
-
-  data() {
-    return { rows: null };
+    await this.$fetchType(this.resource);
   },
 
   computed: {
@@ -53,12 +54,17 @@ export default {
       } else {
         return headersFromSchema;
       }
-    }
+    },
   },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" />
+  <ResourceTable
+    :schema="schema"
+    :rows="rows"
+    :headers="headers"
+    :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+  />
 </template>

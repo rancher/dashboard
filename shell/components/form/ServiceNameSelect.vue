@@ -60,6 +60,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    loading: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   data() {
@@ -111,7 +115,7 @@ export default {
 
 <template>
   <div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row mb-10">
       <h3 class="col span-6">
         {{ t('workload.serviceAccountName.label') }}
@@ -134,6 +138,7 @@ export default {
         :option-label="optionLabel"
         :placement="$attrs.placement ? $attrs.placement : null"
         :v-bind="$attrs"
+        :loading="loading"
         @input="changeSelected"
       />
       <button
@@ -151,7 +156,7 @@ export default {
         <Banner
           color="info"
           v-html="t('workload.serviceAccountName.createMessage', { name: serviceName }) "
-        ></Banner>
+        />
       </div>
     </template>
   </div>

@@ -4,11 +4,12 @@ module.exports = {
     browser: true,
     node:    true
   },
-  globals: { NodeJS: true, Timer: true },
-  plugins: ['jest'],
+  globals:        { NodeJS: true, Timer: true },
+  plugins:        ['jest'],
   extends: [
     'standard',
     'eslint:recommended',
+    // 'plugin:nuxt/recommended',
     '@nuxtjs/eslint-config-typescript',
     'plugin:cypress/recommended',
   ],
@@ -29,9 +30,7 @@ module.exports = {
     'space-in-parens':          'off',
     strict:                     'off',
     'unicorn/no-new-buffer':    'off',
-    'vue/html-self-closing':    'off',
     'vue/no-unused-components': 'warn',
-    'vue/no-v-html':            'off',
     'wrap-iife':                'off',
 
     'array-bracket-spacing':             'warn',
@@ -162,7 +161,12 @@ module.exports = {
     '@typescript-eslint/no-unused-vars':    'off',
     'array-callback-return':                'off',
     'import/order':                         'off',
-    'import/no-named-as-default':           'off',
+    'import/no-named-as-default':        'off',
+
+    // Vue/HTML Formatting kept for HARVESTER ONLY!
+    // TODO: Move back here the HTML formatting
+    'vue/html-self-closing':    'off',
+    'vue/no-v-html':            'off',
   },
   overrides: [
     {
@@ -185,5 +189,34 @@ module.exports = {
       files:   ['docusaurus/**/*.{js,ts}'],
       rules:   { 'no-use-before-define': 'off' },
     },
+    {
+      files:         ['**/*.vue'],
+      excludedFiles: ['pkg/harvester/**/*.vue'],
+      rules:          {
+        // Vue/HTML Formatting
+        'vue/no-v-html':                        'off',
+        'vue/html-indent':                      ['error', 2],
+        'vue/html-closing-bracket-newline':     ['error', {
+          singleline: 'never',
+          multiline:  'always'
+        }],
+        'vue/html-closing-bracket-spacing':     2,
+        'vue/html-end-tags':                    2,
+        'vue/html-quotes':                      2,
+        'vue/html-self-closing':                ['error', {
+          html: {
+            void:      'never',
+            normal:    'always',
+            component: 'always'
+          },
+          svg:  'always',
+          math: 'always'
+        }],
+        'vue/max-attributes-per-line':          ['error', {
+          singleline: { max: 1 },
+          multiline:  { max: 1 }
+        }]
+      }
+    }
   ]
 };

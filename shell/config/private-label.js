@@ -3,11 +3,14 @@ import { SETTING } from './settings';
 export const ANY = 0;
 export const STANDARD = 1;
 export const CUSTOM = 2;
-export const DOCS_BASE = 'https://rancher.com/docs/rancher/v2.6/en';
+export const DOCS_BASE = 'https://rancher.com/docs/rancher/v2.7/en';
 
 const STANDARD_VENDOR = 'Rancher';
 const STANDARD_PRODUCT = 'Explorer';
-const CUSTOM_VENDOR = { suse: 'SUSE Rancher' };
+const CUSTOM_VENDOR = {
+  suse: 'Rancher Prime',
+  csp:  'SUSE Rancher'
+};
 
 let mode = STANDARD;
 let vendor = STANDARD_VENDOR;

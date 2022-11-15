@@ -1,31 +1,53 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import { MANAGEMENT } from '@shell/config/types';
 import { filterOnlyKubernetesClusters } from '@shell/utils/cluster';
-
+import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListMgmtClusters',
-  components: { Loading, ResourceTable },
+  components: { ResourceTable },
+  mixins:     [ResourceFetch],
 
-  async fetch() {
-    await this.$store.dispatch(`${ this.inStore }/findAll`, { type: this.$attrs.resource });
+  props: {
+    resource: {
+      type:     String,
+      required: true,
+    },
+    schema: {
+      type:     Object,
+      required: true,
+    },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
+  async fetch() {
+    await this.$fetchType(this.resource);
+  },
   computed: {
-    inStore() {
-      return this.$store.getters['currentProduct'].inStore;
-    },
-    rows() {
-      const all = this.$store.getters[`${ this.inStore }/all`](MANAGEMENT.CLUSTER);
-
-      return filterOnlyKubernetesClusters(all);
+    filteredRows() {
+      return filterOnlyKubernetesClusters(this.rows);
     }
-  }
+  },
+  // override with relevant info for the loading indicator since this doesn't use it's own masthead
+  $loadingResources() {
+    return {
+      loadResources:     [MANAGEMENT.CLUSTER],
+      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
+    };
+  },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="$attrs.schema" :rows="rows" :headers="$attrs.headers" :group-by="$attrs.groupBy" />
+  <ResourceTable
+    :schema="schema"
+    :rows="filteredRows"
+    :headers="$attrs.headers"
+    :group-by="$attrs.groupBy"
+    :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+  />
 </template>

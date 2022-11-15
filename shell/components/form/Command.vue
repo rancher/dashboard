@@ -36,6 +36,10 @@ export default {
         return {};
       },
     },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -165,7 +169,10 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <div :style="{ 'align-items': 'center' }" class="row">
+        <div
+          :style="{ 'align-items': 'center' }"
+          class="row"
+        >
           <div
             class="col span-6"
             data-testid="input-command-stdin"
@@ -193,13 +200,14 @@ export default {
         </div>
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <h3>{{ t('workload.container.titles.env') }}</h3>
     <EnvVars
       :mode="mode"
       :config-maps="configMaps"
       :secrets="secrets"
       :value="value"
+      :loading="loading"
     />
   </div>
 </template>

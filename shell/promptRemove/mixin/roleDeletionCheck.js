@@ -66,12 +66,26 @@ export default {
           method:        'get',
         }, { root: true });
 
+        // We need to fetch the users here in order to get an accurate count when selecting global roles.
+        const users = await this.$store.dispatch('management/request', {
+          url:           `/v1/${ MANAGEMENT.USER }`,
+          method:        'get',
+        }, { root: true });
+
+        const userMap = users.data?.reduce((map, user) => {
+          if ( user.username ) {
+            map[user.id] = user;
+          }
+
+          return map;
+        }, {});
+
         if (request.data && request.data.length) {
           rolesToRemove.forEach((toRemove) => {
             const usedRoles = request.data.filter(item => item[propToMatch] === toRemove.id);
 
             if (usedRoles.length) {
-              const uniqueUsers = [...new Set(usedRoles.map(item => item.userName))];
+              const uniqueUsers = [...new Set(usedRoles.map(item => item.userName).filter(user => userMap[user]))];
 
               if (uniqueUsers.length) {
                 numberOfRolesWithBinds++;
