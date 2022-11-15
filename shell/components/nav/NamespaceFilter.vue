@@ -610,7 +610,11 @@ export default {
           class="ns-value"
         >
           <div>{{ ns.label }}</div>
-          <i class="icon icon-close" @click="removeOption(ns, $event)" @mousedown="handleValueMouseDown()" />
+          <i
+            class="icon icon-close"
+            @click="removeOption(ns, $event)"
+            @mousedown="handleValueMouseDown()"
+          />
         </div>
       </div>
       <div
