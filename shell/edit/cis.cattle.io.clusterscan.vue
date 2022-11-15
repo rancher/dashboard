@@ -1,7 +1,7 @@
 <script>
 import CruResource from '@shell/components/CruResource';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { LabeledInput, Checkbox, Banner } from '@rancher/components';
+import { LabeledInput, Checkbox, Banner, RadioGroup } from '@rancher/components';
 import UnitInput from '@shell/components/form/UnitInput';
 
 import Loading from '@shell/components/Loading';
@@ -10,7 +10,6 @@ import { mapGetters } from 'vuex';
 import createEditView from '@shell/mixins/create-edit-view';
 import { allHash } from '@shell/utils/promise';
 
-import { RadioGroup } from '@components/Form/Radio';
 import { get } from '@shell/utils/object';
 import { _VIEW, _CREATE } from '@shell/config/query-params';
 import { isValidCron } from 'cron-validator';

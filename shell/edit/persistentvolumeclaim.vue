@@ -1,10 +1,9 @@
 <script>
-import { Checkbox, Banner, LabeledInput } from '@rancher/components';
+import { Checkbox, Banner, LabeledInput, RadioGroup } from '@rancher/components';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
-import { RadioGroup } from '@components/Form/Radio';
 
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';

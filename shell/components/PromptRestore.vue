@@ -1,10 +1,10 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Card, Banner } from '@rancher/components';
+import { Card, Banner, RadioGroup } from '@rancher/components';
 
 import Date from '@shell/components/formatter/Date.vue';
-import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
+
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { CAPI, NORMAN, SNAPSHOT } from '@shell/config/types';

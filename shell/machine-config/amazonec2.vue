@@ -1,12 +1,11 @@
 <script>
 import Loading from '@shell/components/Loading';
-import { Banner, LabeledInput, Checkbox } from '@rancher/components';
+import { Banner, LabeledInput, Checkbox, RadioGroup } from '@rancher/components';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 import KeyValue from '@shell/components/form/KeyValue';
 import UnitInput from '@shell/components/form/UnitInput';
-import { RadioGroup } from '@components/Form/Radio';
 
 import { NORMAN } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';

@@ -1,6 +1,6 @@
 <script>
 import { randomStr } from '@shell/utils/string';
-import { LabeledInput, Checkbox } from '@rancher/components';
+import { LabeledInput, Checkbox, RadioGroup } from '@rancher/components';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import AsyncButton from '@shell/components/AsyncButton';
 import { LOGGED_OUT, SETUP } from '@shell/config/query-params';
@@ -8,9 +8,9 @@ import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
 
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
-import { RadioGroup } from '@components/Form/Radio';
 import { setSetting } from '@shell/utils/settings';
 import { SETTING } from '@shell/config/settings';
+
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';

@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioGroup } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
