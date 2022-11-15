@@ -3,8 +3,8 @@ import { mapState } from 'vuex';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { alternateLabel } from '@shell/utils/platform';
 import AsyncButton from '@shell/components/AsyncButton';
-import { Banner } from '@rancher/components';
-import { Card } from '@components/Card';
+import { Banner, Card } from '@rancher/components';
+
 import { escapeHtml } from '@shell/utils/string';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 

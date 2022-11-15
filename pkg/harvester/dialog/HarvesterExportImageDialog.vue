@@ -3,8 +3,8 @@ import { mapGetters } from 'vuex';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 import { sortBy } from '@shell/utils/sort';
-import { Card } from '@components/Card';
-import { Banner } from '@rancher/components';
+import { Card, Banner } from '@rancher/components';
+
 import AsyncButton from '@shell/components/AsyncButton';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';

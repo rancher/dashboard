@@ -1,8 +1,8 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import { Card } from '@components/Card';
-import { Banner, Checkbox } from '@rancher/components';
+import { Card, Banner, Checkbox } from '@rancher/components';
+
 import AsyncButton from '@shell/components/AsyncButton';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
