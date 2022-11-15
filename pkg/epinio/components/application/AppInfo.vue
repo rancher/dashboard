@@ -2,7 +2,7 @@
 import Vue, { PropType } from 'vue';
 import Application from '../../models/applications';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { LabeledInput } from '@rancher/components';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Loading from '@shell/components/Loading.vue';

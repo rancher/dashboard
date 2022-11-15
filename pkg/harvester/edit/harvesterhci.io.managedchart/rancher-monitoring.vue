@@ -1,5 +1,5 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
 export default {

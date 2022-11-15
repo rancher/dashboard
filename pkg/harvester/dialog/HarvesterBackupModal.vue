@@ -1,10 +1,9 @@
 <script>
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
-import { Card, Banner } from '@rancher/components';
+import { Card, Banner, LabeledInput } from '@rancher/components';
 
 import AsyncButton from '@shell/components/AsyncButton';
-import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
   name: 'HarvesterBackupModal',

@@ -1,7 +1,7 @@
 <script>
 import CruResource from '@shell/components/CruResource';
 import { RadioGroup } from '@components/Form/Radio';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UpgradeInfo from '../../../../components/UpgradeInfo';
 

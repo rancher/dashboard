@@ -1,6 +1,6 @@
 <script>
 import { _EDIT } from '@shell/config/query-params';
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {

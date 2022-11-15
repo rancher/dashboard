@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 
-import { LabeledInput } from '@components/Form/LabeledInput';
+import { LabeledInput } from '@rancher/components';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import ModalWithCard from '@shell/components/ModalWithCard';
 
