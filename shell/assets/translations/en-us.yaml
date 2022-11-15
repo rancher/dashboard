@@ -2715,7 +2715,7 @@ login:
   password: Password
   loggingIn: Logging in...
   loggedIn: Logged in
-  loginWithLocal: Log in with Local User
+  loginWithLocal: Log in
   useProvider: Use a {provider} user
   useNonLocal: Use a non-local user
   remember:
