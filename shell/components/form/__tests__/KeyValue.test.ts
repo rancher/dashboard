@@ -80,7 +80,7 @@ describe('component: KeyValue', () => {
     expect(inputValues).toHaveLength(4);
   });
 
-  it('should be able to update key', () => {
+  it('should be able to emit key and value', () => {
     const value = [
       {
         key:   'Hugh',
@@ -102,18 +102,15 @@ describe('component: KeyValue', () => {
     const newValue = 'Stamets';
 
     keyField.setValue(newKey);
-    keyField.trigger('blur');
     keyField.trigger('input');
 
     valueField.setValue(newValue);
-    valueField.trigger('blur');
     valueField.trigger('input');
 
-    jest.advanceTimersByTime(10);
+    jest.advanceTimersByTime(600); // More than whats on the debounce.
     jest.useRealTimers();
 
-    console.log(keyField.element);
-
-    expect(wrapper.emitted()).toBe(1);
+    expect(wrapper.emitted().input![0][0][0].key).toBe('Paul');
+    expect(wrapper.emitted().input![0][0][0].value).toBe('Stamets');
   });
 });
