@@ -12,7 +12,8 @@ import { Banner } from '@components/Banner';
 import { allHash } from '@shell/utils/promise';
 import { MANAGEMENT } from '@shell/config/types';
 import { getVendor, setVendor } from '@shell/config/private-label';
-import { SETTING, fetchOrCreateSetting } from '@shell/config/settings';
+import { fetchOrCreateSetting } from '@shell/utils/settings';
+import { SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { setFavIcon } from '@shell/utils/favicon';
 

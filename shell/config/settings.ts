@@ -1,6 +1,27 @@
 // Settings
 import { GC_DEFAULTS } from '../utils/gc/gc-types';
-import { MANAGEMENT } from './types';
+
+interface GlobalSettingRuleset {
+  name: string,
+  key?: string | number,
+  arg?: string | number | (string | number)[]
+}
+
+interface GlobalSetting {
+  [key: string]: {
+    alias?: string,
+    canReset?: boolean,
+    customFormatter?: string,
+    from?: string,
+    kind?: string,
+    options?: string[]
+    readOnly?: boolean,
+    /**
+     * Function used from the form validation
+     */
+     ruleSet?: GlobalSettingRuleset[],
+  };
+}
 
 // Adapted from: https://github.com/rancher/ui/blob/08c379a9529f740666a704b52522a468986c3520/lib/shared/addon/utils/constants.js#L564
 // Setting IDs
@@ -66,11 +87,20 @@ export const SETTING = {
 };
 
 // These are the settings that are allowed to be edited via the UI
-export const ALLOWED_SETTINGS = {
+export const ALLOWED_SETTINGS: GlobalSetting = {
   [SETTING.CA_CERTS]:                             { kind: 'multiline', readOnly: true },
   [SETTING.ENGINE_URL]:                           {},
   [SETTING.ENGINE_ISO_URL]:                       {},
-  [SETTING.CATTLE_PASSWORD_MIN_LENGTH]:           { kind: 'integer' },
+  [SETTING.CATTLE_PASSWORD_MIN_LENGTH]: {
+    kind:       'integer',
+    ruleSet: [
+      {
+        name: 'betweenValues',
+        key:  'Password',
+        arg:  [2, 256]
+      }
+    ],
+  },
   [SETTING.INGRESS_IP_DOMAIN]:                    {},
   [SETTING.AUTH_USER_INFO_MAX_AGE_SECONDS]:       {},
   [SETTING.AUTH_USER_SESSION_TTL_MINUTES]:        {},
@@ -108,51 +138,4 @@ export const DEFAULT_PERF_SETTING = {
   },
   disableWebsocketNotification: true,
   garbageCollection:            GC_DEFAULTS
-};
-
-export const fetchOrCreateSetting = async(store, id, val, save = true) => {
-  let setting;
-
-  try {
-    setting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id });
-  } catch {
-    const schema = store.getters['management/schemaFor'](MANAGEMENT.SETTING);
-    const url = schema.linkFor('collection');
-
-    setting = await store.dispatch('management/create', {
-      type: MANAGEMENT.SETTING, metadata: { name: id }, value: val, default: val || ''
-    });
-    if ( save ) {
-      await setting.save({ url });
-    }
-  }
-
-  return setting;
-};
-
-export const setSetting = async(store, id, val) => {
-  const setting = await fetchOrCreateSetting(store, id, val, false);
-
-  setting.value = val;
-  await setting.save();
-
-  return setting;
-};
-
-export const getPerformanceSetting = (rootGetters) => {
-  const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
-  let perfConfig = {};
-
-  if (perfSetting && perfSetting.value) {
-    try {
-      perfConfig = JSON.parse(perfSetting.value);
-    } catch (e) {
-      console.warn('ui-performance setting contains invalid data'); // eslint-disable-line no-console
-    }
-  }
-
-  // Start with the default and overwrite the values from the setting - ensures we have defaults for newly added options
-  perfConfig = Object.assign(DEFAULT_PERF_SETTING, perfConfig);
-
-  return perfConfig;
 };

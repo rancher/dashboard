@@ -5159,6 +5159,12 @@ validation:
       startLetter: '"{key}" must start with a letter or number'
       tooLongKey: '"{key}" cannot have a key longer than {max} characters'
       tooLongPrefix: '"{key}" cannot have a prefix longer than {max} characters'
+  minLength: '"{key}" must contain more than {min} characters'
+  maxLength: '"{key}" must contain less than {max} characters'
+  minValue: '"{key}" must be higher than {min}'
+  maxValue: '"{key}" must be lower than {max}'
+  betweenLengths: '"{key}" must contain between {min} and {max} characters'
+  betweenValues: '"{key}" must be between {min} and {max}'
   noSchema: No schema found to validate
   noType: No type to validate
   number:
