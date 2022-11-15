@@ -64,7 +64,7 @@ export default function(dir, _appConfig) {
     COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
 
     // Skip eslint check that runs as part of nuxt build in the console
-    if (skipEsLintCheck === 0) {
+    if (skipEsLintCheck > 0) {
       typescript = { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } };
     }
   }
