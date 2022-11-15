@@ -4,7 +4,7 @@ echo "Building Rancher Dashboard Docker Image"
 start=`date +%s`
 tag=rancher-dashboard:v2.6.8
 
-docker build -t $tag .
+docker build -t $tag -f Docker.nginx .
 docker image tag $tag k4edge.net/$tag
 docker push k4edge.net/$tag
 
