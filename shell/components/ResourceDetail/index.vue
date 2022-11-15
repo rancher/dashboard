@@ -201,7 +201,7 @@ export default {
       if ( as === _YAML ) {
         yaml = await getYaml(liveModel);
       }
-      console.log('LIVE MODEL', liveModel);
+
       if ( as === _GRAPH ) {
         this.chartData = liveModel;
       }

@@ -184,12 +184,12 @@ export default {
       v-if="bundleCounts.length"
       title="Bundles"
       :values="bundleCounts"
-      value-key="count" 
+      value-key="count"
     />
     <FleetStatus
       title="Resources"
-      :values="resourceCounts" 
-      value-key="count" 
+      :values="resourceCounts"
+      value-key="count"
     />
   </div>
 </template>

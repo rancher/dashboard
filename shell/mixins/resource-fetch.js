@@ -54,6 +54,7 @@ export default {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
     rows() {
       const inStore = this.$store.getters['currentStore'](this.resource);
+
       return this.$store.getters[`${ inStore }/all`](this.resource);
     },
     loading() {

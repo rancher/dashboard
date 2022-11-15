@@ -441,7 +441,6 @@ export default {
     },
 
     stepOneReady() {
-      console.log('REQUIRES', this.stepOneRequires);
       this.$set(this.addRepositorySteps[0], 'ready', this.stepOneRequires);
     },
 
