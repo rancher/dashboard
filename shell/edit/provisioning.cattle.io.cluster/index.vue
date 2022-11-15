@@ -64,6 +64,15 @@ export default {
     value: {
       type:    Object,
       default: null,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'cluster-manager-create'
     }
   },
 

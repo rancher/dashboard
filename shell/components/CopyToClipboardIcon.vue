@@ -33,8 +33,16 @@ export default {
 </script>
 
 <template>
-  <a class="copy-to-clipboard-icon" :class="{ 'copied': copied }" href="#" @click="clicked">
-    <i class="icon" :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}" />
+  <a
+    class="copy-to-clipboard-icon"
+    :class="{ 'copied': copied }"
+    href="#"
+    @click="clicked"
+  >
+    <i
+      class="icon"
+      :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}"
+    />
   </a>
 </template>
 <style lang="scss" scoped>

@@ -21,11 +21,20 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" :label="t('monitoringReceiver.shared.proxyUrl.label')" :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')" />
+        <LabeledInput
+          v-model="value.http_config.proxy_url"
+          :mode="mode"
+          :label="t('monitoringReceiver.shared.proxyUrl.label')"
+          :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
-      <Checkbox v-model="value.send_resolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
+      <Checkbox
+        v-model="value.send_resolved"
+        :mode="mode"
+        :label="t('monitoringReceiver.shared.sendResolved.label')"
+      />
     </div>
   </div>
 </template>

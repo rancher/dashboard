@@ -1,16 +1,30 @@
 <template>
   <div class="password-strength">
-    <label class="password-strength__label"> <t k="changePassword.strength.label"></t> <span v-if="strengthState" :class="[strengthState ? `password-strength--${strengthState.state}` : '']">&nbsp;<t :k="strengthState.labelKey"></t></span></label>
-    <div class="password-strength__content" :class="[strengthState ? `password-strength--${strengthState.state}` : '']">
-      <div class="password-strength__chart"></div>
-      <div class="password-strength__chart"></div>
-      <div class="password-strength__chart"></div>
+    <label class="password-strength__label"> <t k="changePassword.strength.label" /> <span
+      v-if="strengthState"
+      :class="[strengthState ? `password-strength--${strengthState.state}` : '']"
+    >&nbsp;<t :k="strengthState.labelKey" /></span></label>
+    <div
+      class="password-strength__content"
+      :class="[strengthState ? `password-strength--${strengthState.state}` : '']"
+    >
+      <div class="password-strength__chart" />
+      <div class="password-strength__chart" />
+      <div class="password-strength__chart" />
     </div>
-    <div v-show="password.length > 0" class="text-error mt-10">
-      <t v-if="password.length < minLength" k="changePassword.strength.tooltip1" :length="minLength">
-      </t>
-      <t v-else-if="strengthState.state === 'weak' && password.length >= minLength" k="changePassword.strength.tooltip2">
-      </t>
+    <div
+      v-show="password.length > 0"
+      class="text-error mt-10"
+    >
+      <t
+        v-if="password.length < minLength"
+        k="changePassword.strength.tooltip1"
+        :length="minLength"
+      />
+      <t
+        v-else-if="strengthState.state === 'weak' && password.length >= minLength"
+        k="changePassword.strength.tooltip2"
+      />
     </div>
   </div>
 </template>

@@ -247,6 +247,12 @@ export default class MgmtCluster extends HybridModel {
     return isHarvesterCluster(this);
   }
 
+  get isHostedKubernetesProvider() {
+    const providers = ['AKS', 'EKS', 'GKE'];
+
+    return providers.includes(this.provisioner);
+  }
+
   get providerLogo() {
     const provider = this.status?.provider || 'kubernetes';
     // Only interested in the part before the period
@@ -437,7 +443,7 @@ export default class MgmtCluster extends HybridModel {
     // RKE2 cluster IDs include the name - fleet-default/cluster-name - whereas an RKE1
     // cluster has the less human readable management cluster ID in it: fleet-default/c-khk48
 
-    const verb = this.isLocal || isRKE1 ? 'to' : 'from';
+    const verb = this.isLocal || isRKE1 || this.isHostedKubernetesProvider ? 'to' : 'from';
     const from = `${ verb }Type`;
     const id = `${ verb }Id`;
 

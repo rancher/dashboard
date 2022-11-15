@@ -146,18 +146,46 @@ export default {
         <div>{{ t('workload.storage.keyToPath.key.label') }}<span class="text-error">*</span></div>
         <div>{{ t('workload.storage.keyToPath.path.label') }}<span class="text-error">*</span></div>
         <div>{{ t('workload.storage.keyToPath.mode.label') }}</div>
-        <div></div>
+        <div />
       </div>
-      <div v-for="(item, index) in items" :key="index" class="key-to-path mb-10">
-        <LabeledSelect v-model="item.key" :options="keys" :mode="mode" />
-        <LabeledInput v-model.trim="item.path" :mode="mode" :placeholder="t('workload.storage.keyToPath.path.placeholder')" />
-        <LabeledInput v-model.number="item.mode" type="number" :mode="mode" :placeholder="t('workload.storage.keyToPath.mode.placeholder')" />
-        <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link action" @click="remove(index)">
+      <div
+        v-for="(item, index) in items"
+        :key="index"
+        class="key-to-path mb-10"
+      >
+        <LabeledSelect
+          v-model="item.key"
+          :options="keys"
+          :mode="mode"
+        />
+        <LabeledInput
+          v-model.trim="item.path"
+          :mode="mode"
+          :placeholder="t('workload.storage.keyToPath.path.placeholder')"
+        />
+        <LabeledInput
+          v-model.number="item.mode"
+          type="number"
+          :mode="mode"
+          :placeholder="t('workload.storage.keyToPath.mode.placeholder')"
+        />
+        <button
+          v-if="mode!=='view'"
+          type="button"
+          class="btn btn-sm role-link action"
+          @click="remove(index)"
+        >
           {{ t('generic.remove') }}
         </button>
-        <div v-else></div>
+        <div v-else />
       </div>
-      <button v-if="mode!=='view'" type="button" class="btn role-tertiary mt-10" :disabled="keys.length === 0" @click="add">
+      <button
+        v-if="mode!=='view'"
+        type="button"
+        class="btn role-tertiary mt-10"
+        :disabled="keys.length === 0"
+        @click="add"
+      >
         {{ t('workload.storage.keyToPath.addAction') }}
       </button>
     </template>

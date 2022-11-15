@@ -109,10 +109,21 @@ export default {
     <p class="set-landing-leadin">
       {{ t('landing.landingPrefs.body') }}
     </p>
-    <RadioGroup id="login-route" :value="afterLoginRoute" name="login-route" :options="routeRadioOptions" @input="updateLoginRoute">
+    <RadioGroup
+      id="login-route"
+      :value="afterLoginRoute"
+      name="login-route"
+      :options="routeRadioOptions"
+      @input="updateLoginRoute"
+    >
       <template #2="{option, listeners}">
         <div class="custom-page">
-          <RadioButton :label="option.label" :val="false" :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'" v-on="listeners" />
+          <RadioButton
+            :label="option.label"
+            :val="false"
+            :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'"
+            v-on="listeners"
+          />
           <Select
             v-model="routeFromDropdown"
             :searchable="true"

@@ -4,7 +4,7 @@
       <div class="col span-6">
         <div class="mb-10">
           <p class="helper-text">
-            <t k="gpuReservation.label"></t>
+            <t k="gpuReservation.label" />
           </p>
         </div>
         <div class="mb-10">
@@ -26,7 +26,10 @@
               :mode="mode"
               @input="updateGpuShared"
             />
-            <Banner color="warning" :label="t('gpuReservation.sharedTips')" />
+            <Banner
+              color="warning"
+              :label="t('gpuReservation.sharedTips')"
+            />
           </div>
         </template>
         <template v-else-if="gpuReservationMode === 'set'">
@@ -67,10 +70,13 @@
           </div>
         </template>
       </div>
-      <div v-if="showVgpu" class="col span-6">
+      <div
+        v-if="showVgpu"
+        class="col span-6"
+      >
         <div class="mb-10">
           <p class="helper-text">
-            <t k="vGpuReservation.label"></t>
+            <t k="vGpuReservation.label" />
           </p>
         </div>
         <UnitInput

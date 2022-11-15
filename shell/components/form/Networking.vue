@@ -266,7 +266,7 @@ export default {
         </div>
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div>
       <h3>{{ t('workload.networking.dns') }}</h3>
@@ -297,7 +297,7 @@ export default {
         </div>
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div class="mt-20">
       <div class="row">
@@ -315,7 +315,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div class="row mt-20">
       <div class="col span-12">
@@ -342,7 +342,7 @@ export default {
         </KeyValue>
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div class="mt-20">
       <div class="row">
@@ -407,7 +407,11 @@ export default {
           </div>
         </div>
 
-        <Tip icon="icon icon-info" class="text-info mt-10" :text="t('workload.networking.vlansubnet.tip')" />
+        <Tip
+          icon="icon icon-info"
+          class="text-info mt-10"
+          :text="t('workload.networking.vlansubnet.tip')"
+        />
       </div>
     </div>
   </div>

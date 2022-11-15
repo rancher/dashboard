@@ -310,7 +310,11 @@ export default {
 </script>
 <template>
   <div>
-    <Tab name="container-images" :label="t('rancher-nvidia-k8s-device-plugin.titles.image')" :weight="4">
+    <Tab
+      name="container-images"
+      :label="t('rancher-nvidia-k8s-device-plugin.titles.image')"
+      :weight="4"
+    >
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput
@@ -360,7 +364,11 @@ export default {
         </div>
       </div>
     </Tab>
-    <Tab name="device-plugin-options" :label="t('rancher-nvidia-k8s-device-plugin.titles.plugin')" :weight="3">
+    <Tab
+      name="device-plugin-options"
+      :label="t('rancher-nvidia-k8s-device-plugin.titles.plugin')"
+      :weight="3"
+    >
       <div class="mt-40 ml-20">
         <Tabbed
           ref="configs"
@@ -369,19 +377,40 @@ export default {
         >
           <template #tab-row-extras>
             <div class="side-tablist-controls">
-              <button v-if="!isView" type="button" class="btn-sm role-link" @click="addConfig">
+              <button
+                v-if="!isView"
+                type="button"
+                class="btn-sm role-link"
+                @click="addConfig"
+              >
                 {{ t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.addConfig') }}
               </button>
             </div>
           </template>
           <template v-for="(c, index) in configs">
-            <Tab :key="c.id" :name="c.id" :label="c.name" :weight="-index">
-              <template #tab-header-right class="tab-content-controls">
-                <button v-if="c.id !== 'default' && !isView" type="button" class="btn-sm role-link" @click="removeConfig(index)">
+            <Tab
+              :key="c.id"
+              :name="c.id"
+              :label="c.name"
+              :weight="-index"
+            >
+              <template
+                #tab-header-right
+                class="tab-content-controls"
+              >
+                <button
+                  v-if="c.id !== 'default' && !isView"
+                  type="button"
+                  class="btn-sm role-link"
+                  @click="removeConfig(index)"
+                >
                   {{ t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.removeConfig') }}
                 </button>
               </template>
-              <div v-if="c.id !== 'default'" class="row mb-10">
+              <div
+                v-if="c.id !== 'default'"
+                class="row mb-10"
+              >
                 <div class="col span-6">
                   <LabeledInput
                     v-model="c.name"
@@ -400,7 +429,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.migStrategy.tip', {}, true)"></span>
+                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.migStrategy.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -412,7 +441,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.failOnInitError.tip', {}, true)"> </span>
+                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.failOnInitError.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -424,7 +453,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.nvidiaDriverRoot.tip', {}, true)"></span>
+                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.nvidiaDriverRoot.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -436,7 +465,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.passDeviceSpecs.tip', {}, true)"></span>
+                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.passDeviceSpecs.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -449,7 +478,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.deviceListStrategy.tip', {}, true)"></span>
+                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.deviceListStrategy.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -462,7 +491,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.deviceIDStrategy.tip', {}, true)"></span>
+                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.deviceIDStrategy.tip', {}, true)" />
                 </div>
               </div>
               <hr class="mb-20 mt-20">
@@ -475,7 +504,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.sharedAccess.tip', {}, true)"></span>
+                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.sharedAccess.tip', {}, true)" />
                 </div>
               </div>
               <div v-show="sharedAccessEnabledMap[c.id]">
@@ -503,8 +532,7 @@ export default {
                       :value="c.config.sharing.timeSlicing.resources"
                       :mode="mode"
                       @input="updateResources($event, c)"
-                    >
-                    </GpuResources>
+                    />
                   </div>
                 </div>
               </div>
@@ -513,7 +541,11 @@ export default {
         </Tabbed>
       </div>
     </Tab>
-    <Tab name="gfd-options" :label="t('rancher-nvidia-k8s-device-plugin.titles.gfd')" :weight="2">
+    <Tab
+      name="gfd-options"
+      :label="t('rancher-nvidia-k8s-device-plugin.titles.gfd')"
+      :weight="2"
+    >
       <div class="row">
         <div class="col span-6">
           <Checkbox
@@ -523,11 +555,15 @@ export default {
           />
         </div>
         <div class="col span-6">
-          <span v-html="t('rancher-nvidia-k8s-device-plugin.gfdOptions.enabled.tip', {}, true)"></span>
+          <span v-html="t('rancher-nvidia-k8s-device-plugin.gfdOptions.enabled.tip', {}, true)" />
         </div>
       </div>
     </Tab>
-    <Tab name="schedule-options" :label="t('rancher-nvidia-k8s-device-plugin.titles.schedule')" :weight="1">
+    <Tab
+      name="schedule-options"
+      :label="t('rancher-nvidia-k8s-device-plugin.titles.schedule')"
+      :weight="1"
+    >
       <div class="row">
         <div class="col span-10">
           <KeyValue

@@ -174,8 +174,14 @@ export default {
 };
 </script>
 <template>
-  <div v-if="typeOption" class="ns-quota__row mb-10">
-    <div v-if="storageClass" class="type-with-sc">
+  <div
+    v-if="typeOption"
+    class="ns-quota__row mb-10"
+  >
+    <div
+      v-if="storageClass"
+      class="type-with-sc"
+    >
       <Select
         :mode="mode"
         :value="type"
@@ -198,7 +204,12 @@ export default {
       :options="types"
     />
     <div>
-      <PercentageBar class="percentage-bar" :value="percentageUsed" :slices="slices" :color-stops="{'100': '--primary'}" />
+      <PercentageBar
+        class="percentage-bar"
+        :value="percentageUsed"
+        :slices="slices"
+        :color-stops="{'100': '--primary'}"
+      />
     </div>
     <UnitInput
       :value="limit"

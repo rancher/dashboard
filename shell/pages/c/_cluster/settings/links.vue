@@ -116,10 +116,21 @@ export default {
       />
     </div>
     <template v-for="err in errors">
-      <Banner :key="err" color="error" :label="err" />
+      <Banner
+        :key="err"
+        color="error"
+        :label="err"
+      />
     </template>
-    <div v-if="mode === 'edit'" class="mt-20">
-      <AsyncButton class="pull-right" mode="apply" @click="save" />
+    <div
+      v-if="mode === 'edit'"
+      class="mt-20"
+    >
+      <AsyncButton
+        class="pull-right"
+        mode="apply"
+        @click="save"
+      />
     </div>
   </div>
 </template>

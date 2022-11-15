@@ -84,41 +84,75 @@ export default {
 <template>
   <Loading v-if="!settings" />
   <div v-else>
-    <Banner color="warning" class="settings-banner">
+    <Banner
+      color="warning"
+      class="settings-banner"
+    >
       <div v-html="t('advancedSettings.subtext')" />
     </Banner>
-    <div v-for="setting in settings" :key="setting.id" class="advanced-setting mb-20">
+    <div
+      v-for="setting in settings"
+      :key="setting.id"
+      class="advanced-setting mb-20"
+    >
       <div class="header">
         <div class="title">
           <h1>
             {{ setting.id }}
-            <span v-if="setting.fromEnv" class="modified">Set by Environment Variable</span>
-            <span v-else-if="setting.customized" class="modified">Modified</span>
+            <span
+              v-if="setting.fromEnv"
+              class="modified"
+            >Set by Environment Variable</span>
+            <span
+              v-else-if="setting.customized"
+              class="modified"
+            >Modified</span>
           </h1>
           <h2 v-html="setting.description" />
         </div>
-        <div v-if="setting.hasActions" class="action">
-          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions" @click="showActionMenu($event, setting)">
+        <div
+          v-if="setting.hasActions"
+          class="action"
+        >
+          <button
+            aria-haspopup="true"
+            aria-expanded="false"
+            type="button"
+            class="btn btn-sm role-multi-action actions"
+            @click="showActionMenu($event, setting)"
+          >
             <i class="icon icon-actions" />
           </button>
         </div>
       </div>
       <div value>
         <div v-if="setting.hide">
-          <button class="btn btn-sm role-primary" @click="setting.hide = !setting.hide">
+          <button
+            class="btn btn-sm role-primary"
+            @click="setting.hide = !setting.hide"
+          >
             {{ t('advancedSettings.show') }} {{ setting.id }}
           </button>
         </div>
-        <div v-else class="settings-value">
+        <div
+          v-else
+          class="settings-value"
+        >
           <pre v-if="setting.kind === 'json'">{{ setting.json }}</pre>
           <pre v-else-if="setting.kind === 'multiline'">{{ setting.data.value || setting.data.default }}</pre>
           <pre v-else-if="setting.kind === 'enum'">{{ t(setting.enum) }}</pre>
           <pre v-else-if="setting.kind === 'enum-map'">{{ setting.enumMap }}</pre>
           <pre v-else-if="setting.data.value || setting.data.default">{{ setting.data.value || setting.data.default }}</pre>
-          <pre v-else class="text-muted">&lt;{{ t('advancedSettings.none') }}&gt;</pre>
+          <pre
+            v-else
+            class="text-muted"
+          >&lt;{{ t('advancedSettings.none') }}&gt;</pre>
         </div>
         <div v-if="setting.canHide && !setting.hide">
-          <button class="btn btn-sm role-primary" @click="setting.hide = !setting.hide">
+          <button
+            class="btn btn-sm role-primary"
+            @click="setting.hide = !setting.hide"
+          >
             {{ t('advancedSettings.hide') }} {{ setting.id }}
           </button>
         </div>

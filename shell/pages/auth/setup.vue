@@ -302,7 +302,7 @@ export default {
             <p
               class="text-center mb-20 mt-20 setup-title"
               v-html="t(isFirstLogin ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
-            ></p>
+            />
 
             <Password
               v-if="!haveCurrent"
@@ -315,7 +315,12 @@ export default {
             />
 
             <!-- For password managers... -->
-            <input type="hidden" name="username" autocomplete="username" :value="username" />
+            <input
+              type="hidden"
+              name="username"
+              autocomplete="username"
+              :value="username"
+            >
             <div class="mb-20">
               <RadioGroup
                 v-model="useRandom"
@@ -334,9 +339,18 @@ export default {
                 data-testid="setup-password-random"
                 label-key="setup.newPassword"
               >
-                <template v-if="useRandom" #suffix>
-                  <div class="addon" style="padding: 0 0 0 12px;">
-                    <CopyToClipboard :text="password" class="btn-sm" />
+                <template
+                  v-if="useRandom"
+                  #suffix
+                >
+                  <div
+                    class="addon"
+                    style="padding: 0 0 0 12px;"
+                  >
+                    <CopyToClipboard
+                      :text="password"
+                      class="btn-sm"
+                    />
                   </div>
                 </template>
               </LabeledInput>
@@ -357,14 +371,23 @@ export default {
               :label="t('setup.confirmPassword')"
               :required="true"
             />
-            <PasswordStrength :password="password" @strengthChange="passwordStrength = $event"></PasswordStrength>
+            <PasswordStrength
+              :password="password"
+              @strengthChange="passwordStrength = $event"
+            />
           </template>
 
           <template v-if="isFirstLogin">
             <template v-if="mcmEnabled">
-              <hr v-if="mustChangePassword" class="mt-20 mb-20" />
+              <hr
+                v-if="mustChangePassword"
+                class="mt-20 mb-20"
+              >
               <p>
-                <t k="setup.serverUrl.tip" :raw="true" />
+                <t
+                  k="setup.serverUrl.tip"
+                  :raw="true"
+                />
               </p>
               <div class="mt-20">
                 <LabeledInput
@@ -376,9 +399,16 @@ export default {
             </template>
 
             <div class="checkbox mt-40">
-              <Checkbox id="checkbox-telemetry" v-model="telemetry">
+              <Checkbox
+                id="checkbox-telemetry"
+                v-model="telemetry"
+              >
                 <template #label>
-                  <t k="setup.telemetry" :raw="true" :name="productName" />
+                  <t
+                    k="setup.telemetry"
+                    :raw="true"
+                    :name="productName"
+                  />
                 </template>
               </Checkbox>
             </div>
@@ -389,7 +419,11 @@ export default {
                 data-testid="setup-agreement"
               >
                 <template #label>
-                  <t k="setup.eula" :raw="true" :name="productName" />
+                  <t
+                    k="setup.eula"
+                    :raw="true"
+                    :name="productName"
+                  />
                 </template>
               </Checkbox>
             </div>
@@ -410,7 +444,11 @@ export default {
           </div>
 
           <div class="setup-errors mt-20">
-            <h4 v-for="err in errors" :key="err" class="text-error text-center">
+            <h4
+              v-for="err in errors"
+              :key="err"
+              class="text-error text-center"
+            >
               {{ err }}
             </h4>
           </div>

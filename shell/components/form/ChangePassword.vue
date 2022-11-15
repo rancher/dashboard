@@ -321,12 +321,30 @@ export default {
 </script>
 
 <template>
-  <div class="change-password" :class="{'change': isChange, 'create': isCreate, 'edit': isEdit}">
+  <div
+    class="change-password"
+    :class="{'change': isChange, 'create': isCreate, 'edit': isEdit}"
+  >
     <div class="form">
       <div class="fields">
-        <Checkbox v-if="isChange" v-model="form.deleteKeys" label-key="changePassword.deleteKeys.label" class="mt-10" />
-        <Checkbox v-if="isCreateEdit" v-model="userChangeOnLogin" label-key="changePassword.changeOnLogin.label" class="mt-10 type" />
-        <Checkbox v-if="isCreateEdit" v-model="isRandomGenerated" label-key="changePassword.generatePassword.label" class="mt-10 type" />
+        <Checkbox
+          v-if="isChange"
+          v-model="form.deleteKeys"
+          label-key="changePassword.deleteKeys.label"
+          class="mt-10"
+        />
+        <Checkbox
+          v-if="isCreateEdit"
+          v-model="userChangeOnLogin"
+          label-key="changePassword.changeOnLogin.label"
+          class="mt-10 type"
+        />
+        <Checkbox
+          v-if="isCreateEdit"
+          v-model="isRandomGenerated"
+          label-key="changePassword.generatePassword.label"
+          class="mt-10 type"
+        />
 
         <!-- Create two 'invisible fields' for password managers -->
         <input
@@ -353,8 +371,11 @@ export default {
           class="mt-10"
           :required="true"
           :label="t('changePassword.currentPassword.label')"
-        ></Password>
-        <div v-if="isRandomGenerated" :class="{'row': isCreateEdit}">
+        />
+        <div
+          v-if="isRandomGenerated"
+          :class="{'row': isCreateEdit}"
+        >
           <div :class="{'col': isCreateEdit, 'span-8': isCreateEdit}">
             <Password
               v-model="passwordGen"
@@ -365,7 +386,11 @@ export default {
             />
           </div>
         </div>
-        <div v-else class="userGen" :class="{'row': isCreateEdit}">
+        <div
+          v-else
+          class="userGen"
+          :class="{'row': isCreateEdit}"
+        >
           <div :class="{'col': isCreateEdit, 'span-4': isCreateEdit}">
             <Password
               v-model="passwordNew"
@@ -387,16 +412,35 @@ export default {
           </div>
         </div>
       </div>
-      <Checkbox v-if="isChange" v-model="isRandomGenerated" label-key="changePassword.generatePassword.label" class="mt-10 type" />
+      <Checkbox
+        v-if="isChange"
+        v-model="isRandomGenerated"
+        label-key="changePassword.generatePassword.label"
+        class="mt-10 type"
+      />
       <div :class="{row: !isChange}">
         <div :class="{col: !isChange, 'span-4': !isChange}">
-          <PasswordStrength class="mt-10" :password="isRandomGenerated ? passwordGen: passwordNew" @strengthChange="handlePasswordStrength"></PasswordStrength>
+          <PasswordStrength
+            class="mt-10"
+            :password="isRandomGenerated ? passwordGen: passwordNew"
+            @strengthChange="handlePasswordStrength"
+          />
         </div>
       </div>
     </div>
-    <div v-if="errorMessages && errorMessages.length" class="text-error" :class="{'row': isCreateEdit}">
+    <div
+      v-if="errorMessages && errorMessages.length"
+      class="text-error"
+      :class="{'row': isCreateEdit}"
+    >
       <div :class="{'col': isCreateEdit, 'span-8': isCreateEdit}">
-        <Banner v-for="(err, i) in errorMessages" :key="i" color="error" :label="err" class="mb-0" />
+        <Banner
+          v-for="(err, i) in errorMessages"
+          :key="i"
+          color="error"
+          :label="err"
+          class="mb-0"
+        />
       </div>
     </div>
   </div>

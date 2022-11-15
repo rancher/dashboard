@@ -959,7 +959,10 @@ export default {
               :label="t('cluster.machineConfig.aliyunecs.instanceChargeType.label')"
             />
           </div>
-          <div v-if="instanceChargeType === 'PrePaid'" class="col span-6">
+          <div
+            v-if="instanceChargeType === 'PrePaid'"
+            class="col span-6"
+          >
             <LabeledSelect
               v-model="periodUnit"
               :mode="mode"
@@ -973,7 +976,10 @@ export default {
           </div>
         </div>
 
-        <div v-if="instanceChargeType === 'SpotStrategy'" class="row mb-20">
+        <div
+          v-if="instanceChargeType === 'SpotStrategy'"
+          class="row mb-20"
+        >
           <div class="col span-6">
             <div class="title">
               <h3>
@@ -1063,7 +1069,10 @@ export default {
           <div class="col span-12">
             <h3>
               {{ t('cluster.machineConfig.aliyunecs.securityGroup.title') }}
-              <span v-if="!value.vpcId" class="text-muted text-small">
+              <span
+                v-if="!value.vpcId"
+                class="text-muted text-small"
+              >
                 {{ t('cluster.machineConfig.aliyunecs.securityGroup.vpcId') }}
               </span>
             </h3>

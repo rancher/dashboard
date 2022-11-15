@@ -168,14 +168,29 @@ export default {
 </script>
 
 <template>
-  <Tabbed v-bind="$attrs" :default-tab="defaultTab" @changed="tabChange">
+  <Tabbed
+    v-bind="$attrs"
+    :default-tab="defaultTab"
+    @changed="tabChange"
+  >
     <slot />
 
-    <Tab v-if="showConditions" label-key="resourceTabs.conditions.tab" name="conditions" :weight="-1" :display-alert-icon="conditionsHaveIssues">
+    <Tab
+      v-if="showConditions"
+      label-key="resourceTabs.conditions.tab"
+      name="conditions"
+      :weight="-1"
+      :display-alert-icon="conditionsHaveIssues"
+    >
       <Conditions :value="value" />
     </Tab>
 
-    <Tab v-if="showEvents" label-key="resourceTabs.events.tab" name="events" :weight="-2">
+    <Tab
+      v-if="showEvents"
+      label-key="resourceTabs.events.tab"
+      name="events"
+      :weight="-2"
+    >
       <SortableTable
         v-if="selectedTab === 'events'"
         :rows="events"
@@ -188,12 +203,28 @@ export default {
       />
     </Tab>
 
-    <Tab v-if="showRelated" name="related" label-key="resourceTabs.related.tab" :weight="-3">
+    <Tab
+      v-if="showRelated"
+      name="related"
+      label-key="resourceTabs.related.tab"
+      :weight="-3"
+    >
       <h3 v-t="'resourceTabs.related.from'" />
-      <RelatedResources :ignore-types="[value.type]" :value="value" direction="from" />
+      <RelatedResources
+        :ignore-types="[value.type]"
+        :value="value"
+        direction="from"
+      />
 
-      <h3 v-t="'resourceTabs.related.to'" class="mt-20" />
-      <RelatedResources :ignore-types="[value.type]" :value="value" direction="to" />
+      <h3
+        v-t="'resourceTabs.related.to'"
+        class="mt-20"
+      />
+      <RelatedResources
+        :ignore-types="[value.type]"
+        :value="value"
+        direction="to"
+      />
     </Tab>
   </Tabbed>
 </template>

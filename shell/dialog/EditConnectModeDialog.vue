@@ -1,11 +1,26 @@
 <template>
   <div ref="connectModeModal">
-    <Card v-show="!showConfirm" class="prompt-cluster-connect-mode" :show-highlight-border="false">
-      <h4 slot="title" class="text-default-text">
+    <Card
+      v-show="!showConfirm"
+      class="prompt-cluster-connect-mode"
+      :show-highlight-border="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text"
+      >
         {{ t('clusterConnectMode.connectMode.label') }}
       </h4>
-      <div v-if="connectModeLoading" slot="body"></div>
-      <div v-else slot="body" class="pr-10 pl-10" style="min-height: 300px;">
+      <div
+        v-if="connectModeLoading"
+        slot="body"
+      />
+      <div
+        v-else
+        slot="body"
+        class="pr-10 pl-10"
+        style="min-height: 300px;"
+      >
         <div class="mb-20 row">
           <div class="col span-6">
             <LabeledSelect
@@ -28,10 +43,21 @@
           </div>
         </div>
       </div>
-      <div slot="actions" class="bottom">
-        <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+      <div
+        slot="actions"
+        class="bottom"
+      >
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
+          color="error"
+          :label="err"
+        />
         <div class="buttons">
-          <button class="mr-10 btn role-secondary" @click="close">
+          <button
+            class="mr-10 btn role-secondary"
+            @click="close"
+          >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton
@@ -56,19 +82,37 @@
       height="auto"
       :click-to-close="false"
     >
-      <Card class="prompt-cluster-connect-mode" :show-highlight-border="false">
-        <h4 slot="title" class="text-default-text">
+      <Card
+        class="prompt-cluster-connect-mode"
+        :show-highlight-border="false"
+      >
+        <h4
+          slot="title"
+          class="text-default-text"
+        >
           {{ t('promptRemove.title') }}
         </h4>
-        <div slot="body" class="pr-10 pl-10">
+        <div
+          slot="body"
+          class="pr-10 pl-10"
+        >
           {{ t('clusterConnectMode.actions.restartConfirm', { name: cluster.metadata.name}) }}
         </div>
-        <div slot="actions" class="bottom">
+        <div
+          slot="actions"
+          class="bottom"
+        >
           <div class="buttons">
-            <button class="mr-10 btn role-secondary" @click="confirm(false)">
+            <button
+              class="mr-10 btn role-secondary"
+              @click="confirm(false)"
+            >
               {{ t('generic.cancel') }}
             </button>
-            <button class="btn role-primary" @click="confirm(true)">
+            <button
+              class="btn role-primary"
+              @click="confirm(true)"
+            >
               {{ t('clusterConnectMode.actions.yes') }}
             </button>
           </div>

@@ -43,14 +43,32 @@ export default {
 <template>
   <div>
     <label>{{ inputLabel }}</label>
-    <div v-for="(item, index) of inputList" :key="index" class="mb-5 mr-5 input-row">
-      <input v-model="inputList[index]" type="number" :disabled="isDisabled" :placeholder="placeholder" />
-      <button :disabled="isDisabled" type="button" class="btn btn-sm bg-primary" @click.prevent="removeRow(index)">
+    <div
+      v-for="(item, index) of inputList"
+      :key="index"
+      class="mb-5 mr-5 input-row"
+    >
+      <input
+        v-model="inputList[index]"
+        type="number"
+        :disabled="isDisabled"
+        :placeholder="placeholder"
+      >
+      <button
+        :disabled="isDisabled"
+        type="button"
+        class="btn btn-sm bg-primary"
+        @click.prevent="removeRow(index)"
+      >
         <i class="icon icon-minus" />
       </button>
     </div>
     <div>
-      <button :disabled="isDisabled" class="btn btn-sm bg-primary" @click.prevent="addInput">
+      <button
+        :disabled="isDisabled"
+        class="btn btn-sm bg-primary"
+        @click.prevent="addInput"
+      >
         {{ t('generic.add') }}
       </button>
     </div>

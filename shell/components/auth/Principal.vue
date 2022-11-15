@@ -55,22 +55,35 @@ export default {
 </script>
 
 <template>
-  <div class="principal" :class="{'showLabels': showLabels}">
+  <div
+    class="principal"
+    :class="{'showLabels': showLabels}"
+  >
     <template v-if="!principal && $fetchState.pending">
       <div class="avatar">
         <div class="empty">
           <i class="icon icon-spinner icon-lg" />
         </div>
       </div>
-      <div class="name" :class="{'text-muted': useMuted}" v-html="t('principal.loading', null, true)" />
+      <div
+        class="name"
+        :class="{'text-muted': useMuted}"
+        v-html="t('principal.loading', null, true)"
+      />
       <div class="description" />
     </template>
 
     <template v-else-if="principal">
       <div class="avatar">
-        <img :src="principal.avatarSrc" :class="{'round': principal.roundAvatar}" />
+        <img
+          :src="principal.avatarSrc"
+          :class="{'round': principal.roundAvatar}"
+        >
       </div>
-      <div v-if="showLabels" class="name">
+      <div
+        v-if="showLabels"
+        class="name"
+      >
         <table>
           <tr><td>{{ t('principal.name') }}: </td><td>{{ principal.name || principal.loginName }}</td></tr>
           <tr><td>{{ t('principal.loginName') }}: </td><td>{{ principal.loginName }}</td></tr>
@@ -81,7 +94,10 @@ export default {
         <div class="name">
           <template v-if="showBoth">
             {{ principal.name }}
-            <span v-if="principal.loginName" :class="{'text-muted': useMuted}">({{ principal.loginName }})</span>
+            <span
+              v-if="principal.loginName"
+              :class="{'text-muted': useMuted}"
+            >({{ principal.loginName }})</span>
           </template>
           <template v-else-if="principal.name">
             {{ principal.name }}
@@ -90,7 +106,10 @@ export default {
             {{ principal.loginName }}
           </template>
         </div>
-        <div class="description" :class="{'text-muted': useMuted}">
+        <div
+          class="description"
+          :class="{'text-muted': useMuted}"
+        >
           {{ principal.displayType }}
         </div>
       </template>
@@ -98,12 +117,21 @@ export default {
 
     <template v-else>
       <div class="avatar">
-        <div class="empty" :class="{'text-muted': useMuted}">
+        <div
+          class="empty"
+          :class="{'text-muted': useMuted}"
+        >
           <i class="icon icon-warning icon-lg" />
         </div>
       </div>
-      <div v-t="'principal.error'" class="name text-error" />
-      <div class="description" :class="{'text-muted': useMuted}">
+      <div
+        v-t="'principal.error'"
+        class="name text-error"
+      />
+      <div
+        class="description"
+        :class="{'text-muted': useMuted}"
+      >
         {{ value }}
       </div>
     </template>

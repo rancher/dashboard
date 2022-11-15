@@ -73,7 +73,10 @@ export default {
         {{ t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.resources.title') }}
       </h4>
     </div>
-    <div class="kv-container" :style="containerStyle">
+    <div
+      class="kv-container"
+      :style="containerStyle"
+    >
       <template v-if="rows.length || isView">
         <label class="text-label">
           {{ t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.resources.name.label') }}
@@ -91,8 +94,14 @@ export default {
           &mdash;
         </div>
       </template>
-      <template v-for="(row, i) in rows" v-else>
-        <div :key="i+'key'" class="kv-item key">
+      <template
+        v-for="(row, i) in rows"
+        v-else
+      >
+        <div
+          :key="i+'key'"
+          class="kv-item key"
+        >
           <input
             ref="key"
             v-model="row.name"
@@ -101,29 +110,44 @@ export default {
             autocapitalize="off"
             spellcheck="false"
             @input="queueUpdate"
-          />
+          >
         </div>
-        <div :key="i+'value'" class="kv-item value">
+        <div
+          :key="i+'value'"
+          class="kv-item value"
+        >
           <input
             v-model.number="row.replicas"
             :disabled="isView"
             type="number"
             @input="queueUpdate"
-          />
+          >
         </div>
         <div
           v-if="canRemove"
           :key="i"
           class="kv-item remove"
         >
-          <button type="button" :disabled="isView" class="btn role-link" @click="remove(i)">
+          <button
+            type="button"
+            :disabled="isView"
+            class="btn role-link"
+            @click="remove(i)"
+          >
             {{ t('generic.remove') }}
           </button>
         </div>
       </template>
     </div>
-    <div v-if="!isView" class="footer">
-      <button type="button" class="btn role-tertiary add" @click="add()">
+    <div
+      v-if="!isView"
+      class="footer"
+    >
+      <button
+        type="button"
+        class="btn role-tertiary add"
+        @click="add()"
+      >
         {{ t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.resources.add') }}
       </button>
     </div>

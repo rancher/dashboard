@@ -149,11 +149,20 @@ export default {
   >
     <h4 v-html="description" />
 
-    <h5 v-if="editHelp" class="edit-help" v-html="editHelp" />
+    <h5
+      v-if="editHelp"
+      class="edit-help"
+      v-html="editHelp"
+    />
 
     <div class="edit-change mt-20">
       <h5 v-t="'advancedSettings.edit.changeSetting'" />
-      <button :disabled="!canReset" type="button" class="btn role-primary" @click="useDefault">
+      <button
+        :disabled="!canReset"
+        type="button"
+        class="btn role-primary"
+        @click="useDefault"
+      >
         {{ t('advancedSettings.edit.useDefault') }}
       </button>
     </div>
@@ -197,7 +206,7 @@ export default {
           type="number"
           min="0"
           @input="convertToString($event)"
-        />
+        >
       </div>
       <div v-else>
         <LabeledInput

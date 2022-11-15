@@ -20,5 +20,9 @@ export default {
 };
 </script>
 <template>
-  <Banner v-if="model.length === 0 && !isView" color="info" v-html="t('monitoringReceiver.pandariaWebhook.banner', {}, raw=true)" />
+  <Banner
+    v-if="model.length === 0 && !isView"
+    color="info"
+    v-html="t('monitoringReceiver.pandariaWebhook.banner', {}, raw=true)"
+  />
 </template>

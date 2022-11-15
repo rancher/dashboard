@@ -148,7 +148,12 @@ export default {
 
     <h2 v-t="'accountAndKeys.account.title'" />
     <div class="account">
-      <Principal :key="principal.id" :value="principal.id" :use-muted="false" :show-labels="true" />
+      <Principal
+        :key="principal.id"
+        :value="principal.id"
+        :use-muted="false"
+        :show-labels="true"
+      />
       <div>
         <button
           v-if="canChangePassword"
@@ -162,21 +167,31 @@ export default {
     </div>
     <PromptChangePassword ref="promptChangePassword" />
 
-    <hr />
+    <hr>
     <div class="keys-header">
       <div>
         <h2 v-t="'accountAndKeys.apiKeys.title'" />
         <div class="api-url">
           <span>{{ t("accountAndKeys.apiKeys.apiEndpoint") }}</span>
-          <a :href="apiUrl" target="_blank"> {{ apiUrl }} </a>
+          <a
+            :href="apiUrl"
+            target="_blank"
+          > {{ apiUrl }} </a>
           <CopyToClipboardIcon :text="apiUrl" />
         </div>
       </div>
-      <button v-if="apiKeySchema" class="btn role-primary add mb-20" @click="addKey">
+      <button
+        v-if="apiKeySchema"
+        class="btn role-primary add mb-20"
+        @click="addKey"
+      >
         {{ t('accountAndKeys.apiKeys.add.label') }}
       </button>
     </div>
-    <div v-if="apiKeySchema" class="keys">
+    <div
+      v-if="apiKeySchema"
+      class="keys"
+    >
       <ResourceTable
         :schema="apiKeySchema"
         :rows="apiKeys"
@@ -188,7 +203,10 @@ export default {
       />
     </div>
     <div v-else>
-      <Banner color="warning" :label="t('accountAndKeys.apiKeys.notAllowed')" />
+      <Banner
+        color="warning"
+        :label="t('accountAndKeys.apiKeys.notAllowed')"
+      />
     </div>
   </div>
 </template>

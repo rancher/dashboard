@@ -27,9 +27,16 @@ export default {
 
 <template>
   <div class="navlink-iframe">
-    <Banner v-if="error" color="error" style="z-index: 1000">
+    <Banner
+      v-if="error"
+      color="error"
+      style="z-index: 1000"
+    >
       <div class="text-center">
-        {{ t('navlink.iframe.failedToLoad') }} <a href="#" @click="reload">{{ t('navlink.iframe.reload') }}</a>
+        {{ t('navlink.iframe.failedToLoad') }} <a
+          href="#"
+          @click="reload"
+        >{{ t('navlink.iframe.reload') }}</a>
       </div>
     </Banner>
     <iframe

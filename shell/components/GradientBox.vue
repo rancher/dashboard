@@ -61,7 +61,11 @@ export default {
 </script>
 
 <template>
-  <div class="gradient-box" :class="{'show-tab': showTab, 'plain': plain}" :style="style">
+  <div
+    class="gradient-box"
+    :class="{'show-tab': showTab, 'plain': plain}"
+    :style="style"
+  >
     <slot />
   </div>
 </template>

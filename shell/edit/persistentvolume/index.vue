@@ -240,7 +240,10 @@ export default {
         </div>
         <div class="col span-6 text-center">
           <label class="text-muted">Age:</label>&nbsp;
-          <LiveDate class="live-date" :value="value.metadata.creationTimestamp" />
+          <LiveDate
+            class="live-date"
+            :value="value.metadata.creationTimestamp"
+          />
         </div>
       </div>
     </InfoBox>
@@ -271,8 +274,17 @@ export default {
       </div>
     </div>
     <Tabbed :side-tabs="true">
-      <Tab name="plugin-configuration" :label="t('persistentVolume.pluginConfiguration.label')" :weight="1">
-        <component :is="getComponent(plugin)" :key="plugin" :value="value" :mode="modeOverride" />
+      <Tab
+        name="plugin-configuration"
+        :label="t('persistentVolume.pluginConfiguration.label')"
+        :weight="1"
+      >
+        <component
+          :is="getComponent(plugin)"
+          :key="plugin"
+          :value="value"
+          :mode="modeOverride"
+        />
       </Tab>
       <Tab
         name="customize"
@@ -282,9 +294,27 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <h3>{{ t('persistentVolume.customize.accessModes.label') }}</h3>
-            <div><Checkbox v-model="readWriteOnce" :label="t('persistentVolume.customize.accessModes.readWriteOnce')" :mode="mode" /></div>
-            <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolume.customize.accessModes.readOnlyMany')" :mode="mode" /></div>
-            <div><Checkbox v-model="readWriteMany" :label="t('persistentVolume.customize.accessModes.readWriteMany')" :mode="mode" /></div>
+            <div>
+              <Checkbox
+                v-model="readWriteOnce"
+                :label="t('persistentVolume.customize.accessModes.readWriteOnce')"
+                :mode="mode"
+              />
+            </div>
+            <div>
+              <Checkbox
+                v-model="readOnlyMany"
+                :label="t('persistentVolume.customize.accessModes.readOnlyMany')"
+                :mode="mode"
+              />
+            </div>
+            <div>
+              <Checkbox
+                v-model="readWriteMany"
+                :label="t('persistentVolume.customize.accessModes.readWriteMany')"
+                :mode="mode"
+              />
+            </div>
           </div>
           <div class="col span-6">
             <ArrayList
@@ -307,8 +337,18 @@ export default {
         </div>
         <div class="row">
           <div class="col span-12">
-            <h3>{{ t('persistentVolume.customize.affinity.label') }} <span v-if="areNodeSelectorsRequired" class="required text-small">*</span></h3>
-            <ArrayListGrouped v-model="nodeSelectorTerms" :mode="modeOverride" :default-add-value="{matchExpressions:[]}" :add-label="t('workload.scheduling.affinity.addNodeSelector')">
+            <h3>
+              {{ t('persistentVolume.customize.affinity.label') }} <span
+                v-if="areNodeSelectorsRequired"
+                class="required text-small"
+              >*</span>
+            </h3>
+            <ArrayListGrouped
+              v-model="nodeSelectorTerms"
+              :mode="modeOverride"
+              :default-add-value="{matchExpressions:[]}"
+              :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+            >
               <template #default="props">
                 <MatchExpressions
                   v-model="props.row.value.matchExpressions"

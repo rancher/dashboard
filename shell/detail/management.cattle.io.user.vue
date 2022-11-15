@@ -233,15 +233,29 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <ResourceTabs v-model="value" :mode="mode">
-      <Tab v-if="globalBindings" label-key="user.detail.globalPermissions.label" name="gp" :weight="3">
+    <ResourceTabs
+      v-model="value"
+      :mode="mode"
+    >
+      <Tab
+        v-if="globalBindings"
+        label-key="user.detail.globalPermissions.label"
+        name="gp"
+        :weight="3"
+      >
         <div class="subtext">
           {{ t("user.detail.globalPermissions.description") }}
         </div>
-        <div v-if="isAdmin" class="admin">
+        <div
+          v-if="isAdmin"
+          class="admin"
+        >
           {{ t("user.detail.globalPermissions.adminMessage") }}
         </div>
-        <div v-else-if="isReadOnlyAdmin" class="admin">
+        <div
+          v-else-if="isReadOnlyAdmin"
+          class="admin"
+        >
           {{ t("user.detail.globalPermissions.readOnlyAdminMessage") }}
         </div>
         <SortableTable
@@ -254,7 +268,12 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-if="clusterBindings" label-key="user.detail.clusterRoles.label" name="cr" :weight="2">
+      <Tab
+        v-if="clusterBindings"
+        label-key="user.detail.clusterRoles.label"
+        name="cr"
+        :weight="2"
+      >
         <div class="subtext">
           {{ t("user.detail.clusterRoles.description") }}
         </div>
@@ -266,7 +285,12 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-if="projectBindings" label-key="user.detail.projectRoles.label" name="pr" :weight="1">
+      <Tab
+        v-if="projectBindings"
+        label-key="user.detail.projectRoles.label"
+        name="pr"
+        :weight="1"
+      >
         <div class="subtext">
           {{ t("user.detail.projectRoles.description") }}
         </div>

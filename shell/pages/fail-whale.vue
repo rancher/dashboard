@@ -51,24 +51,40 @@ export default {
   <div v-if="error">
     <main class="error">
       <div class="text-center">
-        <BrandImage file-name="error-desert-landscape.svg" width="900" height="300" />
+        <BrandImage
+          file-name="error-desert-landscape.svg"
+          width="900"
+          height="300"
+        />
         <h1 v-if="error.status">
           HTTP Error {{ error.status }}: {{ error.statusText }}
         </h1>
         <h1 v-else>
           Error
         </h1>
-        <h2 v-if="error" class="text-secondary mt-20">
+        <h2
+          v-if="error"
+          class="text-secondary mt-20"
+        >
           {{ displayError }}
         </h2>
         <p class="mt-20">
-          <a :href="home" class="btn role-primary">
+          <a
+            :href="home"
+            class="btn role-primary"
+          >
             {{ t('nav.home') }}
           </a>
         </p>
-        <hr class="custom-content" :style="styles">
+        <hr
+          class="custom-content"
+          :style="styles"
+        >
         <p class="mt-20">
-          <a class="btn role-secondary" @click="$router.push(previousRoute.fullPath)">
+          <a
+            class="btn role-secondary"
+            @click="$router.push(previousRoute.fullPath)"
+          >
             {{ t('nav.failWhale.reload') }}
           </a>
         </p>

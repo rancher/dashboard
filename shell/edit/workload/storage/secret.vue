@@ -218,9 +218,16 @@ export default {
           />
         </div>
       </div>
-      <div v-if="sourceData" class="row">
+      <div
+        v-if="sourceData"
+        class="row"
+      >
         <div class="col span-12">
-          <KeyToPath :value="value" :ref-data="sourceData" :mode="mode" />
+          <KeyToPath
+            :value="value"
+            :ref-data="sourceData"
+            :mode="mode"
+          />
         </div>
       </div>
     </div>

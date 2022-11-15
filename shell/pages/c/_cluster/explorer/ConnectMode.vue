@@ -23,12 +23,12 @@
       <label>
         {{ t('clusterConnectMode.apiEndpoint.overrideLabel') }}:
       </label>
-      <div></div>
+      <div />
       <ApiEndpoints
         class="column-span-2"
         :value="apiEndpoints"
         :status-map="statusMap"
-      ></ApiEndpoints>
+      />
     </div>
     <div
       v-for="(err, idx) in errors"

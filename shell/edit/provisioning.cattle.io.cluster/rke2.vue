@@ -1629,7 +1629,11 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending && !loadedOnce" />
-  <Banner v-else-if="$fetchState.error" color="error" :label="$fetchState.error" />
+  <Banner
+    v-else-if="$fetchState.error"
+    color="error"
+    :label="$fetchState.error"
+  />
   <CruResource
     v-else
     ref="cruresource"
@@ -1663,7 +1667,10 @@ export default {
       :showing-form="showForm"
     />
 
-    <div v-if="showForm" class="mt-20">
+    <div
+      v-if="showForm"
+      class="mt-20"
+    >
       <NameNsDescription
         v-if="!isView"
         v-model="value"
@@ -1676,14 +1683,23 @@ export default {
         :rules="{name:fvGetAndReportPathRules('metadata.name')}"
       />
 
-      <Banner v-if="appsOSWarning" color="error">
+      <Banner
+        v-if="appsOSWarning"
+        color="error"
+      >
         {{ appsOSWarning }}
       </Banner>
 
       <template v-if="hasMachinePools">
         <div class="clearfix">
-          <h2 v-t="'cluster.tabs.machinePools'" class="pull-left" />
-          <div v-if="!isView" class="pull-right">
+          <h2
+            v-t="'cluster.tabs.machinePools'"
+            class="pull-left"
+          />
+          <div
+            v-if="!isView"
+            class="pull-right"
+          >
             <BadgeState
               v-tooltip="nodeTotals.tooltip.etcd"
               :color="nodeTotals.color.etcd"
@@ -1715,7 +1731,13 @@ export default {
           @removeTab="removeMachinePool($event)"
         >
           <template v-for="(obj, idx) in machinePools">
-            <Tab v-if="!obj.remove" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
+            <Tab
+              v-if="!obj.remove"
+              :key="obj.id"
+              :name="obj.id"
+              :label="obj.pool.name || '(Not Named)'"
+              :show-header="false"
+            >
               <MachinePool
                 ref="pool"
                 :value="obj"
@@ -1738,9 +1760,22 @@ export default {
 
       <h2 v-t="'cluster.tabs.cluster'" />
       <Tabbed :side-tabs="true">
-        <Tab name="basic" label-key="cluster.tabs.basic" :weight="11" @active="refreshYamls">
-          <Banner v-if="!haveArgInfo" color="warning" label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor." />
-          <Banner v-if="showk8s21LegacyWarning" color="warning" :label="t('cluster.legacyWarning')" />
+        <Tab
+          name="basic"
+          label-key="cluster.tabs.basic"
+          :weight="11"
+          @active="refreshYamls"
+        >
+          <Banner
+            v-if="!haveArgInfo"
+            color="warning"
+            label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor."
+          />
+          <Banner
+            v-if="showk8s21LegacyWarning"
+            color="warning"
+            :label="t('cluster.legacyWarning')"
+          />
           <Banner
             v-if="isHarvesterDriver && isHarvesterIncompatible && showCloudProvider"
             color="warning"
@@ -1764,7 +1799,10 @@ export default {
                 class="patch-version"
               />
             </div>
-            <div v-if="showCloudProvider" class="col span-6">
+            <div
+              v-if="showCloudProvider"
+              class="col span-6"
+            >
               <LabeledSelect
                 v-model="agentConfig['cloud-provider-name']"
                 :mode="mode"
@@ -1774,7 +1812,11 @@ export default {
               />
             </div>
           </div>
-          <div v-if="showCni" :style="{'align-items':'center'}" class="row">
+          <div
+            v-if="showCni"
+            :style="{'align-items':'center'}"
+            class="row"
+          >
             <div class="col span-6">
               <LabeledSelect
                 v-model="serverConfig.cni"
@@ -1784,12 +1826,22 @@ export default {
                 :label="t('cluster.rke2.cni.label')"
               />
             </div>
-            <div v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'" class="col">
-              <Checkbox v-model="ciliumIpv6" :mode="mode" :label="t('cluster.rke2.address.ipv6.enable')" />
+            <div
+              v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'"
+              class="col"
+            >
+              <Checkbox
+                v-model="ciliumIpv6"
+                :mode="mode"
+                :label="t('cluster.rke2.address.ipv6.enable')"
+              />
             </div>
           </div>
           <template v-if="showVsphereNote">
-            <Banner color="warning" label-key="cluster.cloudProvider.rancher-vsphere.note" />
+            <Banner
+              color="warning"
+              label-key="cluster.cloudProvider.rancher-vsphere.note"
+            />
           </template>
           <template v-else-if="showCloudConfigYaml">
             <div class="spacer" />
@@ -1823,7 +1875,10 @@ export default {
                 :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
               />
             </div>
-            <div v-if="showCisProfile" class="col span-6">
+            <div
+              v-if="showCisProfile"
+              class="col span-6"
+            >
               <LabeledSelect
                 v-if="serverArgs.profile"
                 v-model="serverConfig.profile"
@@ -1842,21 +1897,39 @@ export default {
           </div>
           <div class="row">
             <div class="col span-12 mt-20">
-              <Checkbox v-if="serverArgs['secrets-encryption']" v-model="serverConfig['secrets-encryption']" :mode="mode" label="Encrypt Secrets" />
-              <Checkbox v-model="value.spec.enableNetworkPolicy" :mode="mode" :label="t('cluster.rke2.enableNetworkPolicy.label')" />
+              <Checkbox
+                v-if="serverArgs['secrets-encryption']"
+                v-model="serverConfig['secrets-encryption']"
+                :mode="mode"
+                label="Encrypt Secrets"
+              />
+              <Checkbox
+                v-model="value.spec.enableNetworkPolicy"
+                :mode="mode"
+                :label="t('cluster.rke2.enableNetworkPolicy.label')"
+              />
               <!-- <Checkbox v-if="agentArgs.selinux" v-model="agentConfig.selinux" :mode="mode" label="SELinux" /> -->
             </div>
           </div>
 
-          <div v-if="serverConfig.cni === 'cilium' && value.spec.enableNetworkPolicy" class="row">
+          <div
+            v-if="serverConfig.cni === 'cilium' && value.spec.enableNetworkPolicy"
+            class="row"
+          >
             <div class="col span-12">
-              <Banner color="info" :label="t('cluster.rke2.enableNetworkPolicy.warning')" />
+              <Banner
+                color="info"
+                :label="t('cluster.rke2.enableNetworkPolicy.warning')"
+              />
             </div>
           </div>
 
           <div class="spacer" />
 
-          <div v-if="serverArgs.disable" class="row">
+          <div
+            v-if="serverArgs.disable"
+            class="row"
+          >
             <div class="col span-12">
               <div>
                 <h3>
@@ -1875,14 +1948,29 @@ export default {
           </div>
         </Tab>
 
-        <Tab v-if="canManageMembers" name="memberRoles" label-key="cluster.tabs.memberRoles" :weight="10">
-          <Banner v-if="isEdit" color="info">
+        <Tab
+          v-if="canManageMembers"
+          name="memberRoles"
+          label-key="cluster.tabs.memberRoles"
+          :weight="10"
+        >
+          <Banner
+            v-if="isEdit"
+            color="info"
+          >
             {{ t('cluster.memberRoles.removeMessage') }}
           </Banner>
-          <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" />
+          <ClusterMembershipEditor
+            :mode="mode"
+            :parent-id="value.mgmt ? value.mgmt.id : null"
+            @membership-update="onMembershipUpdate"
+          />
         </Tab>
 
-        <Tab name="etcd" label-key="cluster.tabs.etcd">
+        <Tab
+          name="etcd"
+          label-key="cluster.tabs.etcd"
+        >
           <div class="row">
             <div class="col span-6">
               <RadioGroup
@@ -1895,7 +1983,10 @@ export default {
               />
             </div>
           </div>
-          <div v-if="rkeConfig.etcd.disableSnapshots !== true" class="row">
+          <div
+            v-if="rkeConfig.etcd.disableSnapshots !== true"
+            class="row"
+          >
             <div class="col span-6">
               <LabeledInput
                 v-model="rkeConfig.etcd.snapshotScheduleCron"
@@ -1953,16 +2044,29 @@ export default {
           </div>
         </Tab>
 
-        <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking">
+        <Tab
+          v-if="haveArgInfo"
+          name="networking"
+          label-key="cluster.tabs.networking"
+        >
           <h3>
             {{ t('cluster.rke2.address.header') }}
-            <i v-tooltip="t('cluster.rke2.address.tooltip')" class="icon icon-info" />
+            <i
+              v-tooltip="t('cluster.rke2.address.tooltip')"
+              class="icon icon-info"
+            />
           </h3>
-          <Banner v-if="showIpv6Warning" color="warning">
+          <Banner
+            v-if="showIpv6Warning"
+            color="warning"
+          >
             {{ t('cluster.rke2.address.ipv6.warning') }}
           </Banner>
           <div class="row mb-20">
-            <div v-if="serverArgs['cluster-cidr']" class="col span-6">
+            <div
+              v-if="serverArgs['cluster-cidr']"
+              class="col span-6"
+            >
               <LabeledInput
                 v-model="serverConfig['cluster-cidr']"
                 :mode="mode"
@@ -1970,7 +2074,10 @@ export default {
                 :label="t('cluster.rke2.address.clusterCidr.label')"
               />
             </div>
-            <div v-if="serverArgs['service-cidr']" class="col span-6">
+            <div
+              v-if="serverArgs['service-cidr']"
+              class="col span-6"
+            >
               <LabeledInput
                 v-model="serverConfig['service-cidr']"
                 :mode="mode"
@@ -1981,7 +2088,10 @@ export default {
           </div>
 
           <div class="row mb-20">
-            <div v-if="serverArgs['cluster-dns']" class="col span-6">
+            <div
+              v-if="serverArgs['cluster-dns']"
+              class="col span-6"
+            >
               <LabeledInput
                 v-model="serverConfig['cluster-dns']"
                 :mode="mode"
@@ -1989,7 +2099,10 @@ export default {
                 :label="t('cluster.rke2.address.dns.label')"
               />
             </div>
-            <div v-if="serverArgs['cluster-domain']" class="col span-6">
+            <div
+              v-if="serverArgs['cluster-domain']"
+              class="col span-6"
+            >
               <LabeledInput
                 v-model="serverConfig['cluster-domain']"
                 :mode="mode"
@@ -1999,7 +2112,10 @@ export default {
             </div>
           </div>
 
-          <div v-if="serverArgs['service-node-port-range']" class="row mb-20">
+          <div
+            v-if="serverArgs['service-node-port-range']"
+            class="row mb-20"
+          >
             <div class="col span-6">
               <LabeledInput
                 v-model="serverConfig['service-node-port-range']"
@@ -2009,7 +2125,10 @@ export default {
             </div>
           </div>
 
-          <div v-if="serverArgs['tls-san']" class="row mb-20">
+          <div
+            v-if="serverArgs['tls-san']"
+            class="row mb-20"
+          >
             <div class="col span-6">
               <ArrayList
                 v-model="serverConfig['tls-san']"
@@ -2020,11 +2139,20 @@ export default {
             </div>
           </div>
 
-          <ACE v-model="value" :mode="mode" />
+          <ACE
+            v-model="value"
+            :mode="mode"
+          />
         </Tab>
 
-        <Tab name="upgrade" label-key="cluster.tabs.upgrade">
-          <Banner v-if="get(rkeConfig, 'upgradeStrategy.controlPlaneDrainOptions.deleteEmptyDirData')" color="warning">
+        <Tab
+          name="upgrade"
+          label-key="cluster.tabs.upgrade"
+        >
+          <Banner
+            v-if="get(rkeConfig, 'upgradeStrategy.controlPlaneDrainOptions.deleteEmptyDirData')"
+            color="warning"
+          >
             {{ t('cluster.rke2.deleteEmptyDir', {}, true) }}
           </Banner>
           <div class="row">
@@ -2037,7 +2165,10 @@ export default {
                 :tooltip="t('cluster.rke2.controlPlaneConcurrency.toolTip')"
               />
               <div class="spacer" />
-              <DrainOptions v-model="rkeConfig.upgradeStrategy.controlPlaneDrainOptions" :mode="mode" />
+              <DrainOptions
+                v-model="rkeConfig.upgradeStrategy.controlPlaneDrainOptions"
+                :mode="mode"
+              />
             </div>
             <div class="col span-6">
               <h3>
@@ -2050,12 +2181,18 @@ export default {
                 :tooltip="t('cluster.rke2.workerConcurrency.toolTip')"
               />
               <div class="spacer" />
-              <DrainOptions v-model="rkeConfig.upgradeStrategy.workerDrainOptions" :mode="mode" />
+              <DrainOptions
+                v-model="rkeConfig.upgradeStrategy.workerDrainOptions"
+                :mode="mode"
+              />
             </div>
           </div>
         </Tab>
 
-        <Tab name="registry" label-key="cluster.tabs.registry">
+        <Tab
+          name="registry"
+          label-key="cluster.tabs.registry"
+        >
           <RadioGroup
             v-model="registryMode"
             name="registry-mode"
@@ -2101,15 +2238,25 @@ export default {
           </template>
         </Tab>
 
-        <Tab name="addons" label-key="cluster.tabs.addons" @active="showAddons">
+        <Tab
+          name="addons"
+          label-key="cluster.tabs.addons"
+          @active="showAddons"
+        >
           <Banner
             v-if="isEdit"
             color="warning"
           >
             {{ t('cluster.addOns.dependencyBanner') }}
           </Banner>
-          <div v-if="versionInfo && addonVersions.length" :key="addonsRev">
-            <div v-for="v in addonVersions" :key="v._key">
+          <div
+            v-if="versionInfo && addonVersions.length"
+            :key="addonsRev"
+          >
+            <div
+              v-for="v in addonVersions"
+              :key="v._key"
+            >
               <h3>{{ labelForAddon(v.name) }}</h3>
               <Questions
                 v-if="versionInfo[v.name] && versionInfo[v.name].questions && v.name && userChartValuesTemp[v.name]"
@@ -2270,8 +2417,14 @@ export default {
           </template>
         </Tab>
 
-        <AgentEnv v-model="value" :mode="mode" />
-        <Labels v-model="value" :mode="mode" />
+        <AgentEnv
+          v-model="value"
+          :mode="mode"
+        />
+        <Labels
+          v-model="value"
+          :mode="mode"
+        />
       </Tabbed>
     </div>
 
@@ -2281,7 +2434,10 @@ export default {
       :label="t('cluster.banner.warning')"
     />
 
-    <template v-if="needCredential && !credentialId" #form-footer>
+    <template
+      v-if="needCredential && !credentialId"
+      #form-footer
+    >
       <div><!-- Hide the outer footer --></div>
     </template>
   </CruResource>

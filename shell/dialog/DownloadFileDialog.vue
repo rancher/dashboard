@@ -174,8 +174,16 @@ export default {
 };
 </script>
 <template>
-  <Card ref="modal" name="modal" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('modalDownLoadFileComponent.title')" />
+  <Card
+    ref="modal"
+    name="modal"
+    :show-highlight-border="false"
+  >
+    <h4
+      slot="title"
+      class="text-default-text"
+      v-html="t('modalDownLoadFileComponent.title')"
+    />
     <template #body>
       <LabeledSelect
         v-model="currentContainer"
@@ -191,18 +199,31 @@ export default {
         required
       />
       <div v-if="largeFileSize">
-        <Banner color="warning" :label="t('modalDownLoadFileComponent.notice')" />
+        <Banner
+          color="warning"
+          :label="t('modalDownLoadFileComponent.notice')"
+        />
       </div>
       <div v-if="showProgress">
         <div style="margin: 15px 5px 5px 0px;">
           {{ percent }}%
         </div>
-        <PercentageBar :value="percent" :color-stops="colorStops" />
+        <PercentageBar
+          :value="percent"
+          :color-stops="colorStops"
+        />
       </div>
     </template>
-    <div slot="actions" class="actions">
+    <div
+      slot="actions"
+      class="actions"
+    >
       <div class="buttons">
-        <button type="button" class="btn role-secondary mr-10" @click="close">
+        <button
+          type="button"
+          class="btn role-secondary mr-10"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
         <AsyncButton
@@ -211,7 +232,12 @@ export default {
           @click="save"
         />
       </div>
-      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
     </div>
   </Card>
 </template>

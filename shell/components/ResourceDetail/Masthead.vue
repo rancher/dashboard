@@ -379,7 +379,10 @@ export default {
       <div class="title">
         <div class="primaryheader">
           <h1>
-            <nuxt-link v-if="location" :to="location">
+            <nuxt-link
+              v-if="location"
+              :to="location"
+            >
               {{ parent.displayName }}:
             </nuxt-link>
             <span v-else>{{ parent.displayName }}:</span>
@@ -392,14 +395,24 @@ export default {
               :name="displayName"
               :escapehtml="false"
             />
-            <BadgeState v-if="!isCreate && parent.showState" class="masthead-state" :value="value" />
+            <BadgeState
+              v-if="!isCreate && parent.showState"
+              class="masthead-state"
+              :value="value"
+            />
           </h1>
         </div>
-        <div v-if="!isCreate" class="subheader">
+        <div
+          v-if="!isCreate"
+          class="subheader"
+        >
           <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: <nuxt-link :to="project.detailLocation">{{ project.nameDisplay }}</nuxt-link></span>
           <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
           <span v-else-if="namespace && !hasMultipleNamespaces">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
-          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="value.creationTimestamp" /></span>
+          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate
+            class="live-date"
+            :value="value.creationTimestamp"
+          /></span>
           <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
         </div>
       </div>
@@ -435,7 +448,12 @@ export default {
       </slot>
     </header>
 
-    <Banner v-if="banner && isView && !parent.hideBanner" class="state-banner mb-10" :color="banner.color" :label="banner.message" />
+    <Banner
+      v-if="banner && isView && !parent.hideBanner"
+      class="state-banner mb-10"
+      :color="banner.color"
+      :label="banner.message"
+    />
     <Banner
       v-if="managedWarning.show"
       color="warning"

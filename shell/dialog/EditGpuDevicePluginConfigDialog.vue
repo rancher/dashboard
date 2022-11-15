@@ -1,10 +1,20 @@
 <template>
   <div>
-    <Card class="edit-gpu-device-plugin-config-dialog" :show-highlight-border="false">
-      <h4 slot="title" class="text-default-text">
+    <Card
+      class="edit-gpu-device-plugin-config-dialog"
+      :show-highlight-border="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text"
+      >
         {{ t('editGpuDevicePluginConfigDialog.title', { name: nodeName }) }}
       </h4>
-      <div slot="body" class="pr-10 pl-10" style="min-height: 300px;">
+      <div
+        slot="body"
+        class="pr-10 pl-10"
+        style="min-height: 300px;"
+      >
         <h5>{{ t('editGpuDevicePluginConfigDialog.subtitle') }}</h5>
         <div class="mb-20 row">
           <div class="col span-6">
@@ -29,10 +39,21 @@
           </div>
         </div>
       </div>
-      <div slot="actions" class="bottom">
-        <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+      <div
+        slot="actions"
+        class="bottom"
+      >
+        <Banner
+          v-for="(err, i) in errors"
+          :key="i"
+          color="error"
+          :label="err"
+        />
         <div class="buttons">
-          <button class="mr-10 btn role-secondary" @click="close">
+          <button
+            class="mr-10 btn role-secondary"
+            @click="close"
+          >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton

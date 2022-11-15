@@ -54,7 +54,11 @@ export default {
 </script>
 
 <template>
-  <EmberPage v-if="path" :src="path" :force-new="forceNew" />
+  <EmberPage
+    v-if="path"
+    :src="path"
+    :force-new="forceNew"
+  />
   <div v-else>
     <h1>{{ t('generic.notFound') }}</h1>
     <h2>{{ currentPage }}</h2>

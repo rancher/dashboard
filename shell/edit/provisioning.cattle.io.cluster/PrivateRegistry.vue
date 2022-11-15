@@ -20,7 +20,10 @@ export default {
 </script>
 
 <template>
-  <Tab name="privateRegistry" label-key="cluster.import.privateRegistry.title">
+  <Tab
+    name="privateRegistry"
+    label-key="cluster.import.privateRegistry.title"
+  >
     <div class="title">
       <h1>{{ t('cluster.import.privateRegistry.title') }}</h1>
       <h2>{{ t('cluster.import.privateRegistry.description') }}</h2>

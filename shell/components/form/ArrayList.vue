@@ -225,11 +225,18 @@ export default {
 
 <template>
   <div>
-    <div v-if="title" class="clearfix">
+    <div
+      v-if="title"
+      class="clearfix"
+    >
       <slot name="title">
         <h3>
           {{ title }}
-          <i v-if="showProtip" v-tooltip="protip" class="icon icon-info" />
+          <i
+            v-if="showProtip"
+            v-tooltip="protip"
+            class="icon icon-info"
+          />
         </h3>
       </slot>
     </div>
@@ -294,11 +301,14 @@ export default {
                 :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
-              />
+              >
             </slot>
           </div>
         </slot>
-        <div v-if="showRemove" class="remove">
+        <div
+          v-if="showRemove"
+          class="remove"
+        >
           <slot
             name="remove-button"
             :remove="() => remove(row, idx)"
@@ -318,14 +328,24 @@ export default {
         </div>
       </div>
     </template>
-    <div v-else-if="mode==='view'" class="text-muted">
+    <div
+      v-else-if="mode==='view'"
+      class="text-muted"
+    >
       &mdash;
     </div>
     <div v-else>
       <slot name="empty" />
     </div>
-    <div v-if="showAdd && !isView" class="footer">
-      <slot v-if="showAdd" name="add" :add="add">
+    <div
+      v-if="showAdd && !isView"
+      class="footer"
+    >
+      <slot
+        v-if="showAdd"
+        name="add"
+        :add="add"
+      >
         <button
           type="button"
           class="btn role-tertiary add"
@@ -333,7 +353,10 @@ export default {
           data-testid="add-item"
           @click="add()"
         >
-          <i v-if="loading" class="mr-5 icon icon-spinner icon-spin icon-lg" />
+          <i
+            v-if="loading"
+            class="mr-5 icon icon-spinner icon-spin icon-lg"
+          />
           {{ addLabel }}
         </button>
       </slot>

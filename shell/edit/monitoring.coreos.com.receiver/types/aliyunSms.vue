@@ -60,19 +60,40 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.http_config.template_code" :required="true" :mode="mode" :label="t('monitoringReceiver.pandariaWebhook.aliyunSMS.templateCodeLabel')" :placeholder="t('monitoringReceiver.pandariaWebhook.aliyunSMS.templateCodePlaceholder')" />
+        <LabeledInput
+          v-model="value.http_config.template_code"
+          :required="true"
+          :mode="mode"
+          :label="t('monitoringReceiver.pandariaWebhook.aliyunSMS.templateCodeLabel')"
+          :placeholder="t('monitoringReceiver.pandariaWebhook.aliyunSMS.templateCodePlaceholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.http_config.sign_name" :required="true" :mode="mode" :label="t('monitoringReceiver.pandariaWebhook.aliyunSMS.signatureNameLabel')" :placeholder="t('monitoringReceiver.pandariaWebhook.aliyunSMS.signatureNamePlaceholder')" />
+        <LabeledInput
+          v-model="value.http_config.sign_name"
+          :required="true"
+          :mode="mode"
+          :label="t('monitoringReceiver.pandariaWebhook.aliyunSMS.signatureNameLabel')"
+          :placeholder="t('monitoringReceiver.pandariaWebhook.aliyunSMS.signatureNamePlaceholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <InputListPandaria :input-list="phone" :mode="mode" :input-label="t('monitoringReceiver.pandariaWebhook.aliyunSMS.phoneNumberLabel')" :placeholder="t('monitoringReceiver.pandariaWebhook.aliyunSMS.phoneNumberPlaceholder')" />
+        <InputListPandaria
+          :input-list="phone"
+          :mode="mode"
+          :input-label="t('monitoringReceiver.pandariaWebhook.aliyunSMS.phoneNumberLabel')"
+          :placeholder="t('monitoringReceiver.pandariaWebhook.aliyunSMS.phoneNumberPlaceholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
-      <Checkbox v-model="value.send_resolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
+      <Checkbox
+        v-model="value.send_resolved"
+        :mode="mode"
+        :label="t('monitoringReceiver.shared.sendResolved.label')"
+      />
     </div>
   </div>
 </template>

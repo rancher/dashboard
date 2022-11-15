@@ -155,7 +155,7 @@ export default {
         </div>
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div>
       <div class="row">
@@ -189,7 +189,7 @@ export default {
         </div>
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div
       data-testid="input-security-runAsUser"

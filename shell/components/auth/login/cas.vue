@@ -14,7 +14,11 @@ export default {
 
 <template>
   <div class="text-center">
-    <button ref="btn" class="btn role-primary" @click="login">
+    <button
+      ref="btn"
+      class="btn role-primary"
+      @click="login"
+    >
       {{ t('login.loginWithProvider', {provider: displayName}) }}
     </button>
   </div>

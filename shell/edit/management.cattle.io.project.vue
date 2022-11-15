@@ -261,7 +261,12 @@ export default {
         :label="resourceQuotaLabel"
         :weight="8"
       >
-        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="canEditTabElements" :show-tip="false" :register-before-hook="registerBeforeHook" />
+        <ContainerResourceLimit
+          v-model="value.spec.containerDefaultResourceLimit"
+          :mode="canEditTabElements"
+          :show-tip="false"
+          :register-before-hook="registerBeforeHook"
+        />
       </Tab>
       <Tab
         name="labels-and-annotations"

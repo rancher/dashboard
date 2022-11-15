@@ -94,7 +94,7 @@ export default {
         const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
         if (brandSetting) {
-          brandSetting.value = 'suse';
+          brandSetting.value = 'csp';
           brandSetting.save();
         } else {
           const schema = this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING);
@@ -102,7 +102,7 @@ export default {
 
           if (url) {
             this.$store.dispatch('management/create', {
-              type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'suse', default: ''
+              type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'csp', default: ''
             }).then(setting => setting.save());
           }
         }

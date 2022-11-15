@@ -214,7 +214,12 @@ export default {
     <div>
       <div class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model="uiPLSetting.value" :label="t('branding.uiPL.label')" :mode="mode" :maxlength="100" />
+          <LabeledInput
+            v-model="uiPLSetting.value"
+            :label="t('branding.uiPL.label')"
+            :mode="mode"
+            :maxlength="100"
+          />
         </div>
       </div>
       <h3 class="mt-20 mb-5 pb-5">
@@ -225,10 +230,17 @@ export default {
       </label>
 
       <div class="row mt-10 mb-20">
-        <Checkbox v-model="customizeLogo" :label="t('branding.logos.useCustom')" :mode="mode" />
+        <Checkbox
+          v-model="customizeLogo"
+          :label="t('branding.logos.useCustom')"
+          :mode="mode"
+        />
       </div>
 
-      <div v-if="customizeLogo" class="row mb-20">
+      <div
+        v-if="customizeLogo"
+        class="row mb-20"
+      >
         <div class="col logo-container span-6">
           <div class="mb-10">
             <FileSelector
@@ -241,9 +253,15 @@ export default {
               @selected="updateLogo($event, 'uiLogoLight')"
             />
           </div>
-          <SimpleBox v-if="uiLogoLight || uiLogoDark" class="theme-light  mb-10">
+          <SimpleBox
+            v-if="uiLogoLight || uiLogoDark"
+            class="theme-light  mb-10"
+          >
             <label class="text-muted">{{ t('branding.logos.lightPreview') }}</label>
-            <img class="logo-preview" :src="uiLogoLight ? uiLogoLight : uiLogoDark" />
+            <img
+              class="logo-preview"
+              :src="uiLogoLight ? uiLogoLight : uiLogoDark"
+            >
           </SimpleBox>
         </div>
         <div class="col logo-container span-6">
@@ -258,9 +276,15 @@ export default {
               @selected="updateLogo($event, 'uiLogoDark')"
             />
           </div>
-          <SimpleBox v-if="uiLogoDark || uiLogoLight" class="theme-dark  mb-10">
+          <SimpleBox
+            v-if="uiLogoDark || uiLogoLight"
+            class="theme-dark  mb-10"
+          >
             <label class="text-muted">{{ t('branding.logos.darkPreview') }}</label>
-            <img class="logo-preview" :src="uiLogoDark ? uiLogoDark : uiLogoLight" />
+            <img
+              class="logo-preview"
+              :src="uiLogoDark ? uiLogoDark : uiLogoLight"
+            >
           </SimpleBox>
         </div>
       </div>
@@ -273,10 +297,17 @@ export default {
       </label>
 
       <div class="row mt-10 mb-20">
-        <Checkbox v-model="customizeFavicon" :label="t('branding.favicon.useCustom')" :mode="mode" />
+        <Checkbox
+          v-model="customizeFavicon"
+          :label="t('branding.favicon.useCustom')"
+          :mode="mode"
+        />
       </div>
 
-      <div v-if="customizeFavicon" class="row mb-20">
+      <div
+        v-if="customizeFavicon"
+        class="row mb-20"
+      >
         <div class="col logo-container span-12">
           <div class="mb-10">
             <FileSelector
@@ -291,7 +322,10 @@ export default {
           </div>
           <SimpleBox v-if="uiFavicon">
             <label class="text-muted">{{ t('branding.favicon.preview') }}</label>
-            <img class="logo-preview" :src="uiFavicon" />
+            <img
+              class="logo-preview"
+              :src="uiFavicon"
+            >
           </SimpleBox>
         </div>
       </div>
@@ -304,10 +338,17 @@ export default {
       </label>
 
       <div class="row mt-10 mb-20">
-        <Checkbox v-model="customizeLoginLandscape" :label="t('branding.loginLandscape.useCustom')" :mode="mode" />
+        <Checkbox
+          v-model="customizeLoginLandscape"
+          :label="t('branding.loginLandscape.useCustom')"
+          :mode="mode"
+        />
       </div>
 
-      <div v-if="customizeLoginLandscape" class="row mb-20">
+      <div
+        v-if="customizeLoginLandscape"
+        class="row mb-20"
+      >
         <div class="col logo-container span-6">
           <div class="mb-10">
             <FileSelector
@@ -320,9 +361,16 @@ export default {
               @selected="updateLogo($event, 'uiLoginLandscape')"
             />
           </div>
-          <SimpleBox v-if="customizeLoginLandscape" class="mb-10" :class="[`theme-${theme}`]">
+          <SimpleBox
+            v-if="customizeLoginLandscape"
+            class="mb-10"
+            :class="[`theme-${theme}`]"
+          >
             <label class="text-muted">{{ t('branding.loginLandscape.preview') }}</label>
-            <img class="logo-preview" :src="uiLoginLandscape" />
+            <img
+              class="logo-preview"
+              :src="uiLoginLandscape"
+            >
           </SimpleBox>
         </div>
       </div>
@@ -334,10 +382,20 @@ export default {
         {{ t('branding.color.tip', {}, true) }}
       </label>
       <div class="row mt-20">
-        <Checkbox v-model="customizeColor" :label="t('branding.color.useCustom')" :mode="mode" />
+        <Checkbox
+          v-model="customizeColor"
+          :label="t('branding.color.useCustom')"
+          :mode="mode"
+        />
       </div>
-      <div v-if="customizeColor" class="row mt-20 mb-20">
-        <ColorInput v-model="uiColor" />
+      <div
+        v-if="customizeColor"
+        class="row mt-20 mb-20"
+      >
+        <ColorInput
+          v-model="uiColor"
+          component-testid="primary"
+        />
       </div>
 
       <h3 class="mt-40 mb-5 pb-0">
@@ -353,10 +411,14 @@ export default {
           :mode="mode"
         />
       </div>
-      <div v-if="customizeLinkColor" class="row mt-20 mb-20">
+      <div
+        v-if="customizeLinkColor"
+        class="row mt-20 mb-20"
+      >
         <ColorInput
           v-model="uiLinkColor"
           class="col"
+          component-testid="link"
         />
         <span class="col link-example">
           <a>
@@ -366,10 +428,19 @@ export default {
       </div>
     </div>
     <template v-for="err in errors">
-      <Banner :key="err" color="error" :label="err" />
+      <Banner
+        :key="err"
+        color="error"
+        :label="err"
+      />
     </template>
     <div v-if="mode === 'edit'">
-      <AsyncButton class="pull-right mt-20" mode="apply" @click="save" />
+      <AsyncButton
+        component-testid="branding-apply"
+        class="pull-right mt-20"
+        mode="apply"
+        @click="save"
+      />
     </div>
   </div>
 </template>

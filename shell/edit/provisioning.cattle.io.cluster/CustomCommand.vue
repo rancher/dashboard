@@ -157,27 +157,52 @@ function sanitizeValue(v) {
 
 <template>
   <div>
-    <InfoBox :step="1" class="step-box">
+    <InfoBox
+      :step="1"
+      class="step-box"
+    >
       <h3 v-t="'cluster.custom.nodeRole.label'" />
       <h4 v-t="'cluster.custom.nodeRole.detail'" />
-      <Checkbox v-model="etcd" label-key="model.machine.role.etcd" />
-      <Checkbox v-model="controlPlane" label-key="model.machine.role.controlPlane" />
-      <Checkbox v-model="worker" label-key="model.machine.role.worker" />
+      <Checkbox
+        v-model="etcd"
+        label-key="model.machine.role.etcd"
+      />
+      <Checkbox
+        v-model="controlPlane"
+        label-key="model.machine.role.controlPlane"
+      />
+      <Checkbox
+        v-model="worker"
+        label-key="model.machine.role.worker"
+      />
     </InfoBox>
 
-    <InfoBox v-if="showAdvanced" :step="2" class="step-box">
+    <InfoBox
+      v-if="showAdvanced"
+      :step="2"
+      class="step-box"
+    >
       <h3 v-t="'cluster.custom.advanced.label'" />
       <h4 v-t="'cluster.custom.advanced.detail'" />
 
       <div class="row mb-10">
         <div class="col span-4">
-          <LabeledInput v-model="nodeName" label-key="cluster.custom.advanced.nodeName" />
+          <LabeledInput
+            v-model="nodeName"
+            label-key="cluster.custom.advanced.nodeName"
+          />
         </div>
         <div class="col span-4">
-          <LabeledInput v-model="address" label-key="cluster.custom.advanced.publicIp" />
+          <LabeledInput
+            v-model="address"
+            label-key="cluster.custom.advanced.publicIp"
+          />
         </div>
         <div class="col span-4">
-          <LabeledInput v-model="internalAddress" label-key="cluster.custom.advanced.privateIp" />
+          <LabeledInput
+            v-model="internalAddress"
+            label-key="cluster.custom.advanced.privateIp"
+          />
         </div>
       </div>
 
@@ -190,16 +215,33 @@ function sanitizeValue(v) {
         :read-allowed="false"
       />
 
-      <Taints v-model="taints" class="mb-10" mode="edit" :value="taints" />
+      <Taints
+        v-model="taints"
+        class="mb-10"
+        mode="edit"
+        :value="taints"
+      />
 
-      <a v-t="'generic.hideAdvanced'" @click="toggleAdvanced" />
+      <a
+        v-t="'generic.hideAdvanced'"
+        @click="toggleAdvanced"
+      />
     </InfoBox>
 
-    <div v-else class="mb-20">
-      <a v-t="'generic.showAdvanced'" @click="toggleAdvanced" />
+    <div
+      v-else
+      class="mb-20"
+    >
+      <a
+        v-t="'generic.showAdvanced'"
+        @click="toggleAdvanced"
+      />
     </div>
 
-    <InfoBox :step="showAdvanced ? 3 : 2" class="step-box">
+    <InfoBox
+      :step="showAdvanced ? 3 : 2"
+      class="step-box"
+    >
       <h3 v-t="'cluster.custom.registrationCommand.label'" />
       <h4 v-t="'cluster.custom.registrationCommand.linuxDetail'" />
       <CopyCode
@@ -208,10 +250,14 @@ function sanitizeValue(v) {
       >
         {{ linuxCommand }}
       </CopyCode>
-      <Checkbox v-if="clusterToken.insecureNodeCommand" v-model="insecure" label-key="cluster.custom.registrationCommand.insecure" />
+      <Checkbox
+        v-if="clusterToken.insecureNodeCommand"
+        v-model="insecure"
+        label-key="cluster.custom.registrationCommand.insecure"
+      />
 
       <template v-if="cluster.supportsWindows">
-        <hr class="mt-20 mb-20" />
+        <hr class="mt-20 mb-20">
         <h4 v-t="'cluster.custom.registrationCommand.windowsDetail'" />
         <Banner
           v-if="cluster.isRke1"

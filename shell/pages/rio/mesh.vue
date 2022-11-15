@@ -412,7 +412,11 @@ export default {
       <h1>App Mesh</h1>
     </header>
 
-    <svg id="mesh" ref="mesh" @click="clicked" />
+    <svg
+      id="mesh"
+      ref="mesh"
+      @click="clicked"
+    />
   </div>
 </template>
 

@@ -148,7 +148,11 @@ export default {
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+        <AuthBanner
+          :t-args="tArgs"
+          :disable="disable"
+          :edit="goToEdit"
+        >
           <template slot="rows">
             <tr><td>{{ t(`authConfig.cas.hostUrl.label`) }}: </td><td>{{ model.hostname }}</td></tr>
             <tr><td>{{ t(`authConfig.cas.enableTLS`) }}(https://): </td><td>{{ model.tls }}</td></tr>
@@ -160,13 +164,21 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr />
+        <hr>
 
-        <AllowedPrincipals :provider="NAME" :auth-config="model" :mode="mode" />
+        <AllowedPrincipals
+          :provider="NAME"
+          :auth-config="model"
+          :mode="mode"
+        />
       </template>
 
       <template v-else>
-        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+        <Banner
+          v-if="!model.enabled"
+          :label="t('authConfig.stateBanner.disabled', tArgs)"
+          color="warning"
+        />
 
         <h3>{{ t(`authConfig.cas.${NAME}`) }}</h3>
         <div class="row mb-20">
@@ -245,9 +257,15 @@ export default {
         </div>
       </template>
     </CruResource>
-    <div v-if="!model.enabled" class="row">
+    <div
+      v-if="!model.enabled"
+      class="row"
+    >
       <div class="col span-12">
-        <Banner color="info" v-html="t('authConfig.associatedWarning', tArgs, true)" />
+        <Banner
+          color="info"
+          v-html="t('authConfig.associatedWarning', tArgs, true)"
+        />
       </div>
     </div>
   </div>

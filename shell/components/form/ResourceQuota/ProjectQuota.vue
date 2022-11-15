@@ -252,14 +252,28 @@ export default {
         <label>{{ t('resourceQuota.headers.resourceType') }}</label>
         <label>{{ t('resourceQuota.headers.projectLimit') }}</label>
         <label>{{ t('resourceQuota.headers.namespaceDefaultLimit') }}</label>
-        <div></div>
+        <div />
       </div>
 
-      <div v-for="(tq, index) in typeQuotas" :key="`${tq.type}${tq.limit && tq.limit.sc ? `_${tq.limit.sc}` : ''}`" class="type-row mb-10">
+      <div
+        v-for="(tq, index) in typeQuotas"
+        :key="`${tq.type}${tq.limit && tq.limit.sc ? `_${tq.limit.sc}` : ''}`"
+        class="type-row mb-10"
+      >
         <template v-if="typesWithStorageClass.includes(tq.type)">
           <div class="type-with-sc">
-            <Select :mode="mode" :value="tq.type" :options="remainingTypes(tq.type)" @input="updateType($event, tq)"></Select>
-            <Select :mode="mode" :value="tq.limit.sc" :options="remainingSc(tq.type, tq.limit.sc)" @input="updateStorageClass($event, tq)"></Select>
+            <Select
+              :mode="mode"
+              :value="tq.type"
+              :options="remainingTypes(tq.type)"
+              @input="updateType($event, tq)"
+            />
+            <Select
+              :mode="mode"
+              :value="tq.limit.sc"
+              :options="remainingSc(tq.type, tq.limit.sc)"
+              @input="updateStorageClass($event, tq)"
+            />
           </div>
           <div>
             <UnitInput
@@ -285,7 +299,12 @@ export default {
           </div>
         </template>
         <template v-else>
-          <Select :mode="mode" :value="tq.type" :options="remainingTypes(tq.type)" @input="updateType($event, tq)"></Select>
+          <Select
+            :mode="mode"
+            :value="tq.type"
+            :options="remainingTypes(tq.type)"
+            @input="updateType($event, tq)"
+          />
           <UnitInput
             v-model="tq.limit"
             :mode="mode"
@@ -308,13 +327,24 @@ export default {
           />
         </template>
         <div>
-          <button type="button" :disabled="mode === 'view'" class="btn role-link" @click="remove(index, tq)">
+          <button
+            type="button"
+            :disabled="mode === 'view'"
+            class="btn role-link"
+            @click="remove(index, tq)"
+          >
             {{ t('generic.remove') }}
           </button>
         </div>
       </div>
     </div>
-    <button v-if="mode !== 'view'" type="button" class="btn role-tertiary add" :disabled="remainingTypes().length === 0" @click="add()">
+    <button
+      v-if="mode !== 'view'"
+      type="button"
+      class="btn role-tertiary add"
+      :disabled="remainingTypes().length === 0"
+      @click="add()"
+    >
       {{ t('resourceQuota.add.label') }}
     </button>
   </div>

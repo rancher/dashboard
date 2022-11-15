@@ -188,7 +188,11 @@ export default {
       </div>
     </template>
     <template v-else-if="selectNode === 'affinity'">
-      <NodeAffinity v-model="nodeAffinity" :mode="mode" @input="update" />
+      <NodeAffinity
+        v-model="nodeAffinity"
+        :mode="mode"
+        @input="update"
+      />
     </template>
   </div>
 </template>

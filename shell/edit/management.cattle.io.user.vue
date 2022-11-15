@@ -254,7 +254,10 @@ export default {
         @strengthChange="passwordStrength = $event"
       />
     </div>
-    <div v-if="showGlobalRoles" class="global-permissions">
+    <div
+      v-if="showGlobalRoles"
+      class="global-permissions"
+    >
       <GlobalRoleBindings
         ref="grb"
         :user-id="value.id || liveValue.id"

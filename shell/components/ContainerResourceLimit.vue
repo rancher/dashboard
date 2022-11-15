@@ -182,10 +182,19 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div v-if="showTip" class="col span-12">
+      <div
+        v-if="showTip"
+        class="col span-12"
+      >
         <p class="helper-text mb-10">
-          <t v-if="mode === viewMode" k="containerResourceLimit.helpTextDetail" />
-          <t v-else k="containerResourceLimit.helpText" />
+          <t
+            v-if="mode === viewMode"
+            k="containerResourceLimit.helpTextDetail"
+          />
+          <t
+            v-else
+            k="containerResourceLimit.helpText"
+          />
         </p>
       </div>
     </div>
@@ -243,7 +252,10 @@ export default {
         />
       </span>
     </div>
-    <div v-if="limitMinMaxValues" class="mb-20 row">
+    <div
+      v-if="limitMinMaxValues"
+      class="mb-20 row"
+    >
       <span class="col span-6">
         <UnitInput
           v-model="maxCpu"
@@ -269,7 +281,10 @@ export default {
         />
       </span>
     </div>
-    <div v-if="limitMinMaxValues" class="mb-20 row">
+    <div
+      v-if="limitMinMaxValues"
+      class="mb-20 row"
+    >
       <span class="col span-6">
         <UnitInput
           v-model="minCpu"
@@ -295,7 +310,10 @@ export default {
         />
       </span>
     </div>
-    <div v-if="limitMinMaxValues" class="row">
+    <div
+      v-if="limitMinMaxValues"
+      class="row"
+    >
       <span class="col span-6">
         <UnitInput
           v-model="limitsGpu"

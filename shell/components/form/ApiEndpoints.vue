@@ -8,15 +8,21 @@
     :protip="false"
     @input="update"
   >
-    <template slot="columns" slot-scope="scope">
+    <template
+      slot="columns"
+      slot-scope="scope"
+    >
       <div class="endpoint">
-        <div v-if="statusMap[scope.row.value] && statusMap[scope.row.value].status === false" v-tooltip="statusMap[scope.row.value] && statusMap[scope.row.value].error || ''">
+        <div
+          v-if="statusMap[scope.row.value] && statusMap[scope.row.value].status === false"
+          v-tooltip="statusMap[scope.row.value] && statusMap[scope.row.value].error || ''"
+        >
           <i class="text-error icon icon-info icon-lg" />
         </div>
         <div v-else-if="statusMap[scope.row.value] && statusMap[scope.row.value].status === true">
           <i class="text-success icon icon-checkmark icon-lg" />
         </div>
-        <div v-else></div>
+        <div v-else />
         <div v-if="scope.isView">
           {{ scope.row.value }}
         </div>
@@ -28,7 +34,7 @@
           :disabled="scope.isView"
           @paste="onPaste(scope.rows, scope.i, $event, scope.update)"
           @input="scope.queueUpdate"
-        />
+        >
       </div>
     </template>
   </ArrayList>
