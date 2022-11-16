@@ -18,22 +18,22 @@ export const Template = () => ({
 
 # GrowlManager
 
-GrowlManager component is used to display (async) responses of specific actions as a overlay. Each message is represented severity, summary, and details.
+The GrowlManager component is used to display asynchronous responses of specific actions overlaid on the top right of the window. The information shown in each message includes the severity, a summary, and any details.
 
 ### When to use it
 
 * To provide real-time information to the User about out-of-view events or background processes.
-* To display a message to appear and have the User take action to dismiss.
+* To display a message which requires User action.
 * To display non-critical information that won’t disrupt a workflow.
 
 
 ### When not to use it
-* For error messages related to a specific form fields.
-* For messages are related to a specific component or view (use inline alerts instead).
+* For error messages related to specific form fields.
+* For messages that are related to a specific component or view (use inline alerts instead).
 
 ### Usage
 
-We can display different leves of messages in the GrowlManager component by dispatching actions to the `growl` store.
+Messages with different levels of severity can be displayed in the GrowlManager component by dispatching actions to the `growl` store.
 
 
 #### Info (default)
@@ -47,7 +47,7 @@ this.$store.dispatch('growl/info', {
 ```
 
 #### Success
-For reporting of a successful end of an operation or action.
+For reporting the successful completion of an operation or action.
 
 ```ts
 this.$store.dispatch('growl/success', {
@@ -58,6 +58,7 @@ this.$store.dispatch('growl/success', {
 
 #### Warning
 For events that require user attention.
+
 ```ts
 this.$store.dispatch('growl/warning', {
     title:   'Warning',
@@ -66,9 +67,8 @@ this.$store.dispatch('growl/warning', {
 ```
 
 #### Error
-When things go wrong.
+For events that require user action.
 
-For events that require user attention.
 ```ts
 this.$store.dispatch('growl/error', {
     title:   'Error',
