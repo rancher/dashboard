@@ -109,7 +109,7 @@ export default {
 
 <template>
   <div v-if="currentCluster">
-    <header class="header mb-0">
+    <header class="header-layout header mb-0">
       <h1>
         <t
           k="harvester.dashboard.header"

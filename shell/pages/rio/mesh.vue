@@ -408,7 +408,7 @@ export default {
 </script>
 <template>
   <div class="mesh">
-    <header>
+    <header class="header-layout">
       <h1>App Mesh</h1>
     </header>
 

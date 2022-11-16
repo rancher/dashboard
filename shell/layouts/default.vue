@@ -669,7 +669,10 @@ export default {
           {{ displayVersion }}
         </div>
       </nav>
-      <main v-if="clusterAndRouteReady">
+      <main
+        v-if="clusterAndRouteReady"
+        class="main-layout"
+      >
         <nuxt class="outlet" />
         <ActionMenu />
         <PromptRemove />
@@ -700,7 +703,10 @@ export default {
         />
       </main>
       <!-- Ensure there's an outlet to show the error (404) page -->
-      <main v-else-if="unmatchedRoute">
+      <main
+        v-else-if="unmatchedRoute"
+        class="main-layout"
+      >
         <nuxt class="outlet" />
       </main>
       <div class="wm">
@@ -830,58 +836,6 @@ export default {
 
       .locale-chooser {
         cursor: pointer;
-      }
-    }
-  }
-
-  MAIN {
-    grid-area: main;
-    overflow: auto;
-
-    .outlet {
-      display: flex;
-      flex-direction: column;
-      padding: $space-m;
-      min-height: 100%;
-    }
-
-    FOOTER {
-      background-color: var(--nav-bg);
-      height: var(--footer-height);
-    }
-
-    HEADER {
-      display: grid;
-      grid-template-areas:  "type-banner type-banner"
-                            "title actions"
-                            "state-banner state-banner";
-      grid-template-columns: auto auto;
-      margin-bottom: 20px;
-      align-content: center;
-      min-height: 48px;
-
-      .type-banner {
-        grid-area: type-banner;
-      }
-
-      .state-banner {
-        grid-area: state-banner;
-      }
-
-      .title {
-        grid-area: title;
-        align-self: center;
-      }
-
-      .actions-container {
-        grid-area: actions;
-        margin-left: 8px;
-        align-self: center;
-        text-align: right;
-      }
-
-      .role-multi-action {
-        padding: 0 $input-padding-sm;
       }
     }
   }
