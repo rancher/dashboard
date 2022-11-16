@@ -6,7 +6,7 @@ import { HCI } from '../types';
 import { findBy } from '@shell/utils/array';
 import { parseSi } from '@shell/utils/units';
 import { get } from '@shell/utils/object';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { _CLONE } from '@shell/config/query-params';
 import HarvesterResource from './harvester';
 

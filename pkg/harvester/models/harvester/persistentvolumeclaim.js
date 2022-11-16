@@ -2,10 +2,8 @@ import Vue from 'vue';
 import { _CLONE } from '@shell/config/query-params';
 import pick from 'lodash/pick';
 import { HCI } from '../../types';
-import {
-  HCI as HCI_ANNOTATIONS,
-  DESCRIPTION
-} from '@shell/config/labels-annotations';
+import { DESCRIPTION } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { findBy } from '@shell/utils/array';
 import { get, clone } from '@shell/utils/object';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';

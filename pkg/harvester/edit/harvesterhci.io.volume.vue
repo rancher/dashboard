@@ -13,7 +13,7 @@ import { saferDump } from '@shell/utils/create-yaml';
 import { InterfaceOption } from '../config/harvester-map';
 import { _CREATE } from '@shell/config/query-params';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 
 export default {
   name: 'HarvesterVolume',

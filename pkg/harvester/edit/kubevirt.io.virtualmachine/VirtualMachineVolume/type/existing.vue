@@ -9,7 +9,7 @@ import { PVC } from '@shell/config/types';
 import { HCI } from '../../../../types';
 import { _CREATE } from '@shell/config/query-params';
 import { VOLUME_TYPE, InterfaceOption } from '../../../../config/harvester-map';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 
 export default {
   name:       'HarvesterEditExisting',

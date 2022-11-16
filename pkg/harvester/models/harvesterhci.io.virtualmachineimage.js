@@ -3,8 +3,8 @@ import { HCI } from '../types';
 import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,
-  HCI as HCI_ANNOTATIONS
 } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { get, clone } from '@shell/utils/object';
 import { formatSi } from '@shell/utils/units';
 import { ucFirst } from '@shell/utils/string';

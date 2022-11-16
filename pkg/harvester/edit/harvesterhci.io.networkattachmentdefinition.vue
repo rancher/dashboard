@@ -6,7 +6,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
-import { HCI } from '@shell/config/labels-annotations';
+import { HCI } from '@/pkg/harvester/config/labels-annotations';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
 const AUTO = 'auto';

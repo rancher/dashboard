@@ -4,7 +4,7 @@ import { mapGetters } from 'vuex';
 import { NODE } from '@shell/config/types';
 import { HCI } from '../types';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';

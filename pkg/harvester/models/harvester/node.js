@@ -1,7 +1,7 @@
 import pickBy from 'lodash/pickBy';
 import { LONGHORN, POD, NODE } from '@shell/config/types';
 import { HCI } from '../../types';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { clone } from '@shell/utils/object';
 import findLast from 'lodash/findLast';
 import {

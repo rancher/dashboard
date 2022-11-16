@@ -1,4 +1,4 @@
-import { HCI } from '@shell/config/labels-annotations';
+import { HCI } from '@/pkg/harvester/config/labels-annotations';
 
 export const VM_IMAGE_FILE_FORMAT = ['qcow', 'qcow2', 'raw', 'img', 'iso'];
 
