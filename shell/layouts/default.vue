@@ -669,7 +669,10 @@ export default {
           {{ displayVersion }}
         </div>
       </nav>
-      <main v-if="clusterAndRouteReady" class="main-layout">
+      <main
+        v-if="clusterAndRouteReady"
+        class="main-layout"
+      >
         <nuxt class="outlet" />
         <ActionMenu />
         <PromptRemove />
@@ -700,7 +703,10 @@ export default {
         />
       </main>
       <!-- Ensure there's an outlet to show the error (404) page -->
-      <main v-else-if="unmatchedRoute" class="main-layout">
+      <main
+        v-else-if="unmatchedRoute"
+        class="main-layout"
+      >
         <nuxt class="outlet" />
       </main>
       <div class="wm">
