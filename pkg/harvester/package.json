@@ -16,6 +16,9 @@
   "engines": {
     "node": ">=14"
   },
+  "dependencies": {
+    "@rancher/components": "0.1.0-alpha.7"
+  },
   "devDependencies": {
     "@vue/cli-plugin-babel": "4.5.15",
     "@vue/cli-service": "4.5.15",
