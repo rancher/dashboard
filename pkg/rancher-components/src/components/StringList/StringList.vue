@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 
-import { LabeledInput } from '@rancher/components';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { findStringIndex, hasDuplicatedStrings } from '@shell/utils/array';
 
 type Error = 'duplicate';
