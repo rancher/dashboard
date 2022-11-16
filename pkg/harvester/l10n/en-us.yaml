@@ -664,7 +664,7 @@ harvester:
     matchTarget: The current backup target does not match the existing one.
 
   network:
-    label: Networks
+    label: VM Networks
     tabs:
       basics: Basics
       layer3Network: Route
@@ -977,8 +977,8 @@ typeLabel:
     }
   harvesterhci.io.networkattachmentdefinition: |-
     {count, plural,
-      one { Network }
-      other { Networks }
+      one { VM Network }
+      other { VM Networks }
     }
   harvesterhci.io.volume: |-
     {count, plural,

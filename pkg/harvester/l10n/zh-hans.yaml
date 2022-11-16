@@ -663,7 +663,7 @@ harvester:
     matchTarget: 当前备份目标与现有目标不匹配。
 
   network:
-    label: 网络
+    label: 虚拟机网络
     tabs:
       basics: 基本信息
       layer3Network: 路由
@@ -975,8 +975,8 @@ typeLabel:
     }
   harvesterhci.io.networkattachmentdefinition: |-
     {count, plural,
-      one { 网络 }
-      other { 网络 }
+      one { 虚拟机网络 }
+      other { 虚拟机网络 }
     }
   harvesterhci.io.volume: |-
     {count, plural,
