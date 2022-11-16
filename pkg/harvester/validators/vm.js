@@ -138,6 +138,12 @@ export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value)
         errors.push(getters['i18n/t']('harvester.validation.vm.volume.error', { prefix, message }));
       }
 
+      if (!/^([1-9][0-9]{0,8})[a-zA-Z]+$/.test(typeValue?.spec?.resources?.requests?.storage)) {
+        const message = getters['i18n/t']('harvester.validation.vm.volume.maximumSize');
+
+        errors.push(getters['i18n/t']('harvester.validation.vm.volume.error', { prefix, message }));
+      }
+
       if (type === SOURCE_TYPE.IMAGE && !typeValue?.spec?.storageClassName && !isVMTemplate) { // type === SOURCE_TYPE.IMAGE
         const message = getters['i18n/t']('harvester.validation.vm.volume.image');
 

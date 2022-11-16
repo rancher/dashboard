@@ -14,7 +14,7 @@ import { formatSi, parseSi } from '@shell/utils/units';
 import { SOURCE_TYPE, ACCESS_CREDENTIALS } from '../../config/harvester-map';
 import { _CLONE, _CREATE, _VIEW } from '@shell/config/query-params';
 import {
-  PVC, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP, NETWORK_ATTACHMENT
+  PV, PVC, STORAGE_CLASS, NODE, SECRET, CONFIG_MAP, NETWORK_ATTACHMENT
 } from '@shell/config/types';
 import { HCI } from '../../types';
 import { HCI_SETTING } from '../../config/settings';
@@ -80,6 +80,7 @@ export default {
 
   async fetch() {
     const hash = {
+      pvs:               this.$store.dispatch('harvester/findAll', { type: PV }),
       pvcs:              this.$store.dispatch('harvester/findAll', { type: PVC }),
       storageClasses:    this.$store.dispatch('harvester/findAll', { type: STORAGE_CLASS }),
       sshs:              this.$store.dispatch('harvester/findAll', { type: HCI.SSH }),
@@ -405,8 +406,7 @@ export default {
             minExponent: 3,
           });
 
-          const allVolumeStatus = JSON.parse(vm.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] || '[]');
-          const volumeStatus = allVolumeStatus.find(volume => realName === volume.name);
+          const volumeStatus = this.pvcs.find(P => P.id === `${ this.value.metadata.namespace }/${ volumeName }`)?.relatedPV?.metadata?.annotations?.[HCI_ANNOTATIONS.VOLUME_ERROR];
 
           return {
             id:         randomStr(5),

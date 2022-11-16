@@ -230,6 +230,7 @@ harvester:
         docker: '"Docker Image" is required!'
         storageClass: '"Storage Class" is required!'
         needImageOrExisting: 'At least an image volume or an existing root-disk volume is required!'
+        maximumSize: Exceed maximum size 999999999 Gi!
     image:
       ruleTip: 'The URL you have entered ends in an extension that we do not support. We only accept image files that end in .img, .iso, .qcow, .qcow2, .raw.'
       ruleFileTip: 'The file you have chosen ends in an extension that we do not support. We only accept image files that end in .img, .iso, .qcow, .qcow2, .raw.'

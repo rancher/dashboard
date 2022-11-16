@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { _CLONE } from '@shell/config/query-params';
 import pick from 'lodash/pick';
 import { HCI, VOLUME_SNAPSHOT } from '../../types';
+import { PV } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { findBy } from '@shell/utils/array';
@@ -9,6 +10,8 @@ import { get, clone } from '@shell/utils/object';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import HarvesterResource from '../harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
+
+const DEGRADED_ERROR = 'replica scheduling failed';
 
 export default class HciPv extends HarvesterResource {
   applyDefaults(_, realMode) {
@@ -97,23 +100,34 @@ export default class HciPv extends HarvesterResource {
 
   get stateDisplay() {
     const ownedBy = this?.metadata?.annotations?.[HCI_ANNOTATIONS.OWNED_BY];
-    const status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
+    const volumeError = this.relatedPV?.metadata?.annotations?.[HCI_ANNOTATIONS.VOLUME_ERROR];
+    const degradedVolume = volumeError === DEGRADED_ERROR;
+    const status = this?.status?.phase === 'Bound' && !volumeError ? 'Ready' : 'Not Ready';
 
     const conditions = this?.status?.conditions || [];
 
     if (findBy(conditions, 'type', 'Resizing')?.status === 'True') {
       return 'Resizing';
-    } else if (ownedBy) {
+    } else if (ownedBy && !volumeError) {
       return 'In-use';
+    } else if (degradedVolume) {
+      return 'Degraded';
     } else {
       return status;
     }
   }
 
+  // state is similar with stateDisplay, the reason we keep this property is the status of In-use should not be displayed on vm detail page
   get state() {
-    let status = this?.status?.phase === 'Bound' ? 'Ready' : 'NotReady';
+    const volumeError = this.relatedPV?.metadata?.annotations?.[HCI_ANNOTATIONS.VOLUME_ERROR];
+    const degradedVolume = volumeError === DEGRADED_ERROR;
+    let status = this?.status?.phase === 'Bound' && !volumeError ? 'Ready' : 'Not Ready';
 
     const conditions = this?.status?.conditions || [];
+
+    if (degradedVolume) {
+      status = 'Degraded';
+    }
 
     if (findBy(conditions, 'type', 'Resizing')?.status === 'True') {
       status = 'Resizing';
@@ -130,7 +144,6 @@ export default class HciPv extends HarvesterResource {
 
   get stateDescription() {
     return (
-      this.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] ||
       super.stateDescription
     );
   }
@@ -227,5 +240,20 @@ export default class HciPv extends HarvesterResource {
 
   get warnDeletionMessage() {
     return this.t('harvester.volume.promptRemove.tips');
+  }
+
+  get relatedPV() {
+    return this.$rootGetters['harvester/all'](PV).find(pv => pv.metadata?.name === this.spec?.volumeName);
+  }
+
+  get customValidationRules() {
+    return [
+      {
+        nullable:       false,
+        path:           'spec.resources.requests.storage',
+        required:       true,
+        validators:     ['volumeSize']
+      },
+    ];
   }
 }

@@ -31,7 +31,6 @@ export const HCI = {
   REAY_MESSAGE:                 'harvesterhci.io/read-message',
   DYNAMIC_SSHKEYS_NAMES:        'harvesterhci.io/dynamic-ssh-key-names',
   DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
-  VM_VOLUME_STATUS:             'harvesterhci.io/volume-status',
   IMAGE_SUFFIX:                 'harvesterhci.io/image-type',
   OS_TYPE:                      'harvesterhci.io/os-type',
   HOST_REQUEST:                 'management.cattle.io/pod-requests',
@@ -39,4 +38,5 @@ export const HCI = {
   PCI_DEVICE:                   'pcidevices.harvesterhci.io',
   STORAGE_NETWORK:              'storage-network.settings.harvesterhci.io',
   ADDON_EXPERIMENTAL:           'addon.harvesterhci.io/experimental',
+  VOLUME_ERROR:                 'longhorn.io/volume-scheduling-error',
 };

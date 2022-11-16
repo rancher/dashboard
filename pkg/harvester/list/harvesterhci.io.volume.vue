@@ -1,9 +1,10 @@
 <script>
 import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
+import HarvesterVolumeState from '@/pkg/harvester/formatters/HarvesterVolumeState';
 
 import { allHash } from '@shell/utils/promise';
-import { PVC, SCHEMA } from '@shell/config/types';
+import { PV, PVC, SCHEMA } from '@shell/config/types';
 import { HCI, VOLUME_SNAPSHOT } from '../types';
 import { STATE, AGE, NAME, NAMESPACE } from '@shell/config/table-headers';
 
@@ -19,11 +20,14 @@ const schema = {
 
 export default {
   name:       'HarvesterListVolume',
-  components: { Loading, ResourceTable },
+  components: {
+    Loading, ResourceTable, HarvesterVolumeState
+  },
 
   async fetch() {
     const _hash = {
       pvcs:      this.$store.dispatch('harvester/findAll', { type: PVC }),
+      pvs:      this.$store.dispatch('harvester/findAll', { type: PV }),
       vms:       this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
     };
 
@@ -127,6 +131,11 @@ export default {
     key-field="_key"
     v-on="$listeners"
   >
+    <template slot="cell:state" slot-scope="scope" class="state-col">
+      <div class="state">
+        <HarvesterVolumeState class="vmstate" :row="scope.row" />
+      </div>
+    </template>
     <template slot="cell:AttachedVM" slot-scope="scope">
       <div>
         <n-link v-if="getVMName(scope.row)" :to="goTo(scope.row)">
@@ -136,3 +145,13 @@ export default {
     </template>
   </ResourceTable>
 </template>
+
+<style lang="scss" scoped>
+.state {
+  display: flex;
+
+  .vmstate {
+    margin-right: 6px;
+  }
+}
+</style>
