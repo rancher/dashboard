@@ -45,6 +45,14 @@ export default Vue.extend<any, any, any, any>({
 });
 </script>
 <template>
-  <Banner v-if="!!asBanner && !!validationMessage" color="error" :label="validationMessage" />
-  <span v-else-if="!!validationMessage" class="text-error" data-testid="error-span">{{ validationMessage }}</span>
+  <Banner
+    v-if="!!asBanner && !!validationMessage"
+    color="error"
+    :label="validationMessage"
+  />
+  <span
+    v-else-if="!!validationMessage"
+    class="text-error"
+    data-testid="error-span"
+  >{{ validationMessage }}</span>
 </template>

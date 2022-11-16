@@ -294,11 +294,21 @@ export default {
           {{ t('login.welcome', {vendor}) }}
         </h1>
         <div class="login-messages">
-          <Banner v-if="errorToDisplay" :label="errorToDisplay" color="error" />
-          <h4 v-else-if="loggedOut" class="text-success text-center">
+          <Banner
+            v-if="errorToDisplay"
+            :label="errorToDisplay"
+            color="error"
+          />
+          <h4
+            v-else-if="loggedOut"
+            class="text-success text-center"
+          >
             {{ t('login.loggedOut') }}
           </h4>
-          <h4 v-else-if="timedOut" class="text-error text-center">
+          <h4
+            v-else-if="timedOut"
+            class="text-error text-center"
+          >
             {{ t('login.loginAgain') }}
           </h4>
         </div>
@@ -308,12 +318,23 @@ export default {
           data-testid="first-login-message"
         >
           <InfoBox color="info">
-            <t k="setup.defaultPassword.intro" :raw="true" />
+            <t
+              k="setup.defaultPassword.intro"
+              :raw="true"
+            />
 
-            <div><t k="setup.defaultPassword.dockerPrefix" :raw="true" /></div>
+            <div>
+              <t
+                k="setup.defaultPassword.dockerPrefix"
+                :raw="true"
+              />
+            </div>
             <ul>
               <li>
-                <t k="setup.defaultPassword.dockerPs" :raw="true" />
+                <t
+                  k="setup.defaultPassword.dockerPs"
+                  :raw="true"
+                />
               </li>
               <li>
                 <CopyCode>
@@ -321,20 +342,38 @@ export default {
                 </CopyCode>
               </li>
             </ul>
-            <div><t k="setup.defaultPassword.dockerSuffix" :raw="true" /></div>
+            <div>
+              <t
+                k="setup.defaultPassword.dockerSuffix"
+                :raw="true"
+              />
+            </div>
 
-            <br />
-            <div><t k="setup.defaultPassword.helmPrefix" :raw="true" /></div>
-            <br />
+            <br>
+            <div>
+              <t
+                k="setup.defaultPassword.helmPrefix"
+                :raw="true"
+              />
+            </div>
+            <br>
             <CopyCode>
               {{ kubectlCmd }}
             </CopyCode>
-            <br />
-            <div><t k="setup.defaultPassword.helmSuffix" :raw="true" /></div>
+            <br>
+            <div>
+              <t
+                k="setup.defaultPassword.helmSuffix"
+                :raw="true"
+              />
+            </div>
           </InfoBox>
         </div>
 
-        <div v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length" class="mt-30">
+        <div
+          v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length"
+          class="mt-30"
+        >
           <component
             :is="providerComponents[idx]"
             v-for="(name, idx) in providers"
@@ -347,7 +386,10 @@ export default {
           />
         </div>
         <template v-if="hasLocal">
-          <form v-if="showLocal" class="mt-40">
+          <form
+            v-if="showLocal"
+            class="mt-40"
+          >
             <div class="span-6 offset-3">
               <div class="mb-20">
                 <LabeledInput
@@ -383,13 +425,23 @@ export default {
                   :error-label="t('asyncButton.default.error')"
                   @click="loginLocal"
                 />
-                <div v-if="!firstLogin" class="mt-20">
-                  <Checkbox v-model="remember" :label="t('login.remember.label')" type="checkbox" />
+                <div
+                  v-if="!firstLogin"
+                  class="mt-20"
+                >
+                  <Checkbox
+                    v-model="remember"
+                    :label="t('login.remember.label')"
+                    type="checkbox"
+                  />
                 </div>
               </div>
             </div>
           </form>
-          <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
+          <div
+            v-if="hasLocal && !showLocal"
+            class="mt-20 text-center"
+          >
             <a
               id="login-useLocal"
               data-testid="login-useLocal"
@@ -399,8 +451,14 @@ export default {
               {{ t('login.useLocal') }}
             </a>
           </div>
-          <div v-if="hasLocal && showLocal && providers.length" class="mt-20 text-center">
-            <a role="button" @click="toggleLocal">
+          <div
+            v-if="hasLocal && showLocal && providers.length"
+            class="mt-20 text-center"
+          >
+            <a
+              role="button"
+              @click="toggleLocal"
+            >
               {{ nonLocalPrompt }}
             </a>
           </div>
@@ -410,7 +468,10 @@ export default {
         </template>
       </div>
 
-      <BrandImage class="col span-6 landscape" file-name="login-landscape.svg" />
+      <BrandImage
+        class="col span-6 landscape"
+        file-name="login-landscape.svg"
+      />
     </div>
   </main>
 </template>

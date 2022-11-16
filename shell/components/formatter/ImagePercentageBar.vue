@@ -54,7 +54,11 @@ export default {
     class="parent"
   >
     <div class="progress-box">
-      <ProgressBarMulti :values="percentage" :min="0" :max="100" />
+      <ProgressBarMulti
+        :values="percentage"
+        :min="0"
+        :max="100"
+      />
     </div>
     <div class="text">
       {{ value || 0 }}%

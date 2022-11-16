@@ -230,8 +230,15 @@ export default {
 
 <template>
   <div v-if="showing || open">
-    <div class="background" @click="hide" @contextmenu.prevent></div>
-    <ul class="list-unstyled menu" :style="style">
+    <div
+      class="background"
+      @click="hide"
+      @contextmenu.prevent
+    />
+    <ul
+      class="list-unstyled menu"
+      :style="style"
+    >
       <li
         v-for="(opt, i) in menuOptions"
         :key="opt.action"
@@ -240,10 +247,16 @@ export default {
         :data-testid="componentTestid + '-' + i + '-item'"
         @click="execute(opt, $event)"
       >
-        <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
+        <i
+          v-if="opt.icon"
+          :class="{icon: true, [opt.icon]: true}"
+        />
         <span v-html="opt.label" />
       </li>
-      <li v-if="!hasOptions(menuOptions)" class="no-actions">
+      <li
+        v-if="!hasOptions(menuOptions)"
+        class="no-actions"
+      >
         <span v-t="'sortableTable.noActions'" />
       </li>
     </ul>

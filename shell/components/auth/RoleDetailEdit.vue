@@ -524,8 +524,11 @@ export default {
         :row-actions="false"
         :search="false"
       />
-      <div v-for="(inherited, index) of inheritedRules" :key="index">
-        <div class="spacer"></div>
+      <div
+        v-for="(inherited, index) of inheritedRules"
+        :key="index"
+      >
+        <div class="spacer" />
         <h3>
           Inherited from {{ inherited.template.nameDisplay }}
           <template v-if="inherited.showParent">
@@ -551,7 +554,10 @@ export default {
         description-key="description"
         label="Name"
       />
-      <div v-if="isRancherType" class="row">
+      <div
+        v-if="isRancherType"
+        class="row"
+      >
         <div class="col span-6">
           <RadioGroup
             v-model="defaultValue"
@@ -562,7 +568,10 @@ export default {
             :mode="mode"
           />
         </div>
-        <div v-if="isRancherRoleTemplate" class="col span-6">
+        <div
+          v-if="isRancherRoleTemplate"
+          class="col span-6"
+        >
           <RadioGroup
             v-model="value.locked"
             name="storageSource"
@@ -573,7 +582,7 @@ export default {
           />
         </div>
       </div>
-      <div class="spacer"></div>
+      <div class="spacer" />
       <Tabbed :side-tabs="true">
         <Tab
           name="grant-resources"
@@ -602,16 +611,28 @@ export default {
                 <div :class="ruleClass">
                   <label class="text-label">
                     {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
-                    <i v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')" class="icon icon-info" />
-                    <span v-if="isNamespaced" class="required">*</span>
+                    <i
+                      v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
+                      class="icon icon-info"
+                    />
+                    <span
+                      v-if="isNamespaced"
+                      class="required"
+                    >*</span>
                   </label>
                 </div>
                 <div :class="ruleClass">
                   <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
-                    <span v-if="isNamespaced" class="required">*</span>
+                    <span
+                      v-if="isNamespaced"
+                      class="required"
+                    >*</span>
                   </label>
                 </div>
-                <div v-if="!isNamespaced" :class="ruleClass">
+                <div
+                  v-if="!isNamespaced"
+                  :class="ruleClass"
+                >
                   <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</label>
                 </div>
               </div>
@@ -651,7 +672,10 @@ export default {
                     @input="setRule('apiGroups', props.row.value, $event)"
                   />
                 </div>
-                <div v-if="!isNamespaced" :class="ruleClass">
+                <div
+                  v-if="!isNamespaced"
+                  :class="ruleClass"
+                >
                   <LabeledInput
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"

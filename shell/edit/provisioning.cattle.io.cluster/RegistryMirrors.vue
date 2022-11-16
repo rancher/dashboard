@@ -68,7 +68,10 @@ export default {
     <template #title>
       <h3>
         {{ t('registryMirror.header') }}
-        <i v-tooltip="t('registryMirror.toolTip')" class="icon icon-info" />
+        <i
+          v-tooltip="t('registryMirror.toolTip')"
+          class="icon icon-info"
+        />
       </h3>
     </template>
   </KeyValue>

@@ -42,7 +42,10 @@ export default {
 
 <template>
   <span>
-    <n-link v-if="to" :to="to">
+    <n-link
+      v-if="to"
+      :to="to"
+    >
       {{ value }}
     </n-link>
     <span v-else>

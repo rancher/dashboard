@@ -195,7 +195,7 @@ export default {
     @input="$emit('click-action', $event)"
   >
     <template slot="no-options">
-      <slot name="no-options"></slot>
+      <slot name="no-options" />
     </template>
 
     <template #selected-option="option">
@@ -210,8 +210,15 @@ export default {
       </button>
     </template>
     <!-- Pass down templates provided by the caller -->
-    <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-      <slot v-if="slot !== 'selected-option'" :name="slot" v-bind="scope" />
+    <template
+      v-for="(_, slot) of $scopedSlots"
+      v-slot:[slot]="scope"
+    >
+      <slot
+        v-if="slot !== 'selected-option'"
+        :name="slot"
+        v-bind="scope"
+      />
     </template>
   </v-select>
 </template>

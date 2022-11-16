@@ -169,7 +169,10 @@ export default {
     </slot>
     <div class="title">
       <h1 class="m-0">
-        {{ _typeDisplay }} <Favorite v-if="isExplorer" :resource="favoriteResource || resource" />
+        {{ _typeDisplay }} <Favorite
+          v-if="isExplorer"
+          :resource="favoriteResource || resource"
+        />
       </h1>
       <ResourceLoadingIndicator
         v-if="showIncrementalLoadingIndicator"
@@ -180,8 +183,7 @@ export default {
     <div class="actions-container">
       <slot name="actions">
         <div class="actions">
-          <slot name="extraActions">
-          </slot>
+          <slot name="extraActions" />
 
           <slot name="createButton">
             <n-link

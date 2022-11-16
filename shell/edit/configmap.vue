@@ -74,7 +74,11 @@ export default {
     />
 
     <Tabbed :side-tabs="true">
-      <Tab name="data" :label="t('configmap.tabs.data.label')" :weight="2">
+      <Tab
+        name="data"
+        :label="t('configmap.tabs.data.label')"
+        :weight="2"
+      >
         <KeyValue
           key="data"
           v-model="data"

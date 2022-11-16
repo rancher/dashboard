@@ -167,24 +167,52 @@ export default {
       :namespaced="false"
       :mode="mode"
     >
-      <template v-if="project" #project-col>
-        <LabeledSelect v-model="projectName" :label="t('namespace.project.label')" :options="projectOpts" />
+      <template
+        v-if="project"
+        #project-col
+      >
+        <LabeledSelect
+          v-model="projectName"
+          :label="t('namespace.project.label')"
+          :options="projectOpts"
+        />
       </template>
     </NameNsDescription>
 
     <Tabbed :side-tabs="true">
-      <Tab v-if="showResourceQuota" :weight="1" name="container-resource-quotas" :label="t('namespace.resourceQuotas')">
+      <Tab
+        v-if="showResourceQuota"
+        :weight="1"
+        name="container-resource-quotas"
+        :label="t('namespace.resourceQuotas')"
+      >
         <div class="row">
           <div class="col span-12">
             <p class="helper-text mb-10">
-              <t v-if="mode === viewMode" k="resourceQuota.helpTextDetail" />
-              <t v-else k="resourceQuota.helpText" />
+              <t
+                v-if="mode === viewMode"
+                k="resourceQuota.helpTextDetail"
+              />
+              <t
+                v-else
+                k="resourceQuota.helpText"
+              />
             </p>
           </div>
         </div>
-        <ResourceQuota v-model="value" :mode="mode" :project="project" :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES" />
+        <ResourceQuota
+          v-model="value"
+          :mode="mode"
+          :project="project"
+          :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
+        />
       </Tab>
-      <Tab v-if="showContainerResourceLimit" :weight="0" name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
+      <Tab
+        v-if="showContainerResourceLimit"
+        :weight="0"
+        name="container-resource-limit"
+        :label="t('namespace.containerResourceLimit')"
+      >
         <ContainerResourceLimit
           :key="JSON.stringify(containerResourceLimits)"
           :value="containerResourceLimits"

@@ -85,28 +85,63 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.bucketName" :mode="mode" :label="t('backupRestoreOperator.s3.bucketName')" />
+        <LabeledInput
+          v-model="value.bucketName"
+          :mode="mode"
+          :label="t('backupRestoreOperator.s3.bucketName')"
+        />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.region" :mode="mode" :label="t('backupRestoreOperator.s3.region')" />
+        <LabeledInput
+          v-model="value.region"
+          :mode="mode"
+          :label="t('backupRestoreOperator.s3.region')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.folder" :mode="mode" :label="t('backupRestoreOperator.s3.folder')" />
+        <LabeledInput
+          v-model="value.folder"
+          :mode="mode"
+          :label="t('backupRestoreOperator.s3.folder')"
+        />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.endpoint" :mode="mode" :label="t('backupRestoreOperator.s3.endpoint')" />
-        <Checkbox v-model="value.insecureTLSSkipVerify" class="mt-10" :mode="mode" :label="t('backupRestoreOperator.s3.insecureTLSSkipVerify')" />
+        <LabeledInput
+          v-model="value.endpoint"
+          :mode="mode"
+          :label="t('backupRestoreOperator.s3.endpoint')"
+        />
+        <Checkbox
+          v-model="value.insecureTLSSkipVerify"
+          class="mt-10"
+          :mode="mode"
+          :label="t('backupRestoreOperator.s3.insecureTLSSkipVerify')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.endpointCA" :mode="mode" type="multiline" :label="t('backupRestoreOperator.s3.endpointCA.label')" />
+        <LabeledInput
+          v-model="value.endpointCA"
+          :mode="mode"
+          type="multiline"
+          :label="t('backupRestoreOperator.s3.endpointCA.label')"
+        />
         <div class="ca-controls">
-          <FileSelector v-if="mode!=='view'" class="btn btn-sm role-primary mt-5" :mode="mode" :label="t('generic.readFromFile')" @selected="e=> setCA(e)" />
+          <FileSelector
+            v-if="mode!=='view'"
+            class="btn btn-sm role-primary mt-5"
+            :mode="mode"
+            :label="t('generic.readFromFile')"
+            @selected="e=> setCA(e)"
+          />
           <div class="ca-tooltip">
-            <i v-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')" class="icon icon-info" />
+            <i
+              v-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')"
+              class="icon icon-info"
+            />
           </div>
         </div>
       </div>

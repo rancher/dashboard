@@ -20,6 +20,10 @@ export default {
       type:     Boolean,
       required: false,
     },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   }
 };
 </script>
@@ -30,6 +34,7 @@ export default {
       :schema="schema"
       :rows="rows"
       :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     />
   </div>
 </template>

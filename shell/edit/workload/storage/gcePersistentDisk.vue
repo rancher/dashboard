@@ -53,12 +53,20 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model.number="value.gcePersistentDisk.partition" :mode="mode" :label="t('workload.storage.csi.partition')" />
+        <LabeledInput
+          v-model.number="value.gcePersistentDisk.partition"
+          :mode="mode"
+          :label="t('workload.storage.csi.partition')"
+        />
       </div>
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.gcePersistentDisk.fsType" :mode="mode" :label="t('workload.storage.csi.fsType')" />
+        <LabeledInput
+          v-model="value.gcePersistentDisk.fsType"
+          :mode="mode"
+          :label="t('workload.storage.csi.fsType')"
+        />
       </div>
     </div>
   </div>

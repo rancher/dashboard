@@ -20,7 +20,10 @@ export default {
 </script>
 
 <template>
-  <Tab name="agentEnv" label-key="cluster.tabs.agentEnv">
+  <Tab
+    name="agentEnv"
+    label-key="cluster.tabs.agentEnv"
+  >
     <KeyValue
       v-model="value.spec.agentEnvVars"
       :mode="mode"

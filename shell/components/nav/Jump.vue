@@ -65,9 +65,13 @@ export default {
       :placeholder="t('nav.resourceSearch.placeholder')"
       class="search"
       @keyup.esc="$emit('closeSearch')"
-    />
+    >
     <div class="results">
-      <div v-for="g in groups" :key="g.name" class="package">
+      <div
+        v-for="g in groups"
+        :key="g.name"
+        class="package"
+      >
         <Group
           v-if="!g.hidden"
           :key="g.name"
