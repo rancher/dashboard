@@ -24,14 +24,4 @@ describe('component: ApplicationCard', () => {
   it('should have card-icon slot with an icon', () => {
     expect(wrapper.find('[data-testid="cardIcon-section"]').find('i').classes()).toContain('icon-epinio');
   });
-
-  it('should have a top-left slot with a list and all the elements should be visible', () => {
-    const ele = wrapper.find('[data-testid="top-left-section"]');
-
-    expect(ele.find('ul').findAll('li')).toHaveLength(2);
-    expect(ele.find('ul').findAll('li').at(0).find('a')
-      .isVisible()).toBe(true);
-    expect(ele.find('ul').findAll('li').at(1).find('a')
-      .isVisible()).toBe(true);
-  });
 });
