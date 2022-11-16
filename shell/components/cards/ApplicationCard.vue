@@ -4,8 +4,7 @@ export default {};
 
 <template>
   <div class="application-card mt-20">
-    <div class="application-card-icon" data-testid="icon-slot-section">
-      <!-- Image goes here -->
+    <div class="application-card-icon" data-testid="cardIcon-section">
       <slot name="cardIcon" />
     </div>
     <div class="application-card-details">
