@@ -45,9 +45,6 @@
       "@shell/models/*": [
         "../../shell/models/*"
       ],
-      "@components/*": [
-        "../../pkg/rancher-components/*"
-      ],
       "@pkg/*": [
         "./*"
       ]

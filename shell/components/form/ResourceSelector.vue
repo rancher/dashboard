@@ -1,5 +1,5 @@
 <script>
-import { Banner } from '@components/Banner';
+import { Banner } from '@rancher/components';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import ResourceTable from '@shell/components/ResourceTable';
 import { allHash } from '@shell/utils/promise';

@@ -1,7 +1,7 @@
 <script>
 import { mapPref, AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
-import { RadioGroup, RadioButton } from '@components/Form/Radio';
+import { RadioGroup, RadioButton } from '@rancher/components';
 
 import Select from '@shell/components/form/Select';
 import { MANAGEMENT } from '@shell/config/types';
