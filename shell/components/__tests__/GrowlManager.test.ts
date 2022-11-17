@@ -1,6 +1,8 @@
-import { shallowMount, Wrapper, createLocalVue } from '@vue/test-utils';
+import { shallowMount, createLocalVue } from '@vue/test-utils';
 import GrowlManager from '../GrowlManager.vue';
 import Vuex from 'vuex';
+import { ExtendedVue, Vue } from 'vue/types/vue';
+import { DefaultProps } from 'vue/types/options';
 
 const stackMock = [
   {
@@ -28,7 +30,7 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    const wrapper: Wrapper<InstanceType<typeof GrowlManager> & { [key: string]: any }> = shallowMount(GrowlManager, {
+    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       computed: { stack: () => stackMock },
       mocks:    { $store: mockStore }
     });
@@ -60,7 +62,7 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    const wrapper: Wrapper<InstanceType<typeof GrowlManager> & { [key: string]: any }> = shallowMount(GrowlManager, {
+    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       computed: { stack: () => stackMock },
       mocks:    { $store: mockStore }
     });
@@ -84,7 +86,7 @@ describe('component: GrowlManager', () => {
       dispatch: () => jest.fn()
     };
 
-    const wrapper: Wrapper<InstanceType<typeof GrowlManager> & { [key: string]: any }> = shallowMount(GrowlManager, {
+    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       computed: { stack: () => stackMock },
       mocks:    { $store: mockStore }
     });
@@ -124,7 +126,7 @@ describe('component: GrowlManager', () => {
 
     jest.useFakeTimers();
 
-    const wrapper: Wrapper<InstanceType<typeof GrowlManager> & { [key: string]: any }> = shallowMount(GrowlManager, {
+    const wrapper = shallowMount(GrowlManager as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       store,
       localVue
     });
