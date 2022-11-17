@@ -286,7 +286,7 @@ export default {
         <PodSecurityAdmission
           :value="value"
           :mode="mode"
-        ></PodSecurityAdmission>
+        />
       </Tab>
     </Tabbed>
   </CruResource>

@@ -87,7 +87,7 @@ export default Vue.extend({
           :disabled="isView"
           :options="options"
           :mode="mode"
-        ></LabeledSelect>
+        />
       </span>
 
       <span class="col span-4">
@@ -98,7 +98,7 @@ export default Vue.extend({
           :options="options"
           :placeholder="t('podSecurityAdmission.version.placeholder', { exception })"
           :mode="mode"
-        ></LabeledInput>
+        />
       </span>
     </div>
 
@@ -134,7 +134,7 @@ export default Vue.extend({
             :options="options"
             :placeholder="t('podSecurityAdmission.exceptions.placeholder', { exception })"
             :mode="mode"
-          ></LabeledInput>
+          />
         </span>
       </div>
     </template>

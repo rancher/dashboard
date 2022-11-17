@@ -244,7 +244,7 @@ export default {
         <PodSecurityAdmission
           :value="value"
           :mode="mode"
-        ></PodSecurityAdmission>
+        />
       </Tab>
     </Tabbed>
     <MoveModal v-if="projects" />
