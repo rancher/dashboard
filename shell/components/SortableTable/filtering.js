@@ -215,6 +215,13 @@ function matches(fields, token, item) {
       continue;
     }
 
+    // some items might not even have metadata.labels or metadata.labels.something... ignore those items. Nothing to filter by
+    if (typeof field !== 'function' &&
+    field.includes(LABEL_IDENTIFIER) &&
+    (!item.metadata.labels || !item.metadata.labels[field.replace(LABEL_IDENTIFIER, '')])) {
+      continue;
+    }
+
     let modifier;
     let val;
 
