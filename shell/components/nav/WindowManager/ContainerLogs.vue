@@ -675,7 +675,7 @@ export default {
     }
 
     .msg {
-      white-space: nowrap;
+      white-space: pre;
 
       .highlight {
         color: var(--logs-highlight);
@@ -684,7 +684,7 @@ export default {
     }
 
     &.wrap-lines .msg {
-      white-space: normal;
+      white-space: pre-wrap;
     }
   }
 
