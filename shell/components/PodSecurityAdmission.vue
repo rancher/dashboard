@@ -96,7 +96,7 @@ export default Vue.extend({
           :data-testid="componentTestid + '--' + i + '-version'"
           :disabled="isView"
           :options="options"
-          :placeholder="t('podSecurityAdmission.version.placeholder', { exception })"
+          :placeholder="t('podSecurityAdmission.version.placeholder', { control })"
           :mode="mode"
         />
       </span>
