@@ -45,9 +45,6 @@ describe('component: workload', () => {
     expect(wrapper.vm.schema).toStrictEqual(schema);
   });
 
+  // TODO - #7473: Further tests may be defined within one of the table components
   it.todo('should display the list of workloads');
-
-  it.each([
-    'deployment',
-  ])('should filter the workloads for %p', (type) => { });
 });
