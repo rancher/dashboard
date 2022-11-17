@@ -83,7 +83,7 @@ module.exports = {
         beforeColon: false,
         afterColon:  true,
         on:          'value',
-        mode:        'minimum'
+        mode:        'strict'
       },
       multiLine: {
         beforeColon: false,
