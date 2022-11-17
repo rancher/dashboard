@@ -23,7 +23,7 @@ export default Vue.extend({
     },
 
     disableSave: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     }
   },

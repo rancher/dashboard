@@ -27,12 +27,12 @@ export default {
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     return {
-      shown:          false,
+      shown:         false,
       displayVersion,
       fullVersion,
-      uiCommit:       UI_COMMIT,
-      uiVersion:      UI_VERSION,
-      clusterFilter:  '',
+      uiCommit:      UI_COMMIT,
+      uiVersion:     UI_VERSION,
+      clusterFilter: '',
       hasProvCluster,
     };
   },

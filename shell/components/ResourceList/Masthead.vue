@@ -24,7 +24,7 @@ export default {
       required: true,
     },
     favoriteResource: {
-      type:     String,
+      type:    String,
       default: null
     },
     schema: {

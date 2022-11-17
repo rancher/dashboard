@@ -5,7 +5,7 @@ import { SETTING } from '@shell/config/settings';
 describe('management.cattle.io.setting should', () => {
   const requiredSetup = () => ({
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
-    mocks:     {
+    mocks: {
       $store: {
         getters: {
           currentStore:              () => 'current_store',

@@ -2,8 +2,8 @@
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
 
 export default {
-  name:        'HarvesterResourcedNamespaceId',
-  components:  { ResourceDetail },
+  name:       'HarvesterResourcedNamespaceId',
+  components: { ResourceDetail },
 };
 </script>
 

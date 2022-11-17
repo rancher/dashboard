@@ -243,15 +243,15 @@ export default {
 
         if (hasSSHResource) {
           return {
-            id:    hasSSHResource.id,
-            data:  hasSSHResource,
-            type:  SSH_EXISTING_TYPE.EXISTING_ALL
+            id:   hasSSHResource.id,
+            data: hasSSHResource,
+            type: SSH_EXISTING_TYPE.EXISTING_ALL
           };
         } else {
           return {
             id,
-            data:  id,
-            type:  SSH_EXISTING_TYPE.EXISTING_ONLY_ANNOTATION
+            data: id,
+            type: SSH_EXISTING_TYPE.EXISTING_ONLY_ANNOTATION
           };
         }
       });

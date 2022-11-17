@@ -13,7 +13,7 @@ export default {
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP });
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
   },
-  props:      {
+  props: {
     schema: {
       type:     Object,
       required: true,

@@ -9,7 +9,7 @@ export default {
   components: {
     Banner, Checkbox, LabeledInput, SimpleSecretSelector
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -19,8 +19,8 @@ export default {
       required: true,
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data() {

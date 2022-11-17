@@ -26,17 +26,17 @@ interface GlobalSetting {
 // Adapted from: https://github.com/rancher/ui/blob/08c379a9529f740666a704b52522a468986c3520/lib/shared/addon/utils/constants.js#L564
 // Setting IDs
 export const SETTING = {
-  VERSION_RANCHER:                  'server-version',
-  VERSION_CLI:                      'cli-version',
-  VERSION_MACHINE:                  'machine-version',
-  VERSION_HELM:                     'helm-version',
-  CLI_URL:                          {
-    DARWIN:                         'cli-url-darwin',
-    WINDOWS:                        'cli-url-windows',
-    LINUX:                          'cli-url-linux',
+  VERSION_RANCHER: 'server-version',
+  VERSION_CLI:     'cli-version',
+  VERSION_MACHINE: 'machine-version',
+  VERSION_HELM:    'helm-version',
+  CLI_URL:         {
+    DARWIN:  'cli-url-darwin',
+    WINDOWS: 'cli-url-windows',
+    LINUX:   'cli-url-linux',
   },
-  API_HOST:                         'api-host',
-  CA_CERTS:                         'cacerts',
+  API_HOST: 'api-host',
+  CA_CERTS: 'cacerts',
 
   // Allow the local cluster to be hidden
   HIDE_LOCAL_CLUSTER:                   'hide-local-cluster',
@@ -88,11 +88,11 @@ export const SETTING = {
 
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS: GlobalSetting = {
-  [SETTING.CA_CERTS]:                             { kind: 'multiline', readOnly: true },
-  [SETTING.ENGINE_URL]:                           {},
-  [SETTING.ENGINE_ISO_URL]:                       {},
+  [SETTING.CA_CERTS]:                   { kind: 'multiline', readOnly: true },
+  [SETTING.ENGINE_URL]:                 {},
+  [SETTING.ENGINE_ISO_URL]:             {},
   [SETTING.CATTLE_PASSWORD_MIN_LENGTH]: {
-    kind:       'integer',
+    kind:    'integer',
     ruleSet: [
       {
         name: 'betweenValues',
@@ -118,8 +118,8 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'enum',
     options: ['dynamic', 'true', 'false']
   },
-  [SETTING.BRAND]:                          { canReset: true },
-  [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]:   { kind: 'boolean' },
+  [SETTING.BRAND]:                        { canReset: true },
+  [SETTING.CLUSTER_TEMPLATE_ENFORCEMENT]: { kind: 'boolean' },
   [SETTING.TELEMETRY]:                    {
     kind:    'enum',
     options: ['prompt', 'in', 'out']

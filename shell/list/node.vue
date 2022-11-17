@@ -120,7 +120,7 @@ export default {
 
   },
 
-  methods:  {
+  methods: {
     async loadMetrics() {
       const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
 

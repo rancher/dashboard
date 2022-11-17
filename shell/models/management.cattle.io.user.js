@@ -123,7 +123,7 @@ export default class User extends HybridModel {
 
   async refreshGroupMembership() {
     const user = await this.$dispatch('rancher/find', {
-      type:       NORMAN.USER,
+      type: NORMAN.USER,
       id:   this.id,
     }, { root: true });
 
@@ -158,9 +158,9 @@ export default class User extends HybridModel {
         weight:     1
       },
       {
-        action:     'refreshGroupMembership',
-        label:      this.t('authGroups.actions.refresh'),
-        icon:       'icon icon-refresh',
+        action:  'refreshGroupMembership',
+        label:   this.t('authGroups.actions.refresh'),
+        icon:    'icon icon-refresh',
         enabled: this.canRefreshAccess
       },
       { divider: true },

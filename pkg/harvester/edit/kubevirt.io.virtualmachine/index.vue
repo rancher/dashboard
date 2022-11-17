@@ -73,12 +73,12 @@ export default {
 
     return {
       cloneVM,
-      count:                 2,
-      templateId:            '',
-      templateVersionId:     '',
-      namePrefix:            '',
-      isSingle:              true,
-      useTemplate:           false,
+      count:             2,
+      templateId:        '',
+      templateVersionId: '',
+      namePrefix:        '',
+      isSingle:          true,
+      useTemplate:       false,
       hostname,
       isRestartImmediately,
       RunStrategys,

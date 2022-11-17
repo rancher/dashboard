@@ -116,8 +116,8 @@ export default {
       product: getProduct(),
 
       username,
-      remember:  !!username,
-      password:  '',
+      remember: !!username,
+      password: '',
 
       timedOut:  this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut: this.$route.query[LOGGED_OUT] === _FLAGGED,
@@ -125,7 +125,7 @@ export default {
 
       providers:          [],
       providerComponents: [],
-      customLoginError:    {}
+      customLoginError:   {}
     };
   },
 

@@ -1,7 +1,7 @@
 <script>
 
 export default {
-  props:      {
+  props: {
     value: {
       type:    Boolean,
       default: true

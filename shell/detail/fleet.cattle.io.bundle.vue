@@ -10,7 +10,7 @@ export default {
     FleetBundleResources,
     SortableTable,
   },
-  props:      {
+  props: {
     value: {
       type:     Object,
       required: true,
@@ -55,10 +55,10 @@ export default {
     resourceHeaders() {
       return [
         {
-          name:      'name',
-          value:     'name',
-          sort:      ['name'],
-          labelKey:  'tableHeaders.name',
+          name:     'name',
+          value:    'name',
+          sort:     ['name'],
+          labelKey: 'tableHeaders.name',
         },
       ];
     },

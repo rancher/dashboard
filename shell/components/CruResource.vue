@@ -98,7 +98,7 @@ export default {
       default: null,
     },
     steps: {
-      type:     Array,
+      type:    Array,
       default: () => []
     },
 

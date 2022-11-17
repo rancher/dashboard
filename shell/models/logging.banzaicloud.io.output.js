@@ -142,7 +142,7 @@ export default class LogOutput extends SteveModel {
   get url() {
     return {
       name:   'c-cluster-product-resource-namespace-id',
-      params:   {
+      params: {
         resource:  this.type,
         id:        this.name,
         namespace: this.namespace
@@ -153,8 +153,8 @@ export default class LogOutput extends SteveModel {
   get customValidationRules() {
     return [
       {
-        path:           'spec.logdna',
-        validators:     ['logdna'],
+        path:       'spec.logdna',
+        validators: ['logdna'],
       }
     ];
   }

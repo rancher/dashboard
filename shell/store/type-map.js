@@ -167,14 +167,14 @@ const graphConfigMap = {};
 const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
 export const IF_HAVE = {
-  V1_MONITORING:            'v1-monitoring',
-  V2_MONITORING:            'v2-monitoring',
-  PROJECT:                  'project',
-  NO_PROJECT:               'no-project',
-  NOT_V1_ISTIO:             'not-v1-istio',
-  MULTI_CLUSTER:            'multi-cluster',
-  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
-  ADMIN:                    'admin-user',
+  V1_MONITORING:       'v1-monitoring',
+  V2_MONITORING:       'v2-monitoring',
+  PROJECT:             'project',
+  NO_PROJECT:          'no-project',
+  NOT_V1_ISTIO:        'not-v1-istio',
+  MULTI_CLUSTER:       'multi-cluster',
+  NEUVECTOR_NAMESPACE: 'neuvector-namespace',
+  ADMIN:               'admin-user',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -1036,10 +1036,10 @@ export const getters = {
         }
 
         return {
-          name:    col.name.toLowerCase(),
-          label:   exists(labelKey) ? t(labelKey) : col.name,
+          name:  col.name.toLowerCase(),
+          label: exists(labelKey) ? t(labelKey) : col.name,
           value,
-          sort:    [col.field],
+          sort:  [col.field],
           formatter,
           formatterOpts,
           width,

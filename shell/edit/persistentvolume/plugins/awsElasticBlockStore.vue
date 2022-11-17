@@ -5,7 +5,7 @@ import { RadioGroup } from '@components/Form/Radio';
 export default {
   components: { LabeledInput, RadioGroup },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },

@@ -9,14 +9,14 @@ export default {
   components: {
     LabeledInput, LabeledSelect, Banner
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
         return {};
       }
     },
-    serviceTargets:  {
+    serviceTargets: {
       type:    Array,
       default: () => []
     },

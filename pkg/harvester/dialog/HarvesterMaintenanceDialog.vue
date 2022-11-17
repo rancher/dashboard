@@ -12,7 +12,7 @@ export default {
     Banner,
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -23,7 +23,7 @@ export default {
     return { errors: [] };
   },
 
-  computed:   {
+  computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
     actionResource() {

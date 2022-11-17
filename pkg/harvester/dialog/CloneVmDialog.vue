@@ -15,7 +15,7 @@ export default {
     AsyncButton, Banner, Checkbox, Card, LabeledInput
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true

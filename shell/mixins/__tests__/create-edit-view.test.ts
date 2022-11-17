@@ -7,7 +7,7 @@ describe('createEditView should', () => {
   it('add value', () => {
     const Component = {
       render() {},
-      mixins:    [CreateEditView],
+      mixins: [CreateEditView],
       props:  { value: { id: '123' } }
     };
 

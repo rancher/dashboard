@@ -22,10 +22,10 @@ export const InterfaceOption = [{
 }];
 
 export const SOURCE_TYPE = {
-  NEW:            'New',
-  IMAGE:          'VM Image',
-  ATTACH_VOLUME:  'Existing Volume',
-  CONTAINER:      'Container'
+  NEW:           'New',
+  IMAGE:         'VM Image',
+  ATTACH_VOLUME: 'Existing Volume',
+  CONTAINER:     'Container'
 };
 
 export const VOLUME_TYPE = [{

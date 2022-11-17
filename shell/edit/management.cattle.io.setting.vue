@@ -63,7 +63,7 @@ export default {
     }
   },
 
-  methods:  {
+  methods: {
     convertToString(event) {
       this.value.value = `${ event.target.value }`;
     },

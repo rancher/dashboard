@@ -372,13 +372,13 @@ export default {
     this.$store.dispatch('management/forgetType', CATALOG.CLUSTER_REPO);
   },
 
-  methods:    {
+  methods: {
     async updateInstallStatus() {
       let hasService;
 
       try {
         const service = await this.$store.dispatch('management/find', {
-          type:  SERVICE,
+          type: SERVICE,
           id:   `${ UI_PLUGIN_NAMESPACE }/ui-plugin-operator`,
           opt:  { force: true },
         });

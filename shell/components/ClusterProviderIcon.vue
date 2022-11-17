@@ -6,8 +6,8 @@ export default {
       required: true,
     },
     small: {
-      type:     Boolean,
-      default:  false,
+      type:    Boolean,
+      default: false,
     }
   },
 

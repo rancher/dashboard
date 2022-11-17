@@ -112,12 +112,12 @@ export default {
 
     return {
       nodeHeaders,
-      constraints:                 [],
-      events:                      [],
-      nodeMetrics:                 [],
-      showClusterMetrics:          false,
-      showK8sMetrics:              false,
-      showEtcdMetrics:             false,
+      constraints:        [],
+      events:             [],
+      nodeMetrics:        [],
+      showClusterMetrics: false,
+      showK8sMetrics:     false,
+      showEtcdMetrics:    false,
       CLUSTER_METRICS_DETAIL_URL,
       CLUSTER_METRICS_SUMMARY_URL,
       K8S_METRICS_DETAIL_URL,
@@ -125,7 +125,7 @@ export default {
       ETCD_METRICS_DETAIL_URL,
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts,
-      selectedTab:                 'cluster-events',
+      selectedTab:        'cluster-events',
     };
   },
 
@@ -213,8 +213,8 @@ export default {
 
       COMPONENT_STATUS.forEach((cs) => {
         status.push({
-          name:      cs,
-          healthy:   this.isComponentStatusHealthy(cs),
+          name:     cs,
+          healthy:  this.isComponentStatusHealthy(cs),
           labelKey: `clusterIndexPage.sections.componentStatus.${ cs }`,
         });
       });
@@ -224,11 +224,11 @@ export default {
 
     totalCountGaugeInput() {
       const totalInput = {
-        name:            this.t('clusterIndexPage.resourceGauge.totalResources'),
-        total:           0,
-        useful:          0,
-        warningCount:    0,
-        errorCount:      0
+        name:         this.t('clusterIndexPage.resourceGauge.totalResources'),
+        total:        0,
+        useful:       0,
+        warningCount: 0,
+        errorCount:   0
       };
 
       this.accessibleResources.forEach((resource) => {

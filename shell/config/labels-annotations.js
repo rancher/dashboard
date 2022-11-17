@@ -57,15 +57,15 @@ export const CAPI = {
 };
 
 export const CATALOG = {
-  CERTIFIED:     'catalog.cattle.io/certified',
-  _RANCHER:      'rancher',
-  _PARTNER:      'partner',
-  _OTHER:         'other',
+  CERTIFIED: 'catalog.cattle.io/certified',
+  _RANCHER:  'rancher',
+  _PARTNER:  'partner',
+  _OTHER:    'other',
 
-  EXPERIMENTAL:  'catalog.cattle.io/experimental',
-  NAMESPACE:     'catalog.cattle.io/namespace',
-  RELEASE_NAME:  'catalog.cattle.io/release-name',
-  FEATURED:      'catalog.cattle.io/featured',
+  EXPERIMENTAL: 'catalog.cattle.io/experimental',
+  NAMESPACE:    'catalog.cattle.io/namespace',
+  RELEASE_NAME: 'catalog.cattle.io/release-name',
+  FEATURED:     'catalog.cattle.io/featured',
 
   REQUIRES_GVK:     'catalog.cattle.io/requires-gvr',
   PROVIDES:         'catalog.cattle.io/provides-gvr',
@@ -75,14 +75,14 @@ export const CATALOG = {
   REQUESTS_CPU:     'catalog.cattle.io/requests-cpu',
   REQUESTS_MEMORY:  'catalog.cattle.io/requests-memory',
 
-  SCOPE:            'catalog.cattle.io/scope',
-  _MANAGEMENT:      'management',
-  _DOWNSTREAM:      'downstream',
+  SCOPE:       'catalog.cattle.io/scope',
+  _MANAGEMENT: 'management',
+  _DOWNSTREAM: 'downstream',
 
-  TYPE:             'catalog.cattle.io/type',
-  _APP:             'app',
-  _CLUSTER_TPL:     'cluster-template',
-  _CLUSTER_TOOL:    'cluster-tool',
+  TYPE:          'catalog.cattle.io/type',
+  _APP:          'app',
+  _CLUSTER_TPL:  'cluster-template',
+  _CLUSTER_TOOL: 'cluster-tool',
 
   COMPONENT:        'catalog.cattle.io/ui-component',
   SOURCE_REPO_TYPE: 'catalog.cattle.io/ui-source-repo-type',
@@ -92,7 +92,7 @@ export const CATALOG = {
 
   SUPPORTED_OS: 'catalog.cattle.io/os',
   PERMITTED_OS: 'catalog.cattle.io/permits-os',
-  DEPLOYED_OS:   'catalog.cattle.io/deploys-on-os',
+  DEPLOYED_OS:  'catalog.cattle.io/deploys-on-os',
 
   MIGRATED: 'apps.cattle.io/migrated',
   MANAGED:  'catalog.cattle.io/managed',
@@ -140,9 +140,9 @@ export const HCI = {
 // Can't use ui.cattle.io - it seems to strip these out - so using io.rancher
 export const CLUSTER_BADGE = {
   // Badge text - badge is only shown if badge text is not empty
-  TEXT:        'ui.rancher/badge-text',
+  TEXT:      'ui.rancher/badge-text',
   // Badge color - as a hex color - e.g. #ff00ff
-  COLOR:       'ui.rancher/badge-color',
+  COLOR:     'ui.rancher/badge-color',
   // Custom icon text - max 2 characters
-  ICON_TEXT:   'ui.rancher/badge-icon-text',
+  ICON_TEXT: 'ui.rancher/badge-icon-text',
 };

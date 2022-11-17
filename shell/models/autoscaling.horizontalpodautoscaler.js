@@ -17,19 +17,19 @@ export default class HPA extends SteveModel {
     const { spec = {}, status } = this;
     const out = [
       {
-        label:     spec?.scaleTargetRef?.kind ?? this.t('hpa.tabs.workload'),
-        content:   spec?.scaleTargetRef?.name,
+        label:   spec?.scaleTargetRef?.kind ?? this.t('hpa.tabs.workload'),
+        content: spec?.scaleTargetRef?.name,
       },
       {
-        label:     this.t('hpa.workloadTab.min'),
+        label:   this.t('hpa.workloadTab.min'),
         content: spec?.minReplicas,
       },
       {
-        label:     this.t('hpa.workloadTab.max'),
+        label:   this.t('hpa.workloadTab.max'),
         content: spec?.maxReplicas,
       },
       {
-        label:     this.t('hpa.workloadTab.current'),
+        label:   this.t('hpa.workloadTab.current'),
         content: status?.currentReplicas ?? 0,
       },
       {

@@ -165,14 +165,14 @@ export default {
           sort:          'testStateSort'
         },
         {
-          name:      'node',
-          label:     this.t('tableHeaders.name'),
-          value:     'name',
+          name:  'node',
+          label: this.t('tableHeaders.name'),
+          value: 'name',
         },
         {
-          name:      'type',
-          label:     this.t('tableHeaders.type'),
-          value:     'type',
+          name:  'type',
+          label: this.t('tableHeaders.type'),
+          value: 'type',
         },
       ];
     },

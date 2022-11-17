@@ -113,7 +113,7 @@ describe('formRules', () => {
     const formRuleResult = formRules.containerImage(testValue);
     const expectedResult = JSON.stringify({
       message: 'workload.validation.containerImage',
-      name:     testValue.name
+      name:    testValue.name
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
@@ -149,7 +149,7 @@ describe('formRules', () => {
     const formRuleResult = formRules.containerImages(testValue);
     const expectedResult = JSON.stringify({
       message: 'workload.validation.containerImage',
-      name:     'testName'
+      name:    'testName'
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
@@ -191,7 +191,7 @@ describe('formRules', () => {
     const formRuleResult = formRules.groupsAreValid(testValue);
     const expectedResult = JSON.stringify({
       message: 'validation.prometheusRule.groups.valid.singleEntry',
-      index:     1
+      index:   1
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);

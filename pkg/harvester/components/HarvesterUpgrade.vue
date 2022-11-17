@@ -27,9 +27,9 @@ export default {
 
   data() {
     return {
-      upgrade:         [],
-      upgradeMessage:  [],
-      errors:          '',
+      upgrade:        [],
+      upgradeMessage: [],
+      errors:         '',
       selectMode:     true,
       version:        ''
     };

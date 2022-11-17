@@ -28,7 +28,7 @@ const component = Vue.component('InputOrDisplay', {
       required: true
     },
     value: {
-      type:     [Number, String, Array, undefined],
+      type:    [Number, String, Array, undefined],
       default: ''
     },
     mode: {

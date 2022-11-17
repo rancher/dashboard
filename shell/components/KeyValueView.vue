@@ -8,7 +8,7 @@ export default {
 
   props: {
     value: {
-      type:     [Array, Object],
+      type:    [Array, Object],
       default: null,
     },
 

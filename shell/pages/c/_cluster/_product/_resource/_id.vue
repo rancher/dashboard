@@ -2,8 +2,8 @@
 import ResourceDetail from '@shell/components/ResourceDetail';
 
 export default {
-  name:        'ClusterResourcedId',
-  components:  { ResourceDetail },
+  name:       'ClusterResourcedId',
+  components: { ResourceDetail },
 };
 </script>
 

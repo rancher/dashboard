@@ -76,7 +76,7 @@ module.exports = function(dir) {
 
       // Prevent warning in log with the md files in the content folder
       config.module.rules.push({
-        test:    /\.md$/,
+        test: /\.md$/,
         use:  [
           {
             loader:  'url-loader',

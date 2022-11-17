@@ -13,7 +13,7 @@ export default {
      * KV Pair containing the key to reference in the row
      */
     col: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
   },

@@ -13,7 +13,7 @@ export default {
     return { opened: false, backgroundClosing: null };
   },
 
-  computed:   {
+  computed: {
     ...mapState('action-menu', ['showModal', 'modalData']),
 
     resources() {

@@ -9,7 +9,7 @@ export default {
   components: {
     ArrayListGrouped, PolicyRulePort, PolicyRuleTarget
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {

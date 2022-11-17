@@ -9,7 +9,7 @@ export default {
       required: true,
     },
     value: {
-      type:     Array,
+      type:    Array,
       default: () => []
     },
     options: {

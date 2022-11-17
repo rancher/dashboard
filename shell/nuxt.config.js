@@ -324,9 +324,9 @@ export default function(dir, _appConfig) {
 
     // Axios: https://axios.nuxtjs.org/options
     axios: {
-      https:          true,
-      proxy:          true,
-      retry:          { retries: 0 },
+      https: true,
+      proxy: true,
+      retry: { retries: 0 },
       // debug:   true
     },
 
@@ -456,7 +456,7 @@ export default function(dir, _appConfig) {
 
         // And substitute our own loader for images
         config.module.rules.unshift({
-          test:    /\.(png|jpe?g|gif|svg|webp)$/,
+          test: /\.(png|jpe?g|gif|svg|webp)$/,
           use:  [
             {
               loader:  'url-loader',
@@ -496,7 +496,7 @@ export default function(dir, _appConfig) {
 
         // Prevent warning in log with the md files in the content folder
         config.module.rules.push({
-          test:    /\.md$/,
+          test: /\.md$/,
           use:  [
             {
               loader:  'frontmatter-markdown-loader',
@@ -515,9 +515,9 @@ export default function(dir, _appConfig) {
               require.resolve('@nuxt/babel-preset-app'),
               {
                 // buildTarget: isServer ? 'server' : 'client',
-                corejs:      { version: 3 },
-                targets:     isServer ? { node: '12' } : { browsers: ['last 2 versions'] },
-                modern:      !isServer
+                corejs:  { version: 3 },
+                targets: isServer ? { node: '12' } : { browsers: ['last 2 versions'] },
+                modern:  !isServer
               }
             ],
             '@babel/preset-typescript',
@@ -638,8 +638,8 @@ export default function(dir, _appConfig) {
         key:  fs.readFileSync(path.resolve(dir, SHELL, 'server/server.key')),
         cert: fs.readFileSync(path.resolve(dir, SHELL, 'server/server.crt'))
       } : null),
-      port:      (devPorts ? 8005 : 80),
-      host:      '0.0.0.0',
+      port: (devPorts ? 8005 : 80),
+      host: '0.0.0.0',
     },
 
     // Server middleware

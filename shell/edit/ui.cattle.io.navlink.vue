@@ -32,7 +32,7 @@ export default {
   },
   data() {
     return {
-      targetOptions:  [
+      targetOptions: [
         {
           value: LINK_TARGET_BLANK,
           label: this.t('navLink.tabs.target.option.blank'),
@@ -56,15 +56,15 @@ export default {
           label: this.t('navLink.tabs.link.type.service')
         }
       ],
-      currentLinkType:   null,
-      targetName:        null,
-      currentTarget:     LINK_TARGET_BLANK,
-      protocolsOptions:  PROTOCOLS,
+      currentLinkType:  null,
+      targetName:       null,
+      currentTarget:    LINK_TARGET_BLANK,
+      protocolsOptions: PROTOCOLS,
       services:         [],
       currentService:   null,
     };
   },
-  props:      {
+  props: {
     value: {
       type:     Object,
       required: true,
@@ -75,7 +75,7 @@ export default {
       required: true,
     },
   },
-  computed:   {
+  computed: {
     /**
      * Identify type of navLink and clear model on value change
      */
@@ -117,7 +117,7 @@ export default {
     this.services = await this.$store
       .dispatch('cluster/findAll', { type: SERVICE });
   },
-  methods:    {
+  methods: {
     /**
      * Set the target of the navLink
      * It will assign namedWindow value for named target cases

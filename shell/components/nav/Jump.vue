@@ -10,8 +10,8 @@ export default {
   data() {
     return {
       isMac,
-      value:       '',
-      groups:      null,
+      value:  '',
+      groups: null,
     };
   },
 

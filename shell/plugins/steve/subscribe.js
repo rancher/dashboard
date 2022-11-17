@@ -489,8 +489,8 @@ export const actions = {
           dispatch('growl/remove', growlErr.id, { root: true });
         }
         dispatch('growl/error', {
-          title:         t('growl.connectError.title'),
-          message:       t('growl.connectError.message', {
+          title:   t('growl.connectError.title'),
+          message: t('growl.connectError.message', {
             url, time: timeFormatted, tries
           }, { raw: true }),
           icon:          'error',
@@ -502,8 +502,8 @@ export const actions = {
           dispatch('growl/remove', growlErr.id, { root: true });
         }
         dispatch('growl/error', {
-          title:         t('growl.disconnectError.title'),
-          message:       t('growl.disconnectError.message', {
+          title:   t('growl.disconnectError.title'),
+          message: t('growl.disconnectError.message', {
             url, time: timeFormatted, tries
           }, { raw: true }),
           icon:          'error',

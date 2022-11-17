@@ -144,18 +144,18 @@ export default {
 
     return {
       productName,
-      vendor:            getVendor(),
-      product:           getProduct(),
-      step:              parseInt(route.query.step, 10) || 1,
+      vendor:  getVendor(),
+      product: getProduct(),
+      step:    parseInt(route.query.step, 10) || 1,
 
-      useRandom:          true,
-      haveCurrent:        !!current,
-      username:           me?.loginName || 'admin',
+      useRandom:   true,
+      haveCurrent: !!current,
+      username:    me?.loginName || 'admin',
       isFirstLogin,
       mustChangePassword,
       current,
-      password:           randomStr(),
-      confirm:            '',
+      password:    randomStr(),
+      confirm:     '',
 
       v3User,
 
@@ -222,9 +222,9 @@ export default {
 
         if ( this.mustChangePassword ) {
           await this.$store.dispatch('rancher/request', {
-            url:           '/v3/users?action=changepassword',
-            method:        'post',
-            data:          {
+            url:    '/v3/users?action=changepassword',
+            method: 'post',
+            data:   {
               currentPassword: this.current,
               newPassword:     this.password
             },

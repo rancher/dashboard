@@ -84,8 +84,8 @@ export default {
       return this.$store.getters['activeNamespaceCache'];
     },
 
-    themeShortcut:    mapPref(THEME_SHORTCUT),
-    favoriteTypes:    mapPref(FAVORITE_TYPES),
+    themeShortcut: mapPref(THEME_SHORTCUT),
+    favoriteTypes: mapPref(FAVORITE_TYPES),
 
     pageActions() {
       const pageActions = [];
@@ -474,12 +474,12 @@ export default {
             });
           } else {
             toAdd.push({
-              name:       `navlink-${ entry.name }`,
-              label:      entry.label,
-              isRoot:     true,
+              name:     `navlink-${ entry.name }`,
+              label:    entry.label,
+              isRoot:   true,
               // This is the item that actually shows up in the nav, since this outer group will be invisible
-              children:   [entry],
-              weight:     -100,
+              children: [entry],
+              weight:   -100,
             });
           }
         }

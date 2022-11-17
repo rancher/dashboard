@@ -36,7 +36,7 @@ export default {
 
     return {
       allPSPs:                          [],
-      projectRoleTemplateBindingSchema:         this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
+      projectRoleTemplateBindingSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
       createLocation:                   {
         name:   'c-cluster-product-resource-create',
         params: {
@@ -47,11 +47,11 @@ export default {
       },
       resource:           MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
       saveBindings:       null,
-      membershipHasOwner:         false,
+      membershipHasOwner: false,
       membershipUpdate:   {},
       HARVESTER_TYPES,
       RANCHER_TYPES,
-      fvFormRuleSets:       [{ path: 'spec.displayName', rules: ['required'] }],
+      fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
     };
   },
   computed: {

@@ -3,7 +3,7 @@
 export default {
   name: 'CountBox',
 
-  props:      {
+  props: {
     name: {
       type:     String,
       required: true

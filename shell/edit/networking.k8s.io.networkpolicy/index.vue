@@ -42,8 +42,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      allPods:        this.$store.dispatch('cluster/findAll', { type: POD }),
-      allNamespaces:  this.$store.dispatch('cluster/findAll', { type: NAMESPACE }),
+      allPods:       this.$store.dispatch('cluster/findAll', { type: POD }),
+      allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }),
     });
 
     this.allPods = hash.allPods;
@@ -74,9 +74,9 @@ export default {
     return {
       POD,
       matchingPods,
-      allPods:            [],
-      allNamespaces:      [],
-      podTableHeaders:    this.$store.getters['type-map/headersFor'](
+      allPods:         [],
+      allNamespaces:   [],
+      podTableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](POD)
       ),
     };

@@ -9,14 +9,14 @@ export default {
   components: {
     InputWithSelect, LabeledInput, Select
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
         return {};
       }
     },
-    serviceTargets:  {
+    serviceTargets: {
       type:    Array,
       default: () => []
     },
@@ -26,9 +26,9 @@ export default {
     },
     rules: {
       default: () => ({
-        path:        [],
-        port:        [],
-        target:      []
+        path:   [],
+        port:   [],
+        target: []
       }),
       type: Object,
     }

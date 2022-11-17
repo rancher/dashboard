@@ -8,8 +8,8 @@ export default {
     },
 
     title: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
 

@@ -146,7 +146,7 @@ export default {
 
       try {
         const app = await this.$store.dispatch('management/find', {
-          type:  CATALOG.APP,
+          type: CATALOG.APP,
           id:   `${ UI_PLUGIN_NAMESPACE }/${ plugin.chart.chartName }`,
           opt:  { force: true },
         });

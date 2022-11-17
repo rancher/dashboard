@@ -23,7 +23,7 @@ export default {
     },
 
     value: {
-      type:     Object,
+      type:    Object,
       default: null,
     },
 

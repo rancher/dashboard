@@ -17,8 +17,8 @@ export default {
      * A value representing the percentage to be displayed. *Must be a value between 0 and 100*.
      */
     value: {
-      type:      Number,
-      required:  true,
+      type:     Number,
+      required: true,
       validator(value) {
         return value >= 0;
       }

@@ -20,7 +20,7 @@ export default {
     }
   },
 
-  computed:   {
+  computed: {
     parsedRows() {
       const rows = [];
       const { data = {}, binaryData = {} } = this.value;

@@ -23,7 +23,7 @@ export default {
   components: {
     BadgeState, Banner, ButtonGroup
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {

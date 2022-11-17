@@ -27,12 +27,12 @@ export default {
 
   data() {
     return {
-      defaultsDisabled:    true,
-      isRancherPrime:     isRancherPrime(),
-      uiCustomLinks:      {},
-      bannerVal:          {},
-      value:              [],
-      errors:             [],
+      defaultsDisabled: true,
+      isRancherPrime:   isRancherPrime(),
+      uiCustomLinks:    {},
+      bannerVal:        {},
+      value:            [],
+      errors:           [],
     };
   },
   computed: {

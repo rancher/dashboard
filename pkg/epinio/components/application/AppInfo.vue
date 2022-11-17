@@ -52,7 +52,7 @@ export default Vue.extend<Data, any, any, any>({
 
   data() {
     return {
-      errors:        [],
+      errors: [],
       values: undefined
     };
   },

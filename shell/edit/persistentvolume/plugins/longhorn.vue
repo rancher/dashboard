@@ -9,8 +9,8 @@ export default {
   components: {
     LabeledInput, KeyValue, RadioGroup
   },
-  props:      {
-    value:      {
+  props: {
+    value: {
       type:    Object,
       default: () => ({})
     },

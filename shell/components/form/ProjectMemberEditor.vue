@@ -147,7 +147,7 @@ export default {
         },
       ],
       projects:      [],
-      roleTemplates:     [],
+      roleTemplates: [],
     };
   },
   computed: {

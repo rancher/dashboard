@@ -95,7 +95,7 @@ export default {
             name,
             namespace: UI_PLUGIN_NAMESPACE
           },
-          spec:     {
+          spec: {
             plugin: {
               name:     crdName,
               version,

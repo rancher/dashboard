@@ -18,7 +18,7 @@ export default {
     Loading
   },
 
-  props:      {
+  props: {
     schema: {
       type:     Object,
       required: true,
