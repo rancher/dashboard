@@ -780,6 +780,13 @@ harvester:
     kubeconfig:
       title: Download KubeConfig
       titleDescription: Download kubeconfig for debugging.
+    internal:
+      rancher:
+        title: Access Embedded Rancher UI
+        titleDescription: We only support to use the embedded Rancher dashboard for debugging and validation purpose. For Rancher's multi-cluster and multi-tenant integration, please refer to the docs <a target="_blank" href="https://docs.harvesterhci.io/v1.1/rancher/rancher-integration" rel="noopener noreferrer nofollow">here</a>.
+      longhorn:
+        title: Access Embedded Longhorn UI
+        titleDescription: We only support to use the embedded Longhorn UI for debugging and validation purpose.
 
   namespace:
     label: Namespaces

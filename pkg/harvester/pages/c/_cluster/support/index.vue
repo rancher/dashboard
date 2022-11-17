@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import { mapPref, DEV } from '@shell/store/prefs';
 import BannerGraphic from '@shell/components/BannerGraphic';
 import IndentedPanel from '@shell/components/IndentedPanel';
 import HarvesterSupportBundle from '../../../../dialog/HarvesterSupportBundle';
@@ -30,6 +31,7 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
+    dev: mapPref(DEV),
 
     title() {
       return 'harvester.support.title';
@@ -42,6 +44,28 @@ export default {
         SCHEMA,
         HCI.SUPPORT_BUNDLE
       );
+    },
+
+    internalPrefix() {
+      const host = window.location.host;
+      const prefix = window.location.pathname.replace(this.$route.path, '');
+      const params = this.$route?.params;
+
+      return {
+        host, prefix, params
+      };
+    },
+
+    rancherLink() {
+      const { host, prefix, params } = this.internalPrefix;
+
+      return `https://${ host }${ prefix }/c/${ params.cluster }/explorer`;
+    },
+
+    longhornLink() {
+      const { host, params } = this.internalPrefix;
+
+      return `https://${ host }/k8s/clusters/${ params.cluster }/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/#/dashboard`;
     }
   },
 
@@ -77,7 +101,7 @@ export default {
               </button>
             </div>
           </div>
-          <div class="box mb-20 box-primary">
+          <div class="box box-primary" :class="{'mb-20': dev }">
             <h2>
               {{ t('harvester.support.kubeconfig.title') }}
             </h2>
@@ -92,6 +116,28 @@ export default {
               >
                 {{ t('harvester.support.kubeconfig.title') }}
               </button>
+            </div>
+          </div>
+          <div v-if="dev" class="row">
+            <div class="col span-6 box box-primary">
+              <h2>
+                <a rel="nofollow noopener noreferrer" target="_blank" :href="rancherLink">{{ t('harvester.support.internal.rancher.title') }} <i class="icon icon-external-link" /></a>
+              </h2>
+              <div>
+                <p class="warning">
+                  <t k="harvester.support.internal.rancher.titleDescription" :raw="true" />
+                </p>
+              </div>
+            </div>
+            <div class="col span-6 box box-primary">
+              <h2>
+                <a rel="nofollow noopener noreferrer" target="_blank" :href="longhornLink">{{ t('harvester.support.internal.longhorn.title') }} <i class="icon icon-external-link" /></a>
+              </h2>
+              <div>
+                <p class="warning">
+                  <t k="harvester.support.internal.longhorn.titleDescription" :raw="true" />
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -154,5 +200,11 @@ export default {
   &:focus {
     background-color: transparent;
   }
+}
+
+.warning {
+  margin: 0 -5px 0 -5px;
+  padding: 5px;
+  background-color: var(--warning-banner-bg);
 }
 </style>
