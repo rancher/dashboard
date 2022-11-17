@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import ResourceTable from '@shell/components/ResourceTable';
-import HarvesterVolumeState from '@/pkg/harvester/formatters/HarvesterVolumeState';
+import HarvesterVolumeState from '../formatters/HarvesterVolumeState';
 
 import { allHash } from '@shell/utils/promise';
 import { PV, PVC, SCHEMA } from '@shell/config/types';
