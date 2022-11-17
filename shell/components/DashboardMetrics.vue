@@ -11,8 +11,8 @@ export default {
       required: true,
     },
     summaryUrl: {
-      type:     String,
-      default:  '',
+      type:    String,
+      default: '',
     },
     vars: {
       type:    Object,

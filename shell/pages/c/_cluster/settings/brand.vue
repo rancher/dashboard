@@ -28,12 +28,12 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      uiPLSetting:            this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
-      uiLogoDarkSetting:      fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
-      uiLogoLightSetting:     fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
-      uiColorSetting:         fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
-      uiLinkColorSetting:     fetchOrCreateSetting(this.$store, SETTING.LINK_COLOR, ''),
-      uiFaviconSetting:       fetchOrCreateSetting(this.$store, SETTING.FAVICON, ''),
+      uiPLSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
+      uiLogoDarkSetting:  fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
+      uiLogoLightSetting: fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
+      uiColorSetting:     fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
+      uiLinkColorSetting: fetchOrCreateSetting(this.$store, SETTING.LINK_COLOR, ''),
+      uiFaviconSetting:   fetchOrCreateSetting(this.$store, SETTING.FAVICON, ''),
     });
 
     Object.assign(this, hash);
@@ -79,9 +79,9 @@ export default {
       uiLogoLight:        '',
       customizeLogo:      false,
 
-      uiFaviconSetting:   {},
-      uiFavicon:          '',
-      customizeFavicon:   false,
+      uiFaviconSetting: {},
+      uiFavicon:        '',
+      customizeFavicon: false,
 
       uiColorSetting:     {},
       uiColor:            null,

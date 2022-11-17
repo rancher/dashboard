@@ -36,7 +36,7 @@ export default {
     Banner,
     YamlEditor,
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -44,12 +44,12 @@ export default {
   },
   data() {
     return {
-      errors:             [],
-      selectedRevision:   null,
-      currentRevision:    null,
-      revisions:          [],
-      editorMode:         EDITOR_MODES.DIFF_CODE,
-      showDiff:           false,
+      errors:           [],
+      selectedRevision: null,
+      currentRevision:  null,
+      revisions:        [],
+      editorMode:       EDITOR_MODES.DIFF_CODE,
+      showDiff:         false,
     };
   },
   computed: {
@@ -78,7 +78,7 @@ export default {
       // kubectl rollout undo deployment/[deployment name] --to-revision=[revision number] -v=8
       const body = [
         {
-          op:      'replace',
+          op:    'replace',
           path:  '/spec/template',
           value: {
             metadata: {

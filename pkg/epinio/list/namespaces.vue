@@ -26,7 +26,7 @@ export default {
   data() {
     return {
       showCreateModal: false,
-      errors:           [],
+      errors:          [],
       validFields:     { name: false },
       value:           { meta: { name: '' } },
       submitted:       false,

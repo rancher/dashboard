@@ -10,7 +10,7 @@ export default {
   components: {
     LabeledInput, LabeledSelect, SecretSelector, Checkbox
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {

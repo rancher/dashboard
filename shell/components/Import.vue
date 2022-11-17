@@ -40,11 +40,11 @@ export default {
 
   data() {
     return {
-      currentYaml:      '',
-      allNamespaces:    null,
-      errors:           null,
-      rows:             null,
-      done:             false,
+      currentYaml:   '',
+      allNamespaces: null,
+      errors:        null,
+      rows:          null,
+      done:          false,
     };
   },
 

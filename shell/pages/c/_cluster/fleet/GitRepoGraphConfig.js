@@ -203,7 +203,7 @@ export const gitRepoGraphConfig = {
 
     const moreInfo = [
       {
-        labelKey:  'fleet.fdc.type',
+        labelKey: 'fleet.fdc.type',
         value:    dataType
       },
       {
@@ -230,7 +230,7 @@ export const gitRepoGraphConfig = {
     moreInfo.push({
       type:     'state-badge',
       labelKey: 'fleet.fdc.state',
-      valueObj:    {
+      valueObj: {
         stateColor: data.stateColor,
         stateLabel: data.stateLabel
       }

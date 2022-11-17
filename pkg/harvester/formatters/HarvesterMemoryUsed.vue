@@ -7,9 +7,9 @@ export default {
   name:       'HarvesterMemoryUsed',
   components: { ConsumptionGauge },
 
-  props:      {
+  props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
 
@@ -19,7 +19,7 @@ export default {
     },
 
     resourceName: {
-      type:     String,
+      type:    String,
       default: ''
     },
 

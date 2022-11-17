@@ -73,9 +73,9 @@ Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> =
     req.reply({
       statusCode: 201,
       body:       {
-        data:    [{
+        data: [{
           type: 'userpreference',
-          data:    {
+          data: {
             'after-login-route': '\"home\"',
             cluster:             'local',
             'group-by':          'none',

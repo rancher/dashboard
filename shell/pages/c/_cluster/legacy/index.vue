@@ -8,7 +8,7 @@ export default {
       params: {
         ...route.params,
         cluster: 'local',
-        product:  NAME,
+        product: NAME,
         page:    'alerts'
       }
     });

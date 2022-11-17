@@ -12,7 +12,7 @@ export default {
     Banner,
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true

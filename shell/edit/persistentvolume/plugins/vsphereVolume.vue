@@ -4,7 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 export default {
   components: { LabeledInput },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },

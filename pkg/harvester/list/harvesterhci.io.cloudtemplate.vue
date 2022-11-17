@@ -40,10 +40,10 @@ export default {
         NAME,
         NAMESPACE,
         {
-          name:          'type',
-          labelKey:      'tableHeaders.type',
-          value:         'metadata.labels',
-          formatter:     'CloudInitType',
+          name:      'type',
+          labelKey:  'tableHeaders.type',
+          value:     'metadata.labels',
+          formatter: 'CloudInitType',
         },
         AGE
       ];

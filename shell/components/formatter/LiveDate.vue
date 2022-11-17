@@ -7,7 +7,7 @@ import { diffFrom } from '@shell/utils/time';
 export default {
   props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
 

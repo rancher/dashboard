@@ -52,8 +52,8 @@ export default {
       required: true,
     },
     checkWidth: {
-      type:     Number,
-      default:  30,
+      type:    Number,
+      default: 30,
     },
     rowActionsWidth: {
       type:     Number,

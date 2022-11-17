@@ -6,7 +6,7 @@ export default {
 
   props: {
     value: {
-      type:     Number,
+      type:    Number,
       default: 0,
     },
     row: {
@@ -14,7 +14,7 @@ export default {
       required: true
     },
     col: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
   },

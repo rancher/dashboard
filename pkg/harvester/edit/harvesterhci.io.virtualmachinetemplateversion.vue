@@ -104,8 +104,8 @@ export default {
               name:      '',
               namespace: ''
             },
-            spec:     templateSpec,
-            type:     HCI.VM_TEMPLATE
+            spec: templateSpec,
+            type: HCI.VM_TEMPLATE
           });
         }
 

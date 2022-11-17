@@ -9,7 +9,7 @@ export default {
     ProjectMemberEditor
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -18,7 +18,7 @@ export default {
 
   data() {
     return {
-      member:       {
+      member: {
         permissionGroup: 'member',
         custom:          {},
         principalId:     '',

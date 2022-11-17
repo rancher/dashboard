@@ -101,10 +101,10 @@ export default {
 
       if (clusterId && isImportCluster) {
         const res = await allHashSettled({
-          namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
-          images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
-          configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
-          networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
+          namespaces: this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
+          images:     this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
+          configMaps: this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
+          networks:   this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
         });
 
         for (const key of Object.keys(res)) {

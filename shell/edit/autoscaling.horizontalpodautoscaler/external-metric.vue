@@ -12,8 +12,8 @@ export const DEFAULT_EXTERNAL_METRIC = {
     },
   },
   target: {
-    type:               'AverageValue',
-    averageValue:       '80',
+    type:         'AverageValue',
+    averageValue: '80',
   },
 };
 

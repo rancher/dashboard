@@ -146,7 +146,7 @@ export default {
 
           return {
             ...ruleset,
-            rules:               ruleset.rules.map(rule => formRules[rule] || nullValidator),
+            rules:              ruleset.rules.map(rule => formRules[rule] || nullValidator),
             formValidationRule: true
           };
         }),

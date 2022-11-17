@@ -37,22 +37,22 @@ export default {
     },
 
     prometheusPods: {
-      type:     Array,
+      type:    Array,
       default: () => ([]),
     },
 
     storageClasses: {
-      type:     Array,
+      type:    Array,
       default: () => ([]),
     },
 
     value: {
-      type:     Object,
+      type:    Object,
       default: () => ({}),
     },
 
     workloads: {
-      type:     Array,
+      type:    Array,
       default: () => ([]),
     },
   },

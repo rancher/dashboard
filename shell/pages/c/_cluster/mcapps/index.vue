@@ -7,7 +7,7 @@ export default {
       name:   'c-cluster-mcapps-pages-page',
       params: {
         ...route.params,
-        product:  NAME,
+        product: NAME,
         page:    'catalogs'
       }
     });

@@ -32,7 +32,7 @@ export default {
     Window, Select, LabeledSelect, Checkbox, AsyncButton
   },
 
-  props:      {
+  props: {
     // The definition of the tab itself
     tab: {
       type:     Object,

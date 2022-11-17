@@ -8,7 +8,7 @@ describe('component: HarvesterEditExisting', () => {
       propsData: {
         mode: _EDIT, value: {}, rows: []
       },
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             'harvester/all': () => [],
@@ -30,7 +30,7 @@ describe('component: HarvesterEditExisting', () => {
       propsData: {
         mode: _EDIT, value: {}, rows: []
       },
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             'harvester/all': () => [],
@@ -56,7 +56,7 @@ describe('component: HarvesterEditExisting', () => {
       propsData: {
         mode: _EDIT, value: {}, rows: []
       },
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             'harvester/all': () => [],
@@ -83,7 +83,7 @@ describe('component: HarvesterEditExisting', () => {
       propsData: {
         mode: _EDIT, value: {}, rows: []
       },
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             'harvester/all': () => [],

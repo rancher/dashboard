@@ -97,10 +97,10 @@ export const METRIC = {
 };
 
 export const CATALOG = {
-  CLUSTER_REPO:   'catalog.cattle.io.clusterrepo',
-  OPERATION:      'catalog.cattle.io.operation',
-  APP:            'catalog.cattle.io.app',
-  REPO:           'catalog.cattle.io.repo',
+  CLUSTER_REPO: 'catalog.cattle.io.clusterrepo',
+  OPERATION:    'catalog.cattle.io.operation',
+  APP:          'catalog.cattle.io.app',
+  REPO:         'catalog.cattle.io.repo',
 };
 
 // UI Plugin type
@@ -128,8 +128,8 @@ export const MONITORING = {
     RESPONDER:                        'monitoring.coreos.com.receiver.responder',
     ROUTE:                            'monitoring.coreos.com.route',
     ROUTE_SPEC:                       'monitoring.coreos.com.route.spec',
-    ALERTMANAGERCONFIG_RECEIVER_SPEC:       'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers',
-    ALERTMANAGERCONFIG_ROUTE_SPEC:          'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route'
+    ALERTMANAGERCONFIG_RECEIVER_SPEC: 'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers',
+    ALERTMANAGERCONFIG_ROUTE_SPEC:    'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route'
   }
 };
 
@@ -212,7 +212,7 @@ export const GATEKEEPER = {
 
 export const ISTIO = {
   VIRTUAL_SERVICE:  'networking.istio.io.virtualservice',
-  DESTINATION_RULE:  'networking.istio.io.destinationrule',
+  DESTINATION_RULE: 'networking.istio.io.destinationrule',
   GATEWAY:          'networking.istio.io.gateway'
 };
 

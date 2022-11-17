@@ -25,12 +25,12 @@ export default {
 
   data() {
     return {
-      showDialog:      true,
-      showHeader:      false,
-      showFooter:      false,
-      showConsent:     false,
-      banner:          {},
-      bannerSetting:   null
+      showDialog:    true,
+      showHeader:    false,
+      showFooter:    false,
+      showConsent:   false,
+      banner:        {},
+      bannerSetting: null
     };
   },
 

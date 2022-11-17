@@ -31,16 +31,16 @@ export default class HciVmBackup extends HarvesterResource {
 
     return [
       {
-        action:     'restoreExistingVM',
-        enabled:    canCreateVM && this.attachVmExisting && this?.status?.readyToUse,
-        icon:       'icons icon-refresh',
-        label:      this.t('harvester.action.restoreExistingVM'),
+        action:  'restoreExistingVM',
+        enabled: canCreateVM && this.attachVmExisting && this?.status?.readyToUse,
+        icon:    'icons icon-refresh',
+        label:   this.t('harvester.action.restoreExistingVM'),
       },
       {
-        action:     'restoreNewVM',
-        enabled:    canCreateVM && this?.status?.readyToUse,
-        icon:       'icons icon-backup',
-        label:      this.t('harvester.action.restoreNewVM'),
+        action:  'restoreNewVM',
+        enabled: canCreateVM && this?.status?.readyToUse,
+        icon:    'icons icon-backup',
+        label:   this.t('harvester.action.restoreNewVM'),
       },
       ...out
     ];

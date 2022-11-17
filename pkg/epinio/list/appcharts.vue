@@ -8,7 +8,7 @@ export default {
   async fetch() {
     await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP_CHARTS });
   },
-  props:      {
+  props: {
     schema: {
       type:     Object,
       required: true,

@@ -16,7 +16,7 @@ export default {
     AsyncButton, Banner, Card, LabeledSelect
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -30,7 +30,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
     actionResource() {

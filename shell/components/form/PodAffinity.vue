@@ -17,7 +17,7 @@ export default {
     ArrayListGrouped, MatchExpressions, LabeledSelect, RadioGroup, LabeledInput
   },
 
-  props:      {
+  props: {
     // pod template spec
     value: {
       type:    Object,

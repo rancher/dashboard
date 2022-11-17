@@ -76,11 +76,11 @@ export default {
           sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
         },
         {
-          name:      'clustersReady',
-          labelKey:  'tableHeaders.clustersReady',
-          value:     'status.readyClusters',
-          sort:      'status.readyClusters',
-          search:    false,
+          name:     'clustersReady',
+          labelKey: 'tableHeaders.clustersReady',
+          value:    'status.readyClusters',
+          sort:     'status.readyClusters',
+          search:   false,
         },
         FLEET_SUMMARY,
         AGE

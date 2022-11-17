@@ -52,12 +52,12 @@ export default {
     }
 
     return {
-      url:         this.value.spec.url,
-      files:       [],
-      resource:    '',
-      headers:     {},
-      fileUrl:     '',
-      file:        '',
+      url:      this.value.spec.url,
+      files:    [],
+      resource: '',
+      headers:  {},
+      fileUrl:  '',
+      file:     '',
     };
   },
 

@@ -82,8 +82,8 @@ export default {
     });
 
     optionUser.unshift({
-      label:    this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
-      value:    _NONE,
+      label: this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
+      value: _NONE,
     });
 
     optionNetwork.unshift({
@@ -92,8 +92,8 @@ export default {
     });
 
     optionNetwork.unshift({
-      label:    this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
-      value:    _NONE,
+      label: this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
+      value: _NONE,
     });
 
     this.optionUser = optionUser;
@@ -144,7 +144,7 @@ export default {
 
     async save(buttonCb) {
       const templateValue = await this.$store.dispatch('harvester/create', {
-        type:       CONFIG_MAP,
+        type:     CONFIG_MAP,
         metadata: {
           labels:    { [HCI_ANNOTATIONS.CLOUD_INIT]: this.templateType },
           name:      this.cloudTemplateName,

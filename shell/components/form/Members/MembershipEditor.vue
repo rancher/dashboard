@@ -45,8 +45,8 @@ export default {
     },
 
     defaultBindingHandler: {
-      type:     Function,
-      default:  null,
+      type:    Function,
+      default: null,
     },
 
     modalSticky: {

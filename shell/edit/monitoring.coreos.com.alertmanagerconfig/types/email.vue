@@ -9,7 +9,7 @@ export default {
   components: {
     Checkbox, LabeledInput, SimpleSecretSelector, TLS
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -19,8 +19,8 @@ export default {
       required: true
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data() {
@@ -29,7 +29,7 @@ export default {
 
     return {
       view:                          _VIEW,
-      initialAuthPasswordSecretName:  this.value?.authPassword?.name ? this.value.authPassword.name : '',
+      initialAuthPasswordSecretName: this.value?.authPassword?.name ? this.value.authPassword.name : '',
       initialAuthPasswordSecretKey:  this.value.authPassword?.key ? this.value.authPassword.key : '',
       none:                          '__[[NONE]]__',
     };

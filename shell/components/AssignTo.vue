@@ -28,7 +28,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     ...mapState('action-menu', ['showAssignTo', 'toAssign']),
     ...mapGetters({ t: 'i18n/t' }),
     ...mapGetters(['workspace']),

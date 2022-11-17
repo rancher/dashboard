@@ -22,8 +22,8 @@ export default class GlobalRole extends SteveModel {
     const out = this._details;
 
     out.unshift({
-      label:         this.t('resourceDetail.detailTop.name'),
-      content:       get(this, 'name')
+      label:   this.t('resourceDetail.detailTop.name'),
+      content: get(this, 'name')
     });
 
     return out;

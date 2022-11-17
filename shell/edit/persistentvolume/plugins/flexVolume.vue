@@ -7,8 +7,8 @@ export default {
   components: {
     KeyValue, LabeledInput, RadioGroup
   },
-  props:      {
-    value:      {
+  props: {
+    value: {
       type:    Object,
       default: () => ({})
     },

@@ -16,40 +16,40 @@ import NotificationSettings from '@shell/components/form/NotificationSettings.vu
 
 const DEFAULT_BANNER_SETTING = {
   loginError:   { message: '', showMessage: 'false' },
-  bannerHeader:    {
-    background:      null,
-    color:           null,
-    textAlignment:   'center',
-    fontWeight:      null,
-    fontStyle:       null,
-    fontSize:        '14px',
-    textDecoration:  null,
-    text:            null,
+  bannerHeader: {
+    background:     null,
+    color:          null,
+    textAlignment:  'center',
+    fontWeight:     null,
+    fontStyle:      null,
+    fontSize:       '14px',
+    textDecoration: null,
+    text:           null,
   },
   bannerFooter: {
-    background:      null,
-    color:           null,
-    textAlignment:   'center',
-    fontWeight:      null,
-    fontStyle:       null,
-    fontSize:        '14px',
-    textDecoration:  null,
-    text:            null
+    background:     null,
+    color:          null,
+    textAlignment:  'center',
+    fontWeight:     null,
+    fontStyle:      null,
+    fontSize:       '14px',
+    textDecoration: null,
+    text:           null
   },
-  bannerConsent:  {
-    background:      null,
-    color:           null,
-    textAlignment:   'center',
-    fontWeight:      null,
-    fontStyle:       null,
-    fontSize:        '14px',
-    textDecoration:  null,
-    text:            null,
-    button:          null,
+  bannerConsent: {
+    background:     null,
+    color:          null,
+    textAlignment:  'center',
+    fontWeight:     null,
+    fontStyle:      null,
+    fontSize:       '14px',
+    textDecoration: null,
+    text:           null,
+    button:         null,
   },
-  showHeader:   'false',
-  showFooter:   'false',
-  showConsent:  'false'
+  showHeader:  'false',
+  showFooter:  'false',
+  showConsent: 'false'
 };
 
 export default {

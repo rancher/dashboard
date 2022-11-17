@@ -15,7 +15,7 @@ export default {
     return { loading: true, restarts: 0 };
   },
 
-  methods:  {
+  methods: {
     startDelayedLoading() {
       this.loading = false;
     },

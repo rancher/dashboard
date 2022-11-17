@@ -21,11 +21,11 @@ export default {
   },
   props: {
     value: {
-      type:     [Array, Object],
+      type:    [Array, Object],
       default: null,
     },
     defaultValue: {
-      type:     [Array, Object],
+      type:    [Array, Object],
       default: null,
     },
     // If the user supplies this array, then it indicates which keys should be shown as binary

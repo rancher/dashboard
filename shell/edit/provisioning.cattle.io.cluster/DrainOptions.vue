@@ -18,7 +18,7 @@ export default {
   components: {
     RadioGroup, Checkbox, UnitInput
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {},

@@ -49,7 +49,7 @@ export default {
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:         null
+      navHeaderRight:    null
     };
   },
 

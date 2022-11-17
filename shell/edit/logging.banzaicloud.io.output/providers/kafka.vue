@@ -8,7 +8,7 @@ export default {
   components: {
     Checkbox, LabeledInput, SecretSelector
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {

@@ -1,7 +1,7 @@
 import { EPINIO_PRODUCT_NAME } from '../types';
 
 export const rootEpinioRoute = () => ({
-  name:    EPINIO_PRODUCT_NAME,
+  name:   EPINIO_PRODUCT_NAME,
   params: { product: EPINIO_PRODUCT_NAME }
 });
 

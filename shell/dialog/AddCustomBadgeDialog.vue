@@ -66,10 +66,10 @@ export default {
         isLocal:         this.currentCluster.isLocal,
         providerNavLogo: this.currentCluster.providerNavLogo,
         badge:           {
-          text:        this.badgeDescription,
-          color:       this.badgeBgColor,
-          textColor:   textColor(parseColor(this.badgeBgColor)),
-          iconText:    this.badgeAsIcon ? this.letter.toUpperCase() : '',
+          text:      this.badgeDescription,
+          color:     this.badgeBgColor,
+          textColor: textColor(parseColor(this.badgeBgColor)),
+          iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : '',
         }
       };
     },

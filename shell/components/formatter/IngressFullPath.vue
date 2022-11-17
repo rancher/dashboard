@@ -1,6 +1,6 @@
 <script>
 export default {
-  props:  {
+  props: {
     row: {
       type:    Object,
       default: () => {

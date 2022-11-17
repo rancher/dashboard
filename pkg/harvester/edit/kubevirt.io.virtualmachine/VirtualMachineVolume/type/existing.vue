@@ -34,8 +34,8 @@ export default {
     },
 
     namespace: {
-      type:     String,
-      default:  null
+      type:    String,
+      default: null
     },
 
     idx: {

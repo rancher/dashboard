@@ -13,7 +13,7 @@ export default {
     // Array of actual match expressions
     // or k8s selector Object of {matchExpressions, matchLabels}
     value: {
-      type:     [Array, Object],
+      type:    [Array, Object],
       default: () => []
     },
 

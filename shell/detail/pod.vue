@@ -54,7 +54,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     ...mapGetters(['currentCluster']),
     containers() {
       const containers = this.allContainers;

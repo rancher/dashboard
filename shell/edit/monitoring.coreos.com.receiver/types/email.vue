@@ -15,7 +15,7 @@ export default {
   components: {
     Checkbox, LabeledInput, TLS
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,

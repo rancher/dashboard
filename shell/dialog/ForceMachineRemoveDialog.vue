@@ -15,7 +15,7 @@ export default {
     CopyToClipboardText
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true

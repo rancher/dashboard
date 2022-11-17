@@ -263,11 +263,11 @@ export default class HciNode extends HarvesterResource {
       return {
         ...diskSpec[key],
         ...diskStatus[key],
-        name:                  key,
-        storageReserved:       diskSpec[key]?.storageReserved,
-        storageAvailable:      diskStatus[key]?.storageAvailable,
-        storageMaximum:        diskStatus[key]?.storageMaximum,
-        storageScheduled:      diskStatus[key]?.storageScheduled,
+        name:             key,
+        storageReserved:  diskSpec[key]?.storageReserved,
+        storageAvailable: diskStatus[key]?.storageAvailable,
+        storageMaximum:   diskStatus[key]?.storageMaximum,
+        storageScheduled: diskStatus[key]?.storageScheduled,
         readyCondition,
         schedulableCondition,
       };

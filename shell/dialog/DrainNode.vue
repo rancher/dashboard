@@ -18,7 +18,7 @@ export default {
     UnitInput
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -28,35 +28,35 @@ export default {
   data() {
     return {
       radioOptions: [{
-        label:   this.t('generic.yes'),
+        label: this.t('generic.yes'),
         value: true,
       }, {
-        label:   this.t('generic.no'),
+        label: this.t('generic.no'),
         value: false,
       }],
       gracePeriodOptions: [{
-        label:   this.t('drainNode.gracePeriod.default'),
+        label: this.t('drainNode.gracePeriod.default'),
         value: false,
       }, {
-        label:   this.t('drainNode.gracePeriod.custom'),
+        label: this.t('drainNode.gracePeriod.custom'),
         value: true,
       }],
       timeoutOptions: [{
-        label:   this.t('drainNode.timeout.default'),
+        label: this.t('drainNode.timeout.default'),
         value: false,
       }, {
-        label:   this.t('drainNode.timeout.custom'),
+        label: this.t('drainNode.timeout.custom'),
         value: true,
       }],
 
       gracePeriod: false,
       timeout:     false,
 
-      body:        {
-        deleteLocalData:  false,
-        force:            false,
-        gracePeriod:      null,
-        timeout:          null
+      body: {
+        deleteLocalData: false,
+        force:           false,
+        gracePeriod:     null,
+        timeout:         null
       },
 
       EDIT: _EDIT,

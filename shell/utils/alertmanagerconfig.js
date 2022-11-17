@@ -99,9 +99,9 @@ export async function getAllReceivers(dispatch) {
     const receivers = config.receivers || [];
     const receiversWithName = receivers.filter(receiver => receiver.name);
     const mapped = receiversWithName.map(receiver => dispatch('cluster/create', {
-      id:    receiver.name,
-      spec:  receiver,
-      type:  MONITORING.SPOOFED.RECEIVER,
+      id:   receiver.name,
+      spec: receiver,
+      type: MONITORING.SPOOFED.RECEIVER,
       secret
     }, { root: true }));
 
@@ -124,9 +124,9 @@ export async function getAllRoutes(dispatch) {
     routes.push(config.route);
 
     const mapped = routes.map(route => dispatch('cluster/create', {
-      id:    route.name,
-      spec:  route,
-      type:  MONITORING.SPOOFED.ROUTE,
+      id:   route.name,
+      spec: route,
+      type: MONITORING.SPOOFED.ROUTE,
       secret
     }, { root: true }));
 

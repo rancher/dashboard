@@ -1,7 +1,7 @@
 <script>
 export default {
-  name:       'CollapsibleCard',
-  props:      {
+  name:  'CollapsibleCard',
+  props: {
     isCollapsed: {
       type:    Boolean,
       default: false

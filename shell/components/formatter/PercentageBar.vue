@@ -9,15 +9,15 @@ export default {
   components: { PercentageBarComponent },
   props:      {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
     col: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     }
   },

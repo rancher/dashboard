@@ -48,8 +48,8 @@ const RESOURCES = [{
   type:    NODE,
   spoofed: {
     location: {
-      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
-      params:   { resource: HCI.HOST }
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params: { resource: HCI.HOST }
     },
     name: HCI.HOST,
   }
@@ -58,8 +58,8 @@ const RESOURCES = [{
   type:    HCI.VM,
   spoofed: {
     location: {
-      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
-      params:   { resource: HCI.VM }
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params: { resource: HCI.VM }
     },
     name: HCI.VM,
   }
@@ -68,8 +68,8 @@ const RESOURCES = [{
   type:    NETWORK_ATTACHMENT,
   spoofed: {
     location: {
-      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
-      params:   { resource: HCI.NETWORK_ATTACHMENT }
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params: { resource: HCI.NETWORK_ATTACHMENT }
     },
     name: HCI.NETWORK_ATTACHMENT,
   }
@@ -78,8 +78,8 @@ const RESOURCES = [{
   type:    HCI.IMAGE,
   spoofed: {
     location: {
-      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
-      params:   { resource: HCI.IMAGE }
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params: { resource: HCI.IMAGE }
     },
     name: HCI.IMAGE,
   }
@@ -88,8 +88,8 @@ const RESOURCES = [{
   type:    PVC,
   spoofed: {
     location: {
-      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
-      params:   { resource: HCI.VOLUME }
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params: { resource: HCI.VOLUME }
     },
     name:            HCI.VOLUME,
     filterNamespace: ['cattle-monitoring-system']
@@ -470,11 +470,11 @@ export default {
       }
 
       return {
-        total:           Number(parsedTotal),
-        useful:          Number(parsedUseful),
+        total:  Number(parsedTotal),
+        useful: Number(parsedUseful),
         formattedTotal,
         formattedUseful,
-        units:           this.createMemoryUnits(parsedTotal),
+        units:  this.createMemoryUnits(parsedTotal),
       };
     },
 

@@ -20,11 +20,11 @@ export default {
     },
     name: {
       default: '',
-      type:     String
+      type:    String
     },
     autocomplete: {
-      type:      String,
-      default:   ''
+      type:    String,
+      default: ''
     },
     required: {
       default: false,

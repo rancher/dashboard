@@ -20,7 +20,7 @@ export default {
       SETTING
     };
   },
-  computed:   {
+  computed: {
     rancherVersion() {
       return this.settings.find(s => s.id === SETTING.VERSION_RANCHER);
     },

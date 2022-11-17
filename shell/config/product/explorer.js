@@ -169,8 +169,8 @@ export function init(store) {
   configureType(WORKLOAD, {
     displayName: store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 1 }).trim(),
     location:    {
-      name:    'c-cluster-product-resource',
-      params:  { resource: WORKLOAD },
+      name:   'c-cluster-product-resource',
+      params: { resource: WORKLOAD },
     },
   });
 
@@ -236,27 +236,27 @@ export function init(store) {
   ]);
 
   virtualType({
-    label:       store.getters['i18n/t']('clusterIndexPage.header'),
+    label:      store.getters['i18n/t']('clusterIndexPage.header'),
     group:      'Root',
-    namespaced:  false,
-    name:        'cluster-dashboard',
-    weight:      100,
-    route:       { name: 'c-cluster-explorer' },
-    exact:       true,
-    overview:    true,
+    namespaced: false,
+    name:       'cluster-dashboard',
+    weight:     100,
+    route:      { name: 'c-cluster-explorer' },
+    exact:      true,
+    overview:   true,
   });
 
   virtualType({
-    label:       store.getters['i18n/t']('members.clusterMembers'),
+    label:      store.getters['i18n/t']('members.clusterMembers'),
     group:      'cluster',
-    namespaced:  false,
-    name:        VIRTUAL_TYPES.CLUSTER_MEMBERS,
+    namespaced: false,
+    name:       VIRTUAL_TYPES.CLUSTER_MEMBERS,
     icon:       'globe',
-    weight:      -1,
-    route:       { name: 'c-cluster-product-members' },
-    exact:       true,
-    ifHaveType:  {
-      type:   MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
+    weight:     -1,
+    route:      { name: 'c-cluster-product-members' },
+    exact:      true,
+    ifHaveType: {
+      type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       store: 'management'
     }
   });
@@ -270,8 +270,8 @@ export function init(store) {
     icon:           'folder',
     ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
     route:          {
-      name:     'c-cluster-product-resource',
-      params:   { resource: WORKLOAD }
+      name:   'c-cluster-product-resource',
+      params: { resource: WORKLOAD }
     },
     overview: true,
   });

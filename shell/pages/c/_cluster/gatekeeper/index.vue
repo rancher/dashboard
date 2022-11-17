@@ -18,7 +18,7 @@ export default {
           text: constraint.nameDisplay,
           to:   constraint.detailLocation
         },
-        templateLink:  {
+        templateLink: {
           text: constraint.kind,
           to:   {
             name:   'c-cluster-product-resource-id',

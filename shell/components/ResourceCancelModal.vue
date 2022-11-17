@@ -1,12 +1,12 @@
 <script>
 export default {
-  props:      {
+  props: {
     isCancelModal: {
-      type:     Boolean,
+      type:    Boolean,
       default: false
     },
     isForm: {
-      type:     Boolean,
+      type:    Boolean,
       default: false
     },
   },
