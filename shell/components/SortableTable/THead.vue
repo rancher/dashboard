@@ -408,6 +408,10 @@ export default {
         display: flex;
         align-items: center;
 
+        > span {
+          display: contents;
+        }
+
         &.not-filterable {
           margin-top: -2px;
 
