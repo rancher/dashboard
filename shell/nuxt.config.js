@@ -356,12 +356,12 @@ export default function(dir, _appConfig) {
     ],
 
     dir: {
-      assets:     path.join(SHELL, 'assets'),
-      layouts:    path.join(SHELL, 'layouts'),
-      middleware: path.join(SHELL, 'middleware'),
-      pages:      path.join(SHELL, 'pages'),
-      static:     path.join(SHELL, 'static'),
-      store:      path.join(SHELL, 'store'),
+      assets:     path.posix.join(SHELL, 'assets'),
+      layouts:    path.posix.join(SHELL, 'layouts'),
+      middleware: path.posix.join(SHELL, 'middleware'),
+      pages:      path.posix.join(SHELL, 'pages'),
+      static:     path.posix.join(SHELL, 'static'),
+      store:      path.posix.join(SHELL, 'store'),
     },
 
     watchers: { webpack: { ignore: watcherIgnores } },
