@@ -141,37 +141,9 @@ export default Vue.extend({
     },
   },
 
-  watch: {
-    value() {
-      this.lastUpdateWasFromValue = true;
-      this.rows = (this.value || []).map((v) => ({ value: v }));
-    },
-    rows: {
-      deep: true,
-      handler() {
-        // lastUpdateWasFromValue is used to break a cycle where when rows are updated
-        // this was called which then forced rows to updated again
-        if (!this.lastUpdateWasFromValue) {
-          this.queueUpdate();
-        }
-        this.lastUpdateWasFromValue = false;
-      },
-    },
-  },
-
-  created() {
-    debounce(this.update, 50);
-  },
-
   methods: {
-    queueUpdate() {
-      debounce(this.update, 50);
-    },
     add() {
       this.rows.push({ value: clone(this.defaultAddValue) });
-      if (this.defaultAddValue) {
-        this.queueUpdate();
-      }
 
       this.$nextTick(() => {
         const inputs: any = this.$refs.value;
@@ -190,26 +162,28 @@ export default Vue.extend({
     remove(row: ArrayListRow, index: number): void {
       this.$emit('remove', { row, index });
       removeAt(this.rows, index);
-      this.queueUpdate();
     },
 
-    update() {
+    trim(text: string){
+        const trim = !this.valueMultiline && typeof text === 'string';
+        return trim ? text.trim() : text;
+    },
+
+    update(idx: number, text: string) {
       if (this.isView) {
         return;
       }
 
       const out = [];
 
-      for (const row of this.rows) {
-        const trim = !this.valueMultiline && typeof row.value === 'string';
-        const value = trim ? row.value.trim() : row.value;
-
-        if (typeof value !== 'undefined') {
-          out.push(value);
+      this.rows = this.rows.map((item, i) => {
+        if (idx === i) {
+          return { value: this.trim(item.value) };
         }
-      }
+        return item;
+      })
 
-      this.$emit('input', out);
+      this.$emit('input', this.rows);
     },
 
     onPaste(index: number, event: any) {
@@ -222,7 +196,7 @@ export default Vue.extend({
       const split = text.split('\n').map((value: string) => ({ value }));
 
       this.rows.splice(index, 1, ...split);
-      this.update();
+      this.$emit('input', this.rows)
     },
   },
 });
@@ -254,7 +228,6 @@ export default Vue.extend({
       >
         <slot
           name="columns"
-          :queueUpdate="queueUpdate"
           :i="idx"
           :rows="rows"
           :row="row"
@@ -267,7 +240,6 @@ export default Vue.extend({
               :row="row"
               :mode="mode"
               :isView="isView"
-              :queue-update="queueUpdate"
             >
               <TextAreaAutoGrow
                 v-if="valueMultiline"
@@ -277,7 +249,7 @@ export default Vue.extend({
                 :mode="mode"
                 :disabled="disabled"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @input="update(idx, $event)"
               />
               <LabeledInput
                 v-else-if="rules.length > 0"
@@ -288,7 +260,7 @@ export default Vue.extend({
                 :rules="rules"
                 :compact="false"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @input="update(idx, $event)"
               />
               <input
                 v-else
@@ -297,7 +269,7 @@ export default Vue.extend({
                 :placeholder="valuePlaceholder"
                 :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"
-                @input="queueUpdate"
+                @input="update(idx, $event)"
               />
             </slot>
           </div>
@@ -333,7 +305,7 @@ export default Vue.extend({
           type="button"
           class="btn role-tertiary add"
           :disabled="loading"
-          @click="add()"
+          @click="add"
         >
           <i v-if="loading" class="mr-5 icon icon-spinner icon-spin icon-lg" />
           {{ addLabel }}

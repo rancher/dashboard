@@ -1,5 +1,6 @@
-<script>
-import ArrayList from '@components/Form/ArrayList/ArrayList';
+<script lang="ts">
+import ArrayList from '@components/Form/ArrayList/ArrayList.vue';
+import { PropType } from 'vue';
 
 /*
 The purpose of this component is to allow the ArrayList component
@@ -13,6 +14,12 @@ export default {
   components:   { ArrayList },
   inheritAttrs: false,
   props:        {
+    value: {
+      type:    Array as PropType<Array<string>>,
+      default: () => {
+        return [];
+      },
+    },
     addLabel: {
       type: String,
       default() {
@@ -25,7 +32,7 @@ export default {
         return this.$store.getters['i18n/t']('generic.remove');
       },
     },
-  }
+  },
 };
 </script>
 
@@ -35,6 +42,9 @@ export default {
     :add-label="addLabel"
     :remove-label="removeLabel"
     v-on="$listeners"
+    @input="$emit('input', $event)"
+    @add="$emit('add')"
+    @remove="$emit('remove', $event)"
   >
     <template
       v-for="(_, slot) of $scopedSlots"
