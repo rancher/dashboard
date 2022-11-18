@@ -260,7 +260,7 @@ export default {
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
 
         const prefDefault = this.currentProduct?.customNamespaceFilter ? [] : [ALL_USER];
-        const values = prefs ? prefs[this.key] : prefDefault;
+        const values = prefs && prefs[this.key] ? prefs[this.key] : prefDefault;
         const options = this.options;
 
         // Remove values that are not valid options
