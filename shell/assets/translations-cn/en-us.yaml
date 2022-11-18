@@ -176,7 +176,6 @@ nav:
     config: Configuration
     logs: Logs
     projects: Image Management
-  manageUI: Cluster Manager UI
   auditLog: Audit Log
   quotas: Quotas
   globalMonitoring: 

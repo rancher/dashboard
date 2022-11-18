@@ -180,7 +180,6 @@ nav:
     config: Harbor 配置
     logs: 日志
     projects: 镜像管理
-  manageUI: 集群管理 UI
   auditLog: 审计日志
   quotas: 配额
   globalMonitoring: 
