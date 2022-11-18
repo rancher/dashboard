@@ -255,7 +255,10 @@ export default class HciPv extends HarvesterResource {
       return null;
     }
 
-    return `https://${ host }/k8s/clusters/${ params.cluster }/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/#/volume/${ volumeName }`;
+    return {
+      tipsKey: 'harvester.volume.externalLink.tips',
+      url:     `https://${ host }/k8s/clusters/${ params.cluster }/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/#/volume/${ volumeName }`
+    };
   }
 
   get customValidationRules() {
