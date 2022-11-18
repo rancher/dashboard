@@ -20,6 +20,10 @@ The ArrayList is used to input a list of strings. The list is of variable length
 <Canvas>
   <Story
     name="Empty"
+    args={{
+       addLabel: "Add",
+       removeLabel: "Remove"
+    }}>
   >
     {Template.bind({})}
   </Story>
@@ -31,7 +35,9 @@ The ArrayList is used to input a list of strings. The list is of variable length
   <Story
     name="Showing an initial empty row"
     args={{
-       initialEmptyRow: true
+       initialEmptyRow: true,
+       addLabel: "Add",
+       removeLabel: "Remove"
     }}>
     {Template.bind({})}
   </Story>
@@ -43,7 +49,9 @@ The ArrayList is used to input a list of strings. The list is of variable length
     name="Disabled"
     args={{
       value: ['string 1', 'string 2'],
-      mode: _VIEW
+      mode: _VIEW,
+      addLabel: "Add",
+      removeLabel: "Remove"
     }}>
     {Template.bind({})}
   </Story>
