@@ -4,7 +4,7 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped.vue';
 describe('component: ArrayListGrouped', () => {
   it('should display enabled add button', () => {
     const wrapper = mount(ArrayListGrouped);
-    const button = wrapper.find('[data-testid^="array-list-button"]').element as HTMLInputElement;
+    const button = wrapper.find('[data-testid="array-list-button"]').element as HTMLButtonElement;
 
     expect(button.disabled).toBe(false);
   });
@@ -20,7 +20,7 @@ describe('component: ArrayListGrouped', () => {
     await button.trigger('click');
     const elements = wrapper.findAll('#test');
 
-    expect(elements).toHaveLength(2);
+    expect(elements).toHaveLength(3);
   });
 
   it('should allow to remove items', async() => {
@@ -34,6 +34,6 @@ describe('component: ArrayListGrouped', () => {
 
     const elements = wrapper.findAll('#test');
 
-    expect(elements).toHaveLength(0);
+    expect(elements).toHaveLength(1);
   });
 });
