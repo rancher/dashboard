@@ -878,7 +878,7 @@ catalog:
       valuesYaml: Edit YAML
       diff: Compare Changes
     slideIn:
-      dock: Dock to bottom
+      dock: Dock to shell
     steps:
       basics:
         label: Metadata
