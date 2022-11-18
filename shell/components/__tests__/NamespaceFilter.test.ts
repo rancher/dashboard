@@ -80,7 +80,7 @@ describe('component: NamespaceFilter', () => {
       jest.spyOn(NamespaceFilter.computed.value, 'set');
       const wrapper = mount(NamespaceFilter, {
         computed: {
-          filtered:       () => [],
+          filtered: () => [],
           options:  () => [{
             id:    `ns://${ text }`,
             kind:  'namespace',
@@ -149,12 +149,12 @@ describe('component: NamespaceFilter', () => {
         computed: {
           filtered: () => [
             {
-              kind:      'namespace',
-              label:     `default-${ text }`,
+              kind:  'namespace',
+              label: `default-${ text }`,
             },
           ],
-          options:  () => [],
-          value:    () => [],
+          options: () => [],
+          value:   () => [],
         },
         mocks:      { $store: { getters: { 'i18n/t': () => text } } },
         directives: { shortkey: () => jest.fn() }
