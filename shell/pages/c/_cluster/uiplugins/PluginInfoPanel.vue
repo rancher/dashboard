@@ -2,8 +2,21 @@
 import ChartReadme from '@shell/components/ChartReadme';
 import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 export default {
+  async fetch() {
+    const bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
+    const parsed = JSON.parse(bannerSetting.value);
+    const { showHeader } = parsed;
+
+    if (showHeader === 'true') {
+      const headerBannerFontSize = Number(parsed?.bannerHeader?.fontSize?.split('px')[0] ?? 0);
+
+      this.headerBannerSize = headerBannerFontSize * 2;
+    }
+  },
   components: {
     Banner,
     ChartReadme,
@@ -12,12 +25,13 @@ export default {
 
   data() {
     return {
-      showSlideIn:  false,
-      info:         undefined,
-      infoVersion:  undefined,
-      versionInfo:  undefined,
-      versionError: undefined,
-      defaultIcon:  require('~shell/assets/images/generic-plugin.svg'),
+      showSlideIn:      false,
+      info:             undefined,
+      infoVersion:      undefined,
+      versionInfo:      undefined,
+      versionError:     undefined,
+      defaultIcon:      require('~shell/assets/images/generic-plugin.svg'),
+      headerBannerSize: 0,
     };
   },
 
@@ -80,7 +94,10 @@ export default {
 };
 </script>
 <template>
-  <div class="plugin-info-panel">
+  <div
+    class="plugin-info-panel"
+    :style="`--banner-top-offset: ${headerBannerSize}px`"
+  >
     <div
       v-if="showSlideIn"
       class="glass"
@@ -209,7 +226,8 @@ export default {
     $title-height: 50px;
     $padding: 5px;
     $slideout-width: 35%;
-    $header-height: 54px;
+    --banner-top-offset: 0;
+    $header-height: calc(54px + var(--banner-top-offset));
 
     .glass {
       z-index: 9;
