@@ -246,6 +246,18 @@ export default class HciPv extends HarvesterResource {
     return this.$rootGetters['harvester/all'](PV).find(pv => pv.metadata?.name === this.spec?.volumeName);
   }
 
+  get resourceExternalLink() {
+    const host = window.location.host;
+    const { params } = this.currentRoute();
+    const volumeName = this.spec?.volumeName;
+
+    if (!volumeName) {
+      return null;
+    }
+
+    return `https://${ host }/k8s/clusters/${ params.cluster }/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/#/volume/${ volumeName }`;
+  }
+
   get customValidationRules() {
     return [
       {

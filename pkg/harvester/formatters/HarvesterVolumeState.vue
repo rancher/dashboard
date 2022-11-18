@@ -33,7 +33,7 @@ export default {
         </span>
 
         <template slot="popover">
-          <p>
+          <p class="warning-message">
             {{ warningMessage }}
           </p>
         </template>
@@ -51,4 +51,8 @@ export default {
     margin-top: 2px;
   }
 }
+.warning-message:first-letter {
+  text-transform: uppercase;
+}
+
 </style>

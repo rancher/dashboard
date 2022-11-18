@@ -16,6 +16,7 @@ import { randomStr } from '@shell/utils/string';
 import { SOURCE_TYPE } from '../../../config/harvester-map';
 import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../../config/harvester';
+import { mapPref, DEV } from '@shell/store/prefs';
 
 export default {
   components: {
@@ -87,6 +88,8 @@ export default {
   },
 
   computed: {
+    dev: mapPref(DEV),
+
     isVirtualType() {
       return this.resourceType === HCI.VM;
     },
@@ -269,6 +272,7 @@ export default {
                 </n-link>
 
                 <BadgeStateFormatter v-if="volume.pvc" class="ml-10 state" :arbitrary="true" :row="volume.pvc" :value="volume.pvc.state" />
+                <a v-if="dev && !!volume.pvc.resourceExternalLink" class="ml-5 resource-external" rel="nofollow noopener noreferrer" target="_blank" :href="volume.pvc.resourceExternalLink"><i class="icon icon-external-link" /></a>
               </span>
 
               <span v-else>
@@ -308,7 +312,7 @@ export default {
               </div>
             </div>
 
-            <Banner v-if="volume.volumeStatus" class="mt-15" color="warning" :label="volume.volumeStatus" />
+            <Banner v-if="volume.volumeStatus" class="mt-15 volume-status" color="warning" :label="volume.volumeStatus" />
           </InfoBox>
         </div>
       </transition-group>
@@ -395,5 +399,15 @@ export default {
     width: 100%;
     display: flex;
     justify-content: flex-end;
+  }
+
+  .volume-status:first-letter {
+    text-transform: uppercase;
+  }
+
+  .resource-external {
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 </style>
