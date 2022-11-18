@@ -39,6 +39,7 @@ export default {
 <template>
   <array-list
     v-bind="$attrs"
+    :value="value"
     :add-label="addLabel"
     :remove-label="removeLabel"
     v-on="$listeners"
