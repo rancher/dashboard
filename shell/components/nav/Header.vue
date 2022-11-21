@@ -296,7 +296,6 @@ export default {
 <template>
   <header
     ref="header"
-    class="header-layout"
   >
     <div>
       <TopLevelMenu v-if="isMultiCluster || !isSingleProduct" />
