@@ -86,7 +86,8 @@ export default {
       }
     },
     secrets() {
-      const allSecrets = this.$store.getters['cluster/all'](SECRET);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const allSecrets = this.$store.getters[`${ inStore }/all`](SECRET);
 
       return allSecrets
         .filter(secret => this.types.includes(secret._type) && secret.namespace === this.namespace);
