@@ -23,7 +23,7 @@ export default {
 
 <template>
   <div>
-    <!-- <span v-html="format(source.time)" /> -->
+    <span v-html="format(source.time)" />
     <span v-html="source.msg" />
   </div>
 </template>

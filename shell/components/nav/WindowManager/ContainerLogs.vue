@@ -233,6 +233,7 @@ export default {
     container() {
       this.connect();
     },
+
   },
 
   beforeDestroy() {
@@ -345,6 +346,9 @@ export default {
     },
 
     flush() {
+      const virtualList = this.$refs.virtualList;
+      const wasFollowing = virtualList.getScrollSize() - virtualList.getClientSize() === virtualList.getOffset();
+
       if ( this.backlog.length ) {
         this.lines.push(...this.backlog);
         this.backlog = [];
@@ -353,7 +357,7 @@ export default {
         }
       }
 
-      if ( this.isFollowing ) {
+      if ( wasFollowing) {
         this.$nextTick(() => {
           this.follow();
         });
@@ -612,12 +616,14 @@ export default {
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
       >
         <VirtualList
+          v-show="filtered.length"
           ref="virtualList"
           data-key="id"
           :data-sources="filtered"
           :data-component="logItem"
+          direction="vertical"
           class="virtual-list"
-          :keeps="100"
+          :keeps="200"
         />
       </div>
     </template>
