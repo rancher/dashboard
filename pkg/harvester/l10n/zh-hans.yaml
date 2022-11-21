@@ -725,7 +725,7 @@ harvester:
       ca: CA
     storageNetwork:
       range:
-        placeholder: 例如：172.16.0.1/24
+        placeholder: 例如：172.16.0.0/24
         label: IP 范围
         invalid: '范围无效。'
       clusterNetwork: 集群网络

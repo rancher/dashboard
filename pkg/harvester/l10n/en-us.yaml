@@ -720,7 +720,7 @@ harvester:
       ca: CA
     storageNetwork:
       range:
-        placeholder: e.g. 172.16.0.1/24
+        placeholder: e.g. 172.16.0.0/24
         label: IP Range
         invalid: '"Range" is invalid.'
       clusterNetwork: Cluster Network
