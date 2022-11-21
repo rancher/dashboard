@@ -1,5 +1,6 @@
 generic:
   tip: 提示
+  resourceExternalLinkTips: '外部链接'
 
 asyncButton:
   restart:
@@ -194,7 +195,13 @@ harvester:
       prefix: pcidevices-controller 插件未启用，单击
       middle: 此处
       suffix: 使它能够管理你的 PCI 设备。
+    tooltip: |-
+        {numVMs, plural,
+        =0 {有另外 {numVMs} 个 VM 正在使用该设备。}
+        =1 {有另外 {numVMs} 个 VM 正在使用该设备。}
+        }
     noPCIPermission: 请联系系统管理员启用 PCI 设备。
+    enablePassthroughWarning: 请不要使用宿主机专用的 PCI 设备（例如，管理网络和 VLAN 网络的网卡）。错误的设备分配可能会损坏你的集群（包括节点故障）。
   generic:
     close: 关闭
     open: 打开
@@ -229,6 +236,7 @@ harvester:
         docker: '"Docker 镜像"是必填项。'
         storageClass: '“存储类”是必填项。'
         needImageOrExisting: '至少需要一个镜像卷或已存在的根磁盘卷。'
+        maximumSize: 超过最大大小 999999999 Gi！
     image:
       ruleTip: 'URL 后缀不支持。仅支持后缀为 .img，.iso，.qcow，.qcow2或.raw的镜像文件。'
       ruleFileTip: '文件后缀不支持。仅支持后缀为 .img，.iso，.qcow，.qcow2或.raw的镜像文件。'
@@ -565,6 +573,8 @@ harvester:
     image: 镜像
     promptRemove:
       tips: "警告：卷的快照将随卷一起删除。"
+    externalLink:
+      tips: 查看卷详细信息
 
   image:
     label: 镜像
@@ -778,6 +788,13 @@ harvester:
     kubeconfig:
       title: 下载 KubeConfig
       titleDescription: 下载 Kubeconfig 用于调试。
+    internal:
+      rancher:
+        title: 访问内嵌的 Rancher UI
+        titleDescription: 仅支持使用内嵌的 Rancher 仪表板来进行调试和验证。有关 Rancher 的多集群和多租户集成，请参阅<a target="_blank" href="https://docs.harvesterhci.io/v1.1/rancher/rancher-integration" rel="noopener noreferrer nofollow">此文档</a>。
+      longhorn:
+        title: 访问内嵌的 Longhorn UI
+        titleDescription: 仅支持使用内嵌的 Longhorn UI 来进行调试和验证。
 
   namespace:
     label: 命名空间
@@ -789,8 +806,9 @@ harvester:
     namespace:
       label: 命名空间
     cidr:
-      label: CIDR
-      invalid: '"CIRD" 无效。'
+      label: CIDR/IP 范围
+      invalid: '"CIDR/IP 范围" 无效。'
+      toolTip: "可以使用逗号分隔来应用多个池或范围。即 192.168.0.200/30,192.168.0.200/29 或 192.168.0.10-192.168.0.11"
     add:
       label: 添加 IP 池
 
