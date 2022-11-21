@@ -1759,7 +1759,10 @@ export default {
       </template>
 
       <h2 v-t="'cluster.tabs.cluster'" />
-      <Tabbed :side-tabs="true">
+      <Tabbed
+        :side-tabs="true"
+        class="min-height"
+      >
         <Tab
           name="basic"
           label-key="cluster.tabs.basic"
@@ -2411,6 +2414,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .min-height {
+    min-height: 40em;
+  }
   .patch-version {
     margin-top: 5px;
   }
