@@ -106,7 +106,7 @@ export default {
         if (this.showUnsupportedStorage || opt.supported) {
           dropdownOptions.push({
             value:      opt.value,
-            label:      this.t(opt.labelKey),
+            label:      opt.supported ? `${ this.t(opt.labelKey) } ${ this.t('persistentVolume.plugin.inTree') }` : `${ this.t(opt.labelKey) } ${ this.t('persistentVolume.plugin.inTree') } ${ this.t('persistentVolume.plugin.unsupported') }`,
             deprecated: opt.deprecated
           });
         }

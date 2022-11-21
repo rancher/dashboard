@@ -64,12 +64,7 @@ export default {
   computed: {
     driverOptions() {
       return this.csiDrivers.map((driver) => {
-        const fallback = `${ driver.metadata.name }  ${ this.t('persistentVolume.csi.drivers.suffix') }`;
-
-        return {
-          value: driver.metadata.name,
-          label: this.$store.getters['i18n/withFallback'](`persistentVolume.csi.drivers.${ driver.metadata.name.replaceAll('.', '-') }`, null, fallback)
-        };
+        return driver.metadata.name;
       });
     }
   },
@@ -83,7 +78,6 @@ export default {
 
 <template>
   <div>
-    {{ value.spec.csi }}
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect

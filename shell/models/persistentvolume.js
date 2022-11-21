@@ -115,9 +115,10 @@ export default class PV extends SteveModel {
   // plugin display value table
   get source() {
     const csiDriver = this.spec?.csi?.driver;
+    const fallback = `${ csiDriver } ${ this.t('persistentVolume.csi.drivers.suffix') }`;
 
     if (csiDriver) {
-      return this.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ csiDriver.replaceAll('.', '-') }`, null, csiDriver);
+      return this.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ csiDriver.replaceAll('.', '-') }`, null, fallback);
     }
     const pluginDef = VOLUME_PLUGINS.find(plugin => this.spec[plugin.value]);
 
