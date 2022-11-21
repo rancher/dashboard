@@ -605,12 +605,12 @@ export default {
             <template #column-headers>
               <div class="column-headers row">
                 <div :class="ruleClass">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
                     <span class="required">*</span>
-                  </label>
+                  </span>
                 </div>
                 <div :class="ruleClass">
-                  <label class="text-label">
+                  <span class="text-label">
                     {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
                     <i
                       v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
@@ -620,21 +620,21 @@ export default {
                       v-if="isNamespaced"
                       class="required"
                     >*</span>
-                  </label>
+                  </span>
                 </div>
                 <div :class="ruleClass">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
                     <span
                       v-if="isNamespaced"
                       class="required"
                     >*</span>
-                  </label>
+                  </span>
                 </div>
                 <div
                   v-if="!isNamespaced"
                   :class="ruleClass"
                 >
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</label>
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</span>
                 </div>
               </div>
             </template>
@@ -737,6 +737,7 @@ export default {
   ::v-deep {
     .column-headers {
       margin-right: 75px;
+      margin-bottom: 5px;
     }
 
     .box {

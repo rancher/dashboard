@@ -4,7 +4,7 @@ import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import Role from './rbac.authorization.k8s.io.role';
-import { AS, MODE, _CLONE, _UNFLAG } from '~/shell/config/query-params';
+import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
 
 export const CATTLE_API_GROUP = '.cattle.io';
 
