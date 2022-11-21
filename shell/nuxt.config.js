@@ -27,6 +27,8 @@ const version = process.env.VERSION ||
   process.env.DRONE_VERSION ||
   require('./package.json').version;
 
+const dashboardVersion = process.env.DASHBOARD_VERSION;
+
 const prime = process.env.PRIME;
 
 const pl = process.env.PL || STANDARD;
@@ -300,7 +302,7 @@ export default function(dir, _appConfig) {
       api
     },
 
-    publicRuntimeConfig: { rancherEnv },
+    publicRuntimeConfig: { rancherEnv, dashboardVersion },
 
     buildDir: dev ? '.nuxt' : '.nuxt-prod',
 

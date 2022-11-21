@@ -12,8 +12,10 @@ GIT_TAG=${DRONE_TAG:-$(git tag -l --contains HEAD | head -n 1)}
 LAST_TAG=${GIT_TAG:-'v0.0.0'}
 
 if [[ -z "$DIRTY" && -n "$GIT_TAG" ]]; then
+    export DASHBOARD_VERSION=$GIT_TAG
     VERSION=$GIT_TAG
 else
+    export DASHBOARD_VERSION="${COMMIT_BRANCH}-${COMMIT}"
     VERSION="${COMMIT}${DIRTY}"
 fi
 
