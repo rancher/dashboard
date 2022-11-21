@@ -1,6 +1,8 @@
 <script>
 import KeyValue from '@shell/components/Form/KeyValue';
 import { ToggleSwitch } from '@components/form/ToggleSwitch';
+import { filter, keys } from 'lodash';
+import { systemKeys } from '@shell/config/system-keys';
 
 export default {
   components: { KeyValue, ToggleSwitch },
@@ -59,6 +61,13 @@ export default {
     sectionClass() {
       return `${ this.displaySideBySide ? 'col span-6' : 'row' } ${ this.defaultSectionClass }`.trim();
     },
+
+    /**
+     * Generate list of present keys which can be filtered based on existing label keys and system keys
+     */
+    protectedKeys() {
+      return filter(keys(this.value.labels), key => systemKeys.includes(key));
+    }
   }
 };
 </script>
@@ -75,9 +84,8 @@ export default {
         </h3>
         <ToggleSwitch
           v-model="toggler"
+          name="label-system-toggle"
           :on-label="t('labels.labels.show')"
-          off-value="toggler"
-          on-value="toggler"
         />
       </div>
       <p class="helper-text mt-20 mb-20">
@@ -87,6 +95,8 @@ export default {
         <KeyValue
           key="labels"
           :value="value.labels"
+          :protected-keys="protectedKeys"
+          :toggle-filter="toggler"
           :add-label="t('labels.addLabel')"
           :mode="mode"
           :title-protip="labelTitleTooltip"
