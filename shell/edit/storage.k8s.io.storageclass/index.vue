@@ -117,9 +117,11 @@ export default {
         if (driver.metadata.name === LONGHORN_DRIVER || provisionerOptionsDrivers.includes(driver.metadata.name)) {
           return;
         }
+        const fallback = `${ driver.metadata.name }  ${ this.t('persistentVolume.csi.drivers.suffix') }`;
+
         dropdownOptions.push({
           value: driver.metadata.name,
-          label: this.$store.getters['i18n/withFallback'](`persistentVolume.csi.drivers.${ driver.metadata.name.replaceAll('.', '-') }`, null, driver.metadata.name)
+          label: this.$store.getters['i18n/withFallback'](`persistentVolume.csi.drivers.${ driver.metadata.name.replaceAll('.', '-') }`, null, fallback)
         });
       });
       const out = dropdownOptions.sort((a, b) => a.label.toLowerCase() > b.label.toLowerCase() ? 1 : -1);
