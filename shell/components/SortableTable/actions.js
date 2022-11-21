@@ -13,6 +13,8 @@ export default {
       bulkActionAvailabilityClass: 'action-availability',
 
       hiddenActions: [],
+
+      updateHiddenBulkActions: debounce(this.protectedUpdateHiddenBulkActions, 10)
     };
   },
 
@@ -79,7 +81,7 @@ export default {
     /**
      * Determine if any actions wrap over to a new line, if so group them into a dropdown instead
      */
-    updateHiddenBulkActions: debounce(function() {
+    protectedUpdateHiddenBulkActions() {
       if (!this.$refs.container) {
         return;
       }
@@ -146,6 +148,6 @@ export default {
       if (!showActionsDropdown) {
         actionsDropdown.style.display = 'none';
       }
-    }, 10)
+    }
   }
 };
