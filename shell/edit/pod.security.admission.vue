@@ -14,7 +14,7 @@ export default {
   data() {
     return {};
   },
-  props:      {
+  props: {
     value: {
       type:     Object,
       required: true,

@@ -9,7 +9,7 @@ export default Vue.extend({
   components: {
     Checkbox, LabeledSelect, LabeledInput
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -22,8 +22,8 @@ export default Vue.extend({
     },
 
     hasExceptions: {
-      type:     Boolean,
-      default:  false
+      type:    Boolean,
+      default: false
     },
 
     /**
