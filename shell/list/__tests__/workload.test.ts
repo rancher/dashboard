@@ -24,7 +24,7 @@ describe('component: workload', () => {
       mocks:      {
         $store: {
           getters: {
-            currentStore:                  () => jest.fn(),
+            currentStore:                  () => 'cluster',
             namespaces:                    () => jest.fn(),
             'management/byId':             () => jest.fn(),
             'resource-fetch/refreshFlag':  () => jest.fn(),
@@ -33,6 +33,8 @@ describe('component: workload', () => {
             'type-map/optionsFor':         () => jest.fn(),
             'type-map/headersFor':         () => jest.fn(),
             'prefs/get':                   () => resource,
+            'cluster/schemaFor':           () => {},
+            'cluster/all':                 () => [{}],
           }
         },
         $fetchState: {
