@@ -256,7 +256,6 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="ingressClassSchema"
         :label="t('ingress.ingressClass.label')"
         name="ingress-class"
         :weight="1"
