@@ -8,30 +8,32 @@ describe('component: Card', () => {
   it('should have a card title', () => {
     const wrapper = mount(Card, {
       propsData: { title },
-      slots:     { title: '<div>Card title</div>' }
+      slots: { 
+        title: '<div>Card title</div>',
+      }
     });
-
-    const element = wrapper.find('[data-testid="card-title-slot"]');
-
+  
+    const element = wrapper.find('[data-testid="card-title-slot"]')
     expect(element.exists()).toBe(true);
-    expect(element.text()).toBe(title);
+    expect(element.text()).toBe(title)
   });
 
   it('should have a card body', () => {
     const wrapper = mount(Card, {
       propsData: { body },
-      slots:     { body: '<div>Card body</div>' }
+      slots: { 
+        body: '<div>Card body</div>',
+      }
     });
-    const element = wrapper.find('[data-testid="card-body-slot"]');
-
+    const element = wrapper.find('[data-testid="card-body-slot"]')
     expect(element.exists()).toBe(true);
-    expect(element.text()).toBe(body);
+    expect(element.text()).toBe(body)
   });
 
   it('should display the default card actions', () => {
-    const wrapper = mount(Card);
-    const element = wrapper.find('[data-testid="card-actions-slot"]');
-
+    const wrapper = mount(Card)
+    const element = wrapper.find('[data-testid="card-actions-slot"]')
     expect(element.exists()).toBe(true);
   });
 });
+
