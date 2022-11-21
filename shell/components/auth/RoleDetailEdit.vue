@@ -447,6 +447,21 @@ export default {
       this.done();
     },
     async actuallySave(url) {
+      // Go through all of the grules and replace double quote apiGroups
+      // k8S documentation shows using empty rules as "" - we change this to empty string when used
+      this.value.rules?.forEach((rule) => {
+        if (rule.apiGroups) {
+          rule.apiGroups = rule.apiGroups.map((group) => {
+            // If the group is two double quotes ("") replace if with empty string
+            if (group.trim() === '\"\"') {
+              group = '';
+            }
+
+            return group;
+          });
+        }
+      });
+
       if ( this.isCreate ) {
         url = url || this.schema.linkFor('collection');
         await this.value.save({ url, redirectUnauthorized: false });
