@@ -8,11 +8,10 @@ import { SETTING } from '@shell/config/settings';
 export default {
   async fetch() {
     const bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
-    const parsed = JSON.parse(bannerSetting.value);
-    const { showHeader } = parsed;
+    const { showHeader, bannerHeader } = JSON.parse(bannerSetting.value);
 
     if (showHeader === 'true') {
-      const headerBannerFontSize = Number(parsed?.bannerHeader?.fontSize?.split('px')[0] ?? 0);
+      const headerBannerFontSize = Number(bannerHeader?.fontSize?.split('px')[0] ?? 0);
 
       this.headerBannerSize = headerBannerFontSize * 2;
     }
