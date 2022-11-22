@@ -15,7 +15,7 @@ if [[ -z "$DIRTY" && -n "$GIT_TAG" ]]; then
     export DASHBOARD_VERSION=$GIT_TAG
     VERSION=$GIT_TAG
 else
-    export DASHBOARD_VERSION="${COMMIT_BRANCH}-${COMMIT}"
+    export DASHBOARD_VERSION="${COMMIT_BRANCH} ${COMMIT}"
     VERSION="${COMMIT}${DIRTY}"
 fi
 
