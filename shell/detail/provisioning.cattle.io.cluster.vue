@@ -624,7 +624,7 @@ export default {
     />
     <ResourceTabs
       v-model="value"
-      :default-tab="defaultTab
+      :default-tab="defaultTab"
       :need-related="hasLocalAccess"
     >
       <Tab
