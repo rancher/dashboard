@@ -9,6 +9,7 @@ declare module 'vue/types/vue' {
     queueResize(): void;
   }
 }
+
 export default Vue.extend({
   inheritAttrs: false,
 
