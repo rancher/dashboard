@@ -242,8 +242,6 @@ export default {
 
   async mounted() {
     await this.connect();
-    this.boundUpdateFollowing = this.updateFollowing.bind(this);
-    this.$refs.virtualList.$el.addEventListener('scroll', this.boundUpdateFollowing);
     this.boundFlush = this.flush.bind(this);
     this.timerFlush = setInterval(this.boundFlush, 100);
   },
@@ -256,7 +254,7 @@ export default {
         this.lines = [];
       }
 
-      const params = {
+      let params = {
         previous:   this.previous,
         follow:     true,
         timestamps: true,
@@ -267,36 +265,9 @@ export default {
         params.container = this.container;
       }
 
-      const range = `${ this.range }`.trim().toLowerCase();
-      const match = range.match(/^(\d+)?\s*(.*?)s?$/);
+      const rangeParams = this.parseRange(this.range);
 
-      if ( match ) {
-        const count = parseInt(match[1], 10) || 1;
-        const unit = match[2];
-
-        switch ( unit ) {
-        case 'all':
-          // Do nothing
-          break;
-        case 'line':
-          params.tailLines = count;
-          break;
-        case 'second':
-          params.sinceSeconds = count;
-          break;
-        case 'minute':
-          params.sinceSeconds = count * 60;
-          break;
-        case 'hour':
-          params.sinceSeconds = count * 60 * 60;
-          break;
-        case 'day':
-          params.sinceSeconds = count * 60 * 60 * 24;
-          break;
-        }
-      } else {
-        params.tailLines = 100;
-      }
+      params = { ...params, ...rangeParams };
 
       let url = this.url || `${ this.pod.links.view }/log`;
 
@@ -346,18 +317,17 @@ export default {
     },
 
     flush() {
-      const virtualList = this.$refs.virtualList;
-      const wasFollowing = virtualList.getScrollSize() - virtualList.getClientSize() === virtualList.getOffset();
-
       if ( this.backlog.length ) {
         this.lines.push(...this.backlog);
         this.backlog = [];
-        if (this.maxLines && this.lines.length > this.maxLines) {
-          this.lines = this.lines.slice(-this.maxLines);
+        const maxLines = this.parseRange(this.range)?.tailLines;
+
+        if (maxLines && this.lines.length > maxLines) {
+          this.lines = this.lines.slice(-maxLines);
         }
       }
 
-      if ( wasFollowing) {
+      if ( this.isFollowing) {
         this.$nextTick(() => {
           this.follow();
         });
@@ -368,15 +338,14 @@ export default {
       const virtualList = this.$refs.virtualList;
 
       if (virtualList) {
-        this.$nextTick(() => {
-          this.isFollowing = virtualList.getScrollSize() - virtualList.getClientSize() === virtualList.getOffset();
-        });
+        this.isFollowing = virtualList.getScrollSize() - virtualList.getClientSize() === virtualList.getOffset();
       }
     },
 
     parseRange(range) {
-      range = `${ range }`.toLowerCase();
-      const match = range.match(/^(\d+)?\s*(.*)s?$/);
+      range = `${ range }`.trim().toLowerCase();
+      const match = range.match(/^(\d+)?\s*(.*?)s?$/);
+
       const out = {};
 
       if ( match ) {
@@ -385,7 +354,6 @@ export default {
 
         switch ( unit ) {
         case 'all':
-          out.tailLines = -1;
           break;
         case 'line':
           out.tailLines = count;
@@ -444,7 +412,7 @@ export default {
       const virtualList = this.$refs.virtualList;
 
       if (virtualList) {
-        virtualList.scrollToBottom();
+        virtualList.$el.scrollTop = virtualList.getScrollSize();
       }
     },
 
@@ -624,6 +592,7 @@ export default {
           direction="vertical"
           class="virtual-list"
           :keeps="200"
+          @scroll="updateFollowing"
         />
       </div>
     </template>
