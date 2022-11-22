@@ -4,8 +4,8 @@ import ApplicationCard from '@shell/components/cards/ApplicationCard.vue';
 describe('component: ApplicationCard', () => {
   const wrapper = mount(ApplicationCard, {
     slots: {
-      cardIcon:   '<i class="icon icon-fw icon-epinio"></i>',
-      'top-left': '<h1>Routes</h1> <ul><li> <a target="_blank" rel="noopener noreferrer nofollow"> route1 </a> </li> <li><a target="_blank" rel="noopener noreferrer nofollow"> route1 </a></li> </ul>',
+      cardIcon:         '<i class="icon icon-fw icon-epinio"></i>',
+      'top-left':       '<h1>Routes</h1> <ul><li> <a target="_blank" rel="noopener noreferrer nofollow"> route1 </a> </li> <li><a target="_blank" rel="noopener noreferrer nofollow"> route1 </a></li> </ul>',
     }
   });
 
