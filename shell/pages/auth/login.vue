@@ -168,6 +168,10 @@ export default {
       return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
     },
 
+    hasLoginMessage() {
+      return this.errorToDisplay || this.loggedOut || this.timedOut;
+    }
+
   },
 
   created() {
@@ -290,10 +294,13 @@ export default {
         <p class="text-center">
           {{ t('login.howdy') }}
         </p>
-        <h1 class="text-center">
+        <h1 class="text-center login-welcome">
           {{ t('login.welcome', {vendor}) }}
         </h1>
-        <div class="login-messages">
+        <div
+          class="login-messages"
+          :class="{'login-messages--hasContent': hasLoginMessage}"
+        >
           <Banner
             v-if="errorToDisplay"
             :label="errorToDisplay"
@@ -372,7 +379,7 @@ export default {
 
         <div
           v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length"
-          class="mt-30"
+          :class="{'mt-30': !hasLoginMessage}"
         >
           <component
             :is="providerComponents[idx]"
@@ -388,7 +395,7 @@ export default {
         <template v-if="hasLocal">
           <form
             v-if="showLocal"
-            class="mt-40"
+            :class="{'mt-30': !hasLoginMessage}"
           >
             <div class="span-6 offset-3">
               <div class="mb-20">
@@ -488,6 +495,24 @@ export default {
       height: 100vh;
       margin: 0;
       object-fit: cover;
+    }
+
+    .login-welcome {
+      margin: 0
+    }
+
+    .login-messages {
+      align-items: center;
+
+      .banner {
+        margin: 5px;
+      }
+      h4 {
+        margin: 0;
+      }
+      &--hasContent {
+        min-height: 70px;
+      }
     }
 
     .login-messages, .first-login-message {
