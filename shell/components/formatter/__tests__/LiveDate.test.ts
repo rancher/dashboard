@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils';
 import LiveDate from '@shell/components/formatter/LiveDate.vue';
 import dayjs from 'dayjs';
+import { ExtendedVue, Vue } from 'vue/types/vue';
+import { DefaultProps } from 'vue/types/options';
 
 const defaultMock = {
   $store: {
@@ -15,14 +17,14 @@ const defaultMock = {
 
 describe('component: LiveDate', () => {
   it('should show a dash if no date is provided', () => {
-    const wrapper = mount(LiveDate, { mocks: defaultMock });
+    const wrapper = mount(LiveDate as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { mocks: defaultMock });
     const element = wrapper.find('span');
 
     expect(element.text()).toBe('-');
   });
 
   it('should say just now when the time provided is the current time', async() => {
-    const wrapper = await mount(LiveDate, {
+    const wrapper = await mount(LiveDate as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       mocks:     defaultMock,
       propsData: { value: dayjs().toString() }
     });
@@ -33,7 +35,7 @@ describe('component: LiveDate', () => {
   });
 
   it('should display difference between value and current time', async() => {
-    const wrapper = await mount(LiveDate, { mocks: defaultMock, propsData: { value: Date.now() - 5000 } });
+    const wrapper = await mount(LiveDate as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { mocks: defaultMock, propsData: { value: Date.now() - 5000 } });
 
     const element = wrapper.find('span');
 
@@ -42,7 +44,7 @@ describe('component: LiveDate', () => {
 
   // this test calls a component method directly: we're testing this because it's how 'live' formatters are used in sortabletable
   it('should recompute and update the displayed value when prompted', async() => {
-    const wrapper = await mount(LiveDate, {
+    const wrapper = await mount(LiveDate as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       mocks:     defaultMock,
       propsData: { value: dayjs().toString() }
     });
@@ -58,7 +60,7 @@ describe('component: LiveDate', () => {
   });
 
   it('should include ago suffix if enabled', async() => {
-    const wrapper = await mount(LiveDate, { mocks: defaultMock, propsData: { value: Date.now() - 5000, addSuffix: true } });
+    const wrapper = await mount(LiveDate as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { mocks: defaultMock, propsData: { value: Date.now() - 5000, addSuffix: true } });
 
     const element = wrapper.find('span');
 
@@ -70,7 +72,7 @@ describe('component: LiveDate', () => {
     [82800000, '23 hours'],
     [3540000, '59 mins']
   ])('should use the largest sensible time unit', async(msAgo, displayValue) => {
-    const wrapper = await mount(LiveDate, {
+    const wrapper = await mount(LiveDate as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
       mocks:     defaultMock,
       propsData: { value: Date.now() - msAgo }
     });
