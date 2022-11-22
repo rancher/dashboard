@@ -10,20 +10,24 @@ import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
-import Labels from '@shell/components/form/Labels';
 import { PROJECT_ID, _VIEW } from '@shell/config/query-params';
 import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { filter, keys } from 'lodash';
+import { systemKeys } from '@shell/config/system-keys';
+import KeyValue from '@shell/components/form/KeyValue';
 
 export default {
   components: {
     ContainerResourceLimit,
     CruResource,
     LabeledSelect,
-    Labels,
+    ToggleSwitch,
+    KeyValue,
     Loading,
     NameNsDescription,
     PodSecurityAdmission,
@@ -66,6 +70,13 @@ export default {
 
   computed: {
     ...mapGetters(['isSingleProduct']),
+
+    /**
+     * Generate list of present keys which can be filtered based on existing label keys and system keys
+     */
+    protectedKeys() {
+      return filter(keys(this.value.labels), key => systemKeys.includes(key));
+    },
 
     isSingleHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER && this.isSingleProduct;
@@ -229,11 +240,30 @@ export default {
         label-key="generic.labelsAndAnnotations"
         :weight="-1"
       >
-        <Labels
-          default-container-class="labels-and-annotations-container"
-          :value="value"
+        <div class="labels__header">
+          <h3>
+            <t k="labels.labels.title" />
+          </h3>
+          <ToggleSwitch
+            v-model="toggler"
+            name="label-system-toggle"
+            :on-label="t('labels.labels.show')"
+          />
+        </div>
+        <p class="helper-text mt-20 mb-20">
+          <t k="labels.labels.description" />
+        </p>
+        <KeyValue
+          key="labels"
+          :value="value.labels"
+          :protected-keys="protectedKeys"
+          :toggle-filter="toggler"
+          :add-label="t('labels.addLabel')"
           :mode="mode"
-          :display-side-by-side="false"
+          :title-protip="labelTitleTooltip"
+          :read-allowed="false"
+          :value-can-be-empty="true"
+          @input="value.setLabels($event)"
         />
       </Tab>
       <Tab
@@ -250,3 +280,17 @@ export default {
     <MoveModal v-if="projects" />
   </CruResource>
 </template>
+
+<style lang="scss" scoped>
+.labels {
+  &__label {
+    &__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1em;
+    }
+  }
+}
+</style>
