@@ -28,24 +28,42 @@ export default {
       const externalIp = nodeWithExternal.externalIp;
 
       if ( this.value && this.value.length ) {
-        let out ;
+        const out = [];
 
         try {
-          out = JSON.parse(this.value);
-          out.forEach((endpoint) => {
+          const endpoints = JSON.parse(this.value);
+
+          endpoints.forEach((endpoint) => {
             let protocol = 'http';
+            let display = '';
+            let link = '';
+            const addresses = endpoint.addresses;
 
             if (endpoint.port === 443) {
               protocol = 'https';
             }
 
-            if (endpoint.addresses) {
-              endpoint.link = `${ protocol }://${ endpoint.addresses[0] }:${ endpoint.port }`;
+            if (addresses && addresses.length) {
+              addresses.forEach((address) => {
+                out.push({
+                  display:  `${ address }:${ endpoint.port }`,
+                  link:     `${ protocol }://${ address }:${ endpoint.port }`,
+                  protocol: endpoint?.protocol ? `/${ endpoint.protocol }` : '',
+                });
+              });
+
+              return;
             } else if (externalIp) {
-              endpoint.link = `${ protocol }://${ externalIp }:${ endpoint.port }`;
+              link = `${ protocol }://${ externalIp }:${ endpoint.port }`;
             } else {
-              endpoint.display = `[${ this.t('servicesPage.anyNode') }]:${ endpoint.port }`;
+              display = `[${ this.t('servicesPage.anyNode') }]:${ endpoint.port }`;
             }
+
+            out.push({
+              display,
+              link,
+              protocol: endpoint?.protocol ? `/${ endpoint.protocol }` : '',
+            });
           });
 
           return out;
@@ -85,9 +103,11 @@ export default {
     <template v-for="(endpoint, index) in parsed">
       <span
         v-if="endpoint.display"
-        :key="endpoint.display"
+        :key="endpoint.display + endpoint.protocol"
         class="block"
-      >{{ endpoint.display }}</span>
+      >
+        {{ endpoint.display }}{{ endpoint.protocol }}
+      </span>
       <a
         v-else
         :key="index + endpoint.link"
