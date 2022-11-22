@@ -4,20 +4,25 @@ export default {};
 
 <template>
   <div class="application-card mt-20">
-    <div class="application-card-icon">
-      <!-- Image goes here -->
+    <div
+      class="application-card-icon"
+      data-testid="cardIcon-section"
+    >
       <slot name="cardIcon" />
     </div>
     <div class="application-card-details">
       <div class="application-card-details-top">
-        <div>
+        <div data-testid="top-left-section">
           <slot name="top-left" />
         </div>
-        <div>
+        <div data-testid="top-right-section">
           <slot name="top-right" />
         </div>
       </div>
-      <div class="application-card-details-bottom">
+      <div
+        class="application-card-details-bottom"
+        data-testid="resourcesCount-section"
+      >
         <slot name="resourcesCount" />
       </div>
     </div>
