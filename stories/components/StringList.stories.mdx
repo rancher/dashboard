@@ -1,12 +1,16 @@
 
 import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
 import StringList from '@/pkg/rancher-components/src/components/StringList/StringList';
+import { useArgs } from '@storybook/client-api';
 
 <Meta 
   title="Components/StringList" 
   component={StringList}
   argTypes={{
-    actionsPosition: 'left',
+    actionsPosition: {
+      options: ['left', 'right'],
+      control: { type: 'radio' },
+    },
     placeholder: 'type new item',
     errorMessages: { duplicate: 'Error, item is duplicate.' },
     caseSensitive: false,
@@ -14,25 +18,31 @@ import StringList from '@/pkg/rancher-components/src/components/StringList/Strin
   }}
 />
 
-export const Template = (args, { argTypes }) => ({
-  components: { StringList },
-  props:      Object.keys(argTypes),
-  data: () => {
-    return {
-      value: args?.items || [],
-    };
-  },
-  methods: {
-    update(value) {
-      this.value = value;
-    }
-  },
-  template:   `
-      <div style="width: auto; min-width: 400px;">
-        <StringList v-bind="$props" :items="value" @change="update($event)"/>
-      </div>
-    `,
-});
+export const Template = (args, { argTypes }) => {
+  const [_, updateArgs] = useArgs();
+  return {
+    components: { StringList },
+    props:      Object.keys(argTypes),
+    data: () => {
+      return {
+        value: args?.items || [],
+      };
+    },
+    methods: {
+      update(value) {
+        this.value = value;
+        updateArgs({
+          items: value
+        });
+      }
+    },
+    template:   `
+        <div style="width: auto; min-width: 400px;">
+          <StringList v-bind="$props" :items="value" @change="update($event)"/>
+        </div>
+      `,
+  };
+}
 
 
 # StringList
