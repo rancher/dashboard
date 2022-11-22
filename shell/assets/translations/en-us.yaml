@@ -2695,6 +2695,8 @@ logging:
       configuration: Configuration
   outputProviders:
     elasticsearch: Elasticsearch
+    opensearch: OpenSearch
+    redis: Redis
     splunkHec: Splunk
     kafka: Kafka
     forward: Fluentd
