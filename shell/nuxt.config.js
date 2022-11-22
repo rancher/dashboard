@@ -38,7 +38,7 @@ const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testi
 // 1 = Skip browser check
 // 2 = Do not skip any checks
 const skipEsLintCheckStr = (process.env.SKIP_ESLINT || '');
-const skipEsLintCheck = parseInt(skipEsLintCheckStr, 10) || 2;
+let skipEsLintCheck = parseInt(skipEsLintCheckStr, 10) || 2;
 
 // ===============================================================================================
 // Nuxt configuration
@@ -63,6 +63,10 @@ export default function(dir, _appConfig) {
       const REAL_SHELL_ABS = fs.realpathSync(SHELL_ABS); // In case the shell is being linked via 'yarn link'
 
       COMPONENTS_DIR = path.join(REAL_SHELL_ABS, '..', 'pkg', 'rancher-components', 'src', 'components');
+
+      // For now, skip eslint check when being linked via yarn link - pkg folder is linked otherwise
+      // This will change when we remove nuxt
+      skipEsLintCheck = true;
     }
   }
 
