@@ -97,10 +97,14 @@ export default {
       fetchOne.clusterToken = this.value.getOrCreateToken();
     }
 
+    // Need to get Norman clusters so that we can check if user has permissions to access the local cluster
+    if ( this.$store.getters['rancher/canList'](NORMAN.CLUSTER) ) {
+      fetchOne.normanClusters = this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
+    }
+
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
       fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
-      fetchOne.normanClusters = this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
       fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
@@ -112,6 +116,11 @@ export default {
     this.haveDeployments = !!fetchOneRes.machineDeployments;
     this.clusterToken = fetchOneRes.clusterToken;
     this.etcdBackups = fetchOneRes.etcdBackups;
+
+    if (fetchOneRes.normanClusters) {
+      // Does the user have access to the local cluster? Need to in order to be able to show the 'Related Resources' tab
+      this.hasLocalAccess = !!fetchOneRes.normanClusters.find(c => c.internal);
+    }
 
     const fetchTwo = {};
 
@@ -183,6 +192,7 @@ export default {
       haveDeployments: false,
       haveNodes:       false,
       haveNodePools:   false,
+      hasLocalAccess:  false,
 
       mgmtNodeSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE),
       machineSchema:  this.$store.getters[`management/schemaFor`](CAPI.MACHINE),
@@ -615,6 +625,7 @@ export default {
     <ResourceTabs
       v-model="value"
       :default-tab="defaultTab"
+      :need-related="hasLocalAccess"
     >
       <Tab
         v-if="showMachines"
