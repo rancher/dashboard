@@ -5,6 +5,7 @@ import { get } from '../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
+import growl from './store/growl';
 
 const i18nStrings = require('../shell/assets/translations/en-us.yaml');
 
@@ -18,48 +19,6 @@ require('../shell/plugins/tooltip');
 Vue.use(Vuex);
 
 // Defines namespaced modules for the Store.
-const growl = {
-  namespaced: true,
-  state: {
-    stack: [{
-      id: 1,
-      color: 'success',
-      icon: 'checkmark',
-      timeout: 5000,
-      title: 'Success',
-      message: 'This is a success message'
-    },
-    {
-      id: 2,
-      color: 'info',
-      icon: 'info',
-      timeout: 5000,
-      title: 'Info',
-      message: 'This is an info message'
-    },
-    {
-      id: 3,
-      color: 'warning',
-      icon: 'warning',
-      timeout: 5000,
-      title: 'Warning',
-      message: 'This is an warning message'
-    },
-    {
-      id: 4,
-      color: 'error',
-      icon: 'error',
-      timeout: 5000,
-      title: 'Warning',
-      message: 'This is an warning message'
-    },
-    ],
-  },
-  getters: require("../shell/store/growl.js").getters,
-  actions: require("../shell/store/growl.js").actions,
-  mutations: require("../shell/store/growl.js").mutations
-}
-
 export const store = new Vuex.Store({
   getters: {
     'i18n/t': state => (key, args) => {
@@ -127,3 +86,5 @@ export const decorators = [
 window.onload = () => {
   installShortcut();
 }
+
+export default store
