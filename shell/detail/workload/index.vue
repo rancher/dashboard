@@ -373,7 +373,6 @@ export default {
     </div>
     <ResourceTabs
       :value="value"
-      :always-show-events="true"
     >
       <Tab
         v-if="isCronJob"
