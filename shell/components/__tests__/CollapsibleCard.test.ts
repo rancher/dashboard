@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import CollapsibleCard from '../CollapsibleCard.vue';
+import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 
 describe('component: CollapsibleCard', () => {
   it('should render component with the correct data applied', () => {

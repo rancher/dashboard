@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import ButtonGroup from '../ButtonGroup.vue';
+import ButtonGroup from '@shell/components/ButtonGroup.vue';
 
 describe('component: ButtonGroup', () => {
   it('should render component with the default props correctly', () => {
@@ -26,11 +26,11 @@ describe('component: ButtonGroup', () => {
       directives: { 'trim-whitespace': jest.fn() },
     });
 
-    const firstBtn = wrapper.find('button:nth-child(1)');
-    const firstBtnLabel = wrapper.find('button:nth-child(1) span');
-    const secondBtn = wrapper.find('button:nth-child(2)');
-    const secondBtnLabel = wrapper.find('button:nth-child(2) span');
-    const thirdBtn = wrapper.find('button:nth-child(3)');
+    const firstBtn = wrapper.find('[data-testid="button-group-child-0"]');
+    const firstBtnLabel = wrapper.find('[data-testid="button-group-child-0"] span');
+    const secondBtn = wrapper.find('[data-testid="button-group-child-1"]');
+    const secondBtnLabel = wrapper.find('[data-testid="button-group-child-1"] span');
+    const thirdBtn = wrapper.find('[data-testid="button-group-child-2"]');
 
     expect(wrapper.findAll('button')).toHaveLength(3);
     expect(firstBtn.exists()).toBe(true);
@@ -72,10 +72,10 @@ describe('component: ButtonGroup', () => {
       directives: { 'trim-whitespace': jest.fn() },
     });
 
-    const firstBtn = wrapper.find('button:nth-child(1)');
-    const firstBtnIcon = wrapper.find('button:nth-child(1) i');
-    const firstBtnLabel = wrapper.find('button:nth-child(1) span');
-    const secondBtn = wrapper.find('button:nth-child(2)');
+    const firstBtn = wrapper.find('[data-testid="button-group-child-0"]');
+    const firstBtnIcon = wrapper.find('[data-testid="button-group-child-0"] i');
+    const firstBtnLabel = wrapper.find('[data-testid="button-group-child-0"] span');
+    const secondBtn = wrapper.find('[data-testid="button-group-child-1"]');
 
     expect(wrapper.findAll('button')).toHaveLength(3);
 
@@ -114,7 +114,7 @@ describe('component: ButtonGroup', () => {
       directives: { 'trim-whitespace': jest.fn() },
     });
 
-    const firstBtn = wrapper.find('button:nth-child(1)');
+    const firstBtn = wrapper.find('[data-testid="button-group-child-0"]');
 
     firstBtn.trigger('click');
 

@@ -1,6 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
-import PercentageBar, { PreferredDirection } from '../PercentageBar.vue';
-import Bar from '../graph/Bar.vue';
+import PercentageBar, { PreferredDirection } from '@shell/components/PercentageBar.vue';
+import Bar from '@shell/components/graph/Bar.vue';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
 

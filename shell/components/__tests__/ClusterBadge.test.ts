@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import ClusterBadge from '../ClusterBadge.vue';
+import ClusterBadge from '@shell/components/ClusterBadge.vue';
 
 describe('component: ClusterBadge', () => {
   it('should render component with the correct data applied', () => {
@@ -15,7 +15,6 @@ describe('component: ClusterBadge', () => {
 
     const elem = wrapper.find('div');
 
-    expect(elem.exists()).toBe(true);
     expect(elem.classes()).toContain('cluster-badge');
     expect(elem.attributes().style).toBe('background-color: red; color: blue;');
     expect(elem.text()).toBe('some-text');

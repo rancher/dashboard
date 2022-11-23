@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
-import ConsumptionGauge from '../ConsumptionGauge.vue';
-import PercentageBar from '../PercentageBar.vue';
+import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
+import PercentageBar from '@shell/components/PercentageBar.vue';
 
 describe('component: ConsumptionGauge', () => {
   it('should render component with the correct data applied', () => {

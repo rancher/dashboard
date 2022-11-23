@@ -86,8 +86,9 @@ export default {
   >
     <div class="growl-list">
       <div
-        v-for="growl in stack"
+        v-for="(growl, idx) in stack"
         :key="growl.id"
+        :data-testid="`growl-list-item-${idx}`"
         :class="{'growl': true, ['bg-'+growl.color]: true}"
       >
         <div

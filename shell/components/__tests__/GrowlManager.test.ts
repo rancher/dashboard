@@ -1,5 +1,5 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils';
-import GrowlManager from '../GrowlManager.vue';
+import GrowlManager from '@shell/components/GrowlManager.vue';
 import Vuex from 'vuex';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
@@ -40,10 +40,10 @@ describe('component: GrowlManager', () => {
     const growlMainContainer = wrapper.find('.growl-container');
     const growlListContainer = wrapper.find('.growl-list');
     const growlListItems = wrapper.findAll('.growl-list .growl');
-    const growlFirstItemIcon = wrapper.find('.growl-list .growl:nth-child(1) .icon-container .icon');
-    const growlFirstItemTitle = wrapper.find('.growl-list .growl:nth-child(1) .growl-text div');
-    const growlFirstItemMessage = wrapper.find('.growl-list .growl:nth-child(1) .growl-text p');
-    const growlFirstItemClose = wrapper.find('.growl-list .growl:nth-child(1) .close.icon');
+    const growlFirstItemIcon = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .icon-container .icon');
+    const growlFirstItemTitle = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .growl-text div');
+    const growlFirstItemMessage = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .growl-text p');
+    const growlFirstItemClose = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .close.icon');
     const clearAllButton = wrapper.find('button[type="button"]');
 
     expect(growlMainContainer.exists()).toBe(true);
@@ -69,7 +69,7 @@ describe('component: GrowlManager', () => {
 
     await wrapper.vm.$nextTick();
 
-    const growlFirstItemClose = wrapper.find('.growl-list .growl:nth-child(1) .close.icon');
+    const growlFirstItemClose = wrapper.find('.growl-list [data-testid="growl-list-item-0"] .close.icon');
     const spyClose = jest.spyOn(wrapper.vm, 'close');
     const spyDispatch = jest.spyOn(mockStore, 'dispatch');
 

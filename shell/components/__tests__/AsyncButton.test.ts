@@ -1,5 +1,5 @@
 import { mount, Wrapper } from '@vue/test-utils';
-import AsyncButton, { ASYNC_BUTTON_STATES } from '../AsyncButton.vue';
+import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
 
 describe('component: AsyncButton', () => {
   it('should render appropriately with default config', () => {

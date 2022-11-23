@@ -1,5 +1,5 @@
 import { shallowMount } from '@vue/test-utils';
-import FixedBanner from '../FixedBanner.vue';
+import FixedBanner from '@shell/components/FixedBanner.vue';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
 
@@ -33,8 +33,6 @@ describe('component: FixedBanner', () => {
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
 
-    await wrapper.vm.$nextTick();
-
     wrapper.setData({ bannerSetting: SETTING_NO_CONSENT });
 
     await wrapper.vm.$nextTick();
@@ -59,8 +57,6 @@ describe('component: FixedBanner', () => {
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
 
-    await wrapper.vm.$nextTick();
-
     wrapper.setData({ bannerSetting: SETTING_NO_CONSENT });
 
     await wrapper.vm.$nextTick();
@@ -84,8 +80,6 @@ describe('component: FixedBanner', () => {
       propsData: { consent: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
-
-    await wrapper.vm.$nextTick();
 
     wrapper.setData({ bannerSetting: SETTING_WITH_CONSENT });
 
@@ -117,8 +111,6 @@ describe('component: FixedBanner', () => {
       propsData: { consent: true },
       mocks:     { $store: { getters: { 'management/byId': jest.fn() } } }
     });
-
-    await wrapper.vm.$nextTick();
 
     wrapper.setData({ bannerSetting: SETTING_WITH_CONSENT });
 
