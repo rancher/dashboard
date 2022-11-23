@@ -113,6 +113,9 @@ export default Vue.extend({
       this.toggleEditMode(false);
       this.toggleCreateMode(false);
     },
+    value(val) {
+      this.$emit('type:item', val);
+    },
     errors: {
       handler(val) {
         this.$emit('errors', val);
