@@ -522,6 +522,10 @@ export default {
       return this.formYamlOption === VALUES_STATE.YAML || ( !this.valuesComponent && !this.hasQuestions );
     },
 
+    showingYamlDiff() {
+      return this.formYamlOption === VALUES_STATE.DIFF;
+    },
+
     formYamlOptions() {
       const options = [];
 
@@ -1062,7 +1066,7 @@ export default {
 
       const errors = [];
 
-      if ( this.showingYaml ) {
+      if ( this.showingYaml || this.showingYamlDiff ) {
         const { errors: yamlErrors } = this.applyYamlToValues();
 
         errors.push(...yamlErrors);
