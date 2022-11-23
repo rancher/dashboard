@@ -50,7 +50,11 @@ export default {
 
 <template>
   <div class="formatter-key-value-container">
-    <div v-for="( kv, index ) in parsed" :key="index" class="formatter-key-value-item">
+    <div
+      v-for="( kv, index ) in parsed"
+      :key="index"
+      class="formatter-key-value-item"
+    >
       {{ kv }}
     </div>
   </div>

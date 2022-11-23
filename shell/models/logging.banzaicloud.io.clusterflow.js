@@ -28,8 +28,8 @@ export default class LogClusterFlow extends Flow {
   get customValidationRules() {
     return [
       {
-        path:           'spec',
-        validators:     ['flowOutput'],
+        path:       'spec',
+        validators: ['flowOutput'],
       },
     ];
   }

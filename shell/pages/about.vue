@@ -20,7 +20,7 @@ export default {
       SETTING
     };
   },
-  computed:   {
+  computed: {
     rancherVersion() {
       return this.settings.find(s => s.id === SETTING.VERSION_RANCHER);
     },
@@ -88,7 +88,10 @@ export default {
 
 <template>
   <Loading v-if="!settings" />
-  <div v-else class="about">
+  <div
+    v-else
+    class="about"
+  >
     <BackLink :link="backLink" />
     <div class="title-block mt-20 mb-40">
       <h1 v-t="'about.title'" />
@@ -109,28 +112,44 @@ export default {
       </thead>
       <tr v-if="rancherVersion">
         <td>
-          <a href="https://github.com/rancher/rancher" target="_blank" rel="nofollow noopener noreferrer">
+          <a
+            href="https://github.com/rancher/rancher"
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+          >
             {{ appName }}
           </a>
         </td><td>{{ rancherVersion.value }}</td>
       </tr>
       <tr v-if="cliVersion">
         <td>
-          <a href="https://github.com/rancher/cli" target="_blank" rel="nofollow noopener noreferrer">
+          <a
+            href="https://github.com/rancher/cli"
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+          >
             {{ appName }} {{ t("about.versions.cli") }}
           </a>
         </td><td>{{ cliVersion.value }}</td>
       </tr>
       <tr v-if="helmVersion">
         <td>
-          <a href="https://github.com/rancher/helm" target="_blank" rel="nofollow noopener noreferrer">
+          <a
+            href="https://github.com/rancher/helm"
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+          >
             {{ t("about.versions.helm") }}
           </a>
         </td><td>{{ helmVersion.value }}</td>
       </tr>
       <tr v-if="dockerMachineVersion">
         <td>
-          <a href="https://github.com/rancher/machine" target="_blank" rel="nofollow noopener noreferrer">
+          <a
+            href="https://github.com/rancher/machine"
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+          >
             {{ t("about.versions.machine") }}
           </a>
         </td><td>{{ dockerMachineVersion.value }}</td>
@@ -146,14 +165,20 @@ export default {
         {{ t('about.downloadImageList.title') }}
       </h3>
       <table>
-        <tr v-for="d in downloadImageList" :key="d.icon">
+        <tr
+          v-for="d in downloadImageList"
+          :key="d.icon"
+        >
           <td>
             <div class="os">
               <i :class="`icon ${d.icon} mr-5`" /> {{ t(d.label) }}
             </div>
           </td>
           <td>
-            <a v-if="d.imageList" @click="d.imageList">
+            <a
+              v-if="d.imageList"
+              @click="d.imageList"
+            >
               {{ t('asyncButton.download.action') }}
             </a>
           </td>
@@ -165,14 +190,21 @@ export default {
         {{ t('about.downloadCLI.title') }}
       </h3>
       <table>
-        <tr v-for="d in downloadCli" :key="d.icon" class="link">
+        <tr
+          v-for="d in downloadCli"
+          :key="d.icon"
+          class="link"
+        >
           <td>
             <div class="os">
               <i :class="`icon ${d.icon} mr-5`" /> {{ t(d.label) }}
             </div>
           </td>
           <td>
-            <a v-if="d.cliLink" :href="d.cliLink">{{ d.cliFile }}</a>
+            <a
+              v-if="d.cliLink"
+              :href="d.cliLink"
+            >{{ d.cliFile }}</a>
           </td>
         </tr>
       </table>

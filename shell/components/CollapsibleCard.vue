@@ -1,7 +1,7 @@
 <script>
 export default {
-  name:       'CollapsibleCard',
-  props:      {
+  name:  'CollapsibleCard',
+  props: {
     isCollapsed: {
       type:    Boolean,
       default: false
@@ -30,8 +30,14 @@ export default {
 </script>
 
 <template>
-  <div class="collapsible-card" :class="{isCollapsed: isCollapsed}">
-    <div class="collapsible-card-header" @click="toggleCollapse">
+  <div
+    class="collapsible-card"
+    :class="{isCollapsed: isCollapsed}"
+  >
+    <div
+      class="collapsible-card-header"
+      @click="toggleCollapse"
+    >
       <h2 class="mb-0">
         <span
           :class="{isTitleClickable: isTitleClickable}"
@@ -39,7 +45,7 @@ export default {
         >{{ title }}</span>
       </h2>
       <div>
-        <slot name="header-right"></slot>
+        <slot name="header-right" />
         <i
           class="collapsible-card-collapse-icon"
           :class="{
@@ -50,7 +56,7 @@ export default {
       </div>
     </div>
     <div class="collapsible-card-body">
-      <slot name="content"></slot>
+      <slot name="content" />
     </div>
   </div>
 </template>

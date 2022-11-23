@@ -68,7 +68,11 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTabs v-else v-model="value" :default-tab="defaultTab">
+  <ResourceTabs
+    v-else
+    v-model="value"
+    :default-tab="defaultTab"
+  >
     <Tab
       v-if="showRegistration"
       name="registration"

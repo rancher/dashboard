@@ -43,10 +43,10 @@ export default class MgmtCluster extends HybridModel {
     const out = super._availableActions;
 
     insertAt(out, 0, {
-      action:     'openShell',
-      label:      this.t('nav.shell'),
-      icon:       'icon icon-terminal',
-      enabled:    !!this.links.shell,
+      action:  'openShell',
+      label:   this.t('nav.shell'),
+      icon:    'icon icon-terminal',
+      enabled: !!this.links.shell,
     });
 
     insertAt(out, 1, {
@@ -59,11 +59,11 @@ export default class MgmtCluster extends HybridModel {
     });
 
     insertAt(out, 2, {
-      action:     'copyKubeConfig',
-      label:      this.t('cluster.copyConfig'),
-      bulkable:   false,
-      enabled:    this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
-      icon:       'icon icon-copy',
+      action:   'copyKubeConfig',
+      label:    this.t('cluster.copyConfig'),
+      bulkable: false,
+      enabled:  this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
+      icon:     'icon icon-copy',
     });
 
     return out;
@@ -245,6 +245,12 @@ export default class MgmtCluster extends HybridModel {
 
   get isHarvester() {
     return isHarvesterCluster(this);
+  }
+
+  get isHostedKubernetesProvider() {
+    const providers = ['AKS', 'EKS', 'GKE'];
+
+    return providers.includes(this.provisioner);
   }
 
   get providerLogo() {
@@ -437,7 +443,7 @@ export default class MgmtCluster extends HybridModel {
     // RKE2 cluster IDs include the name - fleet-default/cluster-name - whereas an RKE1
     // cluster has the less human readable management cluster ID in it: fleet-default/c-khk48
 
-    const verb = this.isLocal || isRKE1 ? 'to' : 'from';
+    const verb = this.isLocal || isRKE1 || this.isHostedKubernetesProvider ? 'to' : 'from';
     const from = `${ verb }Type`;
     const id = `${ verb }Id`;
 

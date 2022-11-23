@@ -25,6 +25,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
   async fetch() {
     await this.updateRows();
@@ -44,11 +49,11 @@ export default {
   },
   data() {
     return {
-      rows:                        [],
-      canCreateGlobalRoleBinding:  false,
-      canRefreshAccess:            false,
-      assignLocation:              {
-        path:   `/c/${ BLANK_CLUSTER }/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
+      rows:                       [],
+      canCreateGlobalRoleBinding: false,
+      canRefreshAccess:           false,
+      assignLocation:             {
+        path:  `/c/${ BLANK_CLUSTER }/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }
       },
       initialLoad: true,
@@ -82,9 +87,9 @@ export default {
     async refreshGroupMemberships(buttonDone) {
       try {
         await this.$store.dispatch('rancher/request', {
-          url:           '/v3/users?action=refreshauthprovideraccess',
-          method:        'post',
-          data:          { },
+          url:    '/v3/users?action=refreshauthprovideraccess',
+          method: 'post',
+          data:   { },
         });
 
         await this.updateGroupPrincipals(true);
@@ -139,6 +144,10 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" />
+    <ResourceTable
+      :schema="schema"
+      :rows="rows"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    />
   </div>
 </template>

@@ -5,7 +5,7 @@ import { RadioGroup } from '@components/Form/Radio';
 export default {
   components: { LabeledInput, RadioGroup },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -38,18 +38,38 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.quobyte.volume" :mode="mode" :label="t('persistentVolume.quobyte.volume.label')" :placeholder="t('persistentVolume.quobyte.volume.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.quobyte.volume"
+          :mode="mode"
+          :label="t('persistentVolume.quobyte.volume.label')"
+          :placeholder="t('persistentVolume.quobyte.volume.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.quobyte.user" :mode="mode" :label="t('persistentVolume.quobyte.user.label')" :placeholder="t('persistentVolume.quobyte.user.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.quobyte.user"
+          :mode="mode"
+          :label="t('persistentVolume.quobyte.user.label')"
+          :placeholder="t('persistentVolume.quobyte.user.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.quobyte.group" :mode="mode" :label="t('persistentVolume.quobyte.group.label')" :placeholder="t('persistentVolume.quobyte.group.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.quobyte.group"
+          :mode="mode"
+          :label="t('persistentVolume.quobyte.group.label')"
+          :placeholder="t('persistentVolume.quobyte.group.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.quobyte.registry" :mode="mode" :label="t('persistentVolume.quobyte.registry.label')" :placeholder="t('persistentVolume.quobyte.registry.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.quobyte.registry"
+          :mode="mode"
+          :label="t('persistentVolume.quobyte.registry.label')"
+          :placeholder="t('persistentVolume.quobyte.registry.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">

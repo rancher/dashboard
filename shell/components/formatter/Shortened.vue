@@ -9,7 +9,7 @@ export default {
     },
 
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
 
@@ -37,10 +37,16 @@ export default {
 </script>
 
 <template>
-  <span v-if="!value" class="text-muted">
+  <span
+    v-if="!value"
+    class="text-muted"
+  >
     &mdash;
   </span>
-  <span v-else-if="showTooltip" v-tooltip="{content: longValue, placement: tooltipPlacement}">
+  <span
+    v-else-if="showTooltip"
+    v-tooltip="{content: longValue, placement: tooltipPlacement}"
+  >
     {{ value }}
   </span>
   <span v-else>

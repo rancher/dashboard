@@ -53,12 +53,34 @@ export default {
 
 <template>
   <div class="pipelines">
-    <Tabbed ref="tabs" :use-hash="false" :no-content="true" @changed="tabChanged">
-      <Tab name="pipelines" label-key="legacy.pipelines" :weight="3" />
-      <Tab name="configuration" label-key="legacy.configuration" :weight="2" />
+    <Tabbed
+      ref="tabs"
+      :use-hash="false"
+      :no-content="true"
+      @changed="tabChanged"
+    >
+      <Tab
+        name="pipelines"
+        label-key="legacy.pipelines"
+        :weight="3"
+      />
+      <Tab
+        name="configuration"
+        label-key="legacy.configuration"
+        :weight="2"
+      />
     </Tabbed>
-    <div id="legacy-pipelines" class="embed-pipelines">
-      <EmberPage v-if="pipelinesPage" inline="legacy-pipelines" :src="pipelinesPage" :force-inline-reuse="true" @before-nav="intercept" />
+    <div
+      id="legacy-pipelines"
+      class="embed-pipelines"
+    >
+      <EmberPage
+        v-if="pipelinesPage"
+        inline="legacy-pipelines"
+        :src="pipelinesPage"
+        :force-inline-reuse="true"
+        @before-nav="intercept"
+      />
     </div>
   </div>
 </template>

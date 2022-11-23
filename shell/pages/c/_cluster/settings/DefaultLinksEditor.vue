@@ -54,22 +54,40 @@ export default {
       <label class="text-label">
         {{ t('customLinks.settings.valueLabel') }}
       </label>
-      <label class="text-label">
-      </label>
+      <label class="text-label" />
 
       <template v-for="(row,i) in value">
-        <div :key="i+'key'" class="kv-item key" :class="{'link-hidden': !row.enabled}">
+        <div
+          :key="i+'key'"
+          class="kv-item key"
+          :class="{'link-hidden': !row.enabled}"
+        >
           <span>{{ row.label }}</span>
         </div>
 
-        <div :key="i+'value'" class="kv-item value" :class="{'link-hidden': !row.enabled}">
+        <div
+          :key="i+'value'"
+          class="kv-item value"
+          :class="{'link-hidden': !row.enabled}"
+        >
           <span>{{ row.value }}</span>
         </div>
 
-        <div v-if="!row.readonly && !isView" :key="i+'show'">
-          <Checkbox v-if="!isView" v-model="row.enabled" label-key="customLinks.settings.showLabel" @input="showhide(row, i, $event)" />
+        <div
+          v-if="!row.readonly && !isView"
+          :key="i+'show'"
+        >
+          <Checkbox
+            v-if="!isView"
+            v-model="row.enabled"
+            label-key="customLinks.settings.showLabel"
+            @input="showhide(row, i, $event)"
+          />
         </div>
-        <div v-else :key="i+'show'"></div>
+        <div
+          v-else
+          :key="i+'show'"
+        />
       </template>
     </div>
   </div>

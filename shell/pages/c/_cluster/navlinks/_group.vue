@@ -6,7 +6,7 @@ import SelectIconGrid from '@shell/components/SelectIconGrid';
 export default {
   components: { SelectIconGrid },
 
-  computed:   {
+  computed: {
     groupSlug() {
       return this.$route.params.group;
     },

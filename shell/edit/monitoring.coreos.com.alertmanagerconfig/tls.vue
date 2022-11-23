@@ -8,7 +8,7 @@ export default {
   components: {
     Banner, LabeledInput, SimpleSecretSelector
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -206,7 +206,10 @@ export default {
         @updateSecretName="updateCaSecretName"
         @updateSecretKey="updateCaSecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t("alertmanagerConfigReceiver.namespaceWarning") }}
       </Banner>
     </div>
@@ -225,7 +228,10 @@ export default {
         @updateSecretName="updateClientCertSecretName"
         @updateSecretKey="updateClientCertSecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t("alertmanagerConfigReceiver.namespaceWarning") }}
       </Banner>
     </div>
@@ -244,7 +250,10 @@ export default {
         @updateSecretName="updateClientKeySecretName"
         @updateSecretKey="updateClientKeySecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t("alertmanagerConfigReceiver.namespaceWarning") }}
       </Banner>
     </div>

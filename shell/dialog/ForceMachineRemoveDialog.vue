@@ -15,7 +15,7 @@ export default {
     CopyToClipboardText
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -70,31 +70,58 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-restore" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text">
+  <Card
+    class="prompt-restore"
+    :show-highlight-border="false"
+  >
+    <h4
+      slot="title"
+      class="text-default-text"
+    >
       {{ t('promptForceRemove.modalTitle') }}
     </h4>
-    <div slot="body" class="pl-10 pr-10">
+    <div
+      slot="body"
+      class="pl-10 pr-10"
+    >
       <span
         v-html="t('promptForceRemove.removeWarning', { nameToMatch }, true)"
-      ></span>
+      />
       <div class="mt-10 mb-10">
         {{ t('promptForceRemove.confirmName') }}
       </div>
       <div class="mb-10">
         <CopyToClipboardText :text="nameToMatch" />
       </div>
-      <input id="confirm" v-model="confirmName" type="text" />
+      <input
+        id="confirm"
+        v-model="confirmName"
+        type="text"
+      >
       <div class="text-info mt-20">
         {{ protip }}
       </div>
-      <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
+      <Banner
+        v-for="(error, i) in errors"
+        :key="i"
+        class=""
+        color="error"
+        :label="error"
+      />
     </div>
     <template #actions>
-      <button class="btn role-secondary mr-10" @click="close">
+      <button
+        class="btn role-secondary mr-10"
+        @click="close"
+      >
         {{ t('generic.cancel') }}
       </button>
-      <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="deleteDisabled" @click="remove" />
+      <AsyncButton
+        mode="delete"
+        class="btn bg-error ml-10"
+        :disabled="deleteDisabled"
+        @click="remove"
+      />
     </template>
   </Card>
 </template>

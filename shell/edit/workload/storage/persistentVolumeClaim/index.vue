@@ -14,7 +14,7 @@ export default {
     Checkbox
   },
 
-  props:      {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {
@@ -106,7 +106,10 @@ export default {
 <template>
   <div v-if="value.__newPvc">
     <div>
-      <div v-if="createNew" class="bordered-section">
+      <div
+        v-if="createNew"
+        class="bordered-section"
+      >
         <PersistentVolumeClaim
           v-if="value.__newPvc"
           v-model="value.__newPvc"

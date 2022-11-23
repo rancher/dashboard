@@ -40,10 +40,10 @@ describe('component: CruResource', () => {
         errors
       },
       components: {
-        ResourceYaml:               { template: '<div></div> ' },
-        ResourceCancelModal:        { template: '<div></div> ' },
+        ResourceYaml:        { template: '<div></div> ' },
+        ResourceCancelModal: { template: '<div></div> ' },
       },
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             currentStore:              () => 'current_store',

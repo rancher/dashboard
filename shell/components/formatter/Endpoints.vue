@@ -4,7 +4,7 @@ import { NODE } from '@shell/config/types';
 export default {
   props: {
     value: {
-      type:     [Array, String],
+      type:    [Array, String],
       default: null,
     },
     row: {
@@ -83,7 +83,11 @@ export default {
 <template>
   <span>
     <template v-for="(endpoint, index) in parsed">
-      <span v-if="endpoint.display" :key="endpoint.display" class="block">{{ endpoint.display }}</span>
+      <span
+        v-if="endpoint.display"
+        :key="endpoint.display"
+        class="block"
+      >{{ endpoint.display }}</span>
       <a
         v-else
         :key="index + endpoint.link"

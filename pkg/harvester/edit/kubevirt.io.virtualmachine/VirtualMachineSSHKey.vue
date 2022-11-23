@@ -28,8 +28,8 @@ export default {
     },
 
     mode: {
-      type:     String,
-      default:  'create',
+      type:    String,
+      default: 'create',
     },
 
     disableCreate: {
@@ -55,13 +55,13 @@ export default {
 
   data() {
     return {
-      checkedSsh:       this.value,
-      publicKey:        '',
-      sshName:          '',
-      randomStr:        randomStr(5).toLowerCase(),
-      errors:           [],
-      isAll:            false,
-      checkAll:         false
+      checkedSsh: this.value,
+      publicKey:  '',
+      sshName:    '',
+      randomStr:  randomStr(5).toLowerCase(),
+      errors:     [],
+      isAll:      false,
+      checkAll:   false
     };
   },
 
@@ -171,8 +171,8 @@ export default {
             name:      this.sshName,
             namespace: this.namespace
           },
-          spec:       { publicKey: this.publicKey },
-          type:       HCI.SSH
+          spec: { publicKey: this.publicKey },
+          type: HCI.SSH
         });
 
         const res = await sshValue.save();

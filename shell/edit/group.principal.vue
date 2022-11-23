@@ -13,11 +13,11 @@ export default {
   mixins: [CreateEditView],
   data() {
     return {
-      errors:       [],
+      errors: [],
       valid:  false,
     };
   },
-  methods:  {
+  methods: {
     async save(buttonDone) {
       this.errors = [];
 
@@ -51,7 +51,12 @@ export default {
       :can-yaml="false"
       @finish="save"
     >
-      <GlobalRoleBindings ref="grb" :group-principal-id="value.id" :mode="mode" @canLogIn="valid = $event" />
+      <GlobalRoleBindings
+        ref="grb"
+        :group-principal-id="value.id"
+        :mode="mode"
+        @canLogIn="valid = $event"
+      />
     </CruResource>
   </div>
 </template>

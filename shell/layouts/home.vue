@@ -55,16 +55,29 @@ export default {
     <AzureWarning />
 
     <div class="dashboard-content">
-      <Header v-if="managementReady" :simple="true" />
+      <Header
+        v-if="managementReady"
+        :simple="true"
+      />
 
-      <main>
+      <main class="main-layout">
         <nuxt class="outlet" />
       </main>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
-    <button v-if="themeShortcut" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
-    <button v-if="noLocaleShortcut" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
+    <button
+      v-if="themeShortcut"
+      v-shortkey.once="['shift','t']"
+      class="hide"
+      @shortkey="toggleTheme()"
+    />
+    <button
+      v-if="noLocaleShortcut"
+      v-shortkey.once="['shift','l']"
+      class="hide"
+      @shortkey="toggleNoneLocale()"
+    />
   </div>
 </template>
 

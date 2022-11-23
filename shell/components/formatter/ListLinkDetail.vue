@@ -5,7 +5,7 @@ export default {
   components: { LinkDetail },
   props:      {
     value: {
-      type:     Array,
+      type:    Array,
       default: () => []
     },
     row: {
@@ -20,6 +20,11 @@ export default {
 
 <template>
   <span>
-    <LinkDetail v-for="el in value" :key="el.key" :row="row" v-bind="el" />
+    <LinkDetail
+      v-for="el in value"
+      :key="el.key"
+      :row="row"
+      v-bind="el"
+    />
   </span>
 </template>

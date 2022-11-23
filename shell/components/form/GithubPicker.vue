@@ -38,9 +38,9 @@ export default {
 
   data() {
     return {
-      repos:       [],
-      branches:    [],
-      files:       [],
+      repos:    [],
+      branches: [],
+      files:    [],
 
       loadingRecentRepos: true,
       loadingBranches:    true,
@@ -52,7 +52,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     ...mapState({
       scopes:      state => state.github.scopes,
       recentRepos: state => state.github.repos,
@@ -271,7 +271,10 @@ export default {
 
 <template>
   <div class="picker">
-    <div v-if="!hasPrivate && !loadingRecentRepos" class="expand-scope pb-20">
+    <div
+      v-if="!hasPrivate && !loadingRecentRepos"
+      class="expand-scope pb-20"
+    >
       <i class="icon icon-info" /> Showing only public repos.  <a
         href="#"
         class="text-primary bg-transparent"
@@ -301,15 +304,21 @@ export default {
           <template #no-options>
             Type to search GitHub repositories
           </template>
-          <template slot="option" slot-scope="option">
+          <template
+            slot="option"
+            slot-scope="option"
+          >
             <div class="d-center">
-              <img :src="option.owner.avatar_url" />
+              <img :src="option.owner.avatar_url">
               {{ option.full_name }}
             </div>
           </template>
-          <template slot="selected-option" slot-scope="option">
+          <template
+            slot="selected-option"
+            slot-scope="option"
+          >
             <div class="selected d-center">
-              <img :src="option.owner.avatar_url" />
+              <img :src="option.owner.avatar_url">
               {{ option.full_name }}
             </div>
           </template>
@@ -324,8 +333,7 @@ export default {
           :value="selectedBranch"
           :clearable="false"
           @input="selectBranch"
-        >
-        </LabeledSelect>
+        />
       </div>
       <div class="col span-4">
         <LabeledSelect
@@ -336,8 +344,7 @@ export default {
           :value="selectedFile"
           :clearable="false"
           @input="selectFile"
-        >
-        </LabeledSelect>
+        />
       </div>
     </div>
   </div>

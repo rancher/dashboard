@@ -27,7 +27,7 @@ export default {
     Loading,
   },
 
-  props:      {
+  props: {
     /*
   steps need: {
     name: String - this will be the slot name
@@ -254,18 +254,39 @@ export default {
 
 <template>
   <div class="outer-container">
-    <Loading v-if="!stepsLoaded" mode="relative" />
+    <Loading
+      v-if="!stepsLoaded"
+      mode="relative"
+    />
     <!-- Note - Don't v-else this.... the steps need to be included in order to update 'stepsLoaded' -->
-    <div class="outer-container" :class="{'hide': !stepsLoaded}">
+    <div
+      class="outer-container"
+      :class="{'hide': !stepsLoaded}"
+    >
       <div class="header">
         <div class="title">
-          <div v-if="showBanner" class="top choice-banner">
-            <slot v-if="!!bannerImage || !!bannerTitle" name="bannerTitle">
-              <div v-show="initialTitle || activeStepIndex > 0" class="title">
+          <div
+            v-if="showBanner"
+            class="top choice-banner"
+          >
+            <slot
+              v-if="!!bannerImage || !!bannerTitle"
+              name="bannerTitle"
+            >
+              <div
+                v-show="initialTitle || activeStepIndex > 0"
+                class="title"
+              >
                 <!-- Logo -->
                 <slot name="bannerTitleImage">
-                  <div v-if="bannerImage" class="round-image">
-                    <LazyImage :src="bannerImage" class="logo" />
+                  <div
+                    v-if="bannerImage"
+                    class="round-image"
+                  >
+                    <LazyImage
+                      :src="bannerImage"
+                      class="logo"
+                    />
                   </div>
                 </slot>
                 <!-- Title with subtext -->
@@ -273,15 +294,24 @@ export default {
                   <h2 v-if="bannerTitle">
                     {{ bannerTitle }}
                   </h2>
-                  <span v-if="bannerTitleSubtext" class="subtext">{{ bannerTitleSubtext }}</span>
+                  <span
+                    v-if="bannerTitleSubtext"
+                    class="subtext"
+                  >{{ bannerTitleSubtext }}</span>
                 </div>
               </div>
             </slot>
             <!-- Step number with subtext -->
-            <div v-if="activeStep && showSteps" class="subtitle">
+            <div
+              v-if="activeStep && showSteps"
+              class="subtitle"
+            >
               <h2>{{ !!headerMode ? t(`wizard.${headerMode}`) : t(`asyncButton.${finishMode}.action`) }}: {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
               <slot name="bannerSubtext">
-                <span v-if="activeStep.subtext !== null" class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+                <span
+                  v-if="activeStep.subtext !== null"
+                  class="subtext"
+                >{{ activeStep.subtext || activeStep.label }}</span>
               </slot>
             </div>
           </div>
@@ -308,13 +338,20 @@ export default {
                     class="controls"
                     @click.prevent="goToStep(idx+1, true)"
                   >
-                    <span class="icon icon-lg" :class="{'icon-dot': step.name === activeStep.name, 'icon-dot-open':step.name !== activeStep.name}" />
+                    <span
+                      class="icon icon-lg"
+                      :class="{'icon-dot': step.name === activeStep.name, 'icon-dot-open':step.name !== activeStep.name}"
+                    />
                     <span>
                       {{ step.label }}
                     </span>
                   </span>
                 </li>
-                <div v-if="idx!==visibleSteps.length-1" :key="step.name" class="divider" />
+                <div
+                  v-if="idx!==visibleSteps.length-1"
+                  :key="step.name"
+                  class="divider"
+                />
               </template>
             </ul>
           </div>
@@ -326,8 +363,16 @@ export default {
         :activeStep="activeStep"
       >
         <template v-for="step in steps">
-          <div v-if="step.name === activeStep.name || step.hidden" :key="step.name" class="step-container__step" :class="{'hide': step.name !== activeStep.name && step.hidden}">
-            <slot :step="step" :name="step.name" />
+          <div
+            v-if="step.name === activeStep.name || step.hidden"
+            :key="step.name"
+            class="step-container__step"
+            :class="{'hide': step.name !== activeStep.name && step.hidden}"
+          >
+            <slot
+              :step="step"
+              :name="step.name"
+            />
           </div>
         </template>
       </slot>
@@ -344,30 +389,67 @@ export default {
         :cancel="cancel"
         :activeStep="activeStep"
       >
-        <div v-for="(err,idx) in errorStrings" :key="idx">
-          <Banner color="error" :label="err" :closable="true" @close="errors.splice(idx, 1)" />
+        <div
+          v-for="(err,idx) in errorStrings"
+          :key="idx"
+        >
+          <Banner
+            color="error"
+            :label="err"
+            :closable="true"
+            @close="errors.splice(idx, 1)"
+          />
         </div>
         <div class="controls-row pt-20">
-          <slot name="cancel" :cancel="cancel">
-            <button type="button" class="btn role-secondary" @click="cancel">
+          <slot
+            name="cancel"
+            :cancel="cancel"
+          >
+            <button
+              type="button"
+              class="btn role-secondary"
+              @click="cancel"
+            >
               <t k="generic.cancel" />
             </button>
           </slot>
           <div class="controls-steps">
-            <slot v-if="showPrevious" name="back" :back="back">
-              <button :disabled="!canPrevious || (!editFirstStep && activeStepIndex===1)" type="button" class="btn role-secondary" @click="back()">
+            <slot
+              v-if="showPrevious"
+              name="back"
+              :back="back"
+            >
+              <button
+                :disabled="!canPrevious || (!editFirstStep && activeStepIndex===1)"
+                type="button"
+                class="btn role-secondary"
+                @click="back()"
+              >
                 <t k="wizard.previous" />
               </button>
             </slot>
-            <slot v-if="activeStepIndex === visibleSteps.length-1" name="finish" :finish="finish">
+            <slot
+              v-if="activeStepIndex === visibleSteps.length-1"
+              name="finish"
+              :finish="finish"
+            >
               <AsyncButton
                 :disabled="!activeStep.ready"
                 :mode="finishMode"
                 @click="finish"
               />
             </slot>
-            <slot v-else name="next" :next="next">
-              <button :disabled="!canNext" type="button" :class="nextButtonStyle" @click="next()">
+            <slot
+              v-else
+              name="next"
+              :next="next"
+            >
+              <button
+                :disabled="!canNext"
+                type="button"
+                :class="nextButtonStyle"
+                @click="next()"
+              >
                 <t :k="nextButtonLabel" />
               </button>
             </slot>

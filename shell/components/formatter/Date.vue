@@ -11,7 +11,7 @@ export default {
     },
 
     value: {
-      type:     [String, Date],
+      type:    [String, Date],
       default: ''
     },
 
@@ -65,7 +65,7 @@ export default {
 <template>
   <component :is="tagName">
     <template v-if="showDate">
-      {{ date }}<br v-if="multiline" /><span v-else>&nbsp;</span>
+      {{ date }}<br v-if="multiline"><span v-else>&nbsp;</span>
     </template>
     <template v-if="showTime">
       {{ time }}

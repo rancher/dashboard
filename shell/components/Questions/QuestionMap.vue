@@ -17,7 +17,10 @@ export default {
 
 <template>
   <div>
-    <div v-if="showDescription" class="row mt-10">
+    <div
+      v-if="showDescription"
+      class="row mt-10"
+    >
       <div class="col span-12">
         {{ question.description }}
       </div>

@@ -27,7 +27,7 @@ export default {
     },
 
     disabled: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     }
 
@@ -68,7 +68,10 @@ export default {
 </script>
 
 <template>
-  <div v-trim-whitespace class="btn-group">
+  <div
+    v-trim-whitespace
+    class="btn-group"
+  >
     <button
       v-for="(opt,idx) in optionObjects"
       :key="idx"
@@ -78,9 +81,19 @@ export default {
       :disabled="disabled || opt.disabled"
       @click="change(opt.value)"
     >
-      <slot name="option" :label="opt.label" :value="opt.value">
-        <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true, [`icon-${iconSize}`]: !!iconSize }" />
-        <t v-if="opt.labelKey" :k="opt.labelKey" />
+      <slot
+        name="option"
+        :label="opt.label"
+        :value="opt.value"
+      >
+        <i
+          v-if="opt.icon"
+          :class="{icon: true, [opt.icon]: true, [`icon-${iconSize}`]: !!iconSize }"
+        />
+        <t
+          v-if="opt.labelKey"
+          :k="opt.labelKey"
+        />
         <span v-else-if="opt.label">{{ opt.label }}</span>
       </slot>
     </button>

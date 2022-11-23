@@ -33,7 +33,7 @@ export default Vue.extend<Data, any, any, any>({
     AppProgress,
   },
 
-  mixins:     [
+  mixins: [
     CreateEditView,
   ],
 
@@ -50,26 +50,26 @@ export default Vue.extend<Data, any, any, any>({
 
   data() {
     return {
-      value:         undefined,
-      mode:          _CREATE,
-      errors:        [],
-      source:        undefined,
-      bindings:      undefined,
-      steps:         [{
-        name:           'source',
-        label:          this.t('epinio.applications.steps.source.label'),
-        subtext:        this.t('epinio.applications.steps.source.subtext'),
-        ready:          false,
+      value:    undefined,
+      mode:     _CREATE,
+      errors:   [],
+      source:   undefined,
+      bindings: undefined,
+      steps:    [{
+        name:    'source',
+        label:   this.t('epinio.applications.steps.source.label'),
+        subtext: this.t('epinio.applications.steps.source.subtext'),
+        ready:   false,
       }, {
-        name:           'basics',
-        label:          this.t('epinio.applications.steps.basics.label'),
-        subtext:        this.t('epinio.applications.steps.basics.subtext'),
-        ready:          false,
+        name:    'basics',
+        label:   this.t('epinio.applications.steps.basics.label'),
+        subtext: this.t('epinio.applications.steps.basics.subtext'),
+        ready:   false,
       }, {
-        name:           'configurations',
-        label:          this.t('epinio.applications.steps.configurations.label'),
-        subtext:        this.t('epinio.applications.steps.configurations.subtext'),
-        ready:          true,
+        name:       'configurations',
+        label:      this.t('epinio.applications.steps.configurations.label'),
+        subtext:    this.t('epinio.applications.steps.configurations.subtext'),
+        ready:      true,
         nextButton: {
           labelKey: 'epinio.applications.steps.configurations.next',
           style:    'btn role-primary bg-warning'
@@ -158,7 +158,7 @@ export default Vue.extend<Data, any, any, any>({
           :mode="mode"
           @change="updateInfo"
           @valid="steps[1].ready = $event"
-        ></AppInfo>
+        />
       </template>
       <template #source>
         <AppSource
@@ -169,14 +169,14 @@ export default Vue.extend<Data, any, any, any>({
           @changeAppInfo="updateInfo"
           @changeAppConfig="updateManifestConfigurations"
           @valid="steps[0].ready = $event"
-        ></AppSource>
+        />
       </template>
       <template #configurations>
         <AppConfiguration
           :application="value"
           :mode="mode"
           @change="updateConfigurations"
-        ></AppConfiguration>
+        />
       </template>
       <template #progress="{step}">
         <AppProgress
@@ -185,7 +185,7 @@ export default Vue.extend<Data, any, any, any>({
           :bindings="bindings"
           :mode="mode"
           :step="step"
-        ></AppProgress>
+        />
       </template>
     </Wizard>
     <!-- <br><br>

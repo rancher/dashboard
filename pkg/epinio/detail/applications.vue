@@ -52,7 +52,7 @@ export default Vue.extend<Data, any, any, any>({
     const configsHeaders: [] = this.$store.getters['type-map/headersFor'](configsSchema);
 
     return {
-      saving:            false,
+      saving:      false,
       appInstance: {
         schema:  appInstanceSchema,
         headers: this.$store.getters['type-map/headersFor'](appInstanceSchema),
@@ -101,16 +101,31 @@ export default Vue.extend<Data, any, any, any>({
       <ApplicationCard>
         <!-- Icon slot -->
         <template v-slot:cardIcon>
-          <i class="icon icon-fw" :class="sourceIcon"></i>
+          <i
+            class="icon icon-fw"
+            :class="sourceIcon"
+          />
         </template>
 
         <!-- Routes links slot -->
         <template v-slot:top-left>
           <h1>Routes</h1>
           <ul>
-            <li v-for="route in value.configuration.routes" :key="route.id">
-              <a v-if="value.state === 'running'" :key="route.id + 'a'" :href="`https://${route}`" target="_blank" rel="noopener noreferrer nofollow">{{ `https://${route}` }}</a>
-              <span v-else :key="route.id + 'b'">{{ `https://${route}` }}</span>
+            <li
+              v-for="route in value.configuration.routes"
+              :key="route.id"
+            >
+              <a
+                v-if="value.state === 'running'"
+                :key="route.id + 'a'"
+                :href="`https://${route}`"
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >{{ `https://${route}` }}</a>
+              <span
+                v-else
+                :key="route.id + 'b'"
+              >{{ `https://${route}` }}</span>
             </li>
           </ul>
         </template>
@@ -133,11 +148,17 @@ export default Vue.extend<Data, any, any, any>({
       </ApplicationCard>
     </div>
 
-    <h3 v-if="value.deployment" class="mt-20">
+    <h3
+      v-if="value.deployment"
+      class="mt-20"
+    >
       {{ t('epinio.applications.detail.deployment.label') }}
     </h3>
 
-    <div v-if="value.deployment" class="deployment">
+    <div
+      v-if="value.deployment"
+      class="deployment"
+    >
       <div class="simple-box-row app-instances">
         <SimpleBox>
           <ConsumptionGauge
@@ -146,10 +167,15 @@ export default Vue.extend<Data, any, any, any>({
             :used="value.readyInstances"
             :used-as-resource-name="true"
             :color-stops="{ 70: '--success', 30: '--warning', 0: '--error' }"
-          >
-          </ConsumptionGauge>
+          />
           <div class="scale-instances">
-            <PlusMinus class="mt-15 mb-10" :value="value.desiredInstances" :disabled="saving" @minus="updateInstances(value.desiredInstances - 1)" @plus="updateInstances(value.desiredInstances + 1)" />
+            <PlusMinus
+              class="mt-15 mb-10"
+              :value="value.desiredInstances"
+              :disabled="saving"
+              @minus="updateInstances(value.desiredInstances - 1)"
+              @plus="updateInstances(value.desiredInstances + 1)"
+            />
           </div>
         </SimpleBox>
         <!-- Source information -->
@@ -162,16 +188,22 @@ export default Vue.extend<Data, any, any, any>({
               <li>
                 <h4>Origin</h4>
                 <span v-if="value.sourceInfo.label === 'Git'">
-                  <i class="icon icon-fw icon-github"></i>
+                  <i class="icon icon-fw icon-github" />
                   {{ value.sourceInfo.label }}
                 </span>
                 <span v-else>{{ value.sourceInfo.label }}</span>
               </li>
 
-              <li v-for="d of value.sourceInfo.details" :key="d.label">
+              <li
+                v-for="d of value.sourceInfo.details"
+                :key="d.label"
+              >
                 <h4>{{ d.label }}</h4>
                 <span v-if="d.value && d.value.startsWith('http')">
-                  <a :href="d.value" target="_blank">{{ formatURL(d.value) }}</a>
+                  <a
+                    :href="d.value"
+                    target="_blank"
+                  >{{ formatURL(d.value) }}</a>
                 </span>
                 <span v-else>{{ d.value }}</span>
               </li>
@@ -189,7 +221,7 @@ export default Vue.extend<Data, any, any, any>({
             <table class="stats mt-15">
               <thead>
                 <tr>
-                  <th></th>
+                  <th />
                   <th>Min</th>
                   <th>Max</th>
                   <th>Avg</th>
@@ -219,17 +251,43 @@ export default Vue.extend<Data, any, any, any>({
 
     <div>
       <Tabbed>
-        <Tab label-key="epinio.applications.detail.tables.instances" name="instances" :weight="3">
-          <ResourceTable :schema="appInstance.schema" :headers="appInstance.headers" :rows="value.instances" :table-actions="false">
-          </ResourceTable>
+        <Tab
+          label-key="epinio.applications.detail.tables.instances"
+          name="instances"
+          :weight="3"
+        >
+          <ResourceTable
+            :schema="appInstance.schema"
+            :headers="appInstance.headers"
+            :rows="value.instances"
+            :table-actions="false"
+          />
         </Tab>
-        <Tab label-key="epinio.applications.detail.tables.services" name="services" :weight="2">
-          <ResourceTable :schema="services.schema" :headers="services.headers" :rows="value.services" :namespaced="false" :table-actions="false">
-          </ResourceTable>
+        <Tab
+          label-key="epinio.applications.detail.tables.services"
+          name="services"
+          :weight="2"
+        >
+          <ResourceTable
+            :schema="services.schema"
+            :headers="services.headers"
+            :rows="value.services"
+            :namespaced="false"
+            :table-actions="false"
+          />
         </Tab>
-        <Tab label-key="epinio.applications.detail.tables.configs" name="configs" :weight="1">
-          <ResourceTable :schema="configs.schema" :headers="configs.headers" :rows="value.baseConfigurations" :namespaced="false" :table-actions="false">
-          </ResourceTable>
+        <Tab
+          label-key="epinio.applications.detail.tables.configs"
+          name="configs"
+          :weight="1"
+        >
+          <ResourceTable
+            :schema="configs.schema"
+            :headers="configs.headers"
+            :rows="value.baseConfigurations"
+            :namespaced="false"
+            :table-actions="false"
+          />
         </Tab>
       </Tabbed>
     </div>

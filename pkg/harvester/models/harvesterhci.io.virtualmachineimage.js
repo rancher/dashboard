@@ -3,8 +3,8 @@ import { HCI } from '../types';
 import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,
-  HCI as HCI_ANNOTATIONS
 } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { get, clone } from '@shell/utils/object';
 import { formatSi } from '@shell/utils/units';
 import { ucFirst } from '@shell/utils/string';
@@ -30,17 +30,17 @@ export default class HciVmImage extends HarvesterResource {
 
     return [
       {
-        action:     'createFromImage',
-        enabled:    canCreateVM,
-        icon:       'icon icon-fw icon-spinner',
-        label:      this.t('harvester.action.createVM'),
-        disabled:   !this.isReady,
+        action:   'createFromImage',
+        enabled:  canCreateVM,
+        icon:     'icon icon-fw icon-spinner',
+        label:    this.t('harvester.action.createVM'),
+        disabled: !this.isReady,
       },
       {
-        action:     'download',
-        enabled:    this.links?.download,
-        icon:       'icon icon-download',
-        label:      this.t('asyncButton.download.action'),
+        action:  'download',
+        enabled: this.links?.download,
+        icon:    'icon icon-download',
+        label:   this.t('asyncButton.download.action'),
       },
       ...out
     ];
@@ -206,9 +206,9 @@ export default class HciVmImage extends HarvesterResource {
 
     if (this.imageSource === 'download') {
       const urlFormat = {
-        nullable:       false,
-        path:           'spec.url',
-        validators:     ['imageUrl'],
+        nullable:   false,
+        path:       'spec.url',
+        validators: ['imageUrl'],
       };
 
       const urlRequired = {
@@ -223,9 +223,9 @@ export default class HciVmImage extends HarvesterResource {
 
     if (this.imageSource === 'upload') {
       const fileRequired = {
-        nullable:       false,
-        path:           'metadata.annotations',
-        validators:     ['fileRequired'],
+        nullable:   false,
+        path:       'metadata.annotations',
+        validators: ['fileRequired'],
       };
 
       out.push(fileRequired);

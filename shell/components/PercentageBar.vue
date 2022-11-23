@@ -17,8 +17,8 @@ export default {
      * A value representing the percentage to be displayed. *Must be a value between 0 and 100*.
      */
     value: {
-      type:      Number,
-      required:  true,
+      type:     Number,
+      required: true,
       validator(value) {
         return value >= 0;
       }
@@ -103,8 +103,15 @@ export default {
 
 <template>
   <span class="percentage-bar">
-    <Bar :percentage="value" :primary-color="primaryColor" :slices="slices" />
-    <span v-if="showPercentage" class="ml-5 percentage-value">{{ formattedPercentage }}</span>
+    <Bar
+      :percentage="value"
+      :primary-color="primaryColor"
+      :slices="slices"
+    />
+    <span
+      v-if="showPercentage"
+      class="ml-5 percentage-value"
+    >{{ formattedPercentage }}</span>
   </span>
 </template>
 

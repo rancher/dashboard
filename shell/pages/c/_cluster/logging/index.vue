@@ -57,7 +57,10 @@ export default {
 
 <template>
   <div class="logging">
-    <ChartHeading :label="t('logging.overview.poweredBy')" url="https://github.com/banzaicloud/logging-operator" />
+    <ChartHeading
+      :label="t('logging.overview.poweredBy')"
+      url="https://github.com/banzaicloud/logging-operator"
+    />
     <div class="spacer" />
     <div v-if="hasClusterFlowAccess">
       <h2>{{ t('logging.overview.clusterLevel') }}</h2>

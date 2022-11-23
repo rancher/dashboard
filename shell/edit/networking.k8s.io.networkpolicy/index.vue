@@ -42,8 +42,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      allPods:        this.$store.dispatch('cluster/findAll', { type: POD }),
-      allNamespaces:  this.$store.dispatch('cluster/findAll', { type: NAMESPACE }),
+      allPods:       this.$store.dispatch('cluster/findAll', { type: POD }),
+      allNamespaces: this.$store.dispatch('cluster/findAll', { type: NAMESPACE }),
     });
 
     this.allPods = hash.allPods;
@@ -74,9 +74,9 @@ export default {
     return {
       POD,
       matchingPods,
-      allPods:            [],
-      allNamespaces:      [],
-      podTableHeaders:    this.$store.getters['type-map/headersFor'](
+      allPods:         [],
+      allNamespaces:   [],
+      podTableHeaders: this.$store.getters['type-map/headersFor'](
         this.$store.getters['cluster/schemaFor'](POD)
       ),
     };
@@ -184,11 +184,21 @@ export default {
     <div class="row mb-40">
       <div class="col span-12">
         <Tabbed :side-tabs="true">
-          <Tab name="ingress" label-key="networkpolicy.ingress.label" :show-header="false" :weight="3">
+          <Tab
+            name="ingress"
+            label-key="networkpolicy.ingress.label"
+            :show-header="false"
+            :weight="3"
+          >
             <h2 class="">
               {{ t('networkpolicy.ingress.label') }}
             </h2>
-            <Checkbox v-model="hasIngressPolicies" class="mt-20 mb-10" :mode="mode" :label="t('networkpolicy.ingress.enable')" />
+            <Checkbox
+              v-model="hasIngressPolicies"
+              class="mt-20 mb-10"
+              :mode="mode"
+              :label="t('networkpolicy.ingress.enable')"
+            />
             <PolicyRules
               v-if="hasIngressPolicies"
               v-model="value"
@@ -196,13 +206,23 @@ export default {
               :mode="mode"
               :all-namespaces="allNamespaces"
               :all-pods="allPods"
-            ></PolicyRules>
+            />
           </Tab>
-          <Tab name="egress" label-key="networkpolicy.egress.label" :show-header="false" :weight="2">
+          <Tab
+            name="egress"
+            label-key="networkpolicy.egress.label"
+            :show-header="false"
+            :weight="2"
+          >
             <h2>
               {{ t('networkpolicy.egress.label') }}
             </h2>
-            <Checkbox v-model="hasEgressPolicies" class="mt-20 mb-10" :mode="mode" :label="t('networkpolicy.egress.enable')" />
+            <Checkbox
+              v-model="hasEgressPolicies"
+              class="mt-20 mb-10"
+              :mode="mode"
+              :label="t('networkpolicy.egress.enable')"
+            />
             <PolicyRules
               v-if="hasEgressPolicies"
               v-model="value"
@@ -210,12 +230,20 @@ export default {
               :mode="mode"
               :all-namespaces="allNamespaces"
               :all-pods="allPods"
-            ></PolicyRules>
+            />
           </Tab>
-          <Tab name="selectors" label-key="networkpolicy.selectors.label" :show-header="false" :weight="1">
+          <Tab
+            name="selectors"
+            label-key="networkpolicy.selectors.label"
+            :show-header="false"
+            :weight="1"
+          >
             <h2>
               {{ t('networkpolicy.selectors.label') }}
-              <i v-tooltip="t('networkpolicy.selectors.hint')" class="icon icon-info" />
+              <i
+                v-tooltip="t('networkpolicy.selectors.hint')"
+                class="icon icon-info"
+              />
             </h2>
             <div class="row">
               <div class="col span-12">

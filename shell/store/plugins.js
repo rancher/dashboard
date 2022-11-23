@@ -5,7 +5,7 @@ export function simplify(key) {
 }
 
 const credentialOptions = {
-  aws:          {
+  aws: {
     publicKey:  'accessKey',
     publicMode: 'full',
     keys:       ['region', 'accessKey', 'secretKey']
@@ -15,7 +15,7 @@ const credentialOptions = {
     publicMode: 'prefix',
     keys:       'accessToken'
   },
-  azure:        {
+  azure: {
     publicKey:  'clientId',
     publicMode: 'full',
     keys:       ['subscriptionId', 'tenantId', 'clientId', 'clientSecret']

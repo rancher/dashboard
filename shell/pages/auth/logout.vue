@@ -10,7 +10,7 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="main-layout">
     <h1 class="text-center mt-50">
       Logging Out&hellip;
     </h1>

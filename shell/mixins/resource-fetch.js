@@ -27,7 +27,7 @@ export default {
       counts:                     {},
       multipleResources:          [],
       // manual refresh vars
-      hasManualRefresh:            false,
+      hasManualRefresh:           false,
       watch:                      true,
       isTooManyItemsToAutoUpdate: false,
       force:                      false,
@@ -61,7 +61,7 @@ export default {
       return this.rows.length ? false : this.$fetchState.pending;
     },
   },
-  watch:    {
+  watch: {
     refreshFlag(neu) {
       // this is where the data assignment will trigger the update of the list view...
       if (this.init && neu) {
@@ -69,7 +69,7 @@ export default {
       }
     }
   },
-  methods:  {
+  methods: {
     $fetchType(type, multipleResources = []) {
       const inStore = this.$store.getters['currentStore'](COUNT);
 

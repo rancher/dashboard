@@ -23,7 +23,7 @@ export default {
     },
 
     value: {
-      type:     Object,
+      type:    Object,
       default: null,
     },
 
@@ -89,24 +89,53 @@ export default {
 
     <div class="row mt-20">
       <div class="col span-6">
-        <LabeledInput v-model="config.bucket" label="Bucket" :placeholder="ccData.defaultBucket" :required="!ccData.defaultBucket" @input="update" />
+        <LabeledInput
+          v-model="config.bucket"
+          label="Bucket"
+          :placeholder="ccData.defaultBucket"
+          :required="!ccData.defaultBucket"
+          @input="update"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="config.folder" label="Folder" :placeholder="ccData.defaultFolder" @input="update" />
+        <LabeledInput
+          v-model="config.folder"
+          label="Folder"
+          :placeholder="ccData.defaultFolder"
+          @input="update"
+        />
       </div>
     </div>
 
     <div class="row mt-20">
       <div class="col span-6">
-        <LabeledInput v-model="config.region" label="Region" :placeholder="ccData.defaultRegion" @input="update" />
+        <LabeledInput
+          v-model="config.region"
+          label="Region"
+          :placeholder="ccData.defaultRegion"
+          @input="update"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="config.endpoint" label="Endpoint" :placeholder="ccData.defaultEndpoint" @input="update" />
+        <LabeledInput
+          v-model="config.endpoint"
+          label="Endpoint"
+          :placeholder="ccData.defaultEndpoint"
+          @input="update"
+        />
       </div>
     </div>
 
-    <div v-if="!ccData.defaultSkipSSLVerify" class="mt-20">
-      <Checkbox v-model="config.skipSSLVerify" :mode="mode" label="Accept any certificate (insecure)" @input="update" />
+    <div
+      v-if="!ccData.defaultSkipSSLVerify"
+      class="mt-20"
+    >
+      <Checkbox
+        v-model="config.skipSSLVerify"
+        :mode="mode"
+        label="Accept any certificate (insecure)"
+        @input="update"
+      />
 
       <LabeledInput
         v-if="!config.skipSSLVerify"

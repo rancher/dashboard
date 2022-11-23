@@ -249,33 +249,60 @@ export default {
 
 </script>
 <template>
-  <div v-if="managementReady" class="home-page">
-    <BannerGraphic :small="true" :title="t('landing.welcomeToRancher', {vendor})" :pref="HIDE_HOME_PAGE_CARDS" pref-key="welcomeBanner" />
+  <div
+    v-if="managementReady"
+    class="home-page"
+  >
+    <BannerGraphic
+      :small="true"
+      :title="t('landing.welcomeToRancher', {vendor})"
+      :pref="HIDE_HOME_PAGE_CARDS"
+      pref-key="welcomeBanner"
+    />
     <IndentedPanel class="mt-20 mb-20">
-      <div v-if="!readWhatsNewAlready" class="row">
+      <div
+        v-if="!readWhatsNewAlready"
+        class="row"
+      >
         <div class="col span-12">
           <Banner
             data-testid="changelog-banner"
             color="info whats-new"
           >
             <div>{{ t('landing.seeWhatsNew') }}</div>
-            <a class="hand" @click.prevent.stop="showWhatsNew"><span v-html="t('landing.whatsNewLink')" /></a>
+            <a
+              class="hand"
+              @click.prevent.stop="showWhatsNew"
+            ><span v-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
       </div>
 
       <div class="row home-panels">
         <div class="col main-panel">
-          <div v-if="!showSetLoginBanner" class="mb-10 row">
+          <div
+            v-if="!showSetLoginBanner"
+            class="mb-10 row"
+          >
             <div class="col span-12">
-              <Banner color="set-login-page" :closable="true" @close="closeSetLoginBanner()">
+              <Banner
+                color="set-login-page"
+                :closable="true"
+                @close="closeSetLoginBanner()"
+              >
                 <div>{{ t('landing.landingPrefs.title') }}</div>
-                <a class="hand mr-20" @click.prevent.stop="showUserPrefs"><span v-html="t('landing.landingPrefs.userPrefs')" /></a>
+                <a
+                  class="hand mr-20"
+                  @click.prevent.stop="showUserPrefs"
+                ><span v-html="t('landing.landingPrefs.userPrefs')" /></a>
               </Banner>
             </div>
           </div>
           <div class="row panel">
-            <div v-if="mcm" class="col span-12">
+            <div
+              v-if="mcm"
+              class="col span-12"
+            >
               <SortableTable
                 :table-actions="false"
                 :row-actions="false"
@@ -289,20 +316,27 @@ export default {
                     <h2 class="mb-0">
                       {{ t('landing.clusters.title') }}
                     </h2>
-                    <BadgeState v-if="kubeClusters" :label="kubeClusters.length.toString()" color="role-tertiary ml-20 mr-20" />
+                    <BadgeState
+                      v-if="kubeClusters"
+                      :label="kubeClusters.length.toString()"
+                      color="role-tertiary ml-20 mr-20"
+                    />
                   </div>
                 </template>
-                <template v-if="canCreateCluster" #header-middle>
+                <template
+                  v-if="canCreateCluster"
+                  #header-middle
+                >
                   <div class="table-heading">
                     <n-link
                       :to="importLocation"
-                      class="btn btn-sm role-primary"
+                      class="btn role-primary"
                     >
                       {{ t('cluster.importAction') }}
                     </n-link>
                     <n-link
                       :to="createLocation"
-                      class="btn btn-sm role-primary"
+                      class="btn role-primary"
                     >
                       {{ t('generic.create') }}
                     </n-link>
@@ -311,7 +345,10 @@ export default {
                 <template #col:name="{row}">
                   <td>
                     <span v-if="row.mgmt">
-                      <n-link v-if="row.mgmt.isReady && !row.hasError" :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}">
+                      <n-link
+                        v-if="row.mgmt.isReady && !row.hasError"
+                        :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
+                      >
                         {{ row.nameDisplay }}
                       </n-link>
                       <span v-else>{{ row.nameDisplay }}</span>
@@ -344,7 +381,10 @@ export default {
                 </template> -->
               </SortableTable>
             </div>
-            <div v-else class="col span-12">
+            <div
+              v-else
+              class="col span-12"
+            >
               <SingleClusterInfo />
             </div>
           </div>

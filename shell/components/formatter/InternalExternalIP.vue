@@ -27,7 +27,12 @@ export default {
 <template>
   <span>
     <template v-if="isIp(row.externalIp)">
-      {{ row.externalIp }} <CopyToClipboard label-as="tooltip" :text="row.externalIp" class="icon-btn" action-color="bg-transparent" />
+      {{ row.externalIp }} <CopyToClipboard
+        label-as="tooltip"
+        :text="row.externalIp"
+        class="icon-btn"
+        action-color="bg-transparent"
+      />
     </template>
     <template v-else>
       {{ t('generic.none') }}
@@ -35,7 +40,12 @@ export default {
 
     <template v-if="showBoth">
       <template v-if="isIp(row.internalIp)">
-        / {{ row.internalIp }} <CopyToClipboard label-as="tooltip" :text="row.internalIp" class="icon-btn" action-color="bg-transparent" />
+        / {{ row.internalIp }} <CopyToClipboard
+          label-as="tooltip"
+          :text="row.internalIp"
+          class="icon-btn"
+          action-color="bg-transparent"
+        />
       </template>
       <template v-else>
         {{ t('generic.none') }}

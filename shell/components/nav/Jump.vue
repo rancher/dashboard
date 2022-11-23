@@ -10,8 +10,8 @@ export default {
   data() {
     return {
       isMac,
-      value:       '',
-      groups:      null,
+      value:  '',
+      groups: null,
     };
   },
 
@@ -65,9 +65,13 @@ export default {
       :placeholder="t('nav.resourceSearch.placeholder')"
       class="search"
       @keyup.esc="$emit('closeSearch')"
-    />
+    >
     <div class="results">
-      <div v-for="g in groups" :key="g.name" class="package">
+      <div
+        v-for="g in groups"
+        :key="g.name"
+        class="package"
+      >
         <Group
           v-if="!g.hidden"
           :key="g.name"
@@ -87,7 +91,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .search, .search:hover, search:focus {
+  .search, .search:hover, .search:focus {
     position: relative;
     background-color: var(--dropdown-bg);
     border-radius: 0;

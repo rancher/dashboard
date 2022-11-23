@@ -36,7 +36,7 @@ export default {
     Banner,
     YamlEditor,
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -44,12 +44,12 @@ export default {
   },
   data() {
     return {
-      errors:             [],
-      selectedRevision:   null,
-      currentRevision:    null,
-      revisions:          [],
-      editorMode:         EDITOR_MODES.DIFF_CODE,
-      showDiff:           false,
+      errors:           [],
+      selectedRevision: null,
+      currentRevision:  null,
+      revisions:        [],
+      editorMode:       EDITOR_MODES.DIFF_CODE,
+      showDiff:         false,
     };
   },
   computed: {
@@ -78,7 +78,7 @@ export default {
       // kubectl rollout undo deployment/[deployment name] --to-revision=[revision number] -v=8
       const body = [
         {
-          op:      'replace',
+          op:    'replace',
           path:  '/spec/template',
           value: {
             metadata: {
@@ -231,11 +231,21 @@ export default {
     class="prompt-rollback"
     :show-highlight-border="false"
   >
-    <h4 slot="title" class="text-default-text">
+    <h4
+      slot="title"
+      class="text-default-text"
+    >
       {{ t('promptRollback.modalTitle', { workloadName }, true) }}
     </h4>
-    <div slot="body" class="pl-10 pr-10 ">
-      <Banner v-if="revisions.length === 1" color="info" :label="t('promptRollback.singleRevisionBanner')" />
+    <div
+      slot="body"
+      class="pl-10 pr-10 "
+    >
+      <Banner
+        v-if="revisions.length === 1"
+        color="info"
+        :label="t('promptRollback.singleRevisionBanner')"
+      />
       <form>
         <LabeledSelect
           v-model="selectedRevision"
@@ -246,7 +256,13 @@ export default {
           :get-option-label="getOptionLabel"
         />
       </form>
-      <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
+      <Banner
+        v-for="(error, i) in errors"
+        :key="i"
+        class=""
+        color="error"
+        :label="error"
+      />
       <YamlEditor
         v-if="selectedRevision && showDiff"
         :key="selectedRevisionId"
@@ -257,7 +273,10 @@ export default {
         :as-object="true"
       />
     </div>
-    <div slot="actions" class="buttons ">
+    <div
+      slot="actions"
+      class="buttons "
+    >
       <div class="left">
         <button
           :disabled="!selectedRevision"
@@ -268,7 +287,10 @@ export default {
         </button>
       </div>
       <div class="right">
-        <button class="btn role-secondary mr-10" @click="close">
+        <button
+          class="btn role-secondary mr-10"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
         <AsyncButton

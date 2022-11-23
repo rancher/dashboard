@@ -53,7 +53,7 @@ export default {
 
     return {
       receiverOptions:      [],
-      doneLocationOverride:      {
+      doneLocationOverride: {
         name:   'c-cluster-monitoring-route-receiver',
         params: { cluster: this.$store.getters['clusterId'] },
         query:  { resource: MONITORING.SPOOFED.ROUTE }
@@ -78,54 +78,110 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <div v-if="!isView" class="row mb-10">
+    <div
+      v-if="!isView"
+      class="row mb-10"
+    >
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.name" :disabled="true" :label="t('generic.name')" :mode="mode" />
+        <LabeledInput
+          v-model="value.spec.name"
+          :disabled="true"
+          :label="t('generic.name')"
+          :mode="mode"
+        />
       </div>
     </div>
-    <Banner v-if="value.isRoot" color="info">
+    <Banner
+      v-if="value.isRoot"
+      color="info"
+    >
       {{ t("monitoringRoute.info") }}
     </Banner>
-    <Tabbed ref="tabbed" :side-tabs="true" default-tab="overview">
-      <Tab label="Receiver" :weight="2" name="receiver">
+    <Tabbed
+      ref="tabbed"
+      :side-tabs="true"
+      default-tab="overview"
+    >
+      <Tab
+        label="Receiver"
+        :weight="2"
+        name="receiver"
+      >
         <div class="row">
           <div class="col span-6">
-            <LabeledSelect v-model="value.spec.receiver" :options="receiverOptions" :label="t('monitoringRoute.receiver.label')" :mode="mode" />
+            <LabeledSelect
+              v-model="value.spec.receiver"
+              :options="receiverOptions"
+              :label="t('monitoringRoute.receiver.label')"
+              :mode="mode"
+            />
           </div>
         </div>
       </Tab>
-      <Tab label="Grouping" :weight="1" name="groups">
+      <Tab
+        label="Grouping"
+        :weight="1"
+        name="groups"
+      >
         <div class="row mb-20">
           <div class="col span-6">
             <span class="label">
               {{ t("monitoringRoute.groups.label") }}:
             </span>
-            <ArrayList v-if="!isView || value.spec.group_by.length > 0" v-model="value.spec.group_by" :label="t('monitoringRoute.groups.label')" :mode="mode" :initial-empty-row="true" />
+            <ArrayList
+              v-if="!isView || value.spec.group_by.length > 0"
+              v-model="value.spec.group_by"
+              :label="t('monitoringRoute.groups.label')"
+              :mode="mode"
+              :initial-empty-row="true"
+            />
             <div v-else>
               {{ t('generic.none') }}
             </div>
           </div>
         </div>
-        <hr class="divider" />
+        <hr class="divider">
         <div class="row mb-10">
           <div class="col span-6">
-            <LabeledInput v-model="value.spec.group_wait" :label="t('monitoringRoute.wait.label')" :mode="mode" />
+            <LabeledInput
+              v-model="value.spec.group_wait"
+              :label="t('monitoringRoute.wait.label')"
+              :mode="mode"
+            />
           </div>
           <div class="col span-6">
-            <LabeledInput v-model="value.spec.group_interval" :label="t('monitoringRoute.interval.label')" :mode="mode" />
+            <LabeledInput
+              v-model="value.spec.group_interval"
+              :label="t('monitoringRoute.interval.label')"
+              :mode="mode"
+            />
           </div>
         </div>
         <div class="row mb-10">
           <div class="col span-6">
-            <LabeledInput v-model="value.spec.repeat_interval" :label="t('monitoringRoute.repeatInterval.label')" :mode="mode" />
+            <LabeledInput
+              v-model="value.spec.repeat_interval"
+              :label="t('monitoringRoute.repeatInterval.label')"
+              :mode="mode"
+            />
           </div>
         </div>
       </Tab>
-      <Tab label="Matching" :weight="1" name="matching">
-        <Banner v-if="value.isRoot" color="info">
+      <Tab
+        label="Matching"
+        :weight="1"
+        name="matching"
+      >
+        <Banner
+          v-if="value.isRoot"
+          color="info"
+        >
           {{ t('monitoringRoute.matching.info') }}
         </Banner>
-        <div v-else class="row">
+        <div
+          v-else
+          class="row"
+        >
           <div class="col span-12">
             <span class="label">
               {{ t('monitoringRoute.matching.label') }}

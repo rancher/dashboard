@@ -14,7 +14,7 @@ export default {
 
     // volume name
     name: {
-      type:     String,
+      type:    String,
       default: ''
     },
 

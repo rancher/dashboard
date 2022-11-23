@@ -234,8 +234,14 @@ export default {
         </div>
       </template>
       <!-- Pass down templates provided by the caller -->
-      <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-        <slot :name="slot" v-bind="scope" />
+      <template
+        v-for="(_, slot) of $scopedSlots"
+        v-slot:[slot]="scope"
+      >
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
       </template>
     </v-select>
     <LabeledTooltip
@@ -260,6 +266,10 @@ export default {
       .vs__actions {
         visibility: hidden;
       }
+    }
+
+    & .vs--multiple ::v-deep .vs__selected-options .vs__selected {
+      width: auto;
     }
 
     ::v-deep .labeled-tooltip.error .status-icon {

@@ -127,8 +127,17 @@ export default {
       :mode="mode"
     />
 
-    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab name="basics" :label="t('harvester.network.tabs.basics')" :weight="99" class="bordered-table">
+    <Tabbed
+      v-bind="$attrs"
+      class="mt-15"
+      :side-tabs="true"
+    >
+      <Tab
+        name="basics"
+        :label="t('harvester.network.tabs.basics')"
+        :weight="99"
+        class="bordered-table"
+      >
         <LabeledInput
           v-model="type"
           class="mb-20"

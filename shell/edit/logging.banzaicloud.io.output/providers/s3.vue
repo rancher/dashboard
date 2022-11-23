@@ -7,7 +7,7 @@ export default {
   components: {
     Checkbox, LabeledInput, SecretSelector
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -49,21 +49,41 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.s3_endpoint" :mode="mode" :disabled="disabled" :label="t('logging.s3.endpoint')" />
+        <LabeledInput
+          v-model="value.s3_endpoint"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.s3.endpoint')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.s3_bucket" :mode="mode" :disabled="disabled" :label="t('logging.s3.bucket')" />
+        <LabeledInput
+          v-model="value.s3_bucket"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.s3.bucket')"
+        />
       </div>
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.path" :mode="mode" :disabled="disabled" :label="t('logging.s3.path')" />
+        <LabeledInput
+          v-model="value.path"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.s3.path')"
+        />
       </div>
       <div class="col span-6 overwrite">
-        <Checkbox v-model="overwrite" :mode="mode" :disabled="disabled" :label="t('logging.s3.overwriteExistingPath')" />
+        <Checkbox
+          v-model="overwrite"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.s3.overwriteExistingPath')"
+        />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>

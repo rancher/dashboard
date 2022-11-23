@@ -33,6 +33,13 @@ const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
+// Allow skipping of eslint check
+// 0 = Skip browser and console checks
+// 1 = Skip browser check
+// 2 = Do not skip any checks
+const skipEsLintCheckStr = (process.env.SKIP_ESLINT || '');
+const skipEsLintCheck = parseInt(skipEsLintCheckStr, 10) || 2;
+
 // ===============================================================================================
 // Nuxt configuration
 // ===============================================================================================
@@ -56,7 +63,10 @@ export default function(dir, _appConfig) {
     NUXT_SHELL = '~~/shell';
     COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
 
-    typescript = { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } };
+    // Skip eslint check that runs as part of nuxt build in the console
+    if (skipEsLintCheck > 0) {
+      typescript = { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } };
+    }
   }
 
   // ===============================================================================================
@@ -259,6 +269,22 @@ export default function(dir, _appConfig) {
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
 
+  // Nuxt modules
+  let nuxtModules = [
+    '@nuxtjs/proxy',
+    '@nuxtjs/axios',
+    '@nuxtjs/eslint-module',
+    '@nuxtjs/webpack-profile',
+    'cookie-universal-nuxt',
+    'portal-vue/nuxt',
+    path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
+  ];
+
+  // Remove es-lint nuxt module if env var configures this
+  if (skipEsLintCheck < 2) {
+    nuxtModules = nuxtModules.filter(s => !s.includes('eslint-module'));
+  }
+
   const config = {
     dev,
 
@@ -298,9 +324,9 @@ export default function(dir, _appConfig) {
 
     // Axios: https://axios.nuxtjs.org/options
     axios: {
-      https:          true,
-      proxy:          true,
-      retry:          { retries: 0 },
+      https: true,
+      proxy: true,
+      retry: { retries: 0 },
       // debug:   true
     },
 
@@ -330,12 +356,12 @@ export default function(dir, _appConfig) {
     ],
 
     dir: {
-      assets:     path.join(SHELL, 'assets'),
-      layouts:    path.join(SHELL, 'layouts'),
-      middleware: path.join(SHELL, 'middleware'),
-      pages:      path.join(SHELL, 'pages'),
-      static:     path.join(SHELL, 'static'),
-      store:      path.join(SHELL, 'store'),
+      assets:     path.posix.join(SHELL, 'assets'),
+      layouts:    path.posix.join(SHELL, 'layouts'),
+      middleware: path.posix.join(SHELL, 'middleware'),
+      pages:      path.posix.join(SHELL, 'pages'),
+      static:     path.posix.join(SHELL, 'static'),
+      store:      path.posix.join(SHELL, 'store'),
     },
 
     watchers: { webpack: { ignore: watcherIgnores } },
@@ -430,7 +456,7 @@ export default function(dir, _appConfig) {
 
         // And substitute our own loader for images
         config.module.rules.unshift({
-          test:    /\.(png|jpe?g|gif|svg|webp)$/,
+          test: /\.(png|jpe?g|gif|svg|webp)$/,
           use:  [
             {
               loader:  'url-loader',
@@ -470,7 +496,7 @@ export default function(dir, _appConfig) {
 
         // Prevent warning in log with the md files in the content folder
         config.module.rules.push({
-          test:    /\.md$/,
+          test: /\.md$/,
           use:  [
             {
               loader:  'frontmatter-markdown-loader',
@@ -489,9 +515,9 @@ export default function(dir, _appConfig) {
               require.resolve('@nuxt/babel-preset-app'),
               {
                 // buildTarget: isServer ? 'server' : 'client',
-                corejs:      { version: 3 },
-                targets:     isServer ? { node: '12' } : { browsers: ['last 2 versions'] },
-                modern:      !isServer
+                corejs:  { version: 3 },
+                targets: isServer ? { node: '12' } : { browsers: ['last 2 versions'] },
+                modern:  !isServer
               }
             ],
             '@babel/preset-typescript',
@@ -545,15 +571,7 @@ export default function(dir, _appConfig) {
     },
 
     // Nuxt modules
-    modules: [
-      '@nuxtjs/proxy',
-      '@nuxtjs/axios',
-      '@nuxtjs/eslint-module',
-      '@nuxtjs/webpack-profile',
-      'cookie-universal-nuxt',
-      'portal-vue/nuxt',
-      path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
-    ],
+    modules: nuxtModules,
 
     // Vue plugins
     plugins: [
@@ -620,8 +638,8 @@ export default function(dir, _appConfig) {
         key:  fs.readFileSync(path.resolve(dir, SHELL, 'server/server.key')),
         cert: fs.readFileSync(path.resolve(dir, SHELL, 'server/server.crt'))
       } : null),
-      port:      (devPorts ? 8005 : 80),
-      host:      '0.0.0.0',
+      port: (devPorts ? 8005 : 80),
+      host: '0.0.0.0',
     },
 
     // Server middleware

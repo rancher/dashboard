@@ -54,7 +54,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     ...mapGetters(['currentCluster']),
     containers() {
       const containers = this.allContainers;
@@ -225,8 +225,17 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTabs v-else mode="view" class="mt-20" :value="value">
-    <Tab :label="t('workload.container.titles.containers')" name="containers" :weight="3">
+  <ResourceTabs
+    v-else
+    mode="view"
+    class="mt-20"
+    :value="value"
+  >
+    <Tab
+      :label="t('workload.container.titles.containers')"
+      name="containers"
+      :weight="3"
+    >
       <SortableTable
         :rows="containers"
         :headers="containerHeaders"
@@ -237,7 +246,12 @@ export default {
         :table-actions="false"
       />
     </Tab>
-    <Tab v-if="v1MonitoringUrl" name="v1Metrics" :label="t('node.detail.tab.metrics')" :weight="0">
+    <Tab
+      v-if="v1MonitoringUrl"
+      name="v1Metrics"
+      :label="t('node.detail.tab.metrics')"
+      :weight="0"
+    >
       <LabeledSelect
         class="pod-metrics-chooser"
         :value="selection"
@@ -246,10 +260,18 @@ export default {
         @input="selectionChanged($event)"
       />
       <div id="ember-anchor">
-        <EmberPage inline="ember-anchor" :src="v1Metrics" />
+        <EmberPage
+          inline="ember-anchor"
+          :src="v1Metrics"
+        />
       </div>
     </Tab>
-    <Tab v-if="showMetrics" :label="t('workload.container.titles.metrics')" name="pod-metrics" :weight="2.5">
+    <Tab
+      v-if="showMetrics"
+      :label="t('workload.container.titles.metrics')"
+      name="pod-metrics"
+      :weight="2.5"
+    >
       <template #default="props">
         <DashboardMetrics
           v-if="props.active"

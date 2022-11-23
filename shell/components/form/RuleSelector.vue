@@ -104,7 +104,10 @@ export default {
 </script>
 
 <template>
-  <div class="rule-selector" :class="{[mode]: true}">
+  <div
+    class="rule-selector"
+    :class="{[mode]: true}"
+  >
     <ArrayList
       v-model="localValue"
       :protip="false"
@@ -124,12 +127,15 @@ export default {
           <div class="value">
             Value
           </div>
-          <div> </div>
+          <div />
         </div>
       </template>
       <template v-slot:columns="scope">
         <div class="key">
-          <LabeledInput v-model="scope.row.value.key" :mode="mode" />
+          <LabeledInput
+            v-model="scope.row.value.key"
+            :mode="mode"
+          />
         </div>
         <div class="operator">
           <Select
@@ -140,7 +146,12 @@ export default {
           />
         </div>
         <div class="value">
-          <LabeledInput :disabled="isValueDisabled(scope)" :value="getValue(scope)" :mode="mode" @input="onValueInput(scope, $event)" />
+          <LabeledInput
+            :disabled="isValueDisabled(scope)"
+            :value="getValue(scope)"
+            :mode="mode"
+            @input="onValueInput(scope, $event)"
+          />
         </div>
       </template>
     </ArrayList>

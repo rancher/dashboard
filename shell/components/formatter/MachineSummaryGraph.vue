@@ -39,8 +39,14 @@ export default {
     <template #popover>
       <table class="fixed">
         <tbody>
-          <tr v-for="obj in row.stateParts" :key="obj.label">
-            <td class="text-left pr-20" :class="{[obj.textColor]: true}">
+          <tr
+            v-for="obj in row.stateParts"
+            :key="obj.label"
+          >
+            <td
+              class="text-left pr-20"
+              :class="{[obj.textColor]: true}"
+            >
               {{ obj.label }}
             </td>
             <td class="text-right">
@@ -51,10 +57,23 @@ export default {
       </table>
     </template>
 
-    <div class="content" :class="{ horizontal }">
-      <ProgressBarMulti v-if="row.stateParts" :values="row.stateParts" class="progress-bar" />
-      <span v-if="row.desired === ready" class="count">{{ ready }}</span>
-      <span v-else class="count">{{ ready }} of {{ row.desired }}</span>
+    <div
+      class="content"
+      :class="{ horizontal }"
+    >
+      <ProgressBarMulti
+        v-if="row.stateParts"
+        :values="row.stateParts"
+        class="progress-bar"
+      />
+      <span
+        v-if="row.desired === ready"
+        class="count"
+      >{{ ready }}</span>
+      <span
+        v-else
+        class="count"
+      >{{ ready }} of {{ row.desired }}</span>
     </div>
   </v-popover>
 </template>

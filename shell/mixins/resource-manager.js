@@ -6,7 +6,7 @@ export default {
   data() {
     return { isLoadingSecondaryResources: false };
   },
-  methods:  {
+  methods: {
     /**
     *
     * Function resourceManagerFetchSecondaryResources
