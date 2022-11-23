@@ -85,11 +85,11 @@ export default Vue.extend({
   },
   data() {
     return {
-      value:             null as string | null,
-      selected:          null as string | null,
-      editedItem:        null as string | null,
-      isCreateItem:      false,
-      errors:            { duplicate: false } as Record<Error, boolean>
+      value:        null as string | null,
+      selected:     null as string | null,
+      editedItem:   null as string | null,
+      isCreateItem: false,
+      errors:       { duplicate: false } as Record<Error, boolean>
     };
   },
 
