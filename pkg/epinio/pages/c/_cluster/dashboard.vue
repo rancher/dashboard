@@ -14,7 +14,7 @@ export default Vue.extend<any, any, any, any>({
       sectionContent: [
         {
           title:       this.t('epinio.intro.cards.namespaces.title'),
-          icon:        'icon-epinio',
+          icon:        'icon-namespace',
           cta:         createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.NAMESPACE }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
           linkText:    this.t('epinio.intro.cards.namespaces.linkText'),
@@ -32,7 +32,7 @@ export default Vue.extend<any, any, any, any>({
         },
         {
           title:       this.t('epinio.intro.cards.services.title'),
-          icon:        'icon-epinio',
+          icon:        'icon-service',
           cta:         createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.SERVICE_INSTANCE }),
           linkText:    this.t('epinio.intro.cards.services.linkText'),

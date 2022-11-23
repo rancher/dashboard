@@ -42,6 +42,7 @@ epinio:
     allPackages: See all packages
     getBinaries: Get binaries
   intro:
+    dashboard: Dashboard
     welcome: Welcome to Epinio
     blurb: The Application Development Engine for Kubernetes
     description:  Epinio installs into any Kubernetes cluster to bring your application from source code to deployment and allow for Developers and Operators to work better together!

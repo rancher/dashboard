@@ -80,9 +80,8 @@ export function init($plugin: any, store: any) {
     customRoute: createEpinioRoute('c-cluster-applications', { }),
   });
 
-  // TODO: name not upercase (?)
   virtualType({
-    label:        EPINIO_TYPES.DASHBOARD,
+    label:        store.getters['i18n/t']('epinio.intro.dashboard'),
     icon:         'dashboard',
     group:        'Root',
     namespaced:   false,
