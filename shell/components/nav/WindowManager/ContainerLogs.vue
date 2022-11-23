@@ -3,18 +3,15 @@ import { saveAs } from 'file-saver';
 import AnsiUp from 'ansi_up';
 import { addParams } from '@shell/utils/url';
 import { base64Decode } from '@shell/utils/crypto';
-import {
-  LOGS_RANGE, LOGS_TIME, LOGS_WRAP, DATE_FORMAT, TIME_FORMAT
-} from '@shell/store/prefs';
+import { LOGS_RANGE, LOGS_TIME, LOGS_WRAP } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
 import VirtualList from 'vue-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
-import day from 'dayjs';
 
-import { escapeHtml, escapeRegex } from '@shell/utils/string';
+import { escapeRegex } from '@shell/utils/string';
 import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
 
 import Socket, {
@@ -215,17 +212,6 @@ export default {
       }
 
       return out;
-    },
-
-    timeFormatStr() {
-      const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
-      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
-
-      return `${ dateFormat } ${ timeFormat }`;
-    },
-
-    maxLines() {
-      return this.parseRange(this.range)?.tailLines;
     }
   },
 
@@ -327,7 +313,7 @@ export default {
         }
       }
 
-      if ( this.isFollowing) {
+      if ( this.isFollowing ) {
         this.$nextTick(() => {
           this.follow();
         });
@@ -436,14 +422,6 @@ export default {
       this.range = range;
       this.$store.dispatch('prefs/set', { key: LOGS_RANGE, value: this.range });
       this.connect();
-    },
-
-    format(time) {
-      if ( !time ) {
-        return '';
-      }
-
-      return day(time).format(this.timeFormatStr);
     },
 
     cleanup() {
@@ -594,6 +572,14 @@ export default {
           :keeps="200"
           @scroll="updateFollowing"
         />
+        <template v-if="!filtered.length">
+          <div v-if="search">
+            <span class="msg text-muted">{{ t('wm.containerLogs.noMatch') }}</span>
+          </div>
+          <div v-else>
+            <span class="msg text-muted">{{ t('wm.containerLogs.noData') }}</span>
+          </div>
+        </template>
       </div>
     </template>
   </Window>
@@ -613,7 +599,7 @@ export default {
     }
   }
 
-  .logs-container {
+  .logs-container{
     height: 100%;
     overflow: auto;
     padding: 5px;
@@ -625,31 +611,15 @@ export default {
       opacity: 0.25;
     }
 
-    .time {
-      white-space: nowrap;
-      display: none;
-      width: 0;
-      padding-right: 15px;
-      user-select: none;
+    &.wrap-lines ::v-deep  .msg {
+      white-space: pre-wrap;
     }
 
-    &.show-times .time {
+    &.show-times ::v-deep .time {
       display: initial;
       width: auto;
     }
 
-    .msg {
-      white-space: pre;
-
-      .highlight {
-        color: var(--logs-highlight);
-        background-color: var(--logs-highlight-bg);
-      }
-    }
-
-    &.wrap-lines .msg {
-      white-space: pre-wrap;
-    }
   }
 
   .containerPicker {

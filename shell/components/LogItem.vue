@@ -1,5 +1,7 @@
 <script>
 import day from 'dayjs';
+import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { escapeHtml } from '@shell/utils/string';
 
 export default {
   props: {
@@ -7,6 +9,15 @@ export default {
       type:    Object,
       default: () => {}
     }
+  },
+
+  computed: {
+    timeFormatStr() {
+      const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+
+      return `${ dateFormat } ${ timeFormat }`;
+    },
   },
 
   methods: {
@@ -22,8 +33,36 @@ export default {
 </script>
 
 <template>
-  <div>
-    <span v-html="format(source.time)" />
-    <span v-html="source.msg" />
+  <div class="line">
+    <span class="time">{{ format(source.time) }}</span>
+    <span
+      class="msg"
+      v-html="source.msg"
+    />
   </div>
 </template>
+
+<style lang='scss' scoped>
+.line {
+  font-family: Menlo,Consolas,monospace;
+  color: var(--logs-text);
+}
+
+.time {
+  white-space: nowrap;
+  display: none;
+  width: 0;
+  padding-right: 15px;
+  user-select: none;
+}
+
+.msg {
+  white-space: pre;
+
+  .highlight {
+    color: var(--logs-highlight);
+    background-color: var(--logs-highlight-bg);
+  }
+}
+
+</style>
