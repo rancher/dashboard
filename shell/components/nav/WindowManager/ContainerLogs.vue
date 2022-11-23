@@ -611,7 +611,7 @@ export default {
       opacity: 0.25;
     }
 
-    &.wrap-lines ::v-deep  .msg {
+    &.wrap-lines ::v-deep .msg {
       white-space: pre-wrap;
     }
 

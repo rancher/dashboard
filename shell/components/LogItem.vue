@@ -46,6 +46,7 @@ export default {
 .line {
   font-family: Menlo,Consolas,monospace;
   color: var(--logs-text);
+  display:flex;
 }
 
 .time {
