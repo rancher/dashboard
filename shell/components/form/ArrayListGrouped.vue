@@ -31,7 +31,7 @@ export default {
     },
   },
 
-  computed:   {
+  computed: {
     isView() {
       return this.mode === _VIEW;
     }

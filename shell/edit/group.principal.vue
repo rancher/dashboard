@@ -13,11 +13,11 @@ export default {
   mixins: [CreateEditView],
   data() {
     return {
-      errors:       [],
+      errors: [],
       valid:  false,
     };
   },
-  methods:  {
+  methods: {
     async save(buttonDone) {
       this.errors = [];
 

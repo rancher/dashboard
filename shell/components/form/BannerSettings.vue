@@ -81,16 +81,16 @@ export default ({
     textDecorationOptions() {
       const options = [
         {
-          style:  'fontWeight',
-          label:  this.t('banner.bannerDecoration.bannerBold')
+          style: 'fontWeight',
+          label: this.t('banner.bannerDecoration.bannerBold')
         },
         {
-          style:  'fontStyle',
-          label:  this.t('banner.bannerDecoration.bannerItalic')
+          style: 'fontStyle',
+          label: this.t('banner.bannerDecoration.bannerItalic')
         },
         {
-          style:  'textDecoration',
-          label:  this.t('banner.bannerDecoration.bannerUnderline')
+          style: 'textDecoration',
+          label: this.t('banner.bannerDecoration.bannerUnderline')
         }
       ];
 

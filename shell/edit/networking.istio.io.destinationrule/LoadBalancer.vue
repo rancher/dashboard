@@ -20,7 +20,7 @@ export default {
 
     // destinationrule.spec.trafficPolicy.loadBalancer
     value: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     }
   },

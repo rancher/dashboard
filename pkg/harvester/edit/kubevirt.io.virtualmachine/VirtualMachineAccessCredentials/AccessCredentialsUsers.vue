@@ -44,8 +44,8 @@ export default {
     },
 
     mode: {
-      type:     String,
-      default:  'create',
+      type:    String,
+      default: 'create',
     },
 
     disabled: {

@@ -130,7 +130,7 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="main-layout">
     <h1 class="text-center mt-50">
       <span v-if="testing">
         Testing Configuration&hellip;

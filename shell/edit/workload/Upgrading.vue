@@ -11,7 +11,7 @@ export default {
   components: {
     RadioGroup, UnitInput, InputWithSelect
   },
-  props:      {
+  props: {
     // spec
     value: {
       type:    Object,

@@ -41,11 +41,11 @@ export default {
         } else {
           out[key] = {
             key,
-            label:     state,
-            color:     textColor.replace(/text-/, 'bg-'),
+            label: state,
+            color: textColor.replace(/text-/, 'bg-'),
             textColor,
-            value:     1,
-            sort:      stateSort(textColor, state),
+            value: 1,
+            sort:  stateSort(textColor, state),
           };
         }
       }

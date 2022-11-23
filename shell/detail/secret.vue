@@ -26,7 +26,7 @@ export default {
 
   mixins: [CreateEditView],
 
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -103,7 +103,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     isCertificate() {
       return this.value._type === TYPES.TLS;
     },

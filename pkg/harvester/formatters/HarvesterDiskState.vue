@@ -9,7 +9,7 @@ export default {
   components: { BadgeState },
   props:      {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {

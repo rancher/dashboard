@@ -36,7 +36,7 @@ export default {
     }
   },
 
-  methods:  {
+  methods: {
     scaleDown() {
       this.row.scaleDown();
     },

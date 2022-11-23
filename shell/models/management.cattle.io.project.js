@@ -153,8 +153,8 @@ export default class Project extends HybridModel {
   get normanEditProject() {
     return (async() => {
       const normanProject = await this.$dispatch('rancher/find', {
-        type:       NORMAN.PROJECT,
-        id:         this.id.replace('/', ':'),
+        type: NORMAN.PROJECT,
+        id:   this.id.replace('/', ':'),
       }, { root: true });
 
       const clearedResourceQuotas = clearUnusedResourceQuotas(this.spec, ['resourceQuota', 'namespaceDefaultResourceQuota']);

@@ -17,33 +17,33 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:       'legacy.alerts',
-    name:           'v1-alerts',
-    group:          'Root',
-    namespaced:     true,
-    weight:         111,
-    route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'alerts' } },
-    exact:          true
+    labelKey:   'legacy.alerts',
+    name:       'v1-alerts',
+    group:      'Root',
+    namespaced: true,
+    weight:     111,
+    route:      { name: 'c-cluster-legacy-pages-page', params: { page: 'alerts' } },
+    exact:      true
   });
 
   virtualType({
-    labelKey:       'legacy.catalogs',
-    name:           'v1-catalogs',
-    group:          'Root',
-    namespaced:     true,
-    weight:         111,
-    route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'catalogs' } },
-    exact:          true
+    labelKey:   'legacy.catalogs',
+    name:       'v1-catalogs',
+    group:      'Root',
+    namespaced: true,
+    weight:     111,
+    route:      { name: 'c-cluster-legacy-pages-page', params: { page: 'catalogs' } },
+    exact:      true
   });
 
   virtualType({
-    labelKey:       'legacy.notifiers',
-    name:           'v1-notifiers',
-    group:          'Root',
-    namespaced:     true,
-    weight:         111,
-    route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'notifiers' } },
-    exact:          true
+    labelKey:   'legacy.notifiers',
+    name:       'v1-notifiers',
+    group:      'Root',
+    namespaced: true,
+    weight:     111,
+    route:      { name: 'c-cluster-legacy-pages-page', params: { page: 'notifiers' } },
+    exact:      true
   });
 
   virtualType({

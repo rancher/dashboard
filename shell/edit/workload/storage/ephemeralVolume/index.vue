@@ -10,7 +10,7 @@ export default {
     LabeledSelect, LabeledInput, Checkbox, Mount
   },
 
-  props:      {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {

@@ -51,13 +51,13 @@ export default {
 
   data() {
     return {
-      apps:                 [],
-      vendor:               getVendor(),
-      supportKey:           '',
-      brandSetting:         null,
-      uiIssuesSetting:      null,
-      serverSetting:        null,
-      promos:               [
+      apps:            [],
+      vendor:          getVendor(),
+      supportKey:      '',
+      brandSetting:    null,
+      uiIssuesSetting: null,
+      serverSetting:   null,
+      promos:          [
         'support.promos.one',
         'support.promos.two',
         'support.promos.three',

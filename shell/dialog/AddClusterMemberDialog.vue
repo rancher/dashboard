@@ -8,7 +8,7 @@ export default {
     ClusterPermissionsEditor
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true

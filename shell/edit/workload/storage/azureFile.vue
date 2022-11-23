@@ -6,7 +6,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 export default {
   components: { LabeledInput, Checkbox },
 
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {

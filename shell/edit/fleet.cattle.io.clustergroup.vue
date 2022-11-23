@@ -102,9 +102,9 @@ export default {
 
       this.matchingClusters = {
         matched,
-        total:   all.length,
-        isAll:   matched === all.length,
-        isNone:  matched === 0,
+        total:  all.length,
+        isAll:  matched === all.length,
+        isNone: matched === 0,
         sample,
       };
     }, 250, { leading: true }),

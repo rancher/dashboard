@@ -19,7 +19,7 @@ import { HCI } from '../types';
 import { randomStr } from '@shell/utils/string';
 import { RunStrategys } from '../config/harvester-map';
 import { _CONFIG, _EDIT, _VIEW } from '@shell/config/query-params';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 
 import VM_MIXIN from '../mixins/harvester-vm';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -104,8 +104,8 @@ export default {
               name:      '',
               namespace: ''
             },
-            spec:     templateSpec,
-            type:     HCI.VM_TEMPLATE
+            spec: templateSpec,
+            type: HCI.VM_TEMPLATE
           });
         }
 

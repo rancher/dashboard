@@ -102,13 +102,13 @@ export default {
     }
 
     const stepRepoInfo = {
-      name:             'stepRepoInfo',
-      title:            this.t('fleet.gitRepo.add.steps.repoInfo.title'),
-      label:            this.t('fleet.gitRepo.add.steps.repoInfo.label'),
-      subtext:          this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
-      descriptionKey:   'fleet.gitRepo.add.steps.repoInfo.description',
-      ready:            false,
-      weight:           30
+      name:           'stepRepoInfo',
+      title:          this.t('fleet.gitRepo.add.steps.repoInfo.title'),
+      label:          this.t('fleet.gitRepo.add.steps.repoInfo.label'),
+      subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
+      descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
+      ready:          false,
+      weight:         30
     };
 
     const stepTargetInfo = {
@@ -256,8 +256,8 @@ export default {
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
 
-    tlsMode:    'updateTls',
-    caBundle:   'updateTls',
+    tlsMode:  'updateTls',
+    caBundle: 'updateTls',
 
     workspace(neu) {
       if ( this.isCreate ) {

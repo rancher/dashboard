@@ -10,7 +10,7 @@ export default {
   components: {
     PolicyRule, Tabbed, Tab
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {

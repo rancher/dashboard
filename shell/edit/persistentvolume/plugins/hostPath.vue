@@ -5,7 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 export default {
   components: { LabeledInput, LabeledSelect },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },

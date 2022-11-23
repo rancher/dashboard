@@ -2,7 +2,7 @@
 import LabelValue from '@shell/components/LabelValue';
 import { Banner } from '@components/Banner';
 import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { LONGHORN, METRIC } from '@shell/config/types';
 import { HCI } from '../../types';
 import HarvesterCPUUsed from '../../formatters/HarvesterCPUUsed';

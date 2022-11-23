@@ -10,7 +10,7 @@ export default {
     AsyncButton,
     Banner,
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true

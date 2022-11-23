@@ -12,8 +12,8 @@ export default Vue.extend<any, any, any, any>({
       type:    [String, Object, Number, Array]
     },
     rules: {
-      default:   () => [],
-      type:       Array as PropType<Rule[]>,
+      default: () => [],
+      type:    Array as PropType<Rule[]>,
     },
     asBanner: {
       default: false,

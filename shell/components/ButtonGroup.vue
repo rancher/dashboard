@@ -27,7 +27,7 @@ export default {
     },
 
     disabled: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     }
 

@@ -80,7 +80,7 @@ export default {
     const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
 
     return {
-      secondaryResourceData:       {
+      secondaryResourceData: {
         namespace: null,
         data:      {
           [STORAGE_CLASS]: {

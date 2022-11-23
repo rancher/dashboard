@@ -98,7 +98,7 @@ export default {
       default: null,
     },
     steps: {
-      type:     Array,
+      type:    Array,
       default: () => []
     },
 
@@ -362,6 +362,7 @@ export default {
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
       @submit.prevent
+      @keydown.enter.prevent
     >
       <div
         v-if="hasErrors"

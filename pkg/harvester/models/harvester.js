@@ -4,11 +4,11 @@ import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 export default class HarvesterResource extends SteveModel {
   get listLocation() {
     return this.$rootGetters['type-map/optionsFor'](this.type).customRoute || {
-      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
-      params:   {
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params: {
         product:  HARVESTER_PRODUCT,
-        cluster:   this.$rootGetters['clusterId'],
-        resource:  this.type,
+        cluster:  this.$rootGetters['clusterId'],
+        resource: this.type,
       },
     };
   }
@@ -31,8 +31,8 @@ export default class HarvesterResource extends SteveModel {
     const id = this.id?.replace(/.*\//, '');
 
     return {
-      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
-      params:   {
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+      params: {
         product:   HARVESTER_PRODUCT,
         cluster:   this.$rootGetters['clusterId'],
         resource:  this.type,

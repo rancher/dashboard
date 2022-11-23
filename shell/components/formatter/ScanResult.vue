@@ -1,7 +1,7 @@
 <script>
 import { get } from '@shell/utils/object';
 export default {
-  props:      {
+  props: {
     value: {
       type:    [String, Number],
       default: null,

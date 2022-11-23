@@ -4,11 +4,11 @@
 
 // image
 export const IMAGE_DOWNLOAD_SIZE = {
-  name:      'downloadedBytes',
-  labelKey:  'tableHeaders.size',
-  value:     'downSize',
-  sort:      'status.size',
-  width:     120
+  name:     'downloadedBytes',
+  labelKey: 'tableHeaders.size',
+  value:    'downSize',
+  sort:     'status.size',
+  width:    120
 };
 
 export const IMAGE_PROGRESS = {
@@ -21,7 +21,7 @@ export const IMAGE_PROGRESS = {
 
 // SSH keys
 export const FINGERPRINT = {
-  name:      'Fingerprint',
-  labelKey:  'tableHeaders.fingerprint',
-  value:     'status.fingerPrint',
+  name:     'Fingerprint',
+  labelKey: 'tableHeaders.fingerprint',
+  value:    'status.fingerPrint',
 };

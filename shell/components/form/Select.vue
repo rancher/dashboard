@@ -268,6 +268,10 @@ export default {
       }
     }
 
+    & .vs--multiple ::v-deep .vs__selected-options .vs__selected {
+      width: auto;
+    }
+
     ::v-deep .labeled-tooltip.error .status-icon {
       top: 7px;
       right: 2px;

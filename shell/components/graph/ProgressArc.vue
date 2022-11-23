@@ -6,7 +6,7 @@ export default {
       type:    Number,
       default: 0
     },
-    graphWidth:      {
+    graphWidth: {
       type:     Number,
       required: true
     },
@@ -37,10 +37,10 @@ export default {
       const arc = d3.arc();
 
       return arc({
-        innerRadius:  vm.innerRadius,
-        outerRadius:  vm.outerRadius,
-        endAngle:     2 * (Math.PI),
-        startAngle:   0
+        innerRadius: vm.innerRadius,
+        outerRadius: vm.outerRadius,
+        endAngle:    2 * (Math.PI),
+        startAngle:  0
       });
     },
     arc() {

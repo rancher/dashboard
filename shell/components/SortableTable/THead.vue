@@ -52,8 +52,8 @@ export default {
       required: true,
     },
     checkWidth: {
-      type:     Number,
-      default:  30,
+      type:    Number,
+      default: 30,
     },
     rowActionsWidth: {
       type:     Number,
@@ -407,6 +407,10 @@ export default {
       .table-header-container {
         display: flex;
         align-items: center;
+
+        > span {
+          display: contents;
+        }
 
         &.not-filterable {
           margin-top: -2px;

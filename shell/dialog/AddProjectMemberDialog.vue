@@ -9,7 +9,7 @@ export default {
     ProjectMemberEditor
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -18,7 +18,7 @@ export default {
 
   data() {
     return {
-      member:       {
+      member: {
         permissionGroup: 'member',
         custom:          {},
         principalId:     '',
@@ -89,7 +89,7 @@ export default {
 
     <div
       slot="body"
-      class="pl-10 pr-10"
+      class="pl-10 pr-10 pb-10"
     >
       <ProjectMemberEditor
         v-model="member"
@@ -125,5 +125,12 @@ export default {
     display: flex;
     justify-content: flex-end;
     width: 100%;
+  }
+</style>
+
+<style lang="scss">
+  .card-container {
+    border: 1px solid var(--border);
+    box-shadow: none;
   }
 </style>

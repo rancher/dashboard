@@ -44,8 +44,8 @@ function credentialDefaultProvider(accessKey, secretKey) {
     // The SDK will complain if these aren't set, so fill them with something
     // even though the cloudCredential will be used eventually
     const out = {
-      accessKeyId:         accessKey || randomStr(),
-      secretAccessKey:     secretKey || randomStr(),
+      accessKeyId:     accessKey || randomStr(),
+      secretAccessKey: secretKey || randomStr(),
     };
 
     return out;
@@ -164,8 +164,8 @@ export const actions = {
         memoryBytes:       row.MemoryInfo.SizeInMiB * 1024 * 1024,
         label:             rootGetters['i18n/t']('cluster.machineConfig.aws.sizeLabel', {
           apiName,
-          cpu:          row.VCpuInfo.DefaultVCpus,
-          memory:       row.MemoryInfo.SizeInMiB / 1024,
+          cpu:    row.VCpuInfo.DefaultVCpus,
+          memory: row.MemoryInfo.SizeInMiB / 1024,
           storageSize,
           storageUnit,
           storageType,

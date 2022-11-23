@@ -5,7 +5,7 @@ import Window from './Window';
 export default {
   components: { Window, ChartReadme },
 
-  props:      {
+  props: {
     // The definition of the tab itself
     tab: {
       type:     Object,

@@ -57,15 +57,15 @@ export const CAPI = {
 };
 
 export const CATALOG = {
-  CERTIFIED:     'catalog.cattle.io/certified',
-  _RANCHER:      'rancher',
-  _PARTNER:      'partner',
-  _OTHER:         'other',
+  CERTIFIED: 'catalog.cattle.io/certified',
+  _RANCHER:  'rancher',
+  _PARTNER:  'partner',
+  _OTHER:    'other',
 
-  EXPERIMENTAL:  'catalog.cattle.io/experimental',
-  NAMESPACE:     'catalog.cattle.io/namespace',
-  RELEASE_NAME:  'catalog.cattle.io/release-name',
-  FEATURED:      'catalog.cattle.io/featured',
+  EXPERIMENTAL: 'catalog.cattle.io/experimental',
+  NAMESPACE:    'catalog.cattle.io/namespace',
+  RELEASE_NAME: 'catalog.cattle.io/release-name',
+  FEATURED:     'catalog.cattle.io/featured',
 
   REQUIRES_GVK:     'catalog.cattle.io/requires-gvr',
   PROVIDES:         'catalog.cattle.io/provides-gvr',
@@ -75,14 +75,14 @@ export const CATALOG = {
   REQUESTS_CPU:     'catalog.cattle.io/requests-cpu',
   REQUESTS_MEMORY:  'catalog.cattle.io/requests-memory',
 
-  SCOPE:            'catalog.cattle.io/scope',
-  _MANAGEMENT:      'management',
-  _DOWNSTREAM:      'downstream',
+  SCOPE:       'catalog.cattle.io/scope',
+  _MANAGEMENT: 'management',
+  _DOWNSTREAM: 'downstream',
 
-  TYPE:             'catalog.cattle.io/type',
-  _APP:             'app',
-  _CLUSTER_TPL:     'cluster-template',
-  _CLUSTER_TOOL:    'cluster-tool',
+  TYPE:          'catalog.cattle.io/type',
+  _APP:          'app',
+  _CLUSTER_TPL:  'cluster-template',
+  _CLUSTER_TOOL: 'cluster-tool',
 
   COMPONENT:        'catalog.cattle.io/ui-component',
   SOURCE_REPO_TYPE: 'catalog.cattle.io/ui-source-repo-type',
@@ -92,7 +92,7 @@ export const CATALOG = {
 
   SUPPORTED_OS: 'catalog.cattle.io/os',
   PERMITTED_OS: 'catalog.cattle.io/permits-os',
-  DEPLOYED_OS:   'catalog.cattle.io/deploys-on-os',
+  DEPLOYED_OS:  'catalog.cattle.io/deploys-on-os',
 
   MIGRATED: 'apps.cattle.io/migrated',
   MANAGED:  'catalog.cattle.io/managed',
@@ -129,57 +129,20 @@ export const ANNOTATIONS_TO_FOLD = [
 ];
 
 export const HCI = {
-  CLUSTER_ID:                   'harvesterhci.io/clusterId',
-  CLOUD_INIT:                   'harvesterhci.io/cloud-init-template',
-  CURRENT_IP:                   'rke2.io/internal-ip',
-  OWNED_BY:                     'harvesterhci.io/owned-by',
-  CREATED_BY:                   'kubevirt.io/created-by',
-  IMAGE_ID:                     'harvesterhci.io/imageId',
-  SSH_NAMES:                    'harvesterhci.io/sshNames',
-  CIRD_NETWORK:                 'k8s.v1.cni.cncf.io/networks',
-  NETWORK_IPS:                  'network.harvesterhci.io/ips',
-  TEMPLATE_VERSION_CUSTOM_NAME: 'template-version.harvesterhci.io/customName',
-  CREATOR:                      'harvesterhci.io/creator',
-  OS:                           'harvesterhci.io/os',
-  NETWORK_TYPE:                 'network.harvesterhci.io/type',
-  VM_NAME:                      'harvesterhci.io/vmName',
-  VM_NAME_PREFIX:               'harvesterhci.io/vmNamePrefix',
-  VM_RESERVED_MEMORY:           'harvesterhci.io/reservedMemory',
-  MAINTENANCE_STATUS:           'harvesterhci.io/maintain-status',
-  HOST_CUSTOM_NAME:             'harvesterhci.io/host-custom-name',
-  HOST_CONSOLE_URL:             'harvesterhci.io/host-console-url',
-  BACKUP_TARGET:                'backup.harvesterhci.io/backup-target',
-  RESTORE_NAME:                 'restore.harvesterhci.io/name',
-  NODE_ROLE_MASTER:             'node-role.kubernetes.io/master',
-  NODE_ROLE_CONTROL_PLANE:      'node-role.kubernetes.io/control-plane',
-  PROMOTE_STATUS:               'harvesterhci.io/promote-status',
-  MIGRATION_STATE:              'harvesterhci.io/migrationState',
-  VOLUME_CLAIM_TEMPLATE:        'harvesterhci.io/volumeClaimTemplates',
-  IMAGE_NAME:                   'harvesterhci.io/image-name',
-  INIT_IP:                      'etcd.rke2.cattle.io/node-address',
-  NODE_SCHEDULABLE:             'kubevirt.io/schedulable',
-  NETWORK_ROUTE:                'network.harvesterhci.io/route',
-  CLOUD_PROVIDER_IPAM:          'cloudprovider.harvesterhci.io/ipam',
-  OS_UPGRADE_IMAGE:             'harvesterhci.io/os-upgrade-image',
-  UPGRADE_IMAGE:                'harvesterhci.io/upgradeImage',
-  LATEST_UPGRADE:               'harvesterhci.io/latestUpgrade',
-  UPGRADE_STATE:                'harvesterhci.io/upgradeState',
-  REAY_MESSAGE:                 'harvesterhci.io/read-message',
-  DYNAMIC_SSHKEYS_NAMES:        'harvesterhci.io/dynamic-ssh-key-names',
-  DYNAMIC_SSHKEYS_USERS:        'harvesterhci.io/dynamic-ssh-key-users',
-  VM_VOLUME_STATUS:             'harvesterhci.io/volume-status',
-  IMAGE_SUFFIX:                 'harvesterhci.io/image-type',
-  OS_TYPE:                      'harvesterhci.io/os-type',
-  HOST_REQUEST:                 'management.cattle.io/pod-requests',
+  CLOUD_INIT:          'harvesterhci.io/cloud-init-template',
+  CLOUD_PROVIDER_IPAM: 'cloudprovider.harvesterhci.io/ipam',
+  NETWORK_ROUTE:       'network.harvesterhci.io/route',
+  IMAGE_NAME:          'harvesterhci.io/image-name',
+  NETWORK_TYPE:        'network.harvesterhci.io/type',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
 // Can't use ui.cattle.io - it seems to strip these out - so using io.rancher
 export const CLUSTER_BADGE = {
   // Badge text - badge is only shown if badge text is not empty
-  TEXT:        'ui.rancher/badge-text',
+  TEXT:      'ui.rancher/badge-text',
   // Badge color - as a hex color - e.g. #ff00ff
-  COLOR:       'ui.rancher/badge-color',
+  COLOR:     'ui.rancher/badge-color',
   // Custom icon text - max 2 characters
-  ICON_TEXT:   'ui.rancher/badge-icon-text',
+  ICON_TEXT: 'ui.rancher/badge-icon-text',
 };

@@ -209,7 +209,7 @@ export default {
     this.selectContainer(container);
 
     return {
-      secondaryResourceData:       {
+      secondaryResourceData: {
         namespace: this.value?.metadata?.namespace || null,
         data:      {
           [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
@@ -226,7 +226,7 @@ export default {
               }
             ]
           },
-          [NODE]:            {
+          [NODE]: {
             applyTo: [
               { var: 'allNodeObjects' },
               {
@@ -250,31 +250,31 @@ export default {
           },
         }
       },
-      namespacedConfigMaps:        [],
-      allNodes:                    null,
-      allNodeObjects:              [],
-      namespacedSecrets:           [],
-      imagePullNamespacedSecrets:  [],
-      allServices:                 [],
-      headlessServices:            [],
-      name:                        this.value?.metadata?.name || null,
-      pvcs:                        [],
-      namespacedServiceNames:      [],
-      showTabs:                    false,
-      pullPolicyOptions:           ['Always', 'IfNotPresent', 'Never'],
+      namespacedConfigMaps:       [],
+      allNodes:                   null,
+      allNodeObjects:             [],
+      namespacedSecrets:          [],
+      imagePullNamespacedSecrets: [],
+      allServices:                [],
+      headlessServices:           [],
+      name:                       this.value?.metadata?.name || null,
+      pvcs:                       [],
+      namespacedServiceNames:     [],
+      showTabs:                   false,
+      pullPolicyOptions:          ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      servicesOwned:               [],
-      servicesToRemove:            [],
-      portsForServices:            [],
+      servicesOwned:              [],
+      servicesToRemove:           [],
+      portsForServices:           [],
       isInitContainer,
       container,
-      containerChange:             0,
-      tabChange:                   0,
-      podFsGroup:                  podTemplateSpec.securityContext?.fsGroup,
-      savePvcHookName:             'savePvcHook',
-      tabWeightMap:                TAB_WEIGHT_MAP,
-      fvFormRuleSets:              [{
+      containerChange:            0,
+      tabChange:                  0,
+      podFsGroup:                 podTemplateSpec.securityContext?.fsGroup,
+      savePvcHookName:            'savePvcHook',
+      tabWeightMap:               TAB_WEIGHT_MAP,
+      fvFormRuleSets:             [{
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
       fvReportedValidationPaths: ['spec'],

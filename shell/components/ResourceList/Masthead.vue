@@ -24,7 +24,7 @@ export default {
       required: true,
     },
     favoriteResource: {
-      type:     String,
+      type:    String,
       default: null
     },
     schema: {
@@ -163,7 +163,7 @@ export default {
 </script>
 
 <template>
-  <header>
+  <header class="header-layout">
     <slot name="typeDescription">
       <TypeDescription :resource="resource" />
     </slot>

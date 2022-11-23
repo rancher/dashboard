@@ -31,8 +31,8 @@ export default {
 
   data() {
     return {
-      allFleet:      [],
-      allBundles:    []
+      allFleet:   [],
+      allBundles: []
     };
   },
 

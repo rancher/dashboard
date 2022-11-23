@@ -39,8 +39,8 @@ export default {
 
   data() {
     return {
-      targetType:    'public',
-      targetUrl:     null,
+      targetType: 'public',
+      targetUrl:  null,
     };
   },
 

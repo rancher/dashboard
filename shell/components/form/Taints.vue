@@ -5,7 +5,7 @@ import Select from '@shell/components/form/Select';
 
 const EFFECT_VALUES = {
   NO_SCHEDULE:        'NoSchedule',
-  PREFER_NO_SCHEDULE:  'PreferNoSchedule',
+  PREFER_NO_SCHEDULE: 'PreferNoSchedule',
   NO_EXECUTE:         'NoExecute',
 };
 

@@ -53,7 +53,7 @@ export default {
       default: 'Key'
     },
     mode: {
-      type:     String,
+      type:    String,
       default: _EDIT
     }
   },

@@ -38,9 +38,9 @@ export default {
 
   data() {
     return {
-      repos:       [],
-      branches:    [],
-      files:       [],
+      repos:    [],
+      branches: [],
+      files:    [],
 
       loadingRecentRepos: true,
       loadingBranches:    true,
@@ -52,7 +52,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     ...mapState({
       scopes:      state => state.github.scopes,
       recentRepos: state => state.github.repos,

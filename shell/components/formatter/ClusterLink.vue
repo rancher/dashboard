@@ -2,9 +2,9 @@
 import { get } from '@shell/utils/object';
 
 export default {
-  props:      {
+  props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {
@@ -16,7 +16,7 @@ export default {
       default: null,
     }
   },
-  computed:   {
+  computed: {
     to() {
       if ( this.row && this.reference ) {
         return get(this.row, this.reference);

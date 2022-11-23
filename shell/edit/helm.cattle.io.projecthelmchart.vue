@@ -49,9 +49,9 @@ export default {
 
   data() {
     return {
-      systemNamespaces:       null,
-      namespaces:             [],
-      loading:                true
+      systemNamespaces: null,
+      namespaces:       [],
+      loading:          true
     };
   },
 

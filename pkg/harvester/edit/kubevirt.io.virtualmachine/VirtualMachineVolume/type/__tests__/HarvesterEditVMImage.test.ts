@@ -12,8 +12,8 @@ describe('component: HarvesterEditVMImage', () => {
         validateRequired: true,
         idx:              1
       },
-      mocks:     {
-        $store:    {
+      mocks: {
+        $store: {
           getters: {
             'harvester/all': jest.fn(),
             'i18n/t':        jest.fn(),
@@ -38,8 +38,8 @@ describe('component: HarvesterEditVMImage', () => {
         validateRequired: true,
         idx:              1
       },
-      mocks:     {
-        $store:    {
+      mocks: {
+        $store: {
           getters: {
             'harvester/all': jest.fn(),
             'i18n/t':        jest.fn(),
@@ -66,8 +66,8 @@ describe('component: HarvesterEditVMImage', () => {
         validateRequired: true,
         idx:              1
       },
-      mocks:     {
-        $store:    {
+      mocks: {
+        $store: {
           getters: {
             'harvester/all': jest.fn(),
             'i18n/t':        jest.fn(),
@@ -97,8 +97,8 @@ describe('component: HarvesterEditVMImage', () => {
         validateRequired: true,
         idx:              1
       },
-      mocks:     {
-        $store:    {
+      mocks: {
+        $store: {
           getters: {
             'harvester/all': jest.fn(),
             'i18n/t':        jest.fn(),

@@ -10,7 +10,7 @@ export default {
     LabeledInput, LabeledSelect, InputOrDisplay
   },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'

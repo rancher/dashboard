@@ -4,7 +4,7 @@ import ContainerShell from './ContainerShell';
 export default {
   extends: ContainerShell,
 
-  props:      {
+  props: {
     // The definition of the tab itself
     machine: {
       type:     Object,

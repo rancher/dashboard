@@ -11,7 +11,7 @@ export default {
     FleetRepos,
     Masthead,
   },
-  mixins:     [ResourceFetch],
+  mixins: [ResourceFetch],
   props:  {
     schema: {
       type:     Object,

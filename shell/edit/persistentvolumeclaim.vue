@@ -77,7 +77,7 @@ export default {
     const defaultTab = this.$route.query[FOCUS] || null;
 
     return {
-      secondaryResourceData:       {
+      secondaryResourceData: {
         namespace: this.value?.metadata?.namespace || null,
         data:      {
           [PV]: {
@@ -91,7 +91,7 @@ export default {
                       const status = s.status.phase === 'Available' ? '' : ` (${ s.status.phase })`;
 
                       return {
-                        label:  `${ s.metadata.name }${ status }`,
+                        label: `${ s.metadata.name }${ status }`,
                         value: s.metadata.name
                       };
                     })
