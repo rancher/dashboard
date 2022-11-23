@@ -229,6 +229,10 @@ export default {
       }
     },
 
+    handleProviderError(err) {
+      this.err = err;
+    },
+
     async loginLocal(buttonCb) {
       try {
         await this.$store.dispatch('auth/login', {
@@ -390,6 +394,7 @@ export default {
             :name="name"
             :open="!showLocal"
             @showInputs="showLocal = false"
+            @error="handleProviderError"
           />
         </div>
         <template v-if="hasLocal">
