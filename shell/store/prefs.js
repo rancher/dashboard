@@ -470,8 +470,16 @@ export const actions = {
     return server;
   },
 
-  setLastVisited({ state, dispatch }, route) {
+  setLastVisited({ state, dispatch, getters }, route) {
     if (!route) {
+      return;
+    }
+
+    // Only save the last visited page if the user has that set as the login route preference
+    const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
+    const doNotTrackLastVisited = typeof afterLoginRoutePref !== 'string' || afterLoginRoutePref !== 'last-visited';
+
+    if (doNotTrackLastVisited) {
       return;
     }
 
