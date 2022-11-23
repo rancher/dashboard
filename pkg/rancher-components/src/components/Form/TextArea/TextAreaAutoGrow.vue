@@ -24,14 +24,14 @@ export default Vue.extend({
     },
 
     /**
-     * Sets the Minimum height for Text Area. Prevents the height from becoming 
+     * Sets the Minimum height for Text Area. Prevents the height from becoming
      * smaller than the value specified in minHeight.
      */
     minHeight: {
       type:    Number,
       default: 25
     },
-    
+
     /**
      * Sets the maximum height for Text Area. Prevents the height from becoming
      * larger than the value specified in maxHeight.
@@ -50,7 +50,7 @@ export default Vue.extend({
     },
 
     /**
-     * Specifies whether Text Area is subject to spell checking by the 
+     * Specifies whether Text Area is subject to spell checking by the
      * underlying browser/OS.
      */
     spellcheck: {
@@ -83,7 +83,7 @@ export default Vue.extend({
     },
 
     /**
-     * Sets the height to one-line for SSR pageload so that it's already right 
+     * Sets the height to one-line for SSR pageload so that it's already right
      * (unless the input is long)
      */
     style(): string {
@@ -112,7 +112,7 @@ export default Vue.extend({
   },
 
   methods: {
-    /** 
+    /**
      * Emits the input event and resizes the Text Area.
     */
     onInput(val: string): void {
@@ -128,7 +128,7 @@ export default Vue.extend({
     },
 
     /**
-     * Sets the overflowY and height of the Text Area based on the content 
+     * Sets the overflowY and height of the Text Area based on the content
      * entered (calculated via scroll height).
      */
     autoSize(): void {
