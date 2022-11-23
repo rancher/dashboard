@@ -21,7 +21,7 @@ export default {
   data() {
     return {
       options: {
-        'footer.docs':   'https://docs.harvesterhci.io/latest/',
+        'footer.docs':   'https://docs.harvesterhci.io/v1.1',
         'footer.forums': 'https://forums.rancher.com/c/harvester/',
         'footer.slack':  'https://slack.rancher.io',
         'footer.issue':  'https://github.com/harvester/harvester/issues/new/choose'
