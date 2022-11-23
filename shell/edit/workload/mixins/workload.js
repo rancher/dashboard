@@ -47,6 +47,7 @@ import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
+import { defaultContainer } from '@shell/models/workload';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -871,9 +872,9 @@ export default {
         nameNumber++;
       }
       const container = {
-        imagePullPolicy: 'Always',
-        name:            `container-${ nameNumber }`,
-        active:          true
+        ...defaultContainer,
+        name:   `container-${ nameNumber }`,
+        active: true
       };
 
       this.podTemplateSpec.containers.push(container);
