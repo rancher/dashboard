@@ -107,6 +107,21 @@ describe('StringList.vue', () => {
       expect(item.element.className).not.toContain('selected');
     });
 
+    it('emit type:item event', async () => {
+      // activate create mode
+      await wrapper.setData({ isCreateItem: true });
+
+      const inputField = wrapper.find('[data-testid="item-create"]');
+
+      // set input value to 'F'
+      await inputField.setValue('F');
+      await wrapper.vm.$nextTick();
+
+      const emitted = (wrapper.emitted('type:item') as any)[0][0][0];
+
+      expect(emitted).toBe('F');
+    });
+
   });
 
   describe('Buttons', () => {
