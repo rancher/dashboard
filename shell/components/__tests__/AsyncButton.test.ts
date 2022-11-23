@@ -7,7 +7,7 @@ describe('component: AsyncButton', () => {
     const mockT = jest.fn().mockReturnValue('some-string');
 
     const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             'i18n/exists': mockExists,
@@ -44,7 +44,7 @@ describe('component: AsyncButton', () => {
     jest.useFakeTimers();
 
     const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             'i18n/exists': jest.fn(),
@@ -81,7 +81,7 @@ describe('component: AsyncButton', () => {
     jest.useFakeTimers();
 
     const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             'i18n/exists': jest.fn(),
@@ -113,7 +113,7 @@ describe('component: AsyncButton', () => {
 
   it('click on async button should emit click and update state properly ::: CB "cancelled"', () => {
     const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             'i18n/exists': jest.fn(),

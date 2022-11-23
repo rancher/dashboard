@@ -71,10 +71,10 @@ describe('component: ConsumptionGauge', () => {
 
     const wrapper = mount(ConsumptionGauge, {
       propsData: {
-        resourceName:       'some-resource-name',
-        capacity:           1000,
-        used:               200,
-        units:              'cores',
+        resourceName: 'some-resource-name',
+        capacity:     1000,
+        used:         200,
+        units:        'cores',
         colorStops
       },
       slots: { title: '<p class="slot-class">another title</p>' }
