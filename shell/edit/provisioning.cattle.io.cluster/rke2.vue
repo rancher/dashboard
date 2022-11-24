@@ -67,6 +67,7 @@ import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
+import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -326,6 +327,10 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    isElementalCluster() {
+      return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
 
     advancedTitleAlt() {
@@ -605,11 +610,11 @@ export default {
     },
 
     showCisProfile() {
-      return this.provider === 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
+      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs.profile || this.agentArgs.profile );
     },
 
     needCredential() {
-      if ( this.provider === 'custom' || this.provider === 'import' || this.mode === _VIEW ) {
+      if ( this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW ) {
         return false;
       }
 
@@ -629,11 +634,17 @@ export default {
     },
 
     machineConfigSchema() {
+      let schemaAddress;
+
       if ( !this.hasMachinePools ) {
         return null;
+      } else if (this.isElementalCluster) {
+        schemaAddress = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+      } else {
+        schemaAddress = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
 
-      const schema = this.$store.getters['management/schemaFor'](`${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`);
+      const schema = this.$store.getters['management/schemaFor'](schemaAddress);
 
       return schema;
     },
@@ -1026,8 +1037,17 @@ export default {
 
       if ( existing?.length ) {
         for ( const pool of existing ) {
-          const type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          let type;
+
+          if (this.isElementalCluster) {
+            type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+          } else {
+            type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          }
+
+          const id = `pool${ ++this.lastIdx }`;
           let config;
+          let configMissing = false;
 
           if ( this.$store.getters['management/canList'](type) ) {
             try {
@@ -1036,12 +1056,14 @@ export default {
                 id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
               });
             } catch (e) {
-              // Some users can't see the config, that's ok.
+              // Some users can't see the config, that's ok. we will display a banner for a 404
+              if (e?.status === 404) {
+                if (this.isElementalCluster) {
+                  configMissing = true;
+                }
+              }
             }
           }
-
-          // @TODO what if the pool is missing?
-          const id = `pool${ ++this.lastIdx }`;
 
           out.push({
             id,
@@ -1050,6 +1072,7 @@ export default {
             update: true,
             pool:   clone(pool),
             config: config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
+            configMissing
           });
         }
       }
@@ -1058,7 +1081,7 @@ export default {
     },
 
     async addMachinePool(idx) {
-      if ( !this.machineConfigSchema ) {
+      if ( !this.machineConfigSchema && !this.isElementalCluster ) {
         return;
       }
 
@@ -1097,6 +1120,11 @@ export default {
       if (this.provider === 'vmwarevsphere') {
         pool.pool.machineOS = 'linux';
       }
+
+      if (this.isElementalCluster) {
+        pool.pool.machineConfigRef.apiVersion = 'elemental.cattle.io/v1beta1';
+      }
+
       this.machinePools.push(pool);
 
       this.$nextTick(() => {
@@ -1169,6 +1197,10 @@ export default {
           entry.config = await entry.config.save();
         }
 
+        if ( !entry.pool.hostnamePrefix ) {
+          entry.pool.hostnamePrefix = `${ prefix }-`;
+        }
+
         finalPools.push(entry.pool);
       }
 
@@ -1194,7 +1226,7 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || !!this.credentialId);
+      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
     },
 
     cancelCredential() {
@@ -1918,7 +1950,7 @@ export default {
             </Tab>
           </template>
           <div v-if="!unremovedMachinePools.length">
-            You do not have any machine pools defined, click the plus to add one.
+            {{ t('cluster.machinePool.noPoolsDisclaimer') }}
           </div>
         </Tabbed>
         <div class="spacer" />
