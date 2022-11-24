@@ -34,10 +34,8 @@ rawdata = fs.readFileSync(path.join(scriptFolder, 'package.json'));
 const upgradePackage = JSON.parse(rawdata);
 
 // Update dependency versions to match the latest from the creator
-Object.keys(latestPackage.dependencies).forEach((key) => {
-  const version = latestPackage.dependencies[key];
-
-  appPackage.dependencies[key] = version;
+Object.keys(latestPackage._pkgs).forEach((key) => {
+  appPackage.dependencies[key] = latestPackage._pkgs[key];
 });
 
 // Add in the weback resolution
@@ -49,7 +47,7 @@ const shellVersion = upgradePackage.version;
 
 appPackage.dependencies['@rancher/shell'] = shellVersion;
 
-fs.writeFileSync(path.join(dest, 'package.json'), JSON.stringify(appPackage, null, 2));
+fs.writeFileSync(path.join(dest, 'package.json'), JSON.stringify(appPackage, null, 2) + '\n');
 
 spawnSync(`yarn`, ['install'], {
   cwd: dest,

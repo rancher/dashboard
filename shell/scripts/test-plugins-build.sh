@@ -30,7 +30,7 @@ if [ $SKIP_SETUP == "false" ]; then
   fi
 
   set +e
-  RUNNING=$(ps -A | grep Verdaccio -c)
+  RUNNING=$(pgrep Verdaccio | wc -l | xargs)
   set -e
 
   if [ $RUNNING -eq 0 ]; then
@@ -45,7 +45,7 @@ if [ $SKIP_SETUP == "false" ]; then
 
     # Remove existing admin if already there
     if [ -f ~/.config/verdaccio/htpasswd ]; then
-      sed -i '/^admin:/d' ~/.config/verdaccio/htpasswd
+      sed -i.bak -e '/^admin:/d' ~/.config/verdaccio/htpasswd
     fi
 
     curl -XPUT -H "Content-type: application/json" -d '{ "name": "admin", "password": "admin" }' 'http://localhost:4873/-/user/admin' > login.json
