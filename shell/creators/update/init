@@ -40,6 +40,10 @@ Object.keys(latestPackage.dependencies).forEach((key) => {
   appPackage.dependencies[key] = version;
 });
 
+// Add in the weback resolution
+appPackage.resolutions = appPackage.resolutions || {};
+appPackage.resolutions['**/webpack'] = '4';
+
 // Update the version of @rancher/shell
 const shellVersion = upgradePackage.version;
 
