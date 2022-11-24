@@ -79,10 +79,28 @@ export default {
       return this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
     },
 
+    // User can go to Cluster Management if they can see the cluster schema
+    canManageClusters() {
+      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+      return !!schema;
+    },
+
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
       return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
+
+    manageLocation() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  MANAGER,
+          cluster:  BLANK_CLUSTER,
+          resource: CAPI.RANCHER_CLUSTER
+        },
+      };
     },
 
     createLocation() {
@@ -338,17 +356,26 @@ export default {
                   </div>
                 </template>
                 <template
-                  v-if="canCreateCluster"
+                  v-if="canCreateCluster || canManageClusters"
                   #header-middle
                 >
                   <div class="table-heading">
                     <n-link
+                      v-if="canManageClusters"
+                      :to="manageLocation"
+                      class="btn role-secondary"
+                    >
+                      {{ t('cluster.manageAction') }}
+                    </n-link>
+                    <n-link
+                      v-if="canCreateCluster"
                       :to="importLocation"
                       class="btn role-primary"
                     >
                       {{ t('cluster.importAction') }}
                     </n-link>
                     <n-link
+                      v-if="canCreateCluster"
                       :to="createLocation"
                       class="btn role-primary"
                     >
@@ -453,7 +480,7 @@ export default {
     height: 39px;
 
     & > a {
-      margin-left: 5px;
+      margin-left: 10px;
     }
   }
   .panel:not(:first-child) {
@@ -472,6 +499,7 @@ export default {
     display: contents;
     white-space: nowrap;
   }
+
   .list-cluster-name {
     align-items: center;
     display: flex;
@@ -479,6 +507,13 @@ export default {
     .conditions-alert-icon {
       color: var(--error);
       margin-left: 4px;
+    }
+  }
+
+  // Hide the side-panel showing links when the screen is small
+  @media screen and (max-width: 996px) {
+    .side-panel {
+      display: none;
     }
   }
 </style>
