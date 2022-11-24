@@ -241,6 +241,7 @@ about:
     cli: CLI
     helm: Helm
     machine: Machine
+    rancher: Rancher
     releaseNotes: 'View release notes'
   os:
     mac: macOS

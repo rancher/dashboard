@@ -117,7 +117,7 @@ export default {
             target="_blank"
             rel="nofollow noopener noreferrer"
           >
-            {{ appName }}
+            {{ t("about.versions.rancher") }}
           </a>
         </td><td>{{ rancherVersion.value }}</td>
       </tr>
