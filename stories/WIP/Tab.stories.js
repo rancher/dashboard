@@ -9,9 +9,6 @@ export default {
 export const Story = (args, { argTypes }) => ({
   components: { Tabbed, Tab },
   props:      Object.keys(argTypes),
-  data() {
-    return { isActive: true };
-  },
   template:   `
       <Tabbed v-bind="$props">
         <Tab name="test1" badge="0" label="new">
@@ -24,5 +21,6 @@ export const Story = (args, { argTypes }) => ({
 
 Story.story = { name: 'Tabs' };
 Story.args = {
-  label: 'test'
+  label:    'test',
+  useHash:  false
 };

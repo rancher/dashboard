@@ -92,25 +92,28 @@ export default {
     sortedTabs(tabs) {
       const {
         defaultTab,
-        useHash,
-        $route: { hash }
+        useHash
       } = this;
       const activeTab = tabs.find(t => t.active);
 
-      const windowHash = hash.slice(1);
-      const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
       const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
-        if (useHash && !isEmpty(windowHashTabMatch)) {
-          this.select(windowHashTabMatch.name);
+        if (useHash) {
+          const { $route: { hash } } = this;
+          const windowHash = hash.slice(1);
+          const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
+
+          if ( !isEmpty(windowHashTabMatch )) {
+            this.select(windowHashTabMatch.name);
+          } else if (useHash && activeTab?.name === windowHash) {
+            this.select(activeTab.name);
+          }
         } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find(t => t.name === defaultTab))) {
           this.select(defaultTab);
         } else if (firstTab?.name) {
           this.select(firstTab.name);
         }
-      } else if (useHash && activeTab?.name === windowHash) {
-        this.select(activeTab.name);
       }
     },
   },
@@ -148,11 +151,7 @@ export default {
     },
 
     select(name/* , event */) {
-      const {
-        sortedTabs,
-        $route: { hash: routeHash },
-        $router: { currentRoute },
-      } = this;
+      const { sortedTabs } = this;
 
       const selected = this.find(name);
       const hashName = `#${ name }`;
@@ -161,12 +160,19 @@ export default {
         return;
       }
 
-      if (this.useHash && routeHash !== hashName) {
-        const kurrentRoute = { ...currentRoute };
+      if ( this.useHash ) {
+        const {
+          $route: { hash: routeHash },
+          $router: { currentRoute },
+        } = this;
 
-        kurrentRoute.hash = hashName;
+        if (this.useHash && routeHash !== hashName) {
+          const kurrentRoute = { ...currentRoute };
 
-        this.$router.replace(kurrentRoute);
+          kurrentRoute.hash = hashName;
+
+          this.$router.replace(kurrentRoute);
+        }
       }
 
       for ( const tab of sortedTabs ) {

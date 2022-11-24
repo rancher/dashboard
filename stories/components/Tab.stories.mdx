@@ -9,18 +9,13 @@ import Tabbed from '@shell/components/Tabbed';
 
 export const Template = (args, { argTypes, events }) => ({
   components: { Tabbed, Tab },
-  data() {
-    return {
-      isActive: true,
-    }
-  },
   props:      Object.keys(argTypes),
   template:   `
       <Tabbed v-bind="$props">
-        <Tab name="test1" badge="0" label="new">
+        <Tab name="test1" label="new" >
           <div name="test1">Test one content</div>
         </Tab>
-        <Tab name="test2" error="true" label="new2"><div name="test1">Test two content</div></Tab>
+        <Tab name="test2" label="new2"><div name="test1">Test two content</div></Tab>
       </Tabbed>
     `
 });
@@ -45,8 +40,9 @@ Tabs are used to separate information into logical sections and to quickly navig
   <Story
     name="Tab"
     args={{
-      label: 'new',
-      name: 'test',
+      useHash: false,
+      showTabsAddRemove: true,
+      defaultTab: "test2"
     }}>
     {Template.bind({})}
   </Story>
@@ -54,5 +50,5 @@ Tabs are used to separate information into logical sections and to quickly navig
 
 ### Props table
 
-<ArgsTable of={Tab} />
+<ArgsTable of={Tabbed} />
 
