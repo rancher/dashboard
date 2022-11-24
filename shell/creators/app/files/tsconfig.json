@@ -33,7 +33,8 @@
       "@types/node",
       "@nuxt/types",
       "cypress",
-      "rancher"
+      "rancher",
+      "shell"
     ]
   },
   "exclude": [

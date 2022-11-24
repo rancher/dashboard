@@ -1,6 +1,6 @@
 {
-  "name": "@rancher/create-app",
-  "description": "Rancher UI Application generator",
+  "name": "@rancher/create-update",
+  "description": "Rancher UI Update helper",
   "version": "0.0.0",
   "license": "Apache-2.0",
   "author": "SUSE",
@@ -8,17 +8,12 @@
   "bin": "./init",
   "files": [
     "**/*.*",
-    "init"
+    "init",
+    "upgrade"
   ],
   "engines": {
     "node": ">=12"
   },
-  "_requires": [
-    "core-js",
-    "css-loader",
-    "@types/lodash",
-    "@rancher/components"
-  ],
   "dependencies": {
     "fs-extra": "^10.0.0"
   }
