@@ -56,29 +56,11 @@ export default {
           const status = hash[type].status;
           // if it's namespaced, we get the data on 'items' prop, for non-namespaced it's  'data' prop...
           const requestData = hash[type].value.items || hash[type].value.data || hash[type].value;
-          const schema = this.$store.getters['cluster/schemaFor'](type);
 
           if (status === 'fulfilled' && resourceData.data[type] && resourceData.data[type].applyTo?.length) {
             for (let y = 0; y < resourceData.data[type].applyTo.length; y++) {
               const apply = resourceData.data[type].applyTo[y];
               let resources = requestData;
-
-              if (schema?.attributes?.namespaced) {
-                // The resources returned when requesting namespaced types do not contain id, type and links properties.
-                // This isn't perfect, or universally applicable, but will work for the current set of use cases
-                // To make this more generic
-                // - id param = this.$store.getters['cluster/keyFieldForType'](type)
-                // - id value = new dashboard-store getter, overwritten by steve store getter
-                requestData.forEach((item) => {
-                  // if there's already a prop type, don't overwrite it without storing it first...
-                  // only do this operation once in multiple apply's because the requestData is the same!
-                  if (item.type && !item._type) {
-                    item._type = item.type;
-                  }
-                  item.type = type;
-                  item.id = `${ item.metadata.namespace }/${ item.metadata.name }`;
-                });
-              }
 
               if (apply.classify) {
                 resources = await this.$store.dispatch('cluster/createMany', requestData);
