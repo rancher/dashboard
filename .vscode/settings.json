@@ -40,4 +40,7 @@
     "vuex",
     "whatsnew"
   ],
+  "cSpell.enableFiletypes": [
+    "markdown"
+  ],
 }
