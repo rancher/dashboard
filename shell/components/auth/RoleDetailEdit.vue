@@ -638,12 +638,7 @@ export default {
                   </span>
                 </div>
                 <div :class="ruleClass">
-                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
-                    <span
-                      v-if="isNamespaced"
-                      class="required"
-                    >*</span>
-                  </span>
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}</span>
                 </div>
                 <div
                   v-if="!isNamespaced"
