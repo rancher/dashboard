@@ -787,7 +787,6 @@ export default {
       align-items: center;
       display: flex;
       > i {
-        font-size: 24px;
         padding: 0 5px;
       }
 
@@ -940,7 +939,6 @@ export default {
       > i {
         height: $ns_dropdown_size;
         width: $ns_dropdown_size;
-        font-size: 20px;
         cursor: pointer;
         text-align: center;
         line-height: $ns_dropdown_size;

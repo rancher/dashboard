@@ -1530,7 +1530,6 @@ export default {
     .actions.role-multi-action {
       background-color: transparent;
       border: none;
-      font-size: 18px;
       &:hover, &:focus {
         background-color: var(--accent-btn);
         box-shadow: none;

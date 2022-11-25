@@ -266,7 +266,6 @@ $width: 150px;
       margin-left: 5px;
     }
     .icon {
-      font-size: $height;
       width: $height;
       color: var(--primary);
       margin-top: 1px;
