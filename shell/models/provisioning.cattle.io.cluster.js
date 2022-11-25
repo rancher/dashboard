@@ -114,12 +114,12 @@ export default class ProvCluster extends SteveModel {
         label:      this.$rootGetters['i18n/t']('nav.kubeconfig.download'),
         icon:       'icon icon-download',
         bulkable:   true,
-        enabled:    this.mgmt?.hasAction('generateKubeconfig') && ready,
+        enabled:    this.mgmt?.hasAction('generateKubeconfig'),
       }, {
         action:   'copyKubeConfig',
         label:    this.t('cluster.copyConfig'),
         bulkable: false,
-        enabled:  this.mgmt?.hasAction('generateKubeconfig') && ready,
+        enabled:  this.mgmt?.hasAction('generateKubeconfig'),
         icon:     'icon icon-copy',
       }, {
         action:     'snapshotAction',
