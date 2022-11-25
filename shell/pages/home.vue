@@ -40,6 +40,14 @@ export default {
   fetch() {
     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
+      this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+    }
+
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+    }
   },
 
   data() {
@@ -174,6 +182,12 @@ export default {
     // Update last visited on load
     await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
     markSeenReleaseNotes(this.$store);
+  },
+
+  // Forget the types when we leave the page
+  beforeDestroy() {
+    this.$store.dispatch('management/forgetType', CAPI.MACHINE);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
   },
 
   methods: {
@@ -344,15 +358,22 @@ export default {
                 </template>
                 <template #col:name="{row}">
                   <td>
-                    <span v-if="row.mgmt">
-                      <n-link
-                        v-if="row.mgmt.isReady && !row.hasError"
-                        :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
-                      >
-                        {{ row.nameDisplay }}
-                      </n-link>
-                      <span v-else>{{ row.nameDisplay }}</span>
-                    </span>
+                    <div class="list-cluster-name">
+                      <span v-if="row.mgmt">
+                        <n-link
+                          v-if="row.mgmt.isReady && !row.hasError"
+                          :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
+                        >
+                          {{ row.nameDisplay }}
+                        </n-link>
+                        <span v-else>{{ row.nameDisplay }}</span>
+                      </span>
+                      <i
+                        v-if="row.unavailableMachines"
+                        v-tooltip="row.unavailableMachines"
+                        class="conditions-alert-icon icon-alert icon"
+                      />
+                    </div>
                   </td>
                 </template>
                 <template #col:cpu="{row}">
@@ -450,6 +471,15 @@ export default {
   .getting-started-btn {
     display: contents;
     white-space: nowrap;
+  }
+  .list-cluster-name {
+    align-items: center;
+    display: flex;
+
+    .conditions-alert-icon {
+      color: var(--error);
+      margin-left: 4px;
+    }
   }
 </style>
 <style lang="scss">

@@ -63,6 +63,11 @@ export default {
     </n-link>
     <span v-else>{{ value }}</span>
     <i
+      v-if="row.unavailableMachines"
+      v-tooltip="row.unavailableMachines"
+      class="conditions-alert-icon icon-alert icon"
+    />
+    <i
       v-if="row.rkeTemplateUpgrade"
       v-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
       class="template-upgrade-icon icon-alert icon"

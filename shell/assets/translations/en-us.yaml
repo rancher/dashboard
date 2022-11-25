@@ -1533,6 +1533,10 @@ cluster:
 
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
+  availabilityWarnings:
+    node: Node {name} is inactive
+    machine: Machine {name} is inactive
+
   detail:
     provisioner: Provisioner
     kubernetesVersion: Kubernetes Version

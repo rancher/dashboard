@@ -48,6 +48,10 @@ export default {
       hash.etcdSnapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
     }
 
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
+      hash.capiMachines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+    }
+
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
       hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
     }
