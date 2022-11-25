@@ -79,7 +79,7 @@ export default Vue.extend({
       class="closer"
       @click="$emit('close')"
     >
-      <i class="icon icon-2x icon-close closer-icon" />
+      <i class="icon icon-close closer-icon" />
     </div>
   </div>
 </template>
@@ -125,7 +125,6 @@ export default Vue.extend({
       text-align: center;
 
       .closer-icon {
-        font-size: 22px;
         opacity: 0.7;
 
         &:hover {
