@@ -363,21 +363,21 @@ export default {
                     <n-link
                       v-if="canManageClusters"
                       :to="manageLocation"
-                      class="btn role-secondary"
+                      class="btn btn-sm role-secondary"
                     >
                       {{ t('cluster.manageAction') }}
                     </n-link>
                     <n-link
                       v-if="canCreateCluster"
                       :to="importLocation"
-                      class="btn role-primary"
+                      class="btn btn-sm role-primary"
                     >
                       {{ t('cluster.importAction') }}
                     </n-link>
                     <n-link
                       v-if="canCreateCluster"
                       :to="createLocation"
-                      class="btn role-primary"
+                      class="btn btn-sm role-primary"
                     >
                       {{ t('generic.create') }}
                     </n-link>
@@ -519,9 +519,15 @@ export default {
 </style>
 <style lang="scss">
 .home-page {
-  .search > INPUT {
-    background-color: transparent;
-    padding: 8px;
+  .search {
+    align-items: center;
+    display: flex;
+
+    > INPUT {
+      background-color: transparent;
+      height: 30px;
+      padding: 8px;
+    }
   }
 
   h2 {
