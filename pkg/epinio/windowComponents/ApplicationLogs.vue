@@ -32,9 +32,9 @@ export default {
 
   mixins: [ApplicationSocketMixin],
 
-  props:      {
+  props: {
     ansiToHtml: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     },
   },

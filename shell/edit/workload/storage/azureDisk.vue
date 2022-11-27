@@ -8,7 +8,7 @@ export default {
   components: {
     LabeledInput, RadioGroup, Checkbox
   },
-  props:      {
+  props: {
     // volumeAttributes object
     value: {
       type:    Object,

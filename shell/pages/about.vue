@@ -20,7 +20,7 @@ export default {
       SETTING
     };
   },
-  computed:   {
+  computed: {
     rancherVersion() {
       return this.settings.find(s => s.id === SETTING.VERSION_RANCHER);
     },
@@ -117,7 +117,7 @@ export default {
             target="_blank"
             rel="nofollow noopener noreferrer"
           >
-            {{ appName }}
+            {{ t("about.versions.rancher") }}
           </a>
         </td><td>{{ rancherVersion.value }}</td>
       </tr>

@@ -3,10 +3,10 @@ import NormanModel from '@shell/plugins/steve/norman-class';
 export default class Rke1EtcdBackup extends NormanModel {
   get _availableActions() {
     const restore = {
-      action:     'promptRestore',
-      enabled:    true,
-      icon:       'icon icon-fw icon-backup-restore',
-      label:      'Restore'
+      action:  'promptRestore',
+      enabled: true,
+      icon:    'icon icon-fw icon-backup-restore',
+      label:   'Restore'
     };
 
     const baseActions = super._availableActions;

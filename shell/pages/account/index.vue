@@ -43,7 +43,7 @@ export default {
       canChangePassword: false
     };
   },
-  computed:   {
+  computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
     apiKeyheaders() {

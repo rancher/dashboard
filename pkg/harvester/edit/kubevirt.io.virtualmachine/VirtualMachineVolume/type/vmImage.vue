@@ -16,7 +16,7 @@ export default {
     UnitInput, LabeledInput, LabeledSelect, InputOrDisplay
   },
 
-  props:  {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -25,8 +25,8 @@ export default {
     },
 
     namespace: {
-      type:     String,
-      default:  null
+      type:    String,
+      default: null
     },
 
     mode: {

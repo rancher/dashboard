@@ -226,7 +226,7 @@ export default {
 
 <template>
   <div>
-    <header class="header">
+    <header class="header-layout header">
       <div class="title">
         <div class="primaryheader">
           <h1>

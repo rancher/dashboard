@@ -6,19 +6,19 @@ import { EPINIO_SERVICE_PARAM } from '../edit/services.vue';
 export default class EpinioCatalogServiceModel extends EpinioMetaResource {
   get _availableActions() {
     return [{
-      action:     'createService',
-      label:      this.t('generic.create'),
-      icon:       'icon icon-fw icon-chevron-up',
-      enabled:    true,
+      action:  'createService',
+      label:   this.t('generic.create'),
+      icon:    'icon icon-fw icon-chevron-up',
+      enabled: true,
     }];
   }
 
   get links() {
     return {
-      update:      this.getUrl(),
-      self:        this.getUrl(),
-      remove:      this.getUrl(),
-      create:      this.getUrl(null), // ensure name is null
+      update: this.getUrl(),
+      self:   this.getUrl(),
+      remove: this.getUrl(),
+      create: this.getUrl(null), // ensure name is null
     };
   }
 
@@ -58,8 +58,8 @@ export default class EpinioCatalogServiceModel extends EpinioMetaResource {
 
   createService() {
     const serviceCreateLocation = createEpinioRoute(`c-cluster-resource-create`, {
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  EPINIO_TYPES.SERVICE_INSTANCE,
+      cluster:  this.$rootGetters['clusterId'],
+      resource: EPINIO_TYPES.SERVICE_INSTANCE,
     });
 
     return this.currentRouter().push({

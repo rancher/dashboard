@@ -3,13 +3,13 @@ export default {
   props: {
     // a "r, g, b" tuple
     primaryColorVar: {
-      type:     String,
+      type:    String,
       default: null,
     },
 
     // Show the left side
     showTab: {
-      type:     Boolean,
+      type:    Boolean,
       default: true,
     },
     showSolid: {

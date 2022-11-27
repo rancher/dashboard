@@ -8,7 +8,7 @@ export default {
   components: {
     Banner, LabeledInput, SimpleSecretSelector
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,

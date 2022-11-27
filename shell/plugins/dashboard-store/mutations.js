@@ -10,12 +10,12 @@ function registerType(state, type) {
 
   if ( !cache ) {
     cache = {
-      list:             [],
-      haveAll:          false,
-      haveSelector:     {},
-      revision:         0, // The highest known resourceVersion from the server for this type
-      generation:       0, // Updated every time something is loaded for this type
-      loadCounter:      0, // Used to cancel incremental loads if the page changes during load
+      list:         [],
+      haveAll:      false,
+      haveSelector: {},
+      revision:     0, // The highest known resourceVersion from the server for this type
+      generation:   0, // Updated every time something is loaded for this type
+      loadCounter:  0, // Used to cancel incremental loads if the page changes during load
     };
 
     // Not enumerable so they don't get sent back to the client for SSR

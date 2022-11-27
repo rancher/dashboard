@@ -210,4 +210,17 @@ export default class Namespace extends SteveModel {
   set resourceQuota(value) {
     Vue.set(this.metadata.annotations, RESOURCE_QUOTA, JSON.stringify(value));
   }
+
+  // Preserve the project label - ensures we preserve project when cloning a namespace
+  cleanForNew() {
+    const project = this.metadata?.labels?.[PROJECT];
+
+    super.cleanForNew();
+
+    if (project) {
+      this.metadata = this.metadata || {};
+      this.metadata.labels = this.metadata.labels || {};
+      this.metadata.labels[PROJECT] = project;
+    }
+  }
 }

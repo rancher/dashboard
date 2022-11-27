@@ -43,10 +43,10 @@ export default class MgmtCluster extends HybridModel {
     const out = super._availableActions;
 
     insertAt(out, 0, {
-      action:     'openShell',
-      label:      this.t('nav.shell'),
-      icon:       'icon icon-terminal',
-      enabled:    !!this.links.shell,
+      action:  'openShell',
+      label:   this.t('nav.shell'),
+      icon:    'icon icon-terminal',
+      enabled: !!this.links.shell,
     });
 
     insertAt(out, 1, {
@@ -59,11 +59,11 @@ export default class MgmtCluster extends HybridModel {
     });
 
     insertAt(out, 2, {
-      action:     'copyKubeConfig',
-      label:      this.t('cluster.copyConfig'),
-      bulkable:   false,
-      enabled:    this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
-      icon:       'icon icon-copy',
+      action:   'copyKubeConfig',
+      label:    this.t('cluster.copyConfig'),
+      bulkable: false,
+      enabled:  this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
+      icon:     'icon icon-copy',
     });
 
     return out;

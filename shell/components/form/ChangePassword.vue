@@ -53,7 +53,7 @@ export default {
       },
     };
   },
-  computed:   {
+  computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
     isRandomGenerated: {
@@ -242,7 +242,7 @@ export default {
         type:       NORMAN.USER,
         actionName: 'setpassword',
         resource:   user,
-        body:          { newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP },
+        body:       { newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP },
       });
     },
 
@@ -251,7 +251,7 @@ export default {
         await this.$store.dispatch('rancher/collectionAction', {
           type:       NORMAN.USER,
           actionName: 'changepassword',
-          body:          {
+          body:       {
             currentPassword: this.form.currentP,
             newPassword:     this.isRandomGenerated ? this.form.genP : this.form.newP
           },

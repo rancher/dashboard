@@ -19,11 +19,11 @@ export default class ClusterRepo extends SteveModel {
     insertAt(out, 0, { divider: true });
 
     insertAt(out, 0, {
-      action:     'refresh',
-      label:      this.t('action.refresh'),
-      icon:       'icon icon-refresh',
-      enabled:    !!this.links.update,
-      bulkable:   true,
+      action:   'refresh',
+      label:    this.t('action.refresh'),
+      icon:     'icon icon-refresh',
+      enabled:  !!this.links.update,
+      bulkable: true,
     });
 
     return out;
@@ -127,8 +127,8 @@ export default class ClusterRepo extends SteveModel {
   get details() {
     return [
       {
-        label:     'Type',
-        content:   this.typeDisplay,
+        label:   'Type',
+        content: this.typeDisplay,
       },
       {
         label:         'Downloaded',

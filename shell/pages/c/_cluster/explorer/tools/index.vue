@@ -115,10 +115,10 @@ export default {
 
       let charts = filterAndArrangeCharts(enabledCharts, {
         clusterProvider,
-        showDeprecated:   this.showDeprecated,
-        showHidden:       this.showHidden,
-        showRepos:        [this.rancherCatalog?._key],
-        showTypes:        [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
+        showDeprecated: this.showDeprecated,
+        showHidden:     this.showHidden,
+        showRepos:      [this.rancherCatalog?._key],
+        showTypes:      [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
       });
 
       charts = charts.filter(c => c.sideLabel !== 'Experimental');

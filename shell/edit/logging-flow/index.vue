@@ -116,7 +116,7 @@ export default {
       allNodes:           null,
       allPods:            null,
       filtersYaml,
-      initialFiltersYaml:   filtersYaml,
+      initialFiltersYaml: filtersYaml,
       globalOutputRefs,
       localOutputRefs
     };

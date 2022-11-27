@@ -8,7 +8,7 @@ const IGNORE_IMAGES = ['istio/proxy', 'gcr.io/istio-release/proxy', 'mirrored-is
 export default {
   props: {
     value: {
-      type:     [Array, String],
+      type:    [Array, String],
       default: () => {
         return [];
       }

@@ -42,7 +42,7 @@ export default {
       errors: null,
       form:   {
         expiryType:        'never',
-        customExpiry:       0,
+        customExpiry:      0,
         customExpiryUnits: 'minute',
       },
       created:    null,

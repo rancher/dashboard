@@ -340,10 +340,10 @@ export default {
         const weight = Math.floor(4 * (edge.stats.rps - min) / (max - min)) + 1;
 
         g.setEdge(fromId(edge), toId(edge), {
-          arrowhead:       'smaller',
-          arrowheadClass:  'arrowhead',
-          class:           `weight${ weight }`,
-          curve:           this.d3.curveBasis,
+          arrowhead:      'smaller',
+          arrowheadClass: 'arrowhead',
+          class:          `weight${ weight }`,
+          curve:          this.d3.curveBasis,
           weight,
         });
       }
@@ -408,7 +408,7 @@ export default {
 </script>
 <template>
   <div class="mesh">
-    <header>
+    <header class="header-layout">
       <h1>App Mesh</h1>
     </header>
 

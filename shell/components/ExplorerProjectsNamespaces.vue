@@ -85,10 +85,10 @@ export default {
     },
     headers() {
       const project = {
-        name:          'project',
-        label:         'Project',
-        value:         'project.nameDisplay',
-        sort:          ['projectNameSort', 'nameSort'],
+        name:  'project',
+        label: 'Project',
+        value: 'project.nameDisplay',
+        sort:  ['projectNameSort', 'nameSort'],
       };
 
       return [
@@ -136,8 +136,8 @@ export default {
 
       if (this.showMockNotInProjectGroup) {
         fakeRows.push( {
-          groupByLabel:     this.t('resourceTable.groupLabel.notInAProject'), // Same as the groupByLabel for the namespace model
-          mainRowKey:       'fake-empty',
+          groupByLabel: this.t('resourceTable.groupLabel.notInAProject'), // Same as the groupByLabel for the namespace model
+          mainRowKey:   'fake-empty',
         });
       }
 

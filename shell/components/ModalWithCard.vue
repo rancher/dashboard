@@ -10,7 +10,7 @@ export default {
     Card, Banner, AsyncButton
   },
 
-  props:      {
+  props: {
     name: {
       type:     String,
       required: true

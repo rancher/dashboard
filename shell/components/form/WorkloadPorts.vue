@@ -17,7 +17,7 @@ export default {
     LabeledSelect,
   },
 
-  props:      {
+  props: {
     value: {
       type:    Array,
       default: null,

@@ -1,8 +1,8 @@
 <script>
 export default {
-  props:      {
+  props: {
     vertical: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     },
     icon: {
@@ -10,7 +10,7 @@ export default {
       required: true,
     },
     iconState: {
-      type:     String,
+      type:    String,
       default: null
     },
     message: {
@@ -22,7 +22,7 @@ export default {
       default: null
     },
     subtle: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     }
   },

@@ -29,8 +29,8 @@ export default class EpinioMetaResource extends EpinioResource {
 
   get namespaceLocation() {
     return createEpinioRoute(`c-cluster-resource-id`, {
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  this.schema.id,
+      cluster:  this.$rootGetters['clusterId'],
+      resource: this.schema.id,
       id:       this.meta.namespace,
     });
   }

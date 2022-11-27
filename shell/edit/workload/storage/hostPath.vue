@@ -9,7 +9,7 @@ export default {
     LabeledSelect,
   },
 
-  props:  {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {

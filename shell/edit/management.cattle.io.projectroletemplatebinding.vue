@@ -19,7 +19,7 @@ export default {
   },
   data() {
     return {
-      binding:         {
+      binding: {
         permissionGroup: 'member',
         custom:          {},
         principalId:     '',
@@ -48,10 +48,10 @@ export default {
     },
     async saveOverride() {
       const asyncBindings = this.binding.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`management/create`, {
-        type:                  MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
-        roleTemplateName:      roleTemplateId,
-        principalName:         this.member.principalId,
-        projectName:           this.member.projectId,
+        type:             MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
+        roleTemplateName: roleTemplateId,
+        principalName:    this.member.principalId,
+        projectName:      this.member.projectId,
       }));
 
       const bindings = await Promise.all(asyncBindings);

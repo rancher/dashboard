@@ -33,17 +33,17 @@ export default {
 
   data() {
     return {
-      errors:              [],
-      labels:              {},
-      restoreMode:         'all',
-      loaded:              false,
-      allSnapshots:        {},
-      sortedSnapshots:     [],
-      selectedSnapshot:    null,
+      errors:           [],
+      labels:           {},
+      restoreMode:      'all',
+      loaded:           false,
+      allSnapshots:     {},
+      sortedSnapshots:  [],
+      selectedSnapshot: null,
     };
   },
 
-  computed:   {
+  computed: {
     // toRestore can be a provisioning.cattle.io.cluster or a rke.cattle.io.etcdsnapshot or an etcdBackup resource
     ...mapState('action-menu', ['showPromptRestore', 'toRestore']),
     ...mapGetters({ t: 'i18n/t' }),
@@ -160,16 +160,16 @@ export default {
           const now = cluster.spec?.rkeConfig?.etcdSnapshotRestore?.generation || 0;
 
           set(cluster, 'spec.rkeConfig.etcdSnapshotRestore', {
-            generation:         now + 1,
-            name:               this.snapshot.name,
-            restoreRKEConfig:   this.restoreMode,
+            generation:       now + 1,
+            name:             this.snapshot.name,
+            restoreRKEConfig: this.restoreMode,
           });
 
           await cluster.save();
         } else {
           await this.$store.dispatch('rancher/request', {
-            url:           `/v3/clusters/${ escape(this.snapshot.clusterId) }?action=restoreFromEtcdBackup`,
-            method:        'post',
+            url:    `/v3/clusters/${ escape(this.snapshot.clusterId) }?action=restoreFromEtcdBackup`,
+            method: 'post',
             data:   {
               etcdBackupId:     this.snapshot.id,
               restoreRkeConfig: this.restoreMode,

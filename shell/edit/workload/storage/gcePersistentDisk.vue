@@ -6,7 +6,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 export default {
   components: { LabeledInput, Checkbox },
 
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {

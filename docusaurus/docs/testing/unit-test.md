@@ -23,6 +23,17 @@ It is possible to use debugging tools within Jest via VSCode. To do so, open the
 
 On top of the recommendation provided by the [Vue documentation](https://vuejs.org/guide/scaling-up/testing.html), it is also encouraged to follow these patterns to create readable and aimed tests.
 
+## Jest global configuration
+
+Some of the global configuration for Jest can be found in the `jest.setup.js` file, mainly to avoid repetitions. This will include:
+
+- Global Vue mounted
+  - Components
+  - Modules
+  - Directives
+  - Getters (e.g., i18n/t)
+- Global hooks, e.g. `afterEach()` with mocks resets
+
 ### Describe and test/it statement
 
 To clearly state the scope of the test, it's convenient to define in the first `describe` always define with a noun the name of the function, method, or component being tested. Multiple assertions may be grouped together under a common statement in `describe` block, as it helps to avoid repetition and ensure a set of tests to be included. Each `test`/`it` block should then start with a verb related to what is the expectation.

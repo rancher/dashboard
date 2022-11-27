@@ -28,8 +28,8 @@ export default {
 
     const authOptions = [
       {
-        value:   'none',
-        label:   this.t('monitoringReceiver.auth.none.label')
+        value: 'none',
+        label: this.t('monitoringReceiver.auth.none.label')
       },
       {
         value:   'basic_auth',

@@ -17,7 +17,7 @@ export default {
     AsyncButton, Banner, Card, LabeledInput, LabeledSelect
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -28,9 +28,9 @@ export default {
     const namespace = this.$store.getters['defaultNamespace'] || '';
 
     return {
-      name:      '',
+      name:   '',
       namespace,
-      errors:       []
+      errors: []
     };
   },
 

@@ -76,8 +76,8 @@ export default {
 
   data() {
     return {
-      endpoint:          'standard',
-      oldEndpoint:        false,
+      endpoint:    'standard',
+      oldEndpoint: false,
 
       // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
       // override the steve authconfig with a norman config the applicationSecret is lost

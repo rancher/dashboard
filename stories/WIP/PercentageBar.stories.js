@@ -1,9 +1,9 @@
 import PercentageBar from '@shell/components/PercentageBar';
 
 export default {
-  title:      'WIP/PercentageBar',
-  component:  PercentageBar,
-  argTypes:   {
+  title:     'WIP/PercentageBar',
+  component: PercentageBar,
+  argTypes:  {
     preferredDirection: {
       control: {
         type:    'select',

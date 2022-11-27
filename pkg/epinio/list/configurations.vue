@@ -14,7 +14,7 @@ export default {
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
     await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
   },
-  props:      {
+  props: {
     schema: {
       type:     Object,
       required: true,

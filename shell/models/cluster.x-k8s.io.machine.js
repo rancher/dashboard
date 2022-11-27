@@ -58,23 +58,23 @@ export default class CapiMachine extends SteveModel {
     const out = super._availableActions;
 
     const openSsh = {
-      action:     'openSsh',
-      enabled:    !!this.links.shell && this.isRunning,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      'SSH Shell',
+      action:  'openSsh',
+      enabled: !!this.links.shell && this.isRunning,
+      icon:    'icon icon-fw icon-chevron-right',
+      label:   'SSH Shell',
     };
     const downloadKeys = {
-      action:     'downloadKeys',
-      enabled:    !!this.links.sshkeys,
-      icon:       'icon icon-fw icon-download',
-      label:      this.t('node.actions.downloadSSHKey'),
+      action:  'downloadKeys',
+      enabled: !!this.links.sshkeys,
+      icon:    'icon icon-fw icon-download',
+      label:   this.t('node.actions.downloadSSHKey'),
     };
     const forceRemove = {
-      action:     'toggleForceRemoveModal',
-      altAction:  'forceMachineRemove',
-      enabled:    !!this.isRemoveForceable,
-      label:      this.t('node.actions.forceDelete'),
-      icon:       'icon icon-trash',
+      action:    'toggleForceRemoveModal',
+      altAction: 'forceMachineRemove',
+      enabled:   !!this.isRemoveForceable,
+      label:     this.t('node.actions.forceDelete'),
+      icon:      'icon icon-trash',
     };
     const scaleDown = {
       action:     'toggleScaleDownModal',

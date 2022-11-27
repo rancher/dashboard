@@ -28,16 +28,16 @@ export default {
 
   data() {
     return {
-      username:      null,
-      password:      null
+      username: null,
+      password: null
     };
   },
 
   computed: {
     tArgs() {
       return {
-        provider:  this.displayName,
-        username:  this.principal.loginName || this.principal.name,
+        provider: this.displayName,
+        username: this.principal.loginName || this.principal.name,
       };
     },
 

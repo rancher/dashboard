@@ -40,7 +40,7 @@ export default {
       chartsDeleteCrd:     false
     };
   },
-  computed:   {
+  computed: {
     names() {
       return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
     },
@@ -153,7 +153,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
   },
 
-  watch:    {
+  watch: {
     showPromptRemove(show) {
       if (show) {
         const selected = this.toRemove[0];

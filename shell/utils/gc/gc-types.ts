@@ -17,5 +17,5 @@ export const GC_DEFAULTS: GC_PREFERENCES = {
 
   // How GC handles resources when GC'ing
   ageThreshold:   1 * 60 * 2,
-  countThreshold:  500,
+  countThreshold: 500,
 };

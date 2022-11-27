@@ -14,7 +14,7 @@ export default {
     Banner,
     LabeledInput,
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true

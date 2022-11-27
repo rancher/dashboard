@@ -2,9 +2,9 @@
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 
 export default {
-  props:      {
+  props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
   },

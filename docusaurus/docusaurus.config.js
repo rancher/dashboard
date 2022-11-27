@@ -63,9 +63,9 @@ const config = {
             label:    'Docs',
           },
           {
-            href:         'https://rancher.github.io/storybook/',
-            position:     'right',
-            label:        'Components & Design kit',
+            href:     'https://rancher.github.io/storybook/',
+            position: 'right',
+            label:    'Components & Design kit',
           },
         ],
       },

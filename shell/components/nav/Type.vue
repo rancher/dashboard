@@ -8,7 +8,7 @@ export default {
 
   components: { Favorite },
 
-  props:      {
+  props: {
     type: {
       type:     Object,
       required: true

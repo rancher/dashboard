@@ -116,8 +116,8 @@ export default {
       product: getProduct(),
 
       username,
-      remember:  !!username,
-      password:  '',
+      remember: !!username,
+      password: '',
 
       timedOut:  this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut: this.$route.query[LOGGED_OUT] === _FLAGGED,
@@ -125,7 +125,7 @@ export default {
 
       providers:          [],
       providerComponents: [],
-      customLoginError:    {}
+      customLoginError:   {}
     };
   },
 
@@ -167,6 +167,10 @@ export default {
     kubectlCmd() {
       return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
     },
+
+    hasLoginMessage() {
+      return this.errorToDisplay || this.loggedOut || this.timedOut;
+    }
 
   },
 
@@ -223,6 +227,10 @@ export default {
           elem.select();
         }
       }
+    },
+
+    handleProviderError(err) {
+      this.err = err;
     },
 
     async loginLocal(buttonCb) {
@@ -284,16 +292,19 @@ export default {
 </script>
 
 <template>
-  <main class="login">
+  <main class="main-layout login">
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
         <p class="text-center">
           {{ t('login.howdy') }}
         </p>
-        <h1 class="text-center">
+        <h1 class="text-center login-welcome">
           {{ t('login.welcome', {vendor}) }}
         </h1>
-        <div class="login-messages">
+        <div
+          class="login-messages"
+          :class="{'login-messages--hasContent': hasLoginMessage}"
+        >
           <Banner
             v-if="errorToDisplay"
             :label="errorToDisplay"
@@ -372,7 +383,7 @@ export default {
 
         <div
           v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length"
-          class="mt-30"
+          :class="{'mt-30': !hasLoginMessage}"
         >
           <component
             :is="providerComponents[idx]"
@@ -383,12 +394,13 @@ export default {
             :name="name"
             :open="!showLocal"
             @showInputs="showLocal = false"
+            @error="handleProviderError"
           />
         </div>
         <template v-if="hasLocal">
           <form
             v-if="showLocal"
-            class="mt-40"
+            :class="{'mt-30': !hasLoginMessage}"
           >
             <div class="span-6 offset-3">
               <div class="mb-20">
@@ -488,6 +500,24 @@ export default {
       height: 100vh;
       margin: 0;
       object-fit: cover;
+    }
+
+    .login-welcome {
+      margin: 0
+    }
+
+    .login-messages {
+      align-items: center;
+
+      .banner {
+        margin: 5px;
+      }
+      h4 {
+        margin: 0;
+      }
+      &--hasContent {
+        min-height: 70px;
+      }
     }
 
     .login-messages, .first-login-message {

@@ -2,7 +2,7 @@ import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 
 export default {
 
-  props:      {
+  props: {
     // The definition of the tab itself
     tab: {
       type:     Object,
@@ -35,9 +35,9 @@ export default {
 
   data() {
     return {
-      socket:     null,
-      isOpen:     false,
-      backlog:    [],
+      socket:  null,
+      isOpen:  false,
+      backlog: [],
     };
   },
 

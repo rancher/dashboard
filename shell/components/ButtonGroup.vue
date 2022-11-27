@@ -27,7 +27,7 @@ export default {
     },
 
     disabled: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     }
 
@@ -76,6 +76,7 @@ export default {
       v-for="(opt,idx) in optionObjects"
       :key="idx"
       v-tooltip="opt.tooltipKey ? t(opt.tooltipKey) : opt.tooltip"
+      :data-testid="`button-group-child-${idx}`"
       type="button"
       :class="opt.class"
       :disabled="disabled || opt.disabled"

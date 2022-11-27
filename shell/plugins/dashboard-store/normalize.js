@@ -3,7 +3,7 @@ import { SCHEMA } from '@shell/config/types';
 import { applyChangeset, changeset, changesetConflicts } from '@shell/utils/object';
 
 export const KEY_FIELD_FOR = {
-  [SCHEMA]:  '_id',
+  [SCHEMA]: '_id',
   default:  'id',
 };
 

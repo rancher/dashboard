@@ -9,7 +9,7 @@ export default {
   components: {
     ArrayListGrouped, Certificate, SortableTable
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -32,8 +32,8 @@ export default {
   data() {
     return {
       defaultAddValue: {
-        secretName:  null,
-        hosts:       ['']
+        secretName: null,
+        hosts:      ['']
       }
     };
   },

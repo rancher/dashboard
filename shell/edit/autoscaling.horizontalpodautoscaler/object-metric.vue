@@ -13,8 +13,8 @@ export const DEFAULT_OBJECT_METRIC = {
     },
   },
   target: {
-    type:               'AverageValue',
-    averageValue:       '80',
+    type:         'AverageValue',
+    averageValue: '80',
   },
   describedObject: {
     apiVersion: '',

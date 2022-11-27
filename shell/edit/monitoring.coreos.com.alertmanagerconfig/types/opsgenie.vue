@@ -45,7 +45,7 @@ export default {
   components: {
     ArrayList, Checkbox, InputWithSelect, LabeledInput, Select, SimpleSecretSelector
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -55,8 +55,8 @@ export default {
       required: true
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data() {
@@ -83,8 +83,8 @@ export default {
       responders,
       TARGETS,
       TYPES,
-      view:                          _VIEW,
-      initialApiKeySecretName:  this.value?.apiKey?.name ? this.value.apiKey.name : '',
+      view:                    _VIEW,
+      initialApiKeySecretName: this.value?.apiKey?.name ? this.value.apiKey.name : '',
       initialApiKeySecretKey:  this.value?.apiKey?.key ? this.value.apiKey.key : '',
       none:                    '__[[NONE]]__',
     };

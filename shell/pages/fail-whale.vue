@@ -49,7 +49,7 @@ export default {
 
 <template>
   <div v-if="error">
-    <main class="error">
+    <main class="main-layout error">
       <div class="text-center">
         <BrandImage
           file-name="error-desert-landscape.svg"

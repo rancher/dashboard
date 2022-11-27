@@ -276,7 +276,7 @@ export default {
   createNamespace(ctx: any, obj: { name : string }) {
     // Note - created model save --> create
     return classify(ctx, {
-      type:     EPINIO_TYPES.NAMESPACE,
+      type: EPINIO_TYPES.NAMESPACE,
       meta: { name: obj.name }
     });
   }

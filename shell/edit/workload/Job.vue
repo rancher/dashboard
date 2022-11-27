@@ -9,7 +9,7 @@ export default {
   components: {
     UnitInput, LabeledInput, RadioGroup
   },
-  props:      {
+  props: {
     // workload spec
     value: {
       type:    Object,
@@ -107,8 +107,8 @@ export default {
       if (this.type === WORKLOAD_TYPES.JOB) {
         const spec = {
           ...this.value,
-          suspend:                    this.suspend,
-          schedule:                   this.schedule,
+          suspend:               this.suspend,
+          schedule:              this.schedule,
           completions:           this.completions,
           parallelism:           this.parallelism,
           backoffLimit:          this.backoffLimit,

@@ -4,7 +4,7 @@ import { NODE } from '@shell/config/types';
 export default {
   props: {
     value: {
-      type:     [Array, String],
+      type:    [Array, String],
       default: null,
     },
     row: {

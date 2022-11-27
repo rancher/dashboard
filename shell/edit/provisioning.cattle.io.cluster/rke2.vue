@@ -963,10 +963,10 @@ export default {
           out.push({
             id,
             remove: false,
-            create:  false,
+            create: false,
             update: true,
-            pool:    clone(pool),
-            config:  config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
+            pool:   clone(pool),
+            config: config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
           });
         }
       }
@@ -990,12 +990,12 @@ export default {
 
       const name = `pool${ ++this.lastIdx }`;
       const pool = {
-        id:      name,
+        id:     name,
         config,
         remove: false,
-        create:  true,
+        create: true,
         update: false,
-        pool:    {
+        pool:   {
           name,
           etcdRole:             numCurrentPools === 0,
           controlPlaneRole:     numCurrentPools === 0,
@@ -1005,8 +1005,8 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind:       this.machineConfigSchema.attributes.kind,
-            name:       null,
+            kind: this.machineConfigSchema.attributes.kind,
+            name: null,
           },
         },
       };
@@ -1202,9 +1202,9 @@ export default {
           const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
           const res = await this.$store.dispatch('management/request', {
-            url:                  `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
-            method:               'POST',
-            data:                 {
+            url:    `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
+            method: 'POST',
+            data:   {
               clusterRoleName:    'harvesterhci.io:cloudprovider',
               namespace,
               serviceAccountName: this.value.metadata.name,
@@ -1759,7 +1759,10 @@ export default {
       </template>
 
       <h2 v-t="'cluster.tabs.cluster'" />
-      <Tabbed :side-tabs="true">
+      <Tabbed
+        :side-tabs="true"
+        class="min-height"
+      >
         <Tab
           name="basic"
           label-key="cluster.tabs.basic"
@@ -2411,6 +2414,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .min-height {
+    min-height: 40em;
+  }
   .patch-version {
     margin-top: 5px;
   }

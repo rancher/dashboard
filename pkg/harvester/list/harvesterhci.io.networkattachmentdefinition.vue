@@ -65,16 +65,16 @@ export default {
         NAME,
         NAMESPACE,
         {
-          name:      'type',
-          value:     'vlanType',
-          sort:      'spec.config',
-          labelKey:  'tableHeaders.networkType'
+          name:     'type',
+          value:    'vlanType',
+          sort:     'spec.config',
+          labelKey: 'tableHeaders.networkType'
         },
         {
-          name:      'vlan',
-          value:     'vlanId',
-          sort:      'spec.config',
-          labelKey:  'tableHeaders.networkVlan'
+          name:     'vlan',
+          value:    'vlanId',
+          sort:     'spec.config',
+          labelKey: 'tableHeaders.networkVlan'
         },
         {
           name:          'connectivity',

@@ -3,7 +3,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { sortBy } from '@shell/utils/sort';
 import { mapGetters } from 'vuex';
 import { PVC } from '@shell/config/types';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';

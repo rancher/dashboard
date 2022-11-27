@@ -13,7 +13,7 @@ export default {
         CONSTRAINT_VIOLATION_RESOURCE_LINK,
         CONSTRAINT_VIOLATION_MESSAGE
       ],
-      violations:  this.value.violations
+      violations: this.value.violations
         .map((violation, i) => ({ ...violation, id: i }))
     };
   }

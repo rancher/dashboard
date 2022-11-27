@@ -42,11 +42,11 @@ export default {
 
     totalCountGaugeInput() {
       const totalInput = {
-        name:            this.t('clusterIndexPage.resourceGauge.totalResources'),
-        total:           0,
-        useful:          0,
-        warningCount:    0,
-        errorCount:      0
+        name:         this.t('clusterIndexPage.resourceGauge.totalResources'),
+        total:        0,
+        useful:       0,
+        warningCount: 0,
+        errorCount:   0
       };
 
       this.accessibleResources.forEach((resource) => {

@@ -4,7 +4,7 @@ import { HCI } from '../types';
 import {
   AS, MODE, _VIEW, _CONFIG, _UNFLAG, _EDIT
 } from '@shell/config/query-params';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
@@ -28,27 +28,27 @@ export default class HciVmTemplateVersion extends HarvesterResource {
 
     return [
       {
-        action:     'launchFromTemplate',
-        icon:       'icon icon-spinner',
-        enabled:    canCreateVM,
-        label:      this.t('harvester.action.launchFormTemplate'),
+        action:  'launchFromTemplate',
+        icon:    'icon icon-spinner',
+        enabled: canCreateVM,
+        label:   this.t('harvester.action.launchFormTemplate'),
       },
       {
-        action:     'cloneTemplate',
-        enabled:    this.currentTemplate?.canCreate,
-        icon:       'icon icon-fw icon-edit',
-        label:      this.t('harvester.action.modifyTemplate'),
+        action:  'cloneTemplate',
+        enabled: this.currentTemplate?.canCreate,
+        icon:    'icon icon-fw icon-edit',
+        label:   this.t('harvester.action.modifyTemplate'),
       },
       {
-        action:     'setDefaultVersion',
-        enabled:    this.currentTemplate?.canCreate,
-        icon:       'icon icon-fw icon-checkmark',
-        label:      this.t('harvester.action.setDefaultVersion'),
+        action:  'setDefaultVersion',
+        enabled: this.currentTemplate?.canCreate,
+        icon:    'icon icon-fw icon-checkmark',
+        label:   this.t('harvester.action.setDefaultVersion'),
       },
       {
-        action:     'goToViewConfig',
-        label:       this.t('action.view'),
-        icon:       'icon icon-edit',
+        action: 'goToViewConfig',
+        label:  this.t('action.view'),
+        icon:   'icon icon-edit',
       },
       ...out
     ];
@@ -57,10 +57,10 @@ export default class HciVmTemplateVersion extends HarvesterResource {
   applyDefaults() {
     const spec = {
       vm: {
-        metadata:    { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
-        spec:        {
+        metadata: { annotations: { [HCI_ANNOTATIONS.VOLUME_CLAIM_TEMPLATE]: '[]' } },
+        spec:     {
           runStrategy: 'RerunOnFailure',
-          template:             {
+          template:    {
             metadata: { annotations: {} },
             spec:     {
               domain: {

@@ -47,17 +47,17 @@ export default {
 
     readAsDataUrl: {
       type:    Boolean,
-      default:    false
+      default: false
     },
 
     directory: {
       type:    Boolean,
-      default:    false
+      default: false
     },
 
     rawData: {
       type:    Boolean,
-      default:    false
+      default: false
     }
   },
 

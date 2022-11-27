@@ -47,17 +47,17 @@ export default {
 
   data() {
     return {
-      allRepos:            null,
-      category:            null,
-      operatingSystem:     null,
-      searchQuery:         null,
-      showDeprecated:      null,
-      showHidden:          null,
-      chartMode:           this.$store.getters['prefs/get'](SHOW_CHART_MODE),
+      allRepos:        null,
+      category:        null,
+      operatingSystem: null,
+      searchQuery:     null,
+      showDeprecated:  null,
+      showHidden:      null,
+      chartMode:       this.$store.getters['prefs/get'](SHOW_CHART_MODE),
       chartOptions:    [
         {
-          label:       'Browse',
-          value:       'browse',
+          label: 'Browse',
+          value: 'browse',
         },
         {
           label: 'Featured',
@@ -164,13 +164,13 @@ export default {
 
       return filterAndArrangeCharts(enabledCharts, {
         clusterProvider,
-        category:         this.category,
-        searchQuery:      this.searchQuery,
-        showDeprecated:   this.showDeprecated,
-        showHidden:       this.showHidden,
-        hideRepos:        this.hideRepos,
-        hideTypes:        [CATALOG._CLUSTER_TPL],
-        showPrerelease:   this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+        category:       this.category,
+        searchQuery:    this.searchQuery,
+        showDeprecated: this.showDeprecated,
+        showHidden:     this.showHidden,
+        hideRepos:      this.hideRepos,
+        hideTypes:      [CATALOG._CLUSTER_TPL],
+        showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     },
 
@@ -304,8 +304,8 @@ export default {
       this.$router.push({
         name:   'c-cluster-apps-charts-chart',
         params: {
-          cluster:  this.$route.params.cluster,
-          product:  this.$store.getters['productId'],
+          cluster: this.$route.params.cluster,
+          product: this.$store.getters['productId'],
         },
         query: {
           [REPO_TYPE]: chart.repoType,
@@ -339,7 +339,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header>
+    <header class="header-layout">
       <div class="title">
         <h1 class="m-0">
           {{ t('catalog.charts.header') }}

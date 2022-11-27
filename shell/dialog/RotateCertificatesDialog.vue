@@ -28,12 +28,12 @@ export default {
   data() {
     return {
       selectedService:   '',
-      rotateAllServices:     true,
+      rotateAllServices: true,
       errors:            []
     };
   },
 
-  computed:   {
+  computed: {
     cluster() {
       return this.resources?.[0];
     },
@@ -105,8 +105,8 @@ export default {
           const currentGeneration = this.cluster.spec?.rkeConfig?.rotateCertificates?.generation || 0;
 
           set(this.cluster, 'spec.rkeConfig.rotateCertificates', {
-            generation:     currentGeneration + 1,
-            services:       (this.selectedService && !this.rotateAllServices) ? [this.selectedService] : []
+            generation: currentGeneration + 1,
+            services:   (this.selectedService && !this.rotateAllServices) ? [this.selectedService] : []
           });
 
           await this.cluster.save();

@@ -60,7 +60,7 @@ export default {
 
   hasTabs: true,
 
-  props:   {
+  props: {
     value: {
       type:    Object,
       default: () => {

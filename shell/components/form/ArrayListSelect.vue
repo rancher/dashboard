@@ -10,8 +10,8 @@ export default {
       required: true
     },
     options: {
-      default:   null,
-      type:      Array
+      default: null,
+      type:    Array
     },
     selectProps: {
       type:    Object,
@@ -26,7 +26,7 @@ export default {
       default: false
     }
   },
-  computed:   {
+  computed: {
     filteredOptions() {
       return this.options
         .filter(option => !this.value.includes(option.value));

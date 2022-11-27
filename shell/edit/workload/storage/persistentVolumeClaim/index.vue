@@ -14,7 +14,7 @@ export default {
     Checkbox
   },
 
-  props:      {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {
@@ -87,7 +87,7 @@ export default {
 
   watch: {
     namespace(neu) {
-      this.__newPvc.metadata.namespace = neu;
+      this.value.__newPvc.metadata.namespace = neu;
     },
 
     'value.__newPvc.metadata.name'(neu) {

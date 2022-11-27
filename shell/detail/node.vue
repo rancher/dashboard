@@ -167,8 +167,8 @@ export default {
   methods: {
     memoryFormatter(value) {
       const formatOptions = {
-        addSuffix:  false,
-        increment:  1024,
+        addSuffix: false,
+        increment: 1024,
       };
 
       return formatSi(value, formatOptions);

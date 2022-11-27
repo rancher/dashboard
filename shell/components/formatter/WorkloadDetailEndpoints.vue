@@ -5,7 +5,7 @@ import Tag from '@shell/components/Tag';
 export default {
   props: {
     value: {
-      type:     [Array, String],
+      type:    [Array, String],
       default: null,
     },
   },
