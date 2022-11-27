@@ -559,12 +559,12 @@ export default {
         document.activeElement.blur();
       }
     },
-    handleValueMouseDown() {
-      if (this.value.length === 1) {
-        this.clear();
-      }
+    handleValueMouseDown(ns, event) {
+      this.removeOption(ns, event);
 
-      this.open();
+      if (this.value.length === 0) {
+        this.open();
+      }
     },
 
     removeOption(ns, event) {
@@ -645,7 +645,7 @@ export default {
             class="icon icon-close"
             :data-testid="`namespaces-values-close-${j}`"
             @click="removeOption(ns, $event)"
-            @mousedown="handleValueMouseDown()"
+            @mousedown="handleValueMouseDown(ns, $event)"
           />
         </div>
       </div>
