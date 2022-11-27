@@ -76,8 +76,8 @@ export default {
 
   data() {
     return {
-      endpoint:          'standard',
-      oldEndpoint:        false,
+      endpoint:    'standard',
+      oldEndpoint: false,
 
       // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
       // override the steve authconfig with a norman config the applicationSecret is lost
@@ -267,7 +267,11 @@ export default {
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+        <AuthBanner
+          :t-args="tArgs"
+          :disable="disable"
+          :edit="goToEdit"
+        >
           <template slot="rows">
             <tr>
               <td>{{ t(`authConfig.azuread.tenantId`) }}:</td>
@@ -294,7 +298,10 @@ export default {
               <td>{{ model.authEndpoint }}</td>
             </tr>
           </template>
-          <template v-if="needsUpdate" slot="actions">
+          <template
+            v-if="needsUpdate"
+            slot="actions"
+          >
             <button
               type="button"
               class="btn btn-sm role-secondary mr-10 update"
@@ -305,7 +312,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr />
+        <hr>
 
         <AllowedPrincipals
           provider="azuread"
@@ -321,11 +328,18 @@ export default {
           color="warning"
         />
 
-        <InfoBox v-if="!model.enabled" id="reply-info" class="mt-20 mb-20 p-10">
+        <InfoBox
+          v-if="!model.enabled"
+          id="reply-info"
+          class="mt-20 mb-20 p-10"
+        >
           {{ t('authConfig.azuread.reply.info') }}
-          <br />
+          <br>
           <label class="reply-url">{{ t('authConfig.azuread.reply.label') }} </label>
-          <CopyToClipboardText :plain="true" :text="replyUrl" />
+          <CopyToClipboardText
+            :plain="true"
+            :text="replyUrl"
+          />
         </InfoBox>
 
         <div class="row mb-20">

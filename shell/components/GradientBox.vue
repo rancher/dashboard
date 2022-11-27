@@ -3,13 +3,13 @@ export default {
   props: {
     // a "r, g, b" tuple
     primaryColorVar: {
-      type:     String,
+      type:    String,
       default: null,
     },
 
     // Show the left side
     showTab: {
-      type:     Boolean,
+      type:    Boolean,
       default: true,
     },
     showSolid: {
@@ -61,7 +61,11 @@ export default {
 </script>
 
 <template>
-  <div class="gradient-box" :class="{'show-tab': showTab, 'plain': plain}" :style="style">
+  <div
+    class="gradient-box"
+    :class="{'show-tab': showTab, 'plain': plain}"
+    :style="style"
+  >
     <slot />
   </div>
 </template>

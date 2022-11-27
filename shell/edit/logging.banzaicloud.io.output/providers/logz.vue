@@ -8,7 +8,7 @@ export default {
   components: {
     Checkbox, LabeledInput, SecretSelector
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -50,7 +50,12 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.endpoint.url" :mode="mode" :disabled="disabled" :label="t('logging.logz.url')" />
+        <LabeledInput
+          v-model="value.endpoint.url"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.logz.url')"
+        />
       </div>
       <div class="col span-6">
         <LabeledInput
@@ -64,7 +69,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>
@@ -82,7 +87,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.certificate') }}</h3>

@@ -14,7 +14,7 @@ export default {
     Banner,
     LabeledInput,
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -76,15 +76,28 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-restore" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('promptSaveAsRKETemplate.title', { cluster: cluster.displayName }, true)" />
+  <Card
+    class="prompt-restore"
+    :show-highlight-border="false"
+  >
+    <h4
+      slot="title"
+      class="text-default-text"
+      v-html="t('promptSaveAsRKETemplate.title', { cluster: cluster.displayName }, true)"
+    />
 
-    <div slot="body" class="pl-10 pr-10">
+    <div
+      slot="body"
+      class="pl-10 pr-10"
+    >
       <form>
         <p class="pt-10 pb-10">
           {{ t('promptSaveAsRKETemplate.description') }}
         </p>
-        <Banner color="warning" label-key="promptSaveAsRKETemplate.warning" />
+        <Banner
+          color="warning"
+          label-key="promptSaveAsRKETemplate.warning"
+        />
 
         <LabeledInput
           ref="templateName"
@@ -95,8 +108,14 @@ export default {
       </form>
     </div>
 
-    <div slot="actions" class="buttons">
-      <button class="btn role-secondary mr-10" @click="close">
+    <div
+      slot="actions"
+      class="buttons"
+    >
+      <button
+        class="btn role-secondary mr-10"
+        @click="close"
+      >
         {{ t('generic.cancel') }}
       </button>
 
@@ -106,7 +125,12 @@ export default {
         @click="apply"
       />
 
-      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
     </div>
   </Card>
 </template>

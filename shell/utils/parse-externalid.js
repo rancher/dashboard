@@ -1,9 +1,9 @@
 const EXTERNAL_ID = {
-  KIND_SEPARATOR:         '://',
-  GROUP_SEPARATOR:        ':',
-  BASE_SEPARATOR:         '*',
-  ID_SEPARATOR:           ':',
-  KIND_ALL:               'containers',
+  KIND_SEPARATOR:    '://',
+  GROUP_SEPARATOR:   ':',
+  BASE_SEPARATOR:    '*',
+  ID_SEPARATOR:      ':',
+  KIND_ALL:          'containers',
   SYSTEM_CATEGORIES: [
     'Rancher services'
   ],

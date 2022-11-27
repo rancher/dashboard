@@ -102,8 +102,8 @@ export default class LogFlow extends SteveModel {
   get customValidationRules() {
     return [
       {
-        path:           'spec',
-        validators:     ['flowOutput:verifyLocal'],
+        path:       'spec',
+        validators: ['flowOutput:verifyLocal'],
       },
     ];
   }

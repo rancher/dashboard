@@ -64,7 +64,15 @@ export default {
     @finish="saveOverride"
     @cancel="done"
   >
-    <ClusterPermissionsEditor v-model="bindings" :cluster-name="$store.getters['currentCluster'].id" />
-    <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+    <ClusterPermissionsEditor
+      v-model="bindings"
+      :cluster-name="$store.getters['currentCluster'].id"
+    />
+    <Banner
+      v-for="(err, i) in errors"
+      :key="i"
+      color="error"
+      :label="err"
+    />
   </CruResource>
 </template>

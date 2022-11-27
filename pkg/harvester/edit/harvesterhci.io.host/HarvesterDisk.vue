@@ -20,7 +20,7 @@ export default {
     HarvesterDisk,
   ],
 
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {

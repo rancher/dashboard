@@ -5,14 +5,14 @@ export default {
   name:       'HarvesterReserved',
   components: { UnitInput },
 
-  props:      {
+  props: {
     reservedMemory: {
       type:    String,
       default: null
     },
     mode: {
-      type:      String,
-      default:  'create',
+      type:    String,
+      default: 'create',
     },
   },
 

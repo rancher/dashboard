@@ -216,8 +216,8 @@ export const actions = {
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
 
     const params = {
-      [GITHUB_SCOPE]:    scopes.join(','),
-      [GITHUB_NONCE]:   base64Encode(nonce, 'url')
+      [GITHUB_SCOPE]: scopes.join(','),
+      [GITHUB_NONCE]: base64Encode(nonce, 'url')
     };
 
     if (!url.includes(GITHUB_REDIRECT)) {
@@ -276,8 +276,8 @@ export const actions = {
         const url = await dispatch('redirectTo', {
           provider,
           redirectUrl,
-          test:        true,
-          redirect:    false
+          test:     true,
+          redirect: false
         });
 
         return openAuthPopup(url, provider);

@@ -47,17 +47,17 @@ export default {
 
     readAsDataUrl: {
       type:    Boolean,
-      default:    false
+      default: false
     },
 
     directory: {
       type:    Boolean,
-      default:    false
+      default: false
     },
 
     rawData: {
       type:    Boolean,
-      default:    false
+      default: false
     }
   },
 
@@ -137,7 +137,13 @@ export default {
 </script>
 
 <template>
-  <button v-if="!isView" :disabled="disabled" type="button" class="file-selector btn" @click="selectFile">
+  <button
+    v-if="!isView"
+    :disabled="disabled"
+    type="button"
+    class="file-selector btn"
+    @click="selectFile"
+  >
     <span>{{ label }}</span>
     <input
       ref="uploader"
@@ -146,6 +152,6 @@ export default {
       :multiple="multiple"
       :webkitdirectory="directory"
       @change="fileChange"
-    />
+    >
   </button>
 </template>

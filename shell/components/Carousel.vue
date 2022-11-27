@@ -1,6 +1,9 @@
 <script>
 import { get } from '@shell/utils/object';
 import { BadgeState } from '@components/BadgeState';
+import { mapGetters } from 'vuex';
+
+const carouselSeenStorageKey = `carousel-seen`;
 
 export default {
   components: { BadgeState },
@@ -31,16 +34,18 @@ export default {
       default: 'noopener noreferrer nofollow'
     },
   },
+
   data() {
     return {
-      slider:          this.sliders,
-      activeItemId:    0,
-      autoScroll:      true
+      slider:                  this.sliders,
+      activeItemId:            0,
+      autoScroll:              true,
+      autoScrollSlideInterval: null,
     };
   },
 
   computed: {
-
+    ...mapGetters(['clusterId']),
     trackStyle() {
       const sliderItem = this.activeItemId * 100 / this.slider.length;
       const width = 60 * this.slider.length;
@@ -77,9 +82,6 @@ export default {
       this.slidePosition();
     },
 
-    timer() {
-      setInterval(this.autoScrollSlide, 2000);
-    },
     autoScrollSlide() {
       if (this.activeItemId < this.slider.length && this.autoScroll ) {
         this.activeItemId++;
@@ -103,16 +105,35 @@ export default {
     }
   },
 
+  beforeDestroy() {
+    if (this.autoScrollSlideInterval) {
+      clearInterval(this.autoScrollSlideInterval);
+    }
+  },
+
   mounted() {
-    this.timer();
-  }
+    const lastSeenCluster = sessionStorage.getItem(carouselSeenStorageKey);
+
+    if (lastSeenCluster !== this.clusterId) {
+      // Session storage lasts until tab/window closed (retained on refresh)
+      sessionStorage.setItem(carouselSeenStorageKey, this.clusterId);
+
+      this.autoScrollSlideInterval = setInterval(this.autoScrollSlide, 5000);
+    }
+  },
+
 };
 
 </script>
 
 <template>
   <div class="slider">
-    <div id="slide-track" ref="slider" :style="trackStyle" class="slide-track">
+    <div
+      id="slide-track"
+      ref="slider"
+      :style="trackStyle"
+      class="slide-track"
+    >
       <div
         :is="asLink ? 'a' : 'div'"
         v-for="(slide, i) in sliders"
@@ -127,10 +148,13 @@ export default {
       >
         <div class="slide-content">
           <div class="slide-img">
-            <img :src="slide.icon ? slide.icon : `/_nuxt/shell/assets/images/generic-catalog.svg`" />
+            <img :src="slide.icon ? slide.icon : `/_nuxt/shell/assets/images/generic-catalog.svg`">
           </div>
           <div class="slide-content-right">
-            <BadgeState :label="slide.repoName" color="slider-badge mb-20" />
+            <BadgeState
+              :label="slide.repoName"
+              color="slider-badge mb-20"
+            />
             <h1>{{ slide.chartNameDisplay }}</h1>
             <p>{{ slide.chartDescription }}</p>
           </div>
@@ -144,13 +168,23 @@ export default {
         class="control-item"
         :class="{'active': activeItemId === i}"
         @click="scrollSlide(i, slider.length)"
-      ></div>
+      />
     </div>
-    <div ref="prev" class="prev" :class="[activeItemId === 0 ? 'disabled' : 'prev']" @click="nextPrev('prev')">
-      <i class="icon icon-chevron-left icon-4x"></i>
+    <div
+      ref="prev"
+      class="prev"
+      :class="[activeItemId === 0 ? 'disabled' : 'prev']"
+      @click="nextPrev('prev')"
+    >
+      <i class="icon icon-chevron-left icon-4x" />
     </div>
-    <div ref="next" class="next" :class="[activeItemId === slider.length - 1 ? 'disabled' : 'next']" @click="nextPrev('next')">
-      <i class="icon icon-chevron-right icon-4x"></i>
+    <div
+      ref="next"
+      class="next"
+      :class="[activeItemId === slider.length - 1 ? 'disabled' : 'next']"
+      @click="nextPrev('next')"
+    >
+      <i class="icon icon-chevron-right icon-4x" />
     </div>
   </div>
 </template>

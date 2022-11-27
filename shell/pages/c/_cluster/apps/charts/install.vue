@@ -95,11 +95,9 @@ export default {
     this.errors = [];
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
-    if (this.showCustomRegistry) {
-      this.clusterRegistry = await this.getClusterRegistry();
-      this.globalRegistry = await this.getGlobalRegistry();
-      this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
-    }
+    this.clusterRegistry = await this.getClusterRegistry();
+    this.globalRegistry = await this.getGlobalRegistry();
+    this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
 
     this.serverUrlSetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -284,15 +282,13 @@ export default {
       */
       this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
 
-      if (this.showCustomRegistry) {
-        const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
+      const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
-        delete this.chartValues?.global?.systemDefaultRegistry;
-        delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
+      delete this.chartValues?.global?.systemDefaultRegistry;
+      delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
-        this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
-        this.showCustomRegistryInput = !!this.customRegistrySetting;
-      }
+      this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
+      this.showCustomRegistryInput = !!this.customRegistrySetting;
 
       /* Serializes an object as a YAML document */
       this.valuesYaml = saferDump(this.chartValues);
@@ -319,13 +315,13 @@ export default {
     /* Helm CLI options that are not persisted on the back end,
     but are used for the final install/upgrade operation. */
     const defaultCmdOpts = {
-      cleanupOnFail:       false,
-      crds:                true,
-      hooks:               true,
-      force:               false,
-      resetValues:         false,
-      openApi:             true,
-      wait:                true,
+      cleanupOnFail: false,
+      crds:          true,
+      hooks:         true,
+      force:         false,
+      resetValues:   false,
+      openApi:       true,
+      wait:          true,
       timeout:       600,
       historyMax:    5,
     };
@@ -438,7 +434,7 @@ export default {
       const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
-      const out = projects.filter(x => x.spec.clusterName === cluster.id).map((project) => {
+      const out = projects.filter(x => x.spec.clusterName === cluster?.id).map((project) => {
         return {
           id:    project.id,
           label: project.nameDisplay,
@@ -664,22 +660,6 @@ export default {
       return null;
     },
 
-    /**
-     * Check if the chart contains `systemDefaultRegistry` properties. If not we shouldn't apply the setting (or show the UI for them)
-     */
-    showCustomRegistry() {
-      const global = this.versionInfo?.values?.global || {};
-
-      return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
-    },
-
-    /**
-     * True if we should apply/save the custom registry value. This should be false if matching the global registry
-     * (we shouldn't save the global registry to avoid issues on upgrade where we might confused it with a custom one)
-     */
-    applyCustomRegistry() {
-      return this.customRegistrySetting !== this.globalRegistry;
-    }
   },
 
   watch: {
@@ -783,10 +763,10 @@ export default {
 
       if (hasPermissionToSeeProvCluster) {
         const mgmCluster = this.$store.getters['currentCluster'];
-        const provCluster = await this.$store.dispatch('management/find', {
+        const provCluster = mgmCluster ? await this.$store.dispatch('management/find', {
           type: CAPI.RANCHER_CLUSTER,
           id:   mgmCluster.provClusterId
-        });
+        }) : {};
 
         if (provCluster.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
           const agentConfig = provCluster.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
@@ -797,6 +777,19 @@ export default {
 
           if (clusterRegistry) {
             return clusterRegistry;
+          }
+        }
+        if (provCluster.isRke1) {
+          // For RKE1 clusters, the cluster scoped private registry is on the management
+          // cluster, not the provisioning cluster.
+          const rke1Registries = mgmCluster.spec.rancherKubernetesEngineConfig.privateRegistries;
+
+          if (rke1Registries?.length > 0) {
+            const defaultRegistry = rke1Registries.find((registry) => {
+              return registry.isDefault;
+            });
+
+            return defaultRegistry.url;
           }
         }
       }
@@ -863,13 +856,13 @@ export default {
       const withFallBack = this.$store.getters['i18n/withFallback'];
 
       return {
-        name:        customStep.name,
-        label:       withFallBack(loaded?.default?.label, null, customStep.name),
-        subtext:     withFallBack(loaded?.default?.subtext, null, ''),
-        weight:      loaded?.default?.weight,
-        ready:       false,
-        hidden:      true,
-        loading:    true,
+        name:      customStep.name,
+        label:     withFallBack(loaded?.default?.label, null, customStep.name),
+        subtext:   withFallBack(loaded?.default?.subtext, null, ''),
+        weight:    loaded?.default?.weight,
+        ready:     false,
+        hidden:    true,
+        loading:   true,
         component: customStep.component,
       };
     },
@@ -977,20 +970,14 @@ export default {
       const systemProjectId = projects.find(p => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
 
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
+      const isWindows = (cluster?.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
       const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
-      if (this.showCustomRegistry) {
-        // If this is the current global registry leave it blank. This avoids the scenario on upgrade where a previous global registry that's
-        // been updated is confused with a custom user registry
-        const registry = this.applyCustomRegistry ? this.customRegistrySetting : '';
-
-        set(cattle, 'systemDefaultRegistry', registry);
-        set(global, 'systemDefaultRegistry', registry);
-      }
+      set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
+      set(global, 'systemDefaultRegistry', this.customRegistrySetting);
 
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
       setIfNotSet(cattle, 'url', serverUrl);
@@ -1017,7 +1004,7 @@ export default {
 
       const cluster = this.$store.getters['currentCluster'];
       const serverUrl = this.serverUrlSetting?.value || '';
-      const isWindows = (cluster.workerOSs || []).includes(WINDOWS);
+      const isWindows = (cluster?.workerOSs || []).includes(WINDOWS);
       const pathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.prefixPath || '';
       const windowsPathPrefix = cluster?.spec?.rancherKubernetesEngineConfig?.winPrefixPath || '';
 
@@ -1277,7 +1264,11 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else-if="!legacyApp && !mcapp" class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+  <div
+    v-else-if="!legacyApp && !mcapp"
+    class="install-steps"
+    :class="{ 'isPlainLayout': isPlainLayout}"
+  >
     <TypeDescription resource="chart" />
     <Wizard
       v-if="value"
@@ -1291,7 +1282,10 @@ export default {
       @cancel="cancel"
       @finish="finish"
     >
-      <template v-for="customStep of customSteps" v-slot:[customStep.name]>
+      <template
+        v-for="customStep of customSteps"
+        v-slot:[customStep.name]
+      >
         <component
           :is="customStep.component"
           :key="customStep.name"
@@ -1302,31 +1296,58 @@ export default {
       <template #bannerTitleImage>
         <div>
           <div class="logo-bg">
-            <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+            <LazyImage
+              :src="chart ? chart.icon : ''"
+              class="logo"
+            />
           </div>
-          <label v-if="windowsIncompatible" class="os-label">
+          <label
+            v-if="windowsIncompatible"
+            class="os-label"
+          >
             {{ windowsIncompatible }}
           </label>
         </div>
       </template>
       <template #basics>
         <div class="step__basic">
-          <Banner v-if="step1Description" color="info" class="description">
+          <Banner
+            v-if="step1Description"
+            color="info"
+            class="description"
+          >
             <span>{{ step1Description }}</span>
-            <span v-if="namespaceNewAllowed" class="mt-10">
+            <span
+              v-if="namespaceNewAllowed"
+              class="mt-10"
+            >
               {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
             </span>
           </Banner>
-          <div v-if="requires.length || warnings.length" class="mb-15">
-            <Banner v-for="msg in requires" :key="msg" color="error">
+          <div
+            v-if="requires.length || warnings.length"
+            class="mb-15"
+          >
+            <Banner
+              v-for="msg in requires"
+              :key="msg"
+              color="error"
+            >
               <span v-html="msg" />
             </Banner>
 
-            <Banner v-for="msg in warnings" :key="msg" color="warning">
+            <Banner
+              v-for="msg in warnings"
+              :key="msg"
+              color="warning"
+            >
               <span v-html="msg" />
             </Banner>
           </div>
-          <div v-if="showSelectVersionOrChart" class="row mb-20">
+          <div
+            v-if="showSelectVersionOrChart"
+            class="row mb-20"
+          >
             <div class="col span-4">
               <!-- We have a chart for the app, let the user select a new version -->
               <LabeledSelect
@@ -1350,7 +1371,7 @@ export default {
               >
                 <template v-slot:option="opt">
                   <template v-if="opt.kind === 'divider'">
-                    <hr />
+                    <hr>
                   </template>
                   <template v-else-if="opt.kind === 'label'">
                     <b style="position: relative; left: -2.5px;">{{ opt.label }}</b>
@@ -1373,7 +1394,10 @@ export default {
             :horizontal="false"
             @isNamespaceNew="isNamespaceNew = $event"
           >
-            <template v-if="showProject" #project>
+            <template
+              v-if="showProject"
+              #project
+            >
               <LabeledSelect
                 v-model="project"
                 :disabled="!namespaceIsNew"
@@ -1386,16 +1410,19 @@ export default {
               />
             </template>
           </NameNsDescription>
-          <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
+          <Checkbox
+            v-model="showCommandStep"
+            class="mb-20"
+            :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })"
+          />
 
           <Checkbox
-            v-if="showCustomRegistry"
             v-model="showCustomRegistryInput"
             class="mb-20"
             :label="t('catalog.chart.registry.custom.checkBoxLabel')"
             :tooltip="t('catalog.chart.registry.tooltip')"
           />
-          <div v-if="showCustomRegistry" class="row">
+          <div class="row">
             <div class="col span-6">
               <LabeledInput
                 v-if="showCustomRegistryInput"
@@ -1406,15 +1433,24 @@ export default {
               />
             </div>
           </div>
-          <div class="step__values__controls--spacer" style="flex:1">
+          <div
+            class="step__values__controls--spacer"
+            style="flex:1"
+          >
 &nbsp;
           </div>
-          <Banner v-if="isNamespaceNew" color="info" v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) ">
-          </Banner>
+          <Banner
+            v-if="isNamespaceNew"
+            color="info"
+            v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) "
+          />
         </div>
       </template>
       <template #clusterTplVersion>
-        <Banner color="info" class="description">
+        <Banner
+          color="info"
+          class="description"
+        >
           {{ t('catalog.install.steps.clusterTplVersion.description') }}
         </Banner>
         <div class="row mb-20">
@@ -1432,14 +1468,23 @@ export default {
 &nbsp;
           </div>
           <div class="btn-group">
-            <button type="button" class="btn bg-primary btn-sm" :disabled="!hasReadme || showingReadmeWindow" @click="showSlideIn = !showSlideIn">
+            <button
+              type="button"
+              class="btn bg-primary btn-sm"
+              :disabled="!hasReadme || showingReadmeWindow"
+              @click="showSlideIn = !showSlideIn"
+            >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
           </div>
         </div>
       </template>
       <template #helmValues>
-        <Banner v-if="step2Description" color="info" class="description">
+        <Banner
+          v-if="step2Description"
+          color="info"
+          class="description"
+        >
           {{ step2Description }}
         </Banner>
         <div class="step__values__controls">
@@ -1449,7 +1494,7 @@ export default {
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
             :disabled="preFormYamlOption != formYamlOption"
-          ></ButtonGroup>
+          />
           <div class="step__values__controls--spacer">
 &nbsp;
           </div>
@@ -1459,9 +1504,16 @@ export default {
             :options="yamlDiffModeOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
-          ></ButtonGroup>
-          <div v-if="hasReadme && !showingReadmeWindow" class="btn-group">
-            <button type="button" class="btn bg-primary btn-sm" @click="showSlideIn = !showSlideIn">
+          />
+          <div
+            v-if="hasReadme && !showingReadmeWindow"
+            class="btn-group"
+          >
+            <button
+              type="button"
+              class="btn bg-primary btn-sm"
+              @click="showSlideIn = !showSlideIn"
+            >
               {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
             </button>
           </div>
@@ -1543,27 +1595,83 @@ export default {
         </div>
 
         <!-- Confirm loss of changes on toggle from yaml/preview to form -->
-        <ResourceCancelModal ref="cancelModal" :is-cancel-modal="false" :is-form="true" @cancel-cancel="preFormYamlOption=formYamlOption" @confirm-cancel="formYamlOption = preFormYamlOption;"></ResourceCancelModal>
+        <ResourceCancelModal
+          ref="cancelModal"
+          :is-cancel-modal="false"
+          :is-form="true"
+          @cancel-cancel="preFormYamlOption=formYamlOption"
+          @confirm-cancel="formYamlOption = preFormYamlOption;"
+        />
       </template>
       <template #helmCli>
-        <Banner v-if="step3Description" color="info" class="description">
+        <Banner
+          v-if="step3Description"
+          color="info"
+          class="description"
+        >
           {{ step3Description }}
         </Banner>
-        <div><Checkbox v-if="existing" v-model="customCmdOpts.cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
-        <div><Checkbox v-if="!existing" v-model="customCmdOpts.crds" :label="t('catalog.install.helm.crds')" /></div>
-        <div><Checkbox v-model="customCmdOpts.hooks" :label="t('catalog.install.helm.hooks')" /></div>
-        <div><Checkbox v-if="existing" v-model="customCmdOpts.force" :label="t('catalog.install.helm.force')" /></div>
-        <div><Checkbox v-if="existing" v-model="customCmdOpts.resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
-        <div><Checkbox v-if="!existing" v-model="customCmdOpts.openApi" :label="t('catalog.install.helm.openapi')" /></div>
-        <div><Checkbox v-model="customCmdOpts.wait" :label="t('catalog.install.helm.wait')" /></div>
-        <div style="display: block; max-width: 400px;" class="mt-10">
+        <div>
+          <Checkbox
+            v-if="existing"
+            v-model="customCmdOpts.cleanupOnFail"
+            :label="t('catalog.install.helm.cleanupOnFail')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-if="!existing"
+            v-model="customCmdOpts.crds"
+            :label="t('catalog.install.helm.crds')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-model="customCmdOpts.hooks"
+            :label="t('catalog.install.helm.hooks')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-if="existing"
+            v-model="customCmdOpts.force"
+            :label="t('catalog.install.helm.force')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-if="existing"
+            v-model="customCmdOpts.resetValues"
+            :label="t('catalog.install.helm.resetValues')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-if="!existing"
+            v-model="customCmdOpts.openApi"
+            :label="t('catalog.install.helm.openapi')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-model="customCmdOpts.wait"
+            :label="t('catalog.install.helm.wait')"
+          />
+        </div>
+        <div
+          style="display: block; max-width: 400px;"
+          class="mt-10"
+        >
           <UnitInput
             v-model.number="customCmdOpts.timeout"
             :label="t('catalog.install.helm.timeout.label')"
             :suffix="t('catalog.install.helm.timeout.unit', {value: customCmdOpts.timeout})"
           />
         </div>
-        <div style="display: block; max-width: 400px;" class="mt-10">
+        <div
+          style="display: block; max-width: 400px;"
+          class="mt-10"
+        >
           <UnitInput
             v-if="existing"
             v-model.number="customCmdOpts.historyMax"
@@ -1571,7 +1679,10 @@ export default {
             :suffix="t('catalog.install.helm.historyMax.unit', {value: customCmdOpts.historyMax})"
           />
         </div>
-        <div style="display: block; max-width: 400px;" class="mt-10">
+        <div
+          style="display: block; max-width: 400px;"
+          class="mt-10"
+        >
           <LabeledInput
             v-model="customCmdOpts.description"
             label-key="catalog.install.helm.description.label"
@@ -1581,24 +1692,42 @@ export default {
         </div>
       </template>
     </Wizard>
-    <div class="slideIn" :class="{'hide': false, 'slideIn__show': showSlideIn}">
+    <div
+      class="slideIn"
+      :class="{'hide': false, 'slideIn__show': showSlideIn}"
+    >
       <h2 class="slideIn__header">
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
         <div class="slideIn__header__buttons">
-          <div v-tooltip="t('catalog.install.slideIn.dock')" class="slideIn__header__button" @click="showSlideIn = false; showReadmeWindow()">
+          <div
+            v-tooltip="t('catalog.install.slideIn.dock')"
+            class="slideIn__header__button"
+            @click="showSlideIn = false; showReadmeWindow()"
+          >
             <i class="icon icon-dock" />
           </div>
-          <div class="slideIn__header__button" @click="showSlideIn = false">
+          <div
+            class="slideIn__header__button"
+            @click="showSlideIn = false"
+          >
             <i class="icon icon-close" />
           </div>
         </div>
       </h2>
-      <ChartReadme v-if="hasReadme" :version-info="versionInfo" class="chart-content__tabs" />
+      <ChartReadme
+        v-if="hasReadme"
+        :version-info="versionInfo"
+        class="chart-content__tabs"
+      />
     </div>
   </div>
 
   <!-- App is deployed as a Legacy or MultiCluster app, don't let user update from here -->
-  <div v-else class="install-steps" :class="{ 'isPlainLayout': isPlainLayout}">
+  <div
+    v-else
+    class="install-steps"
+    :class="{ 'isPlainLayout': isPlainLayout}"
+  >
     <div class="outer-container">
       <div class="header mb-20">
         <div class="title">
@@ -1607,7 +1736,10 @@ export default {
               <!-- Logo -->
               <slot name="bannerTitleImage">
                 <div class="round-image">
-                  <LazyImage :src="chart ? chart.icon : ''" class="logo" />
+                  <LazyImage
+                    :src="chart ? chart.icon : ''"
+                    class="logo"
+                  />
                 </div>
               </slot>
               <!-- Title with subtext -->
@@ -1615,14 +1747,20 @@ export default {
                 <h2 v-if="stepperName">
                   {{ stepperName }}
                 </h2>
-                <span v-if="stepperSubtext" class="subtext">{{ stepperSubtext }}</span>
+                <span
+                  v-if="stepperSubtext"
+                  class="subtext"
+                >{{ stepperSubtext }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <Banner color="warning" class="description">
+      <Banner
+        color="warning"
+        class="description"
+      >
         <span v-if="!mcapp">
           {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>

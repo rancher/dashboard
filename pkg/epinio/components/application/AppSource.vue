@@ -78,7 +78,7 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
     source: {
-      type:     Object as PropType<EpinioAppSource>,
+      type:    Object as PropType<EpinioAppSource>,
       default: null
     },
     mode: {
@@ -92,8 +92,8 @@ export default Vue.extend<Data, any, any, any>({
       open: false,
 
       archive: {
-        tarball:             this.source?.archive.tarball || '',
-        fileName:            this.source?.archive.fileName || '',
+        tarball:  this.source?.archive.tarball || '',
+        fileName: this.source?.archive.fileName || '',
       },
 
       container: { url: this.source?.container.url },
@@ -110,7 +110,7 @@ export default Vue.extend<Data, any, any, any>({
 
       appChart: this.source?.appChart,
 
-      types:        [{
+      types: [{
         label: this.t('epinio.applications.steps.source.archive.label'),
         value: APPLICATION_SOURCE_TYPE.ARCHIVE
       }, {
@@ -415,7 +415,11 @@ export default Vue.extend<Data, any, any, any>({
         />
       </div>
     </template>
-    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30">
+    <Collapse
+      :open.sync="open"
+      :title="'Advanced Settings'"
+      class="mt-30"
+    >
       <template>
         <LabeledSelect
           v-model="appChart"

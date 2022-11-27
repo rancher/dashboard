@@ -32,9 +32,9 @@ export default {
   computed: {
     tArgs() {
       return {
-        baseUrl:   this.serverSetting,
-        provider:  this.displayName,
-        username:  this.principal.loginName || this.principal.name,
+        baseUrl:  this.serverSetting,
+        provider: this.displayName,
+        username: this.principal.loginName || this.principal.name,
       };
     },
 
@@ -59,7 +59,7 @@ export default {
           servers:                      [],
           starttls:                     false,
           tls:                          false,
-          disabledStatusBitmask:          0,
+          disabledStatusBitmask:        0,
           userLoginAttribute:           'uid',
           userMemberAttribute:          'memberOf',
           userNameAttribute:            'cn',
@@ -93,7 +93,11 @@ export default {
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+        <AuthBanner
+          :t-args="tArgs"
+          :disable="disable"
+          :edit="goToEdit"
+        >
           <template slot="rows">
             <tr><td>{{ t(`authConfig.saml.displayName`) }}: </td><td>{{ model.displayNameField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.userName`) }}: </td><td>{{ model.userNameField }}</td></tr>
@@ -104,13 +108,21 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr />
+        <hr>
 
-        <AllowedPrincipals :provider="NAME" :auth-config="model" :mode="mode" />
+        <AllowedPrincipals
+          :provider="NAME"
+          :auth-config="model"
+          :mode="mode"
+        />
       </template>
 
       <template v-else>
-        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+        <Banner
+          v-if="!model.enabled"
+          :label="t('authConfig.stateBanner.disabled', tArgs)"
+          color="warning"
+        />
 
         <h3>{{ t(`authConfig.saml.${NAME}`) }}</h3>
         <div class="row mb-20">
@@ -151,7 +163,10 @@ export default {
           </div>
         </div>
         <div class="row mb-20">
-          <div v-if="NAME === 'keycloak' || NAME === 'ping'" class="col span-6">
+          <div
+            v-if="NAME === 'keycloak' || NAME === 'ping'"
+            class="col span-6"
+          >
             <LabeledInput
               v-model="model.entityID"
               :label="t(`authConfig.saml.entityID`)"
@@ -178,7 +193,12 @@ export default {
               required
               type="multiline"
             />
-            <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'spKey', $event)" />
+            <FileSelector
+              class="role-tertiary add mt-5"
+              :label="t('generic.readFromFile')"
+              :mode="mode"
+              @selected="$set(model, 'spKey', $event)"
+            />
           </div>
           <div class="col span-4">
             <LabeledInput
@@ -189,7 +209,12 @@ export default {
               required
               type="multiline"
             />
-            <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'spCert', $event)" />
+            <FileSelector
+              class="role-tertiary add mt-5"
+              :label="t('generic.readFromFile')"
+              :mode="mode"
+              @selected="$set(model, 'spCert', $event)"
+            />
           </div>
           <div class="col span-4">
             <LabeledInput
@@ -200,21 +225,41 @@ export default {
               required
               type="multiline"
             />
-            <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'idpMetadataContent', $event)" />
+            <FileSelector
+              class="role-tertiary add mt-5"
+              :label="t('generic.readFromFile')"
+              :mode="mode"
+              @selected="$set(model, 'idpMetadataContent', $event)"
+            />
           </div>
         </div>
         <div v-if="NAME === 'shibboleth'">
           <div class="row">
-            <Checkbox v-model="showLdap" :mode="mode" :label="t('authConfig.saml.showLdap')" />
+            <Checkbox
+              v-model="showLdap"
+              :mode="mode"
+              :label="t('authConfig.saml.showLdap')"
+            />
           </div>
           <div class="row mt-20 mb-20">
-            <config v-if="showLdap" v-model="model.openLdapConfig" :type="NAME" :mode="mode" />
+            <config
+              v-if="showLdap"
+              v-model="model.openLdapConfig"
+              :type="NAME"
+              :mode="mode"
+            />
           </div>
         </div>
       </template>
-      <div v-if="!model.enabled" class="row">
+      <div
+        v-if="!model.enabled"
+        class="row"
+      >
         <div class="col span-12">
-          <Banner color="info" v-html="t('authConfig.associatedWarning', tArgs, true)" />
+          <Banner
+            color="info"
+            v-html="t('authConfig.associatedWarning', tArgs, true)"
+          />
         </div>
       </div>
     </CruResource>

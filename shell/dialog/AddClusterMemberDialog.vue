@@ -8,7 +8,7 @@ export default {
     ClusterPermissionsEditor
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -39,15 +39,34 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-rotate" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('addClusterMemberDialog.title')" />
+  <Card
+    class="prompt-rotate"
+    :show-highlight-border="false"
+  >
+    <h4
+      slot="title"
+      class="text-default-text"
+      v-html="t('addClusterMemberDialog.title')"
+    />
 
-    <div slot="body" class="pl-10 pr-10">
-      <ClusterPermissionsEditor v-model="bindings" :use-two-columns-for-custom="true" />
+    <div
+      slot="body"
+      class="pl-10 pr-10"
+    >
+      <ClusterPermissionsEditor
+        v-model="bindings"
+        :use-two-columns-for-custom="true"
+      />
     </div>
 
-    <div slot="actions" class="buttons">
-      <button class="btn role-secondary mr-10" @click="close">
+    <div
+      slot="actions"
+      class="buttons"
+    >
+      <button
+        class="btn role-secondary mr-10"
+        @click="close"
+      >
         {{ t('generic.cancel') }}
       </button>
 

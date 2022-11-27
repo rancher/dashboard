@@ -11,7 +11,7 @@ import Select from '@shell/components/form/Select';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { OS } from '../mixins/harvester-vm';
 import { VM_IMAGE_FILE_FORMAT } from '../validators/vm-image';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 const DOWNLOAD = 'download';
@@ -52,12 +52,12 @@ export default {
     }
 
     return {
-      url:         this.value.spec.url,
-      files:       [],
-      resource:    '',
-      headers:     {},
-      fileUrl:     '',
-      file:        '',
+      url:      this.value.spec.url,
+      files:    [],
+      resource: '',
+      headers:  {},
+      fileUrl:  '',
+      file:     '',
     };
   },
 

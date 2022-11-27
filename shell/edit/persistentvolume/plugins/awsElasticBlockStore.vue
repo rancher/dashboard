@@ -5,7 +5,7 @@ import { RadioGroup } from '@components/Form/Radio';
 export default {
   components: { LabeledInput, RadioGroup },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -49,15 +49,31 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.awsElasticBlockStore.volumeID" :mode="mode" :label="t('persistentVolume.awsElasticBlockStore.volumeId.label')" :placeholder="t('persistentVolume.awsElasticBlockStore.volumeId.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.awsElasticBlockStore.volumeID"
+          :mode="mode"
+          :label="t('persistentVolume.awsElasticBlockStore.volumeId.label')"
+          :placeholder="t('persistentVolume.awsElasticBlockStore.volumeId.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="partition" :mode="mode" :label="t('persistentVolume.shared.partition.label')" :placeholder="t('persistentVolume.shared.partition.placeholder')" type="number" />
+        <LabeledInput
+          v-model="partition"
+          :mode="mode"
+          :label="t('persistentVolume.shared.partition.label')"
+          :placeholder="t('persistentVolume.shared.partition.placeholder')"
+          type="number"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.awsElasticBlockStore.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.awsElasticBlockStore.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup

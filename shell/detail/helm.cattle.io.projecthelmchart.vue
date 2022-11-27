@@ -39,7 +39,7 @@ export default {
       return {
         alertmanagerURL: this.makeRelativeURL(alertmanagerURL),
         grafanaURL:      this.makeRelativeURL(grafanaURL),
-        prometheusURL:      this.makeRelativeURL(prometheusURL)
+        prometheusURL:   this.makeRelativeURL(prometheusURL)
       };
     },
     monitoringNamespace() {
@@ -126,8 +126,15 @@ export default {
 
 <template>
   <div>
-    <Tabbed v-if="value.status.dashboardValues" class="mt-30">
-      <Tab name="project-metrics" :label="t('monitoring.tabs.projectMetrics')" :weight="3">
+    <Tabbed
+      v-if="value.status.dashboardValues"
+      class="mt-30"
+    >
+      <Tab
+        name="project-metrics"
+        :label="t('monitoring.tabs.projectMetrics')"
+        :weight="3"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active && grafanaServiceEndpointEnabled"
@@ -135,13 +142,19 @@ export default {
             :summary-url="`${relativeDashboardValues.grafanaURL}/d/rancher-workload-1/rancher-workload?orgId=1&kiosk`"
             graph-height="825px"
             project
-          >
-          </DashboardMetrics>
+          />
         </template>
       </Tab>
-      <Tab name="active-alarms" :label="t('monitoring.overview.alertsList.label')" :weight="2">
+      <Tab
+        name="active-alarms"
+        :label="t('monitoring.overview.alertsList.label')"
+        :weight="2"
+      >
         <template>
-          <AlertTable :monitoring-namespace="monitoringNamespace" :alert-service-endpoint="alertServiceEndpoint" />
+          <AlertTable
+            :monitoring-namespace="monitoringNamespace"
+            :alert-service-endpoint="alertServiceEndpoint"
+          />
         </template>
       </Tab>
       <template #tab-row-extras>
@@ -166,23 +179,46 @@ export default {
               <div class="meta-title">
                 {{ t('monitoring.tabs.prometheus') }} <i class="icon icon-chevron-down" />
               </div>
-              <template slot="popover" class="resources-status-list">
-                <ul class="list-unstyled dropdown" @click.stop="showMenu(false)">
+              <template
+                slot="popover"
+                class="resources-status-list"
+              >
+                <ul
+                  class="list-unstyled dropdown"
+                  @click.stop="showMenu(false)"
+                >
                   <li>
-                    <a :href="`${value.status.dashboardValues.prometheusURL}/graph`" target="_blank">{{ t('monitoring.overview.linkedList.prometheusPromQl.label') }} <i class="icon icon-external-link" /></a>
+                    <a
+                      :href="`${value.status.dashboardValues.prometheusURL}/graph`"
+                      target="_blank"
+                    >{{ t('monitoring.overview.linkedList.prometheusPromQl.label') }} <i class="icon icon-external-link" /></a>
                   </li>
                   <li>
-                    <a :href="`${value.status.dashboardValues.prometheusURL}/rules`" target="_blank">{{ t('monitoring.overview.linkedList.prometheusRules.label') }} <i class="icon icon-external-link" /></a>
+                    <a
+                      :href="`${value.status.dashboardValues.prometheusURL}/rules`"
+                      target="_blank"
+                    >{{ t('monitoring.overview.linkedList.prometheusRules.label') }} <i class="icon icon-external-link" /></a>
                   </li>
                   <li>
-                    <a :href="`${value.status.dashboardValues.prometheusURL}/targets`" target="_blank">{{ t('monitoring.overview.linkedList.prometheusTargets.label') }} <i class="icon icon-external-link" /></a>
+                    <a
+                      :href="`${value.status.dashboardValues.prometheusURL}/targets`"
+                      target="_blank"
+                    >{{ t('monitoring.overview.linkedList.prometheusTargets.label') }} <i class="icon icon-external-link" /></a>
                   </li>
                 </ul>
               </template>
             </v-popover>
           </div>
-          <a :class="{disabled: !grafanaServiceEndpointEnabled}" :href="value.status.dashboardValues.grafanaURL" target="_blank"> {{ t('monitoring.overview.linkedList.grafana.label') }} <i class="icon icon-external-link" /></a>
-          <a :class="{disabled: !alertServiceEndpointEnabled}" :href="value.status.dashboardValues.alertmanagerURL" target="_blank"> {{ t('monitoring.overview.linkedList.alertManager.label') }} <i class="icon icon-external-link" /></a>
+          <a
+            :class="{disabled: !grafanaServiceEndpointEnabled}"
+            :href="value.status.dashboardValues.grafanaURL"
+            target="_blank"
+          > {{ t('monitoring.overview.linkedList.grafana.label') }} <i class="icon icon-external-link" /></a>
+          <a
+            :class="{disabled: !alertServiceEndpointEnabled}"
+            :href="value.status.dashboardValues.alertmanagerURL"
+            target="_blank"
+          > {{ t('monitoring.overview.linkedList.alertManager.label') }} <i class="icon icon-external-link" /></a>
         </div>
       </template>
     </Tabbed>

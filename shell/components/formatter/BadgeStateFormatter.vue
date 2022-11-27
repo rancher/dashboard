@@ -5,7 +5,7 @@ export default {
   components: { BadgeState },
   props:      {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {
@@ -13,7 +13,7 @@ export default {
       required: true
     },
     col: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
 
@@ -55,6 +55,9 @@ export default {
         :label="stateDisplay"
       />
     </div>
-    <BadgeState v-else :value="row" />
+    <BadgeState
+      v-else
+      :value="row"
+    />
   </div>
 </template>

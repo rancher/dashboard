@@ -7,7 +7,7 @@ export default {
   components: { CopyToClipboard },
   props:      {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {

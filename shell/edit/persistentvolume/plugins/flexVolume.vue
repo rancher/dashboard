@@ -7,8 +7,8 @@ export default {
   components: {
     KeyValue, LabeledInput, RadioGroup
   },
-  props:      {
-    value:      {
+  props: {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -42,20 +42,40 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.flexVolume.driver" :mode="mode" :label="t('persistentVolume.flexVolume.driver.label')" :placeholder="t('persistentVolume.flexVolume.driver.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.flexVolume.driver"
+          :mode="mode"
+          :label="t('persistentVolume.flexVolume.driver.label')"
+          :placeholder="t('persistentVolume.flexVolume.driver.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.flexVolume.secretRef.name" :mode="mode" :label="t('persistentVolume.shared.secretName.label')" :placeholder="t('persistentVolume.shared.secretName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.flexVolume.secretRef.name"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretName.label')"
+          :placeholder="t('persistentVolume.shared.secretName.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.flexVolume.secretRef.namespace" :mode="mode" :label="t('persistentVolume.shared.secretNamespace.label')" :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.flexVolume.secretRef.namespace"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretNamespace.label')"
+          :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.flexVolume.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.flexVolume.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup
@@ -70,7 +90,12 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <KeyValue v-model="value.spec.flexVolume.options" :add-label="t('persistentVolume.flexVolume.options.add')" :mode="mode" :read-allowed="false" />
+        <KeyValue
+          v-model="value.spec.flexVolume.options"
+          :add-label="t('persistentVolume.flexVolume.options.add')"
+          :mode="mode"
+          :read-allowed="false"
+        />
       </div>
     </div>
   </div>

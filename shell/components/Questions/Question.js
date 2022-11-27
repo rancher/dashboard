@@ -8,7 +8,7 @@ export default {
     },
 
     mode: {
-      type:     String,
+      type:    String,
       default: _EDIT,
     },
 

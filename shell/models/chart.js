@@ -20,10 +20,10 @@ export default class Chart extends SteveModel {
     }
 
     const out = {
-      [REPO_TYPE]:  this.repoType,
-      [REPO]:       this.repoName,
-      [CHART]:      this.chartName,
-      [VERSION]:    version,
+      [REPO_TYPE]: this.repoType,
+      [REPO]:      this.repoName,
+      [CHART]:     this.chartName,
+      [VERSION]:   version,
     };
 
     if ( from ) {

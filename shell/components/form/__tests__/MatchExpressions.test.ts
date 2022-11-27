@@ -73,7 +73,6 @@ describe('component: MatchExpressions', () => {
     await wrapper.trigger('keydown.down');
     await wrapper.trigger('keydown.enter');
 
-    // TODO: #6167: Fix issue with Select emitting 2 times
-    expect(wrapper.emitted('input')).toHaveLength(2);
+    expect(wrapper.emitted('input')).toHaveLength(1);
   });
 });

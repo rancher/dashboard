@@ -13,7 +13,7 @@ export default {
     FilterLabel
   },
 
-  props:      {
+  props: {
     schema: {
       type:     Object,
       required: true,

@@ -35,7 +35,7 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
     bindings: {
-      type:     Object as PropType<EpinioAppBindings>,
+      type:    Object as PropType<EpinioAppBindings>,
       default: () => null
     },
     mode: {
@@ -61,30 +61,30 @@ export default Vue.extend<Data, any, any, any>({
 
     if (!this.namespaces.find((ns: EpinioNamespace) => ns.name === coreArgs.application?.meta.namespace)) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
-        action:      APPLICATION_ACTION_TYPE.CREATE_NS,
-        index:       0, // index used for sorting
+        action: APPLICATION_ACTION_TYPE.CREATE_NS,
+        index:  0, // index used for sorting
         ...coreArgs,
       }));
     }
 
     this.actions.push(await this.$store.dispatch('epinio/create', {
-      action:      APPLICATION_ACTION_TYPE.CREATE,
-      index:       1, // index used for sorting
+      action: APPLICATION_ACTION_TYPE.CREATE,
+      index:  1, // index used for sorting
       ...coreArgs,
     }));
 
     if (this.bindings?.configurations?.length) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
-        action:      APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS,
-        index:       2,
+        action: APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS,
+        index:  2,
         ...coreArgs,
       }));
     }
 
     if (this.bindings?.services?.length) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
-        action:      APPLICATION_ACTION_TYPE.BIND_SERVICES,
-        index:       3,
+        action: APPLICATION_ACTION_TYPE.BIND_SERVICES,
+        index:  3,
         ...coreArgs,
       }));
     }
@@ -92,16 +92,16 @@ export default Vue.extend<Data, any, any, any>({
     if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ||
         this.source.type === APPLICATION_SOURCE_TYPE.FOLDER) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
-        action:      APPLICATION_ACTION_TYPE.UPLOAD,
-        index:       4,
+        action: APPLICATION_ACTION_TYPE.UPLOAD,
+        index:  4,
         ...coreArgs,
       }));
     }
 
     if (this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
-        action:      APPLICATION_ACTION_TYPE.GIT_FETCH,
-        index:       4,
+        action: APPLICATION_ACTION_TYPE.GIT_FETCH,
+        index:  4,
         ...coreArgs,
       }));
     }
@@ -110,15 +110,15 @@ export default Vue.extend<Data, any, any, any>({
         this.source.type === APPLICATION_SOURCE_TYPE.FOLDER ||
         this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
       this.actions.push(await this.$store.dispatch('epinio/create', {
-        action:      APPLICATION_ACTION_TYPE.BUILD,
-        index:       5,
+        action: APPLICATION_ACTION_TYPE.BUILD,
+        index:  5,
         ...coreArgs,
       }));
     }
 
     this.actions.push(await this.$store.dispatch('epinio/create', {
-      action:      APPLICATION_ACTION_TYPE.DEPLOY,
-      index:       6,
+      action: APPLICATION_ACTION_TYPE.DEPLOY,
+      index:  6,
       ...coreArgs,
     }));
 
@@ -138,9 +138,9 @@ export default Vue.extend<Data, any, any, any>({
         },
         {
           ...DESCRIPTION,
-          sort:          undefined,
-          value:         'description',
-          width:         450,
+          sort:  undefined,
+          value: 'description',
+          width: 450,
         },
         {
           ...STATE,
@@ -208,7 +208,10 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <div v-if="!$fetchState.pending" class="progress-container">
+  <div
+    v-if="!$fetchState.pending"
+    class="progress-container"
+  >
     <div class="progress">
       <SortableTable
         :rows="actions"
@@ -220,7 +223,10 @@ export default Vue.extend<Data, any, any, any>({
         key-field="key"
       >
         <template #cell:index="{row}">
-          <Checkbox v-model="row.run" :disabled="true" />
+          <Checkbox
+            v-model="row.run"
+            :disabled="true"
+          />
         </template>
         <template #cell:state="{row}">
           <div class="status">
@@ -229,7 +235,12 @@ export default Vue.extend<Data, any, any, any>({
               v-tooltip="row.stateDisplay"
               class="icon icon-lg icon-spinner icon-spin"
             />
-            <BadgeState v-else :color="row.stateBackground" :label="row.stateDisplay" class="badge" />
+            <BadgeState
+              v-else
+              :color="row.stateBackground"
+              :label="row.stateDisplay"
+              class="badge"
+            />
           </div>
         </template>
       </SortableTable>

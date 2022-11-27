@@ -5,7 +5,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 export default {
   components: { LabeledInput, LabeledSelect },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -62,10 +62,20 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.hostPath.path" :mode="mode" :label="t('persistentVolume.hostPath.pathOnTheNode.label')" :placeholder="t('persistentVolume.hostPath.pathOnTheNode.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.hostPath.path"
+          :mode="mode"
+          :label="t('persistentVolume.hostPath.pathOnTheNode.label')"
+          :placeholder="t('persistentVolume.hostPath.pathOnTheNode.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledSelect v-model="value.spec.hostPath.type" :mode="mode" :label="t('persistentVolume.hostPath.mustBe.label')" :options="mustBeOptions" />
+        <LabeledSelect
+          v-model="value.spec.hostPath.type"
+          :mode="mode"
+          :label="t('persistentVolume.hostPath.mustBe.label')"
+          :options="mustBeOptions"
+        />
       </div>
     </div>
   </div>

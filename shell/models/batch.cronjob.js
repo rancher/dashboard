@@ -20,27 +20,27 @@ export default class CronJob extends Workload {
     const canRunNow = !!jobSchema?.collectionMethods.find(x => ['blocked-post', 'post'].includes(x.toLowerCase()));
 
     insertAt(out, 0, {
-      action:     'runNow',
-      label:      this.t('action.runNow'),
-      icon:       'icon icon-spinner',
-      enabled:    canRunNow,
-      bulkable:   true,
+      action:   'runNow',
+      label:    this.t('action.runNow'),
+      icon:     'icon icon-spinner',
+      enabled:  canRunNow,
+      bulkable: true,
     });
 
     insertAt(out, 1, {
-      action:     'suspend',
-      label:      this.t('action.suspend'),
-      icon:       'icon icon-pause',
-      enabled:    !suspended && this.canUpdate,
-      bulkable:   true,
+      action:   'suspend',
+      label:    this.t('action.suspend'),
+      icon:     'icon icon-pause',
+      enabled:  !suspended && this.canUpdate,
+      bulkable: true,
     });
 
     insertAt(out, 2, {
-      action:     'resume',
-      label:      this.t('action.resume'),
-      icon:       'icon icon-play',
-      enabled:    suspended && this.canUpdate,
-      bulkable:   true,
+      action:   'resume',
+      label:    this.t('action.resume'),
+      icon:     'icon icon-play',
+      enabled:  suspended && this.canUpdate,
+      bulkable: true,
     });
 
     return out;

@@ -5,7 +5,7 @@ import Window from './Window';
 export default {
   components: { Window, ChartReadme },
 
-  props:      {
+  props: {
     // The definition of the tab itself
     tab: {
       type:     Object,
@@ -30,7 +30,10 @@ export default {
 <template>
   <Window :active="active">
     <template #body>
-      <ChartReadme :version-info="versionInfo" class="chart-container" />
+      <ChartReadme
+        :version-info="versionInfo"
+        class="chart-container"
+      />
     </template>
   </Window>
 </template>

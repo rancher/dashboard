@@ -44,7 +44,7 @@ export const APPLICATION_ACTION_STATE = {
   SUCCESS: 'success',
   RUNNING: 'running',
   FAIL:    'fail',
-  PENDING:  'pending',
+  PENDING: 'pending',
 };
 
 // --------------------------------------

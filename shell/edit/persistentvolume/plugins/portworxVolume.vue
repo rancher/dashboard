@@ -5,7 +5,7 @@ import { RadioGroup } from '@components/Form/Radio';
 export default {
   components: { LabeledInput, RadioGroup },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -39,10 +39,20 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.portworxVolume.volumeID" :mode="mode" :label="t('persistentVolume.portworxVolume.volumeId.label')" :placeholder="t('persistentVolume.portworxVolume.volumeId.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.portworxVolume.volumeID"
+          :mode="mode"
+          :label="t('persistentVolume.portworxVolume.volumeId.label')"
+          :placeholder="t('persistentVolume.portworxVolume.volumeId.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.portworxVolume.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.portworxVolume.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">

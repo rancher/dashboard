@@ -95,6 +95,15 @@ generic:
   deprecated: Deprecated
   placeholder: "e.g. {text}"
   moreInfo: More Info
+  selectors:
+    label: Selector
+    matchingResources:
+      matchesSome: |-
+        {matched, plural,
+          =0 {Matches 0 of {total, number}}
+          =1 {Matches 1 of {total, number}: "{sample}"}
+          other {Matches {matched, number} of {total, number}, including "{sample}"}
+        }
 
 locale:
   en-us: English
@@ -125,11 +134,12 @@ nav:
   group:
     cluster: Cluster
     inUse: More Resources
+    policy: Policy
     rbac: RBAC
     serviceDiscovery: Service Discovery
     starred: Starred
     storage: Storage
-    workload: Workload
+    workload: Workloads
     monitoring: Monitoring
     advanced: Advanced
     RKE1Configuration: RKE1 Configuration
@@ -191,6 +201,7 @@ product:
   harvesterManager: Virtualization Management
   rancher: Rancher
   uiplugins: Extensions
+  elemental: OS Management
 
 suffix:
   percent: "%"
@@ -230,6 +241,7 @@ about:
     cli: CLI
     helm: Helm
     machine: Machine
+    rancher: Rancher
     releaseNotes: 'View release notes'
   os:
     mac: macOS
@@ -243,7 +255,7 @@ about:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
     checkboxLabel: Make additional requests
-    systemInformation: 
+    systemInformation:
       subtitle: System Information
       browser: Browser
       browserInfo: "User Agent: {userAgent}, Language: {language}, Cookies Enabled: {cookieEnabled}"
@@ -254,8 +266,8 @@ about:
       os: "OS: {platform}"
       memJsHeapLimit: "Heap Size limit: {jsHeapSizeLimit}"
       memTotalJsHeapSize: "Total Heap Size: {totalJSHeapSize}"
-      memUsedJsHeapSize: "Used Heap Size: {usedJSHeapSize}" 
-    logs: 
+      memUsedJsHeapSize: "Used Heap Size: {usedJSHeapSize}"
+    logs:
       subtitle: Latest Logs
     resourceCounts: |-
       {count, plural,
@@ -486,7 +498,7 @@ authConfig:
         linkText: 'Update it here.'
       modal:
         title: Are you sure? This update is irreversible.
-        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the following application permissions for Microsoft Graph: User.Read.All, Group.Read.All<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
+        body: '<p><b>You may need to make some additional changes</b>. Please ensure the Azure AD app has the Directory.Read.All <b>Application</b> permission added to Microsoft Graph.<br> If any endpoints were customized while configuring Azure AD authentication in Rancher, they will not be automatically updated. </p>'
   oidc:
     oidc: Configure an OIDC account
     keycloakoidc: Configure a Keycloak OIDC account
@@ -607,7 +619,7 @@ asyncButton:
     waiting: Importing&hellip;
   install:
     action: Install
-    success: Installing
+    success: Installed
     waiting: Installing&hellip;
   load:
     action: Load
@@ -767,7 +779,7 @@ catalog:
   chart:
     registry:
       label: Container Registry
-      tooltip: Container images are pulled from the Cluster Container or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
+      tooltip: Container images are pulled from the Cluster Container Registry or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
       custom:
         checkBoxLabel: Container Registry for Rancher System Container Images
         inputLabel: Container Registry
@@ -799,6 +811,7 @@ catalog:
     windowsIncompatible: Linux only
     versionWindowsIncompatible: Linux only version
     header: Charts
+    featuredCharts: Featured Charts
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your repos do not contain any charts capable of being deployed on a cluster with Windows nodes.
     noWindowsAndLinux: Your repos do not contain any charts capable of being deployed on a cluster with both Windows and Linux worker nodes.
@@ -866,7 +879,7 @@ catalog:
       valuesYaml: Edit YAML
       diff: Compare Changes
     slideIn:
-      dock: Dock to bottom
+      dock: Dock to shell
     steps:
       basics:
         label: Metadata
@@ -1217,7 +1230,7 @@ cluster:
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
-      cloudProvider: 
+      cloudProvider:
         incompatible:
           You cannot select the Harvester cloud provider as the current Harvester version is not compatible with the selected RKE2 Kubernetes version, click <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">here</a> to see which Kubernetes versions are supported.
     clusterWarning: |-
@@ -1571,6 +1584,9 @@ cluster:
       label: Roles
     labels:
       label: Kubernetes Node Labels
+    noAccessBanner: "You do not have access to see this machine pool's configuration."
+    configNotFound: "We could not find this machine pool's configuration. We recommend that you create a new cluster with the desired configuration."
+    noPoolsDisclaimer: You do not have any machine pools defined, click the plus to add one.
     autoReplace:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
@@ -1647,6 +1663,7 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
+    machineinventoryselectortemplate: Elemental Cluster
   providerTag:
     rke2:
       harvester: '{tag}'
@@ -1727,7 +1744,6 @@ cluster:
         false: Only available inside the cluster
         true: Exposed to the public interface
   k3s:
-    techPreview: K3s provisioning is in Tech Preview
     systemService:
       coredns: 'CoreDNS'
       local-storage: 'Local Storage'
@@ -1965,14 +1981,14 @@ fleet:
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
       addRepo: Add Repository
       noRepos: No repositories have been added
-    add: 
-      steps: 
-        repoInfo: 
+    add:
+      steps:
+        repoInfo:
           label: Repository Details
           title: Specify the Git Repository to add to fleet
           subtext: 'Define repository details'
           description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
-        targetInfo: 
+        targetInfo:
           label: Target Details
           title: Specify which target to synchronise this repository to
           subtext: 'Define target details'
@@ -2127,13 +2143,13 @@ graphOptions:
 
 growl:
   clearAll: Clear All Notifications
-  disconnectError: 
+  disconnectError:
     message: "The connection to {url} closed unexpectedly at {time}. Disconnected after {tries} reconnect attempts. Check your network connection and reload the page"
-    title: Websocket Disconnected 
-  connectError: 
+    title: Websocket Disconnected
+  connectError:
     message: "The connection to {url} closed unexpectedly at {time}. Reconnect attempt #{tries}."
-    title: Websocket Reconnecting 
-  reconnected: 
+    title: Websocket Reconnecting
+  reconnected:
     message: "The connection to {url} was restored on attempt #{tries}."
     title: Websocket Reconnected
 
@@ -2477,7 +2493,7 @@ landing:
     cpuUsed: CPU Used
     memoryUsed: Memory Used
   seeWhatsNew: Learn more about the improvements and new capabilities in this version.
-  whatsNewLink: "What's new in 2.6"
+  whatsNewLink: "What's new in 2.7"
   learnMore: Learn More
   support: Support
   psps: PSPs
@@ -2541,6 +2557,15 @@ logging:
     clientKeyPass: Client Key Pass from Secret
     verifySsl: Verify SSL
     sslVersion: SSL Version
+  redis:
+    host: Host
+    port: Port
+    dbNumber: Redis database number
+    ttl: TTL for each key
+    password: Password from Secret
+    format:
+      title: Format
+      type: Type
   gelf:
     host: Host
     port: Port
@@ -2671,6 +2696,8 @@ logging:
       configuration: Configuration
   outputProviders:
     elasticsearch: Elasticsearch
+    opensearch: OpenSearch
+    redis: Redis
     splunkHec: Splunk
     kafka: Kafka
     forward: Fluentd
@@ -2856,7 +2883,6 @@ monitoring:
         existing: Enable With Existing PVC
         statefulset: Enable with StatefulSet Template
         template: Enable with PVC Template
-      volumeMode: Volume Mode
       volumeName: Volume Name
     title: Configure Grafana
   hostNetwork:
@@ -2919,7 +2945,6 @@ monitoring:
       selector: Selector
       selectorWarning: 'If you are using a dynamic provisioner (e.g. Longhorn), no Selectors should be specified since a PVC with a non-empty selector can''t have a PV dynamically provisioned for it.'
       size: Size
-      volumeMode: Volume Mode
       volumeName: Volume Name
     title: Configure Prometheus
     warningInstalled: |
@@ -3008,10 +3033,6 @@ monitoring:
     prometheus: Prometheus
     projectMetrics: Project Metrics
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of {vendor} with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new {vendor} Monitoring chart in Cluster Explorer.'
-  volume:
-    modes:
-      block: Block
-      file: Filesystem
 
 monitoringReceiver:
   addButton: Add {type}
@@ -3671,6 +3692,14 @@ persistentVolumeClaim:
   status:
     label: Status
 
+podDisruptionBudget:
+  budget:
+    label: Budget
+  minAvailable:
+    label: Min. available Pods
+  maxUnavailable:
+    label: Max. unavailable Pods
+
 # Rancher Extensions
 plugins:
   labels:
@@ -3707,7 +3736,7 @@ plugins:
     versions: Versions
     versionError: Could not load version information
   empty:
-    all: Extensions are neither installed or available
+    all: Extensions are neither installed nor available
     available: No Extensions available
     installed: No Extensions installed
     updates: No updates available for installed Extensions
@@ -3761,7 +3790,9 @@ plugins:
       registry:
         title: Remove the Rancher Extensions Repository
         prompt: The Rancher Extensions Repository provides extensions published by Rancher
-
+      crd:
+        title: Remove the Rancher Extensions Custom Resource Definition
+        prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
 prefs:
   title: Preferences
   theme:
@@ -4253,8 +4284,10 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
     node: Group by Node
+    cluster: Group by Cluster
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
+    notInACluster: Not in a Cluster
     namespace: "<span>Namespace:</span> {name}"
     notInAMachinePool: "Not In A Deployment"
     machinePool: "<span>Pool:</span> {name}"
@@ -4562,6 +4595,16 @@ sortableTable:
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
+  in: in
+  addFilter: Add Filter
+  filterFor: Filter for...
+  selectCol: Select a column
+  resetFilters: Reset
+  add: Add
+  tableHeader:
+    noFilter: This column cannot be filtered by
+    groupBy: Group by
+    show: Show
 
 storageClass:
   actions:
@@ -4868,6 +4911,7 @@ tableHeaders:
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
+  cluster: Cluster
   clusters: Clusters
   clustersReady: Clusters Ready
   clusterGroups: Cluster Groups
@@ -4875,6 +4919,7 @@ tableHeaders:
   condition: Condition
   customVerbs: Custom Verbs
   description: Description
+  duration: Duration
   expires: Expires
   providers: Providers
   cpu: CPU
@@ -5121,6 +5166,12 @@ validation:
       startLetter: '"{key}" must start with a letter or number'
       tooLongKey: '"{key}" cannot have a key longer than {max} characters'
       tooLongPrefix: '"{key}" cannot have a prefix longer than {max} characters'
+  minLength: '"{key}" must contain more than {min} characters'
+  maxLength: '"{key}" must contain less than {max} characters'
+  minValue: '"{key}" must be higher than {min}'
+  maxValue: '"{key}" must be lower than {max}'
+  betweenLengths: '"{key}" must contain between {min} and {max} characters'
+  betweenValues: '"{key}" must be between {min} and {max}'
   noSchema: No schema found to validate
   noType: No type to validate
   number:
@@ -5712,8 +5763,8 @@ workload:
       label: Termination Grace Period
       tip: The duration the pod needs to terminate successfully.
     title: Upgrading
-  tabs: 
-    labels: 
+  tabs:
+    labels:
       deployment: Deployment
       pod: Pod
       containers: Containers
@@ -6285,7 +6336,7 @@ branding:
   directoryName: Brand Asset Directory Name
   logos:
     label: Logo
-    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB'
+    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview
     darkPreview: Dark Theme Preview
     uploadLight: Upload Light Logo
@@ -6343,7 +6394,7 @@ resourceQuota:
   servicesLoadBalancers: Services Load Balancers
   servicesNodePorts: Service Node Ports
   namespaceLimit:
-    label: Limit
+    label: Namespace Limit
   projectLimit:
     label: Project Limit
     cpuPlaceholder: e.g. 2000
@@ -6363,7 +6414,7 @@ resourceQuota:
     namespace: 'This Namespace:'
     available: 'Available:'
     max: 'Total:'
-customLinks: 
+customLinks:
   displayTitle: Links
   label: Home Links
   description: 'Configure the links to display on the home page. You can define your own custom links as well as show or hide default links.'
@@ -6376,7 +6427,7 @@ customLinks:
     keyLabel: Display Text
     valueLabel: URL
     showLabel: Show
-  defaults: 
+  defaults:
     docs:       Docs
     forums:     Forums
     slack:      Slack

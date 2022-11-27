@@ -30,7 +30,7 @@ if [ $SKIP_SETUP == "false" ]; then
   fi
 
   set +e
-  RUNNING=$(ps -A | grep Verdaccio -c)
+  RUNNING=$(pgrep Verdaccio | wc -l | xargs)
   set -e
 
   if [ $RUNNING -eq 0 ]; then
@@ -45,7 +45,7 @@ if [ $SKIP_SETUP == "false" ]; then
 
     # Remove existing admin if already there
     if [ -f ~/.config/verdaccio/htpasswd ]; then
-      sed -i '/^admin:/d' ~/.config/verdaccio/htpasswd
+      sed -i.bak -e '/^admin:/d' ~/.config/verdaccio/htpasswd
     fi
 
     curl -XPUT -H "Content-type: application/json" -d '{ "name": "admin", "password": "admin" }' 'http://localhost:4873/-/user/admin' > login.json
@@ -67,7 +67,10 @@ else
 fi
 
 export YARN_REGISTRY=http://localhost:4873
-export NEXT_TELEMETRY_DISABLED=1
+export NUXT_TELEMETRY_DISABLED=1
+
+# Remove test package from previous run, if present
+rm -rf ${BASE_DIR}/pkg/test-pkg
 
 # We need to patch the version number of the shell, otherwise if we are running
 # with the currently published version, things will fail as those versions
@@ -77,6 +80,7 @@ rm ${SHELL_DIR}/package.json.bak
 
 # Publish shell
 echo "Publishing shell packages to local registry"
+yarn install
 ${SHELL_DIR}/scripts/publish-shell.sh
 
 if [ "${SKIP_STANDALONE}" == "false" ]; then
@@ -92,21 +96,21 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   yarn install
 
   echo "Building skeleton app"
-  yarn build
+  FORCE_COLOR=true yarn build | cat
 
   # Package creator
   echo "Verifying package creator package"
   yarn create @rancher/pkg test-pkg
 
   echo "Building test package"
-  yarn build-pkg test-pkg
+  FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
   # Add test list component to the test package
   # Validates rancher-components imports
   mkdir pkg/test-pkg/list
   cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 
-  yarn build-pkg test-pkg
+  FORCE_COLOR=true yarn build-pkg test-pkg | cat
 
   echo "Cleaning temporary dir"
   popd > /dev/null
@@ -126,7 +130,7 @@ yarn install
 rm -rf ./pkg/test-pkg
 yarn create @rancher/pkg test-pkg -t
 cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue ./pkg/test-pkg/list
-yarn build-pkg test-pkg
+FORCE_COLOR=true yarn build-pkg test-pkg | cat
 rm -rf ./pkg/test-pkg
 
 echo "All done"

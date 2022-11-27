@@ -29,7 +29,10 @@ export default {
 </script>>
 
 <template>
-  <nuxt-link v-if="serviceAccountLink" :to="serviceAccountLink">
+  <nuxt-link
+    v-if="serviceAccountLink"
+    :to="serviceAccountLink"
+  >
     {{ typeDisplay }}
   </nuxt-link>
   <div v-else>

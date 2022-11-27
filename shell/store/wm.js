@@ -6,6 +6,8 @@ export const state = function() {
     active:     null,
     open:       false,
     userHeight: null,
+    userWidth:  null,
+    userPin:    null,
   };
 };
 
@@ -41,6 +43,14 @@ export const mutations = {
 
   setUserHeight(state, height) {
     state.userHeight = height;
+  },
+
+  setUserWidth(state, width) {
+    state.userWidth = width;
+  },
+
+  setUserPin(state, pin) {
+    state.userPin = pin;
   }
 };
 

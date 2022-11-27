@@ -7,8 +7,8 @@ export default {
   components: {
     ArrayList, LabeledInput, RadioGroup
   },
-  props:      {
-    value:      {
+  props: {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -54,10 +54,20 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.iscsi.initiatorName" :mode="mode" :label="t('persistentVolume.iscsi.initiatorName.label')" :placeholder="t('persistentVolume.iscsi.initiatorName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.iscsi.initiatorName"
+          :mode="mode"
+          :label="t('persistentVolume.iscsi.initiatorName.label')"
+          :placeholder="t('persistentVolume.iscsi.initiatorName.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.iscsi.iscsiInterface" :mode="mode" :label="t('persistentVolume.iscsi.iscsiInterface.label')" :placeholder="t('persistentVolume.iscsi.iscsiInterface.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.iscsi.iscsiInterface"
+          :mode="mode"
+          :label="t('persistentVolume.iscsi.iscsiInterface.label')"
+          :placeholder="t('persistentVolume.iscsi.iscsiInterface.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
@@ -84,31 +94,66 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.iscsi.iqn" :mode="mode" :label="t('persistentVolume.iscsi.iqn.label')" :placeholder="t('persistentVolume.iscsi.iqn.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.iscsi.iqn"
+          :mode="mode"
+          :label="t('persistentVolume.iscsi.iqn.label')"
+          :placeholder="t('persistentVolume.iscsi.iqn.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="lun" :mode="mode" :label="t('persistentVolume.iscsi.lun.label')" :placeholder="t('persistentVolume.iscsi.lun.placeholder')" type="number" />
-      </div>
-    </div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.iscsi.targetPortal" :mode="mode" :label="t('persistentVolume.iscsi.targetPortal.label')" :placeholder="t('persistentVolume.iscsi.targetPortal.placeholder')" />
-      </div>
-      <div class="col span-6">
-        <ArrayList v-model="value.spec.iscsi.portals" :mode="mode" :add-label="t('persistentVolume.iscsi.portals.add')" />
-      </div>
-    </div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.iscsi.secretRef.name" :mode="mode" :label="t('persistentVolume.shared.secretName.label')" :placeholder="t('persistentVolume.shared.secretName.placeholder')" />
-      </div>
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.iscsi.secretRef.namespace" :mode="mode" :label="t('persistentVolume.shared.secretNamespace.label')" :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')" />
+        <LabeledInput
+          v-model="lun"
+          :mode="mode"
+          :label="t('persistentVolume.iscsi.lun.label')"
+          :placeholder="t('persistentVolume.iscsi.lun.placeholder')"
+          type="number"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.iscsi.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.iscsi.targetPortal"
+          :mode="mode"
+          :label="t('persistentVolume.iscsi.targetPortal.label')"
+          :placeholder="t('persistentVolume.iscsi.targetPortal.placeholder')"
+        />
+      </div>
+      <div class="col span-6">
+        <ArrayList
+          v-model="value.spec.iscsi.portals"
+          :mode="mode"
+          :add-label="t('persistentVolume.iscsi.portals.add')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.iscsi.secretRef.name"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretName.label')"
+          :placeholder="t('persistentVolume.shared.secretName.placeholder')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.iscsi.secretRef.namespace"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretNamespace.label')"
+          :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.iscsi.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup

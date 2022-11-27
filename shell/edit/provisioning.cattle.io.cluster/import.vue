@@ -74,8 +74,8 @@ export default {
       return this.isCreate && !this.hideDescriptions.includes(HARVESTER_HIDE_KEY) && this.harvesterEnabled ? {
         name:   `c-cluster-product-resource`,
         params: {
-          product:   HARVESTER_MANAGER,
-          resource:  HCI.CLUSTER,
+          product:  HARVESTER_MANAGER,
+          resource: HCI.CLUSTER,
         }
       } : null;
     }
@@ -162,14 +162,32 @@ export default {
     </div>
 
     <Tabbed :side-tabs="true">
-      <Tab v-if="canManageMembers" name="memberRoles" label-key="cluster.tabs.memberRoles" :weight="3">
-        <Banner v-if="isEdit" color="info">
+      <Tab
+        v-if="canManageMembers"
+        name="memberRoles"
+        label-key="cluster.tabs.memberRoles"
+        :weight="3"
+      >
+        <Banner
+          v-if="isEdit"
+          color="info"
+        >
           {{ t('cluster.memberRoles.removeMessage') }}
         </Banner>
-        <ClusterMembershipEditor :mode="mode" :parent-id="value.mgmt ? value.mgmt.id : null" @membership-update="onMembershipUpdate" />
+        <ClusterMembershipEditor
+          :mode="mode"
+          :parent-id="value.mgmt ? value.mgmt.id : null"
+          @membership-update="onMembershipUpdate"
+        />
       </Tab>
-      <AgentEnv v-model="value" :mode="mode" />
-      <Labels v-model="value" :mode="mode" />
+      <AgentEnv
+        v-model="value"
+        :mode="mode"
+      />
+      <Labels
+        v-model="value"
+        :mode="mode"
+      />
     </Tabbed>
   </CruResource>
 </template>

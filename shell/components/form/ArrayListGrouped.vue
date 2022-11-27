@@ -31,7 +31,7 @@ export default {
     },
   },
 
-  computed:   {
+  computed: {
     isView() {
       return this.mode === _VIEW;
     }
@@ -81,11 +81,17 @@ export default {
       >
         <i class="icon icon-2x icon-x" />
       </button>
-      <span v-else></span>
+      <span v-else />
     </template>
     <!-- Pass down templates provided by the caller -->
-    <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-      <slot :name="slot" v-bind="scope" />
+    <template
+      v-for="(_, slot) of $scopedSlots"
+      v-slot:[slot]="scope"
+    >
+      <slot
+        :name="slot"
+        v-bind="scope"
+      />
     </template>
   </ArrayList>
 </template>

@@ -167,8 +167,8 @@ export default {
   methods: {
     memoryFormatter(value) {
       const formatOptions = {
-        addSuffix:  false,
-        increment:  1024,
+        addSuffix: false,
+        increment: 1024,
       };
 
       return formatSi(value, formatOptions);
@@ -197,22 +197,61 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else class="node">
-    <div class="spacer"></div>
+  <div
+    v-else
+    class="node"
+  >
+    <div class="spacer" />
     <div class="alerts">
-      <Alert class="mr-10" :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />
-      <Alert class="mr-10" :status="diskPressureStatus" :message="t('node.detail.glance.diskPressure')" />
-      <Alert class="mr-10" :status="memoryPressureStatus" :message="t('node.detail.glance.memoryPressure')" />
-      <Alert :status="kubeletStatus" :message="t('node.detail.glance.kubelet')" />
+      <Alert
+        class="mr-10"
+        :status="pidPressureStatus"
+        :message="t('node.detail.glance.pidPressure')"
+      />
+      <Alert
+        class="mr-10"
+        :status="diskPressureStatus"
+        :message="t('node.detail.glance.diskPressure')"
+      />
+      <Alert
+        class="mr-10"
+        :status="memoryPressureStatus"
+        :message="t('node.detail.glance.memoryPressure')"
+      />
+      <Alert
+        :status="kubeletStatus"
+        :message="t('node.detail.glance.kubelet')"
+      />
     </div>
     <div class="mt-20 resources">
-      <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.cpu')" :capacity="value.cpuCapacity" :used="value.cpuUsage" />
-      <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.memory')" :capacity="value.ramCapacity" :used="value.ramUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
-      <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.pods')" :capacity="value.podCapacity" :used="value.podConsumed" />
+      <ConsumptionGauge
+        :resource-name="t('node.detail.glance.consumptionGauge.cpu')"
+        :capacity="value.cpuCapacity"
+        :used="value.cpuUsage"
+      />
+      <ConsumptionGauge
+        :resource-name="t('node.detail.glance.consumptionGauge.memory')"
+        :capacity="value.ramCapacity"
+        :used="value.ramUsage"
+        :units="memoryUnits"
+        :number-formatter="memoryFormatter"
+      />
+      <ConsumptionGauge
+        :resource-name="t('node.detail.glance.consumptionGauge.pods')"
+        :capacity="value.podCapacity"
+        :used="value.podConsumed"
+      />
     </div>
-    <div class="spacer"></div>
-    <ResourceTabs v-model="value" :mode="mode">
-      <Tab name="pods" :label="t('node.detail.tab.pods')" :weight="4">
+    <div class="spacer" />
+    <ResourceTabs
+      v-model="value"
+      :mode="mode"
+    >
+      <Tab
+        name="pods"
+        :label="t('node.detail.tab.pods')"
+        :weight="4"
+      >
         <SortableTable
           key-field="_key"
           :headers="podTableHeaders"
@@ -222,7 +261,12 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-if="showMetrics" :label="t('node.detail.tab.metrics')" name="node-metrics" :weight="3">
+      <Tab
+        v-if="showMetrics"
+        :label="t('node.detail.tab.metrics')"
+        name="node-metrics"
+        :weight="3"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -233,7 +277,12 @@ export default {
           />
         </template>
       </Tab>
-      <Tab name="info" :label="t('node.detail.tab.info.label')" class="bordered-table" :weight="2">
+      <Tab
+        name="info"
+        :label="t('node.detail.tab.info.label')"
+        class="bordered-table"
+        :weight="2"
+      >
         <SortableTable
           key-field="_key"
           :headers="infoTableHeaders"
@@ -244,7 +293,11 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab name="images" :label="t('node.detail.tab.images')" :weight="1">
+      <Tab
+        name="images"
+        :label="t('node.detail.tab.images')"
+        :weight="1"
+      >
         <SortableTable
           key-field="_key"
           :headers="imageTableHeaders"
@@ -253,7 +306,11 @@ export default {
           :table-actions="false"
         />
       </Tab>
-      <Tab name="taints" :label="t('node.detail.tab.taints')" :weight="0">
+      <Tab
+        name="taints"
+        :label="t('node.detail.tab.taints')"
+        :weight="0"
+      >
         <SortableTable
           key-field="_key"
           :headers="taintTableHeaders"
@@ -263,9 +320,17 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-if="v1MonitoringUrl" name="v1Metrics" :label="t('node.detail.tab.metrics')" :weight="0">
+      <Tab
+        v-if="v1MonitoringUrl"
+        name="v1Metrics"
+        :label="t('node.detail.tab.metrics')"
+        :weight="0"
+      >
         <div id="ember-anchor">
-          <EmberPage inline="ember-anchor" :src="v1MonitoringUrl" />
+          <EmberPage
+            inline="ember-anchor"
+            :src="v1MonitoringUrl"
+          />
         </div>
       </Tab>
     </ResourceTabs>

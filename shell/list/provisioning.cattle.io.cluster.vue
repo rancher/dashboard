@@ -30,6 +30,11 @@ export default {
       type:    Boolean,
       default: false
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -72,9 +77,9 @@ export default {
 
   data() {
     return {
-      resource:        CAPI.RANCHER_CLUSTER,
-      schema:          this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      mgmtClusters:    [],
+      resource:     CAPI.RANCHER_CLUSTER,
+      schema:       this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      mgmtClusters: [],
     };
   },
 
@@ -146,7 +151,11 @@ export default {
 
 <template>
   <div>
-    <Banner v-if="hiddenHarvesterCount" color="info" :label="t('cluster.harvester.clusterWarning', {count: hiddenHarvesterCount} )" />
+    <Banner
+      v-if="hiddenHarvesterCount"
+      color="info"
+      :label="t('cluster.harvester.clusterWarning', {count: hiddenHarvesterCount} )"
+    />
 
     <Masthead
       :schema="schema"
@@ -157,7 +166,10 @@ export default {
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
     >
-      <template v-if="canImport" slot="extraActions">
+      <template
+        v-if="canImport"
+        slot="extraActions"
+      >
         <n-link
           :to="importLocation"
           class="btn role-primary"
@@ -168,12 +180,19 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="filteredRows" :namespaced="false" :loading="loading">
+    <ResourceTable
+      :schema="schema"
+      :rows="filteredRows"
+      :namespaced="false"
+      :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :data-testid="'cluster-list'"
+    >
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
       <template #cell:explorer="{row}">
-        <span v-if="row.mgmt && row.mgmt.isHarvester"></span>
+        <span v-if="row.mgmt && row.mgmt.isHarvester" />
         <n-link
           v-else-if="row.mgmt && row.mgmt.isReady && !row.hasError"
           data-testid="cluster-manager-list-explore-management"

@@ -4,7 +4,7 @@ import Tabbed from '@shell/components/Tabbed';
 import { MANAGEMENT } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
-import { SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
+import { SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import { NAME } from '@shell/config/product/auth';
 import { BLANK_CLUSTER } from '@shell/store';
 
@@ -26,8 +26,6 @@ const createRoleTemplate = {
     resource: MANAGEMENT.ROLE_TEMPLATE,
   }
 };
-
-const createVerbs = new Set(['PUT', 'blocked-PUT']);
 
 export default {
   name: 'Roles',
@@ -57,7 +55,7 @@ export default {
       tabs: {
         [GLOBAL]: {
           canFetch:       globalRoleSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      globalRoleSchema?.resourceMethods.find(verb => createVerbs.has(verb)),
+          canCreate:      globalRoleSchema?.resourceMethods.find(verb => CREATE_VERBS.has(verb)),
           weight:         3,
           labelKey:       SUBTYPE_MAPPING.GLOBAL.labelKey,
           schema:         globalRoleSchema,
@@ -68,7 +66,7 @@ export default {
         },
         [CLUSTER]: {
           canFetch:       roleTemplatesSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => createVerbs.has(verb)),
+          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => CREATE_VERBS.has(verb)),
           labelKey:       SUBTYPE_MAPPING.CLUSTER.labelKey,
           weight:         2,
           schema:         roleTemplatesSchema,
@@ -80,7 +78,7 @@ export default {
         },
         [PROJECT]: {
           canFetch:       roleTemplatesSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => createVerbs.has(verb)),
+          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => CREATE_VERBS.has(verb)),
           labelKey:       SUBTYPE_MAPPING.NAMESPACE.labelKey,
           weight:         1,
           schema:         roleTemplatesSchema,
@@ -158,7 +156,7 @@ export default {
 <template>
   <Loading v-if="!globalRoles || !roleTemplates" />
   <div v-else>
-    <header>
+    <header class="header-layout">
       <div class="title">
         <h1 class="m-0">
           {{ t('rbac.roletemplate.label') }}
@@ -177,16 +175,42 @@ export default {
       </div>
     </header>
     <Tabbed>
-      <Tab v-if="tabs[GLOBAL].canFetch" :name="GLOBAL" :weight="tabs[GLOBAL].weight" :label-key="tabs[GLOBAL].labelKey">
-        <ResourceTable :schema="tabs[GLOBAL].schema" :rows="globalResources" />
+      <Tab
+        v-if="tabs[GLOBAL].canFetch"
+        :name="GLOBAL"
+        :weight="tabs[GLOBAL].weight"
+        :label-key="tabs[GLOBAL].labelKey"
+      >
+        <ResourceTable
+          :schema="tabs[GLOBAL].schema"
+          :rows="globalResources"
+        />
       </Tab>
 
-      <Tab v-if="tabs[CLUSTER].canFetch" :name="CLUSTER" :weight="tabs[CLUSTER].weight" :label-key="tabs[CLUSTER].labelKey">
-        <ResourceTable :schema="tabs[CLUSTER].schema" :headers="tabs[CLUSTER].headers" :rows="clusterResources" />
+      <Tab
+        v-if="tabs[CLUSTER].canFetch"
+        :name="CLUSTER"
+        :weight="tabs[CLUSTER].weight"
+        :label-key="tabs[CLUSTER].labelKey"
+      >
+        <ResourceTable
+          :schema="tabs[CLUSTER].schema"
+          :headers="tabs[CLUSTER].headers"
+          :rows="clusterResources"
+        />
       </Tab>
 
-      <Tab v-if="tabs[PROJECT].canFetch" :name="PROJECT" :weight="tabs[PROJECT].weight" :label-key="tabs[PROJECT].labelKey">
-        <ResourceTable :schema="tabs[PROJECT].schema" :headers="tabs[PROJECT].headers" :rows="namespaceResources" />
+      <Tab
+        v-if="tabs[PROJECT].canFetch"
+        :name="PROJECT"
+        :weight="tabs[PROJECT].weight"
+        :label-key="tabs[PROJECT].labelKey"
+      >
+        <ResourceTable
+          :schema="tabs[PROJECT].schema"
+          :headers="tabs[PROJECT].headers"
+          :rows="namespaceResources"
+        />
       </Tab>
     </Tabbed>
   </div>

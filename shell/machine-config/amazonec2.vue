@@ -30,7 +30,7 @@ export default {
     },
 
     cluster: {
-      type:     Object,
+      type:    Object,
       default: () => ({})
     },
 
@@ -523,7 +523,10 @@ export default {
             <div class="col span-12">
               <h3>
                 {{ t('cluster.machineConfig.amazonEc2.securityGroup.title') }}
-                <span v-if="!value.vpcId" class="text-muted text-small">
+                <span
+                  v-if="!value.vpcId"
+                  class="text-muted text-small"
+                >
                   {{ t('cluster.machineConfig.amazonEc2.securityGroup.vpcId') }}
                 </span>
               </h3>
@@ -567,7 +570,10 @@ export default {
                 :mode="mode"
                 :label="t('cluster.machineConfig.amazonEc2.encryptEbsVolume')"
               />
-              <div v-if="value.encryptEbsVolume" class="mt-10">
+              <div
+                v-if="value.encryptEbsVolume"
+                class="mt-10"
+              >
                 <LabeledSelect
                   v-if="canReadKms"
                   v-model="value.kmsKey"
@@ -597,7 +603,10 @@ export default {
                 :mode="mode"
                 :label="t('cluster.machineConfig.amazonEc2.requestSpotInstance')"
               />
-              <div v-if="value.requestSpotInstance" class="mt-10">
+              <div
+                v-if="value.requestSpotInstance"
+                class="mt-10"
+              >
                 <UnitInput
                   v-model="value.spotPrice"
                   output-as="string"
