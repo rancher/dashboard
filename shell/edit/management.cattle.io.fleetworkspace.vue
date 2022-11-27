@@ -33,7 +33,7 @@ export default {
 
   data() {
     return {
-      fleetClusters:      null,
+      fleetClusters:   null,
       rancherClusters: null,
     };
   },

@@ -77,9 +77,9 @@ export default class CRTB extends HybridModel {
     const name = `c-cluster-product-resource-id`;
 
     const params = {
-      resource:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-      id:        this.clusterName,
-      product:   'explorer',
+      resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
+      id:       this.clusterName,
+      product:  'explorer',
     };
 
     return { name, params };
@@ -116,11 +116,11 @@ export default class CRTB extends HybridModel {
       const principalProperty = principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
 
       return this.$dispatch(`rancher/create`, {
-        type:                  NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
-        roleTemplateId:        this.roleTemplateName,
-        [principalProperty]:   principal.id,
-        clusterId:             this.clusterName,
-        id:                    this.id?.replace('/', ':')
+        type:                NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
+        roleTemplateId:      this.roleTemplateName,
+        [principalProperty]: principal.id,
+        clusterId:           this.clusterName,
+        id:                  this.id?.replace('/', ':')
       }, { root: true });
     })();
   }

@@ -301,9 +301,9 @@ export default {
 
       try {
         this.version = this.$store.getters['catalog/version']({
-          repoType:      this.query.repoType,
-          repoName:      this.query.repoName,
-          chartName:     this.query.chartName,
+          repoType:    this.query.repoType,
+          repoName:    this.query.repoName,
+          chartName:   this.query.chartName,
           versionName: this.query.versionName
         });
       } catch (e) {
@@ -315,9 +315,9 @@ export default {
 
       try {
         this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
-          repoType:      this.query.repoType,
-          repoName:      this.query.repoName,
-          chartName:     this.query.chartName,
+          repoType:    this.query.repoType,
+          repoName:    this.query.repoName,
+          chartName:   this.query.chartName,
           versionName: this.query.versionName
         });
         // Here we set us versionInfo. The returned
@@ -367,8 +367,8 @@ export default {
       return {
         name:   install ? 'c-cluster-apps-charts-install' : 'c-cluster-apps-charts-chart',
         params: {
-          cluster:  this.$route.params.cluster,
-          product:  this.$store.getters['productId'],
+          cluster: this.$route.params.cluster,
+          product: this.$store.getters['productId'],
         },
         query: {
           [REPO_TYPE]: provider.repoType,
@@ -383,9 +383,9 @@ export default {
       return this.existing?.detailLocation || {
         name:   `c-cluster-product-resource`,
         params: {
-          product:   this.$store.getters['productId'],
-          cluster:   this.$store.getters['clusterId'],
-          resource:  CATALOG.APP,
+          product:  this.$store.getters['productId'],
+          cluster:  this.$store.getters['clusterId'],
+          resource: CATALOG.APP,
         }
       };
     },
@@ -394,9 +394,9 @@ export default {
       return {
         name:   `c-cluster-explorer-tools`,
         params: {
-          product:   EXPLORER,
-          cluster:   this.$store.getters['clusterId'],
-          resource:  CATALOG.APP,
+          product:  EXPLORER,
+          cluster:  this.$store.getters['clusterId'],
+          resource: CATALOG.APP,
         }
       };
     },

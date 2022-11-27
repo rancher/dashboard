@@ -32,11 +32,11 @@ export default class Workload extends WorkloadService {
       });
 
       insertAt(out, 0, {
-        action:     'redeploy',
-        label:      this.t('action.redeploy'),
-        icon:       'icon icon-refresh',
-        enabled:    !!this.links.update,
-        bulkable:   true,
+        action:   'redeploy',
+        label:    this.t('action.redeploy'),
+        icon:     'icon icon-refresh',
+        enabled:  !!this.links.update,
+        bulkable: true,
       });
 
       insertAt(out, 0, {
@@ -57,11 +57,11 @@ export default class Workload extends WorkloadService {
     insertAt(out, 0, { divider: true }) ;
 
     insertAt(out, 0, {
-      action:     'openShell',
-      enabled:    !!this.links.view,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      this.t('action.openShell'),
-      total:      1,
+      action:  'openShell',
+      enabled: !!this.links.view,
+      icon:    'icon icon-fw icon-chevron-right',
+      label:   this.t('action.openShell'),
+      total:   1,
     });
 
     const toFilter = ['cloneYaml'];
@@ -221,17 +221,17 @@ export default class Workload extends WorkloadService {
         type:           'subDomain',
       },
       {
-        nullable:       false,
-        path:           'spec',
-        required:       true,
-        type:           'object',
-        validators:     ['containerImages'],
+        nullable:   false,
+        path:       'spec',
+        required:   true,
+        type:       'object',
+        validators: ['containerImages'],
       },
       {
-        nullable:       true,
-        path:           `${ podSpecPath }.affinity`,
-        type:           'object',
-        validators:     ['podAffinity'],
+        nullable:   true,
+        path:       `${ podSpecPath }.affinity`,
+        type:       'object',
+        validators: ['podAffinity'],
       }
     ];
 
@@ -311,22 +311,22 @@ export default class Workload extends WorkloadService {
     const type = this._type ? this._type : this.type;
 
     const detailItem = {
-      endpoint:  {
+      endpoint: {
         label:     'Endpoints',
         content:   this.endpoint,
         formatter: 'WorkloadDetailEndpoints'
       },
-      ready:     {
-        label:     'Ready',
-        content:   this.ready
+      ready: {
+        label:   'Ready',
+        content: this.ready
       },
-      upToDate:  {
-        label:     'Up-to-date',
-        content:   this.upToDate
+      upToDate: {
+        label:   'Up-to-date',
+        content: this.upToDate
       },
       available: {
-        label:     'Available',
-        content:   this.available
+        label:   'Available',
+        content: this.available
       }
     };
 

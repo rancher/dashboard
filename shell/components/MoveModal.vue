@@ -44,7 +44,7 @@ export default {
     }
   },
 
-  watch:    {
+  watch: {
     showPromptMove(show) {
       if (show) {
         this.$modal.show(this.modalName);

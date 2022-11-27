@@ -1,7 +1,7 @@
 import jsyaml from 'js-yaml';
 import { NODE } from '@shell/config/types';
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
-import { HCI } from '@shell/config/labels-annotations';
+import { HCI } from '@/pkg/harvester/config/labels-annotations';
 import HarvesterResource from './harvester';
 
 export default class HciUpgrade extends HarvesterResource {

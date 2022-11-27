@@ -30,11 +30,11 @@ export default {
         const textColor = colorForState(key);
 
         return {
-          label:     ucFirst(key),
-          color:     textColor.replace(/text-/, 'bg-'),
+          label: ucFirst(key),
+          color: textColor.replace(/text-/, 'bg-'),
           textColor,
-          value:     this.summary[key],
-          sort:      stateSort(textColor, key),
+          value: this.summary[key],
+          sort:  stateSort(textColor, key),
         };
       }).filter(x => x.value > 0);
 

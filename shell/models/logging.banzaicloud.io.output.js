@@ -77,6 +77,18 @@ export const PROVIDERS = [
     default:  { },
   },
   {
+    name:     'opensearch',
+    labelKey: 'logging.outputProviders.opensearch',
+    default:  {},
+  },
+  {
+    name:     'redis',
+    labelKey: 'logging.outputProviders.redis',
+    default:  {
+      port: 6379, db_number: 0, ttl: 0
+    },
+  },
+  {
     name:     'splunkHec',
     labelKey: 'logging.outputProviders.splunkHec',
     default:  {},
@@ -142,7 +154,7 @@ export default class LogOutput extends SteveModel {
   get url() {
     return {
       name:   'c-cluster-product-resource-namespace-id',
-      params:   {
+      params: {
         resource:  this.type,
         id:        this.name,
         namespace: this.namespace
@@ -153,8 +165,8 @@ export default class LogOutput extends SteveModel {
   get customValidationRules() {
     return [
       {
-        path:           'spec.logdna',
-        validators:     ['logdna'],
+        path:       'spec.logdna',
+        validators: ['logdna'],
       }
     ];
   }

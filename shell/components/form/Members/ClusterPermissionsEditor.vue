@@ -55,22 +55,22 @@ export default {
       customPermissions: [
         {
           label: this.t('members.clusterPermissions.createProjects'),
-          key:      'projects-create',
+          key:   'projects-create',
           value: false
         },
         {
           label: this.t('members.clusterPermissions.manageClusterBackups'),
-          key:      'backups-manage',
+          key:   'backups-manage',
           value: false
         },
         {
           label: this.t('members.clusterPermissions.manageClusterCatalogs'),
-          key:      'clustercatalogs-manage',
+          key:   'clustercatalogs-manage',
           value: false
         },
         {
           label: this.t('members.clusterPermissions.manageClusterMembers'),
-          key:      'clusterroletemplatebindings-manage',
+          key:   'clusterroletemplatebindings-manage',
           value: false
         },
         {
@@ -80,38 +80,38 @@ export default {
         },
         {
           label: this.t('members.clusterPermissions.manageNodes'),
-          key:      'nodes-manage',
+          key:   'nodes-manage',
           value: false
         },
         {
           label: this.t('members.clusterPermissions.manageStorage'),
-          key:      'storage-manage',
+          key:   'storage-manage',
           value: false
         },
         {
           label: this.t('members.clusterPermissions.viewAllProjects'),
-          key:      'projects-view',
+          key:   'projects-view',
           value: false
         },
         {
           label: this.t('members.clusterPermissions.viewClusterCatalogs'),
-          key:      'clustercatalogs-view',
+          key:   'clustercatalogs-view',
           value: false
         },
         {
           label: this.t('members.clusterPermissions.viewClusterMembers'),
-          key:      'clusterroletemplatebindings-view',
+          key:   'clusterroletemplatebindings-view',
           value: false
         },
         {
           label: this.t('members.clusterPermissions.viewNodes'),
-          key:      'nodes-view',
+          key:   'nodes-view',
           value: false
         }
       ],
       permissionGroup: 'member',
       custom:          {},
-      roleTemplates:     [],
+      roleTemplates:   [],
       principalId:     '',
       bindings:        []
     };

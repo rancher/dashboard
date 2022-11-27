@@ -2,14 +2,14 @@
 import { get } from '@shell/utils/object';
 
 export default {
-  props:      {
+  props: {
     row: {
-      type:     Object,
-      default:  null,
+      type:    Object,
+      default: null,
     },
 
     value: {
-      type:     String,
+      type:    String,
       default: '',
     },
 

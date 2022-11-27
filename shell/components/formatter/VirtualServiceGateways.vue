@@ -76,10 +76,10 @@ export default {
       const routeName = 'c-cluster-product-resource-namespace-id';
       const params = {
         ...routeParams,
-        product:   'istio',
-        resource:  ISTIO.GATEWAY,
+        product:  'istio',
+        resource: ISTIO.GATEWAY,
         namespace,
-        id:        name
+        id:       name
       };
 
       return { name: routeName, params };

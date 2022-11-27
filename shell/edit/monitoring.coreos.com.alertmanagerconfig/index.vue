@@ -226,7 +226,7 @@ export default {
           <template #header-button>
             <nuxt-link
               v-if="createReceiverLink && createReceiverLink.name"
-              :to="createReceiverLink"
+              :to="mode !== create ? createReceiverLink : {}"
             >
               <button
                 class="btn role-primary"

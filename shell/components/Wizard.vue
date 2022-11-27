@@ -27,7 +27,7 @@ export default {
     Loading,
   },
 
-  props:      {
+  props: {
     /*
   steps need: {
     name: String - this will be the slot name

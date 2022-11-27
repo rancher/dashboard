@@ -17,7 +17,7 @@ export default {
     ResourceTable,
     LabeledInput
   },
-  mixins:     [ResourceFetch],
+  mixins: [ResourceFetch],
   props:  {
     resource: {
       type:     String,

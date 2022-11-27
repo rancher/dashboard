@@ -15,11 +15,11 @@ export default class CatalogOperation extends SteveModel {
     }
 
     const openLogs = {
-      action:     'openLogs',
-      enabled:    true,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      this.t('action.openLogs'),
-      total:      1,
+      action:  'openLogs',
+      enabled: true,
+      icon:    'icon icon-fw icon-chevron-right',
+      label:   this.t('action.openLogs'),
+      total:   1,
     };
 
     insertAt(out, idx + 1, openLogs);

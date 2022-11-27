@@ -12,9 +12,9 @@ export default {
     Checkbox
   },
 
-  props:      {
+  props: {
     value: {
-      type:     Array,
+      type:    Array,
       default: () => {
         return [];
       }

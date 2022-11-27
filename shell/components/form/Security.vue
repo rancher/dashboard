@@ -12,7 +12,7 @@ export default {
     LabeledSelect
   },
 
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {

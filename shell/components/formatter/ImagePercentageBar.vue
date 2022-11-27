@@ -3,17 +3,17 @@ import ProgressBarMulti from '@shell/components/ProgressBarMulti';
 export default {
   components: { ProgressBarMulti },
 
-  props:      {
+  props: {
     value: {
-      type:     [String, Number],
+      type:    [String, Number],
       default: 0
     },
     row: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
     col: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
   },

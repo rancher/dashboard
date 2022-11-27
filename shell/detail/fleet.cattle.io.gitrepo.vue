@@ -31,8 +31,8 @@ export default {
 
   data() {
     return {
-      allFleet:      [],
-      allBundles:    []
+      allFleet:   [],
+      allBundles: []
     };
   },
 
@@ -77,9 +77,9 @@ export default {
     const { $store } = this;
 
     const allDispatches = await allHash({
-      allBundles:     $store.dispatch('management/findAll', { type: FLEET.BUNDLE }),
-      allFleet:       $store.dispatch('management/findAll', { type: FLEET.CLUSTER }),
-      clusterGroups:  $store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP }),
+      allBundles:    $store.dispatch('management/findAll', { type: FLEET.BUNDLE }),
+      allFleet:      $store.dispatch('management/findAll', { type: FLEET.CLUSTER }),
+      clusterGroups: $store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP }),
     });
 
     this.allBundles = allDispatches.allBundles;

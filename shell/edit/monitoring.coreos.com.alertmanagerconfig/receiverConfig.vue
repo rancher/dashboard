@@ -45,11 +45,11 @@ export const RECEIVERS_TYPES = [
     logo:  require(`@shell/assets/images/vendor/email.svg`)
   },
   {
-    name:         'webhook',
-    label:        'monitoringReceiver.webhook.label',
-    title:        'monitoringReceiver.webhook.title',
-    key:          'webhookConfigs',
-    logo:         require(`@shell/assets/images/vendor/webhook.svg`),
+    name:  'webhook',
+    label: 'monitoringReceiver.webhook.label',
+    title: 'monitoringReceiver.webhook.title',
+    key:   'webhookConfigs',
+    logo:  require(`@shell/assets/images/vendor/webhook.svg`),
   },
   {
     name:  'custom',
@@ -77,14 +77,14 @@ export default {
   props: {
 
     value: {
-      type:     Object,
-      default:  () => {
+      type:    Object,
+      default: () => {
         return {};
       }
     },
     mode: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     },
     alertmanagerConfigResource: {
       type:     Object,
@@ -96,7 +96,7 @@ export default {
     },
     saveOverride: {
       type:     Function,
-      required:  true
+      required: true
     },
   },
 
@@ -144,14 +144,14 @@ export default {
     }
 
     return {
-      create:               _CREATE,
+      create:        _CREATE,
       EDITOR_MODES,
       expectedFields,
-      fileFound:            false,
-      receiverTypes:        RECEIVERS_TYPES,
+      fileFound:     false,
+      receiverTypes: RECEIVERS_TYPES,
       suffixYaml,
-      view:                 _VIEW,
-      yamlError:            '',
+      view:          _VIEW,
+      yamlError:     '',
     };
   },
 

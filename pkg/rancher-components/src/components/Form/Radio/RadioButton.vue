@@ -12,17 +12,17 @@ export default Vue.extend({
       default: ''
     },
 
-    /** 
+    /**
      * The value for this option.
-     */ 
+     */
     val: {
       required:  true,
       validator: x => true
     },
 
-    /** 
+    /**
      * The selected value.
-     */ 
+     */
     value: {
       required:  true,
       validator: x => true
@@ -30,7 +30,7 @@ export default Vue.extend({
 
     /**
      * The label shown next to the radio.
-     */ 
+     */
     label: {
       type:    String,
       default: ''
@@ -138,7 +138,7 @@ export default Vue.extend({
       type="radio"
       :tabindex="-1"
       @click.stop.prevent
-    />
+    >
     <span
       ref="custom"
       :class="[ isDisabled ? 'text-muted' : '', 'radio-custom']"
@@ -156,8 +156,14 @@ export default Vue.extend({
       >
         <slot name="label">{{ label }}</slot>
       </label>
-      <div v-if="descriptionKey || description" class="radio-button-outer-container-description">
-        <t v-if="descriptionKey" :k="descriptionKey" />
+      <div
+        v-if="descriptionKey || description"
+        class="radio-button-outer-container-description"
+      >
+        <t
+          v-if="descriptionKey"
+          :k="descriptionKey"
+        />
         <template v-else-if="description">
           {{ description }}
         </template>

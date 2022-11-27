@@ -8,9 +8,9 @@ export default {
 
   data() {
     return {
-      getStartedLink:  createEpinioRoute(`c-cluster-resource`, {
-        cluster:   this.$store.getters['clusterId'],
-        resource:  EPINIO_TYPES.NAMESPACE,
+      getStartedLink: createEpinioRoute(`c-cluster-resource`, {
+        cluster:  this.$store.getters['clusterId'],
+        resource: EPINIO_TYPES.NAMESPACE,
       })
     };
   },

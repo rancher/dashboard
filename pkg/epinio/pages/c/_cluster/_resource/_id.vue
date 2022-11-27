@@ -2,8 +2,8 @@
 import ResourceDetail from '@shell/components/ResourceDetail/index.vue';
 
 export default {
-  name:        'EpinioResourcedId',
-  components:  { ResourceDetail },
+  name:       'EpinioResourcedId',
+  components: { ResourceDetail },
 };
 </script>
 

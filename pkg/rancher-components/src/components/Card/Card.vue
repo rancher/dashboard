@@ -49,28 +49,44 @@ export default Vue.extend({
     sticky: {
       type:    Boolean,
       default: false,
-    },    
+    },
   }
 });
 </script>
 
 <template>
-  <div class="card-container" :class="{'highlight-border': showHighlightBorder, 'card-sticky': sticky}">
+  <div
+    class="card-container"
+    :class="{'highlight-border': showHighlightBorder, 'card-sticky': sticky}"
+  >
     <div class="card-wrap">
-      <div class="card-title">
+      <div
+        class="card-title"
+        data-testid="card-title-slot"
+      >
         <slot name="title">
           {{ title }}
         </slot>
       </div>
-      <hr />
-      <div class="card-body">
+      <hr>
+      <div
+        class="card-body"
+        data-testid="card-body-slot"
+      >
         <slot name="body">
           {{ content }}
         </slot>
       </div>
-      <div v-if="showActions" class="card-actions">
+      <div
+        v-if="showActions"
+        class="card-actions"
+        data-testid="card-actions-slot"
+      >
         <slot name="actions">
-          <button class="btn role-primary" @click="buttonAction">
+          <button
+            class="btn role-primary"
+            @click="buttonAction"
+          >
             {{ buttonText }}
           </button>
         </slot>

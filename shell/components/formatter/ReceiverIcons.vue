@@ -2,9 +2,9 @@
 import { RECEIVERS_TYPES } from '@shell/edit/monitoring.coreos.com.alertmanagerconfig/receiverConfig.vue';
 import { MONITORING } from '@shell/config/types';
 export default {
-  props:      {
+  props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {

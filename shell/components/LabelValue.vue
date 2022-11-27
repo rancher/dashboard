@@ -6,7 +6,7 @@ export default {
       required: true
     },
     value: {
-      type:     [Number, String, undefined],
+      type:    [Number, String, undefined],
       default: ''
     }
   }

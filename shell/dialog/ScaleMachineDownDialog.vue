@@ -6,7 +6,7 @@ import GenericPrompt from './GenericPrompt';
 export default {
   components: { GenericPrompt },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true

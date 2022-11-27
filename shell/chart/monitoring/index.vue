@@ -136,7 +136,7 @@ export default {
           rbac: {
             userRoles: {
               create:                  this.mergeValue(this.value?.global?.rbac?.userRoles?.create, true),
-              aggregateToDefaultRoles:  this.mergeValue(this.value?.global?.rbac?.userRoles?.aggregateToDefaultRoles, true),
+              aggregateToDefaultRoles: this.mergeValue(this.value?.global?.rbac?.userRoles?.aggregateToDefaultRoles, true),
             },
           },
         },

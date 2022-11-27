@@ -7,7 +7,7 @@ export default {
     Card,
     AsyncButton,
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true

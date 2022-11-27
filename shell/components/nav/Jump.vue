@@ -10,8 +10,8 @@ export default {
   data() {
     return {
       isMac,
-      value:       '',
-      groups:      null,
+      value:  '',
+      groups: null,
     };
   },
 
@@ -91,7 +91,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .search, .search:hover, search:focus {
+  .search, .search:hover, .search:focus {
     position: relative;
     background-color: var(--dropdown-bg);
     border-radius: 0;

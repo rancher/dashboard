@@ -129,8 +129,8 @@ export default Vue.extend({
       const color = typeHelper.memberOfComponent(this, key);
 
       const out = {
-        btn:      true,
-        [color]:  true,
+        btn:     true,
+        [color]: true,
       };
 
       if (this.size) {

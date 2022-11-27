@@ -14,7 +14,7 @@ export default {
     ArrayListGrouped, MatchExpressions, LabeledSelect
   },
 
-  props:      {
+  props: {
     // value should be NodeAffinity or VolumeNodeAffinity
     value: {
       type:    Object,

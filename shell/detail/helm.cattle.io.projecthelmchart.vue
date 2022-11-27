@@ -39,7 +39,7 @@ export default {
       return {
         alertmanagerURL: this.makeRelativeURL(alertmanagerURL),
         grafanaURL:      this.makeRelativeURL(grafanaURL),
-        prometheusURL:      this.makeRelativeURL(prometheusURL)
+        prometheusURL:   this.makeRelativeURL(prometheusURL)
       };
     },
     monitoringNamespace() {

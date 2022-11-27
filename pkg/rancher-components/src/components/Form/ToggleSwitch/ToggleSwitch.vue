@@ -51,12 +51,24 @@ export default Vue.extend({
 
 <template>
   <span class="toggle-container">
-    <span class="label no-select hand" :class="{ active: !state}" @click="toggle(false)">{{ offLabel }}</span>
+    <span
+      class="label no-select hand"
+      :class="{ active: !state}"
+      @click="toggle(false)"
+    >{{ offLabel }}</span>
     <label class="switch hand">
-      <input type="checkbox" :checked="state" @input="toggle(null)">
-      <span class="slider round"></span>
+      <input
+        type="checkbox"
+        :checked="state"
+        @input="toggle(null)"
+      >
+      <span class="slider round" />
     </label>
-    <span class="label no-select hand" :class="{ active: state}" @click="toggle(true)">{{ onLabel }}</span>
+    <span
+      class="label no-select hand"
+      :class="{ active: state}"
+      @click="toggle(true)"
+    >{{ onLabel }}</span>
   </span>
 </template>
 
