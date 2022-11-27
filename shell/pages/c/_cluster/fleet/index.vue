@@ -35,7 +35,7 @@ export default {
     }, this.$store);
 
     this.gitRepos = hash.gitRepos;
-    this.fleetWorkspaces = hash.fleetWorkspaces;
+    this.fleetWorkspaces = hash.fleetWorkspaces || [];
 
     // init cards collapse flags
     const workspaces = this.fleetWorkspaces.filter(ws => ws.repos.length);
@@ -82,7 +82,7 @@ export default {
       schema:          {},
       allBundles:      null,
       gitRepos:        null,
-      fleetWorkspaces: null,
+      fleetWorkspaces: [],
       isCollapsed:     {},
       getStartedLink:  {
         name:   'c-cluster-product-resource-create',
