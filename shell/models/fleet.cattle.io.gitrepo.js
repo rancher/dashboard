@@ -97,7 +97,7 @@ export default class GitRepo extends SteveModel {
     const clusters = workspace?.clusters || [];
     const groups = workspace?.clusterGroups || [];
 
-    if ( workspace.id === 'fleet-local' ) {
+    if ( workspace?.id === 'fleet-local' ) {
       const local = findBy(groups, 'id', 'fleet-local/default');
 
       if ( local ) {

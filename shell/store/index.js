@@ -158,7 +158,7 @@ export const state = () => {
     namespaceFilters:        [],
     activeNamespaceCache:    {}, // Used to efficiently check if a resource should be displayed
     activeNamespaceCacheKey: '', // Fingerprint of activeNamespaceCache
-    allNamespaces:           null,
+    allNamespaces:           [],
     allWorkspaces:           [],
     clusterId:               null,
     productId:               null,
@@ -369,6 +369,8 @@ export const getters = {
   },
 
   defaultNamespace(state, getters, rootState, rootGetters) {
+
+    console.log('GET NAMESPACE', rootGetters['prefs/get'](LAST_NAMESPACE))
     const product = getters['currentProduct'];
 
     if ( !product ) {
@@ -504,7 +506,6 @@ export const mutations = {
     }
 
     state.workspace = value;
-
     getActiveNamespaces(state, getters);
   },
 

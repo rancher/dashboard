@@ -1,20 +1,22 @@
 <script>
-import { WORKSPACE } from '@shell/store/prefs';
+import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { mapState } from 'vuex';
 import Select from '@shell/components/form/Select';
+import { WORKSPACE_ANNOTATION } from '~/shell/config/labels-annotations';
 
 export default {
   components: { Select },
 
   computed: {
-    ...mapState(['allWorkspaces', 'workspace']),
+    ...mapState(['allWorkspaces', 'workspace', 'allNamespaces', 'defaultNamespace']),
 
     value: {
       get() {
-        return this.workspace;
+        return this.workspace || this.namespace;
       },
 
       set(value) {
+        console.log('SET VALUE', value, this.value)
         if (value !== this.value) {
           this.$store.commit('updateWorkspace', { value, getters: this.$store.getters });
           this.$store.dispatch('prefs/set', { key: WORKSPACE, value });
@@ -23,15 +25,38 @@ export default {
     },
 
     options() {
-      const out = this.allWorkspaces.map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.id,
-        };
-      });
+      if (this.allWorkspaces.length) {
+        const out = this.allWorkspaces.map((obj) => {
+          return {
+            label: obj.nameDisplay,
+            value: obj.id,
+          };
+        });
+        return out;
+      }
 
-      return out;
+      // If doesn't have workspaces (e.g. no permissions)
+      // Then find the workspaces from the annotation.
+      return this.allNamespaces.filter((item)=>{
+        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE
+      }).map((obj)=>{
+        return {
+            label: obj.nameDisplay,
+            value: obj.id,
+        }
+      })
     },
+  },
+
+  data() {
+
+    if(!this.workspace) {
+      this.value = this.$store.getters['prefs/get'](LAST_NAMESPACE);
+    }
+
+    return {
+      namespace: this.$store.getters['prefs/get'](LAST_NAMESPACE)
+    }
   },
 
   methods: {
