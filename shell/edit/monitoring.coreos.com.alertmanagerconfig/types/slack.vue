@@ -9,7 +9,7 @@ export default {
   components: {
     Banner, Checkbox, LabeledInput, SimpleSecretSelector
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -19,8 +19,8 @@ export default {
       required: true,
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data() {
@@ -102,11 +102,17 @@ export default {
         @updateSecretName="updateSecretName"
         @updateSecretKey="updateSecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
       </Banner>
       <p class="helper-text text-right mt-10">
-        <t k="monitoringReceiver.slack.info" :raw="true" />
+        <t
+          k="monitoringReceiver.slack.info"
+          :raw="true"
+        />
       </p>
     </div>
     <div class="row mb-20">

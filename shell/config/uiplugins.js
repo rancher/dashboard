@@ -39,10 +39,10 @@ export const UI_PLUGIN_CHART_ANNOTATIONS = {
 
 // Plugin Metadata properties
 export const UI_PLUGIN_METADATA = {
-  RANCHER_VERSION:    'rancherVersion',
-  EXTENSION_VERSION:  'extVersion',
-  EXTENSIONS_HOST:    'host',
-  DISPLAY_NAME:       'displayName',
+  RANCHER_VERSION:   'rancherVersion',
+  EXTENSION_VERSION: 'extVersion',
+  EXTENSIONS_HOST:   'host',
+  DISPLAY_NAME:      'displayName',
 };
 
 export function isUIPlugin(chart) {

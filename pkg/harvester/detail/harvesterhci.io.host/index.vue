@@ -39,8 +39,8 @@ export default {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
     const hash = {
-      nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
-      pods:          this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+      nodes: this.$store.dispatch('harvester/findAll', { type: NODE }),
+      pods:  this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
     };
 
     if (this.$store.getters['harvester/schemaFor'](HCI.NODE_NETWORK)) {
@@ -92,11 +92,11 @@ export default {
 
   data() {
     return {
-      metrics:               null,
-      mode:                  'view',
-      hostNetworkResource:   null,
-      newDisks:              [],
-      disks:                 [],
+      metrics:             null,
+      mode:                'view',
+      hostNetworkResource: null,
+      newDisks:            [],
+      disks:               [],
     };
   },
 

@@ -492,7 +492,7 @@ authConfig:
         linkText: '在此处进行更新。'
       modal:
         title: 是否确认？此更新是不可逆的。
-        body: '<p><b>你可能需要进行额外的更改</b>。请确保 Azure AD 应用对 Microsoft Graph 具有以下应用权限：User.Read.All、Group.Read.All<br> 如果在 Rancher 中配置 Azure AD 身份验证时自定义了端点，这些端点将不会自动更新。</p>'
+        body: '<p><b>你可能需要进行额外的更改</b>。请确保 Azure AD 应用已将 Directory.Read.All <b>Application</b> 权限添加到 Microsoft Graph。<br> 如果在 Rancher 中配置 Azure AD 身份验证时自定义了端点，这些端点将不会自动更新。</p>'
   oidc:
     oidc: 配置 OIDC 账号
     keycloakoidc: 配置 Keycloak OIDC 账号
@@ -773,7 +773,7 @@ catalog:
   chart:
     registry:
       label: 容器镜像仓库
-      tooltip: 容器镜像是从 Cluster Container 中拉取的，如果拉取失败，则从系统容器镜像仓库中拉取。要更改默认行为，请在此处输入或更新镜像仓库。
+      tooltip: 容器镜像是从 Cluster Container Registry 中拉取的，如果拉取失败，则从系统容器镜像仓库中拉取。要更改默认行为，请在此处输入或更新镜像仓库。
       custom:
         checkBoxLabel: Rancher 系统容器镜像的容器镜像仓库
         inputLabel: 容器镜像仓库
@@ -812,6 +812,7 @@ catalog:
     windowsIncompatible: 仅 Linux
     versionWindowsIncompatible: 仅限 Linux 版本
     header: Chart
+    featuredCharts: 精选 Chart
     noCharts: '没有可用的 Chart，你有添加仓库吗？'
     noWindows: 你的应用商店没有能够部署在具有 Windows 节点的集群的 Chart。
     noWindowsAndLinux: 你的应用商店没有能部署在具有 Windows 和 Linux Worker 节点的集群的 Chart。
@@ -1744,7 +1745,6 @@ cluster:
         false: 仅在集群内可用
         true: 暴露给公共接口
   k3s:
-    techPreview: K3s 配置处于技术预览中
     systemService:
       coredns: 'CoreDNS'
       local-storage: '本地存储'
@@ -1804,6 +1804,11 @@ clusterIndexPage:
     ram: 内存
     used: 已使用
     reserved: 已预留
+    units:
+      cores: |-
+        {count, plural,
+        =1 {核}
+        other {核}}
   header: 集群仪表板
   resourceGauge:
     totalResources: 资源总额
@@ -2497,7 +2502,7 @@ landing:
     cpuUsed: 已用 CPU
     memoryUsed: 已用内存
   seeWhatsNew: 点击右侧链接，了解此版本的新功能和优化。
-  whatsNewLink: "2.6 的新功能"
+  whatsNewLink: "2.7 的新功能"
   learnMore: 了解更多
   support: 支持
   psps: PSP
@@ -3781,7 +3786,9 @@ plugins:
       registry:
         title: 删除 Rancher Rancher Extensions 仓库
         prompt: Rancher Extensions 仓库提供了由 Rancher 发布的扩展。
-
+      crd:
+        title: 删除 Rancher Extensions CRD
+        prompt: 目前已安装了一个或多个扩展 - 如果你后续需要重新启用扩展支持，删除 CRD 后你需要手动重新安装这些扩展。
 prefs:
   title: 偏好设置
   theme:

@@ -25,10 +25,10 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      vms:                 this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
-      vmis:                this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
-      allNodeNetwork:      this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
-      allClusterNetwork:   this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK }),
+      vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      vmis:              this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
+      allNodeNetwork:    this.$store.dispatch('harvester/findAll', { type: HCI.NODE_NETWORK }),
+      allClusterNetwork: this.$store.dispatch('harvester/findAll', { type: HCI.CLUSTER_NETWORK }),
     });
     const instanceMap = {};
 
@@ -61,20 +61,20 @@ export default {
         STATE,
         NAME,
         {
-          name:      'vmCPU',
-          labelKey:  'tableHeaders.cpu',
-          sort:      'vmCPU',
-          search:    false,
-          value:     'spec.template.spec.domain.cpu.cores',
-          width:     120
+          name:     'vmCPU',
+          labelKey: 'tableHeaders.cpu',
+          sort:     'vmCPU',
+          search:   false,
+          value:    'spec.template.spec.domain.cpu.cores',
+          width:    120
         },
         {
-          name:      'vmRAM',
-          labelKey:  'glance.memory',
-          sort:      'vmRAM',
-          search:    false,
-          value:     'spec.template.spec.domain.resources.limits.memory',
-          width:     120
+          name:     'vmRAM',
+          labelKey: 'glance.memory',
+          sort:     'vmRAM',
+          search:   false,
+          value:    'spec.template.spec.domain.resources.limits.memory',
+          width:    120
         },
         {
           name:      'ip',

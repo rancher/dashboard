@@ -27,7 +27,7 @@ import { HCI } from '../../types';
 import { RunStrategys } from '../../config/harvester-map';
 import { saferDump } from '@shell/utils/create-yaml';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/child-hook';
 
 import VM_MIXIN from '../../mixins/harvester-vm';
@@ -73,12 +73,12 @@ export default {
 
     return {
       cloneVM,
-      count:                 2,
-      templateId:            '',
-      templateVersionId:     '',
-      namePrefix:            '',
-      isSingle:              true,
-      useTemplate:           false,
+      count:             2,
+      templateId:        '',
+      templateVersionId: '',
+      namePrefix:        '',
+      isSingle:          true,
+      useTemplate:       false,
       hostname,
       isRestartImmediately,
       RunStrategys,

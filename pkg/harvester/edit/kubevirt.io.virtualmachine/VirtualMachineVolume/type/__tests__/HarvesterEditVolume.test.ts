@@ -5,13 +5,13 @@ import { _EDIT } from '@shell/config/query-params';
 describe('component: HarvesterEditVolume', () => {
   it('should display all the inputs', () => {
     const wrapper = mount(HarvesterEditVolume, {
-      propsData:  { validateRequired: true },
+      propsData: { validateRequired: true },
       mocks:     {
-        $store:    {
+        $store: {
           getters: {
             'harvester/all': jest.fn(),
-            'i18n/t':                  jest.fn(),
-            'i18n/exists':             jest.fn(),
+            'i18n/t':        jest.fn(),
+            'i18n/exists':   jest.fn(),
           }
         },
       }
@@ -27,13 +27,13 @@ describe('component: HarvesterEditVolume', () => {
     'size',
   ])('should emit an update on %p input blur', (field) => {
     const wrapper = mount(HarvesterEditVolume, {
-      propsData:  { mode: _EDIT, validateRequired: true },
+      propsData: { mode: _EDIT, validateRequired: true },
       mocks:     {
-        $store:    {
+        $store: {
           getters: {
             'harvester/all': jest.fn(),
-            'i18n/t':                  jest.fn(),
-            'i18n/exists':             jest.fn(),
+            'i18n/t':        jest.fn(),
+            'i18n/exists':   jest.fn(),
           }
         },
       }
@@ -52,13 +52,13 @@ describe('component: HarvesterEditVolume', () => {
     'bus'
   ])('should emit an update on %p selection change', async(field) => {
     const wrapper = mount(HarvesterEditVolume, {
-      propsData:  { mode: _EDIT, validateRequired: true },
+      propsData: { mode: _EDIT, validateRequired: true },
       mocks:     {
-        $store:    {
+        $store: {
           getters: {
             'harvester/all': jest.fn(),
-            'i18n/t':                  jest.fn(),
-            'i18n/exists':             jest.fn(),
+            'i18n/t':        jest.fn(),
+            'i18n/exists':   jest.fn(),
           }
         },
       }

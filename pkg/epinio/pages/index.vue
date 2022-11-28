@@ -119,12 +119,21 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" mode="main" />
-  <div v-else-if="clusters.length === 0" class="root">
+  <Loading
+    v-if="$fetchState.pending"
+    mode="main"
+  />
+  <div
+    v-else-if="clusters.length === 0"
+    class="root"
+  >
     <h2>{{ t('epinio.instances.none.header') }}</h2>
     <p>{{ t('epinio.instances.none.description') }}</p>
   </div>
-  <div v-else class="root">
+  <div
+    v-else
+    class="root"
+  >
     <div class="epinios-table">
       <h2>{{ t('epinio.instances.header') }}</h2>
       <ResourceTable
@@ -145,7 +154,10 @@ export default Vue.extend<Data, any, any, any>({
 
         <template #cell:name="{row}">
           <div class="epinio-row">
-            <n-link v-if="row.state === 'available'" :to="{name: 'epinio-c-cluster-applications', params: {cluster: row.id}}">
+            <n-link
+              v-if="row.state === 'available'"
+              :to="{name: 'epinio-c-cluster-applications', params: {cluster: row.id}}"
+            >
               {{ row.name }}
             </n-link>
             <template v-else>
@@ -155,7 +167,11 @@ export default Vue.extend<Data, any, any, any>({
         </template>
         <template #cell:api="{row}">
           <div class="epinio-row">
-            <Link v-if="row.state !== 'available'" :row="row" :value="{ text: row.api, url: row.readyApi }" />
+            <Link
+              v-if="row.state !== 'available'"
+              :row="row"
+              :value="{ text: row.api, url: row.readyApi }"
+            />
             <template v-else>
               {{ row.api }}
             </template>

@@ -114,11 +114,11 @@ export default class HciSetting extends HarvesterResource {
     switch (id) {
     case 'backup-target':
       out.push( {
-        nullable:       false,
-        path:           'value',
-        required:       true,
-        type:           'string',
-        validators:     ['backupTarget'],
+        nullable:   false,
+        path:       'value',
+        required:   true,
+        type:       'string',
+        validators: ['backupTarget'],
       });
       break;
     }

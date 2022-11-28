@@ -10,7 +10,7 @@ export default {
     FleetRepos,
     Masthead,
   },
-  mixins:     [ResourceFetch],
+  mixins: [ResourceFetch],
   props:  {
     schema: {
       type:     Object,
@@ -36,6 +36,11 @@ export default {
       type:    Boolean,
       default: false
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -63,6 +68,7 @@ export default {
       :rows="rows"
       :schema="schema"
       :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     />
   </div>
 </template>

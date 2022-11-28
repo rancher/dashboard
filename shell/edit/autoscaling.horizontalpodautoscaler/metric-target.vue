@@ -159,7 +159,10 @@ export default {
           :options="targetTypes"
         />
       </div>
-      <div v-if="isResourceMetricType" class="col span-6">
+      <div
+        v-if="isResourceMetricType"
+        class="col span-6"
+      >
         <UnitInput
           v-if="value.type === 'Utilization'"
           v-model="value.averageUtilization"
@@ -194,7 +197,10 @@ export default {
           @input="updateQuantityValue"
         />
       </div>
-      <div v-else class="col span-6">
+      <div
+        v-else
+        class="col span-6"
+      >
         <LabeledInput
           v-model="quantity"
           placeholder="1"

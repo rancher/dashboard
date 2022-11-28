@@ -18,6 +18,11 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   // fetch nodes before loading this page, as they may be referenced in the Target table column
@@ -51,5 +56,6 @@ export default {
     :headers="$attrs.headers"
     :group-by="$attrs.groupBy"
     :loading="loading"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
   />
 </template>

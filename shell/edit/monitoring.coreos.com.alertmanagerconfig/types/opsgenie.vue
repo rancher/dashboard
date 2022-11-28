@@ -45,7 +45,7 @@ export default {
   components: {
     ArrayList, Checkbox, InputWithSelect, LabeledInput, Select, SimpleSecretSelector
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -55,8 +55,8 @@ export default {
       required: true
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data() {
@@ -83,8 +83,8 @@ export default {
       responders,
       TARGETS,
       TYPES,
-      view:                          _VIEW,
-      initialApiKeySecretName:  this.value?.apiKey?.name ? this.value.apiKey.name : '',
+      view:                    _VIEW,
+      initialApiKeySecretName: this.value?.apiKey?.name ? this.value.apiKey.name : '',
       initialApiKeySecretKey:  this.value?.apiKey?.key ? this.value.apiKey.key : '',
       none:                    '__[[NONE]]__',
     };
@@ -180,25 +180,45 @@ export default {
         @updateSecretName="updateApiKeySecretName"
         @updateSecretKey="updateApiKeySecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
       </Banner>
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.httpConfig.proxyUrl" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput
+          v-model="value.httpConfig.proxyUrl"
+          :mode="mode"
+          label="Proxy URL"
+          placeholder="e.g. http://my-proxy/"
+        />
       </div>
     </div>
     <div class="row mb-20">
-      <Checkbox v-model="value.sendResolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox
+        v-model="value.sendResolved"
+        :mode="mode"
+        label="Enable send resolved alerts"
+      />
     </div>
     <div class="row">
       <div class="col span-12">
         <h3>Responders</h3>
-        <ArrayList v-model="responders" :mode="mode" :default-add-value="defaultResponder" :show-header="true">
+        <ArrayList
+          v-model="responders"
+          :mode="mode"
+          :default-add-value="defaultResponder"
+          :show-header="true"
+        >
           <template v-slot:column-headers>
             <div class="responders-heading">
-              <div class="row" :class="{'mb-15': isView, 'mb-10': !isView}">
+              <div
+                class="row"
+                :class="{'mb-15': isView, 'mb-10': !isView}"
+              >
                 <div class="col span-6">
                   <span class="text-label">Type</span>
                 </div>
@@ -212,7 +232,12 @@ export default {
             <div class="row responder">
               <div class="col span-6">
                 <span v-if="isView">{{ typeLabel(scope.row.value.type) }}</span>
-                <Select v-else v-model="scope.row.value.type" :mode="mode" :options="TYPES" />
+                <Select
+                  v-else
+                  v-model="scope.row.value.type"
+                  :mode="mode"
+                  :options="TYPES"
+                />
               </div>
               <div class="col-span-6 target-container">
                 <span v-if="isView">{{ targetLabel(scope.row.value.target) }}: {{ scope.row.value.value }}</span>

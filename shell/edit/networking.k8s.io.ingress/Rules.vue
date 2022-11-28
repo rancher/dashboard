@@ -35,7 +35,7 @@ export default {
 
     rules: {
       default: () => ({
-        requestHost:   [],
+        requestHost: [],
         path:        [],
         port:        [],
         target:      []
@@ -84,18 +84,18 @@ export default {
           value: 'port',
         },
         {
-          name:       'certs',
-          label:      this.t('ingress.rules.headers.certificates'),
-          value:      'certs',
+          name:      'certs',
+          label:     this.t('ingress.rules.headers.certificates'),
+          value:     'certs',
           formatter: 'ListLink',
         },
       ];
 
       if (this.value.showPathType) {
         headers.unshift({
-          name:      'pathType',
-          label:     this.t('ingress.rules.headers.pathType'),
-          value:     'pathType',
+          name:  'pathType',
+          label: this.t('ingress.rules.headers.pathType'),
+          value: 'pathType',
         });
       }
 
@@ -128,7 +128,13 @@ export default {
     />
   </div>
   <div v-else>
-    <ArrayListGrouped v-model="value.spec.rules" :add-label="t('ingress.rules.addRule')" :default-add-value="{}" :mode="mode" @add="onAdd">
+    <ArrayListGrouped
+      v-model="value.spec.rules"
+      :add-label="t('ingress.rules.addRule')"
+      :default-add-value="{}"
+      :mode="mode"
+      @add="onAdd"
+    >
       <template #default="props">
         <Rule
           ref="lastRule"

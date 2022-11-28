@@ -6,7 +6,7 @@ export default {
 
   props: {
     value: {
-      type:     Number,
+      type:    Number,
       default: 0,
     },
     row: {
@@ -14,7 +14,7 @@ export default {
       required: true
     },
     col: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
   },
@@ -91,10 +91,17 @@ export default {
     @apply-show="onShown"
   >
     <div>
-      <span v-if="totalForApp.count === 1" class="text-muted">
+      <span
+        v-if="totalForApp.count === 1"
+        class="text-muted"
+      >
         &mdash;
       </span>
-      <span v-else v-trim-whitespace :class="{'text-muted': current === 0 && desired === 0}">
+      <span
+        v-else
+        v-trim-whitespace
+        :class="{'text-muted': current === 0 && desired === 0}"
+      >
         {{ current }}%
       </span>
       <div v-if="showDesired">
@@ -104,7 +111,10 @@ export default {
     </div>
 
     <template #popover>
-      <div v-if="canAdjust" class="text-center pb-5">
+      <div
+        v-if="canAdjust"
+        class="text-center pb-5"
+      >
         <form>
           <LabeledInput
             ref="newPercent"
@@ -122,7 +132,12 @@ export default {
               </div>
             </template>
           </LabeledInput>
-          <button type="submit" class="btn bg-primary btn-sm mt-20" :disabled="!newWeightValid" @click.stop.prevent="setWeight">
+          <button
+            type="submit"
+            class="btn bg-primary btn-sm mt-20"
+            :disabled="!newWeightValid"
+            @click.stop.prevent="setWeight"
+          >
             Set
           </button>
         </form>

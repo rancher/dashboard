@@ -46,9 +46,9 @@ export default {
   computed: {
     tArgs() {
       return {
-        baseUrl:   this.serverSetting,
-        provider:  this.displayName,
-        username:  this.principal.loginName || this.principal.name,
+        baseUrl:  this.serverSetting,
+        provider: this.displayName,
+        username: this.principal.loginName || this.principal.name,
       };
     },
 
@@ -118,7 +118,11 @@ export default {
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+        <AuthBanner
+          :t-args="tArgs"
+          :disable="disable"
+          :edit="goToEdit"
+        >
           <template slot="rows">
             <tr><td>{{ t(`authConfig.oidc.rancherUrl`) }}: </td><td>{{ model.rancherUrl }}</td></tr>
             <tr><td>{{ t(`authConfig.oidc.clientId`) }}: </td><td>{{ model.clientId }}</td></tr>
@@ -127,13 +131,21 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr />
+        <hr>
 
-        <AllowedPrincipals :provider="NAME" :auth-config="model" :mode="mode" />
+        <AllowedPrincipals
+          :provider="NAME"
+          :auth-config="model"
+          :mode="mode"
+        />
       </template>
 
       <template v-else>
-        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+        <Banner
+          v-if="!model.enabled"
+          :label="t('authConfig.stateBanner.disabled', tArgs)"
+          color="warning"
+        />
 
         <h3>{{ t(`authConfig.oidc.${NAME}`) }}</h3>
 
@@ -165,7 +177,12 @@ export default {
               :mode="mode"
               type="multiline"
             />
-            <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'privateKey', $event)" />
+            <FileSelector
+              class="role-tertiary add mt-5"
+              :label="t('generic.readFromFile')"
+              :mode="mode"
+              @selected="$set(model, 'privateKey', $event)"
+            />
           </div>
           <div class="col span-6">
             <LabeledInput
@@ -175,7 +192,12 @@ export default {
               :mode="mode"
               type="multiline"
             />
-            <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'certificate', $event)" />
+            <FileSelector
+              class="role-tertiary add mt-5"
+              :label="t('generic.readFromFile')"
+              :mode="mode"
+              @selected="$set(model, 'certificate', $event)"
+            />
           </div>
         </div>
 
@@ -249,9 +271,15 @@ export default {
           </div>
         </div>
       </template>
-      <div v-if="!model.enabled" class="row">
+      <div
+        v-if="!model.enabled"
+        class="row"
+      >
         <div class="col span-12">
-          <Banner color="info" v-html="t('authConfig.associatedWarning', tArgs, true)" />
+          <Banner
+            color="info"
+            v-html="t('authConfig.associatedWarning', tArgs, true)"
+          />
         </div>
       </div>
     </CruResource>

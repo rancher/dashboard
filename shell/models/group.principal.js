@@ -36,7 +36,7 @@ export default class Group extends Principal {
         action:  'goToEdit',
         label:   this.t('action.edit'),
         icon:    'icon icon-edit',
-        enabled:  true,
+        enabled: true,
       },
       {
         action:     'promptUnassignGroupRoles',

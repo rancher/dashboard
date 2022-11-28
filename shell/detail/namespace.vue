@@ -67,9 +67,9 @@ export default {
         formatter: 'Number'
       },
       {
-        name:      'active',
-        label:     this.t('namespace.resourceStates.success'),
-        sort:      'byState.success:desc',
+        name:  'active',
+        label: this.t('namespace.resourceStates.success'),
+        sort:  'byState.success:desc',
         value: 'byState.success',
       },
       {
@@ -80,22 +80,22 @@ export default {
         formatter: 'Number'
       },
       {
-        name:      'total',
-        label:     this.t('namespace.total'),
-        sort:      'totalCount:desc',
-        value:     'totalCount',
+        name:  'total',
+        label: this.t('namespace.total'),
+        sort:  'totalCount:desc',
+        value: 'totalCount',
       },
     ];
 
     return {
       allWorkloads: {
         default: () => ([]),
-        type:     Array,
+        type:    Array,
       },
-      resourceTypes:    [],
-      summaryStates:    ['success', 'info', 'warning', 'error', 'unknown'],
+      resourceTypes:  [],
+      summaryStates:  ['success', 'info', 'warning', 'error', 'unknown'],
       headers,
-      workloadSchema:        WORKLOAD_SCHEMA
+      workloadSchema: WORKLOAD_SCHEMA
     };
   },
 
@@ -121,8 +121,8 @@ export default {
 
         namespaced.push({
           type,
-          byState:     this.reduceStates(inNamespace.states || {}, inNamespace.count),
-          totalCount:    inNamespace.count,
+          byState:    this.reduceStates(inNamespace.states || {}, inNamespace.count),
+          totalCount: inNamespace.count,
           schema:     this.schemaFor(type)
         });
 
@@ -156,7 +156,7 @@ export default {
     workloadRows() {
       const params = this.$route.params;
       const { id } = params;
-      const rows = flatten(compact(this.allWorkloads)).filter(row => row.showAsWorkload);
+      const rows = flatten(compact(this.allWorkloads)).filter(row => !row.ownedByWorkload);
       const namespacedRows = filter(rows, ({ metadata: { namespace } }) => namespace === id);
 
       return namespacedRows;
@@ -231,7 +231,10 @@ export default {
         :required-states="summaryStates"
       />
     </div>
-    <ResourceTabs v-model="value" :mode="mode">
+    <ResourceTabs
+      v-model="value"
+      :mode="mode"
+    >
       <Tab :name="t('namespace.resources')">
         <SortableTable
           default-sort-by="error"
@@ -261,8 +264,7 @@ export default {
           v-bind="$attrs"
           :schema="workloadSchema"
           :rows="workloadRows"
-        >
-        </ResourceTable>
+        />
       </Tab>
     </ResourceTabs>
     <MoveModal />

@@ -20,11 +20,11 @@ export default {
     },
     name: {
       default: '',
-      type:     String
+      type:    String
     },
     autocomplete: {
-      type:      String,
-      default:   ''
+      type:    String,
+      default: ''
     },
     required: {
       default: false,
@@ -103,17 +103,42 @@ export default {
       @blur="$emit('blur', $event)"
     >
       <template #suffix>
-        <div v-if="isRandom" class="addon">
-          <a href="#" @click.prevent.stop="$copyText(password)">{{ t('action.copy') }}</a>
+        <div
+          v-if="isRandom"
+          class="addon"
+        >
+          <a
+            href="#"
+            @click.prevent.stop="$copyText(password)"
+          >{{ t('action.copy') }}</a>
         </div>
-        <div v-else class="addon">
-          <a v-if="reveal" tabindex="-1" href="#" @click.prevent.stop="reveal = false">{{ t('action.hide') }}</a>
-          <a v-else tabindex="-1" href="#" @click.prevent.stop="reveal=true">{{ t('action.show') }}</a>
+        <div
+          v-else
+          class="addon"
+        >
+          <a
+            v-if="reveal"
+            tabindex="-1"
+            href="#"
+            @click.prevent.stop="reveal = false"
+          >{{ t('action.hide') }}</a>
+          <a
+            v-else
+            tabindex="-1"
+            href="#"
+            @click.prevent.stop="reveal=true"
+          >{{ t('action.show') }}</a>
         </div>
       </template>
     </LabeledInput>
-    <div v-if="isRandom" class="mt-10 genPassword">
-      <a href="#" @click.prevent.stop="generatePassword"><i class="icon icon-refresh" /> {{ t('changePassword.newGeneratedPassword') }}</a>
+    <div
+      v-if="isRandom"
+      class="mt-10 genPassword"
+    >
+      <a
+        href="#"
+        @click.prevent.stop="generatePassword"
+      ><i class="icon icon-refresh" /> {{ t('changePassword.newGeneratedPassword') }}</a>
     </div>
   </div>
 </template>

@@ -57,6 +57,7 @@ export default {
     :read-allowed="true"
     :value-concealed="isView && hideSensitiveData"
     :file-modifier="fileModifier"
+    :parse-lines-from-file="true"
     read-icon=""
     add-icon=""
   />

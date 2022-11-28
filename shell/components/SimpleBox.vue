@@ -28,14 +28,29 @@ export default {
 </script>
 
 <template>
-  <div v-if="shown" class="simple-box" v-on="$listeners">
-    <div v-if="title || canClose || $slots.title" class="top">
+  <div
+    v-if="shown"
+    class="simple-box"
+    v-on="$listeners"
+  >
+    <div
+      v-if="title || canClose || $slots.title"
+      class="top"
+    >
       <slot name="title">
-        <h2 v-if="title">
+        <h2
+          v-if="title"
+          data-testid="simple-box-title"
+        >
           {{ title }}
         </h2>
       </slot>
-      <div v-if="canClose || pref" class="close-button" @click="closeBox($event)">
+      <div
+        v-if="canClose || pref"
+        class="close-button"
+        data-testid="simple-box-close"
+        @click="closeBox($event)"
+      >
         <i class="icon icon-close" />
       </div>
     </div>

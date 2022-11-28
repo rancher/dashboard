@@ -78,7 +78,7 @@ export default {
   <div>
     <div>
       <div class="masthead">
-        <header>
+        <header class="header-layout">
           <div class="title">
             <h1 class="m-0">
               {{ t('authGroups.assignEdit.assignTitle') }}
@@ -87,8 +87,14 @@ export default {
         </header>
       </div>
 
-      <form>
-        <SelectPrincipal :retain-selection="true" class="mb-20" :show-my-group-types="['group']" :search-group-types="'group'" @add="setPrincipal" />
+      <form onsubmit="return false;">
+        <SelectPrincipal
+          :retain-selection="true"
+          class="mb-20"
+          :show-my-group-types="['group']"
+          :search-group-types="'group'"
+          @add="setPrincipal"
+        />
 
         <GlobalRoleBindings
           ref="grb"
@@ -105,8 +111,7 @@ export default {
           :disable-save="!canSave"
           @save="save"
           @done="cancel"
-        >
-        </footercomponent>
+        />
       </form>
     </div>
   </div>

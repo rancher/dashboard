@@ -60,7 +60,7 @@ export default {
 
   hasTabs: true,
 
-  props:   {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -131,47 +131,102 @@ export default {
 
 <template>
   <div>
-    <Tab name="components" :label="t('istio.titles.components') ">
+    <Tab
+      name="components"
+      :label="t('istio.titles.components') "
+    >
       <div class="row">
-        <div v-if="value.cni" class="col span-4">
-          <Checkbox v-model="value.cni.enabled" :label="t('istio.cni')" @input="update" />
+        <div
+          v-if="value.cni"
+          class="col span-4"
+        >
+          <Checkbox
+            v-model="value.cni.enabled"
+            :label="t('istio.cni')"
+            @input="update"
+          />
         </div>
-        <div v-if="value.ingressGateways" class="col span-4">
-          <Checkbox v-model="value.ingressGateways.enabled" :label="t('istio.ingressGateway')" />
+        <div
+          v-if="value.ingressGateways"
+          class="col span-4"
+        >
+          <Checkbox
+            v-model="value.ingressGateways.enabled"
+            :label="t('istio.ingressGateway')"
+          />
         </div>
-        <div v-if="value.egressGateways" class="col span-4">
-          <Checkbox v-model="value.egressGateways.enabled" :label="t('istio.egressGateway')" />
+        <div
+          v-if="value.egressGateways"
+          class="col span-4"
+        >
+          <Checkbox
+            v-model="value.egressGateways.enabled"
+            :label="t('istio.egressGateway')"
+          />
         </div>
       </div>
       <div class="row">
-        <div v-if="value.pilot" class="col span-4">
-          <Checkbox v-model="value.pilot.enabled" :label="t('istio.pilot')" />
+        <div
+          v-if="value.pilot"
+          class="col span-4"
+        >
+          <Checkbox
+            v-model="value.pilot.enabled"
+            :label="t('istio.pilot')"
+          />
         </div>
-        <div v-if="value.policy" class="col span-4">
-          <Checkbox v-model="value.policy.enabled" :label="t('istio.policy')" />
+        <div
+          v-if="value.policy"
+          class="col span-4"
+        >
+          <Checkbox
+            v-model="value.policy.enabled"
+            :label="t('istio.policy')"
+          />
         </div>
-        <div v-if="value.telemetry" class="col span-4">
-          <Checkbox v-model="value.telemetry.enabled" :label="t('istio.telemetry')" />
+        <div
+          v-if="value.telemetry"
+          class="col span-4"
+        >
+          <Checkbox
+            v-model="value.telemetry.enabled"
+            :label="t('istio.telemetry')"
+          />
         </div>
       </div>
       <div class="row">
-        <div v-if="value.kiali" class="col span-4">
-          <Checkbox v-model="value.kiali.enabled" :label="t('istio.kiali')" />
+        <div
+          v-if="value.kiali"
+          class="col span-4"
+        >
+          <Checkbox
+            v-model="value.kiali.enabled"
+            :label="t('istio.kiali')"
+          />
         </div>
-        <div v-if="value.tracing" class="col span-4">
-          <Checkbox v-model="value.tracing.enabled" :label="t('istio.tracing')" />
+        <div
+          v-if="value.tracing"
+          class="col span-4"
+        >
+          <Checkbox
+            v-model="value.tracing.enabled"
+            :label="t('istio.tracing')"
+          />
         </div>
-        <div class="col span-4">
-        </div>
+        <div class="col span-4" />
       </div>
     </Tab>
 
-    <Tab :label="t('istio.customOverlayFile.label')" name="overlay" @active="$refs['yaml-editor'].refresh()">
+    <Tab
+      :label="t('istio.customOverlayFile.label')"
+      name="overlay"
+      @active="$refs['yaml-editor'].refresh()"
+    >
       <div class="custom-overlay">
         <Banner color="info">
           <span
             v-html="t('istio.customOverlayFile.tip', {}, true)"
-          ></span>
+          />
         </Banner>
         <YamlEditor
           ref="yaml-editor"
@@ -179,7 +234,11 @@ export default {
           :value="overlayFile"
           @onInput="valuesChanged"
         />
-        <FileSelector class="role-primary  btn-sm" :label="t('generic.readFromFile')" @selected="onFileSelected" />
+        <FileSelector
+          class="role-primary  btn-sm"
+          :label="t('generic.readFromFile')"
+          @selected="onFileSelected"
+        />
       </div>
     </Tab>
   </div>

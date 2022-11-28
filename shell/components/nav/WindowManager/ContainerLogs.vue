@@ -32,7 +32,7 @@ export default {
     Window, Select, LabeledSelect, Checkbox, AsyncButton
   },
 
-  props:      {
+  props: {
     // The definition of the tab itself
     tab: {
       type:     Object,
@@ -467,7 +467,10 @@ export default {
 </script>
 
 <template>
-  <Window :active="active" :before-close="cleanup">
+  <Window
+    :active="active"
+    :before-close="cleanup"
+  >
     <template #title>
       <div class="wm-button-bar">
         <Select
@@ -480,25 +483,51 @@ export default {
           placement="top"
         >
           <template #selected-option="option">
-            <t v-if="option" k="wm.containerLogs.containerName" :label="option.label" />
+            <t
+              v-if="option"
+              k="wm.containerLogs.containerName"
+              :label="option.label"
+            />
           </template>
         </Select>
         <div class="log-action ml-5">
-          <button class="btn bg-primary wm-btn" :disabled="isFollowing" @click="follow">
-            <t class="wm-btn-large" k="wm.containerLogs.follow" />
+          <button
+            class="btn bg-primary wm-btn"
+            :disabled="isFollowing"
+            @click="follow"
+          >
+            <t
+              class="wm-btn-large"
+              k="wm.containerLogs.follow"
+            />
             <i class="wm-btn-small icon icon-chevron-end" />
           </button>
-          <button class="btn bg-primary wm-btn" @click="clear">
-            <t class="wm-btn-large" k="wm.containerLogs.clear" />
+          <button
+            class="btn bg-primary wm-btn"
+            @click="clear"
+          >
+            <t
+              class="wm-btn-large"
+              k="wm.containerLogs.clear"
+            />
             <i class="wm-btn-small icon icon-close" />
           </button>
-          <AsyncButton mode="download" @click="download" />
+          <AsyncButton
+            mode="download"
+            @click="download"
+          />
         </div>
 
-        <div class="wm-seperator"></div>
+        <div class="wm-seperator" />
 
         <div class="log-action log-previous ml-5">
-          <div><Checkbox :label="t('wm.containerLogs.previous')" :value="previous" @input="togglePrevious" /></div>
+          <div>
+            <Checkbox
+              :label="t('wm.containerLogs.previous')"
+              :value="previous"
+              @input="togglePrevious"
+            />
+          </div>
         </div>
 
         <div class="log-action ml-5">
@@ -522,19 +551,39 @@ export default {
                   placement="top"
                   @input="toggleRange($event)"
                 />
-                <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
-                <div><Checkbox :label="t('wm.containerLogs.timestamps')" :value="timestamps" @input="toggleTimestamps" /></div>
+                <div>
+                  <Checkbox
+                    :label="t('wm.containerLogs.wrap')"
+                    :value="wrap"
+                    @input="toggleWrap "
+                  />
+                </div>
+                <div>
+                  <Checkbox
+                    :label="t('wm.containerLogs.timestamps')"
+                    :value="timestamps"
+                    @input="toggleTimestamps"
+                  />
+                </div>
               </div>
             </template>
           </v-popover>
         </div>
 
         <div class="log-action ml-5">
-          <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
+          <input
+            v-model="search"
+            class="input-sm"
+            type="search"
+            :placeholder="t('wm.containerLogs.search')"
+          >
         </div>
 
         <div class="status log-action p-10">
-          <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
+          <t
+            :class="{'text-success': isOpen, 'text-error': !isOpen}"
+            :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'"
+          />
         </div>
       </div>
     </template>
@@ -543,18 +592,42 @@ export default {
         ref="body"
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
       >
-        <table class="fixed" cellpadding="0" cellspacing="0">
+        <table
+          class="fixed"
+          cellpadding="0"
+          cellspacing="0"
+        >
           <tbody class="logs-body">
             <template v-if="filtered.length">
-              <tr v-for="line in filtered" :key="line.id">
-                <td :key="line.id + '-time'" class="time" v-html="format(line.time)" />
-                <td :key="line.id + '-msg'" class="msg" v-html="line.msg" />
+              <tr
+                v-for="line in filtered"
+                :key="line.id"
+              >
+                <td
+                  :key="line.id + '-time'"
+                  class="time"
+                  v-html="format(line.time)"
+                />
+                <td
+                  :key="line.id + '-msg'"
+                  class="msg"
+                  v-html="line.msg"
+                />
               </tr>
             </template>
             <tr v-else-if="search">
-              <td v-t="'wm.containerLogs.noMatch'" colspan="2" class="msg text-muted" />
+              <td
+                v-t="'wm.containerLogs.noMatch'"
+                colspan="2"
+                class="msg text-muted"
+              />
             </tr>
-            <tr v-else v-t="'wm.containerLogs.noData'" colspan="2" class="msg text-muted" />
+            <tr
+              v-else
+              v-t="'wm.containerLogs.noData'"
+              colspan="2"
+              class="msg text-muted"
+            />
           </tbody>
         </table>
       </div>
@@ -602,7 +675,7 @@ export default {
     }
 
     .msg {
-      white-space: nowrap;
+      white-space: pre;
 
       .highlight {
         color: var(--logs-highlight);
@@ -611,7 +684,7 @@ export default {
     }
 
     &.wrap-lines .msg {
-      white-space: normal;
+      white-space: pre-wrap;
     }
   }
 

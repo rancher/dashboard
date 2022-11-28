@@ -47,6 +47,7 @@ const sidebars = {
         'code-base-works/forms-and-validation',
         'code-base-works/helm-chart-apps',
         'code-base-works/keyboard-shortcuts',
+        'code-base-works/kubernetes-resources-data-load',
         'code-base-works/machine-drivers',
         'code-base-works/performance',
         'code-base-works/sortable-table',
@@ -65,7 +66,7 @@ const sidebars = {
     'on-screen-text-and-translations',
     'products-and-navigation',
     'server-side-rendering',
-
+    'storybook',
     'style',
     'terminology',
     {

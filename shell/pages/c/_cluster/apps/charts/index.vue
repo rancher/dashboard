@@ -47,17 +47,17 @@ export default {
 
   data() {
     return {
-      allRepos:            null,
-      category:            null,
-      operatingSystem:     null,
-      searchQuery:         null,
-      showDeprecated:      null,
-      showHidden:          null,
-      chartMode:           this.$store.getters['prefs/get'](SHOW_CHART_MODE),
+      allRepos:        null,
+      category:        null,
+      operatingSystem: null,
+      searchQuery:     null,
+      showDeprecated:  null,
+      showHidden:      null,
+      chartMode:       this.$store.getters['prefs/get'](SHOW_CHART_MODE),
       chartOptions:    [
         {
-          label:       'Browse',
-          value:       'browse',
+          label: 'Browse',
+          value: 'browse',
         },
         {
           label: 'Featured',
@@ -164,13 +164,13 @@ export default {
 
       return filterAndArrangeCharts(enabledCharts, {
         clusterProvider,
-        category:         this.category,
-        searchQuery:      this.searchQuery,
-        showDeprecated:   this.showDeprecated,
-        showHidden:       this.showHidden,
-        hideRepos:        this.hideRepos,
-        hideTypes:        [CATALOG._CLUSTER_TPL],
-        showPrerelease:   this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+        category:       this.category,
+        searchQuery:    this.searchQuery,
+        showDeprecated: this.showDeprecated,
+        showHidden:     this.showHidden,
+        hideRepos:      this.hideRepos,
+        hideTypes:      [CATALOG._CLUSTER_TPL],
+        showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
     },
 
@@ -304,8 +304,8 @@ export default {
       this.$router.push({
         name:   'c-cluster-apps-charts-chart',
         params: {
-          cluster:  this.$route.params.cluster,
-          product:  this.$store.getters['productId'],
+          cluster: this.$route.params.cluster,
+          product: this.$store.getters['productId'],
         },
         query: {
           [REPO_TYPE]: chart.repoType,
@@ -339,13 +339,16 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header>
+    <header class="header-layout">
       <div class="title">
         <h1 class="m-0">
           {{ t('catalog.charts.header') }}
         </h1>
       </div>
-      <div v-if="getFeaturedCharts.length > 0" class="actions-container">
+      <div
+        v-if="getFeaturedCharts.length > 0"
+        class="actions-container"
+      >
         <ButtonGroup
           v-model="chartMode"
           :options="chartOptions"
@@ -381,7 +384,11 @@ export default {
             :color="repo.color"
           >
             <template #label>
-              <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
+              <span>{{ repo.label }}</span><i
+                v-if="!repo.all"
+                class=" pl-5 icon icon-dot icon-sm"
+                :class="{[repo.color]: true}"
+              />
             </template>
           </Checkbox>
         </template>
@@ -411,15 +418,32 @@ export default {
           :placeholder="t('catalog.charts.search')"
         >
 
-        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-        <AsyncButton class="refresh-btn" mode="refresh" size="sm" @click="refresh" />
+        <button
+          v-shortkey.once="['/']"
+          class="hide"
+          @shortkey="focusSearch()"
+        />
+        <AsyncButton
+          class="refresh-btn"
+          mode="refresh"
+          size="sm"
+          @click="refresh"
+        />
       </div>
     </div>
 
-    <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
+    <Banner
+      v-for="err in loadingErrors"
+      :key="err"
+      color="error"
+      :label="err"
+    />
 
     <div v-if="allCharts.length">
-      <div v-if="filteredCharts.length === 0" style="width: 100%;">
+      <div
+        v-if="filteredCharts.length === 0"
+        style="width: 100%;"
+      >
         <div class="m-50 text-center">
           <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
@@ -433,7 +457,10 @@ export default {
         @clicked="(row) => selectChart(row)"
       />
     </div>
-    <div v-else class="m-50 text-center">
+    <div
+      v-else
+      class="m-50 text-center"
+    >
       <h1>{{ t('catalog.charts.noCharts') }}</h1>
     </div>
   </div>

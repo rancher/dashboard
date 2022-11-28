@@ -5,8 +5,8 @@ import { epinioExceptionToErrorsArray } from '../utils/errors';
 export default class EpinioResource extends Resource {
   get listLocation() {
     return this.$rootGetters['type-map/optionsFor'](this.type).customRoute || createEpinioRoute(`c-cluster-resource`, {
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  this.type,
+      cluster:  this.$rootGetters['clusterId'],
+      resource: this.type,
     });
   }
 

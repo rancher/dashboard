@@ -150,7 +150,7 @@ export default {
     },
     emptyDefaults() {
       return {
-        type:  this.templateOptions[0].value,
+        type: this.templateOptions[0].value,
         spec: this.emptySpec
       };
     },
@@ -236,7 +236,10 @@ export default {
     @finish="save"
     @select-type="selectTemplateSubtype"
   >
-    <div v-if="value" class="gatekeeper-constraint">
+    <div
+      v-if="value"
+      class="gatekeeper-constraint"
+    >
       <div>
         <NameNsDescription
           v-if="!isView"
@@ -258,14 +261,28 @@ export default {
           />
         </div>
       </div>
-      <Tabbed :side-tabs="true" @changed="onTabChanged">
-        <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')" :weight="3">
+      <Tabbed
+        :side-tabs="true"
+        @changed="onTabChanged"
+      >
+        <Tab
+          name="namespaces"
+          :label="t('gatekeeperConstraint.tab.namespaces.title')"
+          :weight="3"
+        >
           <div class="row">
             <div class="col span-6">
-              <Scope v-model="value.spec.match.scope" :mode="mode" @input="onScopeChange($event)" />
+              <Scope
+                v-model="value.spec.match.scope"
+                :mode="mode"
+                @input="onScopeChange($event)"
+              />
             </div>
           </div>
-          <div v-if="showNamespaceLists" class="row mt-20">
+          <div
+            v-if="showNamespaceLists"
+            class="row mt-20"
+          >
             <div class="col span-12">
               <NamespaceList
                 v-model="value.spec.match.namespaces"
@@ -277,7 +294,10 @@ export default {
               />
             </div>
           </div>
-          <div v-if="showNamespaceLists" class="row mt-20">
+          <div
+            v-if="showNamespaceLists"
+            class="row mt-20"
+          >
             <div class="col span-12">
               <NamespaceList
                 v-model="value.spec.match.excludedNamespaces"
@@ -299,10 +319,17 @@ export default {
             </div>
           </div>
         </Tab>
-        <Tab name="rules" :label="t('gatekeeperConstraint.tab.rules.title')" :weight="2">
+        <Tab
+          name="rules"
+          :label="t('gatekeeperConstraint.tab.rules.title')"
+          :weight="2"
+        >
           <div class="row">
             <div class="col span-12">
-              <MatchKinds v-model="value.spec.match.kinds" :mode="mode" />
+              <MatchKinds
+                v-model="value.spec.match.kinds"
+                :mode="mode"
+              />
             </div>
           </div>
           <div class="row mt-40">
@@ -316,7 +343,11 @@ export default {
             </div>
           </div>
         </Tab>
-        <Tab name="parameters" :label="t('gatekeeperConstraint.tab.parameters.title')" :weight="1">
+        <Tab
+          name="parameters"
+          :label="t('gatekeeperConstraint.tab.parameters.title')"
+          :weight="1"
+        >
           <YamlEditor
             ref="yamlEditor"
             v-model="parametersYaml"

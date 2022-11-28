@@ -150,8 +150,8 @@ export default class Route extends SteveModel {
 
   get receiverLink() {
     return {
-      text:    this.spec.receiver,
-      to:      {
+      text: this.spec.receiver,
+      to:   {
         name:   'c-cluster-product-resource-id',
         params: {
           resource: MONITORING.SPOOFED.RECEIVER, product: MONITORING_PRODUCT, id: this.spec.receiver

@@ -17,7 +17,7 @@ export default {
     Loading,
     Card
   },
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: _VIEW,
@@ -38,11 +38,11 @@ export default {
       }
     },
     groupPrincipalId: {
-      type:     String,
+      type:    String,
       default: ''
     },
     userId: {
-      type:     String,
+      type:    String,
       default: ''
     }
   },
@@ -104,7 +104,7 @@ export default {
       return this.type === 'user';
     }
   },
-  watch:    {
+  watch: {
     groupPrincipalId(groupPrincipalId, oldGroupPrincipalId) {
       if (groupPrincipalId === oldGroupPrincipalId) {
         return;
@@ -201,8 +201,8 @@ export default {
     },
     async saveAddedRoles(userId) {
       const requestOptions = {
-        type:               MANAGEMENT.GLOBAL_ROLE_BINDING,
-        metadata:           { generateName: `grb-` },
+        type:     MANAGEMENT.GLOBAL_ROLE_BINDING,
+        metadata: { generateName: `grb-` },
       };
 
       if (this.groupPrincipalId) {
@@ -298,8 +298,16 @@ export default {
 
   <div v-else>
     <form v-if="selectedRoles">
-      <div v-for="(sortedRole, roleType) in sortedRoles" :key="getUnique(roleType)" class="role-group mb-10">
-        <Card v-if="Object.keys(sortedRole).length" :show-highlight-border="false" :show-actions="false">
+      <div
+        v-for="(sortedRole, roleType) in sortedRoles"
+        :key="getUnique(roleType)"
+        class="role-group mb-10"
+      >
+        <Card
+          v-if="Object.keys(sortedRole).length"
+          :show-highlight-border="false"
+          :show-actions="false"
+        >
           <template v-slot:title>
             <div class="type-title">
               <h3>{{ t(`rbac.globalRoles.types.${roleType}.label`) }}</h3>
@@ -309,8 +317,15 @@ export default {
             </div>
           </template>
           <template v-slot:body>
-            <div class="checkbox-section" :class="'checkbox-section--' + roleType">
-              <div v-for="role in sortedRoles[roleType]" :key="getUnique(roleType, role.id)" class="checkbox mb-10 mr-10">
+            <div
+              class="checkbox-section"
+              :class="'checkbox-section--' + roleType"
+            >
+              <div
+                v-for="role in sortedRoles[roleType]"
+                :key="getUnique(roleType, role.id)"
+                class="checkbox mb-10 mr-10"
+              >
                 <Checkbox
                   :key="getUnique(roleType, role.id, 'checkbox')"
                   v-model="selectedRoles"
@@ -324,7 +339,11 @@ export default {
                   <template #label>
                     <div class="checkbox-label-slot">
                       <span class="checkbox-label">{{ role.nameDisplay }}</span>
-                      <i v-if="!!assignOnlyRoles[role.id]" v-tooltip="t('rbac.globalRoles.assignOnlyRole')" class="checkbox-info icon icon-info icon-lg" />
+                      <i
+                        v-if="!!assignOnlyRoles[role.id]"
+                        v-tooltip="t('rbac.globalRoles.assignOnlyRole')"
+                        class="checkbox-info icon icon-info icon-lg"
+                      />
                     </div>
                   </template>
                 </Checkbox>

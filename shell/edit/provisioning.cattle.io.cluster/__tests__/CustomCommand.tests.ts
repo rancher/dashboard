@@ -15,7 +15,7 @@ describe('component: CustomCommand', () => {
         }
       },
       // stubs: { CopyCode: { template: '<div></div> ' } },
-      data:     () => ({
+      data: () => ({
         address:         '',
         controlPlane:    true,
         etcd:            true,

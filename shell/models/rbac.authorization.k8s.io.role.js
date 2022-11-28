@@ -14,10 +14,10 @@ export default class Role extends SteveModel {
         type:           'string',
       },
       {
-        path:           'rules',
-        validators:     [`roleTemplateRules:${ this.type }`],
-        nullable:       false,
-        type:           'array',
+        path:       'rules',
+        validators: [`roleTemplateRules:${ this.type }`],
+        nullable:   false,
+        type:       'array',
       },
     ];
   }

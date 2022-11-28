@@ -10,7 +10,7 @@ export default {
     LabeledSelect, Checkbox, LabeledInput
   },
 
-  props:      {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {
@@ -79,8 +79,15 @@ export default {
           />
         </div>
       </div>
-      <div v-if="driverComponent" class="mb-10">
-        <component :is="driverComponent" v-model="value.csi.volumeAttributes" :mode="mode" />
+      <div
+        v-if="driverComponent"
+        class="mb-10"
+      >
+        <component
+          :is="driverComponent"
+          v-model="value.csi.volumeAttributes"
+          :mode="mode"
+        />
       </div>
     </div>
   </div>

@@ -5,7 +5,7 @@ import { RadioGroup } from '@components/Form/Radio';
 export default {
   components: { RadioGroup, LabeledInput },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -38,10 +38,20 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.glusterfs.endpoints" :mode="mode" :label="t('persistentVolume.glusterfs.endpoints.label')" :placeholder="t('persistentVolume.glusterfs.endpoints.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.glusterfs.endpoints"
+          :mode="mode"
+          :label="t('persistentVolume.glusterfs.endpoints.label')"
+          :placeholder="t('persistentVolume.glusterfs.endpoints.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.glusterfs.path" :mode="mode" :label="t('persistentVolume.glusterfs.path.label')" :placeholder="t('persistentVolume.glusterfs.path.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.glusterfs.path"
+          :mode="mode"
+          :label="t('persistentVolume.glusterfs.path.label')"
+          :placeholder="t('persistentVolume.glusterfs.path.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">

@@ -8,9 +8,9 @@ export default {
 
   data() {
     return {
-      getStartedLink:  createEpinioRoute(`c-cluster-resource`, {
-        cluster:   this.$store.getters['clusterId'],
-        resource:  EPINIO_TYPES.NAMESPACE,
+      getStartedLink: createEpinioRoute(`c-cluster-resource`, {
+        cluster:  this.$store.getters['clusterId'],
+        resource: EPINIO_TYPES.NAMESPACE,
       })
     };
   },
@@ -22,7 +22,11 @@ export default {
     <h1>{{ t('epinio.intro.welcome') }}</h1>
     <p class="mb-30">
       <span>{{ t('epinio.intro.blurb') }}</span>
-      <a :href="t('epinio.intro.learnMoreLink')" target="_blank" rel="noopener noreferrer nofollow">
+      <a
+        :href="t('epinio.intro.learnMoreLink')"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
         {{ t('epinio.intro.learnMore') }} <i class="icon icon-external-link" />
       </a>
     </p>

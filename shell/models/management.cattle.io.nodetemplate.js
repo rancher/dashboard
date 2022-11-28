@@ -3,8 +3,8 @@ import HybridModel from '@shell/plugins/steve/hybrid-class';
 
 const CONFIG_KEYS = [
   {
-    driver:           'aliyunecs',
-    size:      { key: 'instanceType' },
+    driver:   'aliyunecs',
+    size:     { key: 'instanceType' },
     location: {
       getDisplayProperty(that) {
         return `${ that.providerConfig?.region }${ that.providerConfig?.zone }`;
@@ -12,8 +12,8 @@ const CONFIG_KEYS = [
     }
   },
   {
-    driver:           'amazonec2',
-    size:      { key: 'instanceType' },
+    driver:   'amazonec2',
+    size:     { key: 'instanceType' },
     location: {
       getDisplayProperty(that) {
         return `${ that.providerConfig?.region }${ that.providerConfig?.zone }`;
@@ -21,47 +21,47 @@ const CONFIG_KEYS = [
     }
   },
   {
-    driver:           'azure',
-    size:      { key: 'size' },
+    driver:   'azure',
+    size:     { key: 'size' },
     location: { key: 'location' }
   },
   {
-    driver:           'digitalocean',
-    size:      { key: 'size' },
+    driver:   'digitalocean',
+    size:     { key: 'size' },
     location: { key: 'region' }
   },
   {
-    driver:           'exoscale',
-    size:      { key: 'instanceProfile' },
+    driver:   'exoscale',
+    size:     { key: 'instanceProfile' },
     location: { key: 'availabilityZone' }
   },
   {
-    driver:           'linode',
-    size:      { key: 'instanceType' },
+    driver:   'linode',
+    size:     { key: 'instanceType' },
     location: { key: 'region' }
   },
   {
-    driver:           'oci',
-    size:      { key: 'nodeShape' },
+    driver:   'oci',
+    size:     { key: 'nodeShape' },
     location: {}
   },
   {
-    driver:           'packet',
-    size:      { key: 'plan' },
+    driver:   'packet',
+    size:     { key: 'plan' },
     location: { key: 'facilityCode' }
   },
   {
-    driver:           'pnap',
-    size:      { key: 'serverType' },
+    driver:   'pnap',
+    size:     { key: 'serverType' },
     location: { key: 'serverLocation' }
   },
   {
-    driver:           'rackspace',
-    size:      { key: 'flavorId' },
+    driver:   'rackspace',
+    size:     { key: 'flavorId' },
     location: { key: 'region' }
   },
   {
-    driver:           'vmwarevsphere',
+    driver: 'vmwarevsphere',
     size:   {
       getDisplayProperty(that) {
         const size = formatSi(that.providerConfig?.memorySize * 1048576, 1024, 'iB');

@@ -11,7 +11,7 @@ export default {
     LabeledInput
   },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'
@@ -284,7 +284,10 @@ export default {
       />
     </div>
 
-    <div v-if="type==='simple'" class="single-value">
+    <div
+      v-if="type==='simple'"
+      class="single-value"
+    >
       <LabeledInput
         v-model="valStr"
         :label="t('workload.container.command.fromResource.value.label')"
@@ -357,7 +360,12 @@ export default {
       </div>
     </template>
 
-    <button v-if="!isView" type="button" class="btn btn-sm role-link" @click.stop="$emit('remove')">
+    <button
+      v-if="!isView"
+      type="button"
+      class="btn btn-sm role-link"
+      @click.stop="$emit('remove')"
+    >
       {{ t('generic.remove') }}
     </button>
   </div>

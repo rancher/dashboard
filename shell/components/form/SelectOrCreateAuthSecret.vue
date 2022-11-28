@@ -456,8 +456,14 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else class="select-or-create-auth-secret">
-    <div class="mt-20" :class="{'row': !vertical}">
+  <div
+    v-else
+    class="select-or-create-auth-secret"
+  >
+    <div
+      class="mt-20"
+      :class="{'row': !vertical}"
+    >
       <div :class="firstCol">
         <LabeledSelect
           v-model="selected"
@@ -468,7 +474,7 @@ export default {
         >
           <template v-slot:option="opt">
             <template v-if="opt.kind === 'divider'">
-              <hr />
+              <hr>
             </template>
             <template v-else-if="opt.kind === 'title'">
               {{ opt.label }}
@@ -481,26 +487,54 @@ export default {
       </div>
       <template v-if="selected === _SSH">
         <div :class="moreCols">
-          <LabeledInput v-model="publicKey" :mode="mode" type="multiline" label-key="selectOrCreateAuthSecret.ssh.publicKey" />
+          <LabeledInput
+            v-model="publicKey"
+            :mode="mode"
+            type="multiline"
+            label-key="selectOrCreateAuthSecret.ssh.publicKey"
+          />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="privateKey" :mode="mode" type="multiline" label-key="selectOrCreateAuthSecret.ssh.privateKey" />
+          <LabeledInput
+            v-model="privateKey"
+            :mode="mode"
+            type="multiline"
+            label-key="selectOrCreateAuthSecret.ssh.privateKey"
+          />
         </div>
       </template>
       <template v-else-if="selected === _BASIC">
         <div :class="moreCols">
-          <LabeledInput v-model="publicKey" :mode="mode" label-key="selectOrCreateAuthSecret.basic.username" />
+          <LabeledInput
+            v-model="publicKey"
+            :mode="mode"
+            label-key="selectOrCreateAuthSecret.basic.username"
+          />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="privateKey" :mode="mode" type="password" label-key="selectOrCreateAuthSecret.basic.password" />
+          <LabeledInput
+            v-model="privateKey"
+            :mode="mode"
+            type="password"
+            label-key="selectOrCreateAuthSecret.basic.password"
+          />
         </div>
       </template>
       <template v-else-if="selected === _S3">
         <div :class="moreCols">
-          <LabeledInput v-model="publicKey" :mode="mode" label-key="selectOrCreateAuthSecret.s3.accessKey" />
+          <LabeledInput
+            v-model="publicKey"
+            :mode="mode"
+            label-key="selectOrCreateAuthSecret.s3.accessKey"
+          />
         </div>
         <div :class="moreCols">
-          <LabeledInput v-model="privateKey" :mode="mode" type="password" label-key="selectOrCreateAuthSecret.s3.secretKey" />
+          <LabeledInput
+            v-model="privateKey"
+            :mode="mode"
+            type="password"
+            label-key="selectOrCreateAuthSecret.s3.secretKey"
+          />
         </div>
       </template>
     </div>

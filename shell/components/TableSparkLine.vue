@@ -11,7 +11,7 @@ export default {
       type:    Number,
       default: 20
     },
-    inputDatum:  {
+    inputDatum: {
       type:    Number,
       default: 0
     },
@@ -85,7 +85,10 @@ export default {
 
 <template>
   <div class="graphContainer">
-    <svg :width="graphWidth" :height="graphHeight">
+    <svg
+      :width="graphWidth"
+      :height="graphHeight"
+    >
       <path :d="line" />
     </svg>
   </div>

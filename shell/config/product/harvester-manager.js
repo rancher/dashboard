@@ -58,13 +58,13 @@ export const NAME = 'harvesterManager';
 export const HARVESTER_NAME = 'harvester';
 
 const MACHINE_POOLS = {
-  name:      'summary',
-  labelKey:  'tableHeaders.machines',
-  sort:      false,
-  search:    false,
+  name:     'summary',
+  labelKey: 'tableHeaders.machines',
+  sort:     false,
+  search:   false,
   value:    'nodes.length',
-  align:     'center',
-  width:     100,
+  align:    'center',
+  width:    100,
 };
 
 const harvesterClustersLocation = {
@@ -122,8 +122,8 @@ export function init(store) {
     namespaced: false,
     weight:     -1,
     route:      {
-      name:     'c-cluster-product-resource',
-      params:   {
+      name:   'c-cluster-product-resource',
+      params: {
         product:  NAME,
         resource: HCI.CLUSTER,
       }
