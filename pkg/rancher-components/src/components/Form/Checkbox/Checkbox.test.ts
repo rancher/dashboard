@@ -11,7 +11,7 @@ describe('Checkbox.vue', () => {
 
   it('renders a true value', () => {
     const wrapper = shallowMount(Checkbox, { propsData: { value: true } });
-    const cbInput = wrapper.find('wrapper.find').element as HTMLInputElement;
+    const cbInput = wrapper.find('input[type="checkbox"]').element as HTMLInputElement;
 
     expect(cbInput.checked).toBe(true);
   });
