@@ -180,22 +180,39 @@ export default {
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td :colspan="fullColspan-2">
-              <div v-if="row.spec.taints && row.spec.taints.length">
+              <span v-if="row.spec.taints && row.spec.taints.length">
                 {{ t('node.list.nodeTaint') }}:
-                <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
+                <Tag
+                  v-for="taint in row.spec.taints"
+                  :key="taint.key + taint.value + taint.effect"
+                  class="mr-5"
+                >
                   {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
                 </Tag>
-              </div>
-              <div v-if="!!displayLabels(row).length" class="mt-5">
-                <a href="#" @click.prevent="toggleLabels">
-                  {{ t(`node.list.${isLabelsVisible? 'hideLabels' : 'showLabels'}`, {labelCount: displayLabels(row).length}) }}
+              </span>
+              <span
+                v-if="!!displayLabels(row).length"
+                class="mt-5"
+              >
+                <a
+                  href="#"
+                  @click.prevent="toggleLabels"
+                >
+                  {{ t(`node.list.${isLabelsVisible? 'hideLabels' : 'showLabels'}`, {labelCount: displayLabels(row).length}) }}:
                 </a>
-                <div v-if="isLabelsVisible" class="mt-5 labels">
-                  <Tag v-for="(label, i) in displayLabels(row)" :key="i" class="mr-2">
+                <span
+                  v-if="isLabelsVisible"
+                  class="mt-5 labels"
+                >
+                  <Tag
+                    v-for="(label, i) in displayLabels(row)"
+                    :key="i"
+                    class="mr-2"
+                  >
                     {{ label }}
                   </Tag>
-                </div>
-              </div>
+                </span>
+              </span>
             </td>
           </template>
           <td
