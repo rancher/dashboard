@@ -499,7 +499,6 @@ export default {
     display: contents;
     white-space: nowrap;
   }
-
   .list-cluster-name {
     align-items: center;
     display: flex;
