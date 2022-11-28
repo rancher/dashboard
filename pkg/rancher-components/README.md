@@ -67,6 +67,14 @@ Running `yarn install` will automatically link inter-package dependencies for ea
 
 ```
 
+You can build and watch for changes in `@rancher/components` after ensuring that all `@rancher/components` dependencies match the version reflected in `package.json`
+
+```
+$ yarn build:lib --watch
+```
+
+From this point, you can run Dashboard in another terminal and make changes to either Rancher Shell or Rancher Components. Hot module replacement will function similarly to as if you were developing entirely in a single project.
+
 ## Porting and publishing Rancher Components
 
 It's best to handle porting existing Dashboard components into Rancher Components in separate steps to ensure that all packages continue functioning during the porting process.
