@@ -4,7 +4,7 @@ This guide will walk through creating a new extension from scratch.
 
 ## Prerequisites
 
-You will need a newer version of nodejs installed.
+You will need a recent version of nodejs installed.
 
 You'll also need the yarn package manage installed, which can be done with `npm install -g yarn`.
 
@@ -13,8 +13,6 @@ You'll also need the yarn package manage installed, which can be done with `npm 
 In order to develop a new Extension, you need an application UI to host it in during development.
 
 Rancher provides a helper to create a skeleton application for you.
-
-we can go ahead and create a new UI.
 
 `cd` to a folder not within the checkout and run:
 
@@ -33,12 +31,12 @@ You can run the app with:
 
 ```
 yarn install
-yarn dev
+API=<Rancher Backend URL> yarn dev
 ```
 
-> Note: You will need to have a Rancher backend available and the `API` environment variable set up to reference it.
+> Note: You will need to have a Rancher backend available and the `API` environment variable above set correctly to reference it.
 
-You should be able to open a browser at `https://127.0.0.1:8005` and you'll get the Rancher Dashboard UI.
+You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI.
 
 You're skeleton application is a full Rancher UI - but referenced via `npm`.
 
@@ -85,7 +83,7 @@ export function init($plugin, store) {
 }
 ```
 
-We've created a base bones extension and exposed a new 'product' that will appear in the top-level slide-in menu. At this stage, it does
+We've created a bare bones extension and exposed a new 'product' that will appear in the top-level slide-in menu. At this stage, it does
 nothing other than that!
 
 You should now be able to run the UI again with:
@@ -131,7 +129,7 @@ Now, run the UI with:
 yarn dev
 ```
 
-Open a web browser to `https://127.0.0.1:8005` and you'll see that the Example nav item is not present - since the extension was not loaded.
+Open a web browser to https://127.0.0.1:8005 and you'll see that the Example nav item is not present - since the extension was not loaded.
 
 > Note: You need to be an admin user to test Extensions in the Rancher UI
 
@@ -143,14 +141,15 @@ Go to the three dot menu and select 'Developer load' - you'll get a dialog allow
 
 In the top input box `Extension URL`, enter:
 
-
 ```
 https://127.0.0.1:8005/pkg/test-0.1.0/test-0.1.0.umd.min.js
 ```
 
 Press 'Load' and the extension will be loaded and you should see a notification telling you the extension was loaded and if you bring in the side menu again, you should see the Example nav item there now.
 
-This illustrates dynamically loading an extension. Note that when we started the UI, it serves up any extensions in the `dist-pkg` folder under the `/pkg` route of the app. Also note that when we build extensions they are versioned, so you'l see that reflected in the URL we used.
+This illustrates dynamically loading an extension.
+
+> Note that when we started the UI, it serves up any extensions in the `dist-pkg` folder under the `/pkg` route of the app. Also note that when we build extensions they are versioned, so you'll see that reflected in the URL we used.
 
 ## Loading the Extension into another Rancher
 
