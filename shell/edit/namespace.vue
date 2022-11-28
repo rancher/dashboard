@@ -17,9 +17,8 @@ import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import { filter, keys } from 'lodash';
-import { systemKeys } from '@shell/config/system-keys';
 import KeyValue from '@shell/components/form/KeyValue';
+import { getPSALabels } from '@shell/config/pod-security-admission';
 
 export default {
   components: {
@@ -75,7 +74,7 @@ export default {
      * Generate list of present keys which can be filtered based on existing label keys and system keys
      */
     protectedKeys() {
-      return filter(keys(this.value.labels), key => systemKeys.includes(key));
+      return getPSALabels(this.value.labels);
     },
 
     isSingleHarvester() {
