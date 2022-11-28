@@ -11,7 +11,7 @@ export default {
       required: true
     },
     showSuccess: {
-      type:     Boolean,
+      type:    Boolean,
       default: true
     }
   },

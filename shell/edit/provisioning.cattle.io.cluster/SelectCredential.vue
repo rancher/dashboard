@@ -232,7 +232,10 @@ export default {
     @error="e=>errors = e"
   >
     <div v-if="isNew">
-      <Banner :label="t('cluster.credential.banner.createCredential', {length: options.length}, true)" color="info" />
+      <Banner
+        :label="t('cluster.credential.banner.createCredential', {length: options.length}, true)"
+        color="info"
+      />
 
       <NameNsDescription
         v-model="newCredential"
@@ -255,7 +258,11 @@ export default {
       />
     </div>
     <div v-else>
-      <Banner v-if="!credentialId" label="First you need to pick or create the cloud credential that will be used to create the nodes for the cluster..." color="info" />
+      <Banner
+        v-if="!credentialId"
+        label="First you need to pick or create the cloud credential that will be used to create the nodes for the cluster..."
+        color="info"
+      />
 
       <LabeledSelect
         v-model="credentialId"
@@ -266,13 +273,22 @@ export default {
       />
     </div>
 
-    <template v-if="isNew && options.length" #footer-prefix>
-      <button class="btn role-secondary" @click="backToExisting()">
+    <template
+      v-if="isNew && options.length"
+      #footer-prefix
+    >
+      <button
+        class="btn role-secondary"
+        @click="backToExisting()"
+      >
         {{ t('cluster.credential.selectExisting.label') }}
       </button>
     </template>
 
-    <template v-if="isPicked" #form-footer>
+    <template
+      v-if="isPicked"
+      #form-footer
+    >
       <div><!-- Hide the outer footer --></div>
     </template>
   </CruResource>

@@ -59,15 +59,25 @@ export default {
 
     <div class="dashboard-content">
       <Header :simple="true" />
-      <main>
+      <main class="main-layout">
         <IndentedPanel class="pt-20">
           <nuxt class="outlet" />
         </IndentedPanel>
         <ActionMenu />
         <PromptRemove />
         <AssignTo />
-        <button v-if="themeShortcut" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
-        <button v-if="noLocaleShortcut" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
+        <button
+          v-if="themeShortcut"
+          v-shortkey.once="['shift','t']"
+          class="hide"
+          @shortkey="toggleTheme()"
+        />
+        <button
+          v-if="noLocaleShortcut"
+          v-shortkey.once="['shift','l']"
+          class="hide"
+          @shortkey="toggleNoneLocale()"
+        />
       </main>
     </div>
 

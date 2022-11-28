@@ -28,16 +28,16 @@ export default {
 
   data() {
     return {
-      username:      null,
-      password:      null
+      username: null,
+      password: null
     };
   },
 
   computed: {
     tArgs() {
       return {
-        provider:  this.displayName,
-        username:  this.principal.loginName || this.principal.name,
+        provider: this.displayName,
+        username: this.principal.loginName || this.principal.name,
       };
     },
 
@@ -88,23 +88,39 @@ export default {
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+        <AuthBanner
+          :t-args="tArgs"
+          :disable="disable"
+          :edit="goToEdit"
+        >
           <template slot="rows">
             <tr><td>{{ t(`authConfig.ldap.table.server`) }}: </td><td>{{ serverUrl }}</td></tr>
             <tr><td>{{ t(`authConfig.ldap.table.clientId`) }}: </td><td>{{ model.serviceAccountDistinguishedName || model.serviceAccountUsername }}</td></tr>
           </template>
         </AuthBanner>
 
-        <hr />
+        <hr>
 
-        <AllowedPrincipals :provider="NAME" :auth-config="model" :mode="mode" />
+        <AllowedPrincipals
+          :provider="NAME"
+          :auth-config="model"
+          :mode="mode"
+        />
       </template>
 
       <template v-else>
-        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+        <Banner
+          v-if="!model.enabled"
+          :label="t('authConfig.stateBanner.disabled', tArgs)"
+          color="warning"
+        />
 
         <h3>{{ t(`authConfig.ldap.${NAME}`) }}</h3>
-        <config v-model="model" :type="NAME" :mode="mode" />
+        <config
+          v-model="model"
+          :type="NAME"
+          :mode="mode"
+        />
 
         <h4>{{ t('authConfig.testAndEnable') }}</h4>
         <div class="row mb-20">
@@ -126,9 +142,15 @@ export default {
           </div>
         </div>
       </template>
-      <div v-if="!model.enabled" class="row">
+      <div
+        v-if="!model.enabled"
+        class="row"
+      >
         <div class="col span-12">
-          <Banner color="info" v-html="t('authConfig.associatedWarning', tArgs, true)" />
+          <Banner
+            color="info"
+            v-html="t('authConfig.associatedWarning', tArgs, true)"
+          />
         </div>
       </div>
     </CruResource>

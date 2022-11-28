@@ -167,14 +167,14 @@ const graphConfigMap = {};
 const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
 export const IF_HAVE = {
-  V1_MONITORING:            'v1-monitoring',
-  V2_MONITORING:            'v2-monitoring',
-  PROJECT:                  'project',
-  NO_PROJECT:               'no-project',
-  NOT_V1_ISTIO:             'not-v1-istio',
-  MULTI_CLUSTER:            'multi-cluster',
-  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
-  ADMIN:                    'admin-user',
+  V1_MONITORING:       'v1-monitoring',
+  V2_MONITORING:       'v2-monitoring',
+  PROJECT:             'project',
+  NO_PROJECT:          'no-project',
+  NOT_V1_ISTIO:        'not-v1-istio',
+  MULTI_CLUSTER:       'multi-cluster',
+  NEUVECTOR_NAMESPACE: 'neuvector-namespace',
+  ADMIN:               'admin-user',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -993,10 +993,6 @@ export const getters = {
 
       return out;
 
-      function rowValueGetter(index) {
-        return row => row.metadata?.fields?.[index];
-      }
-
       function fromSchema(col, rootGetters) {
         let formatter, width, formatterOpts;
 
@@ -1020,26 +1016,11 @@ export const getters = {
         const description = col.description || '';
         const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
 
-        // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
-        // We will use JsonPath to look up this value, which is costly - so if we can detect this format
-        // Use a more efficient function to get the value
-        let value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
-
-        if (process.client) {
-          const found = value.match(FIELD_REGEX);
-
-          if (found && found.length === 2) {
-            const fieldIndex = parseInt(found[1], 10);
-
-            value = rowValueGetter(fieldIndex);
-          }
-        }
-
         return {
-          name:    col.name.toLowerCase(),
-          label:   exists(labelKey) ? t(labelKey) : col.name,
-          value,
-          sort:    [col.field],
+          name:  col.name.toLowerCase(),
+          label: exists(labelKey) ? t(labelKey) : col.name,
+          value: _rowValueGetter(col),
+          sort:  [col.field],
           formatter,
           formatterOpts,
           width,
@@ -1314,6 +1295,14 @@ export const getters = {
       }
 
       return false;
+    };
+  },
+
+  rowValueGetter(state) {
+    return (schema, colName) => {
+      const col = _findColumnByName(schema, colName);
+
+      return _rowValueGetter(col);
     };
   },
 };
@@ -1773,6 +1762,32 @@ export function isAdminUser(getters) {
   const canPutHelmOperations = (getters['management/schemaFor'](CATALOG.OPERATION)?.resourceMethods || []).includes('PUT');
 
   return canEditSettings && canEditFeatureFlags && canInstallApps && canAddRepos && canPutHelmOperations;
+}
+
+function _findColumnByName(schema, colName) {
+  const attributes = schema.attributes || {};
+  const columns = attributes.columns || [];
+
+  return findBy(columns, 'name', colName);
+}
+
+function _rowValueGetter(col) {
+  // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
+  // We will use JsonPath to look up this value, which is costly - so if we can detect this format
+  // Use a more efficient function to get the value
+  const value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
+
+  if (process.client) {
+    const found = value.match(FIELD_REGEX);
+
+    if (found && found.length === 2) {
+      const fieldIndex = parseInt(found[1], 10);
+
+      return row => row.metadata?.fields?.[fieldIndex];
+    }
+  }
+
+  return value;
 }
 
 // Is V1 Istio installed?

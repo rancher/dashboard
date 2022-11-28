@@ -85,10 +85,10 @@ export default {
     },
     headers() {
       const project = {
-        name:          'project',
-        label:         'Project',
-        value:         'project.nameDisplay',
-        sort:          ['projectNameSort', 'nameSort'],
+        name:  'project',
+        label: 'Project',
+        value: 'project.nameDisplay',
+        sort:  ['projectNameSort', 'nameSort'],
       };
 
       return [
@@ -136,8 +136,8 @@ export default {
 
       if (this.showMockNotInProjectGroup) {
         fakeRows.push( {
-          groupByLabel:     this.t('resourceTable.groupLabel.notInAProject'), // Same as the groupByLabel for the namespace model
-          mainRowKey:       'fake-empty',
+          groupByLabel: this.t('resourceTable.groupLabel.notInAProject'), // Same as the groupByLabel for the namespace model
+          mainRowKey:   'fake-empty',
         });
       }
 
@@ -342,10 +342,22 @@ export default {
       v-on="$listeners"
     >
       <template #group-by="group">
-        <div class="project-bar" :class="{'has-description': projectDescription(group.group)}">
-          <div v-trim-whitespace class="group-tab">
-            <div class="project-name" v-html="projectLabel(group.group)" />
-            <div v-if="projectDescription(group.group)" class="description text-muted text-small">
+        <div
+          class="project-bar"
+          :class="{'has-description': projectDescription(group.group)}"
+        >
+          <div
+            v-trim-whitespace
+            class="group-tab"
+          >
+            <div
+              class="project-name"
+              v-html="projectLabel(group.group)"
+            />
+            <div
+              v-if="projectDescription(group.group)"
+              class="description text-muted text-small"
+            >
               {{ projectDescription(group.group) }}
             </div>
           </div>
@@ -357,7 +369,12 @@ export default {
             >
               {{ t('projectNamespaces.createNamespace') }}
             </n-link>
-            <button type="button" class="project-action btn btn-sm role-multi-action actions mr-10" :class="{invisible: !showProjectActionButton(group.group)}" @click="showProjectAction($event, group.group)">
+            <button
+              type="button"
+              class="project-action btn btn-sm role-multi-action actions mr-10"
+              :class="{invisible: !showProjectActionButton(group.group)}"
+              @click="showProjectAction($event, group.group)"
+            >
               <i class="icon icon-actions" />
             </button>
           </div>
@@ -365,18 +382,33 @@ export default {
       </template>
       <template #cell:project="{row}">
         <span v-if="row.project">{{ row.project.nameDisplay }}</span>
-        <span v-else class="text-muted">&ndash;</span>
+        <span
+          v-else
+          class="text-muted"
+        >&ndash;</span>
       </template>
-      <template v-for="project in projectsWithoutNamespaces" v-slot:[slotName(project)]>
-        <tr :key="project.id" class="main-row">
-          <td class="empty text-center" colspan="5">
+      <template
+        v-for="project in projectsWithoutNamespaces"
+        v-slot:[slotName(project)]
+      >
+        <tr
+          :key="project.id"
+          class="main-row"
+        >
+          <td
+            class="empty text-center"
+            colspan="5"
+          >
             {{ t('projectNamespaces.noNamespaces') }}
           </td>
         </tr>
       </template>
       <template #main-row:fake-empty>
         <tr class="main-row">
-          <td class="empty text-center" colspan="5">
+          <td
+            class="empty text-center"
+            colspan="5"
+          >
             {{ t('projectNamespaces.noProjectNoNamespaces') }}
           </td>
         </tr>

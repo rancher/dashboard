@@ -95,6 +95,15 @@ generic:
   deprecated: Deprecated
   placeholder: "e.g. {text}"
   moreInfo: More Info
+  selectors:
+    label: Selector
+    matchingResources:
+      matchesSome: |-
+        {matched, plural,
+          =0 {Matches 0 of {total, number}}
+          =1 {Matches 1 of {total, number}: "{sample}"}
+          other {Matches {matched, number} of {total, number}, including "{sample}"}
+        }
 
 locale:
   en-us: English
@@ -125,11 +134,12 @@ nav:
   group:
     cluster: Cluster
     inUse: More Resources
+    policy: Policy
     rbac: RBAC
     serviceDiscovery: Service Discovery
     starred: Starred
     storage: Storage
-    workload: Workload
+    workload: Workloads
     monitoring: Monitoring
     advanced: Advanced
     RKE1Configuration: RKE1 Configuration
@@ -231,6 +241,7 @@ about:
     cli: CLI
     helm: Helm
     machine: Machine
+    rancher: Rancher
     releaseNotes: 'View release notes'
   os:
     mac: macOS
@@ -244,7 +255,7 @@ about:
     title: Diagnostics
     checkboxTooltip: Supplement diagnostics data with response times for the top 10 resources. These may take a while to complete
     checkboxLabel: Make additional requests
-    systemInformation: 
+    systemInformation:
       subtitle: System Information
       browser: Browser
       browserInfo: "User Agent: {userAgent}, Language: {language}, Cookies Enabled: {cookieEnabled}"
@@ -255,8 +266,8 @@ about:
       os: "OS: {platform}"
       memJsHeapLimit: "Heap Size limit: {jsHeapSizeLimit}"
       memTotalJsHeapSize: "Total Heap Size: {totalJSHeapSize}"
-      memUsedJsHeapSize: "Used Heap Size: {usedJSHeapSize}" 
-    logs: 
+      memUsedJsHeapSize: "Used Heap Size: {usedJSHeapSize}"
+    logs:
       subtitle: Latest Logs
     resourceCounts: |-
       {count, plural,
@@ -868,7 +879,7 @@ catalog:
       valuesYaml: Edit YAML
       diff: Compare Changes
     slideIn:
-      dock: Dock to bottom
+      dock: Dock to shell
     steps:
       basics:
         label: Metadata
@@ -1219,7 +1230,7 @@ cluster:
     warning:
       label: This is a Harvester Cluster - enable the Harvester feature flag to manage it
       state: Warning
-      cloudProvider: 
+      cloudProvider:
         incompatible:
           You cannot select the Harvester cloud provider as the current Harvester version is not compatible with the selected RKE2 Kubernetes version, click <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">here</a> to see which Kubernetes versions are supported.
     clusterWarning: |-
@@ -1970,14 +1981,14 @@ fleet:
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
       addRepo: Add Repository
       noRepos: No repositories have been added
-    add: 
-      steps: 
-        repoInfo: 
+    add:
+      steps:
+        repoInfo:
           label: Repository Details
           title: Specify the Git Repository to add to fleet
           subtext: 'Define repository details'
           description: Fleet will continuously monitor the Git Repository you configure below and synchronise the resources contained in it to the configured targets.
-        targetInfo: 
+        targetInfo:
           label: Target Details
           title: Specify which target to synchronise this repository to
           subtext: 'Define target details'
@@ -2132,13 +2143,13 @@ graphOptions:
 
 growl:
   clearAll: Clear All Notifications
-  disconnectError: 
+  disconnectError:
     message: "The connection to {url} closed unexpectedly at {time}. Disconnected after {tries} reconnect attempts. Check your network connection and reload the page"
-    title: Websocket Disconnected 
-  connectError: 
+    title: Websocket Disconnected
+  connectError:
     message: "The connection to {url} closed unexpectedly at {time}. Reconnect attempt #{tries}."
-    title: Websocket Reconnecting 
-  reconnected: 
+    title: Websocket Reconnecting
+  reconnected:
     message: "The connection to {url} was restored on attempt #{tries}."
     title: Websocket Reconnected
 
@@ -2546,6 +2557,15 @@ logging:
     clientKeyPass: Client Key Pass from Secret
     verifySsl: Verify SSL
     sslVersion: SSL Version
+  redis:
+    host: Host
+    port: Port
+    dbNumber: Redis database number
+    ttl: TTL for each key
+    password: Password from Secret
+    format:
+      title: Format
+      type: Type
   gelf:
     host: Host
     port: Port
@@ -2676,6 +2696,8 @@ logging:
       configuration: Configuration
   outputProviders:
     elasticsearch: Elasticsearch
+    opensearch: OpenSearch
+    redis: Redis
     splunkHec: Splunk
     kafka: Kafka
     forward: Fluentd
@@ -2861,7 +2883,6 @@ monitoring:
         existing: Enable With Existing PVC
         statefulset: Enable with StatefulSet Template
         template: Enable with PVC Template
-      volumeMode: Volume Mode
       volumeName: Volume Name
     title: Configure Grafana
   hostNetwork:
@@ -2924,7 +2945,6 @@ monitoring:
       selector: Selector
       selectorWarning: 'If you are using a dynamic provisioner (e.g. Longhorn), no Selectors should be specified since a PVC with a non-empty selector can''t have a PV dynamically provisioned for it.'
       size: Size
-      volumeMode: Volume Mode
       volumeName: Volume Name
     title: Configure Prometheus
     warningInstalled: |
@@ -3013,10 +3033,6 @@ monitoring:
     prometheus: Prometheus
     projectMetrics: Project Metrics
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of {vendor} with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new {vendor} Monitoring chart in Cluster Explorer.'
-  volume:
-    modes:
-      block: Block
-      file: Filesystem
 
 monitoringReceiver:
   addButton: Add {type}
@@ -3675,6 +3691,14 @@ persistentVolumeClaim:
       readWriteMany: Many Nodes Read-Write
   status:
     label: Status
+
+podDisruptionBudget:
+  budget:
+    label: Budget
+  minAvailable:
+    label: Min. available Pods
+  maxUnavailable:
+    label: Max. unavailable Pods
 
 # Rancher Extensions
 plugins:
@@ -4895,6 +4919,7 @@ tableHeaders:
   condition: Condition
   customVerbs: Custom Verbs
   description: Description
+  duration: Duration
   expires: Expires
   providers: Providers
   cpu: CPU
@@ -5141,6 +5166,12 @@ validation:
       startLetter: '"{key}" must start with a letter or number'
       tooLongKey: '"{key}" cannot have a key longer than {max} characters'
       tooLongPrefix: '"{key}" cannot have a prefix longer than {max} characters'
+  minLength: '"{key}" must contain more than {min} characters'
+  maxLength: '"{key}" must contain less than {max} characters'
+  minValue: '"{key}" must be higher than {min}'
+  maxValue: '"{key}" must be lower than {max}'
+  betweenLengths: '"{key}" must contain between {min} and {max} characters'
+  betweenValues: '"{key}" must be between {min} and {max}'
   noSchema: No schema found to validate
   noType: No type to validate
   number:
@@ -5732,8 +5763,8 @@ workload:
       label: Termination Grace Period
       tip: The duration the pod needs to terminate successfully.
     title: Upgrading
-  tabs: 
-    labels: 
+  tabs:
+    labels:
       deployment: Deployment
       pod: Pod
       containers: Containers
@@ -6305,7 +6336,7 @@ branding:
   directoryName: Brand Asset Directory Name
   logos:
     label: Logo
-    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB'
+    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview
     darkPreview: Dark Theme Preview
     uploadLight: Upload Light Logo
@@ -6383,7 +6414,7 @@ resourceQuota:
     namespace: 'This Namespace:'
     available: 'Available:'
     max: 'Total:'
-customLinks: 
+customLinks:
   displayTitle: Links
   label: Home Links
   description: 'Configure the links to display on the home page. You can define your own custom links as well as show or hide default links.'
@@ -6396,7 +6427,7 @@ customLinks:
     keyLabel: Display Text
     valueLabel: URL
     showLabel: Show
-  defaults: 
+  defaults:
     docs:       Docs
     forums:     Forums
     slack:      Slack

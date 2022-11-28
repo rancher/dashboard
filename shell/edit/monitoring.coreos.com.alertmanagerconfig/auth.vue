@@ -252,7 +252,10 @@ export default {
         />
       </div>
     </div>
-    <div v-if="authType === 'basicAuth'" class="row mb-20">
+    <div
+      v-if="authType === 'basicAuth'"
+      class="row mb-20"
+    >
       <SimpleSecretSelector
         v-if="namespace"
         :initial-key="initialBasicAuthUsernameSecretKey"
@@ -266,11 +269,17 @@ export default {
         @updateSecretName="updateBasicAuthUsernameSecretName"
         @updateSecretKey="updateBasicAuthUsernameSecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t("alertmanagerConfigReceiver.namespaceWarning") }}
       </Banner>
     </div>
-    <div v-if="authType === 'basicAuth'" class="row mb-20">
+    <div
+      v-if="authType === 'basicAuth'"
+      class="row mb-20"
+    >
       <SimpleSecretSelector
         v-if="namespace"
         :initial-key="initialBasicAuthPasswordSecretKey"
@@ -284,11 +293,17 @@ export default {
         @updateSecretName="updateBasicAuthPasswordSecretName"
         @updateSecretKey="updateBasicAuthPasswordSecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t("alertmanagerConfigReceiver.namespaceWarning") }}
       </Banner>
     </div>
-    <div v-if="authType === 'bearerTokenSecret'" class="row mb-20">
+    <div
+      v-if="authType === 'bearerTokenSecret'"
+      class="row mb-20"
+    >
       <SimpleSecretSelector
         v-if="namespace"
         :initial-key="initialBearerTokenSecretKey"
@@ -302,7 +317,10 @@ export default {
         @updateSecretName="updateBearerTokenSecretName"
         @updateSecretKey="updateBearerTokenSecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t("alertmanagerConfigReceiver.namespaceWarning") }}
       </Banner>
     </div>

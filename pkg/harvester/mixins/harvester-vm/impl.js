@@ -3,7 +3,7 @@ import isEqual from 'lodash/isEqual';
 import { clone } from '@shell/utils/object';
 import { SECRET } from '@shell/config/types';
 import { HCI } from '../../types';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { OS } from './index';
 
 export const QGA_JSON = {
@@ -243,15 +243,15 @@ export default {
 
         if (hasSSHResource) {
           return {
-            id:    hasSSHResource.id,
-            data:  hasSSHResource,
-            type:  SSH_EXISTING_TYPE.EXISTING_ALL
+            id:   hasSSHResource.id,
+            data: hasSSHResource,
+            type: SSH_EXISTING_TYPE.EXISTING_ALL
           };
         } else {
           return {
             id,
-            data:  id,
-            type:  SSH_EXISTING_TYPE.EXISTING_ONLY_ANNOTATION
+            data: id,
+            type: SSH_EXISTING_TYPE.EXISTING_ONLY_ANNOTATION
           };
         }
       });

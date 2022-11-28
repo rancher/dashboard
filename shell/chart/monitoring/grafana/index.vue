@@ -129,7 +129,7 @@ export default {
           existingClaim: null,
           subPath:       null,
           type:          null,
-          enabled:          true,
+          enabled:       true,
         };
         break;
       case 'pvc':

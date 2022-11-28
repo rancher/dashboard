@@ -1,0 +1,54 @@
+
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import ButtonDropdown from '@shell/components/ButtonDropdown';
+
+<Meta 
+  title="Components/Form/ButtonDropdown" 
+  component={ButtonDropdown}
+/>
+
+export const Template = (args, { argTypes }) => ({
+  components: { ButtonDropdown },
+  props:      Object.keys(argTypes),
+  template:   '<ButtonDropdown v-bind="$props" />',
+})
+
+
+# ButtonDropdown
+
+ButtonDropdown allows users to select one option from a list of options.
+
+<br/>
+
+### Description
+
+- Click on the dropdown button to display the list of options.
+- Click on an item or select one using the arrow keys, then press Enter.
+
+<Canvas>
+  <Story
+    name="ButtonDropdown"
+    args={{
+        buttonLabel:     'Option',
+        dropdownOptions: ['Option', 'Option1'],
+        size:            'sm'
+    }}>
+    {Template.bind({})}
+  </Story>
+  
+</Canvas>
+
+
+### Import
+
+<Source
+  language='js'
+  code={`
+    import ButtonDropdown from '@shell/components/ButtonDropdown';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={ButtonDropdown} />
+

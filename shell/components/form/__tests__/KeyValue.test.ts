@@ -48,38 +48,6 @@ describe('component: KeyValue', () => {
     expect(inputValues).toHaveLength(4);
   });
 
-  it('should display array of keys and values', () => {
-    const value = [
-      {
-        key:   'Tasha',
-        value: 'Yar'
-      },
-      {
-        key:   'Belanna',
-        value: 'Torres',
-      },
-      {
-        key:   'Jadzia',
-        value: 'Dax',
-      },
-      {
-        key:   'Michael',
-        value: 'Burnham',
-      },
-    ];
-    const wrapper = mount(KeyValue, {
-      propsData:  { value, asMap: false },
-      mocks:      { $store: { getters: { 'i18n/t': jest.fn() } } },
-      directives: { t }
-    });
-
-    const inputKeys = wrapper.findAll('.key');
-    const inputValues = wrapper.findAll('.value');
-
-    expect(inputKeys).toHaveLength(4);
-    expect(inputValues).toHaveLength(4);
-  });
-
   it('should be able to emit key and value', () => {
     const value = [
       {

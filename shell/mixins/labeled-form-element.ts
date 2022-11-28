@@ -18,17 +18,17 @@ export default Vue.extend({
     },
 
     label: {
-      type:     String,
+      type:    String,
       default: null
     },
 
     labelKey: {
-      type:     String,
+      type:    String,
       default: null
     },
 
     placeholderKey: {
-      type:     String,
+      type:    String,
       default: null
     },
 
@@ -43,7 +43,7 @@ export default Vue.extend({
     },
 
     tooltipKey: {
-      type:     String,
+      type:    String,
       default: null
     },
 
@@ -68,8 +68,8 @@ export default Vue.extend({
     },
 
     options: {
-      default:   null,
-      type:      Array
+      default: null,
+      type:    Array
     },
 
     searchable: {

@@ -1,5 +1,5 @@
 <script>
-import { HCI } from '@shell/config/labels-annotations';
+import { HCI } from '@/pkg/harvester/config/labels-annotations';
 import { mapGetters } from 'vuex';
 
 export default {

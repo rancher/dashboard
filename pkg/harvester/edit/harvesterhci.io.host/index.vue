@@ -10,7 +10,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_LABELS_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { LONGHORN } from '@shell/config/types';
 import { HCI } from '../../types';
 import { allHash } from '@shell/utils/promise';
@@ -52,9 +52,9 @@ export default {
     const inStore = this.$store.getters['currentProduct'].inStore;
 
     const hash = await allHash({
-      hostNetworks:      this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.NODE_NETWORK }),
+      hostNetworks:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.NODE_NETWORK }),
       longhornNodes: this.$store.dispatch(`${ inStore }/findAll`, { type: LONGHORN.NODES }),
-      blockDevices:   this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
+      blockDevices:  this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.BLOCK_DEVICE }),
     });
 
     const hostNetworks = hash.hostNetworks;
@@ -98,17 +98,17 @@ export default {
     const consoleUrl = this.value.metadata?.annotations?.[HCI_LABELS_ANNOTATIONS.HOST_CONSOLE_URL] || '';
 
     return {
-      hostNetworkResource:  null,
+      hostNetworkResource: null,
       customName,
       consoleUrl,
-      type:                 'vlan',
-      nic:                  '',
-      nics:                 [],
-      disks:                [],
-      newDisks:             [],
-      blockDevice:          [],
-      blockDeviceOpts:      [],
-      filteredLabels:       clone(this.value.filteredSystemLabels),
+      type:                'vlan',
+      nic:                 '',
+      nics:                [],
+      disks:               [],
+      newDisks:            [],
+      blockDevice:         [],
+      blockDeviceOpts:     [],
+      filteredLabels:      clone(this.value.filteredSystemLabels),
     };
   },
   computed: {

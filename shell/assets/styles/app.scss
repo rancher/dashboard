@@ -16,7 +16,7 @@
 @import "./themes/light";
 @import "./themes/dark";
 @import './themes/_suse.scss';
-
+@import './themes/_csp.scss';
 
 @import "./global/columns";
 @import "./global/cards";
@@ -28,6 +28,7 @@
 @import "./global/table";
 @import "./global/select";
 @import "./global/resource";
+@import "./global/layout";
 
 @import "./vendor/vue-select";
 @import "./vendor/vue-js-modal";

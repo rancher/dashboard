@@ -4,8 +4,8 @@ import { MANAGEMENT } from '@shell/config/types';
 import { authProvidersInfo } from '@shell/utils/auth';
 
 export default {
-  name:        'AuthConfigDetail',
-  components:  { ResourceDetail },
+  name:       'AuthConfigDetail',
+  components: { ResourceDetail },
   computed:   {
     AUTH_CONFIG() {
       return MANAGEMENT.AUTH_CONFIG;
@@ -28,5 +28,8 @@ export default {
 </script>
 
 <template>
-  <ResourceDetail :resource-override="AUTH_CONFIG" :flex-content="true" />
+  <ResourceDetail
+    :resource-override="AUTH_CONFIG"
+    :flex-content="true"
+  />
 </template>

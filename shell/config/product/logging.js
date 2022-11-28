@@ -37,23 +37,23 @@ export function init(store) {
     namespaced: false,
     name:       'logging-overview',
     route:      { name: 'c-cluster-logging' },
-    exact:       true,
-    overview:    true,
+    exact:      true,
+    overview:   true,
   });
 
   spoofedType({
-    label:      'Filters',
-    type:       LOGGING.SPOOFED.FILTERS,
+    label:   'Filters',
+    type:    LOGGING.SPOOFED.FILTERS,
     schemas: [
       {
-        id:                LOGGING.SPOOFED.FILTERS,
-        type:              'schema',
-        resourceFields:    { filters: { type: `array[${ LOGGING.SPOOFED.FILTER }]` } },
+        id:             LOGGING.SPOOFED.FILTERS,
+        type:           'schema',
+        resourceFields: { filters: { type: `array[${ LOGGING.SPOOFED.FILTER }]` } },
       },
       {
-        id:                LOGGING.SPOOFED.FILTER,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.FILTER,
+        type:           'schema',
+        resourceFields: {
           concat:             { type: LOGGING.SPOOFED.CONCAT },
           dedot:              { type: LOGGING.SPOOFED.DEDOT },
           detectExceptions:   { type: LOGGING.SPOOFED.DETECTEXCEPTIONS },
@@ -70,9 +70,9 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.CONCAT,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.CONCAT,
+        type:           'schema',
+        resourceFields: {
           key:                    { type: 'string' },
           separator:              { type: 'string' },
           n_lines:                { type: 'int' },
@@ -91,17 +91,17 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.DEDOT,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.DEDOT,
+        type:           'schema',
+        resourceFields: {
           de_dot_nested:    { type: 'boolean' },
           de_dot_separator: { type: 'string' },
         },
       },
       {
-        id:                LOGGING.SPOOFED.DETECTEXCEPTIONS,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.DETECTEXCEPTIONS,
+        type:           'schema',
+        resourceFields: {
           message:                  { type: 'string' },
           remove_tag_prefix:        { type: 'string' },
           multiline_flush_interval: { type: 'string' },
@@ -112,9 +112,9 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.GEOIP,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.GEOIP,
+        type:           'schema',
+        resourceFields: {
           geoip_lookup_keys:       { type: 'string' },
           geoip_database:          { type: 'string' },
           geoip_2_database:        { type: 'string' },
@@ -124,9 +124,9 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.GREP,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.GREP,
+        type:           'schema',
+        resourceFields: {
           regexp:  { type: `array[${ LOGGING.SPOOFED.REGEXPSECTION }]` },
           exclude: { type: `array[${ LOGGING.SPOOFED.EXCLUDESECTION }]` },
           or:      { type: `array[${ LOGGING.SPOOFED.ORSECTION }]` },
@@ -134,9 +134,9 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.PARSER,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.PARSER,
+        type:           'schema',
+        resourceFields: {
           key_name:                     { type: 'string' },
           reserve_time:                 { type: 'boolean' },
           reserve_data:                 { type: 'boolean' },
@@ -150,17 +150,17 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.PROMETHEUS,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.PROMETHEUS,
+        type:           'schema',
+        resourceFields: {
           metrics: { type: `array[${ LOGGING.SPOOFED.METRICSECTION }]` },
           labels:  { type: 'Label' },
         },
       },
       {
-        id:                LOGGING.SPOOFED.RECORD_MODIFIER,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.RECORD_MODIFIER,
+        type:           'schema',
+        resourceFields: {
           prepare_value:  { type: 'string' },
           char_encoding:  { type: 'string' },
           remove_keys:    { type: 'string' },
@@ -170,9 +170,9 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.RECORD_TRANSFORMER,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.RECORD_TRANSFORMER,
+        type:           'schema',
+        resourceFields: {
           remove_keys:    { type: 'string' },
           keep_keys:      { type: 'string' },
           renew_record:   { type: 'boolean' },
@@ -183,14 +183,14 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.STDOUT,
-        type:              'schema',
-        resourceFields:    { output_type: { type: 'string' } },
+        id:             LOGGING.SPOOFED.STDOUT,
+        type:           'schema',
+        resourceFields: { output_type: { type: 'string' } },
       },
       {
-        id:                LOGGING.SPOOFED.SUMOLOGIC,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.SUMOLOGIC,
+        type:           'schema',
+        resourceFields: {
           source_category:              { type: 'string' },
           source_category_replace_dash: { type: 'string' },
           source_category_prefix:       { type: 'string' },
@@ -220,14 +220,14 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.TAG_NORMALISER,
-        type:              'schema',
-        resourceFields:    { format: { type: 'string' } },
+        id:             LOGGING.SPOOFED.TAG_NORMALISER,
+        type:           'schema',
+        resourceFields: { format: { type: 'string' } },
       },
       {
-        id:                LOGGING.SPOOFED.THROTTLE,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.THROTTLE,
+        type:           'schema',
+        resourceFields: {
           group_key:                 { type: 'string' },
           group_bucket_period_s:     { type: 'int' },
           group_bucket_limit:        { type: 'int' },
@@ -257,46 +257,46 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.RECORD,
-        type:              'schema',
-        resourceFields:    { key: { type: 'value' } },
+        id:             LOGGING.SPOOFED.RECORD,
+        type:           'schema',
+        resourceFields: { key: { type: 'value' } },
       },
       {
-        id:                LOGGING.SPOOFED.REGEXPSECTION,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.REGEXPSECTION,
+        type:           'schema',
+        resourceFields: {
           key:     { type: 'string' },
           pattern: { type: 'string' },
         },
       },
       {
-        id:                LOGGING.SPOOFED.EXCLUDESECTION,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.EXCLUDESECTION,
+        type:           'schema',
+        resourceFields: {
           key:     { type: 'string' },
           pattern: { type: 'string' },
         },
       },
       {
-        id:                LOGGING.SPOOFED.ORSECTION,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.ORSECTION,
+        type:           'schema',
+        resourceFields: {
           regexp:  { type: `array[${ LOGGING.SPOOFED.REGEXPSECTION }]` },
           exclude: { type: `array[${ LOGGING.SPOOFED.EXCLUDESECTION }]` },
         },
       },
       {
-        id:                LOGGING.SPOOFED.ANDSECTION,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.ANDSECTION,
+        type:           'schema',
+        resourceFields: {
           regexp:  { type: `array[${ LOGGING.SPOOFED.REGEXPSECTION }]` },
           exclude: { type: `array[${ LOGGING.SPOOFED.EXCLUDESECTION }]` },
         },
       },
       {
-        id:                LOGGING.SPOOFED.PARSESECTION,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.PARSESECTION,
+        type:           'schema',
+        resourceFields: {
           type:                      { type: 'string' },
           expression:                { type: 'string' },
           time_key:                  { type: 'string' },
@@ -326,29 +326,29 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.SINGLEPARSESECTION,
-        type:              'schema',
-        resourceFields:    {
-          type:                      { type: 'string' },
-          expression:                { type: 'string' },
-          time_key:                  { type: 'string' },
-          null_value_pattern:        { type: 'string' },
-          null_empty_string:         { type: 'boolean' },
-          estimate_current_event:    { type: 'boolean' },
-          keep_time_key:             { type: 'boolean' },
-          types:                     { type: 'string' },
-          time_format:               { type: 'string' },
-          time_type:                 { type: 'string' },
-          local_time:                { type: 'boolean' },
-          utc:                       { type: 'boolean' },
-          timezone:                  { type: 'string' },
-          format:                    { type: 'string' },
+        id:             LOGGING.SPOOFED.SINGLEPARSESECTION,
+        type:           'schema',
+        resourceFields: {
+          type:                   { type: 'string' },
+          expression:             { type: 'string' },
+          time_key:               { type: 'string' },
+          null_value_pattern:     { type: 'string' },
+          null_empty_string:      { type: 'boolean' },
+          estimate_current_event: { type: 'boolean' },
+          keep_time_key:          { type: 'boolean' },
+          types:                  { type: 'string' },
+          time_format:            { type: 'string' },
+          time_type:              { type: 'string' },
+          local_time:             { type: 'boolean' },
+          utc:                    { type: 'boolean' },
+          timezone:               { type: 'string' },
+          format:                 { type: 'string' },
         },
       },
       {
-        id:                LOGGING.SPOOFED.METRICSECTION,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.METRICSECTION,
+        type:           'schema',
+        resourceFields: {
           name:    { type: 'string' },
           type:    { type: 'string' },
           desc:    { type: 'string' },
@@ -358,9 +358,9 @@ export function init(store) {
         },
       },
       {
-        id:                LOGGING.SPOOFED.REPLACE,
-        type:              'schema',
-        resourceFields:    {
+        id:             LOGGING.SPOOFED.REPLACE,
+        type:           'schema',
+        resourceFields: {
           key:        { type: 'string' },
           expression: { type: 'string' },
           replace:    { type: 'string' },

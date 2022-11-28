@@ -5,7 +5,7 @@ import { RadioGroup } from '@components/Form/Radio';
 export default {
   components: { LabeledInput, RadioGroup },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -49,15 +49,31 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.gcePersistentDisk.pdName" :mode="mode" :label="t('persistentVolume.gcePersistentDisk.persistentDiskName.label')" :placeholder="t('persistentVolume.gcePersistentDisk.persistentDiskName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.gcePersistentDisk.pdName"
+          :mode="mode"
+          :label="t('persistentVolume.gcePersistentDisk.persistentDiskName.label')"
+          :placeholder="t('persistentVolume.gcePersistentDisk.persistentDiskName.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="partition" :mode="mode" :label="t('persistentVolume.shared.partition.label')" :placeholder="t('persistentVolume.azureFile.secretName.placeholder')" type="number" />
+        <LabeledInput
+          v-model="partition"
+          :mode="mode"
+          :label="t('persistentVolume.shared.partition.label')"
+          :placeholder="t('persistentVolume.azureFile.secretName.placeholder')"
+          type="number"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.gcePersistentDisk.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.gcePersistentDisk.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup

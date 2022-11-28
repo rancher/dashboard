@@ -10,7 +10,7 @@ const MAX_FAILURES = 2;
 export default {
   components: { SortableTable },
 
-  props:      {
+  props: {
     monitoringNamespace: {
       type:    String,
       default: 'cattle-monitoring-system'

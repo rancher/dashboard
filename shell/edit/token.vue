@@ -42,7 +42,7 @@ export default {
       errors: null,
       form:   {
         expiryType:        'never',
-        customExpiry:       0,
+        customExpiry:      0,
         customExpiryUnits: 'minute',
       },
       created:    null,
@@ -184,16 +184,31 @@ export default {
         :min-height="30"
       />
 
-      <LabeledSelect v-model="value.clusterId" class="mt-20 scope-select" label-key="accountAndKeys.apiKeys.add.scope" :options="scopes" />
+      <LabeledSelect
+        v-model="value.clusterId"
+        class="mt-20 scope-select"
+        label-key="accountAndKeys.apiKeys.add.scope"
+        :options="scopes"
+      />
 
       <h5 class="pt-20">
         {{ t('accountAndKeys.apiKeys.add.expiry.label') }}
       </h5>
 
       <div class="ml-10">
-        <RadioGroup v-model="form.expiryType" :options="expiryOptions" class="mr-20" name="expiryGroup" />
+        <RadioGroup
+          v-model="form.expiryType"
+          :options="expiryOptions"
+          class="mr-20"
+          name="expiryGroup"
+        />
         <div class="ml-20 mt-10 expiry">
-          <input v-model="form.customExpiry" :disabled="form.expiryType !== 'custom'" type="number" :mode="mode">
+          <input
+            v-model="form.customExpiry"
+            :disabled="form.expiryType !== 'custom'"
+            type="number"
+            :mode="mode"
+          >
           <Select
             v-model="form.customExpiryUnits"
             :disabled="form.expiryType !== 'custom'"
@@ -209,27 +224,46 @@ export default {
       :mode="mode"
       @save="save"
       @done="done"
-    ></Footer>
+    />
   </div>
   <div v-else>
     <div>{{ t('accountAndKeys.apiKeys.info.keyCreated') }}</div>
 
-    <DetailText :value="accessKey" label-key="accountAndKeys.apiKeys.info.accessKey" class="mt-20" />
-    <DetailText :value="secretKey" label-key="accountAndKeys.apiKeys.info.secretKey" class="mt-20" />
+    <DetailText
+      :value="accessKey"
+      label-key="accountAndKeys.apiKeys.info.accessKey"
+      class="mt-20"
+    />
+    <DetailText
+      :value="secretKey"
+      label-key="accountAndKeys.apiKeys.info.secretKey"
+      class="mt-20"
+    />
 
     <p class="mt-20">
       {{ t('accountAndKeys.apiKeys.info.bearerTokenTip') }}
     </p>
 
-    <DetailText :value="token" label-key="accountAndKeys.apiKeys.info.bearerToken" class="mt-20" />
+    <DetailText
+      :value="token"
+      label-key="accountAndKeys.apiKeys.info.bearerToken"
+      class="mt-20"
+    />
 
-    <Banner color="warning" class="mt-20">
+    <Banner
+      color="warning"
+      class="mt-20"
+    >
       <div>
         {{ t('accountAndKeys.apiKeys.info.saveWarning') }}
       </div>
     </Banner>
 
-    <Banner v-if="ttlLimited" color="warning" class="mt-20">
+    <Banner
+      v-if="ttlLimited"
+      color="warning"
+      class="mt-20"
+    >
       <div>
         {{ t('accountAndKeys.apiKeys.info.ttlLimitedWarning') }}
       </div>
@@ -237,7 +271,11 @@ export default {
 
     <div class="buttons mt-20">
       <div class="right">
-        <button type="button" class="btn role-primary" @click="doneCreate">
+        <button
+          type="button"
+          class="btn role-primary"
+          @click="doneCreate"
+        >
           <t k="generic.done" />
         </button>
       </div>

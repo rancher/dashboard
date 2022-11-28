@@ -9,7 +9,7 @@ export default {
   components: {
     Checkbox, LabeledInput, LabeledSelect, SimpleSecretSelector
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -19,8 +19,8 @@ export default {
       required: true
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data() {
@@ -134,13 +134,24 @@ export default {
         <h3>Target</h3>
       </div>
     </div>
-    <div v-if="namespace" class="row mb-20">
+    <div
+      v-if="namespace"
+      class="row mb-20"
+    >
       <div class="col span-6">
-        <LabeledSelect v-model="integrationType" :options="integrationTypeOptions" :mode="mode" label="Integration Type" />
+        <LabeledSelect
+          v-model="integrationType"
+          :options="integrationTypeOptions"
+          :mode="mode"
+          label="Integration Type"
+        />
       </div>
     </div>
 
-    <div v-if="namespace" class="row mb-20">
+    <div
+      v-if="namespace"
+      class="row mb-20"
+    >
       <SimpleSecretSelector
         v-if="integrationType === 'Events API v2'"
         :initial-key="initialRoutingKeySecretKey"
@@ -164,17 +175,29 @@ export default {
         @updateSecretKey="updateServiceKeySecretKey"
       />
     </div>
-    <Banner v-else color="error">
+    <Banner
+      v-else
+      color="error"
+    >
       {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
     </Banner>
 
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.httpConfig.proxyUrl" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput
+          v-model="value.httpConfig.proxyUrl"
+          :mode="mode"
+          label="Proxy URL"
+          placeholder="e.g. http://my-proxy/"
+        />
       </div>
     </div>
     <div class="row">
-      <Checkbox v-model="value.sendResolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox
+        v-model="value.sendResolved"
+        :mode="mode"
+        label="Enable send resolved alerts"
+      />
     </div>
   </div>
 </template>

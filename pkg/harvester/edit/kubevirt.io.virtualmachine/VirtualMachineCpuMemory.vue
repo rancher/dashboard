@@ -6,7 +6,7 @@ export default {
   name:       'HarvesterEditCpuMemory',
   components: { UnitInput, InputOrDisplay },
 
-  props:      {
+  props: {
     cpu: {
       type:    Number,
       default: null
@@ -16,8 +16,8 @@ export default {
       default: null
     },
     mode: {
-      type:      String,
-      default:  'create',
+      type:    String,
+      default: 'create',
     },
     disabled: {
       type:    Boolean,

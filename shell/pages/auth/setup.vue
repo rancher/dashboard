@@ -9,7 +9,8 @@ import { findBy } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import { RadioGroup } from '@components/Form/Radio';
-import { setSetting, SETTING } from '@shell/config/settings';
+import { setSetting } from '@shell/utils/settings';
+import { SETTING } from '@shell/config/settings';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
@@ -143,18 +144,18 @@ export default {
 
     return {
       productName,
-      vendor:            getVendor(),
-      product:           getProduct(),
-      step:              parseInt(route.query.step, 10) || 1,
+      vendor:  getVendor(),
+      product: getProduct(),
+      step:    parseInt(route.query.step, 10) || 1,
 
-      useRandom:          true,
-      haveCurrent:        !!current,
-      username:           me?.loginName || 'admin',
+      useRandom:   true,
+      haveCurrent: !!current,
+      username:    me?.loginName || 'admin',
       isFirstLogin,
       mustChangePassword,
       current,
-      password:           randomStr(),
-      confirm:            '',
+      password:    randomStr(),
+      confirm:     '',
 
       v3User,
 
@@ -221,9 +222,9 @@ export default {
 
         if ( this.mustChangePassword ) {
           await this.$store.dispatch('rancher/request', {
-            url:           '/v3/users?action=changepassword',
-            method:        'post',
-            data:          {
+            url:    '/v3/users?action=changepassword',
+            method: 'post',
+            data:   {
               currentPassword: this.current,
               newPassword:     this.password
             },
@@ -282,7 +283,7 @@ export default {
             <p
               class="text-center mb-20 mt-20 setup-title"
               v-html="t(isFirstLogin ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
-            ></p>
+            />
 
             <Password
               v-if="!haveCurrent"
@@ -295,7 +296,12 @@ export default {
             />
 
             <!-- For password managers... -->
-            <input type="hidden" name="username" autocomplete="username" :value="username" />
+            <input
+              type="hidden"
+              name="username"
+              autocomplete="username"
+              :value="username"
+            >
             <div class="mb-20">
               <RadioGroup
                 v-model="useRandom"
@@ -314,9 +320,18 @@ export default {
                 data-testid="setup-password-random"
                 label-key="setup.newPassword"
               >
-                <template v-if="useRandom" #suffix>
-                  <div class="addon" style="padding: 0 0 0 12px;">
-                    <CopyToClipboard :text="password" class="btn-sm" />
+                <template
+                  v-if="useRandom"
+                  #suffix
+                >
+                  <div
+                    class="addon"
+                    style="padding: 0 0 0 12px;"
+                  >
+                    <CopyToClipboard
+                      :text="password"
+                      class="btn-sm"
+                    />
                   </div>
                 </template>
               </LabeledInput>
@@ -341,9 +356,15 @@ export default {
 
           <template v-if="isFirstLogin">
             <template v-if="mcmEnabled">
-              <hr v-if="mustChangePassword" class="mt-20 mb-20" />
+              <hr
+                v-if="mustChangePassword"
+                class="mt-20 mb-20"
+              >
               <p>
-                <t k="setup.serverUrl.tip" :raw="true" />
+                <t
+                  k="setup.serverUrl.tip"
+                  :raw="true"
+                />
               </p>
               <div class="mt-20">
                 <LabeledInput
@@ -355,9 +376,16 @@ export default {
             </template>
 
             <div class="checkbox mt-40">
-              <Checkbox id="checkbox-telemetry" v-model="telemetry">
+              <Checkbox
+                id="checkbox-telemetry"
+                v-model="telemetry"
+              >
                 <template #label>
-                  <t k="setup.telemetry" :raw="true" :name="productName" />
+                  <t
+                    k="setup.telemetry"
+                    :raw="true"
+                    :name="productName"
+                  />
                 </template>
               </Checkbox>
             </div>
@@ -368,7 +396,11 @@ export default {
                 data-testid="setup-agreement"
               >
                 <template #label>
-                  <t k="setup.eula" :raw="true" :name="productName" />
+                  <t
+                    k="setup.eula"
+                    :raw="true"
+                    :name="productName"
+                  />
                 </template>
               </Checkbox>
             </div>
@@ -389,7 +421,11 @@ export default {
           </div>
 
           <div class="setup-errors mt-20">
-            <h4 v-for="err in errors" :key="err" class="text-error text-center">
+            <h4
+              v-for="err in errors"
+              :key="err"
+              class="text-error text-center"
+            >
               {{ err }}
             </h4>
           </div>

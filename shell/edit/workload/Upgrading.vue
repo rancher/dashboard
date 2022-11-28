@@ -11,7 +11,7 @@ export default {
   components: {
     RadioGroup, UnitInput, InputWithSelect
   },
-  props:      {
+  props: {
     // spec
     value: {
       type:    Object,
@@ -219,8 +219,14 @@ export default {
 <template>
   <div>
     <!--workload  spec.upgradeStrategy -->
-    <div v-if="strategyOptions && !noDeploymentSpec" class="row mb-20">
-      <div class="col" data-testid="input-policy-strategy">
+    <div
+      v-if="strategyOptions && !noDeploymentSpec"
+      class="row mb-20"
+    >
+      <div
+        class="col"
+        data-testid="input-policy-strategy"
+      >
         <RadioGroup
           v-model="strategy"
           name="strategy"
@@ -231,8 +237,14 @@ export default {
         />
       </div>
     </div>
-    <div v-if="isStatefulSet && !noDeploymentSpec" class="row mb-20">
-      <div class="col span-6" data-testid="input-policy-pod">
+    <div
+      v-if="isStatefulSet && !noDeploymentSpec"
+      class="row mb-20"
+    >
+      <div
+        class="col span-6"
+        data-testid="input-policy-pod"
+      >
         <RadioGroup
           v-model="podManagementPolicy"
           name="podManagement"
@@ -249,7 +261,10 @@ export default {
         class="row mb-20"
         data-testid="input-policy-surge"
       >
-        <div v-if="isDeployment" class="col span-6">
+        <div
+          v-if="isDeployment"
+          class="col span-6"
+        >
           <InputWithSelect
             :text-value="maxSurge"
             :select-before-text="false"
@@ -280,7 +295,10 @@ export default {
     </template>
 
     <!-- workload spec -->
-    <div v-if="!noDeploymentSpec" class="row mb-20">
+    <div
+      v-if="!noDeploymentSpec"
+      class="row mb-20"
+    >
       <div
         v-if="!isStatefulSet"
         class="col span-6"
@@ -330,7 +348,10 @@ export default {
     </div>
 
     <!-- pod spec -->
-    <div v-if="!noPodSpec" class="row">
+    <div
+      v-if="!noPodSpec"
+      class="row"
+    >
       <div
         class="col span-6"
         data-testid="input-policy-termination"

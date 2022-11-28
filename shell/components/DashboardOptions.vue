@@ -103,14 +103,25 @@ export default {
 <template>
   <div class="graph-options">
     <div v-if="hasSummaryAndDetail">
-      <ButtonGroup v-model="value.type" :options="detailSummaryOptions" />
+      <ButtonGroup
+        v-model="value.type"
+        :options="detailSummaryOptions"
+      />
     </div>
     <div v-else>
       <div />
     </div>
     <div class="range-refresh">
-      <LabeledSelect v-model="value.range" :options="rangeOptions" :label="t('graphOptions.range')" />
-      <LabeledSelect v-model="value.refreshRate" :options="refreshOptions" :label="t('graphOptions.refresh')" />
+      <LabeledSelect
+        v-model="value.range"
+        :options="rangeOptions"
+        :label="t('graphOptions.range')"
+      />
+      <LabeledSelect
+        v-model="value.refreshRate"
+        :options="refreshOptions"
+        :label="t('graphOptions.refresh')"
+      />
     </div>
   </div>
 </template>

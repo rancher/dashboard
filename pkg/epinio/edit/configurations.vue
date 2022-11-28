@@ -56,8 +56,8 @@ export default Vue.extend<Data, any, any, any>({
     Vue.set(this.value, 'data', { ...this.initialValue.configuration?.details });
 
     return {
-      errors:            [],
-      selectedApps:      [],
+      errors:           [],
+      selectedApps:     [],
       validationPassed: false
     };
   },
@@ -159,7 +159,10 @@ export default Vue.extend<Data, any, any, any>({
     @finish="save"
     @cancel="done"
   >
-    <Banner v-if="value.isServiceRelated" color="info">
+    <Banner
+      v-if="value.isServiceRelated"
+      color="info"
+    >
       {{ t('epinio.configurations.tableHeaders.service.tooltip') }}
     </Banner>
     <NameNsDescription
@@ -185,7 +188,7 @@ export default Vue.extend<Data, any, any, any>({
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-11">
         <KeyValue

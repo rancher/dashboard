@@ -51,18 +51,18 @@ export default {
           canBeVariable: true,
         },
         {
-          name:      'clustersReady',
-          labelKey:  'tableHeaders.clustersReady',
-          value:     'status.readyClusters',
-          sort:      'status.readyClusters',
-          search:    false,
+          name:     'clustersReady',
+          labelKey: 'tableHeaders.clustersReady',
+          value:    'status.readyClusters',
+          sort:     'status.readyClusters',
+          search:   false,
         },
         {
-          name:      'bundlesReady',
-          labelKey:  'tableHeaders.bundlesReady',
-          value:     'status.readyClusters',
-          sort:      'status.readyClusters',
-          search:    false,
+          name:     'bundlesReady',
+          labelKey: 'tableHeaders.bundlesReady',
+          value:    'status.readyClusters',
+          sort:     'status.readyClusters',
+          search:   false,
         },
         {
           name:     'resourcesReady',
@@ -262,7 +262,11 @@ export default {
       <h1>{{ t('fleet.dashboard.welcome') }}</h1>
       <p class="mb-30">
         <span>{{ t('fleet.dashboard.gitOpsScale') }}</span>
-        <a :href="t('fleet.dashboard.learnMoreLink')" target="_blank" rel="noopener noreferrer nofollow">
+        <a
+          :href="t('fleet.dashboard.learnMoreLink')"
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
           {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
         </a>
       </p>
@@ -305,7 +309,10 @@ export default {
         class="title-footnote"
       >
         <p>{{ t('fleet.dashboard.thereIsMore', { count: emptyWorkspaces.length }) }}:&nbsp;</p>
-        <p v-for="(ews, i) in emptyWorkspaces" :key="i">
+        <p
+          v-for="(ews, i) in emptyWorkspaces"
+          :key="i"
+        >
           {{ ews.nameDisplay }}<span v-if="i != (emptyWorkspaces.length - 1)">,&nbsp;</span>
         </p>
       </div>

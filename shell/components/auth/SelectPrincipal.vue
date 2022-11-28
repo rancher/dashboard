@@ -95,6 +95,11 @@ export default {
 
   methods: {
     add(id) {
+      if (!id) {
+        // Ignore attempts to select an invalid principal
+        return;
+      }
+
       this.$emit('add', id);
       if (!this.retainSelection) {
         this.newValue = '';
@@ -176,11 +181,23 @@ export default {
     </template>
 
     <template #option="option">
-      <Principal :key="option.label" :value="option.label" :use-muted="false" />
+      <Principal
+        :key="option.label"
+        :value="option.label"
+        :use-muted="false"
+      />
     </template>
 
-    <template v-if="retainSelection" #selected-option="option">
-      <Principal :key="option.label" :value="option.label" :use-muted="false" class="mt-10 mb-10" />
+    <template
+      v-if="retainSelection"
+      #selected-option="option"
+    >
+      <Principal
+        :key="option.label"
+        :value="option.label"
+        :use-muted="false"
+        class="mt-10 mb-10"
+      />
     </template>
   </LabeledSelect>
 </template>
@@ -198,6 +215,15 @@ export default {
           display: none;
         }
       }
+    }
+  }
+</style>
+<style lang="scss">
+  .vs__dropdown-menu {
+    width: 0%;
+    * {
+      overflow-x: hidden;
+      text-overflow: ellipsis;
     }
   }
 </style>

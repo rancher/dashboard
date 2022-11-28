@@ -17,7 +17,7 @@ export default {
     LabeledSelect,
   },
 
-  props:      {
+  props: {
     value: {
       type:    Array,
       default: null,
@@ -317,7 +317,10 @@ export default {
         />
       </div>
 
-      <div v-if="row._showHost" class="targetPort">
+      <div
+        v-if="row._showHost"
+        class="targetPort"
+      >
         <LabeledInput
           ref="port"
           v-model.number="row.hostPort"
@@ -331,7 +334,10 @@ export default {
         />
       </div>
 
-      <div v-if="row._showHost" class="hostip">
+      <div
+        v-if="row._showHost"
+        class="hostip"
+      >
         <LabeledInput
           ref="port"
           v-model="row.hostIP"
@@ -342,8 +348,16 @@ export default {
         />
       </div>
 
-      <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer' && row._serviceType !== 'NodePort'" class="add-host">
-        <button :disabled="mode==='view'" type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
+      <div
+        v-if="!row._showHost && row._serviceType !== 'LoadBalancer' && row._serviceType !== 'NodePort'"
+        class="add-host"
+      >
+        <button
+          :disabled="mode==='view'"
+          type="button"
+          class="btn btn-sm role-tertiary"
+          @click="row._showHost = true"
+        >
           {{ t('workloadPorts.addHost') }}
         </button>
       </div>
@@ -383,14 +397,28 @@ export default {
         </div>
       </div>
 
-      <div v-if="showRemove" class="remove">
-        <button type="button" class="btn role-link" @click="remove(idx)">
+      <div
+        v-if="showRemove"
+        class="remove"
+      >
+        <button
+          type="button"
+          class="btn role-link"
+          @click="remove(idx)"
+        >
           {{ t('workloadPorts.remove') }}
         </button>
       </div>
     </div>
-    <div v-if="showAdd" class="footer">
-      <button type="button" class="btn role-tertiary add" @click="add()">
+    <div
+      v-if="showAdd"
+      class="footer"
+    >
+      <button
+        type="button"
+        class="btn role-tertiary add"
+        @click="add()"
+      >
         {{ t('workloadPorts.addPort') }}
       </button>
     </div>

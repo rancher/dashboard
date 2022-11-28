@@ -10,7 +10,7 @@ export default {
     ArrayList
   },
 
-  props:      {
+  props: {
     rows: {
       type:     Array,
       required: true,

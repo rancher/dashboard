@@ -115,7 +115,7 @@ export default {
 
 <template>
   <div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row mb-10">
       <h3 class="col span-6">
         {{ t('workload.serviceAccountName.label') }}
@@ -156,7 +156,7 @@ export default {
         <Banner
           color="info"
           v-html="t('workload.serviceAccountName.createMessage', { name: serviceName }) "
-        ></Banner>
+        />
       </div>
     </template>
   </div>

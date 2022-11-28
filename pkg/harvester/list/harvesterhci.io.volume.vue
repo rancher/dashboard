@@ -64,11 +64,11 @@ export default {
           },
         },
         {
-          name:      'AttachedVM',
-          labelKey:  'tableHeaders.attachedVM',
-          type:      'attached',
-          value:     'spec.claimRef',
-          sort:      'name',
+          name:     'AttachedVM',
+          labelKey: 'tableHeaders.attachedVM',
+          type:     'attached',
+          value:    'spec.claimRef',
+          sort:     'name',
         },
         {
           ...STATE,

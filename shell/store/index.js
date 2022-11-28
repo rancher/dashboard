@@ -795,10 +795,10 @@ export const actions = {
     };
 
     const res = await allHash({
-      projects:          fetchProjects(),
-      counts:            dispatch('cluster/findAll', { type: COUNT }),
-      namespaces:        dispatch('cluster/findAll', { type: NAMESPACE }),
-      navLinks:          !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
+      projects:   fetchProjects(),
+      counts:     dispatch('cluster/findAll', { type: COUNT }),
+      namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
+      navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 
     await dispatch('cleanNamespaces');

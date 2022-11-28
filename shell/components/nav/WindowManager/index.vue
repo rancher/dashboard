@@ -1,20 +1,22 @@
 <script>
 import { mapState } from 'vuex';
 import debounce from 'lodash/debounce';
-import { screenRect, boundingRect } from '@shell/utils/position';
+import {
+  screenRect, boundingRect, BOTTOM, RIGHT, LEFT
+} from '@shell/utils/position';
 
 export default {
   data() {
     return {
       dragOffset:     0,
       reportedHeight: this.height,
-      firstHeight:    true,
+      reportedWidth:  this.width,
       component:      { },
     };
   },
 
   computed: {
-    ...mapState('wm', ['tabs', 'active', 'open', 'userHeight']),
+    ...mapState('wm', ['tabs', 'active', 'open', 'userHeight', 'userWidth', 'userPin']),
 
     height: {
       get() {
@@ -47,9 +49,53 @@ export default {
         return val;
       },
     },
+
+    width: {
+      get() {
+        if ( process.server ) {
+          return 0;
+        }
+
+        if (this.userWidth) {
+          return this.userWidth;
+        }
+
+        const windowWidth = window.innerWidth;
+        let width = parseInt(window.localStorage.getItem('wm-width'), 10);
+
+        if (!width) {
+          width = Math.round(windowWidth / 8);
+        }
+        width = Math.min(width, 3 * windowWidth / 4);
+
+        window.localStorage.setItem('wm-width', width);
+
+        return width;
+      },
+      set(val) {
+        this.$store.commit('wm/setUserWidth', val);
+        window.localStorage.setItem('wm-width', val);
+        this.show();
+
+        return val;
+      }
+    },
+
+    pinClass() {
+      return `pin-${ this.userPin }`;
+    },
   },
 
   watch: {
+    userPin(v) {
+      if (this.open) {
+        this.setWmDimensions();
+        if (v === LEFT || v === RIGHT) {
+          this.setReportedHeight(window.innerHeight - 55);
+        }
+      }
+    },
+
     tabs() {
       this.toggle(true);
     },
@@ -87,7 +133,7 @@ export default {
     },
 
     show() {
-      document.documentElement.style.setProperty('--wm-height', `${ this.height }px`);
+      this.setWmDimensions();
       this.$store.commit('wm/setOpen', true);
     },
 
@@ -96,20 +142,21 @@ export default {
         document.documentElement.style.setProperty('--wm-height', `calc(var(--wm-tab-height, 29px) + 2px)`);
       } else {
         document.documentElement.style.setProperty('--wm-height', '0');
+        document.documentElement.style.setProperty('--wm-width', '0');
       }
 
       this.$store.commit('wm/setOpen', false);
     },
 
-    dragStart(event) {
+    dragYStart(event) {
       const doc = document.documentElement;
 
-      doc.addEventListener('mousemove', this.dragMove);
-      doc.addEventListener('touchmove', this.dragMove, true);
-      doc.addEventListener('mouseup', this.dragEnd);
-      doc.addEventListener('mouseleave', this.dragEnd);
-      doc.addEventListener('touchend touchcancel', this.dragEnd, true);
-      doc.addEventListener('touchstart', this.dragEnd, true);
+      doc.addEventListener('mousemove', this.dragYMove);
+      doc.addEventListener('touchmove', this.dragYMove, true);
+      doc.addEventListener('mouseup', this.dragYEnd);
+      doc.addEventListener('mouseleave', this.dragYEnd);
+      doc.addEventListener('touchend touchcancel', this.dragYEnd, true);
+      doc.addEventListener('touchstart', this.dragYEnd, true);
 
       const eventY = event.screenY;
 
@@ -119,7 +166,7 @@ export default {
       this.dragOffset = offset;
     },
 
-    dragMove(event) {
+    dragYMove(event) {
       const screen = screenRect();
       const eventY = event.screenY;
       const min = 50;
@@ -134,15 +181,15 @@ export default {
       this.queueUpdate();
     },
 
-    dragEnd(event) {
+    dragYEnd(event) {
       const doc = document.documentElement;
 
-      doc.removeEventListener('mousemove', this.dragMove);
-      doc.removeEventListener('touchmove', this.dragMove, true);
-      doc.removeEventListener('mouseup', this.dragEnd);
-      doc.removeEventListener('mouseleave', this.dragEnd);
-      doc.removeEventListener('touchend touchcancel', this.dragEnd, true);
-      doc.removeEventListener('touchstart', this.dragEnd, true);
+      doc.removeEventListener('mousemove', this.dragYMove);
+      doc.removeEventListener('touchmove', this.dragYMove, true);
+      doc.removeEventListener('mouseup', this.dragYEnd);
+      doc.removeEventListener('mouseleave', this.dragYEnd);
+      doc.removeEventListener('touchend touchcancel', this.dragYEnd, true);
+      doc.removeEventListener('touchstart', this.dragYEnd, true);
 
       this.setReportedHeight();
       setTimeout(() => {
@@ -150,8 +197,87 @@ export default {
       }, 100);
     },
 
-    setReportedHeight() {
-      this.reportedHeight = this.height;
+    dragXStart(event) {
+      const doc = document.documentElement;
+
+      doc.addEventListener('mousemove', this.dragXMove);
+      doc.addEventListener('touchmove', this.dragXMove, true);
+      doc.addEventListener('mouseup', this.dragXEnd);
+      doc.addEventListener('mouseleave', this.dragXEnd);
+      doc.addEventListener('touchend touchcancel', this.dragXEnd, true);
+      doc.addEventListener('touchstart', this.dragXEnd, true);
+
+      const eventX = event.screenX;
+      const rect = boundingRect(event.target);
+
+      switch (this.userPin) {
+      case RIGHT:
+        this.dragOffset = eventX - rect.left;
+        break;
+      case LEFT:
+        this.dragOffset = rect.right - eventX;
+        break;
+      }
+    },
+
+    dragXMove(event) {
+      const screen = screenRect();
+      const eventX = event.screenX;
+
+      const min = 250;
+      const max = Math.round(2 * screen.width / 5);
+      let neu;
+
+      switch (this.userPin) {
+      case RIGHT:
+        neu = screen.width - eventX + this.dragOffset;
+        break;
+      case LEFT:
+        neu = eventX + this.dragOffset;
+        break;
+      }
+
+      neu = Math.max(min, Math.min(neu, max));
+      this.width = neu;
+      this.dragging = true;
+      debounce(this.setReportedWidth, 250)();
+    },
+
+    dragXEnd(event) {
+      const doc = document.documentElement;
+
+      doc.removeEventListener('mousemove', this.dragXMove);
+      doc.removeEventListener('touchmove', this.dragXMove, true);
+      doc.removeEventListener('mouseup', this.dragXEnd);
+      doc.removeEventListener('mouseleave', this.dragXEnd);
+      doc.removeEventListener('touchend touchcancel', this.dragXEnd, true);
+      doc.removeEventListener('touchstart', this.dragXEnd, true);
+
+      this.setReportedWidth();
+      setTimeout(() => {
+        this.dragging = false;
+      }, 100);
+    },
+
+    setReportedHeight(height = this.height) {
+      this.reportedHeight = height;
+    },
+
+    setReportedWidth() {
+      this.reportedWidth = this.width;
+    },
+
+    setWmDimensions() {
+      switch (this.userPin) {
+      case RIGHT:
+      case LEFT:
+        document.documentElement.style.setProperty('--wm-height', `${ window.innerHeight - 55 }px`);
+        document.documentElement.style.setProperty('--wm-width', `${ this.width }px`);
+        break;
+      case BOTTOM:
+        document.documentElement.style.setProperty('--wm-height', `${ this.height }px`);
+        break;
+      }
     },
 
     close(id) {
@@ -175,8 +301,26 @@ export default {
 </script>
 
 <template>
-  <div id="windowmanager" class="windowmanager">
-    <div ref="tabs" class="tabs">
+  <div
+    id="windowmanager"
+    class="windowmanager"
+    :class="{[pinClass]: true}"
+  >
+    <div
+      ref="tabs"
+      class="tabs"
+      :class="{
+        'resizer-left': userPin == 'left',
+      }"
+    >
+      <div
+        v-if="userPin == 'right'"
+        class="resizer resizer-x"
+        @mousedown.prevent.stop="dragXStart($event)"
+        @touchstart.prevent.stop="dragXStart($event)"
+      >
+        <i class="icon icon-code" />
+      </div>
       <div
         v-for="tab in tabs"
         :key="tab.id"
@@ -184,17 +328,33 @@ export default {
         :class="{'active': tab.id === active}"
         @click="switchTo(tab.id)"
       >
-        <i v-if="tab.icon" class="icon" :class="{['icon-'+ tab.icon]: true}" />
+        <i
+          v-if="tab.icon"
+          class="icon"
+          :class="{['icon-'+ tab.icon]: true}"
+        />
         <span class="tab-label"> {{ tab.label }}</span>
-        <i class="closer icon icon-fw icon-x" @click.stop="close(tab.id)" />
+        <i
+          class="closer icon icon-fw icon-x"
+          @click.stop="close(tab.id)"
+        />
       </div>
       <div
-        class="resizer"
-        @mousedown.prevent.stop="dragStart($event)"
-        @touchstart.prevent.stop="dragStart($event)"
+        v-if="userPin == 'bottom'"
+        class="resizer resizer-y"
+        @mousedown.prevent.stop="dragYStart($event)"
+        @touchstart.prevent.stop="dragYStart($event)"
         @click="toggle"
       >
         <i class="icon icon-sort" />
+      </div>
+      <div
+        v-if="userPin == 'left'"
+        class="resizer resizer-x resizer-align-right"
+        @mousedown.prevent.stop="dragXStart($event)"
+        @touchstart.prevent.stop="dragXStart($event)"
+      >
+        <i class="icon icon-code" />
       </div>
     </div>
     <div
@@ -208,6 +368,7 @@ export default {
         :tab="tab"
         :active="tab.id === active"
         :height="reportedHeight"
+        :width="reportedWidth"
         v-bind="tab.attrs"
         @close="close(tab.id)"
       />
@@ -244,6 +405,7 @@ export default {
         user-select: none;
         border-top: 1px solid var(--wm-border);
         border-right: 1px solid var(--wm-border);
+        border-left: 1px solid var(--wm-border);
         padding: 5px 10px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -290,8 +452,22 @@ export default {
         }
       }
 
-      .resizer {
+      .resizer-y {
         cursor: ns-resize;
+      }
+
+      .resizer-x {
+        cursor: col-resize;
+      }
+
+      .resizer-align-right {
+        margin-left: auto;
+      }
+
+      &.resizer-left {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
       }
     }
 
@@ -305,6 +481,14 @@ export default {
         display: block;
         height: 100%;
       }
+    }
+
+    &.pin-right {
+      border-left: var(--nav-border-size) solid var(--nav-border);
+    }
+
+    &.pin-left {
+      border-right: var(--nav-border-size) solid var(--nav-border);
     }
   }
 </style>

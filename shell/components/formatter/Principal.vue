@@ -5,7 +5,7 @@ export default {
   components: { PrincipalComponent },
   props:      {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
   },
@@ -14,6 +14,10 @@ export default {
 
 <template>
   <div>
-    <PrincipalComponent :key="value" :value="value" :use-muted="false" />
+    <PrincipalComponent
+      :key="value"
+      :value="value"
+      :use-muted="false"
+    />
   </div>
 </template>

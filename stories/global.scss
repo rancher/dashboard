@@ -66,3 +66,9 @@ table {
   position: inherit!important;
 }
 
+// ToDo to be removed with global stories correction, see #7407
+.string-list-footer {
+  button {
+    margin-right: 0;
+  }
+}

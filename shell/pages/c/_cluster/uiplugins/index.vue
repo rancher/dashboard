@@ -372,13 +372,13 @@ export default {
     this.$store.dispatch('management/forgetType', CATALOG.CLUSTER_REPO);
   },
 
-  methods:    {
+  methods: {
     async updateInstallStatus() {
       let hasService;
 
       try {
         const service = await this.$store.dispatch('management/find', {
-          type:  SERVICE,
+          type: SERVICE,
           id:   `${ UI_PLUGIN_NAMESPACE }/ui-plugin-operator`,
           opt:  { force: true },
         });
@@ -484,12 +484,18 @@ export default {
   <div class="plugins">
     <div class="plugin-header">
       <h2>{{ t('plugins.title') }}</h2>
-      <div v-if="reloadRequired" class="plugin-reload-banner mr-20">
+      <div
+        v-if="reloadRequired"
+        class="plugin-reload-banner mr-20"
+      >
         <i class="icon icon-checkmark mr-10" />
         <span>
           {{ t('plugins.reload') }}
         </span>
-        <button class="ml-10 btn btn-sm role-primary" @click="reload()">
+        <button
+          class="ml-10 btn btn-sm role-primary"
+          @click="reload()"
+        >
           {{ t('generic.reload') }}
         </button>
       </div>
@@ -520,24 +526,65 @@ export default {
     <PluginInfoPanel ref="infoPanel" />
 
     <div v-if="!hasService">
-      <div v-if="loading" class="data-loading">
+      <div
+        v-if="loading"
+        class="data-loading"
+      >
         <i class="icon-spin icon icon-spinner" />
-        <t k="generic.loading" :raw="true" />
+        <t
+          k="generic.loading"
+          :raw="true"
+        />
       </div>
-      <SetupUIPlugins v-else class="setup-message" @done="updateInstallStatus" />
+      <SetupUIPlugins
+        v-else
+        class="setup-message"
+        @done="updateInstallStatus"
+      />
     </div>
     <div v-else>
-      <Tabbed ref="tabs" :tabs-only="true" @changed="filterChanged">
-        <Tab name="installed" label-key="plugins.tabs.installed" :weight="20" />
-        <Tab name="available" label-key="plugins.tabs.available" :weight="19" />
-        <Tab name="updates" label-key="plugins.tabs.updates" :weight="18" :badge="updates.length" />
-        <Tab name="all" label-key="plugins.tabs.all" :weight="17" />
+      <Tabbed
+        ref="tabs"
+        :tabs-only="true"
+        @changed="filterChanged"
+      >
+        <Tab
+          name="installed"
+          label-key="plugins.tabs.installed"
+          :weight="20"
+        />
+        <Tab
+          name="available"
+          label-key="plugins.tabs.available"
+          :weight="19"
+        />
+        <Tab
+          name="updates"
+          label-key="plugins.tabs.updates"
+          :weight="18"
+          :badge="updates.length"
+        />
+        <Tab
+          name="all"
+          label-key="plugins.tabs.all"
+          :weight="17"
+        />
       </Tabbed>
-      <div v-if="loading" class="data-loading">
+      <div
+        v-if="loading"
+        class="data-loading"
+      >
         <i class="icon-spin icon icon-spinner" />
-        <t k="generic.loading" :raw="true" />
+        <t
+          k="generic.loading"
+          :raw="true"
+        />
       </div>
-      <div v-else class="plugin-list" :class="{'v-margin': !list.length}">
+      <div
+        v-else
+        class="plugin-list"
+        :class="{'v-margin': !list.length}"
+      >
         <IconMessage
           v-if="list.length === 0"
           :vertical="true"
@@ -546,7 +593,12 @@ export default {
           :message="emptyMessage"
         />
         <template v-else>
-          <div v-for="plugin in list" :key="plugin.name" class="plugin" @click="showPluginDetail(plugin)">
+          <div
+            v-for="plugin in list"
+            :key="plugin.name"
+            class="plugin"
+            @click="showPluginDetail(plugin)"
+          >
             <div class="plugin-icon">
               <LazyImage
                 v-if="plugin.icon"
@@ -559,7 +611,7 @@ export default {
                 v-else
                 :src="defaultIcon"
                 class="icon plugin-icon-img"
-              />
+              >
             </div>
             <div class="plugin-metadata">
               <div class="plugin-name">
@@ -567,41 +619,69 @@ export default {
               </div>
               <div>{{ plugin.description }}</div>
               <div class="plugin-version">
-                <span v-if="plugin.installing" class="plugin-installing">
+                <span
+                  v-if="plugin.installing"
+                  class="plugin-installing"
+                >
                   -
                 </span>
                 <span v-else>
                   <span>{{ plugin.displayVersion }}</span>
-                  <span v-if="plugin.upgrade" v-tooltip="t('plugins.upgradeAvailable')"> -> {{ plugin.upgrade }}</span>
+                  <span
+                    v-if="plugin.upgrade"
+                    v-tooltip="t('plugins.upgradeAvailable')"
+                  > -> {{ plugin.upgrade }}</span>
                 </span>
               </div>
-              <div v-if="plugin.builtin" class="plugin-badges">
+              <div
+                v-if="plugin.builtin"
+                class="plugin-badges"
+              >
                 <div class="plugin-builtin">
                   {{ t('plugins.labels.builtin') }}
                 </div>
               </div>
-              <div v-else class="plugin-badges">
-                <div v-if="!plugin.certified" v-tooltip="t('plugins.descriptions.third-party')">
+              <div
+                v-else
+                class="plugin-badges"
+              >
+                <div
+                  v-if="!plugin.certified"
+                  v-tooltip="t('plugins.descriptions.third-party')"
+                >
                   {{ t('plugins.labels.third-party') }}
                 </div>
-                <div v-if="plugin.experimental" v-tooltip="t('plugins.descriptions.experimental')">
+                <div
+                  v-if="plugin.experimental"
+                  v-tooltip="t('plugins.descriptions.experimental')"
+                >
                   {{ t('plugins.labels.experimental') }}
                 </div>
               </div>
               <div class="plugin-spacer" />
               <div class="plugin-actions">
                 <template v-if="plugin.error">
-                  <div v-tooltip="plugin.error" class="plugin-error">
+                  <div
+                    v-tooltip="plugin.error"
+                    class="plugin-error"
+                  >
                     <i class="icon icon-warning" />
                   </div>
                 </template>
-                <div v-if="plugin.helmError" v-tooltip="t('plugins.helmError')" class="plugin-error">
+                <div
+                  v-if="plugin.helmError"
+                  v-tooltip="t('plugins.helmError')"
+                  class="plugin-error"
+                >
                   <i class="icon icon-warning" />
                 </div>
 
                 <div class="plugin-spacer" />
 
-                <div v-if="plugin.installing" class="plugin-installing">
+                <div
+                  v-if="plugin.installing"
+                  class="plugin-installing"
+                >
                   <i class="version-busy icon icon-spin icon-spinner" />
                   <div v-if="plugin.installing ==='install'">
                     {{ t('plugins.labels.installing') }}
@@ -610,19 +690,40 @@ export default {
                     {{ t('plugins.labels.uninstalling') }}
                   </div>
                 </div>
-                <div v-else-if="plugin.installed" class="plugin-buttons">
-                  <button v-if="!plugin.builtin" class="btn role-secondary" @click="showUninstallDialog(plugin, $event)">
+                <div
+                  v-else-if="plugin.installed"
+                  class="plugin-buttons"
+                >
+                  <button
+                    v-if="!plugin.builtin"
+                    class="btn role-secondary"
+                    @click="showUninstallDialog(plugin, $event)"
+                  >
                     {{ t('plugins.uninstall.label') }}
                   </button>
-                  <button v-if="plugin.upgrade" class="btn role-secondary" @click="showInstallDialog(plugin, 'update', $event)">
+                  <button
+                    v-if="plugin.upgrade"
+                    class="btn role-secondary"
+                    @click="showInstallDialog(plugin, 'update', $event)"
+                  >
                     {{ t('plugins.update.label') }}
                   </button>
-                  <button v-if="!plugin.upgrade && plugin.versions.length > 1" class="btn role-secondary" @click="showInstallDialog(plugin, 'rollback', $event)">
+                  <button
+                    v-if="!plugin.upgrade && plugin.versions.length > 1"
+                    class="btn role-secondary"
+                    @click="showInstallDialog(plugin, 'rollback', $event)"
+                  >
                     {{ t('plugins.rollback.label') }}
                   </button>
                 </div>
-                <div v-else class="plugin-buttons">
-                  <button class="btn role-secondary" @click="showInstallDialog(plugin, 'install', $event)">
+                <div
+                  v-else
+                  class="plugin-buttons"
+                >
+                  <button
+                    class="btn role-secondary"
+                    @click="showInstallDialog(plugin, 'install', $event)"
+                  >
                     {{ t('plugins.install.label') }}
                   </button>
                 </div>
@@ -633,10 +734,24 @@ export default {
       </div>
     </div>
 
-    <InstallDialog ref="installDialog" @closed="didInstall" @update="updatePluginInstallStatus" />
-    <UninstallDialog ref="uninstallDialog" @closed="didUninstall" @update="updatePluginInstallStatus" />
-    <DeveloperInstallDialog ref="developerInstallDialog" @closed="didInstall" />
-    <RemoveUIPlugins ref="removeUIPlugins" @done="updateInstallStatus" />
+    <InstallDialog
+      ref="installDialog"
+      @closed="didInstall"
+      @update="updatePluginInstallStatus"
+    />
+    <UninstallDialog
+      ref="uninstallDialog"
+      @closed="didUninstall"
+      @update="updatePluginInstallStatus"
+    />
+    <DeveloperInstallDialog
+      ref="developerInstallDialog"
+      @closed="didInstall"
+    />
+    <RemoveUIPlugins
+      ref="removeUIPlugins"
+      @done="updateInstallStatus"
+    />
   </div>
 </template>
 

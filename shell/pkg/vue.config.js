@@ -11,6 +11,15 @@ module.exports = function(dir) {
   const SHELL = path.join(dir, '.shell');
   let COMPONENTS_DIR = path.join(SHELL, 'rancher-components');
 
+  const stat = fs.lstatSync(SHELL);
+
+  // If @rancher/shell is a symlink, then use the components folder for it
+  if (stat.isSymbolicLink() && !fs.existsSync(COMPONENTS_DIR)) {
+    const REAL_SHELL = fs.realpathSync(SHELL);
+
+    COMPONENTS_DIR = path.join(REAL_SHELL, '..', 'pkg', 'rancher-components', 'src', 'components');
+  }
+
   if (fs.existsSync(path.join(maindir, 'shell'))) {
     COMPONENTS_DIR = path.join(maindir, 'pkg', 'rancher-components', 'src', 'components');
   }
@@ -76,7 +85,7 @@ module.exports = function(dir) {
 
       // Prevent warning in log with the md files in the content folder
       config.module.rules.push({
-        test:    /\.md$/,
+        test: /\.md$/,
         use:  [
           {
             loader:  'url-loader',

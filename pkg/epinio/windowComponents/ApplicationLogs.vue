@@ -32,9 +32,9 @@ export default {
 
   mixins: [ApplicationSocketMixin],
 
-  props:      {
+  props: {
     ansiToHtml: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     },
   },
@@ -253,7 +253,11 @@ export default {
 </script>
 
 <template>
-  <Window :active="active" :before-close="cleanup" class="epinio-app-log">
+  <Window
+    :active="active"
+    :before-close="cleanup"
+    class="epinio-app-log"
+  >
     <template #title>
       <div class="title-inner log-action ">
         <div class="title-inner-left">
@@ -276,21 +280,43 @@ export default {
             </template>
           </Select>
 
-          <button class="btn bg-primary ml-5" :disabled="isFollowing" @click="follow">
+          <button
+            class="btn bg-primary ml-5"
+            :disabled="isFollowing"
+            @click="follow"
+          >
             <t k="wm.containerLogs.follow" />
           </button>
-          <button class=" btn bg-primary ml-5" @click="clear">
+          <button
+            class=" btn bg-primary ml-5"
+            @click="clear"
+          >
             <t k="wm.containerLogs.clear" />
           </button>
-          <AsyncButton class="ml-5" mode="download" @click="download" />
+          <AsyncButton
+            class="ml-5"
+            mode="download"
+            @click="download"
+          />
         </div>
-        <div style="flex: 1;"></div>
+        <div style="flex: 1;" />
         <div class="title-inner-right">
-          <div class="status log-action text-center p-10" style="min-width: 80px;">
-            <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
+          <div
+            class="status log-action text-center p-10"
+            style="min-width: 80px;"
+          >
+            <t
+              :class="{'text-success': isOpen, 'text-error': !isOpen}"
+              :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'"
+            />
           </div>
           <div class="log-action  ml-5">
-            <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
+            <input
+              v-model="search"
+              class="input-sm"
+              type="search"
+              :placeholder="t('wm.containerLogs.search')"
+            >
           </div>
           <div class="log-action ml-5">
             <v-popover
@@ -303,7 +329,13 @@ export default {
 
               <template slot="popover">
                 <div class="filter-popup">
-                  <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
+                  <div>
+                    <Checkbox
+                      :label="t('wm.containerLogs.wrap')"
+                      :value="wrap"
+                      @input="toggleWrap "
+                    />
+                  </div>
                 </div>
               </template>
             </v-popover>
@@ -316,18 +348,42 @@ export default {
         ref="body"
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
       >
-        <table class="fixed" cellpadding="0" cellspacing="0">
+        <table
+          class="fixed"
+          cellpadding="0"
+          cellspacing="0"
+        >
           <tbody class="logs-body">
             <template v-if="filtered.length">
-              <tr v-for="line in filtered" :key="line.id">
-                <td :key="line.id + '-time'" class="time" v-html="format(line.time)" />
-                <td :key="line.id + '-msg'" class="msg" v-html="line.msg" />
+              <tr
+                v-for="line in filtered"
+                :key="line.id"
+              >
+                <td
+                  :key="line.id + '-time'"
+                  class="time"
+                  v-html="format(line.time)"
+                />
+                <td
+                  :key="line.id + '-msg'"
+                  class="msg"
+                  v-html="line.msg"
+                />
               </tr>
             </template>
             <tr v-else-if="search">
-              <td v-t="'wm.containerLogs.noMatch'" colspan="2" class="msg text-muted" />
+              <td
+                v-t="'wm.containerLogs.noMatch'"
+                colspan="2"
+                class="msg text-muted"
+              />
             </tr>
-            <tr v-else v-t="'epinio.applications.wm.noData'" colspan="2" class="msg text-muted" />
+            <tr
+              v-else
+              v-t="'epinio.applications.wm.noData'"
+              colspan="2"
+              class="msg text-muted"
+            />
           </tbody>
         </table>
       </div>

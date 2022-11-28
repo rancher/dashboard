@@ -45,9 +45,19 @@ export default {
       :namespaced="false"
       :mode="mode"
     />
-    <ResourceTabs v-model="value" :mode="mode">
-      <Tab name="taints" :label="t('node.detail.tab.taints')" :weight="0">
-        <Taints v-model="value.spec.taints" :mode="mode" />
+    <ResourceTabs
+      v-model="value"
+      :mode="mode"
+    >
+      <Tab
+        name="taints"
+        :label="t('node.detail.tab.taints')"
+        :weight="0"
+      >
+        <Taints
+          v-model="value.spec.taints"
+          :mode="mode"
+        />
       </Tab>
       <Tab
         name="labels-and-annotations"

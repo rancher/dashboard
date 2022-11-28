@@ -18,7 +18,7 @@ const epinioFactory = (): CoreStoreSpecifics => {
 
     mutations: { ...mutations },
 
-    actions:   {
+    actions: {
       ...actions,
       ...subscribeActions
     },

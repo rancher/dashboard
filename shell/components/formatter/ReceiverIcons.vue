@@ -2,9 +2,9 @@
 import { RECEIVERS_TYPES } from '@shell/edit/monitoring.coreos.com.alertmanagerconfig/receiverConfig.vue';
 import { MONITORING } from '@shell/config/types';
 export default {
-  props:      {
+  props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {
@@ -89,11 +89,17 @@ export default {
 <template>
   <span class="name-container">
     <template v-for="(type, key, i) in types">
-      <div :key="key" class="logo">
-        <img :src="type.logo" />
+      <div
+        :key="key"
+        class="logo"
+      >
+        <img :src="type.logo">
       </div>
       <span :key="key+i">
-        <span v-if="i<Object.keys(types).length-1" class="comma">
+        <span
+          v-if="i<Object.keys(types).length-1"
+          class="comma"
+        >
           {{ `${countDisplay(key, type.count)}, ` }}
         </span>
         <span v-else>

@@ -15,46 +15,14 @@ The development workflow for Rancher Dashboard remains unchanged.
 
 This use case covers our need to build separate UIs for [Harvester](https://harvesterhci.io/), [Epinio](https://epinio.io/) etc - but wanting to leverage the core of the Rancher Dashboard UI.
 
-For this, we would publish the `shell` as an NPM package and leverage it in a new UI project.
+For this, we would use the `@rancher/shell` [NPM package](https://www.npmjs.com/package/@rancher/shell) and leverage it in a new UI project.
 
-To help with this, we created an NPM package to help bootstrap a new UI.
+We have 3 published NPM packages:
 
-To demonstrate this use case:
+- [`@rancher/shell`](https://www.npmjs.com/package/@rancher/shell) - the core shell UI that can be incorporated into a new UI to give core functionality
+- [`@rancher/create-app`](https://www.npmjs.com/package/@rancher/create-app) - a simple package that can be used with the `yarn create` command to create a new UI
+- [`@rancher/create-pkg`](https://www.npmjs.com/package/@rancher/create-pkg) - a simple package that can be used with the `yarn create` command to create a new UI Package
 
-In a new console window, install and run [Verdaccio](https://verdaccio.org) (this is a local NPM registry that will allow us to publish and use NPM packages locally without having to push them to the NPM registry):
-
-```
-yarn global add verdaccio
-verdaccio
-```
-
-Now, back in the original console window, run:
-
-```
-npm adduser --registry http://localhost:4873  (just add a user with username/password: admin/admin)
-yarn publish ./shell/creators/app --patch --registry http://localhost:4873/
-yarn publish ./shell/creators/pkg --patch --registry http://localhost:4873/
-```
-
-These steps will publish the two [creator](https://classic.yarnpkg.com/en/docs/cli/create) packages to the local npm registry. If you open a browser to `http://127.0.0.1:4873` you'll see the two packages there.
-
-Now we'll publish the `shell` package.
-
-```
-PUBLISH_ARGS="--registry http://localhost:4873/" yarn publish-shell 
-```
-
-At this point, we've published 3 NPM packages:
-
-- `@rancher/shell` - the core shell UI that can be incorporated into a new UI to give core functionality
-- `@rancher/create-app` - a simple package that can be used with the `yarn create` command to create a new UI
-- `@rancher/create-pkg` - a simple package that can be used with the `yarn create` command to create a new UI Package
-
-Now we can create a new UI. First we need to set the environment variable so that yarn will look for packages in our local registry:
-
-```
-export YARN_REGISTRY=http://127.0.0.1:4873
-```
 
 Now we can go ahead and create a new UI.
 
@@ -214,6 +182,20 @@ This will start a web server on port `4500` that is serving up the plugins in th
 ## Use Case: Publish a package to NPM
 
 Building on from the previous use case, we can publish a plugin to NPM.
+
+In a new console window, install and run [Verdaccio](https://verdaccio.org) (this is a local NPM registry that will allow us to publish and use NPM packages locally without having to push them to the NPM registry):
+
+```
+yarn global add verdaccio
+verdaccio
+```
+
+Now, back in the original console window, run:
+
+```
+npm adduser --registry http://localhost:4873  (just add a user with username/password: admin/admin)
+export YARN_REGISTRY=http://127.0.0.1:4873
+```
 
 From the top-level folder:
 

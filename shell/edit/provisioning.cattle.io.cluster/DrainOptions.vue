@@ -18,7 +18,7 @@ export default {
   components: {
     RadioGroup, Checkbox, UnitInput
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {},
@@ -88,11 +88,27 @@ export default {
 
     <template v-if="enabled">
       <div class="mt-20">
-        <Checkbox v-model="deleteEmptyDirData" label="Delete pods using emptyDir volumes" tooltip="emptyDir volumes are often used for ephemeral data, but the data will be permanently deleted.  Draining will fail if this is not set and there are pods using emptyDir." @input="update" />
+        <Checkbox
+          v-model="deleteEmptyDirData"
+          label="Delete pods using emptyDir volumes"
+          tooltip="emptyDir volumes are often used for ephemeral data, but the data will be permanently deleted.  Draining will fail if this is not set and there are pods using emptyDir."
+          @input="update"
+        />
       </div>
-      <div><Checkbox v-model="force" label="Delete standalone pods" tooltip="Delete standalone pods which are not managed by a Workload controller (Deployment, Job, etc).  Draining will fail if this is not set and there are standalone pods." @input="update" /></div>
       <div>
-        <Checkbox v-model="customGracePeriod" label="Override pod termination grace periods" @input="update" />
+        <Checkbox
+          v-model="force"
+          label="Delete standalone pods"
+          tooltip="Delete standalone pods which are not managed by a Workload controller (Deployment, Job, etc).  Draining will fail if this is not set and there are standalone pods."
+          @input="update"
+        />
+      </div>
+      <div>
+        <Checkbox
+          v-model="customGracePeriod"
+          label="Override pod termination grace periods"
+          @input="update"
+        />
         <UnitInput
           v-if="customGracePeriod"
           v-model="gracePeriod"
@@ -103,7 +119,11 @@ export default {
         />
       </div>
       <div>
-        <Checkbox v-model="customTimeout" label="Timeout after" @input="update" />
+        <Checkbox
+          v-model="customTimeout"
+          label="Timeout after"
+          @input="update"
+        />
         <UnitInput
           v-if="customTimeout"
           v-model="timeout"

@@ -191,13 +191,29 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-model="value" :mode="mode" :namespaced="isNamespaced" />
+    <NameNsDescription
+      v-model="value"
+      :mode="mode"
+      :namespaced="isNamespaced"
+    />
 
     <Tabbed>
-      <Tab :label="t('monitoring.route.label')" :weight="1" name="route">
-        <RouteConfig :value="value.spec.route" :mode="mode" :receiver-options="receiverOptions" />
+      <Tab
+        :label="t('monitoring.route.label')"
+        :weight="1"
+        name="route"
+      >
+        <RouteConfig
+          :value="value.spec.route"
+          :mode="mode"
+          :receiver-options="receiverOptions"
+        />
       </Tab>
-      <Tab :label="t('alertmanagerConfigReceiver.receivers')" :weight="2" name="receivers">
+      <Tab
+        :label="t('alertmanagerConfigReceiver.receivers')"
+        :weight="2"
+        name="receivers"
+      >
         <ResourceTable
           :headers="receiverTableHeaders"
           :schema="receiverSchema"
@@ -208,7 +224,10 @@ export default {
           @clickedActionButton="setActionMenuState"
         >
           <template #header-button>
-            <nuxt-link v-if="createReceiverLink && createReceiverLink.name" :to="createReceiverLink">
+            <nuxt-link
+              v-if="createReceiverLink && createReceiverLink.name"
+              :to="mode !== create ? createReceiverLink : {}"
+            >
               <button
                 class="btn role-primary"
                 :disabled="mode === create"

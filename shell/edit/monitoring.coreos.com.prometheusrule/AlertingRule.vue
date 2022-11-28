@@ -320,11 +320,17 @@ export default {
         </div>
       </div>
       <div :class="[{ hide: isView && !severityLabelChecked }, 'row']">
-        <div v-if="isView && severityLabelChecked" class="col span-6 severity">
+        <div
+          v-if="isView && severityLabelChecked"
+          class="col span-6 severity"
+        >
           <label><t k="prometheusRule.alertingRules.labels.severity.label" /></label>
           <div>{{ value.labels.severity }}</div>
         </div>
-        <div v-else class="severity col span-6">
+        <div
+          v-else
+          class="severity col span-6"
+        >
           <Checkbox
             v-model="severityLabelChecked"
             :mode="mode"
@@ -374,7 +380,10 @@ export default {
                 </label>
                 <div>{{ value.annotations.summary }}</div>
               </div>
-              <div v-else class="col span-6 annotation-checkbox-container">
+              <div
+                v-else
+                class="col span-6 annotation-checkbox-container"
+              >
                 <Checkbox
                   v-model="summaryAnnotationChecked"
                   :mode="mode"
@@ -400,7 +409,10 @@ export default {
                 /></label>
                 <div>{{ value.annotations.message }}</div>
               </div>
-              <div v-else class="col span-6 annotation-checkbox-container">
+              <div
+                v-else
+                class="col span-6 annotation-checkbox-container"
+              >
                 <Checkbox
                   v-model="messageAnnotationChecked"
                   :mode="mode"
@@ -426,7 +438,10 @@ export default {
                 /></label>
                 <div>{{ value.annotations.description }}</div>
               </div>
-              <div v-else class="col span-6 annotation-checkbox-container">
+              <div
+                v-else
+                class="col span-6 annotation-checkbox-container"
+              >
                 <Checkbox
                   v-model="descriptionAnnotationChecked"
                   :mode="mode"
@@ -452,7 +467,10 @@ export default {
                 </label>
                 <div>{{ value.annotations.runbook_url }}</div>
               </div>
-              <div v-else class="col span-6 annotation-checkbox-container">
+              <div
+                v-else
+                class="col span-6 annotation-checkbox-container"
+              >
                 <Checkbox
                   v-model="runbookAnnotationChecked"
                   :mode="mode"

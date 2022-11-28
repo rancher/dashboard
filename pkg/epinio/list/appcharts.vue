@@ -8,7 +8,7 @@ export default {
   async fetch() {
     await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.APP_CHARTS });
   },
-  props:      {
+  props: {
     schema: {
       type:     Object,
       required: true,
@@ -31,6 +31,5 @@ export default {
     :loading="$fetchState.pending"
     :table-actions="false"
     v-on="$listeners"
-  >
-  </ResourceTable>
+  />
 </template>

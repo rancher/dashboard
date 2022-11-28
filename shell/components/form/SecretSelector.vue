@@ -53,7 +53,7 @@ export default {
       default: 'Key'
     },
     mode: {
-      type:     String,
+      type:    String,
       default: _EDIT
     }
   },
@@ -119,7 +119,10 @@ export default {
 </script>
 
 <template>
-  <div class="secret-selector" :class="{'show-key-selector': showKeySelector}">
+  <div
+    class="secret-selector"
+    :class="{'show-key-selector': showKeySelector}"
+  >
     <div class="input-container">
       <LabeledSelect
         v-model="name"

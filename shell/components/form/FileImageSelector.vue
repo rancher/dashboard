@@ -71,7 +71,7 @@ export default {
       :src="value"
       class="loader__image"
     />
-    <i class="loader__clear icon icon-trash icon-lg"></i>
+    <i class="loader__clear icon icon-trash icon-lg" />
   </div>
 </template>
 

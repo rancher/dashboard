@@ -54,3 +54,9 @@ export function safeSetTimeout(timeout, callback, that) {
     }, timeout);
   }
 }
+
+export function getSecondsDiff(startDate, endDate) {
+  return Math.round(
+    Math.abs(Date.parse(endDate) - Date.parse(startDate)) / 1000
+  );
+}

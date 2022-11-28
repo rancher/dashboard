@@ -359,13 +359,15 @@ export default {
         <i class="mt-10 icon-spinner icon-spin" />
       </div>
       <!-- main div for svg container -->
-      <div id="tree">
-      </div>
+      <div id="tree" />
       <!-- info box -->
       <div class="more-info-container">
         <div class="more-info">
           <table>
-            <tr v-for="(item, i) in moreInfo" :key="i">
+            <tr
+              v-for="(item, i) in moreInfo"
+              :key="i"
+            >
               <td
                 v-if="item.type !== 'single-error'"
                 :class="{'align-middle': item.type === 'state-badge'}"

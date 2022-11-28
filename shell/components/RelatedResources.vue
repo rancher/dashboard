@@ -174,8 +174,14 @@ export default {
     :groupable="false"
   >
     <template #cell:state="{row}">
-      <BadgeState v-if="row.real" :value="row.real" />
-      <BadgeState v-else :value="row" />
+      <BadgeState
+        v-if="row.real"
+        :value="row.real"
+      />
+      <BadgeState
+        v-else
+        :value="row"
+      />
     </template>
   </ResourceTable>
 </template>

@@ -101,16 +101,39 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <span v-if="latestOperation" class="latest-operation">
+    <span
+      v-if="latestOperation"
+      class="latest-operation"
+    >
       {{ t('catalog.app.section.lastOperation') }}: ( {{ latestOperation.status.action }} ) - <a @click="latestOperation.openLogs()">  {{ t('catalog.app.section.openLogs') }}</a>
     </span>
 
-    <Tabbed class="mt-20" default-tab="resources" @changed="tabChanged($event)">
-      <Tab name="resources" :label="t('catalog.app.section.resources.label')" :weight="4">
-        <Banner v-if="isBusy" color="info" :label="t('catalog.app.section.resources.busy', { app: value.metadata.name })" />
-        <RelatedResources v-else :value="value" rel="helmresource" />
+    <Tabbed
+      class="mt-20"
+      default-tab="resources"
+      @changed="tabChanged($event)"
+    >
+      <Tab
+        name="resources"
+        :label="t('catalog.app.section.resources.label')"
+        :weight="4"
+      >
+        <Banner
+          v-if="isBusy"
+          color="info"
+          :label="t('catalog.app.section.resources.busy', { app: value.metadata.name })"
+        />
+        <RelatedResources
+          v-else
+          :value="value"
+          rel="helmresource"
+        />
       </Tab>
-      <Tab name="values-yaml" :label="t('catalog.app.section.values')" :weight="3">
+      <Tab
+        name="values-yaml"
+        :label="t('catalog.app.section.values')"
+        :weight="3"
+      >
         <YamlEditor
           ref="yaml"
           :scrolling="false"
@@ -118,10 +141,20 @@ export default {
           editor-mode="VIEW_CODE"
         />
       </Tab>
-      <Tab v-if="hasReadme" name="readme" :label="t('catalog.app.section.readme')" :weight="2">
+      <Tab
+        v-if="hasReadme"
+        name="readme"
+        :label="t('catalog.app.section.readme')"
+        :weight="2"
+      >
         <Markdown v-model="value.spec.info.readme" />
       </Tab>
-      <Tab v-if="hasNotes" name="notes" :label="t('catalog.app.section.notes')" :weight="1">
+      <Tab
+        v-if="hasNotes"
+        name="notes"
+        :label="t('catalog.app.section.notes')"
+        :weight="1"
+      >
         <Markdown v-model="value.spec.info.notes" />
       </Tab>
     </Tabbed>

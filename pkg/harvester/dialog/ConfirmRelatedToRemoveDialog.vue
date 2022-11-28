@@ -22,7 +22,7 @@ export default {
     CopyToClipboardText
   },
 
-  props:  {
+  props: {
     /**
      * @property resources to be deleted.
      * @type {Resource[]} Array of the resource model's instance

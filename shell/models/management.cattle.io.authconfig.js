@@ -24,10 +24,10 @@ export default class AuthConfig extends SteveModel {
     const out = super._availableActions;
 
     insertAt(out, 0, {
-      action:     'disable',
-      label:      'Disable',
-      icon:       'icon icon-spinner',
-      enabled:    this.enabled === true,
+      action:  'disable',
+      label:   'Disable',
+      icon:    'icon icon-spinner',
+      enabled: this.enabled === true,
     });
 
     insertAt(out, 1, { divider: true });

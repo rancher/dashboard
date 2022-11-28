@@ -9,7 +9,7 @@ export default {
   components: {
     Checkbox, LabeledInput, SimpleSecretSelector, TLS
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -19,8 +19,8 @@ export default {
       required: true
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data() {
@@ -29,7 +29,7 @@ export default {
 
     return {
       view:                          _VIEW,
-      initialAuthPasswordSecretName:  this.value?.authPassword?.name ? this.value.authPassword.name : '',
+      initialAuthPasswordSecretName: this.value?.authPassword?.name ? this.value.authPassword.name : '',
       initialAuthPasswordSecretKey:  this.value.authPassword?.key ? this.value.authPassword.key : '',
       none:                          '__[[NONE]]__',
     };
@@ -83,10 +83,20 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.to" :mode="mode" label="Default Recipient Address" placeholder="e.g. admin@example.com" />
+        <LabeledInput
+          v-model="value.to"
+          :mode="mode"
+          label="Default Recipient Address"
+          placeholder="e.g. admin@example.com"
+        />
       </div>
       <div class="col span-6">
-        <Checkbox v-model="value.sendResolved" :mode="mode" class="mt-20" label="Enable send resolved alerts" />
+        <Checkbox
+          v-model="value.sendResolved"
+          :mode="mode"
+          class="mt-20"
+          label="Enable send resolved alerts"
+        />
       </div>
     </div>
     <h2 class="mb-10">
@@ -94,20 +104,43 @@ export default {
     </h2>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.from" :mode="mode" label="Sender" placeholder="e.g. admin@example.com" />
+        <LabeledInput
+          v-model="value.from"
+          :mode="mode"
+          label="Sender"
+          placeholder="e.g. admin@example.com"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.smarthost" :mode="mode" label="Host" placeholder="e.g. 192.168.1.121:587" />
+        <LabeledInput
+          v-model="value.smarthost"
+          :mode="mode"
+          label="Host"
+          placeholder="e.g. 192.168.1.121:587"
+        />
       </div>
       <div class="col span-6">
-        <Checkbox v-model="value.requireTls" :mode="mode" class="mt-20" label="Use TLS" />
+        <Checkbox
+          v-model="value.requireTls"
+          :mode="mode"
+          class="mt-20"
+          label="Use TLS"
+        />
       </div>
     </div>
-    <div v-if="namespace" class="row mb-20">
+    <div
+      v-if="namespace"
+      class="row mb-20"
+    >
       <div class="col span-6">
-        <LabeledInput v-model="value.authUsername" :mode="mode" :label="t('monitoring.alertmanagerConfig.email.username')" placeholder="e.g. John" />
+        <LabeledInput
+          v-model="value.authUsername"
+          :mode="mode"
+          :label="t('monitoring.alertmanagerConfig.email.username')"
+          placeholder="e.g. John"
+        />
       </div>
     </div>
     <div class="row mb-20">
@@ -122,10 +155,18 @@ export default {
         @updateSecretName="updateAuthPasswordSecretName"
         @updateSecretKey="updateAuthPasswordSecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
       </Banner>
     </div>
-    <TLS v-model="value" class="mb-20" :mode="mode" :namespace="namespace" />
+    <TLS
+      v-model="value"
+      class="mb-20"
+      :mode="mode"
+      :namespace="namespace"
+    />
   </div>
 </template>

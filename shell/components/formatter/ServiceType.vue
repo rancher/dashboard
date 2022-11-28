@@ -12,7 +12,7 @@ export default {
       required: true
     },
     col: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
   },

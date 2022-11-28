@@ -71,7 +71,7 @@ export default {
       suffixYaml,
       EDITOR_MODES,
       yamlError:            '',
-      doneLocationOverride:      {
+      doneLocationOverride: {
         name:   'c-cluster-monitoring-route-receiver',
         params: { cluster: this.$store.getters['clusterId'] },
         query:  { resource: MONITORING.SPOOFED.RECEIVER }
@@ -169,24 +169,50 @@ export default {
     @finish="saveOverride"
     @cancel="done"
   >
-    <div v-if="!isView" class="row mb-10">
+    <div
+      v-if="!isView"
+      class="row mb-10"
+    >
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.name" :disabled="!isCreate" :label="t('generic.name')" :mode="mode" />
+        <LabeledInput
+          v-model="value.spec.name"
+          :disabled="!isCreate"
+          :label="t('generic.name')"
+          :mode="mode"
+        />
       </div>
     </div>
-    <Tabbed ref="tabbed" :side-tabs="true" default-tab="overview" @changed="tabChanged">
-      <Tab :label="t('generic.overview')" :weight="receiverTypes.length" name="overview">
+    <Tabbed
+      ref="tabbed"
+      :side-tabs="true"
+      default-tab="overview"
+      @changed="tabChanged"
+    >
+      <Tab
+        :label="t('generic.overview')"
+        :weight="receiverTypes.length"
+        name="overview"
+      >
         <div class="box-container create-resource-container ">
-          <div v-for="(receiverType, i) in receiverTypes" :key="i" class="mb-10 subtype-banner" primary-color-var="--primary-color" @click="navigateTo(receiverType)">
+          <div
+            v-for="(receiverType, i) in receiverTypes"
+            :key="i"
+            class="mb-10 subtype-banner"
+            primary-color-var="--primary-color"
+            @click="navigateTo(receiverType)"
+          >
             <div class="left">
               <div class="logo">
-                <img :src="receiverType.logo" />
+                <img :src="receiverType.logo">
               </div>
               <h4 class="name ml-10">
                 <t :k="receiverType.label" />
               </h4>
             </div>
-            <div v-if="receiverType.name !== 'custom'" class="right">
+            <div
+              v-if="receiverType.name !== 'custom'"
+              class="right"
+            >
               {{ getCount(receiverType) }}
             </div>
           </div>
@@ -207,7 +233,12 @@ export default {
           :editor-mode="editorMode"
         />
         <div v-else>
-          <component :is="getComponent(receiverType.banner)" v-if="receiverType.banner" :model="value.spec[receiverType.key]" :mode="mode" />
+          <component
+            :is="getComponent(receiverType.banner)"
+            v-if="receiverType.banner"
+            :model="value.spec[receiverType.key]"
+            :mode="mode"
+          />
           <ArrayListGrouped
             v-model="value.spec[receiverType.key]"
             class="namespace-list"
@@ -216,10 +247,21 @@ export default {
             :add-label="t('monitoringReceiver.addButton', { type: t(receiverType.label) })"
           >
             <template #default="props">
-              <component :is="getComponent(receiverType.name)" :value="props.row.value" :mode="mode" />
+              <component
+                :is="getComponent(receiverType.name)"
+                :value="props.row.value"
+                :mode="mode"
+              />
             </template>
-            <template v-if="receiverType.addButton" #add>
-              <component :is="getComponent(receiverType.addButton)" :model="value.spec[receiverType.key]" :mode="mode" />
+            <template
+              v-if="receiverType.addButton"
+              #add
+            >
+              <component
+                :is="getComponent(receiverType.addButton)"
+                :model="value.spec[receiverType.key]"
+                :mode="mode"
+              />
             </template>
           </ArrayListGrouped>
         </div>
