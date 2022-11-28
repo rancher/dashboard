@@ -4285,7 +4285,7 @@ resourceList:
     create: Create
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
-  nsFiltering: "There are a lot of {resource}.<br>Please filter them by selecting a single Namespace."
+  nsFiltering: "There are too many {resource}.<br>Please filter them by selecting a single Namespace."
 resourceLoadingIndicator:
   loading: Loading
 
@@ -6317,9 +6317,9 @@ performance:
         description: Resource types must exceed this amount to be considered for garbage collection.
         inputLabel: Resource Count
   nsFiltering:
-    label: Force Namespace Filtering
-    description: When there are too many resources to show in a list, force the user to select a single namespace and only fetch resources within it.
-    checkboxLabel: Enable Forced Namespace Filtering
+    label: Require Namespace Filtering
+    description: When there are too many resources to show in a list, require the user to select a single namespace and only fetch resources from within it.
+    checkboxLabel: Enable Require Namespace Filtering
     count:
       inputLabel: Resource Threshold
       description: You can configure a threshold above which filtering by a namespace is required
