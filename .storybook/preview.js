@@ -31,9 +31,6 @@ export const store = new Vuex.Store({
 
       return msg;
     }
-  },
-  modules: {
-    growl
   }
 });
 

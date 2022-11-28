@@ -2,6 +2,7 @@
 import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
 import GrowlManager from '@shell/components/GrowlManager.vue';
 import store from '@/.storybook/preview';
+import growl from '@/.storybook/store/growl';
 
 
 <Meta
@@ -12,7 +13,7 @@ import store from '@/.storybook/preview';
 
 export const Template = () => ({
   components: { GrowlManager },
-  store,
+  store: {...store}.registerModule('growl', growl),
   template:   '<GrowlManager />',
 })
 
