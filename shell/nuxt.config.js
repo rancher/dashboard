@@ -37,7 +37,7 @@ const instrumentCode = (process.env.TEST_INSTRUMENT === 'true'); //  Instrument 
 // 1 = Skip browser check
 // 2 = Do not skip any checks
 const skipEsLintCheckStr = (process.env.SKIP_ESLINT || '');
-let skipEsLintCheck = parseInt(skipEsLintCheckStr, 10) || 2;
+const skipEsLintCheck = parseInt(skipEsLintCheckStr, 10) || 2;
 
 // ===============================================================================================
 // Nuxt configuration
@@ -52,21 +52,6 @@ export default function(dir, _appConfig) {
   let SHELL_ABS = path.join(dir, 'node_modules/@rancher/shell');
   let NUXT_SHELL = '~~node_modules/@rancher/shell';
   let typescript = {};
-
-  if (fs.existsSync(SHELL_ABS)) {
-    const stat = fs.lstatSync(SHELL_ABS);
-
-    // If @rancher/shell is a symlink, then use the components folder for it
-    if (stat.isSymbolicLink()) {
-      const REAL_SHELL_ABS = fs.realpathSync(SHELL_ABS); // In case the shell is being linked via 'yarn link'
-
-      COMPONENTS_DIR = path.join(REAL_SHELL_ABS, '..', 'pkg', 'rancher-components', 'src', 'components');
-
-      // For now, skip eslint check when being linked via yarn link - pkg folder is linked otherwise
-      // This will change when we remove nuxt
-      skipEsLintCheck = true;
-    }
-  }
 
   // If we have a local folder named 'shell' then use that rather than the one in node_modules
   // This will be the case in the main dashboard repository.
@@ -367,9 +352,9 @@ export default function(dir, _appConfig) {
     },
 
     alias: {
-      '~shell':      SHELL_ABS,
-      '@shell':      SHELL_ABS,
-      '@pkg':        path.join(dir, 'pkg'),
+      '~shell': SHELL_ABS,
+      '@shell': SHELL_ABS,
+      '@pkg':   path.join(dir, 'pkg'),
     },
 
     modulesDir: [
