@@ -20,7 +20,7 @@ Product configuration should precede everything else outlined in this guide as i
   - The condition for when that product should appear (usually the presence of a type in a certain k8s API group)
   - What types should appear in the left nav, how they're labeled, grouped, ordered
   - Custom table headers for each type
-Read more about products [here](../products-and-navigation.md).
+Read more about products [here](./products-and-navigation.md).
 
 ### Detail and Edit
 Kubernetes resources added to the side nav during product configuration will, by default, have list, edit-as-yaml and view-as-yaml pages, as well as some standard table/kebab menu actions (edit, clone, delete, etc) as outlined in `plugins/dashboard-store/resource-instance.js`. These views can be customized using components with the resource's name in the `list`, `detail`, and `edit` directories. Custom detail and edit components are nested within the `ResourceDetail` component.  Custom `detail` and `edit` components have a few props available: value, doneParams, doneRoute, mode, initialValue, liveValue, and realValue.  Detail components should generally use the `ResourceTabs` component to show the standard detail tabs as well as any specific ones you want to define.  Edit components similarly generally use `CruResource`.

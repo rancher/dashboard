@@ -12,7 +12,7 @@ Product config files are nested within /config/product in the shell code, but sh
 - `ignoreType()` is used for types that were deprecated or hidden.
 - `mapGroup()` maps Kubernetes API groups to more human-readable names.
 - `configureType()` toggles various display options for the type. All of the possible options are defined in the `type-map/optionsFor` action.
-- `headers()` defines headers shown in the list view for the resource. If anything beyond the content of the ResourceTable needs to be customized, a custom list component can be used instead. Read more [here](./code-base-works/customising-how-k8s-resources-are-presented.md)
+- `headers()` defines headers shown in the list view for the resource. If anything beyond the content of the ResourceTable needs to be customized, a custom list component can be used instead. Read more [here](./customising-how-k8s-resources-are-presented.md)
 - `weightGroup()`/`weightType()` Sets the position of the group/type for this product. 
 
 These settings are stored in the `type-map` section of the store and manipulated with functions in `/store/type-map.js`. More docs for these functions are at the top of the `type-map.js` file.

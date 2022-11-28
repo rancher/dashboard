@@ -11,7 +11,7 @@ Components in the chart folder are used to add custom UI to a helm install flow.
 Cloud credentials are components that add provider-specific UI to create cloud credentials, needed to provision clusters. Read more about provisioning [here](./machine-drivers.md).
 
 ## config
-This is specific to plugins. Product definitions should be added directly under the `config` folder (as opposed to being nested in `shell/config/product`). See [Defining Products](../products-and-navigation.md) for more information.
+This is specific to plugins. Product definitions should be added directly under the `config` folder (as opposed to being nested in `shell/config/product`). See [Defining Products](./products-and-navigation.md) for more information.
 
 ## dialog
 Components in the dialog folder are used within the `PromptModal` component. Dispatch the `promptModal` action from the dashboard store to open a modal. This action takes a few props:
@@ -24,7 +24,7 @@ Components in the dialog folder are used within the `PromptModal` component. Dis
 |modalSticky| Boolean | Whether or not to apply sticky positioning (default false)| 
 
 ## formatters 
-This is not a top-level folder in the shell, which uses `/components/formatter`, but a top-level `formatters` directory works the same way in a plugin as the shell `formatter` directory does. Formatters are used to format data within tables. see [Defining Products](../products-and-navigation.md) for more information on configuring resource tables.
+This is not a top-level folder in the shell, which uses `/components/formatter`, but a top-level `formatters` directory works the same way in a plugin as the shell `formatter` directory does. Formatters are used to format data within tables. see [Defining Products](./products-and-navigation.md) for more information on configuring resource tables.
 
 ## machine-config**
 Machine configs are used to add provider-specific UI to the rke2/k3s provisioning page. Read more about provisioning [here](./machine-drivers.md)
@@ -54,7 +54,7 @@ Components in the PromptRemove folder are used to customize the removal prompt f
 
 
 ## l10n
-Plugin translation strings are merged with those already present in `shell/assets/translations`. Translation strings with duplicate keys of those present in the relevant shell translation file will overwrite those shell translation strings _across the app_: be mindful if adding translation strings that are not explicitly scoped to your plugin. Read more about translations [here](../on-screen-text-and-translations.md)
+Plugin translation strings are merged with those already present in `shell/assets/translations`. Translation strings with duplicate keys of those present in the relevant shell translation file will overwrite those shell translation strings _across the app_: be mindful if adding translation strings that are not explicitly scoped to your plugin. Read more about translations [here](./on-screen-text-and-translations.md)
 
 
 
