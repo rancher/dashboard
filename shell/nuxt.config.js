@@ -253,6 +253,8 @@ export default function(dir, _appConfig) {
   }
   const rancherEnv = process.env.RANCHER_ENV || 'web';
 
+  const loginLocaleSelector = process.env.LOGIN_LOCALE_SELECTOR || 'true';
+
   const excludeNuxtPlugins = (process.env.EXCLUDES_NUXT_PLUGINS || '').split(',');
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
@@ -268,6 +270,7 @@ export default function(dir, _appConfig) {
       pl,
       perfTest,
       rancherEnv,
+      loginLocaleSelector,
       harvesterPkgUrl: process.env.HARVESTER_PKG_URL,
       api
     },
