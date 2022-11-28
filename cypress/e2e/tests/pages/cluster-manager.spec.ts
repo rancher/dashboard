@@ -22,8 +22,6 @@ const clusterRequestBase = `${ baseUrl }/v1/${ type }/${ namespace }`;
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
-const clusterNameImport = `${ clusterNamePartial }-${ runTimestamp }-import`;
-const clusterName = `${ clusterNamePartial }-${ runTimestamp }`;
 
 describe('Cluster Manager', () => {
   const clusterList = new ClusterManagerListPagePo();
@@ -46,7 +44,7 @@ describe('Cluster Manager', () => {
           type,
           metadata: {
             namespace,
-            name: clusterName
+            name: rke2CustomName
           },
         };
 
@@ -142,7 +140,7 @@ describe('Cluster Manager', () => {
             type,
             metadata: {
               namespace,
-              name: clusterNameImport
+              name: importGenericName
             },
             spec: {}
           });
