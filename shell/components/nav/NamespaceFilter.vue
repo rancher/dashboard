@@ -559,6 +559,14 @@ export default {
         document.activeElement.blur();
       }
     },
+    handleValueMouseDown(ns, event) {
+      this.removeOption(ns, event);
+
+      if (this.value.length === 0) {
+        this.open();
+      }
+    },
+
     removeOption(ns, event) {
       this.selectOption(ns);
       event.preventDefault();
@@ -637,6 +645,7 @@ export default {
             class="icon icon-close"
             :data-testid="`namespaces-values-close-${j}`"
             @click="removeOption(ns, $event)"
+            @mousedown="handleValueMouseDown(ns, $event)"
           />
         </div>
       </div>
