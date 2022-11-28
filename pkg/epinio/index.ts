@@ -3,9 +3,21 @@ import { IPlugin, OnNavToPackage, OnNavAwayFromPackage } from '@shell/core/types
 import epinioStore from './store/epinio-store';
 import epinioMgmtStore from './store/epinio-mgmt-store';
 import epinioRoutes from './routing/epinio-routing';
+import { MANAGEMENT } from '@shell/config/types';
 
 const onEnter: OnNavToPackage = async(store, config) => {
   await store.dispatch(`${ epinioMgmtStore.config.namespace }/loadManagement`);
+
+  const serverVersionSettings = store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
+  const res = await store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
+
+  await store.dispatch('management/load', {
+    data: {
+      ...serverVersionSettings,
+      type:    MANAGEMENT.SETTING,
+      value: res.version
+    }
+  });
 };
 const onLeave: OnNavAwayFromPackage = async(store, config) => {
   // The dashboard retains the previous cluster info until another cluster is loaded, this helps when returning to the same cluster.
