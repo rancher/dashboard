@@ -62,6 +62,7 @@ export function init(store) {
     FLEET.WORKSPACE,
     FLEET.BUNDLE,
     FLEET.TOKEN,
+    FLEET.BUNDLE_NAMESPACE_MAPPING
   ], 'advanced');
 
   headers(FLEET.WORKSPACE, [
