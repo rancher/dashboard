@@ -3165,6 +3165,7 @@ namespace:
   total: Total
   workloads: Workloads
   label: Namespace
+  labelWithProject: Namespace / Project
   selectNamespace: Select Namespace
   createNamespace: Create a New Namespace
   selectOrCreate: Select or Create a Namespace

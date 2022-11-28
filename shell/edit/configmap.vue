@@ -71,6 +71,7 @@ export default {
       :value="value"
       :mode="mode"
       :register-before-hook="registerBeforeHook"
+      :allow-projects-and-namespaces="true"
     />
 
     <Tabbed :side-tabs="true">

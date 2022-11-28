@@ -65,6 +65,10 @@ export default {
       this.$set(this.value.metadata, 'name', '');
 
       this.$set(this.value, 'data', {});
+    } else {
+      // POSSIBLY TO DELETE THIS CHANGE????
+      // needs to be checked...
+      this.value.metadata.namespace = '';
     }
 
     const secretTypes = [
@@ -328,6 +332,7 @@ export default {
         v-model="value"
         :mode="mode"
         :namespaced="!isCloud"
+        :allow-projects-and-namespaces="true"
       />
 
       <div

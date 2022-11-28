@@ -3,7 +3,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
-import { NAMESPACE } from '@shell/config/types';
+import { NAMESPACE, MANAGEMENT } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
@@ -150,6 +150,13 @@ export default {
       }),
       type: Object,
     },
+    /**
+     * Flag to control wether we show a Project + Namespace Select instead of the default Namespace Select
+     */
+    allowProjectsAndNamespaces: {
+      type:    Boolean,
+      default: false,
+    },
 
     /**
      * Inherited global identifier prefix for tests
@@ -273,6 +280,56 @@ export default {
         kind:     'divider'
       },
       ...sortedByLabel);
+
+      return out;
+    },
+
+    projectsAndNamespaces() {
+      const out = [];
+      const currentStoreProjects = this.$store.getters['currentStore'](MANAGEMENT.PROJECT);
+      const projects = this.$store.getters[`${ currentStoreProjects }/all`](MANAGEMENT.PROJECT);
+
+      projects.forEach((proj, i) => {
+        const filteredNamespaces = proj.namespaces.filter( this.namespaceFilter || ((namespace) => {
+        // By default, include the namespace in the dropdown.
+          let out = true;
+
+          if (this.currentProduct?.hideSystemResources) {
+          // Filter out the namespace
+          // if it is a system namespace or if it is managed by
+          // Fleet.
+            out = !namespace.isSystem && !namespace.isFleetManaged;
+          }
+
+          if (this.mode === _CREATE) {
+            out = out && !!namespace.links.update;
+          }
+
+          return out;
+        }));
+
+        const namespaceWithLabels = filteredNamespaces.map(this.namespaceMapper || ((obj) => {
+          return {
+            label: `${ this.t('tableHeaders.namespace') }: ${ obj.nameDisplay }`,
+            value: obj.id,
+          };
+        }));
+
+        const sortedByLabel = sortBy(namespaceWithLabels, 'label');
+
+        out.push({
+          label: `${ this.t('tableHeaders.project') }: ${ proj.nameDisplay }`,
+          value: proj.id
+        }, ...sortedByLabel);
+
+        if (i !== projects.length - 1) {
+          out.push({
+            label:    'divider',
+            disabled: true,
+            kind:     'divider'
+          });
+        }
+      });
 
       return out;
     },
@@ -418,12 +475,12 @@ export default {
         v-show="!createNamespace"
         v-model="namespace"
         :clearable="true"
-        :options="namespaces"
+        :options="allowProjectsAndNamespaces ? projectsAndNamespaces : namespaces"
         :disabled="namespaceReallyDisabled"
         :searchable="true"
         :mode="mode"
         :multiple="false"
-        :label="t('namespace.label')"
+        :label="allowProjectsAndNamespaces ? t('namespace.labelWithProject') : t('namespace.label')"
         :placeholder="t('namespace.selectOrCreate')"
         :rules="rules.namespace"
         required
