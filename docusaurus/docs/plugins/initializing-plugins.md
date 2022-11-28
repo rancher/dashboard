@@ -43,7 +43,7 @@ Plugins should use a pages directory, as the shell currently does, but routing n
 
 
 ## Defining Products
-Product configuration for plugins is largely unchanged (read more about products [here](../products-and-navigation.md)); however, if the plugin contains one product intended to have a standalone UI, some additional product configuration is required, via the `setIsSingleProduct` vuex action.
+Product configuration for plugins is largely unchanged (read more about products [here](../code-base-works/products-and-navigation.md)); however, if the plugin contains one product intended to have a standalone UI, some additional product configuration is required, via the `setIsSingleProduct` vuex action.
 
 | Key | Type | Description |
 | --- | --- | --- |
