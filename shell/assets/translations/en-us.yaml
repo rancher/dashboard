@@ -1807,6 +1807,11 @@ clusterIndexPage:
     ram: Memory
     used: Used
     reserved: Reserved
+    units:
+      cores: |-
+        {count, plural,
+        =1 {core}
+        other {cores}}
   header: Cluster Dashboard
   resourceGauge:
     totalResources: Total Resources
