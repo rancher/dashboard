@@ -1,3 +1,4 @@
+import { action } from '@storybook/addon-actions'
 import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
@@ -12,12 +13,86 @@ export const Template = (args, { argTypes, events }) => ({
   props:      Object.keys(argTypes),
   template:   `
       <Tabbed v-bind="$props">
-        <Tab name="test1" label="new" >
-          <div name="test1">Test one content</div>
+        <Tab name="test1" label="Tab one" >
+          <div name="test1">Tab one content. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</div>
         </Tab>
-        <Tab name="test2" label="new2"><div name="test1">Test two content</div></Tab>
+        <Tab name="test2" label="Tab two">
+          <div name="test1">Tab two content. Lorem sed do eiusmod tempor incididunt ut.</div>
+        </Tab>
       </Tabbed>
     `
+});
+
+export const TabNested = (args, { argTypes, events }) => ({
+  components: { Tabbed, Tab },
+  props:      Object.keys(argTypes),
+  template:   `
+      <Tabbed v-bind="$props" :sideTabs=${false} class="deployment-tabs">
+        <Tab name="Deployment" label="Deployment">
+          <Tabbed :useHash=${args.useHash} :sideTabs=${args.sideTabs}>
+            <Tab name="labels" label="Labels & Annotations">
+              <div name="labels">NestedTab content. </div>
+            </Tab>
+            <Tab name="scaling" label="Scaling Policy">
+               <div name="scaling">NestedTab content.</div>
+            </Tab>
+          </Tabbed>
+        </Tab>
+        <Tab name="Pod" label="Pod">
+          <Tabbed :useHash=${args.useHash} :sideTabs=${args.sideTabs}>
+            <Tab name="node" label="Node Scheduling">
+              <div name="node">NestedTab content. </div>
+            </Tab>
+            <Tab name="networking" label="Networking">
+               <div name="networking">NestedTab content.</div>
+            </Tab>
+            <Tab name="scheduling" label="Pod Scheduling">
+               <div name="scheduling">NestedTab content.</div>
+            </Tab>
+          </Tabbed>
+        </Tab>
+      </Tabbed>
+    `
+});
+
+export const TabAdd = (args, { argTypes, events }) => ({
+  components: { Tabbed, Tab },
+  props:      Object.keys(argTypes),
+  template:   `
+      <Tabbed v-bind="$props" :sideTabs=${false} class="deployment-tabs">
+        <Tab name="Deployment" label="Deployment">
+          <Tabbed :useHash=${args.useHash} :sideTabs=${args.sideTabs}>
+            <Tab name="labels" label="Labels & Annotations">
+              <div name="labels">Add Tabs content.</div>
+            </Tab>
+            <Tab name="scaling" label="Scaling Policy">
+               <div name="scaling">Add Tabs content.</div>
+            </Tab>
+          </Tabbed>
+        </Tab>
+        <Tab name="Pod" label="Pod">
+          <Tabbed :useHash=${args.useHash} :sideTabs=${args.sideTabs}>
+            <Tab name="node" label="Node Scheduling">
+              <div name="node">Add Tabs content.</div>
+            </Tab>
+            <Tab name="networking" label="Networking">
+               <div name="networking">Add Tabs content.</div>
+            </Tab>
+            <Tab name="scheduling" label="Pod Scheduling">
+               <div name="scheduling">Add Tabs content.</div>
+            </Tab>
+          </Tabbed>
+        </Tab>
+        <template #tab-row-extras>
+          <li class="tablist-controls">
+            <button type="button" class="btn-sm role-link" @click="action">
+              <i class="icon icon-plus icon-lg" /> Add
+            </button>
+          </li>
+        </template>
+      </Tabbed>
+    `,
+    methods: { action: action('addContainerBtn') }
 });
 
 
@@ -35,16 +110,59 @@ Tabs are used to separate information into logical sections and to quickly navig
 - Secondary tabs never appear without a parent set of primary tabs.
 - The number of secondary tabs inside vertical tabs should be as small as possible – not more than six are recommended.
 <br/>
+<br/>
 
+### Default Tab
 <Canvas>
   <Story
-    name="Tab"
+    name="Default Tab"
     args={{
       useHash: false,
       showTabsAddRemove: true,
-      defaultTab: "test2"
     }}>
     {Template.bind({})}
+  </Story>
+</Canvas>
+
+### SideTabs
+<Canvas>
+   <Story
+    name="SideTabs"
+    args={{
+      useHash: false,
+      sideTabs: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+### Nested
+
+Fot the Nested tab you have to add class `deployment-tabs` to the horizontal `Tabbed` component.
+<Canvas>
+   <Story
+    name="Nested tabs"
+    args={{
+      useHash: false,
+      flat: true,
+      sideTabs: true
+    }}>
+    {TabNested.bind({})}
+  </Story>
+</Canvas>
+
+### Add Tabs
+
+<Canvas>
+   <Story
+    name="Add tabs"
+    args={{
+      useHash: false,
+      flat: true,
+      sideTabs: true
+    }}>
+    {TabAdd.bind({})}
   </Story>
 </Canvas>
 
