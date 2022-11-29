@@ -45,7 +45,7 @@ epinio:
     dashboard: Dashboard
     welcome: Welcome to Epinio
     blurb: The Application Development Engine for Kubernetes
-    description:  Epinio installs into any Kubernetes cluster to bring your application from source code to deployment and allow for Developers and Operators to work better together!
+    description:  Epinio takes your application from source code to deployment and allow for Developers and Operators to work better together!
     learnMoreLink: https://epinio.io/
     learnMore: Learn more
     noNamespaces: Create a Namespace, then create your Applications
@@ -56,6 +56,7 @@ epinio:
         linkText: Create Namespace
         description: Namespaces allows you to organize and manage your applications.
         slotTitle: Resources
+        configurations: Configurations
       applications:
         title: Applications
         linkText: Deploy Application

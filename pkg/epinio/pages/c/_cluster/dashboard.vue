@@ -51,9 +51,6 @@ export default Vue.extend<any, any, any, any>({
         mongo: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: 'mongo-dev' }),
       };
     },
-    test() {
-      return { available: 100 };
-    },
     version() {
       const { displayVersion } = getVersionInfo(this.$store);
 
@@ -79,12 +76,12 @@ export default Vue.extend<any, any, any, any>({
 
       return allNamespaces.reduce((acc: any, namespace: any) => {
         acc[namespace.name] = {
-          apps:           namespace.apps?.length,
-          configurations: namespace.configurations?.length
+          apps:           namespace.apps?.length || 0,
+          configurations: namespace.configurations?.length || 0
         };
 
-        totalApps += namespace.apps?.length;
-        totalConfigurations += namespace.configurations?.length;
+        totalApps += namespace.apps?.length || 0;
+        totalConfigurations += namespace.configurations?.length || 0;
 
         return {
           ...acc, totalApps, totalConfigurations
@@ -142,11 +139,11 @@ export default Vue.extend<any, any, any, any>({
             <slot>
               <ul>
                 <li>
-                  Applications
+                  {{ t('epinio.intro.cards.applications.title') }}
                   <span>{{ namespaces.totalApps }}</span>
                 </li>
                 <li>
-                  Configurations
+                  {{ t('epinio.intro.cards.namespaces.configurations') }}
                   <span>{{ namespaces.totalConfigurations }}</span>
                 </li>
               </ul>
