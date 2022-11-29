@@ -7,7 +7,7 @@ export default {
   components: {
     Checkbox, LabeledInput, SecretSelector
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -39,10 +39,15 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.host" :mode="mode" :disabled="disabled" :label="t('logging.datadog.host')" />
+        <LabeledInput
+          v-model="value.host"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.datadog.host')"
+        />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>
@@ -60,7 +65,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.certificate') }}</h3>
@@ -68,12 +73,22 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <Checkbox v-model="value.use_ssl" :mode="mode" :disabled="disabled" :label="t('logging.datadog.useSSL')" />
+        <Checkbox
+          v-model="value.use_ssl"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.datadog.useSSL')"
+        />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <Checkbox v-model="value.use_compression" :mode="mode" :disabled="disabled" :label="t('logging.datadog.useCompression')" />
+        <Checkbox
+          v-model="value.use_compression"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.datadog.useCompression')"
+        />
       </div>
     </div>
   </div>

@@ -142,13 +142,23 @@ export default {
 
 <template>
   <div :class="{'force-wrap': true, 'with-copy':copy}">
-    <h5 v-if="labelKey" v-t="labelKey" />
+    <h5
+      v-if="labelKey"
+      v-t="labelKey"
+    />
     <h5 v-else-if="label">
       {{ label }}
     </h5>
 
-    <span v-if="isEmpty" v-t="'detailText.empty'" class="text-italic" />
-    <span v-else-if="isBinary" class="text-italic">{{ body }}</span>
+    <span
+      v-if="isEmpty"
+      v-t="'detailText.empty'"
+      class="text-italic"
+    />
+    <span
+      v-else-if="isBinary"
+      class="text-italic"
+    >{{ body }}</span>
 
     <CodeMirror
       v-else-if="jsonStr"
@@ -157,13 +167,25 @@ export default {
       :class="{'conceal': concealed}"
     />
 
-    <span v-else :class="{'conceal': concealed, 'monospace': monospace && !isBinary}" v-html="bodyHtml" />
+    <span
+      v-else
+      :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
+      v-html="bodyHtml"
+    />
 
     <template v-if="!isBinary && !jsonStr && isLong && !expanded">
-      <a href="#" @click.prevent="expand">{{ plusMore }}</a>
+      <a
+        href="#"
+        @click.prevent="expand"
+      >{{ plusMore }}</a>
     </template>
 
-    <CopyToClipboard v-if="copy && !isBinary" :text="value" class="role-tertiary" action-color="" />
+    <CopyToClipboard
+      v-if="copy && !isBinary"
+      :text="value"
+      class="role-tertiary"
+      action-color=""
+    />
   </div>
 </template>
 

@@ -149,8 +149,15 @@ export default {
 </script>
 
 <template>
-  <ResourceTabs v-model="value" :mode="mode">
-    <Tab name="pods" :label="t('servicesPage.pods.label')" :weight="4">
+  <ResourceTabs
+    v-model="value"
+    :mode="mode"
+  >
+    <Tab
+      name="pods"
+      :label="t('servicesPage.pods.label')"
+      :weight="4"
+    >
       <ResourceTable
         :rows="pods"
         :headers="podTableHeaders"

@@ -84,12 +84,12 @@ export default {
     resourceHeaders() {
       return [
         {
-          name:          'state',
-          value:         'state',
-          label:         'State',
-          sort:          'stateSort',
-          formatter:     'BadgeStateFormatter',
-          width:         100,
+          name:      'state',
+          value:     'state',
+          label:     'State',
+          sort:      'stateSort',
+          formatter: 'BadgeStateFormatter',
+          width:     100,
         },
         {
           name:  'cluster',

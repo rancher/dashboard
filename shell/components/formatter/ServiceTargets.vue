@@ -99,11 +99,23 @@ export default {
 
 <template>
   <div>
-    <div v-if="hasPublic" class="text-small">
-      <Endpoints v-model="parsed" :row="{}" :col="{}" />
+    <div
+      v-if="hasPublic"
+      class="text-small"
+    >
+      <Endpoints
+        v-model="parsed"
+        :row="{}"
+        :col="{}"
+      />
     </div>
-    <div v-for="(port, index) in parsed" v-else :key="index" class="text-small">
-      <span v-html="port.label"></span>
+    <div
+      v-for="(port, index) in parsed"
+      v-else
+      :key="index"
+      class="text-small"
+    >
+      <span v-html="port.label" />
     </div>
   </div>
 </template>

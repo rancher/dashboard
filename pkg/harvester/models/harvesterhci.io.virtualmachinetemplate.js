@@ -26,16 +26,16 @@ export default class HciVmTemplate extends HarvesterResource {
 
     return [
       {
-        action:     'createFromTemplate',
-        enabled:    canCreateVM,
-        icon:       'icon icon-spinner',
-        label:      this.t('harvester.action.createVM'),
+        action:  'createFromTemplate',
+        enabled: canCreateVM,
+        icon:    'icon icon-spinner',
+        label:   this.t('harvester.action.createVM'),
       },
       {
-        action:     'addVersion',
-        enabled:    this.canCreate,
-        icon:       'icon icon-fw icon-circle-plus',
-        label:      this.t('harvester.action.addTemplateVersion'),
+        action:  'addVersion',
+        enabled: this.canCreate,
+        icon:    'icon icon-fw icon-circle-plus',
+        label:   this.t('harvester.action.addTemplateVersion'),
       },
       ...out
     ];

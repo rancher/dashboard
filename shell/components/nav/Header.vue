@@ -49,7 +49,7 @@ export default {
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:         null
+      navHeaderRight:    null
     };
   },
 
@@ -107,6 +107,19 @@ export default {
 
     showUserMenu() {
       return !this.featureRancherDesktop;
+    },
+
+    showFilter() {
+      // Some products won't have a current cluster
+      const validClusterOrProduct = this.currentCluster ||
+                 (this.currentProduct && this.currentProduct.customNamespaceFilter) ||
+                 (this.currentProduct && this.currentProduct.showWorkspaceSwitcher);
+      // Don't show if the header is in 'simple' mode
+      const notSimple = !this.simple;
+      // One of these must be enabled, otherwise t here's no component to show
+      const validFilterSettings = this.currentProduct.showNamespaceFilter || this.currentProduct.showWorkspaceSwitcher;
+
+      return validClusterOrProduct && notSimple && validFilterSettings;
     },
 
     featureRancherDesktop() {
@@ -281,64 +294,125 @@ export default {
 </script>
 
 <template>
-  <header ref="header">
+  <header
+    ref="header"
+  >
     <div>
-      <TopLevelMenu v-if="isMultiCluster || !isSingleProduct"></TopLevelMenu>
+      <TopLevelMenu v-if="isMultiCluster || !isSingleProduct" />
     </div>
-    <div class="menu-spacer" :class="{'isSingleProduct': isSingleProduct }">
-      <n-link v-if="isSingleProduct" :to="singleProductLogoRoute">
+    <div
+      class="menu-spacer"
+      :class="{'isSingleProduct': isSingleProduct }"
+    >
+      <n-link
+        v-if="isSingleProduct"
+        :to="singleProductLogoRoute"
+      >
         <img
           class="side-menu-logo"
           :src="isSingleProduct.logo"
-        />
+        >
       </n-link>
     </div>
-    <div v-if="!simple" ref="product" class="product">
-      <div v-if="currentProduct && currentProduct.showClusterSwitcher" v-tooltip="nameTooltip" class="cluster cluster-clipped">
-        <div v-if="isSingleProduct" class="product-name">
+    <div
+      v-if="!simple"
+      ref="product"
+      class="product"
+    >
+      <div
+        v-if="currentProduct && currentProduct.showClusterSwitcher"
+        v-tooltip="nameTooltip"
+        class="cluster cluster-clipped"
+      >
+        <div
+          v-if="isSingleProduct"
+          class="product-name"
+        >
           {{ t(isSingleProduct.productNameKey) }}
         </div>
         <template v-else>
-          <ClusterProviderIcon v-if="currentCluster" :cluster="currentCluster" class="mr-10" />
-          <div v-if="currentCluster" ref="clusterName" class="cluster-name">
+          <ClusterProviderIcon
+            v-if="currentCluster"
+            :cluster="currentCluster"
+            class="mr-10"
+          />
+          <div
+            v-if="currentCluster"
+            ref="clusterName"
+            class="cluster-name"
+          >
             {{ currentCluster.spec.displayName }}
           </div>
-          <ClusterBadge v-if="currentCluster" :cluster="currentCluster" class="ml-10" />
-          <div v-if="!currentCluster" class="simple-title">
-            <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+          <ClusterBadge
+            v-if="currentCluster"
+            :cluster="currentCluster"
+            class="ml-10"
+          />
+          <div
+            v-if="!currentCluster"
+            class="simple-title"
+          >
+            <BrandImage
+              class="side-menu-logo-img"
+              file-name="rancher-logo.svg"
+            />
           </div>
         </template>
       </div>
-      <div v-if="currentProduct && !currentProduct.showClusterSwitcher" class="cluster">
-        <img v-if="currentProduct.iconHeader" v-bind="$attrs" :src="currentProduct.iconHeader" class="cluster-os-logo mr-10" style="width: 44px; height: 36px;" />
+      <div
+        v-if="currentProduct && !currentProduct.showClusterSwitcher"
+        class="cluster"
+      >
+        <img
+          v-if="currentProduct.iconHeader"
+          v-bind="$attrs"
+          :src="currentProduct.iconHeader"
+          class="cluster-os-logo mr-10"
+          style="width: 44px; height: 36px;"
+        >
         <div class="product-name">
           {{ prod }}
         </div>
       </div>
     </div>
-    <div v-else class="simple-title">
-      <div v-if="isSingleProduct" class="product-name">
+    <div
+      v-else
+      class="simple-title"
+    >
+      <div
+        v-if="isSingleProduct"
+        class="product-name"
+      >
         {{ t(isSingleProduct.productNameKey) }}
       </div>
 
-      <div v-else class="side-menu-logo">
-        <BrandImage class="side-menu-logo-img" file-name="rancher-logo.svg" />
+      <div
+        v-else
+        class="side-menu-logo"
+      >
+        <BrandImage
+          class="side-menu-logo-img"
+          file-name="rancher-logo.svg"
+        />
       </div>
     </div>
 
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div class="rd-header-right">
       <component :is="navHeaderRight" />
 
       <div
-        v-if="(currentCluster || (currentProduct && currentProduct.customNamespaceFilter)) && !simple && (currentProduct.showNamespaceFilter || currentProduct.showWorkspaceSwitcher)"
+        v-if="showFilter"
         class="top"
       >
         <NamespaceFilter v-if="clusterReady && currentProduct && (currentProduct.showNamespaceFilter || isExplorer)" />
         <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
       </div>
-      <div v-if="currentCluster && !simple" class="header-buttons">
+      <div
+        v-if="currentCluster && !simple"
+        class="header-buttons"
+      >
         <template v-if="currentProduct && currentProduct.showClusterSwitcher">
           <button
             v-if="showImportYaml"
@@ -357,7 +431,10 @@ export default {
             height="auto"
             styles="max-height: 90vh;"
           >
-            <Import :cluster="currentCluster" @close="closeImport" />
+            <Import
+              :cluster="currentCluster"
+              @close="closeImport"
+            />
           </modal>
 
           <button
@@ -392,8 +469,14 @@ export default {
             class="btn header-btn role-tertiary"
             @click="copyKubeConfig($event)"
           >
-            <i v-if="kubeConfigCopying" class="icon icon-checkmark icon-lg" />
-            <i v-else class="icon icon-copy icon-lg" />
+            <i
+              v-if="kubeConfigCopying"
+              class="icon icon-checkmark icon-lg"
+            />
+            <i
+              v-else
+              class="icon icon-copy icon-lg"
+            />
           </button>
         </template>
 
@@ -440,15 +523,28 @@ export default {
           :popper-options="{modifiers: { flip: { enabled: false } } }"
           :container="false"
         >
-          <template slot="popover" class="user-menu">
+          <template
+            slot="popover"
+            class="user-menu"
+          >
             <ul
               data-testid="page-actions-dropdown"
               class="list-unstyled dropdown"
               @click.stop="showPageActionsMenu(false)"
             >
-              <li v-for="a in pageActions" :key="a.label" class="user-menu-item">
-                <a v-if="!a.separator" @click="pageAction(a)">{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
-                <div v-else class="menu-separator">
+              <li
+                v-for="a in pageActions"
+                :key="a.label"
+                class="user-menu-item"
+              >
+                <a
+                  v-if="!a.separator"
+                  @click="pageAction(a)"
+                >{{ a.labelKey ? t(a.labelKey) : a.label }}</a>
+                <div
+                  v-else
+                  class="menu-separator"
+                >
                   <div class="menu-separator-line" />
                 </div>
               </li>
@@ -457,7 +553,7 @@ export default {
         </v-popover>
       </div>
 
-      <div class="header-spacer"></div>
+      <div class="header-spacer" />
       <div
         v-if="showUserMenu"
         class="user user-menu"
@@ -476,12 +572,30 @@ export default {
           :container="false"
         >
           <div class="user-image text-right hand">
-            <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="36" height="36" />
-            <i v-else class="icon icon-user icon-3x avatar" />
+            <img
+              v-if="principal && principal.avatarSrc"
+              :src="principal.avatarSrc"
+              :class="{'avatar-round': principal.roundAvatar}"
+              width="36"
+              height="36"
+            >
+            <i
+              v-else
+              class="icon icon-user icon-3x avatar"
+            />
           </div>
-          <template slot="popover" class="user-menu">
-            <ul class="list-unstyled dropdown" @click.stop="showMenu(false)">
-              <li v-if="authEnabled" class="user-info">
+          <template
+            slot="popover"
+            class="user-menu"
+          >
+            <ul
+              class="list-unstyled dropdown"
+              @click.stop="showMenu(false)"
+            >
+              <li
+                v-if="authEnabled"
+                class="user-info"
+              >
                 <div class="user-name">
                   <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
                 </div>
@@ -491,13 +605,28 @@ export default {
                   </template>
                 </div>
               </li>
-              <nuxt-link v-if="showPreferencesLink" tag="li" :to="{name: 'prefs'}" class="user-menu-item">
+              <nuxt-link
+                v-if="showPreferencesLink"
+                tag="li"
+                :to="{name: 'prefs'}"
+                class="user-menu-item"
+              >
                 <a>{{ t('nav.userMenu.preferences') }}</a>
               </nuxt-link>
-              <nuxt-link v-if="showAccountAndApiKeyLink" tag="li" :to="{name: 'account'}" class="user-menu-item">
+              <nuxt-link
+                v-if="showAccountAndApiKeyLink"
+                tag="li"
+                :to="{name: 'account'}"
+                class="user-menu-item"
+              >
                 <a>{{ t('nav.userMenu.accountAndKeys', {}, true) }}</a>
               </nuxt-link>
-              <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}" class="user-menu-item">
+              <nuxt-link
+                v-if="authEnabled"
+                tag="li"
+                :to="{name: 'auth-logout', query: { [LOGGED_OUT]: true }}"
+                class="user-menu-item"
+              >
                 <a @blur="showMenu(false)">{{ t('nav.userMenu.logOut') }}</a>
               </nuxt-link>
             </ul>

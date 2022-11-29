@@ -116,7 +116,7 @@ export default {
       allNodes:           null,
       allPods:            null,
       filtersYaml,
-      initialFiltersYaml:   filtersYaml,
+      initialFiltersYaml: filtersYaml,
       globalOutputRefs,
       localOutputRefs
     };
@@ -330,12 +330,33 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="value.type !== LOGGING.CLUSTER_FLOW" />
+    <NameNsDescription
+      v-if="!isView"
+      v-model="value"
+      :mode="mode"
+      :namespaced="value.type !== LOGGING.CLUSTER_FLOW"
+    />
 
-    <Tabbed :side-tabs="true" @changed="tabChanged($event)">
-      <Tab name="match" :label="t('logging.flow.matches.label')" :weight="3">
-        <Banner color="info" class="mt-0" label="Configure which container logs will be pulled from" />
-        <ArrayListGrouped v-model="matches" :add-label="t('ingress.rules.addRule')" :default-add-value="{}" :mode="mode">
+    <Tabbed
+      :side-tabs="true"
+      @changed="tabChanged($event)"
+    >
+      <Tab
+        name="match"
+        :label="t('logging.flow.matches.label')"
+        :weight="3"
+      >
+        <Banner
+          color="info"
+          class="mt-0"
+          label="Configure which container logs will be pulled from"
+        />
+        <ArrayListGrouped
+          v-model="matches"
+          :add-label="t('ingress.rules.addRule')"
+          :default-add-value="{}"
+          :mode="mode"
+        >
           <template #default="props">
             <Match
               class="rule mb-20"
@@ -348,18 +369,34 @@ export default {
             />
           </template>
           <template #add>
-            <button class="btn role-tertiary add" type="button" @click="addMatch(true)">
+            <button
+              class="btn role-tertiary add"
+              type="button"
+              @click="addMatch(true)"
+            >
               {{ t('logging.flow.matches.addSelect') }}
             </button>
-            <button class="btn role-tertiary add" type="button" @click="addMatch(false)">
+            <button
+              class="btn role-tertiary add"
+              type="button"
+              @click="addMatch(false)"
+            >
               {{ t('logging.flow.matches.addExclude') }}
             </button>
           </template>
         </ArrayListGrouped>
       </Tab>
 
-      <Tab name="outputs" :label="t('logging.flow.outputs.label')" :weight="2">
-        <Banner v-if="value.type !== LOGGING.CLUSTER_FLOW" label="Output must reside in same namespace as the flow." color="info" />
+      <Tab
+        name="outputs"
+        :label="t('logging.flow.outputs.label')"
+        :weight="2"
+      >
+        <Banner
+          v-if="value.type !== LOGGING.CLUSTER_FLOW"
+          label="Output must reside in same namespace as the flow."
+          color="info"
+        />
         <LabeledSelect
           v-model="globalOutputRefs"
           :label="t('logging.flow.clusterOutputs.label')"
@@ -371,7 +408,11 @@ export default {
           :reduce="opt=>opt.value"
         >
           <template #selected-option="option">
-            <i v-if="isTag(clusterOutputChoices, option)" v-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
+            <i
+              v-if="isTag(clusterOutputChoices, option)"
+              v-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')"
+              class="icon icon-info status-icon text-warning"
+            />
             {{ option.label }}
           </template>
         </LabeledSelect>
@@ -388,13 +429,21 @@ export default {
           :reduce="opt=>opt.value"
         >
           <template #selected-option="option">
-            <i v-if="isTag(outputChoices, option)" v-tooltip="t('logging.flow.outputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
+            <i
+              v-if="isTag(outputChoices, option)"
+              v-tooltip="t('logging.flow.outputs.doesntExistTooltip')"
+              class="icon icon-info status-icon text-warning"
+            />
             {{ option.label }}
           </template>
         </LabeledSelect>
       </Tab>
 
-      <Tab name="filters" :label="t('logging.flow.filters.label')" :weight="1">
+      <Tab
+        name="filters"
+        :label="t('logging.flow.filters.label')"
+        :weight="1"
+      >
         <YamlEditor
           ref="yaml"
           v-model="filtersYaml"
@@ -406,7 +455,11 @@ export default {
       </Tab>
     </Tabbed>
   </CruResource>
-  <Banner v-else label="This resource contains a match configuration that the form editor does not support.  Please use YAML edit." color="error" />
+  <Banner
+    v-else
+    label="This resource contains a match configuration that the form editor does not support.  Please use YAML edit."
+    color="error"
+  />
 </template>
 
 <style lang="scss" scoped>

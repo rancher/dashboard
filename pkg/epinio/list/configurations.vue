@@ -14,7 +14,7 @@ export default {
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
     await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
   },
-  props:      {
+  props: {
     schema: {
       type:     Object,
       required: true,
@@ -39,17 +39,35 @@ export default {
       v-on="$listeners"
     >
       <template #cell:service="{ row }">
-        <LinkDetail v-if="row.service" :key="row.service.id" :row="row.service" :value="row.service.meta.name" />
-        <span v-else class="text-muted">&nbsp;</span>
+        <LinkDetail
+          v-if="row.service"
+          :key="row.service.id"
+          :row="row.service"
+          :value="row.service.meta.name"
+        />
+        <span
+          v-else
+          class="text-muted"
+        >&nbsp;</span>
       </template>
       <template #cell:boundApps="{ row }">
         <span v-if="row.applications.length">
           <template v-for="(app, index) in row.applications">
-            <LinkDetail :key="app.id" :row="app" :value="app.meta.name" />
-            <span v-if="index < row.applications.length - 1" :key="app.id + 'i'">, </span>
+            <LinkDetail
+              :key="app.id"
+              :row="app"
+              :value="app.meta.name"
+            />
+            <span
+              v-if="index < row.applications.length - 1"
+              :key="app.id + 'i'"
+            >, </span>
           </template>
         </span>
-        <span v-else class="text-muted">&nbsp;</span>
+        <span
+          v-else
+          class="text-muted"
+        >&nbsp;</span>
       </template>
     </ResourceTable>
   </div>

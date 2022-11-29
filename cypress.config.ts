@@ -24,12 +24,13 @@ const getSpecPattern = (): string[] => {
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
 
 export default defineConfig({
-  projectId:              process.env.TEST_PROJECT_ID,
-  defaultCommandTimeout:  60000,
-  trashAssetsBeforeRuns:  true,
-  env:                    {
+  projectId:             process.env.TEST_PROJECT_ID,
+  defaultCommandTimeout: 60000,
+  trashAssetsBeforeRuns: true,
+  retries:               2,
+  env:                   {
     baseUrl,
-    coverage:             false,
+    coverage:     false,
     codeCoverage: {
       exclude: [
         'cypress/**/*.*',
@@ -41,11 +42,11 @@ export default defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
-    username:             process.env.TEST_USERNAME,
-    password:             process.env.TEST_PASSWORD,
-    bootstrapPassword:    process.env.CATTLE_BOOTSTRAP_PASSWORD,
+    username:          process.env.TEST_USERNAME,
+    password:          process.env.TEST_PASSWORD,
+    bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
   },
-  e2e:                   {
+  e2e: {
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);

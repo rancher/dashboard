@@ -73,8 +73,8 @@ export default {
       const realSetting = SETTINGS[setting]?.alias || setting;
       const s = {
         ...SETTINGS[setting],
-        id:          realSetting,
-        data:        settingsMap[setting],
+        id:   realSetting,
+        data: settingsMap[setting],
       };
 
       s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline' || s.customFormatter === 'json');

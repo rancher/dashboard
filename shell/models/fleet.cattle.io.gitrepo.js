@@ -39,27 +39,27 @@ export default class GitRepo extends SteveModel {
     const out = super._availableActions;
 
     insertAt(out, 0, {
-      action:     'pause',
-      label:      'Pause',
-      icon:       'icon icon-pause',
-      bulkable:    true,
-      enabled:    !!this.links.update && !this.spec?.paused
+      action:   'pause',
+      label:    'Pause',
+      icon:     'icon icon-pause',
+      bulkable: true,
+      enabled:  !!this.links.update && !this.spec?.paused
     });
 
     insertAt(out, 1, {
-      action:     'unpause',
-      label:      'Unpause',
-      icon:       'icon icon-play',
-      bulkable:    true,
-      enabled:    !!this.links.update && this.spec?.paused === true
+      action:   'unpause',
+      label:    'Unpause',
+      icon:     'icon icon-play',
+      bulkable: true,
+      enabled:  !!this.links.update && this.spec?.paused === true
     });
 
     insertAt(out, 2, {
-      action:     'forceUpdate',
-      label:      'Force Update',
-      icon:       'icon icon-refresh',
-      bulkable:    true,
-      enabled:    !!this.links.update
+      action:   'forceUpdate',
+      label:    'Force Update',
+      icon:     'icon icon-refresh',
+      bulkable: true,
+      enabled:  !!this.links.update
     });
 
     insertAt(out, 3, { divider: true });

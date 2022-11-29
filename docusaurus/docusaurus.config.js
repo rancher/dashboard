@@ -58,14 +58,14 @@ const config = {
         items: [
           {
             type:     'doc',
-            docId:    'getting-started/concepts',
+            docId:    'home',
             position: 'right',
             label:    'Docs',
           },
           {
-            href:         'https://rancher.github.io/storybook/',
-            position:     'right',
-            label:        'Components & Design kit',
+            href:     'https://rancher.github.io/storybook/',
+            position: 'right',
+            label:    'Components & Design kit',
           },
         ],
       },

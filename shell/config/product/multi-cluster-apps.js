@@ -21,36 +21,36 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:       'legacy.catalogs',
-    name:           'mc-catalogs',
-    group:          'Root',
-    namespaced:     false,
-    weight:         111,
-    icon:           'folder',
-    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'catalogs' } },
-    exact:          true
+    labelKey:   'legacy.catalogs',
+    name:       'mc-catalogs',
+    group:      'Root',
+    namespaced: false,
+    weight:     111,
+    icon:       'folder',
+    route:      { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'catalogs' } },
+    exact:      true
   });
 
   virtualType({
-    labelKey:       'legacy.globalDnsEntries',
-    name:           'global-dns-entries',
-    group:          'Root',
-    namespaced:     false,
-    weight:         110,
-    icon:           'folder',
-    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'global-dns-entries' } },
-    exact:          true
+    labelKey:   'legacy.globalDnsEntries',
+    name:       'global-dns-entries',
+    group:      'Root',
+    namespaced: false,
+    weight:     110,
+    icon:       'folder',
+    route:      { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'global-dns-entries' } },
+    exact:      true
   });
 
   virtualType({
-    labelKey:       'legacy.globalDnsProviders',
-    name:           'global-dns-providers',
-    group:          'Root',
-    namespaced:     false,
-    weight:         109,
-    icon:           'folder',
-    route:          { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'global-dns-providers' } },
-    exact:          true
+    labelKey:   'legacy.globalDnsProviders',
+    name:       'global-dns-providers',
+    group:      'Root',
+    namespaced: false,
+    weight:     109,
+    icon:       'folder',
+    route:      { name: 'c-cluster-mcapps-pages-page', params: { cluster: 'local', page: 'global-dns-providers' } },
+    exact:      true
   });
 
   basicType([

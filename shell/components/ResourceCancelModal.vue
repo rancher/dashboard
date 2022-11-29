@@ -1,12 +1,12 @@
 <script>
 export default {
-  props:      {
+  props: {
     isCancelModal: {
-      type:     Boolean,
+      type:    Boolean,
       default: false
     },
     isForm: {
-      type:     Boolean,
+      type:    Boolean,
       default: false
     },
   },
@@ -40,10 +40,18 @@ export default {
 </script>
 
 <template>
-  <modal class="confirm-modal" name="cancel-modal" :width="440" height="auto">
+  <modal
+    class="confirm-modal"
+    name="cancel-modal"
+    :width="440"
+    height="auto"
+  >
     <div class="header">
       <h4 class="text-default-text">
-        <t v-if="isCancelModal" k="generic.cancel" />
+        <t
+          v-if="isCancelModal"
+          k="generic.cancel"
+        />
         <span v-else>{{ t("cruResource.backToForm") }}</span>
       </h4>
     </div>
@@ -63,7 +71,11 @@ export default {
       >
         {{ isForm ? t("cruResource.reviewForm") : t("cruResource.reviewYaml") }}
       </button>
-      <button type="button" class="btn role-primary" @click="confirmCancel">
+      <button
+        type="button"
+        class="btn role-primary"
+        @click="confirmCancel"
+      >
         <span v-if="isCancelModal">{{ t("cruResource.confirmCancel") }}</span>
         <span v-else>{{ t("cruResource.confirmBack") }}</span>
       </button>

@@ -9,7 +9,7 @@ export default {
     LabeledSelect,
   },
 
-  props:  {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {
@@ -84,15 +84,30 @@ export default {
     <div>
       <div class="row mb-10">
         <div class="col span-6">
-          <LabeledInput v-model="value.name" :required="true" :mode="mode" :label="t('workload.storage.volumeName')" />
+          <LabeledInput
+            v-model="value.name"
+            :required="true"
+            :mode="mode"
+            :label="t('workload.storage.volumeName')"
+          />
         </div>
       </div>
       <div class="row mb-10">
         <div class="col span-6">
-          <LabeledInput v-model="value.hostPath.path" :required="true" :mode="mode" :label="t('workload.storage.nodePath')" />
+          <LabeledInput
+            v-model="value.hostPath.path"
+            :required="true"
+            :mode="mode"
+            :label="t('workload.storage.nodePath')"
+          />
         </div>
         <div class="col span-6">
-          <LabeledSelect v-model="value.hostPath.type" :mode="mode" :options="typeOpts" :label="t('workload.storage.hostPath.label')" />
+          <LabeledSelect
+            v-model="value.hostPath.type"
+            :mode="mode"
+            :options="typeOpts"
+            :label="t('workload.storage.hostPath.label')"
+          />
         </div>
       </div>
     </div>

@@ -6,11 +6,11 @@ import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
 export default class HarvesterNetworkAttachmentDef extends NetworkAttachmentDef {
   get listLocation() {
     return this.$rootGetters['type-map/optionsFor'](this.type).customRoute || {
-      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource`,
-      params:   {
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource`,
+      params: {
         product:  HARVESTER_PRODUCT,
-        cluster:   this.$rootGetters['clusterId'],
-        resource:  this.type,
+        cluster:  this.$rootGetters['clusterId'],
+        resource: this.type,
       },
     };
   }

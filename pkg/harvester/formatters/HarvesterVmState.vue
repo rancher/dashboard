@@ -6,7 +6,7 @@ export default {
   components: { VMState, HarvesterMigrationState },
   props:      {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
 
@@ -16,14 +16,14 @@ export default {
     },
 
     allNodeNetwork: {
-      type:     Array,
+      type:    Array,
       default: () => {
         return [];
       }
     },
 
     allClusterNetwork: {
-      type:     Array,
+      type:    Array,
       default: () => {
         return [];
       }

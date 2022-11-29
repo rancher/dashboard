@@ -30,13 +30,13 @@ export function init(store) {
   });
 
   virtualType({
-    ifHaveType:     MANAGEMENT.SETTING,
-    labelKey:       'advancedSettings.label',
-    name:           'settings',
-    namespaced:     false,
-    weight:         100,
-    icon:           'folder',
-    route:          {
+    ifHaveType: MANAGEMENT.SETTING,
+    labelKey:   'advancedSettings.label',
+    name:       'settings',
+    namespaced: false,
+    weight:     100,
+    icon:       'folder',
+    route:      {
       name:   'c-cluster-product-resource',
       params: {
         product:  NAME,
@@ -46,13 +46,13 @@ export function init(store) {
   });
 
   virtualType({
-    ifHaveType:     MANAGEMENT.FEATURE,
-    labelKey:       'featureFlags.label',
-    name:           'features',
-    namespaced:     false,
-    weight:         99,
-    icon:           'folder',
-    route:          {
+    ifHaveType: MANAGEMENT.FEATURE,
+    labelKey:   'featureFlags.label',
+    name:       'features',
+    namespaced: false,
+    weight:     99,
+    icon:       'folder',
+    route:      {
       name:   'c-cluster-product-resource',
       params: {
         product:  NAME,
@@ -62,43 +62,43 @@ export function init(store) {
   });
 
   virtualType({
-    ifHaveType:     MANAGEMENT.SETTING,
-    labelKey:       'branding.label',
-    name:           'brand',
-    namespaced:     false,
-    weight:         98,
-    icon:           'folder',
-    route:          { name: 'c-cluster-settings-brand' }
+    ifHaveType: MANAGEMENT.SETTING,
+    labelKey:   'branding.label',
+    name:       'brand',
+    namespaced: false,
+    weight:     98,
+    icon:       'folder',
+    route:      { name: 'c-cluster-settings-brand' }
   });
 
   virtualType({
-    ifHaveType:     MANAGEMENT.SETTING,
-    labelKey:       'banner.settingName',
-    name:           'banners',
-    namespaced:     false,
-    weight:         98,
-    icon:           'folder',
-    route:          { name: 'c-cluster-settings-banners' }
+    ifHaveType: MANAGEMENT.SETTING,
+    labelKey:   'banner.settingName',
+    name:       'banners',
+    namespaced: false,
+    weight:     98,
+    icon:       'folder',
+    route:      { name: 'c-cluster-settings-banners' }
   });
 
   virtualType({
-    ifHaveType:     MANAGEMENT.SETTING,
-    labelKey:       'performance.settingName',
-    name:           'performance',
-    namespaced:     false,
-    weight:         97,
-    icon:           'folder',
-    route:          { name: 'c-cluster-settings-performance' }
+    ifHaveType: MANAGEMENT.SETTING,
+    labelKey:   'performance.settingName',
+    name:       'performance',
+    namespaced: false,
+    weight:     97,
+    icon:       'folder',
+    route:      { name: 'c-cluster-settings-performance' }
   });
 
   virtualType({
-    ifHaveType:     MANAGEMENT.SETTING,
-    labelKey:       'customLinks.label',
-    name:           'links',
-    namespaced:     false,
-    weight:         96,
-    icon:           'folder',
-    route:          { name: 'c-cluster-settings-links' }
+    ifHaveType: MANAGEMENT.SETTING,
+    labelKey:   'customLinks.label',
+    name:       'links',
+    namespaced: false,
+    weight:     96,
+    icon:       'folder',
+    route:      { name: 'c-cluster-settings-links' }
   });
 
   basicType([

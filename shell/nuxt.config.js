@@ -10,6 +10,36 @@ import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
 
 const createProxyMiddleware = require('http-proxy-middleware');
 
+// Global variables
+let api = process.env.API || 'http://localhost:8989';
+
+if ( !api.startsWith('http') ) {
+  api = `https://${ api }`;
+}
+
+// needed for proxies
+export const API_PATH = api;
+
+const dev = (process.env.NODE_ENV !== 'production');
+const devPorts = dev || process.env.DEV_PORTS === 'true';
+const version = process.env.VERSION ||
+  process.env.DRONE_TAG ||
+  process.env.DRONE_VERSION ||
+  require('./package.json').version;
+
+const prime = process.env.PRIME;
+
+const pl = process.env.PL || STANDARD;
+const commit = process.env.COMMIT || 'head';
+const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
+
+// Allow skipping of eslint check
+// 0 = Skip browser and console checks
+// 1 = Skip browser check
+// 2 = Do not skip any checks
+const skipEsLintCheckStr = (process.env.SKIP_ESLINT || '');
+let skipEsLintCheck = parseInt(skipEsLintCheckStr, 10) || 2;
+
 // ===============================================================================================
 // Nuxt configuration
 // ===============================================================================================
@@ -25,6 +55,21 @@ export default function(dir, _appConfig) {
   let COMPONENTS_DIR = path.join(SHELL_ABS, 'rancher-components');
   let typescript = {};
 
+  if (fs.existsSync(SHELL_ABS)) {
+    const stat = fs.lstatSync(SHELL_ABS);
+
+    // If @rancher/shell is a symlink, then use the components folder for it
+    if (stat.isSymbolicLink()) {
+      const REAL_SHELL_ABS = fs.realpathSync(SHELL_ABS); // In case the shell is being linked via 'yarn link'
+
+      COMPONENTS_DIR = path.join(REAL_SHELL_ABS, '..', 'pkg', 'rancher-components', 'src', 'components');
+
+      // For now, skip eslint check when being linked via yarn link - pkg folder is linked otherwise
+      // This will change when we remove nuxt
+      skipEsLintCheck = true;
+    }
+  }
+
   // If we have a local folder named 'shell' then use that rather than the one in node_modules
   // This will be the case in the main dashboard repository.
   if (fs.existsSync(path.join(dir, 'shell'))) {
@@ -33,7 +78,10 @@ export default function(dir, _appConfig) {
     NUXT_SHELL = '~~/shell';
     COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
 
-    typescript = { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } };
+    // Skip eslint check that runs as part of nuxt build in the console
+    if (skipEsLintCheck > 0) {
+      typescript = { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } };
+    }
   }
 
   // ===============================================================================================
@@ -195,25 +243,6 @@ export default function(dir, _appConfig) {
   require('events').EventEmitter.defaultMaxListeners = 20;
   require('dotenv').config();
 
-  const version = process.env.VERSION ||
-    process.env.DRONE_TAG ||
-    process.env.DRONE_VERSION ||
-    require('./package.json').version;
-
-  const prime = process.env.PRIME;
-
-  const dev = (process.env.NODE_ENV !== 'production');
-  const devPorts = dev || process.env.DEV_PORTS === 'true';
-  const pl = process.env.PL || STANDARD;
-  const commit = process.env.COMMIT || 'head';
-  const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
-
-  let api = process.env.API || 'http://localhost:8989';
-
-  if ( !api.startsWith('http') ) {
-    api = `https://${ api }`;
-  }
-
   let routerBasePath = '/';
   let resourceBase = '';
   let outputDir = 'dist';
@@ -259,6 +288,22 @@ export default function(dir, _appConfig) {
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
 
+  // Nuxt modules
+  let nuxtModules = [
+    '@nuxtjs/proxy',
+    '@nuxtjs/axios',
+    '@nuxtjs/eslint-module',
+    '@nuxtjs/webpack-profile',
+    'cookie-universal-nuxt',
+    'portal-vue/nuxt',
+    path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
+  ];
+
+  // Remove es-lint nuxt module if env var configures this
+  if (skipEsLintCheck < 2) {
+    nuxtModules = nuxtModules.filter(s => !s.includes('eslint-module'));
+  }
+
   const config = {
     dev,
 
@@ -299,9 +344,9 @@ export default function(dir, _appConfig) {
 
     // Axios: https://axios.nuxtjs.org/options
     axios: {
-      https:          true,
-      proxy:          true,
-      retry:          { retries: 0 },
+      https: true,
+      proxy: true,
+      retry: { retries: 0 },
       // debug:   true
     },
 
@@ -331,12 +376,12 @@ export default function(dir, _appConfig) {
     ],
 
     dir: {
-      assets:     path.join(SHELL, 'assets'),
-      layouts:    path.join(SHELL, 'layouts'),
-      middleware: path.join(SHELL, 'middleware'),
-      pages:      path.join(SHELL, 'pages'),
-      static:     path.join(SHELL, 'static'),
-      store:      path.join(SHELL, 'store'),
+      assets:     path.posix.join(SHELL, 'assets'),
+      layouts:    path.posix.join(SHELL, 'layouts'),
+      middleware: path.posix.join(SHELL, 'middleware'),
+      pages:      path.posix.join(SHELL, 'pages'),
+      static:     path.posix.join(SHELL, 'static'),
+      store:      path.posix.join(SHELL, 'store'),
     },
 
     watchers: { webpack: { ignore: watcherIgnores } },
@@ -431,7 +476,7 @@ export default function(dir, _appConfig) {
 
         // And substitute our own loader for images
         config.module.rules.unshift({
-          test:    /\.(png|jpe?g|gif|svg|webp)$/,
+          test: /\.(png|jpe?g|gif|svg|webp)$/,
           use:  [
             {
               loader:  'url-loader',
@@ -471,7 +516,7 @@ export default function(dir, _appConfig) {
 
         // Prevent warning in log with the md files in the content folder
         config.module.rules.push({
-          test:    /\.md$/,
+          test: /\.md$/,
           use:  [
             {
               loader:  'frontmatter-markdown-loader',
@@ -490,9 +535,9 @@ export default function(dir, _appConfig) {
               require.resolve('@nuxt/babel-preset-app'),
               {
                 // buildTarget: isServer ? 'server' : 'client',
-                corejs:      { version: 3 },
-                targets:     isServer ? { node: '12' } : { browsers: ['last 2 versions'] },
-                modern:      !isServer
+                corejs:  { version: 3 },
+                targets: isServer ? { node: '12' } : { browsers: ['last 2 versions'] },
+                modern:  !isServer
               }
             ],
             '@babel/preset-typescript',
@@ -546,15 +591,7 @@ export default function(dir, _appConfig) {
     },
 
     // Nuxt modules
-    modules: [
-      '@nuxtjs/proxy',
-      '@nuxtjs/axios',
-      '@nuxtjs/eslint-module',
-      '@nuxtjs/webpack-profile',
-      'cookie-universal-nuxt',
-      'portal-vue/nuxt',
-      path.join(NUXT_SHELL, 'plugins/dashboard-store/rehydrate-all'),
-    ],
+    modules: nuxtModules,
 
     // Vue plugins
     plugins: [
@@ -596,6 +633,7 @@ export default function(dir, _appConfig) {
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options
     proxy: {
+      ...appConfig.proxies,
       '/k8s':            proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
       '/pp':             proxyWsOpts(api), // For (epinio) standalone API
       '/api':            proxyWsOpts(api), // Management k8s API
@@ -624,8 +662,8 @@ export default function(dir, _appConfig) {
         key:  fs.readFileSync(path.resolve(dir, SHELL, 'server/server.key')),
         cert: fs.readFileSync(path.resolve(dir, SHELL, 'server/server.crt'))
       } : null),
-      port:      (devPorts ? 8005 : 80),
-      host:      '0.0.0.0',
+      port: (devPorts ? 8005 : 80),
+      host: '0.0.0.0',
     },
 
     // Server middleware
@@ -646,114 +684,114 @@ export default function(dir, _appConfig) {
   };
 
   return config;
+}
 
-  // ===============================================================================================
-  // Functions for the request proxying used in dev
-  // ===============================================================================================
+// ===============================================================================================
+// Functions for the request proxying used in dev
+// ===============================================================================================
 
-  function proxyMetaOpts(target) {
-    return {
-      target,
-      followRedirects: true,
-      secure:          !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-      onProxyRes,
-    };
-  }
+export function proxyMetaOpts(target) {
+  return {
+    target,
+    followRedirects: true,
+    secure:          !dev,
+    onProxyReq,
+    onProxyReqWs,
+    onError,
+    onProxyRes,
+  };
+}
 
-  function proxyOpts(target) {
-    return {
-      target,
-      secure: !devPorts,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-      onProxyRes,
-    };
-  }
+export function proxyOpts(target) {
+  return {
+    target,
+    secure: !devPorts,
+    onProxyReq,
+    onProxyReqWs,
+    onError,
+    onProxyRes,
+  };
+}
 
-  // Intercept the /rancherversion API call wnad modify the 'RancherPrime' value
-  // if configured to do so by the environment variable PRIME
-  function proxyPrimeOpts(target) {
-    const opts = proxyOpts(target);
+// Intercept the /rancherversion API call wnad modify the 'RancherPrime' value
+// if configured to do so by the environment variable PRIME
+export function proxyPrimeOpts(target) {
+  const opts = proxyOpts(target);
 
-    // Don't intercept if the PRIME environment variable is not set
-    if (!prime?.length) {
-      return opts;
-    }
-
-    opts.onProxyRes = (proxyRes, req, res) => {
-      const _end = res.end;
-      let body = '';
-
-      proxyRes.on( 'data', (data) => {
-        data = data.toString('utf-8');
-        body += data;
-      });
-
-      res.write = () => {};
-
-      res.end = () => {
-        let output = body;
-
-        try {
-          const out = JSON.parse(body);
-
-          out.RancherPrime = prime;
-          output = JSON.stringify(out);
-        } catch (err) {}
-
-        res.setHeader('content-length', output.length );
-        res.setHeader('content-type', 'application/json' );
-        res.setHeader('transfer-encoding', '');
-        res.setHeader('cache-control', 'no-cache');
-        res.writeHead(proxyRes.statusCode);
-        _end.apply(res, [output]);
-      };
-    };
-
+  // Don't intercept if the PRIME environment variable is not set
+  if (!prime?.length) {
     return opts;
   }
 
-  function onProxyRes(proxyRes, req, res) {
-    if (devPorts) {
-      proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
-    }
-  }
+  opts.onProxyRes = (proxyRes, req, res) => {
+    const _end = res.end;
+    let body = '';
 
-  function proxyWsOpts(target) {
-    return {
-      ...proxyOpts(target),
-      ws:           true,
-      changeOrigin: true,
+    proxyRes.on( 'data', (data) => {
+      data = data.toString('utf-8');
+      body += data;
+    });
+
+    res.write = () => {};
+
+    res.end = () => {
+      let output = body;
+
+      try {
+        const out = JSON.parse(body);
+
+        out.RancherPrime = prime;
+        output = JSON.stringify(out);
+      } catch (err) {}
+
+      res.setHeader('content-length', output.length );
+      res.setHeader('content-type', 'application/json' );
+      res.setHeader('transfer-encoding', '');
+      res.setHeader('cache-control', 'no-cache');
+      res.writeHead(proxyRes.statusCode);
+      _end.apply(res, [output]);
     };
-  }
+  };
 
-  function onProxyReq(proxyReq, req) {
-    if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
-      proxyReq.setHeader('x-api-host', req.headers['host']);
-      proxyReq.setHeader('x-forwarded-proto', 'https');
-      // console.log(proxyReq.getHeaders());
-    }
-  }
+  return opts;
+}
 
-  function onProxyReqWs(proxyReq, req, socket, options, head) {
-    req.headers.origin = options.target.href;
-    proxyReq.setHeader('origin', options.target.href);
+export function onProxyRes(proxyRes, req, res) {
+  if (devPorts) {
+    proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
+  }
+}
+
+export function proxyWsOpts(target) {
+  return {
+    ...proxyOpts(target),
+    ws:           true,
+    changeOrigin: true,
+  };
+}
+
+export function onProxyReq(proxyReq, req) {
+  if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
     proxyReq.setHeader('x-api-host', req.headers['host']);
     proxyReq.setHeader('x-forwarded-proto', 'https');
     // console.log(proxyReq.getHeaders());
-
-    socket.on('error', (err) => {
-      console.error('Proxy WS Error:', err); // eslint-disable-line no-console
-    });
   }
+}
 
-  function onError(err, req, res) {
-    res.statusCode = 598;
-    console.error('Proxy Error:', err); // eslint-disable-line no-console
-    res.write(JSON.stringify(err));
-  }
+export function onProxyReqWs(proxyReq, req, socket, options, head) {
+  req.headers.origin = options.target.href;
+  proxyReq.setHeader('origin', options.target.href);
+  proxyReq.setHeader('x-api-host', req.headers['host']);
+  proxyReq.setHeader('x-forwarded-proto', 'https');
+  // console.log(proxyReq.getHeaders());
+
+  socket.on('error', (err) => {
+    console.error('Proxy WS Error:', err); // eslint-disable-line no-console
+  });
+}
+
+export function onError(err, req, res) {
+  res.statusCode = 598;
+  console.error('Proxy Error:', err); // eslint-disable-line no-console
+  res.write(JSON.stringify(err));
 }

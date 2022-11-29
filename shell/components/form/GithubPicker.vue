@@ -17,7 +17,7 @@ export default {
 
   props: {
     selection: {
-      type:     Object,
+      type:    Object,
       default: null
     }
   },
@@ -26,7 +26,7 @@ export default {
       {
         name:  'index',
         label: this.t('githubPicker.tableHeaders.choose.label'),
-        width:         60,
+        width: 60,
       }, {
         name:          'sha',
         label:         this.t('githubPicker.tableHeaders.sha.label'),
@@ -36,11 +36,11 @@ export default {
         value:         'sha'
       },
       {
-        name:      'author',
-        label:     this.t('githubPicker.tableHeaders.author.label'),
-        width:        190,
-        value:     'author.login',
-        sort:     'author.login',
+        name:  'author',
+        label: this.t('githubPicker.tableHeaders.author.label'),
+        width: 190,
+        value: 'author.login',
+        sort:  'author.login',
       },
       {
         name:  'message',
@@ -50,7 +50,7 @@ export default {
       },
       {
         name:        'date',
-        width:        220,
+        width:       220,
         label:       this.t('githubPicker.tableHeaders.date.label'),
         value:       'date',
         sort:        'date:desc',
@@ -66,9 +66,9 @@ export default {
       loadingCommits:     true,
 
       hasError: {
-        repo:     false,
-        branch:   false,
-        commits:  false,
+        repo:    false,
+        branch:  false,
+        commits: false,
         message: null,
       },
       showSelections: false,
@@ -110,7 +110,7 @@ export default {
       return this.prepareArray(this.commits, true);
     },
   },
-  methods:  {
+  methods: {
     reset() {
       this.selectedRepo = null;
       this.selectedBranch = null;
@@ -346,7 +346,10 @@ export default {
         />
       </div>
 
-      <div v-if="repos.length && !hasError.repo" class="spacer">
+      <div
+        v-if="repos.length && !hasError.repo"
+        class="spacer"
+      >
         <LabeledSelect
           v-model="selectedRepo"
           :required="true"
@@ -362,7 +365,10 @@ export default {
         />
       </div>
       <!-- Deals with Branches  -->
-      <div v-if="selectedRepo" class="spacer">
+      <div
+        v-if="selectedRepo"
+        class="spacer"
+      >
         <LabeledSelect
           v-model="selectedBranch"
           :required="true"
@@ -377,7 +383,10 @@ export default {
         />
       </div>
       <!-- Deals with Commits, display & allow to pick from it  -->
-      <div v-if="selectedBranch && commits.length" class="commits-table mt-20">
+      <div
+        v-if="selectedBranch && commits.length"
+        class="commits-table mt-20"
+      >
         <SortableTable
           :rows="preparedCommits"
           :headers="commitsTableHeaders"
@@ -390,14 +399,25 @@ export default {
           :rows-per-page="10"
         >
           <template #cell:index="{row}">
-            <RadioButton :value="selectedCommit.sha" :val="row.commitId" @input="final($event, row.commitId)" />
+            <RadioButton
+              :value="selectedCommit.sha"
+              :val="row.commitId"
+              @input="final($event, row.commitId)"
+            />
           </template>
 
           <template #cell:author="{row}">
             <div class="sortable-table-avatar">
               <template v-if="row.author">
-                <img :src="row.author.avatar_url" alt="" />
-                <a :href="row.author.html_url" target="_blank" rel="nofollow noopener noreferrer">
+                <img
+                  :src="row.author.avatar_url"
+                  alt=""
+                >
+                <a
+                  :href="row.author.html_url"
+                  target="_blank"
+                  rel="nofollow noopener noreferrer"
+                >
                   {{ row.author.login }}
                 </a>
               </template>

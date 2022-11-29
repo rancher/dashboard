@@ -28,7 +28,7 @@ export default Vue.extend({
     },
 
     /**
-     * If options are just values, then labels can be a corresponding display 
+     * If options are just values, then labels can be a corresponding display
      * value.
      */
     labels: {
@@ -169,15 +169,29 @@ export default Vue.extend({
 
 <template>
   <div>
-    <div v-if="label || labelKey || tooltip || tooltipKey || $slots.label" class="radio-group label">
+    <div
+      v-if="label || labelKey || tooltip || tooltipKey || $slots.label"
+      class="radio-group label"
+    >
       <slot name="label">
         <h3>
-          <t v-if="labelKey" :k="labelKey" />
+          <t
+            v-if="labelKey"
+            :k="labelKey"
+          />
           <template v-else-if="label">
             {{ label }}
           </template>
-          <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="icon icon-info icon-lg" />
-          <i v-else-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
+          <i
+            v-if="tooltipKey"
+            v-tooltip="t(tooltipKey)"
+            class="icon icon-info icon-lg"
+          />
+          <i
+            v-else-if="tooltip"
+            v-tooltip="tooltip"
+            class="icon icon-info icon-lg"
+          />
         </h3>
       </slot>
     </div>
@@ -192,7 +206,11 @@ export default Vue.extend({
         v-for="(option, i) in normalizedOptions"
         :key="name+'-'+i"
       >
-        <slot :listeners="$listeners" :option="option" :name="i">
+        <slot
+          :listeners="$listeners"
+          :option="option"
+          :name="i"
+        >
           <RadioButton
             :key="name+'-'+i"
             :name="name"

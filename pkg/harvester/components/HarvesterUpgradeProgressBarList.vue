@@ -6,7 +6,7 @@ export default {
   name:       'HarvesterUpgradeProgressList',
   components: { PercentageBar, Collapse },
 
-  props:      {
+  props: {
     title: {
       type:    String,
       default: ''

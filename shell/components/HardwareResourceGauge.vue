@@ -67,7 +67,10 @@ export default {
       <h3>
         {{ name }}
       </h3>
-      <div v-if="reserved && (reserved.total !== undefined || reserved.useful !== undefined)" class="hw-gauge">
+      <div
+        v-if="reserved && (reserved.total !== undefined || reserved.useful !== undefined)"
+        class="hw-gauge"
+      >
         <ConsumptionGauge
           :capacity="reserved.total"
           :used="reserved.useful"
@@ -98,7 +101,10 @@ export default {
           </template>
         </ConsumptionGauge>
       </div>
-      <div v-if="used && used.useful !== undefined" class="hw-gauge">
+      <div
+        v-if="used && used.useful !== undefined"
+        class="hw-gauge"
+      >
         <ConsumptionGauge
           :capacity="used.total"
           :used="used.useful"

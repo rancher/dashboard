@@ -7,12 +7,18 @@
   "private": false,
   "bin": "./init",
   "files": [
-    "*.*",
+    "**/*.*",
     "init"
   ],
   "engines": {
     "node": ">=12"
   },
+  "_requires": [
+    "core-js",
+    "css-loader",
+    "@types/lodash",
+    "@rancher/components"
+  ],
   "dependencies": {
     "fs-extra": "^10.0.0"
   }

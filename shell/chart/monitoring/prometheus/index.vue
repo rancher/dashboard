@@ -37,38 +37,28 @@ export default {
     },
 
     prometheusPods: {
-      type:     Array,
+      type:    Array,
       default: () => ([]),
     },
 
     storageClasses: {
-      type:     Array,
+      type:    Array,
       default: () => ([]),
     },
 
     value: {
-      type:     Object,
+      type:    Object,
       default: () => ({}),
     },
 
     workloads: {
-      type:     Array,
+      type:    Array,
       default: () => ([]),
     },
   },
 
   data() {
     return {
-      volumeModes: [
-        {
-          id:    'Filesystem',
-          label: 'monitoring.volume.modes.file',
-        },
-        {
-          id:    'Block',
-          label: 'monitoring.volume.modes.block',
-        },
-      ],
       enablePersistentStorage: !!this.value?.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec,
       warnUser:                false,
     };
@@ -165,7 +155,6 @@ export default {
               accessModes: ['ReadWriteOnce'],
               resources:   { requests: { storage: '50Gi' } },
               selector:    { matchExpressions: [], matchLabels: {} },
-              volumeMode:  'Filesystem',
             }
           }
         );
@@ -201,11 +190,24 @@ export default {
     <div class="title">
       <h3>{{ t('monitoring.prometheus.title') }}</h3>
     </div>
-    <Banner v-if="filteredWorkloads && warnUser" color="warning">
+    <Banner
+      v-if="filteredWorkloads && warnUser"
+      color="warning"
+    >
       <template #default>
-        <t k="monitoring.prometheus.warningInstalled" :raw="true" />
-        <div v-for="wl in filteredWorkloads" :key="wl.id" class="mt-10">
-          <nuxt-link :to="wl.link" class="btn role-tertiary">
+        <t
+          k="monitoring.prometheus.warningInstalled"
+          :raw="true"
+        />
+        <div
+          v-for="wl in filteredWorkloads"
+          :key="wl.id"
+          class="mt-10"
+        >
+          <nuxt-link
+            :to="wl.link"
+            class="btn role-tertiary"
+          >
             {{ wl.label }}
           </nuxt-link>
         </div>
@@ -214,7 +216,10 @@ export default {
     <div class="prometheus-config">
       <div class="row">
         <div class="col span-6 col-full-height">
-          <Checkbox v-model="value.prometheus.prometheusSpec.enableAdminAPI" :label="t('monitoring.prometheus.config.adminApi')" />
+          <Checkbox
+            v-model="value.prometheus.prometheusSpec.enableAdminAPI"
+            :label="t('monitoring.prometheus.config.adminApi')"
+          />
         </div>
         <div class="col span-6 col-full-height">
           <RadioGroup
@@ -299,9 +304,15 @@ export default {
           />
         </div>
       </div>
-      <div class="row row-full-height container-flex-center" style="min-height: 55px;">
+      <div
+        class="row row-full-height container-flex-center"
+        style="min-height: 55px;"
+      >
         <div class="col span-6">
-          <Checkbox v-model="enablePersistentStorage" :label="t('monitoring.prometheus.storage.label')" />
+          <Checkbox
+            v-model="enablePersistentStorage"
+            :label="t('monitoring.prometheus.storage.label')"
+          />
         </div>
       </div>
       <template v-if="enablePersistentStorage">
@@ -337,16 +348,6 @@ export default {
               :reduce="({id})=> id"
             />
           </div>
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.volumeMode"
-              :label="t('monitoring.prometheus.storage.volumeMode')"
-              :localized-label="true"
-              :mode="mode"
-              :options="volumeModes"
-              :reduce="({id})=> id"
-            />
-          </div>
         </div>
         <div class="row">
           <div class="col span-12">
@@ -355,7 +356,10 @@ export default {
                 {{ t('monitoring.prometheus.storage.selector') }}
               </h4>
             </div>
-            <Banner color="warning" :label="t('monitoring.prometheus.storage.selectorWarning', {}, true)" />
+            <Banner
+              color="warning"
+              :label="t('monitoring.prometheus.storage.selectorWarning', {}, true)"
+            />
             <MatchExpressions
               :initial-empty-row="false"
               :mode="mode"

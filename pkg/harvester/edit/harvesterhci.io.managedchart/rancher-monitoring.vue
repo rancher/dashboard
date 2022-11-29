@@ -8,7 +8,7 @@ export default {
 
   mixins: [CreateEditView],
 
-  props:  {
+  props: {
     value: {
       type:     Object,
       required: true,

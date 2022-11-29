@@ -9,7 +9,7 @@ export default {
     ProjectMemberEditor
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -18,7 +18,7 @@ export default {
 
   data() {
     return {
-      member:       {
+      member: {
         permissionGroup: 'member',
         custom:          {},
         principalId:     '',
@@ -76,15 +76,35 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-rotate" :show-highlight-border="false" :sticky="true">
-    <h4 slot="title" class="text-default-text" v-html="t('addProjectMemberDialog.title')" />
+  <Card
+    class="prompt-rotate"
+    :show-highlight-border="false"
+    :sticky="true"
+  >
+    <h4
+      slot="title"
+      class="text-default-text"
+      v-html="t('addProjectMemberDialog.title')"
+    />
 
-    <div slot="body" class="pl-10 pr-10">
-      <ProjectMemberEditor v-model="member" :use-two-columns-for-custom="true" />
+    <div
+      slot="body"
+      class="pl-10 pr-10 pb-10"
+    >
+      <ProjectMemberEditor
+        v-model="member"
+        :use-two-columns-for-custom="true"
+      />
     </div>
 
-    <div slot="actions" class="buttons">
-      <button class="btn role-secondary mr-10" @click="close">
+    <div
+      slot="actions"
+      class="buttons"
+    >
+      <button
+        class="btn role-secondary mr-10"
+        @click="close"
+      >
         {{ t('generic.cancel') }}
       </button>
 
@@ -105,5 +125,12 @@ export default {
     display: flex;
     justify-content: flex-end;
     width: 100%;
+  }
+</style>
+
+<style lang="scss">
+  .card-container {
+    border: 1px solid var(--border);
+    box-shadow: none;
   }
 </style>

@@ -131,4 +131,15 @@ A common mistake is to accidentally work from the wrong Rancher version. Because
 
 ### Upgrading Rancher with Docker
 
-If you want to use a more long-lived Rancher instance, you may need to upgrade Rancher without just killing the container running in Docker. In that case, you can follow these docs to upgrade Rancher with Docker: https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/
+If you want to use a more long-lived Rancher instance, you may need to upgrade Rancher without just killing the container running in Docker. In that case, you can run the script `./scripts/update-docker-image`, or you can follow [these docs](https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/) to upgrade Rancher with Docker.
+
+If using the script, you will need to provide 2 arguments:
+
+- A container name to be updated
+- An image tag for which to update the container with (e.g. `v2.7-head`)
+
+For instance:
+
+```console
+./scripts/update-docker-image my-rancher-instance v2.7-head
+```

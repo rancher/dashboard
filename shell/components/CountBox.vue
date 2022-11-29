@@ -3,7 +3,7 @@
 export default {
   name: 'CountBox',
 
-  props:      {
+  props: {
     name: {
       type:     String,
       required: true
@@ -40,9 +40,19 @@ export default {
 </script>
 
 <template>
-  <div class="count-container" :style="sideStyle">
-    <div class="count" :primary-color-var="primaryColorVar" :style="mainStyle">
-      <div class="data" :class="{ 'compact': compact }">
+  <div
+    class="count-container"
+    :style="sideStyle"
+  >
+    <div
+      class="count"
+      :primary-color-var="primaryColorVar"
+      :style="mainStyle"
+    >
+      <div
+        class="data"
+        :class="{ 'compact': compact }"
+      >
         <h1>{{ count }}</h1>
         <label>{{ name }}</label>
       </div>

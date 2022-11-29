@@ -22,7 +22,7 @@ export default {
     },
     rules: {
       default: () => ({
-        requestHost:   [],
+        requestHost: [],
         path:        [],
         port:        [],
         target:      []
@@ -107,7 +107,10 @@ export default {
 <template>
   <div class="rule">
     <div class="row mb-20">
-      <div id="host" class="col span-6">
+      <div
+        id="host"
+        class="col span-6"
+      >
         <LabeledInput
           ref="host"
           v-model="host"
@@ -117,16 +120,29 @@ export default {
           @input="update"
         />
       </div>
-      <div id="spacer" class="col span-5"></div>
+      <div
+        id="spacer"
+        class="col span-5"
+      />
     </div>
     <div class="rule-path-headings row">
-      <div class="col" :class="{'span-6': ingress.showPathType, 'span-4': !ingress.showPathType}">
+      <div
+        class="col"
+        :class="{'span-6': ingress.showPathType, 'span-4': !ingress.showPathType}"
+      >
         <label>{{ t("ingress.rules.path.label") }}</label>
       </div>
-      <div class="col" :class="{'span-3': ingress.showPathType, 'span-4': !ingress.showPathType}">
+      <div
+        class="col"
+        :class="{'span-3': ingress.showPathType, 'span-4': !ingress.showPathType}"
+      >
         <label>{{ t("ingress.rules.target.label") }}</label>
       </div>
-      <div class="col" :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}" :style="{ 'margin-right': '0px' }">
+      <div
+        class="col"
+        :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}"
+        :style="{ 'margin-right': '0px' }"
+      >
         <label>{{ t("ingress.rules.port.label") }}</label>
       </div>
       <div class="col" />

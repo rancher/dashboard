@@ -2,7 +2,7 @@
 export default {
   props: {
     value: {
-      type:     [String, Number],
+      type:    [String, Number],
       default: ''
     },
 
@@ -22,7 +22,10 @@ export default {
 </script>
 
 <template>
-  <span v-if="!value" class="text-muted">
+  <span
+    v-if="!value"
+    class="text-muted"
+  >
     &mdash;
   </span>
   <span v-else>

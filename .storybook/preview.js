@@ -14,16 +14,16 @@ require('../shell/plugins/i18n');
 require('../shell/plugins/v-select');
 require('../shell/plugins/tooltip');
 
-//const store = require('./store');
 
 Vue.use(Vuex);
 
-const store = new Vuex.Store({
+// Defines namespaced modules for the Store.
+export const store = new Vuex.Store({
   getters: {
     'i18n/t': state => (key, args) => {
       const msg = get(i18nStrings, key) || key;
 
-      if ( msg?.includes('{')) {
+      if (msg?.includes('{')) {
         const formatter = new IntlMessageFormat(msg, state.selected);
         return formatter.format(args);
       }
@@ -32,6 +32,7 @@ const store = new Vuex.Store({
     }
   }
 });
+
 
 const storePlugin = {
   store,
@@ -43,7 +44,7 @@ const storePlugin = {
 Vue.use(storePlugin);
 
 export const parameters = {
-  previewTabs: { 
+  previewTabs: {
     canvas: { hidden: false },
   },
   actions: { argTypesRegex: "^on[A-Z].*" },
@@ -81,3 +82,5 @@ export const decorators = [
 window.onload = () => {
   installShortcut();
 }
+
+export default store

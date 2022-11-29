@@ -27,7 +27,7 @@ export default {
         enabled:     true,
         iconSrc:     this.neuvectorImgSrc,
         label:       'neuvector.overview.linkedList.neuvector.label',
-        description:   'neuvector.overview.linkedList.neuvector.description',
+        description: 'neuvector.overview.linkedList.neuvector.description',
         link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/${ NEU_VECTOR_NAMESPACE }/services/https:neuvector-service-webui:8443/proxy`
       },
     ];
@@ -37,26 +37,37 @@ export default {
 
 <template>
   <section>
-    <header class="row">
+    <header class="header-layout row">
       <div class="col span-12">
         <h1>
           <t k="neuvector.overview.title" />
         </h1>
         <div>
-          <t k="neuvector.overview.subtitle" :raw="true" />
+          <t
+            k="neuvector.overview.subtitle"
+            :raw="true"
+          />
         </div>
       </div>
     </header>
     <div class="links">
-      <div v-for="fel in externalLinks" :key="fel.label" class="link-container">
-        <a :href="fel.link" target="_blank" rel="noopener noreferrer">
+      <div
+        v-for="fel in externalLinks"
+        :key="fel.label"
+        class="link-container"
+      >
+        <a
+          :href="fel.link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <div class="link-logo">
             <LazyImage :src="fel.iconSrc" />
           </div>
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
-            <hr />
+            <hr>
             <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>

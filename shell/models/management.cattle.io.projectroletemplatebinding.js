@@ -80,9 +80,9 @@ export default class PRTB extends HybridModel {
     const name = `c-cluster-product-resource-id`;
 
     const params = {
-      resource:  MANAGEMENT.PROJECT,
-      id:        this.projectId,
-      product:   'explorer',
+      resource: MANAGEMENT.PROJECT,
+      id:       this.projectId,
+      product:  'explorer',
     };
 
     return { name, params };
@@ -96,9 +96,9 @@ export default class PRTB extends HybridModel {
     const name = `c-cluster-product-resource-id`;
 
     const params = {
-      resource:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-      id:        this.clusterName,
-      product:   'explorer',
+      resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
+      id:       this.clusterName,
+      product:  'explorer',
     };
 
     return { name, params };

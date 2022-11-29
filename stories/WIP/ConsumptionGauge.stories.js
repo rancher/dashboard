@@ -1,14 +1,14 @@
 import ConsumptionGauge from '@shell/components/ConsumptionGauge';
 
 export default {
-  title:       'WIP/ConsumptionGauge',
-  component:   ConsumptionGauge,
+  title:     'WIP/ConsumptionGauge',
+  component: ConsumptionGauge,
 };
 
 export const Story = (args, { argTypes }) => ({
   components: { ConsumptionGauge },
   props:      Object.keys(argTypes),
-  methods:     {
+  methods:    {
     formatter(value) {
       const valueAsArray = value.toString().split('');
 
@@ -17,7 +17,7 @@ export const Story = (args, { argTypes }) => ({
       return valueAsArray.join('');
     }
   },
-  template:   `
+  template: `
     <div style="width: 300px;">
       <ConsumptionGauge v-bind="$props"/>
     </div>`,

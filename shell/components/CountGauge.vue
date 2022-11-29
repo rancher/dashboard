@@ -18,7 +18,7 @@ export default {
       required: true
     },
     primaryColorVar: {
-      type:     String,
+      type:    String,
       default: null,
     },
     warningCount: {
@@ -73,15 +73,38 @@ export default {
 </script>
 
 <template>
-  <GradientBox class="count-gauge" :class="{clickable}" :primary-color-var="primaryColorVar" :plain="plain" @click.native="visitLocation()">
-    <div v-if="graphical" class="graphical">
-      <GraphCircle v-if="percentage > 0" :primary-stroke-color="`rgba(var(${primaryColorVar}))`" secondary-stroke-color="rgb(var(--resource-gauge-back-circle))" :percentage="percentage" />
-      <GraphCircle v-if="percentage === 0" :primary-stroke-color="`rgba(var(${primaryColorVar}))`" secondary-stroke-color="rgb(var(--resource-gauge-back-circle))" class="zero" :percentage="100" />
+  <GradientBox
+    class="count-gauge"
+    :class="{clickable}"
+    :primary-color-var="primaryColorVar"
+    :plain="plain"
+    @click.native="visitLocation()"
+  >
+    <div
+      v-if="graphical"
+      class="graphical"
+    >
+      <GraphCircle
+        v-if="percentage > 0"
+        :primary-stroke-color="`rgba(var(${primaryColorVar}))`"
+        secondary-stroke-color="rgb(var(--resource-gauge-back-circle))"
+        :percentage="percentage"
+      />
+      <GraphCircle
+        v-if="percentage === 0"
+        :primary-stroke-color="`rgba(var(${primaryColorVar}))`"
+        secondary-stroke-color="rgb(var(--resource-gauge-back-circle))"
+        class="zero"
+        :percentage="100"
+      />
     </div>
     <div class="data">
       <h1>{{ useful }}</h1>
       <label>{{ name }}</label>
-      <div v-if="showAlerts" class="alerts">
+      <div
+        v-if="showAlerts"
+        class="alerts"
+      >
         <span class="text-warning">
           <i class="icon icon-warning" /><span class="count">{{ warningCount }}</span>
         </span>

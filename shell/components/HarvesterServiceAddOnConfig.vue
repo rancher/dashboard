@@ -151,7 +151,10 @@ export default {
     </div>
     <div v-if="healthCheckEnabled">
       <div class="row mt-10">
-        <div v-if="healthCheckEnabled" class="col span-6">
+        <div
+          v-if="healthCheckEnabled"
+          class="col span-6"
+        >
           <LabeledSelect
             v-model="healthcheckPort"
             :mode="mode"

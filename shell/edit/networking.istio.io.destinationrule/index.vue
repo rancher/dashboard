@@ -91,8 +91,7 @@ export default {
                 :mode="mode"
                 :protip="true"
                 :read-allowed="false"
-              >
-              </keyvalue>
+              />
             </template>
           </ArrayListGrouped>
         </Tab>
@@ -101,7 +100,10 @@ export default {
           :label="t('istio.destinationRule.loadBalancer.label')"
           :weight="3"
         >
-          <LoadBalancer v-model="value.spec.trafficPolicy.loadBalancer" :mode="mode" />
+          <LoadBalancer
+            v-model="value.spec.trafficPolicy.loadBalancer"
+            :mode="mode"
+          />
         </Tab>
         <Tab
           name="connection-pool"

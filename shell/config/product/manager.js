@@ -29,7 +29,7 @@ export function init(store) {
     icon:                'cluster-management',
     removable:           false,
     showClusterSwitcher: false,
-    to:                   {
+    to:                  {
       name:   'c-cluster-product-resource',
       params: {
         cluster:  BLANK_CLUSTER,
@@ -40,24 +40,24 @@ export function init(store) {
   });
 
   virtualType({
-    name:        'cloud-credentials',
-    labelKey:    'manager.cloudCredentials.label',
+    name:       'cloud-credentials',
+    labelKey:   'manager.cloudCredentials.label',
     group:      'Root',
-    namespaced:  false,
+    namespaced: false,
     icon:       'globe',
-    weight:      99,
-    route:       { name: 'c-cluster-manager-cloudCredential' },
+    weight:     99,
+    route:      { name: 'c-cluster-manager-cloudCredential' },
   });
 
   virtualType({
-    labelKey:       'legacy.psps',
-    name:           'pod-security-policies',
-    group:          'Root',
-    namespaced:     false,
-    weight:         0,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
-    exact:          true
+    labelKey:   'legacy.psps',
+    name:       'pod-security-policies',
+    group:      'Root',
+    namespaced: false,
+    weight:     0,
+    icon:       'folder',
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
+    exact:      true
   });
 
   basicType([

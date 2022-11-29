@@ -79,9 +79,9 @@ export default class MgmtNodePool extends HybridModel {
     // These are used in `stateParts` which is show in the same context as `stateParts` for machine deployments (rke2 pools))
     // Using actual states here would look strange when against bucket states for RKE2
     const res = {
-      pending:      0,
-      unavailable:  0,
-      ready:        0,
+      pending:     0,
+      unavailable: 0,
+      ready:       0,
     };
 
     if (!this.nodes) {

@@ -17,8 +17,8 @@ interface LoadError {
 
 export const state = function(): UIPluginState {
   return {
-    plugins:    [],
-    errors:     {},
+    plugins: [],
+    errors:  {},
   };
 };
 

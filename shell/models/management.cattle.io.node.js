@@ -13,18 +13,18 @@ export default class MgmtNode extends HybridModel {
     const out = super._availableActions;
 
     const downloadKeys = {
-      action:     'downloadKeys',
-      enabled:    !!this.norman?.links?.nodeConfig,
-      icon:       'icon icon-fw icon-download',
-      label:      this.t('node.actions.downloadNodeConfig'),
+      action:  'downloadKeys',
+      enabled: !!this.norman?.links?.nodeConfig,
+      icon:    'icon icon-fw icon-download',
+      label:   this.t('node.actions.downloadNodeConfig'),
     };
 
     const scaleDown = {
-      action:     'scaleDown',
-      enabled:    !!this.canScaleDown,
-      icon:       'icon icon-minus icon-fw',
-      label:      this.t('node.actions.scaleDown'),
-      bulkable:   true,
+      action:   'scaleDown',
+      enabled:  !!this.canScaleDown,
+      icon:     'icon icon-minus icon-fw',
+      label:    this.t('node.actions.scaleDown'),
+      bulkable: true,
     };
 
     insertAt(out, 0, { divider: true });

@@ -9,7 +9,7 @@ export default {
   fetch() {
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CATALOG_SERVICE });
   },
-  props:      {
+  props: {
     schema: {
       type:     Object,
       required: true,

@@ -28,7 +28,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     ...mapState('action-menu', ['showAssignTo', 'toAssign']),
     ...mapGetters({ t: 'i18n/t' }),
     ...mapGetters(['workspace']),
@@ -112,10 +112,20 @@ export default {
     height="auto"
     :scrollable="true"
   >
-    <Card v-if="loaded" :show-highlight-border="false">
-      <h4 slot="title" class="text-default-text" v-html="t('assignTo.title', {count: resourceCount}, true)" />
+    <Card
+      v-if="loaded"
+      :show-highlight-border="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text"
+        v-html="t('assignTo.title', {count: resourceCount}, true)"
+      />
 
-      <div slot="body" class="pl-10 pr-10">
+      <div
+        slot="body"
+        class="pl-10 pr-10"
+      >
         <form>
           <LabeledSelect
             v-model="moveTo"
@@ -132,12 +142,20 @@ export default {
             :read-allowed="false"
           />
 
-          <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+          <Banner
+            v-for="(err, i) in errors"
+            :key="i"
+            color="error"
+            :label="err"
+          />
         </form>
       </div>
 
       <div slot="actions">
-        <button class="btn role-secondary" @click="close">
+        <button
+          class="btn role-secondary"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
 

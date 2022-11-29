@@ -52,7 +52,7 @@ export default Vue.extend<Data, any, any, any>({
 
   data() {
     return {
-      errors:        [],
+      errors: [],
       values: undefined
     };
   },
@@ -150,7 +150,7 @@ export default Vue.extend<Data, any, any, any>({
         :label="t('epinio.applications.create.instances')"
       />
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="col span-8">
       <ArrayList
         v-model="values.configuration.routes"
@@ -161,7 +161,7 @@ export default Vue.extend<Data, any, any, any>({
         :value-placeholder="t('epinio.applications.create.routes.placeholder')"
       />
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="col span-8">
       <KeyValue
         v-model="values.configuration.environment"

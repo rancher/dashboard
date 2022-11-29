@@ -11,8 +11,8 @@ export default {
       required: true,
     },
     summaryUrl: {
-      type:     String,
-      default:  '',
+      type:    String,
+      default: '',
     },
     vars: {
       type:    Object,
@@ -47,14 +47,23 @@ export default {
 </script>
 
 <template>
-  <div class="dashboard-metrics" :class="!hasSummaryAndDetail && 'external-link-pull-left'">
+  <div
+    class="dashboard-metrics"
+    :class="!hasSummaryAndDetail && 'external-link-pull-left'"
+  >
     <div class="graph-options mb-10">
-      <DashboardOptions v-model="graphOptions" :has-summary-and-detail="hasSummaryAndDetail" />
+      <DashboardOptions
+        v-model="graphOptions"
+        :has-summary-and-detail="hasSummaryAndDetail"
+      />
     </div>
     <div class="info">
       <slot />
     </div>
-    <div class="graphs" :style="{height: graphHeight}">
+    <div
+      class="graphs"
+      :style="{height: graphHeight}"
+    >
       <GrafanaDashboard
         v-if="graphOptions.type === 'detail'"
         class="col span-12 detail"

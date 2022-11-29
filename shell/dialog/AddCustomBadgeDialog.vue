@@ -66,10 +66,10 @@ export default {
         isLocal:         this.currentCluster.isLocal,
         providerNavLogo: this.currentCluster.providerNavLogo,
         badge:           {
-          text:        this.badgeDescription,
-          color:       this.badgeBgColor,
-          textColor:   textColor(parseColor(this.badgeBgColor)),
-          iconText:    this.badgeAsIcon ? this.letter.toUpperCase() : '',
+          text:      this.badgeDescription,
+          color:     this.badgeBgColor,
+          textColor: textColor(parseColor(this.badgeBgColor)),
+          iconText:  this.badgeAsIcon ? this.letter.toUpperCase() : '',
         }
       };
     },
@@ -115,22 +115,40 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-badge" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text">
+  <Card
+    class="prompt-badge"
+    :show-highlight-border="false"
+  >
+    <h4
+      slot="title"
+      class="text-default-text"
+    >
       {{ t('clusterBadge.modal.title') }}
     </h4>
 
-    <div slot="body" class="pl-10 pr-10 cluster-badge-body">
+    <div
+      slot="body"
+      class="pl-10 pr-10 cluster-badge-body"
+    >
       <div>{{ t('clusterBadge.modal.previewTitle') }}</div>
 
       <div class="mt-10 pl-20 row preview-row">
         <div class="badge-preview col span-12">
-          <ClusterProviderIcon v-if="useCustomBadge" :cluster="previewCluster" />
-          <ClusterProviderIcon v-else :cluster="currentCluster" />
+          <ClusterProviderIcon
+            v-if="useCustomBadge"
+            :cluster="previewCluster"
+          />
+          <ClusterProviderIcon
+            v-else
+            :cluster="currentCluster"
+          />
           <div class="cluster-name">
             {{ currentCluster.nameDisplay }}
           </div>
-          <ClusterBadge v-if="useCustomBadge" :cluster="previewCluster" />
+          <ClusterBadge
+            v-if="useCustomBadge"
+            :cluster="previewCluster"
+          />
         </div>
       </div>
 
@@ -194,13 +212,28 @@ export default {
       </div>
     </div>
 
-    <div slot="actions" class="bottom">
-      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+    <div
+      slot="actions"
+      class="bottom"
+    >
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
       <div class="buttons">
-        <button class="btn role-secondary mr-10" @click="close">
+        <button
+          class="btn role-secondary mr-10"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
-        <AsyncButton :action-label="t('clusterBadge.modal.buttonAction')" :disabled="!canSubmit" @click="apply" />
+        <AsyncButton
+          :action-label="t('clusterBadge.modal.buttonAction')"
+          :disabled="!canSubmit"
+          @click="apply"
+        />
       </div>
     </div>
   </Card>

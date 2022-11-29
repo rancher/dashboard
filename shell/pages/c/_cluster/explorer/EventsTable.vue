@@ -30,14 +30,14 @@ export default {
         canBeVariable: true,
       },
       {
-        name:          'date',
-        label:         'Date',
-        labelKey:      'clusterIndexPage.sections.events.date.label',
-        value:         'timestamp',
-        sort:          'timestamp:desc',
-        formatter:     'Date',
-        width:         220,
-        defaultSort:   true,
+        name:        'date',
+        label:       'Date',
+        labelKey:    'clusterIndexPage.sections.events.date.label',
+        value:       'timestamp',
+        sort:        'timestamp:desc',
+        formatter:   'Date',
+        width:       220,
+        defaultSort: true,
       },
     ];
 

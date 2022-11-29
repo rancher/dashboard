@@ -12,7 +12,7 @@ export default {
         return {};
       }
     },
-    ingressClasses:  {
+    ingressClasses: {
       type:    Array,
       default: () => []
     },

@@ -7,7 +7,7 @@ export default {
     Card,
     AsyncButton,
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -45,8 +45,14 @@ export default {
 </script>
 
 <template>
-  <Card class="addon-config-confirmation" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text">
+  <Card
+    class="addon-config-confirmation"
+    :show-highlight-border="false"
+  >
+    <h4
+      slot="title"
+      class="text-default-text"
+    >
       {{ t('addonConfigConfirmation.title') }}
     </h4>
 
@@ -56,8 +62,15 @@ export default {
       </slot>
     </template>
 
-    <div slot="actions" class="bottom">
-      <button type="button" class="btn role-secondary mr-10" @click="close">
+    <div
+      slot="actions"
+      class="bottom"
+    >
+      <button
+        type="button"
+        class="btn role-secondary mr-10"
+        @click="close"
+      >
         {{ t('generic.cancel') }}
       </button>
       <AsyncButton

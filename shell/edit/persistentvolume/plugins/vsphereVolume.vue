@@ -4,7 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 export default {
   components: { LabeledInput },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -25,18 +25,38 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.vsphereVolume.volumePath" :mode="mode" :label="t('persistentVolume.vsphereVolume.volumePath.label')" :placeholder="t('persistentVolume.vsphereVolume.volumePath.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.vsphereVolume.volumePath"
+          :mode="mode"
+          :label="t('persistentVolume.vsphereVolume.volumePath.label')"
+          :placeholder="t('persistentVolume.vsphereVolume.volumePath.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.vsphereVolume.storagePolicyName" :mode="mode" :label="t('persistentVolume.vsphereVolume.storagePolicyName.label')" :placeholder="t('persistentVolume.vsphereVolume.storagePolicyName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.vsphereVolume.storagePolicyName"
+          :mode="mode"
+          :label="t('persistentVolume.vsphereVolume.storagePolicyName.label')"
+          :placeholder="t('persistentVolume.vsphereVolume.storagePolicyName.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.vsphereVolume.storagePolicyID" :mode="mode" :label="t('persistentVolume.vsphereVolume.storagePolicyId.label')" :placeholder="t('persistentVolume.vsphereVolume.storagePolicyId.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.vsphereVolume.storagePolicyID"
+          :mode="mode"
+          :label="t('persistentVolume.vsphereVolume.storagePolicyId.label')"
+          :placeholder="t('persistentVolume.vsphereVolume.storagePolicyId.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.vsphereVolume.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.vsphereVolume.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
     </div>
   </div>

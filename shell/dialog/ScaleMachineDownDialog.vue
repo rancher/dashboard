@@ -6,7 +6,7 @@ import GenericPrompt from './GenericPrompt';
 export default {
   components: { GenericPrompt },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -96,7 +96,10 @@ export default {
 </script>
 
 <template>
-  <GenericPrompt :resources="[config]" @close="$emit('close')">
+  <GenericPrompt
+    :resources="[config]"
+    @close="$emit('close')"
+  >
     <template slot="body">
       <div class="pl-10 pr-10 mt-20 mb-20 body">
         <div v-if="allToDelete.length === 1">
@@ -105,9 +108,16 @@ export default {
         <div v-else>
           {{ t('promptScaleMachineDown.attemptingToRemove', { type, count: allToDelete.length }, true) }}
         </div>
-        <div v-if="ignored.length" class="retained-machine">
+        <div
+          v-if="ignored.length"
+          class="retained-machine"
+        >
           <span class="mb-20">{{ t('promptScaleMachineDown.retainedMachine1') }}</span>
-          <span v-for="i in ignored" :key="i.name" v-html="t('promptScaleMachineDown.retainedMachine2', { name: i.name }, true)"></span>
+          <span
+            v-for="i in ignored"
+            :key="i.name"
+            v-html="t('promptScaleMachineDown.retainedMachine2', { name: i.name }, true)"
+          />
         </div>
       </div>
     </template>
