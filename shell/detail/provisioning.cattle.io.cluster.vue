@@ -680,8 +680,13 @@ export default {
               </div>
               <div
                 v-if="group.ref"
-                class="right mr-45"
+                class="right group-header-buttons mr-20"
               >
+                <MachineSummaryGraph
+                  :row="poolSummaryInfo[group.ref]"
+                  :horizontal="true"
+                  class="mr-20"
+                />
                 <template v-if="value.hasLink('update') && group.ref.showScalePool">
                   <button
                     v-tooltip="t('node.list.scaleDown')"
