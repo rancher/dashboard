@@ -137,7 +137,7 @@ nav:
   group:
     cluster: Cluster
     inUse: More Resources
-    policy: Policy
+    Policy: Policy
     rbac: RBAC
     serviceDiscovery: Service Discovery
     starred: Starred
@@ -6139,6 +6139,21 @@ typeLabel:
       one { Workspace }
       other { Workspaces }
     }
+  policy.poddisruptionbudget: |-
+    {count, plural,
+      one { PodDisruption Budget }
+      other { Pod Disruption Budgets }
+    }
+  limitrange: |-
+    {count, plural,
+      one { Limit Range }
+      other { Limit Ranges }
+    }
+  resourcequota: |-
+    {count, plural,
+      one { Resource Quota }
+      other { Resource Quotas }
+    }
   # pruh-mee-thee-eyes https://www.prometheus.io/docs/introduction/faq/#what-is-the-plural-of-prometheus
   monitoring.coreos.com.prometheus: |-
     {count, plural,
@@ -6267,8 +6282,8 @@ typeLabel:
     }
   networking.k8s.io.networkpolicy: |-
     {count, plural,
-      one { NetworkPolicies }
-      other { NetworkPolicies }
+      one { Network Policies }
+      other { Network Policies }
     }
   service: |-
     {count, plural,
