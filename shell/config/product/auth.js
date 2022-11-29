@@ -48,6 +48,7 @@ export function init(store) {
 
   virtualType({
     label:      store.getters['type-map/labelFor']({ id: MANAGEMENT.USER }, 2),
+    labelKey:   'typeLabel."management.cattle.io.user',
     name:       USERS_VIRTUAL_TYPE,
     namespaced: false,
     weight:     102,
@@ -66,6 +67,7 @@ export function init(store) {
   spoofedType({
     label:             store.getters['type-map/labelFor']({ id: NORMAN.SPOOFED.GROUP_PRINCIPAL }, 2),
     type:              NORMAN.SPOOFED.GROUP_PRINCIPAL,
+    labelKey:          'typeLabel.group.principal',
     ifHaveType:        MANAGEMENT.GLOBAL_ROLE_BINDING,
     collectionMethods: [],
     schemas:           [
@@ -142,7 +144,7 @@ export function init(store) {
   weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, 101, true);
 
   virtualType({
-    label:      store.getters['i18n/t']('rbac.roletemplate.label'),
+    labelKey:   'rbac.roletemplate.label',
     icon:       'user',
     namespaced: false,
     name:       ROLES_VIRTUAL_TYPE,

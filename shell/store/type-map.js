@@ -1010,9 +1010,15 @@ export const getters = {
           formatter = 'Number';
         }
 
+        let colName = col.name;
+
+        if (colName.includes(' ')) {
+          colName = col.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.substring(1) ).join('');
+        }
+
         const exists = rootGetters['i18n/exists'];
         const t = rootGetters['i18n/t'];
-        const labelKey = `tableHeaders.${ col.name }`;
+        const labelKey = `tableHeaders.${ colName.charAt(0).toLowerCase() + colName.slice(1) }`;
         const description = col.description || '';
         const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
 
