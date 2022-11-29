@@ -148,6 +148,8 @@ epinio:
             label: Branch
             inputLabel: Branch
             tooltip: Branch to deploy
+          error:
+            label: Invalid URL, please check the URL and try again.
         gitHub:
           label: GitHub
 

@@ -124,8 +124,9 @@ export default Vue.extend<Data, any, any, any>({
       container: { url: this.source?.container.url },
 
       gitUrl: {
-        url:    this.source?.gitUrl.url || '',
-        branch: this.source?.gitUrl.branch || '',
+        url:         this.source?.gitUrl.url || '',
+        branch:      this.source?.gitUrl.branch || '',
+        validGitUrl: false,
       },
 
       github: {
@@ -178,6 +179,27 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   methods: {
+    urlRule() {
+      const gitRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gm;
+
+      if (!this.gitUrl.url) {
+        return;
+      }
+
+      const evalUrl = () => {
+        const result = gitRegex.exec(this.gitUrl.url);
+
+        if (result && this.gitUrl.url === result[0]) {
+          this.gitUrl.validGitUrl = true;
+        } else {
+          this.gitUrl.validGitUrl = false;
+
+          return this.t('epinio.applications.steps.source.gitUrl.error.label');
+        }
+      };
+
+      return evalUrl();
+    },
     onFileSelected(file: File) {
       this.archive.tarball = file;
       this.archive.fileName = file.name;
@@ -343,7 +365,7 @@ export default Vue.extend<Data, any, any, any>({
       case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
         return !!this.container.url;
       case APPLICATION_SOURCE_TYPE.GIT_URL:
-        return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value;
+        return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value && !!this.gitUrl.validGitUrl;
       case APPLICATION_SOURCE_TYPE.GIT_HUB:
         return !!this.github.usernameOrOrg && !!this.github.url && !!this.github.commit;
       }
@@ -469,10 +491,14 @@ export default Vue.extend<Data, any, any, any>({
         <h3>{{ t('epinio.applications.steps.source.gitUrl.url.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.url"
+          v-focus
           data-testid="epinio_app-source_git-url"
           :tooltip="t('epinio.applications.steps.source.gitUrl.url.tooltip')"
           :label="t('epinio.applications.steps.source.gitUrl.url.inputLabel')"
+          :placeholder="'https://github.com/{user or org}/{repository}'"
           :required="true"
+          :rules="[urlRule]"
+          @delay="100"
           @input="update"
         />
       </div>
@@ -484,6 +510,7 @@ export default Vue.extend<Data, any, any, any>({
           :tooltip="t('epinio.applications.steps.source.gitUrl.branch.tooltip')"
           :label="t('epinio.applications.steps.source.gitUrl.branch.inputLabel')"
           :required="true"
+          :disabled="!gitUrl.validGitUrl"
           @input="update"
         />
       </div>
