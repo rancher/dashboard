@@ -193,13 +193,7 @@ export default {
               <span
                 v-if="!!displayLabels(row).length"
                 class="mt-5"
-              >
-                <a
-                  href="#"
-                  @click.prevent="toggleLabels"
-                >
-                  {{ t(`node.list.${isLabelsVisible? 'hideLabels' : 'showLabels'}`, {labelCount: displayLabels(row).length}) }}:
-                </a>
+              > {{t('node.list.nodeLabels')}}:
                 <span
                   v-if="isLabelsVisible"
                   class="mt-5 labels"
@@ -212,6 +206,12 @@ export default {
                     {{ label }}
                   </Tag>
                 </span>
+                 <a
+                  href="#"
+                  @click.prevent="toggleLabels"
+                >
+                  {{ t(`node.list.${isLabelsVisible? 'hideLabels' : 'showLabels'}`, {labelCount: displayLabels(row).length}) }}
+                </a>
               </span>
             </td>
           </template>
