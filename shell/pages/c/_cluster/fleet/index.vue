@@ -8,6 +8,8 @@ import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 import ResourceTable from '@shell/components/ResourceTable';
 import CompoundStatusBadge from '@shell/components/CompoundStatusBadge';
 import { checkSchemasForFindAllHash } from '~/shell/utils/auth';
+import { WORKSPACE_ANNOTATION } from '~/shell/config/labels-annotations';
+import { filterBy } from '~/shell/utils/array';
 
 export default {
   name:       'ListGitRepo',
@@ -35,16 +37,9 @@ export default {
     }, this.$store);
 
     this.gitRepos = hash.gitRepos;
-    this.fleetWorkspaces = hash.fleetWorkspaces || [];
 
-    // init cards collapse flags
-    const workspaces = this.fleetWorkspaces.filter(ws => ws.repos.length);
+    this.fleetWorkspacesData = hash.fleetWorkspaces || [];
 
-    if (workspaces.length) {
-      workspaces.forEach((ws) => {
-        this.$set(this.isCollapsed, ws.id, false);
-      });
-    }
   },
 
   data() {
@@ -82,7 +77,7 @@ export default {
       schema:          {},
       allBundles:      null,
       gitRepos:        null,
-      fleetWorkspaces: [],
+      fleetWorkspacesData: [],
       isCollapsed:     {},
       getStartedLink:  {
         name:   'c-cluster-product-resource-create',
@@ -94,9 +89,32 @@ export default {
     };
   },
   computed: {
-    ...mapState(['workspace']),
+    ...mapState(['workspace', 'allNamespaces']),
+    fleetWorkspaces() {
+      if(this.fleetWorkspacesData?.length) {
+        return this.fleetWorkspacesData 
+      }
+
+      // When user doesn't have access to the workspaces fall back to namespaces
+      return this.allNamespaces.filter((item)=>{
+        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE
+      }).map((obj)=>{
+        console.log()
+        const repos = filterBy(this.gitRepos, 'metadata.namespace', obj.id)
+        return {
+          ...obj,
+          counts: {
+            clusters: '-',
+            clusterGroups: '-',
+            gitRepos: repos.length
+          },
+          repos,
+          nameDisplay: obj.id
+        }
+      })
+    },
     workspacesData() {
-      return this.fleetWorkspaces.filter(ws => ws.repos.length);
+      return this.fleetWorkspaces.filter(ws => ws.repos && ws.repos.length);
     },
     emptyWorkspaces() {
       return this.fleetWorkspaces.filter(ws => !ws.repos || !ws.repos.length);
@@ -255,6 +273,14 @@ export default {
       });
     }
   },
+
+  watch: {
+    fleetWorkspaces(value) {
+      value?.filter(ws => ws.repos?.length).forEach((ws) => {
+          this.$set(this.isCollapsed, ws.id, false);
+      });
+    }
+  }
 };
 </script>
 
@@ -362,7 +388,9 @@ export default {
             v-on="$listeners"
           >
             <template #cell:clustersReady="{row}">
+              <span v-if="ws.type === 'namespace'"> - </span>
               <CompoundStatusBadge
+                v-else
                 :tooltip-text="getTooltipInfo('clusters', row)"
                 :badge-class="getStatusInfo('clusters', row).badgeClass"
                 :icon="getStatusInfo('clusters', row).icon"
@@ -370,7 +398,9 @@ export default {
               />
             </template>
             <template #cell:bundlesReady="{row}">
+              <span v-if="ws.type === 'namespace'"> - </span>
               <CompoundStatusBadge
+                v-else
                 :tooltip-text="getTooltipInfo('bundles', row)"
                 :badge-class="getStatusInfo('bundles', row).badgeClass"
                 :icon="getStatusInfo('bundles', row).icon"
