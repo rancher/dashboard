@@ -476,7 +476,10 @@ export default {
             </a>
           </div>
         </template>
-        <div v-if="showLocaleSelector" class="locale-elector">
+        <div
+          v-if="showLocaleSelector"
+          class="locale-elector"
+        >
           <LocaleSelector mode="login" />
         </div>
       </div>

@@ -388,25 +388,26 @@ export default {
           :data-testid="componentTestid + '-input'"
           type="text"
         >
-        <div class="text-warning mb-10 mt-10">
-          {{ warning }}
-        </div>
-        <div class="text-error mb-10 mt-10">
-          {{ error }}
-        </div>
-        <div
-          v-if="!needsConfirm"
-          class="text-info mt-20"
-        >
-          {{ protip }}
-        </div>
-        <Checkbox
-          v-if="chartsToRemoveIsApp"
-          v-model="chartsDeleteCrd"
-          label-key="promptRemoveApp.removeCrd"
-          class="mt-10 type"
-          @input="chartAddCrdToRemove"
-        />
+          <div class="text-warning mb-10 mt-10">
+            {{ warning }}
+          </div>
+          <div class="text-error mb-10 mt-10">
+            {{ error }}
+          </div>
+          <div
+            v-if="!needsConfirm"
+            class="text-info mt-20"
+          >
+            {{ protip }}
+          </div>
+          <Checkbox
+            v-if="chartsToRemoveIsApp"
+            v-model="chartsDeleteCrd"
+            label-key="promptRemoveApp.removeCrd"
+            class="mt-10 type"
+            @input="chartAddCrdToRemove"
+          />
+        </labeledinput>
       </div>
       <template #actions>
         <button

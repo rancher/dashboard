@@ -65,7 +65,11 @@ export default {
         </thead>
         <tr v-if="version">
           <td>
-            <a href="https://github.com/epinio/epinio" target="_blank" rel="nofollow noopener noreferrer">
+            <a
+              href="https://github.com/epinio/epinio"
+              target="_blank"
+              rel="nofollow noopener noreferrer"
+            >
               {{ appName }}
             </a>
           </td><td>{{ version.displayVersion }}</td>
@@ -77,20 +81,31 @@ export default {
         {{ t('about.downloadCLI.title') }}
       </h3>
       <table>
-        <tr v-for="d in downloads" :key="d.icon" class="link">
+        <tr
+          v-for="d in downloads"
+          :key="d.icon"
+          class="link"
+        >
           <td>
             <div class="os">
               <i :class="`icon ${d.icon} mr-5`" /> {{ t(d.label) }}
             </div>
           </td>
           <td>
-            <a v-if="d.cliLink" :href="d.cliLink">{{ d.cliFile }}</a>
+            <a
+              v-if="d.cliLink"
+              :href="d.cliLink"
+            >{{ d.cliFile }}</a>
           </td>
         </tr>
       </table>
     </template>
     <template v-if="version">
-      <a class="mt-5" target="_blank" :href="`https://github.com/epinio/epinio/releases/tag/${version.displayVersion}`">
+      <a
+        class="mt-5"
+        target="_blank"
+        :href="`https://github.com/epinio/epinio/releases/tag/${version.displayVersion}`"
+      >
         {{ t('epinio.about.allPackages') }}
       </a>
     </template>
