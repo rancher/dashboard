@@ -417,7 +417,12 @@ export default {
         >&ndash;</span>
       </template>
       <template #cell:name="{row}">
-        <span>{{ row.name }}</span>
+        <!-- /c/local/explorer/namespace/local -->
+        <n-link
+          :to="`/c/local/explorer/namespace/${row.id}`"
+        >
+          {{ row.name }}
+        </n-link>
         <i
           v-if="hasPSA(row)"
           v-tooltip="getPSA(row)"
