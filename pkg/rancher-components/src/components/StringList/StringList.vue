@@ -185,28 +185,31 @@ export default Vue.extend({
     onClickMinusButton() {
       if (this.isCreateItem) {
         this.toggleCreateMode(false);
-
         return;
       }
       if (this.editedItem) {
+        this.deleteAndSelectNext(this.editedItem);
         this.toggleEditMode(false);
-
         return;
       }
       if (this.selected) {
-        const index = findStringIndex(this.items, this.selected, false);
+        this.deleteAndSelectNext(this.selected);
+      }
+    },
 
-        if (index !== -1) {
-          /**
-           * Select the next item in the list when an item is to be deleted.
-           */
-          const item = (this.items[index + 1] || this.items[index - 1]);
+    deleteAndSelectNext(currItem: string) {
+      const index = findStringIndex(this.items, currItem, false);
 
-          this.onSelect(item);
-          this.setFocus(item);
+      if (index !== -1) {
+        /**
+         * Select the next item in the list.
+         */
+        const item = (this.items[index + 1] || this.items[index - 1]);
 
-          this.deleteItem(this.items[index]);
-        }
+        this.onSelect(item);
+        this.setFocus(item);
+
+        this.deleteItem(this.items[index]);
       }
     },
 
