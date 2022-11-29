@@ -193,7 +193,7 @@ export default {
               <span
                 v-if="!!displayLabels(row).length"
                 class="mt-5"
-              > {{t('node.list.nodeLabels')}}:
+              > {{ t('node.list.nodeLabels') }}:
                 <span
                   v-if="isLabelsVisible"
                   class="mt-5 labels"
@@ -206,7 +206,7 @@ export default {
                     {{ label }}
                   </Tag>
                 </span>
-                 <a
+                <a
                   href="#"
                   @click.prevent="toggleLabels"
                 >
