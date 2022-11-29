@@ -228,7 +228,7 @@ export const AGE = {
   search:    false,
   formatter: 'LiveDate',
   width:     100,
-  align:     'right'
+  align:     'left'
 };
 
 export const AGE_NORMAN = {
