@@ -18,7 +18,7 @@ import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQ
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import KeyValue from '@shell/components/form/KeyValue';
-import { getPSALabels } from '@shell/config/pod-security-admission';
+import { getPSALabels } from '@shell/utils/pod-security-admission';
 
 export default {
   components: {
@@ -74,7 +74,7 @@ export default {
      * Generate list of present keys which can be filtered based on existing label keys and system keys
      */
     protectedKeys() {
-      return getPSALabels(this.value.labels);
+      return getPSALabels(this.value);
     },
 
     isSingleHarvester() {

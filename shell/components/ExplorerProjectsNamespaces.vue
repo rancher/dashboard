@@ -11,7 +11,7 @@ import MoveModal from '@shell/components/MoveModal';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { hasPSALabels } from '@shell/config/pod-security-admission';
+import { hasPSALabels } from '@shell/utils/pod-security-admission';
 
 export default {
   name:       'ListProjectNamespace',
@@ -236,8 +236,12 @@ export default {
     }
   },
   methods: {
+    /**
+     * Check if resource contains PSA labels
+     * @param {*} row HciNamespace
+     */
     hasPSA(row) {
-      return hasPSALabels(row.labels);
+      return hasPSALabels(row);
     },
 
     getPSA(row) {
