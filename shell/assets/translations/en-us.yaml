@@ -1701,6 +1701,8 @@ cluster:
       header: Security
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
+    defaultPodSecurityAdmissionTemplateName:
+      label: Default Pod Security Admission
     enableNetworkPolicy:
       label: Project Network Isolation
       warning: Per default, the ingress controller will not be able to route requests to pods on other nodes.
