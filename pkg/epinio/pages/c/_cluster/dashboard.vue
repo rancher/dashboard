@@ -38,15 +38,13 @@ export default Vue.extend<any, any, any, any>({
           linkText:    this.t('epinio.intro.cards.services.linkText'),
           description: this.t('epinio.intro.cards.services.description'),
           slotTitle:   this.t('epinio.intro.cards.services.slotTitle')
-        }]
+        }],
+      colorStops: {
+        0: '--info', 30: '--info', 70: '--info'
+      }
     };
   },
   computed: {
-    colorStops() {
-      return {
-        0: '--info', 30: '--info', 70: '--info'
-      };
-    },
     servicesStarter() {
       return {
         redis: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: 'redis-dev' }),
@@ -74,10 +72,24 @@ export default Vue.extend<any, any, any, any>({
       };
     },
     namespaces() {
-      return {
-        apps:     this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE)[0].apps.length,
-        services: this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE)[0].configurations.length,
-      };
+      const allNamespaces = this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE);
+
+      let totalApps = 0;
+      let totalConfigurations = 0;
+
+      return allNamespaces.reduce((acc: any, namespace: any) => {
+        acc[namespace.name] = {
+          apps:           namespace.apps?.length,
+          configurations: namespace.configurations?.length
+        };
+
+        totalApps += namespace.apps?.length;
+        totalConfigurations += namespace.configurations?.length;
+
+        return {
+          ...acc, totalApps, totalConfigurations
+        };
+      }, {});
     },
   },
 });
@@ -100,12 +112,23 @@ export default Vue.extend<any, any, any, any>({
       </p>
 
       <div class="head-links">
-        <a href="https://epinio.io/" target="_blank" rel="noopener noreferrer nofollow">Get Started</a>
-        <a href="https://github.com/epinio/epinio/issues" target="_blank" rel="noopener noreferrer nofollow">Issues</a>
+        <a
+          href="https://epinio.io/"
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >Get Started</a>
+        <a
+          href="https://github.com/epinio/epinio/issues"
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >Issues</a>
       </div>
     </div>
     <div class="get-started">
-      <div v-for="(items, index) in sectionContent" :key="index">
+      <div
+        v-for="(items, index) in sectionContent"
+        :key="index"
+      >
         <DashboardCard
           :title="items.title"
           :icon="items.icon"
@@ -120,11 +143,11 @@ export default Vue.extend<any, any, any, any>({
               <ul>
                 <li>
                   Applications
-                  <span>{{ namespaces.apps }}</span>
+                  <span>{{ namespaces.totalApps }}</span>
                 </li>
                 <li>
-                  Services
-                  <span>{{ namespaces.services }}</span>
+                  Configurations
+                  <span>{{ namespaces.totalConfigurations }}</span>
                 </li>
               </ul>
             </slot>
@@ -147,13 +170,19 @@ export default Vue.extend<any, any, any, any>({
             <slot>
               <ul>
                 <li>
-                  <n-link :to="servicesStarter.mongo" class="link">
+                  <n-link
+                    :to="servicesStarter.mongo"
+                    class="link"
+                  >
                     mongodb-dev
                     <span>+</span>
                   </n-link>
                 </li>
                 <li>
-                  <n-link :to="servicesStarter.redis" class="link">
+                  <n-link
+                    :to="servicesStarter.redis"
+                    class="link"
+                  >
                     redis-dev
                     <span>+</span>
                   </n-link>

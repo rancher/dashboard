@@ -1,7 +1,7 @@
 <script>
 export default {
-  name:       'DashboardCard',
-  props:      {
+  name:  'DashboardCard',
+  props: {
     title:       { type: String, required: true },
     icon:        { type: String, required: true },
     cta:         { type: Object, required: true },
@@ -20,7 +20,10 @@ export default {
 <template>
   <div class="d-main">
     <div class="d-header">
-      <i class="icon icon-fw" :class="icon" />
+      <i
+        class="icon icon-fw"
+        :class="icon"
+      />
       <n-link :to="link">
         <h1>
           {{ title }}
@@ -32,13 +35,19 @@ export default {
       {{ description }}
     </p>
 
-    <n-link class="btn role-secondary" :to="cta">
+    <n-link
+      class="btn role-secondary"
+      :to="cta"
+    >
       {{ linkText }}
     </n-link>
 
-    <hr v-if="slotTitle" />
+    <hr v-if="slotTitle">
 
-    <div v-if="slotTitle" class="d-slot">
+    <div
+      v-if="slotTitle"
+      class="d-slot"
+    >
       <h2>{{ slotTitle }}</h2>
       <slot />
     </div>
