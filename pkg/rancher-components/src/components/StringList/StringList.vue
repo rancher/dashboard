@@ -185,11 +185,13 @@ export default Vue.extend({
     onClickMinusButton() {
       if (this.isCreateItem) {
         this.toggleCreateMode(false);
+
         return;
       }
       if (this.editedItem) {
         this.deleteAndSelectNext(this.editedItem);
         this.toggleEditMode(false);
+
         return;
       }
       if (this.selected) {
