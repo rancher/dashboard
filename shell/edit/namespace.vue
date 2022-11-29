@@ -16,17 +16,14 @@ import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
-import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import KeyValue from '@shell/components/form/KeyValue';
-import { getPSALabels } from '@shell/utils/pod-security-admission';
+import LabelsPSA from '@shell/components/LabelsPSA';
 
 export default {
   components: {
     ContainerResourceLimit,
     CruResource,
     LabeledSelect,
-    ToggleSwitch,
-    KeyValue,
+    LabelsPSA,
     Loading,
     NameNsDescription,
     PodSecurityAdmission,
@@ -69,13 +66,6 @@ export default {
 
   computed: {
     ...mapGetters(['isSingleProduct']),
-
-    /**
-     * Generate list of present keys which can be filtered based on existing label keys and system keys
-     */
-    protectedKeys() {
-      return getPSALabels(this.value);
-    },
 
     isSingleHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER && this.isSingleProduct;
@@ -236,33 +226,13 @@ export default {
       <Tab
         v-if="!isView"
         name="labels-and-annotations"
-        label-key="generic.labelsAndAnnotations"
+        label-key="generic.labels"
+        :show-header="false"
         :weight="-1"
       >
-        <div class="labels__header">
-          <h3>
-            <t k="labels.labels.title" />
-          </h3>
-          <ToggleSwitch
-            v-model="toggler"
-            name="label-system-toggle"
-            :on-label="t('labels.labels.show')"
-          />
-        </div>
-        <p class="helper-text mt-20 mb-20">
-          <t k="labels.labels.description" />
-        </p>
-        <KeyValue
-          key="labels"
-          :value="value.labels"
-          :protected-keys="protectedKeys"
-          :toggle-filter="toggler"
-          :add-label="t('labels.addLabel')"
+        <LabelsPSA
+          :value="value"
           :mode="mode"
-          :title-protip="labelTitleTooltip"
-          :read-allowed="false"
-          :value-can-be-empty="true"
-          @input="value.setLabels($event)"
         />
       </Tab>
       <Tab
@@ -279,17 +249,3 @@ export default {
     <MoveModal v-if="projects" />
   </CruResource>
 </template>
-
-<style lang="scss" scoped>
-.labels {
-  &__label {
-    &__header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 1em;
-    }
-  }
-}
-</style>

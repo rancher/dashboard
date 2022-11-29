@@ -27,6 +27,7 @@ generic:
     always: Always
     ifNotPresent: IfNotPresent
     never: Never
+  labels: Labels
   labelsAndAnnotations: Labels & Annotations
   podSecurityAdmission: Pod Security Admission
   links: Links
