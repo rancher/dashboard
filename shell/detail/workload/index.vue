@@ -363,7 +363,7 @@ export default {
         />
       </template>
     </div>
-    <ResourceTabs :value="value" :always-show-events="true">
+    <ResourceTabs :value="value">
       <Tab v-if="isCronJob" name="jobs" :label="t('tableHeaders.jobs')" :weight="4">
         <SortableTable
           :rows="value.jobs"

@@ -58,11 +58,6 @@ export default {
     needRelated: {
       type:    Boolean,
       default: true
-    },
-
-    alwaysShowEvents: {
-      type:    Boolean,
-      default: false
     }
   },
 
@@ -88,7 +83,7 @@ export default {
       return this.isView && this.needConditions && this.value?.type && this.$store.getters[`${ inStore }/pathExistsInSchema`](this.value.type, 'status.conditions');
     },
     showEvents() {
-      return this.isView && this.needEvents && this.hasEvents && (this.events.length || this.alwaysShowEvents);
+      return this.isView && this.needEvents && this.hasEvents;
     },
     showRelated() {
       return this.isView && this.needRelated;
