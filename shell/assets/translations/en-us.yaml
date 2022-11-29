@@ -31,6 +31,7 @@ generic:
   labelsAndAnnotations: Labels & Annotations
   links: Links
   loading: Loading&hellip;
+  load: Load;
   members: Members
   na: n/a
   name: Name
@@ -6054,6 +6055,11 @@ typeLabel:
       other { Benchmark Versions }
     }
   catalog.cattle.io.operation: |-
+    {count, plural,
+      one { Recent Operation }
+      other { Recent Operations }
+    }
+  charts: |-
     {count, plural,
       one { Recent Operation }
       other { Recent Operations }
