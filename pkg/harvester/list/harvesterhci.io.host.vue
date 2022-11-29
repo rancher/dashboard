@@ -33,8 +33,8 @@ export default {
 
   async fetch() {
     const _hash = {
-      nodes:         this.$store.dispatch('harvester/findAll', { type: NODE }),
-      pods:          this.$store.dispatch('harvester/findAll', { type: POD }),
+      nodes: this.$store.dispatch('harvester/findAll', { type: NODE }),
+      pods:  this.$store.dispatch('harvester/findAll', { type: POD }),
     };
 
     if (this.$store.getters['harvester/schemaFor'](METRIC.NODE)) {
@@ -72,17 +72,17 @@ export default {
         STATE,
         NAME,
         {
-          name:      'host-ip',
-          labelKey:  'tableHeaders.hostIp',
-          search:    ['internalIp'],
-          value:     'internalIp',
+          name:     'host-ip',
+          labelKey: 'tableHeaders.hostIp',
+          search:   ['internalIp'],
+          value:    'internalIp',
         },
         {
-          name:          'diskState',
-          labelKey:      'tableHeaders.diskState',
-          value:         'diskState',
-          formatter:     'HarvesterDiskState',
-          width:         130,
+          name:      'diskState',
+          labelKey:  'tableHeaders.diskState',
+          value:     'diskState',
+          formatter: 'HarvesterDiskState',
+          width:     130,
         },
       ];
 

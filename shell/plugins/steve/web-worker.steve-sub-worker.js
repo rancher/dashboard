@@ -41,9 +41,9 @@ function flush() {
       state.schemas[schema.id] = hash;
 
       const msg = {
-        data:          schema,
-        resourceType:  SCHEMA,
-        type:          'resource.change'
+        data:         schema,
+        resourceType: SCHEMA,
+        type:         'resource.change'
       };
 
       load(msg);

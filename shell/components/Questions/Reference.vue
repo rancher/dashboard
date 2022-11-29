@@ -83,7 +83,10 @@ export default {
 </script>
 
 <template>
-  <div v-if="typeSchema" class="row">
+  <div
+    v-if="typeSchema"
+    class="row"
+  >
     <div class="col span-6">
       <LabeledSelect
         :mode="mode"
@@ -103,7 +106,10 @@ export default {
       </div>
     </div>
   </div>
-  <div v-else class="row">
+  <div
+    v-else
+    class="row"
+  >
     <div class="col span-6">
       <LabeledInput
         :mode="mode"

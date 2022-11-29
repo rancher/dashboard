@@ -53,7 +53,7 @@ export default class FleetClusterGroup extends SteveModel {
     const out = [
       {
         label:   'Clusters Ready',
-        content:  `${ this.clusterInfo.ready } of ${ this.clusterInfo.total }`,
+        content: `${ this.clusterInfo.ready } of ${ this.clusterInfo.total }`,
       },
     ];
 

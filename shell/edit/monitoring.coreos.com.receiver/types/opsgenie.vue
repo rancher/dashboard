@@ -52,7 +52,7 @@ export default {
   components: {
     ArrayList, Checkbox, InputWithSelect, LabeledInput, Select
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -135,24 +135,45 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.api_key" :mode="mode" label="API Key" />
+        <LabeledInput
+          v-model="value.api_key"
+          :mode="mode"
+          label="API Key"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput
+          v-model="value.http_config.proxy_url"
+          :mode="mode"
+          label="Proxy URL"
+          placeholder="e.g. http://my-proxy/"
+        />
       </div>
     </div>
     <div class="row mb-20">
-      <Checkbox v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox
+        v-model="value.send_resolved"
+        :mode="mode"
+        label="Enable send resolved alerts"
+      />
     </div>
     <div class="row">
       <div class="col span-12">
         <h3>Responders</h3>
-        <ArrayList v-model="responders" :mode="mode" :default-add-value="defaultResponder" :show-header="true">
+        <ArrayList
+          v-model="responders"
+          :mode="mode"
+          :default-add-value="defaultResponder"
+          :show-header="true"
+        >
           <template v-slot:column-headers>
             <div class="responders-heading">
-              <div class="row" :class="{'mb-15': isView, 'mb-10': !isView}">
+              <div
+                class="row"
+                :class="{'mb-15': isView, 'mb-10': !isView}"
+              >
                 <div class="col span-6">
                   <span class="text-label">Type</span>
                 </div>
@@ -166,7 +187,12 @@ export default {
             <div class="row responder">
               <div class="col span-6">
                 <span v-if="isView">{{ typeLabel(scope.row.value.type) }}</span>
-                <Select v-else v-model="scope.row.value.type" :mode="mode" :options="TYPES" />
+                <Select
+                  v-else
+                  v-model="scope.row.value.type"
+                  :mode="mode"
+                  :options="TYPES"
+                />
               </div>
               <div class="col-span-6 target-container">
                 <span v-if="isView">{{ targetLabel(scope.row.value.target) }}: {{ scope.row.value.value }}</span>

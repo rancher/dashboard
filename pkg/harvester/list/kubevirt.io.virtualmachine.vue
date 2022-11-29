@@ -30,9 +30,9 @@ export default {
 
   async fetch() {
     const _hash = {
-      vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
-      pod:               this.$store.dispatch('harvester/findAll', { type: POD }),
-      restore:           this.$store.dispatch('harvester/findAll', { type: HCI.RESTORE }),
+      vms:     this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      pod:     this.$store.dispatch('harvester/findAll', { type: POD }),
+      restore: this.$store.dispatch('harvester/findAll', { type: HCI.RESTORE }),
     };
 
     if (this.$store.getters['harvester/schemaFor'](NODE)) {

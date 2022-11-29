@@ -8,7 +8,7 @@ import { CATALOG } from '@shell/config/types';
 export default {
   components: { Banner },
 
-  props:      {
+  props: {
     resource: {
       type:     String,
       required: true

@@ -95,11 +95,11 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
     source: {
-      type:     Object as PropType<EpinioAppSource>,
+      type:    Object as PropType<EpinioAppSource>,
       default: null
     },
     info: {
-      type:     Object as PropType<EpinioInfo>,
+      type:    Object as PropType<EpinioInfo>,
       default: null
     },
     mode: {
@@ -117,8 +117,8 @@ export default Vue.extend<Data, any, any, any>({
       defaultBuilderImage,
 
       archive: {
-        tarball:             this.source?.archive.tarball || '',
-        fileName:            this.source?.archive.fileName || '',
+        tarball:  this.source?.archive.tarball || '',
+        fileName: this.source?.archive.fileName || '',
       },
 
       container: { url: this.source?.container.url },
@@ -131,7 +131,7 @@ export default Vue.extend<Data, any, any, any>({
 
       github: {
         usernameOrOrg: this.source?.github.usernameOrOrg || '',
-        repo:           this.source?.github.repo || '',
+        repo:          this.source?.github.repo || '',
         commit:        this.source?.github.commit || '',
         branch:        this.source?.github.branch || '',
         url:           this.source?.github.url || '',
@@ -144,12 +144,12 @@ export default Vue.extend<Data, any, any, any>({
 
       builderImage: {
         value:   builderImage,
-        default:  builderImage === defaultBuilderImage,
+        default: builderImage === defaultBuilderImage,
       },
 
       appChart: this.source?.appChart,
 
-      types:        [{
+      types: [{
         label: this.t('epinio.applications.steps.source.archive.label'),
         value: APPLICATION_SOURCE_TYPE.ARCHIVE
       }, {
@@ -517,10 +517,17 @@ export default Vue.extend<Data, any, any, any>({
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
       <KeepAlive>
-        <GithubPicker :selection="source.github" @githubData="githubData" />
+        <GithubPicker
+          :selection="source.github"
+          @githubData="githubData"
+        />
       </KeepAlive>
     </template>
-    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30 source">
+    <Collapse
+      :open.sync="open"
+      :title="'Advanced Settings'"
+      class="mt-30 mb-30 source"
+    >
       <template>
         <LabeledSelect
           v-model="appChart"

@@ -28,8 +28,8 @@ export default {
 
     const authOptions = [
       {
-        value:   'none',
-        label:   this.t('monitoringReceiver.auth.none.label')
+        value: 'none',
+        label: this.t('monitoringReceiver.auth.none.label')
       },
       {
         value:   'basic_auth',
@@ -81,18 +81,39 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledSelect v-model="authType" :options="authOptions" label="Auth Type" @input="initializeType(authOptions, authType)" />
+        <LabeledSelect
+          v-model="authType"
+          :options="authOptions"
+          label="Auth Type"
+          @input="initializeType(authOptions, authType)"
+        />
       </div>
     </div>
-    <div v-if="authType === 'basic_auth'" class="row mb-20">
+    <div
+      v-if="authType === 'basic_auth'"
+      class="row mb-20"
+    >
       <div class="col span-6">
-        <LabeledInput v-model="value.basic_auth.username" :mode="mode" :label="t('monitoringReceiver.auth.username')" />
+        <LabeledInput
+          v-model="value.basic_auth.username"
+          :mode="mode"
+          :label="t('monitoringReceiver.auth.username')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.basic_auth.password" :mode="mode" :label="t('monitoringReceiver.auth.password')" type="password" autocomplete="password" />
+        <LabeledInput
+          v-model="value.basic_auth.password"
+          :mode="mode"
+          :label="t('monitoringReceiver.auth.password')"
+          type="password"
+          autocomplete="password"
+        />
       </div>
     </div>
-    <div v-else-if="authType === 'bearer_token'" class="row mb-20">
+    <div
+      v-else-if="authType === 'bearer_token'"
+      class="row mb-20"
+    >
       <div class="col span-6">
         <LabeledInput
           v-model="value.bearer_token"
@@ -104,9 +125,17 @@ export default {
         />
       </div>
     </div>
-    <div v-else-if="authType === 'bearer_token_file'" class="row mb-20">
+    <div
+      v-else-if="authType === 'bearer_token_file'"
+      class="row mb-20"
+    >
       <div class="col span-6">
-        <LabeledInput v-model="value.bearer_token_file" :mode="mode" :label="t('monitoringReceiver.auth.bearerTokenFile.label')" :placeholder="t('monitoringReceiver.auth.bearerTokenFile.placeholder')" />
+        <LabeledInput
+          v-model="value.bearer_token_file"
+          :mode="mode"
+          :label="t('monitoringReceiver.auth.bearerTokenFile.label')"
+          :placeholder="t('monitoringReceiver.auth.bearerTokenFile.placeholder')"
+        />
       </div>
     </div>
   </div>

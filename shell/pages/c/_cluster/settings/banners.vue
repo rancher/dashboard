@@ -16,40 +16,40 @@ import NotificationSettings from '@shell/components/form/NotificationSettings.vu
 
 const DEFAULT_BANNER_SETTING = {
   loginError:   { message: '', showMessage: 'false' },
-  bannerHeader:    {
-    background:      null,
-    color:           null,
-    textAlignment:   'center',
-    fontWeight:      null,
-    fontStyle:       null,
-    fontSize:        '14px',
-    textDecoration:  null,
-    text:            null,
+  bannerHeader: {
+    background:     null,
+    color:          null,
+    textAlignment:  'center',
+    fontWeight:     null,
+    fontStyle:      null,
+    fontSize:       '14px',
+    textDecoration: null,
+    text:           null,
   },
   bannerFooter: {
-    background:      null,
-    color:           null,
-    textAlignment:   'center',
-    fontWeight:      null,
-    fontStyle:       null,
-    fontSize:        '14px',
-    textDecoration:  null,
-    text:            null
+    background:     null,
+    color:          null,
+    textAlignment:  'center',
+    fontWeight:     null,
+    fontStyle:      null,
+    fontSize:       '14px',
+    textDecoration: null,
+    text:           null
   },
-  bannerConsent:  {
-    background:      null,
-    color:           null,
-    textAlignment:   'center',
-    fontWeight:      null,
-    fontStyle:       null,
-    fontSize:        '14px',
-    textDecoration:  null,
-    text:            null,
-    button:          null,
+  bannerConsent: {
+    background:     null,
+    color:          null,
+    textAlignment:  'center',
+    fontWeight:     null,
+    fontStyle:      null,
+    fontSize:       '14px',
+    textDecoration: null,
+    text:           null,
+    button:         null,
   },
-  showHeader:   'false',
-  showFooter:   'false',
-  showConsent:  'false'
+  showHeader:  'false',
+  showFooter:  'false',
+  showConsent: 'false'
 };
 
 export default {
@@ -258,10 +258,18 @@ export default {
       />
     </div>
     <template v-for="err in errors">
-      <Banner :key="err" color="error" :label="err" />
+      <Banner
+        :key="err"
+        color="error"
+        :label="err"
+      />
     </template>
     <div v-if="mode === 'edit'">
-      <AsyncButton class="pull-right mt-20" mode="apply" @click="save" />
+      <AsyncButton
+        class="pull-right mt-20"
+        mode="apply"
+        @click="save"
+      />
     </div>
   </div>
 </template>

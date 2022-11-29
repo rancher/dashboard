@@ -6,7 +6,7 @@ export default {
       type:    Number,
       default: 0
     },
-    graphWidth:      {
+    graphWidth: {
       type:     Number,
       required: true
     },
@@ -37,10 +37,10 @@ export default {
       const arc = d3.arc();
 
       return arc({
-        innerRadius:  vm.innerRadius,
-        outerRadius:  vm.outerRadius,
-        endAngle:     2 * (Math.PI),
-        startAngle:   0
+        innerRadius: vm.innerRadius,
+        outerRadius: vm.outerRadius,
+        endAngle:    2 * (Math.PI),
+        startAngle:  0
       });
     },
     arc() {
@@ -73,8 +73,14 @@ export default {
       :viewBox="`0 1 ${graphWidth} ${graphWidth}`"
     >
       <g :transform="`translate(${graphWidth/2}, ${graphWidth/2}) rotate(180)`">
-        <path class="background" :d="fullArc"></path>
-        <path :style="{fill: `rgb(${progressColor[0]}, ${progressColor[1]}, ${progressColor[2]})`}" :d="arc"></path>
+        <path
+          class="background"
+          :d="fullArc"
+        />
+        <path
+          :style="{fill: `rgb(${progressColor[0]}, ${progressColor[1]}, ${progressColor[2]})`}"
+          :d="arc"
+        />
       </g>
     </svg>
   </div>

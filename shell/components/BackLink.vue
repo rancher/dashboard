@@ -9,7 +9,11 @@ export default {
 };
 </script>
 <template>
-  <nuxt-link v-if="link && link.name" :to="link" class="back-link">
+  <nuxt-link
+    v-if="link && link.name"
+    :to="link"
+    class="back-link"
+  >
     <i class="icon icon-chevron-left" /> {{ t('generic.back') }}
   </nuxt-link>
   <nuxt-link v-else to="/" class="back-link">

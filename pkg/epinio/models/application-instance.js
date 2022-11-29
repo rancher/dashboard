@@ -4,10 +4,10 @@ import { EPINIO_PRODUCT_NAME } from '../types';
 export default class ApplicationInstanceResource extends Resource {
   get _availableActions() {
     return [{
-      action:     'showAppShell',
-      label:      this.t('epinio.applications.actions.onlyShell.label'),
-      icon:       'icon icon-fw icon-chevron-right',
-      enabled:    this.ready,
+      action:  'showAppShell',
+      label:   this.t('epinio.applications.actions.onlyShell.label'),
+      icon:    'icon icon-fw icon-chevron-right',
+      enabled: this.ready,
     }];
   }
 

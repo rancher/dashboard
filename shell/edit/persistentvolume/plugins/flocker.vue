@@ -4,7 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 export default {
   components: { LabeledInput },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -25,10 +25,20 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.flocker.datasetName" :mode="mode" :label="t('persistentVolume.flocker.datasetName.label')" :placeholder="t('persistentVolume.flocker.datasetName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.flocker.datasetName"
+          :mode="mode"
+          :label="t('persistentVolume.flocker.datasetName.label')"
+          :placeholder="t('persistentVolume.flocker.datasetName.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.flocker.datasetUUID" :mode="mode" :label="t('persistentVolume.flocker.datasetUUID.label')" :placeholder="t('persistentVolume.flocker.datasetUUID.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.flocker.datasetUUID"
+          :mode="mode"
+          :label="t('persistentVolume.flocker.datasetUUID.label')"
+          :placeholder="t('persistentVolume.flocker.datasetUUID.placeholder')"
+        />
       </div>
     </div>
   </div>

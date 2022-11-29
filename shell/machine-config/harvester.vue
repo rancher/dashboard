@@ -26,6 +26,8 @@ import { podAffinity as podAffinityValidator } from '@shell/utils/validators/pod
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 
+const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
+
 export function isReady() {
   function getStatusConditionOfType(type, defaultValue = []) {
     const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
@@ -99,10 +101,10 @@ export default {
 
       if (clusterId && isImportCluster) {
         const res = await allHashSettled({
-          namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
-          images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
-          configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
-          networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
+          namespaces: this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
+          images:     this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
+          configMaps: this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
+          networks:   this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
         });
 
         for (const key of Object.keys(res)) {
@@ -151,7 +153,7 @@ export default {
         this.userDataOptions = userDataOptions;
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
-        this.networkOptions = (res.networks.value?.data || []).map((O) => {
+        this.networkOptions = (res.networks.value?.data || []).filter(O => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
           let value;
           let label;
 
@@ -437,7 +439,10 @@ export default {
 
 <template>
   <div>
-    <Loading v-if="$fetchState.pending" :delayed="true" />
+    <Loading
+      v-if="$fetchState.pending"
+      :delayed="true"
+    />
     <div v-else>
       <div class="row mt-20">
         <div class="col span-6">
@@ -513,7 +518,10 @@ export default {
         </div>
       </div>
 
-      <div v-if="isImportCluster" class="row mt-20">
+      <div
+        v-if="isImportCluster"
+        class="row mt-20"
+      >
         <div class="col span-6">
           <LabeledSelect
             v-model="value.imageName"
@@ -543,7 +551,10 @@ export default {
         </div>
       </div>
 
-      <div v-else class="row mt-20">
+      <div
+        v-else
+        class="row mt-20"
+      >
         <div class="col span-6">
           <LabeledInput
             v-model="value.imageName"
@@ -654,8 +665,14 @@ export default {
       </portal>
     </div>
     <div v-if="errors.length">
-      <div v-for="(err, idx) in errors" :key="idx">
-        <Banner color="error" :label="stringify(err.Message || err)" />
+      <div
+        v-for="(err, idx) in errors"
+        :key="idx"
+      >
+        <Banner
+          color="error"
+          :label="stringify(err.Message || err)"
+        />
       </div>
     </div>
   </div>

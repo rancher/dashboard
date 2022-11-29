@@ -71,7 +71,11 @@ export default {
   >
     <div class="row">
       <div class="col span-12">
-        <NameNsDescription :mode="mode" :value="value" :namespaced="false" />
+        <NameNsDescription
+          :mode="mode"
+          :value="value"
+          :namespaced="false"
+        />
       </div>
     </div>
     <div class="row mb-20">
@@ -97,10 +101,18 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.minKubernetesVersion" :mode="mode" :label="t('cis.minKubernetesVersion')" />
+        <LabeledInput
+          v-model="value.spec.minKubernetesVersion"
+          :mode="mode"
+          :label="t('cis.minKubernetesVersion')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.maxKubernetesVersion" :mode="mode" :label="t('cis.maxKubernetesVersion')" />
+        <LabeledInput
+          v-model="value.spec.maxKubernetesVersion"
+          :mode="mode"
+          :label="t('cis.maxKubernetesVersion')"
+        />
       </div>
     </div>
   </CruResource>

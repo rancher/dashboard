@@ -23,7 +23,7 @@ export default Vue.extend({
     },
 
     disableSave: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     }
   },
@@ -47,10 +47,16 @@ export default Vue.extend({
 </script>
 <template>
   <div v-if="!isView">
-    <div class="spacer-small"></div>
+    <div class="spacer-small" />
 
-    <div v-for="(err,idx) in errors" :key="idx">
-      <Banner color="error" :label="err" />
+    <div
+      v-for="(err,idx) in errors"
+      :key="idx"
+    >
+      <Banner
+        color="error"
+        :label="err"
+      />
     </div>
     <div class="buttons">
       <div class="left">
@@ -58,7 +64,11 @@ export default Vue.extend({
       </div>
       <div class="right">
         <slot name="cancel">
-          <button type="button" class="btn role-secondary" @click="done">
+          <button
+            type="button"
+            class="btn role-secondary"
+            @click="done"
+          >
             <t k="generic.cancel" />
           </button>
         </slot>

@@ -9,14 +9,14 @@ export default {
   components: {
     LabeledInput, LabeledSelect, Banner
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
         return {};
       }
     },
-    serviceTargets:  {
+    serviceTargets: {
       type:    Array,
       default: () => []
     },
@@ -87,8 +87,14 @@ export default {
 </script>
 <template>
   <div>
-    <Banner color="warning" :label="t('ingress.defaultBackend.warning')" />
-    <div v-if="serviceName || !isView" class="row">
+    <Banner
+      color="warning"
+      :label="t('ingress.defaultBackend.warning')"
+    />
+    <div
+      v-if="serviceName || !isView"
+      class="row"
+    >
       <div class="col span-4">
         <LabeledSelect
           v-model="serviceName"
@@ -103,7 +109,10 @@ export default {
           @input="update(); servicePort = ''"
         />
       </div>
-      <div class="col span-3" :style="{'margin-right': '0px'}">
+      <div
+        class="col span-3"
+        :style="{'margin-right': '0px'}"
+      >
         <LabeledInput
           v-if="portOptions.length === 0 || isView"
           v-model.number="servicePort"
@@ -125,7 +134,10 @@ export default {
         />
       </div>
     </div>
-    <div v-else class="pl-10">
+    <div
+      v-else
+      class="pl-10"
+    >
       {{ t('ingress.defaultBackend.noServiceSelected') }}
     </div>
   </div>

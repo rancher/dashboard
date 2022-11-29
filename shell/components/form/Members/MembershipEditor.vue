@@ -45,8 +45,8 @@ export default {
     },
 
     defaultBindingHandler: {
-      type:     Function,
-      default:  null,
+      type:    Function,
+      default: null,
     },
 
     modalSticky: {
@@ -173,7 +173,10 @@ export default {
     <template #columns="{row}">
       <div class="columns row">
         <div class="col span-6">
-          <Principal :key="row.value.principalId" :value="row.value.principalId" />
+          <Principal
+            :key="row.value.principalId"
+            :value="row.value.principalId"
+          />
         </div>
         <div class="col span-6 role">
           {{ row.value.roleDisplay }}
@@ -191,7 +194,13 @@ export default {
     </template>
     <template #remove-button="{remove, i}">
       <span v-if="(isCreate && i === 0) || isView" />
-      <button v-else type="button" :disabled="isView" class="btn role-link" @click="remove">
+      <button
+        v-else
+        type="button"
+        :disabled="isView"
+        class="btn role-link"
+        @click="remove"
+      >
         {{ t('generic.remove') }}
       </button>
     </template>

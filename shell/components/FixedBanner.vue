@@ -25,12 +25,12 @@ export default {
 
   data() {
     return {
-      showDialog:      true,
-      showHeader:      false,
-      showFooter:      false,
-      showConsent:     false,
-      banner:          {},
-      bannerSetting:   null
+      showDialog:    true,
+      showHeader:    false,
+      showFooter:    false,
+      showConsent:   false,
+      banner:        {},
+      bannerSetting: null
     };
   },
 
@@ -131,10 +131,18 @@ export default {
 
 <template>
   <div v-if="showBanner">
-    <div v-if="!showAsDialog" class="banner" :style="bannerStyle" :class="{'banner-consent': consent}">
+    <div
+      v-if="!showAsDialog"
+      class="banner"
+      :style="bannerStyle"
+      :class="{'banner-consent': consent}"
+    >
       <!-- text as array to support line breaks programmatically rather than just exposing HTML -->
       <div v-if="isTextAnArray">
-        <p v-for="(text, index) in banner.text" :key="index">
+        <p
+          v-for="(text, index) in banner.text"
+          :key="index"
+        >
           {{ text }}
         </p>
       </div>
@@ -143,13 +151,22 @@ export default {
       </p>
     </div>
     <div v-else-if="showDialog">
-      <div class="banner-dialog-glass"></div>
+      <div class="banner-dialog-glass" />
       <div class="banner-dialog">
-        <div class="banner-dialog-frame" :style="dialogStyle">
-          <div class="banner" :style="bannerStyle">
+        <div
+          class="banner-dialog-frame"
+          :style="dialogStyle"
+        >
+          <div
+            class="banner"
+            :style="bannerStyle"
+          >
             <!-- text as array to support line breaks programmatically rather than just exposing HTML -->
             <div v-if="isTextAnArray">
-              <p v-for="(text, index) in banner.text" :key="index">
+              <p
+                v-for="(text, index) in banner.text"
+                :key="index"
+              >
                 {{ text }}
               </p>
             </div>
@@ -157,7 +174,10 @@ export default {
               {{ banner.text }}
             </p>
           </div>
-          <button class="btn role-primary" @click="hideDialog()">
+          <button
+            class="btn role-primary"
+            @click="hideDialog()"
+          >
             {{ banner.button }}
           </button>
         </div>

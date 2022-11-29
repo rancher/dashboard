@@ -4,14 +4,13 @@ import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';
-import { LabeledInput } from '@components/Form/LabeledInput';
 import ArrayList from '@shell/components/form/ArrayList';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
-import { _DETAIL } from '@shell/config/query-params';
+import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES } from '@shell/config/roles';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
@@ -52,7 +51,6 @@ export default {
   components: {
     ArrayList,
     CruResource,
-    LabeledInput,
     RadioGroup,
     Select,
     NameNsDescription,
@@ -89,6 +87,10 @@ export default {
       });
       this.templateOptions = Object.values(this.keyedTemplateOptions);
     }
+    if (this.realMode === _CLONE) {
+      this.value.displayName = '';
+      this.value.builtin = false;
+    }
   },
 
   data() {
@@ -112,7 +114,6 @@ export default {
 
   created() {
     this.$set(this.value, 'rules', this.value.rules || []);
-
     this.value.rules.forEach((rule) => {
       if (rule.verbs[0] === '*') {
         this.$set(rule, 'verbs', [...VERBS]);
@@ -524,8 +525,11 @@ export default {
         :row-actions="false"
         :search="false"
       />
-      <div v-for="(inherited, index) of inheritedRules" :key="index">
-        <div class="spacer"></div>
+      <div
+        v-for="(inherited, index) of inheritedRules"
+        :key="index"
+      >
+        <div class="spacer" />
         <h3>
           Inherited from {{ inherited.template.nameDisplay }}
           <template v-if="inherited.showParent">
@@ -551,7 +555,10 @@ export default {
         description-key="description"
         label="Name"
       />
-      <div v-if="isRancherType" class="row">
+      <div
+        v-if="isRancherType"
+        class="row"
+      >
         <div class="col span-6">
           <RadioGroup
             v-model="defaultValue"
@@ -562,7 +569,10 @@ export default {
             :mode="mode"
           />
         </div>
-        <div v-if="isRancherRoleTemplate" class="col span-6">
+        <div
+          v-if="isRancherRoleTemplate"
+          class="col span-6"
+        >
           <RadioGroup
             v-model="value.locked"
             name="storageSource"
@@ -573,7 +583,7 @@ export default {
           />
         </div>
       </div>
-      <div class="spacer"></div>
+      <div class="spacer" />
       <Tabbed :side-tabs="true">
         <Tab
           name="grant-resources"
@@ -595,24 +605,36 @@ export default {
             <template #column-headers>
               <div class="column-headers row">
                 <div :class="ruleClass">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
                     <span class="required">*</span>
-                  </label>
+                  </span>
                 </div>
                 <div :class="ruleClass">
-                  <label class="text-label">
+                  <span class="text-label">
                     {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
-                    <i v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')" class="icon icon-info" />
-                    <span v-if="isNamespaced" class="required">*</span>
-                  </label>
+                    <i
+                      v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
+                      class="icon icon-info"
+                    />
+                    <span
+                      v-if="isNamespaced"
+                      class="required"
+                    >*</span>
+                  </span>
                 </div>
                 <div :class="ruleClass">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
-                    <span v-if="isNamespaced" class="required">*</span>
-                  </label>
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
+                    <span
+                      v-if="isNamespaced"
+                      class="required"
+                    >*</span>
+                  </span>
                 </div>
-                <div v-if="!isNamespaced" :class="ruleClass">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</label>
+                <div
+                  v-if="!isNamespaced"
+                  :class="ruleClass"
+                >
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</span>
                 </div>
               </div>
             </template>
@@ -644,20 +666,23 @@ export default {
                   />
                 </div>
                 <div :class="ruleClass">
-                  <LabeledInput
+                  <input
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
                     @input="setRule('apiGroups', props.row.value, $event)"
-                  />
+                  >
                 </div>
-                <div v-if="!isNamespaced" :class="ruleClass">
-                  <LabeledInput
+                <div
+                  v-if="!isNamespaced"
+                  :class="ruleClass"
+                >
+                  <input
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
                     @input="setRule('nonResourceURLs', props.row.value, $event)"
-                  />
+                  >
                 </div>
               </div>
             </template>
@@ -712,6 +737,7 @@ export default {
   ::v-deep {
     .column-headers {
       margin-right: 75px;
+      margin-bottom: 5px;
     }
 
     .box {

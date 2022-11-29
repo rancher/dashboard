@@ -49,12 +49,8 @@ export default {
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }),
       this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE })
     ];
-    const [clusterRoleTemplateBindings] = await Promise.all(hydration);
-    const steveBindings = await Promise.all(
-      clusterRoleTemplateBindings.map(b => b.steve)
-    );
 
-    this.$set(this, 'clusterRoleTemplateBindings', steveBindings);
+    await Promise.all(hydration);
   },
 
   data() {
@@ -70,17 +66,19 @@ export default {
           cluster: this.$store.getters['currentCluster'].id
         }
       },
-      resource:                    MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-      clusterRoleTemplateBindings: [],
+      resource: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       VIRTUAL_TYPES
     };
   },
 
   computed: {
+    clusterRoleTemplateBindings() {
+      return this.$store.getters[`rancher/all`](NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING).map(b => b.clusterroletemplatebinding) ;
+    },
     ...mapGetters(['currentCluster']),
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings.filter(
-        b => b.clusterName === this.$store.getters['currentCluster'].id
+        b => b?.clusterName === this.$store.getters['currentCluster'].id
       );
     },
     canManageMembers() {
@@ -110,7 +108,7 @@ export default {
     <ResourceTable
       :schema="schema"
       :headers="headers"
-      :rows="filteredClusterRoleTemplateBindings"
+      :rows="$fetchState.pending ? [] : filteredClusterRoleTemplateBindings"
       :groupable="false"
       :namespaced="false"
       :loading="$fetchState.pending || !currentCluster"

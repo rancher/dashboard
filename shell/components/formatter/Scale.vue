@@ -36,7 +36,7 @@ export default {
     }
   },
 
-  methods:  {
+  methods: {
     scaleDown() {
       this.row.scaleDown();
     },
@@ -49,13 +49,31 @@ export default {
 </script>
 
 <template>
-  <v-popover :class="{'hand': showHover}" placement="top" :open-group="row.id" :trigger="showHover ? 'click' : 'manual'" offset="1">
+  <v-popover
+    :class="{'hand': showHover}"
+    placement="top"
+    :open-group="row.id"
+    :trigger="showHover ? 'click' : 'manual'"
+    offset="1"
+  >
     <span>
-      <ProgressBarMulti v-if="row.complexScale" :values="row.scaleParts" />
-      <p v-if="row.scales && row.scales.global" class="scale">Global</p>
-      <span v-else class="scale">
+      <ProgressBarMulti
+        v-if="row.complexScale"
+        :values="row.scaleParts"
+      />
+      <p
+        v-if="row.scales && row.scales.global"
+        class="scale"
+      >Global</p>
+      <span
+        v-else
+        class="scale"
+      >
         {{ row.scales.current }}
-        <div v-if="row.scales.auto" class="text-small text-muted">
+        <div
+          v-if="row.scales.auto"
+          class="text-small text-muted"
+        >
           ({{ row.scales.desired }})
         </div>
         <span v-else-if="row.showDesiredScale">
@@ -66,17 +84,34 @@ export default {
     </span>
 
     <template #popover>
-      <div v-if="canAdjust" class="text-center pb-5">
-        <button type="button" class="btn btn-sm bg-primary scale-btn" @click="scaleDown">
+      <div
+        v-if="canAdjust"
+        class="text-center pb-5"
+      >
+        <button
+          type="button"
+          class="btn btn-sm bg-primary scale-btn"
+          @click="scaleDown"
+        >
           <i class="icon icon-minus" />
         </button>
-        <button type="button" class="btn btn-sm bg-primary scale-btn" @click="scaleUp">
+        <button
+          type="button"
+          class="btn btn-sm bg-primary scale-btn"
+          @click="scaleUp"
+        >
           <i class="icon icon-plus" />
         </button>
       </div>
-      <table v-if="row.complexScale" class="fixed">
+      <table
+        v-if="row.complexScale"
+        class="fixed"
+      >
         <tbody>
-          <tr v-for="obj in row.scaleParts" :key="obj.label">
+          <tr
+            v-for="obj in row.scaleParts"
+            :key="obj.label"
+          >
             <td :class="{'text-left': true, [obj.textColor]: true}">
               {{ obj.label }}
             </td>

@@ -51,9 +51,9 @@ export function init(store) {
   });
 
   spoofedType({
-    label:      'Receivers',
-    type:       RECEIVER,
-    schemas:     [
+    label:   'Receivers',
+    type:    RECEIVER,
+    schemas: [
       {
         id:                RECEIVER,
         type:              'schema',
@@ -61,9 +61,9 @@ export function init(store) {
         resourceFields:    { spec: { type: RECEIVER_SPEC } }
       },
       {
-        id:                RECEIVER_SPEC,
-        type:              'schema',
-        resourceFields:    {
+        id:             RECEIVER_SPEC,
+        type:           'schema',
+        resourceFields: {
           name:              { type: 'string' },
           email_configs:     { type: `array[${ RECEIVER_EMAIL }]` },
           slack_configs:     { type: `array[${ RECEIVER_SLACK }]` },
@@ -73,9 +73,9 @@ export function init(store) {
         }
       },
       {
-        id:               RECEIVER_EMAIL,
-        type:            'schema',
-        resourceFields:  {
+        id:             RECEIVER_EMAIL,
+        type:           'schema',
+        resourceFields: {
           to:            { type: 'string' },
           send_resolved: { type: 'boolean' },
           from:          { type: 'string' },
@@ -86,9 +86,9 @@ export function init(store) {
         }
       },
       {
-        id:              RECEIVER_SLACK,
-        type:            'schema',
-        resourceFields:  {
+        id:             RECEIVER_SLACK,
+        type:           'schema',
+        resourceFields: {
           text:          { type: 'string' },
           api_url:       { type: 'string' },
           channel:       { type: 'string' },
@@ -97,9 +97,9 @@ export function init(store) {
         }
       },
       {
-        id:              RECEIVER_PAGERDUTY,
-        type:            'schema',
-        resourceFields:  {
+        id:             RECEIVER_PAGERDUTY,
+        type:           'schema',
+        resourceFields: {
           routing_key:   { type: 'string' },
           service_key:   { type: 'string' },
           http_config:   { type: RECEIVER_HTTP_CONFIG },
@@ -107,9 +107,9 @@ export function init(store) {
         }
       },
       {
-        id:              RECEIVER_OPSGENIE,
-        type:            'schema',
-        resourceFields:  {
+        id:             RECEIVER_OPSGENIE,
+        type:           'schema',
+        resourceFields: {
           api_key:       { type: 'string' },
           http_config:   { type: RECEIVER_HTTP_CONFIG },
           send_resolved: { type: 'boolean' },
@@ -117,9 +117,9 @@ export function init(store) {
         }
       },
       {
-        id:              RECEIVER_WEBHOOK,
-        type:            'schema',
-        resourceFields:  {
+        id:             RECEIVER_WEBHOOK,
+        type:           'schema',
+        resourceFields: {
           url:           { type: 'string' },
           http_config:   { type: RECEIVER_HTTP_CONFIG },
           send_resolved: { type: 'boolean' }
@@ -146,9 +146,9 @@ export function init(store) {
   });
 
   spoofedType({
-    label:      'Routes',
-    type:       ROUTE,
-    schemas:     [
+    label:   'Routes',
+    type:    ROUTE,
+    schemas: [
       {
         id:                ROUTE,
         type:              'schema',
@@ -156,9 +156,9 @@ export function init(store) {
         resourceFields:    { spec: { type: ROUTE_SPEC } }
       },
       {
-        id:                ROUTE_SPEC,
-        type:              'schema',
-        resourceFields:    {
+        id:             ROUTE_SPEC,
+        type:           'schema',
+        resourceFields: {
           receiver:        { type: 'string' },
           group_by:        { type: 'array[string]' },
           group_wait:      { type: 'string' },
@@ -173,21 +173,21 @@ export function init(store) {
   });
 
   virtualType({
-    label:         'Routes and Receivers',
-    group:         'monitoring',
-    name:     'route-receiver',
-    icon:     'globe',
+    label:  'Routes and Receivers',
+    group:  'monitoring',
+    name:   'route-receiver',
+    icon:   'globe',
     route:  { name: 'c-cluster-monitoring-route-receiver' },
     weight: 1
   });
 
   virtualType({
-    label:         'Monitors',
-    group:         'monitoring',
-    name:     'monitor',
-    icon:     'globe',
+    label:  'Monitors',
+    group:  'monitoring',
+    name:   'monitor',
+    icon:   'globe',
     route:  { name: 'c-cluster-monitoring-monitor' },
-    weight:         1,
+    weight: 1,
   });
 
   configureType('route-receiver', { showListMasthead: false });

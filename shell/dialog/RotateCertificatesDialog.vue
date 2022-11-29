@@ -28,12 +28,12 @@ export default {
   data() {
     return {
       selectedService:   '',
-      rotateAllServices:     true,
+      rotateAllServices: true,
       errors:            []
     };
   },
 
-  computed:   {
+  computed: {
     cluster() {
       return this.resources?.[0];
     },
@@ -105,8 +105,8 @@ export default {
           const currentGeneration = this.cluster.spec?.rkeConfig?.rotateCertificates?.generation || 0;
 
           set(this.cluster, 'spec.rkeConfig.rotateCertificates', {
-            generation:     currentGeneration + 1,
-            services:       (this.selectedService && !this.rotateAllServices) ? [this.selectedService] : []
+            generation: currentGeneration + 1,
+            services:   (this.selectedService && !this.rotateAllServices) ? [this.selectedService] : []
           });
 
           await this.cluster.save();
@@ -125,12 +125,22 @@ export default {
 </script>
 
 <template>
-  <Card class="prompt-rotate" :show-highlight-border="false" :style="{'height':'100%'}">
+  <Card
+    class="prompt-rotate"
+    :show-highlight-border="false"
+    :style="{'height':'100%'}"
+  >
     <template #title>
       <h3>{{ t('cluster.rotateCertificates.modalTitle') }}</h3>
     </template>
     <template #body>
-      <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
+      <Banner
+        v-for="(error, i) in errors"
+        :key="i"
+        class=""
+        color="error"
+        :label="error"
+      />
       <div class="options">
         <RadioGroup
           v-model="rotateAllServices"
@@ -146,14 +156,29 @@ export default {
             }
           ]"
         />
-        <Select v-model="selectedService" :options="serviceOptions" class="service-select" :class="{'invisible': rotateAllServices}" />
+        <Select
+          v-model="selectedService"
+          :options="serviceOptions"
+          class="service-select"
+          :class="{'invisible': rotateAllServices}"
+        />
       </div>
     </template>
-    <div slot="actions" class="buttons">
-      <button class="btn role-secondary mr-20" @click="close">
+    <div
+      slot="actions"
+      class="buttons"
+    >
+      <button
+        class="btn role-secondary mr-20"
+        @click="close"
+      >
         {{ t('generic.cancel') }}
       </button>
-      <AsyncButton mode="rotate" :disabled="!rotateAllServices && !selectedService" @click="rotate" />
+      <AsyncButton
+        mode="rotate"
+        :disabled="!rotateAllServices && !selectedService"
+        @click="rotate"
+      />
     </div>
   </Card>
 </template>

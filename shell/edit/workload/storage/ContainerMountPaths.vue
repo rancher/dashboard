@@ -27,7 +27,7 @@ export default {
     },
 
     container: {
-      type:     Object,
+      type:    Object,
       default: () => {
         return {};
       },

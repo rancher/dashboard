@@ -5,5 +5,8 @@
   "engines": {
     "node": ">=12"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "resolutions": {
+    "**/webpack": "4"
+  }  
 }

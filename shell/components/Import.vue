@@ -27,18 +27,24 @@ export default {
     SortableTable
   },
 
+  props: {
+    defaultNamespace: {
+      type:    String,
+      default: 'default'
+    },
+  },
+
   async fetch() {
     this.allNamespaces = await this.$store.dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } });
   },
 
   data() {
     return {
-      currentYaml:      '',
-      defaultNamespace: 'default',
-      allNamespaces:    null,
-      errors:           null,
-      rows:             null,
-      done:             false,
+      currentYaml:   '',
+      allNamespaces: null,
+      errors:        null,
+      rows:          null,
+      done:          false,
     };
   },
 
@@ -112,14 +118,17 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <Card v-else :show-highlight-border="false">
+  <Card
+    v-else
+    :show-highlight-border="false"
+  >
     <template #title>
       <div style="display: block; width: 100%;">
         <template v-if="done">
           <h4>{{ t('import.success', {count: rows.length}) }}</h4>
         </template>
         <template v-else>
-          <h4 v-t="'import.title'"></h4>
+          <h4 v-t="'import.title'" />
           <div class="row">
             <div class="col span-6">
               <FileSelector
@@ -163,19 +172,45 @@ export default {
         v-model="currentYaml"
         class="yaml-editor"
       />
-      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
     </template>
     <template #actions>
-      <div v-if="done" class="text-center" style="width: 100%">
-        <button type="button" class="btn role-primary" @click="close">
+      <div
+        v-if="done"
+        class="text-center"
+        style="width: 100%"
+      >
+        <button
+          type="button"
+          class="btn role-primary"
+          @click="close"
+        >
           {{ t('generic.close') }}
         </button>
       </div>
-      <div v-else class="text-center" style="width: 100%">
-        <button type="button" class="btn role-secondary mr-10" @click="close">
+      <div
+        v-else
+        class="text-center"
+        style="width: 100%"
+      >
+        <button
+          type="button"
+          class="btn role-secondary mr-10"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
-        <AsyncButton v-if="!done" mode="import" :disabled="!currentYaml.length" @click="importYaml" />
+        <AsyncButton
+          v-if="!done"
+          mode="import"
+          :disabled="!currentYaml.length"
+          @click="importYaml"
+        />
       </div>
     </template>
   </Card>

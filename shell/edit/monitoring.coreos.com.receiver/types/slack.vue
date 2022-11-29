@@ -56,7 +56,10 @@ export default {
           placeholder="e.g. https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
         />
         <p class="helper-text text-right mt-10">
-          <t k="monitoringReceiver.slack.info" :raw="true" />
+          <t
+            k="monitoringReceiver.slack.info"
+            :raw="true"
+          />
         </p>
       </div>
     </div>

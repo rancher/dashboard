@@ -9,8 +9,8 @@ export default {
   components: {
     LabeledInput, KeyValue, RadioGroup
   },
-  props:      {
-    value:      {
+  props: {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -54,10 +54,21 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.csi.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.volumeHandle" :mode="mode" :label="t('persistentVolume.longhorn.volumeHandle.label')" :placeholder="t('persistentVolume.longhorn.volumeHandle.placeholder')" :required="true" />
+        <LabeledInput
+          v-model="value.spec.csi.volumeHandle"
+          :mode="mode"
+          :label="t('persistentVolume.longhorn.volumeHandle.label')"
+          :placeholder="t('persistentVolume.longhorn.volumeHandle.placeholder')"
+          :required="true"
+        />
       </div>
     </div>
     <div class="row mb-20">

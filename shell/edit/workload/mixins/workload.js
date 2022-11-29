@@ -209,72 +209,32 @@ export default {
     this.selectContainer(container);
 
     return {
-      secondaryResourceData:       {
-        namespace: this.value?.metadata?.namespace || null,
-        data:      {
-          [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
-          [PVC]:             { applyTo: [{ var: 'pvcs' }] },
-          [SERVICE_ACCOUNT]: { applyTo: [{ var: 'namespacedServiceNames' }] },
-          [SECRET]:          {
-            applyTo: [
-              { var: 'namespacedSecrets' },
-              {
-                var:         'imagePullNamespacedSecrets',
-                parsingFunc: (data) => {
-                  return data.filter(secret => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
-                }
-              }
-            ]
-          },
-          [NODE]:            {
-            applyTo: [
-              { var: 'allNodeObjects' },
-              {
-                var:         'allNodes',
-                parsingFunc: (data) => {
-                  return data.map(node => node.id);
-                }
-              }
-            ]
-          },
-          [SERVICE]: {
-            applyTo: [
-              { var: 'allServices' },
-              {
-                var:         'headlessServices',
-                parsingFunc: (data) => {
-                  return data.filter(service => service.spec.clusterIP === 'None');
-                }
-              }
-            ]
-          },
-        }
-      },
-      namespacedConfigMaps:        [],
-      allNodes:                    null,
-      allNodeObjects:              [],
-      namespacedSecrets:           [],
-      imagePullNamespacedSecrets:  [],
-      allServices:                 [],
-      headlessServices:            [],
-      name:                        this.value?.metadata?.name || null,
-      pvcs:                        [],
-      namespacedServiceNames:      [],
-      showTabs:                    false,
-      pullPolicyOptions:           ['Always', 'IfNotPresent', 'Never'],
+      secondaryResourceData:      this.secondaryResourceDataConfig(),
+      namespacedConfigMaps:       [],
+      allNodes:                   null,
+      allNodeObjects:             [],
+      namespacedSecrets:          [],
+      imagePullNamespacedSecrets: [],
+      allServices:                [],
+      headlessServices:           [],
+      name:                       this.value?.metadata?.name || null,
+      pvcs:                       [],
+      namespacedServiceNames:     [],
+      showTabs:                   false,
+      pullPolicyOptions:          ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      servicesOwned:               [],
-      servicesToRemove:            [],
-      portsForServices:            [],
+      servicesOwned:              [],
+      servicesToRemove:           [],
+      portsForServices:           [],
       isInitContainer,
       container,
-      containerChange:             0,
-      tabChange:                   0,
-      podFsGroup:                  podTemplateSpec.securityContext?.fsGroup,
-      savePvcHookName:             'savePvcHook',
-      tabWeightMap:                TAB_WEIGHT_MAP,
-      fvFormRuleSets:              [{
+      containerChange:            0,
+      tabChange:                  0,
+      podFsGroup:                 podTemplateSpec.securityContext?.fsGroup,
+      savePvcHookName:            'savePvcHook',
+      tabWeightMap:               TAB_WEIGHT_MAP,
+      fvFormRuleSets:             [{
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
       fvReportedValidationPaths: ['spec'],
@@ -604,6 +564,49 @@ export default {
   },
 
   methods: {
+    secondaryResourceDataConfig() {
+      return {
+        namespace: this.value?.metadata?.namespace || null,
+        data:      {
+          [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
+          [PVC]:             { applyTo: [{ var: 'pvcs' }] },
+          [SERVICE_ACCOUNT]: { applyTo: [{ var: 'namespacedServiceNames' }] },
+          [SECRET]:          {
+            applyTo: [
+              { var: 'namespacedSecrets' },
+              {
+                var:         'imagePullNamespacedSecrets',
+                parsingFunc: (data) => {
+                  return data.filter(secret => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+                }
+              }
+            ]
+          },
+          [NODE]: {
+            applyTo: [
+              { var: 'allNodeObjects' },
+              {
+                var:         'allNodes',
+                parsingFunc: (data) => {
+                  return data.map(node => node.id);
+                }
+              }
+            ]
+          },
+          [SERVICE]: {
+            applyTo: [
+              { var: 'allServices' },
+              {
+                var:         'headlessServices',
+                parsingFunc: (data) => {
+                  return data.filter(service => service.spec.clusterIP === 'None');
+                }
+              }
+            ]
+          },
+        }
+      };
+    },
     addContainerBtn() {
       this.selectContainer({ name: 'Add Container', __add: true });
     },

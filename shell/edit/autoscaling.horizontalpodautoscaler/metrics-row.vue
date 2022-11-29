@@ -172,16 +172,28 @@ export default {
       </div>
     </div>
     <div v-if="isPodMetric">
-      <PodMetric v-model="value.pods" :mode="mode" />
+      <PodMetric
+        v-model="value.pods"
+        :mode="mode"
+      />
     </div>
     <div v-else-if="isExternalMetric">
-      <ExternalMetric v-model="value.external" :mode="mode" />
+      <ExternalMetric
+        v-model="value.external"
+        :mode="mode"
+      />
     </div>
     <div v-else-if="isObjectMetric">
-      <ObjectMetric v-model="value.object" :mode="mode" />
+      <ObjectMetric
+        v-model="value.object"
+        :mode="mode"
+      />
     </div>
     <div v-else-if="isResourceMetric">
-      <ResourceMetric v-model="value.resource" :mode="mode" />
+      <ResourceMetric
+        v-model="value.resource"
+        :mode="mode"
+      />
     </div>
   </div>
 </template>

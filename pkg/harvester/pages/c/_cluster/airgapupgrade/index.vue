@@ -7,12 +7,12 @@ import UpgradeInfo from '../../../../components/UpgradeInfo';
 
 import { HCI } from '../../../../types';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../../../config/harvester';
 
 const IMAGE_METHOD = {
-  NEW:    'new',
-  EXIST:  'exist'
+  NEW:   'new',
+  EXIST: 'exist'
 };
 
 const DOWNLOAD = 'download';
@@ -28,8 +28,8 @@ export default {
     await this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE });
 
     const value = await this.$store.dispatch('harvester/create', {
-      type:       HCI.UPGRADE,
-      metadata:   {
+      type:     HCI.UPGRADE,
+      metadata: {
         generateName: 'hvst-upgrade-',
         namespace:    'harvester-system',
       },
@@ -44,7 +44,7 @@ export default {
         generateName: 'image-',
         annotations:  {}
       },
-      spec:     {
+      spec: {
         sourceType:  UPLOAD,
         displayName: '',
         checksum:    ''
@@ -57,13 +57,13 @@ export default {
 
   data() {
     return {
-      value:         null,
-      file:          {},
-      imageId:       '',
-      imageSource:   IMAGE_METHOD.NEW,
-      sourceType:    UPLOAD,
-      imageValue:    null,
-      errors:        [],
+      value:       null,
+      file:        {},
+      imageId:     '',
+      imageSource: IMAGE_METHOD.NEW,
+      sourceType:  UPLOAD,
+      imageValue:  null,
+      errors:      [],
       IMAGE_METHOD
     };
   },

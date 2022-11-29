@@ -8,7 +8,7 @@ const mockT = (key: string, args: any) => {
 };
 
 describe('formRules', () => {
-  const formRules = formRulesGenerator(mockT, { displayKey: 'testDisplayKey' });
+  const formRules = formRulesGenerator(mockT, { key: 'testDisplayKey' });
 
   it('"required" : returns undefined when value supplied', () => {
     const testValue = 'foo';
@@ -113,7 +113,7 @@ describe('formRules', () => {
     const formRuleResult = formRules.containerImage(testValue);
     const expectedResult = JSON.stringify({
       message: 'workload.validation.containerImage',
-      name:     testValue.name
+      name:    testValue.name
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
@@ -149,7 +149,7 @@ describe('formRules', () => {
     const formRuleResult = formRules.containerImages(testValue);
     const expectedResult = JSON.stringify({
       message: 'workload.validation.containerImage',
-      name:     'testName'
+      name:    'testName'
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
@@ -191,7 +191,7 @@ describe('formRules', () => {
     const formRuleResult = formRules.groupsAreValid(testValue);
     const expectedResult = JSON.stringify({
       message: 'validation.prometheusRule.groups.valid.singleEntry',
-      index:     1
+      index:   1
     });
 
     expect(formRuleResult).toStrictEqual(expectedResult);
@@ -1032,5 +1032,26 @@ describe('formRules', () => {
     const expectedResult = 'This is an error returned by the testRule validator';
 
     expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
+  describe.each([
+    ['minValue', 2, [3], [1]],
+    ['maxValue', 256, [1], [300]],
+    ['betweenValues', [2, 256], [3], [1, 300]],
+    ['minLength', 2, ['test'], ['x']],
+    ['maxLength', 10, ['x'], ['wrong value']],
+    ['betweenLengths', [2, 10], ['test'], ['x', 'wrong value']],
+  ])('%p with parameter %p should', (rule, argument, correctValues, wrongValues) => {
+    it.each(wrongValues as [])('return error for value %p', (wrong) => {
+      const formRuleResult = (formRules as any)[rule](argument)(wrong);
+
+      expect(formRuleResult).not.toBeUndefined();
+    });
+
+    it.each(correctValues as [])('return valid for value %p', (correct) => {
+      const formRuleResult = (formRules as any)[rule](argument)(correct);
+
+      expect(formRuleResult).toBeUndefined();
+    });
   });
 });

@@ -26,7 +26,7 @@ export default {
 
   mixins: [CreateEditView],
 
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -103,7 +103,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     isCertificate() {
       return this.value._type === TYPES.TLS;
     },
@@ -157,58 +157,117 @@ export default {
 </script>
 
 <template>
-  <ResourceTabs v-model="value" :mode="mode">
-    <Tab name="data" :label="dataLabel">
+  <ResourceTabs
+    v-model="value"
+    :mode="mode"
+  >
+    <Tab
+      name="data"
+      :label="dataLabel"
+    >
       <template v-if="isRegistry || isBasicAuth">
-        <div v-if="isRegistry" class="row">
+        <div
+          v-if="isRegistry"
+          class="row"
+        >
           <div class="col span-12">
-            <DetailText :value="registryUrl" label-key="secret.registry.domainName">
-            </detailtext>
+            <DetailText
+              :value="registryUrl"
+              label-key="secret.registry.domainName"
+            />
           </div>
         </div>
         <div class="row mt-20">
           <div class="col span-6">
-            <DetailText :value="username" label-key="secret.registry.username" />
+            <DetailText
+              :value="username"
+              label-key="secret.registry.username"
+            />
           </div>
           <div class="col span-6">
-            <DetailText :value="password" label-key="secret.registry.password" :conceal="true" />
+            <DetailText
+              :value="password"
+              label-key="secret.registry.password"
+              :conceal="true"
+            />
           </div>
         </div>
       </template>
 
-      <div v-else-if="isCertificate" class="row">
+      <div
+        v-else-if="isCertificate"
+        class="row"
+      >
         <div class="col span-6">
-          <DetailText :value="key" label-key="secret.certificate.privateKey" :conceal="true" />
+          <DetailText
+            :value="key"
+            label-key="secret.certificate.privateKey"
+            :conceal="true"
+          />
         </div>
         <div class="col span-6">
-          <DetailText :value="crt" label-key="secret.certificate.certificate" />
+          <DetailText
+            :value="crt"
+            label-key="secret.certificate.certificate"
+          />
         </div>
       </div>
 
-      <div v-else-if="isSvcAcctToken" class="row">
+      <div
+        v-else-if="isSvcAcctToken"
+        class="row"
+      >
         <div class="col span-6">
-          <DetailText :value="crt" label-key="secret.serviceAcct.ca" />
+          <DetailText
+            :value="crt"
+            label-key="secret.serviceAcct.ca"
+          />
         </div>
         <div class="col span-6">
-          <DetailText :value="key" label-key="secret.serviceAcct.token" :conceal="true" />
+          <DetailText
+            :value="key"
+            label-key="secret.serviceAcct.token"
+            :conceal="true"
+          />
         </div>
       </div>
 
-      <div v-else-if="isSsh" class="row">
+      <div
+        v-else-if="isSsh"
+        class="row"
+      >
         <div class="col span-6">
-          <DetailText :value="username" label-key="secret.ssh.public" />
+          <DetailText
+            :value="username"
+            label-key="secret.ssh.public"
+          />
         </div>
         <div class="col span-6">
-          <DetailText :value="password" label-key="secret.ssh.private" :conceal="true" />
+          <DetailText
+            :value="password"
+            label-key="secret.ssh.private"
+            :conceal="true"
+          />
         </div>
       </div>
 
       <div v-else>
-        <div v-for="(row,idx) in parsedRows" :key="idx" class="entry">
-          <DetailText :value="row.value" :label="row.key" :conceal="true" />
+        <div
+          v-for="(row,idx) in parsedRows"
+          :key="idx"
+          class="entry"
+        >
+          <DetailText
+            :value="row.value"
+            :label="row.key"
+            :conceal="true"
+          />
         </div>
         <div v-if="!parsedRows.length">
-          <div v-t="'sortableTable.noRows'" class="m-20 text-center" />
+          <div
+            v-t="'sortableTable.noRows'"
+            class="m-20 text-center"
+          />
         </div>
       </div>
     </Tab>

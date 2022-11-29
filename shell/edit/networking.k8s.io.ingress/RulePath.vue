@@ -9,14 +9,14 @@ export default {
   components: {
     InputWithSelect, LabeledInput, Select
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
         return {};
       }
     },
-    serviceTargets:  {
+    serviceTargets: {
       type:    Array,
       default: () => []
     },
@@ -26,9 +26,9 @@ export default {
     },
     rules: {
       default: () => ({
-        path:        [],
-        port:        [],
-        target:      []
+        path:   [],
+        port:   [],
+        target: []
       }),
       type: Object,
     }
@@ -103,7 +103,10 @@ export default {
 </script>
 <template>
   <div class="rule-path row">
-    <div v-if="ingress.showPathType" class="col span-6">
+    <div
+      v-if="ingress.showPathType"
+      class="col span-6"
+    >
       <InputWithSelect
         ref="first"
         class="path-type"
@@ -116,10 +119,21 @@ export default {
         @input="queueUpdatePathTypeAndPath"
       />
     </div>
-    <div v-else class="col span-4">
-      <input ref="first" v-model="path" :placeholder="t('ingress.rules.path.placeholder', undefined, true)" @input="queueUpdate" />
+    <div
+      v-else
+      class="col span-4"
+    >
+      <input
+        ref="first"
+        v-model="path"
+        :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
+        @input="queueUpdate"
+      >
     </div>
-    <div class="col" :class="{'span-3': ingress.showPathType, 'span-4': !ingress.showPathType}">
+    <div
+      class="col"
+      :class="{'span-3': ingress.showPathType, 'span-4': !ingress.showPathType}"
+    >
       <Select
         v-model="serviceName"
         option-label="label"
@@ -133,7 +147,11 @@ export default {
         @input="servicePort = ''; queueUpdate();"
       />
     </div>
-    <div class="col" :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}" :style="{'margin-right': '0px'}">
+    <div
+      class="col"
+      :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}"
+      :style="{'margin-right': '0px'}"
+    >
       <LabeledInput
         v-if="portOptions.length === 0"
         v-model="servicePort"
@@ -151,7 +169,10 @@ export default {
         @input="queueUpdate"
       />
     </div>
-    <button class="btn btn-sm role-link col" @click="remove">
+    <button
+      class="btn btn-sm role-link col"
+      @click="remove"
+    >
       {{ t('ingress.rules.removePath') }}
     </button>
   </div>

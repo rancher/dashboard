@@ -18,7 +18,7 @@ export default {
           text: constraint.nameDisplay,
           to:   constraint.detailLocation
         },
-        templateLink:  {
+        templateLink: {
           text: constraint.kind,
           to:   {
             name:   'c-cluster-product-resource-id',
@@ -45,7 +45,10 @@ export default {
 
 <template>
   <div>
-    <ChartHeading :label="t('gatekeeperIndex.poweredBy')" url="https://github.com/open-policy-agent/gatekeeper" />
+    <ChartHeading
+      :label="t('gatekeeperIndex.poweredBy')"
+      url="https://github.com/open-policy-agent/gatekeeper"
+    />
     <div class="spacer" />
     <div class="mb-10">
       <h2><t k="gatekeeperIndex.violations" /></h2>

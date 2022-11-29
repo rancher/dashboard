@@ -60,7 +60,10 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" :delayed="true" />
+  <Loading
+    v-if="$fetchState.pending"
+    :delayed="true"
+  />
   <div v-else>
     <div class="row">
       <div class="col span-6">

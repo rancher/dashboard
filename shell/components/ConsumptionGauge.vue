@@ -12,7 +12,7 @@ export default {
      * The name of the resource to be displayed.
      */
     resourceName: {
-      type:     String,
+      type:    String,
       default: ''
     },
     /**
@@ -32,9 +32,9 @@ export default {
     /**
      * The units that should be displayed when referencing amounts of the resource.
      */
-    units:           {
-      type:     String,
-      default:  ''
+    units: {
+      type:    String,
+      default: ''
     },
     /**
      * A method which can be used to format the *capacity* and *used* numbers for display.

@@ -11,7 +11,7 @@ During the transition to the new folder structured in 2.6.5 required by the plug
 - Run the script `./scripts/rejig -d` to move folders to their old location and update imports again
   Use this to convert newer branches to the old format (possibly useful for branches)
 
-For more information on plugins see [Plugins](./docusaurus/docs/guide/plugins.md).
+For more information on plugins see [Plugins](https://rancher.github.io/dashboard/plugins/introduction).
 
 ## Running for Development
 This is what you probably want to get started.
@@ -27,7 +27,7 @@ API=https://your-rancher yarn dev
 ```
 
 
-## Other Building <odes
+## Other Building Modes
 ```bash
 # Build for standalone use within Rancher
 # (These are done on commit/tag via Drone)
@@ -76,11 +76,11 @@ From there we can customize anything from what columns are shown and in what for
 
 ## Developer Docs
 
-For information on APIs, the layout of the codebase, Vuex stores, localization and more, see the [developer docs.](./docs/developer)
+For information on APIs, the layout of the codebase, Vuex stores, localization and more, see the [developer docs.](https://rancher.github.io/dashboard/getting-started/concepts/)
 
 ## Contributing
 
-For developers, after reading through the introduction on this page, head over to our [Getting Started](./docs/developer/getting-started) guide to learn more.
+For developers, after reading through the introduction on this page, head over to our [Getting Started](https://rancher.github.io/dashboard/getting-started/concepts) guide to learn more.
 
 License
 =======

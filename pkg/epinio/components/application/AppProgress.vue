@@ -229,7 +229,10 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <div v-if="!$fetchState.pending" class="progress-container">
+  <div
+    v-if="!$fetchState.pending"
+    class="progress-container"
+  >
     <div class="progress">
       <SortableTable
         :rows="actions"
@@ -241,7 +244,10 @@ export default Vue.extend<Data, any, any, any>({
         key-field="key"
       >
         <template #cell:index="{row}">
-          <Checkbox v-model="row.run" :disabled="true" />
+          <Checkbox
+            v-model="row.run"
+            :disabled="true"
+          />
         </template>
         <template #cell:state="{row}">
           <div class="status">
@@ -250,7 +256,12 @@ export default Vue.extend<Data, any, any, any>({
               v-tooltip="row.stateDisplay"
               class="icon icon-lg icon-spinner icon-spin"
             />
-            <BadgeState v-else :color="row.stateBackground" :label="row.stateDisplay" class="badge" />
+            <BadgeState
+              v-else
+              :color="row.stateBackground"
+              :label="row.stateDisplay"
+              class="badge"
+            />
           </div>
         </template>
       </SortableTable>

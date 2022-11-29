@@ -49,10 +49,20 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-4">
-        <LabeledInput v-model="value.parameters.storageaccounttype" :placeholder="t('storageClass.azure-disk.storageAccountType.placeholder')" :label="t('storageClass.azure-disk.storageAccountType.label')" :mode="mode" />
+        <LabeledInput
+          v-model="value.parameters.storageaccounttype"
+          :placeholder="t('storageClass.azure-disk.storageAccountType.placeholder')"
+          :label="t('storageClass.azure-disk.storageAccountType.label')"
+          :mode="mode"
+        />
       </div>
       <div class="col span-4">
-        <LabeledSelect v-model="value.parameters.kind" :options="kindOptions" :label="t('storageClass.azure-disk.kind.label')" :mode="mode" />
+        <LabeledSelect
+          v-model="value.parameters.kind"
+          :options="kindOptions"
+          :label="t('storageClass.azure-disk.kind.label')"
+          :mode="mode"
+        />
       </div>
     </div>
   </div>

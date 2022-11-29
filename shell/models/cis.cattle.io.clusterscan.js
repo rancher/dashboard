@@ -22,19 +22,19 @@ export default class ClusterScan extends SteveModel {
     const t = this.$rootGetters['i18n/t'];
 
     const downloadReport = {
-      action:     'downloadLatestReport',
-      enabled:    this.hasReport,
-      icon:       'icon icon-fw icon-download',
-      label:      t('cis.downloadReport'),
-      total:      1,
+      action:  'downloadLatestReport',
+      enabled: this.hasReport,
+      icon:    'icon icon-fw icon-download',
+      label:   t('cis.downloadReport'),
+      total:   1,
     };
 
     const downloadAllReports = {
-      action:     'downloadAllReports',
-      enabled:    this.hasReport,
-      icon:       'icon icon-fw icon-download',
-      label:      t('cis.downloadAllReports'),
-      total:      1,
+      action:  'downloadAllReports',
+      enabled: this.hasReport,
+      icon:    'icon icon-fw icon-download',
+      label:   t('cis.downloadAllReports'),
+      total:   1,
     };
 
     if (this.hasReports) {

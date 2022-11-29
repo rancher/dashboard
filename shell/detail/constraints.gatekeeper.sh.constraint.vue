@@ -13,7 +13,7 @@ export default {
         CONSTRAINT_VIOLATION_RESOURCE_LINK,
         CONSTRAINT_VIOLATION_MESSAGE
       ],
-      violations:  this.value.violations
+      violations: this.value.violations
         .map((violation, i) => ({ ...violation, id: i }))
     };
   }
@@ -21,7 +21,10 @@ export default {
 </script>
 <template>
   <div>
-    <div v-if="value.spec.enforcementAction" class="row mt-40">
+    <div
+      v-if="value.spec.enforcementAction"
+      class="row mt-40"
+    >
       <div class="col span-12">
         <h3>Enforcement Action</h3>
         {{ value.spec.enforcementAction }}

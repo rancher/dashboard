@@ -2,9 +2,9 @@
 import { get } from '@shell/utils/object';
 
 export default {
-  props:      {
+  props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {
@@ -16,7 +16,7 @@ export default {
       default: null,
     }
   },
-  computed:   {
+  computed: {
     to() {
       if ( this.row && this.reference ) {
         return get(this.row, this.reference);
@@ -55,10 +55,18 @@ export default {
 </script>
 <template>
   <span class="cluster-link">
-    <n-link v-if="to" :to="to">
+    <n-link
+      v-if="to"
+      :to="to"
+    >
       {{ value }}
     </n-link>
     <span v-else>{{ value }}</span>
+    <i
+      v-if="row.unavailableMachines"
+      v-tooltip="row.unavailableMachines"
+      class="conditions-alert-icon icon-alert icon"
+    />
     <i
       v-if="row.rkeTemplateUpgrade"
       v-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"

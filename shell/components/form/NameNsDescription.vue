@@ -20,6 +20,7 @@ export function normalizeName(str) {
 }
 
 export default {
+  name:       'NameNsDescripiton',
   components: {
     LabeledInput,
     LabeledSelect
@@ -362,6 +363,12 @@ export default {
       this.namespace = e.selected;
     },
 
+    cancelCreateNamespace(e) {
+      this.createNamespace = false;
+      this.$parent.$emit('createNamespace', false);
+      this.namespace = this.$store.getters['defaultNamespace'];
+    },
+
     selectNamespace(e) {
       if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
@@ -389,7 +396,7 @@ export default {
         ref="namespace"
         v-model="namespace"
         :label="t('namespace.label')"
-        :placeholder="t('namespace.selectOrCreate')"
+        :placeholder="t('namespace.createNamespace')"
         :disabled="namespaceReallyDisabled"
         :mode="mode"
         :min-height="30"
@@ -398,10 +405,7 @@ export default {
       />
       <button
         aria="Cancel create"
-        @click="() => {
-          createNamespace = false
-          $parent.$emit('createNamespace', false)
-        }"
+        @click="cancelCreateNamespace"
       >
         <i
           v-tooltip="t('generic.cancel')"
@@ -472,10 +476,12 @@ export default {
       :key="slot"
       :class="{ col: true, [colSpan]: true }"
     >
-      <slot :name="slot">
-      </slot>
+      <slot :name="slot" />
     </div>
-    <div v-if="showSpacer" class="spacer"></div>
+    <div
+      v-if="showSpacer"
+      class="spacer"
+    />
   </div>
 </template>
 
@@ -494,7 +500,6 @@ button {
     padding-top: 7px;
   }
 }
-
 .row {
   &.name-ns-description {
     max-height: $input-height;

@@ -5,7 +5,7 @@ import Tag from '@shell/components/Tag';
 export default {
   props: {
     value: {
-      type:     [Array, String],
+      type:    [Array, String],
       default: null,
     },
   },
@@ -78,7 +78,11 @@ export default {
 <template>
   <span>
     <template v-for="endpoint in parsed">
-      <Tag v-if="endpoint.display" :key="endpoint.display" class="endpoint-tag">{{ endpoint.display }}</Tag>
+      <Tag
+        v-if="endpoint.display"
+        :key="endpoint.display"
+        class="endpoint-tag"
+      >{{ endpoint.display }}</Tag>
       <a
         v-else
         :key="endpoint.link"

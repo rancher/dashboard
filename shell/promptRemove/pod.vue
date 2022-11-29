@@ -12,9 +12,9 @@ export default {
     Checkbox
   },
 
-  props:      {
+  props: {
     value: {
-      type:     Array,
+      type:    Array,
       default: () => {
         return [];
       }
@@ -107,7 +107,10 @@ export default {
 <template>
   <div class="mt-10">
     <div class="mb-30">
-      {{ t('promptRemove.attemptingToRemove', { type }) }} <span class="machine-name" v-html="podNames" />
+      {{ t('promptRemove.attemptingToRemove', { type }) }} <span
+        class="machine-name"
+        v-html="podNames"
+      />
     </div>
     <div class="mb-30">
       <Checkbox
@@ -115,8 +118,17 @@ export default {
         :label="t('promptForceRemove.forceDelete')"
       />
     </div>
-    <Banner color="warning" label-key="promptForceRemove.podRemoveWarning" />
-    <Banner v-for="(error, i) in errors" :key="i" class="" color="error" :label="error" />
+    <Banner
+      color="warning"
+      label-key="promptForceRemove.podRemoveWarning"
+    />
+    <Banner
+      v-for="(error, i) in errors"
+      :key="i"
+      class=""
+      color="error"
+      :label="error"
+    />
   </div>
 </template>
 

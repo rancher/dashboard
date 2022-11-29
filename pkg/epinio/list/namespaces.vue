@@ -26,7 +26,7 @@ export default {
   data() {
     return {
       showCreateModal: false,
-      errors:           [],
+      errors:          [],
       validFields:     { name: false },
       value:           { meta: { name: '' } },
       submitted:       false,
@@ -130,13 +130,22 @@ export default {
       key-field="_key"
       v-on="$listeners"
     />
-    <div v-if="showCreateModal" class="modal">
+    <div
+      v-if="showCreateModal"
+      class="modal"
+    >
       <Card
         class="modal-content"
         :show-actions="true"
       >
-        <h4 slot="title" v-html="t('epinio.namespace.create')" />
-        <div slot="body" class="model-body">
+        <h4
+          slot="title"
+          v-html="t('epinio.namespace.create')"
+        />
+        <div
+          slot="body"
+          class="model-body"
+        >
           <LabeledInput
             ref="namespaceName"
             v-model="value.meta.name"
@@ -144,11 +153,22 @@ export default {
             :mode="mode"
             :required="true"
           />
-          <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+          <Banner
+            v-for="(err, i) in errors"
+            :key="i"
+            color="error"
+            :label="err"
+          />
         </div>
 
-        <div slot="actions" class="model-actions">
-          <button class="btn role-secondary mr-10" @click="closeCreateModal">
+        <div
+          slot="actions"
+          class="model-actions"
+        >
+          <button
+            class="btn role-secondary mr-10"
+            @click="closeCreateModal"
+          >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton

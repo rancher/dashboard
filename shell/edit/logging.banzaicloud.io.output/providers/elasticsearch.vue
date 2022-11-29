@@ -10,7 +10,7 @@ export default {
   components: {
     LabeledInput, LabeledSelect, SecretSelector, Checkbox
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -81,7 +81,13 @@ export default {
         />
       </div>
       <div class="col span-8">
-        <LabeledInput v-model="value.host" :mode="mode" :disabled="disabled" class="host" :label="t('logging.elasticsearch.host')" />
+        <LabeledInput
+          v-model="value.host"
+          :mode="mode"
+          :disabled="disabled"
+          class="host"
+          :label="t('logging.elasticsearch.host')"
+        />
       </div>
       <div class="col span-2">
         <LabeledInput
@@ -98,10 +104,15 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.index_name" :mode="mode" :disabled="disabled" :label="t('logging.elasticsearch.indexName')" />
+        <LabeledInput
+          v-model="value.index_name"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.elasticsearch.indexName')"
+        />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>
@@ -109,7 +120,12 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.user" :mode="mode" :disabled="disabled" :label="t('logging.elasticsearch.user')" />
+        <LabeledInput
+          v-model="value.user"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.elasticsearch.user')"
+        />
       </div>
       <div class="col span-6">
         <SecretSelector
@@ -122,7 +138,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.certificate') }}</h3>

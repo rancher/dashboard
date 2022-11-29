@@ -18,7 +18,8 @@ import {
 } from '@shell/config/types';
 import { HCI } from '../../types';
 import { HCI_SETTING } from '../../config/settings';
-import { HCI as HCI_ANNOTATIONS, HOSTNAME } from '@shell/config/labels-annotations';
+import { HOSTNAME } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import impl, { QGA_JSON, USB_TABLET } from './impl';
 
 export const MANAGEMENT_NETWORK = 'management Network';
@@ -85,18 +86,18 @@ export default {
 
   async fetch() {
     const hash = {
-      pvcs:               this.$store.dispatch('harvester/findAll', { type: PVC }),
-      storageClasses:     this.$store.dispatch('harvester/findAll', { type: STORAGE_CLASS }),
-      sshs:               this.$store.dispatch('harvester/findAll', { type: HCI.SSH }),
-      settings:           this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }),
-      images:             this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }),
-      versions:           this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION }),
-      templates:          this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE }),
-      networkAttachment:  this.$store.dispatch('harvester/findAll', { type: NETWORK_ATTACHMENT }),
-      vmis:               this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
-      vmims:              this.$store.dispatch('harvester/findAll', { type: HCI.VMIM }),
-      vms:                this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
-      secrets:            this.$store.dispatch('harvester/findAll', { type: SECRET }),
+      pvcs:              this.$store.dispatch('harvester/findAll', { type: PVC }),
+      storageClasses:    this.$store.dispatch('harvester/findAll', { type: STORAGE_CLASS }),
+      sshs:              this.$store.dispatch('harvester/findAll', { type: HCI.SSH }),
+      settings:          this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }),
+      images:            this.$store.dispatch('harvester/findAll', { type: HCI.IMAGE }),
+      versions:          this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION }),
+      templates:         this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE }),
+      networkAttachment: this.$store.dispatch('harvester/findAll', { type: NETWORK_ATTACHMENT }),
+      vmis:              this.$store.dispatch('harvester/findAll', { type: HCI.VMI }),
+      vmims:             this.$store.dispatch('harvester/findAll', { type: HCI.VMIM }),
+      vms:               this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      secrets:           this.$store.dispatch('harvester/findAll', { type: SECRET }),
     };
 
     if (this.$store.getters['harvester/schemaFor'](NODE)) {
@@ -411,17 +412,17 @@ export default {
           const volumeStatus = allVolumeStatus.find(volume => realName === volume.name);
 
           return {
-            id:           randomStr(5),
+            id:         randomStr(5),
             bootOrder,
             source,
-            name:          DISK.name,
+            name:       DISK.name,
             realName,
             bus,
             volumeName,
             container,
             accessMode,
             size:       `${ formatSize }Gi`,
-            volumeMode:    volumeMode || this.customVolumeMode,
+            volumeMode: volumeMode || this.customVolumeMode,
             image,
             type,
             storageClassName,
@@ -453,8 +454,8 @@ export default {
           index,
           type,
           isPod,
-          model:        I.model,
-          networkName:  isPod ? MANAGEMENT_NETWORK : network?.multus?.networkName,
+          model:       I.model,
+          networkName: isPod ? MANAGEMENT_NETWORK : network?.multus?.networkName,
         };
       });
 
@@ -566,7 +567,7 @@ export default {
               ...this.spec?.template?.metadata?.annotations,
               [HCI_ANNOTATIONS.SSH_NAMES]: JSON.stringify(this.sshKey)
             },
-            labels:      {
+            labels: {
               ...this.spec?.template?.metadata?.labels,
               [HCI_ANNOTATIONS.VM_NAME]: this.value?.metadata?.name,
             }
@@ -805,8 +806,8 @@ export default {
       }
 
       const out = {
-        metadata:   { name: dataVolumeName },
-        spec:       {
+        metadata: { name: dataVolumeName },
+        spec:     {
           accessModes: [R.accessMode],
           resources:   { requests: { storage: R.size } },
           volumeMode:  R.volumeMode

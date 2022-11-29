@@ -25,17 +25,17 @@ export default {
     return { admin: isAdminUser(this.$store.getters) };
   },
   computed: {
-    keymap:           mapPref(KEYMAP),
-    viewInApi:        mapPref(VIEW_IN_API),
-    allNamespaces:    mapPref(ALL_NAMESPACES),
-    themeShortcut:    mapPref(THEME_SHORTCUT),
-    dateFormat:       mapPref(DATE_FORMAT),
-    timeFormat:       mapPref(TIME_FORMAT),
-    perPage:          mapPref(ROWS_PER_PAGE),
-    hideDesc:         mapPref(HIDE_DESC),
-    showPreRelease:   mapPref(SHOW_PRE_RELEASE),
-    menuMaxClusters:  mapPref(MENU_MAX_CLUSTERS),
-    pluginDeveloper:  mapPref(PLUGIN_DEVELOPER),
+    keymap:          mapPref(KEYMAP),
+    viewInApi:       mapPref(VIEW_IN_API),
+    allNamespaces:   mapPref(ALL_NAMESPACES),
+    themeShortcut:   mapPref(THEME_SHORTCUT),
+    dateFormat:      mapPref(DATE_FORMAT),
+    timeFormat:      mapPref(TIME_FORMAT),
+    perPage:         mapPref(ROWS_PER_PAGE),
+    hideDesc:        mapPref(HIDE_DESC),
+    showPreRelease:  mapPref(SHOW_PRE_RELEASE),
+    menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
+    pluginDeveloper: mapPref(PLUGIN_DEVELOPER),
 
     ...mapGetters(['isSingleProduct']),
 
@@ -153,7 +153,10 @@ export default {
 <template>
   <div>
     <BackLink :link="backLink" />
-    <h1 v-t="'prefs.title'" class="mb-20" />
+    <h1
+      v-t="'prefs.title'"
+      class="mb-20"
+    />
     <!-- Language -->
     <div class="mt-10 mb-10">
       <h4 v-t="'prefs.language'" />
@@ -165,22 +168,32 @@ export default {
     </div>
     <!-- Theme -->
     <div class="mt-10 mb-10">
-      <hr />
+      <hr>
       <h4 v-t="'prefs.theme.label'" />
-      <ButtonGroup v-model="theme" :options="themeOptions" />
+      <ButtonGroup
+        v-model="theme"
+        :options="themeOptions"
+      />
       <div class="mt-10">
-        <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
+        <t
+          k="prefs.theme.autoDetail"
+          :pm="pm"
+          :am="am"
+        />
       </div>
     </div>
     <!-- Login landing page -->
-    <div v-if="!isSingleProduct" class="mt-10 mb-10">
-      <hr />
+    <div
+      v-if="!isSingleProduct"
+      class="mt-10 mb-10"
+    >
+      <hr>
       <h4 v-t="'prefs.landing.label'" />
       <LandingPagePreference />
     </div>
     <!-- Display Settings -->
     <div class="mt-10 mb-10">
-      <hr />
+      <hr>
       <h4 v-t="'prefs.displaySettings.title'" />
       <p class="set-landing-leadin">
         {{ t('prefs.displaySettings.detail', {}, raw=true) }}
@@ -227,31 +240,61 @@ export default {
     </div>
     <!-- Advanced Features -->
     <div class="col adv-features mt-10 mb-10">
-      <hr />
+      <hr>
       <h4 v-t="'prefs.advFeatures.title'" />
-      <Checkbox v-model="viewInApi" :label="t('prefs.advFeatures.viewInApi', {}, true)" class="mt-10" />
-      <br />
-      <Checkbox v-model="allNamespaces" :label="t('prefs.advFeatures.allNamespaces', {}, true)" class="mt-20" />
-      <br />
-      <Checkbox v-model="themeShortcut" :label="t('prefs.advFeatures.themeShortcut', {}, true)" class="mt-20" />
-      <br />
-      <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-20" />
+      <Checkbox
+        v-model="viewInApi"
+        :label="t('prefs.advFeatures.viewInApi', {}, true)"
+        class="mt-10"
+      />
+      <br>
+      <Checkbox
+        v-model="allNamespaces"
+        :label="t('prefs.advFeatures.allNamespaces', {}, true)"
+        class="mt-20"
+      />
+      <br>
+      <Checkbox
+        v-model="themeShortcut"
+        :label="t('prefs.advFeatures.themeShortcut', {}, true)"
+        class="mt-20"
+      />
+      <br>
+      <Checkbox
+        v-if="!isSingleProduct"
+        v-model="hideDescriptions"
+        :label="t('prefs.hideDesc.label')"
+        class="mt-20"
+      />
       <template v-if="admin">
-        <br />
-        <Checkbox v-model="pluginDeveloper" :label="t('prefs.advFeatures.pluginDeveloper', {}, true)" class="mt-20" />
+        <br>
+        <Checkbox
+          v-model="pluginDeveloper"
+          :label="t('prefs.advFeatures.pluginDeveloper', {}, true)"
+          class="mt-20"
+        />
       </template>
     </div>
     <!-- YAML editor key mapping -->
     <div class="col mt-10 mb-10">
-      <hr />
+      <hr>
       <h4 v-t="'prefs.keymap.label'" />
-      <ButtonGroup v-model="keymap" :options="keymapOptions" />
+      <ButtonGroup
+        v-model="keymap"
+        :options="keymapOptions"
+      />
     </div>
     <!-- Helm Charts -->
-    <div v-if="!isSingleProduct" class="col mt-10 mb-40">
-      <hr />
+    <div
+      v-if="!isSingleProduct"
+      class="col mt-10 mb-40"
+    >
+      <hr>
       <h4 v-t="'prefs.helm.label'" />
-      <ButtonGroup v-model="showPreRelease" :options="helmOptions" />
+      <ButtonGroup
+        v-model="showPreRelease"
+        :options="helmOptions"
+      />
     </div>
   </div>
 </template>

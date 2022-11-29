@@ -5,7 +5,7 @@ import { RadioGroup } from '@components/Form/Radio';
 export default {
   components: { LabeledInput, RadioGroup },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -72,10 +72,22 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureDisk.diskName" :required="true" :mode="mode" :label="t('persistentVolume.azureDisk.diskName.label')" :placeholder="t('persistentVolume.azureDisk.diskName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.azureDisk.diskName"
+          :required="true"
+          :mode="mode"
+          :label="t('persistentVolume.azureDisk.diskName.label')"
+          :placeholder="t('persistentVolume.azureDisk.diskName.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureDisk.diskURI" :required="true" :mode="mode" :label="t('persistentVolume.azureDisk.diskURI.label')" :placeholder="t('persistentVolume.azureDisk.diskURI.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.azureDisk.diskURI"
+          :required="true"
+          :mode="mode"
+          :label="t('persistentVolume.azureDisk.diskURI.label')"
+          :placeholder="t('persistentVolume.azureDisk.diskURI.placeholder')"
+        />
       </div>
     </div>
 
@@ -102,7 +114,12 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureDisk.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.azureDisk.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup

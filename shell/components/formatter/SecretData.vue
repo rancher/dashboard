@@ -4,7 +4,7 @@ export default {
   components: { DateComponent },
   props:      {
     value: {
-      type:     [Object, String],
+      type:    [Object, String],
       default: null,
     },
     row: {
@@ -43,8 +43,11 @@ export default {
 
 <template>
   <div v-if="isTLS">
-    <t k="secret.certificate.cn" /> {{ cn }} <span v-if="row.unrepeatedSans.length">{{ t('secret.certificate.plusMore', {n:row.unrepeatedSans.length}) }}</span><br />
-    <t k="secret.certificate.expires" />: <DateComponent :class="dateClass" :value="expiration" />
+    <t k="secret.certificate.cn" /> {{ cn }} <span v-if="row.unrepeatedSans.length">{{ t('secret.certificate.plusMore', {n:row.unrepeatedSans.length}) }}</span><br>
+    <t k="secret.certificate.expires" />: <DateComponent
+      :class="dateClass"
+      :value="expiration"
+    />
   </div>
   <div v-else>
     {{ value }}

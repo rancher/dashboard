@@ -27,7 +27,10 @@ export default {
         @input="update"
       />
     </div>
-    <div v-if="showDescription" class="col span-6 mt-10">
+    <div
+      v-if="showDescription"
+      class="col span-6 mt-10"
+    >
       {{ question.description }}
     </div>
   </div>

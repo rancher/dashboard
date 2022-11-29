@@ -4,7 +4,6 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import FileSelector, { createOnSelected } from '@shell/components/form/FileSelector';
 import { set } from '@shell/utils/object';
 import isEmpty from 'lodash/isEmpty';
-import { _CREATE } from '@shell/config/query-params';
 
 export default {
   components: {
@@ -24,7 +23,7 @@ export default {
   },
 
   data() {
-    if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) && this.mode === _CREATE ) {
+    if ( isEmpty(this.value?.spec?.localClusterAuthEndpoint) ) {
       set(this.value, 'spec.localClusterAuthEndpoint', {
         enabled: false,
         caCerts: '',
@@ -75,7 +74,12 @@ export default {
             type="multiline"
             :tooltip="t('cluster.rke2.address.caCerts.toolTip')"
           />
-          <FileSelector :mode="mode" class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCertSelected" />
+          <FileSelector
+            :mode="mode"
+            class="btn btn-sm bg-primary mt-10"
+            :label="t('generic.readFromFile')"
+            @selected="onCertSelected"
+          />
         </div>
       </div>
     </template>
