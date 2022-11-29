@@ -81,12 +81,12 @@ export function init($plugin: any, store: any) {
   });
 
   virtualType({
-    label:        store.getters['i18n/t']('epinio.intro.dashboard'),
-    icon:         'dashboard',
-    group:        'Root',
-    namespaced:   false,
-    name:         EPINIO_TYPES.DASHBOARD,
-    route:        createEpinioRoute('c-cluster-dashboard', { })
+    label:      store.getters['i18n/t']('epinio.intro.dashboard'),
+    icon:       'dashboard',
+    group:      'Root',
+    namespaced: false,
+    name:       EPINIO_TYPES.DASHBOARD,
+    route:      createEpinioRoute('c-cluster-dashboard', { })
   });
 
   // App Chart resource
