@@ -66,8 +66,6 @@ export default {
 
       this.$set(this.value, 'data', {});
     } else {
-      // POSSIBLY TO DELETE THIS CHANGE????
-      // needs to be checked...
       this.value.metadata.namespace = '';
     }
 
@@ -252,10 +250,63 @@ export default {
         } catch (e) {
           this.errors = [e];
           btnCb(false);
-
-          return;
         }
       }
+
+      // if (this.value.projectId) {
+      //   console.log('PROJECT SELECTED!!!', this.value.projectId);
+      //   try {
+      //     const opt = {};
+
+      //     opt.url = `/v3/projects/${ this.value.projectId }/secret`;
+
+      //     // {"type":"secret","data":{"x":"eA=="},"labels":{},"name":"xxxxxxx"}
+
+      //     opt.method = ( !this.value.id ? 'post' : 'put' );
+      //     opt.headers = {};
+      //     opt.headers['content-type'] = 'application/json';
+      //     opt.headers['accept'] = 'application/json';
+      //     opt.data = JSON.parse(JSON.stringify(this.value));
+
+      //     if (opt.data?._type) {
+      //       opt.data.kind = opt.data?._type;
+      //       delete opt.data?._type;
+      //     }
+
+      //     if (opt.data?.metadata?.name) {
+      //       opt.data.name = opt.data?.metadata?.name;
+      //       delete opt.data?.metadata?.name;
+      //     }
+
+      //     // if it's selected by project, we don't need namespace
+      //     delete opt.data?.metadata?.namespace;
+
+      //     console.log('DATA BEFORE SEND', opt.data);
+
+      //     const res = await this.$store.dispatch(`management/request`, opt, { root: true });
+
+      //     console.log('RES!!!!', res);
+      //     btnCb(true);
+
+      //     return;
+      //   } catch (e) {
+      //     this.errors = [e];
+      //     btnCb(false);
+      //   }
+      // } else {
+      //   console.log('namespaces selected!!!', this.value.metadata);
+
+      //   return this.save(btnCb);
+      // }
+
+      if (this.value.projectId) {
+        console.log('here!');
+        this.value.metadata.annotations['field.cattle.io/projectId'] = this.value.projectId;
+        delete this.value.projectId;
+        // delete this.value.metadata.namespace;
+      }
+
+      console.log('data before save', this.value);
 
       return this.save(btnCb);
     },
@@ -324,6 +375,7 @@ export default {
       :errors="errors"
       :done-route="doneRoute"
       :subtypes="secretSubTypes"
+      :disable-namespace-creation="true"
       @finish="saveSecret"
       @select-type="selectType"
       @error="e=>errors = e"

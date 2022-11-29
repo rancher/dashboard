@@ -19,6 +19,8 @@ export function normalizeName(str) {
     .replace(/-+$/, '');
 }
 
+const PROJECT_IDENTIFIER = '_*_PROJ_*_';
+
 export default {
   name:       'NameNsDescripiton',
   components: {
@@ -179,7 +181,9 @@ export default {
       name = metadata.name;
     }
 
-    if (this.namespaced) {
+    if (metadata.annotations && metadata.annotations['field.cattle.io/projectId']) {
+      v.projectId = metadata.annotations['field.cattle.io/projectId'];
+    } else if (this.namespaced) {
       if (this.forceNamespace) {
         namespace = this.forceNamespace;
         this.updateNamespace(namespace);
@@ -319,7 +323,7 @@ export default {
 
         out.push({
           label: `${ this.t('tableHeaders.project') }: ${ proj.nameDisplay }`,
-          value: proj.id
+          value: `${ PROJECT_IDENTIFIER }${ proj.id.replace('/', ':') }`
         }, ...sortedByLabel);
 
         if (i !== projects.length - 1) {
@@ -330,6 +334,8 @@ export default {
           });
         }
       });
+
+      console.log('out', out);
 
       return out;
     },
@@ -372,7 +378,12 @@ export default {
     },
 
     namespace(val) {
-      this.updateNamespace(val);
+      if (val.includes(PROJECT_IDENTIFIER)) {
+        this.value.projectId = val.replace(PROJECT_IDENTIFIER, '');
+      } else {
+        this.updateNamespace(val);
+        this.value.projectId = undefined;
+      }
       this.$emit('change');
     },
 

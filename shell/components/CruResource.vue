@@ -128,6 +128,13 @@ export default {
     componentTestid: {
       type:    String,
       default: 'form'
+    },
+    /**
+     * Disable namespace creation
+     */
+    disableNamespaceCreation: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -308,18 +315,22 @@ export default {
     },
 
     async clickSave(buttonDone) {
-      try {
-        await this.createNamespaceIfNeeded();
+      if (!this.disableNamespaceCreation) {
+        try {
+          await this.createNamespaceIfNeeded();
 
-        // If the attempt to create the new namespace
-        // is successful, save the resource.
-        this.$emit('finish', buttonDone);
-      } catch (err) {
+          // If the attempt to create the new namespace
+          // is successful, save the resource.
+          this.$emit('finish', buttonDone);
+        } catch (err) {
         // After the attempt to create the namespace,
         // show any applicable errors if the namespace is
         // invalid.
-        this.$emit('error', exceptionToErrorsArray(err.message));
-        buttonDone(false);
+          this.$emit('error', exceptionToErrorsArray(err.message));
+          buttonDone(false);
+        }
+      } else {
+        this.$emit('finish', buttonDone);
       }
     },
 
