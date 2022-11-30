@@ -135,7 +135,7 @@ export default {
       return true;
     },
     getOptionKey(opt) {
-      if (opt.optionKey) {
+      if (opt?.optionKey) {
         return get(opt, opt.optionKey);
       }
 

@@ -380,28 +380,27 @@ export default {
       // - resourceNames
       // - resources
       // - verbs
-      const value = event.label ? event.label : event;
 
       switch (key) {
       case 'apiGroups':
 
-        if (value || (value === '')) {
-          this.$set(rule, 'apiGroups', [value]);
+        if (event || (event === '')) {
+          this.$set(rule, 'apiGroups', [event]);
         }
 
         break;
 
       case 'verbs':
 
-        if (value) {
-          this.$set(rule, 'verbs', [value]);
+        if (event) {
+          this.$set(rule, 'verbs', [event]);
         } else {
           this.$set(rule, 'verbs', []);
         }
         break;
 
       case 'resources':
-        if (event.resourceName) {
+        if (event?.resourceName) {
           // If we are updating the resources defined in a rule,
           // the event will be an object with the
           // properties apiGroupValue and resourceName.
@@ -409,7 +408,7 @@ export default {
           // Automatically fill in the API group of the
           // selected resource.
           this.$set(rule, 'apiGroups', [event.apiGroupValue]);
-        } else if (event.label) {
+        } else if (event?.label) {
           // When the user creates a new resource name in the resource
           // field instead of selecting an existing one,
           // we have to treat that differently because the incoming event
@@ -424,8 +423,8 @@ export default {
         break;
 
       case 'nonResourceURLs':
-        if (value) {
-          this.$set(rule, 'nonResourceURLs', [value]);
+        if (event) {
+          this.$set(rule, 'nonResourceURLs', [event]);
         } else {
           this.$set(rule, 'nonResourceURLs', []);
         }
@@ -670,7 +669,7 @@ export default {
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
-                    @input="setRule('apiGroups', props.row.value, $event)"
+                    @input="setRule('apiGroups', props.row.value, $event.target.value)"
                   >
                 </div>
                 <div
@@ -681,7 +680,7 @@ export default {
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
-                    @input="setRule('nonResourceURLs', props.row.value, $event)"
+                    @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
                   >
                 </div>
               </div>
