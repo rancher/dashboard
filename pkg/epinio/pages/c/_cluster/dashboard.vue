@@ -8,12 +8,14 @@ import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
 
 export default Vue.extend<any, any, any, any>({
   components: { DashboardCard, ConsumptionGauge },
-
+  fetch() {
+    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CATALOG_SERVICE });
+  },
   data() {
     return {
       sectionContent: [
         {
-          title:       this.t('epinio.intro.cards.namespaces.title'),
+          title:       this.t('typeLabel.namespaces', { count: 0 }),
           icon:        'icon-namespace',
           cta:         createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.NAMESPACE }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
@@ -22,7 +24,7 @@ export default Vue.extend<any, any, any, any>({
           slotTitle:   this.t('epinio.intro.cards.namespaces.slotTitle')
         },
         {
-          title:       this.t('epinio.intro.cards.applications.title'),
+          title:       this.t('typeLabel.applications', { count: 0 }),
           icon:        'icon-application',
           cta:         createEpinioRoute('c-cluster-applications-createapp', { resource: EPINIO_TYPES.APP }),
           link:        createEpinioRoute('c-cluster-applications', { resource: EPINIO_TYPES.APP }),
@@ -41,15 +43,24 @@ export default Vue.extend<any, any, any, any>({
         }],
       colorStops: {
         0: '--info', 30: '--info', 70: '--info'
-      }
+      },
     };
   },
   computed: {
     servicesStarter() {
-      return {
-        redis: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: 'redis-dev' }),
-        mongo: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: 'mongo-dev' }),
-      };
+      const fetchServices = this.$store.getters['epinio/all'](EPINIO_TYPES.CATALOG_SERVICE);
+      const services: any[] = fetchServices.length ? fetchServices.slice(0, 2) : [{ id: 'redis-dev-t' }, { id: 'mysql-dev' }];
+
+      const s = services.reduce((acc: any[], service: { id: any; description: any; }) => {
+        acc.push({
+          link: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: service?.id }),
+          id:   service?.id
+        });
+
+        return acc;
+      }, []);
+
+      return s;
     },
     version() {
       const { displayVersion } = getVersionInfo(this.$store);
@@ -164,23 +175,17 @@ export default Vue.extend<any, any, any, any>({
           </span>
 
           <span v-if="index === 2">
-            <slot>
+            <slot v-if="servicesStarter.length">
               <ul>
-                <li>
+                <li
+                  v-for="(service, i) in servicesStarter"
+                  :key="i"
+                >
                   <n-link
-                    :to="servicesStarter.mongo"
+                    :to="service.link"
                     class="link"
                   >
-                    mongodb-dev
-                    <span>+</span>
-                  </n-link>
-                </li>
-                <li>
-                  <n-link
-                    :to="servicesStarter.redis"
-                    class="link"
-                  >
-                    redis-dev
+                    {{ service.id }}
                     <span>+</span>
                   </n-link>
                 </li>
