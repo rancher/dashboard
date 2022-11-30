@@ -15,7 +15,7 @@ describe('component: Banner', () => {
     const icon = 'my-icon';
     const wrapper = mount(Banner, { propsData: { icon } });
 
-    const element = wrapper.find(`.${icon}`).element;
+    const element = wrapper.find(`.${ icon }`).element;
 
     expect(element.classList).toContain(icon);
   });
@@ -44,7 +44,7 @@ describe('component: Banner', () => {
     const element = wrapper.element;
 
     expect(element.classList).toContain(color);
-  })
+  });
 
   it('should stack the banner messages', () => {
     const stacked = true;
@@ -53,5 +53,5 @@ describe('component: Banner', () => {
     const element = wrapper.find(`[data-testid="banner-content"]`).element;
 
     expect(element.classList).toContain('stacked');
-  })
+  });
 });

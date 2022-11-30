@@ -62,7 +62,7 @@ export default Vue.extend({
 </script>
 <template>
   <div
-    class="banner" 
+    class="banner"
     :class="{
       [color]: true,
     }"
@@ -72,7 +72,10 @@ export default Vue.extend({
       class="banner__icon"
       data-testid="banner-icon"
     >
-      <i class="icon icon-2x" :class="icon"  />
+      <i
+        class="icon icon-2x"
+        :class="icon"
+      />
     </div>
     <div
       class="banner__content"
@@ -83,24 +86,24 @@ export default Vue.extend({
         icon
       }"
     >
-    <slot>
-      <t
-        v-if="labelKey"
-        :k="labelKey"
-        :raw="true"
-      />
-      <span v-else-if="messageLabel">{{ messageLabel }}</span>
-      <span
-        v-else
-        v-html="nlToBr(label)"
-      />
-    </slot>
-      <div 
+      <slot>
+        <t
+          v-if="labelKey"
+          :k="labelKey"
+          :raw="true"
+        />
+        <span v-else-if="messageLabel">{{ messageLabel }}</span>
+        <span
+          v-else
+          v-html="nlToBr(label)"
+        />
+      </slot>
+      <div
         v-if="closable"
         class="banner__content__closer"
         @click="$emit('close')"
       >
-        <i 
+        <i
           data-testid="banner-close"
           class="icon icon-close closer-icon"
         />
