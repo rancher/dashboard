@@ -3,7 +3,7 @@ import { getVersionInfo } from '@shell/utils/version';
 import Vue from 'vue';
 import DashboardCard from '../../../components/dashboard/Cards.vue';
 import { createEpinioRoute } from '@/pkg/epinio/utils/custom-routing';
-import { EPINIO_TYPES } from '@/pkg/epinio/types';
+import { EpinioApplicationResource, EpinioCatalogService, EpinioCatalogServiceResource, EPINIO_TYPES } from '@/pkg/epinio/types';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
 
 export default Vue.extend<any, any, any, any>({
@@ -49,12 +49,12 @@ export default Vue.extend<any, any, any, any>({
   computed: {
     servicesStarter() {
       const fetchServices = this.$store.getters['epinio/all'](EPINIO_TYPES.CATALOG_SERVICE);
-      const services: any[] = fetchServices.length ? fetchServices.slice(0, 2) : [{ id: 'redis-dev-t' }, { id: 'mysql-dev' }];
+      const services: EpinioCatalogService[] = fetchServices.length ? fetchServices.slice(0, 2) : [{ id: 'redis-dev-t' }, { id: 'mysql-dev' }];
 
-      const s = services.reduce((acc: any[], service: { id: any; description: any; }) => {
+      const s = services.reduce((acc: any[], service) => {
         acc.push({
-          link: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: service?.id }),
-          id:   service?.id
+          link: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: service?.shortId }),
+          id:   service?.shortId
         });
 
         return acc;
@@ -70,8 +70,8 @@ export default Vue.extend<any, any, any, any>({
     apps() {
       const allApps = this.$store.getters['epinio/all'](EPINIO_TYPES.APP);
 
-      const runningApps = allApps.filter((app: any) => app.status === 'running' );
-      const stoppedApps: any[] = allApps.filter((app: any) => app.status === 'error' );
+      const runningApps = allApps.filter((app: EpinioApplicationResource) => app.status === 'running' );
+      const stoppedApps: EpinioApplicationResource[] = allApps.filter((app: EpinioApplicationResource) => app.status === 'error' );
 
       return {
         runningApps: runningApps.length,
