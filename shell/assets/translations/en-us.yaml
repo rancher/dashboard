@@ -1269,6 +1269,7 @@ cluster:
   explore: Explore
   exploreHarvester: Explore
   importAction: Import Existing
+  manageAction: Manage
   kubernetesVersion:
     label: Kubernetes Version
     experimental: experimental
