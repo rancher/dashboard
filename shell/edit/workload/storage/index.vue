@@ -155,6 +155,12 @@ export default {
           csi:   { volumeAttributes: {} },
           name,
         });
+      } else if (type === 'emptyDir') {
+        this.value.volumes.push({
+          _type:    type,
+          emptyDir: { medium: '' },
+          name,
+        });
       } else {
         this.value.volumes.push({
           _type:  type,
