@@ -30,6 +30,11 @@ export default {
       required: true,
     },
 
+    registryHost: {
+      type:     String,
+      required: true,
+    },
+
     clusterRegisterBeforeHook: {
       // We use this hook instead of the create hook from the CreateEditView
       // mixin because this is a form within a form, therefore we
@@ -106,12 +111,12 @@ export default {
       this.clusterRegisterBeforeHook(wrapFn, ...args);
     },
     generateName(row) {
-      const hostnameReg = /[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\.?/;
-      const match = hostnameReg.exec(row?.value?.hostname) || [];
-      const hostname = match[0];
+      const hostname = row?.value?.hostname;
 
       if (hostname) {
         return `${ hostname }-`;
+      } else if (this.registryHost) {
+        return `${ this.registryHost }-`;
       } else {
         return 'registryconfig-auth-';
       }

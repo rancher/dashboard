@@ -849,6 +849,14 @@ export default {
         return false;
       }
     },
+
+    generateName() {
+      if (this.registryHost) {
+        return `${ this.registryHost }-`;
+      } else {
+        return 'registryconfig-auth-';
+      }
+    },
   },
 
   watch: {
@@ -2220,7 +2228,7 @@ export default {
             :allow-rke="true"
             :vertical="true"
             :namespace="value.metadata.namespace"
-            generate-name="registryconfig-auth-"
+            :generate-name="generateName"
           />
           <template v-else-if="registryMode === ADVANCED">
             <RegistryMirrors
@@ -2233,6 +2241,7 @@ export default {
               v-model="value"
               class="mt-20"
               :mode="mode"
+              :registry-host="registryHost"
               :cluster-register-before-hook="registerBeforeHook"
             />
           </template>
