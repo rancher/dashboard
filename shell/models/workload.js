@@ -7,6 +7,16 @@ import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/components/DetailTop';
 import WorkloadService from '@shell/models/workload.service';
 
+export const defaultContainer = {
+  imagePullPolicy: 'Always',
+  name:            'container-0',
+  securityContext: {
+    runAsNonRoot:             false,
+    readOnlyRootFilesystem:   false,
+    privileged:               false,
+    allowPrivilegeEscalation: false,
+  }
+};
 export default class Workload extends WorkloadService {
   // remove clone as yaml/edit as yaml until API supported
   get _availableActions() {
@@ -98,7 +108,9 @@ export default class Workload extends WorkloadService {
       if (!spec.template) {
         spec.template = {
           spec: {
-            restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }], initContainers: []
+            restartPolicy:  this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always',
+            containers:     [{ ...defaultContainer }],
+            initContainers: []
           }
         };
       }
