@@ -2,6 +2,11 @@ generic:
   tip: Tip
   resourceExternalLinkTips: 'External Link'
 
+nav:
+  group:
+    networks: Networks
+    backupAndSnapshot: Backup & Snapshot
+
 asyncButton:
   restart:
     action: Save & Restart

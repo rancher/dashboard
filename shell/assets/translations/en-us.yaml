@@ -150,8 +150,6 @@ nav:
     apps: Apps
     clusterProvisioning: Cluster Provisioning
     core: Core
-    networks: Networks
-    backupAndSnapshot: Backup & Snapshot
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
