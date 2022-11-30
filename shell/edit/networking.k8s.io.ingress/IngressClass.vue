@@ -37,11 +37,13 @@ export default {
   },
   methods: {
     update(e) {
-      this.ingressClassName = e.value !== undefined ? e.value : e.label;
-      if (this.ingressClassName) {
-        set(this.value, 'spec.ingressClassName', this.ingressClassName);
-      } else {
+      if (!e || e.label === this.t('generic.none')) {
         remove(this.value, 'spec.ingressClassName');
+        this.ingressClassName = '';
+      } else {
+        // when a user manually types an ingress class name, the event emitted has a 'label' but no 'value'
+        this.ingressClassName = e.value ? e.value : e.label;
+        set(this.value, 'spec.ingressClassName', this.ingressClassName);
       }
     }
   }
