@@ -16,7 +16,6 @@ export default {
       },
 
       set(value) {
-        console.log('SET VALUE', value, this.value)
         if (value !== this.value) {
           this.$store.commit('updateWorkspace', { value, getters: this.$store.getters });
           this.$store.dispatch('prefs/set', { key: WORKSPACE, value });
@@ -32,31 +31,29 @@ export default {
             value: obj.id,
           };
         });
+
         return out;
       }
 
       // If doesn't have workspaces (e.g. no permissions)
       // Then find the workspaces from the annotation.
-      return this.allNamespaces.filter((item)=>{
-        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE
-      }).map((obj)=>{
+      return this.allNamespaces.filter((item) => {
+        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
+      }).map((obj) => {
         return {
-            label: obj.nameDisplay,
-            value: obj.id,
-        }
-      })
+          label: obj.nameDisplay,
+          value: obj.id,
+        };
+      });
     },
   },
 
   data() {
-
-    if(!this.workspace) {
+    if (!this.workspace) {
       this.value = this.$store.getters['prefs/get'](LAST_NAMESPACE);
     }
 
-    return {
-      namespace: this.$store.getters['prefs/get'](LAST_NAMESPACE)
-    }
+    return { namespace: this.$store.getters['prefs/get'](LAST_NAMESPACE) };
   },
 
   methods: {

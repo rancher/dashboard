@@ -369,8 +369,6 @@ export const getters = {
   },
 
   defaultNamespace(state, getters, rootState, rootGetters) {
-
-    console.log('GET NAMESPACE', rootGetters['prefs/get'](LAST_NAMESPACE))
     const product = getters['currentProduct'];
 
     if ( !product ) {

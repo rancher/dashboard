@@ -39,7 +39,6 @@ export default {
     this.gitRepos = hash.gitRepos;
 
     this.fleetWorkspacesData = hash.fleetWorkspaces || [];
-
   },
 
   data() {
@@ -74,12 +73,12 @@ export default {
           sort:     'status.resourceCounts.ready',
         }
       ],
-      schema:          {},
-      allBundles:      null,
-      gitRepos:        null,
+      schema:              {},
+      allBundles:          null,
+      gitRepos:            null,
       fleetWorkspacesData: [],
-      isCollapsed:     {},
-      getStartedLink:  {
+      isCollapsed:         {},
+      getStartedLink:      {
         name:   'c-cluster-product-resource-create',
         params: {
           product:  'fleet',
@@ -91,27 +90,27 @@ export default {
   computed: {
     ...mapState(['workspace', 'allNamespaces']),
     fleetWorkspaces() {
-      if(this.fleetWorkspacesData?.length) {
-        return this.fleetWorkspacesData 
+      if (this.fleetWorkspacesData?.length) {
+        return this.fleetWorkspacesData;
       }
 
       // When user doesn't have access to the workspaces fall back to namespaces
-      return this.allNamespaces.filter((item)=>{
-        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE
-      }).map((obj)=>{
-        console.log()
-        const repos = filterBy(this.gitRepos, 'metadata.namespace', obj.id)
+      return this.allNamespaces.filter((item) => {
+        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
+      }).map(( obj ) => {
+        const repos = filterBy(this.gitRepos, 'metadata.namespace', obj.id);
+
         return {
           ...obj,
           counts: {
-            clusters: '-',
+            clusters:      '-',
             clusterGroups: '-',
-            gitRepos: repos.length
+            gitRepos:      repos.length
           },
           repos,
           nameDisplay: obj.id
-        }
-      })
+        };
+      });
     },
     workspacesData() {
       return this.fleetWorkspaces.filter(ws => ws.repos && ws.repos.length);
@@ -277,7 +276,7 @@ export default {
   watch: {
     fleetWorkspaces(value) {
       value?.filter(ws => ws.repos?.length).forEach((ws) => {
-          this.$set(this.isCollapsed, ws.id, false);
+        this.$set(this.isCollapsed, ws.id, false);
       });
     }
   }
