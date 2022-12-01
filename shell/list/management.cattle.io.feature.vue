@@ -199,6 +199,7 @@ export default {
       :row-actions="enableRowActions"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
       <template
         slot="cell:name"

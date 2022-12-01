@@ -64,6 +64,7 @@ export default {
       :schema="schema"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     />
   </div>
 </template>

@@ -23,7 +23,8 @@ describe('component: workload', () => {
       mixins:     [ResourceFetch],
       mocks:      {
         $store: {
-          getters: {
+          dispatch: () => jest.fn(),
+          getters:  {
             currentStore:                  () => 'cluster',
             namespaces:                    () => jest.fn(),
             'management/byId':             () => jest.fn(),

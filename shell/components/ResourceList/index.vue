@@ -6,8 +6,10 @@ import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import IconMessage from '@shell/components/IconMessage.vue';
 
+export const ResourceListComponentName = 'ResourceList';
+
 export default {
-  name: 'ResourceList',
+  name: ResourceListComponentName,
 
   components: {
     Loading,
@@ -131,15 +133,16 @@ export default {
 
   watch: {
     /**
+     * When a NS filter is required and the user selects a different one, kick off a new set of API requests
+     *
      * ResourceList has two modes
-     * 1) Root component handles API request to fetch resources
+     * 1) ResourceList component handles API request to fetch resources
      * 2) Custom list component handles API request to fetch resources
      *
-     * Case 2 will fetch resources when the component is shown and will use the latest namespace filter
-     * Case 1 requires a manual prod by watching namespaceFilterRequired
+     * This covers case 1
      */
-    namespaceFilterRequired(neu, old) {
-      if (!neu && !this.hasFetch) {
+    namespaceFilter(neu) {
+      if (neu && !this.hasFetch) { //
         this.$fetchType(this.resource);
       }
     }
@@ -165,10 +168,13 @@ export default {
     v-if="namespaceFilterRequired"
     :vertical="true"
     :subtle="false"
-    icon="icon-search"
+    icon="icon-filter_alt"
   >
     <template #message>
-      <span v-html="t('resourceList.nsFiltering', { resource: $store.getters['type-map/labelFor'](schema, 2) || customTypeDisplay }, true)" />
+      <span
+        class="filter"
+        v-html="t('resourceList.nsFiltering', { resource: $store.getters['type-map/labelFor'](schema, 2) || customTypeDisplay }, true)"
+      />
     </template>
   </IconMessage>
   <div v-else>
@@ -205,6 +211,7 @@ export default {
       :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
       :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     />
   </div>
 </template>
@@ -216,6 +223,9 @@ export default {
     H2 {
       position: relative;
       margin: 0 0 20px 0;
+    }
+    .filter{
+      line-height: 45px;
     }
     .right-action {
       position: absolute;

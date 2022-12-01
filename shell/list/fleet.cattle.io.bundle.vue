@@ -109,6 +109,7 @@ export default {
       :rows="bundles"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
       <template #cell:deploymentsReady="{row}">
         <span

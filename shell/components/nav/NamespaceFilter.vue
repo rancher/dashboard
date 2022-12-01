@@ -28,7 +28,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct']),
+    ...mapGetters(['currentProduct', 'namespaceFilterMode']),
 
     hasFilter() {
       return this.filter.length > 0;
@@ -37,11 +37,26 @@ export default {
     filtered() {
       let out = this.options;
 
-      // Filter by the current filter
-      if (this.hasFilter) {
-        out = out.filter((item) => {
+      out = out.filter((item) => {
+        // Filter out anything not applicable to singleton selection
+        if (this.namespaceFilterMode) {
+          // We always show dividers, projects and namespaces
+          if (!['divider', 'project', this.namespaceFilterMode].includes(item.kind)) {
+            // Hide any invalid option that's not selected
+            return this.value.findIndex(v => v.id === item.id) >= 0;
+          }
+        }
+
+        // Filter by the current filter
+        if (this.hasFilter) {
           return item.kind !== SPECIAL && item.label.toLowerCase().includes(this.filter.toLowerCase());
-        });
+        }
+
+        return true;
+      });
+
+      if (out?.[0]?.kind === 'divider') {
+        out.splice(0, 1);
       }
 
       const mapped = this.value.reduce((m, v) => {
@@ -54,6 +69,8 @@ export default {
       out.forEach((i) => {
         i.selected = !!mapped[i.id] || (i.id === ALL && this.value && this.value.length === 0);
         i.elementId = (i.id || '').replace('://', '_');
+        // Are we in singleton resource type mode, if so is this an allowed type?
+        i.enabled = !this.namespaceFilterMode || i.kind === this.namespaceFilterMode;
       });
 
       return out;
@@ -545,9 +562,22 @@ export default {
 
       const current = this.value;
       const exists = current.findIndex(v => v.id === option.id);
+      const optionIsSelected = exists !== -1;
 
-      // Remove if it exists, add if it does not
-      if (exists !== -1) {
+      // Any type of mode means only a single resource can be selected. So clear out any stale
+      // values (multiple selected in another context OR a single one selected in this context)
+      if (this.namespaceFilterMode) {
+        if (current.length === 1 && optionIsSelected) {
+          // Don't deselect the only selected option
+          return;
+        }
+        current.length = 0;
+      }
+
+      const remove = !this.namespaceFilterMode && optionIsSelected;
+
+      // Remove if it exists (or always add if in singleton mode - we've reset the list above)
+      if (remove) {
         current.splice(exists, 1);
       } else {
         current.push(option);
@@ -642,6 +672,7 @@ export default {
         >
           <div>{{ ns.label }}</div>
           <i
+            v-if="!namespaceFilterMode"
             class="icon icon-close"
             :data-testid="`namespaces-values-close-${j}`"
             @click="removeOption(ns, $event)"
@@ -695,7 +726,10 @@ export default {
             @click="filter = ''"
           />
         </div>
-        <div class="ns-clear">
+        <div
+          v-if="!namespaceFilterMode"
+          class="ns-clear"
+        >
           <i
             class="icon icon-close"
             @click="clear()"
@@ -714,14 +748,15 @@ export default {
           :key="opt.id"
           tabindex="0"
           class="ns-option"
+          :disabled="!opt.enabled"
           :class="{
             'ns-selected': opt.selected,
             'ns-single-match': filtered.length === 1 && !opt.selected,
           }"
           :data-testid="`namespaces-option-${i}`"
-          @click="selectOption(opt)"
-          @mouseover="mouseOver($event)"
-          @keydown="itemKeyHandler($event, opt)"
+          @click="opt.enabled && selectOption(opt)"
+          @mouseover="opt.enabled && mouseOver($event)"
+          @keydown="opt.enabled && itemKeyHandler($event, opt)"
         >
           <div
             v-if="opt.kind === 'divider'"
@@ -846,12 +881,49 @@ export default {
         padding-bottom: 10px;
       }
 
-      .ns-option:focus {
-        background-color: var(--dropdown-hover-bg);
-        color: var(--dropdown-hover-text);
-      }
-
       .ns-option {
+
+        &[disabled] {
+          cursor: default;
+        }
+
+        &:not([disabled]) {
+          &:focus {
+            background-color: var(--dropdown-hover-bg);
+            color: var(--dropdown-hover-text);
+          }
+          .ns-item {
+             &:hover, &:focus {
+              background-color: var(--dropdown-hover-bg);
+              color: var(--dropdown-hover-text);
+              cursor: pointer;
+
+              > i {
+                color: var(--dropdown-hover-text);
+              }
+            }
+          }
+
+          &.ns-selected {
+            &:hover,&:focus {
+              .ns-item {
+                > * {
+                  background-color: var(--dropdown-hover-bg);
+                  color: var(--dropdown-hover-text);
+                }
+              }
+            }
+          }
+
+          &.ns-selected:not(:hover) {
+            .ns-item {
+              > * {
+                color: var(--dropdown-hover-bg);
+              }
+            }
+          }
+        }
+
         .ns-item {
           align-items: center;
           display: flex;
@@ -871,33 +943,8 @@ export default {
             white-space: nowrap;
           }
 
-          &:hover, &:focus {
-            background-color: var(--dropdown-hover-bg);
-            color: var(--dropdown-hover-text);
-            cursor: pointer;
+        }
 
-            > i {
-              color: var(--dropdown-hover-text);
-            }
-          }
-        }
-        &.ns-selected:not(:hover) {
-          .ns-item {
-            > * {
-              color: var(--dropdown-hover-bg);
-            }
-          }
-        }
-        &.ns-selected {
-          &:hover,&:focus {
-            .ns-item {
-              > * {
-                background-color: var(--dropdown-hover-bg);
-                color: var(--dropdown-hover-text);
-              }
-            }
-          }
-        }
         &.ns-single-match {
           .ns-item {
             background-color: var(--dropdown-hover-bg);

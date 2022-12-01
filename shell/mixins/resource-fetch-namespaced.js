@@ -1,9 +1,13 @@
 import { mapGetters } from 'vuex';
-
+import { ResourceListComponentName } from '../components/ResourceList';
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
  */
 export default {
+
+  data() {
+    return { forceUpdateLiveAndDelayed: 0 };
+  },
 
   computed: {
     ...mapGetters(['currentProduct', 'currentCluster', 'isSingleNamespace']),
@@ -63,4 +67,30 @@ export default {
     },
 
   },
+
+  watch: {
+    __namespaceRequired: {
+      handler(neu) {
+        this.$store.dispatch('setNamespaceFilterMode', neu ? 'namespace' : null, { root: true });
+      },
+      immediate: true,
+    },
+
+    async namespaceFilter(neu) {
+      if (neu) {
+        // When a NS filter is required and the user selects a different one, kick off a new set of API requests
+        //
+        // ResourceList has two modes
+        // 1) ResourceList component handles API request to fetch resources
+        // 2) Custom list component handles API request to fetch resources
+        //
+        // This covers case 2
+        if (this.$options.name !== ResourceListComponentName && !!this.$fetch) {
+          await this.$fetch();
+        }
+        // Ensure any live/delayed columns get updated
+        this.forceUpdateLiveAndDelayed = new Date().getTime();
+      }
+    }
+  }
 };

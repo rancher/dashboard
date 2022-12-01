@@ -162,5 +162,6 @@ export default {
     :rows="filteredRows"
     :overflow-y="true"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
   />
 </template>

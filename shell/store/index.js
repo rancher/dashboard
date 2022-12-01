@@ -169,6 +169,7 @@ export const state = () => {
     serverVersion:           null,
     systemNamespaces:        [],
     isSingleProduct:         undefined,
+    namespaceFilterMode:     null,
   };
 };
 
@@ -203,6 +204,15 @@ export const getters = {
 
   systemNamespaces(state) {
     return state.systemNamespaces;
+  },
+
+  /**
+   * Namespace Filter Mode supplies a resource type to the NamespaceFilter.
+   *
+   * Only one of the resource type is allowed to be selected
+   */
+  namespaceFilterMode(state) {
+    return state.namespaceFilterMode;
   },
 
   currentCluster(state, getters) {
@@ -511,6 +521,10 @@ export const mutations = {
     // Create map that can be used to efficiently check if a
     // resource should be displayed
     getActiveNamespaces(state, getters);
+  },
+
+  setNamespaceFilterMode(state, mode) {
+    state.namespaceFilterMode = mode;
   },
 
   pageActions(state, pageActions) {
@@ -855,6 +869,10 @@ export const actions = {
       }
     });
     commit('updateNamespaces', { filters: ids, ...getters });
+  },
+
+  setNamespaceFilterMode({ commit }, mode) {
+    commit('setNamespaceFilterMode', mode);
   },
 
   async cleanNamespaces({ getters, dispatch }) {
