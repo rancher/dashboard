@@ -26,8 +26,7 @@ export default {
   },
   data() {
     const thanos = {
-      image:               'rancher/thanosio-thanos:v0.15.0',
-      version:             'v0.15.0',
+      version:             'v0.17.2',
       grpcServerTlsConfig: {
         caFile:   '/etc/tls/grpc/tls.ca',
         certFile: '/etc/tls/grpc/tls.cert',

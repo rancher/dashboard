@@ -404,6 +404,7 @@ export default {
 
     done(settings) {
       setSetting(this.$store, SETTING.GLOBAL_MONITORING_V2, JSON.stringify(settings));
+      setSetting(this.$store, SETTING.GLOBAL_MONITORING_CLUSTER_ID, settings.clusterId);
       this.monitoringStatus = true;
       if (this.value.thanos.tls.enabled) {
         this.updateDownStreamClusterSecret();
