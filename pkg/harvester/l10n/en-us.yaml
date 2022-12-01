@@ -398,6 +398,7 @@ harvester:
     promptRemove:
       title: 'Select the volume you want to delete:'
       deleteAll: Delete All
+      tips: "Warn: The snapshots of vm will be deleted with VM and the snapshots of volume will be deleted with volume."
     unplug:
       title: 'Are you sure that you want to detach volume {name} ?'
       actionLabel: Detach

@@ -961,6 +961,6 @@ export default class VirtVm extends HarvesterResource {
   }
 
   get warnDeletionMessage() {
-    return this.t('harvester.volume.promptRemove.tips');
+    return this.t('harvester.virtualMachine.promptRemove.tips');
   }
 }
