@@ -3,7 +3,7 @@ import { getVersionInfo } from '@shell/utils/version';
 import Vue from 'vue';
 import DashboardCard from '../../../components/dashboard/Cards.vue';
 import { createEpinioRoute } from '@/pkg/epinio/utils/custom-routing';
-import { EpinioApplicationResource, EpinioCatalogService, EpinioCatalogServiceResource, EPINIO_TYPES } from '@/pkg/epinio/types';
+import { EpinioApplicationResource, EpinioCatalogService, EPINIO_TYPES } from '@/pkg/epinio/types';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
 
 export default Vue.extend<any, any, any, any>({
@@ -15,7 +15,7 @@ export default Vue.extend<any, any, any, any>({
     return {
       sectionContent: [
         {
-          title:       this.t('typeLabel.namespaces', { count: 0 }),
+          title:       this.t('typeLabel.namespaces', { count: this.namespaces?.totalConfigurations }),
           icon:        'icon-namespace',
           cta:         createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.NAMESPACE }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
@@ -24,7 +24,7 @@ export default Vue.extend<any, any, any, any>({
           slotTitle:   this.t('epinio.intro.cards.namespaces.slotTitle')
         },
         {
-          title:       this.t('typeLabel.applications', { count: 0 }),
+          title:       this.t('typeLabel.applications', { count: this.namespaces?.totalApps }),
           icon:        'icon-application',
           cta:         createEpinioRoute('c-cluster-applications-createapp', { resource: EPINIO_TYPES.APP }),
           link:        createEpinioRoute('c-cluster-applications', { resource: EPINIO_TYPES.APP }),
@@ -150,11 +150,11 @@ export default Vue.extend<any, any, any, any>({
             <slot>
               <ul>
                 <li>
-                  {{ t('epinio.intro.cards.applications.title') }}
+                  {{ t('typeLabel.applications', { count: namespaces.totalApps }) }}
                   <span>{{ namespaces.totalApps }}</span>
                 </li>
                 <li>
-                  {{ t('epinio.intro.cards.namespaces.configurations') }}
+                  {{ t('typeLabel.configurations', { count: namespaces.totalConfigurations}) }}
                   <span>{{ namespaces.totalConfigurations }}</span>
                 </li>
               </ul>

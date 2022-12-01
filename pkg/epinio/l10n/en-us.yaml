@@ -52,13 +52,11 @@ epinio:
     getStarted: Get started
     cards:
       namespaces:
-        title: Namespaces
         linkText: Create Namespace
         description: Namespaces allows you to organize and manage your applications.
         slotTitle: Resources
         configurations: Configurations
       applications:
-        title: Applications
         linkText: Deploy Application
         description: Epinio uses Applications to transition your code, through build, to being deployed.
         slotTitle: Deployments
