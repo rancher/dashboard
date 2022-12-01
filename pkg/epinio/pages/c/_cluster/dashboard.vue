@@ -53,7 +53,7 @@ export default Vue.extend<any, any, any, any>({
 
       const s = services.reduce((acc: any[], service) => {
         acc.push({
-          link: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: service?.shortId }),
+          link: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: service?.shortId }, { query: { service: service?.shortId } }),
           id:   service?.shortId
         });
 

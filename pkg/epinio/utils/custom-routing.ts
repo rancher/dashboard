@@ -5,10 +5,11 @@ export const rootEpinioRoute = () => ({
   params: { product: EPINIO_PRODUCT_NAME }
 });
 
-export const createEpinioRoute = (name: string, params: Object) => ({
+export const createEpinioRoute = (name: string, params: Object, query?: Object) => ({
   name:   `${ rootEpinioRoute().name }-${ name }`,
   params: {
     ...rootEpinioRoute().params,
     ...params
-  }
+  },
+  ...query
 });
