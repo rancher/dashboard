@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
 const NM_REGEX  = /node_modules\/(.*)/
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
   "stories": [
@@ -86,6 +87,9 @@ module.exports = {
 
     // Cheat for importing ~shell/assets
     config.resolve.modules.push(baseFolder);
+
+    config.resolve.plugins = config.resolve.plugins || [];
+    config.resolve.plugins.push(new TsconfigPathsPlugin({}));
 
     return config;
   },  
