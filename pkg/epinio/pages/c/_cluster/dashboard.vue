@@ -17,7 +17,7 @@ export default Vue.extend<any, any, any, any>({
         {
           title:       this.t('typeLabel.namespaces', { count: this.namespaces?.totalConfigurations }),
           icon:        'icon-namespace',
-          cta:         createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.NAMESPACE }),
+          cta:         createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }, { query: { mode: 'openModal' } }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
           linkText:    this.t('epinio.intro.cards.namespaces.linkText'),
           description: this.t('epinio.intro.cards.namespaces.description'),
