@@ -27,7 +27,7 @@ Default view with all the options.
 
 <Canvas>
   <Story
-    name="DetailTop"
+    name="Default"
     args={{
       value: {
         namespaces: [{
@@ -51,7 +51,8 @@ Default view with all the options.
 
 #### Tooltips
 
-Replace value with prettified name and tooltips with actual key/value content.
+Replace the text from the label with a prettified version. This is provided by the tooltip dictionary, using key as reference and may contain any type of information, therefore it may not include any related information.
+The tooltips will then display the actual key/value content.
 
 <Canvas>
   <Story
@@ -67,6 +68,7 @@ Replace value with prettified name and tooltips with actual key/value content.
         labels: {
           'kubernetes.io/metadata.name': 'anyValue',
           'pod-security.kubernetes.io/enforce': 'privileged',
+          'originalKey': 'value displayed in tooltip only',
         }
       },
       icons: {
@@ -74,6 +76,7 @@ Replace value with prettified name and tooltips with actual key/value content.
       },
       tooltips: {
         'pod-security.kubernetes.io/enforce': 'Enforce Privileged (latest)',
+        'originalKey': 'Hover me',
       },
     }}>
     {Template.bind({})}
@@ -93,4 +96,4 @@ Replace value with prettified name and tooltips with actual key/value content.
 
 ### Props table
 
-<ArgsTable of={Banner} />
+<ArgsTable of={DetailTop} />
