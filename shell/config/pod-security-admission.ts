@@ -18,3 +18,5 @@ export const PSALabelsNamespaces: string[] = [`enforce`, `audit`, `warn`].reduce
   `pod-security.kubernetes.io/${ mode }`,
   `pod-security.kubernetes.io/${ mode }-version`
 ], [] as string[]);
+
+export const PSAIconsDisplay: Record<string, string> = Object.assign({}, ...PSALabelsNamespaces.map(psa => ({ [psa]: 'icon-pod_security' })));
