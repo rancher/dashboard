@@ -445,6 +445,9 @@ export default {
         e.stopPropagation();
         this.up();
       } else if (e.keyCode === KEY.SPACE) {
+        if (this.namespaceFilterMode && !opt.enabled) {
+          return;
+        }
         e.preventDefault();
         e.stopPropagation();
         this.selectOption(opt);
@@ -727,7 +730,16 @@ export default {
           />
         </div>
         <div
-          v-if="!namespaceFilterMode"
+          v-if="namespaceFilterMode"
+          class="ns-singleton-info"
+        >
+          <i
+            v-tooltip="t('resourceList.nsFilterToolTip', { mode: namespaceFilterMode})"
+            class="icon icon-info"
+          />
+        </div>
+        <div
+          v-else
           class="ns-clear"
         >
           <i
@@ -756,7 +768,7 @@ export default {
           :data-testid="`namespaces-option-${i}`"
           @click="opt.enabled && selectOption(opt)"
           @mouseover="opt.enabled && mouseOver($event)"
-          @keydown="opt.enabled && itemKeyHandler($event, opt)"
+          @keydown="itemKeyHandler($event, opt)"
         >
           <div
             v-if="opt.kind === 'divider'"
@@ -819,16 +831,17 @@ export default {
     }
 
     .ns-clear {
-      align-items: center;
-      display: flex;
-      > i {
-        font-size: 24px;
-        padding: 0 5px;
-      }
-
       &:hover {
         color: var(--link);
         cursor: pointer;
+      }
+    }
+
+    .ns-singleton-info, .ns-clear {
+      align-items: center;
+      display: flex;
+      > i {
+        padding-right: 5px;
       }
     }
 

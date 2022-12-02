@@ -142,7 +142,7 @@ export default {
      * This covers case 1
      */
     namespaceFilter(neu) {
-      if (neu && !this.hasFetch) { //
+      if (neu && !this.hasFetch) {
         this.$fetchType(this.resource);
       }
     }

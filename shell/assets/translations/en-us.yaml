@@ -4286,6 +4286,7 @@ resourceList:
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
   nsFiltering: "There are too many {resource}.<br>Please filter them by selecting a Namespace above."
+  nsFilterToolTip: "There are too many resources, filtering is restricted to a single {mode}."
 resourceLoadingIndicator:
   loading: Loading
 
