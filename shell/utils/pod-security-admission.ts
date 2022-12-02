@@ -1,6 +1,6 @@
 import { reduce, filter, keys } from 'lodash';
-import { PSALabelsNamespaces } from '@shell/config/pod-security-admission';
-import { camelToTitle } from '~/shell/utils/string';
+import { PSALabelPrefix, PSALabelsNamespaces } from '@shell/config/pod-security-admission';
+import { camelToTitle } from '@shell/utils/string';
 
 interface ResourcePartial {
   metadata: {
@@ -37,7 +37,7 @@ export const getPSATooltipsDescription = (resource: ResourcePartial): Record<str
     // Add SPA labels and discard paired version label
     return isPSA && !isVersionLabel ? {
       ...acc,
-      [key]: `${ camelToTitle(key.replace('pod-security.kubernetes.io/', '')) } ${ camelToTitle(value) } (${ version })`
+      [key]: `${ camelToTitle(key.replace(PSALabelPrefix, '')) } ${ camelToTitle(value) } (${ version })`
     } : acc;
   },
   { }

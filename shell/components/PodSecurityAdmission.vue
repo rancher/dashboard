@@ -4,7 +4,25 @@ import { _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { PSADimension, PSAMode } from '@shell/types/pod-security-admission';
+import { PSAMode } from '@shell/types/pod-security-admission';
+import {
+  PSADefaultLevel,
+  PSADefaultVersion, PSADimensions, PSALabelPrefix, PSALevels, PSAModes
+} from '@shell/config/pod-security-admission';
+import { pickBy } from 'lodash';
+
+interface PSAControl { active: boolean, level: string, version: string }
+const control = (): PSAControl => ({
+  active:  false,
+  level:   PSADefaultLevel,
+  version: ''
+});
+
+interface PSAException { active: boolean, value: string }
+const exception = (): PSAException => ({
+  active: false,
+  value:  ''
+});
 
 export default Vue.extend({
   components: {
@@ -16,12 +34,15 @@ export default Vue.extend({
      * Note: PSA labels are always paired
      */
     labels: {
-      type:    Object,
+      type:    Object as () => Record<string, string>,
       default: () => {
         return {};
       }
     },
 
+    /**
+     * Map editing capabilities to the component
+     */
     mode: {
       type:     String,
       required: true
@@ -47,38 +68,9 @@ export default Vue.extend({
 
   data() {
     return {
-      controls: {
-        enforce: {
-          active:  false,
-          policy:  null,
-          version: null
-        },
-        audit: {
-          active:  false,
-          policy:  null,
-          version: null
-        },
-        warn: {
-          active:  false,
-          policy:  null,
-          version: null
-        },
-      },
-      exceptions: {
-        Usernames: {
-          active: false,
-          value:  null
-        },
-        RuntimeClassNames: {
-          active: false,
-          value:  null
-        },
-        Namespaces: {
-          active: false,
-          value:  null
-        },
-      },
-      options: ['privileged', 'baseline', 'restricted'],
+      controls:   Object.assign({}, ...PSAModes.map(mode => ({ [mode]: control() }))),
+      exceptions: Object.assign({}, ...PSADimensions.map(dimension => ({ [dimension]: exception() }))),
+      options:    PSALevels,
     };
   },
 
@@ -91,15 +83,55 @@ export default Vue.extend({
   },
 
   created() {
+    // Assign values to the form, overriding existing values
+    this.controls = {
+      ...this.controls,
+      ...this.getControls()
+    };
   },
 
   methods: {
-    toggleLabel(mode: PSAMode) {
-      // this.$emit('toggleLabel', label);
+    /**
+     * Filter out existing PSA labels and emit existing labels with new PSA ones
+     */
+    toggleLabel(): void {
+      const nonPSALabels = pickBy(this.labels, (_, key) => !key.includes(PSALabelPrefix));
+      const labels = PSAModes.reduce((acc, mode) => {
+        return this.controls[mode].active ? {
+          ...acc,
+          // Set default level if none
+          [`${ PSALabelPrefix }${ mode }`]:         this.controls[mode].level || PSADefaultLevel,
+          // Set default version if none
+          [`${ PSALabelPrefix }${ mode }-version`]: this.controls[mode].version || PSADefaultVersion
+        } : acc;
+      }, nonPSALabels);
+
+      this.$emit('updateLabels', labels);
     },
-    toggleException(dimension: PSADimension) {
-      // this.$emit('toggleException', label);
+
+    toggleException(): void {
+      // this.$emit('toggleException', dimensions);
     },
+
+    /**
+     * Generate view controls based on PSA labels in the "value" resource
+     */
+    getControls(): Record<PSAMode, PSAControl> {
+      return PSAModes.reduce((acc, mode) => {
+        const level = this.labels[`${ PSALabelPrefix }${ mode }`];
+        // Retrieve version, hiding the value 'latest' from the user
+        const version = (this.labels[`${ PSALabelPrefix }${ mode }-version`] || '').replace(PSADefaultVersion, '');
+
+        return level ? {
+          ...acc,
+          [mode]: {
+            active: true,
+            level,
+            version
+          }
+        } : acc;
+      }, {} as Record<PSAMode, PSAControl>);
+    }
   }
 });
 </script>
@@ -122,18 +154,18 @@ export default Vue.extend({
           :data-testid="componentTestid + '--' + i + '-active'"
           :label="level"
           :disabled="isView"
-          @input="toggleLabel(level)"
+          @input="toggleLabel()"
         />
       </span>
 
       <span class="col span-4">
         <LabeledSelect
-          v-model="control.policy"
-          :data-testid="componentTestid + '--' + i + '-policy'"
-          :disabled="isView"
+          v-model="control.level"
+          :data-testid="componentTestid + '--' + i + '-level'"
+          :disabled="(isView || !control.active)"
           :options="options"
           :mode="mode"
-          @input="toggleLabel(level)"
+          @input="toggleLabel()"
         />
       </span>
 
@@ -141,11 +173,11 @@ export default Vue.extend({
         <LabeledInput
           v-model="control.version"
           :data-testid="componentTestid + '--' + i + '-version'"
-          :disabled="isView"
+          :disabled="(isView || !control.active)"
           :options="options"
-          :placeholder="t('podSecurityAdmission.version.placeholder', { control: level })"
+          :placeholder="t('podSecurityAdmission.version.placeholder', { control: mode })"
           :mode="mode"
-          @input="toggleLabel(level)"
+          @input="toggleLabel()"
         />
       </span>
     </div>
@@ -172,18 +204,18 @@ export default Vue.extend({
             :data-testid="componentTestid + '--' + i + '-active'"
             :label="dimension"
             :disabled="isView"
-            @input="toggleException(dimension)"
+            @input="toggleException()"
           />
         </span>
         <span class="col span-8">
           <LabeledInput
             v-model="exception.value"
-            :data-testid="componentTestid + '--' + i + '-policy'"
+            :data-testid="componentTestid + '--' + i + '-value'"
             :disabled="isView"
             :options="options"
             :placeholder="t('podSecurityAdmission.exceptions.placeholder', { exception: dimension })"
             :mode="mode"
-            @input="toggleException(dimension)"
+            @input="toggleException()"
           />
         </span>
       </div>

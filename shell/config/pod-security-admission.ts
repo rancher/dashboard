@@ -1,3 +1,35 @@
+import { PSADimension, PSALevel, PSAMode } from '@shell/types/pod-security-admission';
+
+/**
+ * All the PSA labels are created with this prefix, so we can use this to identify them
+ */
+export const PSALabelPrefix = 'pod-security.kubernetes.io/';
+
+/**
+ * Default modes of restrictions used for PSA
+ */
+export const PSAModes: PSAMode[] = ['enforce', 'audit', 'warn'];
+
+/**
+ * Levels of restrictions for the PSA
+ */
+export const PSALevels: PSALevel[] = ['privileged', 'baseline', 'restricted'];
+
+/**
+ * Used for restrictions in templates
+ */
+export const PSADimensions: PSADimension[] = ['Usernames', 'RuntimeClassNames', 'Namespaces'];
+
+/**
+ * For the UI, we prefer use this value as default one
+ */
+export const PSADefaultLevel = PSALevels[0];
+
+/**
+ * Default values for PSA should always be this one
+ */
+export const PSADefaultVersion = 'latest';
+
 /**
  * PSA labels for namespaces.
  * MODE must be one of `enforce`, `audit`, or `warn`.
@@ -13,10 +45,13 @@
  *
  * https://kubernetes.io/docs/concepts/security/pod-security-admission/#pod-security-admission-labels-for-namespaces
  */
-export const PSALabelsNamespaces: string[] = [`enforce`, `audit`, `warn`].reduce((acc, mode) => [
+export const PSALabelsNamespaces: string[] = PSAModes.reduce((acc, mode) => [
   ...acc,
-  `pod-security.kubernetes.io/${ mode }`,
-  `pod-security.kubernetes.io/${ mode }-version`
+  `${ PSALabelPrefix }${ mode }`,
+  `${ PSALabelPrefix }${ mode }-version`
 ], [] as string[]);
 
+/**
+ * Generated table of icons with or hardcoded generated PSA labels
+ */
 export const PSAIconsDisplay: Record<string, string> = Object.assign({}, ...PSALabelsNamespaces.map(psa => ({ [psa]: 'icon-pod_security' })));

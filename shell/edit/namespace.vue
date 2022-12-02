@@ -247,7 +247,7 @@ export default {
         <PodSecurityAdmission
           :labels="labels"
           :mode="mode"
-          @toggleLabel="value.setLabels($event)"
+          @updateLabels="value.setLabels($event)"
         />
       </Tab>
     </Tabbed>
