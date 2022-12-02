@@ -5,12 +5,20 @@
   "license": "Apache-2.0",
   "author": "SUSE",
   "private": true,
+  "version": "0.0.0",
   "engines": {
     "node": ">=14"
   },
-  "workspaces": [
-    "pkg/rancher-components"
-  ],
+  "workspaces": {
+    "packages": [
+      "pkg/rancher-components",
+      "storybook"
+    ],
+    "nohoist": [
+      "storybook",
+      "storybook/**"
+    ]
+  },
   "scripts": {
     "build-pkg": "./shell/scripts/build-pkg.sh",
     "publish-pkg": "./shell/scripts/publish-pkg.sh",
@@ -44,7 +52,6 @@
     "e2e:pre-prod": "yarn docker:local:stop && yarn docker:local:start && DEV_PORTS=true yarn build",
     "e2e:prod": "START_SERVER_AND_TEST_INSECURE=1 server-test start:prod https-get://localhost:8005 cy:run:sorry",
     "coverage": "npx nyc merge coverage coverage/coverage.json",
-    "storybook": "yarn run install-storybook && start-storybook -p 6006",
     "build-storybook": "yarn run install-storybook && build-storybook",
     "install-storybook": "./scripts/storybook-install",
     "remove-storybook": "./scripts/storybook-install -d",

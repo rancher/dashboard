@@ -20,16 +20,16 @@ module.exports = {
 
   staticDirs: [
     'public',
-    '../shell/assets'
+    '../../shell/assets'
   ],
 
   webpackFinal: async (config, { configType }) => {
-    const baseFolder = path.resolve(__dirname, '..');
+    const baseFolder = path.resolve(__dirname, '..', '..');
 
     const sassLoader = {
       loader: 'sass-loader',
       options: {
-        additionalData: `@use "sass:math"; @import '~shell/assets/styles/app.scss'; @import '~stories/global.scss'; `,
+        additionalData: `@use "sass:math"; @import '~shell/assets/styles/app.scss'; @import '~storybook/stories/global.scss'; `,
         sassOptions: {
           importer: (url, prev, done) => {
             if (url.indexOf('~/') === 0) {
