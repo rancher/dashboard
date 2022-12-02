@@ -159,7 +159,8 @@ export default {
       if ( !selected || selected.disabled) {
         return;
       }
-
+      // Checking state of useHash props.
+      // In storybook we can not send a response based on the URL path, so we have to set useHash=false.
       if ( this.useHash ) {
         const {
           $route: { hash: routeHash },
