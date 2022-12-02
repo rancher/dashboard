@@ -232,6 +232,14 @@ export default {
 
     stepOneRequires() {
       return !!this.value.metadata.name && !!this.refValue;
+    },
+
+    repoUrl() {
+      const [protocol, url] = this.value.spec.repo.split('://');
+      return {
+        protocol,
+        url
+      }
     }
 
   },
@@ -330,6 +338,15 @@ export default {
       } else {
         spec.targets = [];
       }
+
+      this.stepOneReady();
+    },
+
+
+
+    changeProtocol({ text, selected }) {
+
+      this.value.spec.repo = `${selected}://${text}`;
 
       this.stepOneReady();
     },
@@ -502,11 +519,21 @@ export default {
         :class="{'mt-20': isView}"
       >
         <div class="col span-6">
-          <LabeledInput
+          <!-- <LabeledInput
             v-model="value.spec.repo"
             :mode="mode"
             label-key="fleet.gitRepo.repo.label"
             :placeholder="t('fleet.gitRepo.repo.placeholder', null, true)"
+          /> -->
+          <InputWithSelect
+            :mode="mode"
+            :select-label="t('fleet.gitRepo.repo.protocol')"
+            :select-value="repoUrl.protocol"
+            :text-placeholder="t(`fleet.gitRepo.repo.placeholder`)"
+            :text-value="repoUrl.url"
+            :text-required="true"
+            :options="[{label: 'ssh://', value: 'ssh'}, {label: 'https://', value: 'https'}]"
+            @input="changeProtocol($event)"
           />
         </div>
         <div class="col span-6">
