@@ -10,7 +10,8 @@
     "node": ">=12"
   },
   "scripts": {
-    "storybook": "start-storybook -p 6006"
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook -o ../storybook-static"
   },
   "devDependencies": {
     "@storybook/addon-a11y": "^6.3.8",

@@ -1,33 +1,33 @@
 # Storybook
 
-By default the Storybook dependencies are not included in the main package file (it adds a lot of weight to the install process).
+# Dependencies
 
-If you run any of the targets:
-
-- yarn storybook
-- yarn build-storybook
-
-the dependencies will be added to the `package.json` file and updated automatically.
-
-You can manually install them with the target:
-
-- yarn install-storybook
-
-> Important: Do not commit an updated `package.json` file withe the Storybook dependencies
-
-You can remove the Storybook dependencies with:
-
-- yarn remove-storybook
+Storybook requires its own set of dependencies - to avoid interferring with the main dashboard dependenices, it
+has its only `package.json` file.
 
 # Running Storybook
 
-Just run the command:
+Run the following:
 
 ```
+cd storybook
+yarn install
 yarn storybook
 ```
 
 You can access Storybook at the URL: http://127.0.0.1:6006
+
+## Building Storybook
+
+Run the following:
+
+```
+cd storybook
+yarn install
+yarn build-storybook
+```
+
+The build static Storybook site is stored in the top-level `storybook-static` folder.
 
 ## Next Steps
 

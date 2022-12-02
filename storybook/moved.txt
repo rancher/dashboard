@@ -1,0 +1,11 @@
+Storybook has been moved from the top-level folder.
+
+To run Storybook:
+
+  cd storybook
+  yarn install
+  yarn storybook
+
+For more information, see storybook/README.md
+
+

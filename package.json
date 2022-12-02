@@ -9,16 +9,9 @@
   "engines": {
     "node": ">=14"
   },
-  "workspaces": {
-    "packages": [
-      "pkg/rancher-components",
-      "storybook"
-    ],
-    "nohoist": [
-      "storybook",
-      "storybook/**"
-    ]
-  },
+  "workspaces": [
+    "pkg/rancher-components"
+  ],
   "scripts": {
     "build-pkg": "./shell/scripts/build-pkg.sh",
     "publish-pkg": "./shell/scripts/publish-pkg.sh",
@@ -52,10 +45,7 @@
     "e2e:pre-prod": "yarn docker:local:stop && yarn docker:local:start && DEV_PORTS=true yarn build",
     "e2e:prod": "START_SERVER_AND_TEST_INSECURE=1 server-test start:prod https-get://localhost:8005 cy:run:sorry",
     "coverage": "npx nyc merge coverage coverage/coverage.json",
-    "build-storybook": "yarn run install-storybook && build-storybook",
-    "install-storybook": "./scripts/storybook-install",
-    "remove-storybook": "./scripts/storybook-install -d",
-    "remove-storybook-deps": "./scripts/storybook-install -r",
+    "storybook": "cat storybook/moved.txt",
     "docs:install": "cd docusaurus/ && yarn install",
     "docs:build": "cd docusaurus/ && yarn build",
     "docs:start": "cd docusaurus/ && yarn start",
