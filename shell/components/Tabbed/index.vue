@@ -99,8 +99,9 @@ export default {
       const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
-        // Checking state of useHash props.
-        // In storybook we can not send a response based on the URL path, so we have to set useHash=false.
+        /**
+         * Exclude logic with URL anchor (hash) for projects without routing logic (vue-router)
+         */
         if (useHash) {
           const { $route: { hash } } = this;
           const windowHash = hash.slice(1);
@@ -161,8 +162,9 @@ export default {
       if ( !selected || selected.disabled) {
         return;
       }
-      // Checking state of useHash props.
-      // In storybook we can not send a response based on the URL path, so we have to set useHash=false.
+      /**
+       * Exclude logic with URL anchor (hash) for projects without routing logic (vue-router)
+       */
       if ( this.useHash ) {
         const {
           $route: { hash: routeHash },
