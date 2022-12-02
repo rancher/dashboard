@@ -17,6 +17,11 @@ require('../shell/plugins/tooltip');
 
 Vue.use(Vuex);
 
+Vue.component('nuxt-link', {
+  props:   ['to'],
+  template: '<a>link</a>',
+})
+
 // Defines namespaced modules for the Store.
 export const store = new Vuex.Store({
   getters: {
