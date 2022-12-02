@@ -89,6 +89,11 @@ export default {
       }
     }
   },
+  created() {
+    if (!this.treeTabLabel) {
+      this.treeTabLabel = this.t('verrazzano.weblogic.tabs.model');
+    }
+  },
   watch: {
     fetchInProgress() {
       this.resetSecretsAndConfigMaps();

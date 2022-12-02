@@ -1670,6 +1670,7 @@ verrazzano:
       istio: Istio Settings
       managedServer: Managed Server
       managedServers: Managed Servers
+      model: Model
       monitoringExporter: Monitoring Exporter
       nodeSelector: Node Selector
       onlineUpdates: Online Updates
