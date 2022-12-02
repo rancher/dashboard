@@ -99,6 +99,8 @@ export default {
       const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
+        // Checking state of useHash props.
+        // In storybook we can not send a response based on the URL path, so we have to set useHash=false.
         if (useHash) {
           const { $route: { hash } } = this;
           const windowHash = hash.slice(1);
