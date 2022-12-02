@@ -1,26 +1,35 @@
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { PSADimension, PSAMode } from '@shell/types/pod-security-admission';
 
 export default Vue.extend({
   components: {
     Checkbox, LabeledSelect, LabeledInput
   },
   props: {
-    value: {
+    /**
+     * List of labels used for the resource
+     * Note: PSA labels are always paired
+     */
+    labels: {
       type:    Object,
       default: () => {
         return {};
       }
     },
+
     mode: {
       type:     String,
       required: true
     },
 
+    /**
+     * Conditionally show users restrictions
+     */
     hasExceptions: {
       type:    Boolean,
       default: false
@@ -38,16 +47,45 @@ export default Vue.extend({
 
   data() {
     return {
-      options:    ['privileged', 'baseline', 'restricted'],
-      controls:   ['enforce', 'audit', 'warn'],
-      exceptions: ['Usernames', 'RuntimeClassNames', 'Namespaces']
+      controls: {
+        enforce: {
+          active:  false,
+          policy:  null,
+          version: null
+        },
+        audit: {
+          active:  false,
+          policy:  null,
+          version: null
+        },
+        warn: {
+          active:  false,
+          policy:  null,
+          version: null
+        },
+      },
+      exceptions: {
+        Usernames: {
+          active: false,
+          value:  null
+        },
+        RuntimeClassNames: {
+          active: false,
+          value:  null
+        },
+        Namespaces: {
+          active: false,
+          value:  null
+        },
+      },
+      options: ['privileged', 'baseline', 'restricted'],
     };
   },
 
   watch: {},
 
   computed: {
-    isView() {
+    isView(): boolean {
       return this.mode === _VIEW;
     }
   },
@@ -55,7 +93,14 @@ export default Vue.extend({
   created() {
   },
 
-  methods: {}
+  methods: {
+    toggleLabel(mode: PSAMode) {
+      // this.$emit('toggleLabel', label);
+    },
+    toggleException(dimension: PSADimension) {
+      // this.$emit('toggleException', label);
+    },
+  }
 });
 </script>
 
@@ -67,7 +112,7 @@ export default Vue.extend({
     </p>
 
     <div
-      v-for="(control, i) in controls"
+      v-for="(control, level, i) in controls"
       :key="'control-' + i"
       class="row row--y-center mb-20"
     >
@@ -75,8 +120,9 @@ export default Vue.extend({
         <Checkbox
           v-model="control.active"
           :data-testid="componentTestid + '--' + i + '-active'"
-          :label="control"
+          :label="level"
           :disabled="isView"
+          @input="toggleLabel(level)"
         />
       </span>
 
@@ -87,6 +133,7 @@ export default Vue.extend({
           :disabled="isView"
           :options="options"
           :mode="mode"
+          @input="toggleLabel(level)"
         />
       </span>
 
@@ -96,8 +143,9 @@ export default Vue.extend({
           :data-testid="componentTestid + '--' + i + '-version'"
           :disabled="isView"
           :options="options"
-          :placeholder="t('podSecurityAdmission.version.placeholder', { control })"
+          :placeholder="t('podSecurityAdmission.version.placeholder', { control: level })"
           :mode="mode"
+          @input="toggleLabel(level)"
         />
       </span>
     </div>
@@ -114,7 +162,7 @@ export default Vue.extend({
       </p>
 
       <div
-        v-for="(exception, i) in exceptions"
+        v-for="(exception, dimension, i) in exceptions"
         :key="'exception-' + i"
         class="row row--y-center mb-20"
       >
@@ -122,8 +170,9 @@ export default Vue.extend({
           <Checkbox
             v-model="exception.active"
             :data-testid="componentTestid + '--' + i + '-active'"
-            :label="exception"
+            :label="dimension"
             :disabled="isView"
+            @input="toggleException(dimension)"
           />
         </span>
         <span class="col span-8">
@@ -132,8 +181,9 @@ export default Vue.extend({
             :data-testid="componentTestid + '--' + i + '-policy'"
             :disabled="isView"
             :options="options"
-            :placeholder="t('podSecurityAdmission.exceptions.placeholder', { exception })"
+            :placeholder="t('podSecurityAdmission.exceptions.placeholder', { exception: dimension })"
             :mode="mode"
+            @input="toggleException(dimension)"
           />
         </span>
       </div>

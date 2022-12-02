@@ -103,7 +103,11 @@ export default {
 
     showContainerResourceLimit() {
       return !this.isSingleHarvester;
-    }
+    },
+
+    labels() {
+      return this.value?.metadata?.labels || {};
+    },
   },
 
   watch: {
@@ -241,8 +245,9 @@ export default {
         :label="t('generic.podSecurityAdmission')"
       >
         <PodSecurityAdmission
-          :value="value"
+          :labels="labels"
           :mode="mode"
+          @toggleLabel="value.setLabels($event)"
         />
       </Tab>
     </Tabbed>
