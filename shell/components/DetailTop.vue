@@ -22,6 +22,28 @@ export default {
       default: () => {
         return [];
       }
+    },
+
+    /**
+     * Optionally replace key/value and display tooltips for the tab
+     * Dictionary key based
+     */
+    tooltips: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
+
+    /**
+     * Optionally display icons next to the tab
+     * Dictionary key based
+     */
+    icons: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -200,7 +222,18 @@ export default {
           v-for="(prop, key) in labels"
           :key="key + prop"
         >
-          {{ key }}<span v-if="prop">: </span>{{ prop }}
+          <i
+            v-if="icons[key]"
+            class="icon"
+            :class="icons[key]"
+          />
+          <span
+            v-if="tooltips[key]"
+            v-tooltip="prop ? `${key} : ${prop}` : key"
+          >
+            <span>{{ tooltips[key] ? tooltips[key] : key }}</span>
+          </span>
+          <span v-else>{{ prop ? `${key} : ${prop}` : key }}</span>
         </Tag>
         <a
           v-if="showFilteredSystemLabels"
