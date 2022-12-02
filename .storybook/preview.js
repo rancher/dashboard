@@ -5,7 +5,7 @@ import { get } from '../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
-
+import growl from './store/growl';
 const i18nStrings = require('../shell/assets/translations/en-us.yaml');
 
 // Register custom i18n plugin
@@ -34,7 +34,10 @@ export const store = new Vuex.Store({
       }
 
       return msg;
-    }
+    },
+  },
+  modules: {
+    growl
   }
 });
 
