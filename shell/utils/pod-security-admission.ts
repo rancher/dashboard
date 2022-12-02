@@ -1,4 +1,4 @@
-import { filter, keys } from 'lodash';
+import { reduce, filter, keys } from 'lodash';
 import { PSALabelsNamespaces } from '@shell/config/pod-security-admission';
 import { camelToTitle } from '~/shell/utils/string';
 
@@ -23,12 +23,22 @@ export const hasPSALabels = (resource: ResourcePartial): boolean => getPSALabels
 /**
  * Generate tooltips dictionary from a given PSA namespaced label pair of key and values
  */
-export const getPSATooltipsDescription = (resource: ResourcePartial, version?: string) => Object.assign(
-  {},
-  ...Object
-    .entries(resource.metadata.labels)
-    .map(([key, value]) => ({
-      [key]:
-      `${ camelToTitle(key.replace('psp.kubernetes.io/', '')) } ${ camelToTitle(value) } (${ version || 'latest' })`
-    }))
+export const getPSATooltipsDescription = (resource: ResourcePartial): Record<string, string> => reduce(
+  resource?.metadata?.labels,
+  (acc, value, key) => {
+    const isPSA = PSALabelsNamespaces.includes(key);
+
+    // Retrieve version from paired label ending with `-version`
+    const suffix = '-version';
+    const isVersionLabel = key.includes(suffix);
+    const versionLabel = resource?.metadata?.labels[`${ key }${ suffix }`];
+    const version = versionLabel || 'latest';
+
+    // Add SPA labels and discard paired version label
+    return isPSA && !isVersionLabel ? {
+      ...acc,
+      [key]: `${ camelToTitle(key.replace('pod-security.kubernetes.io/', '')) } ${ camelToTitle(value) } (${ version })`
+    } : acc;
+  },
+  { }
 );

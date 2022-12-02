@@ -11,7 +11,8 @@ import MoveModal from '@shell/components/MoveModal';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { hasPSALabels } from '@shell/utils/pod-security-admission';
+import { hasPSALabels, getPSATooltipsDescription } from '@shell/utils/pod-security-admission';
+import { values } from 'lodash';
 
 export default {
   name:       'ListProjectNamespace',
@@ -245,23 +246,10 @@ export default {
     },
 
     getPSA(row) {
-      const data = [{
-        control: 'enforce',
-        policy:  'privileged',
-        version: '1.0.0'
-      }, {
-        control: 'audit',
-        policy:  'baseline',
-        version: '1.2.3'
-      }, {
-        control: 'warn',
-        policy:  'restricted',
-        version: 'latest'
-      }];
+      const dictionary = getPSATooltipsDescription(row);
+      const list = values(dictionary).map(text => `<li>${ text }</li>`).join('');
 
-      const list = data.map(({ control, policy, version }) => `<li>${ control } ${ policy } (${ version })</li>`).join('');
-
-      return `<ul class="mr-20">${ list }</ul>`;
+      return `<ul class="mr-30">${ list }</ul>`;
     },
 
     userIsFilteringForSpecificNamespaceOrProject() {
