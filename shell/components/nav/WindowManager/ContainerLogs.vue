@@ -291,12 +291,16 @@ export default {
           }
         }
 
-        this.backlog.push({
+        const parsedLine = {
           id:     lastId++,
           msg:    ansiup.ansi_to_html(msg),
           rawMsg: msg,
           time,
-        });
+        };
+
+        Object.freeze(parsedLine);
+
+        this.backlog.push(parsedLine);
       });
 
       this.socket.connect();
