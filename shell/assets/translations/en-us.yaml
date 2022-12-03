@@ -6184,7 +6184,7 @@ registryConfig:
   header: Registry Authentication
   toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
   addLabel: Add Registry
-  description: "The configs section defines the TLS and credential configuration for each mirror."
+  description: "Define the TLS and credential configuration for each registry hostname and mirror."
 
 ##############################
 ### Advanced Settings

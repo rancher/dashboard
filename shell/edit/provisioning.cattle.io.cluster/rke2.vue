@@ -1453,16 +1453,46 @@ export default {
         set(this.agentConfig, 'system-default-registry', hostname);
       }
 
-      if ( this.registrySecret ) {
-        set(this.rkeConfig.registries, 'configs', {
+      if ( hostname && this.registrySecret ) {
+        // For a registry with basic auth, but no mirrors,
+        // add a single registry config with the basic auth secret.
+        const basicAuthConfig = {
           [hostname]: {
             authConfigSecretName: this.registrySecret,
             caBundle:             null,
             insecureSkipVerify:   false,
             tlsSecretName:        null,
           }
-        });
+        };
+
+        const rkeConfig = this.value.spec.rkeConfig;
+
+        if (!rkeConfig) {
+          this.value.spec.rkeConfig = { registries: { configs: basicAuthConfig } };
+        } else if (rkeConfig.registries.configs && Object.keys(rkeConfig.registries.configs).length > 0) {
+          // If some existing authentication secrets are already configured
+          // for registry mirrors, the basic auth is added to the existing ones.
+          const existingConfigs = rkeConfig.registries.configs;
+
+          this.value.spec.rkeConfig.registries.configs = { ...basicAuthConfig, ...existingConfigs };
+        } else {
+          const existingMirrorAndAuthConfig = this.value.spec.rkeConfig.registries;
+
+          this.value.spec.rkeConfig.registries = {
+            ...existingMirrorAndAuthConfig,
+            configs: basicAuthConfig
+          };
+        }
       }
+    },
+
+    updateConfigs(configs) {
+      // Update authentication configuration
+      // for each mirror
+      if (!this.value.spec?.rkeConfig) {
+        this.value.spec.rkeConfig = { registries: {} };
+      }
+      set(this.value.spec.rkeConfig.registries, 'configs', configs);
     },
 
     getAllOptionsAfterMinVersion(versions, minVersion, defaultVersion) {
@@ -2259,6 +2289,7 @@ export default {
                   class="mt-20"
                   :mode="mode"
                   :cluster-register-before-hook="registerBeforeHook"
+                  @updateConfigs="updateConfigs"
                 />
               </AdvancedSection>
             </div>

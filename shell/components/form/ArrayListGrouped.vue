@@ -87,7 +87,7 @@ export default {
         :data-testid="`remove-item-${scope.i}`"
         @click="scope.remove"
       >
-        <i class="icon icon-2x icon-x" />
+        <i class="icon icon-x" />
       </button>
       <span v-else />
     </template>
@@ -113,10 +113,11 @@ export default {
       & > .remove {
         position: absolute;
 
-        padding: 0px;
+        padding: 0;
 
         top: 0;
         right: 0;
+        margin-right: -2.25em;
       }
 
       & > .info-box {
