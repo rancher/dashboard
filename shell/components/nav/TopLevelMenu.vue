@@ -9,7 +9,7 @@ import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
 import { getVersionInfo } from '@shell/utils/version';
-import { LEGACY } from '@shell/store/features';
+import { LEGACY, EXPLORER_HARVESTER_CLUSTER } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { isRancherPrime } from '@shell/config/version';
@@ -59,13 +59,17 @@ export default {
       return this.features(LEGACY);
     },
 
+    explorerHarvesterClusterEnabled() {
+      return this.features(EXPLORER_HARVESTER_CLUSTER);
+    },
+
     showClusterSearch() {
       return this.clusters.length > this.maxClustersToShow;
     },
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all), this.$store);
+      let kubeClusters = filterHiddenLocalCluster(this.explorerHarvesterClusterEnabled ? all : filterOnlyKubernetesClusters(all), this.$store);
       let pClusters = null;
 
       if (this.hasProvCluster) {
