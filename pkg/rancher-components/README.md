@@ -33,6 +33,8 @@ Governance is the most important ingredient to creating a healthy component libr
 
 ## Developing and debugging
 
+### Rancher Dashboard
+
 Rancher Dashboard is a monorepo that houses development for several packages, including Rancher Components. We use [Yarn Workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/) to make developing in a monorepo a little easier.
 
 Running `yarn install` will automatically link inter-package dependencies for each package that has workspaces enabled. The only requirement for linking is that the version is the same in the linked package and the target library. For example, we want to make sure that the `@rancher/components` version matches the dependency for `@rancher/shell` to automatically link
@@ -77,6 +79,76 @@ $ yarn build:lib --watch
 ```
 
 From this point, you can run Dashboard in another terminal and make changes to either Rancher Shell or Rancher Components. Hot module replacement will function similarly to as if you were developing entirely in a single project.
+
+### Rancher Desktop & other projects
+
+Locally developing and testing component changes in projects outside of Rancher Dashboard requires that you manually link via [npm-link](https://docs.npmjs.com/cli/v8/commands/npm-link) or [yarn-link](https://classic.yarnpkg.com/lang/en/docs/cli/link/). 
+
+First, you will need to run `npm link` or `yarn link` in the `@rancher/components` project
+
+#### yarn
+
+```
+$ cd pkg/rancher-components
+
+~/Development/rancher-dashboard/pkg/rancher-components
+
+$ yarn link
+yarn link v1.22.19
+success Registered "@rancher/components".
+info You can now run `yarn link "@rancher/components"` in the projects where you want to use this package and it will be used instead.
+Done in 0.04s.
+```
+
+#### npm
+
+```
+$ cd pkg/rancher-components
+
+~/Development/rancher-dashboard/pkg/rancher-components
+
+$ npm link
+
+up to date, audited 3 packages in 763ms
+
+found 0 vulnerabilities
+```
+
+Next, complete the link in any project that has a `@rancher/components` dependency
+
+#### yarn
+
+```
+$ cd ~/Development/rancher-desktop
+
+~/Development/rancher-desktop
+
+$ yarn link "@rancher/components"
+yarn link v1.22.19
+success Using linked package for "@rancher/components".
+Done in 0.04s.
+```
+
+#### npm
+
+```
+$ pushd ~/Development/rancher-desktop
+
+~/Development/rancher-desktop
+
+$ npm link "@rancher/components"
+
+up to date, audited 3502 packages in 17s
+...
+```
+
+Finally, build and watch `@rancher/components`
+
+```
+$ yarn build:lib --watch
+```
+
+From this point, you can run your project in another terminal and make changes to Rancher Components. Hot module replacement will function similarly to as if you were developing entirely in a single project.
 
 ## Porting and publishing Rancher Components
 
