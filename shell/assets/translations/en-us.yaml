@@ -31,7 +31,6 @@ generic:
   labelsAndAnnotations: Labels & Annotations
   links: Links
   loading: Loading&hellip;
-  load: Load;
   members: Members
   na: n/a
   name: Name
@@ -4986,9 +4985,9 @@ storageClass:
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
 
 tableHeaders:
-  assuredConcurrencyShares: AssuredConcurrencyShares
+  assuredConcurrencyShares: Assured Concurrency Shares
   accessKey: Access Key
-  addressType: AddressType
+  addressType: Address Type
   accessModes: Access Modes
   address: Address
   age: Age
@@ -5039,7 +5038,7 @@ tableHeaders:
   duration: Duration
   diskState: Disk State
   drivers: Drivers
-  distinguisherMethod: DistinguisherMethod
+  distinguisherMethod: Distinguisher Method
   effect: Effect
   endpoints: Endpoints
   firstSeen: First Seen
@@ -5056,10 +5055,10 @@ tableHeaders:
   holder: Holder
   hpaReference: Workload
   health: Health
-  handSize: HandSize
+  handSize: Hand Size
   ipAddress: IP Address
   id: ID
-  ip: IP
+  iP: IP
   image: Image
   imageSize: Size
   ingressClass: Ingress Class
@@ -5080,7 +5079,7 @@ tableHeaders:
   machineNodeName: Node
   manual: Manual
   matches: Matches
-  matchingPrecedence: MatchingPrecedence
+  matchingPrecedence: Matching Precedence
   maxKubernetesVersion: Max Kubernetes Version
   message: Message
   minKubernetesVersion: Min Kubernetes Version
@@ -5120,10 +5119,10 @@ tableHeaders:
   project: Project
   protocol: Protocol
   provider: Provider
-  priorityLevel: PriorityLevel
+  priorityLevel: Priority Level
   publicPorts: Public Ports
   queues: Queues
-  queueLengthLimit: QueueLengthLimit
+  queueLengthLimit: Queue Length Limit
   ram: RAM
   rbac:
     create: Create
@@ -5161,7 +5160,7 @@ tableHeaders:
   secrets: Secrets
   schedule: Schedule
   service: Service
-  serviceAccounts: ServiceAccounts
+  serviceAccounts: Service Accounts
   secret-Name: Secret-Name
   simpleName: Name
   simpleScale: Scale
@@ -5186,7 +5185,7 @@ tableHeaders:
   targetPort: Target
   type: Type
   updated: Updated
-  upToDate: Up To Date
+  up-to-date: Up To Date
   upgrade: Upgradable
   url: URL
   users: Users
@@ -6059,11 +6058,6 @@ typeLabel:
       one { Recent Operation }
       other { Recent Operations }
     }
-  charts: |-
-    {count, plural,
-      one { Recent Operation }
-      other { Recent Operations }
-    }
   catalog.cattle.io.app: |-
     {count, plural,
       one { Installed App }
@@ -6141,7 +6135,7 @@ typeLabel:
     }
   policy.poddisruptionbudget: |-
     {count, plural,
-      one { PodDisruption Budget }
+      one { Pod Disruption Budget }
       other { Pod Disruption Budgets }
     }
   limitrange: |-
