@@ -42,10 +42,9 @@ export default {
       {{ linkText }}
     </n-link>
 
-    <hr v-if="slotTitle">
+    <hr>
 
     <div
-      v-if="slotTitle"
       class="d-slot"
     >
       <h2>{{ slotTitle }}</h2>
@@ -88,6 +87,7 @@ export default {
     flex-direction: column;
 
     h2 {
+      min-height: 18px;
       font-size: 16px;
     }
 

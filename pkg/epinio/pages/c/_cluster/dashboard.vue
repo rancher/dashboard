@@ -20,7 +20,7 @@ export default Vue.extend<any, any, any, any>({
           cta:         createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }, { query: { mode: 'openModal' } }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
           linkText:    this.t('epinio.intro.cards.namespaces.linkText'),
-          description: this.t('epinio.intro.cards.namespaces.description'),
+          description: this.t('typeDescription.namespaces'),
           slotTitle:   this.t('epinio.intro.cards.namespaces.slotTitle')
         },
         {
@@ -29,8 +29,8 @@ export default Vue.extend<any, any, any, any>({
           cta:         createEpinioRoute('c-cluster-applications-createapp', { resource: EPINIO_TYPES.APP }),
           link:        createEpinioRoute('c-cluster-applications', { resource: EPINIO_TYPES.APP }),
           linkText:    this.t('epinio.intro.cards.applications.linkText'),
-          description: this.t('epinio.intro.cards.applications.description'),
-          slotTitle:   this.t('epinio.intro.cards.applications.slotTitle')
+          description: this.t('typeDescription.applications'),
+          slotTitle:   '',
         },
         {
           title:       this.t('epinio.intro.cards.services.title'),
@@ -38,7 +38,7 @@ export default Vue.extend<any, any, any, any>({
           cta:         createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.SERVICE_INSTANCE }),
           linkText:    this.t('epinio.intro.cards.services.linkText'),
-          description: this.t('epinio.intro.cards.services.description'),
+          description: this.t('typeDescription.configurations'),
           slotTitle:   this.t('epinio.intro.cards.services.slotTitle')
         }],
       colorStops: {
@@ -68,16 +68,17 @@ export default Vue.extend<any, any, any, any>({
       return displayVersion;
     },
     apps() {
-      const allApps = this.$store.getters['epinio/all'](EPINIO_TYPES.APP);
+      const allApps = this.$store.getters['epinio/all'](EPINIO_TYPES.APP) as EpinioApplicationResource[];
 
-      const runningApps = allApps.filter((app: EpinioApplicationResource) => app.status === 'running' );
-      const stoppedApps: EpinioApplicationResource[] = allApps.filter((app: EpinioApplicationResource) => app.status === 'error' );
-
-      return {
-        runningApps: runningApps.length,
-        stoppedApps: stoppedApps.length,
-        totalApps:   allApps.length
-      };
+      return allApps.reduce((acc, item) => {
+        return {
+          runningApps: acc.runningApps + (item.status === 'running' ? 1 : 0),
+          stoppedApps: acc.stoppedApps + (item.status === 'error' ? 1 : 0),
+          totalApps:   acc.totalApps + 1,
+        };
+      }, {
+        runningApps: 0, stoppedApps: 0, totalApps: 0
+      });
     },
     namespaces() {
       const allNamespaces = this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE);
@@ -124,12 +125,12 @@ export default Vue.extend<any, any, any, any>({
           href="https://epinio.io/"
           target="_blank"
           rel="noopener noreferrer nofollow"
-        >Get Started</a>
+        >{{ t('epinio.intro.getStarted') }}</a>
         <a
           href="https://github.com/epinio/epinio/issues"
           target="_blank"
           rel="noopener noreferrer nofollow"
-        >Issues</a>
+        >{{ t('epinio.intro.issues') }}</a>
       </div>
     </div>
     <div class="get-started">

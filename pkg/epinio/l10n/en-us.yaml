@@ -50,21 +50,19 @@ epinio:
     learnMore: Learn more
     noNamespaces: Create a Namespace, then create your Applications
     getStarted: Get started
+    issues: Issues
     cards:
       namespaces:
         linkText: Create Namespace
-        description: Namespaces allows you to organize and manage your applications.
         slotTitle: Resources
         configurations: Configurations
       applications:
         linkText: Deploy Application
-        description: Epinio uses Applications to transition your code, through build, to being deployed.
         slotTitle: Deployments
         running: Running
       services:
         title: Services
         linkText: Create Service
-        description: Create instances of your services. Instances can be bound to your applications to provide data.
         slotTitle: Quick start with
   tableHeaders:
     namespace: Namespace
