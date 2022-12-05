@@ -118,10 +118,14 @@ export default {
         class="icon icon-info"
       />
     </h3>
+    <p class="mb-20">
+      {{ t('registryConfig.description') }}
+    </p>
     <ArrayListGrouped
       v-model="entries"
       :add-label="t('registryConfig.addLabel')"
       :default-add-value="defaultAddValue"
+      :initial-empty-row="true"
       :mode="mode"
       @input="update()"
     >

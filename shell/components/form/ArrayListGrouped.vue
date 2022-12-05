@@ -21,6 +21,13 @@ export default {
       type:    Boolean,
       default: true,
     },
+    /**
+     * Start with empty row
+     */
+    initialEmptyRow: {
+      type:    Boolean,
+      default: true,
+    },
 
     /**
      * Form mode for the component
@@ -62,7 +69,7 @@ export default {
     v-bind="$attrs"
     :add-allowed="canAdd && !isView"
     :mode="mode"
-    :initial-empty-row="true"
+    :initial-empty-row="initialEmptyRow"
     @input="$emit('input', $event)"
     @add="$emit('add')"
     @remove="$emit('remove', $event)"
