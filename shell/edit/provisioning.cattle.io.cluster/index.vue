@@ -280,7 +280,9 @@ export default {
       });
 
       this.operatorDrivers.filter(x => x.state === 'active').forEach((obj) => {
-        addType(obj.id, 'kontainer', false, (isImport ? `/g/clusters/add/launch/import?importProvider=${ obj.id === 'ackoperatorsetting' ? 'ack' : obj.id }` : `/g/clusters/add/launch/${ obj.id }`));
+        const provider = `${ obj.id.substring(0, obj.id.lastIndexOf('operatorsetting')) }`;
+
+        addType(obj.id, 'kontainer', false, (isImport ? `/g/clusters/add/launch/import?importProvider=${ provider }` : `/g/clusters/add/launch/${ obj.id }`));
       });
 
       if ( isImport ) {
@@ -358,7 +360,8 @@ export default {
         const name = row.group;
         let entry = out[name];
 
-        if (row.id === 'aliyun') {
+        // Support operator to hide v1 entry
+        if (row.id === 'aliyun' || row.id === 'tencenttke') {
           continue;
         }
 

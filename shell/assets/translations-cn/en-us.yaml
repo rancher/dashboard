@@ -1179,6 +1179,13 @@ cluster:
       secretKey:
         label: SecretKey
         placeholder: Your Aliyun Secret Key
+    tke:
+      accessKeyId:
+        label: Access Key ID
+        placeholder: Your TKE Access Key ID
+      accessKeySecret:
+        label: Access Key Secret
+        placeholder: Your TKE Access Key Secret
     aws:
       accessKey:
         label: Access Key
@@ -1904,6 +1911,8 @@ cluster:
     s3: S3-Compatible
     softlayer: IBM Cloud
     tencenttke: Tencent TKE
+    tkeoperatorsetting: Tencent TKE
+    tke: TKE
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack

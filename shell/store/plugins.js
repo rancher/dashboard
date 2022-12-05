@@ -24,7 +24,12 @@ const credentialOptions = {
     publicKey:  'token',
     publicMode: 'prefix',
     keys:       'token'
-  }
+  },
+  tke: {
+    publicKey:  'accessKeyId',
+    publicMode: 'full',
+    keys:       ['accessKeyId', 'accessKeySecret']
+  },
 };
 
 // Credential drivers that rke1 supports
@@ -39,6 +44,7 @@ export const rke1Supports = [
   'pnap',
   'vmwarevsphere',
   'aliyun',
+  'tencent',
 ];
 
 // Map a credential driver name to a component name
@@ -59,6 +65,7 @@ const driverMap = {
 
   aliyunecs:                        'aliyun',
   aliyunkubernetescontainerservice: 'aliyun',
+  tencentkubernetesengine:          'tke',
 };
 
 // Map a driver component back to the cloud credential field name their data has to be stored in
@@ -67,6 +74,8 @@ const driverToFieldMap = {
   aws:    'amazonec2',
   gcp:    'google',
   oracle: 'oci',
+
+  tencent: 'tencent',
 };
 
 // Machine driver fields that are probably a credential field
