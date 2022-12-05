@@ -223,13 +223,15 @@ export default {
     if ( this.mode === _CREATE ) {
       this.value.applyDefaults(this, realMode);
     }
+
+    this.tooltipsDescription = getPSATooltipsDescription(this.liveModel);
   },
 
   data() {
     return {
       chartData:           null,
       resourceSubtype:     null,
-      tooltipsDescription: getPSATooltipsDescription(this.value),
+      tooltipsDescription: {},
       iconsDisplay:        PSAIconsDisplay,
 
       // Set by fetch
