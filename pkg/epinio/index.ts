@@ -14,7 +14,7 @@ const onEnter: OnNavToPackage = async(store, config) => {
   await store.dispatch('management/load', {
     data: {
       ...serverVersionSettings,
-      type:    MANAGEMENT.SETTING,
+      type:  MANAGEMENT.SETTING,
       value: res.version
     }
   });
