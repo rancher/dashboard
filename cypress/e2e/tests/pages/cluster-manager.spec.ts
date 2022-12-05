@@ -17,7 +17,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 // File specific consts
 const { baseUrl } = Cypress.config();
 const namespace = 'fleet-default';
-const type = 'provisioning.cattle.io.cluster';
+const type = 'provisioning.cattle.io.clusters';
 const clusterRequestBase = `${ baseUrl }/v1/${ type }/${ namespace }`;
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
