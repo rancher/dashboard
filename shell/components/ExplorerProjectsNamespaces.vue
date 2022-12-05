@@ -11,6 +11,8 @@ import MoveModal from '@shell/components/MoveModal';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { hasPSALabels, getPSATooltipsDescription } from '@shell/utils/pod-security-admission';
+import { values } from 'lodash';
 
 export default {
   name:       'ListProjectNamespace',
@@ -235,6 +237,21 @@ export default {
     }
   },
   methods: {
+    /**
+     * Check if resource contains PSA labels
+     * @param {*} row HciNamespace
+     */
+    hasPSA(row) {
+      return hasPSALabels(row);
+    },
+
+    getPSA(row) {
+      const dictionary = getPSATooltipsDescription(row);
+      const list = values(dictionary).map(text => `<li>${ text }</li>`).join('');
+
+      return `<ul class="mr-30">${ list }</ul>`;
+    },
+
     userIsFilteringForSpecificNamespaceOrProject() {
       const activeFilters = this.$store.getters['namespaceFilters'];
 
@@ -386,6 +403,18 @@ export default {
           v-else
           class="text-muted"
         >&ndash;</span>
+      </template>
+      <template #cell:name="{row}">
+        <n-link
+          :to="`/c/local/explorer/namespace/${row.id}`"
+        >
+          {{ row.name }}
+        </n-link>
+        <i
+          v-if="hasPSA(row)"
+          v-tooltip="getPSA(row)"
+          class="icon icon-lock"
+        />
       </template>
       <template
         v-for="project in projectsWithoutNamespaces"
