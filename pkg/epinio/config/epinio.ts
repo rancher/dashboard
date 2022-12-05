@@ -51,14 +51,12 @@ export function init($plugin: any, store: any) {
     type:              EPINIO_TYPES.INSTANCE,
     product:           EPINIO_PRODUCT_NAME,
     collectionMethods: [],
-    schemas:           [
-      {
-        id:                EPINIO_TYPES.INSTANCE,
-        type:              'schema',
-        collectionMethods: [],
-        resourceFields:    {},
-      }
-    ],
+    schemas:           [{
+      id:                EPINIO_TYPES.INSTANCE,
+      type:              'schema',
+      collectionMethods: [],
+      resourceFields:    {},
+    }],
     getInstances: async() => await EpinioDiscovery.discover(store),
   });
   configureType(EPINIO_TYPES.INSTANCE, {
