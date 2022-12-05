@@ -3,6 +3,8 @@ import Tag from '@shell/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
+import { PSALabelsNamespaceVersion } from '~/shell/config/pod-security-admission';
+import { pickBy } from 'lodash';
 
 export const SEPARATOR = { separator: true };
 
@@ -95,6 +97,10 @@ export default {
       }
 
       return this.value?.filteredSystemLabels;
+    },
+
+    filteredLabels() {
+      return pickBy(this.labels, (_, key) => !PSALabelsNamespaceVersion.includes(key));
     },
 
     annotations() {
@@ -219,7 +225,7 @@ export default {
           {{ t('resourceDetail.detailTop.labels') }}:
         </span>
         <Tag
-          v-for="(prop, key) in labels"
+          v-for="(prop, key) in filteredLabels"
           :key="key + prop"
         >
           <i
