@@ -11,6 +11,40 @@ import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
 
+export const urlFor = (state, getters) => (type, id, opt) => {
+  opt = opt || {};
+  type = getters.normalizeType(type);
+  let url = opt.url;
+
+  if ( !url ) {
+    const schema = getters.schemaFor(type);
+
+    if ( !schema ) {
+      throw new Error(`Unknown schema for type: ${ type }`);
+    }
+
+    url = schema.links.collection;
+
+    if ( !url ) {
+      throw new Error(`You don't have permission to list this type: ${ type }`);
+    }
+
+    if ( id ) {
+      url += `/${ id }`;
+    }
+  }
+
+  if ( !url.startsWith('/') && !url.startsWith('http') ) {
+    const baseUrl = state.config.baseUrl.replace(/\/$/, '');
+
+    url = `${ baseUrl }/${ url }`;
+  }
+
+  url = getters.urlOptions(url, opt);
+
+  return url;
+};
+
 export default {
 
   all: (state, getters, rootState) => (type) => {
@@ -225,6 +259,21 @@ export default {
     return false;
   },
 
+  haveAllNamespace: (state, getters) => (type, namespace) => {
+    if (!namespace) {
+      return false;
+    }
+
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry ) {
+      return entry.haveNamespace === namespace;
+    }
+
+    return false;
+  },
+
   haveSelector: (state, getters) => (type, selector) => {
     type = getters.normalizeType(type);
     const entry = state.types[type];
@@ -244,39 +293,7 @@ export default {
     return keyFieldFor(type);
   },
 
-  urlFor: (state, getters) => (type, id, opt) => {
-    opt = opt || {};
-    type = getters.normalizeType(type);
-    let url = opt.url;
-
-    if ( !url ) {
-      const schema = getters.schemaFor(type);
-
-      if ( !schema ) {
-        throw new Error(`Unknown schema for type: ${ type }`);
-      }
-
-      url = schema.links.collection;
-
-      if ( !url ) {
-        throw new Error(`You don't have permission to list this type: ${ type }`);
-      }
-
-      if ( id ) {
-        url += `/${ id }`;
-      }
-    }
-
-    if ( !url.startsWith('/') && !url.startsWith('http') ) {
-      const baseUrl = state.config.baseUrl.replace(/\/$/, '');
-
-      url = `${ baseUrl }/${ url }`;
-    }
-
-    url = getters.urlOptions(url, opt);
-
-    return url;
-  },
+  urlFor,
 
   urlOptions: () => (url, opt) => {
     return url;

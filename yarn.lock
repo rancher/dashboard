@@ -14515,9 +14515,9 @@ queue-microtask@^1.2.2:
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
   integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
 
-rancher-icons@rancher/icons#v2.0.9:
-  version "2.0.9"
-  resolved "https://codeload.github.com/rancher/icons/tar.gz/09048239918c9eccf49f7770948efef63fb04f24"
+rancher-icons@rancher/icons#v2.0.13:
+  version "2.0.13"
+  resolved "https://codeload.github.com/rancher/icons/tar.gz/31a5cbe19edc8c01f7fd8b39f6ff79c81ef68b19"
 
 randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5, randombytes@^2.1.0:
   version "2.1.0"
