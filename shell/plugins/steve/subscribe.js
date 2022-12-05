@@ -17,6 +17,7 @@ import { escapeHtml } from '@shell/utils/string';
 
 // eslint-disable-next-line
 import webworker from './web-worker.steve-sub-worker.js';
+import { addParam } from '@shell/utils/url.ts';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
@@ -277,6 +278,24 @@ export const actions = {
 
     type = getters.normalizeType(type);
 
+    const dispatchResubscribe = (resourceVersion) => {
+      const payload = { resourceType: type };
+
+      payload.resourceVersion = resourceVersion;
+
+      if ( namespace ) {
+        payload.namespace = namespace;
+      }
+      if ( id ) {
+        payload.id = id;
+      }
+      if ( selector ) {
+        payload.selector = selector;
+      }
+
+      return dispatch('send', payload);
+    };
+
     if (rootGetters['type-map/isSpoofed'](type)) {
       state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
 
@@ -298,32 +317,26 @@ export const actions = {
     }
 
     if ( typeof revision === 'undefined' ) {
-      revision = getters.nextResourceVersion(type, id);
+      const url = addParam(`${ state.config.baseUrl }/${ type }`, 'limit', 1);
+      const opt = {
+        method:  'get',
+        headers: { accept: 'application/json' }
+      };
+
+      fetch(url, opt)
+        .then((res) => {
+          if (!res.ok) {
+            console.warn(`Resource error retrieving resourceVersion, unable to resubscribe`, type, ':', res.json()); // eslint-disable-line no-console
+          }
+
+          return res.json();
+        })
+        .then((res) => {
+          dispatchResubscribe(res.revision);
+        });
+    } else {
+      return dispatchResubscribe(`${ revision }`);
     }
-
-    const msg = { resourceType: type };
-
-    if ( revision ) {
-      msg.resourceVersion = `${ revision }`;
-    }
-
-    if ( namespace ) {
-      msg.namespace = namespace;
-    }
-
-    if ( stop ) {
-      msg.stop = true;
-    }
-
-    if ( id ) {
-      msg.id = id;
-    }
-
-    if ( selector ) {
-      msg.selector = selector;
-    }
-
-    return dispatch('send', msg);
   },
 
   reconnectWatches({
@@ -584,11 +597,7 @@ export const actions = {
 
       commit('setWatchStopped', obj);
 
-      setTimeout(() => {
-        // Delay a bit so that immediate start/error/stop causes
-        // only a slow infinite loop instead of a tight one.
-        dispatch('watch', obj);
-      }, 5000);
+      dispatch('watch', obj);
     }
   },
 
@@ -747,41 +756,6 @@ export const getters = {
 
   watchStarted: state => (obj) => {
     return !!state.started.find(entry => equivalentWatch(obj, entry));
-  },
-
-  nextResourceVersion: (state, getters) => (type, id) => {
-    type = normalizeType(type);
-    let revision = 0;
-
-    if ( id ) {
-      const existing = getters['byId'](type, id);
-
-      revision = parseInt(existing?.metadata?.resourceVersion, 10);
-    }
-
-    if ( !revision ) {
-      const cache = state.types[type];
-
-      if ( !cache ) {
-        return null;
-      }
-
-      revision = cache.revision;
-
-      for ( const obj of cache.list ) {
-        if ( obj && obj.metadata ) {
-          const neu = parseInt(obj.metadata.resourceVersion, 10);
-
-          revision = Math.max(revision, neu);
-        }
-      }
-    }
-
-    if ( revision ) {
-      return revision;
-    }
-
-    return null;
   },
 
   currentGeneration: state => (type) => {
