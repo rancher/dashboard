@@ -28,7 +28,9 @@ generic:
     always: Always
     ifNotPresent: IfNotPresent
     never: Never
+  labels: Labels
   labelsAndAnnotations: Labels & Annotations
+  podSecurityAdmission: Pod Security Admission
   links: Links
   loading: Loading&hellip;
   members: Members
@@ -1728,6 +1730,8 @@ cluster:
       header: Security
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
+    defaultPodSecurityAdmissionTemplateName:
+      label: Default Pod Security Admission
     enableNetworkPolicy:
       label: Project Network Isolation
       warning: Per default, the ingress controller will not be able to route requests to pods on other nodes.
@@ -2514,7 +2518,10 @@ labels:
   addAnnotation: Add Annotation
   labels:
     title: Labels
+    description: Key/value pairs that are attached to objects which specify identifying attributes.
     fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
+    show: Show System Label
+    hide: Hide System Label
   annotations:
     title: Annotations
 
@@ -3878,6 +3885,14 @@ plugins:
       crd:
         title: Remove the Rancher Extensions Custom Resource Definition
         prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
+podSecurityAdmission:
+  description: Define the admission control mode you want to use for the pod security
+  version:
+    placeholder: 'Version (default: latest)'
+  exceptions: 
+    title: Exceptions
+    description: Allow the creation of pods for specific Usernames, RuntimeClassNames, and Namespaces that would otherwise be prohibited due to the policies set above.
+    placeholder: Enter a comma separated list of {exception}
 prefs:
   title: Preferences
   theme:
