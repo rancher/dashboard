@@ -78,10 +78,18 @@ rm -rf ${BASE_DIR}/pkg/test-pkg
 sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"7.7.7\",/g" ${SHELL_DIR}/package.json
 rm ${SHELL_DIR}/package.json.bak
 
+# Same as above for Rancher Components
+# We might have bumped the version number but its not published yet, so this will fail
+sed -i.bak -e "s/\"version\": \"[0-9]*.[0-9]*.[0-9]*\",/\"version\": \"7.7.7\",/g" ${BASE_DIR}/pkg/rancher-components/package.json
+
 # Publish shell
 echo "Publishing shell packages to local registry"
 yarn install
 ${SHELL_DIR}/scripts/publish-shell.sh
+
+# Publish rancher components
+yarn build:lib
+yarn publish:lib
 
 if [ "${SKIP_STANDALONE}" == "false" ]; then
   DIR=$(mktemp -d)
