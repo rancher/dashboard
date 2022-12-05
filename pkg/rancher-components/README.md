@@ -1,5 +1,6 @@
 # @rancher/components
-A library of custom components used to build Rancher UIs.
+
+Rancher Components is a Vue UI library that provides components for developing Rancher Applications and Extensions. Each component follows the [Rancher Design System](https://rancher.github.io/storybook/?path=/story/welcome--page) so that everything you build will integrate tightly with Rancher Dashboard. 
 ## Project setup
 ```
 yarn
@@ -16,7 +17,9 @@ yarn lint
 
 ## Criteria for porting Dashboard components to Rancher Components
 
-We want to keep each component in Rancher Components simple and isolated to ensure that Rancher Components will be simple and easy to include across projects. We've come up with a few guidelines to help developers identify components that might be a good fit before porting:
+Rancher Components aims to provide components crucial for developing Rancher Applications and Extensions. As a result, components should remain simple to import and use by other developers with minimal to no additional configuration. To achieve this vision, early iterations of Rancher Components will not have dependencies on libraries (e.g. vuex) that we might be used to reaching for in daily development. The goal is to keep Rancher Components simple, isolated, and side-effect free.
+
+We've come up with a few guidelines to help developers identify components that might be a good fit before porting:
 
 1. Is this component used in multiple projects? For example, Rancher Dashboard and Rancher Desktop maintained individual implementations of checkbox, radio button, and input components. This duplication of effort was eliminated by including these components in Rancher Components.
 2. Is this component a core building block? Core building blocks are components like buttons, inputs, labels, badges, etc.. components used to build larger and more complicated features. We can think of core building blocks akin to atoms and molecules if you subscribe to the concept of [atomic design](https://bradfrost.com/blog/post/atomic-web-design/#atoms).
