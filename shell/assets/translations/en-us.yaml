@@ -3456,8 +3456,8 @@ persistentVolume:
     drivers:
       disk-csi-azure-com: Azure Disk (CSI)
       file-csi-azure-com: Azure File (CSI)
-      driver-longhorn-io: Longhorn
-      driver-harvesterhci-io: Harvester
+      driver-longhorn-io: Longhorn (CSI)
+      driver-harvesterhci-io: Harvester (CSI)
       nfs-csi-k8s-io: NFS (CSI)
       ebs-csi-aws-com: AWS Elastic Block Store (CSI)
       rbd-csi-ceph-com: Ceph RBD (CSI)
@@ -4727,7 +4727,7 @@ storageClass:
       zonal: Zonal
       regional: Regional
   longhorn:
-    title: Longhorn
+    title: Longhorn (CSI)
     addLabel: Add Parameter
   vsphere-volume:
     title: VMWare vSphere Volume

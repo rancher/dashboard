@@ -6,9 +6,10 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 // all but longhorn are in-tree plugins
 export const PROVISIONER_OPTIONS = [
   {
-    labelKey:  'storageClass.aws-ebs.title',
-    value:     'kubernetes.io/aws-ebs',
-    supported: true
+    labelKey:   'storageClass.aws-ebs.title',
+    value:      'kubernetes.io/aws-ebs',
+    supported:  true,
+    deprecated: true,
   },
   {
     labelKey:   'storageClass.azure-disk.title',

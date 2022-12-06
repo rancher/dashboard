@@ -95,7 +95,7 @@ export default {
       return this.value.provisioner;
     },
 
-    // PROVISIONER_OPTIONS are provs with custom components: all the in-tree types + longhorn
+    // PROVISIONER_OPTIONS are provs with custom components: all the in-tree types + longhorn and harvester
     // CSI drivers are third party provisioner options - this.csiDrivers is a list of the ones that are currently installed on this cluster
     provisioners() {
       const dropdownOptions = [];
@@ -104,9 +104,17 @@ export default {
       PROVISIONER_OPTIONS.forEach((opt) => {
         provisionerOptionsDrivers.push(opt.value);
         if (this.showUnsupportedStorage || opt.supported) {
+          let label = this.t(opt.labelKey);
+
+          if (opt.value.includes('kubernetes')) {
+            label += ` ${ this.t('persistentVolume.plugin.inTree') }`;
+          }
+          if (!opt.supported) {
+            label += ` ${ this.t('persistentVolume.plugin.unsupported') }`;
+          }
           dropdownOptions.push({
             value:      opt.value,
-            label:      opt.supported ? `${ this.t(opt.labelKey) } ${ this.t('persistentVolume.plugin.inTree') }` : `${ this.t(opt.labelKey) } ${ this.t('persistentVolume.plugin.inTree') } ${ this.t('persistentVolume.plugin.unsupported') }`,
+            label,
             deprecated: opt.deprecated
           });
         }
