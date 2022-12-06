@@ -2,14 +2,17 @@
 
 # Dependencies
 
-Storybook requires its own set of dependencies - to avoid interferring with the main dashboard dependenices, it
+Storybook requires its own set of dependencies - to avoid interfering with the main dashboard dependencies, it
 has its only `package.json` file.
+
+> Note: You still need to run `yarn install` from the top-level folder before running Storybook
 
 # Running Storybook
 
 Run the following:
 
 ```
+yarn install
 cd storybook
 yarn install
 yarn storybook
