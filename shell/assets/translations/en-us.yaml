@@ -1803,7 +1803,7 @@ cluster:
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{useful} of {total} {units} {suffix}"
-    cores: Cores
+    cores: CPU
     pods: Pods
     ram: Memory
     used: Used
