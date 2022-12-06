@@ -75,6 +75,7 @@ export default {
       :mode="mode"
       :namespaced="false"
     />
+    {{JSON.stringify(value)}}
 
     <Tabbed
       :side-tabs="true"
@@ -96,6 +97,15 @@ export default {
       <Tab
         name="labels"
         label-key="generic.labelsAndAnnotations"
+      >
+        <Labels
+          v-model="value"
+          :mode="mode"
+        />
+      </Tab>
+      <Tab
+        name="Allowed target namespaces"
+        label-key="fleet.workspaces.tabs.restrictions"
       >
         <Labels
           v-model="value"

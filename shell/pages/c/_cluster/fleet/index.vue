@@ -22,6 +22,10 @@ export default {
 
   async fetch() {
     const hash = await checkSchemasForFindAllHash({
+      fleetWorkspaces: {
+        inStoreType: 'management',
+        type:        FLEET.WORKSPACE
+      },
       allBundles: {
         inStoreType: 'management',
         type:        FLEET.BUNDLE
@@ -29,14 +33,12 @@ export default {
       gitRepos: {
         inStoreType: 'management',
         type:        FLEET.GIT_REPO
-      },
-      fleetWorkspaces: {
-        inStoreType: 'management',
-        type:        FLEET.WORKSPACE
       }
     }, this.$store);
 
     this.gitRepos = hash.gitRepos;
+
+    console.log('HASH', hash.fleetWorkspaces, hash.gitRepos)
 
     this.fleetWorkspacesData = hash.fleetWorkspaces || [];
   },
@@ -74,8 +76,8 @@ export default {
         }
       ],
       schema:              {},
-      allBundles:          null,
-      gitRepos:            null,
+      allBundles:          [],
+      gitRepos:            [],
       fleetWorkspacesData: [],
       isCollapsed:         {},
       getStartedLink:      {
@@ -90,11 +92,14 @@ export default {
   computed: {
     ...mapState(['workspace', 'allNamespaces']),
     fleetWorkspaces() {
+
+      console.log('FLEET WORKSPACES', this.fleetWorkspacesData, this.allNamespaces)
       if (this.fleetWorkspacesData?.length) {
         return this.fleetWorkspacesData;
       }
 
       // When user doesn't have access to the workspaces fall back to namespaces
+
       return this.allNamespaces.filter((item) => {
         return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
       }).map(( obj ) => {
@@ -285,6 +290,8 @@ export default {
 
 <template>
   <div class="fleet-dashboard">
+    {{fleetWorkspaces}}
+
     <Loading v-if="$fetchState.pending" />
     <!-- no git repos -->
     <div

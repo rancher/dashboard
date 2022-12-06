@@ -78,27 +78,29 @@ export default {
   fetch() {
     fetchClusterResources(this.$store, NODE);
 
-    setPromiseResult(
-      allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
-      this,
-      'showClusterMetrics',
-      `Determine cluster metrics`
-    );
-    setPromiseResult(
-      allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
-      this,
-      'showK8sMetrics',
-      `Determine k8s metrics`
-    );
-    setPromiseResult(
-      allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
-      this,
-      'showEtcdMetrics',
-      `Determine etcd metrics`
-    );
+    if(this.currentCluster) {
+      setPromiseResult(
+        allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
+        this,
+        'showClusterMetrics',
+        `Determine cluster metrics`
+      );
+      setPromiseResult(
+        allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
+        this,
+        'showK8sMetrics',
+        `Determine k8s metrics`
+      );
+      setPromiseResult(
+        allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
+        this,
+        'showEtcdMetrics',
+        `Determine etcd metrics`
+      );
 
-    if (this.currentCluster.isLocal) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      if (this.currentCluster.isLocal) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
     }
   },
 
@@ -144,6 +146,11 @@ export default {
     ...monitoringStatus(),
 
     displayPspDeprecationBanner() {
+
+      if(!this.currentCluster) {
+        return false
+      }
+
       const cluster = this.currentCluster;
       const major = cluster.status?.version?.major ? parseInt(cluster.status?.version?.major) : 0;
       const minor = cluster.status?.version?.minor ? parseInt(cluster.status?.version?.minor) : 0;
@@ -179,7 +186,7 @@ export default {
     displayProvider() {
       const other = 'other';
 
-      let provider = this.currentCluster.status.provider || other;
+      let provider = this.currentCluster?.status?.provider || other;
 
       if (provider === 'rke.windows') {
         provider = 'rkeWindows';
@@ -434,7 +441,7 @@ export default {
       <div>
         <label>{{ t('glance.version') }}: </label>
         <span
-          v-if="currentCluster.kubernetesVersionExtension"
+          v-if="currentCluster && currentCluster.kubernetesVersionExtension"
           style="font-size: 0.5em"
         >{{ currentCluster.kubernetesVersionExtension }}</span>
         <span>{{ currentCluster.kubernetesVersionBase }}</span>

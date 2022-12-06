@@ -111,6 +111,7 @@ export default {
     >
       {{ t('fleet.fleetSummary.noClustersGitRepo') }}
     </Banner>
+    {{JSON.stringify(value)}}
     <ResourceTabs
       v-model="value"
       mode="view"
@@ -118,6 +119,7 @@ export default {
       :need-related="false"
     >
       <Tab
+        v-if="!!allBundles.length"
         label="Bundles"
         name="bundles"
         :weight="30"

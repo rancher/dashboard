@@ -385,6 +385,8 @@ export default {
       switch (key) {
       case 'apiGroups':
 
+        console.log(event.label, event)
+
         if (value || (value === '')) {
           this.$set(rule, 'apiGroups', [value]);
         }
@@ -666,6 +668,7 @@ export default {
                   />
                 </div>
                 <div :class="ruleClass">
+                  {{ props.row.value}}
                   <input
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"

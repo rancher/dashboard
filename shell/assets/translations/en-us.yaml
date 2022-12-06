@@ -2050,7 +2050,9 @@ fleet:
     error: Error
     ready: Ready
     errors: Errors
-
+  workspaces: 
+    tabs:
+      restrictions: Allowed Target Namespaces
 footer:
   docs: Docs
   download: Download CLI
