@@ -37,8 +37,8 @@ export default {
     YamlEditor,
   },
   props: {
-    resources: {
-      type:     Array,
+    workload: {
+      type:     Object,
       required: true
     }
   },
@@ -55,9 +55,6 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     ...mapGetters(['currentCluster']),
-    workload() {
-      return this.resources[0];
-    },
     workloadName() {
       return this.workload.metadata.name;
     },

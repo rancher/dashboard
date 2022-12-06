@@ -9,20 +9,14 @@ export default {
   },
 
   props: {
-    resources: {
-      type:     Array,
-      required: true
+    onAdd: {
+      type:    Function,
+      default: () => {}
     }
   },
 
   data() {
     return { bindings: [] };
-  },
-
-  computed: {
-    onAdd() {
-      return this.resources[0];
-    },
   },
 
   methods: {

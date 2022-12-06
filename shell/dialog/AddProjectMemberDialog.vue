@@ -10,10 +10,10 @@ export default {
   },
 
   props: {
-    resources: {
-      type:     Array,
-      required: true
-    }
+    onAdd: {
+      type:    Function,
+      default: () => {}
+    },
   },
 
   data() {
@@ -29,10 +29,6 @@ export default {
   },
 
   computed: {
-    onAdd() {
-      return this.resources[0];
-    },
-
     principal() {
       const principalId = this.member.principalId.replace(/\//g, '%2F');
 
@@ -89,7 +85,7 @@ export default {
 
     <div
       slot="body"
-      class="pl-10 pr-10 pb-10"
+      class="pl-10 pr-10"
     >
       <ProjectMemberEditor
         v-model="member"
