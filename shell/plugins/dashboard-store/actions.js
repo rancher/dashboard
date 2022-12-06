@@ -117,7 +117,11 @@ export default {
         if (opt.hasManualRefresh) {
           dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
         }
-        commit('setHaveAll', { type });
+        if (opt.namespaced) {
+          commit('setHaveNamespace', { type, namespace: opt.namespaced });
+        } else {
+          commit('setHaveAll', { type });
+        }
       }
     } catch (e) {
       if (opt.hasManualRefresh) {
@@ -140,7 +144,7 @@ export default {
       commit('registerType', type);
     }
 
-    if ( opt.force !== true && getters['haveAll'](type) ) {
+    if ( opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
       const args = {
         type,
         revision:  '',
@@ -297,8 +301,9 @@ export default {
         commit('loadAll', {
           ctx,
           type,
-          data: out.data,
-          skipHaveAll
+          data:      out.data,
+          skipHaveAll,
+          namespace: opt.namespaced,
         });
       }
     }

@@ -16,11 +16,6 @@ export default {
   },
   mixins: [ResourceFetch],
   props:  {
-    loadResources: {
-      type:    Array,
-      default: () => []
-    },
-
     loadIndeterminate: {
       type:    Boolean,
       default: false
@@ -141,10 +136,8 @@ export default {
   },
 
   $loadingResources() {
-    return {
-      loadResources:     [CAPI.RANCHER_CLUSTER],
-      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
-    };
+    // results are filtered so we wouldn't get the correct count on indicator...
+    return { loadIndeterminate: true };
   },
 
   mounted() {
@@ -191,6 +184,7 @@ export default {
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>

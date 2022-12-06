@@ -89,10 +89,8 @@ export default {
   },
 
   $loadingResources() {
-    return {
-      loadResources:     [MANAGEMENT.FEATURE],
-      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
-    };
+    // results are filtered so we wouldn't get the correct count on indicator...
+    return { loadIndeterminate: true };
   },
 
   watch: {
@@ -201,6 +199,7 @@ export default {
       :row-actions="enableRowActions"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
       <template
         slot="cell:name"

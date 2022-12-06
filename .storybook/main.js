@@ -84,6 +84,7 @@ module.exports = {
     config.resolve.alias['@'] = baseFolder;
     config.resolve.alias['@shell'] = path.join(baseFolder, 'shell');
     config.resolve.alias['@components'] = path.join(baseFolder, 'pkg', 'rancher-components', 'src', 'components');
+    config.resolve.alias['~shell'] = path.join(baseFolder, 'shell');
 
     // Cheat for importing ~shell/assets
     config.resolve.modules.push(baseFolder);

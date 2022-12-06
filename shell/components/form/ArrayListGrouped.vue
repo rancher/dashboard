@@ -51,7 +51,7 @@ export default {
       }
 
       return this.canRemove;
-    }
+    },
   }
 };
 </script>
@@ -62,6 +62,7 @@ export default {
     v-bind="$attrs"
     :add-allowed="canAdd && !isView"
     :mode="mode"
+    :initial-empty-row="true"
     @input="$emit('input', $event)"
     @add="$emit('add')"
     @remove="$emit('remove', $event)"

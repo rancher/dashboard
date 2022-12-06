@@ -304,6 +304,13 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+    /**
+     * Manaul force the update of live and delayed cells. Change this number to kick off the update
+     */
+    forceUpdateLiveAndDelayed: {
+      type:    Number,
+      default: 0
     }
   },
 
@@ -387,6 +394,9 @@ export default {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
     page(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    forceUpdateLiveAndDelayed(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
 

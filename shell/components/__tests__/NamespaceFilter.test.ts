@@ -187,6 +187,7 @@ describe('component: NamespaceFilter', () => {
               elementId: text,
               id:        text,
               kind:      'namespace',
+              enabled:   true,
             },
           ],
           options:        () => [],

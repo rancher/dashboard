@@ -140,6 +140,13 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+    /**
+     * Manaul force the update of live and delayed cells. Change this number to kick off the update
+     */
+    forceUpdateLiveAndDelayed: {
+      type:    Number,
+      default: 0
     }
   },
 
@@ -232,10 +239,15 @@ export default {
         return [];
       }
 
+      const haveAllNamespace = this.$store.getters['haveAllNamespace'];
+
       return this.rows.filter((row) => {
         if (this.currentProduct?.hideSystemResources && this.isNamespaced) {
           return !!includedNamespaces[row.metadata.namespace] && !row.isSystemResource;
         } else if (!this.isNamespaced) {
+          return true;
+        } else if (haveAllNamespace) {
+          // `rows` only contains resource from a single namespace
           return true;
         } else {
           return !!includedNamespaces[row.metadata.namespace];
@@ -406,6 +418,7 @@ export default {
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     v-on="$listeners"
