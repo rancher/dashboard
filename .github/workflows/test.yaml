@@ -38,7 +38,7 @@ jobs:
           node-version: '14.x'
       
       - name: Install packages
-        run: yarn install:ci
+        run: yarn install
       
       - name: Prepare build
         run: yarn e2e:pre-prod
