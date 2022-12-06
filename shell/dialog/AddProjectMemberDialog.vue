@@ -85,14 +85,8 @@ export default {
 
     <div
       slot="body"
-      <<<<<<<
-      HEAD
-      class="pl-10 pr-10 pb-10"
-      =="====="
       class="pl-10 pr-10"
     >
-      >>>>>> use modalData.componentProps to pass props to custom modal components
-      >
       <ProjectMemberEditor
         v-model="member"
         :use-two-columns-for-custom="true"

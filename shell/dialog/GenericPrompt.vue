@@ -19,11 +19,11 @@ export default {
       type:    Function,
       default: () => {}
     },
-    applyMode:   {
+    applyMode: {
       type:    String,
       default: 'create'
     },
-    title:       {
+    title: {
       type:    String,
       default: ''
     },
