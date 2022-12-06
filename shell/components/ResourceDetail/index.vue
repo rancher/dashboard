@@ -226,8 +226,8 @@ export default {
     if ( this.mode === _CREATE ) {
       this.value.applyDefaults(this, realMode);
     }
+    this.tooltipsDescription = getPSATooltipsDescription(this.liveModel);
   },
-
   data() {
     return {
       chartData:           null,
