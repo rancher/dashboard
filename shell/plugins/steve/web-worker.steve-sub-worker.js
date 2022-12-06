@@ -1,6 +1,5 @@
 import { SCHEMA } from '@shell/config/types';
 
-const COUNTS_FLUSH_TIMEOUT = 5000;
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 
 const state = {
@@ -88,22 +87,6 @@ const workerActions = {
 
     // Web worker global function to terminate the web worker
     close();
-  },
-
-  // Debounce counts messages so we only process at most 1 every 5 seconds
-  countsUpdate(resource) {
-    state.counts.push(resource);
-
-    if (!state.countTimer) {
-      state.countTimer = setTimeout(() => {
-        const last = state.counts.pop();
-
-        state.counts = [];
-        state.countTimer = null;
-
-        load(last);
-      }, COUNTS_FLUSH_TIMEOUT);
-    }
   },
 
   // Called to load schema
