@@ -17,4 +17,4 @@ jobs:
       run: yarn install
     - name: Check Storybook build
       run: |
-        yarn storybook
+        yarn build-storybook
