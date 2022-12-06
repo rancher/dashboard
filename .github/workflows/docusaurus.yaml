@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - master
+      - 'release-*'
   pull_request:
-    types:
-      - opened
+    branches:
+      - master
+      - 'release-*'
 
 jobs:
   deploy:
