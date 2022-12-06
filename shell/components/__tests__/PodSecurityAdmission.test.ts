@@ -49,8 +49,8 @@ describe('component: PodSecurityAdmission', () => {
 
   it.each([
     // ['true', 'active'],
-    ['baseline', 'level'],
-    // ['123', 'version'],
+    // ['baseline', 'level'],
+    ['123', 'version'],
   ])('should map labels to the form, with value %p for input %p', (value, inputId) => {
     const labels = {
       'pod-security.kubernetes.io/enforce':         'baseline',
