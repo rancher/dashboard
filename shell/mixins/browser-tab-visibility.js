@@ -5,9 +5,11 @@ export default {
   computed: { ...mapGetters(['isSingleProduct']) },
   methods:  {
     setTabVisibilityListener(isAdd) {
+      if ((!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) && this.$config.rancherEnv !== 'desktop') {
       const method = isAdd ? 'addEventListener' : 'removeEventListener';
 
       document[method]('visibilitychange', this.visibilityChange, true);
+      }
     },
 
     async visibilityChange() {
@@ -25,13 +27,9 @@ export default {
   },
 
   mounted() {
-    if ((!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) && this.$config.rancherEnv !== 'desktop') {
       this.setTabVisibilityListener(true);
-    }
   },
   beforeDestroy() {
-    if ((!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) && this.$config.rancherEnv !== 'desktop') {
       this.setTabVisibilityListener(false);
-    }
   },
 };
