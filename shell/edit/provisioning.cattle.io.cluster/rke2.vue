@@ -1122,7 +1122,7 @@ export default {
       }
 
       if (this.isElementalCluster) {
-        pool.pool.machineConfigRef.apiVersion = 'elemental.cattle.io/v1beta1';
+        pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
       }
 
       this.machinePools.push(pool);
