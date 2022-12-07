@@ -110,6 +110,7 @@ export default Vue.extend({
     },
 
     toggleException(): void {
+      // TODO: #7628 Complete implementation when PSA templates are available from the server
       // this.$emit('toggleException', dimensions);
     },
 
