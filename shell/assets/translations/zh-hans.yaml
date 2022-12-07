@@ -95,6 +95,15 @@ generic:
   deprecated: 已弃用
   placeholder: "例如：{text}"
   moreInfo: 更多信息
+  selectors:
+    label: 选择器
+    matchingResources:
+      matchesSome: |-
+        {matched, plural,
+          =0 {匹配 {total, number} 个中的 0 个}
+          =1 {匹配 {total, number} 个中的 1 个："{sample}"}
+          other {匹配 {total, number} 中的 {matched, number} 个，包括 "{sample}"}
+        }
 
 locale:
   en-us: English
@@ -125,6 +134,7 @@ nav:
   group:
     cluster: 集群
     inUse: 更多资源
+    policy: 策略
     rbac: RBAC
     serviceDiscovery: 服务发现
     starred: 已收藏
@@ -236,6 +246,7 @@ about:
     cli: CLI
     helm: Helm
     machine: Machine
+    rancher: Rancher
     releaseNotes: '查看发行说明'
   os:
     mac: macOS
@@ -249,7 +260,7 @@ about:
     title: 诊断
     checkboxTooltip: 用前 10 个资源的响应时间补充诊断数据，可能需要一些的时间才能完成。
     checkboxLabel: 发出其它请求
-    systemInformation: 
+    systemInformation:
       subtitle: 系统信息
       browser: 浏览器
       browserInfo: "用户浏览器：{userAgent}；语言：{language}；是否启用了 Cookies：{cookieEnabled}"
@@ -260,8 +271,8 @@ about:
       os: "操作系统：{platform}"
       memJsHeapLimit: "堆大小限制：{jsHeapSizeLimit}"
       memTotalJsHeapSize: "总堆大小：{totalJSHeapSize}"
-      memUsedJsHeapSize: "已使用的堆大小：{usedJSHeapSize}" 
-    logs: 
+      memUsedJsHeapSize: "已使用的堆大小：{usedJSHeapSize}"
+    logs:
       subtitle: 最新日志
     resourceCounts: |-
       {count, plural,
@@ -880,7 +891,7 @@ catalog:
       valuesYaml: 编辑 YAML
       diff: 比较变化
     slideIn:
-      dock: 停靠到底部
+      dock: 停靠到 shell
     steps:
       basics:
         label: 元数据
@@ -1231,7 +1242,7 @@ cluster:
     warning:
       label: 这是一个 Harvester 集群 - 请启用 Harvester 功能开关以对其进行管理。
       state: 警告
-      cloudProvider: 
+      cloudProvider:
         incompatible:
           由于当前的 Harvester 版本与所选的 RKE2 Kubernetes 版本不兼容，因此你无法选择 Harvester cloud provider。请单击 <a target="_blank" rel="noopener noreferrer nofollow" href="https://www.suse.com/suse-harvester/support-matrix/all-supported-versions">此处</a>查看支持的 Kubernetes 版本。
     clusterWarning: |-
@@ -1270,6 +1281,7 @@ cluster:
   explore: 浏览
   exploreHarvester: 浏览
   importAction: 导入已有集群
+  manageAction: 管理
   kubernetesVersion:
     label: Kubernetes 版本
     experimental: 实验功能
@@ -1533,6 +1545,10 @@ cluster:
     desiredNodeGroupWarning: 没有可用于运行 Cluster Agent 的节点。要让集群变为 Active 状态，至少需要有 1 个可用的节点。
 
   rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
+
+  availabilityWarnings:
+    node: 节点 {name} 处于非活动状态
+    machine: 主机 {name} 处于非活动状态
 
   detail:
     provisioner: 提供商
@@ -1987,14 +2003,14 @@ fleet:
       placeholder: '例如：https://github.com/rancher/fleet-examples.git'
       addRepo: 添加仓库
       noRepos: 未添加任何仓库
-    add: 
-      steps: 
-        repoInfo: 
+    add:
+      steps:
+        repoInfo:
           label: 仓库详情
           title: 指定要添加到 Fleet 的 Git 仓库
           subtext: '定义仓库详情'
           description: Fleet 将持续监控下方配置的 Git 仓库，并将仓库中包含的资源同步到配置的目标。
-        targetInfo: 
+        targetInfo:
           label: 目标详情
           title: 指定要与仓库同步的目标
           subtext: '定义目标详情'
@@ -2152,13 +2168,13 @@ graphOptions:
 
 growl:
   clearAll: 清除全部通知
-  disconnectError: 
+  disconnectError:
     message: "与 {url} 的连接在 {time} 意外断开，重连 {tries} 次后断开连接。请检查你的网络连接并重新加载页面。"
     title: Websocket 断开连接
-  connectError: 
+  connectError:
     message: "与 {url} 的连接在 {time} 意外断开，重连次数为 #{tries}。"
     title: Websocket 重新连接
-  reconnected: 
+  reconnected:
     message: "在尝试第 #{tries} 次时恢复了与 {url} 的连接。"
     title: Websocket 已重新连接
 
@@ -2566,6 +2582,15 @@ logging:
     clientKeyPass: 传自密文的客户端密钥
     verifySsl: 验证 SSL
     sslVersion: SSL 版本
+  redis:
+    host: 主机
+    port: 端口
+    dbNumber: Redis 数据库编号
+    ttl: 每个键的 TTL
+    password: 密码
+    format:
+      title: 格式
+      type: 类型
   gelf:
     host: 主机
     port: 端口
@@ -2696,6 +2721,8 @@ logging:
       configuration: 配置
   outputProviders:
     elasticsearch: Elasticsearch
+    opensearch: OpenSearch
+    redis: Redis
     splunkHec: Splunk
     kafka: Kafka
     forward: Fluentd
@@ -2881,7 +2908,6 @@ monitoring:
         existing: 使用现有 PVC 启用 Grafana
         statefulset: 使用 StatefulSet 模板启用 Grafana
         template: 使用 PVC 模板启用 Grafana
-      volumeMode: 卷模式
       volumeName: 卷名称
     title: 配置 Grafana
   hostNetwork:
@@ -2944,7 +2970,6 @@ monitoring:
       selector: 选择器
       selectorWarning: '如果你使用动态配置器（例如 Longhorn），不要指定选择器，因为带有非空选择器的 PVC 不能动态配置 PV。'
       size: 大小
-      volumeMode: 卷模式
       volumeName: 卷名称
     title: 配置 Prometheus
     warningInstalled: |
@@ -3033,10 +3058,6 @@ monitoring:
     prometheus: Prometheus
     projectMetrics: 项目指标
   v1Warning: '当前 Monitoring 由 Cluster Manager 部署。如果你需要从启用了 Monitoring 的旧版 {vendor} 迁移，请先在 Cluster Manager 中禁用 Monitoring，然后再在 Cluster Explorer 中安装新版 {vendor} Monitoring Chart。'
-  volume:
-    modes:
-      block: 块
-      file: 文件系统
 
 monitoringReceiver:
   addButton: 添加 {type}
@@ -3365,6 +3386,8 @@ persistentVolume:
     label: 插件配置
   plugin:
     label: 卷插件
+    inTree: 树内插件
+    unsupported: （不支持）
   capacity:
     label: 容量
   customize:
@@ -3412,6 +3435,7 @@ persistentVolume:
       placeholder: 例如：sp1
   csi:
     label: CSI（不支持）
+    suffix: (CSI)
     driver:
       label: 驱动
       placeholder: 例如：driver.longhorn.io
@@ -3444,6 +3468,21 @@ persistentVolume:
     controllerPublishSecretNamespace:
       label: Controller 发布密文命名空间
       placeholder: 例如：default
+    drivers:
+      disk-csi-azure-com: Azure 磁盘 (CSI)
+      file-csi-azure-com: Azure 文件 (CSI)
+      driver-longhorn-io: Longhorn (CSI)
+      driver-harvesterhci-io: Harvester (CSI)
+      nfs-csi-k8s-io: NFS (CSI)
+      ebs-csi-aws-com: AWS Elastic Block Store (CSI)
+      rbd-csi-ceph-com: Ceph RBD (CSI)
+      org-gluster-glusterfs: GlusterFS (CSI)
+      pd-csi-storage-gke-io: GCE 持久磁盘 (CSI)
+      cinder-csi-openstack-org: Cinder (CSI)
+      pxd-portworx-com: Portworx (CSI)
+      quobyte-csi: Quobyte (CSI)
+      storageos: StorageOS (CSI)
+      csi-vsphere-vmware-com: vSphere (CSI)
   cephfs:
     label: Ceph 文件系统（不支持）
     path:
@@ -3695,6 +3734,14 @@ persistentVolumeClaim:
       readWriteMany: 多节点读写
   status:
     label: 状态
+
+podDisruptionBudget:
+  budget:
+    label: 预算
+  minAvailable:
+    label: 最小可用 Pod
+  maxUnavailable:
+    label: 最大不可用 Pod
 
 # Rancher Extensions
 plugins:
@@ -4271,6 +4318,8 @@ resourceList:
     create: 创建
     createFromYaml: 使用 YAML 文件创建
     createResource: "创建 {resourceName}"
+  nsFiltering: "{resource} 太多。<br>请通过选择上面的命名空间进行过滤。"
+  nsFilterToolTip: "资源太多，过滤仅限于单一 {mode}。"
 resourceLoadingIndicator:
   loading: 正在加载
 
@@ -4693,7 +4742,7 @@ storageClass:
       zonal: 可用区
       regional: 区域
   longhorn:
-    title: Longhorn
+    title: Longhorn (CSI)
     addLabel: 添加参数
   vsphere-volume:
     title: VMWare vSphere 卷
@@ -4720,7 +4769,7 @@ storageClass:
   custom:
     addLabel: 添加参数
   glusterfs:
-    title: Gluster 卷（不支持）
+    title: Gluster 卷
     restUrl:
       label: REST URL
       placeholder: 例如：http://127.0.0.1:8081
@@ -4749,7 +4798,7 @@ storageClass:
       label: 卷类型
       placeholder: "例如：replicate:3"
   cinder:
-    title: Openstack Cinder 卷（不支持）
+    title: Openstack Cinder 卷
     volumeType:
       label: 卷类型
       placeholder: 例如：fast
@@ -4760,7 +4809,7 @@ storageClass:
         label: "手动：自行指定可用区"
         placeholder: 例如：nova
   rbd:
-    title: Ceph RBD（不支持）
+    title: Ceph RBD
     monitors:
       label: 监控
       placeholder: 例如：10.16.153.105:6789
@@ -4795,7 +4844,7 @@ storageClass:
       label: 镜像功能
       placeholder: 例如：layering
   quobyte:
-    title: Quobyte 卷（不支持）
+    title: Quobyte 卷
     quobyteApiServer:
       label: Quobyte API server
       placeholder: "例如：http://138.68.74.142:7860"
@@ -4821,7 +4870,7 @@ storageClass:
       label: Quobyte 租户
       placeholder: 例如：DEFAULT
   portworx-volume:
-    title: Portworx 卷（不支持）
+    title: Portworx 卷
     filesystem:
       label: 文件系统
       placeholder: 例如：ext4
@@ -4844,7 +4893,7 @@ storageClass:
       label: 是否临时
       placeholder: 例如：true
   scaleio:
-    title: ScaleIO 卷（不支持）
+    title: ScaleIO 卷
     gateway:
       label: 网关
       placeholder: 例如：https://192.168.99.200:443/api
@@ -4870,7 +4919,7 @@ storageClass:
       label: 文件系统类型
       placeholder: 例如：xfs
   storageos:
-    title: StorageOS（不支持）
+    title: StorageOS
     pool:
       label: 池
       placeholder: 例如：default
@@ -4887,7 +4936,10 @@ storageClass:
       label: Admin 密文名称
       placeholder: 例如：storageos-secret
   no-provisioner:
-    title: 本地存储（不支持）
+    title: 本地存储
+  deprecated: 
+    title: （已弃用）
+    warning: '{provisioner} 树内插件已弃用。你可以在<a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">这里</a>查找 CSI 驱动。'
 
 tableHeaders:
   accessKey: Access Key
@@ -4915,6 +4967,7 @@ tableHeaders:
   condition: 状态
   customVerbs: 自定义操作
   description: 描述
+  duration: 持续时间
   expires: 过期时间
   providers: 提供商
   cpu: CPU
@@ -5190,6 +5243,12 @@ validation:
       startLetter: '“{key}” 首位必须是字母或数字'
       tooLongKey: '“{key}” 的长度不能超过{max}个字符'
       tooLongPrefix: '"{key}" 前缀的长度不能超过{max}个字符'
+  minLength: '"{key}" 必须多于 {min} 个字符'
+  maxLength: '"{key}" 必须少于 {max} 个字符'
+  minValue: '"{key}" 必须多于 {min}'
+  maxValue: '"{key}" 必须小于 {max}'
+  betweenLengths: '"{key}" 必须包含 {min} 到 {max} 个字符'
+  betweenValues: '"{key}" 必须介于 {min} 和 {max} 之间'
   noSchema: 没有找到可以验证的 schema
   noType: 没有可验证的类型
   number:
@@ -5679,7 +5738,7 @@ workload:
       gcePersistentDisk: Google 持久磁盘
       driver.longhorn.io: Longhorn
       vsphereVolume: VMWare vSphere 卷
-      emptyDir: Empty Dir
+      emptyDir: 空目录
     addClaim: 添加声明
     addMount: 添加挂载
     addVolume: 添加卷
@@ -5746,7 +5805,7 @@ workload:
         memory: 内存
       sizeLimit:
         label: 大小限制
-        placeholder: "例如: 300"
+        placeholder: "例如：300"
   typeDescriptions:
     apps.daemonset: DaemonSet 在每个符合条件的节点上仅运行一个 Pod。当新节点添加到集群时，DaemonSet 会自动部署新节点。推荐用于全系统或可垂直扩展，且每个节点永远不需要超过一个 pod 的工作负载。
     apps.deployment: Deployment 运行分布在符合条件的节点中的可扩展数量的 Pod 副本。变更会逐步推出，并可回滚到之前的版本。推荐用于无状态和水平可扩展的工作负载。
@@ -5790,8 +5849,8 @@ workload:
       label: 终止宽限期
       tip: 终止 Pod 前所需的等待时间
     title: 正在升级
-  tabs: 
-    labels: 
+  tabs:
+    labels:
       deployment: Deployment
       pod: Pod
       containers: 容器
@@ -6371,6 +6430,7 @@ featureFlags:
 performance:
   label: UI 性能设置
   settingName: 性能
+  experimental: 此设置是实验性的，可能会在后续版本中删除或更新。
   incrementalLoad:
     label: 增量加载
     setting: 你可以配置一个阈值，高于该阈值时则使用增量加载。
@@ -6379,7 +6439,6 @@ performance:
     checkboxLabel: 启用增量加载
     inputLabel: 资源阈值
   manualRefresh:
-    banner: 此设置是实验性的，可能会在后续版本中删除或更新。
     label: 手动刷新
     setting: 你可以配置一个阈值，高于该阈值时则启用手动刷新。
     buttonTooltip: 刷新列表
@@ -6395,7 +6454,6 @@ performance:
   gc:
     label: 资源垃圾回收
     description: UI 将在本地缓存 kuberentes 资源，避免这些资源被重新抓取。在某些情况下，这可能会导致浏览器中存储了大量数据。你可以启用此设置进行定期删除。
-    banner: 此设置是实验性的，可能会在后续版本中删除或更新。
     checkboxLabel: 启用垃圾回收
     whenRun:
       description: 垃圾回收运行的时候更新
@@ -6414,7 +6472,13 @@ performance:
       count:
         description: 资源必须超过此数量才能考虑进行垃圾回收。
         inputLabel: 资源数量
-
+  nsFiltering:
+    label: 命名空间过滤
+    description: 当列表无法显示太多资源时，用户需要选择一个命名空间并仅提取该命名空间中的资源。
+    checkboxLabel: 启用命名空间过滤
+    count:
+      inputLabel: 资源阈值
+      description: 需要按命名空间过滤的阈值
 
 banner:
   label: 固定横幅
@@ -6453,7 +6517,7 @@ branding:
   directoryName: 品牌资产目录名称
   logos:
     label: Logo
-    tip: '上传 Logo 以替换顶层导航标题中的 Rancher logo。图片的高度应为 21 像素，最大宽度为 200 像素。最大文件大小为 20KB'
+    tip: '上传 Logo 以替换顶层导航标题中的 Rancher logo。图片的高度应为 21 像素，最大宽度为 200 像素。最大文件大小为 20KB。支持的格式：JPEG、PNG、SVG。'
     lightPreview: 浅色主题预览
     darkPreview: 深色主题预览
     uploadLight: 上传浅色 Logo
@@ -6531,7 +6595,7 @@ resourceQuota:
     namespace: '此命名空间：'
     available: '可用：'
     max: '总计：'
-customLinks: 
+customLinks:
   displayTitle: 链接
   label: 主页链接
   description: '配置要在主页上显示的链接。你可以配置自定义链接以及显示或隐藏默认链接。'
@@ -6544,7 +6608,7 @@ customLinks:
     keyLabel: 显示文本
     valueLabel: URL
     showLabel: 显示
-  defaults: 
+  defaults:
     docs:       Rancher 官方文档
     forums:     论坛
     slack:      Slack
