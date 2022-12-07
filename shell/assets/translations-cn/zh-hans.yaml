@@ -2204,7 +2204,8 @@ footer:
   slack: Slack 讨论群
   wechat:
     title: 微信
-    modalText: 扫码关注 Rancher 中国微信技术群
+    modalText: 扫描二维码添加 Rancher 小助手
+    modalText2: 加入 Rancher 官方微信群
 gatekeeperConstraint:
   match:
     title: 匹配

@@ -138,6 +138,7 @@ export default {
     >
       <div class="wechat-modal">
         <h1>{{ t('footer.wechat.modalText') }}</h1>
+        <h1>{{ t('footer.wechat.modalText2') }}</h1>
         <div class="qr-img" />
         <div>
           <button
