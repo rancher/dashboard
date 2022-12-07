@@ -81,7 +81,6 @@ export default {
       :load-indeterminate="loadIndeterminate"
       :create-button-label="t('fleet.gitRepo.repo.addRepo')"
     />
-    {{rows}}
     <FleetRepos
       :rows="rows"
       :schema="schema"

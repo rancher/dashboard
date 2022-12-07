@@ -75,8 +75,6 @@ export default {
       :mode="mode"
       :namespaced="false"
     />
-    {{JSON.stringify(value)}}
-
     <Tabbed
       :side-tabs="true"
       default-tab="members"

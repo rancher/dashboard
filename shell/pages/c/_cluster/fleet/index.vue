@@ -21,26 +21,27 @@ export default {
   },
 
   async fetch() {
+
     const hash = await checkSchemasForFindAllHash({
       fleetWorkspaces: {
         inStoreType: 'management',
-        type:        FLEET.WORKSPACE
+        type:        FLEET.WORKSPACE,
       },
       allBundles: {
         inStoreType: 'management',
-        type:        FLEET.BUNDLE
+        type:        FLEET.BUNDLE,
       },
       gitRepos: {
         inStoreType: 'management',
-        type:        FLEET.GIT_REPO
+        type:        FLEET.GIT_REPO,
       }
     }, this.$store);
 
-    this.gitRepos = hash.gitRepos;
+    this.gitRepos = hash.gitRepos.data;
 
     console.log('HASH', hash.fleetWorkspaces, hash.gitRepos)
 
-    this.fleetWorkspacesData = hash.fleetWorkspaces || [];
+    this.fleetWorkspacesData = hash.fleetWorkspaces.data || [];
   },
 
   data() {
@@ -290,8 +291,6 @@ export default {
 
 <template>
   <div class="fleet-dashboard">
-    {{fleetWorkspaces}}
-
     <Loading v-if="$fetchState.pending" />
     <!-- no git repos -->
     <div

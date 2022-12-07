@@ -61,8 +61,8 @@ export default {
       }
     }, this.$store);
 
-    this.allClusters = hash.allClusters || [];
-    this.allClusterGroups = hash.allClusterGroups || [];
+    this.allClusters = hash.allClusters.data || [];
+    this.allClusterGroups = hash.allClusterGroups.data || [];
 
     let tls = _VERIFY;
 

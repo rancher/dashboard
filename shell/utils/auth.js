@@ -2,7 +2,7 @@ import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import { BACK_TO, SPA, _EDIT, _FLAGGED } from '@shell/config/query-params';
 import { MANAGEMENT } from '@shell/config/types';
-import { allHash } from '~/shell/utils/promise';
+import { allHashSettled } from '~/shell/utils/promise';
 
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
@@ -81,14 +81,35 @@ export const authProvidersInfo = async(store) => {
   };
 };
 
-export const checkSchemasForFindAllHash = (types, store) => {
+export const checkSchemasForFindAllHash = async (types, store) => {
   const hash = {};
 
   for (const [key, value] of Object.entries(types)) {
-    if (store.getters[`${ value.inStoreType }/schemaFor`](value.type)) {
-      hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type } );
+    console.log(key)
+      if (store.getters[`${ value.inStoreType }/schemaFor`](value.type)) {
+        hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type } );
     }
   }
 
-  return allHash(hash);
+  // allHash fails if any request fails
+  // e.g. When there is a user without the correct permissions 2/3 resources then everything fails
+  // Using allHashSettled allow UI to handle this appropriately
+  const hashRes = await allHashSettled(hash).then((results)=>{
+    console.log(results)
+    const out = {}
+
+    for (const [key, value] of Object.entries(results)) {
+      if(value?.status === 'rejected') {
+        console.error(value.reason)
+      } 
+      out[key] = {
+        data: value.value,
+        reason: value.reason,
+        status: value.status
+      }
+    }
+    return out
+  });
+
+  return hashRes
 };

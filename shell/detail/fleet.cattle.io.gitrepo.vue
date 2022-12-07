@@ -89,8 +89,8 @@ export default {
       }
     }, this.$store);
 
-    this.allBundles = allDispatches.allBundles || [];
-    this.allFleet = allDispatches.allFleet || [];
+    this.allBundles = allDispatches.allBundles.data || [];
+    this.allFleet = allDispatches.allFleet.data || [];
   },
 
 };
