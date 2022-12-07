@@ -121,10 +121,10 @@ export default class Workload extends WorkloadService {
     vm.$set(this, 'spec', spec);
   }
 
-  toggleRollbackModal( resources = this ) {
+  toggleRollbackModal( workload = this ) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'RollbackWorkloadDialog'
+      componentProps: { workload },
+      component:      'RollbackWorkloadDialog'
     });
   }
 

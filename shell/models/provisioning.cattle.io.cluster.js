@@ -610,24 +610,25 @@ export default class ProvCluster extends SteveModel {
     this.$dispatch('promptRestore', [resource]);
   }
 
-  saveAsRKETemplate(resources = this) {
+  saveAsRKETemplate(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'SaveAsRKETemplateDialog'
+      componentProps: { cluster },
+      component:      'SaveAsRKETemplateDialog'
     });
   }
 
-  rotateCertificates(resources = this) {
+  rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
+      componentProps: { cluster },
+
       component: 'RotateCertificatesDialog'
     });
   }
 
-  rotateEncryptionKey(resources = this) {
+  rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'RotateEncryptionKeyDialog'
+      componentProps: { cluster },
+      component:      'RotateEncryptionKeyDialog'
     });
   }
 

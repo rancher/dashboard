@@ -251,7 +251,9 @@ export default {
 
     defaultTab() {
       if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
-        return 'container-0';
+        const container = this.allContainers.find(c => c.__active);
+
+        return container?.name ?? 'container-0';
       }
 
       return this.allContainers.length ? this.allContainers[0].name : '';
@@ -882,6 +884,9 @@ export default {
 
       this.podTemplateSpec.containers.push(container);
       this.selectContainer(container);
+      this.$nextTick(() => {
+        this.$refs.containersTabbed?.select(container.name);
+      });
     },
 
     removeContainer(container) {
