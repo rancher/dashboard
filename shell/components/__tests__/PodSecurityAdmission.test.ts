@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import PodSecurityAdmission from '@shell/components/PodSecurityAdmission.vue';
 
+// TODO: #7464 Remove comments and correct tests after defining issue in the troubleshooting
 describe('component: PodSecurityAdmission', () => {
   it.each([
     ['true', 'active'],
@@ -47,6 +48,7 @@ describe('component: PodSecurityAdmission', () => {
     expect(wrapper.vm.controls).toStrictEqual(controls);
   });
 
+  // TODO: #7464 Enable other parameters after defining issue in the troubleshooting
   it.each([
     // ['true', 'active'],
     // ['baseline', 'level'],
@@ -69,6 +71,7 @@ describe('component: PodSecurityAdmission', () => {
     expect(input.value).toStrictEqual(value);
   });
 
+  // TODO: #7464 Enable other parameters after defining issue with the troubleshooting
   it.each([
     // ['true', 'active'],
     // ['privileged', 'level'],
