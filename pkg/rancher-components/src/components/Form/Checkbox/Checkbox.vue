@@ -2,6 +2,7 @@
 import Vue, { PropType } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
+import cloneDeep from 'lodash/cloneDeep';
 
 export default Vue.extend({
   props: {
@@ -114,11 +115,6 @@ export default Vue.extend({
   },
 
   computed: {
-    modelValue: {
-      get() {
-        return this.value;
-      },
-    },
     /**
      * Determines if the checkbox is disabled.
      * @returns boolean: True when the disabled prop is true or when mode is
@@ -167,13 +163,15 @@ export default Vue.extend({
       const click = new CustomEvent('click', customEvent);
 
       // Flip the value
-      if (this.isMulti(this.value)) {
+      const value = cloneDeep(this.value);
+
+      if (this.isMulti(value)) {
         if (this.isChecked) {
-          removeObject(this.value, this.valueWhenTrue);
+          removeObject(value, this.valueWhenTrue);
         } else {
-          addObject(this.value, this.valueWhenTrue);
+          addObject(value, this.valueWhenTrue);
         }
-        this.$emit('input', this.value);
+        this.$emit('input', value);
       } else if (this.isString(this.valueWhenTrue)) {
         if (this.isChecked) {
           this.$emit('input', null);
@@ -181,7 +179,7 @@ export default Vue.extend({
           this.$emit('input', this.valueWhenTrue);
         }
       } else {
-        this.$emit('input', !this.value);
+        this.$emit('input', !value);
         this.$el.dispatchEvent(click);
       }
     },
@@ -222,7 +220,6 @@ export default Vue.extend({
       @click="clicked($event)"
     >
       <input
-        v-model="modelValue"
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
