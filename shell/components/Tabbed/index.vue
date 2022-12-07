@@ -96,27 +96,21 @@ export default {
       } = this;
       const activeTab = tabs.find(t => t.active);
 
+      const hash = useHash ? this.$route.hash : undefined;
+      const windowHash = useHash ? hash.slice(1) : undefined;
+      const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
       const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
-        /**
-         * Exclude logic with URL anchor (hash) for projects without routing logic (vue-router)
-         */
-        if (useHash) {
-          const { $route: { hash } } = this;
-          const windowHash = hash.slice(1);
-          const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
-
-          if ( !isEmpty(windowHashTabMatch )) {
-            this.select(windowHashTabMatch.name);
-          } else if (useHash && activeTab?.name === windowHash) {
-            this.select(activeTab.name);
-          }
+        if (useHash && !isEmpty(windowHashTabMatch)) {
+          this.select(windowHashTabMatch.name);
         } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find(t => t.name === defaultTab))) {
           this.select(defaultTab);
         } else if (firstTab?.name) {
           this.select(firstTab.name);
         }
+      } else if (useHash && activeTab?.name === windowHash) {
+        this.select(activeTab.name);
       }
     },
   },
