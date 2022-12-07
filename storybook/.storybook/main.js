@@ -2,7 +2,6 @@ const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
 const NM_REGEX  = /node_modules\/(.*)/
-const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
   "stories": [
@@ -90,8 +89,14 @@ module.exports = {
     // Cheat for importing ~shell/assets
     config.resolve.modules.push(baseFolder);
 
-    config.resolve.plugins = config.resolve.plugins || [];
-    config.resolve.plugins.push(new TsconfigPathsPlugin({}));
+    // Do not cache babel results - this causes issues with Typescript transpiling for rancher components
+    config.module.rules.forEach(r => {
+      (r.use || []).forEach(r => {
+        if (r.options && r.options.cacheDirectory) {
+          r.options.cacheDirectory = false;
+        }
+      });
+    });
 
     return config;
   },  
