@@ -35,7 +35,7 @@ export default  {
     },
     ],
   },
-  getters: require("../../shell/store/growl.js").getters,
-  actions: require("../../shell/store/growl.js").actions,
-  mutations: require("../../shell/store/growl.js").mutations
+  getters: require("../../../shell/store/growl.js").getters,
+  actions: require("../../../shell/store/growl.js").actions,
+  mutations: require("../../../shell/store/growl.js").mutations
 }

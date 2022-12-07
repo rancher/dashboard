@@ -1,18 +1,18 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { themes } from '@storybook/theming';
-import { get } from '../shell/utils/object';
+import { get } from '../../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 import growl from './store/growl';
-const i18nStrings = require('../shell/assets/translations/en-us.yaml');
+const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
 
 // Register custom i18n plugin
-require('../shell/plugins/i18n');
+require('../../shell/plugins/i18n');
 
-require('../shell/plugins/v-select');
-require('../shell/plugins/tooltip');
+require('../../shell/plugins/v-select');
+require('../../shell/plugins/tooltip');
 
 
 Vue.use(Vuex);
