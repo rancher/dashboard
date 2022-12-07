@@ -70,7 +70,7 @@ export default {
       </div>
     </div>
 
-    <h3>LabeledInput control</h3>
+    <h3>LabeledInput control</h3> <h3>Tab</h3>
 
     <div class="row">
       <div class="col span-6">
