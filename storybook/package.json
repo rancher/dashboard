@@ -24,6 +24,7 @@
     "storybook-dark-mode": "^1.0.8"
   },
   "dependencies": {
-    "tsconfig-paths-webpack-plugin": "^4.0.0"
+    "tsconfig-paths-webpack-plugin": "^4.0.0",
+    "@rancher/components": "0.1.0"
   }
 }
