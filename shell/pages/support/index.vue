@@ -102,7 +102,7 @@ export default {
     },
 
     sccLink() {
-      return this.hasAWSSupport ? addParam('https://scc.suse.com', 'from_marketplace', '1') : 'https://scc.suse.com';
+      return this.hasAWSSupport ? addParam('https://support-cn.rancher.cn', 'from_marketplace', '1') : 'https://support-cn.rancher.cn';
     }
   },
 
