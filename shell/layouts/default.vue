@@ -36,7 +36,7 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
-import { DraggableZone } from '@components/Utils/DraggableZone';
+import { DraggableZone } from '@rancher/components';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
