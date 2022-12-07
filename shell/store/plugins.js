@@ -157,11 +157,35 @@ export const getters = {
     };
   },
 
-  machineDrivers() {
+  machineDrivers(state, getters, rootState, rootGetters) {
     // The subset of drivers supported by Vue components
     const ctx = require.context('@shell/machine-config', true, /.*/);
 
-    const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
+    let drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map((path) => {
+      return {
+        driverName:   path.substr(2),
+        isCoreDriver: true
+      };
+    });
+
+    const plugins = rootGetters['uiplugins/plugins'];
+
+    if (plugins.length) {
+      plugins.forEach((plugin) => {
+        if (plugin.types && plugin.types['machine-config']) {
+          const pluginDrivers = Object.keys(plugin.types['machine-config']).map((item) => {
+            return {
+              driverName: item,
+              plugin
+            };
+          });
+
+          drivers = drivers.concat(pluginDrivers);
+        }
+      });
+    }
+
+    console.log('drivers', drivers);
 
     return drivers;
   },

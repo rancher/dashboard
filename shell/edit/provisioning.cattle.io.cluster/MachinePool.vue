@@ -110,8 +110,9 @@ export default {
   computed: {
     configComponent() {
       const haveProviders = this.$store.getters['plugins/machineDrivers'];
+      const providerFound = haveProviders.find(item => item.driverName === this.provider);
 
-      if ( haveProviders.includes(this.provider) ) {
+      if ( providerFound && providerFound.isCoreDriver ) {
         return importMachineConfig(this.provider);
       }
 
