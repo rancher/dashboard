@@ -6,30 +6,26 @@ export default {
   methods:  {
     setTabVisibilityListener(isAdd) {
       if ((!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) && this.$config.rancherEnv !== 'desktop') {
-      const method = isAdd ? 'addEventListener' : 'removeEventListener';
+        const method = isAdd ? 'addEventListener' : 'removeEventListener';
 
-      document[method]('visibilitychange', this.visibilityChange, true);
+        document[method]('visibilitychange', this.visibilityChange, true);
       }
     },
 
     async visibilityChange() {
       if (!document.hidden) {
-        await this.$store.dispatch('rancher/findAll', {
+        await this.$store.dispatch('rancher/request', {
           type: NORMAN.USER,
-          opt:  {
-            url:    '/v3/users',
-            filter: { me: true },
-            force:  true
-          }
+          opt:  { url: '/v3/users?me=true' }
         });
       }
     },
   },
 
   mounted() {
-      this.setTabVisibilityListener(true);
+    this.setTabVisibilityListener(true);
   },
   beforeDestroy() {
-      this.setTabVisibilityListener(false);
+    this.setTabVisibilityListener(false);
   },
 };
