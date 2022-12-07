@@ -46,8 +46,8 @@ export default class HciManagedChart extends HarvesterResource {
 
   get detailLocation() {
     return {
-      name:      `${ HARVESTER_PRODUCT }-c-cluster-resource-namespace-id`,
-      params:    {
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource-namespace-id`,
+      params: {
         resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: this.metadata.name
       },
       query: { [MODE]: _EDIT }

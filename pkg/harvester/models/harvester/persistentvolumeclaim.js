@@ -24,8 +24,8 @@ export default class HciPv extends HarvesterResource {
     Vue.set(this, 'spec', {
       accessModes,
       storageClassName,
-      volumeName:       '',
-      resources:        { requests: { storage } }
+      volumeName: '',
+      resources:  { requests: { storage } }
     });
   }
 
@@ -51,10 +51,10 @@ export default class HciPv extends HarvesterResource {
         label:   this.t('harvester.action.cancelExpand')
       },
       {
-        action:     'snapshot',
-        enabled:    this.hasAction('snapshot'),
-        icon:       'icon icon-backup',
-        label:      this.t('harvester.action.snapshot'),
+        action:  'snapshot',
+        enabled: this.hasAction('snapshot'),
+        icon:    'icon icon-backup',
+        label:   this.t('harvester.action.snapshot'),
       },
       ...out
     ];
@@ -264,10 +264,10 @@ export default class HciPv extends HarvesterResource {
   get customValidationRules() {
     return [
       {
-        nullable:       false,
-        path:           'spec.resources.requests.storage',
-        required:       true,
-        validators:     ['volumeSize']
+        nullable:   false,
+        path:       'spec.resources.requests.storage',
+        required:   true,
+        validators: ['volumeSize']
       },
     ];
   }

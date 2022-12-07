@@ -322,7 +322,10 @@ export default {
           />
         </div>
       </template>
-      <template v-if="showTagPrompts" v-slot:no-options="{ searching }">
+      <template
+        v-if="showTagPrompts"
+        v-slot:no-options="{ searching }"
+      >
         <span v-if="!searching">{{ t('labeledSelect.startTyping') }}</span>
       </template>
       <!-- Pass down templates provided by the caller -->
@@ -553,7 +556,6 @@ export default {
     }
   }
 }
-
 
 .vs__dropdown-menu .vs__dropdown-option .only-user-opts{
     color: var(--dropdown-text);

@@ -10,7 +10,7 @@ export default {
   components: {
     AsyncButton, Banner, Card, LabeledInput
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -18,8 +18,8 @@ export default {
   },
   data() {
     return {
-      name:      '',
-      errors:       []
+      name:   '',
+      errors: []
     };
   },
   computed: {

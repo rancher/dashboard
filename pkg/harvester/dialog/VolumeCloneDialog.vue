@@ -12,7 +12,7 @@ export default {
   components: {
     AsyncButton, Banner, Card, LabeledInput, Checkbox
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
@@ -22,7 +22,7 @@ export default {
     return {
       name:      '',
       cloneData: true,
-      errors:       []
+      errors:    []
     };
   },
   computed: {

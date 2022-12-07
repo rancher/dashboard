@@ -35,16 +35,16 @@ export default {
     await allHash(hash);
   },
 
-  computed:   {
+  computed: {
     nodeHeaders() {
       return [
         STATE,
         NAME,
         {
-          name:      'host-ip',
-          labelKey:  'tableHeaders.hostIp',
-          search:    ['internalIp'],
-          value:     'internalIp',
+          name:     'host-ip',
+          labelKey: 'tableHeaders.hostIp',
+          search:   ['internalIp'],
+          value:    'internalIp',
         },
         AGE,
       ];

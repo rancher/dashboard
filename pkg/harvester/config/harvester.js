@@ -262,14 +262,14 @@ export function init($plugin, store) {
   weightGroup('Logging', 1, true);
 
   virtualType({
-    ifHaveType:    MANAGEMENT.MANAGED_CHART,
-    labelKey:     'harvester.monitoring.configuration.label',
-    name:         MONITORING_CONFIGURATION,
-    namespaced:   true,
-    weight:       88,
-    route:        {
-      name:      `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
-      params:    {
+    ifHaveType: MANAGEMENT.MANAGED_CHART,
+    labelKey:   'harvester.monitoring.configuration.label',
+    name:       MONITORING_CONFIGURATION,
+    namespaced: true,
+    weight:     88,
+    route:      {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
+      params: {
         resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: 'rancher-monitoring'
       },
       query: { [MODE]: _EDIT }
@@ -278,14 +278,14 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    ifHaveType:    MANAGEMENT.MANAGED_CHART,
-    labelKey:     'harvester.monitoring.configuration.label',
-    name:         LOGGING_CONFIGURATION,
-    namespaced:   true,
-    weight:       88,
-    route:        {
-      name:      `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
-      params:    {
+    ifHaveType: MANAGEMENT.MANAGED_CHART,
+    labelKey:   'harvester.monitoring.configuration.label',
+    name:       LOGGING_CONFIGURATION,
+    namespaced: true,
+    weight:     88,
+    route:      {
+      name:   `${ PRODUCT_NAME }-c-cluster-resource-namespace-id`,
+      params: {
         resource: HCI.MANAGED_CHART, namespace: 'fleet-local', id: 'rancher-logging'
       },
       query: { [MODE]: _EDIT }
@@ -306,9 +306,9 @@ export function init($plugin, store) {
   ]);
 
   configureType(HCI.ALERTMANAGERCONFIG, {
-    location:    {
+    location: {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:  { resource: HCI.ALERTMANAGERCONFIG },
+      params: { resource: HCI.ALERTMANAGERCONFIG },
     },
     resource:       MONITORING.ALERTMANAGERCONFIG,
     resourceDetail: HCI.ALERTMANAGERCONFIG,
@@ -316,12 +316,12 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    ifHaveType:    MONITORING.ALERTMANAGERCONFIG,
-    labelKey:     'harvester.monitoring.alertmanagerConfig.label',
-    name:         HCI.ALERTMANAGERCONFIG,
-    namespaced:   true,
-    weight:       87,
-    route:        {
+    ifHaveType: MONITORING.ALERTMANAGERCONFIG,
+    labelKey:   'harvester.monitoring.alertmanagerConfig.label',
+    name:       HCI.ALERTMANAGERCONFIG,
+    namespaced: true,
+    weight:     87,
+    route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params: { resource: HCI.ALERTMANAGERCONFIG }
     },
@@ -329,9 +329,9 @@ export function init($plugin, store) {
   });
 
   configureType(HCI.CLUSTER_FLOW, {
-    location:    {
+    location: {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:  { resource: HCI.CLUSTER_FLOW },
+      params: { resource: HCI.CLUSTER_FLOW },
     },
     resource:       LOGGING.CLUSTER_FLOW,
     resourceDetail: HCI.CLUSTER_FLOW,
@@ -339,11 +339,11 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    labelKey:     'harvester.logging.clusterFlow.label',
-    name:         HCI.CLUSTER_FLOW,
-    namespaced:   true,
-    weight:       79,
-    route:        {
+    labelKey:   'harvester.logging.clusterFlow.label',
+    name:       HCI.CLUSTER_FLOW,
+    namespaced: true,
+    weight:     79,
+    route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params: { resource: HCI.CLUSTER_FLOW }
     },
@@ -351,9 +351,9 @@ export function init($plugin, store) {
   });
 
   configureType(HCI.CLUSTER_OUTPUT, {
-    location:    {
+    location: {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:  { resource: HCI.CLUSTER_OUTPUT },
+      params: { resource: HCI.CLUSTER_OUTPUT },
     },
     resource:       LOGGING.CLUSTER_OUTPUT,
     resourceDetail: HCI.CLUSTER_OUTPUT,
@@ -361,11 +361,11 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    labelKey:     'harvester.logging.clusterOutput.label',
-    name:         HCI.CLUSTER_OUTPUT,
-    namespaced:   true,
-    weight:       78,
-    route:        {
+    labelKey:   'harvester.logging.clusterOutput.label',
+    name:       HCI.CLUSTER_OUTPUT,
+    namespaced: true,
+    weight:     78,
+    route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params: { resource: HCI.CLUSTER_OUTPUT }
     },
@@ -373,9 +373,9 @@ export function init($plugin, store) {
   });
 
   configureType(HCI.FLOW, {
-    location:    {
+    location: {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:  { resource: HCI.FLOW },
+      params: { resource: HCI.FLOW },
     },
     resource:       LOGGING.FLOW,
     resourceDetail: HCI.FLOW,
@@ -383,11 +383,11 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    labelKey:     'harvester.logging.flow.label',
-    name:         HCI.FLOW,
-    namespaced:   true,
-    weight:       77,
-    route:        {
+    labelKey:   'harvester.logging.flow.label',
+    name:       HCI.FLOW,
+    namespaced: true,
+    weight:     77,
+    route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params: { resource: HCI.FLOW }
     },
@@ -395,9 +395,9 @@ export function init($plugin, store) {
   });
 
   configureType(HCI.OUTPUT, {
-    location:    {
+    location: {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:  { resource: HCI.OUTPUT },
+      params: { resource: HCI.OUTPUT },
     },
     resource:       LOGGING.OUTPUT,
     resourceDetail: HCI.OUTPUT,
@@ -405,11 +405,11 @@ export function init($plugin, store) {
   });
 
   virtualType({
-    labelKey:     'harvester.logging.output.label',
-    name:         HCI.OUTPUT,
-    namespaced:   true,
-    weight:       76,
-    route:        {
+    labelKey:   'harvester.logging.output.label',
+    name:       HCI.OUTPUT,
+    namespaced: true,
+    weight:     76,
+    route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
       params: { resource: HCI.OUTPUT }
     },
@@ -506,8 +506,8 @@ export function init($plugin, store) {
     namespaced: false,
     weight:     189,
     route:      {
-      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:   { resource: HCI.CLUSTER_NETWORK }
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.CLUSTER_NETWORK }
     },
     exact: false,
   });
@@ -539,7 +539,7 @@ export function init($plugin, store) {
     isCreatable: false,
     location:    {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:  { resource: HCI.SNAPSHOT },
+      params: { resource: HCI.SNAPSHOT },
     },
     resource:       VOLUME_SNAPSHOT,
     resourceDetail: HCI.SNAPSHOT,
@@ -547,13 +547,13 @@ export function init($plugin, store) {
   });
   headers(HCI.SNAPSHOT, [STATE, NAME_COL, NAMESPACE_COL, SNAPSHOT_TARGET_VOLUME, AGE]);
   virtualType({
-    labelKey:     'harvester.snapshot.label',
-    name:         HCI.SNAPSHOT,
-    namespaced:   true,
-    weight:       190,
-    route:        {
+    labelKey:   'harvester.snapshot.label',
+    name:       HCI.SNAPSHOT,
+    namespaced: true,
+    weight:     190,
+    route:      {
       name:   `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:    { resource: HCI.SNAPSHOT }
+      params: { resource: HCI.SNAPSHOT }
     },
     exact: false,
   });
@@ -650,8 +650,8 @@ export function init($plugin, store) {
     namespaced: false,
     weight:     79,
     route:      {
-      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:   { resource: HCI.STORAGE }
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.STORAGE }
     },
     exact: false,
   });
@@ -662,10 +662,10 @@ export function init($plugin, store) {
     label:      'PCI Devices',
     group:      'advanced',
     name:       HCI.PCI_DEVICE,
-    namespaced:  false,
+    namespaced: false,
     route:      {
-      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:   { resource: HCI.PCI_DEVICE }
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.PCI_DEVICE }
     },
     exact: false,
   });
@@ -692,9 +692,9 @@ export function init($plugin, store) {
   });
 
   configureType(HCI.ADD_ONS, {
-    isCreatable:                false,
-    isRemovable:                false,
-    showState:                  false,
+    isCreatable: false,
+    isRemovable: false,
+    showState:   false,
   });
 
   basicType([HCI.ADD_ONS], 'advanced');
@@ -707,8 +707,8 @@ export function init($plugin, store) {
     weight:     -900,
     namespaced: false,
     route:      {
-      name:     `${ PRODUCT_NAME }-c-cluster-resource`,
-      params:   { resource: HCI.ADD_ONS }
+      name:   `${ PRODUCT_NAME }-c-cluster-resource`,
+      params: { resource: HCI.ADD_ONS }
     },
     exact: false,
   });

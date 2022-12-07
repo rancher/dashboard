@@ -25,7 +25,7 @@ export default {
     RadioGroup,
   },
 
-  props:      {
+  props: {
     value: {
       type:     Object,
       required: true

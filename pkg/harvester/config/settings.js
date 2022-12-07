@@ -31,7 +31,7 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.BACKUP_TARGET]: {
     kind: 'json', from: 'import', canReset: true
   },
-  [HCI_SETTING.LOG_LEVEL]:     {
+  [HCI_SETTING.LOG_LEVEL]: {
     kind:    'enum',
     options: ['info', 'debug', 'trace']
   },
@@ -45,23 +45,23 @@ export const HCI_ALLOWED_SETTINGS = {
   [HCI_SETTING.ADDITIONAL_CA]:           {
     kind: 'multiline', canReset: true, from: 'import'
   },
-  [HCI_SETTING.OVERCOMMIT_CONFIG]:                { kind: 'json', from: 'import' },
-  [HCI_SETTING.SUPPORT_BUNDLE_TIMEOUT]:           {},
-  [HCI_SETTING.SUPPORT_BUNDLE_IMAGE]:             { kind: 'json', from: 'import' },
-  [HCI_SETTING.STORAGE_NETWORK]:                  { kind: 'custom', from: 'import' },
-  [HCI_SETTING.VM_FORCE_RESET_POLICY]:            { kind: 'json', from: 'import' },
-  [HCI_SETTING.SSL_CERTIFICATES]:                 { kind: 'json', from: 'import' },
-  [HCI_SETTING.VIP]:                              {
+  [HCI_SETTING.OVERCOMMIT_CONFIG]:      { kind: 'json', from: 'import' },
+  [HCI_SETTING.SUPPORT_BUNDLE_TIMEOUT]: {},
+  [HCI_SETTING.SUPPORT_BUNDLE_IMAGE]:   { kind: 'json', from: 'import' },
+  [HCI_SETTING.STORAGE_NETWORK]:        { kind: 'custom', from: 'import' },
+  [HCI_SETTING.VM_FORCE_RESET_POLICY]:  { kind: 'json', from: 'import' },
+  [HCI_SETTING.SSL_CERTIFICATES]:       { kind: 'json', from: 'import' },
+  [HCI_SETTING.VIP]:                    {
     kind: 'json', from: 'import', canReset: true
   },
   [HCI_SETTING.SSL_PARAMETERS]: {
     kind: 'json', from: 'import', canReset: true
   },
-  [HCI_SETTING.SUPPORT_BUNDLE_NAMESPACES]:        { from: 'import', canReset: true },
-  [HCI_SETTING.AUTO_DISK_PROVISION_PATHS]:        { canReset: true },
-  [HCI_SETTING.RELEASE_DOWNLOAD_URL]:             { kind: 'url' },
-  [HCI_SETTING.UI_PLUGIN_INDEX]:                  { kind: 'url' },
-  [HCI_SETTING.CONTAINERD_REGISTRY]:              {
+  [HCI_SETTING.SUPPORT_BUNDLE_NAMESPACES]: { from: 'import', canReset: true },
+  [HCI_SETTING.AUTO_DISK_PROVISION_PATHS]: { canReset: true },
+  [HCI_SETTING.RELEASE_DOWNLOAD_URL]:      { kind: 'url' },
+  [HCI_SETTING.UI_PLUGIN_INDEX]:           { kind: 'url' },
+  [HCI_SETTING.CONTAINERD_REGISTRY]:       {
     kind: 'json', from: 'import', canReset: true
   },
   [HCI_SETTING.UI_SOURCE]: {

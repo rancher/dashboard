@@ -44,10 +44,10 @@ export default {
 
   data() {
     return {
-      hash:                  {},
-      rows:                  [],
-      hosts:                 [],
-      hostNetworks:          [],
+      hash:         {},
+      rows:         [],
+      hosts:        [],
+      hostNetworks: [],
     };
   },
 
@@ -63,10 +63,10 @@ export default {
           labelKey: 'tableHeaders.networkType'
         },
         {
-          name:      'clusterNetwork',
-          value:     'clusterNetwork',
-          sort:      'clusterNetwork',
-          labelKey:  'harvester.network.clusterNetwork.label'
+          name:     'clusterNetwork',
+          value:    'clusterNetwork',
+          sort:     'clusterNetwork',
+          labelKey: 'harvester.network.clusterNetwork.label'
         },
         {
           name:     'vlan',

@@ -55,9 +55,9 @@ export default {
               uid:        actionResource.metadata.uid,
             }]
           },
-          spec:     {
+          spec: {
             address:  actionResource.status.address,
-            nodeName:   actionResource.status.nodeName,
+            nodeName: actionResource.status.nodeName,
             userName
           }
         } );

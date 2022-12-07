@@ -198,8 +198,8 @@ export default {
 
         return {
           label,
-          value:      o.name,
-          disabled:   map[o.name].down > 0,
+          value:    o.name,
+          disabled: map[o.name].down > 0,
         };
       });
     },

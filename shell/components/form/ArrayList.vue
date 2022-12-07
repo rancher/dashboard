@@ -209,8 +209,8 @@ export default {
       <slot name="title">
         <h3>
           {{ title }}
-          <span 
-            v-if="required" 
+          <span
+            v-if="required"
             class="required"
           >
             *

@@ -118,9 +118,9 @@ export default class HciAlertmanagerConfig extends SteveModel {
         alertmanagerconfigid: this.id
       },
       query: {
-        mode:         queryMode || _VIEW,
+        mode:        queryMode || _VIEW,
         receiverName,
-        currentView:  _YAML
+        currentView: _YAML
       }
     };
   }
@@ -133,9 +133,9 @@ export default class HciAlertmanagerConfig extends SteveModel {
         alertmanagerconfigid: this.id
       },
       query: {
-        mode:         queryMode || _VIEW,
+        mode:        queryMode || _VIEW,
         receiverName,
-        currentView:  _CONFIG
+        currentView: _CONFIG
       }
     };
   }

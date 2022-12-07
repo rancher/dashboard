@@ -26,9 +26,9 @@ export default {
 
   async fetch() {
     const _hash = {
-      pvcs:      this.$store.dispatch('harvester/findAll', { type: PVC }),
-      pvs:      this.$store.dispatch('harvester/findAll', { type: PV }),
-      vms:       this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      pvcs: this.$store.dispatch('harvester/findAll', { type: PVC }),
+      pvs:  this.$store.dispatch('harvester/findAll', { type: PV }),
+      vms:  this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
     };
 
     const volumeSnapshotSchema = this.$store.getters['harvester/schemaFor'](VOLUME_SNAPSHOT);

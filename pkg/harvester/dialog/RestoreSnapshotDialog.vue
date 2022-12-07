@@ -19,7 +19,7 @@ export default {
     LabeledInput,
     LabeledSelect,
   },
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true

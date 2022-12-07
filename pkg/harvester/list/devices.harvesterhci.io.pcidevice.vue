@@ -35,8 +35,8 @@ export default {
         const inStore = this.$store.getters['currentProduct'].inStore;
 
         const hash = await allHash({
-          pcidevice:    this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.PCI_DEVICE }),
-          addons:       this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.ADD_ONS }),
+          pcidevice: this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.PCI_DEVICE }),
+          addons:    this.$store.dispatch(`${ inStore }/findAll`, { type: HCI.ADD_ONS }),
         });
 
         this.enabledPCI = hash.addons.find(addon => addon.name === 'pcidevices-controller')?.spec?.enabled === true;

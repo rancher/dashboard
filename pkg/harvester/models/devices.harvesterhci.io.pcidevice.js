@@ -39,10 +39,10 @@ export default class PCIDevice extends SteveModel {
         bulkAction: 'enablePassthroughBulk'
       },
       {
-        action:     'disablePassthrough',
-        enabled:    this.isEnabling && this.claimedByMe,
-        icon:       'icon icon-fw icon-dot-open',
-        label:      'Disable Passthrough',
+        action:   'disablePassthrough',
+        enabled:  this.isEnabling && this.claimedByMe,
+        icon:     'icon icon-fw icon-dot-open',
+        label:    'Disable Passthrough',
         bulkable: true
       },
     );

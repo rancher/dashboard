@@ -393,7 +393,6 @@ export default {
             </nuxt-link>
             <span v-else>{{ parent.displayName }}:</span>
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
-<<<<<<< HEAD
             <t
               v-else
               :k="'resourceDetail.header.' + realMode"
@@ -406,9 +405,6 @@ export default {
               class="masthead-state"
               :value="value"
             />
-=======
-            <t v-else :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="displayName" :escapehtml="false" />
-            <BadgeState v-if="!isCreate && parent.showState" class="masthead-state" :value="value" />
             <a
               v-if="dev && !!resourceExternalLink"
               v-tooltip="t(resourceExternalLink.tipsKey || 'generic.resourceExternalLinkTips')"
@@ -419,7 +415,6 @@ export default {
             >
               <i class="icon icon-external-link" />
             </a>
->>>>>>> d957ee514 (HARVESTER: add external links to detail/masthead)
           </h1>
         </div>
         <div

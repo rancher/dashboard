@@ -31,15 +31,15 @@ export default {
       { ...STATE },
       SIMPLE_NAME,
       {
-        name:          'description',
-        labelKey:      'tableHeaders.description',
-        value:         'status.description',
+        name:     'description',
+        labelKey: 'tableHeaders.description',
+        value:    'status.description',
         sort:     ['status.description']
       },
       {
-        name:          'node',
-        labelKey:      'tableHeaders.node',
-        value:         'status.nodeName',
+        name:     'node',
+        labelKey: 'tableHeaders.node',
+        value:    'status.nodeName',
         sort:     ['status.nodeName']
       },
       {

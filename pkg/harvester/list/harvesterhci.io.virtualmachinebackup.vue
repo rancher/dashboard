@@ -45,10 +45,10 @@ export default {
     const resource = params.resource;
 
     return {
-      rows:                 [],
-      settings:             [],
+      rows:     [],
+      settings: [],
       resource,
-      to:                   `${ HCI.SETTING }/backup-target?mode=edit`,
+      to:       `${ HCI.SETTING }/backup-target?mode=edit`,
     };
   },
 

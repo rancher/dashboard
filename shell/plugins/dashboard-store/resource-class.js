@@ -237,7 +237,7 @@ export const STATES = {
   [STATES_ENUM.DRAINING]: {
     color: 'warning', icon: 'tag', label: 'Draining', compoundIcon: 'warning'
   },
-  [STATES_ENUM.ENABLED]:           {
+  [STATES_ENUM.ENABLED]: {
     color: 'success', icon: 'dot-open', label: 'Enabled', compoundIcon: 'checkmark'
   },
   [STATES_ENUM.ERR_APPLIED]: {

@@ -18,7 +18,7 @@ export default {
     CompatibilityMatrix,
     Banner
   },
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: _EDIT

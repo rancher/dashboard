@@ -11,8 +11,8 @@ export default class HarvesterLogOutput extends LogOutput {
     const id = this.id?.replace(/.*\//, '');
 
     return {
-      name:     `${ HARVESTER_PRODUCT }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
-      params:   {
+      name:   `${ HARVESTER_PRODUCT }-c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+      params: {
         product:   HARVESTER_PRODUCT,
         cluster:   this.$rootGetters['clusterId'],
         resource:  this.type,

@@ -26,8 +26,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      vms:      this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
-      rows:     this.$store.dispatch('harvester/findAll', { type: HCI.BACKUP }),
+      vms:  this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      rows: this.$store.dispatch('harvester/findAll', { type: HCI.BACKUP }),
     });
 
     const schema = this.$store.getters['harvester/schemaFor'](HCI.BACKUP);

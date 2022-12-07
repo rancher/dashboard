@@ -41,8 +41,8 @@ export default {
 
   async fetch() {
     await allHash({
-      backups:         this.$store.dispatch('harvester/findAll', { type: HCI.BACKUP }),
-      vms:             this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
+      backups: this.$store.dispatch('harvester/findAll', { type: HCI.BACKUP }),
+      vms:     this.$store.dispatch('harvester/findAll', { type: HCI.VM }),
     });
   },
 

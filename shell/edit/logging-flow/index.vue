@@ -400,7 +400,7 @@ export default {
         :weight="3"
       >
         <Banner
-          v-if="!isHarvester" 
+          v-if="!isHarvester"
           color="info"
           class="mt-0"
           label="Configure which container logs will be pulled from"

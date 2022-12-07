@@ -90,11 +90,11 @@ export default {
     return {
       customName,
       consoleUrl,
-      disks:                [],
-      newDisks:             [],
-      blockDevice:          [],
-      blockDeviceOpts:      [],
-      filteredLabels:       clone(this.value.filteredSystemLabels),
+      disks:           [],
+      newDisks:        [],
+      blockDevice:     [],
+      blockDeviceOpts: [],
+      filteredLabels:  clone(this.value.filteredSystemLabels),
     };
   },
   computed: {

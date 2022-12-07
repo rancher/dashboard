@@ -59,9 +59,9 @@ export default {
       editHelp:           t(`advancedSettings.editHelp.${ this.value.id }`),
       enumOptions,
       canReset,
-      errors:               [],
-      hasCustomComponent:   false,
-      customComponent:      null,
+      errors:             [],
+      hasCustomComponent: false,
+      customComponent:    null,
       customSettingComponents,
       oldValue
     };

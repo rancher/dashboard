@@ -8,10 +8,10 @@ export default class HciSnapshot extends HarvesterResource {
   get availableActions() {
     return [
       {
-        action:     'restoreSnapshot',
-        enabled:    this.hasAction('restore'),
-        icon:       'icon icon-refresh',
-        label:      this.t('harvester.action.restore'),
+        action:  'restoreSnapshot',
+        enabled: this.hasAction('restore'),
+        icon:    'icon icon-refresh',
+        label:   this.t('harvester.action.restore'),
       },
       ...super._availableActions
     ];
