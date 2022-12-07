@@ -80,7 +80,7 @@ export default {
         :data-testid="`remove-item-${scope.i}`"
         @click="scope.remove"
       >
-        <i class="icon icon-2x icon-x" />
+        <i class="icon icon-x" />
       </button>
       <span v-else />
     </template>

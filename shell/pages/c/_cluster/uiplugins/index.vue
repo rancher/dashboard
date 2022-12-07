@@ -781,7 +781,7 @@ export default {
 
     > i {
       color: var(--success);
-      font-size: 20px;
+      font-size: 14px;
       font-weight: bold;
     }
 

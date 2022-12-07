@@ -137,7 +137,7 @@
   position: relative;
   width: 100%;
   justify-content: flex-end;
-  flex-shrink: 8;
+  flex-shrink: 8; 
 
   svg {
     display: none;
@@ -147,8 +147,9 @@
     content: $icon-chevron-down;
     font-family: 'icons';
     height: 32px;
-    padding-top: 3px;
+    padding-top: 8px;
     color: var(--secondary);
+    margin-right: 3px;
   }
 }
 

@@ -155,7 +155,7 @@ export default {
     <div v-for="(row, i) in rows" :key="row.id">
       <InfoBox class="volume-source">
         <button v-if="isEdit" type="button" class="role-link btn btn-sm remove-vol" @click="remove(row)">
-          <i class="icon icon-2x icon-x" />
+          <i class="icon icon-x" />
         </button>
         <h3>
           <span>

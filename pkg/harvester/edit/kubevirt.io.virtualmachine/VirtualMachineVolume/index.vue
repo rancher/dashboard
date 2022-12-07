@@ -250,7 +250,7 @@ export default {
         <div v-for="(volume, i) in rows" :key="volume.id">
           <InfoBox class="box">
             <button v-if="!isView" type="button" class="role-link btn btn-sm remove" @click="removeVolume(volume)">
-              <i class="icon icon-2x icon-x" />
+              <i class="icon icon-x" />
             </button>
             <button v-if="volume.hotpluggable && isView" type="button" class="role-link btn remove" @click="unplugVolume(volume)">
               {{ t('harvester.virtualMachine.unplug.detachVolume') }}

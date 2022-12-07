@@ -456,10 +456,8 @@ export default {
 
   ::v-deep .vs__actions {
     &:after {
-      line-height: 1.85rem;
       position: relative;
       right: 3px;
-      top: -10px;
     }
   }
 
