@@ -114,6 +114,11 @@ export default Vue.extend({
   },
 
   computed: {
+    modelValue: {
+      get() {
+        return this.value;
+      },
+    },
     /**
      * Determines if the checkbox is disabled.
      * @returns boolean: True when the disabled prop is true or when mode is
@@ -217,7 +222,7 @@ export default Vue.extend({
       @click="clicked($event)"
     >
       <input
-        v-model="value"
+        v-model="modelValue"
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
