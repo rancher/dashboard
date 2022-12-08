@@ -1989,7 +1989,9 @@ fleet:
     repo:
       label: Repository URL
       protocol: Protocol
-      placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
+      placeholder: 
+        ssh: e.g. git@github.com:rancher/dashboard.git
+        https: e.g. https://github.com/rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
     add:

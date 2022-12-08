@@ -234,6 +234,11 @@ export default {
       return !!this.value.metadata.name && !!this.refValue;
     },
 
+    repoUrlPlaceholder() {
+      const protocol = this.repoUrl.protocol || 'https'
+      return this.t(`fleet.gitRepo.repo.placeholder.${protocol}`)
+    },
+
     repoUrl() {
       const [protocol, url] = this.value.spec.repo.split('://');
       return {
@@ -341,8 +346,6 @@ export default {
 
       this.stepOneReady();
     },
-
-
 
     changeProtocol({ text, selected }) {
 
@@ -519,20 +522,14 @@ export default {
         :class="{'mt-20': isView}"
       >
         <div class="col span-6">
-          <!-- <LabeledInput
-            v-model="value.spec.repo"
-            :mode="mode"
-            label-key="fleet.gitRepo.repo.label"
-            :placeholder="t('fleet.gitRepo.repo.placeholder', null, true)"
-          /> -->
           <InputWithSelect
             :mode="mode"
             :select-label="t('fleet.gitRepo.repo.protocol')"
             :select-value="repoUrl.protocol"
-            :text-placeholder="t(`fleet.gitRepo.repo.placeholder`)"
+            :placeholder="repoUrlPlaceholder"
             :text-value="repoUrl.url"
             :text-required="true"
-            :options="[{label: 'ssh://', value: 'ssh'}, {label: 'https://', value: 'https'}]"
+            :options="[{label: 'https://', value: 'https'}, {label: 'ssh://', value: 'ssh'}]"
             @input="changeProtocol($event)"
           />
         </div>
@@ -621,7 +618,7 @@ export default {
       </ArrayList>
     </template>
     <template #stepTargetInfo>
-      <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
+      <h2 v-t="isLocal ? 'fleet .gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
 
       <template v-if="!isLocal">
         <div class="row">
