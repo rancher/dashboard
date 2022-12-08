@@ -457,7 +457,6 @@ export default {
   ::v-deep .vs__actions {
     &:after {
       position: relative;
-      right: 3px;
     }
   }
 

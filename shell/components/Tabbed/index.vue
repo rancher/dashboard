@@ -282,7 +282,7 @@ export default {
             :disabled="!sortedTabs.length"
             @click="tabRemoveClicked"
           >
-            <i class="icon icon-minus icon-lg" />
+            <i class="icon icon-minus" />
           </button>
         </li>
       </ul>
