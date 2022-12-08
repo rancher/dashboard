@@ -20,14 +20,46 @@ export const Template = (args, { argTypes }) => ({
 })
 
 # Alert
+Use the Alert component to show the current status of another interface element or to display a notification.
+
+<br/>
+
+### Description
+
+- Don't use long texts within a Alert. Whenever possible, limit it to a maximum of 3 words or less. 
+- Color can be used to emphasize a status, to inform or to associate information.
 
 
 <Canvas>
   <Story
-    name="Alert"
+    name="Alert Success"
     args={{
-      message: 'Done',
+      message: 'PID Pressure',
       status: 'success',
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Alert Warning"
+    args={{
+      message: 'Disk Pressure',
+      status: 'warning',
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Alert Info"
+    args={{
+      message: 'Memory Pressure',
+      status: 'info',
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Alert Error"
+    args={{
+      message: 'kubelet',
+      status: 'error',
     }}>
     {Template.bind({})}
   </Story>
