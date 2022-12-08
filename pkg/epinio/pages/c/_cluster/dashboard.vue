@@ -211,20 +211,11 @@ export default Vue.extend<any, any, any, any>({
             <slot>
               <ul>
                 <li
-                  v-for="(namespaces, i) in namespaces.latestNamespaces"
+                  v-for="(ns, i) in namespaces.latestNamespaces"
                   :key="i"
                 >
-                  {{ namespaces.id }}
+                  {{ ns.id }}
                 </li>
-
-                <!-- <li>
-                  {{ t('typeLabel.applications', { count: namespaces.totalApps }) }}
-                  <span>{{ namespaces.totalApps }}</span>
-                </li>
-                <li>
-                  {{ t('typeLabel.configurations', { count: namespaces.totalConfigurations}) }}
-                  <span>{{ namespaces.totalConfigurations }}</span>
-                </li> -->
               </ul>
             </slot>
           </span>
