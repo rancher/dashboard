@@ -860,7 +860,6 @@ export default {
       position: absolute;
       right: 10px;
       top: 5px;
-      font-size: 16px;
       line-height: 24px;
       text-align: center;
       width: 24px;
