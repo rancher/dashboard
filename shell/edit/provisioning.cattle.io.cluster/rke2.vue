@@ -4,7 +4,6 @@ import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
 import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
-
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 
@@ -66,6 +65,7 @@ import RegistryConfigs from './RegistryConfigs';
 import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
+import AdvancedSection from '@shell/components/AdvancedSection.vue';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -77,6 +77,7 @@ const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 export default {
   components: {
     ACE,
+    AdvancedSection,
     AgentEnv,
     ArrayList,
     ArrayListGrouped,
@@ -267,30 +268,31 @@ export default {
     }
 
     return {
-      loadedOnce:                  false,
-      lastIdx:                     0,
-      allPSPs:                     null,
-      nodeComponent:               null,
-      credentialId:                null,
-      credential:                  null,
-      machinePools:                null,
-      rke2Versions:                null,
-      k3sVersions:                 null,
-      defaultRke2:                 '',
-      defaultK3s:                  '',
-      s3Backup:                    false,
-      versionInfo:                 {},
-      membershipUpdate:            {},
-      showDeprecatedPatchVersions: false,
-      systemRegistry:              null,
-      registryHost:                null,
-      registryMode:                null,
-      registrySecret:              null,
-      userChartValues:             {},
-      userChartValuesTemp:         {},
-      addonsRev:                   0,
-      clusterIsAlreadyCreated:     !!this.value.id,
-      fvFormRuleSets:              [{
+      loadedOnce:                      false,
+      lastIdx:                         0,
+      allPSPs:                         null,
+      nodeComponent:                   null,
+      credentialId:                    null,
+      credential:                      null,
+      machinePools:                    null,
+      rke2Versions:                    null,
+      k3sVersions:                     null,
+      defaultRke2:                     '',
+      defaultK3s:                      '',
+      s3Backup:                        false,
+      versionInfo:                     {},
+      membershipUpdate:                {},
+      showDeprecatedPatchVersions:     false,
+      systemRegistry:                  null,
+      registryHost:                    null,
+      showCustomRegistryInput:         false,
+      showCustomRegistryAdvancedInput: false,
+      registrySecret:                  null,
+      userChartValues:                 {},
+      userChartValuesTemp:             {},
+      addonsRev:                       0,
+      clusterIsAlreadyCreated:         !!this.value.id,
+      fvFormRuleSets:                  [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
@@ -527,15 +529,6 @@ export default {
 
     showCisProfile() {
       return this.provider === 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
-    },
-
-    registryOptions() {
-      return [PUBLIC, PRIVATE, ADVANCED].map((opt) => {
-        return {
-          label: this.$store.getters['i18n/withFallback'](`cluster.privateRegistry.mode."${ opt }"`, null, opt),
-          value: opt,
-        };
-      });
     },
 
     needCredential() {
@@ -1393,12 +1386,22 @@ export default {
     },
 
     async initRegistry() {
-      let registryMode = PUBLIC;
-      let registryHost = this.agentConfig?.['system-default-registry'] || '';
+      // Check for an existing cluster scoped registry
+      const clusterRegistry = this.agentConfig?.['system-default-registry'] || '';
+
+      // Check for the global registry
+      this.systemRegistry = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.SYSTEM_DEFAULT_REGISTRY })).value || '';
+
+      // The order of precedence is to use the cluster scoped registry
+      // if it exists, then use the global scoped registry as a fallback
+      if (clusterRegistry) {
+        this.registryHost = clusterRegistry;
+      } else {
+        this.registryHost = this.systemRegistry;
+      }
+
       let registrySecret = null;
       let regs = this.rkeConfig.registries;
-
-      this.systemRegistry = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.SYSTEM_DEFAULT_REGISTRY })).value || '';
 
       if ( !regs ) {
         regs = {};
@@ -1413,73 +1416,83 @@ export default {
         set(regs, 'mirrors', {});
       }
 
-      if ( registryHost ) {
-        registryMode = PRIVATE;
-      } else if ( this.systemRegistry ) {
-        registryHost = this.systemRegistry;
-        registryMode = PRIVATE;
+      const hostname = Object.keys(regs.configs)[0];
+      const config = regs.configs[hostname];
+
+      if ( config ) {
+        registrySecret = config.authConfigSecretName;
       }
 
-      if ( Object.keys(regs.mirrors || {}).length || Object.keys(regs.configs || {}).length > 1 ) {
-        registryMode = ADVANCED;
-      } else {
-        const hostname = Object.keys(regs.configs)[0];
-        const config = regs.configs[hostname];
+      this.registrySecret = registrySecret;
 
-        if ( config ) {
-          if ( hostname !== registryHost || config.caBundle || config.insecureSkipVerify || config.tlsSecretName ) {
-            registryMode = ADVANCED;
-          } else {
-            registryMode = PRIVATE;
-            registrySecret = config.authConfigSecretName;
-          }
+      const hasMirrorsOrAuthConfig = Object.keys(regs.configs).length > 0 || Object.keys(regs.mirrors).length > 0;
+
+      if (this.registryHost || registrySecret || hasMirrorsOrAuthConfig) {
+        this.showCustomRegistryInput = true;
+
+        if (hasMirrorsOrAuthConfig) {
+          this.showCustomRegistryAdvancedInput = true;
         }
       }
-
-      this.registryHost = registryHost;
-      this.registryMode = registryMode;
-      this.registrySecret = registrySecret;
     },
 
     setRegistryConfig() {
       const hostname = (this.registryHost || '').trim();
 
-      if ( this.registryMode === PUBLIC ) {
-        if ( this.systemRegistry ) {
-          // Empty string overrides the system default to nothing
-          set(this.agentConfig, 'system-default-registry', '');
-        } else {
-          // No need to set anything
-          set(this.agentConfig, 'system-default-registry', undefined);
-        }
-      } else if ( !hostname || hostname === this.systemRegistry ) {
+      if ( this.systemRegistry ) {
+        // Empty string overrides the system default to nothing
+        set(this.agentConfig, 'system-default-registry', '');
+      } else {
+        // No need to set anything
+        set(this.agentConfig, 'system-default-registry', undefined);
+      }
+      if ( !hostname || hostname === this.systemRegistry ) {
         // Undefined removes the key which uses the global setting without hardcoding it into the config
         set(this.agentConfig, 'system-default-registry', undefined);
       } else {
         set(this.agentConfig, 'system-default-registry', hostname);
       }
 
-      if ( this.registryMode === ADVANCED ) {
-        // Leave it alone...
-      } else if ( this.registryMode === PRIVATE ) {
-        set(this.rkeConfig.registries, 'mirrors', {});
+      if ( hostname && this.registrySecret ) {
+        // For a registry with basic auth, but no mirrors,
+        // add a single registry config with the basic auth secret.
+        const basicAuthConfig = {
+          [hostname]: {
+            authConfigSecretName: this.registrySecret,
+            caBundle:             null,
+            insecureSkipVerify:   false,
+            tlsSecretName:        null,
+          }
+        };
 
-        if ( this.registrySecret ) {
-          set(this.rkeConfig.registries, 'configs', {
-            [hostname]: {
-              authConfigSecretName: this.registrySecret,
-              caBundle:             null,
-              insecureSkipVerify:   false,
-              tlsSecretName:        null,
-            }
-          });
+        const rkeConfig = this.value.spec.rkeConfig;
+
+        if (!rkeConfig) {
+          this.value.spec.rkeConfig = { registries: { configs: basicAuthConfig } };
+        } else if (rkeConfig.registries.configs && Object.keys(rkeConfig.registries.configs).length > 0) {
+          // If some existing authentication secrets are already configured
+          // for registry mirrors, the basic auth is added to the existing ones.
+          const existingConfigs = rkeConfig.registries.configs;
+
+          this.value.spec.rkeConfig.registries.configs = { ...basicAuthConfig, ...existingConfigs };
         } else {
-          set(this.rkeConfig.registries, 'configs', {});
+          const existingMirrorAndAuthConfig = this.value.spec.rkeConfig.registries;
+
+          this.value.spec.rkeConfig.registries = {
+            ...existingMirrorAndAuthConfig,
+            configs: basicAuthConfig
+          };
         }
-      } else {
-        set(this.rkeConfig.registries, 'configs', {});
-        set(this.rkeConfig.registries, 'mirrors', {});
       }
+    },
+
+    updateConfigs(configs) {
+      // Update authentication configuration
+      // for each mirror
+      if (!this.value.spec?.rkeConfig) {
+        this.value.spec.rkeConfig = { registries: {} };
+      }
+      set(this.value.spec.rkeConfig.registries, 'configs', configs);
     },
 
     getAllOptionsAfterMinVersion(versions, minVersion, defaultVersion) {
@@ -1622,6 +1635,14 @@ export default {
         }
       }
       this.setHarvesterDefaultCloudProvider();
+    },
+    toggleCustomRegistry(e) {
+      if (this.registryHost) {
+        this.registryHost = null;
+        this.registrySecret = null;
+      } else {
+        this.initRegistry();
+      }
     },
   },
 };
@@ -2196,48 +2217,82 @@ export default {
           name="registry"
           label-key="cluster.tabs.registry"
         >
-          <RadioGroup
-            v-model="registryMode"
-            name="registry-mode"
-            :options="registryOptions"
-            :mode="mode"
-          />
-
-          <LabeledInput
-            v-if="registryMode !== PUBLIC"
-            v-model="registryHost"
-            class="mt-20"
-            :mode="mode"
-            :required="true"
-            :label="t('cluster.privateRegistry.systemDefaultRegistry.label')"
-          />
-
-          <SelectOrCreateAuthSecret
-            v-if="registryMode === PRIVATE"
-            v-model="registrySecret"
-            :register-before-hook="registerBeforeHook"
-            :hook-priority="1"
-            :mode="mode"
-            in-store="management"
-            :allow-ssh="false"
-            :allow-rke="true"
-            :vertical="true"
-            :namespace="value.metadata.namespace"
-            generate-name="registryconfig-auth-"
-          />
-          <template v-else-if="registryMode === ADVANCED">
-            <RegistryMirrors
-              v-model="value"
-              class="mt-20"
-              :mode="mode"
+          <div class="row">
+            <h3>Registry for Rancher System Container Images</h3>
+          </div>
+          <div class="row">
+            <div class="col span-12">
+              <Banner
+                :closable="false"
+                class="cluster-tools-tip"
+                color="info"
+                label-key="cluster.privateRegistry.description"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <Checkbox
+              v-model="showCustomRegistryInput"
+              class="mb-20"
+              :label="t('cluster.privateRegistry.label')"
+              @input="toggleCustomRegistry"
             />
-
-            <RegistryConfigs
-              v-model="value"
-              class="mt-20"
-              :mode="mode"
-              :cluster-register-before-hook="registerBeforeHook"
-            />
+          </div>
+          <div
+            v-if="showCustomRegistryInput"
+            class="row"
+          >
+            <div class="col span-6">
+              <LabeledInput
+                v-model="registryHost"
+                label-key="catalog.chart.registry.custom.inputLabel"
+                placeholder-key="catalog.chart.registry.custom.placeholder"
+                :min-height="30"
+              />
+              <SelectOrCreateAuthSecret
+                v-model="registrySecret"
+                :register-before-hook="registerBeforeHook"
+                :hook-priority="1"
+                :mode="mode"
+                in-store="management"
+                :allow-ssh="false"
+                :allow-rke="true"
+                :vertical="true"
+                :namespace="value.metadata.namespace"
+                generate-name="registryconfig-auth-"
+              />
+            </div>
+          </div>
+          <template>
+            <div
+              v-if="showCustomRegistryInput"
+              class="row"
+            >
+              <AdvancedSection
+                class="col span-12 advanced"
+                :is-open-by-default="showCustomRegistryAdvancedInput"
+                :mode="mode"
+              >
+                <Banner
+                  :closable="false"
+                  class="cluster-tools-tip"
+                  color="info"
+                  :label-key="isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
+                />
+                <RegistryMirrors
+                  v-model="value"
+                  class="mt-20"
+                  :mode="mode"
+                />
+                <RegistryConfigs
+                  v-model="value"
+                  class="mt-20"
+                  :mode="mode"
+                  :cluster-register-before-hook="registerBeforeHook"
+                  @updateConfigs="updateConfigs"
+                />
+              </AdvancedSection>
+            </div>
           </template>
         </Tab>
 
