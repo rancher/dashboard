@@ -17,6 +17,8 @@ For tests against a deployed Rancher, e.g. on Digital Ocean, mainly for analyzin
 - `TEST_BASE_URL`, the address of your instance
 - `TEST_SKIP_SETUP=true`, we avoid setup as your instance is already set
 
+> Note: If you want to generate code coverage information, you must enable code instrumentation by setting `TEST_INSTRUMENT` to `true`.
+
 Finally run one of the 2 commands:
 
 - `yarn cy:open`, if you want to select the tests
@@ -180,3 +182,5 @@ These values are provided when you create a new project within Cypress dashboard
 Both unit and E2E tests generate coverage respectively with Jest and NYC. These values are generated on both PR and push to `master` and `release` after merging. The service used to display the values is Codecov and can be found [here](https://app.codecov.io/gh/rancher/dashboard).
 
 Special attention goes to the E2E as the code is instrumented with Babel and the configuration is set within Nuxt.js.
+
+>  Note: To enable instrumentation required for code coverage, you must set the environment variable `TEST_INSTRUMENT` to `true`.
