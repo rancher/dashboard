@@ -219,8 +219,8 @@ export default {
 
     promptUpdate() {
       this.$store.dispatch('management/promptModal', {
-        component: 'GenericPrompt',
-        resources: [this.modalConfig]
+        component:      'GenericPrompt',
+        componentProps: this.modalConfig
       });
     },
 

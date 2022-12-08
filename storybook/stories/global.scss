@@ -69,3 +69,17 @@ table {
     margin-right: 0;
   }
 }
+
+// Styling for welcome block on welcome page
+.storybook-welcome {
+  background-color: #3d98d3;
+  margin-top: 20px !important;
+  line-height: 0;
+
+  > h2 {
+    padding: 10px 0 0 10px !important;
+    color: #fff !important;
+    border: 0;
+    line-height: initial;
+  }
+}

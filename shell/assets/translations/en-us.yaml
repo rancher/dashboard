@@ -1803,7 +1803,7 @@ cluster:
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{useful} of {total} {units} {suffix}"
-    cores: Cores
+    cores: CPU
     pods: Pods
     ram: Memory
     used: Used
@@ -3371,6 +3371,8 @@ persistentVolume:
     label: Plugin configuration
   plugin:
     label: Volume Plugin
+    inTree: in-tree plugin
+    unsupported: (Unsupported)
   capacity:
     label: Capacity
   customize:
@@ -3418,6 +3420,7 @@ persistentVolume:
       placeholder: e.g. sp1
   csi:
     label: CSI (Unsupported)
+    suffix: (CSI)
     driver:
       label: Driver
       placeholder: e.g. driver.longhorn.io
@@ -3450,6 +3453,21 @@ persistentVolume:
     controllerPublishSecretNamespace:
       label: Controller Publish Secret Namespace
       placeholder: e.g. default
+    drivers:
+      disk-csi-azure-com: Azure Disk (CSI)
+      file-csi-azure-com: Azure File (CSI)
+      driver-longhorn-io: Longhorn (CSI)
+      driver-harvesterhci-io: Harvester (CSI)
+      nfs-csi-k8s-io: NFS (CSI)
+      ebs-csi-aws-com: AWS Elastic Block Store (CSI)
+      rbd-csi-ceph-com: Ceph RBD (CSI)
+      org-gluster-glusterfs: GlusterFS (CSI)
+      pd-csi-storage-gke-io: GCE Persistent Disk (CSI)
+      cinder-csi-openstack-org: Cinder (CSI)
+      pxd-portworx-com: Portworx (CSI)
+      quobyte-csi: Quobyte (CSI)
+      storageos: StorageOS (CSI)
+      csi-vsphere-vmware-com: vSphere (CSI)
   cephfs:
     label: Ceph Filesystem (Unsupported)
     path:
@@ -4709,7 +4727,7 @@ storageClass:
       zonal: Zonal
       regional: Regional
   longhorn:
-    title: Longhorn
+    title: Longhorn (CSI)
     addLabel: Add Parameter
   vsphere-volume:
     title: VMWare vSphere Volume
@@ -4736,7 +4754,7 @@ storageClass:
   custom:
     addLabel: Add Parameter
   glusterfs:
-    title: Gluster Volume (Unsupported)
+    title: Gluster Volume
     restUrl:
       label: REST URL
       placeholder: e.g. http://127.0.0.1:8081
@@ -4765,7 +4783,7 @@ storageClass:
       label: Volume Type
       placeholder: "e.g. replicate:3"
   cinder:
-    title: Openstack Cinder Volume (Unsupported)
+    title: Openstack Cinder Volume
     volumeType:
       label: Volume Type
       placeholder: e.g. fast
@@ -4776,7 +4794,7 @@ storageClass:
         label: "Manual: Choose specific zones"
         placeholder: e.g. nova
   rbd:
-    title: Ceph RBD (Unsupported)
+    title: Ceph RBD
     monitors:
       label: Monitors
       placeholder: e.g. 10.16.153.105:6789
@@ -4811,7 +4829,7 @@ storageClass:
       label: Image Features
       placeholder: e.g. layering
   quobyte:
-    title: Quobyte Volume (Unsupported)
+    title: Quobyte Volume
     quobyteApiServer:
       label: Quobyte API Server
       placeholder: "e.g. http://138.68.74.142:7860"
@@ -4837,7 +4855,7 @@ storageClass:
       label: Quobyte Tenant
       placeholder: e.g. DEFAULT
   portworx-volume:
-    title: Portworx Volume (Unsupported)
+    title: Portworx Volume
     filesystem:
       label: Filesystem
       placeholder: e.g. ext4
@@ -4860,7 +4878,7 @@ storageClass:
       label: Ephemeral
       placeholder: e.g. true
   scaleio:
-    title: ScaleIO Volume (Unsupported)
+    title: ScaleIO Volume
     gateway:
       label: Gateway
       placeholder: e.g. https://192.168.99.200:443/api
@@ -4886,7 +4904,7 @@ storageClass:
       label: Filesystem Type
       placeholder: e.g. xfs
   storageos:
-    title: StorageOS (Unsupported)
+    title: StorageOS
     pool:
       label: Pool
       placeholder: e.g. default
@@ -4903,7 +4921,10 @@ storageClass:
       label: Admin Secret Name
       placeholder: e.g. storageos-secret
   no-provisioner:
-    title: Local Storage (Unsupported)
+    title: Local Storage
+  deprecated: 
+    title: (Deprecated)
+    warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
 
 tableHeaders:
   accessKey: Access Key
