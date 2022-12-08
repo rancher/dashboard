@@ -521,7 +521,7 @@ export default {
         const {
           limitsGpuShared, limitsGpu, limitsVgpu, requestsGpuShared, requestsGpu, limitGpuDevice = {}, requestGpuDevice = {}
         } = neu;
-        const scheduler = this.podTemplateSpec.scheduling?.scheduler;
+        const schedulerName = this.podTemplateSpec.schedulerName;
         const { limits = {}, requests = {} } = this.container.resources || {};
 
         const out = {
@@ -544,14 +544,11 @@ export default {
 
         this.$set(this.container, 'resources', cleanUp(out));
 
-        const scheduling = this.podTemplateSpec.scheduling ?? {};
-
-        if (requestsGpuShared && limitsGpuShared && (!scheduler || scheduler === 'default-scheduler')) {
-          scheduling.scheduler = this.systemGpuManagementSchedulerName;
-        } else if (this.systemGpuManagementSchedulerName && scheduler === this.systemGpuManagementSchedulerName) {
-          scheduling.scheduler = '';
+        if (requestsGpuShared && limitsGpuShared && (!schedulerName || schedulerName === 'default-scheduler')) {
+          this.podTemplateSpec.schedulerName = this.systemGpuManagementSchedulerName;
+        } else if (this.systemGpuManagementSchedulerName && schedulerName === this.systemGpuManagementSchedulerName) {
+          this.podTemplateSpec.schedulerName = '';
         }
-        this.podTemplateSpec.scheduling = scheduling;
       }
     },
 
