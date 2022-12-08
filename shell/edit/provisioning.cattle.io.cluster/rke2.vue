@@ -2221,7 +2221,7 @@ export default {
             <h3>Registry for Rancher System Container Images</h3>
           </div>
           <div class="row">
-            <div class="col span-9">
+            <div class="col span-12">
               <Banner
                 :closable="false"
                 class="cluster-tools-tip"
@@ -2269,9 +2269,9 @@ export default {
               class="row"
             >
               <AdvancedSection
+                class="col span-12 advanced"
                 :is-open-by-default="showCustomRegistryAdvancedInput"
                 :mode="mode"
-                class="advanced"
               >
                 <Banner
                   :closable="false"

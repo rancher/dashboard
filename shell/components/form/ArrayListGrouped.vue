@@ -113,16 +113,15 @@ export default {
       & > .remove {
         position: absolute;
 
-        padding: 0;
-
         top: 0;
         right: 0;
-        margin-right: -2.25em;
       }
 
       & > .info-box {
         margin-bottom: 0;
+        padding-right: 25px;
       }
     }
 }
+
 </style>
