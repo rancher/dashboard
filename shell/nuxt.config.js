@@ -32,7 +32,7 @@ const prime = process.env.PRIME;
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
-const instrumentCode = (process.env.INSTRUMENT === 'true'); //  Instrument code for code coverage in e2e tests
+const instrumentCode = (process.env.TEST_INSTRUMENT === 'true'); //  Instrument code for code coverage in e2e tests
 
 // Allow skipping of eslint check
 // 0 = Skip browser and console checks
