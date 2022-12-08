@@ -32,6 +32,7 @@ const prime = process.env.PRIME;
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
+const instrumentCode = (process.env.INSTRUMENT === 'true'); //  Instrument code for code coverage in e2e tests
 
 // Allow skipping of eslint check
 // 0 = Skip browser and console checks
@@ -84,8 +85,21 @@ export default function(dir, _appConfig) {
     }
   }
 
+  // Instrument code for tests
+  const babelPlugins = [
+    // TODO: Browser support
+    // ['@babel/plugin-transform-modules-commonjs'],
+    ['@babel/plugin-proposal-private-property-in-object', { loose: true }]
+  ];
+
+  if (instrumentCode) {
+    babelPlugins.push('babel-plugin-istanbul');
+
+    console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
+  }
+
   // ===============================================================================================
-  // Functions for the UI Pluginas
+  // Functions for the UI Plugins
   // ===============================================================================================
 
   const appConfig = _appConfig || {};
@@ -538,12 +552,7 @@ export default function(dir, _appConfig) {
             '@babel/preset-typescript',
           ];
         },
-        plugins: [
-          // TODO: Browser support
-          // ['@babel/plugin-transform-modules-commonjs'],
-          ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
-          'babel-plugin-istanbul'
-        ],
+        plugins: babelPlugins
       }
     },
 
