@@ -92,10 +92,8 @@ export default {
 
   // override with relevant info for the loading indicator since this doesn't use it's own masthead
   $loadingResources() {
-    return {
-      loadResources:     [FLEET.BUNDLE],
-      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
-    };
+    // results are filtered so we wouldn't get the correct count on indicator...
+    return { loadIndeterminate: true };
   },
 };
 </script>
@@ -113,6 +111,7 @@ export default {
       :rows="bundles"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
       <template #cell:deploymentsReady="{row}">
         <span

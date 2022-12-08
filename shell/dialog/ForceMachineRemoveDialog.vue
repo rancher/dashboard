@@ -16,9 +16,11 @@ export default {
   },
 
   props: {
-    resources: {
-      type:     Array,
-      required: true
+    machine: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -28,10 +30,6 @@ export default {
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-
-    machine() {
-      return this.resources[0];
-    },
 
     nameToMatch() {
       return this.machine.spec.infrastructureRef.name;

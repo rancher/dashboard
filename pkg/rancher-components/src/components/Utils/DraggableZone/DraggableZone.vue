@@ -3,10 +3,6 @@ import Vue from 'vue';
 import { mapState } from 'vuex';
 import { BOTTOM, CENTER, LEFT, RIGHT } from '@shell/utils/position';
 
-interface Data {
-  drag: Drag;
-}
-
 type Zone = null | typeof CENTER | typeof RIGHT | typeof BOTTOM | typeof LEFT;
 
 export interface Drag {
@@ -14,10 +10,14 @@ export interface Drag {
   zone: Zone;
 }
 
+interface Data {
+  drag: Drag;
+}
+
 export default Vue.extend({
   data(): Data {
     return {
-      drag:   {
+      drag: {
         active: false,
         zone:   CENTER,
       },

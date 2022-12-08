@@ -57,5 +57,6 @@ export default {
     :group-by="$attrs.groupBy"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
   />
 </template>

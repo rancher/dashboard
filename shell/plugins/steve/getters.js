@@ -6,6 +6,7 @@ import { NAMESPACE, SCHEMA, COUNT, UI } from '@shell/config/types';
 import SteveModel from './steve-class';
 import HybridModel, { cleanHybridResources } from './hybrid-class';
 import NormanModel from './norman-class';
+import { urlFor } from '@shell/plugins/dashboard-store/getters';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -63,6 +64,20 @@ export default {
       url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURIComponent(orderBy) }`;
     }
     // End: Sort
+
+    return url;
+  },
+
+  urlFor: (state, getters) => (type, id, opt) => {
+    let url = urlFor(state, getters)(type, id, opt);
+
+    if (opt.namespaced) {
+      const parts = url.split('/');
+
+      url = `${ parts.join('/') }/${ opt.namespaced }`;
+
+      return url;
+    }
 
     return url;
   },

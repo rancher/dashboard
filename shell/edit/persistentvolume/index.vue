@@ -16,7 +16,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import { NODE, PVC, STORAGE_CLASS } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import { LONGHORN_PLUGIN, VOLUME_PLUGINS } from '@shell/models/persistentvolume';
-import { _CREATE, _VIEW, _EDIT } from '@shell/config/query-params';
+import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { clone } from '@shell/utils/object';
 import InfoBox from '@shell/components/InfoBox';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
@@ -44,7 +44,7 @@ export default {
   mixins: [CreateEditView, ResourceManager],
 
   fetch() {
-    if (this.mode === _EDIT) {
+    if (this.mode !== _CREATE) {
       this.secondaryResourceData.namespace = this.value?.spec?.claimRef?.namespace || null;
 
       this.secondaryResourceData.data[PVC] = {
@@ -80,34 +80,13 @@ export default {
     const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
 
     return {
-      secondaryResourceData: {
-        namespace: null,
-        data:      {
-          [STORAGE_CLASS]: {
-            applyTo: [
-              {
-                var:         'storageClassOptions',
-                parsingFunc: (data) => {
-                  const storageClassOptions = data.map(s => ({
-                    label: s.metadata.name,
-                    value: s.metadata.name
-                  }));
-
-                  storageClassOptions.unshift(this.NONE_OPTION);
-
-                  return storageClassOptions;
-                }
-              }
-            ]
-          },
-        }
-      },
-      storageClassOptions: [],
-      currentClaim:        null,
+      secondaryResourceData: this.secondaryResourceDataConfig(),
+      storageClassOptions:   [],
+      currentClaim:          null,
       plugin,
       NONE_OPTION,
       NODE,
-      initialNodeAffinity: clone(this.value.spec.nodeAffinity),
+      initialNodeAffinity:   clone(this.value.spec.nodeAffinity),
     };
   },
 
@@ -175,6 +154,30 @@ export default {
   },
 
   methods: {
+    secondaryResourceDataConfig() {
+      return {
+        namespace: null,
+        data:      {
+          [STORAGE_CLASS]: {
+            applyTo: [
+              {
+                var:         'storageClassOptions',
+                parsingFunc: (data) => {
+                  const storageClassOptions = data.map(s => ({
+                    label: s.metadata.name,
+                    value: s.metadata.name
+                  }));
+
+                  storageClassOptions.unshift(this.NONE_OPTION);
+
+                  return storageClassOptions;
+                }
+              }
+            ]
+          },
+        }
+      };
+    },
     checkboxSetter(key, value) {
       if (value) {
         this.value.spec.accessModes.push(key);

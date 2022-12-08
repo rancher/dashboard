@@ -1,0 +1,20 @@
+name: check-storybook
+on:
+  pull_request:
+    branches:
+      - master
+      - 'release-*'
+jobs:
+  check:
+    runs-on: ubuntu-latest  
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14.x'
+    - name: Install packages
+      run: yarn install
+    - name: Check Storybook build
+      run: |
+        yarn build-storybook

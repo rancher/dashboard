@@ -19,6 +19,7 @@ assets/fonts
 shell/pkg/import.js
 pkg/rancher-components/
 shell/rancher-components/
+shell/types/shell/index.d.ts
 dist/
 coverage/
 build/

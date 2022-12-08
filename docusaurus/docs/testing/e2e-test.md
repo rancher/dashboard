@@ -1,4 +1,4 @@
-# E2E Test
+# E2E Tests
 
 This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents) and the CI will run using a blank state of Rancher executed locally. The aim is however to enable also tests using remote instances of Ranchers.
 

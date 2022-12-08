@@ -423,6 +423,36 @@ export default class ProvCluster extends SteveModel {
     return this.pools.reduce((acc, pool) => acc + (pool.unavailable || 0), 0);
   }
 
+  get unavailableMachines() {
+    if (this.isReady) {
+      if (this.isRke1) {
+        const names = this.nodes.filter((node) => {
+          return node.status.conditions.find(c => c.error && c.type === 'Ready');
+        }).map((node) => {
+          const name = node.status.nodeName || node.metadata.name;
+
+          return this.t('cluster.availabilityWarnings.node', { name });
+        });
+
+        return names.join('<br>');
+      } else {
+        const names = this.machines.filter((machine) => {
+          return machine.status.conditions.find(c => c.error && c.type === 'NodeHealthy');
+        }).map((machine) => {
+          if (machine.status.nodeRef?.name) {
+            return this.t('cluster.availabilityWarnings.node', { name: machine.status.nodeRef.name });
+          }
+
+          return this.t('cluster.availabilityWarnings.machine', { name: machine.metadata.name });
+        });
+
+        return names.join('<br>');
+      }
+    }
+
+    return '';
+  }
+
   get stateParts() {
     const out = [
       {
@@ -580,24 +610,25 @@ export default class ProvCluster extends SteveModel {
     this.$dispatch('promptRestore', [resource]);
   }
 
-  saveAsRKETemplate(resources = this) {
+  saveAsRKETemplate(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'SaveAsRKETemplateDialog'
+      componentProps: { cluster },
+      component:      'SaveAsRKETemplateDialog'
     });
   }
 
-  rotateCertificates(resources = this) {
+  rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
+      componentProps: { cluster },
+
       component: 'RotateCertificatesDialog'
     });
   }
 
-  rotateEncryptionKey(resources = this) {
+  rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'RotateEncryptionKeyDialog'
+      componentProps: { cluster },
+      component:      'RotateEncryptionKeyDialog'
     });
   }
 

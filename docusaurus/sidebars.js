@@ -20,7 +20,8 @@ const sidebars = {
   // Items name and page should be same.
   // For eg. if you rename a page you should also change that page name in item attribute under the tutorialSidebar.
 
-  tutorialSidebar: [
+  mainSidebar: [
+    'home',
     {
       type:  'category',
       label: 'Getting Started',
@@ -44,6 +45,7 @@ const sidebars = {
         'code-base-works/cluster-management-resources',
         'code-base-works/customising-how-k8s-resources-are-presented',
         'code-base-works/directory-structure',
+        'code-base-works/products-and-navigation',
         'code-base-works/forms-and-validation',
         'code-base-works/helm-chart-apps',
         'code-base-works/keyboard-shortcuts',
@@ -51,29 +53,31 @@ const sidebars = {
         'code-base-works/machine-drivers',
         'code-base-works/performance',
         'code-base-works/sortable-table',
+        'code-base-works/on-screen-text-and-translations',
+        'code-base-works/style',
       ],
     },
     {
       type:  'category',
-      label: 'Plugins',
+      label: 'Extensions',
       items: [
+        'plugins/introduction',
         'plugins/plugins-getting-started',
-        'plugins/initializing-plugins'
-        // Do we still need this info?
-        // 'plugins/moving-existing-code'
+        'plugins/initializing-plugins',
+        'plugins/advanced',
       ]
     },
-    'on-screen-text-and-translations',
-    'products-and-navigation',
-    'server-side-rendering',
     'storybook',
-    'style',
-    'terminology',
     {
       type:  'category',
       label: 'Testing',
-      items: ['testing/stress-test', 'testing/e2e-test', 'testing/unit-test'],
+      items: [
+        'testing/unit-test',
+        'testing/e2e-test',
+        'testing/stress-test',
+      ],
     },
+    'terminology',
   ],
 };
 

@@ -7,7 +7,7 @@ import { diffFrom } from '@shell/utils/time';
 export default {
   props: {
     value: {
-      type:    String,
+      type:    [String, Number],
       default: ''
     },
 
@@ -109,10 +109,10 @@ export default {
 
       let label = diff.label;
 
-      if ( diff === 0 ) {
+      if ( diff.diff === 0 ) {
         label = 'Just now';
       } else {
-        label += ` ${ prefix } ${ this.t(diff.unitsKey, { count: diff.label }) }`;
+        label += ` ${ prefix }${ this.t(diff.unitsKey, { count: diff.label }) }`;
         label = label.trim();
       }
 

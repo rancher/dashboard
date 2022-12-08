@@ -1,0 +1,40 @@
+name: rancher-components
+on:
+  pull_request:
+    paths:
+      - 'pkg/rancher-components/**/*'
+    branches:
+      - master
+
+jobs:
+  validate-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14.x'
+      
+      - name: Install packages
+        run: yarn install
+
+      - name: Verify build
+        run: yarn build:lib
+
+  validate-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14.x'
+      
+      - name: Install packages
+        run: yarn install
+      
+      - name: Run linters
+        run: yarn lint:lib

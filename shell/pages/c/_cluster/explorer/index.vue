@@ -254,9 +254,12 @@ export default {
     },
 
     cpuReserved() {
+      const total = parseSi(this.currentCluster?.status?.allocatable?.cpu);
+
       return {
-        total:  parseSi(this.currentCluster?.status?.allocatable?.cpu),
-        useful: parseSi(this.currentCluster?.status?.requested?.cpu)
+        total,
+        useful: parseSi(this.currentCluster?.status?.requested?.cpu),
+        units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
     },
 
@@ -315,9 +318,12 @@ export default {
     },
 
     cpuUsed() {
+      const total = parseSi(this.currentCluster?.status?.capacity?.cpu);
+
       return {
-        total:  parseSi(this.currentCluster?.status?.capacity?.cpu),
-        useful: this.metricAggregations?.cpu
+        total,
+        useful: this.metricAggregations?.cpu,
+        units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
     },
 
@@ -511,6 +517,7 @@ export default {
         :name="t('clusterIndexPage.hardwareResourceGauge.cores')"
         :reserved="cpuReserved"
         :used="cpuUsed"
+        :units="cpuReserved.units"
       />
       <HardwareResourceGauge
         :name="t('clusterIndexPage.hardwareResourceGauge.ram')"
