@@ -5,17 +5,24 @@ import DashboardCard from '../../../components/dashboard/Cards.vue';
 import { createEpinioRoute } from '@/pkg/epinio/utils/custom-routing';
 import { EpinioApplicationResource, EpinioCatalogService, EPINIO_TYPES } from '@/pkg/epinio/types';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
+import Namespace from '~/shell/models/namespace';
+import EpinioServiceModel from '~/pkg/epinio/models/services';
+import isEqual from 'lodash/isEqual';
+import { sortBy } from 'lodash';
 
 export default Vue.extend<any, any, any, any>({
   components: { DashboardCard, ConsumptionGauge },
-  fetch() {
-    this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CATALOG_SERVICE });
+  async fetch() {
+    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CATALOG_SERVICE });
+    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.NAMESPACE });
+    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
   },
   data() {
     return {
       sectionContent: [
         {
-          title:       this.t('typeLabel.namespaces', { count: this.namespaces?.totalConfigurations }),
+          isEnable:    true,
+          isLoaded:    false,
           icon:        'icon-namespace',
           cta:         createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }, { query: { mode: 'openModal' } }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
@@ -24,7 +31,8 @@ export default Vue.extend<any, any, any, any>({
           slotTitle:   this.t('epinio.intro.cards.namespaces.slotTitle')
         },
         {
-          title:       this.t('typeLabel.applications', { count: this.namespaces?.totalApps }),
+          isEnable:    true,
+          isLoaded:    false,
           icon:        'icon-application',
           cta:         createEpinioRoute('c-cluster-applications-createapp', { resource: EPINIO_TYPES.APP }),
           link:        createEpinioRoute('c-cluster-applications', { resource: EPINIO_TYPES.APP }),
@@ -33,34 +41,99 @@ export default Vue.extend<any, any, any, any>({
           slotTitle:   '',
         },
         {
-          title:       this.t('epinio.intro.cards.services.title'),
+          isEnable:    true,
+          isLoaded:    false,
           icon:        'icon-service',
           cta:         createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.SERVICE_INSTANCE }),
           linkText:    this.t('epinio.intro.cards.services.linkText'),
-          description: this.t('typeDescription.configurations'),
+          description: this.t('epinio.intro.cards.services.description'), // INFO: typeDescription to long for the dashboard card.
           slotTitle:   this.t('epinio.intro.cards.services.slotTitle')
         }],
       colorStops: {
         0: '--info', 30: '--info', 70: '--info'
-      },
+      }
     };
   },
-  computed: {
-    servicesStarter() {
-      const fetchServices = this.$store.getters['epinio/all'](EPINIO_TYPES.CATALOG_SERVICE);
-      const services: EpinioCatalogService[] = fetchServices.length ? fetchServices.slice(0, 2) : [{ id: 'redis-dev-t' }, { id: 'mysql-dev' }];
+  created() {
+    this.redoCards();
+  },
+  watch: {
+    // Watchers for updated computed properties
+    // TODO: Unify and refactor if possible
+    namespaces(old, neu) {
+      if (isEqual(old, neu)) {
+        return;
+      }
 
-      const s = services.reduce((acc: any[], service) => {
+      this.redoCards();
+    },
+    apps(old, neu) {
+      if (isEqual(old, neu)) {
+        return;
+      }
+
+      this.redoCards();
+    },
+    services(old, neu) {
+      if (isEqual(old, neu)) {
+        return;
+      }
+
+      this.redoCards();
+    }
+  },
+  methods: {
+    redoCards() {
+      // Handles titles
+      this.sectionContent[0].title = this.t('typeLabel.withCount.namespaces', { n: this.namespaces.totalNamespaces });
+      this.sectionContent[1].title = this.t('typeLabel.withCount.applications', { n: this.apps?.totalApps });
+      this.sectionContent[2].title = this.t('typeLabel.withCount.services', { n: this.services?.servicesInstances });
+
+      // Handles descriptions
+      if (this.namespaces?.totalNamespaces ) {
+        this.sectionContent[0].isLoaded = true;
+      }
+
+      if (this.apps?.totalApps) {
+        this.sectionContent[1].isLoaded = true;
+      }
+
+      if (this.services?.servicesCatalog.length) {
+        this.sectionContent[2].isLoaded = true;
+        this.sectionContent[2].isEnable = true;
+      } else {
+        this.sectionContent[2].isLoaded = false;
+        this.sectionContent[2].isEnable = false;
+      }
+    }
+  },
+  computed: {
+    services() {
+      const fetchServicesInstances: EpinioServiceModel[] = this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE_INSTANCE);
+      const fetchServices: EpinioCatalogService[] = this.$store.getters['epinio/all'](EPINIO_TYPES.CATALOG_SERVICE);
+
+      // Try to find the desired services
+      const findDesiredServices = fetchServices?.filter(service => service?.shortId === 'mysql-dev' || service?.shortId === 'redis-dev');
+
+      //  if not found, return the first two services from the catalog
+      const services: EpinioCatalogService[] | any =
+      findDesiredServices.length ? findDesiredServices : fetchServices.slice(0, 2);
+
+      const s = services.reduce((acc: any[], service: { shortId: string; }) => {
         acc.push({
-          link: createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: service?.shortId }, { query: { service: service?.shortId } }),
-          id:   service?.shortId
+          link:      createEpinioRoute('c-cluster-resource-create', { resource: EPINIO_TYPES.SERVICE_INSTANCE, name: service?.shortId }, { query: { service: service?.shortId } }),
+          shortId:   service?.shortId,
+          isEnabled: true
         });
 
         return acc;
       }, []);
 
-      return s;
+      return {
+        servicesInstances: fetchServicesInstances.length,
+        servicesCatalog:   s,
+      };
     },
     version() {
       const { displayVersion } = getVersionInfo(this.$store);
@@ -81,24 +154,9 @@ export default Vue.extend<any, any, any, any>({
       });
     },
     namespaces() {
-      const allNamespaces = this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE);
+      const allNamespaces: Namespace[] = this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE);
 
-      let totalApps = 0;
-      let totalConfigurations = 0;
-
-      return allNamespaces.reduce((acc: any, namespace: any) => {
-        acc[namespace.name] = {
-          apps:           namespace.apps?.length || 0,
-          configurations: namespace.configurations?.length || 0
-        };
-
-        totalApps += namespace.apps?.length || 0;
-        totalConfigurations += namespace.configurations?.length || 0;
-
-        return {
-          ...acc, totalApps, totalConfigurations
-        };
-      }, {});
+      return { totalNamespaces: allNamespaces.length, latestNamespaces: sortBy(allNamespaces, 'metadata.createdAt').reverse().slice(0, 2) };
     },
   },
 });
@@ -135,29 +193,38 @@ export default Vue.extend<any, any, any, any>({
     </div>
     <div class="get-started">
       <div
-        v-for="(items, index) in sectionContent"
+        v-for="(card, index) in sectionContent"
         :key="index"
       >
         <DashboardCard
-          :title="items.title"
-          :icon="items.icon"
-          :cta="items.cta"
-          :link="items.link"
-          :link-text="items.linkText"
-          :description="items.description"
-          :slot-title="items.slotTitle"
+          v-if="card.isEnable"
+          :is-loaded="card.isLoaded"
+          :title="card.title"
+          :icon="card.icon"
+          :cta="card.cta"
+          :link="card.link"
+          :link-text="card.linkText"
+          :description="card.description"
+          :slot-title="card.slotTitle"
         >
           <span v-if="index === 0">
             <slot>
               <ul>
-                <li>
+                <li
+                  v-for="(namespaces, i) in namespaces.latestNamespaces"
+                  :key="i"
+                >
+                  {{ namespaces.id }}
+                </li>
+
+                <!-- <li>
                   {{ t('typeLabel.applications', { count: namespaces.totalApps }) }}
                   <span>{{ namespaces.totalApps }}</span>
                 </li>
                 <li>
                   {{ t('typeLabel.configurations', { count: namespaces.totalConfigurations}) }}
                   <span>{{ namespaces.totalConfigurations }}</span>
-                </li>
+                </li> -->
               </ul>
             </slot>
           </span>
@@ -176,19 +243,28 @@ export default Vue.extend<any, any, any, any>({
           </span>
 
           <span v-if="index === 2">
-            <slot v-if="servicesStarter.length">
+            <slot>
               <ul>
                 <li
-                  v-for="(service, i) in servicesStarter"
+                  v-for="(service, i) in services.servicesCatalog"
                   :key="i"
                 >
                   <n-link
+                    v-if="service.isEnabled"
                     :to="service.link"
                     class="link"
                   >
-                    {{ service.id }}
+                    {{ service.shortId }}
                     <span>+</span>
                   </n-link>
+
+                  <span
+                    v-if="!service.isEnabled"
+                    class="link disabled"
+                  >
+                    {{ service.shortId }}
+                    <span>+</span>
+                  </span>
                 </li>
               </ul>
             </slot>

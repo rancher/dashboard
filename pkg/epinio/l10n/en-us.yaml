@@ -1,4 +1,8 @@
 typeLabel:
+  withCount:
+    namespaces: Namespaces {n}
+    applications: Applications {n}
+    services: Services {n}
   namespaces: |-
     {count, plural,
       one { Namespaces }
@@ -54,15 +58,14 @@ epinio:
     cards:
       namespaces:
         linkText: Create Namespace
-        slotTitle: Resources
-        configurations: Configurations
+        slotTitle: Latest Namespace
       applications:
         linkText: Deploy Application
-        slotTitle: Deployments
         running: Running
       services:
         title: Services
-        linkText: Create Service
+        description: Create instances of your services. Instances can be bound to your Applications to provide data.
+        linkText: Create Instance
         slotTitle: Quick start with
   tableHeaders:
     namespace: Namespace

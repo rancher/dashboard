@@ -2,6 +2,7 @@
 export default {
   name:  'DashboardCard',
   props: {
+    isLoaded:    { type: Boolean, required: true },
     title:       { type: String, required: true },
     icon:        { type: String, required: true },
     cta:         { type: Object, required: true },
@@ -14,11 +15,26 @@ export default {
       default:  null,
     },
   },
+  computed: {
+    setLoading() {
+      return !this.isLoaded ? 'loading' : '';
+    },
+  },
 };
 </script>
 
 <template>
-  <div class="d-main">
+  <div
+    v-if="!isLoaded"
+    :class="setLoading"
+  >
+    <i class="icon-spinner animate-spin" />
+  </div>
+  <div
+    v-else
+    class="d-main"
+    :class="setLoading"
+  >
     <div class="d-header">
       <i
         class="icon icon-fw"
@@ -54,7 +70,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.d-main {
+.d-main, .loading  {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -79,6 +95,10 @@ export default {
       margin: 0;
       font-size: 18px;
     }
+  }
+
+  p {
+    min-height: 48px;
   }
 
   .d-slot {
@@ -111,6 +131,60 @@ export default {
           padding-bottom: $space-s;
         }
       }
+
+      li > .disabled {
+        color: var(--disabled-text);
+      }
+
+      .disabled {
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.loading {
+  min-height: 325px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  place-content: center;
+
+  &::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    opacity: 0.1;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(#fff, 0) 0,
+      rgba(#fff, 0.2) 20%,
+      rgba(#fff, 0.5) 60%,
+      rgba(#fff, 0)
+    );
+    animation: shimmer 4s infinite;
+    content: '';
+  }
+
+  .animate-spin {
+    opacity: 0.5;
+    font-size: 60px;
+    animation: spin 5s linear infinite;
+  }
+
+  @keyframes spin {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
     }
   }
 }
