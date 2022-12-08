@@ -4975,6 +4975,7 @@ tableHeaders:
   ingressTarget: Target
   internalExternalIp: External/Internal IP
   ipaddress: IP Address
+  internalIpSameAsExternal: Same as External
   jobs: Jobs
   key: Key
   keys: Data
