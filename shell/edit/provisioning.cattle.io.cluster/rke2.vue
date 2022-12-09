@@ -1644,6 +1644,18 @@ export default {
         this.initRegistry();
       }
     },
+    updateCisProfile() {
+      // If the user selects any Worker CIS Profile,
+      // protect-kernel-defaults should be set to false
+      // in the RKE2 worker/agent config.
+      const selectedCisProfile = this.agentConfig?.profile;
+
+      if (selectedCisProfile) {
+        set(this.agentConfig, 'protect-kernel-defaults', true);
+      } else {
+        set(this.agentConfig, 'protect-kernel-defaults', false);
+      }
+    }
   },
 };
 </script>
@@ -1915,7 +1927,8 @@ export default {
                 v-model="agentConfig.profile"
                 :mode="mode"
                 :options="profileOptions"
-                label="Worker CIS Profile"
+                :label="t('cis.workerProfile')"
+                @input="updateCisProfile"
               />
             </div>
           </div>
