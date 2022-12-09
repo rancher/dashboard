@@ -120,11 +120,11 @@
     "vue2-transitions": "0.3.0",
     "vuedraggable": "2.24.3",
     "vuex": "3.6.2",
-    "xterm": "4.9.0",
-    "xterm-addon-fit": "0.4.0",
-    "xterm-addon-search": "0.7.0",
-    "xterm-addon-web-links": "0.4.0",
-    "xterm-addon-webgl": "0.9.0",
+    "xterm": "5.0.0",
+    "xterm-addon-fit": "0.6.0",
+    "xterm-addon-search": "0.10.0",
+    "xterm-addon-web-links": "0.7.0",
+    "xterm-addon-webgl": "0.13.0",
     "yaml": "2.0.0"
   },
   "devDependencies": {
