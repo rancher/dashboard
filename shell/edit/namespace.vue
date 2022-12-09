@@ -241,8 +241,8 @@ export default {
       </Tab>
       <Tab
         name="pod-security-admission"
-        label-key="generic.podSecurityAdmission"
-        :label="t('generic.podSecurityAdmission')"
+        label-key="podSecurityAdmission.label"
+        :label="t('podSecurityAdmission.label')"
       >
         <PodSecurityAdmission
           :labels="labels"
