@@ -10,6 +10,7 @@ import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { SCOPE_NAMESPACE, SCOPE_CLUSTER } from '@shell/components/RoleBindings.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
+import KeyValue from '@shell/components/form/KeyValue.vue';
 
 export default {
   name: 'FleetCruWorkspace',
@@ -22,6 +23,7 @@ export default {
     // RoleBindings,
     Tabbed,
     Tab,
+    KeyValue,
   },
 
   mixins: [CreateEditView],
@@ -34,6 +36,8 @@ export default {
   },
 
   data() {
+    this.$set(this.value, 'spec', this.value.spec || {});
+
     return {
       fleetClusters:   null,
       rancherClusters: null,
@@ -75,6 +79,7 @@ export default {
       :mode="mode"
       :namespaced="false"
     />
+
     <Tabbed
       :side-tabs="true"
       default-tab="members"
@@ -102,12 +107,17 @@ export default {
         />
       </Tab>
       <Tab
-        name="Allowed target namespaces"
+        name="allowedtargetnamespaces"
         label-key="fleet.workspaces.tabs.restrictions"
       >
-        <Labels
-          v-model="value"
+        <KeyValue
+          key="labels"
+          v-model="value.spec.allowedTargetNameSpaces"
+          :add-label="t('labels.addLabel')"
           :mode="mode"
+          :title="t('labels.labels.title')"
+          :read-allowed="false"
+          :value-can-be-empty="true"
         />
       </Tab>
     </Tabbed>

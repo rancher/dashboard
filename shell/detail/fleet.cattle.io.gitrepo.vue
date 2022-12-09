@@ -89,8 +89,8 @@ export default {
       }
     }, this.$store);
 
-    this.allBundles = allDispatches.allBundles.data || [];
-    this.allFleet = allDispatches.allFleet.data || [];
+    this.allBundles = allDispatches.allBundles || [];
+    this.allFleet = allDispatches.allFleet || [];
   },
 
 };
@@ -111,7 +111,6 @@ export default {
     >
       {{ t('fleet.fleetSummary.noClustersGitRepo') }}
     </Banner>
-    {{JSON.stringify(value)}}
     <ResourceTabs
       v-model="value"
       mode="view"

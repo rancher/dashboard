@@ -2,7 +2,7 @@ import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import { BACK_TO, SPA, _EDIT, _FLAGGED } from '@shell/config/query-params';
 import { MANAGEMENT } from '@shell/config/types';
-import { allHashSettled } from '~/shell/utils/promise';
+import { allHash } from '~/shell/utils/promise';
 
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
@@ -81,35 +81,22 @@ export const authProvidersInfo = async(store) => {
   };
 };
 
-export const checkSchemasForFindAllHash = async (types, store) => {
+export const checkSchemasForFindAllHash = (types, store) => {
   const hash = {};
 
   for (const [key, value] of Object.entries(types)) {
-    console.log(key)
-      if (store.getters[`${ value.inStoreType }/schemaFor`](value.type)) {
-        hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type } );
+    const schema = store.getters[`${ value.inStoreType }/schemaFor`](value.type);
+
+    // It could be that user has permissions for GET but not list
+    // e.g. Standard user with GitRepo permissions try to fetch list of fleetworkspaces
+    // user has ability to GET but not fleet workspaces
+    // so optionally define a function that require it to pass before /findAll
+    const validSchema = value.schemaValidator ? value.schemaValidator(schema) : !!schema;
+
+    if (validSchema) {
+      hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type } );
     }
   }
 
-  // allHash fails if any request fails
-  // e.g. When there is a user without the correct permissions 2/3 resources then everything fails
-  // Using allHashSettled allow UI to handle this appropriately
-  const hashRes = await allHashSettled(hash).then((results)=>{
-    console.log(results)
-    const out = {}
-
-    for (const [key, value] of Object.entries(results)) {
-      if(value?.status === 'rejected') {
-        console.error(value.reason)
-      } 
-      out[key] = {
-        data: value.value,
-        reason: value.reason,
-        status: value.status
-      }
-    }
-    return out
-  });
-
-  return hashRes
+  return allHash(hash);
 };

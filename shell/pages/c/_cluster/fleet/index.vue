@@ -21,11 +21,13 @@ export default {
   },
 
   async fetch() {
-
     const hash = await checkSchemasForFindAllHash({
       fleetWorkspaces: {
-        inStoreType: 'management',
-        type:        FLEET.WORKSPACE,
+        inStoreType:     'management',
+        type:            FLEET.WORKSPACE,
+        schemaValidator: (schema) => {
+          return !!schema?.links?.collection;
+        }
       },
       allBundles: {
         inStoreType: 'management',
@@ -37,11 +39,8 @@ export default {
       }
     }, this.$store);
 
-    this.gitRepos = hash.gitRepos.data;
-
-    console.log('HASH', hash.fleetWorkspaces, hash.gitRepos)
-
-    this.fleetWorkspacesData = hash.fleetWorkspaces.data || [];
+    this.gitRepos = hash.gitRepos;
+    this.fleetWorkspacesData = hash.fleetWorkspaces || [];
   },
 
   data() {
@@ -93,8 +92,6 @@ export default {
   computed: {
     ...mapState(['workspace', 'allNamespaces']),
     fleetWorkspaces() {
-
-      console.log('FLEET WORKSPACES', this.fleetWorkspacesData, this.allNamespaces)
       if (this.fleetWorkspacesData?.length) {
         return this.fleetWorkspacesData;
       }

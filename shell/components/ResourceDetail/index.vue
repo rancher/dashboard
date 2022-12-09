@@ -170,7 +170,7 @@ export default {
 
         }, this.$store);
 
-        this.canViewChart = graphSchema.data?.cluster && graphSchema.data?.bundle && graphSchema.data?.bundleDeployment;
+        this.canViewChart = graphSchema.cluster && graphSchema.bundle && graphSchema.bundleDeployment;
       }
 
       let fqid = id;

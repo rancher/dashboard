@@ -78,7 +78,7 @@ export default {
   fetch() {
     fetchClusterResources(this.$store, NODE);
 
-    if(this.currentCluster) {
+    if (this.currentCluster) {
       setPromiseResult(
         allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
         this,
@@ -146,9 +146,8 @@ export default {
     ...monitoringStatus(),
 
     displayPspDeprecationBanner() {
-
-      if(!this.currentCluster) {
-        return false
+      if (!this.currentCluster) {
+        return false;
       }
 
       const cluster = this.currentCluster;

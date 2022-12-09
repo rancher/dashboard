@@ -8,11 +8,11 @@ export default {
   components: { Select },
 
   computed: {
-    ...mapState(['allWorkspaces', 'workspace', 'allNamespaces', 'defaultNamespace']),
+    ...mapState(['allWorkspaces', 'workspace', 'allNamespaces', 'defaultNamespace', 'getActiveNamespaces']),
 
     value: {
       get() {
-        return this.workspace || this.namespace;
+        return this.workspace || this.namespace || this.options[0].value;
       },
 
       set(value) {
@@ -48,11 +48,15 @@ export default {
     },
   },
 
-  data() {
-    if (!this.workspace) {
-      this.value = this.$store.getters['prefs/get'](LAST_NAMESPACE);
-    }
+  created() {
+    // in fleet standard user with just the project owner and global git repo permissions
+    // returns 'default'
+    const initValue = !this.workspace ? this.$store.getters['prefs/get'](LAST_NAMESPACE) : '';
 
+    this.value = (initValue === 'default' || '') && this.options.length ? this.options[0].value : initValue;
+  },
+
+  data() {
     return { namespace: this.$store.getters['prefs/get'](LAST_NAMESPACE) };
   },
 
