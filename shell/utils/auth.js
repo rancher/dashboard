@@ -2,7 +2,7 @@ import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import { BACK_TO, SPA, _EDIT, _FLAGGED } from '@shell/config/query-params';
 import { MANAGEMENT } from '@shell/config/types';
-import { allHash } from '~/shell/utils/promise';
+import { allHash } from '@shell/utils/promise';
 
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {

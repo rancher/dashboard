@@ -3,7 +3,7 @@ import FleetRepos from '@shell/components/fleet/FleetRepos';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { FLEET } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { checkSchemasForFindAllHash } from '~/shell/utils/auth';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
   name:       'ListGitRepo',

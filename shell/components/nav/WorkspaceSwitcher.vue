@@ -2,7 +2,7 @@
 import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { mapState } from 'vuex';
 import Select from '@shell/components/form/Select';
-import { WORKSPACE_ANNOTATION } from '~/shell/config/labels-annotations';
+import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 
 export default {
   components: { Select },

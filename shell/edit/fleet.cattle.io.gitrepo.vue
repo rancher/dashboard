@@ -23,7 +23,7 @@ import { _CREATE } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { CAPI, CATALOG } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
-import { checkSchemasForFindAllHash } from '~/shell/utils/auth';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';

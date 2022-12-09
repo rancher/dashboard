@@ -8,7 +8,7 @@ import { FLEET } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import FleetBundles from '@shell/components/fleet/FleetBundles.vue';
 import { resourceCounts } from '@shell/components/ResourceSummary.vue';
-import { checkSchemasForFindAllHash } from '~/shell/utils/auth';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
   name: 'DetailGitRepo',

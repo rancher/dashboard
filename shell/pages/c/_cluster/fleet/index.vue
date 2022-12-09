@@ -7,9 +7,9 @@ import Loading from '@shell/components/Loading';
 import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 import ResourceTable from '@shell/components/ResourceTable';
 import CompoundStatusBadge from '@shell/components/CompoundStatusBadge';
-import { checkSchemasForFindAllHash } from '~/shell/utils/auth';
-import { WORKSPACE_ANNOTATION } from '~/shell/config/labels-annotations';
-import { filterBy } from '~/shell/utils/array';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
+import { filterBy } from '@shell/utils/array';
 
 export default {
   name:       'ListGitRepo',

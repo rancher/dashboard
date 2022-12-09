@@ -13,7 +13,7 @@ import DetailTop from '@shell/components/DetailTop';
 import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import ForceDirectedTreeChart from '@shell/components/fleet/ForceDirectedTreeChart';
-import { checkSchemasForFindAllHash } from '~/shell/utils/auth';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
