@@ -50,6 +50,7 @@ export default Vue.extend({
 
     /**
      * Conditionally show users restrictions
+     * TODO: Integrate with #7628
      */
     hasExceptions: {
       type:    Boolean,
