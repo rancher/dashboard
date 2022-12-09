@@ -4,6 +4,7 @@ import InfoBox from '@shell/components/InfoBox';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
+  name: 'ArrayListGrouped',
   components: { ArrayList, InfoBox },
   props:      {
     /**
@@ -62,7 +63,6 @@ export default {
     v-bind="$attrs"
     :add-allowed="canAdd && !isView"
     :mode="mode"
-    :initial-empty-row="true"
     @input="$emit('input', $event)"
     @add="$emit('add')"
     @remove="$emit('remove', $event)"
