@@ -23,6 +23,8 @@ export const DOWNLOAD = {
   align:         'right',
 };
 
+// This header is used for nodes in
+// both Cluster Explorer and Cluster Management.
 export const INTERNAL_EXTERNAL_IP = {
   // @TODO this is called internal/external but displays external/internal (╯°□°)╯︵ ┻━┻
   name:      'internal-external-ip',
@@ -934,10 +936,4 @@ export const FLEET_BUNDLE_TYPE = {
   value:    'bundleType',
   sort:     ['bundleType'],
   width:    100,
-};
-
-export const IP_ADDRESS = {
-  name:     'ipaddress',
-  value:    'ipaddress',
-  labelKey: 'tableHeaders.ipaddress',
 };

@@ -242,7 +242,27 @@ export default class CapiMachine extends SteveModel {
     return this.status?.phase === 'Running';
   }
 
-  get ipaddress() {
-    return this.status?.addresses?.find(({ type }) => type === ADDRESSES.INTERNAL_IP)?.address || '-';
+  get internalIp() {
+    const internal = this.status?.addresses?.find(({ type }) => {
+      return type === ADDRESSES.INTERNAL_IP;
+    });
+
+    if (internal) {
+      return internal.address;
+    }
+
+    return this.t('generic.none');
+  }
+
+  get externalIp() {
+    const external = this.status?.addresses?.find(({ type }) => {
+      return type === ADDRESSES.EXTERNAL_IP;
+    });
+
+    if (external) {
+      return external.address;
+    }
+
+    return this.t('generic.none');
   }
 }
