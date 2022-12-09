@@ -556,6 +556,9 @@ export const actions = {
     }
   },
 
+  /**
+   * Steve only event
+   */
   'ws.resource.start'({ state, getters, commit }, msg) {
     state.debugSocket && console.info(`Resource start: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
     commit('setWatchStarted', {
@@ -580,6 +583,13 @@ export const actions = {
     }
   },
 
+  /**
+   * Steve only event
+   *
+   * Steve only seems to send out `resource.stop` messages for two reasons
+   * - We have requested that the resource watch should be stopped and we receive this event as confirmation
+   * - Steve tells us that the resource is no longer watched
+   */
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
     const obj = {
@@ -591,15 +601,46 @@ export const actions = {
 
     // console.warn(`Resource stop: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
 
+    // If we're trying to watch this event, attempt to re-watch
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
       // Try reconnecting once
 
       commit('setWatchStopped', obj);
 
+      // In summary, we need to re-watch but with a reliable `revision` (to avoid `too old` message kicking off a full re-fetch of all
+      // resources). To get a reliable `revision` go out and fetch the latest for that resource type, in theory our local cache should be
+      // up to date with that revision.
+      // Optimisation - Some v1 resource types don't have revisions (either at the collection or resource level), so avoid trying to fetch
+      // latest for those types
+      // Note - In theory `0`, `-1` or `null` revisions will watch for latest, however steve will send the current state of each resource
+      // via a `resource.created` event
+
+      const revision = getters.nextResourceVersion(type, obj.id);
+
+      let pLatestRevision;
+
+      if (revision) {
+        // Attempt to fetch the latest revision at the time the resource watch was stopped, in theory our local cache should be up to
+        // date with this
+        const opt = { limit: 1 };
+
+        opt.url = getters.urlFor(type, null, opt);
+        pLatestRevision = dispatch('request', { opt, type } )
+          .then(res => res.revision)
+          .catch((err) => {
+            // For some reason we can't fetch a reasonable revision, so force a re-fetch
+            console.warn(`Resource error retrieving resourceVersion, forcing re-fetch`, type, ':', err); // eslint-disable-line no-console
+            dispatch('resyncWatch', msg);
+            throw err;
+          });
+      } else {
+        pLatestRevision = Promise.resolve(null); // Null to ensure we don't go through `nextResourceVersion` again
+      }
+
       setTimeout(() => {
         // Delay a bit so that immediate start/error/stop causes
         // only a slow infinite loop instead of a tight one.
-        dispatch('watch', obj);
+        pLatestRevision.then(revision => dispatch('watch', { ...obj, revision }));
       }, 5000);
     }
   },
@@ -778,7 +819,7 @@ export const getters = {
         return null;
       }
 
-      revision = cache.revision;
+      revision = cache.revision; // This is always zero.....
 
       for ( const obj of cache.list ) {
         if ( obj && obj.metadata ) {
