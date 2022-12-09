@@ -406,7 +406,7 @@ export default {
       </template>
       <template #cell:name="{row}">
         <n-link
-          :to="`/c/local/explorer/namespace/${row.id}`"
+          :to="row.detailLocation"
         >
           {{ row.name }}
         </n-link>
