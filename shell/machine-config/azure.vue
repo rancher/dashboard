@@ -183,6 +183,11 @@ export default {
 
   created() {
     if (this.mode === 'create') {
+      for (const key in this.defaultConfig) {
+        if (this.value[key] === undefined) {
+          this.$set(this.value, key, this.defaultConfig[key]);
+        }
+      }
       merge(this.value, this.defaultConfig);
 
       this.value.nsg = `rancher-managed-${ randomStr(8) }`;
@@ -274,7 +279,7 @@ export default {
       </div>
     </div>
     <div class="row mt-20">
-      <div class="col span-6">
+      <div class="col span-4">
         <LabeledInput
           v-model="value.resourceGroup"
           :mode="mode"
@@ -282,11 +287,20 @@ export default {
           :disabled="disabled"
         />
       </div>
-      <div class="col span-6">
+      <div class="col span-4">
         <LabeledInput
           v-model="value.availabilitySet"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.availabilitySet.label')"
+          :disabled="disabled"
+        />
+      </div>
+      <div class="col span-4">
+        <LabeledInput
+          v-model="value.availabilityZone"
+          :mode="mode"
+          :label="t('cluster.machineConfig.azure.availabilityZone.label')"
+          :tooltip="t('cluster.machineConfig.azure.image.help')"
           :disabled="disabled"
         />
       </div>
@@ -366,6 +380,13 @@ export default {
             :disabled="disabled"
           />
         </div>
+      </div>
+      <div class="row mt-20">
+        <Checkbox
+          v-model="value.acceleratedNetworking"
+          :mode="mode"
+          :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
+        />
       </div>
       <div class="row mt-20">
         <div class="col span-6">

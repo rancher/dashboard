@@ -1301,6 +1301,10 @@ cluster:
     azure:
       availabilitySet:
         label: Availability Set (unmanaged)
+        description: Availability sets are used to protect applications from hardware failures within an Azure data center. Each machine pool can have an availability set or an availability zone, but not both.
+      availabilityZone:
+        label: Availability Zone
+        description: Availability zones protect applications from complete Azure data center failures. Each machine pool can have an availability set or an availability zone, but not both.
       dns:
         help: A unique DNS label for the public IP address.
         label: DNS Label
