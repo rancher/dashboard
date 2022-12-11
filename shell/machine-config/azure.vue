@@ -12,6 +12,7 @@ import ArrayList from '@shell/components/form/ArrayList';
 import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';
 import KeyValue from '@shell/components/form/KeyValue';
+import { RadioGroup } from '@components/Form/Radio';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -98,6 +99,7 @@ export default {
     LabeledInput,
     LabeledSelect,
     Loading,
+    RadioGroup
   },
 
   mixins: [CreateEditView],
@@ -169,15 +171,64 @@ export default {
       azureEnvironments,
       defaultConfig,
       storageTypes,
-      credential:      null,
-      locationOptions: null,
-      vmSizes:         null,
+      credential:         null,
+      locationOptions:    [],
+      useAvailabilitySet: !!this.value.availabilitySet,
+      vmSizes:            [],
     };
   },
 
   watch: {
     credentialId() {
       this.$fetch();
+    },
+  },
+
+  computed: {
+    vmsWithAcceleratedNetworking() {
+      return this.vmSizes.filter((vmData) => {
+        return vmData.AcceleratedNetworkingSupported;
+      });
+    },
+    vmSizeWarning() {
+      if (!this.value.acceleratedNetworking) {
+        return '';
+      }
+      const selectedSizeIsValid = !!this.vmsWithAcceleratedNetworking.find((vmData) => {
+        return this.value.size === vmData.Name;
+      });
+
+      if (!selectedSizeIsValid) {
+        return 'The selected VM size does not support accelerated networking. Please select another VM size or disable accelerated networking.';
+      }
+
+      return '';
+    },
+    vmSizeOptionsForDropdown() {
+      // example vmSize option from backend:
+      // {
+      //   AcceleratedNetworkingSupported: false,
+      //   AvailabilityZones: [],
+      //   Name: "Basic_A0"
+      // }
+
+      const out = this.vmSizes;
+
+      return out.map((vmData) => {
+        const { Name } = vmData;
+
+        let disabled = false;
+
+        if (this.value.acceleratedNetworking && !vmData.AcceleratedNetworkingSupported) {
+          disabled = true;
+        }
+
+        return {
+          label: Name,
+          value: Name,
+          disabled
+        };
+      });
     },
   },
 
@@ -195,6 +246,9 @@ export default {
   },
 
   methods: {
+    getVmSizeOptionLabel(vmData) {
+      return vmData.label;
+    },
     stringify,
     setLocation(location) {
       this.value.location = location?.name;
@@ -287,21 +341,38 @@ export default {
           :disabled="disabled"
         />
       </div>
-      <div class="col span-4">
+
+      <div
+        v-if="useAvailabilitySet"
+        class="col span-4"
+      >
         <LabeledInput
           v-model="value.availabilitySet"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.availabilitySet.label')"
+          :tooltip="t('cluster.machineConfig.azure.availabilitySet.description')"
           :disabled="disabled"
         />
       </div>
-      <div class="col span-4">
+      <div
+        v-if="!useAvailabilitySet"
+        class="col span-4"
+      >
         <LabeledInput
           v-model="value.availabilityZone"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.availabilityZone.label')"
-          :tooltip="t('cluster.machineConfig.azure.image.help')"
+          :tooltip="t('cluster.machineConfig.azure.availabilityZone.description')"
           :disabled="disabled"
+        />
+      </div>
+      <div class="col span-4">
+        <RadioGroup
+          v-model="useAvailabilitySet"
+          name="etcd-s3"
+          :options="[true, false]"
+          :labels="[t('cluster.machineConfig.azure.availabilitySet.label'),t('cluster.machineConfig.azure.availabilityZone.label')]"
+          :mode="mode"
         />
       </div>
     </div>
@@ -320,37 +391,53 @@ export default {
         <LabeledSelect
           v-model="value.size"
           :mode="mode"
-          :options="vmSizes"
+          :options="vmSizeOptionsForDropdown"
+          :get-option-label="getVmSizeOptionLabel"
           :searchable="true"
           :required="true"
+          :input="() => {
+            if (vmSizeWarning) {
+              $emit('error', vmSizeWarning)
+            }
+          }"
           :label="t('cluster.machineConfig.azure.size.label')"
+          :tooltip="value.acceleratedNetworking ? t('cluster.machineConfig.azure.size.tooltip') : ''"
           :disabled="disabled"
+        />
+        <Banner
+          v-if="vmSizeWarning"
+          color="error"
+          :label="vmSizeWarning"
         />
       </div>
     </div>
 
     <portal :to="'advanced-' + uuid">
-      <div class="row mt-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="value.faultDomainCount"
-            :mode="mode"
-            :label="t('cluster.machineConfig.azure.faultDomainCount.label')"
-            :tooltip="t('cluster.machineConfig.azure.faultDomainCount.help')"
-            :disabled="disabled"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="value.updateDomainCount"
-            :mode="mode"
-            :label="t('cluster.machineConfig.azure.updateDomainCount.label')"
-            :tooltip="t('cluster.machineConfig.azure.updateDomainCount.help')"
-            :disabled="disabled"
-          />
+      <div v-if="useAvailabilitySet">
+        <h2>Availability Set Configuration</h2>
+        <div class="row mt-20">
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.faultDomainCount"
+              :mode="mode"
+              :label="t('cluster.machineConfig.azure.faultDomainCount.label')"
+              :tooltip="t('cluster.machineConfig.azure.faultDomainCount.help')"
+              :disabled="disabled"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.updateDomainCount"
+              :mode="mode"
+              :label="t('cluster.machineConfig.azure.updateDomainCount.label')"
+              :tooltip="t('cluster.machineConfig.azure.updateDomainCount.help')"
+              :disabled="disabled"
+            />
+          </div>
         </div>
       </div>
-      <hr class="mt-20">
+      <hr class="mt-20 mb-20">
+      <h2>Purchase Plan</h2>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -362,7 +449,8 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20">
+      <hr class="mt-20 mb-20">
+      <h2>Network</h2>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -429,6 +517,18 @@ export default {
         </div>
       </div>
       <div class="row mt-20">
+        <Checkbox
+          v-model="value.acceleratedNetworking"
+          :mode="mode"
+          :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
+        />
+      </div>
+      <Banner
+        v-if="vmSizeWarning"
+        color="error"
+        :label="vmSizeWarning"
+      />
+      <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
             v-model="value.nsg"
@@ -450,7 +550,8 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20">
+      <hr class="mt-20 mb-20">
+      <h2>Disks</h2>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledSelect
