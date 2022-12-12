@@ -31,7 +31,6 @@ generic:
   labelsAndAnnotations: Labels & Annotations
   links: Links
   loading: Loading&hellip;
-  load: Load;
   members: Members
   na: n/a
   name: Name
@@ -5014,7 +5013,7 @@ tableHeaders:
   clusterOutput: Cluster Output
   cluster: Cluster
   clusters: Clusters
-  cluster-Name: Cluster-Name
+  cluster-Name: Cluster
   clustersReady: Clusters Ready
   clusterGroups: Cluster Groups
   commit: Commit
@@ -6054,11 +6053,6 @@ typeLabel:
       other { Benchmark Versions }
     }
   catalog.cattle.io.operation: |-
-    {count, plural,
-      one { Recent Operation }
-      other { Recent Operations }
-    }
-  charts: |-
     {count, plural,
       one { Recent Operation }
       other { Recent Operations }
