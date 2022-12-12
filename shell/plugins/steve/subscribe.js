@@ -598,22 +598,20 @@ export const actions = {
       // In summary, we need to re-watch but with a reliable `revision` (to avoid `too old` message kicking off a full re-fetch of all
       // resources). To get a reliable `revision` go out and fetch the latest for that resource type, in theory our local cache should be
       // up to date with that revision.
-      // Optimisation - Some v1 resource types don't have revisions (either at the collection or resource level), so avoid trying to fetch
-      // latest for those types
-      // Note - In theory `0`, `-1` or `null` revisions will watch for latest, however steve will send the current state of each resource
-      // via a `resource.created` event
 
-      const revision = getters.nextResourceVersion(type, obj.id);
+      const revisionExisting = getters.nextResourceVersion(type, obj.id);
 
-      let pLatestRevision;
+      let revisionLatest;
 
-      if (revision) {
+      if (revisionExisting) {
         // Attempt to fetch the latest revision at the time the resource watch was stopped, in theory our local cache should be up to
         // date with this
+        // Ideally we shouldn't need to fetch here and supply `0`, `-1` or `null` to start watching from the latest revision, however steve
+        // will send the current state of each resource via a `resource.created` event.
         const opt = { limit: 1 };
 
         opt.url = getters.urlFor(type, null, opt);
-        pLatestRevision = dispatch('request', { opt, type } )
+        revisionLatest = dispatch('request', { opt, type } )
           .then(res => res.revision)
           .catch((err) => {
             // For some reason we can't fetch a reasonable revision, so force a re-fetch
@@ -622,13 +620,15 @@ export const actions = {
             throw err;
           });
       } else {
-        pLatestRevision = Promise.resolve(null); // Null to ensure we don't go through `nextResourceVersion` again
+        // Some v1 resource types don't have revisions (either at the collection or resource level), so we avoided making an API request
+        // for them
+        revisionLatest = Promise.resolve(null); // Null to ensure we don't go through `nextResourceVersion` again
       }
 
       setTimeout(() => {
         // Delay a bit so that immediate start/error/stop causes
         // only a slow infinite loop instead of a tight one.
-        pLatestRevision.then(revision => dispatch('watch', { ...obj, revision }));
+        revisionLatest.then(revision => dispatch('watch', { ...obj, revision }));
       }, 5000);
     }
   },
