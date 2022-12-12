@@ -25,15 +25,17 @@ describe('component: ArrayListGrouped', () => {
 
   it('should allow to remove items', async() => {
     const wrapper = mount(ArrayListGrouped, {
-      mocks: { propsData: { value: ['a', 'b', 'c'] } },
+      mocks: { propsData: { value: ['a', 'b'] } },
       slots: { default: '<div id="test"/>' }
     });
+    const button = wrapper.find('[data-testid^="array-list-button"]');
 
-    await wrapper.find('[data-testid^="array-list-button"]').trigger('click');
+    await button.trigger('click');
+    await button.trigger('click');
     await wrapper.find('[data-testid^="remove-item"]').trigger('click');
 
     const elements = wrapper.findAll('#test');
-
+    
     expect(elements).toHaveLength(1);
   });
 });
