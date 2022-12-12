@@ -35,7 +35,7 @@ async function getYaml(store, model) {
     yaml = (await model.followLink('view', opt)).data;
   }
 
-  const cleanedYaml = await store.dispatch(`${ inStore }/cleanFromSteve`, yaml);
+  const cleanedYaml = await store.dispatch(`${ inStore }/cleanForDownload`, yaml);
 
   return cleanedYaml;
 }

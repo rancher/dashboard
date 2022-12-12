@@ -326,7 +326,7 @@ export default {
   },
 
   // remove fields added by steve before showing/downloading yamls
-  cleanFromSteve(ctx, yaml) {
+  cleanForDownload(ctx, yaml) {
     if (!yaml) {
       return;
     }
@@ -337,11 +337,9 @@ export default {
       'actions'
     ];
     const metadataKeys = [
-
       'fields',
       'relationships',
       'state',
-
     ];
     const conditionKeys = [
       'error',
