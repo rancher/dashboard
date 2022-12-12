@@ -20,12 +20,12 @@ describe('component: ArrayListGrouped', () => {
     await button.trigger('click');
     const elements = wrapper.findAll('#test');
 
-    expect(elements).toHaveLength(3);
+    expect(elements).toHaveLength(2);
   });
 
   it('should allow to remove items', async() => {
     const wrapper = mount(ArrayListGrouped, {
-      mocks: { propsData: { value: ['a', 'b'] } },
+      mocks: { propsData: { value: ['a', 'b', 'c'] } },
       slots: { default: '<div id="test"/>' }
     });
 
