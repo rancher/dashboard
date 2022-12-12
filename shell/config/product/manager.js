@@ -65,6 +65,7 @@ export function init(store) {
     'cloud-credentials',
     'drivers',
     'pod-security-policies',
+    'management.cattle.io.podsecurityadmissionconfigurationtemplate'
   ]);
 
   configureType(CAPI.RANCHER_CLUSTER, {
