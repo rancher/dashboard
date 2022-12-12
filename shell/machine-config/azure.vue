@@ -13,6 +13,7 @@ import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
+import { _CREATE } from '@shell/config/query-params';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -22,33 +23,34 @@ export const azureEnvironments = [
 ];
 
 const defaultConfig = {
-  availabilitySet:   'docker-machine',
-  clientId:          '',
-  clientSecret:      '',
-  customData:        '',
-  diskSize:          '30',
-  dns:               '',
-  environment:       'AzurePublicCloud',
-  faultDomainCount:  '3',
-  image:             'canonical:UbuntuServer:18.04-LTS:latest',
-  location:          'westus',
-  managedDisks:      false,
-  noPublicIp:        false,
-  nsg:               null,
-  privateIpAddress:  null,
-  resourceGroup:     'docker-machine',
-  size:              'Standard_D2_v2',
-  sshUser:           'docker-user',
-  staticPublicIp:    false,
-  storageType:       'Standard_LRS',
-  subnet:            'docker-machine',
-  subnetPrefix:      '192.168.0.0/16',
-  subscriptionId:    '',
-  tenantId:          '',
-  updateDomainCount: '5',
-  usePrivateIp:      false,
-  vnet:              'docker-machine-vnet',
-  openPort:          [
+  acceleratedNetworking: false,
+  availabilitySet:       'docker-machine',
+  clientId:              '',
+  clientSecret:          '',
+  customData:            '',
+  diskSize:              '30',
+  dns:                   '',
+  environment:           'AzurePublicCloud',
+  faultDomainCount:      '3',
+  image:                 'canonical:UbuntuServer:18.04-LTS:latest',
+  location:              'westus',
+  managedDisks:          false,
+  noPublicIp:            false,
+  nsg:                   null,
+  privateIpAddress:      null,
+  resourceGroup:         'docker-machine',
+  size:                  'Standard_D2_v2',
+  sshUser:               'docker-user',
+  staticPublicIp:        false,
+  storageType:           'Standard_LRS',
+  subnet:                'docker-machine',
+  subnetPrefix:          '192.168.0.0/16',
+  subscriptionId:        '',
+  tenantId:              '',
+  updateDomainCount:     '5',
+  usePrivateIp:          false,
+  vnet:                  'docker-machine-vnet',
+  openPort:              [
     '6443/tcp',
     '2379/tcp',
     '2380/tcp',
@@ -89,6 +91,7 @@ const storageTypes = [
     value: 'StandardSSD_LRS'
   }
 ];
+const DEFAULT_REGION = 'westus';
 
 export default {
   components: {
@@ -157,8 +160,15 @@ export default {
         method: 'GET',
       });
 
+      if (this.mode === _CREATE) {
+        this.value.location = DEFAULT_REGION;
+      }
+
       this.vmSizes = await this.$store.dispatch('management/request', {
-        url:    addParams('/meta/aksVMSizes', { cloudCredentialId: this.credentialId, region: 'westus' }),
+        url: addParams('/meta/aksVMSizes', {
+          cloudCredentialId: this.credentialId,
+          region:            this.value.location
+        }),
         method: 'GET',
       });
     } catch (e) {
@@ -175,6 +185,7 @@ export default {
       locationOptions:    [],
       useAvailabilitySet: !!this.value.availabilitySet,
       vmSizes:            [],
+      valueCopy:          this.value
     };
   },
 
@@ -185,21 +196,91 @@ export default {
   },
 
   computed: {
+    locationOptionsInDropdown() {
+      const locationOptionsCopy = [...this.locationOptions];
+
+      return locationOptionsCopy.sort((a, b) => {
+        // Hopefully it's easier to find a region if the list is in
+        // alphabetical order.
+        if (a.name > b.name) {
+          return 1;
+        }
+        if (a.name < b.name) {
+          return -1;
+        }
+
+        return 0;
+      } )
+        .map((option) => {
+          return {
+            displayName: `${ option.displayName } (${ option.name })`,
+            name:        option.name,
+          };
+        });
+    },
     vmsWithAcceleratedNetworking() {
       return this.vmSizes.filter((vmData) => {
         return vmData.AcceleratedNetworkingSupported;
       });
     },
-    vmSizeWarning() {
-      if (!this.value.acceleratedNetworking) {
-        return '';
-      }
+    vmsWithoutAcceleratedNetworking() {
+      return this.vmSizes.filter((vmData) => {
+        return !vmData.AcceleratedNetworkingSupported;
+      });
+    },
+    selectedVmSizeSupportsAN() {
       const selectedSizeIsValid = !!this.vmsWithAcceleratedNetworking.find((vmData) => {
         return this.value.size === vmData.Name;
       });
 
-      if (!selectedSizeIsValid) {
-        return 'The selected VM size does not support accelerated networking. Please select another VM size or disable accelerated networking.';
+      return selectedSizeIsValid;
+    },
+    vmSizeAcceleratedNetworkingWarning() {
+      if (!this.selectedVmSizeSupportsAN) {
+        return this.t('cluster.machineConfig.azure.size.selectedSizeAcceleratedNetworkingWarning');
+      }
+
+      return '';
+    },
+    vmsWithAvailabilityZones() {
+      return this.vmSizes.filter((vmData) => {
+        return vmData.AvailabilityZones.length > 0;
+      });
+    },
+    vmSizeAvailabilityWarning() {
+      const selectedVmIsAvailableInSelectedRegion = this.vmSizes.filter((vmData) => {
+        return vmData.Name === this.value.size;
+      }).length > 0;
+
+      if (!selectedVmIsAvailableInSelectedRegion) {
+        return this.t('cluster.machineConfig.azure.size.availabilityWarning');
+      }
+
+      return '';
+    },
+    selectedVmSizeHasZones() {
+      const dataForSelectedSize = this.vmsWithAvailabilityZones.filter((vmData) => {
+        const { Name } = vmData;
+
+        return Name === this.value.size;
+      });
+
+      if (dataForSelectedSize.length > 0) {
+        return dataForSelectedSize[0].AvailabilityZones.length > 0;
+      }
+
+      return false;
+    },
+    vmAvailabilityZoneWarning() {
+      if (this.useAvailabilitySet) {
+        return '';
+      }
+      if (this.vmsWithAvailabilityZones.length === 0) {
+        return this.t('cluster.machineConfig.azure.size.regionDoesNotSupportAzs');
+      }
+
+      if (this.vmsWithAvailabilityZones > 0 && !this.selectedVmSizeHasZones) {
+        return this.t('cluster.machineConfig.azure.size.regionSupportsAzsButNotThisSize');
       }
 
       return '';
@@ -212,24 +293,41 @@ export default {
       //   Name: "Basic_A0"
       // }
 
-      const out = this.vmSizes;
+      const out = [
+        { kind: 'group', label: this.t('cluster.machineConfig.azure.size.doesNotSupportAcceleratedNetworking') },
+        ...this.vmsWithoutAcceleratedNetworking,
+        { kind: 'group', label: this.t('cluster.machineConfig.azure.size.supportsAcceleratedNetworking') },
+        ...this.vmsWithAcceleratedNetworking,
+
+      ];
 
       return out.map((vmData) => {
         const { Name } = vmData;
 
-        let disabled = false;
+        const disabled = false;
 
-        if (this.value.acceleratedNetworking && !vmData.AcceleratedNetworkingSupported) {
-          disabled = true;
+        if (vmData.kind === 'group') {
+          return vmData;
         }
 
         return {
           label: Name,
           value: Name,
-          disabled
+          disabled,
         };
       });
     },
+    availableZones() {
+      const data = this.vmSizes.filter((vmData) => {
+        return vmData.Name === this.value.size;
+      });
+
+      if (data.length > 0) {
+        return data[0].AvailabilityZones;
+      }
+
+      return [];
+    }
   },
 
   created() {
@@ -249,9 +347,31 @@ export default {
     getVmSizeOptionLabel(vmData) {
       return vmData.label;
     },
+    handleVmSizeInput($event) {
+      if (this.vmSizeAcceleratedNetworkingWarning) {
+        this.$emit('error', this.vmSizeAcceleratedNetworkingWarning);
+      }
+    },
     stringify,
+    async getVmSizes() {
+      // The list of VM sizes should update when the
+      // selected region is changed because different
+      // VMs are supported in different regions.
+      try {
+        this.vmSizes = await this.$store.dispatch('management/request', {
+          url: addParams('/meta/aksVMSizes', {
+            cloudCredentialId: this.credentialId,
+            region:            this.value.location
+          }),
+          method: 'GET',
+        });
+      } catch (e) {
+        this.errors = exceptionToErrorsArray(e);
+      }
+    },
     setLocation(location) {
       this.value.location = location?.name;
+      this.getVmSizes();
     },
     initTags() {
       const parts = (this.value.tags || '').split(/,/);
@@ -282,6 +402,14 @@ export default {
 
       this.$set(this.value, 'tags', ary.join(','));
     },
+    handleAzChange() {
+      if (this.value.availabilitySet) {
+      // If an availability set exists, clear it out when
+      // an availability zone is selected. Otherwise the
+      // set will take precedent and the zone will not be saved.
+        this.value.availabilitySet = null;
+      }
+    }
   },
 };
 </script>
@@ -321,7 +449,7 @@ export default {
         <LabeledSelect
           :value="value.location"
           :mode="mode"
-          :options="locationOptions"
+          :options="locationOptionsInDropdown"
           option-key="name"
           option-label="displayName"
           :searchable="true"
@@ -358,12 +486,19 @@ export default {
         v-if="!useAvailabilitySet"
         class="col span-4"
       >
-        <LabeledInput
+        <LabeledSelect
           v-model="value.availabilityZone"
           :mode="mode"
+          :options="availableZones"
           :label="t('cluster.machineConfig.azure.availabilityZone.label')"
           :tooltip="t('cluster.machineConfig.azure.availabilityZone.description')"
-          :disabled="disabled"
+          :disabled="disabled || !!vmAvailabilityZoneWarning"
+          @input="handleAzChange"
+        />
+        <Banner
+          v-if="vmAvailabilityZoneWarning"
+          color="error"
+          :label="vmAvailabilityZoneWarning"
         />
       </div>
       <div class="col span-4">
@@ -395,19 +530,20 @@ export default {
           :get-option-label="getVmSizeOptionLabel"
           :searchable="true"
           :required="true"
-          :input="() => {
-            if (vmSizeWarning) {
-              $emit('error', vmSizeWarning)
-            }
-          }"
           :label="t('cluster.machineConfig.azure.size.label')"
           :tooltip="value.acceleratedNetworking ? t('cluster.machineConfig.azure.size.tooltip') : ''"
           :disabled="disabled"
+          @selecting="handleVmSizeInput"
         />
         <Banner
-          v-if="vmSizeWarning"
+          v-if="vmSizeAcceleratedNetworkingWarning"
           color="error"
-          :label="vmSizeWarning"
+          :label="vmSizeAcceleratedNetworkingWarning"
+        />
+        <Banner
+          v-else-if="vmSizeAvailabilityWarning"
+          color="error"
+          :label="vmSizeAvailabilityWarning"
         />
       </div>
     </div>
@@ -519,15 +655,12 @@ export default {
       <div class="row mt-20">
         <Checkbox
           v-model="value.acceleratedNetworking"
+          :disabled="(!value.acceleratedNetworking && !selectedVmSizeSupportsAN)"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
+          :tooltip="vmSizeAcceleratedNetworkingWarning"
         />
       </div>
-      <Banner
-        v-if="vmSizeWarning"
-        color="error"
-        :label="vmSizeWarning"
-      />
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput

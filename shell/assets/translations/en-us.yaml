@@ -1347,6 +1347,12 @@ cluster:
       size:
         label: VM Size
         tooltip: When accelerated networking is enabled, not all sizes are available.
+        supportsAcceleratedNetworking: Sizes that Support Accelerated Networking
+        doesNotSupportAcceleratedNetworking: Sizes Without Accelerated Networking
+        availabilityWarning: The selected VM size is not available in the selected region.
+        regionDoesNotSupportAzs: Availability zones are not supported in the selected region. Please select a different region or use an availability set instead.
+        regionSupportsAzsButNotThisSize: The selected region does not support availability zones for the selected VM size. Please select a different region or VM size.
+        selectedSizeAcceleratedNetworkingWarning: The selected VM size does not support accelerated networking. Please select another VM size or disable accelerated networking.
       sshUser:
         label: SSH Username
       storageType:
