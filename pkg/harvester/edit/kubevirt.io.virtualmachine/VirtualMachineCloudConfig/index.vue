@@ -6,7 +6,7 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import ModalWithCard from '@shell/components/ModalWithCard';
 
 import { CONFIG_MAP } from '@shell/config/types';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/config/labels-annotations';
 import { _VIEW } from '@shell/config/query-params';
 import DataTemplate from './DataTemplate';
 

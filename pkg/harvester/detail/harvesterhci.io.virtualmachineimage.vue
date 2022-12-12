@@ -2,7 +2,7 @@
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import LabelValue from '@shell/components/LabelValue';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { HCI } from '@/pkg/harvester/config/labels-annotations';
+import { HCI } from '@pkg/config/labels-annotations';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { findBy } from '@shell/utils/array';

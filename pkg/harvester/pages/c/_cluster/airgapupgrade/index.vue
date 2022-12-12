@@ -7,7 +7,7 @@ import UpgradeInfo from '../../../../components/UpgradeInfo';
 
 import { HCI } from '../../../../types';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/config/labels-annotations';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../../../config/harvester';
 
 const IMAGE_METHOD = {

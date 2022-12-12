@@ -2,7 +2,7 @@
 import { OFF } from '../models/kubevirt.io.virtualmachine';
 import { get } from '@shell/utils/object';
 import { isIpv4 } from '@shell/utils/string';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/config/labels-annotations';
 import { HCI } from '../types';
 import { MANAGEMENT_NETWORK } from '../mixins/harvester-vm';
 import CopyToClipboard from '@shell/components/CopyToClipboard';

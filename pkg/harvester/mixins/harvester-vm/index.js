@@ -19,7 +19,7 @@ import {
 import { HCI } from '../../types';
 import { HCI_SETTING } from '../../config/settings';
 import { HOSTNAME } from '@shell/config/labels-annotations';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/config/labels-annotations';
 import impl, { QGA_JSON, USB_TABLET } from './impl';
 
 export const MANAGEMENT_NETWORK = 'management Network';
