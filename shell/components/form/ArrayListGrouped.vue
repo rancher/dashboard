@@ -22,6 +22,13 @@ export default {
       type:    Boolean,
       default: true,
     },
+    /**
+     * Start with empty row
+     */
+    initialEmptyRow: {
+      type:    Boolean,
+      default: true,
+    },
 
     /**
      * Form mode for the component
@@ -63,6 +70,7 @@ export default {
     v-bind="$attrs"
     :add-allowed="canAdd && !isView"
     :mode="mode"
+    :initial-empty-row="initialEmptyRow"
     @input="$emit('input', $event)"
     @add="$emit('add')"
     @remove="$emit('remove', $event)"
@@ -80,7 +88,7 @@ export default {
         :data-testid="`remove-item-${scope.i}`"
         @click="scope.remove"
       >
-        <i class="icon icon-2x icon-x" />
+        <i class="icon icon-x" />
       </button>
       <span v-else />
     </template>
@@ -106,15 +114,15 @@ export default {
       & > .remove {
         position: absolute;
 
-        padding: 0px;
-
         top: 0;
         right: 0;
       }
 
       & > .info-box {
         margin-bottom: 0;
+        padding-right: 25px;
       }
     }
 }
+
 </style>

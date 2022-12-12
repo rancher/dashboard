@@ -145,7 +145,7 @@ export default {
             class="btn role-link close btn-sm"
             @click="removeRule(props.i)"
           >
-            <i class="icon icon-2x icon-x" />
+            <i class="icon icon-x" />
           </button>
           <span v-else />
         </template>
@@ -194,7 +194,7 @@ export default {
             class="btn role-link close btn-sm"
             @click="removeRule(props.i)"
           >
-            <i class="icon icon-2x icon-x" />
+            <i class="icon icon-x" />
           </button>
           <span v-else />
         </template>

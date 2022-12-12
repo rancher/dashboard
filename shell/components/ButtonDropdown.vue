@@ -277,12 +277,10 @@ export default {
     background: transparent;
 
     .vs__actions {
-      justify-content: center;
 
       &:after {
         color: var(--link);
         line-height: 1;
-        padding-top: 5px;
       }
     }
   }

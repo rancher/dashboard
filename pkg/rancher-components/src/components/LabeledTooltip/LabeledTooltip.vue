@@ -84,7 +84,6 @@ export default Vue.extend({
         position:  absolute;
         right: 30px;
         top: $input-padding-lg;
-        font-size: 20px;
         z-index: z-index(hoverOverContent);
      }
 

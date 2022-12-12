@@ -128,7 +128,7 @@ export default {
 
     <template #col:defaultVersion="{row}">
       <td v-if="row.isDefaultVersion">
-        <i class="icon icon-lg icon-checkmark" />
+        <i class="icon icon-checkmark" />
       </td>
       <td v-else></td>
     </template>
