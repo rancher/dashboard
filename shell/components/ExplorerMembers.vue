@@ -73,9 +73,9 @@ export default {
       .then(projects => this.$set(this, 'projects', projects));
 
     const hydration = {
-      normanPrincipals:                this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
-      mgmt:                            this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }),
-      mgmtRoleTemplates:               this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
+      normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
+      mgmt:              this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER }),
+      mgmtRoleTemplates: this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
     };
 
     await allHash(hydration);
@@ -105,7 +105,7 @@ export default {
         STATE,
         {
           name:      'member',
-          labeKey:     'generic.name',
+          labeKey:   'generic.name',
           value:     'principalId',
           formatter: 'Principal'
         },
@@ -117,7 +117,7 @@ export default {
         { ...AGE, value: 'createdTS' }
       ],
       loadingProjectBindings: true,
-      loadingClusterBindings:  true
+      loadingClusterBindings: true
     };
   },
 
