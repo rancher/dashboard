@@ -201,7 +201,9 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podConsumed() {
-    return this.pods.length;
+    const runningPods = this.pods.filter(pod => pod.state === 'running');
+
+    return runningPods.length || 0;
   }
 
   get podRequests() {
