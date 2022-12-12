@@ -4,8 +4,6 @@ const SCHEMA_FLUSH_TIMEOUT = 2500;
 
 const state = {
   store:      '', // Store name
-  counts:     [], // Buffer of count resources recieved in a given window
-  countTimer: undefined, // Tiemr to flush the count buffer
   flushTimer: undefined, // Timer to flush the schema chaneg queue
   queue:      [], // Schema change queue
   schemas:    {} // Map of schema id to hash to track when a schema actually changes
@@ -80,7 +78,6 @@ const workerActions = {
   },
 
   destroyWorker: () => {
-    clearTimeout(state.countTimer);
     clearTimeout(state.flushTimer);
 
     self.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.

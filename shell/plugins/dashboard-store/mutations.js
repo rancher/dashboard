@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
-import { COUNT, SCHEMA } from '@shell/config/types';
+import { SCHEMA } from '@shell/config/types';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import garbageCollect from '@shell/utils/gc/gc';
@@ -50,22 +50,6 @@ export function load(state, { data, ctx, existing }) {
   let cache = registerType(state, type);
 
   cache.generation++;
-
-  /**
-   * Resource counts are contained within a single 'count' resource with a 'counts' field that is a map of resource types
-   * When counts are updated through the websocket, only the resources that changed are sent so we can't load the new 'count' resource into the store as we would another resource
-   */
-  if (type === COUNT && cache.haveAll) {
-    const newCounts = data.counts;
-    const countResource = cache.list[0];
-    const existingCounts = countResource.counts;
-    // creating a new object like this and calling Vue.set ensures the rest of the dash picks up these nested count value changes
-    const updatedCounts = { ...existingCounts, ...newCounts };
-
-    Vue.set(countResource, 'counts', updatedCounts);
-
-    return cache.list[0];
-  }
 
   let entry;
 
