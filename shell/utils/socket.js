@@ -338,12 +338,20 @@ export default class Socket extends EventTarget {
     }
   }
 
+  /**
+   * `console.log` the provided summary statement, with default information to identify the socket and the provided props
+   */
   _log(summary, props) {
     this._baseLog(summary, {
       state: this.state, id: this.socket?.sockId || 0, ...props
     });
   }
 
+  /**
+   * `console.log` the provided summary statement and props
+   *
+   * This does not contain information to identify the socket and can be used in scenarios where it's not known or default
+   */
   _baseLog(summary, props) {
     const message = [summary];
     const values = Object.entries(props || {});
