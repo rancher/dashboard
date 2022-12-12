@@ -35,7 +35,7 @@ describe('component: ArrayListGrouped', () => {
     await wrapper.find('[data-testid^="remove-item"]').trigger('click');
 
     const elements = wrapper.findAll('#test');
-    
+
     expect(elements).toHaveLength(1);
   });
 });
