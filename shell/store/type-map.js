@@ -378,7 +378,6 @@ export const state = function() {
       windowComponents:   {},
       'machine-config':   {},
       'cloud-credential': {}
-
     },
   };
 };
