@@ -213,8 +213,8 @@ export default {
       get() {
         // This can incorrectly return rke1 instead
         // of rke2 for cluster owners.
-        if ( !this.rke2Enabled ) {
-          return _RKE1;
+        if ( this.rke2Enabled ) {
+          return _RKE2;
         }
 
         return this.preferredProvisioner;
