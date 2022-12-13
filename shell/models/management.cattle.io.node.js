@@ -126,8 +126,8 @@ export default class MgmtNode extends HybridModel {
   }
 
   get internalIp() {
-    // This shows in the IP address column for the list of
-    // nodes in the cluster detail page of Cluster Management.
+    // This shows in the IP address column for RKE1 nodes in the
+    // list of nodes in the cluster detail page of Cluster Management.
 
     const internal = this.status?.addresses?.find(({ type }) => {
       return type === ADDRESSES.INTERNAL_IP;
