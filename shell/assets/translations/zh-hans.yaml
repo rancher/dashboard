@@ -5546,6 +5546,7 @@ workload:
       gcePersistentDisk: Google 持久磁盘
       driver.longhorn.io: Longhorn
       vsphereVolume: VMWare vSphere 卷
+      emptyDir: Empty Dir
     addClaim: 添加声明
     addMount: 添加挂载
     addVolume: 添加卷
@@ -5605,6 +5606,14 @@ workload:
     title: '存储'
     volumeName: 卷名称
     volumePath: 卷路径
+    emptyDir:
+      medium:
+        label: 存储介质
+        default: 主机的默认存储
+        memory: 内存
+      sizeLimit:
+        label: 大小限制
+        placeholder: "例如: 300"
   typeDescriptions:
     apps.daemonset: DaemonSet 在每个符合条件的节点上仅运行一个 Pod。当新节点添加到集群时，DaemonSet 会自动部署新节点。推荐用于全系统或可垂直扩展，且每个节点永远不需要超过一个 pod 的工作负载。
     apps.deployment: Deployment 运行分布在符合条件的节点中的可扩展数量的 Pod 副本。变更会逐步推出，并可回滚到之前的版本。推荐用于无状态和水平可扩展的工作负载。
