@@ -546,7 +546,7 @@ export default {
 
         if (requestsGpuShared && limitsGpuShared && (!schedulerName || schedulerName === 'default-scheduler')) {
           this.podTemplateSpec.schedulerName = this.systemGpuManagementSchedulerName;
-        } else if (this.systemGpuManagementSchedulerName && schedulerName === this.systemGpuManagementSchedulerName) {
+        } else if ((!requestsGpuShared || !limitsGpuShared) && this.systemGpuManagementSchedulerName && schedulerName === this.systemGpuManagementSchedulerName) {
           this.podTemplateSpec.schedulerName = '';
         }
       }
