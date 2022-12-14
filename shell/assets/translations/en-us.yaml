@@ -6216,7 +6216,7 @@ typeLabel:
   management.cattle.io.user: |-
     {count, plural,
       one { User }
-      other { Users }
+      other { Users}
     }
   namespace: |-
     {count, plural,

@@ -9,7 +9,7 @@ import { MULTI_CLUSTER } from '@shell/store/features';
 
 export const NAME = 'auth';
 
-const USERS_VIRTUAL_TYPE = 'users';
+const USERS_VIRTUAL_TYPE = 'Users';
 const ROLES_VIRTUAL_TYPE = 'roles';
 
 export function init(store) {
@@ -47,8 +47,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:      store.getters['type-map/labelFor']({ id: MANAGEMENT.USER }, 2),
-    labelKey:   'typeLabel."management.cattle.io.user',
+    labelKey:   'typeLabel.management.cattle.io.user',
     name:       USERS_VIRTUAL_TYPE,
     namespaced: false,
     weight:     102,
@@ -65,9 +64,9 @@ export function init(store) {
   configureType(MANAGEMENT.USER, { showListMasthead: false });
 
   spoofedType({
-    label:             store.getters['type-map/labelFor']({ id: NORMAN.SPOOFED.GROUP_PRINCIPAL }, 2),
-    type:              NORMAN.SPOOFED.GROUP_PRINCIPAL,
     labelKey:          'typeLabel.group.principal',
+    name:              NORMAN.SPOOFED.GROUP_PRINCIPAL,
+    namespaced:        false,
     ifHaveType:        MANAGEMENT.GLOBAL_ROLE_BINDING,
     collectionMethods: [],
     schemas:           [
@@ -179,7 +178,7 @@ export function init(store) {
     'config',
     USERS_VIRTUAL_TYPE,
     NORMAN.SPOOFED.GROUP_PRINCIPAL,
-    ROLES_VIRTUAL_TYPE
+    ROLES_VIRTUAL_TYPE,
   ]);
 
   headers(NORMAN.SPOOFED.GROUP_PRINCIPAL, [
