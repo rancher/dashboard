@@ -875,6 +875,7 @@ export default {
       font-size: 16px;
       font-weight: bold;
       margin-bottom: 5px;
+      text-transform: capitalize;
     }
 
     .plugin-badges {

@@ -254,6 +254,10 @@ export default {
 
       transition: right .5s ease;
 
+      &__header {
+        text-transform: capitalize;
+      }
+
       .plugin-info-content {
         display: flex;
         flex-direction: column;
