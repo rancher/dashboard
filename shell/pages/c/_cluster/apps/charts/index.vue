@@ -34,7 +34,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
+    await this.$store.dispatch('catalog/load', { force: true });
 
     const query = this.$route.query;
 

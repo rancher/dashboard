@@ -106,7 +106,7 @@ export default {
   <div>
     <InfoBox v-for="(row, i) in rows" :key="i" class="infoBox">
       <button v-if="!isView" type="button" class="role-link remove-vol" @click="remove(row)">
-        <i class="icon icon-2x icon-x" />
+        <i class="icon icon-x" />
       </button>
 
       <h3> {{ t('harvester.virtualMachine.network.title') }} </h3>

@@ -10,12 +10,13 @@ function registerType(state, type) {
 
   if ( !cache ) {
     cache = {
-      list:         [],
-      haveAll:      false,
-      haveSelector: {},
-      revision:     0, // The highest known resourceVersion from the server for this type
-      generation:   0, // Updated every time something is loaded for this type
-      loadCounter:  0, // Used to cancel incremental loads if the page changes during load
+      list:          [],
+      haveAll:       false,
+      haveSelector:  {},
+      haveNamespace: undefined, // If the cached list only contains resources for a namespace, this will contain the ns name
+      revision:      0, // The highest known resourceVersion from the server for this type
+      generation:    0, // Updated every time something is loaded for this type
+      loadCounter:   0, // Used to cancel incremental loads if the page changes during load
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -115,6 +116,7 @@ export function forgetType(state, type) {
   if ( cache ) {
     cache.haveAll = false;
     cache.haveSelector = {};
+    cache.haveNamespace = undefined;
     cache.revision = 0;
     cache.generation = 0;
     clear(cache.list);
@@ -167,7 +169,8 @@ export function loadAll(state, {
   type,
   data,
   ctx,
-  skipHaveAll
+  skipHaveAll,
+  namespace
 }) {
   const { getters } = ctx;
 
@@ -199,7 +202,8 @@ export function loadAll(state, {
 
   // Allow requester to skip setting that everything has loaded
   if (!skipHaveAll) {
-    cache.haveAll = true;
+    cache.haveNamespace = namespace;
+    cache.haveAll = !namespace;
   }
 
   return proxies;
@@ -286,6 +290,12 @@ export default {
     const cache = registerType(state, type);
 
     cache.haveAll = true;
+  },
+
+  setHaveNamespace(state, { type, namespace }) {
+    const cache = registerType(state, type);
+
+    cache.haveNamespace = namespace;
   },
 
   loadedAll(state, { type }) {

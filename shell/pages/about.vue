@@ -16,7 +16,8 @@ export default {
   },
   data() {
     return {
-      settings: null,
+      dashboardVersion: this.$config.dashboardVersion,
+      settings:         null,
       SETTING
     };
   },
@@ -120,6 +121,17 @@ export default {
             {{ t("about.versions.rancher") }}
           </a>
         </td><td>{{ rancherVersion.value }}</td>
+      </tr>
+      <tr v-if="dashboardVersion">
+        <td>
+          <a
+            href="https://github.com/rancher/dashboard"
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+          >
+            {{ t("generic.dashboard") }}
+          </a>
+        </td><td>{{ dashboardVersion }}</td>
       </tr>
       <tr v-if="cliVersion">
         <td>

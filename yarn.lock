@@ -7251,9 +7251,9 @@ decimal.js@^10.2.1:
   integrity sha512-F29o+vci4DodHYT9UrR5IEbfBw9pE5eSapIJdTqXK5+6hq+t8VRxwQyKlW2i+KDKFkkJQRvFyI/QXD83h8LyQw==
 
 decode-uri-component@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
-  integrity sha512-hjf+xovcEn31w/EUYdTXQh/8smFL/dzYjohQGEIgjyNavaJfBY2p5F527Bo1VPATxv0VYTUC2bOcXvqFwk78Og==
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.2.tgz#e69dbe25d37941171dd540e024c444cd5188e1e9"
+  integrity sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==
 
 decompress-response@^3.3.0:
   version "3.3.0"
@@ -11528,10 +11528,10 @@ jsprim@^2.0.2:
     json-schema "0.4.0"
     verror "1.10.0"
 
-jsrsasign@10.2.0:
-  version "10.2.0"
-  resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-10.2.0.tgz#960ab8046d19d3fcbb584368a57d1977cb0b7ffd"
-  integrity sha512-khMrV/10U02DRzmXhjuLQjddUF39GHndaJZ/3YiiKkbyEl1T5M6EQF9nQUq0DFVCHusmd/jl8TWl4mWt+1L5hg==
+jsrsasign@10.5.25:
+  version "10.5.25"
+  resolved "https://registry.yarnpkg.com/jsrsasign/-/jsrsasign-10.5.25.tgz#8eb3f943718d73f2dd3d85f587f241a5316b835a"
+  integrity sha512-N7zxHaCwYvFlXsybq4p4RxRwn4AbEq3cEiyjbCrWmwA7g8aS4LTKDJ9AJmsXxwtYesYx0imJ+ITtkyyxLCgeIg==
 
 jszip@3.7.0:
   version "3.7.0"
@@ -14515,9 +14515,9 @@ queue-microtask@^1.2.2:
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
   integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
 
-rancher-icons@rancher/icons#v2.0.9:
-  version "2.0.9"
-  resolved "https://codeload.github.com/rancher/icons/tar.gz/09048239918c9eccf49f7770948efef63fb04f24"
+rancher-icons@rancher/icons#v2.0.13:
+  version "2.0.13"
+  resolved "https://codeload.github.com/rancher/icons/tar.gz/31a5cbe19edc8c01f7fd8b39f6ff79c81ef68b19"
 
 randombytes@^2.0.0, randombytes@^2.0.1, randombytes@^2.0.5, randombytes@^2.1.0:
   version "2.1.0"
@@ -17223,6 +17223,11 @@ vue-template-es2015-compiler@^1.9.0:
   resolved "https://registry.yarnpkg.com/vue-template-es2015-compiler/-/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==
 
+vue-virtual-scroll-list@^2.3.4:
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/vue-virtual-scroll-list/-/vue-virtual-scroll-list-2.3.4.tgz#0d08c2d26299d8609018b8c04f5e3ca608fbe2d6"
+  integrity sha512-a9bmmIhAdnKcp8NG0C9ZQ+pW9nAOrDv5SHqJfbbEpXxVVERCtbIgGeBnkwrGgmoILBoFz/WANIZgA22G44F0Yw==
+
 vue2-transitions@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/vue2-transitions/-/vue2-transitions-0.3.0.tgz#765fc0d743103fcfe2d10f431697d8873a075c17"
@@ -17880,30 +17885,30 @@ xtend@^4.0.0, xtend@~4.0.1:
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
 
-xterm-addon-fit@0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/xterm-addon-fit/-/xterm-addon-fit-0.4.0.tgz#06e0c5d0a6aaacfb009ef565efa1c81e93d90193"
-  integrity sha512-p4BESuV/g2L6pZzFHpeNLLnep9mp/DkF3qrPglMiucSFtD8iJxtMufEoEJbN8LZwB4i+8PFpFvVuFrGOSpW05w==
+xterm-addon-fit@0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/xterm-addon-fit/-/xterm-addon-fit-0.6.0.tgz#142e1ce181da48763668332593fc440349c88c34"
+  integrity sha512-9/7A+1KEjkFam0yxTaHfuk9LEvvTSBi0PZmEkzJqgafXPEXL9pCMAVV7rB09sX6ATRDXAdBpQhZkhKj7CGvYeg==
 
-xterm-addon-search@0.7.0:
+xterm-addon-search@0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/xterm-addon-search/-/xterm-addon-search-0.10.0.tgz#b6a5e859c0bfd83ad534233f93376640c0e0c652"
+  integrity sha512-l+kjDxNDQbkniU5OUo9BHknxUEPZGM0OFpVpc2sMmrb97S0FKJVJO4wAZPJvSGVJ8ZEG6KuDyzXluvnb08t71Q==
+
+xterm-addon-web-links@0.7.0:
   version "0.7.0"
-  resolved "https://registry.yarnpkg.com/xterm-addon-search/-/xterm-addon-search-0.7.0.tgz#c929d3e5cbb335e82bff72f158ea82936d9cd4ef"
-  integrity sha512-6060evmJJ+tZcjnx33FXaeEHLpuXEa7l9UzUsYfMlCKbu88AbE+5LJocTKCHYd71cwCwb9pjmv/G1o9Rf9Zbcg==
+  resolved "https://registry.yarnpkg.com/xterm-addon-web-links/-/xterm-addon-web-links-0.7.0.tgz#dceac36170605f9db10a01d716bd83ee38f65c17"
+  integrity sha512-6PqoqzzPwaeSq22skzbvyboDvSnYk5teUYEoKBwMYvhbkwOQkemZccjWHT5FnNA8o1aInTc4PRYAl4jjPucCKA==
 
-xterm-addon-web-links@0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/xterm-addon-web-links/-/xterm-addon-web-links-0.4.0.tgz#265cbf8221b9b315d0a748e1323bee331cd5da03"
-  integrity sha512-xv8GeiINmx0zENO9hf5k+5bnkaE8mRzF+OBAr9WeFq2eLaQSudioQSiT34M1ofKbzcdjSsKiZm19Rw3i4eXamg==
+xterm-addon-webgl@0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/xterm-addon-webgl/-/xterm-addon-webgl-0.13.0.tgz#b1d42ec454390ad8595aa8c8dde714b98a5eb896"
+  integrity sha512-xL4qBQWUHjFR620/8VHCtrTMVQsnZaAtd1IxFoiKPhC63wKp6b+73a45s97lb34yeo57PoqZhE9Jq5pB++ksPQ==
 
-xterm-addon-webgl@0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/xterm-addon-webgl/-/xterm-addon-webgl-0.9.0.tgz#947ca94f9fd72462155c300dfb82bc471402d60a"
-  integrity sha512-JSRoe/MgPEKCpr7LbiC+sQUq0c9l/ZhsBXYugKx5BJsJEPsY+5EFcqAexuhsJVe/qV+CP3hsbYDe/411rw3ASA==
-
-xterm@4.9.0:
-  version "4.9.0"
-  resolved "https://registry.yarnpkg.com/xterm/-/xterm-4.9.0.tgz#7a4c097a433d565339b5533b468bbc60c6c87969"
-  integrity sha512-wGfqufmioctKr8VkbRuZbVDfjlXWGZZ1PWHy1yqqpGT3Nm6yaJx8lxDbSEBANtgaiVPTcKSp97sxOy5IlpqYfw==
+xterm@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/xterm/-/xterm-5.0.0.tgz#0af50509b33d0dc62fde7a4ec17750b8e453cc5c"
+  integrity sha512-tmVsKzZovAYNDIaUinfz+VDclraQpPUnAME+JawosgWRMphInDded/PuY0xmU5dOhyeYZsI0nz5yd8dPYsdLTA==
 
 xxhashjs@^0.2.1:
   version "0.2.2"

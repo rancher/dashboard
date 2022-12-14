@@ -81,6 +81,10 @@ const storageTypes = [
     name:  'Premium LRS',
     value: 'Premium_LRS',
   },
+  {
+    name:  'Standard SSD LRS',
+    value: 'StandardSSD_LRS'
+  }
 ];
 
 export default {

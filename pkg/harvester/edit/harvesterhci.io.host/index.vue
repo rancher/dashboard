@@ -498,7 +498,7 @@ export default {
               class="btn role-link close btn-sm"
               @click="() => onRemove(scope)"
             >
-              <i class="icon icon-2x icon-x" />
+              <i class="icon icon-x" />
             </button>
             <span v-else />
           </template>

@@ -79,10 +79,28 @@ export default {
       return this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
     },
 
+    // User can go to Cluster Management if they can see the cluster schema
+    canManageClusters() {
+      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+      return !!schema;
+    },
+
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
       return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
+
+    manageLocation() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  MANAGER,
+          cluster:  BLANK_CLUSTER,
+          resource: CAPI.RANCHER_CLUSTER
+        },
+      };
     },
 
     createLocation() {
@@ -338,19 +356,28 @@ export default {
                   </div>
                 </template>
                 <template
-                  v-if="canCreateCluster"
+                  v-if="canCreateCluster || canManageClusters"
                   #header-middle
                 >
                   <div class="table-heading">
                     <n-link
+                      v-if="canManageClusters"
+                      :to="manageLocation"
+                      class="btn btn-sm role-secondary"
+                    >
+                      {{ t('cluster.manageAction') }}
+                    </n-link>
+                    <n-link
+                      v-if="canCreateCluster"
                       :to="importLocation"
-                      class="btn role-primary"
+                      class="btn btn-sm role-primary"
                     >
                       {{ t('cluster.importAction') }}
                     </n-link>
                     <n-link
+                      v-if="canCreateCluster"
                       :to="createLocation"
-                      class="btn role-primary"
+                      class="btn btn-sm role-primary"
                     >
                       {{ t('generic.create') }}
                     </n-link>
@@ -453,7 +480,7 @@ export default {
     height: 39px;
 
     & > a {
-      margin-left: 5px;
+      margin-left: 10px;
     }
   }
   .panel:not(:first-child) {
@@ -472,6 +499,7 @@ export default {
     display: contents;
     white-space: nowrap;
   }
+
   .list-cluster-name {
     align-items: center;
     display: flex;
@@ -481,12 +509,25 @@ export default {
       margin-left: 4px;
     }
   }
+
+  // Hide the side-panel showing links when the screen is small
+  @media screen and (max-width: 996px) {
+    .side-panel {
+      display: none;
+    }
+  }
 </style>
 <style lang="scss">
 .home-page {
-  .search > INPUT {
-    background-color: transparent;
-    padding: 8px;
+  .search {
+    align-items: center;
+    display: flex;
+
+    > INPUT {
+      background-color: transparent;
+      height: 30px;
+      padding: 8px;
+    }
   }
 
   h2 {
