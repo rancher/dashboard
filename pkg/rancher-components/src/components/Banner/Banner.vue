@@ -224,6 +224,7 @@ $icon-size: 24px;
       text-align: center;
 
       .closer-icon {
+        --link: #fff;
         opacity: 0.7;
 
         &:hover {
