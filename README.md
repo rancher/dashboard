@@ -29,7 +29,7 @@ API=https://your-rancher yarn dev
 
 ## Other Building Modes
 ```bash
-# Build for standalone use within Rancher
+# Build for standalone use within Rancher.
 # (These are done on commit/tag via Drone)
 ./scripts/build-embedded # for embedding into rancher builds
 ./scripts/build-hosted # for hosting on a static file webserver and pointing Rancher's ui-dashboard-index at it
