@@ -1327,8 +1327,9 @@ export default class Resource {
 
   async download() {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
+    const data = await this.$dispatch('cleanForDownload', value.data);
 
-    downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
+    downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
   }
 
   async downloadBulk(items) {
@@ -1347,8 +1348,11 @@ export default class Resource {
     }
 
     await eachLimit(items, 10, (item, idx) => {
-      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
-        files[`resources/${ names[idx] }`] = data.data || data;
+      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then(async(data) => {
+        const yaml = data.data || data;
+        const cleanedYaml = await this.$dispatch('cleanForDownload', yaml);
+
+        files[`resources/${ names[idx] }`] = cleanedYaml;
       });
     });
 
