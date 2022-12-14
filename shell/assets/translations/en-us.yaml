@@ -16,6 +16,7 @@ generic:
   create: Create
   created: Created
   customize: Customize
+  dashboard: Dashboard
   default: Default
   disabled: Disabled
   done: Done

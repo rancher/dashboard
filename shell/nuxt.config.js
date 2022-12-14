@@ -22,15 +22,13 @@ export const API_PATH = api;
 
 const dev = (process.env.NODE_ENV !== 'production');
 const devPorts = dev || process.env.DEV_PORTS === 'true';
-const version = process.env.VERSION ||
-  process.env.DRONE_TAG ||
-  process.env.DRONE_VERSION ||
-  require('./package.json').version;
+
+// human readable version used on rancher dashboard about page
+const dashboardVersion = process.env.DASHBOARD_VERSION;
 
 const prime = process.env.PRIME;
 
 const pl = process.env.PL || STANDARD;
-const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 const instrumentCode = (process.env.TEST_INSTRUMENT === 'true'); //  Instrument code for code coverage in e2e tests
 
@@ -280,7 +278,7 @@ export default function(dir, _appConfig) {
   console.log(`Build: ${ dev ? 'Development' : 'Production' }`); // eslint-disable-line no-console
 
   if ( !dev ) {
-    console.log(`Version: ${ version } (${ commit })`); // eslint-disable-line no-console
+    console.log(`Version: ${ dashboardVersion }`); // eslint-disable-line no-console
   }
 
   if ( resourceBase ) {
@@ -319,8 +317,6 @@ export default function(dir, _appConfig) {
 
     // Configuration visible to the client, https://nuxtjs.org/api/configuration-env
     env: {
-      commit,
-      version,
       dev,
       pl,
       perfTest,
@@ -329,7 +325,8 @@ export default function(dir, _appConfig) {
       api
     },
 
-    publicRuntimeConfig: { rancherEnv },
+    // vars accessible via this.$config https://nuxtjs.org/docs/configuration-glossary/configuration-runtime-config/
+    publicRuntimeConfig: { rancherEnv, dashboardVersion },
 
     buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
