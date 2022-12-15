@@ -78,7 +78,28 @@ export default {
       this.$nuxt.$loading.finish();
 
       this.value.setData('kubeconfigContent', kubeconfigContent);
-    }
+    },
+
+    'value.decodedData.clusterId': {
+      handler() {
+        this.emitValidation();
+      },
+      immediate: true,
+    },
+
+    isImportCluster: {
+      handler() {
+        this.emitValidation();
+      },
+      immediate: true,
+    },
+
+    'value.decodedData.kubeconfigContent': {
+      handler() {
+        this.emitValidation();
+      },
+      immediate: true,
+    },
   },
 
   methods: {
@@ -102,7 +123,15 @@ export default {
         return true;
       }
     },
-  }
+
+    emitValidation() {
+      if (this.test() === true) {
+        this.$emit('validationChanged', true);
+      } else {
+        this.$emit('validationChanged', false);
+      }
+    },
+  },
 };
 </script>
 
