@@ -612,8 +612,10 @@ export default class Workload extends WorkloadService {
 
   async matchingPods() {
     const all = await this.$dispatch('findAll', { type: POD });
+    const allInNamespace = all.filter(pod => pod.metadata.namespace === this.metadata.namespace);
+
     const selector = convertSelectorObj(this.spec.selector);
 
-    return matching(all, selector);
+    return matching(allInNamespace, selector);
   }
 }
