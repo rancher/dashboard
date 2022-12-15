@@ -13,13 +13,13 @@ pipeline {
     }
 
     parameters {
-        string (name: 'RANCHER_UPSTREAM_VERSION',
-                defaultValue: '2.6.8',
-                description: 'Verrazzano Rancher upstream version to build, default 2.6.8',
+        string (name: 'RANCHER_UPSTREAM_BRANCH',
+                defaultValue: '',
+                description: 'Upstream Verrazzano Rancher branch to build after this Dashboard build completes, like oracle/release/2.6.8.  Defaults to same branch name.',
                 trim: true)
 
         booleanParam (name: 'TRIGGER_UPSTREAM', defaultValue: false,
-                description: 'Trigger the build for Verrazzano Rancher, similar to nightly build.')
+                description: 'Trigger the build for Verrazzano Rancher after this dashboard build completes.')
     }
 
     environment {
@@ -78,7 +78,7 @@ pipeline {
                 // Trigger upstream build WHEN new changes for Rancher Dashboard are committed to the release branch, OR the user demands it
                 anyOf {
                     allOf {
-                        branch 'oracle/release/2.6.8'
+                        branch "oracle/release/${DASHBOARD_VERSION}"
                         expression {
                             currentBuild.changeSets.size() > 0
                         }
@@ -89,7 +89,7 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: "dist/${env.TAR_FILE_NAME}"
 
-                build job: "Build from Source/rancher/oracle%2Frelease%2F${params.RANCHER_UPSTREAM_VERSION}",
+                build job: get_upstream_jobname("${params.RANCHER_UPSTREAM_BRANCH}"),
                     propagate: false,
                     wait: false,
                     parameters: [
@@ -116,4 +116,14 @@ def get_artifact_version() {
     dashboard_version = [version_prefix, time_stamp, short_commit_sha].join("-")
     println("dashboard version: " + dashboard_version)
     return dashboard_version
+}
+
+def get_upstream_jobname(branchNameParam) {
+    def branch_name
+    if (branchNameParam?.trim()) {
+        branch_name =  java.net.URLEncoder.encode(branchNameParam, "UTF-8")
+    } else {
+        branch_name = java.net.URLEncoder.encode(env.BRANCH_NAME, "UTF-8")
+    }
+    return "Build from Source/rancher/${branch_name}"
 }
