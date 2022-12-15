@@ -224,6 +224,7 @@ export default {
           class="mb-20"
           :mode="mode"
           :retain-selection="true"
+          :show-tooltip="true"
           @add="onAdd"
         />
       </div>
