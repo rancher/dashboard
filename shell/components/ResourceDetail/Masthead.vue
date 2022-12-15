@@ -125,6 +125,10 @@ export default {
       return null;
     },
 
+    detailsAction() {
+      return this.value?.detailsAction;
+    },
+
     shouldHifenize() {
       return (this.mode === 'view' || this.mode === 'edit') && this.resourceSubtype?.length && this.value?.nameDisplay?.length;
     },
@@ -368,6 +372,18 @@ export default {
 
     toggleSensitiveData(e) {
       this.$store.dispatch('prefs/set', { key: HIDE_SENSITIVE, value: !!e });
+    },
+
+    invokeDetailsAction() {
+      const action = this.detailsAction;
+
+      if (action) {
+        const fn = this.value[action.action];
+
+        if (fn) {
+          fn.apply(this.value, []);
+        }
+      }
     }
   }
 };
@@ -418,6 +434,15 @@ export default {
       <slot name="right">
         <div class="actions-container">
           <div class="actions">
+            <button
+              v-if="detailsAction"
+              type="button"
+              class="btn role-primary actions mr-10"
+              :disabled="!detailsAction.enabled"
+              @click="invokeDetailsAction"
+            >
+              {{ detailsAction.label }}
+            </button>
             <ButtonGroup
               v-if="showSensitiveToggle"
               :value="!!hideSensitiveData"
