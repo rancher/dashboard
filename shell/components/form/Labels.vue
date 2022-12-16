@@ -1,8 +1,13 @@
 <script>
 import KeyValue from '@shell/components/form/KeyValue';
+import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { getPSALabels } from '@shell/utils/pod-security-admission';
 
 export default {
-  components: { KeyValue },
+  components: {
+    ToggleSwitch,
+    KeyValue
+  },
 
   props: {
     value: {
@@ -41,6 +46,10 @@ export default {
     }
   },
 
+  data() {
+    return { toggler: true };
+  },
+
   computed: {
     containerClass() {
       return `${ this.displaySideBySide ? 'row' : '' } ${ this.defaultContainerClass }`.trim();
@@ -48,24 +57,47 @@ export default {
 
     sectionClass() {
       return `${ this.displaySideBySide ? 'col span-6' : 'row' } ${ this.defaultSectionClass }`.trim();
-    }
+    },
+
+    /**
+     * Generate list of present keys which can be filtered based on existing label keys and system keys
+     */
+    protectedKeys() {
+      return getPSALabels(this.value);
+    },
   }
 };
 </script>
 <template>
   <div :class="containerClass">
-    <div :class="sectionClass">
-      <KeyValue
-        key="labels"
-        :value="value.labels"
-        :add-label="t('labels.addLabel')"
-        :mode="mode"
-        :title="t('labels.labels.title')"
-        :title-protip="labelTitleTooltip"
-        :read-allowed="false"
-        :value-can-be-empty="true"
-        @input="value.setLabels($event)"
-      />
+    <div class="labels">
+      <div class="labels__header">
+        <h2>
+          <t k="labels.labels.title" />
+        </h2>
+        <ToggleSwitch
+          v-if="protectedKeys.length"
+          v-model="toggler"
+          name="label-system-toggle"
+          :on-label="t('labels.labels.show')"
+        />
+      </div>
+      <p class="helper-text mt-20 mb-20">
+        <t k="labels.labels.description" />
+      </p>
+      <div :class="sectionClass">
+        <KeyValue
+          key="labels"
+          :value="value.labels"
+          :protected-keys="protectedKeys"
+          :toggle-filter="toggler"
+          :add-label="t('labels.addLabel')"
+          :mode="mode"
+          :read-allowed="false"
+          :value-can-be-empty="true"
+          @input="value.setLabels($event)"
+        />
+      </div>
     </div>
     <div class="spacer" />
     <div :class="sectionClass">
@@ -84,6 +116,12 @@ export default {
   </div>
 </template>
 
-<style scoped>
-
+<style lang="scss" scoped>
+.labels {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1em;
+  }
+}
 </style>
