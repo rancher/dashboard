@@ -343,5 +343,9 @@ export default {
         margin-bottom: $spacing;
       }
     }
+
+    .icon {
+      vertical-align: top;
+    }
   }
 </style>
