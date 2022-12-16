@@ -151,6 +151,28 @@ export default {
       };
     },
 
+    productAction() {
+      const product = this.currentProduct?.name || '';
+
+      if (product === 'explorer') {
+        if (!this.$route.name.startsWith('c-')) {
+          return '';
+        }
+      }
+
+      return product;
+    },
+
+    extensionActions() {
+      const globalActions = this.$plugin.getUIConfig('action', '/');
+      const productActions = this.productAction.length ? this.$plugin.getUIConfig('action', `/${ this.productAction }`) : [];
+
+      return [
+        ...productActions,
+        ...globalActions,
+      ];
+    },
+
     singleProductLogoRoute() {
       const cluster = this.$store.getters.defaultClusterId;
 
@@ -288,6 +310,14 @@ export default {
           button.classList.remove('header-btn-active');
         }
       });
+    },
+
+    invokeAction(action, event) {
+      const fn = action.execute;
+
+      if (fn) {
+        fn.apply(this, [event]);
+      }
     }
   }
 };
@@ -502,6 +532,24 @@ export default {
         </modal>
       </div>
 
+      <div
+        v-if="extensionActions.length"
+        class="header-buttons"
+      >
+        <button
+          v-for="action in extensionActions"
+          :key="action.label"
+          :disabled="!action.enabled()"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @click="invokeAction(action, $event)"
+        >
+          <i
+            class="icon icon-lg"
+            :class="action.icon"
+          />
+        </button>
+      </div>
       <div
         v-if="showPageActions"
         id="page-actions"

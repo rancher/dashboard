@@ -77,6 +77,12 @@ export default {
   },
 
   computed: {
+    extensionTabs() {
+      const tabs = this.$plugin.getUIConfig('tab', this.value.type);
+
+      return tabs;
+    },
+
     showConditions() {
       const inStore = this.$store.getters['currentStore'](this.value.type);
 
@@ -219,6 +225,18 @@ export default {
         :ignore-types="[value.type]"
         :value="value"
         direction="to"
+      />
+    </Tab>
+
+    <Tab
+      v-for="tab in extensionTabs"
+      :key="tab"
+      label-key="resourceTabs.conditions.tab"
+      name="tab"
+    >
+      <component
+        :is="tab"
+        :resource="value"
       />
     </Tab>
   </Tabbed>

@@ -35,6 +35,11 @@ export type OnNavToPackage = (store: any, config: OnEnterLeavePackageConfig) => 
 export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnLogOut = (store: any) => Promise<void>;
 
+export const UI_CONFIG_ACTION = 'action';
+export const UI_CONFIG_TAB = 'tab';
+
+export type IAction = any;
+
 /**
  * Interface for a Dashboard plugin
  */
@@ -78,6 +83,12 @@ export interface IPlugin {
    * @param component Home page component
    */
   setHomePage(component: any): void;
+
+  // DOCS
+  addAction(location: string, action: IAction): void;
+
+  // DOCS
+  addTab(location: string, tab: any): void;
 
   /**
    * Add routes to the Vue Router
