@@ -294,7 +294,6 @@ export default {
                   class="project-name"
                   v-html="getProjectLabel(group)"
                 />
-                <div class="description text-muted text-small" />
               </div>
               <div class="right">
                 <button
