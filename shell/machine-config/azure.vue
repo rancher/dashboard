@@ -443,6 +443,11 @@ export default {
             option-key="value"
             option-label="name"
           />
+          <Banner
+            v-if="value.storageType === 'StandardSSD_LRS' && !value.managedDisks"
+            color="error"
+            :label="t('cluster.machineConfig.azure.storageType.warning')"
+          />
         </div>
       </div>
       <div class="row mt-20">
