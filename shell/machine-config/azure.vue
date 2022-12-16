@@ -14,6 +14,7 @@ import { addParam, addParams } from '@shell/utils/url';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
 import { _CREATE } from '@shell/config/query-params';
+import { truncate } from 'lodash';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -191,6 +192,7 @@ export default {
       storageTypes,
       credential:      null,
       locationOptions: [],
+      loading:         false,
       useAvailabilitySet,
       vmSizes:         [],
       valueCopy:       this.value
@@ -284,10 +286,20 @@ export default {
         return '';
       }
       if (this.vmsWithAvailabilityZones.length === 0) {
+        /**
+         * Show UI warning: Availability zones are not supported in the selected
+         * region. Please select a different region or use an
+         * availability set instead.
+         */
         return this.t('cluster.machineConfig.azure.size.regionDoesNotSupportAzs');
       }
 
       if (this.vmsWithAvailabilityZones.length > 0 && !this.selectedVmSizeHasZones) {
+        /**
+         * Show UI warning: The selected region does not support availability
+         * zones for the selected VM size. Please select a
+         * different region or VM size.
+         */
         return this.t('cluster.machineConfig.azure.size.regionSupportsAzsButNotThisSize');
       }
 
@@ -309,21 +321,42 @@ export default {
 
       ];
 
+      if (!this.selectedVmSizeExistsInSelectedRegion) {
+        out.push({
+          Name:     this.value.size,
+          disabled: true
+        });
+      }
+
       return out.map((vmData) => {
         const { Name } = vmData;
-
-        const disabled = false;
 
         if (vmData.kind === 'group') {
           return vmData;
         }
 
         return {
-          label: Name,
-          value: Name,
-          disabled,
+          label:    Name,
+          value:    Name,
+          disabled: vmData.disabled || false,
         };
       });
+    },
+    selectedVmSizeExistsInSelectedRegion() {
+      // If the user selects a region and then a VM size
+      // that does not exist in the region, the list of VM
+      // sizes will update, causing the selected VM size
+      // to disappear. A disappearing VM size seems like a
+      // bad UX, so this value allows the value to be
+      // added to the VM size dropdown, while an error message
+      // indicates that the size is invalid.
+      if (this.vmSizes.find((size) => {
+        return size.Name === this.value.size;
+      })) {
+        return true;
+      }
+
+      return false;
     },
     availableZones() {
       const data = this.vmSizes.filter((vmData) => {
@@ -362,9 +395,17 @@ export default {
     },
     stringify,
     async getVmSizes() {
+      this.loading = true;
       // The list of VM sizes should update when the
       // selected region is changed because different
       // VMs are supported in different regions.
+
+      // Example vmSize option from backend:
+      // {
+      //   AcceleratedNetworkingSupported: false,
+      //   AvailabilityZones: [],
+      //   Name: "Basic_A0"
+      // }
       try {
         this.vmSizes = await this.$store.dispatch('management/request', {
           url: addParams('/meta/aksVMSizesV2', {
@@ -376,6 +417,7 @@ export default {
       } catch (e) {
         this.errors = exceptionToErrorsArray(e);
       }
+      this.loading = false;
     },
     setLocation(location) {
       this.value.location = location?.name;
@@ -494,7 +536,12 @@ export default {
         v-if="!useAvailabilitySet"
         class="col span-4"
       >
+        <i
+          v-if="loading"
+          class="icon icon-spinner delayed-loader"
+        />
         <LabeledSelect
+          v-else
           v-model="value.availabilityZone"
           :mode="mode"
           :options="availableZones"
@@ -531,7 +578,12 @@ export default {
         />
       </div>
       <div class="col span-6">
+        <i
+          v-if="loading"
+          class="icon icon-spinner delayed-loader"
+        />
         <LabeledSelect
+          v-else
           v-model="value.size"
           :mode="mode"
           :options="vmSizeOptionsForDropdown"
@@ -620,6 +672,11 @@ export default {
           :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
         />
       </div>
+      <Banner
+        v-if="!selectedVmSizeSupportsAN && value.acceleratedNetworking"
+        color="error"
+        :label="t('cluster.machineConfig.azure.size.selectedSizeAcceleratedNetworkingWarning')"
+      />
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
