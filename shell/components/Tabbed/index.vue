@@ -32,7 +32,7 @@ export default {
 
     useHash: {
       type:    Boolean,
-      default: true,
+      default: false,
     },
 
     noContent: {
