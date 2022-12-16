@@ -244,7 +244,7 @@ export default {
       return selectedSizeIsValid;
     },
     vmSizeAcceleratedNetworkingWarning() {
-      if (!this.selectedVmSizeSupportsAN) {
+      if (!this.selectedVmSizeSupportsAN && this.value.acceleratedNetworking) {
         return this.t('cluster.machineConfig.azure.size.selectedSizeAcceleratedNetworkingWarning');
       }
 
@@ -287,7 +287,7 @@ export default {
         return this.t('cluster.machineConfig.azure.size.regionDoesNotSupportAzs');
       }
 
-      if (this.vmsWithAvailabilityZones > 0 && !this.selectedVmSizeHasZones) {
+      if (this.vmsWithAvailabilityZones.length > 0 && !this.selectedVmSizeHasZones) {
         return this.t('cluster.machineConfig.azure.size.regionSupportsAzsButNotThisSize');
       }
 
