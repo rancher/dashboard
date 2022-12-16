@@ -2,11 +2,13 @@
 <script>
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
+import DisableAuthProviderModal from '@shell/components/DisableAuthProviderModal';
 
 export default {
   components: {
     AsyncButton,
-    Banner
+    Banner,
+    DisableAuthProviderModal
   },
 
   props: {
@@ -30,6 +32,12 @@ export default {
   computed: {
     values() {
       return Object.entries(this.table);
+    }
+  },
+
+  methods: {
+    showDisableModal() {
+      this.$refs.disableAuthProviderModal.show();
     }
   },
 };
@@ -57,7 +65,7 @@ export default {
         mode="disable"
         size="sm"
         action-color="bg-error"
-        @click="disable"
+        @click="showDisableModal"
       />
     </Banner>
 
@@ -67,6 +75,10 @@ export default {
     >
       <slot name="rows" />
     </table>
+    <DisableAuthProviderModal
+      ref="disableAuthProviderModal"
+      @disable="disable"
+    />
   </div>
 </template>
 
