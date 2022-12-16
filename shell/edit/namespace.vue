@@ -16,14 +16,14 @@ import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
-import LabelsPSA from '@shell/components/LabelsPSA';
+import Labels from '@shell/components/form/Labels';
 
 export default {
   components: {
     ContainerResourceLimit,
     CruResource,
     LabeledSelect,
-    LabelsPSA,
+    Labels,
     Loading,
     NameNsDescription,
     PodSecurityAdmission,
@@ -230,13 +230,14 @@ export default {
       <Tab
         v-if="!isView"
         name="labels-and-annotations"
-        label-key="generic.labels"
-        :show-header="false"
+        label-key="generic.labelsAndAnnotations"
         :weight="-1"
       >
-        <LabelsPSA
+        <Labels
+          default-container-class="labels-and-annotations-container"
           :value="value"
           :mode="mode"
+          :display-side-by-side="false"
         />
       </Tab>
       <Tab
