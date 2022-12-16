@@ -257,10 +257,11 @@ export const DESCRIPTION = {
 };
 
 export const DURATION = {
-  name:     'duration',
-  labelKey: 'tableHeaders.duration',
-  value:    'duration.value',
-  sort:     'duration.seconds',
+  name:      'duration',
+  labelKey:  'tableHeaders.duration',
+  value:     'duration.value',
+  sort:      'duration.seconds',
+  formatter: 'LiveDuration',
 };
 
 export const IMAGE = {
