@@ -1,15 +1,10 @@
 <script>
 import { Card } from '@components/Card';
-import AsyncButton from '@shell/components/AsyncButton';
 export default {
   name: 'PromptRemove',
 
-  components: {
-    Card,
-    // Checkbox,
-    AsyncButton
-  },
-  props: {
+  components: { Card },
+  props:      {
     /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components
@@ -18,11 +13,6 @@ export default {
       type:    String,
       default: 'disable-auth-provider'
     }
-  },
-  data() {
-    // const { resource } = this.$route.params;
-
-    return {};
   },
   computed: {},
 
@@ -64,8 +54,7 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          <!-- <p v-html="t('promptRemove.attemptingToRemoveAuthConfig', { type }, true)" /> -->
-          <p v-html="t('promptRemove.attemptingToRemoveAuthConfigNew', null, true)" />
+          <p v-html="t('promptRemove.attemptingToRemoveAuthConfig', null, true)" />
         </div>
       </div>
       <template #actions>
@@ -76,13 +65,13 @@ export default {
           {{ t('generic.cancel') }}
         </button>
         <div class="spacer" />
-        <AsyncButton
-          mode="delete"
-          class="btn bg-error ml-10"
-          :disabled="deleteDisabled"
+        <button
+          class="btn role-primary bg-error ml-10"
           :data-testid="componentTestid + '-confirm-button'"
           @click="disable"
-        />
+        >
+          {{ t('generic.disable') }}
+        </button>
       </template>
     </Card>
   </modal>

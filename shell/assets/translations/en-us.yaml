@@ -4044,8 +4044,7 @@ promptRemove:
     other { and <b>{count} others</b>.}
     }
   attemptingToRemove: "You are attempting to delete the {type}"
-  attemptingToRemoveAuthConfig: "You are attempting to disable this {type}. <br><br> Be aware that cluster role template bindings, project role template bindings, global role bindings, users, tokens will be all deleted. Are you sure you want to proceed?"
-  attemptingToRemoveAuthConfigNew: "You are attempting to disable this Auth Provider. <br><br> Be aware that cluster role template bindings, project role template bindings, global role bindings, users, tokens will be all deleted. Are you sure you want to proceed?"
+  attemptingToRemoveAuthConfig: "You are attempting to disable this Auth Provider. <br><br> Be aware that cluster role template bindings, project role template bindings, global role bindings, users, tokens will be all deleted. <br><br> Are you sure you want to proceed?"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
   deleteAssociatedNamespaces: "Also delete the namespaces in this project:"

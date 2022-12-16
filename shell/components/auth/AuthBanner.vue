@@ -1,12 +1,10 @@
 
 <script>
 import { Banner } from '@components/Banner';
-import AsyncButton from '@shell/components/AsyncButton';
 import DisableAuthProviderModal from '@shell/components/DisableAuthProviderModal';
 
 export default {
   components: {
-    AsyncButton,
     Banner,
     DisableAuthProviderModal
   },
@@ -60,13 +58,13 @@ export default {
       >
         {{ t('action.edit') }}
       </button>
-      <AsyncButton
-        class="ml-10"
-        mode="disable"
-        size="sm"
-        action-color="bg-error"
+      <button
+        type="button"
+        class="ml-10 btn-sm role-primary bg-error"
         @click="showDisableModal"
-      />
+      >
+        {{ t('generic.disable') }}
+      </button>
     </Banner>
 
     <table
