@@ -248,7 +248,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:      store.getters['i18n/t']('members.clusterMembers'),
+    label:      store.getters['i18n/t']('members.clusterAndProject'),
     group:      'cluster',
     namespaced: false,
     name:       VIRTUAL_TYPES.CLUSTER_MEMBERS,
