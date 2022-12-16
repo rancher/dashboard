@@ -11,6 +11,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import ArrayList from '@shell/components/form/ArrayList';
 import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';
+import KeyValue from '@shell/components/form/KeyValue';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -58,6 +59,7 @@ const defaultConfig = {
     '10251/tcp',
     '10252/tcp',
   ],
+  tags: null
 };
 
 const storageTypes = [
@@ -92,6 +94,7 @@ export default {
     ArrayList,
     Banner,
     Checkbox,
+    KeyValue,
     LabeledInput,
     LabeledSelect,
     Loading,
@@ -120,6 +123,7 @@ export default {
 
   async fetch() {
     this.errors = [];
+    this.initTags();
 
     try {
       const {
@@ -189,6 +193,35 @@ export default {
     stringify,
     setLocation(location) {
       this.value.location = location?.name;
+    },
+    initTags() {
+      const parts = (this.value.tags || '').split(/,/);
+      const out = {};
+
+      let i = 0;
+
+      while ( i + 1 < parts.length ) {
+        const key = `${ parts[i] }`.trim();
+        const value = `${ parts[i + 1] }`.trim();
+
+        if ( key ) {
+          out[key] = value;
+        }
+
+        i += 2;
+      }
+
+      this.tags = out;
+    },
+
+    updateTags(tags) {
+      const ary = [];
+
+      for ( const k in tags ) {
+        ary.push(k, tags[k]);
+      }
+
+      this.$set(this.value, 'tags', ary.join(','));
     },
   },
 };
@@ -450,6 +483,22 @@ export default {
             :show-protip="true"
             :protip="t('cluster.machineConfig.azure.openPort.help')"
             :disabled="disabled"
+          />
+        </div>
+      </div>
+
+      <div class="row mt-20">
+        <div class="col span-12">
+          <h3><t k="cluster.machineConfig.azure.tags.label" /></h3>
+          <KeyValue
+            :value="tags"
+            :mode="mode"
+            :read-allowed="false"
+            :label="t('cluster.machineConfig.amazonEc2.tagTitle')"
+            :add-label="t('labels.addTag')"
+            :initial-empty-row="true"
+            :disabled="disabled"
+            @input="updateTags"
           />
         </div>
       </div>
