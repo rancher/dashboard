@@ -103,6 +103,15 @@ export default {
 
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
+    ...mapGetters({ theme: 'prefs/theme' }),
+
+    applyDarkModeBg() {
+      if (this.theme === 'dark') {
+        return { 'dark-mode': true };
+      }
+
+      return {};
+    },
 
     menuActions() {
       const menuActions = [];
@@ -599,7 +608,10 @@ export default {
             class="plugin"
             @click="showPluginDetail(plugin)"
           >
-            <div class="plugin-icon">
+            <div
+              class="plugin-icon"
+              :class="applyDarkModeBg"
+            >
               <LazyImage
                 v-if="plugin.icon"
                 :initial-src="defaultIcon"
@@ -841,10 +853,23 @@ export default {
       font-size: 40px;
       margin-right:10px;
       color: #888;
+      width: 44px;
+      height: 44px;
+
+      &.dark-mode {
+        border-radius: calc(2 * var(--border-radius));
+        overflow: hidden;
+        background-color: white;
+      }
 
       .plugin-icon-img {
         height: 40px;
         width: 40px;
+        -o-object-fit: contain;
+        object-fit: contain;
+        position: relative;
+        top: 2px;
+        left: 2px;
       }
     }
 
