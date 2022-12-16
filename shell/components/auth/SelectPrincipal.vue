@@ -40,11 +40,6 @@ export default {
     project: {
       type:    Boolean,
       default: false
-    },
-
-    showTooltip: {
-      type:    Boolean,
-      default: false
     }
   },
 
@@ -101,7 +96,7 @@ export default {
 
   methods: {
     setTooltipContent() {
-      if (!this.showTooltip) {
+      if (!this.retainSelection) {
         return;
       }
       if (this.principals) {
@@ -113,7 +108,7 @@ export default {
       }
     },
     resetTooltipContent() {
-      if (!this.showTooltip) {
+      if (!this.retainSelection) {
         return;
       }
       this.tooltipContent = null;
