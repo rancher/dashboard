@@ -204,8 +204,8 @@ export default class HciCluster extends ProvCluster {
     return res;
   }
 
-  goToCluster() {
-    this.loadClusterPlugin()
+  async goToCluster() {
+    await this.loadClusterPlugin()
       .then(() => {
         this.currentRouter().push({
           name:   `${ VIRTUAL }-c-cluster-resource`,
