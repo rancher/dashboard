@@ -1,6 +1,6 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { COUNT, SCHEMA } from '@shell/config/types';
+import { SCHEMA } from '@shell/config/types';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
   EVENT_CONNECTED,
@@ -640,18 +640,6 @@ export const actions = {
   'ws.resource.change'(ctx, msg) {
     const data = msg.data;
     const type = data.type;
-
-    // Debounce count changes so we send at most 1 every 5 seconds
-    if (type === COUNT) {
-      const worker = (this.$workers || {})[ctx.getters.storeName];
-
-      if (worker) {
-        worker.postMessage({ countsUpdate: msg });
-
-        // No further processing - let the web worker debounce the counts
-        return;
-      }
-    }
 
     // Web worker can process schemas to check that they are actually changing and
     // only load updates if the schema did actually change

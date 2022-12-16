@@ -121,6 +121,15 @@ export default {
   },
 
   cleanResource: () => (existing, data) => {
+    /**
+   * Resource counts are contained within a single 'count' resource with a 'counts' field that is a map of resource types
+   * When counts are updated through the websocket, only the resources that changed are sent so we can't load the new 'count' resource into the store as we would another resource
+   */
+    if (data?.type === COUNT && existing) {
+      data.counts = { ...existing.counts, ...data.counts };
+
+      return data;
+    }
     const typeSuperClass = Object.getPrototypeOf(Object.getPrototypeOf(existing))?.constructor;
 
     return typeSuperClass === HybridModel ? cleanHybridResources(data) : data;

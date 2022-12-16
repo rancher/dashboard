@@ -577,6 +577,10 @@ export default {
     return resource;
   },
 
+  cleanForDownload(ctx, resource) {
+    return resource;
+  },
+
   // Wait for a schema that is expected to exist that may not have been loaded yet (for instance when loadCluster is still running).
   async waitForSchema({ getters, dispatch }, { type }) {
     let tries = SCHEMA_CHECK_RETRIES;
