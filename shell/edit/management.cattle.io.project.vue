@@ -152,7 +152,7 @@ export default {
               type: MANAGEMENT.PROJECT,
               id:   this.value.id,
               opt:  { force: true }
-             });
+            });
           }
 
           // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects
