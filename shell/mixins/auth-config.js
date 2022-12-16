@@ -238,9 +238,8 @@ export default {
       }
     },
 
-    showDisableModal(btnCb) {
+    showDisableModal() {
       this.$refs.disableAuthProviderModal.show();
-      btnCb(false);
     },
 
     async reloadModel() {
