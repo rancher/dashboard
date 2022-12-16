@@ -1,41 +1,6 @@
 <script>
 import day from 'dayjs';
-
-/**
- * return { diff: number; label: string }
- *
- * diff:  update frequency in seconds
- * label: content of the cell's column
- */
-function elapsedTime(seconds) {
-  if (!seconds) {
-    return {};
-  }
-
-  if (seconds < 120) {
-    return { label: `${ seconds }s` };
-  }
-
-  const minutes = Math.floor(seconds / 60);
-
-  if (minutes < 10) {
-    return { label: `${ minutes }m${ seconds - (minutes * 60) }s` };
-  }
-
-  const hours = Math.floor(seconds / 3600);
-
-  if (hours < 3) {
-    return {
-      diff:  60,
-      label: `${ minutes }m`,
-    };
-  }
-
-  return {
-    diff:  60,
-    label: `${ hours }h${ minutes - (hours * 60) }m`,
-  };
-}
+import { elapsedTime } from '@shell/utils/time';
 
 export default {
   props: {
