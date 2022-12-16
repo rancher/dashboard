@@ -435,7 +435,7 @@ export default {
         <div class="actions-container">
           <div class="actions">
             <button
-              v-if="detailsAction"
+              v-if="detailsAction && currentView === 'detail' && isView"
               type="button"
               class="btn role-primary actions mr-10"
               :disabled="!detailsAction.enabled"
